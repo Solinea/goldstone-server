@@ -36,6 +36,9 @@ nosetests.xml
 .project
 .pydevproject
 
+# SQLdatabases
+#
+db.sqlite3
 
 ### /Volumes/Data/Users/kpepple/.gitignore-boilerplates/Ruby.gitignore
 
