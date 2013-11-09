@@ -1,7 +1,4 @@
-Django==1.6
-South==0.8.2
-wsgiref==0.1.2
-django-admin-bootstrapped
+-r base.txt
 django_extensions
 pygraphviz
 pyflakes
