@@ -3,3 +3,5 @@ South==0.8.2
 wsgiref==0.1.2
 django-admin-bootstrapped
 psycopg2
+django-crispy-forms
+django-floppyforms
