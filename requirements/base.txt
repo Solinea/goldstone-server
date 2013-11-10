@@ -5,3 +5,4 @@ django-admin-bootstrapped
 psycopg2
 django-crispy-forms
 django-floppyforms
+pbr
