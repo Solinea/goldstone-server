@@ -1,6 +1,11 @@
 from django.db import models
 
+
 class Lease(models.Model):
+    """
+    leases define time-based quotas for cloud resources
+    """
+
     name = models.CharField(max_length=100)
     owner_id = models.CharField(max_length=100)
     deleted = models.BooleanField()
@@ -13,7 +18,13 @@ class Lease(models.Model):
     length_in_seconds = models.CharField(max_length=100)
     status = models.CharField(max_length=100)
 
+
 class Notification(models.Model):
+    """
+    Notifications are messages sent to tenants
+    or operators about actions
+    """
+
     name = models.CharField(max_length=100)
     driver = models.CharField(max_length=100)
     metadata = models.CharField(max_length=100)
@@ -21,7 +32,11 @@ class Notification(models.Model):
     result = models.CharField(max_length=100)
     lease = models.ForeignKey(Lease)
 
+
 class Action(models.Model):
+    """
+    Actions are acts that are performed on cloud resources
+    """
     name = models.CharField(max_length=100)
     driver = models.CharField(max_length=100)
     metadata = models.CharField(max_length=100)

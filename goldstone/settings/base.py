@@ -15,13 +15,14 @@ import os
 # into your settings, but ImproperlyConfigured is an exception.
 from django.core.exceptions import ImproperlyConfigured
 
+
 def get_env_variable(var_name):
     """ Get the environment variable or return exception """
     try:
         return os.environ[var_name]
     except KeyError:
-          error_msg = "Set the %s environment variable" % var_name
-          raise ImproperlyConfigured(error_msg)
+        error_msg = "Set the %s environment variable" % var_name
+        raise ImproperlyConfigured(error_msg)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -77,7 +78,7 @@ WSGI_APPLICATION = 'goldstone.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE':'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'mydatabase',
         'USER': 'mydatabaseuser',
         'PASSWORD': 'mypassword',
