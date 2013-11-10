@@ -1,5 +1,13 @@
 from django.db import models
 
+class Notification(models.Model):
+    name = models.CharField(max_length=100)
+    driver = models.CharField(max_length=100)
+
+class Action(models.Model):
+    name = models.CharField(max_length=100)
+    driver = models.CharField(max_length=100)
+
 class Lease(models.Model):
     name = models.CharField(max_length=100)
     deleted = models.BooleanField()
@@ -14,16 +22,8 @@ class Lease(models.Model):
     action_time = models.DateTimeField()
     action = models.ForeignKey(Action)
     action_metadata = models.CharField(max_length=100)
-    action_result = model.CharField(max_length=100)
+    action_result = models.CharField(max_length=100)
     notification = models.ForeignKey(Notification)
     notification_metadata = models.CharField(max_length=100)
     notification_time = models.DateTimeField()
     notification_result = models.CharField(max_length=100)
-
-class Notification(models.Model):
-    name = models.CharField(max_length=100)
-    driver = models.CharField(max_length=100)
-
-class Action(models.Model):
-    name = models.CharField(max_length=100)
-    driver = models.CharField(max_length=100)
