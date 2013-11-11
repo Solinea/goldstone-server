@@ -31,7 +31,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-#SECRET_KEY = 'ae78rr)cb-#o*jy2+kv#7-th08(332d&(pq)k30fzytv67%5v_'
+# SECRET_KEY = 'ae78rr)cb-#o*jy2+kv#7-th08(332d&(pq)k30fzytv67%5v_'
 SECRET_KEY = get_env_variable("GOLDSTONE_SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -40,7 +40,6 @@ DEBUG = True
 TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -54,8 +53,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django_extensions',
     'south',
-    'django-floppyforms',
-    'django-crispy-forms',
+    'floppyforms',
+    'crispy_forms',
     'goldstone.apps.lease',
 )
 
@@ -72,20 +71,6 @@ ROOT_URLCONF = 'goldstone.urls'
 
 WSGI_APPLICATION = 'goldstone.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/1.6/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'mydatabase',
-        'USER': 'mydatabaseuser',
-        'PASSWORD': 'mypassword',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    }
-}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
@@ -107,4 +92,4 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Crispy Forms
-CRISPY_TEMPLATE_PACK = twitter3
+# CRISPY_TEMPLATE_PACK = twitter3

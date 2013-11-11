@@ -10,7 +10,7 @@ EMAIL_PORT = 1025
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "goldstone",
+        "NAME": "goldstone_dev",
         "USER": "goldstone",
         "PASSWORD": "",
         "HOST": "localhost",
@@ -18,4 +18,4 @@ DATABASES = {
     }
 }
 
-INSTALLED_APPS += ("debug_toolbar")
+# INSTALLED_APPS += ("debug_toolbar")
