@@ -1,12 +1,6 @@
-Django==1.6
-South==0.8.2
-wsgiref==0.1.2
-django-admin-bootstrapped
-psycopg2
-django-crispy-forms
-django-floppyforms
-pbr
 pep8
 pyflakes
 coverage
 selenium
+django_extensions
+pygraphviz
