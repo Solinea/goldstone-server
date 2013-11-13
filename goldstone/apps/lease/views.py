@@ -1,6 +1,9 @@
 from django.shortcuts import render
 
 
+def home():
+    pass
+
 # class LeaseTableMixIn(object):
 #     def _get_leases(self, search_opts=None):
 #         try:
