@@ -1,0 +1,6 @@
+pep8
+pyflakes
+coverage
+selenium
+django_extensions
+pygraphviz
