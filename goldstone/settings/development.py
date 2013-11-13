@@ -18,4 +18,6 @@ DATABASES = {
     }
 }
 
+SECRET_KEY = get_env_variable("GOLDSTONE_SECRET")
+
 # INSTALLED_APPS += ("debug_toolbar")

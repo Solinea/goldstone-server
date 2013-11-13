@@ -1,6 +1,10 @@
 from django.core.urlresolvers import resolve
 from django.test import TestCase
-from .views import home
+
+from .views import home_page
+from .models import Lease
+
+from datetime import datetime
 
 
 class LeaseTest(TestCase):
@@ -11,6 +15,40 @@ class LeaseTest(TestCase):
     def tearDown(self):
         pass
 
+    def _create_lease_object(self):
+        lease = Lease()
+        lease.name = 'Lease 1'
+        lease.deleted = False
+        lease.start_time = datetime.now()
+        return lease
+
     def test_root_url_resolves_to_home_page_view(self):
         found = resolve('/')
-        self.assertEqual(found.func, home)
+        self.assertEqual(found.func, home_page)
+
+    def test_create_leases(self):
+        first_item = self._create_lease_object()
+        first_item.save()
+        saved_items = Lease.objects.all()
+        self.assertEqual(saved_items.count(), 1)
+        first_saved_item = saved_items[0]
+        self.assertEqual(first_saved_item.name, 'Lease 1')
+
+    def test_delete_lease(self):
+        sample = self._create_lease_object()
+        sample.save()
+        saved_items = Lease.objects.all()
+        self.assertEqual(saved_items.count(), 1)
+        to_be_deleted = Lease.objects.first()
+        to_be_deleted.delete()
+        after_delete_items = Lease.objects.all()
+        self.assertEqual(after_delete_items.count(), 0)
+
+    def test_update_lease(self):
+        sample = self._create_lease_object()
+        sample.save()
+        to_be_updated = Lease.objects.first()
+        to_be_updated.deleted = True
+        to_be_updated.save()
+        update_lease = Lease.objects.first()
+        self.assertEqual(True, update_lease.deleted)
