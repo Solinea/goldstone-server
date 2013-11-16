@@ -11,3 +11,5 @@ django-crispy-forms
 django-floppyforms
 pbr
 pytz
+Celery
+django-celery
