@@ -19,6 +19,9 @@ class Lease(models.Model):
     status = models.CharField(max_length=100)
     reason = models.TextField(blank=True)
 
+    def __unicode__(self):
+        return self.name
+
 
 class Notification(models.Model):
     """
@@ -33,6 +36,9 @@ class Notification(models.Model):
     result = models.CharField(max_length=100)
     lease = models.ForeignKey(Lease)
 
+    def __unicode__(self):
+        return self.name
+
 
 class Action(models.Model):
     """
@@ -44,3 +50,6 @@ class Action(models.Model):
     time = models.DateTimeField()
     result = models.CharField(max_length=100)
     lease = models.ForeignKey(Lease)
+
+    def __unicode__(self):
+        return self.name
