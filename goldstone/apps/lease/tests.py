@@ -1,8 +1,11 @@
 from django.core.urlresolvers import resolve
 from django.test import TestCase
+from django.utils import timezone
 
 from .views import home_page
 from .models import Lease
+from .models import Notification
+from .models import Action
 
 from datetime import datetime
 
@@ -19,7 +22,7 @@ class LeaseTest(TestCase):
         lease = Lease()
         lease.name = 'Lease 1'
         lease.deleted = False
-        lease.start_time = datetime.now()
+        lease.start_time = timezone.now()
         return lease
 
     def test_root_url_resolves_to_home_page_view(self):
@@ -52,3 +55,62 @@ class LeaseTest(TestCase):
         to_be_updated.save()
         update_lease = Lease.objects.first()
         self.assertEqual(True, update_lease.deleted)
+
+    def test_lease_with_notification(self):
+        sample = self._create_lease_object()
+        sample.save()
+        note = sample.notification_set.create(
+            name="samples notification",
+            driver="email",
+            time=timezone.now(),
+            result="success",
+            )
+        note_alt = sample.notification_set.create(
+            name="samples notification 2",
+            driver="sms",
+            time=timezone.now(),
+            result="pending",
+            )
+        note_count = Notification.objects.all()
+        self.assertEqual(note_count.count(), 2)
+
+    def test_lease_with_action(self):
+        sample = self._create_lease_object()
+        sample.save()
+        act = sample.action_set.create(
+            name="sample action",
+            driver="terminate",
+            time=timezone.now(),
+            result="pending",
+            )
+        action_count = Action.objects.all()
+        self.assertEqual(action_count.count(), 1)
+
+    def test_cascading_deletes_set_correctly(self):
+        sample = self._create_lease_object()
+        sample.save()
+        note = sample.notification_set.create(
+            name="samples notification",
+            driver="email",
+            time=timezone.now(),
+            result="success",
+            )
+        act = sample.action_set.create(
+            name="sample action",
+            driver="terminate",
+            time=timezone.now(),
+            result="pending",
+            )
+        saved_items = Lease.objects.all()
+        self.assertEqual(saved_items.count(), 1)
+        action_count = Action.objects.all()
+        self.assertEqual(action_count.count(), 1)
+        note_count = Notification.objects.all()
+        self.assertEqual(note_count.count(), 1)
+        saved_items[0].delete()
+        saved_items = Lease.objects.all()
+        self.assertEqual(saved_items.count(), 0)
+        action_count = Action.objects.all()
+        self.assertEqual(action_count.count(), 0)
+        note_count = Notification.objects.all()
+        self.assertEqual(note_count.count(), 0)
