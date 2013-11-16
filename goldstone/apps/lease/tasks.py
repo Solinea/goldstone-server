@@ -2,9 +2,26 @@ from __future__ import absolute_import
 from proj.celery import app
 
 import os
+from datetime import timedelta
 
 ACTION_OFFSET_DEFAULT = 120
 NOTIFICATION_OFFSET_DEFAULT = 120
+QUERY_DEFAULT_OFFSET = 60 * 10
+
+CELERY_TIMEZONE = 'UTC'
+
+CELERYBEAT_SCHEDULE = {
+￼￼￼'expiring_leases': {
+        'task': 'tasks.pull_expiring_leases',
+        'schedule': timedelta(seconds=QUERY_DEFAULT_OFFSET),
+        'args': '',
+    },
+￼￼￼'upcoming_notifications': {
+        'task': 'tasks.pull_notifications',
+        'schedule': timedelta(seconds=QUERY_DEFAULT_OFFSET),
+        'args': '',
+    },
+}
 
 
 def _get_admin_keys():
