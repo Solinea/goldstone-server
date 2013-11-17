@@ -18,6 +18,6 @@ DATABASES = {
     }
 }
 
-SECRET_KEY = get_env_variable("GOLDSTONE_SECRET")
+SECRET_KEY = 'dev-v=jazz^xno*0(aou-6ir*q-c+v&r#ue5b4wxt-xy#rebph8q)'
 
 # INSTALLED_APPS += ("debug_toolbar")

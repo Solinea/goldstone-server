@@ -32,7 +32,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = 'ae78rr)cb-#o*jy2+kv#7-th08(332d&(pq)k30fzytv67%5v_'
-SECRET_KEY = get_env_variable("GOLDSTONE_SECRET")
+# SECRET_KEY = get_env_variable("GOLDSTONE_SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
