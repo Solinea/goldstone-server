@@ -5,6 +5,6 @@ admin.autodiscover()
 
 urlpatterns = patterns(
     '',
-    url(r'^$', 'goldstone.apps.lease.views.home', name='home'),
+    url(r'^$', 'goldstone.apps.lease.views.home_page', name='home_page'),
     url(r'^admin/', include(admin.site.urls)),
 )
