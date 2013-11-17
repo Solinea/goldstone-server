@@ -4,3 +4,4 @@ coverage
 selenium
 django_extensions
 pygraphviz
+sphinx

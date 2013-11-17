@@ -60,7 +60,6 @@ tmp
 # YARD artifacts
 .yardoc
 _yardoc
-doc/
 
 
 ### /Volumes/Data/Users/kpepple/.gitignore-boilerplates/Global/OSX.gitignore
