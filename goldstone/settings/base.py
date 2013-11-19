@@ -92,4 +92,4 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Crispy Forms
-# CRISPY_TEMPLATE_PACK = twitter3
+CRISPY_TEMPLATE_PACK = 'bootstrap'

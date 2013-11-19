@@ -2,12 +2,10 @@ from django.core.urlresolvers import resolve
 from django.test import TestCase
 from django.utils import timezone
 
-from .views import home_page
+from .views import ListLeaseView
 from .models import Lease
 from .models import Notification
 from .models import Action
-
-from datetime import datetime
 
 
 class LeaseTest(TestCase):
@@ -27,7 +25,7 @@ class LeaseTest(TestCase):
 
     def test_root_url_resolves_to_home_page_view(self):
         found = resolve('/')
-        self.assertEqual(found.func, home_page)
+        self.assertEqual(found.view_name, 'lease-list')
 
     def test_create_leases(self):
         first_item = self._create_lease_object()

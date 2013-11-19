@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+{% if lease.id %}
+<h1>Edit Lease</h1>
+{% else %}
+<h1>Add Lease</h1>
+{% endif %}
+
+
+<form action="{{ action }}" method="POST">
+  {% csrf_token %}
+  <ul>
+      {{ form|crispy }}
+  </ul>
+  <input id="save_lease" type="submit" value="Save" />
+</form>
+
+<a href="{% url "lease-list" %}">back to list</a>
+{% endblock %}

@@ -1,0 +1,10 @@
+<h1>Leases</h1>
+<ul>
+  {% for lease in object_list %}
+￼￼￼￼<li class="lease">{{ lease }}
+        (<a href="{% url "lease-edit" pk=lease.id %}">edit</a>)</li>
+  {% endfor %}
+
+</ul>
+<a href="{% url "lease-new" %}">add lease</a>
+
