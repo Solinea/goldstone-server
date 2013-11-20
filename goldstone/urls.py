@@ -13,6 +13,8 @@ urlpatterns = patterns(
         name='lease-new',),
     url(r'^edit/(?P<pk>\d+)/$', apps.lease.views.UpdateLeaseView.as_view(),
         name='lease-edit',),
+    url(r'^delete/(?P<pk>\d+)/$', apps.lease.views.DeleteLeaseView.as_view(),
+        name='lease-delete',),
     url(r'^admin/', include(admin.site.urls)),
 )
 

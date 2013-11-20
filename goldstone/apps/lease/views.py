@@ -3,6 +3,7 @@ from django.shortcuts import redirect, render
 from django.views.generic import ListView
 from django.views.generic import CreateView
 from django.views.generic import UpdateView
+from django.views.generic import DeleteView
 
 from crispy_forms.helper import FormHelper
 
@@ -41,3 +42,11 @@ class UpdateLeaseView(UpdateView):
         context['action'] = reverse('lease-edit',
                                     kwargs={'pk': self.get_object().id})
         return context
+
+
+class DeleteLeaseView(DeleteView):
+    model = Lease
+    template_name = 'delete_lease.html'
+
+    def get_success_url(self):
+        return reverse('lease-list')
