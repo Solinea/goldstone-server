@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from .views import DeleteLeaseView
 from .views import ListLeaseView
-from .views import UpdateView
+from .views import UpdateLeaseView
 from .models import Lease
 from .models import Notification
 from .models import Action
@@ -53,4 +53,9 @@ class LeaseViewTest(TestCase):
         self.assertEquals(Lease.objects.count(), 0)
 
     def test_update_lease(self):
-        self.fail()
+        self._create_sample_lease()
+        to_be_edited = Lease.objects.first()
+        factory = RequestFactory()
+        request = factory.post('/edit/%s' % to_be_edited.pk)
+        response = UpdateLeaseView.as_view()(request, pk=to_be_edited.pk)
+        self.assertEquals(Lease.objects.count(), 1)
