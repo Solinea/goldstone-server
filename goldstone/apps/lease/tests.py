@@ -1,8 +1,13 @@
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+#
+# Copyright 2012 Solinea, Inc.
+#
+
 from django.core.urlresolvers import resolve
 from django.test import TestCase
 from django.utils import timezone
 
-from .views import ListLeaseView
 from .models import Lease
 from .models import Notification
 from .models import Action
@@ -57,13 +62,13 @@ class LeaseTest(TestCase):
     def test_lease_with_notification(self):
         sample = self._create_lease_object()
         sample.save()
-        note = sample.notification_set.create(
+        sample.notification_set.create(
             name="samples notification",
             driver="email",
             time=timezone.now(),
             result="success",
             )
-        note_alt = sample.notification_set.create(
+        sample.notification_set.create(
             name="samples notification 2",
             driver="sms",
             time=timezone.now(),
@@ -75,7 +80,7 @@ class LeaseTest(TestCase):
     def test_lease_with_action(self):
         sample = self._create_lease_object()
         sample.save()
-        act = sample.action_set.create(
+        sample.action_set.create(
             name="sample action",
             driver="terminate",
             time=timezone.now(),
@@ -87,13 +92,13 @@ class LeaseTest(TestCase):
     def test_cascading_deletes_set_correctly(self):
         sample = self._create_lease_object()
         sample.save()
-        note = sample.notification_set.create(
+        sample.notification_set.create(
             name="samples notification",
             driver="email",
             time=timezone.now(),
             result="success",
             )
-        act = sample.action_set.create(
+        sample.action_set.create(
             name="sample action",
             driver="terminate",
             time=timezone.now(),

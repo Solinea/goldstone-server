@@ -1,3 +1,9 @@
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+#
+# Copyright 2012 Solinea, Inc.
+#
+
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect, render
 from django.views.generic import ListView

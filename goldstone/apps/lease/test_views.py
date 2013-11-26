@@ -1,4 +1,9 @@
-from django.core.urlresolvers import resolve
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+#
+# Copyright 2012 Solinea, Inc.
+#
+
 from django.test.client import Client
 from django.test.client import RequestFactory
 from django.test import TestCase
@@ -49,7 +54,7 @@ class LeaseViewTest(TestCase):
         to_be_deleted = Lease.objects.first()
         factory = RequestFactory()
         request = factory.post('/delete/%s' % to_be_deleted.pk)
-        response = DeleteLeaseView.as_view()(request, pk=to_be_deleted.pk)
+        DeleteLeaseView.as_view()(request, pk=to_be_deleted.pk)
         self.assertEquals(Lease.objects.count(), 0)
 
     def test_update_lease(self):
@@ -57,5 +62,5 @@ class LeaseViewTest(TestCase):
         to_be_edited = Lease.objects.first()
         factory = RequestFactory()
         request = factory.post('/edit/%s' % to_be_edited.pk)
-        response = UpdateLeaseView.as_view()(request, pk=to_be_edited.pk)
+        UpdateLeaseView.as_view()(request, pk=to_be_edited.pk)
         self.assertEquals(Lease.objects.count(), 1)

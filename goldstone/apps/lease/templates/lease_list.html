@@ -1,3 +1,6 @@
+{% extends "base.html" %}
+
+{% block content %}
 <h1>Leases</h1>
 <ul>
   {% for lease in object_list %}
@@ -7,4 +10,4 @@
 
 </ul>
 <a href="{% url "lease-new" %}">add lease</a>
-
+{% endblock %}

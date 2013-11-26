@@ -14,13 +14,13 @@
   <ul>
       {{ form|crispy }}
   </ul>
-  <input id="save_lease" type="submit" value="Save" />
+  <input id="save_lease" type="submit" value="Save" class="" />
 </form>
 
 {% if lease.id %}
-<a href="{% url "lease-delete" pk=lease.id %}">Delete</a>
+<p><a href="{% url "lease-delete" pk=lease.id %}">Delete</a></p>
 {% endif %}
 
-<a href="{% url "lease-list" %}">back to list</a>
+<p><a href="{% url "lease-list" %}">back to list</a></p>
 {% endblock %}
 
