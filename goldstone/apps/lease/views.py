@@ -1,70 +1,52 @@
+from django.core.urlresolvers import reverse
 from django.shortcuts import redirect, render
-# from .models import Lease
-# from .models import Notification
-# from .models import Action
-from south.modelsinspector import add_introspection_rules
+from django.views.generic import ListView
+from django.views.generic import CreateView
+from django.views.generic import UpdateView
+from django.views.generic import DeleteView
+
+from crispy_forms.helper import FormHelper
+
+from .models import Lease
+from .models import Notification
+from .models import Action
 
 
-def home_page(request):
-    if request.method == 'POST':
-        Item.objects.create(name=request.POST['name'])
-        return redirect('/')
-
-    return render(request, 'home.html')
-
-# class LeaseTableMixIn(object):
-#     def _get_leases(self, search_opts=None):
-#         try:
-#             return lease.lease_list(self.request, search_opts=search_opts)
-#         except Exception:
-#             exceptions.handle(self.request,
-#                               _('Unable to retrieve lease list.'))
-#             return []
+class ListLeaseView(ListView):
+    model = Lease
+    template_name = 'lease_list.html'
 
 
-# class IndexView(tables.DataTableView, VolumeTableMixIn):
-#     table_class = project_tables.VolumesTable
-#     template_name = 'project/volumes/index.html'
+class CreateLeaseView(CreateView):
+    model = Lease
+    template_name = 'edit_lease.html'
 
-#     def get_data(self):
-#         """
-#         Given a tenant id, list all leases for that tenant.
+    def get_success_url(self):
+        return reverse('lease-list')
 
-#         :param tenant_id: The tenant id to list. Default to listing all
-#                         leases with admin priviledges.
-#         """
-#         leases = self._get_leases()
-#         return leases
+    def get_context_data(self, **kwargs):
+        context = super(CreateLeaseView, self).get_context_data(**kwargs)
+        context['action'] = reverse('lease-new')
+        return context
 
 
-# class CreateView(forms.ModalFormView):
-#     form_class = project_forms.CreateForm
-#     template_name = 'project/volumes/create.html'
-#     success_url = reverse_lazy("horizon:project:volumes:index")
+class UpdateLeaseView(UpdateView):
+    model = Lease
+    template_name = 'edit_lease.html'
 
-#     def create(lease):
-#         """
-#         Create a lease and persist it to the database.
-#         """
-#         pass
+    def get_success_url(self):
+        return reverse('lease-list')
 
-
-# def update(lease):
-#     """
-#     update an existing lease
-#     """
-#     pass
+    def get_context_data(self, **kwargs):
+        context = super(UpdateLeaseView, self).get_context_data(**kwargs)
+        context['action'] = reverse('lease-edit',
+                                    kwargs={'pk': self.get_object().id})
+        return context
 
 
-# def delete(lease):
-#     """
-#     delete a lease
-#     """
-#     pass
+class DeleteLeaseView(DeleteView):
+    model = Lease
+    template_name = 'delete_lease.html'
 
-
-# def expiring_leases(tolerance=300, tenant=None):
-#     """
-#     Find leases expiring
-#     """
-#     pass
+    def get_success_url(self):
+        return reverse('lease-list')

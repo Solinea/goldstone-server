@@ -1,3 +1,6 @@
 from .base import *
 
-SECRET_KEY = get_env_variable("GOLDSTONE_SECRET")
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
+
+TEMPLATE_DEBUG = False

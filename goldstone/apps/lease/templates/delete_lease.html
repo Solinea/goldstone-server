@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Delete Lease</h1>
+<p>Are you sure you want to delete the lease {{ contact }}?</p>
+<form action="{% url "lease-delete" pk=lease.id %}" method="POST">
+  {% csrf_token %}
+  <input type="submit" value="Yes, delete." />
+  <a href="{% url "lease-list" %}">No, cancel.</a>
+</form>
+{% endblock %}
