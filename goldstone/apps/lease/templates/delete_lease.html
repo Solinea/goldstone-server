@@ -5,7 +5,7 @@
 <p>Are you sure you want to delete the lease {{ contact }}?</p>
 <form action="{% url "lease-delete" pk=lease.id %}" method="POST">
   {% csrf_token %}
-  <input type="submit" value="Yes, delete." />
-  <a href="{% url "lease-list" %}">No, cancel.</a>
+  <a href="{% url "lease-list" %}"><button type="button" class="btn btn-warning">Cancel</button></a>
+  <input type="submit" value="Yes, delete." class="btn btn-primary"/>
 </form>
 {% endblock %}
