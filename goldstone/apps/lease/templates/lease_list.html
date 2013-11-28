@@ -13,7 +13,7 @@
         {% for lease in object_list %}
             <tr>
                 <td>{{ lease }}</td>
-                <td>{{lease.start_time}}</td>
+                <td>{{lease.expiration_time}}</td>
                 <td><a href="{% url "lease-edit" pk=lease.id %}"><button type="button" class="btn btn-default">Edit</button></a></td>
             </tr>
         {% endfor %}
