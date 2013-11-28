@@ -9,6 +9,7 @@ from django.test.client import RequestFactory
 from django.test import TestCase
 from django.utils import timezone
 
+from datetime import datetime, timedelta
 
 from .views import DeleteLeaseView
 from .views import ListLeaseView
@@ -28,8 +29,13 @@ class LeaseViewTest(TestCase):
         pass
 
     def _create_sample_lease(self):
+        default_lease = datetime.now()+timedelta(days=30)
         Lease.objects.create(name='foo', reason='bar',
-                             deleted=False, start_time=timezone.now())
+                             deleted=False, start_time=timezone.now(),
+                             expiration_time=timezone.make_aware(
+                                 default_lease,
+                                 timezone.get_current_timezone())
+                             )
 
     def test_lease_in_the_context(self):
         client = Client()

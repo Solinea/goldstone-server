@@ -8,6 +8,8 @@ from django.core.urlresolvers import resolve
 from django.test import TestCase
 from django.utils import timezone
 
+from datetime import datetime, timedelta
+
 from .models import Lease
 from .models import Notification
 from .models import Action
@@ -26,6 +28,9 @@ class LeaseTest(TestCase):
         lease.name = 'Lease 1'
         lease.deleted = False
         lease.start_time = timezone.now()
+        lease.expiration_time = timezone.make_aware(
+            datetime.now()+timedelta(days=30),
+            timezone.get_current_timezone())
         return lease
 
     def test_root_url_resolves_to_home_page_view(self):

@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from datetime import datetime, timedelta
 
+
 class Lease(models.Model):
     """
     leases define time-based quotas for cloud resources
