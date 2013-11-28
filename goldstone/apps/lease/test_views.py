@@ -39,15 +39,15 @@ class LeaseViewTest(TestCase):
 
     def test_lease_in_the_context(self):
         client = Client()
-        response = client.get('/')
+        response = client.get('/leases/')
         self.assertEquals(list(response.context['object_list']), [])
         self._create_sample_lease()
-        response = client.get('/')
+        response = client.get('/leases/')
         self.assertEquals(response.context['object_list'].count(), 1)
 
     def test_lease_in_the_context_request_factory(self):
         factory = RequestFactory()
-        request = factory.get('/')
+        request = factory.get('/leases/')
         response = ListLeaseView.as_view()(request)
         self.assertEquals(list(response.context_data['object_list']), [])
         self._create_sample_lease()
@@ -59,7 +59,7 @@ class LeaseViewTest(TestCase):
         self.assertEquals(Lease.objects.count(), 1)
         to_be_deleted = Lease.objects.first()
         factory = RequestFactory()
-        request = factory.post('/delete/%s' % to_be_deleted.pk)
+        request = factory.post('/leases/delete/%s' % to_be_deleted.pk)
         DeleteLeaseView.as_view()(request, pk=to_be_deleted.pk)
         self.assertEquals(Lease.objects.count(), 0)
 
@@ -67,6 +67,6 @@ class LeaseViewTest(TestCase):
         self._create_sample_lease()
         to_be_edited = Lease.objects.first()
         factory = RequestFactory()
-        request = factory.post('/edit/%s' % to_be_edited.pk)
+        request = factory.post('/leases/edit/%s' % to_be_edited.pk)
         UpdateLeaseView.as_view()(request, pk=to_be_edited.pk)
         self.assertEquals(Lease.objects.count(), 1)

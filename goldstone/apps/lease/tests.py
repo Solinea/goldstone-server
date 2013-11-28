@@ -34,7 +34,7 @@ class LeaseTest(TestCase):
         return lease
 
     def test_root_url_resolves_to_home_page_view(self):
-        found = resolve('/')
+        found = resolve('/leases/')
         self.assertEqual(found.view_name, 'lease-list')
 
     def test_create_leases(self):
