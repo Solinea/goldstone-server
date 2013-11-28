@@ -17,7 +17,8 @@ from django.core.urlresolvers import reverse
 # from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
 # from django.forms.formsets import formset_factory
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Fieldset, ButtonHolder
+from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row
+from crispy_forms.layout import Field, Fieldset, ButtonHolder
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
 
@@ -37,20 +38,20 @@ class CreateLeaseForm(ModelForm):
         self.helper.form_action = reverse('lease-new')
         self.helper.add_input(Submit('submit', 'Save'))
         self.helper.layout = Layout(
-                    Fieldset(
-                        'name',
-                        'scope',
-                        'resource_type',
-                        'resource_id',
-                        'tenant_id',
-                        FieldWithButtons('expiration_time', 
-                            StrictButton('<i class="fa fa-camera-retro"></i>')),
-                    ),
-                    
-                    ButtonHolder(
-                        Submit('submit', 'Save')
-                    )
-                )
+            Fieldset(
+                'name',
+                'scope',
+                'resource_type',
+                'resource_id',
+                'tenant_id',
+                FieldWithButtons('expiration_time',
+                                 StrictButton(
+                                     '<i class="fa fa-camera-retro"></i>')),
+            ),
+            ButtonHolder(
+                Submit('submit', 'Save')
+            )
+        )
         super(CreateLeaseForm, self).__init__(*args, **kwargs)
 
     class Meta:
