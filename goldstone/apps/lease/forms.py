@@ -10,7 +10,7 @@ Views for managing leases
 from django.conf import settings  # noqa
 from django.forms import ModelForm
 from django.forms import ValidationError  # noqa
-from django.forms.widgets import DateInput, Select, TextInput  # noqa
+from django.forms.widgets import DateTimeInput, Select, TextInput  # noqa
 from django.forms.widgets import HiddenInput  # noqa
 from django.core.urlresolvers import reverse
 
@@ -35,7 +35,7 @@ class CreateLeaseForm(ModelForm):
         fields = ['name', 'scope', 'resource_type', 'resource_id',
                   'tenant_id', 'expiration_time']
         widgets = {
-            'expiration_time': DateInput(attrs={'readonly': 'readonly'}),
+            'expiration_time': DateTimeInput(attrs={'readonly': 'readonly'}),
             'name': TextInput(attrs={'placeholder': 'Lease Name'}),
         }
 
@@ -48,6 +48,6 @@ class UpdateLeaseForm(ModelForm):
         fields = ['name', 'scope', 'resource_type', 'resource_id',
                   'tenant_id', 'expiration_time']
         widgets = {
-            'expiration_time': DateInput(attrs={'readonly': 'readonly'}),
+            'expiration_time': DateTimeInput(attrs={'readonly': 'readonly'}),
             'name': TextInput(attrs={'placeholder': 'Lease Name'}),
         }
