@@ -10,16 +10,14 @@ QUERY_OFFSET = 60 * 10
 
 CELERY_TIMEZONE = 'UTC'
 
-CELERYBEAT_SCHEDULE = {
-￼￼￼'expiring_leases': {
-        'task': 'tasks.pull_expiring_leases',
-        'schedule': timedelta(seconds=QUERY_OFFSET),
-        'args': '',
-    },
-￼￼￼'upcoming_notifications': {
-        'task': 'tasks.pull_upcoming_notifications',
-        'schedule': timedelta(seconds=QUERY_OFFSET),
-        'args': '',
+CELERYBEAT_SCHEDULE = {'expiring_leases': {
+    'task': 'tasks.pull_expiring_leases',
+    'schedule': timedelta(seconds=QUERY_OFFSET),
+    'args': '',
+    }, 'upcoming_notifications': {
+    'task': 'tasks.pull_upcoming_notifications',
+    'schedule': timedelta(seconds=QUERY_OFFSET),
+    'args': '',
     },
 }
 
