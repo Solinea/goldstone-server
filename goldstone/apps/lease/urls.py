@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, include, url
 
 from .views import ListLeaseView, CreateLeaseView
-from .views import UpdateLeaseView, UpdateLeaseView
+from .views import UpdateLeaseView, DeleteLeaseView
 
 urlpatterns = patterns(
     '',
@@ -10,6 +10,6 @@ urlpatterns = patterns(
         name='lease-new',),
     url(r'^edit/(?P<pk>\d+)/$', UpdateLeaseView.as_view(),
         name='lease-edit',),
-    url(r'^delete/(?P<pk>\d+)/$', UpdateLeaseView.as_view(),
+    url(r'^delete/(?P<pk>\d+)/$', DeleteLeaseView.as_view(),
         name='lease-delete',),
 )

@@ -35,10 +35,19 @@ class CreateLeaseForm(ModelForm):
         fields = ['name', 'scope', 'resource_type', 'resource_id',
                   'tenant_id', 'expiration_time']
         widgets = {
-            'expiration_time': DateInput(attrs={'readonly':'readonly', 'width':'40'}),
-            'name': TextInput(attrs={'placeholder':'Lease Name'}),            
+            'expiration_time': DateInput(attrs={'readonly': 'readonly'}),
+            'name': TextInput(attrs={'placeholder': 'Lease Name'}),
         }
 
 
 class UpdateLeaseForm(ModelForm):
-    pass
+    """regular form for editing leases"""
+
+    class Meta:
+        model = Lease
+        fields = ['name', 'scope', 'resource_type', 'resource_id',
+                  'tenant_id', 'expiration_time']
+        widgets = {
+            'expiration_time': DateInput(attrs={'readonly': 'readonly'}),
+            'name': TextInput(attrs={'placeholder': 'Lease Name'}),
+        }

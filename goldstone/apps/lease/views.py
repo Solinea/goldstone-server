@@ -12,7 +12,7 @@ from django.utils import timezone
 
 from crispy_forms.helper import FormHelper
 
-from .forms import CreateLeaseForm
+from .forms import CreateLeaseForm, UpdateLeaseForm
 from .models import Lease
 from .models import Notification
 from .models import Action
@@ -45,6 +45,7 @@ class CreateLeaseView(CreateView):
 class UpdateLeaseView(UpdateView):
     model = Lease
     template_name = 'edit_lease.html'
+    form_class = UpdateLeaseForm
 
     def get_success_url(self):
         return reverse('lease-list')

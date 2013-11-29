@@ -14,9 +14,6 @@
   <ul>
       {{ form|crispy }}
       <p><a href="{% url "lease-list" %}"><button type="button" class="btn btn-warning">Cancel</button></a>
-      {% if lease.id %}
-      <a href="{% url "lease-delete" pk=lease.id %}"><button type="button" class="btn btn-danger">Delete</button></a>
-      {% endif %}
       <input id="save_lease" type="submit" value="Save" class="btn btn-primary" /></p>
   </ul>
 </form>
