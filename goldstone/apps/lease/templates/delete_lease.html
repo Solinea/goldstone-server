@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Delete Lease</h1>
+<h1><span class="fa-stack fa-lg">
+  <i class="fa fa-square fa-stack-2x text-danger"></i>
+  <i class="fa fa-calendar fa-stack-1x fa-inverse"></i>
+</span>Delete Lease</h1>
 <p>Are you sure you want to delete the lease {{ contact }}?</p>
 <form action="{% url "lease-delete" pk=lease.id %}" method="POST">
   {% csrf_token %}

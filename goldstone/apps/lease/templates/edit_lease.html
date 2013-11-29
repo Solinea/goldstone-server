@@ -3,9 +3,13 @@
 {% block content %}
 
 {% if lease.id %}
-<h1>Edit Lease</h1>
+<h1><span class="fa-stack fa-lg">
+  <i class="fa fa-calendar fa-stack-1x text-warning"></i>
+</span>Edit Lease</h1>
 {% else %}
-<h1>Add Lease</h1>
+<h1><span class="fa-stack fa-lg">
+  <i class="fa fa-calendar fa-stack-1x text-primary"></i>
+</span>Add Lease</h1>
 {% endif %}
 
 
