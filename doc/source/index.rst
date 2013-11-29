@@ -13,6 +13,7 @@ Contents:
 
    testing
    deploying
+   design
 
 Indices and tables
 ==================

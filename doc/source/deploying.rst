@@ -1,5 +1,5 @@
 =================
-Deploying GoldStone
+Deploying Goldstone
 =================
 
 How to run the tests
