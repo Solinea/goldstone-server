@@ -32,7 +32,7 @@ def _get_admin_keys():
 
 
 @app.task
-def pull_expiring_leases(offset=NOTIFICATION_OFFSET):
+def get_expiring_leases(offset=NOTIFICATION_OFFSET):
     """
     Query the database for leases expirations
     """
@@ -40,7 +40,7 @@ def pull_expiring_leases(offset=NOTIFICATION_OFFSET):
 
 
 @app.task
-def pull_upcoming_notifications(offset=ACTION_OFFSET):
+def get_upcoming_notifications(offset=ACTION_OFFSET):
     """
     Query the database for upcoming notifications
     """
