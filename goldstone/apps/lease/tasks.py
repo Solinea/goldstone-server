@@ -1,13 +1,10 @@
 from datetime import datetime, timedelta
 import os
 
-from celery import Celery
 from django.conf import settings
 
 from .models import Lease, Action, Notification
-
-
-app = Celery('goldstone.celery')
+from goldstone.celery import Celery
 
 
 def _get_admin_creds():

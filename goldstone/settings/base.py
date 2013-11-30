@@ -56,6 +56,7 @@ INSTALLED_APPS = (
     'floppyforms',
     'crispy_forms',
     'goldstone.apps.lease',
+    "djcelery",
 )
 
 MIDDLEWARE_CLASSES = (
@@ -93,3 +94,6 @@ STATIC_URL = '/static/'
 
 # Crispy Forms
 CRISPY_TEMPLATE_PACK = 'bootstrap'
+
+# Celery
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
