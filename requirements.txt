@@ -10,5 +10,6 @@ psycopg2
 django-crispy-forms
 django-floppyforms
 pbr
-Celery
+celery
+django-celery-with-redis
 django-celery
