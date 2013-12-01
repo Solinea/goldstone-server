@@ -3,10 +3,7 @@ import os
 
 from celery import task, shared_task
 
-from django.conf import settings
-
 from .models import Lease, Action, Notification
-# from goldstone.celery import Celery
 
 
 def _get_admin_creds():
@@ -21,7 +18,7 @@ def _get_admin_creds():
             }
 
 
-@app.task
+@shared_task
 def expire():
     """
     Expire leases
@@ -40,7 +37,7 @@ def expire():
     pass
 
 
-@app.task
+@shared_task
 def notify():
     """
     Send notifications
