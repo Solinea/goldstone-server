@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from .models import Lease, Notification, Action
-# from .tasks import notify, expire
+from .tasks import notify, expire
 
 
 class CeleryLeaseTest(TestCase):
