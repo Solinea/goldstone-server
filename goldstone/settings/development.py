@@ -26,8 +26,28 @@ OS_TENANT_NAME = "admin"
 
 # Celery configuration
 
-# BROKER_URL = 'redis://'
-BROKER_URL = 'sqla+postgresql://goldstone:@localhost/goldstone_dev'
+# BROKER_HOST = "localhost"
+# BROKER_BACKEND="redis"
+# REDIS_PORT=6379
+# REDIS_HOST = "localhost"
+# BROKER_USER = ""
+# BROKER_PASSWORD =""
+# BROKER_VHOST = "0"
+# REDIS_DB = 0
+# REDIS_CONNECT_RETRY = True
+# CELERY_SEND_EVENTS=True
+# CELERY_RESULT_BACKEND='redis'
+# CELERY_TASK_RESULT_EXPIRES =  10
+# CELERYBEAT_SCHEDULER="djcelery.schedulers.DatabaseScheduler"
+# CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
+
+BROKER_URL = 'amqp://guest:guest@localhost//'
+CELERY_ACCEPT_CONTENT = ['json']
+
+# BROKER_URL= 'django://'
+# BROKER_URL = 'redis://localhost:6379/0'
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+# BROKER_URL = 'sqla+postgresql://goldstone:@localhost/goldstone_dev'
 
 # CELERY_TIMEZONE = 'UTC'
 
