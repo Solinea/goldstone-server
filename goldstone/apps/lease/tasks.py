@@ -18,23 +18,43 @@ def _get_admin_creds():
             }
 
 
+def _compute_exists(instance_id):
+    return True
+
+
+def _volume_exists(volume_id):
+    return True
+
+
 @shared_task
-def expire():
+def expire(lease_id):
     """
     Expire leases
     """
     creds = _get_admin_creds()
-    expiring_leases = Action.objects.filter(status__iexact="pending")
-    expiring_leases = expiring_leases.objects.filter(time__lte=timezone.now())
-    for x in expiring_leases:
-        # determine action, scope and type of lease
-        # x.lease.scope and x.lease.lease_type
-        # update database status to "in action" or some shit
-        # expire lease w/ openstack cli
-        # wait for response
-        # updated database status to "completed" or some shit
+    try:
+        lease_to_be_expired = Lease.get(lease_id)
+    except:
         pass
-    pass
+    # check state to determine that it has been already expired
+    # determine action, scope and type of lease
+    # x.lease.scope and x.lease.lease_type
+    # update database status to "in action" or some shit
+    # expire lease w/ openstack cli
+    # wait for response
+    # updated database status to "completed" or some shit
+    return True
+
+
+@shared_task
+def find_expirations():
+    """
+    Query database for expired leases
+    """
+    expired_leases = Action.objects.filter(status__iexact="pending")
+    expired_leases = expiring_leases.objects.filter(time__lte=timezone.now())
+    for lease in expired_leases:
+        expire.delay(lease.id)
 
 
 @shared_task
@@ -42,13 +62,20 @@ def notify():
     """
     Send notifications
     """
-    expiring_notifcations = Notification.objects.filter(
+    # perform notification
+    # wait for response
+    # updated database status
+    return True
+
+
+@shared_task
+def find_notifications():
+    """
+    Query database for expired leases
+    """
+    expiring_notifications = Notification.objects.filter(
         status__iexact="pending")
-    expiring_notifcations = expiring_notifcations.objects.filter(
+    expiring_notifications = expiring_notifcations.objects.filter(
         time__lte=timezone.now())
-    for x in expiring:
-        # perform notification
-        # wait for response
-        # updated database status
-        pass
-    pass
+    for notification in expiring_notifications:
+        notify.delay(notification.id)
