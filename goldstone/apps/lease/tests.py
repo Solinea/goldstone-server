@@ -1,8 +1,15 @@
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+#
+# Copyright 2012 Solinea, Inc.
+#
+
 from django.core.urlresolvers import resolve
 from django.test import TestCase
 from django.utils import timezone
 
-from .views import ListLeaseView
+from datetime import datetime, timedelta
+
 from .models import Lease
 from .models import Notification
 from .models import Action
@@ -21,10 +28,13 @@ class LeaseTest(TestCase):
         lease.name = 'Lease 1'
         lease.deleted = False
         lease.start_time = timezone.now()
+        lease.expiration_time = timezone.make_aware(
+            datetime.now()+timedelta(days=30),
+            timezone.get_current_timezone())
         return lease
 
     def test_root_url_resolves_to_home_page_view(self):
-        found = resolve('/')
+        found = resolve('/leases/')
         self.assertEqual(found.view_name, 'lease-list')
 
     def test_create_leases(self):
@@ -57,13 +67,13 @@ class LeaseTest(TestCase):
     def test_lease_with_notification(self):
         sample = self._create_lease_object()
         sample.save()
-        note = sample.notification_set.create(
+        sample.notification_set.create(
             name="samples notification",
             driver="email",
             time=timezone.now(),
             result="success",
             )
-        note_alt = sample.notification_set.create(
+        sample.notification_set.create(
             name="samples notification 2",
             driver="sms",
             time=timezone.now(),
@@ -75,7 +85,7 @@ class LeaseTest(TestCase):
     def test_lease_with_action(self):
         sample = self._create_lease_object()
         sample.save()
-        act = sample.action_set.create(
+        sample.action_set.create(
             name="sample action",
             driver="terminate",
             time=timezone.now(),
@@ -87,13 +97,13 @@ class LeaseTest(TestCase):
     def test_cascading_deletes_set_correctly(self):
         sample = self._create_lease_object()
         sample.save()
-        note = sample.notification_set.create(
+        sample.notification_set.create(
             name="samples notification",
             driver="email",
             time=timezone.now(),
             result="success",
             )
-        act = sample.action_set.create(
+        sample.action_set.create(
             name="sample action",
             driver="terminate",
             time=timezone.now(),

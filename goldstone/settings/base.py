@@ -92,4 +92,4 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Crispy Forms
-CRISPY_TEMPLATE_PACK = 'bootstrap'
+CRISPY_TEMPLATE_PACK = 'bootstrap3'

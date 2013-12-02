@@ -1,12 +1,18 @@
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+#
+# Copyright 2012 Solinea, Inc.
+#
+
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect, render
 from django.views.generic import ListView
-from django.views.generic import CreateView
-from django.views.generic import UpdateView
-from django.views.generic import DeleteView
+from django.views.generic import CreateView, UpdateView, DeleteView
+from django.utils import timezone
 
 from crispy_forms.helper import FormHelper
 
+from .forms import CreateLeaseForm, UpdateLeaseForm
 from .models import Lease
 from .models import Notification
 from .models import Action
@@ -20,6 +26,7 @@ class ListLeaseView(ListView):
 class CreateLeaseView(CreateView):
     model = Lease
     template_name = 'edit_lease.html'
+    form_class = CreateLeaseForm
 
     def get_success_url(self):
         return reverse('lease-list')
@@ -29,10 +36,16 @@ class CreateLeaseView(CreateView):
         context['action'] = reverse('lease-new')
         return context
 
+    def form_valid(self, form):
+        form.instance.deleted = False
+        form.instance.start_time = timezone.now()
+        return super(CreateLeaseView, self).form_valid(form)
+
 
 class UpdateLeaseView(UpdateView):
     model = Lease
     template_name = 'edit_lease.html'
+    form_class = UpdateLeaseForm
 
     def get_success_url(self):
         return reverse('lease-list')
