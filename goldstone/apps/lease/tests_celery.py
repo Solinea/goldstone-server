@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from django.test import TestCase
 from django.utils import timezone
 
@@ -13,6 +15,7 @@ class CeleryLeaseTest(TestCase):
             name='Lease 1',
             deleted=False,
             start_time=timezone.now(),
+            expiration_time=timezone.now(),
         )
         lease.save()
         lease.notification_set.create(
