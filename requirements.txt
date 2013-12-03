@@ -11,5 +11,4 @@ django-crispy-forms
 django-floppyforms
 pbr
 celery
-django-celery-with-redis
 django-celery
