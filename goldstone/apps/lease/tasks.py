@@ -57,7 +57,7 @@ def expire(lease_id):
         expire_result = _terminate_specific_instance(expired_lease.resource_id)
     else:
         logger.warn("lease %s has incorrect scope: %s" %
-                 (lease_id, expired_lease.scope))
+                   (lease_id, expired_lease.scope))
     if expire_result:
         expired_lease.result = "COMPLETED"
     else:
