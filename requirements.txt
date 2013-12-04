@@ -12,3 +12,4 @@ django-floppyforms
 pbr
 celery
 django-celery
+python-novaclient

@@ -24,18 +24,36 @@ def _get_admin_creds():
             }
 
 
-def _resource_exists(resource_type, instance_id):
-    logger.info('%s compute instance exists' % instance_id)
-    return True
+def _delete_instance(self, tenant_id, compute_endpoint,
+                     token, server_id):
+    """
+    delete a specific compute instance
+    """
+    url = ("v2/%s/servers/%s" % tenant_id, server_id)
+    hdr = conn.headers(token, tenant_id)
+    r = requests.get(url, headers=hdr)
+    response = r.json()['result']
+    if response == 204:
+        success = True
+    else:
+        logger.warn('compute instance %s delete error: %s' %
+                    instance_id, response)
+        sucess = False
+    return success
 
 
 def _terminate_tenant_instances(tenant_id):
     logger.info('terminating tenant %s instances' % tenant_id)
+    # find tenant instances
+    # loop thru instances and _delete_instance each one
     return True
 
 
 def _terminate_specific_instance(instance_id):
     logger.info('terminating instance %s' % instance_id)
+    # lookup tenant id from tenant name
+    result = self._delete_instance(tenant_id, compute_endpoint,
+                                   token, server_id)
     return True
 
 
@@ -45,16 +63,18 @@ def expire(lease_id):
     Expire leases
     """
     logger.info('expire starting for lease %s' % lease_id)
-    creds = _get_admin_creds()
+    creds = self._get_admin_creds()
     try:
         expired_lease = Lease.get(lease_id)
     except:
         logger.warn("lease id %s does not exist in the database" % lease_id)
         return False
     if expired_lease.scope == "TENANT":
-        expire_result = _terminate_tenant_instances(expired_lease.tenant_id)
+        expire_result = self._terminate_tenant_instances(
+            expired_lease.tenant_id)
     elif expired_lease.scope == "RESOURCE":
-        expire_result = _terminate_specific_instance(expired_lease.resource_id)
+        expire_result = self._terminate_specific_instance(
+            expired_lease.resource_id)
     else:
         logger.warn("lease %s has incorrect scope: %s" %
                    (lease_id, expired_lease.scope))
@@ -86,6 +106,8 @@ def find_expirations():
 
 
 def _send_notification(tenant, message):
+    # lookup client email address in keystone OR use notification address
+    # send email to address with message
     return True
 
 
@@ -99,7 +121,7 @@ def notify(notification_id):
         notification = Notification.get(notification_id)
         days_left = timezone.now() - notification.lease.expiration_time
         message = ("Your lease will expire in %s days." % days_left)
-        result = _send_notification(tenant, message)
+        result = self._send_notification(tenant, message)
     except:
         result = False
         logger.warn("Failed to send notification %s" % notification_id)
