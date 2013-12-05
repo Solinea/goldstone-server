@@ -5,6 +5,7 @@ from celery import task, shared_task
 from celery.utils.log import get_task_logger
 from django.utils import timezone
 from django.conf import settings
+from novaclient.v1_1 import client
 
 from .models import Lease, Action, Notification
 
@@ -29,23 +30,29 @@ def _delete_instance(self, tenant_id, compute_endpoint,
     """
     delete a specific compute instance
     """
-    url = ("v2/%s/servers/%s" % tenant_id, server_id)
-    hdr = conn.headers(token, tenant_id)
-    r = requests.get(url, headers=hdr)
-    response = r.json()['result']
-    if response == 204:
+    try:
+        novaclient = client.Client(username, password, tenant_id,
+                                   compute_endpoint, service_type="compute")
+        nova_result = novaclient.servers.delete(server_id)
+        # evaluate nova_result code
         success = True
-    else:
-        logger.warn('compute instance %s delete error: %s' %
-                    instance_id, response)
-        sucess = False
+    except:
+        success = False
     return success
 
 
 def _terminate_tenant_instances(tenant_id):
     logger.info('terminating tenant %s instances' % tenant_id)
-    # find tenant instances
-    # loop thru instances and _delete_instance each one
+    try:
+        novaclient = client.Client(username, password, tenant_id,
+                                   compute_endpoint, service_type="compute")
+        tenant_instances = novaclient.servers.list()
+    except:
+        success = False
+    for instance in tenant_instances:
+        terminate_result = self._delete_instance(instances.id)
+        logger.info('terminated instance %s' % instances.id)
+    logger.info('Tenant %s instances terminated' % tenant_id)
     return True
 
 
