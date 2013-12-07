@@ -13,54 +13,55 @@ from .models import Lease, Action, Notification
 logger = get_task_logger(__name__)
 
 
-def _get_admin_creds():
-    """
-    Get admin keys to execute privileged OpenStack actions
-    """
+def _get_novaclient(creds):
     # TODO: fake this until keystone integration is done
-    return {"OS_PASSWORD": settings.OS_PASSWORD,
-            "OS_AUTH_URL": settings.OS_AUTH_URL,
-            "OS_USERNAME": settings.OS_USERNAME,
-            "OS_TENANT_NAME": settings.OS_TENANT_NAME,
-            }
+    d = {"password": settings.OS_PASSWORD,
+         "auth_url": settings.OS_AUTH_URL,
+         "username": settings.OS_USERNAME,
+         "tenant_name": settings.OS_TENANT_NAME,
+         "tenant_id": settings.OS_TENANT_ID,
+         }
+    novaclient = client.Client(d["username"], d["password"], d["tenant_id"],
+                               d["auth_url"], service_type="compute")
+    return novaclient
 
 
-def _delete_instance(self, tenant_id, compute_endpoint,
-                     token, server_id):
+def _delete_instance(self, server_id, client = None):
     """
     delete a specific compute instance
     """
+    if client is None:
+        client = self._get_novaclient()
     try:
-        novaclient = client.Client(username, password, tenant_id,
-                                   compute_endpoint, service_type="compute")
-        nova_result = novaclient.servers.delete(server_id)
-        # evaluate nova_result code
+        nova_result = nova.servers.delete(server_id)
+        # TODO: evaluate nova_result code
         success = True
     except:
         success = False
     return success
 
 
-def _terminate_tenant_instances(tenant_id):
+def _terminate_tenant_instances(tenant_id, client = None):
     logger.info('terminating tenant %s instances' % tenant_id)
+    if client is None:
+        client = self._get_novaclient()
     try:
-        novaclient = client.Client(username, password, tenant_id,
-                                   compute_endpoint, service_type="compute")
         tenant_instances = novaclient.servers.list()
+        for instance in tenant_instances:
+            terminate_result = self._delete_instance(instances.id,
+                token, client)
+            logger.info('terminated instance %s' % instances.id)
+        logger.info('Tenant %s instances terminated' % tenant_id)
+        success = True
     except:
         success = False
-    for instance in tenant_instances:
-        terminate_result = self._delete_instance(instances.id)
-        logger.info('terminated instance %s' % instances.id)
-    logger.info('Tenant %s instances terminated' % tenant_id)
-    return True
+    return success
 
 
 def _terminate_specific_instance(instance_id):
     logger.info('terminating instance %s' % instance_id)
     # lookup tenant id from tenant name
-    result = self._delete_instance(tenant_id, compute_endpoint,
-                                   token, server_id)
+    result = self._delete_instance(server_id)
     return True
 
 
@@ -70,7 +71,6 @@ def expire(lease_id):
     Expire leases
     """
     logger.info('expire starting for lease %s' % lease_id)
-    creds = self._get_admin_creds()
     try:
         expired_lease = Lease.get(lease_id)
     except:
