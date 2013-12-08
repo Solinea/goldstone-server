@@ -13,7 +13,7 @@ from .models import Lease, Action, Notification
 logger = get_task_logger(__name__)
 
 
-def _get_novaclient(creds):
+def _get_novaclient():
     # TODO: fake this until keystone integration is done
     d = {"password": settings.OS_PASSWORD,
          "auth_url": settings.OS_AUTH_URL,
@@ -21,35 +21,42 @@ def _get_novaclient(creds):
          "tenant_name": settings.OS_TENANT_NAME,
          "tenant_id": settings.OS_TENANT_ID,
          }
-    novaclient = client.Client(d["username"], d["password"], d["tenant_id"],
-                               d["auth_url"], service_type="compute")
+    try:
+        novaclient = client.Client(d["username"], d["password"],
+                                   d["tenant_name"], d["auth_url"],
+                                   service_type="compute")
+    except:
+        logger.info('Error logging into Nova')
     return novaclient
 
 
-def _delete_instance(self, server_id, client = None):
+def _delete_instance(server_id, client=None):
     """
     delete a specific compute instance
     """
+    logger.info('deleting instance %s' % server_id)
     if client is None:
-        client = self._get_novaclient()
+        client = _get_novaclient()
     try:
-        nova_result = nova.servers.delete(server_id)
+        nova_result = client.servers.delete(server_id)
         # TODO: evaluate nova_result code
+        logger.info('Nova responded to terminate with %s' % nova_result)
         success = True
     except:
         success = False
+    # logger.info('delete is %s due to %s' % success, nova_result)
     return success
 
 
-def _terminate_tenant_instances(tenant_id, client = None):
+def _terminate_tenant_instances(tenant_id, client=None):
     logger.info('terminating tenant %s instances' % tenant_id)
     if client is None:
-        client = self._get_novaclient()
+        client = _get_novaclient()
     try:
         tenant_instances = novaclient.servers.list()
         for instance in tenant_instances:
-            terminate_result = self._delete_instance(instances.id,
-                token, client)
+            terminate_result = _delete_instance(instances.id,
+                                                token, client)
             logger.info('terminated instance %s' % instances.id)
         logger.info('Tenant %s instances terminated' % tenant_id)
         success = True
@@ -61,34 +68,35 @@ def _terminate_tenant_instances(tenant_id, client = None):
 def _terminate_specific_instance(instance_id):
     logger.info('terminating instance %s' % instance_id)
     # lookup tenant id from tenant name
-    result = self._delete_instance(server_id)
+    result = _delete_instance(instance_id)
     return True
 
 
 @shared_task
-def expire(lease_id):
+def expire(action_id):
     """
     Expire leases
     """
-    logger.info('expire starting for lease %s' % lease_id)
+    logger.info('Action starting for %s' % action_id)
     try:
-        expired_lease = Lease.get(lease_id)
+        expired_lease = Action.objects.get(pk=action_id)
     except:
-        logger.warn("lease id %s does not exist in the database" % lease_id)
+        logger.warn("Action id %s does not exist in the database" % action_id)
+        print "Unexpected error:", sys.exc_info()[0]
         return False
-    if expired_lease.scope == "TENANT":
-        expire_result = self._terminate_tenant_instances(
-            expired_lease.tenant_id)
-    elif expired_lease.scope == "RESOURCE":
-        expire_result = self._terminate_specific_instance(
-            expired_lease.resource_id)
+    if expired_lease.lease.scope == "TENANT":
+        expire_result = _terminate_tenant_instances(
+            expired_lease.lease.tenant_id)
+    elif expired_lease.lease.scope == "RESOURCE":
+        expire_result = _terminate_specific_instance(
+            expired_lease.lease.resource_id)
     else:
         logger.warn("lease %s has incorrect scope: %s" %
-                   (lease_id, expired_lease.scope))
+                   (lease_id, expired_lease.lease.scope))
     if expire_result:
-        expired_lease.result = "COMPLETED"
+        expired_lease.lease.result = "COMPLETED"
     else:
-        logger.warn('lease %s did not terminate' % lease_id)
+        logger.warn('lease %s did not terminate' % action_id)
     # check state to determine that it has been already expired
     # determine action, scope and type of lease
     # x.lease.scope and x.lease.lease_type
@@ -107,8 +115,8 @@ def find_expirations():
     logger.info("finding expirations")
     expired_leases = Action.objects.filter(result__iexact="pending")
     expired_leases = expired_leases.filter(time__lte=timezone.now())
-    for lease in expired_leases:
-        expire.delay(lease.pk)
+    for a in expired_leases:
+        expire.delay(a.pk)
     return True
 
 

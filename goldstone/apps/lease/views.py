@@ -37,8 +37,19 @@ class CreateLeaseView(CreateView):
         return context
 
     def form_valid(self, form):
-        form.instance.deleted = False
-        form.instance.start_time = timezone.now()
+        new_lease = form.instance
+        new_lease.deleted = False
+        new_lease.status = "pending"
+        new_lease.start_time = timezone.now()
+        new_lease.save()
+        new_action = Action(
+            name=form.instance.name,
+            driver="terminate",
+            time=form.instance.expiration_time,
+            result="pending",
+            lease=new_lease,
+            )
+        new_action.save()
         return super(CreateLeaseView, self).form_valid(form)
 
 

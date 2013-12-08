@@ -22,8 +22,8 @@ SECRET_KEY = 'dev-v=jazz^xno*0(aou-6ir*q-c+v&r#ue5b4wxt-xy#rebph8q)'
 OS_PASSWORD = "password"
 OS_AUTH_URL = "http://192.168.1.68:5000/v2.0"
 OS_USERNAME = "admin"
-export OS_TENANT_ID=f0121ca2c019458397e8ad75beaf4c70
-export OS_TENANT_NAME="demo"
+OS_TENANT_ID = "f0121ca2c019458397e8ad75beaf4c70"
+OS_TENANT_NAME = "demo"
 
 # Celery configuration
 
