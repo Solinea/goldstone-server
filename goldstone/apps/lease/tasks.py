@@ -44,7 +44,6 @@ def _delete_instance(server_id, client=None):
         success = True
     except:
         success = False
-    # logger.info('delete is %s due to %s' % success, nova_result)
     return success
 
 
@@ -53,11 +52,11 @@ def _terminate_tenant_instances(tenant_id, client=None):
     if client is None:
         client = _get_novaclient()
     try:
-        tenant_instances = novaclient.servers.list()
+        tenant_instances = client.servers.list()
+        logger.info('Tenant has %s instance(s)' % len(tenant_instances))
         for instance in tenant_instances:
-            terminate_result = _delete_instance(instances.id,
-                                                token, client)
-            logger.info('terminated instance %s' % instances.id)
+            terminate_result = _delete_instance(instance.id, client)
+            logger.info('terminated instance %s' % instance.id)
         logger.info('Tenant %s instances terminated' % tenant_id)
         success = True
     except:
@@ -85,9 +84,11 @@ def expire(action_id):
         print "Unexpected error:", sys.exc_info()[0]
         return False
     if expired_lease.lease.scope == "TENANT":
+        logger.info("tenant scope lease starting")
         expire_result = _terminate_tenant_instances(
             expired_lease.lease.tenant_id)
     elif expired_lease.lease.scope == "RESOURCE":
+        logger.info("resource scope lease starting")
         expire_result = _terminate_specific_instance(
             expired_lease.lease.resource_id)
     else:
@@ -95,6 +96,7 @@ def expire(action_id):
                    (lease_id, expired_lease.lease.scope))
     if expire_result:
         expired_lease.lease.result = "COMPLETED"
+        expired_lease.result = "COMPLETED"
     else:
         logger.warn('lease %s did not terminate' % action_id)
     # check state to determine that it has been already expired
