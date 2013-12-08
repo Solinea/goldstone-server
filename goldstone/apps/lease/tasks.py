@@ -14,6 +14,9 @@ logger = get_task_logger(__name__)
 
 
 def _get_novaclient():
+    """Get cloud credentials and instance
+    """
+
     # TODO: fake this until keystone integration is done
     d = {"password": settings.OS_PASSWORD,
          "auth_url": settings.OS_AUTH_URL,
@@ -25,15 +28,18 @@ def _get_novaclient():
         novaclient = client.Client(d["username"], d["password"],
                                    d["tenant_name"], d["auth_url"],
                                    service_type="compute")
-    except:
-        logger.info('Error logging into Nova')
+    except Exception, err:
+        logger.info('Error logging into cloud: %s' % err)
     return novaclient
 
 
 def _delete_instance(server_id, client=None):
+    """Delete a specific compute instance
+    
+    :param server_id: OpenStack server ID
+    :param client: Nova client object (Optional)
     """
-    delete a specific compute instance
-    """
+
     logger.info('deleting instance %s' % server_id)
     if client is None:
         client = _get_novaclient()
@@ -48,6 +54,12 @@ def _delete_instance(server_id, client=None):
 
 
 def _terminate_tenant_instances(tenant_id, client=None):
+    """Terminate all compute instances from a specific tenant
+    
+    :param tenant_id: OpenStack tenant ID
+    :param client: Nova client object (Optional)
+    """
+
     logger.info('terminating tenant %s instances' % tenant_id)
     if client is None:
         client = _get_novaclient()
@@ -65,17 +77,21 @@ def _terminate_tenant_instances(tenant_id, client=None):
 
 
 def _terminate_specific_instance(instance_id):
+    """Terminate one specific compute instance
+    
+    :param instance_id: OpenStack server ID
+    """
+
     logger.info('terminating instance %s' % instance_id)
-    # lookup tenant id from tenant name
     result = _delete_instance(instance_id)
     return True
 
 
 @shared_task
 def expire(action_id):
+    """Expire leases
     """
-    Expire leases
-    """
+
     logger.info('Action starting for %s' % action_id)
     try:
         expired_lease = Action.objects.get(pk=action_id)
@@ -83,6 +99,7 @@ def expire(action_id):
         logger.warn("Action id %s does not exist in the database" % action_id)
         print "Unexpected error:", sys.exc_info()[0]
         return False
+
     if expired_lease.lease.scope == "TENANT":
         logger.info("tenant scope lease starting")
         expire_result = _terminate_tenant_instances(
@@ -94,26 +111,20 @@ def expire(action_id):
     else:
         logger.warn("lease %s has incorrect scope: %s" %
                    (lease_id, expired_lease.lease.scope))
+
     if expire_result:
         expired_lease.lease.result = "COMPLETED"
         expired_lease.result = "COMPLETED"
     else:
         logger.warn('lease %s did not terminate' % action_id)
-    # check state to determine that it has been already expired
-    # determine action, scope and type of lease
-    # x.lease.scope and x.lease.lease_type
-    # update database status to "in action" or some shit
-    # expire lease w/ openstack cli
-    # wait for response
-    # updated database status to "completed" or some shit
     return True
 
 
 @shared_task
 def find_expirations():
+    """Query database for expired leases
     """
-    Query database for expired leases
-    """
+
     logger.info("finding expirations")
     expired_leases = Action.objects.filter(result__iexact="pending")
     expired_leases = expired_leases.filter(time__lte=timezone.now())
@@ -130,9 +141,9 @@ def _send_notification(tenant, message):
 
 @shared_task
 def notify(notification_id):
+    """Send notifications
     """
-    Send notifications
-    """
+
     logger.info('notify starting')
     try:
         notification = Notification.get(notification_id)
@@ -147,9 +158,9 @@ def notify(notification_id):
 
 @shared_task
 def find_notifications():
+    """Query database for notifications
     """
-    Query database for expired leases
-    """
+
     logger.info('finding notifications')
     expiring_notifications = Notification.objects.filter(
         result__iexact="pending")
