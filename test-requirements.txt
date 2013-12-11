@@ -5,3 +5,4 @@ selenium
 django_extensions
 pygraphviz
 sphinx
+mock
