@@ -13,29 +13,58 @@ from .models import Lease, Action, Notification
 logger = get_task_logger(__name__)
 
 
-def _get_novaclient():
-    """Get cloud credentials and instance
+# class OpenStackError(Exception):
+#     raise SystemExit
+
+
+def _get_creds():
+    """Gather OpenStack credentials for admin user
     """
 
-    # TODO: fake this until keystone integration is done
+    # TODO: hard code this until keystone integration is done
     d = {"password": settings.OS_PASSWORD,
          "auth_url": settings.OS_AUTH_URL,
          "username": settings.OS_USERNAME,
          "tenant_name": settings.OS_TENANT_NAME,
          "tenant_id": settings.OS_TENANT_ID,
          }
+    return d
+
+
+def _get_novaclient():
+    """Get compute cloud credentials
+    """
+
+    d = _get_creds()
     try:
         novaclient = client.Client(d["username"], d["password"],
                                    d["tenant_name"], d["auth_url"],
                                    service_type="compute")
     except Exception, err:
         logger.info('Error logging into cloud: %s' % err)
+        raise SystemExit
+    return novaclient
+
+
+def _get_cinderclient():
+    """Get storage cloud credentials
+    """
+
+    d = _get_creds()
+    try:
+        # TODO: rewrite for cinder client
+        novaclient = client.Client(d["username"], d["password"],
+                                   d["tenant_name"], d["auth_url"],
+                                   service_type="compute")
+    except Exception, err:
+        logger.info('Error logging into cloud: %s' % err)
+        raise SystemExit
     return novaclient
 
 
 def _delete_instance(server_id, client=None):
     """Delete a specific compute instance
-    
+
     :param server_id: OpenStack server ID
     :param client: Nova client object (Optional)
     """
@@ -48,14 +77,15 @@ def _delete_instance(server_id, client=None):
         # TODO: evaluate nova_result code
         logger.info('Nova responded to terminate with %s' % nova_result)
         success = True
-    except:
+    except Exception, err:
         success = False
+        raise SystemExit
     return success
 
 
 def _terminate_tenant_instances(tenant_id, client=None):
     """Terminate all compute instances from a specific tenant
-    
+
     :param tenant_id: OpenStack tenant ID
     :param client: Nova client object (Optional)
     """
@@ -71,14 +101,15 @@ def _terminate_tenant_instances(tenant_id, client=None):
             logger.info('terminated instance %s' % instance.id)
         logger.info('Tenant %s instances terminated' % tenant_id)
         success = True
-    except:
+    except Exception, err:
         success = False
+        raise SystemExit
     return success
 
 
 def _terminate_specific_instance(instance_id):
     """Terminate one specific compute instance
-    
+
     :param instance_id: OpenStack server ID
     """
 
@@ -87,7 +118,7 @@ def _terminate_specific_instance(instance_id):
     return True
 
 
-@shared_task
+@task
 def expire(action_id):
     """Expire leases
     """
@@ -95,32 +126,23 @@ def expire(action_id):
     logger.info('Action starting for %s' % action_id)
     try:
         expired_lease = Action.objects.get(pk=action_id)
-    except:
+    except Exception, err:
         logger.warn("Action id %s does not exist in the database" % action_id)
-        print "Unexpected error:", sys.exc_info()[0]
+        logger.warn("Unexpected error: %s" % err)
         return False
 
     if expired_lease.lease.scope == "TENANT":
         logger.info("tenant scope lease starting")
-        expire_result = _terminate_tenant_instances(
-            expired_lease.lease.tenant_id)
+        rst = _terminate_tenant_instances(expired_lease.lease.tenant_id)
     elif expired_lease.lease.scope == "RESOURCE":
         logger.info("resource scope lease starting")
-        expire_result = _terminate_specific_instance(
-            expired_lease.lease.resource_id)
+        rst = _terminate_specific_instance(expired_lease.lease.resource_id)
     else:
         logger.warn("lease %s has incorrect scope: %s" %
                    (lease_id, expired_lease.lease.scope))
 
-    if expire_result:
-        expired_lease.lease.result = "COMPLETED"
-        expired_lease.result = "COMPLETED"
-    else:
-        logger.warn('lease %s did not terminate' % action_id)
-    return True
 
-
-@shared_task
+@task
 def find_expirations():
     """Query database for expired leases
     """
@@ -129,8 +151,18 @@ def find_expirations():
     expired_leases = Action.objects.filter(result__iexact="pending")
     expired_leases = expired_leases.filter(time__lte=timezone.now())
     for a in expired_leases:
-        expire.delay(a.pk)
-    return True
+        expire_result = expire.delay(a.pk)
+        if expire_result.state is 'SUCCESS':
+            a.lease.status = "COMPLETED"
+            a.lease.save()
+            logger.info("lease status updated")
+            a.result = "COMPLETED"
+            a.save()
+            logger.info("action result updated")
+        else:
+            logger.warn('lease %s did not terminate' % a.id)
+
+    return expired_leases
 
 
 def _send_notification(tenant, message):
@@ -139,7 +171,7 @@ def _send_notification(tenant, message):
     return True
 
 
-@shared_task
+@task
 def notify(notification_id):
     """Send notifications
     """
@@ -156,7 +188,7 @@ def notify(notification_id):
     return result
 
 
-@shared_task
+@task
 def find_notifications():
     """Query database for notifications
     """
