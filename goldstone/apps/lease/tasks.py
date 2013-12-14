@@ -52,22 +52,6 @@ def _get_novaclient():
     return novaclient
 
 
-def _get_cinderclient():
-    """Get storage cloud credentials
-    """
-
-    d = _get_creds()
-    try:
-        # TODO: rewrite for cinder client
-        novaclient = client.Client(d["username"], d["password"],
-                                   d["tenant_name"], d["auth_url"],
-                                   service_type="compute")
-    except Exception, err:
-        logger.info('Error logging into cloud: %s' % err)
-        raise SystemExit
-    return novaclient
-
-
 def _delete_instance(server_id, client=None):
     """Delete a specific compute instance
 
@@ -106,8 +90,10 @@ def _terminate_tenant_instances(tenant_id):
             terminate_result = _delete_instance(instance.id, client)
             logger.info('terminated instance %s' % instance.id)
         logger.info('All Tenant %s instances terminated' % tenant_id)
+        success = True
     except Exception, err:
-        pass
+        success = False
+        raise SystemExit
     return success
 
 
