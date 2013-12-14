@@ -1,16 +1,23 @@
 from datetime import datetime, timedelta
-import mock
+from mock import patch, MagicMock
 
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.utils import timezone
-from novaclient.v1_1 import client
+# from novaclient.v1_1 import client
 
 from .models import Lease, Notification, Action
 from .tasks import task, expire
 
-
 class CeleryLeaseTest(TestCase):
+
+
+    def mock_client(self, u, p, t, a, **kwargs):
+        return "client"
+
+
+    def mock_delete(self, s):
+        return "200"
 
     def setUp(self):
         # create three leases, each with a notification and action
@@ -20,7 +27,8 @@ class CeleryLeaseTest(TestCase):
             start_time=timezone.now(),
             expiration_time=timezone.now(),
             status="pending",
-            resource_id="1",
+            resource_id=101,
+            scope="RESOURCE"
         )
         self.lease.save()
         self.notification = self.lease.notification_set.create(
@@ -41,6 +49,7 @@ class CeleryLeaseTest(TestCase):
     def tearDown(self):
         pass
 
+
     def test_setups_are_correct(self):
         """Dummy test to make sure fixtures are correct
         """
@@ -57,12 +66,21 @@ class CeleryLeaseTest(TestCase):
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
                        CELERY_ALWAYS_EAGER=True,
                        BROKER_BACKEND='memory',)
-    def test_find_expire(self):
+    @patch('novaclient.v1_1.client.Client')
+    @patch('novaclient.v1_1.client.servers')
+    def test_find_expire(self, mock_client, mock_delete):
         """Expiring a lease should set the status/results fields to COMPLETE
         """
-        task._delete_instance = mock.MagicMock(return_value=True)
-        result = expire.delay(self.lease.pk)
-        task._delete_instance.assert_called_with(self.lease.pk)
-        # self.assertEqual(True, result)
+        # client.Client = self.mock_client(1,1,1,1,service_type="compute")
+        # client.servers.delete = self.mock_delete(12)
+        mock_client.return_value = True
+        mock_delete.delete.return_value = True
+        # (l, n, a) = self.dummy_data()
+        # mock_server.delete.return_value = True
+        result = expire.delay(self.action.pk)
+        # self.assertTrue(result.successful())
+        # self.assertEqual(101, self.lease.resource_id)
+        # self.assertEqual(True, result.result)
+        # self.assertEqual("SUCCESS", result.status)
+        # self.assertTrue(mock_client.called)
         self.assertEqual("COMPLETED", Lease.objects.first().status)
-        self.assertEqual("COMPLETED", Action.objects.first().result)
