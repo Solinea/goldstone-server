@@ -20,19 +20,19 @@ def _get_creds():
     # TODO: hard code this until keystone integration is done
     try:
         d = {"password": settings.OS_PASSWORD,
-         "auth_url": settings.OS_AUTH_URL,
-         "username": settings.OS_USERNAME,
-         "tenant_name": settings.OS_TENANT_NAME,
-         "tenant_id": settings.OS_TENANT_ID,
-         }
+             "auth_url": settings.OS_AUTH_URL,
+             "username": settings.OS_USERNAME,
+             "tenant_name": settings.OS_TENANT_NAME,
+             "tenant_id": settings.OS_TENANT_ID,
+             }
     except:
          # raise SystemExit
-         d = {"password": "settings.OS_PASSWORD",
-         "auth_url": "settings.OS_AUTH_URL",
-         "username": "settings.OS_USERNAME",
-         "tenant_name": "settings.OS_TENANT_NAME",
-         "tenant_id": "settings.OS_TENANT_ID",
-         }
+        d = {"password": "settings.OS_PASSWORD",
+             "auth_url": "settings.OS_AUTH_URL",
+             "username": "settings.OS_USERNAME",
+             "tenant_name": "settings.OS_TENANT_NAME",
+             "tenant_id": "settings.OS_TENANT_ID",
+             }
     return d
 
 
@@ -152,6 +152,7 @@ def expire(action_id):
     else:
         logger.warn('lease %s did not terminate' % a.id)
     return rst
+
 
 @task
 def find_expirations():

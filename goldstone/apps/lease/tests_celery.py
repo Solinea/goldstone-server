@@ -9,12 +9,11 @@ from django.utils import timezone
 from .models import Lease, Notification, Action
 from .tasks import task, expire
 
-class CeleryLeaseTest(TestCase):
 
+class CeleryLeaseTest(TestCase):
 
     def mock_client(self, u, p, t, a, **kwargs):
         return "client"
-
 
     def mock_delete(self, s):
         return "200"
@@ -49,7 +48,6 @@ class CeleryLeaseTest(TestCase):
     def tearDown(self):
         pass
 
-
     def test_setups_are_correct(self):
         """Dummy test to make sure fixtures are correct
         """
@@ -71,16 +69,8 @@ class CeleryLeaseTest(TestCase):
     def test_find_expire(self, mock_client, mock_delete):
         """Expiring a lease should set the status/results fields to COMPLETE
         """
-        # client.Client = self.mock_client(1,1,1,1,service_type="compute")
-        # client.servers.delete = self.mock_delete(12)
         mock_client.return_value = True
         mock_delete.deleteself.return_value = True
-        # (l, n, a) = self.dummy_data()
-        # mock_server.delete.return_value = True
         result = expire.delay(self.action.pk)
-        # self.assertTrue(result.successful())
-        # self.assertEqual(101, self.lease.resource_id)
-        # self.assertEqual(True, result.result)
-        # self.assertEqual("SUCCESS", result.status)
-        self.assertTrue(mock_client.called)
+        self.assertTrue(mock_delete.called)
         self.assertEqual("COMPLETED", Lease.objects.first().status)
