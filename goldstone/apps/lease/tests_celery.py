@@ -74,7 +74,7 @@ class CeleryLeaseTest(TestCase):
         # client.Client = self.mock_client(1,1,1,1,service_type="compute")
         # client.servers.delete = self.mock_delete(12)
         mock_client.return_value = True
-        mock_delete.delete.return_value = True
+        mock_delete.deleteself.return_value = True
         # (l, n, a) = self.dummy_data()
         # mock_server.delete.return_value = True
         result = expire.delay(self.action.pk)
@@ -82,5 +82,5 @@ class CeleryLeaseTest(TestCase):
         # self.assertEqual(101, self.lease.resource_id)
         # self.assertEqual(True, result.result)
         # self.assertEqual("SUCCESS", result.status)
-        # self.assertTrue(mock_client.called)
+        self.assertTrue(mock_client.called)
         self.assertEqual("COMPLETED", Lease.objects.first().status)
