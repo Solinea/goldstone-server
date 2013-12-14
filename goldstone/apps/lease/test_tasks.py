@@ -12,12 +12,6 @@ from .tasks import task, expire
 
 class CeleryLeaseTest(TestCase):
 
-    def mock_client(self, u, p, t, a, **kwargs):
-        return "client"
-
-    def mock_delete(self, s):
-        return "200"
-
     def setUp(self):
         # create three leases, each with a notification and action
         self.lease = Lease(
@@ -66,11 +60,11 @@ class CeleryLeaseTest(TestCase):
                        BROKER_BACKEND='memory',)
     @patch('novaclient.v1_1.client.Client')
     @patch('novaclient.v1_1.client.servers')
-    def test_find_resource_expire(self, mock_client, mock_delete):
+    def test_find_resource_expire(self, mock_client, mock_servers):
         """Expiring a lease should set the status/results fields to COMPLETE
         """
         result = expire.delay(self.action.pk)
-        self.assertTrue(mock_delete.called)
+        self.assertTrue(mock_servers.called)
         self.assertEqual("COMPLETED", Lease.objects.first().status)
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
@@ -78,14 +72,14 @@ class CeleryLeaseTest(TestCase):
                        BROKER_BACKEND='memory',)
     @patch('novaclient.v1_1.client.Client')
     @patch('novaclient.v1_1.client.servers')
-    def test_find_tenant_expire(self, mock_client, mock_delete):
+    def test_find_tenant_expire(self, mock_client, mock_servers):
         """Expiring a tenant lease should set the status/results fields
         to COMPLETE
         """
         self.lease.scope = "TENANT"
         self.lease.save()
-        # mock_client.return_value = True
-        # mock_delete.delete.return_value = True
+        # TODO: create an example return array ? of servers to mock_servers
+        mock_servers.list.return_value = True
         result = expire.delay(self.action.pk)
-        self.assertTrue(mock_delete.called)
+        self.assertTrue(mock_servers.called)
         self.assertEqual("COMPLETED", Lease.objects.first().status)
