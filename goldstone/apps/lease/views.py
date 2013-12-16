@@ -4,18 +4,17 @@
 # Copyright 2012 Solinea, Inc.
 #
 
+from datetime import timedelta
+
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect, render
 from django.views.generic import ListView
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.utils import timezone
-
 from crispy_forms.helper import FormHelper
 
 from .forms import CreateLeaseForm, UpdateLeaseForm
-from .models import Lease
-from .models import Notification
-from .models import Action
+from .models import Lease, Notification, Action
 
 
 class ListLeaseView(ListView):
@@ -49,7 +48,15 @@ class CreateLeaseView(CreateView):
             result="pending",
             lease=new_lease,
             )
+        new_notification = Notification(
+            name=form.instance.name,
+            driver="email",
+            time=form.instance.expiration_time - timedelta(days=2),
+            result="pending",
+            lease=new_lease,
+        )
         new_action.save()
+        new_notification.save()
         return super(CreateLeaseView, self).form_valid(form)
 
 
