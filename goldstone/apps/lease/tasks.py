@@ -22,21 +22,21 @@ def _get_creds():
 
     # TODO: hard code this until keystone integration is done
     try:
-        d = {"password": settings.OS_PASSWORD,
-             "auth_url": settings.OS_AUTH_URL,
-             "username": settings.OS_USERNAME,
-             "tenant_name": settings.OS_TENANT_NAME,
-             "tenant_id": settings.OS_TENANT_ID,
-             }
+        creds = {"password": settings.OS_PASSWORD,
+                 "auth_url": settings.OS_AUTH_URL,
+                 "username": settings.OS_USERNAME,
+                 "tenant_name": settings.OS_TENANT_NAME,
+                 "tenant_id": settings.OS_TENANT_ID,
+                 }
     except:
          # raise SystemExit
-        d = {"password": "settings.OS_PASSWORD",
-             "auth_url": "settings.OS_AUTH_URL",
-             "username": "settings.OS_USERNAME",
-             "tenant_name": "settings.OS_TENANT_NAME",
-             "tenant_id": "settings.OS_TENANT_ID",
-             }
-    return d
+        creds = {"password": None,
+                 "auth_url": None,
+                 "username": None,
+                 "tenant_name": None,
+                 "tenant_id": None,
+                 }
+    return creds
 
 
 def _get_novaclient():
@@ -116,6 +116,8 @@ def _terminate_specific_instance(instance_id):
 @task
 def expire(action_id):
     """Expire leases
+
+    :param action_id: Lease action id
     """
 
     logger.info('Action starting for %s' % action_id)
@@ -159,8 +161,7 @@ def find_expirations():
 
 
 def _send_email_notification(tenant_address, message, subject):
-    # lookup client email address in keystone OR use notification address
-    # send email to address with message
+    # TODO: lookup client email address in keystone
 
     sender = settings.NOTIFICATION_SENDER
     receiptent = tenant_address
@@ -178,7 +179,9 @@ def _send_email_notification(tenant_address, message, subject):
 
 @task
 def notify(notification_id):
-    """Send notifications
+    """Send notification
+
+    :param notification_id: Lease notification ID
     """
 
     tenant_email = settings.NOTIFICATION_SENDER

@@ -40,7 +40,7 @@ class CeleryLeaseTest(TestCase):
     def tearDown(self):
         pass
 
-    def test_setups_are_correct(self):
+    def test_setups_are_sane(self):
         """Dummy test to make sure fixtures are correct
         """
         self.assertEqual("Lease 1", self.lease.name)
@@ -59,9 +59,6 @@ class CeleryLeaseTest(TestCase):
         self.assertTrue(mock_smtp.called)
         updated_noti = Notification.objects.get(pk=self.notification.id).result
         self.assertEqual("COMPLETED", updated_noti)
-
-    def test_expires(self):
-        pass
 
     @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
                        CELERY_ALWAYS_EAGER=True,
