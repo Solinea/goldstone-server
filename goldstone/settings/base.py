@@ -115,3 +115,5 @@ CELERYBEAT_SCHEDULE = {
         'args': ()
     },
 }
+
+MAILHOST = 'localhost'

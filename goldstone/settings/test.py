@@ -12,3 +12,5 @@ DATABASES = {
 }
 
 SECRET_KEY = 'test%u*@8-qcj=se3v430@xp!e&^)@e+s1*3oe=3ka)r$fk_a-1$%&'
+
+NOTIFICATION_SENDER = "notify@solinea.com"
