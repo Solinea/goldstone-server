@@ -9,7 +9,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
         "NAME": "goldstone_dev",
         "USER": "goldstone",
-        "PASSWORD": "",
+        "PASSWORD": "goldstone",
         "HOST": "localhost",
         "PORT": "",
     }
