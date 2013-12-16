@@ -10,4 +10,6 @@ psycopg2
 django-crispy-forms
 django-floppyforms
 pbr
-pytz
+celery
+django-celery
+python-novaclient

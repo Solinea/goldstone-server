@@ -56,6 +56,7 @@ INSTALLED_APPS = (
     'floppyforms',
     'crispy_forms',
     'goldstone.apps.lease',
+    "djcelery",
 )
 
 MIDDLEWARE_CLASSES = (
@@ -93,3 +94,26 @@ STATIC_URL = '/static/'
 
 # Crispy Forms
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
+
+# Celery
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+# BROKER_URL = 'redis://localhost:6379/0'
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_TASK_SERIALIZER = 'json'
+
+from datetime import timedelta
+
+CELERYBEAT_SCHEDULE = {
+    'find_expirations': {
+        'task': 'goldstone.apps.lease.tasks.find_expirations',
+        'schedule': timedelta(seconds=30),
+        'args': ()
+    },
+    'find_notifications': {
+        'task': 'goldstone.apps.lease.tasks.find_notifications',
+        'schedule': timedelta(seconds=30),
+        'args': ()
+    },
+}
+
+MAILHOST = 'localhost'

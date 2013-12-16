@@ -7,16 +7,13 @@
 from django.test.client import Client
 from django.test.client import RequestFactory
 from django.test import TestCase
-from django.utils import timezone
+from django.utils import timezone, dateformat
 
 from datetime import datetime, timedelta
 
-from .views import DeleteLeaseView
-from .views import ListLeaseView
-from .views import UpdateLeaseView
-from .models import Lease
-from .models import Notification
-from .models import Action
+from .views import DeleteLeaseView, ListLeaseView
+from .views import UpdateLeaseView, CreateLeaseView
+from .models import Lease, Notification, Action
 
 
 class LeaseViewTest(TestCase):
@@ -53,6 +50,24 @@ class LeaseViewTest(TestCase):
         self._create_sample_lease()
         response = ListLeaseView.as_view()(request)
         self.assertEquals(response.context_data['object_list'].count(), 1)
+
+    def test_create_lease(self):
+        self.assertEquals(Action.objects.count(), 0)
+        self.assertEquals(Notification.objects.count(), 0)
+        thirty_days = timezone.make_aware(datetime.now()+timedelta(days=30),
+                                          timezone.get_current_timezone())
+        thirty_days = dateformat.format(thirty_days, 'Y-m-d H:i')
+        sample_data = {'deleted': 'False', 'start_time': timezone.now(),
+                       'expiration_time': str(thirty_days), 'name': 'Ted',
+                       'reason': 'missing', 'lease_type': 'INSTANCE',
+                       'resource_type': 'COMPUTE', 'scope': 'RESOURCE',
+                       'owner_id': '12'}
+        client = Client()
+        response = client.post('/leases/new', data=sample_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEquals(Lease.objects.count(), 1)
+        self.assertEquals(Action.objects.count(), 1)
+        self.assertEqual(Notification.objects.count(),  1)
 
     def test_delete_lease(self):
         self._create_sample_lease()
