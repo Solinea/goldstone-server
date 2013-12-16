@@ -1,7 +1,10 @@
-from datetime import datetime, timedelta
-import os
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
 
-from celery import task, shared_task
+#from datetime import datetime, timedelta
+from email.mime.text import MIMEText
+import smtplib
+
+from celery import task
 from celery.utils.log import get_task_logger
 from django.utils import timezone
 from django.conf import settings
@@ -68,6 +71,7 @@ def _delete_instance(server_id, client=None):
         logger.info('Nova responded to terminate with %s' % nova_result)
         success = True
     except Exception, err:
+        logger.warn("Nova terminate failed: %s", err)
         success = False
         raise SystemExit
     return success
@@ -127,7 +131,7 @@ def expire(action_id):
         rst = _terminate_specific_instance(this_action.lease.resource_id)
     else:
         logger.warn("lease %s has incorrect scope: %s" %
-                   (lease_id, this_action.lease.scope))
+                   (this_action.lease.id, this_action.lease.scope))
     if rst:
         this_action.lease.status = "COMPLETED"
         this_action.lease.save()
@@ -136,7 +140,7 @@ def expire(action_id):
         this_action.save()
         logger.info("action result updated")
     else:
-        logger.warn('lease %s did not terminate' % a.id)
+        logger.warn('lease %s did not terminate' % this_action.lease.id)
     return rst
 
 
@@ -154,9 +158,21 @@ def find_expirations():
     return expired_leases
 
 
-def _send_notification(tenant, message):
+def _send_email_notification(tenant_address, message, subject):
     # lookup client email address in keystone OR use notification address
     # send email to address with message
+
+    sender = settings.NOTIFICATION_SENDER
+    receiptent = tenant_address
+    msg = MIMEText(message)
+
+    msg['Subject'] = subject
+    msg['From'] = sender
+    msg['To'] = receiptent
+    s = smtplib.SMTP(settings.MAILHOST)
+    s.sendmail(sender, receiptent, msg.as_string())
+    # s.set_debuglevel(1)
+    s.quit()
     return True
 
 
@@ -165,16 +181,23 @@ def notify(notification_id):
     """Send notifications
     """
 
-    logger.info('notify starting')
+    tenant_email = settings.NOTIFICATION_SENDER
+
     try:
-        notification = Notification.get(notification_id)
-        days_left = timezone.now() - notification.lease.expiration_time
-        message = ("Your lease will expire in %s days." % days_left)
-        result = self._send_notification(tenant, message)
-    except:
+        logger.info('notify starting')
+        this_notification = Notification.objects.get(pk=notification_id)
+        days_left = timezone.now() - this_notification.lease.expiration_time
+        message = ("%s: Your lease will expire in %s days." %
+                  (tenant_email, days_left.days))
+        subject = 'Lease Ending in %s' % days_left.days
+        rst = _send_email_notification(tenant_email, message, subject)
+        this_notification.result = "COMPLETED"
+        this_notification.save()
+    except Exception, err:
         result = False
-        logger.warn("Failed to send notification %s" % notification_id)
-    return result
+        logger.warn("Failed to send notification %s due to %s" %
+                    (notification_id, err))
+    return rst
 
 
 @task

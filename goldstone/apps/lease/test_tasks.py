@@ -1,13 +1,13 @@
-from datetime import datetime, timedelta
-from mock import patch, MagicMock
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+from mock import patch
 
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.utils import timezone
-# from novaclient.v1_1 import client
 
 from .models import Lease, Notification, Action
-from .tasks import task, expire
+from .tasks import task, expire, notify
 
 
 class CeleryLeaseTest(TestCase):
@@ -28,15 +28,13 @@ class CeleryLeaseTest(TestCase):
             name="samples notification",
             driver="email",
             time=timezone.now(),
-            result="pending",
-            )
+            result="pending",)
         self.notification.save()
         self.action = self.lease.action_set.create(
             name="sample action",
             driver="terminate",
             time=timezone.now(),
-            result="pending",
-            )
+            result="pending",)
         self.action.save()
 
     def tearDown(self):
@@ -48,9 +46,19 @@ class CeleryLeaseTest(TestCase):
         self.assertEqual("Lease 1", self.lease.name)
         self.assertEqual("samples notification", self.notification.name)
         self.assertEqual("sample action", self.action.name)
+        self.assertEqual(self.notification.id, Notification.objects.first().id)
 
-    def test_notifications(self):
-        pass
+    @override_settings(CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
+                       CELERY_ALWAYS_EAGER=True,
+                       BROKER_BACKEND='memory',)
+    @patch('smtplib.SMTP')
+    def test_notifications(self, mock_smtp):
+        result = notify.delay(self.notification.id)
+        self.assertEqual("SUCCESS", result.status)
+        self.assertEqual(True, result.result)
+        self.assertTrue(mock_smtp.called)
+        updated_noti = Notification.objects.get(pk=self.notification.id).result
+        self.assertEqual("COMPLETED", updated_noti)
 
     def test_expires(self):
         pass
@@ -79,6 +87,7 @@ class CeleryLeaseTest(TestCase):
         self.lease.scope = "TENANT"
         self.lease.save()
         # TODO: create an example return array ? of servers to mock_servers
+        # servers_to_delete = []
         mock_servers.list.return_value = True
         result = expire.delay(self.action.pk)
         self.assertTrue(mock_servers.called)
