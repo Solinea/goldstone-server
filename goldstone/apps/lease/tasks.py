@@ -29,7 +29,7 @@ def _get_creds():
                  "tenant_id": settings.OS_TENANT_ID,
                  }
     except:
-         # raise SystemExit
+        # raise SystemExit
         creds = {"password": None,
                  "auth_url": None,
                  "username": None,
@@ -43,11 +43,11 @@ def _get_novaclient():
     """Get compute cloud credentials
     """
 
-    d = _get_creds()
+    c = _get_creds()
     novaclient = None
     try:
-        novaclient = client.Client(d["username"], d["password"],
-                                   d["tenant_name"], d["auth_url"],
+        novaclient = client.Client(c["username"], c["password"],
+                                   c["tenant_name"], c["auth_url"],
                                    service_type="compute")
     except Exception, err:
         logger.info('Error logging into cloud: %s' % err)
