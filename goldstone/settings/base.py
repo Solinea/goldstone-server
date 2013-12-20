@@ -91,7 +91,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
-# staticfiles configuration based on tips here:  
+# staticfiles configuration based on tips here:
 #   http://blog.doismellburning.co.uk/2012/06/25/django-and-static-files/
 
 STATICFILES_FINDERS = (
