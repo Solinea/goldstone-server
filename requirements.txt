@@ -2,14 +2,14 @@
 #        requirements.txt in the root directory of a project.
 
 #-r requirements/production.txt
-Django==1.6
-South==0.8.2
+Django==1.6.1
+South==0.8.4
 wsgiref==0.1.2
 django-admin-bootstrapped
 psycopg2
 django-crispy-forms
 django-floppyforms
 pbr
-celery
+celery==3.1.7
 django-celery
 python-novaclient
