@@ -18,3 +18,5 @@ NOTIFICATION_SENDER = "notify@solinea.com"
 JENKINS_TASKS = (
     'django_jenkins.tasks.with_coverage',
 )
+
+INSTALLED_APPS += ('django_jenkins', )
