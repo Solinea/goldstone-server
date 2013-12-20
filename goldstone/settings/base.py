@@ -55,9 +55,10 @@ INSTALLED_APPS = (
     'south',
     'floppyforms',
     'crispy_forms',
+    'djcelery',
+    'django_jenkins',
     'goldstone.apps.lease',
     'goldstone.apps.intelligence',
-    "djcelery",
 )
 
 MIDDLEWARE_CLASSES = (
