@@ -56,6 +56,7 @@ INSTALLED_APPS = (
     'floppyforms',
     'crispy_forms',
     'goldstone.apps.lease',
+    'goldstone.apps.intelligence',
     "djcelery",
 )
 
@@ -90,6 +91,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
+# staticfiles configuration based on tips here:  
+#   http://blog.doismellburning.co.uk/2012/06/25/django-and-static-files/
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder'
+)
+
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+
+STATICFILES_ROOT = '/usr/share/nginx/html/static'
+
+# this is sort of a hack until we get our server strategy figured out.
 STATIC_URL = '/static/'
 
 # Crispy Forms
