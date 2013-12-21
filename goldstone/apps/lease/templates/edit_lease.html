@@ -1,5 +1,17 @@
 {% extends "base.html" %}
+{% load static %}
 {% load crispy_forms_tags %}
+
+{% block localcss %}
+<link href="{% static 'css/lease.css' %}"
+    rel="stylesheet" media="screen">
+{% endblock %}
+
+{% block localjs %}
+<script src="{% static 'js/lease.js' %}"></script>
+{% endblock %}
+
+
 {% block content %}
 
 {% if lease.id %}
@@ -21,7 +33,6 @@
       <input id="save_lease" type="submit" value="Save" class="btn btn-primary" /></p>
   </ul>
 </form>
-
 
 {% endblock %}
 
