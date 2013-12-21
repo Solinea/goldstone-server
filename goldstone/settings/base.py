@@ -55,9 +55,9 @@ INSTALLED_APPS = (
     'south',
     'floppyforms',
     'crispy_forms',
+    'djcelery',
     'goldstone.apps.lease',
     'goldstone.apps.intelligence',
-    "djcelery",
 )
 
 MIDDLEWARE_CLASSES = (
