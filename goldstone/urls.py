@@ -8,6 +8,7 @@ urlpatterns = patterns(
     '',
     url(r'^leases/', include('goldstone.apps.lease.urls')),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^$', include('goldstone.apps.cockpit.urls')),
 )
 
 urlpatterns += staticfiles_urlpatterns()
