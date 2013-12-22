@@ -1,4 +1,14 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block localcss %}
+<link href="{% static 'css/lease.css' %}"
+    rel="stylesheet" media="screen">
+{% endblock %}
+
+{% block localjs %}
+<script src="{% static 'js/lease.js' %}"></script>
+{% endblock %}
 
 {% block content %}
   <div class="page-header">
@@ -30,5 +40,4 @@
 </table>
 
 <p><a href="{% url "lease-new" %}"><button type="button" class="btn btn-primary">Add Lease</button></a></p>
-
 {% endblock %}
