@@ -8,8 +8,7 @@ from django.test.client import Client
 from django.test.client import RequestFactory
 from django.test import TestCase
 
-from .views import ListCockpitView, DetailCockpitView
-from .models import Cockpit
+from .views import DetailCockpitView, view_cockpit
 
 
 class CockpitViewTest(TestCase):
@@ -24,3 +23,7 @@ class CockpitViewTest(TestCase):
     def test_cockpit_template(self):
         response = self.client.get('/')
         self.assertTemplateUsed(response, 'cockpit.html')
+
+    def test_leases_panel(self):
+        response = self.client.get('/')
+        self.assertContains(response, 'lease_panel')
