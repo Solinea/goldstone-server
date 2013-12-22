@@ -1,8 +1,9 @@
 from django.conf.urls import patterns, include, url
 
-from .views import KibanaView
+from .views import SearchView, ErrorsView
 
 urlpatterns = patterns(
     '',
-    url(r'^logs$', KibanaView.as_view(), name='kibana-logs',)
+    url(r'^search$', SearchView.as_view(), name='intel-search',),
+    url(r'^errors$', ErrorsView.as_view(), name='intel-errors',)
 )

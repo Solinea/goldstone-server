@@ -1,4 +1,9 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block localjs %}
+<script src="{% static 'intelligence/js/search.js' %}"></script>
+{% endblock %}
 
 {% block content %}
 

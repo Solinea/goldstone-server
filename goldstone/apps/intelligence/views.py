@@ -8,5 +8,10 @@ from django.shortcuts import redirect, render
 
 from django.views.generic import TemplateView
 
-class KibanaView(TemplateView):
-    template_name = 'logs.html'
+
+class SearchView(TemplateView):
+    template_name = 'search.html'
+
+
+class ErrorsView(TemplateView):
+    template_name = 'errors.html'
