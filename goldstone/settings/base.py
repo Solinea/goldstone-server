@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 import os
 
+CURRENT_DIR = os.path.dirname(__file__)
+TEMPLATE_DIRS = (os.path.join(CURRENT_DIR, '../templates'),)
+
 # Normally you should not import ANYTHING from Django directly
 # into your settings, but ImproperlyConfigured is an exception.
 from django.core.exceptions import ImproperlyConfigured
@@ -58,6 +61,7 @@ INSTALLED_APPS = (
     'djcelery',
     'goldstone.apps.lease',
     'goldstone.apps.intelligence',
+    'goldstone.apps.cockpit',
 )
 
 MIDDLEWARE_CLASSES = (
