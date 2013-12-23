@@ -9,9 +9,9 @@ from django.shortcuts import redirect, render
 from django.views.generic import TemplateView
 
 
-class SearchView(TemplateView):
+class IntelSearchView(TemplateView):
     template_name = 'search.html'
 
 
-class ErrorsView(TemplateView):
+class IntelErrorsView(TemplateView):
     template_name = 'errors.html'
