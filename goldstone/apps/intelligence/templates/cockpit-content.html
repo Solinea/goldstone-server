@@ -1,29 +1,10 @@
-<div class="panel panel-primary intel_panel">
-    <!-- Default panel contents -->
-    <div class="panel-heading">
-        <h3 class="panel-title"><i class="fa fa-calendar"></i> <a
-                href="/search">Logs</a>
-        </h3>
-    </div>
-    <table class="table table-condensed table-hover">
-        <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Identifier</th>
-            <th>Expiration</th>
-            <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for lease in leases %}
-        <tr>
-            <td>{{lease}}</td>
-            <td>{{lease.scope}}</td>
-            <td>{{lease.resource_type}}</td>
-            <td>{{lease.expiration_time|date:"SHORT_DATE_FORMAT"}}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+<p>Made it...</p>
+
+{% load nvd3_tags %}
+{% include_chart_jscss %}
+
+{% load_chart charttype chartdata chartcontainer extra %}
+<h1>Fruits vs Calories</h1>
+{% include_container chartcontainer %}
+
+

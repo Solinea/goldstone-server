@@ -3,10 +3,14 @@
 
 {% block localcss %}
 <link href="{% static 'css/cockpit.css' %}" rel="stylesheet" media="screen">
+<link href="{% static 'nvd3/nv.d3.css' %}"
+      rel="stylesheet" media="screen">
 {% endblock %}
 
 {% block localjs %}
 <script src="{% static 'js/cockpit.js' %}"></script>
+<script src="{% static 'd3/d3.js' %}"></script>
+<script src="{% static 'nvd3/nv.d3.js' %}"></script>
 {% endblock %}
 
 
@@ -47,8 +51,8 @@
       </div>
   </div>
 
-  <div id="intel-col" class="col-md-6"></div>
-</div>
+  <!-- cockpit.js loads intelligence/cockpit_content when it sees this div-->
+  <div id="intel-col" class="col-md-6"></div></div>
 
 
 {% endblock %}
