@@ -15,3 +15,6 @@ class IntelSearchView(TemplateView):
 
 class IntelErrorsView(TemplateView):
     template_name = 'errors.html'
+
+class IntelCockpitView(TemplateView):
+    template_name = 'cockpit-content.html'

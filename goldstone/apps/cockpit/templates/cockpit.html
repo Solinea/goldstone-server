@@ -6,6 +6,7 @@
 {% endblock %}
 
 {% block localjs %}
+<script src="{% static 'js/cockpit.js' %}"></script>
 {% endblock %}
 
 
@@ -16,7 +17,7 @@
 </div> -->
 
 <div class="row">
-  <div class="col-md-6">
+  <div id="lease-col" class="col-md-6">
       <div class="panel panel-primary lease_panel">
         <!-- Default panel contents -->
         <div class="panel-heading">
@@ -45,8 +46,8 @@
         </table>
       </div>
   </div>
-  
-  <div class="col-md-6"></div>
+
+  <div id="intel-col" class="col-md-6"></div>
 </div>
 
 
