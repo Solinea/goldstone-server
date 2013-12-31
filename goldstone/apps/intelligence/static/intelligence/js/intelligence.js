@@ -10,26 +10,20 @@ var margin = {top: 30, right: 30, bottom: 30, left: 50},
     height = 300 - margin.top - margin.bottom;
 
 var arrData = [
-   {
-    "date": "01-Aug-13",
-    "close": 37.92625
-},
-{
-    "date": "02-Aug-13",
-    "close": 39.19708333
-},
-{
-    "date": "03-Aug-13",
-    "close": 44.13875
-},
-{
-    "date": "04-Aug-13",
-    "close": 43.15
-},
-{
-    "date": "05-Aug-13",
-    "close": 34.765
-}];
+   {"period": "Hour", "level": "Error", "count": 0},
+   {"period": "Day", "level": "Error", "count": 0},
+   {"period": "Week", "level": "Error", "count": 0},
+   {"period": "Month", "level": "Error", "count": 10},
+   {"period": "Hour", "level": "Warning", "count": 0},
+   {"period": "Day", "level": "Warning", "count": 0},
+   {"period": "Week", "level": "Warning", "count": 10},
+   {"period": "Month", "level": "Warning", "count": 100},
+   {"period": "Hour", "level": "Info", "count": 100},
+   {"period": "Day", "level": "Info", "count": 500},
+   {"period": "Week", "level": "Info", "count": 3500},
+   {"period": "Month", "level": "Info", "count": 15000}
+];
+
 
 var parseDate = d3.time.format("%d-%b-%y").parse;
 
