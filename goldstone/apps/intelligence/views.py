@@ -15,6 +15,8 @@ class IntelSearchView(TemplateView):
 class IntelErrorsView(TemplateView):
     template_name = 'errors.html'
 
+class CockpitContentView(TemplateView):
+    template_name = "cockpit-content-d3.html"
 
 def cockpit_content(request):
     template_name = 'cockpit-content.html'
@@ -23,7 +25,7 @@ def cockpit_content(request):
     ydata = [52, 48, 160, 94, 75, 71, 490, 82, 46, 17]
     chartdata = {'x': xdata, 'y': ydata}
     charttype = "pieChart"
-    chartcontainer = 'piechart_container'
+    chartcontainer = 'panel_body'
     data = {
         'charttype': charttype,
         'chartdata': chartdata,
