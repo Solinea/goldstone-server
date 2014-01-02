@@ -34,18 +34,18 @@ def _subtract_months(sourcedate, months):
     year = sourcedate.year + month / 12
     month = month % 12 + 1
     day = min(sourcedate.day, calendar.monthrange(year, month)[1])
-    return datetime.datetime(year, month, day, sourcedate.hour,
+    return datetime(year, month, day, sourcedate.hour,
                              sourcedate.minute, sourcedate.second,
                              sourcedate.microsecond, sourcedate.tzinfo)
 
 
 def _calc_start(end, unit):
     if unit == "hour":
-        t = end - datetime.timedelta(hours=1)
+        t = end - timedelta(hours=1)
     elif unit == "day":
-        t = end - datetime.timedelta(days=1)
+        t = end - timedelta(days=1)
     elif unit == "week":
-        t = end - datetime.timedelta(weeks=1)
+        t = end - timedelta(weeks=1)
     else:
         t = _subtract_months(end, 1)
     return t.replace(tzinfo=pytz.utc)
@@ -80,11 +80,12 @@ def _build_component_query(level, end, unit):
 
 def get_log_summary_counts():
     conn = ES(ES_SERVER, timeout=5)
-    end = datetime.datetime.now(pytz.utc)
-    results = {
-        p: conn.search(query=_build_loglevel_query(end, p))
-        for p in TIME_PERIODS
-    }
+    end = datetime.now(pytz.utc)
+
+    results = { p:conn.search(
+            query=_build_loglevel_query(end, p))
+            for p in TIME_PERIODS
+        }
 
     response = {}
     for rk, rv in results.iteritems():
@@ -96,7 +97,7 @@ def get_log_summary_counts():
 
 def get_component_summary_counts():
     conn = ES(ES_SERVER, timeout=5)
-    end = datetime.datetime.now(pytz.utc)
+    end = datetime.now(pytz.utc)
     response = {}
 
     for period in TIME_PERIODS:
