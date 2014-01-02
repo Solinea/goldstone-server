@@ -1,7 +1,7 @@
 # vim: tabstop=4 shiftwidth=4 softtabstop=4
 
 #
-# Copyright 2013 Solinea, Inc.
+# Copyright 2014 Solinea, Inc.
 #
 
 from django.test.client import Client

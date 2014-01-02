@@ -13,3 +13,4 @@ pbr
 celery==3.1.7
 django-celery
 python-novaclient
+pyes
