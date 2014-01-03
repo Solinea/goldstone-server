@@ -35,8 +35,8 @@ def _subtract_months(sourcedate, months):
     month = month % 12 + 1
     day = min(sourcedate.day, calendar.monthrange(year, month)[1])
     return datetime(year, month, day, sourcedate.hour,
-                             sourcedate.minute, sourcedate.second,
-                             sourcedate.microsecond, sourcedate.tzinfo)
+                    sourcedate.minute, sourcedate.second,
+                    sourcedate.microsecond, sourcedate.tzinfo)
 
 
 def _calc_start(end, unit):
@@ -51,18 +51,15 @@ def _calc_start(end, unit):
     return t.replace(tzinfo=pytz.utc)
 
 
-def _build_query(unit, level, end):
-    q = PrefixQuery('loglevel', str(level).lower()[:3])
-    f = RangeFilter(
-        qrange=ESRange('@timestamp', _calc_start(end, unit), end))
-    return FilteredQuery(q, f)
-
-
 def _build_loglevel_query(end, unit):
     q = RangeQuery(
-        qrange=ESRange('@timestamp', _calc_start(end, unit), end)
+        qrange=ESRange('@timestamp', _calc_start(end, unit).isoformat(),
+                       end.isoformat())
     ).search()
+    Term
     q.facet.add_term_facet("loglevel")
+
+    print("loglevel query is: [%s]" %q)
     return q
 
 
@@ -74,7 +71,7 @@ def _build_component_query(level, end, unit):
     level_filter = TermFilter('loglevel', level)
     comp_facet = TermFacet('component', facet_filter=level_filter)
     rangeq.facet.add(comp_facet)
-
+    print("component query is: [%s]" %rangeq)
     return rangeq
 
 
@@ -82,10 +79,9 @@ def get_log_summary_counts():
     conn = ES(ES_SERVER, timeout=5)
     end = datetime.now(pytz.utc)
 
-    results = { p:conn.search(
-            query=_build_loglevel_query(end, p))
-            for p in TIME_PERIODS
-        }
+    results = {}
+    for p in TIME_PERIODS:
+        results[p] = conn.search(query=_build_loglevel_query(end, p))
 
     response = {}
     for rk, rv in results.iteritems():

@@ -18,16 +18,18 @@ import os
 import json
 import hashlib
 
+
 class TestModel(TestCase):
     INDEX_NAME = 'test_logstash'
     DOCUMENT_TYPE = 'logs'
-    LEVEL_STR ='{"week": [{"count": 3386, "term": "info"}, {"count": 140, "term": "warning"}, {"count": 56, "term": "error"}, {"count": 3, "term": "audit"}], "day": [{"count": 584, "term": "info"}], "hour": [{"count": 24, "term": "info"}], "month": [{"count": 4757, "term": "info"}, {"count": 428, "term": "warning"}, {"count": 163, "term": "audit"}, {"count": 117, "term": "error"}, {"count": 4, "term": "critical"}]}'
-    COMP_STR = '{"week": [{"fatal": []}, {"error": [{"count": 24, "term": "neutron"}, {"count": 16, "term": "nova"}, {"count": 15, "term": "openvswitch"}, {"count": 1, "term": "glance"}]}, {"warning": [{"count": 70, "term": "openvswitch"}, {"count": 45, "term": "neutron"}, {"count": 8, "term": "keystone"}, {"count": 6, "term": "ceilometer"}, {"count": 5, "term": "cinder"}, {"count": 4, "term": "nova"}, {"count": 2, "term": "glance"}]}, {"info": [{"count": 3092, "term": "nova"}, {"count": 130, "term": "ceilometer"}, {"count": 99, "term": "openvswitch"}, {"count": 62, "term": "heat"}, {"count": 3, "term": "keystone"}]}, {"debug": []}], "day": [{"fatal": []}, {"error": []}, {"warning": []}, {"info": [{"count": 584, "term": "nova"}]}, {"debug": []}], "hour": [{"fatal": []}, {"error": []}, {"warning": []}, {"info": [{"count": 24, "term": "nova"}]}, {"debug": []}], "month": [{"fatal": []}, {"error": [{"count": 42, "term": "neutron"}, {"count": 39, "term": "openvswitch"}, {"count": 16, "term": "nova"}, {"count": 9, "term": "cinder"}, {"count": 5, "term": "glance"}, {"count": 4, "term": "ceilometer"}, {"count": 2, "term": "keystone"}]}, {"warning": [{"count": 269, "term": "openvswitch"}, {"count": 69, "term": "neutron"}, {"count": 30, "term": "keystone"}, {"count": 26, "term": "ceilometer"}, {"count": 18, "term": "glance"}, {"count": 9, "term": "cinder"}, {"count": 7, "term": "nova"}]}, {"info": [{"count": 3185, "term": "nova"}, {"count": 528, "term": "ceilometer"}, {"count": 449, "term": "openvswitch"}, {"count": 326, "term": "heat"}, {"count": 251, "term": "neutron"}, {"count": 18, "term": "keystone"}]}, {"debug": []}]}'
+    LEVEL_STR = '{"week": [{"count": 3610, "term": "info"}, {"count": 139, "term": "warning"}, {"count": 56, "term": "error"}, {"count": 3, "term": "audit"}], "day": [{"count": 584, "term": "info"}], "hour": [{"count": 24, "term": "info"}], "month": [{"count": 4981, "term": "info"}, {"count": 428, "term": "warning"}, {"count": 163, "term": "audit"}, {"count": 117, "term": "error"}, {"count": 4, "term": "critical"}]}'
+    COMP_STR = '{"week": [{"fatal": []}, {"error": [{"count": 24, "term": "neutron"}, {"count": 16, "term": "nova"}, {"count": 15, "term": "openvswitch"}, {"count": 1, "term": "glance"}]}, {"warning": [{"count": 69, "term": "openvswitch"}, {"count": 45, "term": "neutron"}, {"count": 8, "term": "keystone"}, {"count": 6, "term": "ceilometer"}, {"count": 5, "term": "cinder"}, {"count": 4, "term": "nova"}, {"count": 2, "term": "glance"}]}, {"info": [{"count": 3314, "term": "nova"}, {"count": 130, "term": "ceilometer"}, {"count": 99, "term": "openvswitch"}, {"count": 62, "term": "heat"}, {"count": 3, "term": "keystone"}]}, {"debug": []}], "day": [{"fatal": []}, {"error": []}, {"warning": []}, {"info": [{"count": 584, "term": "nova"}]}, {"debug": []}], "hour": [{"fatal": []}, {"error": []}, {"warning": []}, {"info": [{"count": 24, "term": "nova"}]}, {"debug": []}], "month": [{"fatal": []}, {"error": [{"count": 42, "term": "neutron"}, {"count": 39, "term": "openvswitch"}, {"count": 16, "term": "nova"}, {"count": 9, "term": "cinder"}, {"count": 5, "term": "glance"}, {"count": 4, "term": "ceilometer"}, {"count": 2, "term": "keystone"}]}, {"warning": [{"count": 269, "term": "openvswitch"}, {"count": 69, "term": "neutron"}, {"count": 30, "term": "keystone"}, {"count": 26, "term": "ceilometer"}, {"count": 18, "term": "glance"}, {"count": 9, "term": "cinder"}, {"count": 7, "term": "nova"}]}, {"info": [{"count": 3407, "term": "nova"}, {"count": 528, "term": "ceilometer"}, {"count": 449, "term": "openvswitch"}, {"count": 326, "term": "heat"}, {"count": 251, "term": "neutron"}, {"count": 18, "term": "keystone"}]}, {"debug": []}]}'
+
     conn = ES(default_indices=[INDEX_NAME], bulk_size=1000)
 
     def _setup_index(self):
         mapping = {
-            u"@timestamp": {"type": "date","format": "dateOptionalTime"},
+            u"@timestamp": {"type": "date", "format": "dateOptionalTime"},
             u"@version": {"type": u"string"},
             u"_message": {"type": u"string"},
             u"component": {"type": u"string"},
@@ -53,8 +55,15 @@ class TestModel(TestCase):
         for rec in data['hits']['hits']:
             self.conn.index(rec, self.INDEX_NAME, self.DOCUMENT_TYPE)
         self.conn.indices.refresh(self.INDEX_NAME)
+        import time
+        time.sleep(30)
 
     def setUp(self):
+
+        if self.conn.indices.exists_index(self.INDEX_NAME):
+            # probably had an uncaught exception in previous test run
+            self.tearDown()
+
         self._setup_index()
         q = MatchAllQuery().search()
         rs = self.conn.search(q)
@@ -63,6 +72,7 @@ class TestModel(TestCase):
 
     def tearDown(self):
         self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
+
 
     def test_get_log_summary_counts(self):
         counts = get_log_summary_counts()
@@ -73,6 +83,7 @@ class TestModel(TestCase):
         counts = get_component_summary_counts()
         s = json.dumps(counts)
         self.assertEqual(s, self.COMP_STR)
+
 
 class IntelViewTest(TestCase):
     """Lease list view tests"""
