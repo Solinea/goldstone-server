@@ -59,7 +59,6 @@ INSTALLED_APPS = (
     'floppyforms',
     'crispy_forms',
     'djcelery',
-    'django_nvd3',
     'goldstone.apps.lease',
     'goldstone.apps.intelligence',
     'goldstone.apps.cockpit'

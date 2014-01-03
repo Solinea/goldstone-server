@@ -19,7 +19,7 @@ class CockpitContentView(TemplateView):
     template_name = "cockpit-content-d3.html"
 
 def cockpit_content(request):
-    template_name = 'cockpit-content.html'
+    template_name = 'cockpit-content-d3.html'
     xdata = ["Apple", "Apricot", "Avocado", "Banana", "Boysenberries",
              "Blueberries", "Dates", "Grapefruit", "Kiwi", "Lemon"]
     ydata = [52, 48, 160, 94, 75, 71, 490, 82, 46, 17]
