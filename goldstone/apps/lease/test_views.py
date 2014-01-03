@@ -85,3 +85,7 @@ class LeaseViewTest(TestCase):
         request = factory.post('/leases/edit/%s' % to_be_edited.pk)
         UpdateLeaseView.as_view()(request, pk=to_be_edited.pk)
         self.assertEquals(Lease.objects.count(), 1)
+
+    def test_lease_defaults_to_not_deleted(self):
+        self._create_sample_lease()
+        self.assertEquals(Lease.objects.first().deleted, False)
