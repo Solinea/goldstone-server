@@ -8,26 +8,34 @@ from django.test.client import Client
 from django.test.client import RequestFactory
 from django.test import TestCase
 
-
 from .views import IntelSearchView, IntelErrorsView
-from .models import get_log_summary_counts, get_component_summary_counts
+from .models import range_filter_facet, aggregate_facets
 
 from pyes import *
 from pyes.exceptions import IndexMissingException
 import os
 import json
-import hashlib
+from datetime import *
+import pytz
 
 
 class TestModel(TestCase):
     INDEX_NAME = 'test_logstash'
     DOCUMENT_TYPE = 'logs'
-    LEVEL_STR = '{"week": [{"count": 3610, "term": "info"}, {"count": 139, "term": "warning"}, {"count": 56, "term": "error"}, {"count": 3, "term": "audit"}], "day": [{"count": 584, "term": "info"}], "hour": [{"count": 24, "term": "info"}], "month": [{"count": 4981, "term": "info"}, {"count": 428, "term": "warning"}, {"count": 163, "term": "audit"}, {"count": 117, "term": "error"}, {"count": 4, "term": "critical"}]}'
-    COMP_STR = '{"week": [{"fatal": []}, {"error": [{"count": 24, "term": "neutron"}, {"count": 16, "term": "nova"}, {"count": 15, "term": "openvswitch"}, {"count": 1, "term": "glance"}]}, {"warning": [{"count": 69, "term": "openvswitch"}, {"count": 45, "term": "neutron"}, {"count": 8, "term": "keystone"}, {"count": 6, "term": "ceilometer"}, {"count": 5, "term": "cinder"}, {"count": 4, "term": "nova"}, {"count": 2, "term": "glance"}]}, {"info": [{"count": 3314, "term": "nova"}, {"count": 130, "term": "ceilometer"}, {"count": 99, "term": "openvswitch"}, {"count": 62, "term": "heat"}, {"count": 3, "term": "keystone"}]}, {"debug": []}], "day": [{"fatal": []}, {"error": []}, {"warning": []}, {"info": [{"count": 584, "term": "nova"}]}, {"debug": []}], "hour": [{"fatal": []}, {"error": []}, {"warning": []}, {"info": [{"count": 24, "term": "nova"}]}, {"debug": []}], "month": [{"fatal": []}, {"error": [{"count": 42, "term": "neutron"}, {"count": 39, "term": "openvswitch"}, {"count": 16, "term": "nova"}, {"count": 9, "term": "cinder"}, {"count": 5, "term": "glance"}, {"count": 4, "term": "ceilometer"}, {"count": 2, "term": "keystone"}]}, {"warning": [{"count": 269, "term": "openvswitch"}, {"count": 69, "term": "neutron"}, {"count": 30, "term": "keystone"}, {"count": 26, "term": "ceilometer"}, {"count": 18, "term": "glance"}, {"count": 9, "term": "cinder"}, {"count": 7, "term": "nova"}]}, {"info": [{"count": 3407, "term": "nova"}, {"count": 528, "term": "ceilometer"}, {"count": 449, "term": "openvswitch"}, {"count": 326, "term": "heat"}, {"count": 251, "term": "neutron"}, {"count": 18, "term": "keystone"}]}, {"debug": []}]}'
+    COMPONENTS = ["ceilometer", "cinder", "glance", "nova", "neutron",
+              "openvswitch", "apache", "heat", "keystone"]
+    TIME_PERIODS = ["hour", "day", "week", "month"]
+    LEVELS = ["fatal", "error", "warning", "info", "debug"]
+    LEVEL_FACET_RESULT = '{"loglevel": {"_type": "terms", "total": 343, "terms": [{"count": 0, "term": "audit"}, {"count": 168, "term": "debug"}, {"count": 0, "term": "error"}, {"count": 175, "term": "info"}, {"count": 0, "term": "warning"}], "other": 0, "missing": 0}}'
+    COMP_FACET_RESULT = '{"component": {"_type": "terms", "total": 514, "terms": [{"count": 0, "term": "apache"}, {"count": 18, "term": "ceilometer"}, {"count": 0, "term": "cinder"}, {"count": 0, "term": "glance"}, {"count": 68, "term": "heat"}, {"count": 14, "term": "keystone"}, {"count": 232, "term": "neutron"}, {"count": 175, "term": "nova"}, {"count": 7, "term": "openvswitch"}], "other": 0, "missing": 0}}'
+    LEVEL_AGG_RESULT = '{"info": {"component": {"_type": "terms", "total": 514, "terms": [{"count": 0, "term": "apache"}, {"count": 18, "term": "ceilometer"}, {"count": 0, "term": "cinder"}, {"count": 0, "term": "glance"}, {"count": 68, "term": "heat"}, {"count": 14, "term": "keystone"}, {"count": 232, "term": "neutron"}, {"count": 175, "term": "nova"}, {"count": 7, "term": "openvswitch"}], "other": 0, "missing": 0}}, "debug": {"component": {"_type": "terms", "total": 168, "terms": [{"count": 0, "term": "apache"}, {"count": 0, "term": "ceilometer"}, {"count": 0, "term": "cinder"}, {"count": 0, "term": "glance"}, {"count": 0, "term": "heat"}, {"count": 0, "term": "keystone"}, {"count": 0, "term": "neutron"}, {"count": 168, "term": "nova"}, {"count": 0, "term": "openvswitch"}], "other": 0, "missing": 0}}, "fatal": {"component": {"_type": "terms", "total": 0, "terms": [{"count": 0, "term": "apache"}, {"count": 0, "term": "ceilometer"}, {"count": 0, "term": "cinder"}, {"count": 0, "term": "glance"}, {"count": 0, "term": "heat"}, {"count": 0, "term": "keystone"}, {"count": 0, "term": "neutron"}, {"count": 0, "term": "nova"}, {"count": 0, "term": "openvswitch"}], "other": 0, "missing": 0}}, "warning": {"component": {"_type": "terms", "total": 105, "terms": [{"count": 0, "term": "apache"}, {"count": 5, "term": "ceilometer"}, {"count": 1, "term": "cinder"}, {"count": 10, "term": "glance"}, {"count": 0, "term": "heat"}, {"count": 54, "term": "keystone"}, {"count": 35, "term": "neutron"}, {"count": 0, "term": "nova"}, {"count": 0, "term": "openvswitch"}], "other": 0, "missing": 0}}, "error": {"component": {"_type": "terms", "total": 201, "terms": [{"count": 0, "term": "apache"}, {"count": 21, "term": "ceilometer"}, {"count": 3, "term": "cinder"}, {"count": 4, "term": "glance"}, {"count": 16, "term": "heat"}, {"count": 0, "term": "keystone"}, {"count": 157, "term": "neutron"}, {"count": 0, "term": "nova"}, {"count": 0, "term": "openvswitch"}], "other": 0, "missing": 0}}}'
+    LEVEL_AGG_TOTAL = 988
+    COMP_AGG_RESULT = '{"ceilometer": {"loglevel": {"_type": "terms", "total": 53, "terms": [{"count": 9, "term": "audit"}, {"count": 0, "term": "debug"}, {"count": 21, "term": "error"}, {"count": 18, "term": "info"}, {"count": 5, "term": "warning"}], "other": 0, "missing": 0}}, "openvswitch": {"loglevel": {"_type": "terms", "total": 7, "terms": [{"count": 0, "term": "audit"}, {"count": 0, "term": "debug"}, {"count": 0, "term": "error"}, {"count": 7, "term": "info"}, {"count": 0, "term": "warning"}], "other": 0, "missing": 0}}, "nova": {"loglevel": {"_type": "terms", "total": 343, "terms": [{"count": 0, "term": "audit"}, {"count": 168, "term": "debug"}, {"count": 0, "term": "error"}, {"count": 175, "term": "info"}, {"count": 0, "term": "warning"}], "other": 0, "missing": 0}}, "heat": {"loglevel": {"_type": "terms", "total": 84, "terms": [{"count": 0, "term": "audit"}, {"count": 0, "term": "debug"}, {"count": 16, "term": "error"}, {"count": 68, "term": "info"}, {"count": 0, "term": "warning"}], "other": 0, "missing": 0}}, "keystone": {"loglevel": {"_type": "terms", "total": 68, "terms": [{"count": 0, "term": "audit"}, {"count": 0, "term": "debug"}, {"count": 0, "term": "error"}, {"count": 14, "term": "info"}, {"count": 54, "term": "warning"}], "other": 0, "missing": 0}}, "apache": {"loglevel": {"_type": "terms", "total": 0, "terms": [{"count": 0, "term": "audit"}, {"count": 0, "term": "debug"}, {"count": 0, "term": "error"}, {"count": 0, "term": "info"}, {"count": 0, "term": "warning"}], "other": 0, "missing": 3}}, "cinder": {"loglevel": {"_type": "terms", "total": 4, "terms": [{"count": 0, "term": "audit"}, {"count": 0, "term": "debug"}, {"count": 3, "term": "error"}, {"count": 0, "term": "info"}, {"count": 1, "term": "warning"}], "other": 0, "missing": 0}}, "glance": {"loglevel": {"_type": "terms", "total": 14, "terms": [{"count": 0, "term": "audit"}, {"count": 0, "term": "debug"}, {"count": 4, "term": "error"}, {"count": 0, "term": "info"}, {"count": 10, "term": "warning"}], "other": 0, "missing": 0}}, "neutron": {"loglevel": {"_type": "terms", "total": 424, "terms": [{"count": 0, "term": "audit"}, {"count": 0, "term": "debug"}, {"count": 157, "term": "error"}, {"count": 232, "term": "info"}, {"count": 35, "term": "warning"}], "other": 0, "missing": 0}}}'
+    COMP_AGG_TOTAL = 997
+    conn = ES("localhost:9200", bulk_size=1000, default_indices=[INDEX_NAME])
 
-    conn = ES(default_indices=[INDEX_NAME], bulk_size=1000)
+    def setUp(self):
 
-    def _setup_index(self):
         mapping = {
             u"@timestamp": {"type": "date", "format": "dateOptionalTime"},
             u"@version": {"type": u"string"},
@@ -45,6 +53,7 @@ class TestModel(TestCase):
             u"type": {"type": u"string"}
         }
 
+        self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
         self.conn.indices.create_index(self.INDEX_NAME)
         self.conn.indices.put_mapping(
             self.DOCUMENT_TYPE, {'properties': mapping}, self.INDEX_NAME
@@ -52,37 +61,63 @@ class TestModel(TestCase):
         data_f = open(os.path.join(os.path.dirname(__file__), "..", "..", "..",
                                    "etc", "sample_es_data.json"))
         data = json.load(data_f)
-        for rec in data['hits']['hits']:
-            self.conn.index(rec, self.INDEX_NAME, self.DOCUMENT_TYPE)
-        self.conn.indices.refresh(self.INDEX_NAME)
-        import time
-        time.sleep(30)
 
-    def setUp(self):
-
-        if self.conn.indices.exists_index(self.INDEX_NAME):
-            # probably had an uncaught exception in previous test run
-            self.tearDown()
-
-        self._setup_index()
+        for doc in data['hits']['hits']:
+            self.conn.index(doc, self.INDEX_NAME, self.DOCUMENT_TYPE,
+                            bulk=True)
+        self.conn.refresh()
         q = MatchAllQuery().search()
-        rs = self.conn.search(q)
         rs = self.conn.search(q)
         self.assertEqual(rs.count(), 1000)
 
     def tearDown(self):
         self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
 
+    def test_range_filter_facet(self):
+        q = MatchAllQuery().search()
+        rs = self.conn.search(q)
+        self.assertEqual(rs.count(), 1000)
+        end = datetime.now(pytz.utc)
+        start = end - timedelta(weeks=52)
 
-    def test_get_log_summary_counts(self):
-        counts = get_log_summary_counts()
-        s = json.dumps(counts)
-        self.assertEqual(s, self.LEVEL_STR)
+        filter_field = 'component'
+        filter_value = 'nova'
+        facet_field = 'loglevel'
+        result = range_filter_facet(self.conn, start, end, filter_field,
+                                    filter_value, facet_field).facets
+        self.assertEqual(result['loglevel']['total'], 343)
+        self.assertEqual(json.dumps(result), self.LEVEL_FACET_RESULT)
 
-    def test_get_component_summary_counts(self):
-        counts = get_component_summary_counts()
-        s = json.dumps(counts)
-        self.assertEqual(s, self.COMP_STR)
+        filter_field = 'loglevel'
+        filter_value = 'info'
+        facet_field = 'component'
+        result = range_filter_facet(self.conn, start, end, filter_field,
+                                    filter_value, facet_field).facets
+        self.assertEqual(json.dumps(result), self.COMP_FACET_RESULT)
+
+    def test_aggregate_facets(self):
+        q = MatchAllQuery().search()
+        rs = self.conn.search(q)
+        self.assertEqual(rs.count(), 1000)
+        end = datetime.now(pytz.utc)
+        start = end - timedelta(weeks=52)
+        filter_field = 'component'
+        filter_list = self.COMPONENTS
+        facet_field = 'loglevel'
+        ag = aggregate_facets(self.conn, start, end, filter_field, filter_list,
+                              facet_field)
+        self.assertEqual(json.dumps(ag), self.COMP_AGG_RESULT)
+        total = sum([ag[key][facet_field]['total'] for key in ag.keys()])
+        self.assertEqual(total, self.COMP_AGG_TOTAL)
+
+        filter_field = 'loglevel'
+        filter_list = self.LEVELS
+        facet_field = 'component'
+        ag = aggregate_facets(self.conn, start, end, filter_field, filter_list,
+                              facet_field)
+        self.assertEqual(json.dumps(ag), self.LEVEL_AGG_RESULT)
+        total = sum([ag[key][facet_field]['total'] for key in ag.keys()])
+        self.assertEqual(total, self.LEVEL_AGG_TOTAL)
 
 
 class IntelViewTest(TestCase):

@@ -4,29 +4,14 @@
 # Copyright 2014 Solinea, Inc.
 #
 
-import calendar
-import pytz
-
-from datetime import datetime, timedelta
-
-from pyes import *
-from pyes.facets import *
 
 from django.db import models
 
-
-# A non-managed, dummy model for admin purposes
-class IgnoreMe(models.Model):
-    class Meta:
-        managed = False
-
-
-COMPONENTS = ["ceilometer", "cinder", "glance", "nova", "neutron",
-              "openvswitch", "apache", "heat", "keystone"]
-TIME_PERIODS = ["hour", "day", "week", "month"]
-LOG_LEVELS = ["fatal", "error", "warning", "info", "debug"]
-# TODO push this to config
-ES_SERVER = "10.10.11.121:9200"
+from datetime import datetime, timedelta
+from pyes import *
+from pyes.facets import *
+import pytz
+import calendar
 
 
 def _subtract_months(sourcedate, months):
@@ -51,59 +36,23 @@ def _calc_start(end, unit):
     return t.replace(tzinfo=pytz.utc)
 
 
-def _build_loglevel_query(end, unit):
-    q = RangeQuery(
-        qrange=ESRange('@timestamp', _calc_start(end, unit).isoformat(),
-                       end.isoformat())
-    ).search()
-    Term
-    q.facet.add_term_facet("loglevel")
+def range_filter_facet(conn, start, end, filter_field, filter_value,
+                       facet_field):
 
-    print("loglevel query is: [%s]" %q)
-    return q
-
-
-def _build_component_query(level, end, unit):
-    rangeq = RangeQuery(
-        qrange=ESRange('@timestamp', _calc_start(end, unit).isoformat(),
-                       end.isoformat()),
-        ).search()
-    level_filter = TermFilter('loglevel', level)
-    comp_facet = TermFacet('component', facet_filter=level_filter)
-    rangeq.facet.add(comp_facet)
-    print("component query is: [%s]" %rangeq)
-    return rangeq
+    q = RangeQuery(qrange=ESRange('@timestamp', start.isoformat(),
+                                  end.isoformat())).search()
+    filt = TermFilter(filter_field, filter_value)
+    fac = TermFacet(field=facet_field, facet_filter=filt, all_terms=True,
+                    order='term')
+    q.facet.add(fac)
+    rs = conn.search(q)
+    return rs
 
 
-def get_log_summary_counts():
-    conn = ES(ES_SERVER, timeout=5)
-    end = datetime.now(pytz.utc)
-
-    results = {}
-    for p in TIME_PERIODS:
-        results[p] = conn.search(query=_build_loglevel_query(end, p))
-
-    response = {}
-    for rk, rv in results.iteritems():
-        for k, v in rv.facets.iteritems():
-            response[rk] = v['terms']
-
-    return response
-
-
-def get_component_summary_counts():
-    conn = ES(ES_SERVER, timeout=5)
-    end = datetime.now(pytz.utc)
-    response = {}
-
-    for period in TIME_PERIODS:
-        level_counts = []
-
-        for level in LOG_LEVELS:
-            resultset = conn.search(
-                query=_build_component_query(level, end, period))
-            level_counts.append(
-                {level: resultset.facets['component']['terms']})
-        response[period] = level_counts
-
-    return response
+def aggregate_facets(conn, start, end, filter_field, filter_list, facet_field):
+    return dict(
+        (filt,
+         range_filter_facet(conn, start, end, filter_field, filt,
+                            facet_field).facets)
+        for filt in filter_list
+    )
