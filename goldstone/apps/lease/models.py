@@ -42,7 +42,7 @@ class Lease(models.Model):
 
     name = models.CharField(max_length=100)
     owner_id = models.CharField(max_length=100)
-    deleted = models.BooleanField()
+    deleted = models.BooleanField(default=False)
     scope = models.CharField(max_length=100,
                              choices=SCOPE_CHOICES,
                              default='TENANT')
