@@ -8,8 +8,8 @@
 from django.db import models
 
 from datetime import datetime, timedelta
-from pyes import *
-from pyes.facets import *
+from pyes import ESRange, RangeQuery, TermFilter
+from pyes.facets import TermFacet
 import pytz
 import calendar
 
