@@ -9,7 +9,7 @@ from django.test.client import RequestFactory
 from django.test import TestCase
 
 from .views import IntelSearchView, IntelErrorsView
-from .models import range_filter_facet, aggregate_facets
+from .models import *
 
 from pyes import *
 from pyes.exceptions import IndexMissingException
@@ -72,6 +72,24 @@ class TestModel(TestCase):
 
     def tearDown(self):
         self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
+
+    def test_subtract_months(self):
+        d = subtract_months(datetime(2014, 1, 1),1)
+        self.assertEqual(d, datetime(2013, 12, 1, 0, 0))
+        d = subtract_months(datetime(2013, 12, 1),2)
+        self.assertEqual(d, datetime(2013, 10, 1, 0, 0))
+        d = subtract_months(datetime(2013, 12, 1), 12)
+        self.assertEqual(d, datetime(2012, 12, 1, 0, 0))
+
+    def test_calc_start(self):
+        d = calc_start(datetime(2013, 12, 10, 12, 0, 0), 'hour')
+        self.assertEqual(d, datetime(2013, 12, 10, 11, 0, tzinfo=pytz.utc))
+        d = calc_start(datetime(2013, 12, 10, 12, 0, 0), 'day')
+        self.assertEqual(d, datetime(2013, 12, 9, 12, 0, tzinfo=pytz.utc))
+        d = calc_start(datetime(2013, 12, 10, 12, 0, 0), 'week')
+        self.assertEqual(d, datetime(2013, 12, 3, 12, 0, tzinfo=pytz.utc))
+        d = calc_start(datetime(2013, 12, 10, 12, 0, 0), 'month')
+        self.assertEqual(d, datetime(2013, 11, 10, 12, 0, tzinfo=pytz.utc))
 
     def test_range_filter_facet(self):
         q = MatchAllQuery().search()
