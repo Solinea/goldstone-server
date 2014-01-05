@@ -1,0 +1,1 @@
+{"component": {"_type": "terms", "total": 90, "terms": [{"count": 4, "term": "ceilometer"}, {"count": 0, "term": "glance"}, {"count": 24, "term": "heat"}, {"count": 2, "term": "keystone"}, {"count": 58, "term": "neutron"}, {"count": 0, "term": "nova"}, {"count": 2, "term": "openvswitch"}], "other": 0, "missing": 0}}
