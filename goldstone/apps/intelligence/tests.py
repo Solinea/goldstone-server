@@ -39,10 +39,11 @@ class IntelTestModel(TestCase):
     comp_facet_result = open_result_file("comp_facet_result.json")
     level_agg_result = open_result_file("level_agg_result.json")
     comp_agg_result = open_result_file("comp_agg_result.json")
-    LEVEL_AGG_TOTAL = 988
-    COMP_AGG_TOTAL = 997
+    LEVEL_AGG_TOTAL = 182
+    COMP_AGG_TOTAL = 186
+    TOTAL_DOCS = 186
 
-    conn = ES("localhost:9200", bulk_size=1000, default_indices=[INDEX_NAME])
+    conn = ES("localhost:9200", bulk_size=400, default_indices=[INDEX_NAME])
 
     def setUp(self):
 
@@ -80,7 +81,7 @@ class IntelTestModel(TestCase):
         self.conn.refresh()
         q = MatchAllQuery().search()
         rs = self.conn.search(q)
-        self.assertEqual(rs.count(), 1000)
+        self.assertEqual(rs.count(), self.TOTAL_DOCS)
 
     def tearDown(self):
         self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
@@ -106,8 +107,8 @@ class IntelTestModel(TestCase):
     def test_range_filter_facet(self):
         q = MatchAllQuery().search()
         rs = self.conn.search(q)
-        self.assertEqual(rs.count(), 1000)
-        end = datetime.now(pytz.utc)
+        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+        end = datetime(2013, 12, 31, 23, 59, 59)
         start = end - timedelta(weeks=52)
 
         filter_field = 'component'
@@ -115,7 +116,7 @@ class IntelTestModel(TestCase):
         facet_field = 'loglevel'
         result = range_filter_facet(self.conn, start, end, filter_field,
                                     filter_value, facet_field).facets
-        self.assertEqual(result['loglevel']['total'], 343)
+        self.assertEqual(result['loglevel']['total'], 4)
         self.assertEqual(json.dumps(result), self.level_facet_result)
 
         filter_field = 'loglevel'
@@ -128,8 +129,8 @@ class IntelTestModel(TestCase):
     def test_aggregate_facets(self):
         q = MatchAllQuery().search()
         rs = self.conn.search(q)
-        self.assertEqual(rs.count(), 1000)
-        end = datetime.now(pytz.utc)
+        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+        end = datetime(2013, 12, 31, 23, 59, 59)
         start = end - timedelta(weeks=52)
         filter_field = 'component'
         filter_list = self.COMPONENTS
