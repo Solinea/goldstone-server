@@ -1,7 +1,7 @@
 # vim: tabstop=4 shiftwidth=4 softtabstop=4
 
 #
-# Copyright 2013 Solinea, Inc.
+# Copyright 2014 Solinea, Inc.
 #
 
 from django.views.generic import TemplateView
@@ -15,8 +15,10 @@ class IntelSearchView(TemplateView):
 class IntelErrorsView(TemplateView):
     template_name = 'errors.html'
 
+
 class CockpitContentView(TemplateView):
     template_name = "cockpit-content-d3.html"
+
 
 def cockpit_content(request):
     template_name = 'cockpit-content-d3.html'

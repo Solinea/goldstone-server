@@ -14,7 +14,8 @@ class Migration(SchemaMigration):
                 (max_length=100)),
             ('owner_id', self.gf('django.db.models.fields.CharField')
                 (max_length=100)),
-            ('deleted', self.gf('django.db.models.fields.BooleanField')()),
+            ('deleted', self.gf('django.db.models.fields.BooleanField')
+                (default=False)),
             ('scope', self.gf('django.db.models.fields.CharField')
                 (max_length=100)),
             ('lease_type', self.gf('django.db.models.fields.CharField')

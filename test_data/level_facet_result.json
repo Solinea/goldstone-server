@@ -1,0 +1,1 @@
+{"loglevel": {"_type": "terms", "total": 4, "terms": [{"count": 0, "term": "audit"}, {"count": 4, "term": "debug"}, {"count": 0, "term": "error"}, {"count": 0, "term": "info"}, {"count": 0, "term": "warning"}], "other": 0, "missing": 0}}
