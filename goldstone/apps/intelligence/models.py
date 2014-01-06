@@ -8,8 +8,8 @@
 from django.db import models
 
 from datetime import datetime, timedelta
-from pyes import ESRange, RangeQuery, TermFilter
-from pyes.facets import TermFacet
+from pyes import *
+from pyes.facets import TermFacet, DateHistogramFacet
 import pytz
 import calendar
 
@@ -78,3 +78,78 @@ def aggregate_facets(conn, start, end, filter_field, filter_list, facet_field):
                             facet_field).facets)
         for filt in filter_list
     )
+
+
+def comp_err_warn_date_hist(conn, start, end, comp, interval):
+    q = RangeQuery(qrange=ESRange('@timestamp', start.isoformat(),
+                                   end.isoformat())).search()
+    err_filt = TermFilter('loglevel', 'error')
+    fat_filt = TermFilter('loglevel', 'fatal')
+    bad_filt = ORFilter([err_filt, fat_filt])
+    warn_filt = TermFilter('loglevel', 'warning')
+    comp_filt = TermFilter('component', comp)
+    f1 = ANDFilter([bad_filt, comp_filt])
+    f2 = ANDFilter([warn_filt, comp_filt])
+    err_fac = DateHistogramFacet("error_facet", "@timestamp", interval,
+                                 facet_filter=f1)
+    warn_fac = DateHistogramFacet("warn_facet", "@timestamp", interval,
+                                  facet_filter=f2)
+    q.facet.add(err_fac)
+    q.facet.add(warn_fac)
+    print("query:")
+    print(q)
+    print
+    rs = conn.search(q)
+    return rs
+
+
+class LogData(object):
+
+    @staticmethod
+    def err_and_warn_hist(conn, start, end, interval,
+                          query_filter=None):
+
+        q = RangeQuery(qrange=ESRange('@timestamp', start.isoformat(),
+                                   end.isoformat())).search()
+        err_filt = TermFilter('loglevel', 'error')
+        fat_filt = TermFilter('loglevel', 'fatal')
+        bad_filt = ORFilter([err_filt, fat_filt])
+        warn_filt = TermFilter('loglevel', 'warning')
+
+        f1 = bad_filt if not query_filter \
+            else ANDFilter([bad_filt, query_filter])
+
+        f2 = warn_filt if not query_filter \
+            else ANDFilter([warn_filt, query_filter])
+
+        err_fac = DateHistogramFacet("error_facet", "@timestamp", interval,
+                                     facet_filter=f1, order='term')
+        warn_fac = DateHistogramFacet("warn_facet", "@timestamp", interval,
+                                      facet_filter=f2, order='term')
+        q.facet.add(err_fac)
+        q.facet.add(warn_fac)
+        rs = conn.search(q)
+        return rs
+
+    @staticmethod
+    def get_components(conn):
+        q = MatchAllQuery().search()
+        fac = TermFacet('component', all_terms=True)
+        q.facet.add(fac)
+        rs = conn.search(q)
+        print
+        print(rs.facets)
+        return [d['term'] for d in rs.facets['component']['terms']]
+
+    @staticmethod
+    def get_err_and_warn_hists(conn, start, end, interval, comp_list):
+
+        result = {}
+        for comp in comp_list:
+            result[comp] = LogData.err_and_warn_hist(conn, start, end,
+                                                       interval, query_filter=
+                                                       TermFilter('component',
+                                                                  comp)).facets
+
+        return result
+

@@ -27,11 +27,11 @@ def open_result_file(fn):
                     return data_f.read().replace('\n', '')
 
 
-class IntelTestModel(TestCase):
+class LogDataModel(TestCase):
     INDEX_NAME = 'test_logstash'
     DOCUMENT_TYPE = 'logs'
-    COMPONENTS = ["ceilometer", "cinder", "glance", "nova", "neutron",
-                  "openvswitch", "apache", "heat", "keystone"]
+    COMPONENTS = ['neutron', 'heat', 'keystone', 'ceilometer', 'glance',
+                  'nova', 'openvswitch']
     TIME_PERIODS = ["hour", "day", "week", "month"]
     LEVELS = ["fatal", "error", "warning", "info", "debug"]
 
@@ -39,6 +39,11 @@ class IntelTestModel(TestCase):
     comp_facet_result = open_result_file("comp_facet_result.json")
     level_agg_result = open_result_file("level_agg_result.json")
     comp_agg_result = open_result_file("comp_agg_result.json")
+    comp_date_hist_result = open_result_file("comp_date_hist_result.json")
+    comp_date_hist_result_filtered = open_result_file(
+        "comp_date_hist_result_filtered.json")
+    err_and_warn_hists_result = open_result_file(
+        "err_and_warn_hists_result.json")
     LEVEL_AGG_TOTAL = 182
     COMP_AGG_TOTAL = 186
     TOTAL_DOCS = 186
@@ -149,6 +154,36 @@ class IntelTestModel(TestCase):
         self.assertEqual(json.dumps(ag), self.level_agg_result)
         total = sum([ag[key][facet_field]['total'] for key in ag.keys()])
         self.assertEqual(total, self.LEVEL_AGG_TOTAL)
+
+    def test_err_and_warn_hist(self):
+        end = datetime(2013, 12, 31, 23, 59, 59)
+        start = end - timedelta(weeks=52)
+        interval = 'hour'
+        result = LogData.err_and_warn_hist(self.conn, start, end, interval,
+                                           query_filter=None).facets
+        self.assertEqual(json.dumps(result), self.comp_date_hist_result)
+
+    def test_err_and_warn_hist_filtered(self):
+        end = datetime(2013, 12, 31, 23, 59, 59)
+        start = end - timedelta(weeks=52)
+        interval = 'hour'
+        f = TermFilter('component', 'ceilometer')
+        result = LogData.err_and_warn_hist(self.conn, start, end, interval,
+                                           query_filter=f).facets
+        self.assertEqual(json.dumps(result),
+                         self.comp_date_hist_result_filtered)
+
+    def test_get_components(self):
+        comps = LogData.get_components(self.conn)
+        self.assertEqual(comps, self.COMPONENTS)
+
+
+    def test_get_err_and_warn_hists(self):
+        end = datetime(2013, 12, 31, 23, 59, 59)
+        start = end - timedelta(weeks=52)
+        result = LogData.get_err_and_warn_hists(self.conn, start, end, 'hour',
+                                                self.COMPONENTS)
+        self.assertEqual(json.dumps(result), self.err_and_warn_hists_result)
 
 
 class IntelViewTest(TestCase):

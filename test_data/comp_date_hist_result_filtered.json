@@ -1,0 +1,1 @@
+{"error_facet": {"_type": "date_histogram", "entries": [{"count": 2, "time": 1382965200000}, {"count": 1, "time": 1382968800000}]}, "warn_facet": {"_type": "date_histogram", "entries": [{"count": 1, "time": 1382922000000}]}}
