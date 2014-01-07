@@ -8,7 +8,7 @@ height = 300 - margin.top - margin.bottom;
 
 function draw_cockpit_panel(view_data) {
 
-    var chart = dc.heatMap("#d3-panel-body");
+    var chart = dc.bubbleChart("#d3-panel-body");
 
     var log_data = view_data.data
 
