@@ -18,23 +18,30 @@ import json
 from datetime import *
 import pytz
 import gzip
+import pickle
 
 
 def open_result_file(fn):
-        with open(os.path.join(os.path.dirname(__file__),
-                               "..", "..", "..", "test_data", fn)) \
-                as data_f:
-                    return data_f.read().replace('\n', '')
+    with open(os.path.join(os.path.dirname(__file__),
+                           "..", "..", "..", "test_data", fn)) \
+            as data_f:
+                return data_f.read().replace('\n', '')
+
+def read_result_file_as_list(fn):
+    with open(os.path.join(os.path.dirname(__file__),
+                           "..", "..", "..", "test_data", fn)) \
+            as data_f:
+                return pickle.load(data_f)
 
 
 class LogDataModel(TestCase):
     INDEX_NAME = 'test_logstash'
     DOCUMENT_TYPE = 'logs'
-    COMPONENTS = ['neutron', 'heat', 'keystone', 'ceilometer', 'glance',
-                  'nova', 'openvswitch']
+
     TIME_PERIODS = ["hour", "day", "week", "month"]
     LEVELS = ["fatal", "error", "warning", "info", "debug"]
-
+    COMPONENTS = ['neutron', 'heat', 'keystone', 'ceilometer', 'glance',
+                  'nova', 'openvswitch']
     level_facet_result = open_result_file("level_facet_result.json")
     comp_facet_result = open_result_file("comp_facet_result.json")
     level_agg_result = open_result_file("level_agg_result.json")
@@ -44,6 +51,8 @@ class LogDataModel(TestCase):
         "comp_date_hist_result_filtered.json")
     err_and_warn_hists_result = open_result_file(
         "err_and_warn_hists_result.json")
+    cockpit_data = list(read_result_file_as_list(
+        "cockpit_data_result.pkl"))
     LEVEL_AGG_TOTAL = 182
     COMP_AGG_TOTAL = 186
     TOTAL_DOCS = 186
@@ -91,6 +100,10 @@ class LogDataModel(TestCase):
     def tearDown(self):
         self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
 
+    def test_get_components(self):
+        comps = LogData.get_components(self.conn)
+        self.assertEqual(comps, self.COMPONENTS)
+
     def test_subtract_months(self):
         d = subtract_months(datetime(2014, 1, 1), 1)
         self.assertEqual(d, datetime(2013, 12, 1, 0, 0))
@@ -113,7 +126,7 @@ class LogDataModel(TestCase):
         q = MatchAllQuery().search()
         rs = self.conn.search(q)
         self.assertEqual(rs.count(), self.TOTAL_DOCS)
-        end = datetime(2013, 12, 31, 23, 59, 59)
+        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
 
         filter_field = 'component'
@@ -135,10 +148,10 @@ class LogDataModel(TestCase):
         q = MatchAllQuery().search()
         rs = self.conn.search(q)
         self.assertEqual(rs.count(), self.TOTAL_DOCS)
-        end = datetime(2013, 12, 31, 23, 59, 59)
+        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         filter_field = 'component'
-        filter_list = self.COMPONENTS
+        filter_list = LogData.get_components(self.conn)
         facet_field = 'loglevel'
         ag = aggregate_facets(self.conn, start, end, filter_field, filter_list,
                               facet_field)
@@ -156,7 +169,7 @@ class LogDataModel(TestCase):
         self.assertEqual(total, self.LEVEL_AGG_TOTAL)
 
     def test_err_and_warn_hist(self):
-        end = datetime(2013, 12, 31, 23, 59, 59)
+        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         interval = 'hour'
         result = LogData.err_and_warn_hist(self.conn, start, end, interval,
@@ -164,7 +177,7 @@ class LogDataModel(TestCase):
         self.assertEqual(json.dumps(result), self.comp_date_hist_result)
 
     def test_err_and_warn_hist_filtered(self):
-        end = datetime(2013, 12, 31, 23, 59, 59)
+        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         interval = 'hour'
         f = TermFilter('component', 'ceilometer')
@@ -173,17 +186,58 @@ class LogDataModel(TestCase):
         self.assertEqual(json.dumps(result),
                          self.comp_date_hist_result_filtered)
 
-    def test_get_components(self):
-        comps = LogData.get_components(self.conn)
-        self.assertEqual(comps, self.COMPONENTS)
-
 
     def test_get_err_and_warn_hists(self):
-        end = datetime(2013, 12, 31, 23, 59, 59)
+        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         result = LogData.get_err_and_warn_hists(self.conn, start, end, 'hour',
-                                                self.COMPONENTS)
+                                                LogData.get_components(
+                                                    self.conn))
         self.assertEqual(json.dumps(result), self.err_and_warn_hists_result)
+
+    def test_cockpit_data(self):
+        conn = LogData.get_connection()
+        comps = LogData.get_components(conn)
+        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        start = end - timedelta(weeks=52)
+        raw_data = LogData.get_err_and_warn_hists(conn, start, end, 'minute',
+                                                  comps)
+
+        #print("raw_data = %s" % raw_data)
+        cooked_data = []
+
+        for comp, facets in raw_data.items():
+            # build up a flat list for d3
+            errs_list = facets['err_facet']['entries']
+            warns_list = facets['warn_facet']['entries']
+            data = []
+
+            err_times = set([t['time'] for t in errs_list])
+            warn_times = set([t['time'] for t in warns_list])
+            intersect = err_times & warn_times
+            #print("intersect contains: %s" %intersect)
+            #print("original warns_list has %d elements" % len(warns_list))
+
+            warns_list = [warn for warn in warns_list
+                          if warn['time'] not in intersect]
+            #print("updated warns_list has %d elements" % len(warns_list))
+
+            for err in errs_list:
+                err['type'] = 'error'
+                err['component'] = comp
+                #err['time'] = datetime.utcfromtimestamp(err['time'])
+            for warn in warns_list:
+                warn['type'] = 'warning'
+                warn['component'] = comp
+                #warn['time'] = datetime.utcfromtimestamp(warn['time'])
+
+            cooked_data += errs_list
+            cooked_data += warns_list
+
+
+        xdata = LogData.get_components(conn)
+        self.assertEqual(xdata, self.COMPONENTS)
+        self.assertEqual(cooked_data, self.cockpit_data)
 
 
 class IntelViewTest(TestCase):

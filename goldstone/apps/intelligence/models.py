@@ -96,14 +96,17 @@ def comp_err_warn_date_hist(conn, start, end, comp, interval):
                                   facet_filter=f2)
     q.facet.add(err_fac)
     q.facet.add(warn_fac)
-    print("query:")
-    print(q)
-    print
     rs = conn.search(q)
     return rs
 
 
 class LogData(object):
+
+    @staticmethod
+    def get_connection(server=None, timeout=None):
+        return ES(server=server, timeout=timeout) \
+            if server \
+            else ES(timeout=timeout)
 
     @staticmethod
     def err_and_warn_hist(conn, start, end, interval,
@@ -122,7 +125,7 @@ class LogData(object):
         f2 = warn_filt if not query_filter \
             else ANDFilter([warn_filt, query_filter])
 
-        err_fac = DateHistogramFacet("error_facet", "@timestamp", interval,
+        err_fac = DateHistogramFacet("err_facet", "@timestamp", interval,
                                      facet_filter=f1, order='term')
         warn_fac = DateHistogramFacet("warn_facet", "@timestamp", interval,
                                       facet_filter=f2, order='term')
@@ -137,8 +140,6 @@ class LogData(object):
         fac = TermFacet('component', all_terms=True)
         q.facet.add(fac)
         rs = conn.search(q)
-        print
-        print(rs.facets)
         return [d['term'] for d in rs.facets['component']['terms']]
 
     @staticmethod
