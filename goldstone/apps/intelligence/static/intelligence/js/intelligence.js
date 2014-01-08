@@ -1,4 +1,4 @@
-var panelWidth = $("#d3-panel-body").width();
+var panelWidth = $("#row2-full").width();
 var panelHeight = 300;
 var margin = {top: 30, right: 0, bottom: 30, left: 50},
     width = panelWidth - margin.left - margin.right,
@@ -7,7 +7,7 @@ var margin = {top: 30, right: 0, bottom: 30, left: 50},
 
 function draw_cockpit_panel() {
 
-    var chart = dc.bubbleChart("#d3-panel-body");
+    var chart = dc.bubbleChart("#log-graph");
 
     var log_data = d3.json("intelligence/log-cockpit-data", function (error, events) {
         var xf = crossfilter(events.data);
@@ -15,25 +15,14 @@ function draw_cockpit_panel() {
         console.log("components = ");
         console.log(JSON.stringify(comps, null, 4));
         var timeDim = xf.dimension(function (d) {
-            return [d.time, d.component];
+            return [new Date(+d.time), d.component, d.count];
         });
-        var compDim = xf.dimension(function (d) {
-            return comps.indexOf(d.component);
-        });
-        //var compGroup = compDim.group();
-        var compGroup = timeDim.group(function (d) {
-            console.log("compGroup, d = ", JSON.stringify(d));
-            return [d[0], d[1]];
-        });
-        //var timeGroup = compDim.group(function (d) {
-        //    console.log("timeGroup, d = ", JSON.stringify(d));
-        //    return comps.indexOf(d[1]);
-        //});
-        console.log('compGroup.top(Infinity): ');
-        console.log(JSON.stringify(compGroup.top(Infinity)));
+        var countGroup = timeDim.group().reduceSum(function(d) { return comps.indexOf(d.component); });
+        console.log('group.top(Infinity): ');
+        console.log(JSON.stringify(countGroup.top(Infinity)));
 
         var heatColorRange = ["#fafafa", '#f58f24'];
-        var heatColorDomain = [0, d3.max(compGroup.top(Infinity).map(function(d) {
+        var heatColorDomain = [0, d3.max(countGroup.top(Infinity).map(function(d) {
             JSON.stringify(d);
             return d.x; }))];
         var heatColorMapping = d3.scale.linear().domain(heatColorDomain).range(heatColorRange);
@@ -48,27 +37,29 @@ function draw_cockpit_panel() {
             .height(height)
             .margins({ top: 40, right: 40, bottom: 40, left: 40 })
             .dimension(timeDim)
-            .group(compGroup)
+            .group(countGroup)
             .keyAccessor(function (d) {
-                console.log("in keyAccessor, d=")
-                console.log(JSON.stringify(d))
+                console.log("in keyAccessor, d=",JSON.stringify(d),", returning: ", d.key[0]);
                 return d.key[0]; })
             .valueAccessor(function (d) {
-                console.log("in valueAccessor, d=")
-                console.log(JSON.stringify(d))
-                return d.key[1]; })
+                console.log("in valueAccessor, d=",JSON.stringify(d),", returning: ", d.value);
+                return d.value; })
             .radiusValueAccessor(function (d) {
-                return 1;
-            })
+                console.log("in radiusAccessor, d=",JSON.stringify(d),", returning: ", d.key[2]);
+                return(d.key[2]*0.1); })
+            .yAxisLabel("Component")
             .title(function(d) {
-                return "Time:   " + d.key[0] + "\n" +
-                    "Component:  " + d.key[1] + "\n"
+                console.log("in title, d=", JSON.stringify(d))
+                return("Time:   " + d.key[0] + "\n" +
+                    "Component:  " + comps[d.value] + "\n" +
+                    "Count:  " + d.key[2] + "\n");
                     })
-            .colorAccessor(function (d) { return d.key[0]; })
-            .colors(heatColorMapping)
+            .maxBubbleRelativeSize(0.1)
+            /*.colorAccessor(function (d) { return d.key[0]; })
+            .colors(heatColorMapping)*/
             .x(d3.time.scale().domain([minDate, maxDate]))
             .render();
-    });
+        });
 
     /*   d3.json(view_data.data, function(error, logs) {
 

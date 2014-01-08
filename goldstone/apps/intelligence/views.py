@@ -21,8 +21,10 @@ class IntelSearchView(TemplateView):
 class IntelErrorsView(TemplateView):
     template_name = 'errors.html'
 
+
 class IntelLogCockpitView(TemplateView):
-    template_name = "log-cockpit.html"
+    template_name = 'log-cockpit.html'
+
 
 def log_cockpit_data(request):
     #TODO move static reference to config settings
