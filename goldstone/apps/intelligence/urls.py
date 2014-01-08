@@ -14,5 +14,8 @@ urlpatterns = patterns(
     url(r'^errors[/]?$', IntelErrorsView.as_view(), name='intel-errors'),
     #url(r'^cockpit-content[/]?$', CockpitContentView.as_view(),
     #    name='cockpit_content')
-    url(r'^cockpit-content[/]?$', cockpit_content, name='cockpit_content')
+    url(r'^log-cockpit[/]?$', IntelLogCockpitView.as_view(),
+        name='intel-log-cockpit'),
+    url(r'^log-cockpit-data[/]?$', log_cockpit_data,
+        name='intel-log-cockpit-data')
 )

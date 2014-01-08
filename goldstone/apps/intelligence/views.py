@@ -3,6 +3,7 @@
 #
 # Copyright 2014 Solinea, Inc.
 #
+from django.http import HttpResponse
 
 from django.views.generic import TemplateView
 from django.template import RequestContext
@@ -20,15 +21,19 @@ class IntelSearchView(TemplateView):
 class IntelErrorsView(TemplateView):
     template_name = 'errors.html'
 
+class IntelLogCockpitView(TemplateView):
+    template_name = "log-cockpit.html"
 
-
-def cockpit_content(request):
-    template_name = "log-heat.html"
-    conn = LogData.get_connection()
+def log_cockpit_data(request):
+    #TODO move static reference to config settings
+    conn = LogData.get_connection("10.10.11.121:9200")
     comps = LogData.get_components(conn)
-    end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
-    start = end - timedelta(weeks=52)
-    raw_data = LogData.get_err_and_warn_hists(conn, start, end, 'minute',
+    #TODO set this to "now"
+    end = datetime.now(tz=pytz.utc)
+    #TODO parameterize static reference
+    start = end - timedelta(weeks=4)
+    #TODO parameterize interval
+    raw_data = LogData.get_err_and_warn_hists(conn, start, end, 'day',
                                               comps)
 
     #print("raw_data = %s" % raw_data)
@@ -63,13 +68,13 @@ def cockpit_content(request):
         cooked_data += warns_list
 
 
-    xdata = LogData.get_components(conn)
+    comps = LogData.get_components(conn)
 
-    data =  {  'view_data': {'xdata': xdata,
-        'data': cooked_data,
-        'datafile': '/static/morley.csv',
-        }}
-    return render_to_response(template_name, data,
-                              context_instance=RequestContext(request))
+    data = {
+                'components': comps,
+                'data': cooked_data
+           }
+    return HttpResponse(json.dumps(data), content_type="application/json")
+
 
 
