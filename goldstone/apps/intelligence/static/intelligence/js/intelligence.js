@@ -1,6 +1,6 @@
 var panelWidth = $("#row2-full").width();
 var panelHeight = 300;
-var margin = {top: 30, right: 0, bottom: 30, left: 50},
+var margin = {top: 30, right: 30, bottom: 30, left: 80},
     width = panelWidth - margin.left - margin.right,
     height = 300 - margin.top - margin.bottom;
 
@@ -17,7 +17,7 @@ function draw_cockpit_panel() {
         var timeDim = xf.dimension(function (d) {
             return [new Date(+d.time), d.component, d.count, d.type];
         });
-        var countGroup = timeDim.group().reduceSum(function(d) { return comps.indexOf(d.component); });
+        var countGroup = timeDim.group().reduceSum(function(d) { return comps.indexOf(d.component) + 1; });
         console.log('group.top(Infinity): ');
         console.log(JSON.stringify(countGroup.top(Infinity)));
 
@@ -36,9 +36,12 @@ function draw_cockpit_panel() {
         chart
             .width(width)
             .height(height)
-            .margins({ top: 40, right: 40, bottom: 40, left: 40 })
+            .margins(margin)
             .dimension(timeDim)
             .group(countGroup)
+            .x(d3.time.scale().domain([minDate, maxDate]))
+            .xAxisLabel("Time")
+            .yAxisLabel("Components")
             .keyAccessor(function (d) {
                 console.log("in keyAccessor, d=",JSON.stringify(d),", returning: ", d.key[0]);
                 return d.key[0]; })
@@ -53,37 +56,14 @@ function draw_cockpit_panel() {
                     })
 
             .colorAccessor(function (d) { return d.key[2]; })
-            .colors(heatColorMapping)
-            //.x(d3.time.scale().domain([minDate, maxDate]));
-            .render();
+            .colors(heatColorMapping);
+
+        chart.xAxis().ticks(5);
+        chart.yAxis().tickFormat(function(d) {
+            console.log("in tickFormat, d=", JSON.stringify(d));
+            return comps[+d - 1]; });
+        chart.render();
         });
-
-    /*   d3.json(view_data.data, function(error, logs) {
-
-     var ndx = crossfilter(logs),
-     runDim = ndx.dimension(function(d) { return [+d.time, +d.component]; })
-     //runGroup = runDim.group().reduceSum(function(d) { return +d.Speed; })
-     ;
-
-
-
-     chart
-     .width(width)
-     .height(height)
-     .dimension(runDim)
-     //.group(runGroup)
-     .keyAccessor(function(d) { return +d.key[0]; })
-     .valueAccessor(function(d) { return +d.key[1]; })
-     .colorAccessor(function(d) { return +d.value; })
-     .title(function(d) {
-     return "Time:   " + d.key[0] + "\n" +
-     "Component:  " + d.key[1] + "\n" +
-     "Count: " + d.value + " " + d.type;})
-     .colors(["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"])
-     .calculateColorDomain();
-
-     chart.render();
-     });*/
 }
 
 /*
