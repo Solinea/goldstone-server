@@ -7,7 +7,7 @@ var margin = {top: 30, right: 0, bottom: 30, left: 50},
 
 function draw_cockpit_panel() {
 
-    var chart = dc.bubbleChart("#log-graph");
+    var chart = dc.heatMap("#log-graph");
 
     var log_data = d3.json("intelligence/log-cockpit-data", function (error, events) {
         var xf = crossfilter(events.data);
@@ -15,16 +15,17 @@ function draw_cockpit_panel() {
         console.log("components = ");
         console.log(JSON.stringify(comps, null, 4));
         var timeDim = xf.dimension(function (d) {
-            return [new Date(+d.time), d.component, d.count];
+            return [new Date(+d.time), d.component, d.count, d.type];
         });
         var countGroup = timeDim.group().reduceSum(function(d) { return comps.indexOf(d.component); });
         console.log('group.top(Infinity): ');
         console.log(JSON.stringify(countGroup.top(Infinity)));
 
-        var heatColorRange = ["#fafafa", '#f58f24'];
+        //var heatColorRange = ["#fafafa", '#f58f24'];
+        var heatColorRange = ["#ffeda0", '#f03b20'];
         var heatColorDomain = [0, d3.max(countGroup.top(Infinity).map(function(d) {
-            JSON.stringify(d);
-            return d.x; }))];
+            return d.key[2]; }))];
+        console.log("heatColorDomain=", JSON.stringify(heatColorDomain))
         var heatColorMapping = d3.scale.linear().domain(heatColorDomain).range(heatColorRange);
 
         var minDate = timeDim.bottom(1)[0].time;
@@ -44,20 +45,16 @@ function draw_cockpit_panel() {
             .valueAccessor(function (d) {
                 console.log("in valueAccessor, d=",JSON.stringify(d),", returning: ", d.value);
                 return d.value; })
-            .radiusValueAccessor(function (d) {
-                console.log("in radiusAccessor, d=",JSON.stringify(d),", returning: ", d.key[2]);
-                return(d.key[2]*0.1); })
-            .yAxisLabel("Component")
             .title(function(d) {
                 console.log("in title, d=", JSON.stringify(d))
                 return("Time:   " + d.key[0] + "\n" +
                     "Component:  " + comps[d.value] + "\n" +
                     "Count:  " + d.key[2] + "\n");
                     })
-            .maxBubbleRelativeSize(0.1)
-            /*.colorAccessor(function (d) { return d.key[0]; })
-            .colors(heatColorMapping)*/
-            .x(d3.time.scale().domain([minDate, maxDate]))
+
+            .colorAccessor(function (d) { return d.key[2]; })
+            .colors(heatColorMapping)
+            //.x(d3.time.scale().domain([minDate, maxDate]));
             .render();
         });
 
