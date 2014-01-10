@@ -1,76 +1,114 @@
-var panelWidth = $("#row2-full").width();
-var panelHeight = 300;
-var margin = {top: 30, right: 30, bottom: 30, left: 80},
+function draw_cockpit_panel(interval) {
+
+    var panelWidth = $("#row2-full").width();
+    var panelHeight = 300;
+    var margin = {top: 30, right: 30, bottom: 30, left: 80},
     width = panelWidth - margin.left - margin.right,
-    height = 300 - margin.top - margin.bottom;
+    height = panelHeight - margin.top - margin.bottom;
 
+    var chart = dc.barChart("#r2-log-graph");
 
-function draw_cockpit_panel() {
+    var log_data = d3.json("intelligence/log/cockpit/data/" + interval, function (error, events) {
+        console.log("events = ", JSON.stringify(events, null, 4));
+        if (events.data.length == 0) {
+            alert("No log data found.");
+        } else {
+            events.data.forEach(function (d) {
+                d.time = new Date(d.time);
+                d.errors = +d.errors;
+                d.warnings = +d.warnings;
 
-    var chart = dc.heatMap("#log-graph");
+            });
 
-    var log_data = d3.json("intelligence/log-cockpit-data", function (error, events) {
-        var xf = crossfilter(events.data);
-        var comps = events.components;
-        console.log("components = ");
-        console.log(JSON.stringify(comps, null, 4));
-        var timeDim = xf.dimension(function (d) {
-            return [new Date(+d.time), d.component, d.count, d.type];
-        });
-        var countGroup = timeDim.group().reduceSum(function(d) { return comps.indexOf(d.component) + 1; });
-        console.log('group.top(Infinity): ');
-        console.log(JSON.stringify(countGroup.top(Infinity)));
+            var xf = crossfilter(events.data);
+            var comps = events.components;
+            //console.log("components = ", JSON.stringify(comps, null, 4));
 
-        //var heatColorRange = ["#fafafa", '#f58f24'];
-        var heatColorRange = ["#ffeda0", '#f03b20'];
-        var heatColorDomain = [0, d3.max(countGroup.top(Infinity).map(function(d) {
-            return d.key[2]; }))];
-        console.log("heatColorDomain=", JSON.stringify(heatColorDomain))
-        var heatColorMapping = d3.scale.linear().domain(heatColorDomain).range(heatColorRange);
+            var timeDim = xf.dimension(function (d) {
+                return d.time;
+            });
 
-        var minDate = timeDim.bottom(1)[0].time;
-        var maxDate = timeDim.top(1)[0].time;
-        console.log("minDate =", JSON.stringify(minDate))
-        console.log("maxDate =", JSON.stringify(maxDate))
+            var eventsByTime = timeDim.group().reduce(
+                    function(p, v) {
+                        //console.log("p = ", JSON.stringify(p))
+                        //console.log("v = ", JSON.stringify(v))
+                        p.errorEvents += v.errors;
+                        p.warnEvents += v.warnings;
+                        p.errorEvents && p.errorComps.push(v.component)
+                        p.warnEvents && p.warnComps.push(v.component)
+                        return p;
+                    },
+                    function(p, v) {
+                        //console.log("p = ", JSON.stringify(p))
+                        //console.log("v = ", JSON.stringify(v))
+                        p.errorEvents -= v.errors;
+                        p.warnEvents -= v.warnings;
+                        p.errorEvents && p.errorComps.pop(v.component);
+                        p.warnEvents && p.warnComps.pop(v.component);
+                        return p;
+                    },
+                    function() {
+                        return {
+                            errorEvents:0,
+                            warnEvents:0,
+                            errorComps: [],
+                            warnComps: []
+                        };
+                    }
+            );
 
-        chart
-            .width(width)
-            .height(height)
-            .margins(margin)
-            .dimension(timeDim)
-            .group(countGroup)
-            .x(d3.time.scale().domain([minDate, maxDate]))
-            .xAxisLabel("Time")
-            .yAxisLabel("Components")
-            .keyAccessor(function (d) {
-                console.log("in keyAccessor, d=",JSON.stringify(d),", returning: ", d.key[0]);
-                return d.key[0]; })
-            .valueAccessor(function (d) {
-                console.log("in valueAccessor, d=",JSON.stringify(d),", returning: ", d.value);
-                return d.value; })
-            .title(function(d) {
-                console.log("in title, d=", JSON.stringify(d))
-                return("Time:   " + d.key[0] + "\n" +
-                    "Component:  " + comps[d.value] + "\n" +
-                    "Count:  " + d.key[2] + "\n");
-                    })
+            var minDate = timeDim.bottom(1)[0].time;
+            var maxDate = timeDim.top(1)[0].time;
 
-            .colorAccessor(function (d) { return d.key[2]; })
-            .colors(heatColorMapping);
+            //console.log("raw minDate = %d" % minDate)
+            //console.log("raw maxDate = %d" % maxDate)
+            console.log("minDate =", JSON.stringify(new Date(minDate)))
+            console.log("maxDate =", JSON.stringify(new Date(maxDate)))
 
-        chart.xAxis().ticks(5);
-        chart.yAxis().tickFormat(function(d) {
-            console.log("in tickFormat, d=", JSON.stringify(d));
-            return comps[+d - 1]; });
-        chart.render();
-        });
+            chart
+                .width(width)
+                .height(height)
+                .margins(margin)
+                .dimension(timeDim)
+                .group(eventsByTime, "Warning Events")
+                .valueAccessor(function(d) {
+                    return d.value.warnEvents;
+                })
+                .stack(eventsByTime, "Error Events", function(d){
+                    //console.log("in stack, d=", JSON.stringify(d))
+                    return d.value.errorEvents;}
+                )
+                .x(d3.time.scale().domain([minDate, maxDate]))
+                .xUnits(d3.time.days)
+                .renderHorizontalGridLines(true)
+                .centerBar(true)
+                .elasticY(true)
+                .brushOn(false)
+                .legend(dc.legend().x(100).y(10))
+                .title(function(d){
+                    return d.key
+                            + "\n\n" + d.value.errorEvents + " ERRORS from: "
+                            + JSON.stringify(d.value.errorComps)
+                            + "\n\n" + d.value.warnEvents + " WARNINGS from: "
+                            + JSON.stringify(d.value.warnComps);
+                })
+                .xAxis().ticks(7);
+
+            chart.render();
+        }
+
+    });
 }
 
 /*
  function updateWindow(){
 
- panelWidth = $("#d3-panel-body").width()
- width = panelWidth - margin.left - margin.right;
+    var panelWidth = $("#row3-full").width();
+    var panelHeight = 300;
+    var margin = {top: 30, right: 30, bottom: 30, left: 80},
+    width = panelWidth - margin.left - margin.right,
+    height = panelHeight - margin.top - margin.bottom;
+
 
  x = d3.time.scale().range([0, width]);
  x.domain(d3.extent(data, function(d) { return d.date; }));
@@ -89,4 +127,5 @@ function draw_cockpit_panel() {
  }
 
  window.onresize = updateWindow;
- */
+
+*/

@@ -29,3 +29,7 @@ OS_TENANT_NAME = "demo"
 
 BROKER_URL = 'amqp://guest:guest@localhost//'
 CELERY_ACCEPT_CONTENT = ['json']
+
+# Intel app config
+ES_SERVER = "10.10.11.121:9200"
+ES_TIMEOUT = 5

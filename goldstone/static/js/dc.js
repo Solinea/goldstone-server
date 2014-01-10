@@ -6440,44 +6440,42 @@ dc.numberDisplay = function (parent, chartGroup) {
 dc.heatMap = function (parent, chartGroup) {
 
     var DEFAULT_BORDER_RADIUS = 6.75;
+
+    var _chartBody;
+
     var _cols;
     var _rows;
     var _xBorderRadius = DEFAULT_BORDER_RADIUS;
     var _yBorderRadius = DEFAULT_BORDER_RADIUS;
 
-    var _chart = dc.coordinateGridMixin({});
-    var _chartBody;
-    _chart._mandatoryAttributes().push('group');
+    var _chart = dc.colorMixin(dc.marginMixin(dc.baseMixin({})));
+    _chart._mandatoryAttributes(['group']);
     _chart.title(_chart.colorAccessor());
 
-    var _xAxisOnClick = function (d) {
-        filterAxis(0, d);
-    };
-    var _yAxisOnClick = function (d) {
-        filterAxis(1, d);
-    };
+    var _xAxisOnClick = function (d) { filterAxis(0, d); };
+    var _yAxisOnClick = function (d) { filterAxis(1, d); };
     var _boxOnClick = function (d) {
         var filter = d.key;
-        dc.events.trigger(function () {
+        dc.events.trigger(function() {
             _chart.filter(filter);
             _chart.redrawGroup();
         });
     };
 
     function filterAxis(axis, value) {
-        var cellsOnAxis = _chart.selectAll(".box-group").filter(function (d) {
+        var cellsOnAxis = _chart.selectAll(".box-group").filter( function (d) {
             return d.key[axis] == value;
         });
-        var unfilteredCellsOnAxis = cellsOnAxis.filter(function (d) {
+        var unfilteredCellsOnAxis = cellsOnAxis.filter( function (d) {
             return !_chart.hasFilter(d.key);
         });
-        dc.events.trigger(function () {
-            if (unfilteredCellsOnAxis.empty()) {
-                cellsOnAxis.each(function (d) {
+        dc.events.trigger(function() {
+            if(unfilteredCellsOnAxis.empty()) {
+                cellsOnAxis.each( function (d) {
                     _chart.filter(d.key);
                 });
             } else {
-                unfilteredCellsOnAxis.each(function (d) {
+                unfilteredCellsOnAxis.each( function (d) {
                     _chart.filter(d.key);
                 });
             }
@@ -6485,14 +6483,14 @@ dc.heatMap = function (parent, chartGroup) {
         });
     }
 
-    dc.override(_chart, "filter", function (filter) {
+    dc.override(_chart, "filter", function(filter) {
         if (!arguments.length) return _chart._filter();
 
         return _chart._filter(dc.filters.TwoDimensionalFilter(filter));
     });
 
-    function uniq(d, i, a) {
-        return !i || a[i - 1] != d;
+    function uniq(d,i,a) {
+        return !i || a[i-1] != d;
     }
 
     _chart.rows = function (_) {
@@ -6517,21 +6515,16 @@ dc.heatMap = function (parent, chartGroup) {
         return d3.scale.ordinal().domain(colValues.filter(uniq));
     };
 
-    /*
-     _chart._doRender = function () {
-     _chart.resetSvg();
+    _chart._doRender = function () {
+        _chart.resetSvg();
 
-     _chartBody = _chart.svg()
-     .append("g")
-     .attr("class", "heatmap")
-     .attr("transform", "translate(" + _chart.margins().left + "," + _chart.margins().top + ")");
+        _chartBody = _chart.svg()
+          .append("g")
+          .attr("class", "heatmap")
+          .attr("transform", "translate(" + _chart.margins().left + "," + _chart.margins().top + ")");
 
-     _chart._generateG();
-     drawChart(true);
-
-     return _chart._doRedraw();
-     };
-
+        return _chart._doRedraw();
+    };
 
     _chart._doRedraw = function () {
         var rows = _chart.rows(),
@@ -6544,14 +6537,14 @@ dc.heatMap = function (parent, chartGroup) {
         cols.rangeRoundBands([0, _chart.effectiveWidth()]);
         rows.rangeRoundBands([_chart.effectiveHeight(), 0]);
 
-        var boxes = _chartBody.selectAll("g.box-group").data(_chart.data(), function (d, i) {
-            return _chart.keyAccessor()(d, i) + '\0' + _chart.valueAccessor()(d, i);
+        var boxes = _chartBody.selectAll("g.box-group").data(_chart.data(), function(d,i) {
+            return _chart.keyAccessor()(d,i) + '\0' + _chart.valueAccessor()(d,i);
         });
         var gEnter = boxes.enter().append("g")
             .attr("class", "box-group");
 
         gEnter.append("rect")
-            .attr("class", "heat-box")
+            .attr("class","heat-box")
             .attr("fill", "white")
             .on("click", _chart.boxOnClick());
 
@@ -6559,12 +6552,8 @@ dc.heatMap = function (parent, chartGroup) {
             .text(_chart.title());
 
         dc.transition(boxes.selectAll("rect"), _chart.transitionDuration())
-            .attr("x", function (d, i) {
-                return cols(_chart.keyAccessor()(d, i));
-            })
-            .attr("y", function (d, i) {
-                return rows(_chart.valueAccessor()(d, i));
-            })
+            .attr("x", function(d,i) { return cols(_chart.keyAccessor()(d,i)); })
+            .attr("y", function(d,i) { return rows(_chart.valueAccessor()(d,i)); })
             .attr("rx", _xBorderRadius)
             .attr("ry", _yBorderRadius)
             .attr("fill", _chart.getColor)
@@ -6578,36 +6567,26 @@ dc.heatMap = function (parent, chartGroup) {
             gCols = _chartBody.append("g").attr("class", "cols axis");
         gCols.selectAll('text').data(cols.domain())
             .enter().append("text")
-            .attr("x", function (d) {
-                return cols(d) + boxWidth / 2;
-            })
-            .style("text-anchor", "middle")
-            .attr("y", _chart.effectiveHeight())
-            .attr("dy", 12)
-            .on("click", _chart.xAxisOnClick())
-            .text(function (d) {
-                return d;
-            });
+              .attr("x", function(d) { return cols(d) + boxWidth/2; })
+              .style("text-anchor", "middle")
+              .attr("y", _chart.effectiveHeight())
+              .attr("dy", 12)
+              .on("click", _chart.xAxisOnClick())
+              .text(function(d) { return d; });
         var gRows = _chartBody.selectAll("g.rows");
         if (gRows.empty())
             gRows = _chartBody.append("g").attr("class", "rows axis");
         gRows.selectAll('text').data(rows.domain())
             .enter().append("text")
-            .attr("dy", 6)
-            .style("text-anchor", "end")
-            .attr("x", 0)
-            .attr("dx", -2)
-            .on("click", _chart.yAxisOnClick())
-            .text(function (d) {
-                return d;
-            });
+              .attr("dy", 6)
+              .style("text-anchor", "end")
+              .attr("x", 0)
+              .attr("dx", -2)
+              .on("click", _chart.yAxisOnClick())
+              .text(function(d) { return d; });
         dc.transition(gRows.selectAll('text'), _chart.transitionDuration())
-            .text(function (d) {
-                return d;
-            })
-            .attr("y", function (d) {
-                return rows(d) + boxHeight / 2;
-            });
+              .text(function(d) { return d; })
+              .attr("y", function(d) { return rows(d) + boxHeight/2; });
 
         if (_chart.hasFilter()) {
             _chart.selectAll("g.box-group").each(function (d) {
@@ -6624,20 +6603,6 @@ dc.heatMap = function (parent, chartGroup) {
         }
         return _chart;
     };
-     */
-    function drawChart(render) {
-
-        prepareXAxis(_chart.g());
-        _chart._prepareYAxis(_chart.g());
-
-        _chart.plotData();
-
-        if (_chart.elasticX() || _refocused || render)
-            _chart.renderXAxis(_chart.g());
-
-        if (_chart.elasticY() || render)
-            _chart.renderYAxis(_chart.g());
-    }
 
     _chart.boxOnClick = function (f) {
         if (!arguments.length) return _boxOnClick;
@@ -6673,100 +6638,6 @@ dc.heatMap = function (parent, chartGroup) {
 
     _chart.isSelectedNode = function (d) {
         return _chart.hasFilter(d.key);
-    };
-
-    _chart.plotData = function () {
-        var rows = _chart.rows(),
-            cols = _chart.cols(),
-            rowCount = rows.domain().length,
-            colCount = cols.domain().length,
-            boxWidth = Math.floor(_chart.effectiveWidth() / colCount),
-            boxHeight = Math.floor(_chart.effectiveHeight() / rowCount);
-
-        _chartBody = _chart.chartBodyG();
-        cols.rangeRoundBands([0, _chart.effectiveWidth()]);
-        rows.rangeRoundBands([_chart.effectiveHeight(), 0]);
-
-        var boxes = _chartBody.selectAll("g.box-group").data(_chart.data(), function (d, i) {
-            return _chart.keyAccessor()(d, i) + '\0' + _chart.valueAccessor()(d, i);
-        });
-        var gEnter = boxes.enter().append("g")
-            .attr("class", "box-group");
-
-        gEnter.append("rect")
-            .attr("class", "heat-box")
-            .attr("fill", "white")
-            .on("click", _chart.boxOnClick());
-
-        gEnter.append("title")
-            .text(_chart.title());
-
-        dc.transition(boxes.selectAll("rect"), _chart.transitionDuration())
-            .attr("x", function (d, i) {
-                return cols(_chart.keyAccessor()(d, i));
-            })
-            .attr("y", function (d, i) {
-                return rows(_chart.valueAccessor()(d, i));
-            })
-            .attr("rx", _xBorderRadius)
-            .attr("ry", _yBorderRadius)
-            .attr("fill", _chart.getColor)
-            .attr("width", boxWidth)
-            .attr("height", boxHeight);
-
-        boxes.exit().remove();
-        var gCols = _chartBody.selectAll("g.cols");
-        if (gCols.empty())
-            gCols = _chartBody.append("g").attr("class", "cols axis");
-            _chart.chartBodyG(_chartBody);
-        gCols.selectAll('text').data(cols.domain())
-            .enter().append("text")
-            .attr("x", function (d) {
-                return cols(d) + boxWidth / 2;
-            })
-            .style("text-anchor", "middle")
-            .attr("y", _chart.effectiveHeight())
-            .attr("dy", 12)
-            .on("click", _chart.xAxisOnClick())
-            .text(function (d) {
-                return d;
-            });
-        var gRows = _chartBody.selectAll("g.rows");
-        if (gRows.empty())
-            gRows = _chartBody.append("g").attr("class", "rows axis");
-            _chart.chartBodyG(_chartBody);
-        gRows.selectAll('text').data(rows.domain())
-            .enter().append("text")
-            .attr("dy", 6)
-            .style("text-anchor", "end")
-            .attr("x", 0)
-            .attr("dx", -2)
-            .on("click", _chart.yAxisOnClick())
-            .text(function (d) {
-                return d;
-            });
-        dc.transition(gRows.selectAll('text'), _chart.transitionDuration())
-            .text(function (d) {
-                return d;
-            })
-            .attr("y", function (d) {
-                return rows(d) + boxHeight / 2;
-            });
-
-        if (_chart.hasFilter()) {
-            _chart.selectAll("g.box-group").each(function (d) {
-                if (_chart.isSelectedNode(d)) {
-                    _chart.highlightSelected(this);
-                } else {
-                    _chart.fadeDeselected(this);
-                }
-            });
-        } else {
-            _chart.selectAll("g.box-group").each(function () {
-                _chart.resetHighlight(this);
-            });
-        }
-
     };
 
     return _chart.anchor(parent, chartGroup);

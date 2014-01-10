@@ -6,6 +6,7 @@
 
 
 from django.db import models
+from django.conf import settings
 
 from datetime import datetime, timedelta
 from pyes import *
@@ -145,10 +146,18 @@ class LogData(object):
     @staticmethod
     def get_err_and_warn_hists(conn, start, end, interval, comp_list):
 
+        if interval == 'hour':
+            search_interval = 'minute'
+        elif interval == 'day':
+            search_interval = 'hour'
+        else:
+            search_interval = 'day'
+
         result = {}
         for comp in comp_list:
             result[comp] = LogData.err_and_warn_hist(conn, start, end,
-                                                       interval, query_filter=
+                                                       search_interval,
+                                                       query_filter=
                                                        TermFilter('component',
                                                                   comp)).facets
 
