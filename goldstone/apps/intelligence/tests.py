@@ -237,6 +237,7 @@ class LogDataModel(TestCase):
 
         xdata = LogData.get_components(conn)
         self.assertEqual(xdata, self.COMPONENTS)
+        print("cooked_data = ", cooked_data)
         self.assertEqual(cooked_data, self.cockpit_data)
 
 

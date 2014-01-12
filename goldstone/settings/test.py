@@ -22,3 +22,7 @@ JENKINS_TASKS = (
 )
 
 INSTALLED_APPS += ('django_jenkins', )
+
+# Intel app config
+ES_SERVER = "127.0.0.1:9200"
+ES_TIMEOUT = 5
