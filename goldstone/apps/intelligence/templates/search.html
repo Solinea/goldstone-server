@@ -1,15 +1,47 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block localjs %}
-<script src="{% static 'intelligence/js/search.js' %}"></script>
+{% block localcss %}
+    <link href="{% static 'intelligence/css/intelligence.css' %}"
+          rel="stylesheet" media="screen">
+    <link href="{% static 'css/dc.css' %}" rel="stylesheet" media="screen"/>
+
 {% endblock %}
+
+{% block localjs %}
+    <script src="{% static 'js/d3.js' %}"></script>
+    <script src="{% static 'js/crossfilter.js' %}"></script>
+    <script src="{% static 'js/dc.js' %}"></script>
+    <script src="{% static 'intelligence/js/intelligence.js' %}"></script>
+
+{% endblock %}
+
 
 {% block content %}
 
-<p>A Kibana should appear.  If it does not, please check your pop-up blocker setting.</p>
+    <div class="row">
+        <div id="table-col" class="col-md-12">
+            <div class="panel panel-primary log_table_panel">
+                <div id="intel-search-data-table">
+                    <table class='table table-hover' id='log-search-table'>
+                        <thead>
+                        <tr class='header'>
+                            <th>Timestamp</th>
+                            <th>Host</th>
+                            <th>Level</th>
+                            <th>Component</th>
+                            <th>Message</th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
+
+
 
 
 

@@ -1,17 +1,66 @@
-function draw_cockpit_panel(interval) {
+Date.prototype.addMinutes = function (m) {
+    this.setTime(this.getTime() + (m * 60 * 1000));
+    return this;
+}
 
-    var panelWidth = $("#row2-full").width();
+Date.prototype.addHours = function (h) {
+    this.setTime(this.getTime() + (h * 60 * 60 * 1000));
+    return this;
+}
+
+Date.prototype.addDays = function (d) {
+    this.setTime(this.getTime() + (d * 24 * 60 * 60 * 1000));
+    return this;
+}
+
+function draw_cockpit_panel(interval, location) {
+
+    var xUnitInterval = function (interval) {
+        if (interval == 'hour') {
+            return d3.time.minutes
+        } else if (interval == 'day') {
+            return d3.time.hours
+        } else if (interval == 'month') {
+            return d3.time.days
+        } else {
+            return None
+        }
+    }
+
+
+    var click_renderlet = function (_chart) {
+        _chart.selectAll("rect.bar").on("click", function (d) {
+            // load the log search page with chart and table set
+            // to this range.
+            var start = new Date(d.data.key);
+            var end = new Date(start);
+
+            if (interval == 'hour') {
+                end.addMinutes(1);
+            } else if (interval == 'day') {
+                end.addHours(1);
+            } else if (interval == 'month') {
+                end.addDays(1);
+            }
+
+            $(document).ready(draw_search_table(start, end, '#log-search-table'));
+
+            console.log("onClick called.  interval = " + interval + ", start= " + JSON.stringify(start) + ", end = " + JSON.stringify(end));
+        });
+    };
+
+    var panelWidth = $(location).width();
     var panelHeight = 300;
     var margin = {top: 30, right: 30, bottom: 30, left: 80},
-    width = panelWidth - margin.left - margin.right,
-    height = panelHeight - margin.top - margin.bottom;
+        width = panelWidth - margin.left - margin.right,
+        height = panelHeight - margin.top - margin.bottom;
 
-    var chart = dc.barChart("#r2-log-graph");
+    var chart = dc.barChart(location);
 
-    var log_data = d3.json("intelligence/log/cockpit/data/" + interval, function (error, events) {
-        console.log("events = ", JSON.stringify(events, null, 4));
+    d3.json("intelligence/log/cockpit/data/" + interval, function (error, events) {
+
         if (events.data.length == 0) {
-            alert("No log data found.");
+            $(location).html("<h2>No log data found.<h2>");
         } else {
             events.data.forEach(function (d) {
                 d.time = new Date(d.time);
@@ -22,48 +71,37 @@ function draw_cockpit_panel(interval) {
 
             var xf = crossfilter(events.data);
             var comps = events.components;
-            //console.log("components = ", JSON.stringify(comps, null, 4));
-
             var timeDim = xf.dimension(function (d) {
                 return d.time;
             });
 
             var eventsByTime = timeDim.group().reduce(
-                    function(p, v) {
-                        //console.log("p = ", JSON.stringify(p))
-                        //console.log("v = ", JSON.stringify(v))
-                        p.errorEvents += v.errors;
-                        p.warnEvents += v.warnings;
-                        p.errorEvents && p.errorComps.push(v.component)
-                        p.warnEvents && p.warnComps.push(v.component)
-                        return p;
-                    },
-                    function(p, v) {
-                        //console.log("p = ", JSON.stringify(p))
-                        //console.log("v = ", JSON.stringify(v))
-                        p.errorEvents -= v.errors;
-                        p.warnEvents -= v.warnings;
-                        p.errorEvents && p.errorComps.pop(v.component);
-                        p.warnEvents && p.warnComps.pop(v.component);
-                        return p;
-                    },
-                    function() {
-                        return {
-                            errorEvents:0,
-                            warnEvents:0,
-                            errorComps: [],
-                            warnComps: []
-                        };
-                    }
+                function (p, v) {
+                    p.errorEvents += v.errors;
+                    p.warnEvents += v.warnings;
+                    p.errorEvents && p.errorComps.push(v.component)
+                    p.warnEvents && p.warnComps.push(v.component)
+                    return p;
+                },
+                function (p, v) {
+                    p.errorEvents -= v.errors;
+                    p.warnEvents -= v.warnings;
+                    p.errorEvents && p.errorComps.pop(v.component);
+                    p.warnEvents && p.warnComps.pop(v.component);
+                    return p;
+                },
+                function () {
+                    return {
+                        errorEvents: 0,
+                        warnEvents: 0,
+                        errorComps: [],
+                        warnComps: []
+                    };
+                }
             );
 
             var minDate = timeDim.bottom(1)[0].time;
             var maxDate = timeDim.top(1)[0].time;
-
-            //console.log("raw minDate = %d" % minDate)
-            //console.log("raw maxDate = %d" % maxDate)
-            console.log("minDate =", JSON.stringify(new Date(minDate)))
-            console.log("maxDate =", JSON.stringify(new Date(maxDate)))
 
             chart
                 .width(width)
@@ -71,28 +109,27 @@ function draw_cockpit_panel(interval) {
                 .margins(margin)
                 .dimension(timeDim)
                 .group(eventsByTime, "Warning Events")
-                .valueAccessor(function(d) {
+                .valueAccessor(function (d) {
                     return d.value.warnEvents;
                 })
-                .stack(eventsByTime, "Error Events", function(d){
-                    //console.log("in stack, d=", JSON.stringify(d))
-                    return d.value.errorEvents;}
-                )
+                .stack(eventsByTime, "Error Events", function (d) {
+                    return d.value.errorEvents;
+                })
                 .x(d3.time.scale().domain([minDate, maxDate]))
-                .xUnits(d3.time.days)
+                .xUnits(xUnitInterval(interval))
                 .renderHorizontalGridLines(true)
                 .centerBar(true)
                 .elasticY(true)
                 .brushOn(false)
+                .renderlet(click_renderlet)
                 .legend(dc.legend().x(100).y(10))
-                .title(function(d){
+                .title(function (d) {
                     return d.key
-                            + "\n\n" + d.value.errorEvents + " ERRORS from: "
-                            + JSON.stringify(d.value.errorComps)
-                            + "\n\n" + d.value.warnEvents + " WARNINGS from: "
-                            + JSON.stringify(d.value.warnComps);
-                })
-                .xAxis().ticks(7);
+                        + "\n\n" + d.value.errorEvents + " ERRORS from: "
+                        + JSON.stringify(d.value.errorComps)
+                        + "\n\n" + d.value.warnEvents + " WARNINGS from: "
+                        + JSON.stringify(d.value.warnComps);
+                });
 
             chart.render();
         }
@@ -100,14 +137,102 @@ function draw_cockpit_panel(interval) {
     });
 }
 
+
+function draw_search_table(start, end, location) {
+
+    // set up the search screen
+    paint_search_screen();
+    var target = paint_search_result_thead();
+    console.log("target width = " + $(target).width());
+    console.log("target height = " + $(target).height());
+
+    var uri = "/intelligence/log/search/data/".concat(String(start.getTime()), "/", String(end.getTime()));
+    var panelWidth = $(target).width();
+    var panelHeight = 600 // $(window).height * 0.8;  // should this be rounded?
+    var margin = {top: 30, right: 30, bottom: 30, left: 80},
+        width = panelWidth - margin.left - margin.right,
+        height = panelHeight - margin.top - margin.bottom;
+
+    var table = dc.dataTable(target);
+
+    d3.json(uri, function (error, events) {
+        if (events.length == 0) {
+            $(location).html("<h2>No log data found.<h2>");
+        } else {
+            events.forEach(function (d) {
+                d.time = new Date(d['@timestamp']);
+                console.log("event = ", JSON.stringify(d, null, 4));
+            });
+
+            var xf = crossfilter(events);
+            var timeDim = xf.dimension(function (d) {
+                return d.time;
+            });
+
+            table
+                .size(20)
+                .height(height)
+                .width(width)
+                .dimension(timeDim)
+                .group(function() { return "" })
+                .sortBy(function (d) {
+                    return d.time;
+                })
+                .columns([
+                    function (d) {
+                        return d.time;
+                    },
+                    function (d) {
+                        return d.host;
+                    },
+                    function (d) {
+                        return d.loglevel;
+                    },
+                    function (d) {
+                        return d.component;
+                    },
+                    function (d) {
+                        return d.message;
+                    }
+                ]);
+
+            dc.renderAll();
+        }
+    });
+
+}
+
+function paint_search_screen() {
+    $('#body-container').empty();
+    $('#body-container').append('<div id="search-head"><p>This is the search head<p></div>');
+    $('#body-container').append('<div id="search-result"><p>This is the search result<p></div>');
+}
+
+function paint_search_result_thead() {
+    $('#search-result').html('<div id="intel-search-data-table">' +
+        '<table class="table table-hover" id="log-search-table">' +
+            '<thead>' +
+                '<tr class="header">' +
+                    '<th>Timestamp</th>' +
+                    '<th>Host</th>' +
+                    '<th>Level</th>' +
+                    '<th>Component</th>' +
+                    '<th>Message</th>' +
+                '</tr>' +
+            '</thead>' +
+        '</table>' +
+    '</div>');
+    return '#log-search-table'
+}
+
 /*
  function updateWindow(){
 
-    var panelWidth = $("#row3-full").width();
-    var panelHeight = 300;
-    var margin = {top: 30, right: 30, bottom: 30, left: 80},
-    width = panelWidth - margin.left - margin.right,
-    height = panelHeight - margin.top - margin.bottom;
+ var panelWidth = $("#row3-full").width();
+ var panelHeight = 300;
+ var margin = {top: 30, right: 30, bottom: 30, left: 80},
+ width = panelWidth - margin.left - margin.right,
+ height = panelHeight - margin.top - margin.bottom;
 
 
  x = d3.time.scale().range([0, width]);
@@ -128,4 +253,4 @@ function draw_cockpit_panel(interval) {
 
  window.onresize = updateWindow;
 
-*/
+ */

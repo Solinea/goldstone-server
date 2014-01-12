@@ -109,6 +109,7 @@ class LogData(object):
             if server \
             else ES(timeout=timeout)
 
+
     @staticmethod
     def err_and_warn_hist(conn, start, end, interval,
                           query_filter=None):
@@ -163,3 +164,26 @@ class LogData(object):
 
         return result
 
+    @staticmethod
+    def get_err_and_warn_range(conn, start, end, query_filter=None):
+
+        q = RangeQuery(qrange=ESRange('@timestamp', start.isoformat(),
+                       end.isoformat()))
+        err_filt = TermFilter('loglevel', 'error')
+        fat_filt = TermFilter('loglevel', 'fatal')
+        bad_filt = ORFilter([err_filt, fat_filt])
+        warn_filt = TermFilter('loglevel', 'warning')
+
+        f1 = bad_filt if not query_filter \
+            else ANDFilter([bad_filt, query_filter])
+
+        f2 = warn_filt if not query_filter \
+            else ANDFilter([warn_filt, query_filter])
+
+        f3 = ORFilter([f1,f2])
+
+        fq = FilteredQuery(q, f3)
+
+        rs = conn.search(fq)
+
+        return rs

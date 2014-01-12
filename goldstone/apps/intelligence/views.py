@@ -37,7 +37,7 @@ class IntelLogCockpitStackedView(TemplateView):
     template_name = 'log-cockpit-stacked-bar.html'
 
 
-def log_cockpit_data(request, interval='month'):
+def log_cockpit_summary(request, interval='month'):
 
     conn = LogData.get_connection(settings.ES_SERVER,settings.ES_TIMEOUT)
     comps = LogData.get_components(conn)
@@ -99,4 +99,15 @@ def log_cockpit_data(request, interval='month'):
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 
+def log_search_data(request, start, end):
+    conn = LogData.get_connection(settings.ES_SERVER,settings.ES_TIMEOUT)
 
+    start_ts = int(start.encode('ascii', 'ignore')) / 1000
+    end_ts = int(end.encode('ascii','ignore')) / 1000
+    data = LogData.get_err_and_warn_range(conn,
+                                          datetime.fromtimestamp(
+                                              start_ts, tz=pytz.utc),
+                                          datetime.fromtimestamp(
+                                              end_ts, tz=pytz.utc))
+    return HttpResponse(json.dumps([result for result in data]),
+                        content_type="application/json")
