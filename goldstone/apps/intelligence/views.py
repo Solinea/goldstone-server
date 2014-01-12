@@ -39,7 +39,7 @@ class IntelLogCockpitStackedView(TemplateView):
 
 def log_cockpit_summary(request, interval='month'):
 
-    conn = LogData.get_connection(settings.ES_SERVER,settings.ES_TIMEOUT)
+    conn = LogData.get_connection(settings.ES_SERVER, settings.ES_TIMEOUT)
     comps = LogData.get_components(conn)
     end = datetime.now(tz=pytz.utc)
 
@@ -52,7 +52,7 @@ def log_cockpit_summary(request, interval='month'):
         start = end - timedelta(weeks=4)
 
     print("getting data: start=%s, end=%s, interval=%s"
-                %(start, end, interval))
+          % (start, end, interval))
     raw_data = LogData.get_err_and_warn_hists(conn, start, end, interval,
                                               comps)
     cooked_data = []
@@ -100,10 +100,10 @@ def log_cockpit_summary(request, interval='month'):
 
 
 def log_search_data(request, start, end):
-    conn = LogData.get_connection(settings.ES_SERVER,settings.ES_TIMEOUT)
+    conn = LogData.get_connection(settings.ES_SERVER, settings.ES_TIMEOUT)
 
     start_ts = int(start.encode('ascii', 'ignore')) / 1000
-    end_ts = int(end.encode('ascii','ignore')) / 1000
+    end_ts = int(end.encode('ascii', 'ignore')) / 1000
     data = LogData.get_err_and_warn_range(conn,
                                           datetime.fromtimestamp(
                                               start_ts, tz=pytz.utc),

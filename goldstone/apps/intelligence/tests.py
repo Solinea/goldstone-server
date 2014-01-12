@@ -7,6 +7,7 @@
 from django.test.client import Client
 from django.test.client import RequestFactory
 from django.test import TestCase
+from django.conf import settings
 
 from .views import IntelSearchView, IntelErrorsView
 from .models import *
@@ -26,6 +27,7 @@ def open_result_file(fn):
                            "..", "..", "..", "test_data", fn)) \
             as data_f:
                 return data_f.read().replace('\n', '')
+
 
 def read_result_file_as_list(fn):
     with open(os.path.join(os.path.dirname(__file__),
@@ -57,7 +59,8 @@ class LogDataModel(TestCase):
     COMP_AGG_TOTAL = 186
     TOTAL_DOCS = 186
 
-    conn = ES("localhost:9200", bulk_size=400, default_indices=[INDEX_NAME])
+    conn = ES(settings.ES_SERVER, timeout=settings.ES_TIMEOUT, bulk_size=400,
+              default_indices=[INDEX_NAME])
 
     def setUp(self):
 
@@ -186,7 +189,6 @@ class LogDataModel(TestCase):
         self.assertEqual(json.dumps(result),
                          self.comp_date_hist_result_filtered)
 
-
     def test_get_err_and_warn_hists(self):
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
@@ -194,51 +196,6 @@ class LogDataModel(TestCase):
                                                 LogData.get_components(
                                                     self.conn))
         self.assertEqual(json.dumps(result), self.err_and_warn_hists_result)
-
-    def test_cockpit_data(self):
-        conn = LogData.get_connection()
-        comps = LogData.get_components(conn)
-        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
-        start = end - timedelta(weeks=52)
-        raw_data = LogData.get_err_and_warn_hists(conn, start, end, 'minute',
-                                                  comps)
-
-        #print("raw_data = %s" % raw_data)
-        cooked_data = []
-
-        for comp, facets in raw_data.items():
-            # build up a flat list for d3
-            errs_list = facets['err_facet']['entries']
-            warns_list = facets['warn_facet']['entries']
-            data = []
-
-            err_times = set([t['time'] for t in errs_list])
-            warn_times = set([t['time'] for t in warns_list])
-            intersect = err_times & warn_times
-            #print("intersect contains: %s" %intersect)
-            #print("original warns_list has %d elements" % len(warns_list))
-
-            warns_list = [warn for warn in warns_list
-                          if warn['time'] not in intersect]
-            #print("updated warns_list has %d elements" % len(warns_list))
-
-            for err in errs_list:
-                err['type'] = 'error'
-                err['component'] = comp
-                #err['time'] = datetime.utcfromtimestamp(err['time'])
-            for warn in warns_list:
-                warn['type'] = 'warning'
-                warn['component'] = comp
-                #warn['time'] = datetime.utcfromtimestamp(warn['time'])
-
-            cooked_data += errs_list
-            cooked_data += warns_list
-
-
-        xdata = LogData.get_components(conn)
-        self.assertEqual(xdata, self.COMPONENTS)
-        print("cooked_data = ", cooked_data)
-        self.assertEqual(cooked_data, self.cockpit_data)
 
 
 class IntelViewTest(TestCase):

@@ -83,7 +83,7 @@ def aggregate_facets(conn, start, end, filter_field, filter_list, facet_field):
 
 def comp_err_warn_date_hist(conn, start, end, comp, interval):
     q = RangeQuery(qrange=ESRange('@timestamp', start.isoformat(),
-                                   end.isoformat())).search()
+                                  end.isoformat())).search()
     err_filt = TermFilter('loglevel', 'error')
     fat_filt = TermFilter('loglevel', 'fatal')
     bad_filt = ORFilter([err_filt, fat_filt])
@@ -109,13 +109,12 @@ class LogData(object):
             if server \
             else ES(timeout=timeout)
 
-
     @staticmethod
     def err_and_warn_hist(conn, start, end, interval,
                           query_filter=None):
 
         q = RangeQuery(qrange=ESRange('@timestamp', start.isoformat(),
-                                   end.isoformat())).search()
+                                      end.isoformat())).search()
         err_filt = TermFilter('loglevel', 'error')
         fat_filt = TermFilter('loglevel', 'fatal')
         bad_filt = ORFilter([err_filt, fat_filt])
@@ -157,10 +156,10 @@ class LogData(object):
         result = {}
         for comp in comp_list:
             result[comp] = LogData.err_and_warn_hist(conn, start, end,
-                                                       search_interval,
-                                                       query_filter=
-                                                       TermFilter('component',
-                                                                  comp)).facets
+                                                     search_interval,
+                                                     query_filter=
+                                                     TermFilter('component',
+                                                                comp)).facets
 
         return result
 
@@ -180,7 +179,7 @@ class LogData(object):
         f2 = warn_filt if not query_filter \
             else ANDFilter([warn_filt, query_filter])
 
-        f3 = ORFilter([f1,f2])
+        f3 = ORFilter([f1, f2])
 
         fq = FilteredQuery(q, f3)
 
