@@ -5,4 +5,5 @@ $(document).ready(function() {
         timeFormat: 'HH:mm',
         minDate: 0
     });
-}); 
+    $('#leaselisttable').dataTable();
+});
