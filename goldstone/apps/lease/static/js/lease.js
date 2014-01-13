@@ -3,6 +3,12 @@ $(document).ready(function() {
     $('.datetimeinput').datetimepicker({
         controlType: 'select',
         timeFormat: 'HH:mm',
-        minDate: 0
+        minDate: 0,
     });
-}); 
+    $('#leaselisttable').dataTable({
+        "aaSorting": [[ 3, "asc" ]],
+        "aoColumnDefs": [
+                  { 'bSortable': false, 'aTargets': [ 4, 5 ] }
+               ]
+    });
+});
