@@ -7,6 +7,7 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect, render
 from django.views.generic import DetailView, ListView
+from django.utils import timezone
 
 from .models import Cockpit
 from goldstone.apps.lease.models import Lease
@@ -23,7 +24,11 @@ class DetailCockpitView(DetailView):
 #     template_name = 'cockpit.html'
 
 def view_cockpit(request):
-    leases = Lease.objects.all()
+    leases_to_show = 5
+    leases = Lease.objects.filter(expiration_time__gte=timezone.now(),
+                                  deleted=False,
+                                  ).order_by('expiration_time')
     lease_count = len(leases)
     return render(request, 'cockpit.html',
-                  {'leases': leases, 'lease_count': lease_count})
+                  {'leases': leases[:leases_to_show],
+                   'lease_count': lease_count})

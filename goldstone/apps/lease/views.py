@@ -7,6 +7,7 @@
 from datetime import timedelta
 
 from django.core.urlresolvers import reverse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import redirect, render
 from django.views.generic import ListView
 from django.views.generic import CreateView, UpdateView, DeleteView
@@ -18,8 +19,18 @@ from .models import Lease, Notification, Action
 
 
 class ListLeaseView(ListView):
-    model = Lease
+    # model = Lease
     template_name = 'lease_list.html'
+    context_object_name = 'lease_object_list'
+
+    def get_queryset(self):
+        """Return active leases"""
+        # lease_list = Lease.objects.order_by('expiration_time')
+        # paginator = Paginator(lease_list, 25)
+        # return paginator
+        return Lease.objects.filter(expiration_time__gte=timezone.now(),
+                                    deleted=False,
+                                    ).order_by('expiration_time')
 
 
 class CreateLeaseView(CreateView):
