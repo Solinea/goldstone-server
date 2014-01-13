@@ -24,7 +24,7 @@ mapping = {
 
 conn.indices.put_mapping("logs", {'properties': mapping}, "log_samples")
 
-data_f = gzip.open('sample_es_data.json', 'r')
+data_f = gzip.open('sample_es_data.json.gz', 'r')
 docs = json.load(data_f)
 for doc in docs['hits']['hits']:
     conn.index(doc, 'log_samples', 'logs', bulk=True)
