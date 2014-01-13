@@ -5,5 +5,10 @@ $(document).ready(function() {
         timeFormat: 'HH:mm',
         minDate: 0
     });
-    $('#leaselisttable').dataTable();
+    $('#leaselisttable').dataTable({
+        "aaSorting": [[ 3, "asc" ]],
+        "aoColumnDefs": [
+                  { 'bSortable': false, 'aTargets': [ 4, 5 ] }
+               ]
+    });
 });
