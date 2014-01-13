@@ -28,6 +28,9 @@ cache/pip
 .coverage
 .tox
 nosetests.xml
+coverage.xml
+htmlcov/
+reports/
 
 # Translations
 *.mo
