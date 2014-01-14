@@ -79,23 +79,17 @@ function draw_cockpit_panel(interval, location) {
                 function (p, v) {
                     p.errorEvents += v.errors;
                     p.warnEvents += v.warnings;
-                    p.errorEvents && p.errorComps.push(v.component)
-                    p.warnEvents && p.warnComps.push(v.component)
                     return p;
                 },
                 function (p, v) {
                     p.errorEvents -= v.errors;
                     p.warnEvents -= v.warnings;
-                    p.errorEvents && p.errorComps.pop(v.component);
-                    p.warnEvents && p.warnComps.pop(v.component);
                     return p;
                 },
                 function () {
                     return {
                         errorEvents: 0,
                         warnEvents: 0,
-                        errorComps: [],
-                        warnComps: []
                     };
                 }
             );
@@ -125,10 +119,8 @@ function draw_cockpit_panel(interval, location) {
                 .legend(dc.legend().x(100).y(10))
                 .title(function (d) {
                     return d.key
-                        + "\n\n" + d.value.errorEvents + " ERRORS from: "
-                        + JSON.stringify(d.value.errorComps)
-                        + "\n\n" + d.value.warnEvents + " WARNINGS from: "
-                        + JSON.stringify(d.value.warnComps);
+                        + "\n\n" + d.value.errorEvents + " ERRORS"
+                        + "\n\n" + d.value.warnEvents + " WARNINGS";
                 });
 
             chart.render();

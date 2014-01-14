@@ -132,7 +132,9 @@ class LogData(object):
                                       facet_filter=f2, order='term')
         q.facet.add(err_fac)
         q.facet.add(warn_fac)
+        print("query = %s" % q)
         rs = conn.search(q)
+        print("result length = %d", rs.total)
         return rs
 
     @staticmethod
@@ -144,7 +146,7 @@ class LogData(object):
         return [d['term'] for d in rs.facets['component']['terms']]
 
     @staticmethod
-    def get_err_and_warn_hists(conn, start, end, interval, comp_list):
+    def get_err_and_warn_hists(conn, start, end, interval):
 
         if interval == 'hour':
             search_interval = 'minute'
@@ -153,13 +155,10 @@ class LogData(object):
         else:
             search_interval = 'day'
 
-        result = {}
-        for comp in comp_list:
-            result[comp] = LogData.err_and_warn_hist(conn, start, end,
-                                                     search_interval,
-                                                     query_filter=
-                                                     TermFilter('component',
-                                                                comp)).facets
+        result = LogData.err_and_warn_hist(conn, start, end,
+                                           search_interval).facets
+
+        print("facets = %s" % result)
 
         return result
 
