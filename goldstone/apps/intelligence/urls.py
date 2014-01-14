@@ -18,6 +18,6 @@ urlpatterns = patterns(
     # data calls
     url(r'^log/cockpit/data/(?P<interval>[a-z]{3,5})[/]?$',
         log_cockpit_summary, name='intel-log-cockpit-data'),
-    url(r'^log/search/data/(?P<start>\d+)/(?P<end>\d+)$', log_search_data,
-        name='intel-log-search-data')
+    url(r'^log/search/data/(?P<start_time>\d+)/(?P<end_time>\d+)[/]?$',
+        log_search_data, name='intel-log-search-data')
 )

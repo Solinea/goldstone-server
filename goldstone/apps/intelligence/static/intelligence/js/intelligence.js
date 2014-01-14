@@ -147,59 +147,20 @@ function draw_search_table(start, end, location) {
     console.log("target height = " + $(target).height());
 
     var uri = "/intelligence/log/search/data/".concat(String(start.getTime()), "/", String(end.getTime()));
-    var panelWidth = $(target).width();
-    var panelHeight = 600 // $(window).height * 0.8;  // should this be rounded?
-    var margin = {top: 30, right: 30, bottom: 30, left: 80},
-        width = panelWidth - margin.left - margin.right,
-        height = panelHeight - margin.top - margin.bottom;
 
-    var table = dc.dataTable(target);
+    var table_params = {
+        "bProcessing": true,
+        "bServerSide": true,
+        "sAjaxSource": uri,
+        "bPaginate": true,
+        "bFilter": false,
+        "bSort": false,
+        "bInfo": true,
+        "bAutoWidth": true,
+        "bLengthChange": true
+    }
 
-    d3.json(uri, function (error, events) {
-        if (events.length == 0) {
-            $(location).html("<h2>No log data found.<h2>");
-        } else {
-            events.forEach(function (d) {
-                d.time = new Date(d['@timestamp']);
-                console.log("event = ", JSON.stringify(d, null, 4));
-            });
-
-            var xf = crossfilter(events);
-            var timeDim = xf.dimension(function (d) {
-                return d.time;
-            });
-
-            table
-                .size(20)
-                .height(height)
-                .width(width)
-                .dimension(timeDim)
-                .group(function() { return "" })
-                .sortBy(function (d) {
-                    return d.time;
-                })
-                .columns([
-                    function (d) {
-                        return d.time;
-                    },
-                    function (d) {
-                        return d.host;
-                    },
-                    function (d) {
-                        return d.loglevel;
-                    },
-                    function (d) {
-                        return d.component;
-                    },
-                    function (d) {
-                        return d.message;
-                    }
-                ]);
-
-            dc.renderAll();
-        }
-    });
-
+    $(location).dataTable(table_params);
 }
 
 function paint_search_screen() {

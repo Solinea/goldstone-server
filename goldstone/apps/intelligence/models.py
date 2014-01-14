@@ -164,10 +164,11 @@ class LogData(object):
         return result
 
     @staticmethod
-    def get_err_and_warn_range(conn, start, end, query_filter=None):
+    def get_err_and_warn_range(conn, start_t, end_t, first, size, sort=None,
+                               query_filter=None):
 
-        q = RangeQuery(qrange=ESRange('@timestamp', start.isoformat(),
-                       end.isoformat()))
+        q = RangeQuery(qrange=ESRange('@timestamp', start_t.isoformat(),
+                       end_t.isoformat()))
         err_filt = TermFilter('loglevel', 'error')
         fat_filt = TermFilter('loglevel', 'fatal')
         bad_filt = ORFilter([err_filt, fat_filt])
@@ -183,6 +184,6 @@ class LogData(object):
 
         fq = FilteredQuery(q, f3)
 
-        rs = conn.search(fq)
+        rs = conn.search(Search(fq, start=first, size=size, sort=sort))
 
         return rs

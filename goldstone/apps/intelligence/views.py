@@ -3,6 +3,7 @@
 #
 # Copyright 2014 Solinea, Inc.
 #
+from __future__ import unicode_literals
 from django.http import HttpResponse
 from django.conf import settings
 
@@ -99,15 +100,30 @@ def log_cockpit_summary(request, interval='month'):
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 
-def log_search_data(request, start, end):
+def log_search_data(request, start_time, end_time):
+
     conn = LogData.get_connection(settings.ES_SERVER, settings.ES_TIMEOUT)
 
-    start_ts = int(start.encode('ascii', 'ignore')) / 1000
-    end_ts = int(end.encode('ascii', 'ignore')) / 1000
-    data = LogData.get_err_and_warn_range(conn,
-                                          datetime.fromtimestamp(
-                                              start_ts, tz=pytz.utc),
-                                          datetime.fromtimestamp(
-                                              end_ts, tz=pytz.utc))
-    return HttpResponse(json.dumps([result for result in data]),
+    start_ts = int(start_time) / 1000
+    end_ts = int(end_time) / 1000
+    rs = LogData.get_err_and_warn_range(
+        conn,
+        datetime.fromtimestamp(start_ts, tz=pytz.utc),
+        datetime.fromtimestamp(end_ts, tz=pytz.utc),
+        int(request.GET.get('iDisplayStart')),
+        int(request.GET.get('iDisplayLength')),
+        sort={'@timestamp':{'order': 'desc'}})
+
+    response = {
+        "sEcho": int(request.GET.get('sEcho')),
+        "iTotalRecords": rs.total,
+        "iTotalDisplayRecords": rs.total,
+        "aaData": [[kv['@timestamp'],
+                    kv['loglevel'],
+                    kv['component'],
+                    kv['host'],
+                    kv['message']] for kv in rs]
+    }
+
+    return HttpResponse(json.dumps(response),
                         content_type="application/json")
