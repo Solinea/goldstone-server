@@ -46,6 +46,11 @@ Sync and migrate the databases::
 $ python ./manage.py syncdb
 $ python ./manage.py migrate
 
+RabbitMQ should be configured to support celery tasks.  For the brew install, ensure that /usr/local/sbin is in your PATH:
+
+$ brew install rabbitmq
+$ rabbitmq-server
+
 Elasticsearch must also be configured.  You can set up a local version (see below), or refer to the one in the lab.  Instructions for local setup are below::
 
 $ brew install elasticsearch # for the mac, assuming you have brew installed
