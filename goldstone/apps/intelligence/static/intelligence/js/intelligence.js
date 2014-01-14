@@ -15,6 +15,13 @@ Date.prototype.addDays = function (d) {
 
 function draw_cockpit_panel(interval, location) {
 
+    $("#log-cockpit-loading-indicator").show();
+    $("#log-cockpit-loading-indicator").position({
+        my: "center",
+        at: "center",
+        of: location
+    });
+
     var xUnitInterval = function (interval) {
         if (interval == 'hour') {
             return d3.time.minutes
@@ -64,9 +71,7 @@ function draw_cockpit_panel(interval, location) {
         } else {
             events.data.forEach(function (d) {
                 d.time = new Date(d.time);
-                d.errors = +d.errors;
-                d.warnings = +d.warnings;
-
+                d.count = +d.count;
             });
 
             var xf = crossfilter(events.data);
@@ -77,19 +82,25 @@ function draw_cockpit_panel(interval, location) {
 
             var eventsByTime = timeDim.group().reduce(
                 function (p, v) {
-                    p.errorEvents += v.errors;
-                    p.warnEvents += v.warnings;
+                    if (v.loglevel === 'error') {
+                        p.errorEvents += v.count;
+                    } else {
+                        p.warnEvents += v.count;
+                    }
                     return p;
                 },
                 function (p, v) {
-                    p.errorEvents -= v.errors;
-                    p.warnEvents -= v.warnings;
+                    if (v.loglevel === 'error') {
+                        p.errorEvents -= v.count;
+                    } else {
+                        p.warnEvents -= v.count;
+                    }
                     return p;
                 },
                 function () {
                     return {
                         errorEvents: 0,
-                        warnEvents: 0,
+                        warnEvents: 0
                     };
                 }
             );
@@ -124,6 +135,7 @@ function draw_cockpit_panel(interval, location) {
                 });
 
             chart.render();
+            $("#log-cockpit-loading-indicator").hide();
         }
 
     });

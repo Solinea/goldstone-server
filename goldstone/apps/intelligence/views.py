@@ -60,40 +60,15 @@ def log_cockpit_summary(request, interval='month'):
         # build up a flat list for d3
     errs_list = raw_data['err_facet']['entries']
     warns_list = raw_data['warn_facet']['entries']
-    err_times = set([t['time'] for t in errs_list])
-    warn_times = set([t['time'] for t in warns_list])
-    intersect = err_times & warn_times
-
     for err in errs_list:
-        err['errors'] = err['count']
-        err['warnings'] = 0
-        err.pop('count')
-
+        err['loglevel'] = 'error'
     for warn in warns_list:
-        warn['warnings'] = warn['count']
-        warn['errors'] = 0
-        warn.pop('count')
+        warn['loglevel'] = 'warning'
 
-    warns_list_no_intersect = [warn for warn in warns_list
-                               if warn['time'] not in intersect]
+    cooked_data = sorted(errs_list + warns_list, key=lambda event: event['time'])
 
-    warns_list_intersect = [x for x in warns_list
-                            if x not in warns_list_no_intersect]
-
-    for warn in warns_list_intersect:
-        err_index = next(index for (index, d) in enumerate(errs_list)
-                         if d['time'] == warn['time'])
-        errs_list[err_index]['warnings'] = warn['warnings']
-
-    cooked_data += errs_list
-    cooked_data += warns_list_no_intersect
-
-    warnings =
-
-    cooked_data = sorted(cooked_data, key=lambda event: event['time'])
-    comps = LogData.get_components(conn)
-
-    data = {'components': comps, 'data': cooked_data}
+    data = {'data': cooked_data}
+    print("cooked_data = %s" % json.dumps(cooked_data))
 
     return HttpResponse(json.dumps(data), content_type="application/json")
 
