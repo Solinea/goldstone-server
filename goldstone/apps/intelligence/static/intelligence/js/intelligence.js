@@ -13,7 +13,14 @@ Date.prototype.addDays = function (d) {
     return this;
 }
 
-function draw_cockpit_panel(interval, location) {
+Date.prototype.addWeeks = function (d) {
+    this.setTime(this.getTime() + (d * 7 * 24 * 60 * 60 * 1000));
+    return this;
+}
+
+function draw_cockpit_panel(interval, location, end) {
+
+    end = typeof end !== 'undefined' ? new Date(Number(end) * 1000) : new Date();
 
     $("#log-cockpit-loading-indicator").show();
     $("#log-cockpit-loading-indicator").position({
@@ -30,7 +37,8 @@ function draw_cockpit_panel(interval, location) {
         } else if (interval == 'month') {
             return d3.time.days
         } else {
-            return None
+            //TODO define proper error handling strategy
+            alert("interval '" + interval + "' not recognized." )
         }
     }
 
@@ -41,30 +49,56 @@ function draw_cockpit_panel(interval, location) {
             // to this range.
             var start = new Date(d.data.key);
             var end = new Date(start);
+            var new_interval;
 
-            if (interval == 'hour') {
+            if (interval === 'hour') {
                 end.addMinutes(1);
-            } else if (interval == 'day') {
+                new_interval = 'minute';
+            } else if (interval === 'day') {
                 end.addHours(1);
-            } else if (interval == 'month') {
+                new_interval = 'hour';
+            } else if (interval === 'month') {
                 end.addDays(1);
+                new_interval = 'day';
+            } else if (interval === 'minute') {
+                new_interval = 'seconds';
+                end.addMinutes(1);
             }
 
-            $(document).ready(draw_search_table(start, end, '#log-search-table'));
-
-            console.log("onClick called.  interval = " + interval + ", start= " + JSON.stringify(start) + ", end = " + JSON.stringify(end));
+            var uri = '/intelligence/search?start_time='.
+                    concat(String(Math.round(start.getTime()/1000)),
+                    "&end_time=", String(Math.round(end.getTime()/1000)),
+                    "&interval=", new_interval);
+            window.location.assign(uri);
+            console.log("onClick called.  interval = " + interval + ", start= "
+                + JSON.stringify(start/1000) + ", end = "
+                + JSON.stringify(end/1000) + ", new_interval = " + new_interval);
         });
     };
 
     var panelWidth = $(location).width();
     var panelHeight = 300;
-    var margin = {top: 30, right: 30, bottom: 30, left: 80},
+    var margin = {top: 30, right: 30, bottom: 30, left: 40},
         width = panelWidth - margin.left - margin.right,
         height = panelHeight - margin.top - margin.bottom;
 
     var chart = dc.barChart(location);
+    var start = new Date(end);
+    if (interval === 'hour') {
+                start.addHours(-1);
+            } else if (interval === 'day') {
+                start.addDays(-1);
+            } else if (interval === 'month') {
+                start.addWeeks(-4);
+            } else if (interval === 'minute') {
+                start.addMinutes(-1);
+            }
+    var uri = "/intelligence/log/cockpit/data?start_time=".
+        concat(String(Math.round(start.getTime()/1000)),
+            "&end_time=", String(Math.round(end.getTime()/1000)),
+            "&interval=", interval);
 
-    d3.json("intelligence/log/cockpit/data/" + interval, function (error, events) {
+    d3.json(uri, function (error, events) {
 
         if (events.data.length == 0) {
             $(location).html("<h2>No log data found.<h2>");
@@ -144,14 +178,8 @@ function draw_cockpit_panel(interval, location) {
 
 function draw_search_table(start, end, location) {
 
-    // set up the search screen
-    paint_search_screen();
-    var target = paint_search_result_thead();
-    console.log("target width = " + $(target).width());
-    console.log("target height = " + $(target).height());
-
-    var uri = "/intelligence/log/search/data/".concat(String(start.getTime()), "/", String(end.getTime()));
-
+    var uri = "/intelligence/log/search/data/".concat(String(start), "/", String(end));
+    console.log("uri = ", uri)
     var table_params = {
         "bProcessing": true,
         "bServerSide": true,
@@ -165,29 +193,6 @@ function draw_search_table(start, end, location) {
     }
 
     $(location).dataTable(table_params);
-}
-
-function paint_search_screen() {
-    $('#body-container').empty();
-    $('#body-container').append('<div id="search-head"><p>This is the search head<p></div>');
-    $('#body-container').append('<div id="search-result"><p>This is the search result<p></div>');
-}
-
-function paint_search_result_thead() {
-    $('#search-result').html('<div id="intel-search-data-table">' +
-        '<table class="table table-hover" id="log-search-table">' +
-            '<thead>' +
-                '<tr class="header">' +
-                    '<th>Timestamp</th>' +
-                    '<th>Host</th>' +
-                    '<th>Level</th>' +
-                    '<th>Component</th>' +
-                    '<th>Message</th>' +
-                '</tr>' +
-            '</thead>' +
-        '</table>' +
-    '</div>');
-    return '#log-search-table'
 }
 
 /*
