@@ -129,17 +129,28 @@ def log_search_data(request, start_time, end_time):
         datetime.fromtimestamp(end_ts, tz=pytz.utc),
         int(request.GET.get('iDisplayStart')),
         int(request.GET.get('iDisplayLength')),
-        sort={'@timestamp':{'order': 'desc'}})
+        global_filter_text=request.GET.get('sSearch', None),
+        sort={'@timestamp': {'order': 'desc'}})
+
+    print("rs.total = ", rs.total)
+    print("len(rs) = ", len(rs))
+
 
     response = {
         "sEcho": int(request.GET.get('sEcho')),
         "iTotalRecords": rs.total,
-        "iTotalDisplayRecords": rs.total,
+        "iTotalDisplayRecords": len(rs),
         "aaData": [[kv['@timestamp'],
                     kv['loglevel'],
                     kv['component'],
                     kv['host'],
-                    kv['message']] for kv in rs]
+                    kv['message'],
+                    kv['path'],
+                    kv['pid'],
+                    kv['program'],
+                    kv['separator'],
+                    kv['type'],
+                    kv['received_at']] for kv in rs]
     }
 
     return HttpResponse(json.dumps(response),

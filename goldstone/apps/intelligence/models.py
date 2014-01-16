@@ -164,7 +164,7 @@ class LogData(object):
 
     @staticmethod
     def get_err_and_warn_range(conn, start_t, end_t, first, size, sort=None,
-                               query_filter=None):
+                               global_filter_text=None, query_filter=None):
 
         q = RangeQuery(qrange=ESRange('@timestamp', start_t.isoformat(),
                        end_t.isoformat()))
@@ -172,12 +172,14 @@ class LogData(object):
         fat_filt = TermFilter('loglevel', 'fatal')
         bad_filt = ORFilter([err_filt, fat_filt])
         warn_filt = TermFilter('loglevel', 'warning')
+        global_filt = TermFilter('_message', global_filter_text.lower()) if \
+            global_filter_text else None
 
-        f1 = bad_filt if not query_filter \
-            else ANDFilter([bad_filt, query_filter])
+        f1 = bad_filt if not global_filt \
+            else ANDFilter([bad_filt, global_filt])
 
-        f2 = warn_filt if not query_filter \
-            else ANDFilter([warn_filt, query_filter])
+        f2 = warn_filt if not global_filt \
+            else ANDFilter([warn_filt, global_filt])
 
         f3 = ORFilter([f1, f2])
 

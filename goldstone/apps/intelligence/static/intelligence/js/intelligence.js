@@ -175,24 +175,43 @@ function draw_cockpit_panel(interval, location, end) {
     });
 }
 
-
 function draw_search_table(start, end, location) {
 
     var uri = "/intelligence/log/search/data/".concat(String(start), "/", String(end));
     console.log("uri = ", uri)
-    var table_params = {
+    var oTableParams = {
         "bProcessing": true,
         "bServerSide": true,
         "sAjaxSource": uri,
         "bPaginate": true,
-        "bFilter": false,
-        "bSort": false,
-        "bInfo": true,
+        "bFilter": true,
+        "bSort": true,
+        "bInfo": false,
         "bAutoWidth": true,
-        "bLengthChange": true
+        "bLengthChange": true,
+        "aoColumnDefs":[
+                { "bVisible": false, "aTargets": [ 5,6,7,8,9,10 ] },
+                { "sName": "timestamp", "aTargets": [ 0 ] },
+                { "sType": "date", "aTargets": [0] },
+                { "sName": "loglevel", "aTargets": [ 1 ] },
+                { "sName": "component", "aTargets": [ 2 ] },
+                { "sName": "host", "aTargets": [ 3 ] },
+                { "sName": "message", "aTargets": [ 4 ] },
+                { "sName": "location", "aTargets": [ 5 ] },
+                { "sName": "pid", "aTargets": [ 6 ] },
+                { "sName": "source", "aTargets": [ 7 ] },
+                { "sName": "request_id", "aTargets": [ 8 ] },
+                { "sName": "type", "aTargets": [ 9 ] },
+                { "sName": "received", "aTargets": [ 10 ] },
+                { "sType": "date", "aTargets": [10] }
+            ]
     }
 
-    $(location).dataTable(table_params);
+    var oTable = $(location).dataTable(oTableParams);
+
+    $(window).bind('resize', function () {
+        oTable.fnAdjustColumnSizing();
+    } );
 }
 
 /*

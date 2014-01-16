@@ -57,3 +57,11 @@ path {
     stroke-width: 1;
     shape-rendering: crispEdges;
 }
+
+/* Datatable font sizes */
+#log-search-table th {
+    font-size: 10px;
+}
+#log-search-table td {
+    font-size: 11px;
+}
