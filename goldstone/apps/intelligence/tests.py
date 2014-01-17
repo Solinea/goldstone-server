@@ -51,8 +51,12 @@ class LogDataModel(TestCase):
     comp_date_hist_result = open_result_file("comp_date_hist_result.json")
     comp_date_hist_result_filtered = open_result_file(
         "comp_date_hist_result_filtered.json")
-    err_and_warn_hists_result = open_result_file(
-        "err_and_warn_hists_result.json")
+    err_and_warn_hists_result_day = open_result_file(
+        "err_and_warn_hists_result_day.json")
+    err_and_warn_hists_result_hour = open_result_file(
+        "err_and_warn_hists_result_hour.json")
+    err_and_warn_hists_result_minute = open_result_file(
+        "err_and_warn_hists_result_minute.json")
     cockpit_data = list(read_result_file_as_list(
         "cockpit_data_result.pkl"))
     LEVEL_AGG_TOTAL = 182
@@ -102,6 +106,21 @@ class LogDataModel(TestCase):
 
     def tearDown(self):
         self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
+
+    def test_get_connection(self):
+        test_conn = LogData.get_connection()
+        q = MatchAllQuery().search()
+        rs = test_conn.search(q)
+        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+        test_conn = LogData.get_connection("localhost:9200")
+        rs = test_conn.search(q)
+        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+        test_conn = LogData.get_connection(timeout=5)
+        rs = test_conn.search(q)
+        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+        test_conn = LogData.get_connection("localhost:9200", 5)
+        rs = test_conn.search(q)
+        self.assertEqual(rs.count(), self.TOTAL_DOCS)
 
     def test_get_components(self):
         comps = LogData.get_components(self.conn)
@@ -192,8 +211,50 @@ class LogDataModel(TestCase):
     def test_get_err_and_warn_hists(self):
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
+        result = LogData.get_err_and_warn_hists(self.conn, start, end,
+                                                'minute')
+        self.assertEqual(json.dumps(result),
+                         self.err_and_warn_hists_result_minute)
         result = LogData.get_err_and_warn_hists(self.conn, start, end, 'hour')
-        self.assertEqual(json.dumps(result), self.err_and_warn_hists_result)
+        self.assertEqual(json.dumps(result),
+                         self.err_and_warn_hists_result_hour)
+        result = LogData.get_err_and_warn_hists(self.conn, start, end, 'day')
+        self.assertEqual(json.dumps(result),
+                         self.err_and_warn_hists_result_day)
+        result = LogData.get_err_and_warn_hists(self.conn, start, end)
+        self.assertEqual(json.dumps(result),
+                         self.err_and_warn_hists_result_day)
+        result = LogData.get_err_and_warn_hists(self.conn, start, end, 'xyz')
+        self.assertEqual(json.dumps(result),
+                         self.err_and_warn_hists_result_day)
+
+    def test_get_err_and_warn_range(self):
+
+        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        start = end - timedelta(weeks=52)
+
+        result = LogData.get_err_and_warn_range(self.conn, start, end,
+                                                first=1, size=10)
+        rl = [r for r in result]
+        self.assertEqual(len(rl), 10)
+        result = LogData.\
+            get_err_and_warn_range(self.conn, start, end, first=1, size=10,
+                                   sort={'loglevel': {'order': 'asc'}})
+        rl = [r for r in result]
+        self.assertEqual(len(rl), 10)
+
+        result = LogData.\
+            get_err_and_warn_range(self.conn, start, end, 1, 10,
+                                   global_filter_text="ERROR")
+        rl = [r for r in result]
+        self.assertEqual(len(rl), 10)
+
+        result = LogData.\
+            get_err_and_warn_range(self.conn, start, end, 1, 10,
+                                   sort={'loglevel': {'order': 'asc'}},
+                                   global_filter_text="ERROR")
+        rl = [r for r in result]
+        self.assertEqual(len(rl), 10)
 
 
 class IntelViewTest(TestCase):
@@ -209,10 +270,17 @@ class IntelViewTest(TestCase):
         response = self.client.get('/intelligence/search')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'search.html')
-        # TODO add test to verify window popped up.  may need selenium?
 
     def test_errors_template(self):
         response = self.client.get('/intelligence/errors')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'errors.html')
-        # TODO add test to verify window popped up.  may need selenium?
+
+    def test_log_cockpit_summary(self):
+        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        start = end - timedelta(weeks=4)
+        end_ts = calendar.timegm(end.utctimetuple())
+        start_ts = calendar.timegm(start.utctimetuple())
+        response = self.client.get('/intelligence/log/cockpit?start_time' +
+                                   str(start_ts) + "&end_time=" + str(end_ts))
+        self.assertEqual(response.status_code, 200)

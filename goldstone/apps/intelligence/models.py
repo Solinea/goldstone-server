@@ -81,26 +81,6 @@ def aggregate_facets(conn, start, end, filter_field, filter_list, facet_field):
     )
 
 
-def comp_err_warn_date_hist(conn, start, end, comp, interval):
-    q = RangeQuery(qrange=ESRange('@timestamp', start.isoformat(),
-                                  end.isoformat())).search()
-    err_filt = TermFilter('loglevel', 'error')
-    fat_filt = TermFilter('loglevel', 'fatal')
-    bad_filt = ORFilter([err_filt, fat_filt])
-    warn_filt = TermFilter('loglevel', 'warning')
-    comp_filt = TermFilter('component', comp)
-    f1 = ANDFilter([bad_filt, comp_filt])
-    f2 = ANDFilter([warn_filt, comp_filt])
-    err_fac = DateHistogramFacet("error_facet", "@timestamp", interval,
-                                 facet_filter=f1)
-    warn_fac = DateHistogramFacet("warn_facet", "@timestamp", interval,
-                                  facet_filter=f2)
-    q.facet.add(err_fac)
-    q.facet.add(warn_fac)
-    rs = conn.search(q)
-    return rs
-
-
 class LogData(object):
 
     @staticmethod
@@ -144,14 +124,16 @@ class LogData(object):
         return [d['term'] for d in rs.facets['component']['terms']]
 
     @staticmethod
-    def get_err_and_warn_hists(conn, start, end, interval):
+    def get_err_and_warn_hists(conn, start, end, interval=None):
 
-        if interval == 'hour':
+        if interval == 'minute':
+            search_interval = 'second'
+        elif interval == 'hour':
             search_interval = 'minute'
         elif interval == 'day':
             search_interval = 'hour'
         else:
-            search_interval = 'day'
+            search_interval = 'hour'
 
         result = LogData.err_and_warn_hist(conn, start, end,
                                            search_interval).facets
@@ -160,7 +142,7 @@ class LogData(object):
 
     @staticmethod
     def get_err_and_warn_range(conn, start_t, end_t, first, size, sort=None,
-                               global_filter_text=None, query_filter=None):
+                               global_filter_text=None):
 
         q = RangeQuery(qrange=ESRange('@timestamp', start_t.isoformat(),
                        end_t.isoformat()))

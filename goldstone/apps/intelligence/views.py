@@ -62,8 +62,8 @@ class IntelLogCockpitStackedView(TemplateView):
 
 def log_cockpit_summary(request):
 
-    end_time = request.GET.get('end_time', None)
-    start_time = request.GET.get('start_time', None)
+    end_time = request.GET.get('end_time')
+    start_time = request.GET.get('start_time')
     interval = request.GET.get('interval', 'day')
 
     end_dt = datetime.fromtimestamp(int(end_time),
