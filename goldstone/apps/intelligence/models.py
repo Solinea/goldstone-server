@@ -132,6 +132,8 @@ class LogData(object):
             search_interval = 'minute'
         elif interval == 'day':
             search_interval = 'hour'
+        elif interval == 'month':
+            search_interval = 'day'
         else:
             search_interval = 'hour'
 
