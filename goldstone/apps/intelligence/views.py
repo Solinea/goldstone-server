@@ -34,9 +34,6 @@ class IntelSearchView(TemplateView):
         end_time = self.request.GET.get('end_time', None)
         start_time = self.request.GET.get('start_time', None)
         context['interval'] = self.request.GET.get('interval', 'month')
-        print("end_time = %s" % end_time)
-        print("start_time = %s" % start_time)
-        print("interval = %s" % context['interval'])
 
         end_dt = datetime.fromtimestamp(int(end_time),
                                         tz=pytz.utc) \
@@ -48,8 +45,6 @@ class IntelSearchView(TemplateView):
 
         context['end_ts'] = calendar.timegm(end_dt.utctimetuple())
         context['start_ts'] = calendar.timegm(start_dt.utctimetuple())
-        print("end_ts = %s" % context['end_ts'])
-        print("start_ts = %s" % context['start_ts'])
         return context
 
 
@@ -70,9 +65,6 @@ def log_cockpit_summary(request):
     end_time = request.GET.get('end_time', None)
     start_time = request.GET.get('start_time', None)
     interval = request.GET.get('interval', 'day')
-    print("end_time = %s" % end_time)
-    print("start_time = %s" % start_time)
-    print("interval = %s" % interval)
 
     end_dt = datetime.fromtimestamp(int(end_time),
                                     tz=pytz.utc) \
@@ -81,16 +73,9 @@ def log_cockpit_summary(request):
         fromtimestamp(int(start_time), tz=pytz.utc) \
         if start_time else end_dt - timedelta(weeks=4)
 
-    print("end_dt = %s" % end_dt)
-    print("start_dt = %s" % start_dt)
-
     conn = LogData.get_connection(settings.ES_SERVER, settings.ES_TIMEOUT)
 
-    print("getting data: start=%s, end=%s, interval=%s"
-          % (start_dt, end_dt, interval))
     raw_data = LogData.get_err_and_warn_hists(conn, start_dt, end_dt, interval)
-
-    print("raw_data = %s" % raw_data)
 
     errs_list = raw_data['err_facet']['entries']
     warns_list = raw_data['warn_facet']['entries']
@@ -99,20 +84,22 @@ def log_cockpit_summary(request):
     for warn in warns_list:
         warn['loglevel'] = 'warning'
 
-    cooked_data = sorted(errs_list + warns_list, key=lambda event: event['time'])
+    cooked_data = sorted(errs_list + warns_list,
+                         key=lambda event: event['time'])
 
     first_ts = cooked_data[0]['time']
     last_ts = cooked_data[len(cooked_data)-1]['time']
 
-    print("first_ts = %d, start_time*1000 = %d" %(first_ts, int(start_time)*1000))
     if first_ts > (int(start_time)*1000):
-        cooked_data.insert(0, {'time': int(start_time)*1000, 'count': 0, 'loglevel': 'warning'})
+        cooked_data.insert(
+            0,
+            {'time': int(start_time)*1000, 'count': 0, 'loglevel': 'warning'})
 
     if last_ts < (int(end_time)*1000):
-        cooked_data.append({'time': int(end_time)*1000, 'count': 0, 'loglevel': 'warning'})
+        cooked_data.append(
+            {'time': int(end_time)*1000, 'count': 0, 'loglevel': 'warning'})
 
     data = {'data': cooked_data}
-    print("cooked_data = %s" % json.dumps(cooked_data))
 
     return HttpResponse(json.dumps(data), content_type="application/json")
 
@@ -121,8 +108,30 @@ def log_search_data(request, start_time, end_time):
 
     conn = LogData.get_connection(settings.ES_SERVER, settings.ES_TIMEOUT)
 
+    keylist = ['@timestamp', 'loglevel', 'component', 'host', 'message',
+               'path', 'pid', 'program', 'separator', 'type', 'received_at']
+
+    keymap = {'timestamp': '@timestamp',
+              'loglevel': 'loglevel',
+              'component': 'component',
+              'host': 'host',
+              'message': 'message',
+              'location': 'path',
+              'pid': 'pid',
+              'source': 'program',
+              'request_id': 'separator',
+              'type': 'type',
+              'received': 'received_at'}
+
     start_ts = int(start_time)
     end_ts = int(end_time)
+    sort_index = int(request.GET.get('iSortCol_0'))
+    sort_col = keylist[sort_index] if sort_index else keylist[0]
+    sort_dir_in = request.GET.get('sSortDir_0')
+    sort_dir = sort_dir_in if sort_dir_in else "asc"
+    print("sort_col = ", sort_col)
+    print("sort_dir = ", sort_dir)
+
     rs = LogData.get_err_and_warn_range(
         conn,
         datetime.fromtimestamp(start_ts, tz=pytz.utc),
@@ -130,11 +139,7 @@ def log_search_data(request, start_time, end_time):
         int(request.GET.get('iDisplayStart')),
         int(request.GET.get('iDisplayLength')),
         global_filter_text=request.GET.get('sSearch', None),
-        sort={'@timestamp': {'order': 'desc'}})
-
-    print("rs.total = ", rs.total)
-    print("len(rs) = ", len(rs))
-
+        sort={sort_col: {'order': sort_dir}})
 
     response = {
         "sEcho": int(request.GET.get('sEcho')),

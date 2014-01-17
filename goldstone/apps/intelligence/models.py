@@ -132,9 +132,7 @@ class LogData(object):
                                       facet_filter=f2, order='term')
         q.facet.add(err_fac)
         q.facet.add(warn_fac)
-        print("query = %s" % q)
         rs = conn.search(q)
-        print("result length = %d", rs.total)
         return rs
 
     @staticmethod
@@ -157,8 +155,6 @@ class LogData(object):
 
         result = LogData.err_and_warn_hist(conn, start, end,
                                            search_interval).facets
-
-        print("facets = %s" % result)
 
         return result
 

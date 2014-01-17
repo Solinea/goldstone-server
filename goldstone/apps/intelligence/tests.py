@@ -192,9 +192,7 @@ class LogDataModel(TestCase):
     def test_get_err_and_warn_hists(self):
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
-        result = LogData.get_err_and_warn_hists(self.conn, start, end, 'hour',
-                                                LogData.get_components(
-                                                    self.conn))
+        result = LogData.get_err_and_warn_hists(self.conn, start, end, 'hour')
         self.assertEqual(json.dumps(result), self.err_and_warn_hists_result)
 
 
