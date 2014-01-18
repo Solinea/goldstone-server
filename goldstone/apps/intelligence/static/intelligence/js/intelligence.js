@@ -30,7 +30,9 @@ function draw_cockpit_panel(interval, location, end) {
     });
 
     var xUnitInterval = function (interval) {
-        if (interval == 'hour') {
+        if (interval == 'minute') {
+            return d3.time.seconds
+        } else if (interval == 'hour') {
             return d3.time.minutes
         } else if (interval == 'day') {
             return d3.time.hours
@@ -78,9 +80,7 @@ function draw_cockpit_panel(interval, location, end) {
 
     var panelWidth = $(location).width();
     var panelHeight = 300;
-    var margin = {top: 30, right: 30, bottom: 30, left: 40},
-        width = panelWidth - margin.left - margin.right,
-        height = panelHeight - margin.top - margin.bottom;
+    var margin = {top: 30, right: 30, bottom: 30, left: 40};
 
     var chart = dc.barChart(location);
     var start = new Date(end);
@@ -143,8 +143,8 @@ function draw_cockpit_panel(interval, location, end) {
             var maxDate = timeDim.top(1)[0].time;
 
             chart
-                .width(width)
-                .height(height)
+                .width(panelWidth)
+                .height(panelHeight)
                 .margins(margin)
                 .dimension(timeDim)
                 .group(eventsByTime, "Warning Events")

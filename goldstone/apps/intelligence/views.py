@@ -48,8 +48,8 @@ class IntelSearchView(TemplateView):
         return context
 
 
-class IntelErrorsView(TemplateView):
-    template_name = 'errors.html'
+class IntelKibanaView(TemplateView):
+    template_name = 'kibana.html'
 
 
 class IntelLogCockpitView(TemplateView):
@@ -69,6 +69,7 @@ def log_cockpit_summary(request):
     end_dt = datetime.fromtimestamp(int(end_time),
                                     tz=pytz.utc) \
         if end_time else datetime.now(tz=pytz.utc)
+
     start_dt = datetime.\
         fromtimestamp(int(start_time), tz=pytz.utc) \
         if start_time else end_dt - timedelta(weeks=4)
@@ -87,17 +88,21 @@ def log_cockpit_summary(request):
     cooked_data = sorted(errs_list + warns_list,
                          key=lambda event: event['time'])
 
-    first_ts = cooked_data[0]['time']
-    last_ts = cooked_data[len(cooked_data)-1]['time']
+    first_placeholder = {'time': int(start_time)*1000, 'count': 0, 'loglevel':
+                         'warning'}
+    last_placeholder = {'time': int(end_time)*1000, 'count': 0, 'loglevel':
+                        'warning'}
 
-    if first_ts > (int(start_time)*1000):
-        cooked_data.insert(
-            0,
-            {'time': int(start_time)*1000, 'count': 0, 'loglevel': 'warning'})
+    if len(cooked_data) > 0:
+        first_ts = cooked_data[0]['time']
+        last_ts = cooked_data[len(cooked_data)-1]['time']
+        if first_ts > (int(start_time)*1000):
+            cooked_data.insert(0, first_placeholder)
 
-    if last_ts < (int(end_time)*1000):
-        cooked_data.append(
-            {'time': int(end_time)*1000, 'count': 0, 'loglevel': 'warning'})
+        if last_ts < (int(end_time)*1000):
+            cooked_data.append(last_placeholder)
+    else:
+        cooked_data = [first_placeholder,last_placeholder]
 
     data = {'data': cooked_data}
 
@@ -111,26 +116,12 @@ def log_search_data(request, start_time, end_time):
     keylist = ['@timestamp', 'loglevel', 'component', 'host', 'message',
                'path', 'pid', 'program', 'separator', 'type', 'received_at']
 
-    keymap = {'timestamp': '@timestamp',
-              'loglevel': 'loglevel',
-              'component': 'component',
-              'host': 'host',
-              'message': 'message',
-              'location': 'path',
-              'pid': 'pid',
-              'source': 'program',
-              'request_id': 'separator',
-              'type': 'type',
-              'received': 'received_at'}
-
     start_ts = int(start_time)
     end_ts = int(end_time)
     sort_index = int(request.GET.get('iSortCol_0'))
     sort_col = keylist[sort_index] if sort_index else keylist[0]
     sort_dir_in = request.GET.get('sSortDir_0')
     sort_dir = sort_dir_in if sort_dir_in else "asc"
-    print("sort_col = ", sort_col)
-    print("sort_dir = ", sort_dir)
 
     rs = LogData.get_err_and_warn_range(
         conn,
@@ -141,21 +132,25 @@ def log_search_data(request, start_time, end_time):
         global_filter_text=request.GET.get('sSearch', None),
         sort={sort_col: {'order': sort_dir}})
 
+    aaData = []
+    for kv in rs:
+        aaData.append([kv['@timestamp'] if kv.has_key('@timestamp') else "",
+                        kv['loglevel'] if kv.has_key('loglevel') else "",
+                        kv['component'] if kv.has_key('component') else "",
+                        kv['host'] if kv.has_key('host') else "",
+                        kv['message'] if kv.has_key('message') else "",
+                        kv['path'] if kv.has_key('path') else "",
+                        kv['pid'] if kv.has_key('pid') else "",
+                        kv['program'] if kv.has_key('program') else "",
+                        kv['separator'] if kv.has_key('separator') else "",
+                        kv['type'] if kv.has_key('type') else "",
+                        kv['received_at'] if kv.has_key('received_at') else ""])
+
     response = {
         "sEcho": int(request.GET.get('sEcho')),
         "iTotalRecords": rs.total,
         "iTotalDisplayRecords": len(rs),
-        "aaData": [[kv['@timestamp'],
-                    kv['loglevel'],
-                    kv['component'],
-                    kv['host'],
-                    kv['message'],
-                    kv['path'],
-                    kv['pid'],
-                    kv['program'],
-                    kv['separator'],
-                    kv['type'],
-                    kv['received_at']] for kv in rs]
+        "aaData": aaData
     }
 
     return HttpResponse(json.dumps(response),
