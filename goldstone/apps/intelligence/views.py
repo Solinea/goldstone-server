@@ -102,7 +102,7 @@ def log_cockpit_summary(request):
         if last_ts < (int(end_time)*1000):
             cooked_data.append(last_placeholder)
     else:
-        cooked_data = [first_placeholder,last_placeholder]
+        cooked_data = [first_placeholder, last_placeholder]
 
     data = {'data': cooked_data}
 
@@ -134,17 +134,17 @@ def log_search_data(request, start_time, end_time):
 
     aaData = []
     for kv in rs:
-        aaData.append([kv['@timestamp'] if kv.has_key('@timestamp') else "",
-                        kv['loglevel'] if kv.has_key('loglevel') else "",
-                        kv['component'] if kv.has_key('component') else "",
-                        kv['host'] if kv.has_key('host') else "",
-                        kv['message'] if kv.has_key('message') else "",
-                        kv['path'] if kv.has_key('path') else "",
-                        kv['pid'] if kv.has_key('pid') else "",
-                        kv['program'] if kv.has_key('program') else "",
-                        kv['separator'] if kv.has_key('separator') else "",
-                        kv['type'] if kv.has_key('type') else "",
-                        kv['received_at'] if kv.has_key('received_at') else ""])
+        aaData.append([kv['@timestamp'] if '@timestamp' in kv else "",
+                       kv['loglevel'] if 'loglevel' in kv else "",
+                       kv['component'] if 'component' in kv else "",
+                       kv['host'] if 'host' in kv else "",
+                       kv['message'] if 'message' in kv else "",
+                       kv['path'] if 'path' in kv else "",
+                       kv['pid'] if 'pid' in kv else "",
+                       kv['program'] if 'program' in kv else "",
+                       kv['separator'] if 'separator' in kv else "",
+                       kv['type'] if 'type' in kv else "",
+                       kv['received_at'] if 'received_at' in kv else ""])
 
     response = {
         "sEcho": int(request.GET.get('sEcho')),
