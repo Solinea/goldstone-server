@@ -9,19 +9,10 @@ from django.http import HttpResponse
 from django.conf import settings
 
 from django.views.generic import TemplateView
-from django.template import RequestContext
-from django.shortcuts import render_to_response
-import math
 from .models import LogData
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta
 import pytz
 import json
-
-# import the logging library
-import logging
-
-# Get an instance of a logger
-logger = logging.getLogger(__name__)
 
 
 class IntelSearchView(TemplateView):

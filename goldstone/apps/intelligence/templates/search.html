@@ -2,18 +2,11 @@
 {% load static %}
 
 {% block localcss %}
-    <!-- comment out or remove these meta tags for non-dev
-    <meta http-equiv="no-cache">
-    <meta http-equiv="Expires" content="-1">
-    <meta http-equiv="Cache-Control" content="no-cache">
-     -->
-
     <link href="{% static 'css/dataTables.bootstrap.css' %}" rel="stylesheet"
           media="screen">
     <link href="{% static 'intelligence/css/intelligence.css' %}"
           rel="stylesheet" media="screen">
     <link href="{% static 'css/dc.css' %}" rel="stylesheet" media="screen"/>
-
 {% endblock %}
 
 {% block localjs %}
@@ -25,10 +18,8 @@
     <script src="{% static 'intelligence/js/intelligence.js' %}"></script>
     <script type="text/javascript">
         $(document).ready(function () {
-            console.log("in js, start_time = " + '{{ start_ts }}');
-            console.log("in js, end_time = " + '{{ end_ts }}');
-            console.log("in js, interval = " + '{{ interval }}');
-            draw_cockpit_panel('{{ interval }}', '.search_histogram_panel', '{{ end_ts }}');
+            draw_cockpit_panel('{{ interval }}', '.search_histogram_panel',
+                    '{{ end_ts }}');
             draw_search_table('{{ start_ts }}', '{{ end_ts }}',
                     '#log-search-table');
 
@@ -103,24 +94,20 @@
             </div>
         </div>
     </div>
+    <div class="panel panel-primary intel_panel">
+        <div class="panel-heading">
+            <h3 class="panel-title"><i class="fa fa-dashboard"></i> <a
+                    href="/intelligence/errors">Log Analysis</a></h3>
+        </div>
+        <div id="log-cockpit-graph" class="panel-body" style="height:300px">
+
+        </div>
+    </div>
 
 {% endblock %}
 
 
 
-
-
-
-
-<div class="panel panel-primary intel_panel">
-    <div class="panel-heading">
-        <h3 class="panel-title"><i class="fa fa-dashboard"></i> <a
-                href="/intelligence/errors">Log Analysis</a></h3>
-    </div>
-    <div id="log-cockpit-graph" class="panel-body" style="height:300px">
-
-    </div>
-</div>
 
 
 

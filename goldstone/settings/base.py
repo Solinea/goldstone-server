@@ -61,7 +61,7 @@ INSTALLED_APPS = (
     'djcelery',
     'goldstone.apps.lease',
     'goldstone.apps.intelligence',
-    'goldstone.apps.cockpit'
+    'goldstone.apps.cockpit',
 )
 
 MIDDLEWARE_CLASSES = (
