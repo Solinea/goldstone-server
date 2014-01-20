@@ -1,0 +1,109 @@
+#! /bin/sh
+#
+#	/etc/rc.d/init.d/logstash
+#
+#	Starts Logstash as a daemon
+#
+# chkconfig: 2345 20 80
+# description: Starts Logstash as a daemon
+# pidfile: /var/run/logstash.pid
+
+### BEGIN INIT INFO
+# Provides: logstash
+# Required-Start: $local_fs $remote_fs
+# Required-Stop: $local_fs $remote_fs
+# Default-Start: 2 3 4 5
+# Default-Stop: S 0 1 6
+# Short-Description: Logstash
+# Description: Starts Logstash as a daemon.
+# Author: christian.paredes@sbri.org, modified by https://github.com/paul-at, modified by john@solinea.com
+
+### END INIT INFO
+
+# Amount of memory for Java
+JAVAMEM=256M
+
+# Location of logstash files
+LOCATION=/opt/logstash
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+DESC="Logstash Daemon"
+JAVA_PATH=`which java`
+CONFIG_FILE=/etc/logstash.conf
+LOGFILE="/var/log/logstash.log"
+FILTER_WORKERS=1
+WATCHDOG_TIMEOUT=10
+JARNAME=logstash-flatjar.jar
+ARGS="-Xmx$JAVAMEM -Xms$JAVAMEM -jar ${JARNAME} agent --config ${CONFIG_FILE} --log ${LOGFILE} --filterworkers ${FILTER_WORKERS} --watchdog-timeout ${WATCHDOG_TIMEOUT}"
+export SINCEDB_DIR=/opt/logstash
+SCRIPTNAME=/etc/init.d/logstash
+base=logstash
+pidfile=/var/run/logstash.pid
+lockfile=/var/lock/subsys/$JARNAME
+
+# Exit if the package is not installed
+if [ ! -x "$JAVA_PATH" ]; then
+{
+  echo "Couldn't find $JAVA_PATH"
+  exit 5
+}
+fi
+
+. /etc/init.d/functions
+
+#
+# Function that starts the daemon/service
+#
+do_start()
+{
+    [ -x $exec ] || exit 5
+    umask 077
+    echo -n $"Starting logstash: "
+    cd $LOCATION && \
+    ($JAVA_PATH $ARGS &) && \
+    touch $lockfile && \
+    echo `ps auxww | grep 'logstash.*flatjar' | grep java | awk '{print $2}'` > $pidfile && \
+    success || failure
+}
+
+#
+# Function that stops the daemon/service
+#
+do_stop()
+{
+    echo -n $"Shutting down logstash: "
+    killproc -p "$pidfile" $JAVA_PATH
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f $lockfile
+    return $RETVAL
+}
+
+rhstatus() {
+        status -p "$pidfile" -l $base $JAVA_PATH
+}
+
+
+case "$1" in
+  start)
+    do_start
+    ;;
+  stop)
+    do_stop
+    ;;
+  restart|reload)
+    echo -n "Restarting $DESC: "
+    do_stop
+    do_start
+    ;;
+  status)
+    rhstatus
+    ;;
+  *)
+    echo "Usage: $SCRIPTNAME {start|stop|status|restart}" >&2
+    exit 3
+    ;;
+esac
+
+echo
+exit 0
