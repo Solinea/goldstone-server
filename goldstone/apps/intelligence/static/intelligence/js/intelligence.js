@@ -72,9 +72,6 @@ function draw_cockpit_panel(interval, location, end) {
                     "&end_time=", String(Math.round(end.getTime()/1000)),
                     "&interval=", new_interval);
             window.location.assign(uri);
-            console.log("onClick called.  interval = " + interval + ", start= "
-                + JSON.stringify(start/1000) + ", end = "
-                + JSON.stringify(end/1000) + ", new_interval = " + new_interval);
         });
     };
 
@@ -178,7 +175,6 @@ function draw_cockpit_panel(interval, location, end) {
 function draw_search_table(start, end, location) {
 
     var uri = "/intelligence/log/search/data/".concat(String(start), "/", String(end));
-    console.log("uri = ", uri)
     var oTableParams = {
         "bProcessing": true,
         "bServerSide": true,
