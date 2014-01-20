@@ -2,52 +2,76 @@
 {% load static %}
 
 {% block localcss %}
-<link href="{% static 'css/cockpit.css' %}" rel="stylesheet" media="screen">
+    <link href="{% static 'css/dataTables.bootstrap.css' %}" rel="stylesheet" media="screen">
+    <link href="{% static 'css/cockpit.css' %}" rel="stylesheet"
+          media="screen">
+    <link href="{% static 'intelligence/css/intelligence.css' %}"
+          rel="stylesheet" media="screen">
+    <link href="{% static 'css/dc.css' %}" rel="stylesheet" media="screen"/>
 {% endblock %}
 
 {% block localjs %}
+    <script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'js/dataTables.bootstrap.js' %}"></script>
+    <script src="{% static 'js/d3.js' %}"></script>
+    <script src="{% static 'js/crossfilter.js' %}"></script>
+    <script src="{% static 'js/dc.js' %}"></script>
+    <script src="{% static 'js/cockpit.js' %}"></script>
+    <script src="{% static 'intelligence/js/intelligence.js' %}"></script>
+
 {% endblock %}
 
 
 {% block content %}
 
-<!-- <div class="page-header">
-  <h1><i class="fa fa-calendar"></i> Leases</h1>
-</div> -->
+    <!-- <div class="page-header">
+      <h1><i class="fa fa-calendar"></i> Leases</h1>
+    </div> -->
 
-<div class="row">
-  <div class="col-md-6">
-      <div class="panel panel-primary lease_panel">
-        <!-- Default panel contents -->
-        <div class="panel-heading">
-            <h3 class="panel-title"><i class="fa fa-calendar"></i> <a href="/leases">Leases</a> <span class="badge  pull-right">{{lease_count}}</span></h3>
-        </div>
-        <table class="table table-condensed table-hover">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Identifier</th>
-                    <th>Expiration</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for lease in leases %}
+    <div class="row">
+        <div id="lease-col" class="col-md-6">
+            <div class="panel panel-primary lease_panel">
+                <!-- Default panel contents -->
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-calendar"></i> <a
+                            href="/leases">Leases</a> <span
+                            class="badge  pull-right">{{ lease_count }}</span>
+                    </h3>
+                </div>
+                <table class="table table-condensed table-hover">
+                    <thead>
                     <tr>
-                        <td>{{lease}}</td>
-                        <td>{{lease.scope}}</td>
-                        <td>{{lease.resource_type}}</td>
-                        <td>{{lease.expiration_time|date:"SHORT_DATE_FORMAT"}}</td>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Identifier</th>
+                        <th>Expiration</th>
+                        <th></th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-      </div>
-  </div>
-  
-  <div class="col-md-6"></div>
-</div>
+                    </thead>
+                    <tbody>
+                    {% for lease in leases %}
+                        <tr>
+                            <td>{{ lease }}</td>
+                            <td>{{ lease.scope }}</td>
+                            <td>{{ lease.resource_type }}</td>
+                            <td>{{ lease.expiration_time|date:"SHORT_DATE_FORMAT" }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- cockpit.js loads intelligence/cockpit_content when it sees this div-->
+        <div id="row1-col2" class="col-md-6">
+
+        </div>
+    </div>
+    <div class="row" style="height:400px">
+        <div id="row2-full" class="col-md-12">
+
+        </div>
+    </div>
 
 
 {% endblock %}

@@ -1,15 +1,104 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block localjs %}
-<script src="{% static 'intelligence/js/search.js' %}"></script>
+{% block localcss %}
+    <link href="{% static 'css/dataTables.bootstrap.css' %}" rel="stylesheet"
+          media="screen">
+    <link href="{% static 'intelligence/css/intelligence.css' %}"
+          rel="stylesheet" media="screen">
+    <link href="{% static 'css/dc.css' %}" rel="stylesheet" media="screen"/>
 {% endblock %}
+
+{% block localjs %}
+    <script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'js/dataTables.bootstrap.js' %}"></script>
+    <script src="{% static 'js/d3.js' %}"></script>
+    <script src="{% static 'js/crossfilter.js' %}"></script>
+    <script src="{% static 'js/dc.js' %}"></script>
+    <script src="{% static 'intelligence/js/intelligence.js' %}"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            draw_cockpit_panel('{{ interval }}', '.search_histogram_panel',
+                    '{{ end_ts }}');
+            draw_search_table('{{ start_ts }}', '{{ end_ts }}',
+                    '#log-search-table');
+
+        })
+
+    </script>
+
+{% endblock %}
+
 
 {% block content %}
 
-<p>A Kibana should appear.  If it does not, please check your pop-up blocker setting.</p>
+    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+         id="log-cockpit-loading-indicator" style="display:none"/>
+
+
+    <div class="row" style="height:300px">
+        <div class="col-md-2">
+            <div id="search-params"
+                 class="panel panel-primary search_params_panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>
+                        Search Parameters
+                    </h3>
+                </div>
+                <div id="log-search-params" class="panel-body">
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-10">
+            <div class="panel panel-primary search_histogram_panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>
+                        Search Summary
+                    </h3>
+                </div>
+                <div id="search-histogram" class="panel-body">
+                    <!-- filled by draw_cockpit_panel -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="height:300px">
+        <div id="table-col" class="col-md-12">
+            <div class="panel panel-primary log_table_panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>
+                        Search Results
+                    </h3>
+                </div>
+                <div id="intel-search-data-table" class="panel-body">
+                    <table id="log-search-table" class="table table-hover">
+                        <!-- table rows filled by draw_search_table -->
+                        <thead>
+                        <tr class="header">
+                            <th>Timestamp</th>
+                            <th>Level</th>
+                            <th>Component</th>
+                            <th>Host</th>
+                            <th>Message</th>
+                            <th>Log Location</th>
+                            <th>Process ID</th>
+                            <th>Source</th>
+                            <th>Request ID</th>
+                            <th>Log Type</th>
+                            <th>Processed At</th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
+
+
+
 
 
 

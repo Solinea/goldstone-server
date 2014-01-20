@@ -46,11 +46,26 @@ Sync and migrate the databases::
 $ python ./manage.py syncdb
 $ python ./manage.py migrate
 
+RabbitMQ should be configured to support celery tasks.  For the brew install, ensure that /usr/local/sbin is in your PATH:
+
+$ brew install rabbitmq
+$ rabbitmq-server
+
+Elasticsearch must also be configured.  You can set up a local version (see below), or refer to the one in the lab.  Instructions for local setup are below::
+
+$ brew install elasticsearch # for the mac, assuming you have brew installed
+$ elasticsearch
+$ (cd ./test_data; python ./bulk_import_es.py)
+
+If running locally, you should also update ./goldstone/settings/development.py and set:
+
+ES_SERVER = "127.0.0.1:9200"
+
 Now test out the server::
 
-$ python ./manage runserver
+$ python ./manage.py runserver
 
-You should know see the application running at http://localhost:8000/leases/
+You should now see the application running at http://localhost:8000/
 
 
 Goldstone Testing

@@ -1,5 +1,6 @@
 from pyes import *
 import json
+import gzip
 
 conn = ES("localhost:9200", bulk_size=1000)
 conn.indices.delete_index_if_exists("log_samples")
@@ -23,7 +24,7 @@ mapping = {
 
 conn.indices.put_mapping("logs", {'properties': mapping}, "log_samples")
 
-data_f = open('sample_es_data.json', 'r')
+data_f = gzip.open('sample_es_data.json.gz', 'r')
 docs = json.load(data_f)
 for doc in docs['hits']['hits']:
     conn.index(doc, 'log_samples', 'logs', bulk=True)
@@ -33,4 +34,4 @@ conn.refresh()
 q = MatchAllQuery().search()
 rs = conn.search(q, indices=['log_samples'])
 
-print("%d docs inserted (should be 1000)" %rs.count())
+print("%d docs inserted" %rs.count())

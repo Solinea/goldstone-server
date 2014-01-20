@@ -6,10 +6,18 @@
 
 from django.conf.urls import patterns, include, url
 
-from .views import IntelSearchView, IntelErrorsView
+from .views import *
 
 urlpatterns = patterns(
     '',
-    url(r'^search$', IntelSearchView.as_view(), name='intel-search',),
-    url(r'^errors$', IntelErrorsView.as_view(), name='intel-errors',)
+    # view calls
+    url(r'^search[/]?$', IntelSearchView.as_view(), name='intel-search'),
+    url(r'^kibana[/]?$', IntelKibanaView.as_view(), name='intel-kibana'),
+    url(r'^log/cockpit[/]?$', IntelLogCockpitStackedView.as_view(),
+        name='intel-log-cockpit'),
+    # data calls
+    url(r'^log/cockpit/data[/]?$',
+        log_cockpit_summary, name='intel-log-cockpit-data'),
+    url(r'^log/search/data/(?P<start_time>\d+)/(?P<end_time>\d+)[/]?$',
+        log_search_data, name='intel-log-search-data')
 )

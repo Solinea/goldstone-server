@@ -7,8 +7,9 @@
 from django.test.client import Client
 from django.test.client import RequestFactory
 from django.test import TestCase
+from django.conf import settings
 
-from .views import IntelSearchView, IntelErrorsView
+from .views import IntelSearchView, IntelKibanaView
 from .models import *
 
 from pyes import *
@@ -18,32 +19,52 @@ import json
 from datetime import *
 import pytz
 import gzip
+import pickle
 
 
 def open_result_file(fn):
-        with open(os.path.join(os.path.dirname(__file__),
-                               "..", "..", "..", "test_data", fn)) \
-                as data_f:
-                    return data_f.read().replace('\n', '')
+    with open(os.path.join(os.path.dirname(__file__),
+                           "..", "..", "..", "test_data", fn)) \
+            as data_f:
+                return data_f.read().replace('\n', '')
 
 
-class IntelTestModel(TestCase):
+def read_result_file_as_list(fn):
+    with open(os.path.join(os.path.dirname(__file__),
+                           "..", "..", "..", "test_data", fn)) \
+            as data_f:
+                return pickle.load(data_f)
+
+
+class LogDataModel(TestCase):
     INDEX_NAME = 'test_logstash'
     DOCUMENT_TYPE = 'logs'
-    COMPONENTS = ["ceilometer", "cinder", "glance", "nova", "neutron",
-                  "openvswitch", "apache", "heat", "keystone"]
+
     TIME_PERIODS = ["hour", "day", "week", "month"]
     LEVELS = ["fatal", "error", "warning", "info", "debug"]
-
+    COMPONENTS = ['neutron', 'heat', 'keystone', 'ceilometer', 'glance',
+                  'nova', 'openvswitch']
     level_facet_result = open_result_file("level_facet_result.json")
     comp_facet_result = open_result_file("comp_facet_result.json")
     level_agg_result = open_result_file("level_agg_result.json")
     comp_agg_result = open_result_file("comp_agg_result.json")
+    comp_date_hist_result = open_result_file("comp_date_hist_result.json")
+    comp_date_hist_result_filtered = open_result_file(
+        "comp_date_hist_result_filtered.json")
+    err_and_warn_hists_result_day = open_result_file(
+        "err_and_warn_hists_result_day.json")
+    err_and_warn_hists_result_hour = open_result_file(
+        "err_and_warn_hists_result_hour.json")
+    err_and_warn_hists_result_minute = open_result_file(
+        "err_and_warn_hists_result_minute.json")
+    cockpit_data = list(read_result_file_as_list(
+        "cockpit_data_result.pkl"))
     LEVEL_AGG_TOTAL = 182
     COMP_AGG_TOTAL = 186
     TOTAL_DOCS = 186
 
-    conn = ES("localhost:9200", bulk_size=400, default_indices=[INDEX_NAME])
+    conn = ES(settings.ES_SERVER, timeout=settings.ES_TIMEOUT, bulk_size=400,
+              default_indices=[INDEX_NAME])
 
     def setUp(self):
 
@@ -86,6 +107,25 @@ class IntelTestModel(TestCase):
     def tearDown(self):
         self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
 
+    def test_get_connection(self):
+        test_conn = LogData.get_connection()
+        q = MatchAllQuery().search()
+        rs = test_conn.search(q)
+        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+        test_conn = LogData.get_connection("localhost:9200")
+        rs = test_conn.search(q)
+        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+        test_conn = LogData.get_connection(timeout=5)
+        rs = test_conn.search(q)
+        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+        test_conn = LogData.get_connection("localhost:9200", 5)
+        rs = test_conn.search(q)
+        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+
+    def test_get_components(self):
+        comps = LogData.get_components(self.conn)
+        self.assertEqual(comps, self.COMPONENTS)
+
     def test_subtract_months(self):
         d = subtract_months(datetime(2014, 1, 1), 1)
         self.assertEqual(d, datetime(2013, 12, 1, 0, 0))
@@ -108,7 +148,7 @@ class IntelTestModel(TestCase):
         q = MatchAllQuery().search()
         rs = self.conn.search(q)
         self.assertEqual(rs.count(), self.TOTAL_DOCS)
-        end = datetime(2013, 12, 31, 23, 59, 59)
+        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
 
         filter_field = 'component'
@@ -130,10 +170,10 @@ class IntelTestModel(TestCase):
         q = MatchAllQuery().search()
         rs = self.conn.search(q)
         self.assertEqual(rs.count(), self.TOTAL_DOCS)
-        end = datetime(2013, 12, 31, 23, 59, 59)
+        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         filter_field = 'component'
-        filter_list = self.COMPONENTS
+        filter_list = LogData.get_components(self.conn)
         facet_field = 'loglevel'
         ag = aggregate_facets(self.conn, start, end, filter_field, filter_list,
                               facet_field)
@@ -150,6 +190,72 @@ class IntelTestModel(TestCase):
         total = sum([ag[key][facet_field]['total'] for key in ag.keys()])
         self.assertEqual(total, self.LEVEL_AGG_TOTAL)
 
+    def test_err_and_warn_hist(self):
+        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        start = end - timedelta(weeks=52)
+        interval = 'hour'
+        result = LogData.err_and_warn_hist(self.conn, start, end, interval,
+                                           query_filter=None).facets
+        self.assertEqual(json.dumps(result), self.comp_date_hist_result)
+
+    def test_err_and_warn_hist_filtered(self):
+        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        start = end - timedelta(weeks=52)
+        interval = 'hour'
+        f = TermFilter('component', 'ceilometer')
+        result = LogData.err_and_warn_hist(self.conn, start, end, interval,
+                                           query_filter=f).facets
+        self.assertEqual(json.dumps(result),
+                         self.comp_date_hist_result_filtered)
+
+    def test_get_err_and_warn_hists(self):
+        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        start = end - timedelta(weeks=52)
+        result = LogData.get_err_and_warn_hists(self.conn, start, end,
+                                                'minute')
+        self.assertEqual(json.dumps(result),
+                         self.err_and_warn_hists_result_minute)
+        result = LogData.get_err_and_warn_hists(self.conn, start, end, 'hour')
+        self.assertEqual(json.dumps(result),
+                         self.err_and_warn_hists_result_hour)
+        result = LogData.get_err_and_warn_hists(self.conn, start, end, 'day')
+        self.assertEqual(json.dumps(result),
+                         self.err_and_warn_hists_result_day)
+        result = LogData.get_err_and_warn_hists(self.conn, start, end)
+        self.assertEqual(json.dumps(result),
+                         self.err_and_warn_hists_result_day)
+        result = LogData.get_err_and_warn_hists(self.conn, start, end, 'xyz')
+        self.assertEqual(json.dumps(result),
+                         self.err_and_warn_hists_result_day)
+
+    def test_get_err_and_warn_range(self):
+
+        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        start = end - timedelta(weeks=52)
+
+        result = LogData.get_err_and_warn_range(self.conn, start, end,
+                                                first=1, size=10)
+        rl = [r for r in result]
+        self.assertEqual(len(rl), 10)
+        result = LogData.\
+            get_err_and_warn_range(self.conn, start, end, first=1, size=10,
+                                   sort={'loglevel': {'order': 'asc'}})
+        rl = [r for r in result]
+        self.assertEqual(len(rl), 10)
+
+        result = LogData.\
+            get_err_and_warn_range(self.conn, start, end, 1, 10,
+                                   global_filter_text="ERROR")
+        rl = [r for r in result]
+        self.assertEqual(len(rl), 10)
+
+        result = LogData.\
+            get_err_and_warn_range(self.conn, start, end, 1, 10,
+                                   sort={'loglevel': {'order': 'asc'}},
+                                   global_filter_text="ERROR")
+        rl = [r for r in result]
+        self.assertEqual(len(rl), 10)
+
 
 class IntelViewTest(TestCase):
     """Lease list view tests"""
@@ -164,10 +270,17 @@ class IntelViewTest(TestCase):
         response = self.client.get('/intelligence/search')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'search.html')
-        # TODO add test to verify window popped up.  may need selenium?
 
-    def test_errors_template(self):
-        response = self.client.get('/intelligence/errors')
+    def test_kibana_template(self):
+        response = self.client.get('/intelligence/kibana')
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'errors.html')
-        # TODO add test to verify window popped up.  may need selenium?
+        self.assertTemplateUsed(response, 'kibana.html')
+
+    def test_log_cockpit_summary(self):
+        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        start = end - timedelta(weeks=4)
+        end_ts = calendar.timegm(end.utctimetuple())
+        start_ts = calendar.timegm(start.utctimetuple())
+        response = self.client.get('/intelligence/log/cockpit?start_time' +
+                                   str(start_ts) + "&end_time=" + str(end_ts))
+        self.assertEqual(response.status_code, 200)
