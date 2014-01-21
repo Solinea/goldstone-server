@@ -62,6 +62,10 @@
 
           <!-- BEGIN PAGE CONTENT -->
           <div id="body-container" class="container">
+          <div class="row alert alert-danger alert-dismissable" hidden="true"></div>
+          <div class="alert alert-warning alert-dismissable" hidden="true"></div>
+          <div class="alert alert-info alert-dismissable" hidden="true"></div>
+          <div class="alert alert-success alert-dismissable" hidden="true"></div>
               {% block content %}
               {% endblock %}
         </div>
@@ -78,6 +82,7 @@
     <script src="{% static 'js/jquery-ui.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
     <script src="{% static 'js/jquery-ui-timepicker-addon.js' %}"></script>
+    <script src="{% static 'js/base.js' %}"></script>
     {% block localjs %}
     {% endblock %}
   </body>

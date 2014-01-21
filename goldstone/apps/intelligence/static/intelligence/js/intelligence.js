@@ -31,16 +31,17 @@ function draw_cockpit_panel(interval, location, end) {
 
     var xUnitInterval = function (interval) {
         if (interval == 'minute') {
-            return d3.time.seconds
+            return d3.time.seconds;
         } else if (interval == 'hour') {
-            return d3.time.minutes
+            return d3.time.minutes;
         } else if (interval == 'day') {
-            return d3.time.hours
+            return d3.time.hours;
         } else if (interval == 'month') {
-            return d3.time.days
+            return d3.time.days;
         } else {
-            //TODO define proper error handling strategy
-            alert("interval '" + interval + "' not recognized." )
+            raiseDanger("Valid intervals are 'month', 'day', " +
+                "'hour', and 'minute'")
+            return d3.time.seconds;
         }
     }
 
