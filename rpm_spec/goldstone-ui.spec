@@ -7,7 +7,7 @@ Summary:        Goldstone
 
 # Use this holder license to build srpm until clarified.
 License:        Proprietary
-URL:            http://solinea.com/
+URL:            http://www.solinea.com/
 Source0:        %{name}-%{version}.dev292.gd1c71d3.tar.bz2
 
 BuildArch:      noarch
