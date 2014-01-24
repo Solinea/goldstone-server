@@ -9,6 +9,15 @@ input {
     path => "/var/log/ceilometer/*.log"
     type => "openstack_log"
     add_field => {"component" => "ceilometer"}
+    sincedb_path => "/opt/logstash"
+    start_position => "beginning"
+  }
+
+  file {
+    path => "/var/log/libvirt/*.log"
+    type => "libvirt_log"
+    add_field => {"component" => "libvirt"}
+    sincedb_path => "/opt/logstash"
     start_position => "beginning"
   }
 
@@ -16,6 +25,7 @@ input {
     path => "/var/log/cinder/*.log"
     type => "openstack_log"
     add_field => {"component" => "cinder"}
+    sincedb_path => "/opt/logstash"
     start_position => "beginning"
   }
 
@@ -23,6 +33,7 @@ input {
     path => "/var/log/glance/*.log"
     type => "openstack_log"
     add_field => {"component" => "glance"}
+    sincedb_path => "/opt/logstash"
     start_position => "beginning"
   }
 
@@ -30,6 +41,7 @@ input {
     path => "/var/log/heat/*.log"
     type => "openstack_log"
     add_field => {"component" => "heat"}
+    sincedb_path => "/opt/logstash"
     start_position => "beginning"
   }
 
@@ -45,6 +57,7 @@ input {
     path => "/var/log/keystone/*.log"
     type => "openstack_log"
     add_field => {"component" => "keystone"}
+    sincedb_path => "/opt/logstash"
     start_position => "beginning"
   }
 
@@ -52,6 +65,7 @@ input {
     path => "/var/log/neutron/*.log"
     type => "openstack_log"
     add_field => {"component" => "neutron"}
+    sincedb_path => "/opt/logstash"
     start_position => "beginning"
   }
 
@@ -59,6 +73,7 @@ input {
     path => "/var/log/nova/*.log"
     type => "openstack_log"
     add_field => {"component" => "nova"}
+    sincedb_path => "/opt/logstash"
     start_position => "beginning"
   }
 
@@ -66,6 +81,7 @@ input {
     type => "apache_log"
     path => "/var/log/httpd/*_log"
     add_field => {"component" => "apache"}
+    sincedb_path => "/opt/logstash"
     start_position => "beginning"
   }
 
@@ -81,13 +97,14 @@ input {
 #        start_position => "beginning"
 #    }
 
-    file {
-        path => "/var/log/openvswitch/*.log"
-        type => "openvswitch_log"
-    	add_field => {"component" => "openvswitch"}
-        path => "/var/log/openvswitch/*.log"
-        start_position => "beginning"
-    }
+  file {
+    path => "/var/log/openvswitch/*.log"
+    type => "openvswitch_log"
+    add_field => {"component" => "openvswitch"}
+    path => "/var/log/openvswitch/*.log"
+    sincedb_path => "/opt/logstash"
+    start_position => "beginning"
+  }
 
 #  file {
 #    path => "/var/log/audit/audit.log"

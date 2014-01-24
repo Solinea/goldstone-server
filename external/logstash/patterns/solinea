@@ -1,0 +1,36 @@
+OPENSTACK_PROG (?:[ a-zA-Z0-9_\-]+\.)+[ A-Za-z0-9_\-$]+
+
+OPENSTACK_PROG_SINGLE [A-Za-z0-9_\-$]+
+
+OPENSTACK_SOURCE %{OPENSTACK_PROG}|%{OPENSTACK_PROG_SINGLE}
+
+OPENSTACK_REQ_LIST (\[(?:(req-%{UUID}|%{UUID}|%{BASE16NUM}|None|-|%{SPACE}))+\])?
+
+OPENSTACK_PID ( %{POSINT})?
+
+OPENSTACK_LOGLEVEL ([D|d]ebug|DEBUG|[N|n]otice|NOTICE|[I|i]nfo|INFO|[W|w]arn?(?:ing)?|WARN?(?:ING)?|[E|e]rr?(?:or)?|ERR?(?:OR)?|[C|c]rit?(?:ical)?|CRIT?(?:ICAL)?|[F|f]atal|FATAL|[S|s]evere|SEVERE|[A|a]udit|AUDIT)
+
+OPENSTACK_NORMAL %{TIMESTAMP_ISO8601:timestamp}%{OPENSTACK_PID:pid} %{OPENSTACK_LOGLEVEL:loglevel} %{OPENSTACK_SOURCE:program} %{OPENSTACK_REQ_LIST:request_id_list} %{GREEDYDATA:msg}
+
+
+RAW_TRACE (?:^[^0-9].*$|^$)
+
+OPENSTACK_TRACE %{TIMESTAMP_ISO8601:timestamp} %{POSINT:pid} ([T|t]race|TRACE) %{OPENSTACK_SOURCE:program} %{GREEDYDATA:msg}|%{RAW_TRACE:msg}
+
+OPENSTACK_MESSAGE %{OPENSTACK_NORMAL}|%{OPENSTACK_TRACE}
+
+NOT_OVSW_SEPARATOR (?:[^|]*)
+
+#
+# setting the field names to match the openstack log until I can figure out a better way of doing
+# the search table
+#
+OPENVSWITCH_MESSAGE %{TIMESTAMP_ISO8601:timestamp}\|%{NUMBER:pid}\|%{NOT_OVSW_SEPARATOR:program}\|%{OPENSTACK_LOGLEVEL:loglevel}\|%{GREEDYDATA:msg}
+
+LIBVIRT_MESSAGE %{TIMESTAMP_ISO8601:timestamp}: %{NUMBER:pid}: %{OPENSTACK_LOGLEVEL:loglevel} : %{GREEDYDATA:msg}
+
+APACHE_LOG_LEVEL (?:emerg|alert|crit|error|warn|notice|info|debug)
+
+APACHE_DATETIME_ERROR %{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{YEAR}
+
+RABBITMQ_DATE %{MONTHDAY}-%{MONTH}-%{YEAR}::%{TIME}

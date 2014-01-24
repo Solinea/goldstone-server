@@ -61,7 +61,7 @@ filter {
     }
 
 
-	if ([type] == "openstack_log") {
+    if ([type] == "openstack_log") {
         mutate {
             add_field => [ "_message", "%{message}" ]
         }
@@ -89,7 +89,7 @@ filter {
     if ([type] == "openvswitch_log") {
         mutate {
             add_field => [ "_message", "%{message}" ]
-            add_field => [ "separator", "" ]
+            add_field => [ "request_id_list", "" ]
         }
         grok {
             patterns_dir => "/opt/logstash/patterns"
@@ -110,6 +110,28 @@ filter {
         }
     }
   
+    if ([type] == "libvirt_log") {
+        mutate {
+            add_field => [ "_message", "%{message}" ]
+            add_field => [ "request_id_list", "" ]
+        }
+        grok {
+            patterns_dir => "/opt/logstash/patterns"
+            overwrite => [ "message" ]
+            match => { "message" => "%{LIBVIRT_MESSAGE}" }
+            add_field => [ "received_at", "%{@timestamp}" ]
+        }
+        date {
+            match => [ "timestamp", "yyyy-MM-dd HH:mm:ss.SSSZ" ]
+            remove_field => "timestamp"
+        }
+        mutate {
+            rename => [ "msg", "message" ]
+            gsub => [
+                "loglevel", "warn$", "WARNING"
+            ]
+        }
+    }
     if ([type] == "apache_log") {
        mutate {
             add_field => [ "_message", "%{message}" ]
