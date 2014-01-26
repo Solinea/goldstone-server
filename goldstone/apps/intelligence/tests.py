@@ -37,13 +37,13 @@ def read_result_file_as_list(fn):
 
 
 class LogDataModel(TestCase):
-    INDEX_NAME = 'test_logstash'
+    INDEX_NAME = 'log_samples'
     DOCUMENT_TYPE = 'logs'
 
     TIME_PERIODS = ["hour", "day", "week", "month"]
     LEVELS = ["fatal", "error", "warning", "info", "debug"]
-    COMPONENTS = ['neutron', 'heat', 'keystone', 'ceilometer', 'glance',
-                  'nova', 'openvswitch']
+    COMPONENTS = ['ceilometer', 'cinder', 'glance', 'heat', 'keystone',
+                  'neutron', 'nova']
     level_facet_result = open_result_file("level_facet_result.json")
     comp_facet_result = open_result_file("comp_facet_result.json")
     level_agg_result = open_result_file("level_agg_result.json")
@@ -59,15 +59,16 @@ class LogDataModel(TestCase):
         "err_and_warn_hists_result_minute.json")
     cockpit_data = list(read_result_file_as_list(
         "cockpit_data_result.pkl"))
-    LEVEL_AGG_TOTAL = 182
+    LEVEL_AGG_TOTAL = 426
     COMP_AGG_TOTAL = 186
-    TOTAL_DOCS = 186
+    TOTAL_DOCS = 500
 
-    conn = ES(settings.ES_SERVER, timeout=settings.ES_TIMEOUT, bulk_size=400,
+    conn = ES(settings.ES_SERVER, timeout=settings.ES_TIMEOUT, bulk_size=500,
               default_indices=[INDEX_NAME])
 
     def setUp(self):
 
+        print "**** Calling setUp ****"
         mapping = {
             u"@timestamp": {"type": "date", "format": "dateOptionalTime"},
             u"@version": {"type": u"string"},
@@ -80,7 +81,7 @@ class LogDataModel(TestCase):
             u"pid": {"type": u"string"},
             u"program": {"type": u"string"},
             u"received_at": {"type": u"string"},
-            u"separator": {"type": u"string"},
+            u"request_id_list": {"type": u"string"},
             u"tags": {"type": u"string"},
             u"type": {"type": u"string"}
         }
@@ -93,10 +94,10 @@ class LogDataModel(TestCase):
 
         data_f = gzip.open(os.path.join(os.path.dirname(__file__), "..", "..",
                                         "..", "test_data",
-                                        "sample_es_data.json.gz"))
+                                        "data.json.gz"))
         data = json.load(data_f)
 
-        for doc in data['hits']['hits']:
+        for doc in data:
             self.conn.index(doc, self.INDEX_NAME, self.DOCUMENT_TYPE,
                             bulk=True)
         self.conn.refresh()
@@ -105,11 +106,17 @@ class LogDataModel(TestCase):
         self.assertEqual(rs.count(), self.TOTAL_DOCS)
 
     def tearDown(self):
-        self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
+        print "**** Calling tearDown ****"
+        rv = self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
+        print "*** tear down result ***"
+        print rv
 
     def test_get_connection(self):
-        test_conn = LogData.get_connection()
         q = MatchAllQuery().search()
+        rs = self.conn.search(q)
+        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+
+        test_conn = LogData.get_connection()
         rs = test_conn.search(q)
         self.assertEqual(rs.count(), self.TOTAL_DOCS)
         test_conn = LogData.get_connection("localhost:9200")
@@ -124,7 +131,7 @@ class LogDataModel(TestCase):
 
     def test_get_components(self):
         comps = LogData.get_components(self.conn)
-        self.assertEqual(comps, self.COMPONENTS)
+        self.assertEqual(sorted(comps), sorted(self.COMPONENTS))
 
     def test_subtract_months(self):
         d = subtract_months(datetime(2014, 1, 1), 1)
@@ -156,7 +163,7 @@ class LogDataModel(TestCase):
         facet_field = 'loglevel'
         result = range_filter_facet(self.conn, start, end, filter_field,
                                     filter_value, facet_field).facets
-        self.assertEqual(result['loglevel']['total'], 4)
+        self.assertEqual(result['loglevel']['total'], 108)
         self.assertEqual(json.dumps(result), self.level_facet_result)
 
         filter_field = 'loglevel'
@@ -179,7 +186,7 @@ class LogDataModel(TestCase):
                               facet_field)
         self.assertEqual(json.dumps(ag), self.comp_agg_result)
         total = sum([ag[key][facet_field]['total'] for key in ag.keys()])
-        self.assertEqual(total, self.COMP_AGG_TOTAL)
+        self.assertEqual(total, self.TOTAL_DOCS)
 
         filter_field = 'loglevel'
         filter_list = self.LEVELS
@@ -247,14 +254,14 @@ class LogDataModel(TestCase):
             get_err_and_warn_range(self.conn, start, end, 1, 10,
                                    global_filter_text="ERROR")
         rl = [r for r in result]
-        self.assertEqual(len(rl), 10)
+        self.assertEqual(len(rl), 2)
 
         result = LogData.\
             get_err_and_warn_range(self.conn, start, end, 1, 10,
                                    sort={'loglevel': {'order': 'asc'}},
                                    global_filter_text="ERROR")
         rl = [r for r in result]
-        self.assertEqual(len(rl), 10)
+        self.assertEqual(len(rl), 2)
 
 
 class IntelViewTest(TestCase):
