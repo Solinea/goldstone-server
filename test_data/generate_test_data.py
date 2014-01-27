@@ -7,11 +7,13 @@ import gzip
 
 conn = ES("10.10.11.121:9200", bulk_size=1000)
 indices = managers.Indices(conn)
-first_idx = [i for i in indices.get_indices()][0]
+idx_list = [i for i in indices.get_indices()]
+last_idx = idx_list[len(idx_list)-1]
 mapping_f = open("./mapping.pkl", 'wb')
-data_f = gzip.open('data.txt.gz', 'wb')
+data_f = gzip.open('data.json.gz', 'wb')
 
-mapping = conn.indices.get_mapping('openstack_log', first_idx)
+mapping = conn.indices.get_mapping(doc_type='openstack_log', indices=last_idx, raw=True)
+#print json.dumps(mapping)
 
 pickle.dump(mapping, mapping_f)
 mapping_f.close()

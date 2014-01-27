@@ -105,7 +105,8 @@ def log_search_data(request, start_time, end_time):
     conn = LogData.get_connection(settings.ES_SERVER, settings.ES_TIMEOUT)
 
     keylist = ['@timestamp', 'loglevel', 'component', 'host', 'message',
-               'path', 'pid', 'program', 'separator', 'type', 'received_at']
+               'path', 'pid', 'program', 'request_id_list', 'type',
+               'received_at']
 
     start_ts = int(start_time)
     end_ts = int(end_time)
@@ -133,7 +134,8 @@ def log_search_data(request, start_time, end_time):
                        kv['path'] if 'path' in kv else "",
                        kv['pid'] if 'pid' in kv else "",
                        kv['program'] if 'program' in kv else "",
-                       kv['separator'] if 'separator' in kv else "",
+                       kv['request_id_list'] if
+                       'request_id_list' in kv else "",
                        kv['type'] if 'type' in kv else "",
                        kv['received_at'] if 'received_at' in kv else ""])
 

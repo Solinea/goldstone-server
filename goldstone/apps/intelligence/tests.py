@@ -60,37 +60,26 @@ class LogDataModel(TestCase):
     cockpit_data = list(read_result_file_as_list(
         "cockpit_data_result.pkl"))
     LEVEL_AGG_TOTAL = 426
-    COMP_AGG_TOTAL = 186
     TOTAL_DOCS = 500
 
     conn = ES(settings.ES_SERVER, timeout=settings.ES_TIMEOUT, bulk_size=500,
               default_indices=[INDEX_NAME])
 
     def setUp(self):
-
-        print "**** Calling setUp ****"
-        mapping = {
-            u"@timestamp": {"type": "date", "format": "dateOptionalTime"},
-            u"@version": {"type": u"string"},
-            u"_message": {"type": u"string"},
-            u"component": {"type": u"string"},
-            u"host": {"type": u"string"},
-            u"loglevel": {"type": u"string"},
-            u"message": {"type": u"string"},
-            u"path": {"type": u"string"},
-            u"pid": {"type": u"string"},
-            u"program": {"type": u"string"},
-            u"received_at": {"type": u"string"},
-            u"request_id_list": {"type": u"string"},
-            u"tags": {"type": u"string"},
-            u"type": {"type": u"string"}
-        }
-
         self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
-        self.conn.indices.create_index(self.INDEX_NAME)
-        self.conn.indices.put_mapping(
-            self.DOCUMENT_TYPE, {'properties': mapping}, self.INDEX_NAME
-        )
+        self.conn.indices.create_index(self.INDEX_NAME,
+                                       settings={
+                                           'index.analysis.analyzer.default.'
+                                           'stopwords': '_none_',
+                                           'index.refresh_interval': '5s',
+                                           'index.analysis.analyzer.default.'
+                                           'type': 'standard'})
+
+        mapping_f = open(os.path.join(os.path.dirname(__file__), "..", "..",
+                                      "..", "test_data", "mapping.pkl"), "rb")
+        mapping = pickle.load(mapping_f)
+        self.conn.indices.put_mapping(self.DOCUMENT_TYPE, mapping,
+                                      self.INDEX_NAME)
 
         data_f = gzip.open(os.path.join(os.path.dirname(__file__), "..", "..",
                                         "..", "test_data",
@@ -105,11 +94,9 @@ class LogDataModel(TestCase):
         rs = self.conn.search(q)
         self.assertEqual(rs.count(), self.TOTAL_DOCS)
 
-    def tearDown(self):
-        print "**** Calling tearDown ****"
-        rv = self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
-        print "*** tear down result ***"
-        print rv
+    #def tearDown(self):
+    #    rv = self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
+    #    print rv
 
     def test_get_connection(self):
         q = MatchAllQuery().search()
@@ -252,14 +239,14 @@ class LogDataModel(TestCase):
 
         result = LogData.\
             get_err_and_warn_range(self.conn, start, end, 1, 10,
-                                   global_filter_text="ERROR")
+                                   global_filter_text="error")
         rl = [r for r in result]
         self.assertEqual(len(rl), 2)
 
         result = LogData.\
             get_err_and_warn_range(self.conn, start, end, 1, 10,
                                    sort={'loglevel': {'order': 'asc'}},
-                                   global_filter_text="ERROR")
+                                   global_filter_text="error")
         rl = [r for r in result]
         self.assertEqual(len(rl), 2)
 

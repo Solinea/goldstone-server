@@ -148,21 +148,19 @@ class LogData(object):
 
         q = RangeQuery(qrange=ESRange('@timestamp', start_t.isoformat(),
                        end_t.isoformat()))
+
         err_filt = TermFilter('loglevel', 'error')
         fat_filt = TermFilter('loglevel', 'fatal')
         bad_filt = ORFilter([err_filt, fat_filt])
         warn_filt = TermFilter('loglevel', 'warning')
-        global_filt = TermFilter('_message', global_filter_text.lower()) if \
-            global_filter_text else None
-
+        global_filt = TermFilter('_message', global_filter_text.lower()) \
+            if global_filter_text else None
         f1 = bad_filt if not global_filt \
             else ANDFilter([bad_filt, global_filt])
-
         f2 = warn_filt if not global_filt \
             else ANDFilter([warn_filt, global_filt])
-
         f3 = ORFilter([f1, f2])
-
+        
         fq = FilteredQuery(q, f3)
 
         rs = conn.search(Search(fq, start=first, size=size, sort=sort))
