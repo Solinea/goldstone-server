@@ -22,6 +22,12 @@ import gzip
 import pickle
 
 
+
+def _get_connection(server=None, timeout=None):
+        return ES(server=server, timeout=timeout) \
+            if server \
+            else ES(timeout=timeout)
+
 def open_result_file(fn):
     with open(os.path.join(os.path.dirname(__file__),
                            "..", "..", "..", "test_data", fn)) \
@@ -89,7 +95,7 @@ class LogDataModel(TestCase):
         for doc in data:
             self.conn.index(doc, self.INDEX_NAME, self.DOCUMENT_TYPE,
                             bulk=True)
-        self.conn.refresh()
+        self.conn.indices.refresh([self.INDEX_NAME])
         q = MatchAllQuery().search()
         rs = self.conn.search(q)
         self.assertEqual(rs.count(), self.TOTAL_DOCS)
@@ -102,17 +108,13 @@ class LogDataModel(TestCase):
         q = MatchAllQuery().search()
         rs = self.conn.search(q)
         self.assertEqual(rs.count(), self.TOTAL_DOCS)
-
-        test_conn = LogData.get_connection()
+        test_conn = LogData.get_connection("localhost")
         rs = test_conn.search(q)
         self.assertEqual(rs.count(), self.TOTAL_DOCS)
         test_conn = LogData.get_connection("localhost:9200")
         rs = test_conn.search(q)
         self.assertEqual(rs.count(), self.TOTAL_DOCS)
-        test_conn = LogData.get_connection(timeout=5)
-        rs = test_conn.search(q)
-        self.assertEqual(rs.count(), self.TOTAL_DOCS)
-        test_conn = LogData.get_connection("localhost:9200", 5)
+        test_conn = LogData.get_connection(["localhost"])
         rs = test_conn.search(q)
         self.assertEqual(rs.count(), self.TOTAL_DOCS)
 
@@ -149,7 +151,7 @@ class LogDataModel(TestCase):
         filter_value = 'nova'
         facet_field = 'loglevel'
         result = range_filter_facet(self.conn, start, end, filter_field,
-                                    filter_value, facet_field).facets
+                                    filter_value, facet_field)
         self.assertEqual(result['loglevel']['total'], 108)
         self.assertEqual(json.dumps(result), self.level_facet_result)
 

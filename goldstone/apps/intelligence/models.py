@@ -9,6 +9,7 @@ from django.db import models
 from django.conf import settings
 
 from datetime import datetime, timedelta
+from elasticsearch import *
 from pyes import *
 from pyes.facets import TermFacet, DateHistogramFacet
 import pytz
@@ -59,16 +60,66 @@ def calc_start(end, unit):
     return t.replace(tzinfo=pytz.utc)
 
 
+def _range_query(field, start, end, gte=True, lte=True, facet=None):
+
+    start_op = "gte" if gte else "gt"
+    end_op = "lte" if lte else "lt"
+    result = {
+        "query": {
+            "range": {
+                field: {
+                    gte: start,
+                    lte: end
+                }
+            }
+        }
+    }
+
+    if facet:
+        # assumes facet is a dict with one key, could tighten this up
+        result[facet.keys()[0]] = facet[facet.keys()[0]]
+
+    return result
+
+
+def _term_filter(field, value):
+
+    return {
+        "term": {
+            field: value
+        }
+    }
+
+
+def _term_facet(field, facet_filter=None, all_terms=True, order="term"):
+    result = {
+        field: {
+            "terms": {
+                "field": field,
+                "all_terms": all_terms,
+                "order": order
+            }
+        }
+    }
+
+    if facet_filter:
+        result['facet_filter'] = facet_filter
+
+    return result
+
+
 def range_filter_facet(conn, start, end, filter_field, filter_value,
                        facet_field):
 
-    q = RangeQuery(qrange=ESRange('@timestamp', start.isoformat(),
-                                  end.isoformat())).search()
-    filt = TermFilter(filter_field, filter_value)
-    fac = TermFacet(field=facet_field, facet_filter=filt, all_terms=True,
-                    order='term')
-    q.facet.add(fac)
-    rs = conn.search(q)
+    filt = _term_filter(filter_field, filter_value)
+    fac = _term_facet(facet_field, filt)
+    rangeq = _range_query('@timestamp', start.isoformat(),
+                          end.isoformat(), fac)
+    print "query:"
+    print rangeq
+    rs = conn.search(rangeq)
+    print "result:"
+    print rs
     return rs
 
 
@@ -84,10 +135,8 @@ def aggregate_facets(conn, start, end, filter_field, filter_list, facet_field):
 class LogData(object):
 
     @staticmethod
-    def get_connection(server=None, timeout=None):
-        return ES(server=server, timeout=timeout) \
-            if server \
-            else ES(timeout=timeout)
+    def get_connection(server):
+        return Elasticsearch(server)
 
     @staticmethod
     def err_and_warn_hist(conn, start, end, interval,
@@ -160,7 +209,7 @@ class LogData(object):
         f2 = warn_filt if not global_filt \
             else ANDFilter([warn_filt, global_filt])
         f3 = ORFilter([f1, f2])
-        
+
         fq = FilteredQuery(q, f3)
 
         rs = conn.search(Search(fq, start=first, size=size, sort=sort))
