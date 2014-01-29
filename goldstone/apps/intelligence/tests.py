@@ -11,23 +11,12 @@ from django.conf import settings
 
 from .views import IntelSearchView, IntelKibanaView
 from .models import *
-
-from pyes import *
-from pyes.exceptions import IndexMissingException
 import os
 import json
 from datetime import *
 import pytz
 import gzip
 import pickle
-
-
-# TODO confirm that the Elasticsearch-py connection works, and use if for all
-# test connections
-def _get_connection(server=None, timeout=None):
-        return ES(server=server, timeout=timeout) \
-            if server \
-            else ES(timeout=timeout)
 
 
 def open_result_file(fn):
@@ -70,47 +59,44 @@ class LogDataModel(TestCase):
     LEVEL_AGG_TOTAL = 426
     TOTAL_DOCS = 500
 
-    conn = ES(settings.ES_SERVER, timeout=30, bulk_size=500,
-              default_indices=[INDEX_NAME])
-
     def setUp(self):
-        self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
-        self.conn.indices.create_index(self.INDEX_NAME,
-                                       settings={
-                                           'index.analysis.analyzer.default.'
-                                           'stopwords': '_none_',
-                                           'index.refresh_interval': '5s',
-                                           'index.analysis.analyzer.default.'
-                                           'type': 'standard'})
+        conn = Elasticsearch(settings.ES_SERVER)
+        if conn.indices.exists(self.INDEX_NAME):
+            conn.indices.delete(self.INDEX_NAME)
 
-        mapping_f = open(os.path.join(os.path.dirname(__file__), "..", "..",
-                                      "..", "test_data", "mapping.pkl"), "rb")
-        mapping = pickle.load(mapping_f)
-        self.conn.indices.put_mapping(self.DOCUMENT_TYPE, mapping,
-                                      self.INDEX_NAME)
+        idx_body = {'settings': {
+            'index.analysis.analyzer.default.stopwords': '_none_',
+            'index.refresh_interval': '5s',
+            'index.analysis.analyzer.default.type': 'standard'
+        }}
+
+        mapping_f = gzip.open(os.path.join(os.path.dirname(__file__), "..",
+                                           "..", "..", "test_data",
+                                           "mapping.json.gz"), "rb")
+        idx_body['mappings'] = json.load(mapping_f)
+        conn.indices.create(self.INDEX_NAME, body=idx_body)
 
         data_f = gzip.open(os.path.join(os.path.dirname(__file__), "..", "..",
                                         "..", "test_data",
                                         "data.json.gz"))
         data = json.load(data_f)
+        for event in data['hits']['hits']:
+            print "indexing event: ", event
+            rv = conn.index('log_samples', 'logs', event['_source'])
+            print "result: ", rv
 
-        for doc in data:
-            self.conn.index(doc, self.INDEX_NAME, self.DOCUMENT_TYPE,
-                            bulk=True)
-        self.conn.indices.refresh([self.INDEX_NAME])
-        q = MatchAllQuery().search()
-        rs = self.conn.search(q)
-        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+        conn.indices.refresh(["log_samples"])
+        q = {"query": {"match_all": {}}}
+        rs = conn.search(body=q, index="_all")
+        self.assertEqual(rs['hits']['total'], self.TOTAL_DOCS)
 
     #def tearDown(self):
     #    rv = self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
     #    print rv
 
     def test_get_connection(self):
-        pyesq = MatchAllQuery().search()
+        my_conn = LogData.get_connection("localhost")
         q = dict(query={"match_all": {}})
-        rs = self.conn.search(pyesq)
-        self.assertEqual(rs.count(), self.TOTAL_DOCS)
         test_conn = LogData.get_connection("localhost")
         rs = test_conn.search(index="_all", body=q)
         self.assertEqual(rs['hits']['total'], self.TOTAL_DOCS)

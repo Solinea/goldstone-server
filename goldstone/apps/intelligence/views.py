@@ -67,7 +67,8 @@ def log_cockpit_summary(request):
 
     conn = LogData.get_connection(settings.ES_SERVER)
 
-    raw_data = LogData.get_err_and_warn_hists(conn, start_dt, end_dt, interval)
+    ld = LogData()
+    raw_data = ld.get_err_and_warn_hists(conn, start_dt, end_dt, interval)
 
     errs_list = raw_data['err_facet']['entries']
     warns_list = raw_data['warn_facet']['entries']
@@ -102,7 +103,7 @@ def log_cockpit_summary(request):
 
 def log_search_data(request, start_time, end_time):
 
-    conn = LogData.get_connection(settings.ES_SERVER, settings.ES_TIMEOUT)
+    conn = LogData.get_connection(settings.ES_SERVER)
 
     keylist = ['@timestamp', 'loglevel', 'component', 'host', 'message',
                'path', 'pid', 'program', 'request_id_list', 'type',
@@ -115,7 +116,8 @@ def log_search_data(request, start_time, end_time):
     sort_dir_in = request.GET.get('sSortDir_0')
     sort_dir = sort_dir_in if sort_dir_in else "asc"
 
-    rs = LogData.get_err_and_warn_range(
+    ld = LogData()
+    rs = ld.get_err_and_warn_range(
         conn,
         datetime.fromtimestamp(start_ts, tz=pytz.utc),
         datetime.fromtimestamp(end_ts, tz=pytz.utc),
@@ -124,8 +126,10 @@ def log_search_data(request, start_time, end_time):
         global_filter_text=request.GET.get('sSearch', None),
         sort={sort_col: {'order': sort_dir}})
 
+    print "rs = ", rs
     aaData = []
-    for kv in rs:
+    for rec in rs['hits']['hits']:
+        kv = rec['_source']
         aaData.append([kv['@timestamp'] if '@timestamp' in kv else "",
                        kv['loglevel'] if 'loglevel' in kv else "",
                        kv['component'] if 'component' in kv else "",
@@ -141,8 +145,8 @@ def log_search_data(request, start_time, end_time):
 
     response = {
         "sEcho": int(request.GET.get('sEcho')),
-        "iTotalRecords": rs.total,
-        "iTotalDisplayRecords": len(rs),
+        "iTotalRecords": rs['hits']['total'],
+        "iTotalDisplayRecords": len(rs['hits']['hits']),
         "aaData": aaData
     }
 

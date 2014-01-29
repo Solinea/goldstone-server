@@ -10,8 +10,6 @@ from django.conf import settings
 
 from datetime import datetime, timedelta
 from elasticsearch import *
-from pyes import *
-from pyes.facets import TermFacet, DateHistogramFacet
 import pytz
 import calendar
 
@@ -65,7 +63,7 @@ class LogData(object):
     def _add_facet(q, facet):
 
         result = q.copy()
-        if not result.has_key('facets'):
+        if not 'facets' in result:
             print "adding facet element to query..."
             result['facets'] = {}
 
@@ -189,7 +187,7 @@ class LogData(object):
             search_interval = 'hour'
 
         result = self.err_and_warn_hist(conn, start, end,
-                                           search_interval)['facets']
+                                        search_interval)['facets']
 
         return result
 
@@ -198,7 +196,7 @@ class LogData(object):
 
         # TODO refactor this block of code, seen it before...
         q = self._range_query('@timestamp', start_t.isoformat(),
-                         end_t.isoformat())
+                              end_t.isoformat())
 
         err_filt = self._term_filter('loglevel', 'error')
         fat_filt = self._term_filter('loglevel', 'fatal')
@@ -219,4 +217,3 @@ class LogData(object):
         print "fq = ", fq
         return conn.search(index="_all", body=fq, from_=first, size=size,
                            sort=sort)
-
