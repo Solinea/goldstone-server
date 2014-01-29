@@ -16,164 +16,166 @@ import pytz
 import calendar
 
 
-def subtract_months(sourcedate, months):
-    """Subtracts a specified number of months from a provided date
+class LogData(object):
 
-    >>> subtract_months(datetime(2013, 12, 1), 1)
-    datetime.datetime(2013, 11, 1, 0, 0)
-    >>> subtract_months(datetime(2013, 12, 1), 12)
-    datetime.datetime(2012, 12, 1, 0, 0)
-    >>> subtract_months(datetime(2013, 12, 1, 12, 12, 12), 12)
-    datetime.datetime(2012, 12, 1, 12, 12, 12)
-    """
-    month = sourcedate.month - 1 - months
-    year = sourcedate.year + month / 12
-    month = month % 12 + 1
-    day = min(sourcedate.day, calendar.monthrange(year, month)[1])
-    return datetime(year, month, day, sourcedate.hour,
-                    sourcedate.minute, sourcedate.second,
-                    sourcedate.microsecond, sourcedate.tzinfo)
+    @staticmethod
+    def _subtract_months(sourcedate, months):
 
+        month = sourcedate.month - 1 - months
+        year = sourcedate.year + month / 12
+        month = month % 12 + 1
+        day = min(sourcedate.day, calendar.monthrange(year, month)[1])
+        return datetime(year, month, day, sourcedate.hour,
+                        sourcedate.minute, sourcedate.second,
+                        sourcedate.microsecond, sourcedate.tzinfo)
 
-def calc_start(end, unit):
-    """Subtract a fixed unit (hour, day, week, month) from a provided date.
-    Ugly side effect is that it converts everything to UTC.
+    def _calc_start(self, end, unit):
 
-    >>> calc_start(datetime(2013, 12, 10, 12, 0, 0), 'hour')
-    datetime.datetime(2013, 12, 10, 11, 0, tzinfo=<UTC>)
-    >>> calc_start(datetime(2013, 12, 10, 12, 0, 0), 'day')
-    datetime.datetime(2013, 12, 9, 12, 0, tzinfo=<UTC>)
-    >>> calc_start(datetime(2013, 12, 10, 12, 0, 0), 'week')
-    datetime.datetime(2013, 12, 3, 12, 0, tzinfo=<UTC>)
-    >>> calc_start(datetime(2013, 12, 10, 12, 0, 0), 'month')
-    datetime.datetime(2013, 11, 10, 12, 0, tzinfo=<UTC>)
-    """
+        if unit == "hour":
+            t = end - timedelta(hours=1)
+        elif unit == "day":
+            t = end - timedelta(days=1)
+        elif unit == "week":
+            t = end - timedelta(weeks=1)
+        else:
+            t = self._subtract_months(end, 1)
+        return t.replace(tzinfo=pytz.utc)
 
-    if unit == "hour":
-        t = end - timedelta(hours=1)
-    elif unit == "day":
-        t = end - timedelta(days=1)
-    elif unit == "week":
-        t = end - timedelta(weeks=1)
-    else:
-        t = subtract_months(end, 1)
-    return t.replace(tzinfo=pytz.utc)
+    def _range_query(self, field, start, end, gte=True, lte=True, facet=None):
 
-
-def _range_query(field, start, end, gte=True, lte=True, facet=None):
-
-    start_op = "gte" if gte else "gt"
-    end_op = "lte" if lte else "lt"
-    result = {
-        "query": {
-            "range": {
-                field: {
-                    gte: start,
-                    lte: end
+        start_op = "gte" if gte else "gt"
+        end_op = "lte" if lte else "lt"
+        result = {
+            "query": {
+                "range": {
+                    field: {
+                        start_op: start,
+                        end_op: end
+                    }
                 }
             }
         }
-    }
 
-    if facet:
-        # assumes facet is a dict with one key, could tighten this up
-        result[facet.keys()[0]] = facet[facet.keys()[0]]
+        if facet:
+            result = self._add_facet(result, facet)
 
-    return result
+        return result
 
+    @staticmethod
+    def _add_facet(q, facet):
 
-def _term_filter(field, value):
+        result = q.copy()
+        if not result.has_key('facets'):
+            print "adding facet element to query..."
+            result['facets'] = {}
 
-    return {
-        "term": {
-            field: value
-        }
-    }
+        result['facets'][facet.keys()[0]] = facet[facet.keys()[0]]
+        print "should have added ", facet.keys()[0], " to facet list"
+        return result
 
+    @staticmethod
+    def _term_filter(field, value):
 
-def _term_facet(field, facet_filter=None, all_terms=True, order="term"):
-    result = {
-        field: {
-            "terms": {
-                "field": field,
-                "all_terms": all_terms,
-                "order": order
+        return {
+            "term": {
+                field: value
             }
         }
-    }
 
-    if facet_filter:
-        result['facet_filter'] = facet_filter
+    @staticmethod
+    def _term_facet(name, field, facet_filter=None, all_terms=True,
+                    order="term"):
+        result = {
+            name: {
+                "terms": {
+                    "field": field,
+                    "all_terms": all_terms,
+                    "order": order
+                }
+            }
+        }
 
-    return result
+        if facet_filter:
+            result[name]['facet_filter'] = facet_filter
 
+        return result
 
-def range_filter_facet(conn, start, end, filter_field, filter_value,
-                       facet_field):
+    @staticmethod
+    def _date_hist_facet(name, field, interval, facet_filter=None):
+        result = {
+            name: {
+                "date_histogram": {
+                    "field": field,
+                    "interval": interval
+                }
+            }
+        }
 
-    filt = _term_filter(filter_field, filter_value)
-    fac = _term_facet(facet_field, filt)
-    rangeq = _range_query('@timestamp', start.isoformat(),
-                          end.isoformat(), fac)
-    print "query:"
-    print rangeq
-    rs = conn.search(rangeq)
-    print "result:"
-    print rs
-    return rs
+        if facet_filter:
+            result[name]['facet_filter'] = facet_filter
 
-
-def aggregate_facets(conn, start, end, filter_field, filter_list, facet_field):
-    return dict(
-        (filt,
-         range_filter_facet(conn, start, end, filter_field, filt,
-                            facet_field).facets)
-        for filt in filter_list
-    )
-
-
-class LogData(object):
+        return result
 
     @staticmethod
     def get_connection(server):
         return Elasticsearch(server)
 
-    @staticmethod
-    def err_and_warn_hist(conn, start, end, interval,
+    def err_and_warn_hist(self, conn, start, end, interval,
                           query_filter=None):
 
-        q = RangeQuery(qrange=ESRange('@timestamp', start.isoformat(),
-                                      end.isoformat())).search()
-        err_filt = TermFilter('loglevel', 'error')
-        fat_filt = TermFilter('loglevel', 'fatal')
-        bad_filt = ORFilter([err_filt, fat_filt])
-        warn_filt = TermFilter('loglevel', 'warning')
+        q = self._range_query('@timestamp', start.isoformat(), end.isoformat())
+        err_filt = self._term_filter('loglevel', 'error')
+        fat_filt = self._term_filter('loglevel', 'fatal')
+        bad_filt = {'or': [err_filt, fat_filt]}
+        warn_filt = self._term_filter('loglevel', 'warning')
 
         f1 = bad_filt if not query_filter \
-            else ANDFilter([bad_filt, query_filter])
+            else {'and': [bad_filt, query_filter]}
 
         f2 = warn_filt if not query_filter \
-            else ANDFilter([warn_filt, query_filter])
+            else {'and': [warn_filt, query_filter]}
 
-        err_fac = DateHistogramFacet("err_facet", "@timestamp", interval,
-                                     facet_filter=f1, order='term')
-        warn_fac = DateHistogramFacet("warn_facet", "@timestamp", interval,
-                                      facet_filter=f2, order='term')
-        q.facet.add(err_fac)
-        q.facet.add(warn_fac)
-        rs = conn.search(q)
-        return rs
+        err_fac = self._date_hist_facet("err_facet", "@timestamp", interval,
+                                        facet_filter=f1)
+        warn_fac = self._date_hist_facet("warn_facet", "@timestamp", interval,
+                                         facet_filter=f2)
+        q = self._add_facet(q, err_fac)
+        q = self._add_facet(q, warn_fac)
+        return conn.search(index="_all", body=q)
 
-    @staticmethod
-    def get_components(conn):
-        q = MatchAllQuery().search()
-        fac = TermFacet('component', all_terms=True)
-        q.facet.add(fac)
-        rs = conn.search(q)
-        return [d['term'] for d in rs.facets['component']['terms']]
+    def get_components(self, conn):
+        fac = self._term_facet('component', 'component', all_terms=True)
+        q = dict(query={
+            'match_all': {}
+        })
 
-    @staticmethod
-    def get_err_and_warn_hists(conn, start, end, interval=None):
+        q['facets'] = {}
+        q['facets'][fac.keys()[0]] = fac[fac.keys()[0]]
+        rs = conn.search(index="_all", body=q)
+        return [d['term'] for d in rs['facets']['component']['terms']]
+
+    def range_filter_facet(self, conn, start, end, filter_field, filter_value,
+                           facet_field):
+
+        filt = self._term_filter(filter_field, filter_value)
+        fac = self._term_facet(facet_field, facet_field, filt)
+        rangeq = self._range_query('@timestamp', start.isoformat(),
+                                   end.isoformat())
+        rangeq = self._add_facet(rangeq, fac)
+        return conn.search(index="_all", body=rangeq)
+
+    def aggregate_facets(self, conn, start, end, filter_field, filter_list,
+                         facet_field):
+
+        result = {}
+        for filt in filter_list:
+            rff = self.range_filter_facet(conn, start, end, filter_field, filt,
+                                          facet_field)
+            result[filt] = rff['facets']
+
+        return result
+
+    def get_err_and_warn_hists(self, conn, start, end, interval=None):
 
         if interval == 'minute':
             search_interval = 'second'
@@ -186,32 +188,35 @@ class LogData(object):
         else:
             search_interval = 'hour'
 
-        result = LogData.err_and_warn_hist(conn, start, end,
-                                           search_interval).facets
+        result = self.err_and_warn_hist(conn, start, end,
+                                           search_interval)['facets']
 
         return result
 
-    @staticmethod
-    def get_err_and_warn_range(conn, start_t, end_t, first, size, sort=None,
-                               global_filter_text=None):
+    def get_err_and_warn_range(self, conn, start_t, end_t, first, size,
+                               sort='', global_filter_text=None):
 
-        q = RangeQuery(qrange=ESRange('@timestamp', start_t.isoformat(),
-                       end_t.isoformat()))
+        # TODO refactor this block of code, seen it before...
+        q = self._range_query('@timestamp', start_t.isoformat(),
+                         end_t.isoformat())
 
-        err_filt = TermFilter('loglevel', 'error')
-        fat_filt = TermFilter('loglevel', 'fatal')
-        bad_filt = ORFilter([err_filt, fat_filt])
-        warn_filt = TermFilter('loglevel', 'warning')
-        global_filt = TermFilter('_message', global_filter_text.lower()) \
+        err_filt = self._term_filter('loglevel', 'error')
+        fat_filt = self._term_filter('loglevel', 'fatal')
+        warn_filt = self._term_filter('loglevel', 'warning')
+        bad_filt = {'or': [err_filt, fat_filt, warn_filt]}
+
+        global_filt = self._term_filter('_message',
+                                        global_filter_text.lower()) \
             if global_filter_text else None
         f1 = bad_filt if not global_filt \
-            else ANDFilter([bad_filt, global_filt])
-        f2 = warn_filt if not global_filt \
-            else ANDFilter([warn_filt, global_filt])
-        f3 = ORFilter([f1, f2])
+            else {'and': [bad_filt, global_filt]}
 
-        fq = FilteredQuery(q, f3)
+        q['filter'] = f1
+        fq = {
+            'query': {'filtered': q}
+        }
 
-        rs = conn.search(Search(fq, start=first, size=size, sort=sort))
+        print "fq = ", fq
+        return conn.search(index="_all", body=fq, from_=first, size=size,
+                           sort=sort)
 
-        return rs

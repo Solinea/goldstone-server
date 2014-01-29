@@ -65,7 +65,7 @@ def log_cockpit_summary(request):
         fromtimestamp(int(start_time), tz=pytz.utc) \
         if start_time else end_dt - timedelta(weeks=4)
 
-    conn = LogData.get_connection(settings.ES_SERVER, settings.ES_TIMEOUT)
+    conn = LogData.get_connection(settings.ES_SERVER)
 
     raw_data = LogData.get_err_and_warn_hists(conn, start_dt, end_dt, interval)
 

@@ -22,11 +22,13 @@ import gzip
 import pickle
 
 
-
+# TODO confirm that the Elasticsearch-py connection works, and use if for all
+# test connections
 def _get_connection(server=None, timeout=None):
         return ES(server=server, timeout=timeout) \
             if server \
             else ES(timeout=timeout)
+
 
 def open_result_file(fn):
     with open(os.path.join(os.path.dirname(__file__),
@@ -68,7 +70,7 @@ class LogDataModel(TestCase):
     LEVEL_AGG_TOTAL = 426
     TOTAL_DOCS = 500
 
-    conn = ES(settings.ES_SERVER, timeout=settings.ES_TIMEOUT, bulk_size=500,
+    conn = ES(settings.ES_SERVER, timeout=30, bulk_size=500,
               default_indices=[INDEX_NAME])
 
     def setUp(self):
@@ -105,74 +107,75 @@ class LogDataModel(TestCase):
     #    print rv
 
     def test_get_connection(self):
-        q = MatchAllQuery().search()
-        rs = self.conn.search(q)
+        pyesq = MatchAllQuery().search()
+        q = dict(query={"match_all": {}})
+        rs = self.conn.search(pyesq)
         self.assertEqual(rs.count(), self.TOTAL_DOCS)
         test_conn = LogData.get_connection("localhost")
-        rs = test_conn.search(q)
-        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+        rs = test_conn.search(index="_all", body=q)
+        self.assertEqual(rs['hits']['total'], self.TOTAL_DOCS)
         test_conn = LogData.get_connection("localhost:9200")
-        rs = test_conn.search(q)
-        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+        rs = test_conn.search(index="_all", body=q)
+        self.assertEqual(rs['hits']['total'], self.TOTAL_DOCS)
         test_conn = LogData.get_connection(["localhost"])
-        rs = test_conn.search(q)
-        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+        rs = test_conn.search(index="_all", body=q)
+        self.assertEqual(rs['hits']['total'], self.TOTAL_DOCS)
 
     def test_get_components(self):
-        comps = LogData.get_components(self.conn)
+        my_conn = LogData.get_connection("localhost")
+        comps = LogData().get_components(my_conn)
         self.assertEqual(sorted(comps), sorted(self.COMPONENTS))
 
     def test_subtract_months(self):
-        d = subtract_months(datetime(2014, 1, 1), 1)
+        d = LogData()._subtract_months(datetime(2014, 1, 1), 1)
         self.assertEqual(d, datetime(2013, 12, 1, 0, 0))
-        d = subtract_months(datetime(2013, 12, 1), 2)
+        d = LogData()._subtract_months(datetime(2013, 12, 1), 2)
         self.assertEqual(d, datetime(2013, 10, 1, 0, 0))
-        d = subtract_months(datetime(2013, 12, 1), 12)
+        d = LogData()._subtract_months(datetime(2013, 12, 1), 12)
         self.assertEqual(d, datetime(2012, 12, 1, 0, 0))
 
     def test_calc_start(self):
-        d = calc_start(datetime(2013, 12, 10, 12, 0, 0), 'hour')
+        d = LogData()._calc_start(datetime(2013, 12, 10, 12, 0, 0), 'hour')
         self.assertEqual(d, datetime(2013, 12, 10, 11, 0, tzinfo=pytz.utc))
-        d = calc_start(datetime(2013, 12, 10, 12, 0, 0), 'day')
+        d = LogData()._calc_start(datetime(2013, 12, 10, 12, 0, 0), 'day')
         self.assertEqual(d, datetime(2013, 12, 9, 12, 0, tzinfo=pytz.utc))
-        d = calc_start(datetime(2013, 12, 10, 12, 0, 0), 'week')
+        d = LogData()._calc_start(datetime(2013, 12, 10, 12, 0, 0), 'week')
         self.assertEqual(d, datetime(2013, 12, 3, 12, 0, tzinfo=pytz.utc))
-        d = calc_start(datetime(2013, 12, 10, 12, 0, 0), 'month')
+        d = LogData()._calc_start(datetime(2013, 12, 10, 12, 0, 0), 'month')
         self.assertEqual(d, datetime(2013, 11, 10, 12, 0, tzinfo=pytz.utc))
 
     def test_range_filter_facet(self):
-        q = MatchAllQuery().search()
-        rs = self.conn.search(q)
-        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+        my_conn = LogData.get_connection("localhost")
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
 
         filter_field = 'component'
         filter_value = 'nova'
         facet_field = 'loglevel'
-        result = range_filter_facet(self.conn, start, end, filter_field,
-                                    filter_value, facet_field)
-        self.assertEqual(result['loglevel']['total'], 108)
-        self.assertEqual(json.dumps(result), self.level_facet_result)
+        result = LogData().range_filter_facet(my_conn, start, end,
+                                              filter_field, filter_value,
+                                              facet_field)
+        print "result = ", result
+        self.assertEqual(result['facets']['loglevel']['total'], 108)
+        self.assertEqual(json.dumps(result['facets']), self.level_facet_result)
 
         filter_field = 'loglevel'
         filter_value = 'info'
         facet_field = 'component'
-        result = range_filter_facet(self.conn, start, end, filter_field,
-                                    filter_value, facet_field).facets
+        result = LogData().range_filter_facet(my_conn, start, end,
+                                              filter_field, filter_value,
+                                              facet_field)['facets']
         self.assertEqual(json.dumps(result), self.comp_facet_result)
 
     def test_aggregate_facets(self):
-        q = MatchAllQuery().search()
-        rs = self.conn.search(q)
-        self.assertEqual(rs.count(), self.TOTAL_DOCS)
+        my_conn = LogData.get_connection("localhost")
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         filter_field = 'component'
-        filter_list = LogData.get_components(self.conn)
+        filter_list = LogData().get_components(my_conn)
         facet_field = 'loglevel'
-        ag = aggregate_facets(self.conn, start, end, filter_field, filter_list,
-                              facet_field)
+        ag = LogData().aggregate_facets(my_conn, start, end, filter_field,
+                                        filter_list, facet_field)
         self.assertEqual(json.dumps(ag), self.comp_agg_result)
         total = sum([ag[key][facet_field]['total'] for key in ag.keys()])
         self.assertEqual(total, self.TOTAL_DOCS)
@@ -180,77 +183,83 @@ class LogDataModel(TestCase):
         filter_field = 'loglevel'
         filter_list = self.LEVELS
         facet_field = 'component'
-        ag = aggregate_facets(self.conn, start, end, filter_field, filter_list,
-                              facet_field)
+        ag = LogData().aggregate_facets(my_conn, start, end, filter_field,
+                                        filter_list, facet_field)
         self.assertEqual(json.dumps(ag), self.level_agg_result)
         total = sum([ag[key][facet_field]['total'] for key in ag.keys()])
         self.assertEqual(total, self.LEVEL_AGG_TOTAL)
 
     def test_err_and_warn_hist(self):
+        my_conn = LogData.get_connection("localhost")
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         interval = 'hour'
-        result = LogData.err_and_warn_hist(self.conn, start, end, interval,
-                                           query_filter=None).facets
+        result = LogData().err_and_warn_hist(my_conn, start, end, interval,
+                                             query_filter=None)['facets']
+
         self.assertEqual(json.dumps(result), self.comp_date_hist_result)
 
     def test_err_and_warn_hist_filtered(self):
+        my_conn = LogData.get_connection("localhost")
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         interval = 'hour'
-        f = TermFilter('component', 'ceilometer')
-        result = LogData.err_and_warn_hist(self.conn, start, end, interval,
-                                           query_filter=f).facets
+        f = LogData._term_filter('component', 'ceilometer')
+        result = LogData().err_and_warn_hist(my_conn, start, end, interval,
+                                             query_filter=f)['facets']
         self.assertEqual(json.dumps(result),
                          self.comp_date_hist_result_filtered)
 
     def test_get_err_and_warn_hists(self):
+        my_conn = LogData.get_connection("localhost")
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
-        result = LogData.get_err_and_warn_hists(self.conn, start, end,
-                                                'minute')
+        result = LogData().get_err_and_warn_hists(my_conn, start, end,
+                                                  'minute')
         self.assertEqual(json.dumps(result),
                          self.err_and_warn_hists_result_minute)
-        result = LogData.get_err_and_warn_hists(self.conn, start, end, 'hour')
+        result = LogData().get_err_and_warn_hists(my_conn, start, end, 'hour')
         self.assertEqual(json.dumps(result),
                          self.err_and_warn_hists_result_hour)
-        result = LogData.get_err_and_warn_hists(self.conn, start, end, 'day')
+        result = LogData().get_err_and_warn_hists(my_conn, start, end, 'day')
         self.assertEqual(json.dumps(result),
                          self.err_and_warn_hists_result_day)
-        result = LogData.get_err_and_warn_hists(self.conn, start, end)
+        result = LogData().get_err_and_warn_hists(my_conn, start, end)
         self.assertEqual(json.dumps(result),
                          self.err_and_warn_hists_result_day)
-        result = LogData.get_err_and_warn_hists(self.conn, start, end, 'xyz')
+        result = LogData().get_err_and_warn_hists(my_conn, start, end, 'xyz')
         self.assertEqual(json.dumps(result),
                          self.err_and_warn_hists_result_day)
 
     def test_get_err_and_warn_range(self):
-
+        my_conn = LogData.get_connection("localhost")
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
 
-        result = LogData.get_err_and_warn_range(self.conn, start, end,
-                                                first=1, size=10)
-        rl = [r for r in result]
-        self.assertEqual(len(rl), 10)
-        result = LogData.\
-            get_err_and_warn_range(self.conn, start, end, first=1, size=10,
+        result = LogData().get_err_and_warn_range(my_conn, start, end,
+                                                  first=0, size=10)
+        self.assertEqual(result['hits']['total'], 25)
+        self.assertEqual(len(result['hits']['hits']), 10)
+
+        result = LogData().\
+            get_err_and_warn_range(my_conn, start, end, first=0, size=10,
                                    sort={'loglevel': {'order': 'asc'}})
-        rl = [r for r in result]
-        self.assertEqual(len(rl), 10)
+        print result
+        self.assertEqual(result['hits']['total'], 25)
+        self.assertEqual(len(result['hits']['hits']), 10)
 
-        result = LogData.\
-            get_err_and_warn_range(self.conn, start, end, 1, 10,
+        result = LogData().\
+            get_err_and_warn_range(my_conn, start, end, 0, 10,
                                    global_filter_text="error")
-        rl = [r for r in result]
-        self.assertEqual(len(rl), 2)
+        self.assertEqual(result['hits']['total'], 3)
+        self.assertEqual(len(result['hits']['hits']), 3)
 
-        result = LogData.\
-            get_err_and_warn_range(self.conn, start, end, 1, 10,
+        result = LogData().\
+            get_err_and_warn_range(my_conn, start, end, 0, 10,
                                    sort={'loglevel': {'order': 'asc'}},
                                    global_filter_text="error")
-        rl = [r for r in result]
-        self.assertEqual(len(rl), 2)
+        self.assertEqual(result['hits']['total'], 3)
+        self.assertEqual(len(result['hits']['hits']), 3)
 
 
 class IntelViewTest(TestCase):
