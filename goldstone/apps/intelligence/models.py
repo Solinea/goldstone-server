@@ -64,11 +64,9 @@ class LogData(object):
 
         result = q.copy()
         if not 'facets' in result:
-            print "adding facet element to query..."
             result['facets'] = {}
 
         result['facets'][facet.keys()[0]] = facet[facet.keys()[0]]
-        print "should have added ", facet.keys()[0], " to facet list"
         return result
 
     @staticmethod
@@ -215,5 +213,6 @@ class LogData(object):
         }
 
         print "fq = ", fq
+        print "sort = ", sort
         return conn.search(index="_all", body=fq, from_=first, size=size,
                            sort=sort)

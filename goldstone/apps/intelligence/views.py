@@ -116,6 +116,8 @@ def log_search_data(request, start_time, end_time):
     sort_dir_in = request.GET.get('sSortDir_0')
     sort_dir = sort_dir_in if sort_dir_in else "asc"
 
+    print "sorting table on ", sort_col, " in ", sort_dir, "order."
+
     ld = LogData()
     rs = ld.get_err_and_warn_range(
         conn,
@@ -124,13 +126,13 @@ def log_search_data(request, start_time, end_time):
         int(request.GET.get('iDisplayStart')),
         int(request.GET.get('iDisplayLength')),
         global_filter_text=request.GET.get('sSearch', None),
-        sort={sort_col: {'order': sort_dir}})
+        sort=["".join([sort_col, ":", sort_dir])]
+    )
 
-    print "rs = ", rs
-    aaData = []
+    aa_data = []
     for rec in rs['hits']['hits']:
         kv = rec['_source']
-        aaData.append([kv['@timestamp'] if '@timestamp' in kv else "",
+        aa_data.append([kv['@timestamp'] if '@timestamp' in kv else "",
                        kv['loglevel'] if 'loglevel' in kv else "",
                        kv['component'] if 'component' in kv else "",
                        kv['host'] if 'host' in kv else "",
@@ -143,11 +145,12 @@ def log_search_data(request, start_time, end_time):
                        kv['type'] if 'type' in kv else "",
                        kv['received_at'] if 'received_at' in kv else ""])
 
+    print "responding with iTotalRecords=", rs['hits']['total'], ", iTotalDisplayRecords=", len(rs['hits']['hits'])
     response = {
         "sEcho": int(request.GET.get('sEcho')),
         "iTotalRecords": rs['hits']['total'],
         "iTotalDisplayRecords": len(rs['hits']['hits']),
-        "aaData": aaData
+        "aaData": aa_data
     }
 
     return HttpResponse(json.dumps(response),
