@@ -116,8 +116,6 @@ def log_search_data(request, start_time, end_time):
     sort_dir_in = request.GET.get('sSortDir_0')
     sort_dir = sort_dir_in if sort_dir_in else "asc"
 
-    print "sorting table on ", sort_col, " in ", sort_dir, "order."
-
     ld = LogData()
     rs = ld.get_err_and_warn_range(
         conn,
@@ -145,7 +143,6 @@ def log_search_data(request, start_time, end_time):
                        kv['type'] if 'type' in kv else "",
                        kv['received_at'] if 'received_at' in kv else ""])
 
-    print "responding with iTotalRecords=", rs['hits']['total'], ", iTotalDisplayRecords=", len(rs['hits']['hits'])
     response = {
         "sEcho": int(request.GET.get('sEcho')),
         # This should be the result count without filtering, but no obvious

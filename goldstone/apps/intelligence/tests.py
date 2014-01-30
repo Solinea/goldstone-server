@@ -81,9 +81,7 @@ class LogDataModel(TestCase):
                                         "data.json.gz"))
         data = json.load(data_f)
         for event in data['hits']['hits']:
-            print "indexing event: ", event
             rv = conn.index('log_samples', 'logs', event['_source'])
-            print "result: ", rv
 
         conn.indices.refresh(["log_samples"])
         q = {"query": {"match_all": {}}}
@@ -141,7 +139,6 @@ class LogDataModel(TestCase):
         result = LogData().range_filter_facet(my_conn, start, end,
                                               filter_field, filter_value,
                                               facet_field)
-        print "result = ", result
         self.assertEqual(result['facets']['loglevel']['total'], 108)
         self.assertEqual(json.dumps(result['facets']), self.level_facet_result)
 

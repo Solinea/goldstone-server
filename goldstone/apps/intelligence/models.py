@@ -212,7 +212,5 @@ class LogData(object):
             'query': {'filtered': q}
         }
 
-        print "fq = ", fq
-        print "sort = ", sort
         return conn.search(index="_all", body=fq, from_=first, size=size,
                            sort=sort)
