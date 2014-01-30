@@ -65,9 +65,10 @@ def log_cockpit_summary(request):
         fromtimestamp(int(start_time), tz=pytz.utc) \
         if start_time else end_dt - timedelta(weeks=4)
 
-    conn = LogData.get_connection(settings.ES_SERVER, settings.ES_TIMEOUT)
+    conn = LogData.get_connection(settings.ES_SERVER)
 
-    raw_data = LogData.get_err_and_warn_hists(conn, start_dt, end_dt, interval)
+    ld = LogData()
+    raw_data = ld.get_err_and_warn_hists(conn, start_dt, end_dt, interval)
 
     errs_list = raw_data['err_facet']['entries']
     warns_list = raw_data['warn_facet']['entries']
@@ -102,10 +103,11 @@ def log_cockpit_summary(request):
 
 def log_search_data(request, start_time, end_time):
 
-    conn = LogData.get_connection(settings.ES_SERVER, settings.ES_TIMEOUT)
+    conn = LogData.get_connection(settings.ES_SERVER)
 
     keylist = ['@timestamp', 'loglevel', 'component', 'host', 'message',
-               'path', 'pid', 'program', 'separator', 'type', 'received_at']
+               'path', 'pid', 'program', 'request_id_list', 'type',
+               'received_at']
 
     start_ts = int(start_time)
     end_ts = int(end_time)
@@ -114,18 +116,21 @@ def log_search_data(request, start_time, end_time):
     sort_dir_in = request.GET.get('sSortDir_0')
     sort_dir = sort_dir_in if sort_dir_in else "asc"
 
-    rs = LogData.get_err_and_warn_range(
+    ld = LogData()
+    rs = ld.get_err_and_warn_range(
         conn,
         datetime.fromtimestamp(start_ts, tz=pytz.utc),
         datetime.fromtimestamp(end_ts, tz=pytz.utc),
         int(request.GET.get('iDisplayStart')),
         int(request.GET.get('iDisplayLength')),
         global_filter_text=request.GET.get('sSearch', None),
-        sort={sort_col: {'order': sort_dir}})
+        sort=["".join([sort_col, ":", sort_dir])]
+    )
 
-    aaData = []
-    for kv in rs:
-        aaData.append([kv['@timestamp'] if '@timestamp' in kv else "",
+    aa_data = []
+    for rec in rs['hits']['hits']:
+        kv = rec['_source']
+        aa_data.append([kv['@timestamp'] if '@timestamp' in kv else "",
                        kv['loglevel'] if 'loglevel' in kv else "",
                        kv['component'] if 'component' in kv else "",
                        kv['host'] if 'host' in kv else "",
@@ -133,15 +138,18 @@ def log_search_data(request, start_time, end_time):
                        kv['path'] if 'path' in kv else "",
                        kv['pid'] if 'pid' in kv else "",
                        kv['program'] if 'program' in kv else "",
-                       kv['separator'] if 'separator' in kv else "",
+                       kv['request_id_list'] if
+                       'request_id_list' in kv else "",
                        kv['type'] if 'type' in kv else "",
                        kv['received_at'] if 'received_at' in kv else ""])
 
     response = {
         "sEcho": int(request.GET.get('sEcho')),
-        "iTotalRecords": rs.total,
-        "iTotalDisplayRecords": len(rs),
-        "aaData": aaData
+        # This should be the result count without filtering, but no obvious
+        # way to get that without doing the query twice.
+        "iTotalRecords": rs['hits']['total'],
+        "iTotalDisplayRecords": rs['hits']['total'],
+        "aaData": aa_data
     }
 
     return HttpResponse(json.dumps(response),

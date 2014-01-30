@@ -1,0 +1,185 @@
+###############################################################
+#
+#   INPUTS
+#
+###############################################################
+
+input {
+
+    #
+    # debugging input for openstack log.  replace for production.
+    #
+
+    #stdin { type => "openstack_log"}}
+
+    #
+    # production input section
+    # 
+
+    redis {
+        host => '127.0.0.1'
+        port => 6379
+        data_type => 'list'
+        key => 'logstash:redis'
+        type => 'redis-input'
+    }
+
+    tcp {
+        port => 5514
+        type => syslog
+        #tags => ["logstash-server"]
+    }
+}
+
+###############################################################
+#
+#   FILTERS
+#
+###############################################################
+
+filter {
+
+    #
+    # SYSLOG MESSAGES
+    #
+    if ([type] == "syslog") {
+    	grok {
+            overwrite => "message"
+            match => { "message" => "%{SYSLOGLINE}" }
+            add_field => [ "received_at", "%{@timestamp}" ]
+            add_field => [ "received_from", "%{host}" ]
+        }
+        date {
+            match => [ "timestamp", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss", "ISO8601" ]
+            remove_field => "timestamp"
+        }
+        if !("_grokparsefailure" in [tags]) {
+            mutate {
+                rename => ["logsource", "host"]
+            }
+        }
+    }
+
+
+    if ([type] == "openstack_log") {
+        mutate {
+            add_field => [ "_message", "%{message}" ]
+        }
+        grok {
+            patterns_dir => "/opt/logstash/patterns"
+            overwrite => [ "message" ]
+            match => { "message" => "%{OPENSTACK_MESSAGE}" }
+            add_field => [ "received_at", "%{@timestamp}" ]
+        }
+        multiline {
+            negate => false
+            patterns_dir => "/opt/logstash/patterns"
+            pattern => "%{OPENSTACK_TRACE}"
+            what => "previous"
+        }
+        date {
+            match => [ "timestamp", "yyyy-MM-dd HH:mm:ss.SSS" ]
+            remove_field => "timestamp"
+        }
+        mutate {
+            rename => [ "msg", "message" ]
+        }
+    }
+
+    if ([type] == "openvswitch_log") {
+        mutate {
+            add_field => [ "_message", "%{message}" ]
+            add_field => [ "request_id_list", "" ]
+        }
+        grok {
+            patterns_dir => "/opt/logstash/patterns"
+            overwrite => [ "message" ]
+            match => { "message" => "%{OPENVSWITCH_MESSAGE}" }
+            add_field => [ "received_at", "%{@timestamp}" ]
+        }
+        date {
+            match => [ "timestamp", "ISO8601" ]
+            remove_field => "timestamp"
+        }
+        mutate {
+            rename => [ "msg", "message" ]
+            gsub => [
+                "loglevel", "ERR$", "ERROR",
+                "loglevel", "WARN$", "WARNING"
+            ]
+        }
+    }
+  
+    if ([type] == "libvirt_log") {
+        mutate {
+            add_field => [ "_message", "%{message}" ]
+            add_field => [ "request_id_list", "" ]
+        }
+        grok {
+            patterns_dir => "/opt/logstash/patterns"
+            overwrite => [ "message" ]
+            match => { "message" => "%{LIBVIRT_MESSAGE}" }
+            add_field => [ "received_at", "%{@timestamp}" ]
+        }
+        date {
+            match => [ "timestamp", "yyyy-MM-dd HH:mm:ss.SSSZ" ]
+            remove_field => "timestamp"
+        }
+        mutate {
+            rename => [ "msg", "message" ]
+            gsub => [
+                "loglevel", "warn$", "WARNING"
+            ]
+        }
+    }
+    if ([type] == "apache_log") {
+       mutate {
+            add_field => [ "_message", "%{message}" ]
+        }
+        grok {
+            patterns_dir => "/opt/logstash/patterns"
+            overwrite => [ "message" ]
+            match => { "message" => "%{COMBINEDAPACHELOG}" }
+            add_field => [ "received_at", "%{@timestamp}" ]
+        }
+        date {
+            match => [ "timestamp", "dd/MMM/yyyy:HH:mm:ss Z" ]
+        }
+        mutate {
+            gsub => [
+                "loglevel", "warn$", "warning"
+            ]
+        }
+    }
+}
+
+
+###############################################################
+#
+#   OUTPUTS
+#
+###############################################################
+
+output {
+
+  #
+  # debugging output.  replace for production.
+  #
+  stdout { debug => true codec => 'json' }
+
+  #
+  # production output
+  #
+  if ("logstash-server" in [tags]) {
+
+     redis { host => "127.0.0.1" data_type => "list" key => "logstash:redis" }
+
+  } else {
+
+     elasticsearch {
+
+        host => "127.0.0.1"
+
+     }
+  }
+}
