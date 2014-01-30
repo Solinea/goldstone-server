@@ -148,8 +148,10 @@ def log_search_data(request, start_time, end_time):
     print "responding with iTotalRecords=", rs['hits']['total'], ", iTotalDisplayRecords=", len(rs['hits']['hits'])
     response = {
         "sEcho": int(request.GET.get('sEcho')),
+        # This should be the result count without filtering, but no obvious
+        # way to get that without doing the query twice.
         "iTotalRecords": rs['hits']['total'],
-        "iTotalDisplayRecords": len(rs['hits']['hits']),
+        "iTotalDisplayRecords": rs['hits']['total'],
         "aaData": aa_data
     }
 
