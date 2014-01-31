@@ -9,7 +9,7 @@ from django.test.client import RequestFactory
 from django.test import TestCase
 from django.conf import settings
 
-from .views import IntelSearchView, IntelKibanaView
+from .views import IntelSearchView
 from .models import *
 import os
 import json
@@ -258,11 +258,6 @@ class IntelViewTest(TestCase):
         response = self.client.get('/intelligence/search')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'search.html')
-
-    def test_kibana_template(self):
-        response = self.client.get('/intelligence/kibana')
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'kibana.html')
 
     def test_log_cockpit_summary(self):
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)

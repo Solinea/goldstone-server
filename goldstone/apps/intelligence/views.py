@@ -39,10 +39,6 @@ class IntelSearchView(TemplateView):
         return context
 
 
-class IntelKibanaView(TemplateView):
-    template_name = 'kibana.html'
-
-
 class IntelLogCockpitView(TemplateView):
     template_name = 'log-cockpit.html'
 
