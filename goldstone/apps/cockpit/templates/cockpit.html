@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block localcss %}
-    <link href="{% static 'css/dataTables.bootstrap.css' %}" rel="stylesheet" media="screen">
+    <link href="{% static 'css/plugins/dataTables/dataTables.bootstrap.css' %}" rel="stylesheet" media="screen">
     <link href="{% static 'css/cockpit.css' %}" rel="stylesheet"
           media="screen">
     <link href="{% static 'intelligence/css/intelligence.css' %}"
@@ -11,8 +11,8 @@
 {% endblock %}
 
 {% block localjs %}
-    <script src="{% static 'js/jquery.dataTables.min.js' %}"></script>
-    <script src="{% static 'js/dataTables.bootstrap.js' %}"></script>
+    <script src="{% static 'js/plugins/dataTables/jquery.dataTables.js' %}"></script>
+    <script src="{% static 'js/plugins/dataTables/dataTables.bootstrap.js' %}"></script>
     <script src="{% static 'js/d3.js' %}"></script>
     <script src="{% static 'js/crossfilter.js' %}"></script>
     <script src="{% static 'js/dc.js' %}"></script>
