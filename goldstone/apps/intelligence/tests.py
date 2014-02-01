@@ -16,124 +16,19 @@ import json
 from datetime import *
 import pytz
 import gzip
-import pickle
-import socket
-import random
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-def open_result_file(fn):
-    with open(os.path.join(os.path.dirname(__file__),
-                           "..", "..", "..", "test_data", fn)) \
-        as data_f:
-        return data_f.read().replace('\n', '')
-
-
-def read_result_file_as_list(fn):
-    with open(os.path.join(os.path.dirname(__file__),
-                           "..", "..", "..", "test_data", fn)) \
-        as data_f:
-        return pickle.load(data_f)
-
-
-def _stash_log(message, host='localhost', port=55514):
-    """
-    Send syslog TCP packet to given host and port.
-    """
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_TCP)
-    data = '%s' % message
-    sock.sendto(data, (host, port))
-    sock.close()
-
-
-def _random_time_of_year(year=2013):
-    end = datetime.datetime(year, 12, 31, 23, 59, 59)
-    begin = datetime.datetime(year, 1, 1, 0, 0, 0)
-    micros_in_yr = (end - begin).microseconds
-    rand_micros = random.randrange(0, micros_in_yr + 1)
-    return begin + timedelta(microseconds=rand_micros)
-
-
-def _random_host():
-    hosts = ["controller",
-             "compute-1.lab.solinea.com",
-             "compute-2.lab.solinea.com",
-             "compute-3.lab.solinea.com",
-             "compute-4.lab.solinea.com",
-             "volume.lab.solinea.com",
-             "object-1.lab.solinea.com",
-             "object-2.lab.solinea.com",
-             "object-3.lab.solinea.com"]
-
-    return random.choice(hosts)
-
-
-def _random_level():
-    levels = ["INFO", "WARN", "AUDIT", "ERROR", "DEBUG", "TRACE"]
-
-
-def _random_message_string():
-    test_messages = [
-        "openstack_log, nova, {0}, {1} 1000 {2} test.module [-] "
-        "test nova message".
-        format(_random_host(), _random_time_of_year().isoformat(),
-               _random_level()),
-        "openstack_log, ceilometer, {0}, {1} 2000 {2} test.module [-] "
-        "test ceilometer message".
-        format(_random_host(), _random_time_of_year().isoformat(),
-               _random_level()),
-        "openstack_log, neutron, {0}, {1} 3000 {2} test.module [-] "
-        "test neutron message".
-        format(_random_host(), _random_time_of_year().isoformat(),
-               _random_level()),
-        "openstack_log, cinder, {0}, {1} 4000 {2} test.module [-] "
-        "test cinder message".
-        format(_random_host(), _random_time_of_year().isoformat(),
-               _random_level()),
-        "openvswitch_log, openvswitch, {0}, {1} 5000 {2} test.module [-] "
-        "test openvswitch message".
-        format(_random_host(), _random_time_of_year().isoformat(),
-               _random_level()),
-        "libvirt_log, libvirt, {0}, {1} 5000 {2} test.module [-] "
-        "test libvirt message".
-        format(_random_host(), _random_time_of_year().isoformat(),
-               _random_level())
-    ]
-
-    return random.choice(test_messages)
 
 
 class LogDataModel(TestCase):
     maxDiff = None
     INDEX_NAME = 'logstash-test'
     DOCUMENT_TYPE = 'logs'
-
-    TIME_PERIODS = ["hour", "day", "week", "month"]
-    LEVELS = ["fatal", "error", "warning", "info", "debug"]
-    level_facet_result = open_result_file("level_facet_result.json")
-    comp_facet_result = open_result_file("comp_facet_result.json")
-    level_agg_result = open_result_file("level_agg_result.json")
-    comp_agg_result = open_result_file("comp_agg_result.json")
-    comp_date_hist_result = open_result_file("comp_date_hist_result.json")
-    comp_date_hist_result_filtered = open_result_file(
-        "comp_date_hist_result_filtered.json")
-    err_and_warn_hists_result_day = open_result_file(
-        "err_and_warn_hists_result_day.json")
-    err_and_warn_hists_result_hour = open_result_file(
-        "err_and_warn_hists_result_hour.json")
-    err_and_warn_hists_result_minute = open_result_file(
-        "err_and_warn_hists_result_minute.json")
-    cockpit_data = list(read_result_file_as_list(
-        "cockpit_data_result.pkl"))
-    LEVEL_AGG_TOTAL = 426
     TOTAL_DOCS = 500
+    conn = Elasticsearch(settings.ES_SERVER)
 
     def setUp(self):
-        conn = Elasticsearch(settings.ES_SERVER)
-        if conn.indices.exists(self.INDEX_NAME):
-            conn.indices.delete(self.INDEX_NAME)
 
         template_f = gzip.open(os.path.join(os.path.dirname(__file__), "..",
                                             "..", "..", "test_data",
@@ -141,11 +36,11 @@ class LogDataModel(TestCase):
         template = json.load(template_f)
 
         try:
-            conn.indices.delete("_all")
+            self.conn.indices.delete("_all")
         finally:
             {}
 
-        conn.indices.create(self.INDEX_NAME, body=template)
+        self.conn.indices.create(self.INDEX_NAME, body=template)
 
         q = {"query": {"match_all": {}}}
         data_f = gzip.open(os.path.join(os.path.dirname(__file__), "..", "..",
@@ -153,20 +48,21 @@ class LogDataModel(TestCase):
                                         "data.json.gz"))
         data = json.load(data_f)
         for event in data['hits']['hits']:
-            rv = conn.index(self.INDEX_NAME, self.DOCUMENT_TYPE,
-                            event['_source'])
+            rv = self.conn.index(self.INDEX_NAME, self.DOCUMENT_TYPE,
+                                 event['_source'])
 
-        conn.indices.refresh([self.INDEX_NAME])
+        self.conn.indices.refresh([self.INDEX_NAME])
         q = {"query": {"match_all": {}}}
-        rs = conn.search(body=q, index="_all")
+        rs = self.conn.search(body=q, index="_all")
         self.assertEqual(rs['hits']['total'], self.TOTAL_DOCS)
 
-    #def tearDown(self):
-    #    rv = self.conn.indices.delete_index_if_exists(self.INDEX_NAME)
-    #    print rv
+    def tearDown(self):
+        try:
+            self.conn.indices.delete("_all")
+        finally:
+            {}
 
     def test_get_connection(self):
-        my_conn = LogData.get_connection("localhost")
         q = dict(query={"match_all": {}})
         test_conn = LogData.get_connection("localhost")
         rs = test_conn.search(index="_all", body=q)
@@ -179,7 +75,6 @@ class LogDataModel(TestCase):
         self.assertEqual(rs['hits']['total'], self.TOTAL_DOCS)
 
     def test_get_components(self):
-        my_conn = LogData.get_connection("localhost")
         test_q = {
             "query": {
                 "match_all": {}
@@ -193,11 +88,32 @@ class LogDataModel(TestCase):
                 }
             }
         }
-        test_response = my_conn.search(index="_all", body=test_q)
+        test_response = self.conn.search(index="_all", body=test_q)
         control = [d['term'] for d in
                    test_response['facets']['components']['terms']]
 
-        comps = LogData().get_components(my_conn)
+        comps = LogData().get_components(self.conn)
+        self.assertEqual(sorted(comps), sorted(control))
+
+    def test_get_loglevels(self):
+        test_q = {
+            "query": {
+                "match_all": {}
+            },
+            "facets": {
+                "loglevels": {
+                    "terms": {
+                        "field": "loglevel",
+                        "all_terms": True
+                    }
+                }
+            }
+        }
+        test_response = self.conn.search(index="_all", body=test_q)
+        control = [d['term'] for d in
+                   test_response['facets']['loglevels']['terms']]
+
+        comps = LogData().get_loglevels(self.conn)
         self.assertEqual(sorted(comps), sorted(control))
 
     def test_subtract_months(self):
@@ -227,13 +143,12 @@ class LogDataModel(TestCase):
                     'facet_filter': {'term': {filter_field: filter_value}},
                     'terms': {'field': facet_field, 'all_terms': True,
                               'order': 'term'}}}}
-            control = my_conn.search(index="_all", body=test_q)
-            result = LogData().range_filter_facet(my_conn, start, end,
+            control = self.conn.search(index="_all", body=test_q)
+            result = LogData().range_filter_facet(self.conn, start, end,
                                                   filter_field, filter_value,
                                                   facet_field)
             self.assertEqual(result['hits'], control['hits'])
 
-        my_conn = LogData.get_connection("localhost")
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
 
@@ -256,32 +171,30 @@ class LogDataModel(TestCase):
                                    'lte': end.isoformat()}}}, 'facets': {
                     facet_field: {'facet_filter': {'term': {
                         filter_field: filter_value}},
-                                  'terms': {'field': facet_field,
-                                            'all_terms': True,
-                                            'order': 'term'}}}}
-                r = my_conn.search(index="_all", body=test_q)
+                        'terms': {'field': facet_field,
+                                  'all_terms': True,
+                                  'order': 'term'}}}}
+                r = self.conn.search(index="_all", body=test_q)
                 control[filter_value] = r['facets']
 
-            result = LogData().aggregate_facets(my_conn, start, end,
+            result = LogData().aggregate_facets(self.conn, start, end,
                                                 filter_field, filter_list,
                                                 facet_field)
             self.assertEqual(result, control)
 
-        my_conn = LogData.get_connection("localhost")
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         filter_field = 'component'
-        filter_list = LogData().get_components(my_conn)
+        filter_list = LogData().get_components(self.conn)
         facet_field = 'loglevel'
         test_scenario()
 
         filter_field = 'loglevel'
-        filter_list = LogData().get_loglevels(my_conn)
+        filter_list = LogData().get_loglevels(self.conn)
         facet_field = 'component'
         test_scenario()
 
     def test_err_and_warn_hist(self):
-        my_conn = LogData.get_connection("localhost")
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         interval = 'hour'
@@ -297,13 +210,12 @@ class LogDataModel(TestCase):
                 "date_histogram": {"field": "@timestamp",
                                    "interval": interval},
                 "facet_filter": {"term": {"loglevel": "warning"}}}}}
-        control = my_conn.search(index="_all", body=test_q)['facets']
-        result = LogData().err_and_warn_hist(my_conn, start, end, interval,
+        control = self.conn.search(index="_all", body=test_q)['facets']
+        result = LogData().err_and_warn_hist(self.conn, start, end, interval,
                                              query_filter=None)['facets']
         self.assertEqual(result, control)
 
     def test_err_and_warn_hist_filtered(self):
-        my_conn = LogData.get_connection("localhost")
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         interval = 'hour'
@@ -323,32 +235,35 @@ class LogDataModel(TestCase):
                 "facet_filter": {"and": [
                     {"term": {"loglevel": "warning"}},
                     {"term": {"component": "ceilometer"}}]}}}}
-        control = my_conn.search(index="_all", body=test_q)['facets']
+        control = self.conn.search(index="_all", body=test_q)['facets']
         f = LogData._term_filter('component', 'ceilometer')
-        result = LogData().err_and_warn_hist(my_conn, start, end, interval,
+        result = LogData().err_and_warn_hist(self.conn, start, end, interval,
                                              query_filter=f)['facets']
         self.assertEqual(result, control)
 
     def test_get_err_and_warn_hists(self):
         def test_scenario():
+            interval_mapper = {"minute": "second", "hour": "minute",
+                               "day": "hour", "month": "day"}
             test_q = {"query": {"range": {
                 "@timestamp": {"gte": start,
                                "lte": end}}}, "facets": {
                 "err_facet": {
-                    "date_histogram": {"field": "@timestamp",
-                                       "interval": interval},
+                    "date_histogram": {
+                        "field": "@timestamp",
+                        "interval": interval_mapper.get(interval, "hour")},
                     "facet_filter": {"or": [{"term": {"loglevel": "error"}},
                                             {"term": {"loglevel": "fatal"}}]}},
                 "warn_facet": {
-                    "date_histogram": {"field": "@timestamp",
-                                       "interval": interval},
+                    "date_histogram": {
+                        "field": "@timestamp",
+                        "interval": interval_mapper.get(interval, "hour")},
                     "facet_filter": {"term": {"loglevel": "warning"}}}}}
-            control = my_conn.search(index="_all", body=test_q)['facets']
-            result = LogData().get_err_and_warn_hists(my_conn, start, end,
-                                                      'minute')
+            control = self.conn.search(index="_all", body=test_q)['facets']
+            result = LogData().get_err_and_warn_hists(self.conn, start, end,
+                                                      interval)
             self.assertEqual(result, control)
 
-        my_conn = LogData.get_connection("localhost")
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         interval = 'minute'
@@ -356,6 +271,8 @@ class LogDataModel(TestCase):
         interval = 'hour'
         test_scenario()
         interval = 'day'
+        test_scenario()
+        interval = 'month'
         test_scenario()
         interval = None
         test_scenario()
@@ -367,24 +284,22 @@ class LogDataModel(TestCase):
         def test_scenario(sort='', global_filter_text=None):
             test_q = {'query': {'filtered': {'query': {'range': {
                 '@timestamp': {'gte': start.isoformat(),
-                'lte': end.isoformat()}}}}}}
+                               'lte': end.isoformat()}}}}}}
             loglevel_filt = {'or': [{'term': {'loglevel': 'error'}},
-                    {'term': {'loglevel': 'fatal'}},
-                    {'term': {'loglevel': 'warning'}}]}
+                                    {'term': {'loglevel': 'fatal'}},
+                                    {'term': {'loglevel': 'warning'}}]}
             global_filt = {'term': {'_all': global_filter_text.lower()}} \
                 if global_filter_text and global_filter_text != '' else None
             f1 = loglevel_filt if not global_filt \
                 else {'and': [loglevel_filt, global_filt]}
 
             test_q['query']['filtered']['filter'] = f1
-            logger.debug("************************ q = %s", test_q)
-            control = my_conn.search(index="_all", body=test_q, sort=sort)
-            result = LogData().get_err_and_warn_range(my_conn, start, end,
+            control = self.conn.search(index="_all", body=test_q, sort=sort)
+            result = LogData().get_err_and_warn_range(self.conn, start, end,
                                                       0, 10, sort,
                                                       global_filter_text)
             self.assertEqual(result['hits'], control['hits'])
 
-        my_conn = LogData.get_connection("localhost")
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
 
@@ -392,13 +307,10 @@ class LogDataModel(TestCase):
         test_scenario(sort={'loglevel': {'order': 'asc'}})
         test_scenario(sort={'loglevel': {'order': 'desc'}})
         test_scenario(global_filter_text="keystone.common.wsgi")
-
-        #test_scenario(sort={'loglevel': {'order': 'asc'}},
-        #              global_filter_text="error")
-
+        test_scenario(sort={'loglevel': {'order': 'asc'}},
+                      global_filter_text="keystone.common.wsgi")
 
     def test_get_new_and_missing_nodes(self):
-        my_conn = LogData.get_connection("localhost")
         short_lookback = datetime(2013, 12, 14, 0, 0, 0, tzinfo=pytz.utc)
         long_lookback = datetime(2013, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
         end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
@@ -415,8 +327,8 @@ class LogDataModel(TestCase):
             'host_facet': {
                 'terms': {'field': 'host.raw', 'all_terms': False,
                           'order': 'term'}}}}
-        r1 = my_conn.search(index="_all", body=test_q1)
-        r2 = my_conn.search(index="_all", body=test_q2)
+        r1 = self.conn.search(index="_all", body=test_q1)
+        r2 = self.conn.search(index="_all", body=test_q2)
         s1 = set([fac['term'] for fac in
                   r1['facets']['host_facet']['terms']])
         s2 = set([fac['term'] for fac in
@@ -427,8 +339,9 @@ class LogDataModel(TestCase):
             "missing_nodes": list(missing_nodes),
             "new_nodes": list(new_nodes)
         }
-        result = LogData().get_new_and_missing_nodes(my_conn, long_lookback,
+        result = LogData().get_new_and_missing_nodes(self.conn, long_lookback,
                                                      short_lookback, end)
+
         self.assertEqual(result, control)
 
 

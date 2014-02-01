@@ -1,6 +1,6 @@
 from .base import *
 
-DEBUG = True
+DEBUG = False
 
 DATABASES = {
     "default": {
@@ -36,20 +36,20 @@ LOGGING = {
         },
     },
     'handlers': {
-        'console':{
-            'level':'DEBUG',
-            'class':'logging.StreamHandler',
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
             'formatter': 'default'
         },
     },
     'loggers': {
-        'django.request':{
+        'django.request': {
             'handlers': ['console'],
             'propagate': False,
             'level': 'DEBUG',
         },
         'goldstone': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['console']
         },
     },
