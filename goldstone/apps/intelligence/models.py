@@ -12,6 +12,9 @@ from datetime import datetime, timedelta
 from elasticsearch import *
 import pytz
 import calendar
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class LogData(object):
@@ -80,16 +83,18 @@ class LogData(object):
 
     @staticmethod
     def _term_facet(name, field, facet_filter=None, all_terms=True,
-                    order="term"):
+                    order=None):
         result = {
             name: {
                 "terms": {
                     "field": field,
-                    "all_terms": all_terms,
-                    "order": order
+                    "all_terms": all_terms
                 }
             }
         }
+
+        if order:
+            result[name]['terms']['order'] = order
 
         if facet_filter:
             result[name]['facet_filter'] = facet_filter
@@ -140,7 +145,7 @@ class LogData(object):
         return conn.search(index="_all", body=q)
 
     def get_components(self, conn):
-        fac = self._term_facet('component', 'component', all_terms=True)
+        fac = self._term_facet('component', 'component', order='term')
         q = dict(query={
             'match_all': {}
         })
@@ -151,10 +156,10 @@ class LogData(object):
         return [d['term'] for d in rs['facets']['component']['terms']]
 
     def range_filter_facet(self, conn, start, end, filter_field, filter_value,
-                           facet_field):
+                           facet_field, facet_order=None):
 
         filt = self._term_filter(filter_field, filter_value)
-        fac = self._term_facet(facet_field, facet_field, filt)
+        fac = self._term_facet(facet_field, facet_field, filt, order='term')
         rangeq = self._range_query('@timestamp', start.isoformat(),
                                    end.isoformat())
         rangeq = self._add_facet(rangeq, fac)
@@ -214,3 +219,39 @@ class LogData(object):
 
         return conn.search(index="_all", body=fq, from_=first, size=size,
                            sort=sort)
+
+    def get_new_and_missing_nodes(self, conn, long_lookback, short_lookback,
+                                  end=datetime.now(tz=pytz.utc)):
+
+        host_facet = self._term_facet('host_facet', 'host.raw',
+                                      all_terms=False, order='term')
+        q1 = self._range_query('@timestamp', long_lookback.isoformat(),
+                               short_lookback.isoformat(), facet=host_facet)
+        q2 = self._range_query('@timestamp', short_lookback.isoformat(),
+                               end.isoformat(),
+                               facet=host_facet)
+
+        r1 = conn.search(index="_all", body=q1)
+        r2 = conn.search(index="_all", body=q2)
+
+        logger.debug("query1 = %s", q1)
+        logger.debug("query2 = %s", q2)
+
+        # new hosts are in q2, but not in q1
+        # absent hosts are in q1, but not in q2
+        # everything else is less interesting
+
+        s1 = set([fac['term'] for fac in
+                  r1['facets']['host_facet']['terms']])
+        s2 = set([fac['term'] for fac in
+                  r2['facets']['host_facet']['terms']])
+        logger.debug("s1 = %s", s1)
+        logger.debug("s2 = %s", s2)
+        new_nodes = s2.difference(s1)
+        missing_nodes = s1.difference(s2)
+        logger.debug("missing_nodes = %s", missing_nodes)
+        logger.debug("new_nodes = %s", new_nodes)
+        return {
+            "missing_nodes": list(missing_nodes),
+            "new_nodes": list(new_nodes)
+        }

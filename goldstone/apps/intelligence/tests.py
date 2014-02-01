@@ -17,6 +17,8 @@ from datetime import *
 import pytz
 import gzip
 import pickle
+import socket
+import random
 
 
 def open_result_file(fn):
@@ -31,6 +33,72 @@ def read_result_file_as_list(fn):
                            "..", "..", "..", "test_data", fn)) \
             as data_f:
                 return pickle.load(data_f)
+
+
+def _stash_log(message, host='localhost', port=55514):
+    """
+    Send syslog TCP packet to given host and port.
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_TCP)
+    data = '%s' % message
+    sock.sendto(data, (host, port))
+    sock.close()
+
+
+def _random_time_of_year(year=2013):
+    end = datetime.datetime(year, 12, 31, 23, 59, 59)
+    begin = datetime.datetime(year,1, 1, 0, 0, 0)
+    micros_in_yr = (end - begin).microseconds
+    rand_micros = random.randrange(0, micros_in_yr + 1)
+    return begin + timedelta(microseconds=rand_micros)
+
+
+def _random_host():
+    hosts = ["controller",
+             "compute-1.lab.solinea.com",
+             "compute-2.lab.solinea.com",
+             "compute-3.lab.solinea.com",
+             "compute-4.lab.solinea.com",
+             "volume.lab.solinea.com",
+             "object-1.lab.solinea.com",
+             "object-2.lab.solinea.com",
+             "object-3.lab.solinea.com"]
+
+    return random.choice(hosts)
+
+def _random_level():
+    levels = ["INFO", "WARN", "AUDIT", "ERROR", "DEBUG", "TRACE"]
+
+def _random_message_string():
+    test_messages=[
+        "openstack_log, nova, {0}, {1} 1000 {2} test.module [-] "
+        "test nova message".
+        format(_random_host(), _random_time_of_year().isoformat(),
+               _random_level()),
+        "openstack_log, ceilometer, {0}, {1} 2000 {2} test.module [-] "
+        "test ceilometer message".
+        format(_random_host(), _random_time_of_year().isoformat(),
+               _random_level()),
+        "openstack_log, neutron, {0}, {1} 3000 {2} test.module [-] "
+        "test neutron message".
+        format(_random_host(), _random_time_of_year().isoformat(),
+               _random_level()),
+        "openstack_log, cinder, {0}, {1} 4000 {2} test.module [-] "
+        "test cinder message".
+        format(_random_host(), _random_time_of_year().isoformat(),
+               _random_level()),
+        "openvswitch_log, openvswitch, {0}, {1} 5000 {2} test.module [-] "
+        "test openvswitch message".
+        format(_random_host(), _random_time_of_year().isoformat(),
+               _random_level()),
+        "libvirt_log, libvirt, {0}, {1} 5000 {2} test.module [-] "
+        "test libvirt message".
+        format(_random_host(), _random_time_of_year().isoformat(),
+               _random_level())
+    ]
+
+    return random.choice(test_messages)
+
 
 
 class LogDataModel(TestCase):
@@ -244,6 +312,16 @@ class LogDataModel(TestCase):
         self.assertEqual(result['hits']['total'], 3)
         self.assertEqual(len(result['hits']['hits']), 3)
 
+    def test_get_new_and_missing_nodes(self):
+        my_conn = LogData.get_connection("localhost")
+        short_lookback = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        long_lookback = short_lookback - timedelta(weeks=52)
+        end = short_lookback + timedelta(minutes=1)
+
+        result = LogData().get_new_and_missing_nodes(my_conn, long_lookback,
+                                                     short_lookback, end)
+        print result
+        self.assertEqual(result, {"missing_nodes": [], "new_nodes": []})
 
 class IntelViewTest(TestCase):
     """Lease list view tests"""
