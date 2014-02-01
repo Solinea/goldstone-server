@@ -117,6 +117,18 @@ class LogData(object):
 
         return result
 
+    def _get_term_facet_terms(self, conn, facet_field):
+        fac = self._term_facet(facet_field, facet_field, order='term')
+        q = dict(query={
+            'match_all': {}
+        })
+
+        q['facets'] = {}
+        q['facets'][fac.keys()[0]] = fac[fac.keys()[0]]
+        logger.debug("[_get_term_facet_terms] query = %s", q)
+        rs = conn.search(index="_all", body=q)
+        return [d['term'] for d in rs['facets'][facet_field]['terms']]
+
     @staticmethod
     def get_connection(server):
         return Elasticsearch(server)
@@ -142,18 +154,14 @@ class LogData(object):
                                          facet_filter=f2)
         q = self._add_facet(q, err_fac)
         q = self._add_facet(q, warn_fac)
+        logger.debug("[err_and_warn_hist] query = %s", q)
         return conn.search(index="_all", body=q)
 
     def get_components(self, conn):
-        fac = self._term_facet('component', 'component', order='term')
-        q = dict(query={
-            'match_all': {}
-        })
+        return self._get_term_facet_terms(conn, "component")
 
-        q['facets'] = {}
-        q['facets'][fac.keys()[0]] = fac[fac.keys()[0]]
-        rs = conn.search(index="_all", body=q)
-        return [d['term'] for d in rs['facets']['component']['terms']]
+    def get_loglevels(self, conn):
+        return self._get_term_facet_terms(conn, "loglevel")
 
     def range_filter_facet(self, conn, start, end, filter_field, filter_value,
                            facet_field, facet_order=None):
@@ -163,6 +171,7 @@ class LogData(object):
         rangeq = self._range_query('@timestamp', start.isoformat(),
                                    end.isoformat())
         rangeq = self._add_facet(rangeq, fac)
+        logger.debug("[range_filter_facet] query = %s", rangeq)
         return conn.search(index="_all", body=rangeq)
 
     def aggregate_facets(self, conn, start, end, filter_field, filter_list,
@@ -206,9 +215,9 @@ class LogData(object):
         warn_filt = self._term_filter('loglevel', 'warning')
         bad_filt = {'or': [err_filt, fat_filt, warn_filt]}
 
-        global_filt = self._term_filter('_message',
+        global_filt = self._term_filter('_all',
                                         global_filter_text.lower()) \
-            if global_filter_text else None
+            if global_filter_text and global_filter_text != '' else None
         f1 = bad_filt if not global_filt \
             else {'and': [bad_filt, global_filt]}
 
@@ -217,6 +226,7 @@ class LogData(object):
             'query': {'filtered': q}
         }
 
+        logger.debug("[get_err_warn_range] query = %s", fq)
         return conn.search(index="_all", body=fq, from_=first, size=size,
                            sort=sort)
 
@@ -234,8 +244,8 @@ class LogData(object):
         r1 = conn.search(index="_all", body=q1)
         r2 = conn.search(index="_all", body=q2)
 
-        logger.debug("query1 = %s", q1)
-        logger.debug("query2 = %s", q2)
+        logger.debug("[get_new_and_missing_nodes] query1 = %s", q1)
+        logger.debug("[get_new_and_missing_nodes], query2 = %s", q2)
 
         # new hosts are in q2, but not in q1
         # absent hosts are in q1, but not in q2
@@ -245,12 +255,12 @@ class LogData(object):
                   r1['facets']['host_facet']['terms']])
         s2 = set([fac['term'] for fac in
                   r2['facets']['host_facet']['terms']])
-        logger.debug("s1 = %s", s1)
-        logger.debug("s2 = %s", s2)
+
         new_nodes = s2.difference(s1)
         missing_nodes = s1.difference(s2)
-        logger.debug("missing_nodes = %s", missing_nodes)
-        logger.debug("new_nodes = %s", new_nodes)
+        logger.debug("[get_new_and_missing_nodes] missing_nodes = %s",
+                     missing_nodes)
+        logger.debug("[get_new_and_missing_nodes] new_nodes = %s", new_nodes)
         return {
             "missing_nodes": list(missing_nodes),
             "new_nodes": list(new_nodes)
