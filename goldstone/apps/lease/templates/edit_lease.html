@@ -5,9 +5,13 @@
 {% block localcss %}
 <link href="{% static 'css/lease.css' %}"
     rel="stylesheet" media="screen">
+    <link href="{% static 'css/jquery-ui.css' %}"
+        rel="stylesheet" media="screen">
 {% endblock %}
 
 {% block localjs %}
+<script src="{% static 'js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/jquery-ui-timepicker-addon.js' %}"></script>
 <script src="{% static 'js/lease.js' %}"></script>
 {% endblock %}
 
