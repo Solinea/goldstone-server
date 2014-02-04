@@ -34,3 +34,11 @@ APACHE_LOG_LEVEL (?:emerg|alert|crit|error|warn|notice|info|debug)
 APACHE_DATETIME_ERROR %{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{YEAR}
 
 RABBITMQ_DATE %{MONTHDAY}-%{MONTH}-%{YEAR}::%{TIME}
+
+
+#
+# TODO not sure if this is different from the one included in logstash, possibly remove it and update the 
+#      logstash config on the indexer
+MYSYSLOG5424LINE %{SYSLOG5424PRI:syslog5424_pri}%{NONNEGINT:syslog5424_ver} (%{TIMESTAMP_ISO8601:syslog5424_ts}|-) (%{HOSTNAME:syslog5424_host}|-) (%{WORD:syslog5424_app}|-) (%{WORD:syslog5424_proc}|-) (%{WORD:syslog5424_msgid}|-) %{GREEDYDATA:syslog5424_msg}
+
+OS_NODEINFO cpu_model=%{WORD:cpu_model},mem_mbytes=%{POSINT:mem_mbytes},total_vcpus=%{POSINT:total_vcpus},cpu_mhz=%{POSINT:cpu_mhz},threads_per_core=%{POSINT:threads_per_core},cpu_sockets=%{POSINT:cpu_sockets},cores_per_socket=%{POSINT:cores_per_socket},numa_cells=%{POSINT:numa_cells}%{GREEDYDATA}
