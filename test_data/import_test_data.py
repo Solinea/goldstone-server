@@ -14,10 +14,11 @@ finally:
 conn.indices.create("logstash_test", body=template)
 data_f = gzip.open('./data.json.gz', 'r')
 data = json.load(data_f)
-for event in data['hits']['hits']:
-    print "indexing event: ", event
-    rv = conn.index('logstash_test', 'logs', event['_source'])
-    print "result: ", rv
+for dataset in data:
+    for event in dataset['hits']['hits']:
+        print "indexing event: ", event
+        rv = conn.index('logstash_test', 'logs', event['_source'])
+        print "result: ", rv
 
 conn.indices.refresh(["logstash_test"])
 
