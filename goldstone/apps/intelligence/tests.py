@@ -25,7 +25,7 @@ class LogDataModel(TestCase):
     maxDiff = None
     INDEX_NAME = 'logstash-test'
     DOCUMENT_TYPE = 'logs'
-    TOTAL_DOCS = 500
+    TOTAL_DOCS = 1000
     conn = Elasticsearch(settings.ES_SERVER)
 
     def setUp(self):
@@ -47,9 +47,10 @@ class LogDataModel(TestCase):
                                         "..", "test_data",
                                         "data.json.gz"))
         data = json.load(data_f)
-        for event in data['hits']['hits']:
-            rv = self.conn.index(self.INDEX_NAME, self.DOCUMENT_TYPE,
-                                 event['_source'])
+        for dataset in data:
+            for event in dataset['hits']['hits']:
+                rv = self.conn.index(self.INDEX_NAME, self.DOCUMENT_TYPE,
+                                     event['_source'])
 
         self.conn.indices.refresh([self.INDEX_NAME])
         q = {"query": {"match_all": {}}}
@@ -341,8 +342,43 @@ class LogDataModel(TestCase):
         }
         result = LogData().get_new_and_missing_nodes(self.conn, long_lookback,
                                                      short_lookback, end)
-
         self.assertEqual(result, control)
+
+    def test_get_hypervisor_stats(self):
+        '''
+        all tests should look at data after 2014-02-04 20:03:01 UTC.  There
+        were some different data formats prior to that date that made it into
+        the dev ES database.
+        '''
+
+        start = datetime(2014, 2, 1, 0, 0, 0, 0, pytz.utc)
+        end = datetime(2014, 3, 1, 0, 0, 0, 0, pytz.utc)
+
+        test_q = {
+            "query": {
+                "filtered": {
+                    "filter": {
+                        "term": {
+                            "type": "goldstone_nodeinfo"
+                        }
+                    },
+                    "query": {
+                        "range": {
+                            "@timestamp": {
+                                "gte": start.isoformat(),
+                                "lte": end.isoformat()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        sort = {'@timestamp': {'order': 'asc'}}
+        control = self.conn.search(index="_all", body=test_q, sort=sort)
+        result = LogData().get_hypervisor_stats(self.conn, start, end,
+                                                0, 10, sort)
+        self.assertEqual(result['hits'], control['hits'])
 
 
 class IntelViewTest(TestCase):

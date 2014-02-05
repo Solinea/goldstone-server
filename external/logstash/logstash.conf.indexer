@@ -29,6 +29,13 @@ input {
         type => syslog
         #tags => ["logstash-server"]
     }
+
+    # this will handle log events from python agent
+    # the native python logger only supports udp until 3.x
+    udp {
+        port => 5514
+        type => syslog
+    }
 }
 
 ###############################################################
@@ -40,24 +47,40 @@ input {
 filter {
 
     #
-    # SYSLOG MESSAGES
+    # SYSLOG MESSAGES FROM GOLDSTONE
     #
     if ([type] == "syslog") {
     	grok {
-            overwrite => "message"
-            match => { "message" => "%{SYSLOGLINE}" }
+            patterns_dir => "/opt/logstash/patterns"
+            overwrite => ["message", "host"]
+            match => { "message" => "%{MYSYSLOG5424LINE}" }
             add_field => [ "received_at", "%{@timestamp}" ]
             add_field => [ "received_from", "%{host}" ]
         }
         date {
-            match => [ "timestamp", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss", "ISO8601" ]
-            remove_field => "timestamp"
+            match => [ "syslog5424_ts", "ISO8601" ]
+            remove_field => "syslog5424_ts"
         }
-        if !("_grokparsefailure" in [tags]) {
+        mutate {
+            rename => [ "syslog5424_host", "host" ]
+            rename => [ "syslog5424_msg", "message" ]
+        }
+
+        if ([syslog5424_app] == "goldstone_nodeinfo") {
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "message" => "%{OS_NODEINFO}" }
+            }
             mutate {
-                rename => ["logsource", "host"]
+                rename => [ "syslog5424_app", "type" ]
+                remove_field => "syslog5424_msgid"
+                remove_field => "syslog5424_proc"
+                remove_field => "syslog5424_pri"
+                remove_field => "syslog5424_ver"
             }
         }
+        #if !("_grokparsefailure" in [tags]) {
+        #}
     }
 
 
@@ -165,7 +188,8 @@ output {
   #
   # debugging output.  replace for production.
   #
-  stdout { debug => true codec => 'json' }
+
+  stdout { debug => true codec => 'plain' }
 
   #
   # production output

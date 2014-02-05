@@ -265,3 +265,18 @@ class LogData(object):
             "missing_nodes": list(missing_nodes),
             "new_nodes": list(new_nodes)
         }
+
+    def get_hypervisor_stats(self, conn, start, end=datetime.now(tz=pytz.utc),
+                             first=0, size=10, sort=''):
+
+        type_filter = self._term_filter("type", "goldstone_nodeinfo")
+        q = self._range_query('@timestamp', start.isoformat(),
+                              end.isoformat())
+        q['filter'] = type_filter
+        fq = {
+            'query': {'filtered': q}
+        }
+
+        logger.debug("[get_hypervisor_stats] query = %s", fq)
+        return conn.search(index="_all", body=fq, from_=first, size=size,
+                           sort=sort)

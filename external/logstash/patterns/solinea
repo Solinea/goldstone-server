@@ -34,3 +34,7 @@ APACHE_LOG_LEVEL (?:emerg|alert|crit|error|warn|notice|info|debug)
 APACHE_DATETIME_ERROR %{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{YEAR}
 
 RABBITMQ_DATE %{MONTHDAY}-%{MONTH}-%{YEAR}::%{TIME}
+
+MYSYSLOG5424LINE %{SYSLOG5424PRI:syslog5424_pri}%{NONNEGINT:syslog5424_ver} (%{TIMESTAMP_ISO8601:syslog5424_ts}|-) (%{HOSTNAME:syslog5424_host}|-) (%{WORD:syslog5424_app}|-) (%{WORD:syslog5424_proc}|-) (%{WORD:syslog5424_msgid}|-) %{GREEDYDATA:syslog5424_msg}
+
+OS_NODEINFO cpu_model=%{WORD:cpu_model},mem_mbytes=%{NONNEGINT:mem_mbytes:int},total_vcpus=%{NONNEGINT:total_vcpus:int},cpu_mhz=%{NONNEGINT:cpu_mhz:int},threads_per_core=%{NONNEGINT:threads_per_core:int},cpu_sockets=%{NONNEGINT:cpu_sockets:int},cores_per_socket=%{NONNEGINT:cores_per_socket:int},numa_cells=%{NONNEGINT:numa_cells:int},total_vms=%{NONNEGINT:total_vms:int},active_vms=%{NONNEGINT:active_vms:int},inactive_vms=%{NONNEGINT:inactive_vms:int}%{GREEDYDATA}
