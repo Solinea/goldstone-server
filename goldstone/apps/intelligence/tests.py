@@ -351,8 +351,8 @@ class LogDataModel(TestCase):
         the dev ES database.
         '''
 
-        start = datetime(2014, 2, 4, 20, 0, 0, 0, pytz.utc)
-        end = datetime(2014, 3, 4, 20, 0, 0, 0, pytz.utc)
+        start = datetime(2014, 2, 1, 0, 0, 0, 0, pytz.utc)
+        end = datetime(2014, 3, 1, 0, 0, 0, 0, pytz.utc)
 
         test_q = {
             "query": {
