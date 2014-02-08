@@ -4,7 +4,7 @@ from datetime import *
 import pytz
 import gzip
 
-conn = Elasticsearch("10.10.11.121:9200", bulk_size=500)
+conn = Elasticsearch("10.10.11.122:9200", bulk_size=500)
 
 #mapping_f = gzip.open("./mapping.json.gz", 'wb')
 data_f = gzip.open('data.json.gz', 'wb')
@@ -14,7 +14,7 @@ template = conn.indices.get_template('logstash')
 json.dump(template['logstash'], template_f)
 template_f.close()
 
-end = datetime(2014, 02, 28, 23, 59, 59, tzinfo=pytz.utc)
+end = datetime(2014, 02, 07, 23, 59, 59, tzinfo=pytz.utc)
 start = end - timedelta(weeks=52)
 
 
@@ -64,8 +64,8 @@ print fq
 
 result = [conn.search(index="_all", body=fq, size=500)]
 
-end = datetime(2014, 02, 06, 0, 0, 0, tzinfo=pytz.utc)
-start = end - timedelta(weeks=1)
+end = datetime(2014, 02, 07, 23, 59, 59, tzinfo=pytz.utc)
+start = end - timedelta(weeks=4)
 fq = {
     "query": {
         "filtered": {

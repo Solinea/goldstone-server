@@ -32,7 +32,7 @@ class LogDataModel(TestCase):
 
         template_f = gzip.open(os.path.join(os.path.dirname(__file__), "..",
                                             "..", "..", "test_data",
-                                            "data.json.gz"), 'rb')
+                                            "template.json.gz"), 'rb')
         template = json.load(template_f)
 
         try:
@@ -57,11 +57,11 @@ class LogDataModel(TestCase):
         rs = self.conn.search(body=q, index="_all")
         self.assertEqual(rs['hits']['total'], self.TOTAL_DOCS)
 
-    def tearDown(self):
-        try:
-            self.conn.indices.delete("_all")
-        finally:
-            {}
+    #def tearDown(self):
+    #    try:
+    #        self.conn.indices.delete("_all")
+    #    finally:
+    #        {}
 
     def test_get_connection(self):
         q = dict(query={"match_all": {}})
@@ -351,22 +351,63 @@ class LogDataModel(TestCase):
         the dev ES database.
         '''
 
-        start = datetime(2014, 2, 1, 0, 0, 0, 0, pytz.utc)
-        end = datetime(2014, 3, 1, 0, 0, 0, 0, pytz.utc)
+        start = datetime(2014, 2, 7, 0, 0, 0, 0, pytz.utc)
+        end = datetime(2014, 2, 7, 23, 59, 59, 999, pytz.utc)
+        interval = 'hour'
 
         test_q = {
             "query": {
-                "filtered": {
-                    "filter": {
-                        "term": {
-                            "type": "goldstone_nodeinfo"
+                "bool": {
+                    "must": [
+                        {
+                            "range": {
+                                "@timestamp": {
+                                    "gte": start.isoformat(),
+                                    "lte": end.isoformat()
+                                }
+                            }
+                        },
+                        {
+                            "term": {
+                                "type": "goldstone_nodeinfo"
+                            }
                         }
+                    ]
+                }
+            },
+            "aggs": {
+                "events_by_date": {
+                    "date_histogram": {
+                        "field": "@timestamp",
+                        "interval": interval
                     },
-                    "query": {
-                        "range": {
-                            "@timestamp": {
-                                "gte": start.isoformat(),
-                                "lte": end.isoformat()
+                    "aggs": {
+                        "events_by_host": {
+                            "terms": {
+                                "field": "host.raw"
+                            }
+                            ,
+                            "aggs": {
+                                "max_total_vcpus": {
+                                    "max": {
+                                        "field": "total_vcpus"
+                                    }
+                                },
+                                "avg_total_vcpus": {
+                                    "avg": {
+                                        "field": "total_vcpus"
+                                    }
+                                },
+                                "max_active_vcpus": {
+                                    "max": {
+                                        "field": "active_vcpus"
+                                    }
+                                },
+                                "avg_active_vcpus": {
+                                    "avg": {
+                                        "field": "active_vcpus"
+                                    }
+                                }
                             }
                         }
                     }
@@ -374,11 +415,10 @@ class LogDataModel(TestCase):
             }
         }
 
-        sort = {'@timestamp': {'order': 'asc'}}
-        control = self.conn.search(index="_all", body=test_q, sort=sort)
+        control = self.conn.search(index="_all", body=test_q, sort='')
         result = LogData().get_hypervisor_stats(self.conn, start, end,
-                                                0, 10, sort)
-        self.assertEqual(result['hits'], control['hits'])
+                                                interval)
+        self.assertEqual(result['aggregations'], control['aggregations'])
 
 
 class IntelViewTest(TestCase):
@@ -400,6 +440,29 @@ class IntelViewTest(TestCase):
         start = end - timedelta(weeks=4)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
-        response = self.client.get('/intelligence/log/cockpit?start_time' +
+        response = self.client.get('/intelligence/log/cockpit?start_time=' +
                                    str(start_ts) + "&end_time=" + str(end_ts))
         self.assertEqual(response.status_code, 200)
+
+    def test_vcpu_stats_view(self):
+        start = datetime(2014, 2, 7, 0, 0, 0, 0, pytz.utc)
+        end = datetime(2014, 2, 7, 23, 59, 59, 999, pytz.utc)
+        end_ts = calendar.timegm(end.utctimetuple())
+        start_ts = calendar.timegm(start.utctimetuple())
+        response = self.client.get(
+            '/intelligence/compute/vcpu_stats?start_time=' + str(start_ts) +
+            "&end_time=" + str(end_ts) + "&interval=hour")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json.loads(response.content),
+                         {"1391806800000": {"total_configured_vcpus": 96.0,
+                                            "avg_inuse_vcpus": 7.0,
+                                            "avg_configured_vcpus": 96.0,
+                                            "total_inuse_vcpus": 7.0},
+                          "1391810400000": {"total_configured_vcpus": 96.0,
+                                            "avg_inuse_vcpus": 7.0,
+                                            "avg_configured_vcpus": 96.0,
+                                            "total_inuse_vcpus": 7.0},
+                          "1391814000000": {"total_configured_vcpus": 96.0,
+                                            "avg_inuse_vcpus": 7.0,
+                                            "avg_configured_vcpus": 96.0,
+                                            "total_inuse_vcpus": 7.0}})

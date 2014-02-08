@@ -6,25 +6,24 @@
     <link href="{% static 'intelligence/css/intelligence.css' %}"
           rel="stylesheet" media="screen">
     <link href="{% static 'css/dc.css' %}" rel="stylesheet" media="screen"/>
+    <link href="{% static 'css/nv.d3.css' %}" rel="stylesheet" media="screen"/>
 {% endblock %}
 
 {% block localjs %}
     <script src="{% static 'js/plugins/dataTables/jquery.dataTables.js' %}"></script>
     <script src="{% static 'js/plugins/dataTables/dataTables.bootstrap.js' %}"></script>
     <script src="{% static 'js/d3.js' %}"></script>
+    <script src="{% static 'js/nv.d3.js' %}"></script>
     <script src="{% static 'js/crossfilter.js' %}"></script>
     <script src="{% static 'js/dc.js' %}"></script>
-    <script src="{% static 'js/cockpit.js' %}"></script>
     <script src="{% static 'intelligence/js/intelligence.js' %}"></script>
+    <script src="{% static 'js/cockpit.js' %}"></script>
+
 
 {% endblock %}
 
 
 {% block content %}
-
-    <!-- <div class="page-header">
-      <h1><i class="fa fa-calendar"></i> Leases</h1>
-    </div> -->
 
     <div class="row">
         <div id="lease-col" class="col-md-6">
@@ -71,6 +70,15 @@
         </div>
     </div>
 
+    <div class="row" style="height:400px">
+        <div id="row3-col1" class="col-md-6">
+
+        </div>
+        </div>
+        <div id="row3-col2" class="col-md-6">
+
+        </div>
+    </div>
 
 {% endblock %}
 

@@ -22,12 +22,15 @@ function draw_cockpit_panel(interval, location, end) {
 
     end = typeof end !== 'undefined' ? new Date(Number(end) * 1000) : new Date();
 
-    $("#log-cockpit-loading-indicator").show();
-    $("#log-cockpit-loading-indicator").position({
+    console.log("draw_cockpit_panel called with [interval, location, end] = ["+
+        interval+","+location+","+end+"]");
+
+    /*$("#loading-indicator").show();
+    $("#loading-indicator").position({
         my: "center",
         at: "center",
         of: location
-    });
+    });*/
 
     var xUnitInterval = function (interval) {
         if (interval == 'minute') {
@@ -69,8 +72,8 @@ function draw_cockpit_panel(interval, location, end) {
             }
 
             var uri = '/intelligence/search?start_time='.
-                    concat(String(Math.round(start.getTime()/1000)),
-                    "&end_time=", String(Math.round(end.getTime()/1000)),
+                concat(String(Math.round(start.getTime() / 1000)),
+                    "&end_time=", String(Math.round(end.getTime() / 1000)),
                     "&interval=", new_interval);
             window.location.assign(uri);
         });
@@ -78,22 +81,21 @@ function draw_cockpit_panel(interval, location, end) {
 
     var panelWidth = $(location).width();
     var panelHeight = 300;
-    var margin = {top: 30, right: 30, bottom: 30, left: 40};
+    var margin = {top: 30, right: 30, bottom: 60, left: 50};
 
-    var chart = dc.barChart(location);
     var start = new Date(end);
     if (interval === 'hour') {
-                start.addHours(-1);
-            } else if (interval === 'day') {
-                start.addDays(-1);
-            } else if (interval === 'month') {
-                start.addWeeks(-4);
-            } else if (interval === 'minute') {
-                start.addMinutes(-1);
-            }
+        start.addHours(-1);
+    } else if (interval === 'day') {
+        start.addDays(-1);
+    } else if (interval === 'month') {
+        start.addWeeks(-4);
+    } else if (interval === 'minute') {
+        start.addMinutes(-1);
+    }
     var uri = "/intelligence/log/cockpit/data?start_time=".
-        concat(String(Math.round(start.getTime()/1000)),
-            "&end_time=", String(Math.round(end.getTime()/1000)),
+        concat(String(Math.round(start.getTime() / 1000)),
+            "&end_time=", String(Math.round(end.getTime() / 1000)),
             "&interval=", interval);
 
     d3.json(uri, function (error, events) {
@@ -139,8 +141,9 @@ function draw_cockpit_panel(interval, location, end) {
 
             var minDate = timeDim.bottom(1)[0].time;
             var maxDate = timeDim.top(1)[0].time;
-
-            chart
+            console.log("in draw_log_cockpit, panelWidth = " + panelWidth);
+            var logChart = dc.barChart(location);
+            logChart
                 .width(panelWidth)
                 .height(panelHeight)
                 .margins(margin)
@@ -166,12 +169,218 @@ function draw_cockpit_panel(interval, location, end) {
                         + "\n\n" + d.value.warnEvents + " WARNINGS";
                 });
 
-            chart.render();
-            $("#log-cockpit-loading-indicator").hide();
+            logChart.render();
+            //$("#loading-indicator").hide();
         }
 
     });
 }
+
+function vcpu_graph(interval, location, end, start) {
+
+    interval = typeof interval !== 'undefined' ?
+        interval :
+        'month';
+
+    end = typeof end !== 'undefined' ?
+        new Date(Number(end) * 1000) :
+        new Date();
+
+    if (typeof start === 'undefined') {
+        start = new Date(end);
+
+        if (interval === 'month') {
+            start.addWeeks(-4);
+        } else if (interval === 'day') {
+            start.addDays(-1);
+        } else if (interval === 'hour') {
+            start.addHours(-1);
+        } else if (interval === 'minute') {
+            start.addMinutes(-1);
+        }
+    } else {
+        start = new Date(Number(start) * 1000)
+    }
+
+    console.log("vcpu_graph called with [interval, location, start, end] = ["+
+        interval+","+location+","+start+","+end+"]");
+
+    /*$("#loading-indicator").show();
+    $("#loading-indicator").position({
+        my: "center",
+        at: "center",
+        of: location
+    });*/
+
+    var xUnitInterval = function (interval) {
+        if (interval == 'minute') {
+            return d3.time.seconds;
+        } else if (interval == 'hour') {
+            return d3.time.minutes;
+        } else if (interval == 'day') {
+            return d3.time.hours;
+        } else if (interval == 'month') {
+            return d3.time.days;
+        } else {
+            raiseDanger("Valid intervals are 'month', 'day', " +
+                "'hour', and 'minute'")
+            return d3.time.days;
+        }
+    }
+
+    var panelWidth = $(location).width();
+    var panelHeight = 300;
+    var margin = {top: 30, right: 30, bottom: 60, left: 50};
+
+    var vcpuChart = dc.barChart(location);
+
+    var uri = "/intelligence/compute/vcpu_stats?start_time=".
+        concat(String(Math.round(start.getTime() / 1000)),
+            "&end_time=", String(Math.round(end.getTime() / 1000)));
+
+
+    d3.json(uri, function (error, events) {
+
+        console.log("events = " + JSON.stringify(events))
+        if (events.length == 0) {
+            $(location).html("<h2>No vCPU data found.<h2>");
+        } else {
+            events.forEach(function (d) {
+                d.time = Date.parse(d['@timestamp']);
+                //console.log("date = " + d.time + ", total_vcpus = " + d['_source']['total_vcpus'])
+                d.active_vcpus = +d.active_vcpus;
+                d.total_vcpus = +d.total_vcpus;
+                //d.host = d._source.host
+            });
+
+            var xf = crossfilter(events);
+            var timeDim = xf.dimension(function (d) {
+                //console.log("Using time dimension of "+xUnitInterval(interval))
+                return xUnitInterval(interval);
+            });
+
+            var hostDim = xf.dimension(function (d) {
+                return d.host;
+            });
+
+            var hosts = hostDim.top(Infinity);
+
+            var vcpuGroup = timeDim.group().reduce(
+                // called when data is added to xf.
+                function (p, v) {
+                    console.log("*************** on enter ***************");
+                    console.log("v.host: " + JSON.stringify(v.host));
+                    console.log("p[total_vcpus]: " + JSON.stringify(p.total_vcpus));
+                    console.log("p[active_vcpus]: " + JSON.stringify(p.active_vcpus));
+                    console.log("p[" + v.host + "]: " + JSON.stringify(p[v.host]));
+                    p.total_vcpus = p.total_vcpus - p[v['host']].avg_total;
+                    p.active_vcpus = p.active_vcpus - p[v['host']].avg_active;
+                    p[v['host']].count++;
+                    p[v['host']].sum_total += v.total_vcpus;
+                    p[v['host']].sum_active += v.active_vcpus;
+                    p[v['host']].avg_total = p[v['host']].sum_total / p[v['host']].count;
+                    p[v['host']].avg_active = p[v['host']].sum_active / p[v['host']].count;
+                    p.total_vcpus = p.total_vcpus + p[v['host']].avg_total;
+                    p.active_vcpus = p.active_vcpus + p[v['host']].avg_active;
+                    console.log("*************** on exit ***************");
+                    console.log("p[total_vcpus]: " + JSON.stringify(p.total_vcpus));
+                    console.log("p[active_vcpus]: " + JSON.stringify(p.active_vcpus));
+                    console.log();
+                    console.log();
+                    return p;
+                },
+                // called when data is removed from xf.
+                function (p, v) {
+                    console.log("*************** on enter ***************");
+                    console.log("v.host: " + JSON.stringify(v.host));
+                    console.log("p[total_vcpus]: " + JSON.stringify(p.total_vcpus));
+                    console.log("p[active_vcpus]: " + JSON.stringify(p.active_vcpus));
+                    console.log("p[" + v.host + "]: " + JSON.stringify(p[v.host]));
+                    p.total_vcpus = p.total_vcpus - p[v['host']].avg_total;
+                    p.active_vcpus = p.active_vcpus - p[v['host']].avg_active;
+                    p[v['host']].count--;
+                    p[v['host']].sum_total -= v.total_vcpus;
+                    p[v['host']].sum_active -= v.active_vcpus;
+                    if (p[v['host']].count <= 0) {
+                        p[v['host']].avg_total = 0;
+                        p[v['host']].avg_active = 0;
+                    } else {
+                        p[v['host']].avg_total = p[v['host']].sum_total / p[v['host']].count;
+                        p[v['host']].avg_active = p[v['host']].sum_active / p[v['host']].count;
+                    }
+                    p.total_vcpus = p.total_vcpus + p[v['host']].avg_total;
+                    p.active_vcpus = p.active_vcpus + p[v['host']].avg_active;
+                    console.log("*************** on exit ***************");
+                    console.log("p[total_vcpus]: " + JSON.stringify(p.total_vcpus));
+                    console.log("p[active_vcpus]: " + JSON.stringify(p.active_vcpus));
+                    console.log();
+                    console.log();
+                    return p;
+                },
+                // initialize p.  would like to keep track of avg and max for each host
+                // that appears in the time slice.
+                function () {
+                    var p = {};
+                    for (var i = 0; i < hosts.length; i++) {
+                        //console.log("in outer reduce:init, hosts["+i+"] = " + JSON.stringify(hosts[i]))
+                        p[hosts[i]['host']] = {
+                            'count': 0,
+                            'avg_total': 0,
+                            'sum_total': 0,
+                            'avg_active': 0,
+                            'sum_active': 0
+                        };
+                        p['total_vcpus'] = 0;
+                        p['active_vcpus'] = 0;
+                    }
+                    ;
+                    return p;
+                });
+
+            console.log("totalVcpuGroup #groups = " + vcpuGroup.size());
+            console.log("in draw_vcpu_graph, panelWidth = " + panelWidth);
+            var minDate = timeDim.bottom(1)[0].time;
+            var maxDate = timeDim.top(1)[0].time;
+
+            console.log("minDate = " + new Date(minDate) + ", maxDate = " + new Date(maxDate))
+
+            vcpuChart
+                .width(panelWidth)
+                .height(panelHeight)
+                .margins(margin)
+                .x(d3.time.scale().domain([minDate, maxDate]))
+                .xUnits(xUnitInterval(interval))
+                .brushOn(false)
+                //.yAxisLabel("vCPUs")
+                .dimension(timeDim)
+                .group(vcpuGroup, "Total vCPUs")
+                .valueAccessor(function (d) {
+                    //console.log("in valueAccessor, returning total = " + d.value.total_vcpus);
+                    return d.value.total_vcpus;
+                })
+                .stack(vcpuGroup, "Active vCPUs", function (d) {
+                    //console.log("in valueAccessor, returning active = " + d.value.active_vcpus);
+                    return d.value.active_vcpus;
+                })
+                .renderHorizontalGridLines(true)
+                .centerBar(true)
+                .elasticY(true)
+                .legend(dc.legend().x(100).y(10))
+                .title(function (d) {
+                    return d.key
+                        + "\n\n" + d.value.total_vcpus + " total vCPUs"
+                        + "\n\n" + d.value.active_vcpus + " active vCPUs";
+                });
+
+            vcpuChart.render();
+
+            //$("#loading-indicator").hide();
+        }
+
+    });
+
+}
+
 
 function draw_search_table(start, end, location) {
 
@@ -186,29 +395,29 @@ function draw_search_table(start, end, location) {
         "bInfo": false,
         "bAutoWidth": true,
         "bLengthChange": true,
-        "aoColumnDefs":[
-                { "bVisible": false, "aTargets": [ 5,6,7,8,9,10 ] },
-                { "sName": "timestamp", "aTargets": [ 0 ] },
-                { "sType": "date", "aTargets": [0] },
-                { "sName": "loglevel", "aTargets": [ 1 ] },
-                { "sName": "component", "aTargets": [ 2 ] },
-                { "sName": "host", "aTargets": [ 3 ] },
-                { "sName": "message", "aTargets": [ 4 ] },
-                { "sName": "location", "aTargets": [ 5 ] },
-                { "sName": "pid", "aTargets": [ 6 ] },
-                { "sName": "source", "aTargets": [ 7 ] },
-                { "sName": "request_id", "aTargets": [ 8 ] },
-                { "sName": "type", "aTargets": [ 9 ] },
-                { "sName": "received", "aTargets": [ 10 ] },
-                { "sType": "date", "aTargets": [10] }
-            ]
+        "aoColumnDefs": [
+            { "bVisible": false, "aTargets": [ 5, 6, 7, 8, 9, 10 ] },
+            { "sName": "timestamp", "aTargets": [ 0 ] },
+            { "sType": "date", "aTargets": [0] },
+            { "sName": "loglevel", "aTargets": [ 1 ] },
+            { "sName": "component", "aTargets": [ 2 ] },
+            { "sName": "host", "aTargets": [ 3 ] },
+            { "sName": "message", "aTargets": [ 4 ] },
+            { "sName": "location", "aTargets": [ 5 ] },
+            { "sName": "pid", "aTargets": [ 6 ] },
+            { "sName": "source", "aTargets": [ 7 ] },
+            { "sName": "request_id", "aTargets": [ 8 ] },
+            { "sName": "type", "aTargets": [ 9 ] },
+            { "sName": "received", "aTargets": [ 10 ] },
+            { "sType": "date", "aTargets": [10] }
+        ]
     }
 
     var oTable = $(location).dataTable(oTableParams);
 
     $(window).bind('resize', function () {
         oTable.fnAdjustColumnSizing();
-    } );
+    });
 }
 
 /*

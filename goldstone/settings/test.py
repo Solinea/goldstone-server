@@ -1,6 +1,6 @@
 from .base import *
 
-DEBUG = False
+DEBUG = True
 
 DATABASES = {
     "default": {
@@ -49,7 +49,8 @@ LOGGING = {
             'level': 'DEBUG',
         },
         'goldstone': {
-            'level': 'INFO',
+            # set this to DEBUG if you need more detail
+            'level': 'DEBUG',
             'handlers': ['console']
         },
     },
