@@ -20,11 +20,14 @@ Date.prototype.addWeeks = function (d) {
 
 function draw_cockpit_panel(interval, location, end) {
 
-    var panelWidth = $(location.parent).width();
-    var panelHeight = 300;
-    var margin = {top: 30, right: 30, bottom: 60, left: 50};
-
     end = typeof end !== 'undefined' ? new Date(Number(end) * 1000) : new Date();
+
+    $("#loading-indicator").show();
+    $("#loading-indicator").position({
+        my: "center",
+        at: "center",
+        of: location
+    });
 
     var xUnitInterval = function (interval) {
         if (interval == 'minute') {
@@ -74,6 +77,11 @@ function draw_cockpit_panel(interval, location, end) {
     };
 
 
+    var panelWidth = $(location).width();
+    var panelHeight = 300;
+    var margin = {top: 30, right: 30, bottom: 30, left: 40};
+
+    var logChart = dc.barChart(location);
 
     var start = new Date(end);
     if (interval === 'hour') {
@@ -92,13 +100,6 @@ function draw_cockpit_panel(interval, location, end) {
             "&interval=", interval);
 
     d3.json(uri, function (error, events) {
-
-        $("#loading-indicator").show();
-        $("#loading-indicator").position({
-            my: "center",
-            at: "center",
-            of: location
-        });
 
         if (events.data.length == 0) {
             $(location).html("<h2>No log data found.<h2>");
@@ -142,7 +143,6 @@ function draw_cockpit_panel(interval, location, end) {
             var minDate = timeDim.bottom(1)[0].time;
             var maxDate = timeDim.top(1)[0].time;
 
-            var logChart = dc.barChart(location);
             logChart
                 .width(panelWidth)
                 .height(panelHeight)
@@ -162,7 +162,7 @@ function draw_cockpit_panel(interval, location, end) {
                 .elasticY(true)
                 .brushOn(false)
                 .renderlet(click_renderlet)
-                .legend(dc.legend().x(100).y(10))
+                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
                 .title(function (d) {
                     return d.key
                         + "\n\n" + d.value.errorEvents + " ERRORS"
@@ -199,16 +199,16 @@ function vcpu_graph(interval, location, end, start) {
         start = new Date(Number(start) * 1000);
     }
 
-    var panelWidth = $(location).width();
-    var panelHeight = 300;
-    var margin = {top: 30, right: 30, bottom: 60, left: 50};
-
     $("#loading-indicator").show();
     $("#loading-indicator").position({
         my: "center",
         at: "center",
         of: location
     });
+
+    var panelWidth = $(location).width();
+    var panelHeight = 300;
+    var margin = {top: 30, right: 30, bottom: 60, left: 50};
 
     var uri = "/intelligence/compute/vcpu_stats?start_time=".
         concat(String(Math.round(start.getTime() / 1000)),
@@ -269,7 +269,7 @@ function vcpu_graph(interval, location, end, start) {
             .xUnits(xUnitInterval)
             .elasticY(true)
             .renderHorizontalGridLines(true)
-            .legend(dc.legend().x(100).y(10).itemHeight(13).gap(5))
+            .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
             .brushOn(false)
             .group(vcpuGroup, "Total vCPUs")
             .valueAccessor(function (d) {

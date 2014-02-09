@@ -1,6 +1,6 @@
 $(document).ready(function() {
     draw_cockpit_panel('month', '#log-cockpit-graph');
-    //vcpu_graph('day', '#vcpu-graph');
+    vcpu_graph('day', '#vcpu-graph');
 
     // activate the interval buttons
 
