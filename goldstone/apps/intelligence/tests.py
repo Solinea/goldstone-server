@@ -172,9 +172,9 @@ class LogDataModel(TestCase):
                                    'lte': end.isoformat()}}}, 'facets': {
                     facet_field: {'facet_filter': {'term': {
                         filter_field: filter_value}},
-                        'terms': {'field': facet_field,
-                                  'all_terms': True,
-                                  'order': 'term'}}}}
+                                  'terms': {'field': facet_field,
+                                            'all_terms': True,
+                                            'order': 'term'}}}}
                 r = self.conn.search(index="_all", body=test_q)
                 control[filter_value] = r['facets']
 
@@ -454,15 +454,19 @@ class IntelViewTest(TestCase):
             "&end_time=" + str(end_ts) + "&interval=hour")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response.content),
-                         {"1391806800000": {"total_configured_vcpus": 96.0,
-                                            "avg_inuse_vcpus": 7.0,
-                                            "avg_configured_vcpus": 96.0,
-                                            "total_inuse_vcpus": 7.0},
-                          "1391810400000": {"total_configured_vcpus": 96.0,
-                                            "avg_inuse_vcpus": 7.0,
-                                            "avg_configured_vcpus": 96.0,
-                                            "total_inuse_vcpus": 7.0},
-                          "1391814000000": {"total_configured_vcpus": 96.0,
-                                            "avg_inuse_vcpus": 7.0,
-                                            "avg_configured_vcpus": 96.0,
-                                            "total_inuse_vcpus": 7.0}})
+                         [{u'values': [[1391806800000, 96.0],
+                                      [1391810400000, 96.0],
+                                      [1391814000000, 96.0]],
+                           u'key': u'max_tot_vcpus'},
+                          {u'values': [[1391806800000, 96.0],
+                                      [1391810400000, 96.0],
+                                      [1391814000000, 96.0]],
+                           u'key': u'avg_tot_vcpus'},
+                          {u'values': [[1391806800000, 7.0],
+                                      [1391810400000, 7.0],
+                                      [1391814000000, 7.0]],
+                           u'key': u'max_inuse_vcpus'},
+                          {u'values': [[1391806800000, 7.0],
+                                      [1391810400000, 7.0],
+                                      [1391814000000, 7.0]],
+                          u'key': u'avg_inuse_vcpus'}])

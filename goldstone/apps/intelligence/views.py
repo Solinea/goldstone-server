@@ -44,10 +44,6 @@ class IntelLogCockpitView(TemplateView):
     template_name = 'log-cockpit.html'
 
 
-class IntelVcpuCockpitView(TemplateView):
-    template_name = 'vcpu-cockpit.html'
-
-
 def log_cockpit_summary(request):
 
     end_time = request.GET.get('end_time')
@@ -153,40 +149,47 @@ def log_search_data(request, start_time, end_time):
                         content_type="application/json")
 
 
+def _calc_start(interval, end):
+    options = {'day': timedelta(weeks=4), 'hour': timedelta(days=1),
+               'minute': timedelta(hours=1), 'second': timedelta(minutes=1)}
+    return end - options[interval]
+
+
 def compute_vcpu_stats(request):
 
-    end_time = request.GET.get('end_time')
-    start_time = request.GET.get('start_time')
-    interval = request.GET.get('interval')
+    interval = request.GET.get('interval', 'day')
+    end_time = request.GET.get('end_time',
+                               calendar.timegm(
+                                   datetime.now(tz=pytz.utc).utctimetuple()))
+    end_dt = datetime.fromtimestamp(int(end_time), tz=pytz.utc)
+    start_time = request.GET.get('start_time',
+                                 calendar.timegm(
+                                     _calc_start('day', end_dt).
+                                     utctimetuple()))
 
-    end_dt = datetime.fromtimestamp(int(end_time),
-                                    tz=pytz.utc) \
-        if end_time else datetime.now(tz=pytz.utc)
-
-    start_dt = datetime.\
-        fromtimestamp(int(start_time), tz=pytz.utc) \
-        if start_time else end_dt - timedelta(days=1)
+    start_dt = datetime.fromtimestamp(int(start_time), tz=pytz.utc)
 
     conn = LogData.get_connection(settings.ES_SERVER)
 
     ld = LogData()
     raw_data = ld.get_hypervisor_stats(conn, start_dt, end_dt, interval)
     logger.debug("raw_data = %s", json.dumps(raw_data))
-    response = {}
+    response = []
     for date_bucket in raw_data['aggregations']['events_by_date']['buckets']:
-        counters = {
+        item = {
+            'time': date_bucket['key'],
             'total_configured_vcpus': 0,
             'avg_configured_vcpus': 0,
             'total_inuse_vcpus': 0,
             'avg_inuse_vcpus': 0
         }
         for host_bucket in date_bucket['events_by_host']['buckets']:
-            counters['total_configured_vcpus'] += host_bucket['max_total_vcpus']['value']
-            counters['avg_configured_vcpus'] += host_bucket['avg_total_vcpus']['value']
-            counters['total_inuse_vcpus'] += host_bucket['max_active_vcpus']['value']
-            counters['avg_inuse_vcpus'] += host_bucket['avg_active_vcpus']['value']
+            item['total_configured_vcpus'] += host_bucket['max_total_vcpus']['value']
+            item['avg_configured_vcpus'] += host_bucket['avg_total_vcpus']['value']
+            item['total_inuse_vcpus'] += host_bucket['max_active_vcpus']['value']
+            item['avg_inuse_vcpus'] += host_bucket['avg_active_vcpus']['value']
 
-        response[date_bucket['key']] = counters
+        response.append(item)
 
     return HttpResponse(json.dumps(response),
                         content_type="application/json")

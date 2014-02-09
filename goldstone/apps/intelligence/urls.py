@@ -14,8 +14,6 @@ urlpatterns = patterns(
     url(r'^search[/]?$', IntelSearchView.as_view(), name='intel-search'),
     url(r'^log/cockpit[/]?$', IntelLogCockpitView.as_view(),
         name='intel-log-cockpit'),
-    url(r'^vcpu/cockpit[/]?$', IntelVcpuCockpitView.as_view(),
-        name='intel-vcpu-cockpit'),
     # data calls
     url(r'^log/cockpit/data[/]?$',
         log_cockpit_summary, name='intel-log-cockpit-data'),

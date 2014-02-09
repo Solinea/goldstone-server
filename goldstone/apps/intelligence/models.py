@@ -293,7 +293,8 @@ class LogData(object):
                 "events_by_date": {
                     "date_histogram": {
                         "field": "@timestamp",
-                        "interval": interval
+                        "interval": interval,
+                        "min_doc_count": 0
                     },
                     "aggs": {
                         "events_by_host": {
