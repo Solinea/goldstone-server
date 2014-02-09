@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 
 class LogDataModel(TestCase):
-    maxDiff = None
     INDEX_NAME = 'logstash-test'
     DOCUMENT_TYPE = 'logs'
     TOTAL_DOCS = 1000
@@ -172,9 +171,9 @@ class LogDataModel(TestCase):
                                    'lte': end.isoformat()}}}, 'facets': {
                     facet_field: {'facet_filter': {'term': {
                         filter_field: filter_value}},
-                                  'terms': {'field': facet_field,
-                                            'all_terms': True,
-                                            'order': 'term'}}}}
+                        'terms': {'field': facet_field,
+                                  'all_terms': True,
+                                  'order': 'term'}}}}
                 r = self.conn.search(index="_all", body=test_q)
                 control[filter_value] = r['facets']
 
@@ -385,8 +384,7 @@ class LogDataModel(TestCase):
                         "events_by_host": {
                             "terms": {
                                 "field": "host.raw"
-                            }
-                            ,
+                            },
                             "aggs": {
                                 "max_total_vcpus": {
                                     "max": {
@@ -445,6 +443,7 @@ class IntelViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_vcpu_stats_view(self):
+        self.maxDiff = None
         start = datetime(2014, 2, 7, 0, 0, 0, 0, pytz.utc)
         end = datetime(2014, 2, 7, 23, 59, 59, 999, pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
@@ -454,19 +453,20 @@ class IntelViewTest(TestCase):
             "&end_time=" + str(end_ts) + "&interval=hour")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response.content),
-                         [{u'values': [[1391806800000, 96.0],
-                                      [1391810400000, 96.0],
-                                      [1391814000000, 96.0]],
-                           u'key': u'max_tot_vcpus'},
-                          {u'values': [[1391806800000, 96.0],
-                                      [1391810400000, 96.0],
-                                      [1391814000000, 96.0]],
-                           u'key': u'avg_tot_vcpus'},
-                          {u'values': [[1391806800000, 7.0],
-                                      [1391810400000, 7.0],
-                                      [1391814000000, 7.0]],
-                           u'key': u'max_inuse_vcpus'},
-                          {u'values': [[1391806800000, 7.0],
-                                      [1391810400000, 7.0],
-                                      [1391814000000, 7.0]],
-                          u'key': u'avg_inuse_vcpus'}])
+                         [
+                             {u'total_configured_vcpus': 96.0,
+                              u'avg_inuse_vcpus': 7.0,
+                              u'avg_configured_vcpus': 96.0,
+                              u'total_inuse_vcpus': 7.0,
+                              u'time': 1391806800000},
+                             {u'total_configured_vcpus': 96.0,
+                              u'avg_inuse_vcpus': 7.0,
+                              u'avg_configured_vcpus': 96.0,
+                              u'total_inuse_vcpus': 7.0,
+                              u'time': 1391810400000},
+                             {u'total_configured_vcpus': 96.0,
+                              u'avg_inuse_vcpus': 7.0,
+                              u'avg_configured_vcpus': 96.0,
+                              u'total_inuse_vcpus': 7.0,
+                              u'time': 1391814000000}
+                         ])

@@ -17,6 +17,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class IntelSearchView(TemplateView):
     template_name = 'search.html'
 
@@ -184,10 +185,14 @@ def compute_vcpu_stats(request):
             'avg_inuse_vcpus': 0
         }
         for host_bucket in date_bucket['events_by_host']['buckets']:
-            item['total_configured_vcpus'] += host_bucket['max_total_vcpus']['value']
-            item['avg_configured_vcpus'] += host_bucket['avg_total_vcpus']['value']
-            item['total_inuse_vcpus'] += host_bucket['max_active_vcpus']['value']
-            item['avg_inuse_vcpus'] += host_bucket['avg_active_vcpus']['value']
+            item['total_configured_vcpus'] += \
+                host_bucket['max_total_vcpus']['value']
+            item['avg_configured_vcpus'] += \
+                host_bucket['avg_total_vcpus']['value']
+            item['total_inuse_vcpus'] += \
+                host_bucket['max_active_vcpus']['value']
+            item['avg_inuse_vcpus'] += \
+                host_bucket['avg_active_vcpus']['value']
 
         response.append(item)
 

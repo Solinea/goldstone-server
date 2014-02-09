@@ -17,6 +17,7 @@ import json
 
 logger = logging.getLogger(__name__)
 
+
 class LogData(object):
 
     @staticmethod
@@ -300,8 +301,7 @@ class LogData(object):
                         "events_by_host": {
                             "terms": {
                                 "field": "host.raw"
-                            }
-                            ,
+                            },
                             "aggs": {
                                 "max_total_vcpus": {
                                     "max": {
