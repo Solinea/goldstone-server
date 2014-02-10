@@ -19,15 +19,8 @@ Date.prototype.addWeeks = function (d) {
 }
 
 function draw_cockpit_panel(interval, location, end) {
-
+    $("#log-loading-indicator").show();
     end = typeof end !== 'undefined' ? new Date(Number(end) * 1000) : new Date();
-
-    $("#loading-indicator").show();
-    $("#loading-indicator").position({
-        my: "center",
-        at: "center",
-        of: location
-    });
 
     var xUnitInterval = function (interval) {
         if (interval == 'minute') {
@@ -80,6 +73,8 @@ function draw_cockpit_panel(interval, location, end) {
     var panelWidth = $(location).width();
     var panelHeight = 300;
     var margin = {top: 30, right: 30, bottom: 30, left: 40};
+
+
 
     var logChart = dc.barChart(location);
 
@@ -169,14 +164,16 @@ function draw_cockpit_panel(interval, location, end) {
                         + "\n\n" + d.value.warnEvents + " WARNINGS";
                 });
 
+
             logChart.render();
-            $("#loading-indicator").hide();
+            $("#log-loading-indicator").hide();
         }
 
     });
 }
 
 function vcpu_graph(interval, location, end, start) {
+    $("#vcpu-loading-indicator").show();
     interval = typeof interval !== 'undefined' ?
         interval :
         'day';
@@ -199,12 +196,9 @@ function vcpu_graph(interval, location, end, start) {
         start = new Date(Number(start) * 1000);
     }
 
-    $("#loading-indicator").show();
-    $("#loading-indicator").position({
-        my: "center",
-        at: "center",
-        of: location
-    });
+
+
+
 
     var panelWidth = $(location).width();
     var panelHeight = 300;
@@ -282,14 +276,14 @@ function vcpu_graph(interval, location, end, start) {
 
         vcpuChart.render();
 
-        $("#loading-indicator").hide()
+        $("#vcpu-loading-indicator").hide();
 
     });
 }
 
 
 function draw_search_table(start, end, location) {
-
+    $("#log-table-loading-indicator").show();
     var uri = "/intelligence/log/search/data/".concat(String(start), "/", String(end));
     var oTableParams = {
         "bProcessing": true,
@@ -324,6 +318,7 @@ function draw_search_table(start, end, location) {
     $(window).bind('resize', function () {
         oTable.fnAdjustColumnSizing();
     });
+    $("#log-table-loading-indicator").hide();
 }
 
 /*
