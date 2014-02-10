@@ -438,8 +438,9 @@ class IntelViewTest(TestCase):
         start = end - timedelta(weeks=4)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
-        response = self.client.get('/intelligence/log/cockpit/data?start_time=' +
-                                   str(start_ts) + "&end_time=" + str(end_ts))
+        response = self.client.get(
+            '/intelligence/log/cockpit/data?start_time=' +
+            str(start_ts) + "&end_time=" + str(end_ts))
         self.assertEqual(response.status_code, 200)
 
     def test_vcpu_stats_view(self):
