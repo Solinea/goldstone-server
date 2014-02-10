@@ -18,6 +18,7 @@ Date.prototype.addWeeks = function (d) {
     return this;
 }
 
+
 function draw_cockpit_panel(interval, location, end) {
     $("#log-loading-indicator").show();
     end = typeof end !== 'undefined' ? new Date(Number(end) * 1000) : new Date();
@@ -282,42 +283,83 @@ function vcpu_graph(interval, location, end, start) {
 }
 
 
-function draw_search_table(start, end, location) {
+function draw_search_table(location, interval, end, start) {
     $("#log-table-loading-indicator").show();
-    var uri = "/intelligence/log/search/data/".concat(String(start), "/", String(end));
-    var oTableParams = {
-        "bProcessing": true,
-        "bServerSide": true,
-        "sAjaxSource": uri,
-        "bPaginate": true,
-        "bFilter": true,
-        "bSort": true,
-        "bInfo": false,
-        "bAutoWidth": true,
-        "bLengthChange": true,
-        "aoColumnDefs": [
-            { "bVisible": false, "aTargets": [ 5, 6, 7, 8, 9, 10 ] },
-            { "sName": "timestamp", "aTargets": [ 0 ] },
-            { "sType": "date", "aTargets": [0] },
-            { "sName": "loglevel", "aTargets": [ 1 ] },
-            { "sName": "component", "aTargets": [ 2 ] },
-            { "sName": "host", "aTargets": [ 3 ] },
-            { "sName": "message", "aTargets": [ 4 ] },
-            { "sName": "location", "aTargets": [ 5 ] },
-            { "sName": "pid", "aTargets": [ 6 ] },
-            { "sName": "source", "aTargets": [ 7 ] },
-            { "sName": "request_id", "aTargets": [ 8 ] },
-            { "sName": "type", "aTargets": [ 9 ] },
-            { "sName": "received", "aTargets": [ 10 ] },
-            { "sType": "date", "aTargets": [10] }
-        ]
+    interval = typeof interval !== 'undefined' ?
+        interval :
+        'month';
+
+    end = typeof end !== 'undefined' ?
+        new Date(Number(end) * 1000) :
+        new Date();
+
+    if (typeof start === 'undefined') {
+        start = new Date(end);
+
+        if (interval === 'month') {
+            start.addWeeks(-4);
+        } else if (interval === 'day') {
+            start.addDays(-1)
+        } else if (interval === 'hour') {
+            start.addHours(-1);
+        } else if (interval === 'minute') {
+            start.addMinutes(-1);
+        } else {
+            start = new Date(Number(start) * 1000);
+        }
+    } else {
+        start = new Date(Number(start) * 1000);
     }
 
-    var oTable = $(location).dataTable(oTableParams);
+    console.log("start = " + start);
+    console.log("end = " + end);
 
-    $(window).bind('resize', function () {
-        oTable.fnAdjustColumnSizing();
-    });
+    //TODO rework this url to use params
+    var uri = '/intelligence/log/search/data/'.
+                concat(String(Math.round(start.getTime() / 1000)), "/",
+                    String(Math.round(end.getTime() / 1000)));
+    //var uri = "/intelligence/log/search/data/".concat(String(start), "/", String(end));
+
+    if ($.fn.dataTable.isDataTable(location)) {
+        var oTable = $(location).dataTable();
+        var oSettings = oTable.fnSettings();
+        console.log("source = " + oSettings.sAjaxSource)
+        oTable.fnReloadAjax(uri);
+    } else {
+        var oTableParams = {
+            "bProcessing": true,
+            "bServerSide": true,
+            "sAjaxSource": uri,
+            "bPaginate": true,
+            "bFilter": true,
+            "bSort": true,
+            "bInfo": false,
+            "bAutoWidth": true,
+            "bLengthChange": true,
+            "aoColumnDefs": [
+                { "bVisible": false, "aTargets": [ 5, 6, 7, 8, 9, 10 ] },
+                { "sName": "timestamp", "aTargets": [ 0 ] },
+                { "sType": "date", "aTargets": [0] },
+                { "sName": "loglevel", "aTargets": [ 1 ] },
+                { "sName": "component", "aTargets": [ 2 ] },
+                { "sName": "host", "aTargets": [ 3 ] },
+                { "sName": "message", "aTargets": [ 4 ] },
+                { "sName": "location", "aTargets": [ 5 ] },
+                { "sName": "pid", "aTargets": [ 6 ] },
+                { "sName": "source", "aTargets": [ 7 ] },
+                { "sName": "request_id", "aTargets": [ 8 ] },
+                { "sName": "type", "aTargets": [ 9 ] },
+                { "sName": "received", "aTargets": [ 10 ] },
+                { "sType": "date", "aTargets": [10] }
+            ]
+        }
+
+        var oTable = $(location).dataTable(oTableParams);
+
+        $(window).bind('resize', function () {
+            oTable.fnAdjustColumnSizing();
+        });
+    }
     $("#log-table-loading-indicator").hide();
 }
 
