@@ -41,10 +41,7 @@ class IntelSearchView(TemplateView):
         return context
 
 
-class IntelLogCockpitView(TemplateView):
-    template_name = 'log-cockpit.html'
-
-
+#TODO refactor name
 def log_cockpit_summary(request):
 
     end_time = request.GET.get('end_time')
