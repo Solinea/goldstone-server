@@ -311,9 +311,6 @@ function draw_search_table(location, interval, end, start) {
         start = new Date(Number(start) * 1000);
     }
 
-    console.log("start = " + start);
-    console.log("end = " + end);
-
     //TODO rework this url to use params
     var uri = '/intelligence/log/search/data/'.
                 concat(String(Math.round(start.getTime() / 1000)), "/",
@@ -322,8 +319,6 @@ function draw_search_table(location, interval, end, start) {
 
     if ($.fn.dataTable.isDataTable(location)) {
         var oTable = $(location).dataTable();
-        var oSettings = oTable.fnSettings();
-        console.log("source = " + oSettings.sAjaxSource)
         oTable.fnReloadAjax(uri);
     } else {
         var oTableParams = {
