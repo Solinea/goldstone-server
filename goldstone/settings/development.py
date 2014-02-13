@@ -56,11 +56,11 @@ LOGGING = {
             'level': 'DEBUG',
         },
         'goldstone': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['console']
         },
     },
 }
 
 # Intel app config
-ES_SERVER = "10.10.11.121:9200"
+ES_SERVER = "10.10.11.122:9200"

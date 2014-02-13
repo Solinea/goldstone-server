@@ -18,16 +18,10 @@ Date.prototype.addWeeks = function (d) {
     return this;
 }
 
+
 function draw_cockpit_panel(interval, location, end) {
-
+    $("#log-loading-indicator").show();
     end = typeof end !== 'undefined' ? new Date(Number(end) * 1000) : new Date();
-
-    $("#log-cockpit-loading-indicator").show();
-    $("#log-cockpit-loading-indicator").position({
-        my: "center",
-        at: "center",
-        of: location
-    });
 
     var xUnitInterval = function (interval) {
         if (interval == 'minute') {
@@ -40,7 +34,7 @@ function draw_cockpit_panel(interval, location, end) {
             return d3.time.days;
         } else {
             raiseDanger("Valid intervals are 'month', 'day', " +
-                "'hour', and 'minute'")
+                "'hour', and 'minute'");
             return d3.time.seconds;
         }
     }
@@ -69,31 +63,36 @@ function draw_cockpit_panel(interval, location, end) {
             }
 
             var uri = '/intelligence/search?start_time='.
-                    concat(String(Math.round(start.getTime()/1000)),
-                    "&end_time=", String(Math.round(end.getTime()/1000)),
+                concat(String(Math.round(start.getTime() / 1000)),
+                    "&end_time=", String(Math.round(end.getTime() / 1000)),
                     "&interval=", new_interval);
             window.location.assign(uri);
         });
     };
 
+
     var panelWidth = $(location).width();
     var panelHeight = 300;
     var margin = {top: 30, right: 30, bottom: 30, left: 40};
 
-    var chart = dc.barChart(location);
+
+
+    var logChart = dc.barChart(location);
+
     var start = new Date(end);
     if (interval === 'hour') {
-                start.addHours(-1);
-            } else if (interval === 'day') {
-                start.addDays(-1);
-            } else if (interval === 'month') {
-                start.addWeeks(-4);
-            } else if (interval === 'minute') {
-                start.addMinutes(-1);
-            }
+        start.addHours(-1);
+    } else if (interval === 'day') {
+        start.addDays(-1);
+    } else if (interval === 'month') {
+        start.addWeeks(-4);
+    } else if (interval === 'minute') {
+        start.addMinutes(-1);
+    }
+
     var uri = "/intelligence/log/cockpit/data?start_time=".
-        concat(String(Math.round(start.getTime()/1000)),
-            "&end_time=", String(Math.round(end.getTime()/1000)),
+        concat(String(Math.round(start.getTime() / 1000)),
+            "&end_time=", String(Math.round(end.getTime() / 1000)),
             "&interval=", interval);
 
     d3.json(uri, function (error, events) {
@@ -140,7 +139,7 @@ function draw_cockpit_panel(interval, location, end) {
             var minDate = timeDim.bottom(1)[0].time;
             var maxDate = timeDim.top(1)[0].time;
 
-            chart
+            logChart
                 .width(panelWidth)
                 .height(panelHeight)
                 .margins(margin)
@@ -159,35 +158,181 @@ function draw_cockpit_panel(interval, location, end) {
                 .elasticY(true)
                 .brushOn(false)
                 .renderlet(click_renderlet)
-                .legend(dc.legend().x(100).y(10))
+                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
                 .title(function (d) {
                     return d.key
                         + "\n\n" + d.value.errorEvents + " ERRORS"
                         + "\n\n" + d.value.warnEvents + " WARNINGS";
                 });
 
-            chart.render();
-            $("#log-cockpit-loading-indicator").hide();
+
+            logChart.render();
+            $("#log-loading-indicator").hide();
         }
 
     });
 }
 
-function draw_search_table(start, end, location) {
+function vcpu_graph(interval, location, end, start) {
+    $("#vcpu-loading-indicator").show();
+    interval = typeof interval !== 'undefined' ?
+        interval :
+        'day';
 
-    var uri = "/intelligence/log/search/data/".concat(String(start), "/", String(end));
-    var oTableParams = {
-        "bProcessing": true,
-        "bServerSide": true,
-        "sAjaxSource": uri,
-        "bPaginate": true,
-        "bFilter": true,
-        "bSort": true,
-        "bInfo": false,
-        "bAutoWidth": true,
-        "bLengthChange": true,
-        "aoColumnDefs":[
-                { "bVisible": false, "aTargets": [ 5,6,7,8,9,10 ] },
+    end = typeof end !== 'undefined' ?
+        new Date(Number(end) * 1000) :
+        new Date();
+
+    if (typeof start === 'undefined') {
+        start = new Date(end);
+
+        if (interval === 'day') {
+            start.addWeeks(-4);
+        } else if (interval === 'hour') {
+            start.addDays(-1);
+        } else if (interval === 'minute') {
+            start.addHours(-1);
+        }
+    } else {
+        start = new Date(Number(start) * 1000);
+    }
+
+
+
+
+
+    var panelWidth = $(location).width();
+    var panelHeight = 300;
+    var margin = {top: 30, right: 30, bottom: 60, left: 50};
+
+    var uri = "/intelligence/compute/vcpu_stats?start_time=".
+        concat(String(Math.round(start.getTime() / 1000)),
+            "&end_time=", String(Math.round(end.getTime() / 1000)),
+            "&interval=", interval);
+
+    var xUnitInterval, timeDimInterval = (function (interval) {
+        if (interval == 'second') {
+            return d3.time.seconds, d3.time.minutes;
+        } else if (interval == 'minute') {
+            return d3.time.minutes, d3.time.hours;
+        } else if (interval == 'hour') {
+            return d3.time.hours, d3.time.days;
+        } else if (interval == 'day') {
+            return d3.time.days, d3.time.months;
+        }
+    })(interval);
+
+    var vcpuChart = dc.lineChart(location);
+
+    d3.json(uri, function (error, data) {
+        data.forEach(function (d) {
+            d.time = +d.time;
+            d.total_configured_vcpus = +d.total_configured_vcpus;
+            d.total_inuse_vcpus = +d.total_inuse_vcpus;
+        });
+        var xf = crossfilter(data);
+        var timeDim = xf.dimension(function (d) {
+            return d.time;
+        });
+
+        // this is our X-axis data
+        var vcpuGroup = timeDim.group().reduce(
+            function (p, v) {
+                p.total_configured_vcpus = v.total_configured_vcpus;
+                p.total_inuse_vcpus = v.total_inuse_vcpus;
+                return p;
+        },
+        function (p, v) {
+            return p;
+        },
+        function () {
+            return {'total_configured_vcpus': 0, 'total_inuse_vcpus': 0};
+        });
+
+        // get the date boundaries for the chart
+        var minDate = timeDim.bottom(1)[0].time;
+        var maxDate = timeDim.top(1)[0].time;
+
+        vcpuChart
+            .renderArea(true)
+            .width(450)
+            .height(panelHeight)
+            .margins(margin)
+            .transitionDuration(1000)
+            .dimension(timeDim)
+            .x(d3.time.scale().domain([minDate, maxDate]))
+            .xUnits(xUnitInterval)
+            .elasticY(true)
+            .renderHorizontalGridLines(true)
+            .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+            .brushOn(false)
+            .group(vcpuGroup, "Total vCPUs")
+            .valueAccessor(function (d) {
+                return d.value.total_inuse_vcpus;
+            })
+            .stack(vcpuGroup, "Active vCPUs", function (d) {
+                return (d.value.total_configured_vcpus - d.value.total_inuse_vcpus);
+            })
+            ;
+
+        vcpuChart.render();
+
+        $("#vcpu-loading-indicator").hide();
+
+    });
+}
+
+
+function draw_search_table(location, interval, end, start) {
+    $("#log-table-loading-indicator").show();
+    interval = typeof interval !== 'undefined' ?
+        interval :
+        'month';
+
+    end = typeof end !== 'undefined' ?
+        new Date(Number(end) * 1000) :
+        new Date();
+
+    if (typeof start === 'undefined') {
+        start = new Date(end);
+
+        if (interval === 'month') {
+            start.addWeeks(-4);
+        } else if (interval === 'day') {
+            start.addDays(-1)
+        } else if (interval === 'hour') {
+            start.addHours(-1);
+        } else if (interval === 'minute') {
+            start.addMinutes(-1);
+        } else {
+            start = new Date(Number(start) * 1000);
+        }
+    } else {
+        start = new Date(Number(start) * 1000);
+    }
+
+    //TODO rework this url to use params
+    var uri = '/intelligence/log/search/data/'.
+                concat(String(Math.round(start.getTime() / 1000)), "/",
+                    String(Math.round(end.getTime() / 1000)));
+    //var uri = "/intelligence/log/search/data/".concat(String(start), "/", String(end));
+
+    if ($.fn.dataTable.isDataTable(location)) {
+        var oTable = $(location).dataTable();
+        oTable.fnReloadAjax(uri);
+    } else {
+        var oTableParams = {
+            "bProcessing": true,
+            "bServerSide": true,
+            "sAjaxSource": uri,
+            "bPaginate": true,
+            "bFilter": true,
+            "bSort": true,
+            "bInfo": false,
+            "bAutoWidth": true,
+            "bLengthChange": true,
+            "aoColumnDefs": [
+                { "bVisible": false, "aTargets": [ 5, 6, 7, 8, 9, 10 ] },
                 { "sName": "timestamp", "aTargets": [ 0 ] },
                 { "sType": "date", "aTargets": [0] },
                 { "sName": "loglevel", "aTargets": [ 1 ] },
@@ -202,13 +347,15 @@ function draw_search_table(start, end, location) {
                 { "sName": "received", "aTargets": [ 10 ] },
                 { "sType": "date", "aTargets": [10] }
             ]
+        }
+
+        var oTable = $(location).dataTable(oTableParams);
+
+        $(window).bind('resize', function () {
+            oTable.fnAdjustColumnSizing();
+        });
     }
-
-    var oTable = $(location).dataTable(oTableParams);
-
-    $(window).bind('resize', function () {
-        oTable.fnAdjustColumnSizing();
-    } );
+    $("#log-table-loading-indicator").hide();
 }
 
 /*

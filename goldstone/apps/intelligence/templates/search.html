@@ -2,7 +2,8 @@
 {% load static %}
 
 {% block localcss %}
-    <link href="{% static 'css/plugins/dataTables/dataTables.bootstrap.css' %}" rel="stylesheet"
+    <link href="{% static 'css/plugins/dataTables/dataTables.bootstrap.css' %}"
+          rel="stylesheet"
           media="screen">
     <link href="{% static 'intelligence/css/intelligence.css' %}"
           rel="stylesheet" media="screen">
@@ -12,17 +13,31 @@
 {% block localjs %}
     <script src="{% static 'js/plugins/dataTables/jquery.dataTables.js' %}"></script>
     <script src="{% static 'js/plugins/dataTables/dataTables.bootstrap.js' %}"></script>
+    <script src="{% static 'intelligence/js/fnReloadAjax.js' %}"></script>
     <script src="{% static 'js/d3.js' %}"></script>
     <script src="{% static 'js/crossfilter.js' %}"></script>
     <script src="{% static 'js/dc.js' %}"></script>
     <script src="{% static 'intelligence/js/intelligence.js' %}"></script>
     <script type="text/javascript">
         $(document).ready(function () {
-            draw_cockpit_panel('{{ interval }}', '.search_histogram_panel',
-                    '{{ end_ts }}');
-            draw_search_table('{{ start_ts }}', '{{ end_ts }}',
-                    '#log-search-table');
-
+            draw_cockpit_panel('{{ interval }}', '#log-cockpit-graph',
+                    '{{ end_ts }}'
+            );
+            draw_search_table('#log-search-table', '{{ interval }}',
+                    '{{ end_ts }}', '{{ start_ts }}'
+            );
+            $("#log-cockpit-month-btn").click(function () {
+                draw_cockpit_panel("month", "#log-cockpit-graph");
+                draw_search_table('#log-search-table', 'month');
+            });
+            $("#log-cockpit-day-btn").click(function () {
+                draw_cockpit_panel("day", "#log-cockpit-graph");
+                draw_search_table('#log-search-table', 'day');
+            });
+            $("#log-cockpit-hour-btn").click(function () {
+                draw_cockpit_panel("hour", "#log-cockpit-graph");
+                draw_search_table('#log-search-table', 'hour');
+            });
         })
 
     </script>
@@ -32,33 +47,53 @@
 
 {% block content %}
 
-    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-         id="log-cockpit-loading-indicator" style="display:none"/>
-
-
     <div class="row" style="height:300px">
-        <div class="col-md-2">
-            <div id="search-params"
-                 class="panel panel-primary search_params_panel">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>
-                        Search Parameters
-                    </h3>
-                </div>
-                <div id="log-search-params" class="panel-body">
+        <!--
+            <div class="col-md-2">
+                <div id="search-params"
+                     class="panel panel-primary search_params_panel">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-dashboard"></i>
+                            Search Parameters
+                        </h3>
+                    </div>
+                    <div id="log-search-params" class="panel-body">
 
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-10">
-            <div class="panel panel-primary search_histogram_panel">
+            -->
+        <div class="col-md-12">
+
+            <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>
-                        Search Summary
-                    </h3>
+                    <h3 class="panel-title"><i class="fa fa-dashboard"></i> <a
+                            href="/intelligence/search">Log Analysis</a></h3>
                 </div>
-                <div id="search-histogram" class="panel-body">
-                    <!-- filled by draw_cockpit_panel -->
+                <div class="panel-extra">
+        <span class="btn-group btn-group-xs pull-right">
+            <button id="log-cockpit-month-btn" type="button"
+                    class="btn btn-default">Month
+            </button>
+            <button id="log-cockpit-day-btn" type="button"
+                    class="btn btn-default">Day
+            </button>
+            <button id="log-cockpit-hour-btn" type="button"
+                    class="btn btn-default">Hour
+            </button>
+        </span>
+                </div>
+                <div id="log-cockpit-graph" class="panel-body"
+                     style="height:400px">
+                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                         id="log-loading-indicator" class="ajax-loader"/>
+                    <span class="reset" style="display: none;">range: <span
+                            class="filter"></span></span>
+                    <a class="reset"
+                       href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
+                       style="display: none;">reset</a>
+
+                    <div class="clearfix"></div>
                 </div>
             </div>
         </div>
@@ -90,6 +125,8 @@
                         </tr>
                         </thead>
                     </table>
+                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                         id="log-table-loading-indicator" class="ajax-loader"/>
                 </div>
             </div>
         </div>

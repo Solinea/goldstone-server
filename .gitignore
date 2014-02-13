@@ -114,4 +114,7 @@ pickle-email-*.html
 .project
 .ropeproject
 
+# JetBrains stuff
 /.idea/
+atlassian-ide-plugin.xml
+goldstone/.idea/
