@@ -8,11 +8,12 @@
 from django.db import models
 from django.conf import settings
 
-from datetime import datetime, timedelta
+from datetime import *
 from elasticsearch import *
 import pytz
 import calendar
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -266,17 +267,71 @@ class LogData(object):
             "new_nodes": list(new_nodes)
         }
 
-    def get_hypervisor_stats(self, conn, start, end=datetime.now(tz=pytz.utc),
-                             first=0, size=10, sort=''):
+    def get_hypervisor_stats(self, conn, start, end, interval, first=0,
+                             size=10, sort=''):
 
-        type_filter = self._term_filter("type", "goldstone_nodeinfo")
-        q = self._range_query('@timestamp', start.isoformat(),
-                              end.isoformat())
-        q['filter'] = type_filter
-        fq = {
-            'query': {'filtered': q}
+        q = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "range": {
+                                "@timestamp": {
+                                    "gte": start.isoformat(),
+                                    "lte": end.isoformat()
+                                }
+                            }
+                        },
+                        {
+                            "term": {
+                                "type": "goldstone_nodeinfo"
+                            }
+                        }
+                    ]
+                }
+            },
+            "aggs": {
+                "events_by_date": {
+                    "date_histogram": {
+                        "field": "@timestamp",
+                        "interval": interval,
+                        "min_doc_count": 0
+                    },
+                    "aggs": {
+                        "events_by_host": {
+                            "terms": {
+                                "field": "host.raw"
+                            },
+                            "aggs": {
+                                "max_total_vcpus": {
+                                    "max": {
+                                        "field": "total_vcpus"
+                                    }
+                                },
+                                "avg_total_vcpus": {
+                                    "avg": {
+                                        "field": "total_vcpus"
+                                    }
+                                },
+                                "max_active_vcpus": {
+                                    "max": {
+                                        "field": "active_vcpus"
+                                    }
+                                },
+                                "avg_active_vcpus": {
+                                    "avg": {
+                                        "field": "active_vcpus"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
-        logger.debug("[get_hypervisor_stats] query = %s", fq)
-        return conn.search(index="_all", body=fq, from_=first, size=size,
-                           sort=sort)
+        logger.debug('query = ' + json.dumps(q))
+        result = conn.search(index="_all", body=q, from_=first, size=size,
+                             sort=sort)
+        logger.debug('result = ' + json.dumps(result))
+        return result

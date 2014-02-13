@@ -2,7 +2,8 @@
 {% load static %}
 
 {% block localcss %}
-    <link href="{% static 'css/plugins/dataTables/dataTables.bootstrap.css' %}" rel="stylesheet" media="screen">
+    <link href="{% static 'css/plugins/dataTables/dataTables.bootstrap.css' %}"
+          rel="stylesheet" media="screen">
     <link href="{% static 'intelligence/css/intelligence.css' %}"
           rel="stylesheet" media="screen">
     <link href="{% static 'css/dc.css' %}" rel="stylesheet" media="screen"/>
@@ -14,17 +15,15 @@
     <script src="{% static 'js/d3.js' %}"></script>
     <script src="{% static 'js/crossfilter.js' %}"></script>
     <script src="{% static 'js/dc.js' %}"></script>
-    <script src="{% static 'js/cockpit.js' %}"></script>
+    <script src="{% static 'js/colorbrewer.js' %}"></script>
     <script src="{% static 'intelligence/js/intelligence.js' %}"></script>
+    <script src="{% static 'js/cockpit.js' %}"></script>
+
 
 {% endblock %}
 
 
 {% block content %}
-
-    <!-- <div class="page-header">
-      <h1><i class="fa fa-calendar"></i> Leases</h1>
-    </div> -->
 
     <div class="row">
         <div id="lease-col" class="col-md-6">
@@ -65,12 +64,78 @@
 
         </div>
     </div>
-    <div class="row" style="height:400px">
+    <div class="row">
         <div id="row2-full" class="col-md-12">
+            <div class="panel panel-primary intel_panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-dashboard"></i> <a
+                            href="/intelligence/search">Log Analysis</a></h3>
+                </div>
+                <div class="panel-extra">
+        <span class="btn-group btn-group-xs pull-right">
+            <button id="log-cockpit-month-btn" type="button"
+                    class="btn btn-default">Month
+            </button>
+            <button id="log-cockpit-day-btn" type="button"
+                    class="btn btn-default">Day
+            </button>
+            <button id="log-cockpit-hour-btn" type="button"
+                    class="btn btn-default">Hour
+            </button>
+        </span>
+                </div>
+                <div id="log-cockpit-graph" class="panel-body" style="height:400px">
+                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                        id="log-loading-indicator" class="ajax-loader"/>
+                    <span class="reset" style="display: none;">range: <span
+                            class="filter"></span></span>
+                    <a class="reset"
+                       href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
+                       style="display: none;">reset</a>
 
+                    <div class="clearfix"></div>
+                </div>
+            </div>
         </div>
     </div>
 
+    <div class="row">
+        <div id="row3-col1" class="col-md-6">
+            <div class="panel panel-primary intel_panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>
+                    vCPU Usage</h3>
+                </div>
+                <div class="panel-extra">
+        <span class="btn-group btn-group-xs pull-right">
+            <button id="vcpu-cockpit-month-btn" type="button"
+                    class="btn btn-default">Month
+            </button>
+            <button id="vcpu-cockpit-day-btn" type="button"
+                    class="btn btn-default">Day
+            </button>
+            <button id="vcpu-cockpit-hour-btn" type="button"
+                    class="btn btn-default">Hour
+            </button>
+        </span>
+                </div>
+                <div id="vcpu-graph" class="panel-body" style="height:400px">
+                    <span class="reset" style="display: none;">range: <span
+                            class="filter"></span></span>
+                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                        id="vcpu-loading-indicator" class="ajax-loader"/>
+                    <a class="reset"
+                       href="javascript:vcpuChart.filterAll();vcpuChart.filterAll();dc.redrawAll();"
+                       style="display: none;">reset</a>
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="row3-col2" class="col-md-6">
+
+    </div>
 
 {% endblock %}
 
