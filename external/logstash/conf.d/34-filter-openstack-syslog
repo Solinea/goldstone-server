@@ -1,0 +1,47 @@
+#
+# categorize openstack syslog messages
+# the openstack specific fields will be in os_message
+# for further processing.  
+#
+filter {
+    if ([type] == "syslog" or [type] == "debug") {
+        grok { 
+            patterns_dir => "/opt/logstash/patterns"
+            match => { "message" => "%{OPENSTACK_SYSLOGLINE}" }
+            add_field => { "received_at" => "%{@timestamp}" }
+            add_field => { "_message" => "%{message}" }
+        }
+        if ("_grokparsefailure" not in [tags]) {
+            syslog_pri {
+                severity_labels => ["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"]
+                syslog_pri_field_name => "syslog5424_pri"
+            }
+            date {
+                match => [ "timestamp", "yyyy-MM-dd HH:mm:ss.SSS" ]
+                remove_field => "timestamp"
+                timezone => "Etc/UTC"
+            }
+            translate {
+                field => "syslog_facility"
+                dictionary => [ 
+                    "local0", "nova",
+                    "local1", "openvswitch",
+                    "local2", "neutron",
+                    "local3", "ceilometer",
+                    "local4", "swift"
+                ]
+                fallback => "unknown"
+                destination => "component"
+            }
+            mutate {
+                rename => [ "msg", "message" ]
+                rename => [ "syslog5424_host", "hostname" ]
+                remove_field => "syslog_ts"
+                remove_field => "syslog5424_pri"
+                remove_field => "os_message"
+                add_field => { "matched_type" => "openstack_syslog" }
+            }
+        }
+    }
+}
+

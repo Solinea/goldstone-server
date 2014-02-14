@@ -20,22 +20,22 @@
     <script src="{% static 'intelligence/js/intelligence.js' %}"></script>
     <script type="text/javascript">
         $(document).ready(function () {
-            draw_cockpit_panel('{{ interval }}', '#log-cockpit-graph',
+            bad_event_histogram_panel('{{ interval }}', '#bad-event-chart',
                     '{{ end_ts }}'
             );
             draw_search_table('#log-search-table', '{{ interval }}',
                     '{{ end_ts }}', '{{ start_ts }}'
             );
-            $("#log-cockpit-month-btn").click(function () {
-                draw_cockpit_panel("month", "#log-cockpit-graph");
+            $("#bad-event-month-btn").click(function () {
+                bad_event_histogram_panel("month", "#bad-event-chart");
                 draw_search_table('#log-search-table', 'month');
             });
-            $("#log-cockpit-day-btn").click(function () {
-                draw_cockpit_panel("day", "#log-cockpit-graph");
+            $("#bad-event-day-btn").click(function () {
+                bad_event_histogram_panel("day", "#bad-event-chart");
                 draw_search_table('#log-search-table', 'day');
             });
-            $("#log-cockpit-hour-btn").click(function () {
-                draw_cockpit_panel("hour", "#log-cockpit-graph");
+            $("#bad-event-hour-btn").click(function () {
+                bad_event_histogram_panel("hour", "#bad-event-chart");
                 draw_search_table('#log-search-table', 'hour');
             });
         })
@@ -72,18 +72,18 @@
                 </div>
                 <div class="panel-extra">
         <span class="btn-group btn-group-xs pull-right">
-            <button id="log-cockpit-month-btn" type="button"
+            <button id="bad-event-month-btn" type="button"
                     class="btn btn-default">Month
             </button>
-            <button id="log-cockpit-day-btn" type="button"
+            <button id="bad-event-day-btn" type="button"
                     class="btn btn-default">Day
             </button>
-            <button id="log-cockpit-hour-btn" type="button"
+            <button id="bad-event-hour-btn" type="button"
                     class="btn btn-default">Hour
             </button>
         </span>
                 </div>
-                <div id="log-cockpit-graph" class="panel-body"
+                <div id="bad-event-chart" class="panel-body"
                      style="height:400px">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                          id="log-loading-indicator" class="ajax-loader"/>
