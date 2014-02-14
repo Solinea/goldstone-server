@@ -67,10 +67,10 @@ def bad_event_histogram(request):
             vals = level_bucket.values()
             lev = vals[0]
             ct = vals[1]
-            if lev in {'fatal', 'error', 'warning'}:
+            if lev in ['fatal', 'error', 'warning']:
                 entry[lev] = ct
 
-        for lev in {'fatal', 'error', 'warning'}:
+        for lev in ['fatal', 'error', 'warning']:
             if lev not in entry.keys():
                 entry[lev] = 0
         entry['time'] = time_bucket['key']
