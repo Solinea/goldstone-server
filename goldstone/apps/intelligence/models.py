@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 class LogData(object):
-
     @staticmethod
     def _subtract_months(sourcedate, months):
 
@@ -134,28 +133,46 @@ class LogData(object):
     def get_connection(server):
         return Elasticsearch(server)
 
-    def err_and_warn_hist(self, conn, start, end, interval,
-                          query_filter=None):
+    def _loglevel_by_time_agg(self, conn, start, end, interval,
+                              query_filter=None):
 
-        q = self._range_query('@timestamp', start.isoformat(), end.isoformat())
-        err_filt = self._term_filter('loglevel', 'error')
-        fat_filt = self._term_filter('loglevel', 'fatal')
-        bad_filt = {'or': [err_filt, fat_filt]}
-        warn_filt = self._term_filter('loglevel', 'warning')
-
-        f1 = bad_filt if not query_filter \
-            else {'and': [bad_filt, query_filter]}
-
-        f2 = warn_filt if not query_filter \
-            else {'and': [warn_filt, query_filter]}
-
-        err_fac = self._date_hist_facet("err_facet", "@timestamp", interval,
-                                        facet_filter=f1)
-        warn_fac = self._date_hist_facet("warn_facet", "@timestamp", interval,
-                                         facet_filter=f2)
-        q = self._add_facet(q, err_fac)
-        q = self._add_facet(q, warn_fac)
-        logger.debug("[err_and_warn_hist] query = %s", q)
+        q = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "range": {
+                                "@timestamp": {
+                                    "gte": start.isoformat(),
+                                    "lte": end.isoformat()
+                                }
+                            }
+                        },
+                        {
+                            "term": {
+                                "type": "syslog"
+                            }
+                        }
+                    ]
+                }
+            },
+            "aggs": {
+                "events_by_time": {
+                    "date_histogram": {
+                        "field": "@timestamp",
+                        "interval": interval,
+                        "min_doc_count": 0
+                    },
+                    "aggs": {
+                        "events_by_loglevel": {
+                            "terms": {
+                                "field": "loglevel"
+                            }
+                        }
+                    }
+                }
+            }
+        }
         return conn.search(index="_all", body=q)
 
     def get_components(self, conn):
@@ -186,7 +203,7 @@ class LogData(object):
 
         return result
 
-    def get_err_and_warn_hists(self, conn, start, end, interval=None):
+    def get_loglevel_histogram_data(self, conn, start, end, interval=None):
 
         if interval == 'minute':
             search_interval = 'second'
@@ -199,8 +216,8 @@ class LogData(object):
         else:
             search_interval = 'hour'
 
-        result = self.err_and_warn_hist(conn, start, end,
-                                        search_interval)['facets']
+        result = self._loglevel_by_time_agg(conn, start, end,
+                                            search_interval)['aggregations']
 
         return result
 
@@ -330,7 +347,6 @@ class LogData(object):
             }
         }
 
-        logger.debug('query = ' + json.dumps(q))
         result = conn.search(index="_all", body=q, from_=first, size=size,
                              sort=sort)
         logger.debug('result = ' + json.dumps(result))

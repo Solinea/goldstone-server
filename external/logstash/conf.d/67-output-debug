@@ -1,0 +1,6 @@
+#
+# push processed events to stdout
+#
+output {
+    stdout { debug => true }
+}
