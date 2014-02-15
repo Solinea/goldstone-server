@@ -8,6 +8,7 @@ from django.test.client import Client
 from django.test.client import RequestFactory
 from django.test import TestCase
 from django.conf import settings
+from waffle import Switch
 
 from .views import IntelSearchView
 from .models import *
@@ -460,6 +461,7 @@ class LogDataModel(TestCase):
 
 class IntelViewTest(TestCase):
     """Lease list view tests"""
+    switch = None
 
     def setUp(self):
         pass
@@ -490,9 +492,20 @@ class IntelViewTest(TestCase):
 
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
-        response = self.client.get(
-            '/intelligence/compute/vcpu_stats?start_time=' + str(start_ts) +
-            "&end_time=" + str(end_ts) + "&interval=hour")
+        uri = '/intelligence/compute/vcpu_stats?start_time=' + \
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+
+        # Test GSL
+        switch, created = Switch.objects.get_or_create(name='gse',
+                                                       active=False)
+        self.assertNotEqual(switch, None)
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 404)
+
+        # Test GSE
+        switch.active = True
+        switch.save()
+        response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response.content),
                          [{u'total_configured_vcpus': 96.0,

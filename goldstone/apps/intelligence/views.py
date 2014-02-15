@@ -7,8 +7,8 @@ from __future__ import unicode_literals
 import calendar
 from django.http import HttpResponse
 from django.conf import settings
-
 from django.views.generic import TemplateView
+from waffle.decorators import waffle_switch
 from .models import LogData
 from datetime import datetime, timedelta
 import pytz
@@ -142,6 +142,7 @@ def _calc_start(interval, end):
     return end - options[interval]
 
 
+@waffle_switch('gse')
 def compute_vcpu_stats(request):
 
     interval = request.GET.get('interval', 'day')
