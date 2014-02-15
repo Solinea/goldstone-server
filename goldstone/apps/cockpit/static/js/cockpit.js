@@ -1,17 +1,17 @@
 $(document).ready(function() {
-    draw_cockpit_panel('month', '#log-cockpit-graph');
+    bad_event_histogram_panel('month', '#bad-event-chart');
     vcpu_graph('day', '#vcpu-graph');
 
     // activate the interval buttons
 
-    $("#log-cockpit-month-btn").click(function() {
-        draw_cockpit_panel("month", "#log-cockpit-graph");
+    $("#bad-event-month-btn").click(function() {
+        bad_event_histogram_panel("month", "#bad-event-chart");
     });
-    $("#log-cockpit-day-btn").click(function() {
-        draw_cockpit_panel("day", "#log-cockpit-graph");
+    $("#bad-event-day-btn").click(function() {
+        bad_event_histogram_panel("day", "#bad-event-chart");
     });
-    $("#log-cockpit-hour-btn").click(function() {
-        draw_cockpit_panel("hour", "#log-cockpit-graph");
+    $("#bad-event-hour-btn").click(function() {
+        bad_event_histogram_panel("hour", "#bad-event-chart");
     });
 
 

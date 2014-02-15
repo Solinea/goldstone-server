@@ -41,8 +41,7 @@ class IntelSearchView(TemplateView):
         return context
 
 
-#TODO refactor name
-def log_cockpit_summary(request):
+def bad_event_histogram(request):
 
     end_time = request.GET.get('end_time')
     start_time = request.GET.get('start_time')
@@ -59,35 +58,25 @@ def log_cockpit_summary(request):
     conn = LogData.get_connection(settings.ES_SERVER)
 
     ld = LogData()
-    raw_data = ld.get_err_and_warn_hists(conn, start_dt, end_dt, interval)
+    raw_data = ld.get_loglevel_histogram_data(conn, start_dt, end_dt, interval)
 
-    errs_list = raw_data['err_facet']['entries']
-    warns_list = raw_data['warn_facet']['entries']
-    for err in errs_list:
-        err['loglevel'] = 'error'
-    for warn in warns_list:
-        warn['loglevel'] = 'warning'
+    result = []
+    for time_bucket in raw_data['events_by_time']['buckets']:
+        entry = {}
+        for level_bucket in time_bucket['events_by_loglevel']['buckets']:
+            vals = level_bucket.values()
+            lev = vals[0]
+            ct = vals[1]
+            if lev in ['fatal', 'error', 'warning']:
+                entry[lev] = ct
 
-    cooked_data = sorted(errs_list + warns_list,
-                         key=lambda event: event['time'])
+        for lev in ['fatal', 'error', 'warning']:
+            if lev not in entry.keys():
+                entry[lev] = 0
+        entry['time'] = time_bucket['key']
+        result.append(entry)
 
-    first_placeholder = {'time': int(start_time)*1000, 'count': 0, 'loglevel':
-                         'warning'}
-    last_placeholder = {'time': int(end_time)*1000, 'count': 0, 'loglevel':
-                        'warning'}
-
-    if len(cooked_data) > 0:
-        first_ts = cooked_data[0]['time']
-        last_ts = cooked_data[len(cooked_data)-1]['time']
-        if first_ts > (int(start_time)*1000):
-            cooked_data.insert(0, first_placeholder)
-
-        if last_ts < (int(end_time)*1000):
-            cooked_data.append(last_placeholder)
-    else:
-        cooked_data = [first_placeholder, last_placeholder]
-
-    data = {'data': cooked_data}
+    data = {'data': result}
 
     return HttpResponse(json.dumps(data), content_type="application/json")
 

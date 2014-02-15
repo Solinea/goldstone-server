@@ -1,0 +1,9 @@
+#
+# accepts UDP from an alternate syslog port
+#
+input {
+    udp {
+        port => 5514
+        type => syslog
+    }
+}

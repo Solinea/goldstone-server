@@ -1,0 +1,9 @@
+#
+# accepts TCP from an alternate syslog port
+#
+input {
+    tcp {
+        port => 5515
+        type => "goldstone_nodeinfo"
+    }
+}
