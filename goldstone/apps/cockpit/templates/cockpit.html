@@ -59,7 +59,6 @@
             </div>
         </div>
 
-        <!-- cockpit.js loads intelligence/cockpit_content when it sees this div-->
         <div id="row1-col2" class="col-md-6">
 
         </div>
@@ -73,18 +72,18 @@
                 </div>
                 <div class="panel-extra">
         <span class="btn-group btn-group-xs pull-right">
-            <button id="log-cockpit-month-btn" type="button"
+            <button id="bad-event-month-btn" type="button"
                     class="btn btn-default">Month
             </button>
-            <button id="log-cockpit-day-btn" type="button"
+            <button id="bad-event-day-btn" type="button"
                     class="btn btn-default">Day
             </button>
-            <button id="log-cockpit-hour-btn" type="button"
+            <button id="bad-event-hour-btn" type="button"
                     class="btn btn-default">Hour
             </button>
         </span>
                 </div>
-                <div id="log-cockpit-graph" class="panel-body" style="height:400px">
+                <div id="bad-event-chart" class="panel-body" style="height:400px">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                         id="log-loading-indicator" class="ajax-loader"/>
                     <span class="reset" style="display: none;">range: <span

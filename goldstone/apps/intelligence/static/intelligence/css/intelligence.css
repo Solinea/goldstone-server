@@ -19,3 +19,45 @@ path {
 #log-search-table td {
     font-size: 11px;
 }
+
+/*
+#bad-event-chart rect.bar {
+    stroke: none;
+    fill: none;
+}
+
+#bad-event-chart rect {
+    stroke: none;
+    fill: none;
+}
+*/
+
+#bad-event-chart g.stack._0  > rect.bar {
+    stroke: none;
+    fill: #fecc5c;
+}
+
+#bad-event-chart g.stack._1 > rect.bar {
+    stroke: none;
+    fill: #f03b20;
+}
+
+#bad-event-chart g.stack._2 > rect.bar {
+    stroke: none;
+    fill: #bd0026;
+}
+
+#bad-event-chart g.dc-legend-item:nth-child(1) > rect:nth-child(1) {
+    stroke: none;
+    fill: #fecc5c;
+}
+
+#bad-event-chart g.dc-legend-item:nth-child(2) > rect:nth-child(1) {
+    stroke: none;
+    fill: #f03b20;
+}
+
+#bad-event-chart g.dc-legend-item:nth-child(3) > rect:nth-child(1) {
+    stroke: none;
+    fill: #bd0026;
+}

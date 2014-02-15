@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 class LogDataModel(TestCase):
     INDEX_NAME = 'logstash-test'
     DOCUMENT_TYPE = 'logs'
-    TOTAL_DOCS = 1000
+    SYSLOG_DOCS = 500
     conn = Elasticsearch(settings.ES_SERVER)
 
     def setUp(self):
@@ -54,7 +54,7 @@ class LogDataModel(TestCase):
         self.conn.indices.refresh([self.INDEX_NAME])
         q = {"query": {"match_all": {}}}
         rs = self.conn.search(body=q, index="_all")
-        self.assertEqual(rs['hits']['total'], self.TOTAL_DOCS)
+        #self.assertEqual(rs['hits']['total'], self.TOTAL_DOCS)
 
     #def tearDown(self):
     #    try:
@@ -63,16 +63,16 @@ class LogDataModel(TestCase):
     #        {}
 
     def test_get_connection(self):
-        q = dict(query={"match_all": {}})
+        q = dict(query={"match": {"type": "syslog"}})
         test_conn = LogData.get_connection("localhost")
         rs = test_conn.search(index="_all", body=q)
-        self.assertEqual(rs['hits']['total'], self.TOTAL_DOCS)
+        self.assertEqual(rs['hits']['total'], self.SYSLOG_DOCS)
         test_conn = LogData.get_connection("localhost:9200")
         rs = test_conn.search(index="_all", body=q)
-        self.assertEqual(rs['hits']['total'], self.TOTAL_DOCS)
+        self.assertEqual(rs['hits']['total'], self.SYSLOG_DOCS)
         test_conn = LogData.get_connection(["localhost"])
         rs = test_conn.search(index="_all", body=q)
-        self.assertEqual(rs['hits']['total'], self.TOTAL_DOCS)
+        self.assertEqual(rs['hits']['total'], self.SYSLOG_DOCS)
 
     def test_get_components(self):
         test_q = {
@@ -149,7 +149,7 @@ class LogDataModel(TestCase):
                                                   facet_field)
             self.assertEqual(result['hits'], control['hits'])
 
-        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
 
         filter_field = 'component'
@@ -166,14 +166,30 @@ class LogDataModel(TestCase):
         def test_scenario():
             control = {}
             for filter_value in filter_list:
-                test_q = {'query': {'range': {
-                    '@timestamp': {'gte': start.isoformat(),
-                                   'lte': end.isoformat()}}}, 'facets': {
-                    facet_field: {'facet_filter': {'term': {
-                        filter_field: filter_value}},
-                        'terms': {'field': facet_field,
-                                  'all_terms': True,
-                                  'order': 'term'}}}}
+                test_q = {
+                    'query': {
+                        'range': {
+                            '@timestamp': {
+                                'gte': start.isoformat(),
+                                'lte': end.isoformat()
+                            }
+                        }
+                    },
+                    'facets': {
+                        facet_field: {
+                            'facet_filter': {
+                                'term': {
+                                    filter_field: filter_value
+                                }
+                            },
+                            'terms': {
+                                'field': facet_field,
+                                'all_terms': True,
+                                'order': 'term'
+                            }
+                        }
+                    }
+                }
                 r = self.conn.search(index="_all", body=test_q)
                 control[filter_value] = r['facets']
 
@@ -182,7 +198,7 @@ class LogDataModel(TestCase):
                                                 facet_field)
             self.assertEqual(result, control)
 
-        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         filter_field = 'component'
         filter_list = LogData().get_components(self.conn)
@@ -194,77 +210,100 @@ class LogDataModel(TestCase):
         facet_field = 'component'
         test_scenario()
 
-    def test_err_and_warn_hist(self):
-        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+    def test_loglevel_by_time_agg(self):
+        end = datetime(2014, 02, 13, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         interval = 'hour'
-        test_q = {"query": {"range": {
-            "@timestamp": {"gte": start,
-                           "lte": end}}}, "facets": {
-            "err_facet": {
-                "date_histogram": {"field": "@timestamp",
-                                   "interval": interval},
-                "facet_filter": {"or": [{"term": {"loglevel": "error"}},
-                                        {"term": {"loglevel": "fatal"}}]}},
-            "warn_facet": {
-                "date_histogram": {"field": "@timestamp",
-                                   "interval": interval},
-                "facet_filter": {"term": {"loglevel": "warning"}}}}}
-        control = self.conn.search(index="_all", body=test_q)['facets']
-        result = LogData().err_and_warn_hist(self.conn, start, end, interval,
-                                             query_filter=None)['facets']
-        self.assertEqual(result, control)
-
-    def test_err_and_warn_hist_filtered(self):
-        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
-        start = end - timedelta(weeks=52)
-        interval = 'hour'
-        test_q = {"query": {"range": {
-            "@timestamp": {"gte": start.isoformat(),
-                           "lte": end.isoformat()}}}, "facets": {
-            "err_facet": {
-                "date_histogram": {"field": "@timestamp",
-                                   "interval": interval},
-                "facet_filter": {"and": [
-                    {"or": [{"term": {"loglevel": "error"}},
-                            {"term": {"loglevel": "fatal"}}]},
-                    {"term": {"component": "ceilometer"}}]}},
-            "warn_facet": {
-                "date_histogram": {"field": "@timestamp",
-                                   "interval": interval},
-                "facet_filter": {"and": [
-                    {"term": {"loglevel": "warning"}},
-                    {"term": {"component": "ceilometer"}}]}}}}
-        control = self.conn.search(index="_all", body=test_q)['facets']
-        f = LogData._term_filter('component', 'ceilometer')
-        result = LogData().err_and_warn_hist(self.conn, start, end, interval,
-                                             query_filter=f)['facets']
-        self.assertEqual(result, control)
+        test_q = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "range": {
+                                "@timestamp": {
+                                    "gte": start.isoformat(),
+                                    "lte": end.isoformat()
+                                }
+                            }
+                        },
+                        {
+                            "term": {
+                                "type": "syslog"
+                            }
+                        }
+                    ]
+                }
+            },
+            "aggs": {
+                "events_by_time": {
+                    "date_histogram": {
+                        "field": "@timestamp",
+                        "interval": interval,
+                        "min_doc_count": 0
+                    },
+                    "aggs": {
+                        "events_by_loglevel": {
+                            "terms": {
+                                "field": "loglevel"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        control = self.conn.search(index="_all", body=test_q)
+        result = LogData()._loglevel_by_time_agg(
+            self.conn, start, end, interval, query_filter=None)
+        self.assertEqual(result['aggregations'], control['aggregations'])
 
     def test_get_err_and_warn_hists(self):
         def test_scenario():
             interval_mapper = {"minute": "second", "hour": "minute",
                                "day": "hour", "month": "day"}
-            test_q = {"query": {"range": {
-                "@timestamp": {"gte": start,
-                               "lte": end}}}, "facets": {
-                "err_facet": {
-                    "date_histogram": {
-                        "field": "@timestamp",
-                        "interval": interval_mapper.get(interval, "hour")},
-                    "facet_filter": {"or": [{"term": {"loglevel": "error"}},
-                                            {"term": {"loglevel": "fatal"}}]}},
-                "warn_facet": {
-                    "date_histogram": {
-                        "field": "@timestamp",
-                        "interval": interval_mapper.get(interval, "hour")},
-                    "facet_filter": {"term": {"loglevel": "warning"}}}}}
-            control = self.conn.search(index="_all", body=test_q)['facets']
-            result = LogData().get_err_and_warn_hists(self.conn, start, end,
-                                                      interval)
-            self.assertEqual(result, control)
+            test_q = {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "range": {
+                                    "@timestamp": {
+                                        "gte": start.isoformat(),
+                                        "lte": end.isoformat()
+                                    }
+                                }
+                            },
+                            {
+                                "term": {
+                                    "type": "syslog"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "aggs": {
+                    "events_by_time": {
+                        "date_histogram": {
+                            "field": "@timestamp",
+                            "interval": interval_mapper.get(interval, 'hour'),
+                            "min_doc_count": 0
+                        },
+                        "aggs": {
+                            "events_by_loglevel": {
+                                "terms": {
+                                    "field": "loglevel"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            control = self.conn.search(
+                index="_all", body=test_q)
+            result = LogData().get_loglevel_histogram_data(self.conn, start,
+                                                           end, interval)
+            self.assertEqual(result, control['aggregations'])
 
-        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         interval = 'minute'
         test_scenario()
@@ -300,7 +339,7 @@ class LogDataModel(TestCase):
                                                       global_filter_text)
             self.assertEqual(result['hits'], control['hits'])
 
-        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
 
         test_scenario()
@@ -311,9 +350,9 @@ class LogDataModel(TestCase):
                       global_filter_text="keystone.common.wsgi")
 
     def test_get_new_and_missing_nodes(self):
-        short_lookback = datetime(2013, 12, 14, 0, 0, 0, tzinfo=pytz.utc)
-        long_lookback = datetime(2013, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
-        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        short_lookback = datetime(2014, 02, 14, 0, 0, 0, tzinfo=pytz.utc)
+        long_lookback = datetime(2014, 02, 13, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
 
         test_q1 = {'query': {'range': {
             '@timestamp': {'gte': long_lookback.isoformat(),
@@ -351,7 +390,7 @@ class LogDataModel(TestCase):
         '''
 
         start = datetime(2014, 2, 7, 0, 0, 0, 0, pytz.utc)
-        end = datetime(2014, 2, 7, 23, 59, 59, 999, pytz.utc)
+        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
         interval = 'hour'
 
         test_q = {
@@ -434,7 +473,7 @@ class IntelViewTest(TestCase):
         self.assertTemplateUsed(response, 'search.html')
 
     def test_log_cockpit_summary(self):
-        end = datetime(2013, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=4)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
@@ -445,8 +484,10 @@ class IntelViewTest(TestCase):
 
     def test_vcpu_stats_view(self):
         self.maxDiff = None
-        start = datetime(2014, 2, 7, 0, 0, 0, 0, pytz.utc)
-        end = datetime(2014, 2, 7, 23, 59, 59, 999, pytz.utc)
+
+        start = datetime(2014, 2, 14, 04, 59, 59, tzinfo=pytz.utc)
+        end = datetime(2014, 2, 14, 06, 0, 0, tzinfo=pytz.utc)
+
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
         response = self.client.get(
@@ -454,20 +495,8 @@ class IntelViewTest(TestCase):
             "&end_time=" + str(end_ts) + "&interval=hour")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response.content),
-                         [
-                             {u'total_configured_vcpus': 96.0,
-                              u'avg_inuse_vcpus': 7.0,
-                              u'avg_configured_vcpus': 96.0,
-                              u'total_inuse_vcpus': 7.0,
-                              u'time': 1391806800000},
-                             {u'total_configured_vcpus': 96.0,
-                              u'avg_inuse_vcpus': 7.0,
-                              u'avg_configured_vcpus': 96.0,
-                              u'total_inuse_vcpus': 7.0,
-                              u'time': 1391810400000},
-                             {u'total_configured_vcpus': 96.0,
-                              u'avg_inuse_vcpus': 7.0,
-                              u'avg_configured_vcpus': 96.0,
-                              u'total_inuse_vcpus': 7.0,
-                              u'time': 1391814000000}
-                         ])
+                         [{u'total_configured_vcpus': 96.0,
+                           u'avg_inuse_vcpus': 14.6,
+                           u'avg_configured_vcpus': 96.0,
+                           u'total_inuse_vcpus': 24.0,
+                           u'time': 1392354000000}])

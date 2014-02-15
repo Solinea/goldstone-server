@@ -6,21 +6,27 @@ OPENSTACK_SOURCE %{OPENSTACK_PROG}|%{OPENSTACK_PROG_SINGLE}
 
 OPENSTACK_REQ_LIST (\[(?:(req-%{UUID}|%{UUID}|%{BASE16NUM}|None|-|%{SPACE}))+\])?
 
-OPENSTACK_PID ( %{POSINT})?
+OPENSTACK_PID ( %{POSINT:pid:int})?
 
 OPENSTACK_LOGLEVEL ([D|d]ebug|DEBUG|[N|n]otice|NOTICE|[I|i]nfo|INFO|[W|w]arn?(?:ing)?|WARN?(?:ING)?|[E|e]rr?(?:or)?|ERR?(?:OR)?|[C|c]rit?(?:ical)?|CRIT?(?:ICAL)?|[F|f]atal|FATAL|[S|s]evere|SEVERE|[A|a]udit|AUDIT)
 
-OPENSTACK_NORMAL %{TIMESTAMP_ISO8601:timestamp}%{OPENSTACK_PID:pid} %{OPENSTACK_LOGLEVEL:loglevel} %{OPENSTACK_SOURCE:program} %{OPENSTACK_REQ_LIST:request_id_list} %{GREEDYDATA:msg}
+OPENSTACK_NORMAL %{TIMESTAMP_ISO8601:timestamp}%{OPENSTACK_PID} %{OPENSTACK_LOGLEVEL:loglevel} %{OPENSTACK_SOURCE:program} %{OPENSTACK_REQ_LIST:request_id_list} %{GREEDYDATA:msg}
 
 
 RAW_TRACE (?:^[^0-9].*$|^$)
 
-OPENSTACK_TRACE %{TIMESTAMP_ISO8601:timestamp} %{POSINT:pid} ([T|t]race|TRACE) %{OPENSTACK_SOURCE:program} %{GREEDYDATA:msg}|%{RAW_TRACE:msg}
+OPENSTACK_TRACE %{TIMESTAMP_ISO8601:timestamp} %{POSINT:pid:int} ([T|t]race|TRACE) %{OPENSTACK_SOURCE:program} %{GREEDYDATA:msg}|%{RAW_TRACE:msg}
 
 OPENSTACK_MESSAGE %{OPENSTACK_NORMAL}|%{OPENSTACK_TRACE}
 
 NOT_OVSW_SEPARATOR (?:[^|]*)
 
+#
+# Nova logs that have been passed through syslog
+# Adaptation of SYSLOG5424LINE
+#
+SYSLOG5424PRINUM (?:\<%{NONNEGINT:syslog5424_pri}\>)
+OPENSTACK_SYSLOGLINE %{SYSLOG5424PRINUM}%{CISCOTIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} %{OPENSTACK_MESSAGE:os_message}
 #
 # setting the field names to match the openstack log until I can figure out a better way of doing
 # the search table
