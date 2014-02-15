@@ -18,5 +18,7 @@ urlpatterns = patterns(
     url(r'^log/search/data/(?P<start_time>\d+)/(?P<end_time>\d+)[/]?$',
         log_search_data, name='intel-log-search-data'),
     url(r'^compute/vcpu_stats[/]?$', compute_vcpu_stats,
-        name='compute_vcpu_stats')
+        name='compute_vcpu_stats'),
+    url(r'^host_presence_stats[/]?$', host_presence_stats,
+        name='host_presence_stats')
 )

@@ -185,3 +185,48 @@ def compute_vcpu_stats(request):
 
     return HttpResponse(json.dumps(response),
                         content_type="application/json")
+
+
+def host_presence_stats(request):
+
+    lookback_mins = int(request.GET.get('lookback_mins', "60"))
+    end_time = request.GET.get('end_time',
+                               calendar.timegm(
+                                   datetime.now(tz=pytz.utc).utctimetuple()))
+    end_dt = datetime.fromtimestamp(int(end_time), tz=pytz.utc)
+    start_time = request.GET.get('start_time',
+                                 calendar.timegm(
+                                     (end_dt - timedelta(weeks=1)).
+                                 utctimetuple()))
+    start_dt = datetime.fromtimestamp(int(start_time), tz=pytz.utc)
+    conn = LogData.get_connection(settings.ES_SERVER)
+
+    keylist = ['host', 'status']
+
+    sort_index = int(request.GET.get('iSortCol_1'))
+    sort_col = keylist[sort_index] if sort_index else keylist[1]
+    sort_dir_in = request.GET.get('sSortDir_1')
+    sort_dir = sort_dir_in if sort_dir_in else "asc"
+
+    ld = LogData()
+    response = ld.get_new_and_missing_nodes(conn, start_dt,
+                                 end_dt - timedelta(minutes=lookback_mins),
+                                 end_dt)
+
+    aa_data = []
+    for rec in response['missing_nodes']:
+        aa_data.append([rec, 'MISSING'])
+    for rec in response['new_nodes']:
+        aa_data.append([rec, 'NEW'])
+
+    response = {
+        "sEcho": int(request.GET.get('sEcho')),
+        # This should be the result count without filtering, but no obvious
+        # way to get that without doing the query twice.
+        "iTotalRecords": len(response),
+        "iTotalDisplayRecords": len(response),
+        "aaData": aa_data
+    }
+
+    return HttpResponse(json.dumps(response),
+                        content_type="application/json")
