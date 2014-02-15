@@ -375,6 +375,8 @@ class LogDataModel(TestCase):
                   r2['facets']['host_facet']['terms']])
         new_nodes = s2.difference(s1)
         missing_nodes = s1.difference(s2)
+        logger.info("test_q1 = ", json.dumps(test_q1))
+        logger.info("test_q2 = ", json.dumps(test_q2))
         control = {
             "missing_nodes": list(missing_nodes),
             "new_nodes": list(new_nodes)
@@ -513,3 +515,19 @@ class IntelViewTest(TestCase):
                            u'avg_configured_vcpus': 96.0,
                            u'total_inuse_vcpus': 24.0,
                            u'time': 1392354000000}])
+
+    def test_host_presence_data(self):
+        start = datetime(2014, 02, 13, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
+        lookback_mins = 60
+
+        end_ts = calendar.timegm(end.utctimetuple())
+        start_ts = calendar.timegm(start.utctimetuple())
+
+        uri = '/intelligence/host_presence_stats?lookback_mins=' + \
+              str(lookback_mins) + "&start_time=" + str(start_ts) + \
+              "&end_time=" + str(end_ts)
+
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json.loads(response.content), "")
