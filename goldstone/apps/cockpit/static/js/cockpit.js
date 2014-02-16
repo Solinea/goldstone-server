@@ -1,6 +1,7 @@
 $(document).ready(function() {
     bad_event_histogram_panel('month', '#bad-event-chart');
     vcpu_graph('day', '#vcpu-graph');
+    draw_host_presence_table('#host-presence-table');
 
     // activate the interval buttons
 
@@ -24,4 +25,16 @@ $(document).ready(function() {
     $("#vcpu-cockpit-hour-btn").click(function() {
         vcpu_graph("minute", "#vcpu-graph");
     });
+
+    $("#submit-host-presence").click(function() {
+        console.log("handling submit-host-presence click");
+        var lookbackNum = $("input#lookbackNum").val();
+        var lookbackUnit = $("select#lookbackUnit").val();
+        var comparisonNum = $("input#comparisonNum").val();
+        var comparisonUnit = $("select#comparisonUnit").val();
+        console.log("lookbackNum="+lookbackNum+", lookbackUnit="+lookbackUnit);
+        console.log("comparisonNum="+comparisonNum+", comparisonUnit="+comparisonUnit);
+        draw_host_presence_table('#host-presence-table',
+           lookbackNum, lookbackUnit, comparisonNum, comparisonUnit);
+    })
 }); 
