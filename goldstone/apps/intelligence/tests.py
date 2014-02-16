@@ -375,8 +375,8 @@ class LogDataModel(TestCase):
                   r2['facets']['host_facet']['terms']])
         new_nodes = s2.difference(s1)
         missing_nodes = s1.difference(s2)
-        logger.info("test_q1 = ", json.dumps(test_q1))
-        logger.info("test_q2 = ", json.dumps(test_q2))
+        logger.debug("test_q1 = ", json.dumps(test_q1))
+        logger.debug("test_q2 = ", json.dumps(test_q2))
         control = {
             "missing_nodes": list(missing_nodes),
             "new_nodes": list(new_nodes)
@@ -517,17 +517,26 @@ class IntelViewTest(TestCase):
                            u'time': 1392354000000}])
 
     def test_host_presence_data(self):
-        start = datetime(2014, 02, 13, 0, 0, 0, tzinfo=pytz.utc)
-        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
-        lookback_mins = 60
 
-        end_ts = calendar.timegm(end.utctimetuple())
-        start_ts = calendar.timegm(start.utctimetuple())
+        test_parameters = [
+            'lookbackQty=10&lookbackUnit=minutes&comparisonQty=1' +
+            '&comparisonUnit=minutes',
+            'lookbackQty=10&lookbackUnit=hours&comparisonQty=1' +
+            '&comparisonUnit=hours',
+            'lookbackQty=10&lookbackUnit=days&comparisonQty=1' +
+            '&comparisonUnit=days',
+            'lookbackQty=10&lookbackUnit=weeks&comparisonQty=1' +
+            '&comparisonUnit=days'
+        ]
 
-        uri = '/intelligence/host_presence_stats?lookback_mins=' + \
-              str(lookback_mins) + "&start_time=" + str(start_ts) + \
-              "&end_time=" + str(end_ts)
+        for params in test_parameters:
+            uri = '/intelligence/host_presence_stats?' + params + \
+                  '&sEcho=6&iColumns=2&sColumns=host%2Cstatus&' + \
+                  'iDisplayStart=0&iDisplayLength=-1&mDataProp_0=0' + \
+                  '&mDataProp_1=1&iSortCol_0=0&sSortDir_0=asc&_=1'
 
-        response = self.client.get(uri)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(json.loads(response.content), "")
+            logger.debug("testing URI [%s]", uri)
+            response = self.client.get(uri)
+            self.assertEqual(response.status_code, 200)
+            self.assertDictContainsSubset({'sEcho': 6},
+                                          json.loads(response.content))
