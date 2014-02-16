@@ -360,6 +360,71 @@ function bad_event_histogram_panel(interval, location, end) {
         $("#log-table-loading-indicator").hide();
     }
 
+    function draw_host_presence_table(location, lookbackQty, lookbackUnit,
+                                      comparisonQty, comparisonUnit) {
+
+        $("#host-presence-table-loading-indicator").show();
+        // defaults to comparing the last 5 minutes to the last 60 minutes
+        // starting now.
+        lookbackQty = typeof lookbackQty !== 'undefined' ?
+            lookbackQty :
+            60;
+        comparisonQty = typeof comparisonQty !== 'undefined' ?
+            comparisonQty :
+            5;
+        lookbackUnit = typeof lookbackUnit !== 'undefined' ?
+            lookbackUnit :
+            'minutes';
+        comparisonUnit = typeof comparisonUnit !== 'undefined' ?
+            comparisonUnit :
+            'minutes';
+
+        console.log("in draw_host_presence_table, lookbackNum="+String(lookbackNum)+", lookbackUnit="+lookbackUnit)
+        console.log("in draw_host_presence_table, comparisonNum="+String(comparisonNum)+", comparisonUnit="+comparisonUnit);
+        var uri = '/intelligence/host_presence_stats'.concat(
+            '?lookbackQty=', String(lookbackQty),
+            '&lookbackUnit=', lookbackUnit,
+            '&comparisonQty=', String(comparisonQty),
+            '&comparisonUnit=', comparisonUnit);
+        console.log("in draw_host_presence_table, uri="+uri);
+        if ($.fn.dataTable.isDataTable(location)) {
+            var oTable = $(location).dataTable();
+            console.log("in draw_host_presence_table, calling fnReloadAjax");
+            oTable.fnReloadAjax(uri);
+        } else {
+            var oTableParams = {
+                "bProcessing": true,
+                "bServerSide": true,
+                "sAjaxSource": uri,
+                "bPaginate": false,
+                "sScrollY": "150px",
+                "bFilter": false,
+                "bSort": false,
+                "bInfo": false,
+                "bAutoWidth": true,
+                "bLengthChange": true,
+                "aoColumnDefs": [
+                    { "sName": "host", "aTargets": [ 0 ] },
+                    { "sName": "status", "aTargets": [ 1 ] }
+                    /* TODO GOLD-241 add support for time last seen to JS
+                    ,
+                    { "bVisible": false, "aTargets": [ 2 ] },
+                    { "sName": "lastSeen", "aTargets": [ 2 ] },
+                    { "sType": "date", "aTargets": [2] }
+                    */
+                ]
+            }
+
+            var oTable = $(location).dataTable(oTableParams);
+
+            $(window).bind('resize', function () {
+                oTable.fnAdjustColumnSizing();
+            });
+        }
+        $("#host-presence-table-loading-indicator").hide();
+    }
+
+
 /*
  function updateWindow(){
 

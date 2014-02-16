@@ -13,6 +13,7 @@
 {% block localjs %}
     <script src="{% static 'js/plugins/dataTables/jquery.dataTables.js' %}"></script>
     <script src="{% static 'js/plugins/dataTables/dataTables.bootstrap.js' %}"></script>
+    <script src="{% static 'intelligence/js/fnReloadAjax.js' %}"></script>
     <script src="{% static 'js/d3.js' %}"></script>
     <script src="{% static 'js/crossfilter.js' %}"></script>
     <script src="{% static 'js/dc.js' %}"></script>
@@ -62,7 +63,61 @@
             </div>
         </div>
     </div>
+    <div class="row" style="height:400px">
+        <div id="table-col" class="col-md-6">
+            <div class="panel panel-primary log_table_panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>
+                        New and Unseen Hosts
+                    </h3>
+                </div>
+                <div id="host-presence-body" class="panel-body">
+                    <form class="form-inline" role="form">
+                        <div class="form-group">
+                            <label class="sr-only" for="lookbackNum">Look back: </label>
+                            <input type="number" class="form-control" id="lookbackNum" placeholder="Qty Lookback">
+                        </div>
+                        <div class="form-group">
+                            <label class="sr-only" for="lookbackUnit">Unit</label>
+                            <select class="form-control" id="lookbackUnit">
+                                <option value="minutes">Minutes</option>
+                                <option value="hours">Hours</option>
+                                <option value="days">Days</option>
+                                <option value="weeks">Weeks</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="sr-only" for="comparisonNum">Compare to last: </label>
+                            <input type="number" class="form-control" id="comparisonNum" placeholder="Qty Compare">
+                        </div>
+                        <div class="form-group">
+                            <label class="sr-only" for="comparisonUnit">Unit</label>
+                            <select class="form-control" id="comparisonUnit">
+                                <option value="minutes">Minutes</option>
+                                <option value="hours">Hours</option>
+                                <option value="days">Days</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-lg" id="submit-host-presence">Search</button>
+                    </form>
 
+
+                    <table id="host-presence-table" class="table table-hover">
+                        <!-- table rows filled by draw_host_presence_table -->
+                        <thead>
+                        <tr class="header">
+                            <th>Host</th>
+                            <th>Status</th>
+                        </tr>
+                        </thead>
+                    </table>
+                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                         id="host-presence-table-loading-indicator"
+                         class="ajax-loader"/>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {% switch gse %}
         <div class="row">
