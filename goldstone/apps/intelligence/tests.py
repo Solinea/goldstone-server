@@ -8,6 +8,7 @@ from django.test.client import Client
 from django.test.client import RequestFactory
 from django.test import TestCase
 from django.conf import settings
+from waffle import Switch
 
 from .views import IntelSearchView
 from .models import *
@@ -374,6 +375,8 @@ class LogDataModel(TestCase):
                   r2['facets']['host_facet']['terms']])
         new_nodes = s2.difference(s1)
         missing_nodes = s1.difference(s2)
+        logger.debug("test_q1 = ", json.dumps(test_q1))
+        logger.debug("test_q2 = ", json.dumps(test_q2))
         control = {
             "missing_nodes": list(missing_nodes),
             "new_nodes": list(new_nodes)
@@ -460,6 +463,7 @@ class LogDataModel(TestCase):
 
 class IntelViewTest(TestCase):
     """Lease list view tests"""
+    switch = None
 
     def setUp(self):
         pass
@@ -490,9 +494,20 @@ class IntelViewTest(TestCase):
 
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
-        response = self.client.get(
-            '/intelligence/compute/vcpu_stats?start_time=' + str(start_ts) +
-            "&end_time=" + str(end_ts) + "&interval=hour")
+        uri = '/intelligence/compute/vcpu_stats?start_time=' + \
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+
+        # Test GSL
+        switch, created = Switch.objects.get_or_create(name='gse',
+                                                       active=False)
+        self.assertNotEqual(switch, None)
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 404)
+
+        # Test GSE
+        switch.active = True
+        switch.save()
+        response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response.content),
                          [{u'total_configured_vcpus': 96.0,
@@ -500,3 +515,28 @@ class IntelViewTest(TestCase):
                            u'avg_configured_vcpus': 96.0,
                            u'total_inuse_vcpus': 24.0,
                            u'time': 1392354000000}])
+
+    def test_host_presence_data(self):
+
+        test_parameters = [
+            'lookbackQty=10&lookbackUnit=minutes&comparisonQty=1' +
+            '&comparisonUnit=minutes',
+            'lookbackQty=10&lookbackUnit=hours&comparisonQty=1' +
+            '&comparisonUnit=hours',
+            'lookbackQty=10&lookbackUnit=days&comparisonQty=1' +
+            '&comparisonUnit=days',
+            'lookbackQty=10&lookbackUnit=weeks&comparisonQty=1' +
+            '&comparisonUnit=days'
+        ]
+
+        for params in test_parameters:
+            uri = '/intelligence/host_presence_stats?' + params + \
+                  '&sEcho=6&iColumns=2&sColumns=host%2Cstatus&' + \
+                  'iDisplayStart=0&iDisplayLength=-1&mDataProp_0=0' + \
+                  '&mDataProp_1=1&iSortCol_0=0&sSortDir_0=asc&_=1'
+
+            logger.debug("testing URI [%s]", uri)
+            response = self.client.get(uri)
+            self.assertEqual(response.status_code, 200)
+            self.assertDictContainsSubset({'sEcho': 6},
+                                          json.loads(response.content))
