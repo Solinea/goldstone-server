@@ -251,6 +251,11 @@ class LogData(object):
     def get_new_and_missing_nodes(self, conn, long_lookback, short_lookback,
                                   end=datetime.now(tz=pytz.utc)):
 
+        logger.debug("[get_new_and_missing_nodes] long_lookback = %s",
+                     long_lookback.isoformat())
+        logger.debug("[get_new_and_missing_nodes], short_lookback = %s",
+                     short_lookback.isoformat())
+
         host_facet = self._term_facet('host_facet', 'host.raw',
                                       all_terms=False, order='term')
         q1 = self._range_query('@timestamp', long_lookback.isoformat(),

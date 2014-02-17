@@ -8,11 +8,14 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import redirect, render
 from django.views.generic import DetailView, ListView
 from django.utils import timezone
+from waffle.decorators import waffle_switch
 
 from .models import Cockpit
 from goldstone.apps.lease.models import Lease
 
 
+# TODO GOLD-238 this does not seem to be used, can we remove it and the html
+# template?
 class DetailCockpitView(DetailView):
     model = Cockpit
     template_name = 'cockpit_detail.html'
@@ -23,6 +26,9 @@ class DetailCockpitView(DetailView):
 #     Lease = Lease.objects.all()
 #     template_name = 'cockpit.html'
 
+# TODO GOLD-237 template rendering and lease feature are conflated.
+# Should separate.
+#@waffle_switch('gse')
 def view_cockpit(request):
     leases_to_show = 5
     leases = Lease.objects.filter(expiration_time__gte=timezone.now(),

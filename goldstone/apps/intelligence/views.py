@@ -5,10 +5,10 @@
 #
 from __future__ import unicode_literals
 import calendar
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf import settings
-
 from django.views.generic import TemplateView
+from waffle.decorators import waffle_switch
 from .models import LogData
 from datetime import datetime, timedelta
 import pytz
@@ -142,6 +142,7 @@ def _calc_start(interval, end):
     return end - options[interval]
 
 
+@waffle_switch('gse')
 def compute_vcpu_stats(request):
 
     interval = request.GET.get('interval', 'day')
@@ -181,6 +182,86 @@ def compute_vcpu_stats(request):
                 host_bucket['avg_active_vcpus']['value']
 
         response.append(item)
+
+    return HttpResponse(json.dumps(response),
+                        content_type="application/json")
+
+
+def _calc_host_presence_time(reftime, qty, unit):
+
+    result = {
+        'minutes': reftime - timedelta(minutes=qty),
+        'hours': reftime - timedelta(hours=qty),
+        'days': reftime - timedelta(days=qty),
+        'weeks': reftime - timedelta(weeks=qty)
+    }
+
+    return result[unit.lower()]
+
+
+def host_presence_stats(request):
+
+    valid_units = {
+        'lookback': ['minutes', 'hours', 'days', 'weeks'],
+        'comparison': ['minutes', 'hours', 'days']
+    }
+
+    lookback_qty = int(request.GET.get('lookbackQty', "60"))
+    lookback_unit = request.GET.get('lookbackUnit', "minutes")
+    comparison_qty = int(request.GET.get('comparisonQty', "5"))
+    comparison_unit = request.GET.get('comparisonUnit', "minutes")
+
+    logger.debug("[host_presence_stats], lookback_qty = %d", lookback_qty)
+    logger.debug("[host_presence_stats], lookback_unit = %s", lookback_unit)
+    logger.debug("[host_presence_stats], comparison_qty = %s", comparison_qty)
+    logger.debug("[host_presence_stats], comparison_unit = %s",
+                 comparison_unit)
+
+    if not lookback_unit in valid_units['lookback']:
+        return HttpResponseBadRequest(
+            "Lookback unit must be one of "
+            "['minutes', 'hours', 'days', 'weeks']")
+
+    if not comparison_unit in valid_units['comparison']:
+        return HttpResponseBadRequest(
+            "Comparison unit must be one of "
+            "['minutes', 'hours', 'days']")
+
+    if lookback_qty <= 0 or comparison_qty <= 0:
+        return HttpResponseBadRequest(
+            "Lookback and comparison quantities must be > 0")
+
+    end_time = request.GET.get('end_time',
+                               calendar.timegm(
+                                   datetime.now(tz=pytz.utc).utctimetuple()))
+    end_dt = datetime.fromtimestamp(int(end_time), tz=pytz.utc)
+
+    lookback_dt = _calc_host_presence_time(end_dt, lookback_qty,
+                                           lookback_unit)
+    comparison_dt = _calc_host_presence_time(end_dt, comparison_qty,
+                                             comparison_unit)
+
+    conn = LogData.get_connection(settings.ES_SERVER)
+
+    keylist = ['host', 'status']
+    ld = LogData()
+    response = ld.get_new_and_missing_nodes(conn, lookback_dt, comparison_dt,
+                                            end_dt)
+
+    aa_data = []
+    for rec in response['missing_nodes']:
+        aa_data.append([rec, 'MISSING'])
+    for rec in response['new_nodes']:
+        aa_data.append([rec, 'NEW'])
+
+    response = {
+        "sEcho": int(request.GET.get('sEcho')),
+        # This should be the result count without filtering, but no obvious
+        # way to get that without doing the query twice.
+        "iTotalRecords": len(response),
+        "iTotalDisplayRecords": len(response),
+        "aaData": aa_data
+    }
 
     return HttpResponse(json.dumps(response),
                         content_type="application/json")

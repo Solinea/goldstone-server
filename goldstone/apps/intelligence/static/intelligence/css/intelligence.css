@@ -17,7 +17,20 @@ path {
     font-size: 10px;
 }
 #log-search-table td {
-    font-size: 11px;
+    font-size: 10px;
+}
+
+/* Datatable font sizes */
+.table-hover th {
+    font-size: 10px;
+}
+.table-hover td {
+    font-size: 10px;
+}
+
+/* form element sizing for inline form */
+.form-inline * {
+    font-size: 10px;
 }
 
 /*
