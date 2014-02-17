@@ -1,0 +1,65 @@
+#
+# categorize openstack syslog messages
+# the openstack specific fields will be in os_message
+# for further processing.  
+#
+filter {
+    if ("openstack_syslog" in [tags] and
+        "processed" in [tags] and 
+        "nova.compute.claims" in [program]) {
+
+        grok { 
+            patterns_dir => "/opt/logstash/patterns"
+            match => { "message" => "%{NOVA_CLAIMS_SUMMARY_PHYS}" }
+        }
+        if ("_grokparsefailure" not in [tags]) {
+            mutate {
+                replace => [ "type", "nova_claims_summary_phys" ]  
+            }
+        } else {
+            grok {
+                remove_tag => ["_grokparsefailure"]
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "message" => "%{NOVA_CLAIMS_SUMMARY_VIRT}" }
+            }
+            if ("_grokparsefailure" not in [tags]) {
+                mutate {
+                    replace => [ "type", "nova_claims_summary_virt" ]
+                }
+            } else {
+                grok {
+                    remove_tag => ["_grokparsefailure"]
+                    patterns_dir => "/opt/logstash/patterns"
+                    match => { "message" => "%{NOVA_CLAIMS_REQUEST}" }
+                }
+                if ("_grokparsefailure" not in [tags]) {
+                    mutate {
+                        replace => [ "type", "nova_claims_request" ]         
+                    }
+                }
+            }
+        }
+
+        if ("_grokparsefailure" not in [tags]) {
+            # clean up extra fields and tag us
+            mutate {
+                remove_field => "pid"
+                remove_field => "hostname"
+                remove_field => "message"
+                remove_field => "_message"
+                remove_field => "loglevel"
+                remove_field => "syslog_severity_code"
+                remove_field => "syslog_facility_code"
+                remove_field => "syslog_facility"
+                remove_field => "syslog_severity"
+                add_tag => ["metric", "filter_35"]
+            }
+        } else {
+            # not our type, but no hard feelings
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
+        }
+    }
+}
+
