@@ -9,7 +9,6 @@ conn = Elasticsearch("10.10.11.121:9200", bulk_size=500)
 end = datetime(2014, 2, 17, 23, 59, 59, tzinfo=pytz.utc)
 start = end - timedelta(days=2)
 
-mapping_f = gzip.open("./mapping.json.gz", 'wb')
 data_f = gzip.open('data.json.gz', 'wb')
 template_f = gzip.open("./template.json.gz", 'wb')
 
