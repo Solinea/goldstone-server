@@ -142,6 +142,96 @@ def _calc_start(interval, end):
     return end - options[interval]
 
 
+def _unload_start_end_interval(request):
+    interval = request.GET.get('interval', 'day')
+    end_time = request.GET.get('end_time',
+                               calendar.timegm(
+                                   datetime.now(tz=pytz.utc).utctimetuple()))
+    end_dt = datetime.fromtimestamp(int(end_time), tz=pytz.utc)
+    start_time = request.GET.get('start_time',
+                                 calendar.timegm(
+                                     _calc_start('day', end_dt).
+                                     utctimetuple()))
+    start_dt = datetime.fromtimestamp(int(start_time), tz=pytz.utc)
+    return (start_dt, end_dt, interval)
+
+
+def _get_claims_metric_stats(start_dt, end_dt, interval, method_name,
+                             custom_fields):
+    conn = LogData.get_connection(settings.ES_SERVER)
+    ld = LogData()
+    raw_data = getattr(ld, method_name)(conn, start_dt, end_dt, interval)
+    logger.debug("[%s] raw_data = %s", method_name, json.dumps(raw_data))
+    response = []
+    for date_bucket in raw_data['aggregations']['events_by_date']['buckets']:
+        item = {
+            'time': date_bucket['key'],
+            'max_total': 0,
+            'avg_total': 0,
+            custom_fields['max']: 0,
+            custom_fields['avg']: 0
+        }
+        for host_bucket in date_bucket['events_by_host']['buckets']:
+            item['max_total'] += (host_bucket['max_total']).get('value', 0)
+            item['avg_total'] += (host_bucket['avg_total']).get('value', 0)
+            item[custom_fields['max']] += (host_bucket[custom_fields['max']]).\
+                get('value', 0)
+            item[custom_fields['avg']] += (host_bucket[custom_fields['avg']]).\
+                get('value', 0)
+
+        response.append(item)
+
+    return response
+
+
+def get_virt_cpu_stats(request):
+    (start_dt, end_dt, interval) = _unload_start_end_interval(request)
+    cf = {'max': 'max_free', 'avg': 'avg_free'}
+    response = _get_claims_metric_stats(start_dt, end_dt, interval,
+                                        'gsl_virt_cpu_stats', cf)
+    return HttpResponse(json.dumps(response), content_type="application/json")
+
+
+def get_phys_cpu_stats(request):
+    (start_dt, end_dt, interval) = _unload_start_end_interval(request)
+    cf = {'max': 'max_used', 'avg': 'avg_used'}
+    response = _get_claims_metric_stats(start_dt, end_dt, interval,
+                                        'gsl_phys_cpu_stats', cf)
+    return HttpResponse(json.dumps(response), content_type="application/json")
+
+
+def get_virt_mem_stats(request):
+    (start_dt, end_dt, interval) = _unload_start_end_interval(request)
+    cf = {'max': 'max_free', 'avg': 'avg_free'}
+    response = _get_claims_metric_stats(start_dt, end_dt, interval,
+                                        'gsl_virt_mem_stats', cf)
+    return HttpResponse(json.dumps(response), content_type="application/json")
+
+
+def get_phys_mem_stats(request):
+    (start_dt, end_dt, interval) = _unload_start_end_interval(request)
+    cf = {'max': 'max_used', 'avg': 'avg_used'}
+    response = _get_claims_metric_stats(start_dt, end_dt, interval,
+                                        'gsl_phys_mem_stats', cf)
+    return HttpResponse(json.dumps(response), content_type="application/json")
+
+
+def get_virt_disk_stats(request):
+    (start_dt, end_dt, interval) = _unload_start_end_interval(request)
+    cf = {'max': 'max_free', 'avg': 'avg_free'}
+    response = _get_claims_metric_stats(start_dt, end_dt, interval,
+                                        'gsl_virt_disk_stats', cf)
+    return HttpResponse(json.dumps(response), content_type="application/json")
+
+
+def get_phys_disk_stats(request):
+    (start_dt, end_dt, interval) = _unload_start_end_interval(request)
+    cf = {'max': 'max_used', 'avg': 'avg_used'}
+    response = _get_claims_metric_stats(start_dt, end_dt, interval,
+                                        'gsl_phys_disk_stats', cf)
+    return HttpResponse(json.dumps(response), content_type="application/json")
+
+
 @waffle_switch('gse')
 def compute_vcpu_stats(request):
 
@@ -183,8 +273,7 @@ def compute_vcpu_stats(request):
 
         response.append(item)
 
-    return HttpResponse(json.dumps(response),
-                        content_type="application/json")
+    return HttpResponse(json.dumps(response), content_type="application/json")
 
 
 def _calc_host_presence_time(reftime, qty, unit):
