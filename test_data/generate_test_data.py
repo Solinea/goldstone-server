@@ -6,17 +6,16 @@ import gzip
 
 conn = Elasticsearch("10.10.11.121:9200", bulk_size=500)
 
-#mapping_f = gzip.open("./mapping.json.gz", 'wb')
+end = datetime(2014, 2, 17, 23, 59, 59, tzinfo=pytz.utc)
+start = end - timedelta(days=2)
+
+mapping_f = gzip.open("./mapping.json.gz", 'wb')
 data_f = gzip.open('data.json.gz', 'wb')
 template_f = gzip.open("./template.json.gz", 'wb')
 
 template = conn.indices.get_template('logstash')
 json.dump(template['logstash'], template_f)
 template_f.close()
-
-end = datetime(2014, 02, 13, 23, 59, 59, tzinfo=pytz.utc)
-start = end - timedelta(weeks=52)
-
 
 fq = {
     "query": {
@@ -64,8 +63,6 @@ print fq
 
 result = [conn.search(index="_all", body=fq, size=500)]
 
-end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
-start = end - timedelta(weeks=4)
 fq = {
     "query": {
         "filtered": {
@@ -87,5 +84,50 @@ fq = {
 }
 
 result.append(conn.search(index="_all", body=fq, size=500))
+
+fq = {
+    "query": {
+        "filtered": {
+            "filter": {
+                "term": {
+                    "type": "nova_claims_summary_phys"
+                }
+            },
+            "query": {
+                "range": {
+                    "@timestamp": {
+                        "gte": start.isoformat(),
+                        "lte": end.isoformat()
+                    }
+                }
+            }
+        }
+    }
+}
+
+result.append(conn.search(index="_all", body=fq, size=250))
+
+fq = {
+    "query": {
+        "filtered": {
+            "filter": {
+                "term": {
+                    "type": "nova_claims_summary_virt"
+                }
+            },
+            "query": {
+                "range": {
+                    "@timestamp": {
+                        "gte": start.isoformat(),
+                        "lte": end.isoformat()
+                    }
+                }
+            }
+        }
+    }
+}
+
+result.append(conn.search(index="_all", body=fq, size=250))
+
 json.dump(result, data_f)
 data_f.close()

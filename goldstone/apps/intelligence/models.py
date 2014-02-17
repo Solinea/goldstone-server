@@ -289,6 +289,138 @@ class LogData(object):
             "new_nodes": list(new_nodes)
         }
 
+    def _claims_resource_query(self, start, end, interval, resource, type):
+
+        type_field = {
+            'nova_claims_summary_phys': ['total_used', 'avg_used', 'used'],
+            'nova_claims_summary_virt': ['total_free', 'avg_free', 'free']
+        }
+
+        return {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "range": {
+                                "@timestamp": {
+                                    "gte": start.isoformat(),
+                                    "lte": end.isoformat()
+                                }
+                            }
+                        },
+                        {
+                            "term": {
+                                "type": type
+                            }
+                        },
+                        {
+                            "term": {
+                                "resource": resource
+                            }
+                        }
+                    ]
+                }
+            },
+            "aggs": {
+                "events_by_date": {
+                    "date_histogram": {
+                        "field": "@timestamp",
+                        "interval": interval,
+                        "min_doc_count": 0
+                    },
+                    "aggs": {
+                        "events_by_host": {
+                            "terms": {
+                                "field": "host.raw"
+                            },
+                            "aggs": {
+                                "max_total": {
+                                    "max": {
+                                        "field": "total"
+                                    }
+                                },
+                                "avg_total": {
+                                    "avg": {
+                                        "field": "total"
+                                    }
+                                },
+                                type_field[type][0]: {
+                                    "max": {
+                                        "field": type_field[type][2]
+                                    }
+                                },
+                                type_field[type][1]: {
+                                    "avg": {
+                                        "field": type_field[type][2]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    def gsl_phys_cpu_stats(self, conn, start, end, interval, first=0,
+                           size=10, sort=''):
+        q = self._claims_resource_query(start, end, interval, 'cpu',
+                                        'nova_claims_summary_phys')
+        logger.debug('[gsl_phys_cpu_stats] query = ' + json.dumps(q))
+        result = conn.search(index="_all", body=q, from_=first, size=size,
+                             sort=sort)
+        logger.debug('[gsl_phys_cpu_stats] result = ' + json.dumps(result))
+        return result
+
+    def gsl_virt_cpu_stats(self, conn, start, end, interval, first=0,
+                           size=10, sort=''):
+        q = self._claims_resource_query(start, end, interval, 'cpu',
+                                        'nova_claims_summary_virt')
+        logger.debug('[gsl_phys_cpu_stats] query = ' + json.dumps(q))
+        result = conn.search(index="_all", body=q, from_=first, size=size,
+                             sort=sort)
+        logger.debug('[gsl_phys_cpu_stats] result = ' + json.dumps(result))
+        return result
+
+    def gsl_phys_mem_stats(self, conn, start, end, interval, first=0,
+                           size=10, sort=''):
+        q = self._claims_resource_query(start, end, interval, 'memory',
+                                        'nova_claims_summary_phys')
+        logger.debug('[gsl_phys_cpu_stats] query = ' + json.dumps(q))
+        result = conn.search(index="_all", body=q, from_=first, size=size,
+                             sort=sort)
+        logger.debug('[gsl_phys_cpu_stats] result = ' + json.dumps(result))
+        return result
+
+    def gsl_virt_mem_stats(self, conn, start, end, interval, first=0,
+                           size=10, sort=''):
+        q = self._claims_resource_query(start, end, interval, 'memory',
+                                        'nova_claims_summary_virt')
+        logger.debug('[gsl_phys_cpu_stats] query = ' + json.dumps(q))
+        result = conn.search(index="_all", body=q, from_=first, size=size,
+                             sort=sort)
+        logger.debug('[gsl_phys_cpu_stats] result = ' + json.dumps(result))
+        return result
+
+    def gsl_phys_disk_stats(self, conn, start, end, interval, first=0,
+                            size=10, sort=''):
+        q = self._claims_resource_query(start, end, interval, 'disk',
+                                        'nova_claims_summary_phys')
+        logger.debug('[gsl_phys_cpu_stats] query = ' + json.dumps(q))
+        result = conn.search(index="_all", body=q, from_=first, size=size,
+                             sort=sort)
+        logger.debug('[gsl_phys_cpu_stats] result = ' + json.dumps(result))
+        return result
+
+    def gsl_virt_disk_stats(self, conn, start, end, interval, first=0,
+                            size=10, sort=''):
+        q = self._claims_resource_query(start, end, interval, 'disk',
+                                        'nova_claims_summary_virt')
+        logger.debug('[gsl_phys_cpu_stats] query = ' + json.dumps(q))
+        result = conn.search(index="_all", body=q, from_=first, size=size,
+                             sort=sort)
+        logger.debug('[gsl_phys_cpu_stats] result = ' + json.dumps(result))
+        return result
+
     def get_hypervisor_stats(self, conn, start, end, interval, first=0,
                              size=10, sort=''):
 
