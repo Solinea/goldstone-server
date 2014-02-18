@@ -184,6 +184,147 @@ def _get_claims_metric_stats(start_dt, end_dt, interval, method_name,
     return response
 
 
+def get_cpu_stats(request):
+    (start_dt, end_dt, interval) = _unload_start_end_interval(request)
+    cf = {'max': 'max_free', 'avg': 'avg_free'}
+    vcpu_response = _get_claims_metric_stats(start_dt, end_dt, interval,
+                                             'gsl_virt_cpu_stats', cf)
+    cf = {'max': 'max_used', 'avg': 'avg_used'}
+    cpu_response = _get_claims_metric_stats(start_dt, end_dt, interval,
+                                            'gsl_phys_cpu_stats', cf)
+    logger.debug("cpu_response = " + json.dumps(cpu_response))
+    cpu_times = [e['time'] for e in cpu_response]
+    vcpu_times = [e['time'] for e in vcpu_response]
+
+    all_times = set(cpu_times + vcpu_times)
+    response = []
+    for t in all_times:
+        to_append = {'time': t}
+        if t in vcpu_times:
+            rec = (item for item in vcpu_response if item["time"] == t).next()
+            to_append['virt_cpu_max_total'] = rec['max_total']
+            to_append['virt_cpu_avg_total'] = rec['avg_total']
+            to_append['virt_cpu_max_used'] = rec['max_total'] - rec['max_free']
+            to_append['virt_cpu_avg_used'] = rec['avg_total'] - rec['avg_free']
+        else:
+            to_append['virt_cpu_max_total'] = 0
+            to_append['virt_cpu_avg_total'] = 0
+            to_append['virt_cpu_max_used'] = 0
+            to_append['virt_cpu_avg_used'] = 0
+
+        if t in cpu_times:
+            rec = (item for item in cpu_response if item["time"] == t).next()
+            to_append['phys_cpu_max_total'] = rec['max_total']
+            to_append['phys_cpu_avg_total'] = rec['avg_total']
+            to_append['phys_cpu_max_used'] = rec['max_used']
+            to_append['phys_cpu_avg_used'] = rec['avg_used']
+        else:
+            to_append['phys_cpu_max_total'] = 0
+            to_append['phys_cpu_avg_total'] = 0
+            to_append['phys_cpu_max_used'] = 0
+            to_append['phys_cpu_avg_used'] = 0
+
+        response.append(to_append)
+
+    sorted_response = sorted(response, key=lambda k: k['time'])
+    return HttpResponse(json.dumps(sorted_response),
+                        content_type="application/json")
+
+
+def get_mem_stats(request):
+    (start_dt, end_dt, interval) = _unload_start_end_interval(request)
+    cf = {'max': 'max_free', 'avg': 'avg_free'}
+    vmem_response = _get_claims_metric_stats(start_dt, end_dt, interval,
+                                             'gsl_virt_mem_stats', cf)
+    cf = {'max': 'max_used', 'avg': 'avg_used'}
+    pmem_response = _get_claims_metric_stats(start_dt, end_dt, interval,
+                                            'gsl_phys_mem_stats', cf)
+    logger.debug("mem_response = " + json.dumps(pmem_response))
+    vmem_times = [e['time'] for e in vmem_response]
+    pmem_times = [e['time'] for e in pmem_response]
+
+    all_times = set(pmem_times + vmem_times)
+    response = []
+    for t in all_times:
+        to_append = {'time': t}
+        if t in vmem_times:
+            rec = (item for item in vmem_response if item["time"] == t).next()
+            to_append['virt_mem_max_total'] = rec['max_total']
+            to_append['virt_mem_avg_total'] = rec['avg_total']
+            to_append['virt_mem_max_used'] = rec['max_total'] - rec['max_free']
+            to_append['virt_mem_avg_used'] = rec['avg_total'] - rec['avg_free']
+        else:
+            to_append['virt_mem_max_total'] = 0
+            to_append['virt_mem_avg_total'] = 0
+            to_append['virt_mem_max_used'] = 0
+            to_append['virt_mem_avg_used'] = 0
+
+        if t in pmem_times:
+            rec = (item for item in pmem_response if item["time"] == t).next()
+            to_append['phys_mem_max_total'] = rec['max_total']
+            to_append['phys_mem_avg_total'] = rec['avg_total']
+            to_append['phys_mem_max_used'] = rec['max_used']
+            to_append['phys_mem_avg_used'] = rec['avg_used']
+        else:
+            to_append['phys_mem_max_total'] = 0
+            to_append['phys_mem_avg_total'] = 0
+            to_append['phys_mem_max_used'] = 0
+            to_append['phys_mem_avg_used'] = 0
+
+        response.append(to_append)
+
+    sorted_response = sorted(response, key=lambda k: k['time'])
+    return HttpResponse(json.dumps(sorted_response),
+                        content_type="application/json")
+
+
+def get_disk_stats(request):
+    (start_dt, end_dt, interval) = _unload_start_end_interval(request)
+    cf = {'max': 'max_free', 'avg': 'avg_free'}
+    vdisk_response = _get_claims_metric_stats(start_dt, end_dt, interval,
+                                             'gsl_virt_disk_stats', cf)
+    cf = {'max': 'max_used', 'avg': 'avg_used'}
+    pdisk_response = _get_claims_metric_stats(start_dt, end_dt, interval,
+                                            'gsl_phys_disk_stats', cf)
+    logger.info("disk_response = " + json.dumps(pdisk_response))
+    vdisk_times = [e['time'] for e in vdisk_response]
+    pdisk_times = [e['time'] for e in pdisk_response]
+
+    all_times = set(pdisk_times + vdisk_times)
+    response = []
+    for t in all_times:
+        to_append = {'time': t}
+        if t in vdisk_times:
+            rec = (item for item in vdisk_response if item["time"] == t).next()
+            to_append['virt_disk_max_total'] = rec['max_total']
+            to_append['virt_disk_avg_total'] = rec['avg_total']
+            to_append['virt_disk_max_used'] = rec['max_total'] - rec['max_free']
+            to_append['virt_disk_avg_used'] = rec['avg_total'] - rec['avg_free']
+        else:
+            to_append['virt_disk_max_total'] = 0
+            to_append['virt_disk_avg_total'] = 0
+            to_append['virt_disk_max_used'] = 0
+            to_append['virt_disk_avg_used'] = 0
+
+        if t in pdisk_times:
+            rec = (item for item in pdisk_response if item["time"] == t).next()
+            to_append['phys_disk_max_total'] = rec['max_total']
+            to_append['phys_disk_avg_total'] = rec['avg_total']
+            to_append['phys_disk_max_used'] = rec['max_used']
+            to_append['phys_disk_avg_used'] = rec['avg_used']
+        else:
+            to_append['phys_disk_max_total'] = 0
+            to_append['phys_disk_avg_total'] = 0
+            to_append['phys_disk_max_used'] = 0
+            to_append['phys_disk_avg_used'] = 0
+
+        response.append(to_append)
+
+    sorted_response = sorted(response, key=lambda k: k['time'])
+    return HttpResponse(json.dumps(sorted_response),
+                        content_type="application/json")
+
+
 def get_virt_cpu_stats(request):
     (start_dt, end_dt, interval) = _unload_start_end_interval(request)
     cf = {'max': 'max_free', 'avg': 'avg_free'}
