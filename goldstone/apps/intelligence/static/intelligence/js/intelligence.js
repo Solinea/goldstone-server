@@ -98,14 +98,12 @@ function bad_event_histogram_panel(interval, location, end) {
         } else if (interval === 'minute') {
             start.addMinutes(-1);
         }
-        console.log("end = " + end + ", start = " + start)
         var uri = "/intelligence/log/cockpit/data?start_time=".
             concat(String(Math.round(start.getTime() / 1000)),
                 "&end_time=", String(Math.round(end.getTime() / 1000)),
                 "&interval=", interval);
 
         d3.json(uri, function (error, events) {
-            console.log("data = " + JSON.stringify(events.data))
             events.data.forEach(function (d) {
                 d.time = new Date(d.time);
                 d.fatal = +d.fatal;
@@ -177,6 +175,672 @@ function bad_event_histogram_panel(interval, location, end) {
             $("#log-loading-indicator").hide();
         });
     }
+
+    var _timeIntervalMapping = {
+            'second': d3.time.seconds,
+            'minute': d3.time.minutes,
+            'hour': d3.time.hours,
+            'day': d3.time.days,
+            'month': d3.time.months
+    };
+
+    function _timeIntervalValid(intervalStr) {
+        return (intervalStr in _timeIntervalMapping);
+    };
+
+    function _timeIntervalFromStr(intervalStr) {
+
+        if (_timeIntervalValid(intervalStr)) {
+            return _timeIntervalMapping[intervalStr];
+        } else {
+            return d3.time.hours;
+        }
+    };
+
+    function phys_cpu_chart(location, interval, start, end, pct) {
+        $("#phys-cpu-loading-indicator").show();
+
+        interval = typeof interval !== 'undefined' ?
+            function () {
+                if (_timeIntervalValid(interval)) {
+                    interval;
+                } else {
+                    'hour'
+                }
+            }() : 'hour';
+
+        end = typeof end !== 'undefined' ?
+            new Date(Number(end) * 1000) :
+            new Date();
+        start = typeof start !== 'undefined'?
+            new Date(Number(start) * 1000) :
+            function() {
+                var s = new Date(end)
+                s.addWeeks(-4)
+                return s
+            }();
+        pct = typeof pct !== 'undefined' ? Boolean(pct) : false;
+
+        var panelWidth = $(location).width();
+        var panelHeight = 300;
+        var margin = {top: 30, right: 30, bottom: 30, left: 40};
+
+        var uri = "/intelligence/compute/cpu_stats?start_time=".
+            concat(String(Math.round(start.getTime() / 1000)),
+                "&end_time=", String(Math.round(end.getTime() / 1000)),
+                "&interval=", interval);
+
+        var cpuChart = dc.barChart(location);
+        d3.json(uri, function (error, events) {
+            events.forEach(function(d) {
+                d.time = new Date(d.time);
+                d.phys_cpu_max_total = +d.phys_cpu_max_total;
+                d.phys_cpu_avg_total = +d.phys_cpu_avg_total;
+                d.phys_cpu_max_used = +d.phys_cpu_max_used;
+                d.phys_cpu_avg_used = +d.phys_cpu_avg_used;
+            });
+
+            var xf = crossfilter(events);
+            var timeDim = xf.dimension(function (d) {
+                return d.time;
+            });
+
+            var minDate = timeDim.bottom(1)[0].time;
+            var maxDate = timeDim.top(1)[0].time;
+
+            var eventsByTime = timeDim.group().reduce(
+                function (p, v) {
+                    p.phys_cpu_max_total += v.phys_cpu_max_total;
+                    p.phys_cpu_avg_total += v.phys_cpu_avg_total;
+                    p.phys_cpu_max_used += v.phys_cpu_max_used;
+                    p.phys_cpu_avg_used += v.phys_cpu_avg_used;
+                    return p;
+                },
+                function (p, v) {
+                    p.phys_cpu_max_total -= v.phys_cpu_max_total;
+                    p.phys_cpu_avg_total -= v.phys_cpu_avg_total;
+                    p.phys_cpu_max_used -= v.phys_cpu_max_used;
+                    p.phys_cpu_avg_used -= v.phys_cpu_avg_used;
+                    return p;
+                },
+                function () {
+                    return {
+                        phys_cpu_max_total: 0,
+                        phys_cpu_avg_total: 0,
+                        phys_cpu_max_used: 0,
+                        phys_cpu_avg_used: 0
+                    };
+                }
+            );
+
+            cpuChart
+                .width(panelWidth)
+                .height(panelHeight)
+                .margins(margin)
+                .dimension(timeDim)
+                .group(eventsByTime, "Avg. Used CPU Cores")
+                .valueAccessor(function (d) {
+                    return d.value.phys_cpu_avg_used;
+                })
+                .stack(eventsByTime, "Avg. Free CPU Cores", function (d) {
+                    return (d.value.phys_cpu_avg_total - d.value.phys_cpu_avg_used);
+                })
+                .x(d3.time.scale().domain([minDate, maxDate]))
+                .xUnits(_timeIntervalFromStr(interval))
+                .renderHorizontalGridLines(true)
+                .centerBar(true)
+                .elasticY(true)
+                .brushOn(false)
+                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+                .title(function (d) {
+                    return d.key
+                        + "\n\n" + (d.value.phys_cpu_avg_total - d.value.phys_cpu_avg_used) + " Free"
+                        + "\n\n" + d.value.phys_cpu_avg_used + " Used";
+                });
+
+            cpuChart.render();
+            $("#phys-cpu-loading-indicator").hide();
+        });
+    }
+
+    function virt_cpu_chart(location, interval, start, end, pct) {
+        $("#virt-cpu-loading-indicator").show();
+
+        interval = typeof interval !== 'undefined' ?
+            function () {
+                if (_timeIntervalValid(interval)) {
+                    interval;
+                } else {
+                    'hour'
+                }
+            }() : 'hour';
+
+        end = typeof end !== 'undefined' ?
+            new Date(Number(end) * 1000) :
+            new Date();
+        start = typeof start !== 'undefined'?
+            new Date(Number(start) * 1000) :
+            function() {
+                var s = new Date(end)
+                s.addWeeks(-4)
+                return s
+            }();
+        pct = typeof pct !== 'undefined' ? Boolean(pct) : false;
+
+        var panelWidth = $(location).width();
+        var panelHeight = 300;
+        var margin = {top: 30, right: 30, bottom: 30, left: 40};
+
+        var uri = "/intelligence/compute/cpu_stats?start_time=".
+            concat(String(Math.round(start.getTime() / 1000)),
+                "&end_time=", String(Math.round(end.getTime() / 1000)),
+                "&interval=", interval);
+
+        var cpuChart = dc.barChart(location);
+        d3.json(uri, function (error, events) {
+            events.forEach(function(d) {
+                d.time = new Date(d.time);
+                d.virt_cpu_max_total = +d.virt_cpu_max_total;
+                d.virt_cpu_avg_total = +d.virt_cpu_avg_total;
+                d.virt_cpu_max_used = +d.virt_cpu_max_used;
+                d.virt_cpu_avg_used = +d.virt_cpu_avg_used;
+            });
+
+            var xf = crossfilter(events);
+            var timeDim = xf.dimension(function (d) {
+                return d.time;
+            });
+
+            var minDate = timeDim.bottom(1)[0].time;
+            var maxDate = timeDim.top(1)[0].time;
+
+            var eventsByTime = timeDim.group().reduce(
+                function (p, v) {
+                    p.virt_cpu_max_total += v.virt_cpu_max_total;
+                    p.virt_cpu_avg_total += v.virt_cpu_avg_total;
+                    p.virt_cpu_max_used += v.virt_cpu_max_used;
+                    p.virt_cpu_avg_used += v.virt_cpu_avg_used;
+                    return p;
+                },
+                function (p, v) {
+                    p.virt_cpu_max_total -= v.virt_cpu_max_total;
+                    p.virt_cpu_avg_total -= v.virt_cpu_avg_total;
+                    p.virt_cpu_max_used -= v.virt_cpu_max_used;
+                    p.virt_cpu_avg_used -= v.virt_cpu_avg_used;
+                    return p;
+                },
+                function () {
+                    return {
+                        virt_cpu_max_total: 0,
+                        virt_cpu_avg_total: 0,
+                        virt_cpu_max_used: 0,
+                        virt_cpu_avg_used: 0
+                    };
+                }
+            );
+
+            cpuChart
+                .width(panelWidth)
+                .height(panelHeight)
+                .margins(margin)
+                .dimension(timeDim)
+                .group(eventsByTime, "Avg. Used CPU Cores")
+                .valueAccessor(function (d) {
+                    return d.value.virt_cpu_avg_used;
+                })
+                .stack(eventsByTime, "Avg. Free CPU Cores", function (d) {
+                    return (d.value.virt_cpu_avg_total - d.value.virt_cpu_avg_used);
+                })
+                .x(d3.time.scale().domain([minDate, maxDate]))
+                .xUnits(_timeIntervalFromStr(interval))
+                .renderHorizontalGridLines(true)
+                .centerBar(true)
+                .elasticY(true)
+                .brushOn(false)
+                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+                .title(function (d) {
+                    return d.key
+                        + "\n\n" + (d.value.virt_cpu_avg_total - d.value.virt_cpu_avg_used) + " Free"
+                        + "\n\n" + d.value.virt_cpu_avg_used + " Used";
+                });
+
+            cpuChart.render();
+            $("#virt-cpu-loading-indicator").hide();
+        });
+    }
+
+    function phys_mem_chart(location, interval, start, end, pct) {
+        $("#phys-mem-loading-indicator").show();
+
+        interval = typeof interval !== 'undefined' ?
+            function () {
+                if (_timeIntervalValid(interval)) {
+                    interval;
+                } else {
+                    'hour'
+                }
+            }() : 'hour';
+
+        end = typeof end !== 'undefined' ?
+            new Date(Number(end) * 1000) :
+            new Date();
+        start = typeof start !== 'undefined'?
+            new Date(Number(start) * 1000) :
+            function() {
+                var s = new Date(end)
+                s.addWeeks(-4)
+                return s
+            }();
+        pct = typeof pct !== 'undefined' ? Boolean(pct) : false;
+
+        var panelWidth = $(location).width();
+        var panelHeight = 300;
+        var margin = {top: 30, right: 30, bottom: 30, left: 40};
+
+        var uri = "/intelligence/compute/mem_stats?start_time=".
+            concat(String(Math.round(start.getTime() / 1000)),
+                "&end_time=", String(Math.round(end.getTime() / 1000)),
+                "&interval=", interval);
+
+        var chart = dc.barChart(location);
+        d3.json(uri, function (error, events) {
+            events.forEach(function(d) {
+                d.time = new Date(d.time);
+                d.phys_mem_max_total = +d.phys_mem_max_total;
+                d.phys_mem_avg_total = +d.phys_mem_avg_total;
+                d.phys_mem_max_used = +d.phys_mem_max_used;
+                d.phys_mem_avg_used = +d.phys_mem_avg_used;
+            });
+
+            var xf = crossfilter(events);
+            var timeDim = xf.dimension(function (d) {
+                return d.time;
+            });
+
+            var minDate = timeDim.bottom(1)[0].time;
+            var maxDate = timeDim.top(1)[0].time;
+
+            var eventsByTime = timeDim.group().reduce(
+                function (p, v) {
+                    p.phys_mem_max_total += v.phys_mem_max_total/1000;
+                    p.phys_mem_avg_total += v.phys_mem_avg_total/1000;
+                    p.phys_mem_max_used += v.phys_mem_max_used/1000;
+                    p.phys_mem_avg_used += v.phys_mem_avg_used/1000;
+                    return p;
+                },
+                function (p, v) {
+                    p.phys_mem_max_total -= v.phys_mem_max_total/1000;
+                    p.phys_mem_avg_total -= v.phys_mem_avg_total/1000;
+                    p.phys_mem_max_used -= v.phys_mem_max_used/1000;
+                    p.phys_mem_avg_used -= v.phys_mem_avg_used/1000;
+                    return p;
+                },
+                function () {
+                    return {
+                        phys_mem_max_total: 0,
+                        phys_mem_avg_total: 0,
+                        phys_mem_max_used: 0,
+                        phys_mem_avg_used: 0
+                    };
+                }
+            );
+
+            chart
+                .width(panelWidth)
+                .height(panelHeight)
+                .margins(margin)
+                .dimension(timeDim)
+                .group(eventsByTime, "Avg. GB Used Memory")
+                .valueAccessor(function (d) {
+                    return d.value.phys_mem_avg_used;
+                })
+                .stack(eventsByTime, "Avg. GB Free Memory", function (d) {
+                    return (d.value.phys_mem_avg_total - d.value.phys_mem_avg_used);
+                })
+                .x(d3.time.scale().domain([minDate, maxDate]))
+                .xUnits(_timeIntervalFromStr(interval))
+                .renderHorizontalGridLines(true)
+                .centerBar(true)
+                .elasticY(true)
+                .brushOn(false)
+                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+                .title(function (d) {
+                    return d.key
+                        + "\n\n" + (d.value.phys_mem_avg_total - d.value.phys_mem_avg_used) + " Free"
+                        + "\n\n" + d.value.phys_mem_avg_used + " Used";
+                });
+
+            chart.render();
+            $("#phys-mem-loading-indicator").hide();
+        });
+    }
+
+    function virt_mem_chart(location, interval, start, end, pct) {
+        $("#virt-mem-loading-indicator").show();
+
+        interval = typeof interval !== 'undefined' ?
+            function () {
+                if (_timeIntervalValid(interval)) {
+                    interval;
+                } else {
+                    'hour'
+                }
+            }() : 'hour';
+
+        end = typeof end !== 'undefined' ?
+            new Date(Number(end) * 1000) :
+            new Date();
+        start = typeof start !== 'undefined'?
+            new Date(Number(start) * 1000) :
+            function() {
+                var s = new Date(end)
+                s.addWeeks(-4)
+                return s
+            }();
+        pct = typeof pct !== 'undefined' ? Boolean(pct) : false;
+
+        var panelWidth = $(location).width();
+        var panelHeight = 300;
+        var margin = {top: 30, right: 30, bottom: 30, left: 40};
+
+        var uri = "/intelligence/compute/mem_stats?start_time=".
+            concat(String(Math.round(start.getTime() / 1000)),
+                "&end_time=", String(Math.round(end.getTime() / 1000)),
+                "&interval=", interval);
+
+        var chart = dc.barChart(location);
+        d3.json(uri, function (error, events) {
+            events.forEach(function(d) {
+                d.time = new Date(d.time);
+                d.virt_mem_max_total = +d.virt_mem_max_total;
+                d.virt_mem_avg_total = +d.virt_mem_avg_total;
+                d.virt_mem_max_used = +d.virt_mem_max_used;
+                d.virt_mem_avg_used = +d.virt_mem_avg_used;
+            });
+
+            var xf = crossfilter(events);
+            var timeDim = xf.dimension(function (d) {
+                return d.time;
+            });
+
+            var minDate = timeDim.bottom(1)[0].time;
+            var maxDate = timeDim.top(1)[0].time;
+
+            var eventsByTime = timeDim.group().reduce(
+                function (p, v) {
+                    p.virt_mem_max_total += v.virt_mem_max_total/1000;
+                    p.virt_mem_avg_total += v.virt_mem_avg_total/1000;
+                    p.virt_mem_max_used += v.virt_mem_max_used/1000;
+                    p.virt_mem_avg_used += v.virt_mem_avg_used/1000;
+                    return p;
+                },
+                function (p, v) {
+                    p.virt_mem_max_total -= v.virt_mem_max_total/1000;
+                    p.virt_mem_avg_total -= v.virt_mem_avg_total/1000;
+                    p.virt_mem_max_used -= v.virt_mem_max_used/1000;
+                    p.virt_mem_avg_used -= v.virt_mem_avg_used/1000;
+                    return p;
+                },
+                function () {
+                    return {
+                        virt_mem_max_total: 0,
+                        virt_mem_avg_total: 0,
+                        virt_mem_max_used: 0,
+                        virt_mem_avg_used: 0
+                    };
+                }
+            );
+
+            chart
+                .width(panelWidth)
+                .height(panelHeight)
+                .margins(margin)
+                .dimension(timeDim)
+                .group(eventsByTime, "Avg. GB Used Memory")
+                .valueAccessor(function (d) {
+                    return d.value.virt_mem_avg_used;
+                })
+                .stack(eventsByTime, "Avg. GB Free Memory", function (d) {
+                    return (d.value.virt_mem_avg_total - d.value.virt_mem_avg_used);
+                })
+                .x(d3.time.scale().domain([minDate, maxDate]))
+                .xUnits(_timeIntervalFromStr(interval))
+                .renderHorizontalGridLines(true)
+                .centerBar(true)
+                .elasticY(true)
+                .brushOn(false)
+                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+                .title(function (d) {
+                    return d.key
+                        + "\n\n" + (d.value.virt_mem_avg_total - d.value.virt_mem_avg_used) + " Free"
+                        + "\n\n" + d.value.virt_mem_avg_used + " Used";
+                });
+
+            chart.render();
+            $("#virt-mem-loading-indicator").hide();
+        });
+    }
+
+
+    function phys_disk_chart(location, interval, start, end, pct) {
+        $("#phys-disk-loading-indicator").show();
+
+        interval = typeof interval !== 'undefined' ?
+            function () {
+                if (_timeIntervalValid(interval)) {
+                    interval;
+                } else {
+                    'hour'
+                }
+            }() : 'hour';
+
+        end = typeof end !== 'undefined' ?
+            new Date(Number(end) * 1000) :
+            new Date();
+        start = typeof start !== 'undefined'?
+            new Date(Number(start) * 1000) :
+            function() {
+                var s = new Date(end)
+                s.addWeeks(-4)
+                return s
+            }();
+        pct = typeof pct !== 'undefined' ? Boolean(pct) : false;
+
+        var panelWidth = $(location).width();
+        var panelHeight = 300;
+        var margin = {top: 30, right: 30, bottom: 30, left: 40};
+
+        var uri = "/intelligence/compute/disk_stats?start_time=".
+            concat(String(Math.round(start.getTime() / 1000)),
+                "&end_time=", String(Math.round(end.getTime() / 1000)),
+                "&interval=", interval);
+
+        var chart = dc.barChart(location);
+        d3.json(uri, function (error, events) {
+            events.forEach(function(d) {
+                console.log("[physDiskChart] d = " + JSON.stringify(d))
+                d.time = new Date(d.time);
+                d.phys_disk_max_total = +d.phys_disk_max_total;
+                d.phys_disk_avg_total = +d.phys_disk_avg_total;
+                d.phys_disk_max_used = +d.phys_disk_max_used;
+                d.phys_disk_avg_used = +d.phys_disk_avg_used;
+            });
+
+            var xf = crossfilter(events);
+            var timeDim = xf.dimension(function (d) {
+                return d.time;
+            });
+
+            var minDate = timeDim.bottom(1)[0].time;
+            var maxDate = timeDim.top(1)[0].time;
+            console.log("[physDiskChart] minDate = " + minDate);
+            console.log("[physDiskChart] maxDate = " + maxDate);
+            var eventsByTime = timeDim.group().reduce(
+                function (p, v) {
+                    p.phys_disk_max_total += v.phys_disk_max_total;
+                    p.phys_disk_avg_total += v.phys_disk_avg_total;
+                    p.phys_disk_max_used += v.phys_disk_max_used;
+                    p.phys_disk_avg_used += v.phys_disk_avg_used;
+                    console.log("[physDiskChart] p = " + JSON.stringify(p));
+                    return p;
+                },
+                function (p, v) {
+                    p.phys_disk_max_total -= v.phys_disk_max_total;
+                    p.phys_disk_avg_total -= v.phys_disk_avg_total;
+                    p.phys_disk_max_used -= v.phys_disk_max_used;
+                    p.phys_disk_avg_used -= v.phys_disk_avg_used;
+                    console.log("[physDiskChart] removing p = " + JSON.stringify(p));
+                    return p;
+                },
+                function () {
+                    return {
+                        phys_disk_max_total: 0,
+                        phys_disk_avg_total: 0,
+                        phys_disk_max_used: 0,
+                        phys_disk_avg_used: 0
+                    };
+                }
+            );
+
+            console.log("[physDiskChart] panelWidth = " + panelWidth)
+            chart
+                .width(panelWidth)
+                .height(panelHeight)
+                .margins(margin)
+                .dimension(timeDim)
+                .group(eventsByTime, "Avg. TB Used Disk")
+                .valueAccessor(function (d) {
+                    console.log("used_val = " + d.value.phys_disk_avg_used);
+                    return d.value.phys_disk_avg_used;
+                })
+                .stack(eventsByTime, "Avg. TB Free Disk", function (d) {
+                    console.log("free_val = " + (d.value.phys_disk_avg_total - d.value.phys_disk_avg_used));
+                    return (d.value.phys_disk_avg_total - d.value.phys_disk_avg_used);
+                })
+                .x(d3.time.scale().domain([minDate, maxDate]))
+                .xUnits(_timeIntervalFromStr(interval))
+                .renderHorizontalGridLines(true)
+                .centerBar(true)
+                .elasticY(true)
+                .brushOn(false)
+                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+                .title(function (d) {
+                    return d.key
+                        + "\n\n" + (d.value.phys_disk_avg_total - d.value.phys_disk_avg_used) + " Free"
+                        + "\n\n" + d.value.phys_disk_avg_used + " Used";
+                });
+
+            chart.render();
+            $("#phys-disk-loading-indicator").hide();
+        });
+    }
+
+    function virt_disk_chart(location, interval, start, end, pct) {
+        $("#virt-disk-loading-indicator").show();
+
+        interval = typeof interval !== 'undefined' ?
+            function () {
+                if (_timeIntervalValid(interval)) {
+                    interval;
+                } else {
+                    'hour'
+                }
+            }() : 'hour';
+
+        end = typeof end !== 'undefined' ?
+            new Date(Number(end) * 1000) :
+            new Date();
+        start = typeof start !== 'undefined'?
+            new Date(Number(start) * 1000) :
+            function() {
+                var s = new Date(end)
+                s.addWeeks(-4)
+                return s
+            }();
+        pct = typeof pct !== 'undefined' ? Boolean(pct) : false;
+
+        var panelWidth = $(location).width();
+        var panelHeight = 300;
+        var margin = {top: 30, right: 30, bottom: 30, left: 40};
+
+        var uri = "/intelligence/compute/disk_stats?start_time=".
+            concat(String(Math.round(start.getTime() / 1000)),
+                "&end_time=", String(Math.round(end.getTime() / 1000)),
+                "&interval=", interval);
+
+        var chart = dc.barChart(location);
+        d3.json(uri, function (error, events) {
+            events.forEach(function(d) {
+                d.time = new Date(d.time);
+                d.virt_disk_max_total = +d.virt_disk_max_total;
+                d.virt_disk_avg_total = +d.virt_disk_avg_total;
+                d.virt_disk_max_used = +d.virt_disk_max_used;
+                d.virt_disk_avg_used = +d.virt_disk_avg_used;
+            });
+
+            var xf = crossfilter(events);
+            var timeDim = xf.dimension(function (d) {
+                return d.time;
+            });
+
+            var minDate = timeDim.bottom(1)[0].time;
+            var maxDate = timeDim.top(1)[0].time;
+
+            var eventsByTime = timeDim.group().reduce(
+                function (p, v) {
+                    p.virt_disk_max_total += v.virt_disk_max_total/1000;
+                    p.virt_disk_avg_total += v.virt_disk_avg_total/1000;
+                    p.virt_disk_max_used += v.virt_disk_max_used/1000;
+                    p.virt_disk_avg_used += v.virt_disk_avg_used/1000;
+                    return p;
+                },
+                function (p, v) {
+                    p.virt_disk_max_total -= v.virt_disk_max_total/1000;
+                    p.virt_disk_avg_total -= v.virt_disk_avg_total/1000;
+                    p.virt_disk_max_used -= v.virt_disk_max_used/1000;
+                    p.virt_disk_avg_used -= v.virt_disk_avg_used/1000;
+                    return p;
+                },
+                function () {
+                    return {
+                        virt_disk_max_total: 0,
+                        virt_disk_avg_total: 0,
+                        virt_disk_max_used: 0,
+                        virt_disk_avg_used: 0
+                    };
+                }
+            );
+
+            chart
+                .width(panelWidth)
+                .height(panelHeight)
+                .margins(margin)
+                .dimension(timeDim)
+                .group(eventsByTime, "Avg. GB Used Memory")
+                .valueAccessor(function (d) {
+                    return d.value.virt_disk_avg_used;
+                })
+                .stack(eventsByTime, "Avg. GB Free Memory", function (d) {
+                    return (d.value.virt_disk_avg_total - d.value.virt_disk_avg_used);
+                })
+                .x(d3.time.scale().domain([minDate, maxDate]))
+                .xUnits(_timeIntervalFromStr(interval))
+                .renderHorizontalGridLines(true)
+                .centerBar(true)
+                .elasticY(true)
+                .brushOn(false)
+                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+                .title(function (d) {
+                    return d.key
+                        + "\n\n" + (d.value.virt_disk_avg_total - d.value.virt_disk_avg_used) + " Free"
+                        + "\n\n" + d.value.virt_disk_avg_used + " Used";
+                });
+
+            chart.render();
+            $("#virt-disk-loading-indicator").hide();
+        });
+    }
+
 
     function vcpu_graph(interval, location, end, start) {
         $("#vcpu-loading-indicator").show();
@@ -379,17 +1043,13 @@ function bad_event_histogram_panel(interval, location, end) {
             comparisonUnit :
             'minutes';
 
-        console.log("in draw_host_presence_table, lookbackNum="+String(lookbackNum)+", lookbackUnit="+lookbackUnit)
-        console.log("in draw_host_presence_table, comparisonNum="+String(comparisonNum)+", comparisonUnit="+comparisonUnit);
         var uri = '/intelligence/host_presence_stats'.concat(
             '?lookbackQty=', String(lookbackQty),
             '&lookbackUnit=', lookbackUnit,
             '&comparisonQty=', String(comparisonQty),
             '&comparisonUnit=', comparisonUnit);
-        console.log("in draw_host_presence_table, uri="+uri);
         if ($.fn.dataTable.isDataTable(location)) {
             var oTable = $(location).dataTable();
-            console.log("in draw_host_presence_table, calling fnReloadAjax");
             oTable.fnReloadAjax(uri);
         } else {
             var oTableParams = {

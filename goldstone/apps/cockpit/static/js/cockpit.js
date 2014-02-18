@@ -2,6 +2,12 @@ $(document).ready(function() {
     bad_event_histogram_panel('month', '#bad-event-chart');
     vcpu_graph('day', '#vcpu-graph');
     draw_host_presence_table('#host-presence-table');
+    phys_cpu_chart("#phys-cpu-chart");
+    virt_cpu_chart("#virt-cpu-chart");
+    phys_mem_chart("#phys-mem-chart");
+    virt_mem_chart("#virt-mem-chart");
+    phys_disk_chart("#phys-disk-chart");
+    virt_disk_chart("#virt-disk-chart");
 
     // activate the interval buttons
 

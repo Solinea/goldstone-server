@@ -614,13 +614,45 @@ class IntelViewTest(TestCase):
             self.assertDictContainsSubset({'sEcho': 6},
                                           json.loads(response.content))
 
-    def test_get_phys_cpu_stats_view(self):
+    def test_get_cpu_stats_view(self):
         end = datetime(2014, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
         start = datetime(2014, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
         uri = '/intelligence/compute/cpu_stats?start_time=' + \
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+
+        response = self.client.get(uri)
+        logger.debug("[test_get_cpu_stats_view] uri = %s", uri)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(json.loads(response.content), [])
+        logger.debug("[test_get_cpu_stats_view] response = %s",
+                    json.loads(response.content))
+
+    def test_get_mem_stats_view(self):
+        end = datetime(2014, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        start = datetime(2014, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
+        end_ts = calendar.timegm(end.utctimetuple())
+        start_ts = calendar.timegm(start.utctimetuple())
+
+        uri = '/intelligence/compute/mem_stats?start_time=' + \
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+
+        response = self.client.get(uri)
+        logger.info("[test_get_mem_stats_view] uri = %s", uri)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(json.loads(response.content), [])
+        logger.info("[test_get_mem_stats_view] response = %s",
+                    json.loads(response.content))
+
+    def test_get_phys_cpu_stats_view(self):
+        end = datetime(2014, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
+        start = datetime(2014, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
+        end_ts = calendar.timegm(end.utctimetuple())
+        start_ts = calendar.timegm(start.utctimetuple())
+
+        uri = '/intelligence/compute/phys_cpu_stats?start_time=' + \
               str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
 
         response = self.client.get(uri)
@@ -636,7 +668,7 @@ class IntelViewTest(TestCase):
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
-        uri = '/intelligence/compute/vcpu_stats?start_time=' + \
+        uri = '/intelligence/compute/virt_cpu_stats?start_time=' + \
               str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
 
         response = self.client.get(uri)

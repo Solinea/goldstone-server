@@ -379,7 +379,7 @@ class LogData(object):
                            size=10, sort=''):
         q = self._claims_resource_query(start, end, interval, 'cpu',
                                         'nova_claims_summary_virt')
-        logger.debug('[gsl_phys_cpu_stats] query = ' + json.dumps(q))
+        logger.debug('[gsl_virt_cpu_stats] query = ' + json.dumps(q))
         result = conn.search(index="_all", body=q, from_=first, size=size,
                              sort=sort)
         logger.debug('[gsl_virt_cpu_stats] result = ' + json.dumps(result))
