@@ -33,18 +33,28 @@ path {
     font-size: 10px;
 }
 
-/*
-#bad-event-chart rect.bar {
+/* some basic chart colorings based on spectral colors */
+g.stack._0  > rect.bar {
     stroke: none;
-    fill: none;
+    fill: #5e4fa2;
 }
 
-#bad-event-chart rect {
+g.stack._1  > rect.bar {
     stroke: none;
-    fill: none;
+    fill: #3288bd;
 }
-*/
 
+g.dc-legend-item:nth-child(1) > rect:nth-child(1) {
+    stroke: none;
+    fill: #5e4fa2;
+}
+
+g.dc-legend-item:nth-child(2) > rect:nth-child(1) {
+    stroke: none;
+    fill: #3288bd;
+}
+
+/* overrides for loglevel chart */
 #bad-event-chart g.stack._0  > rect.bar {
     stroke: none;
     fill: #fecc5c;

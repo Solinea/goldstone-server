@@ -52,3 +52,9 @@ code {
     margin-top: -32px;  /* -1 * image height / 2 */
     display: block;
 }
+
+.panel-primary > .panel-heading {
+    background-color: #777777;
+    border-color: #777777;
+    color: #FFFFFF;
+}
