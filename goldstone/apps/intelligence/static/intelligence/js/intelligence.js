@@ -83,7 +83,7 @@ function bad_event_histogram_panel(interval, location, end) {
 
         var panelWidth = $(location).width();
         var panelHeight = 300;
-        var margin = {top: 30, right: 30, bottom: 30, left: 40};
+        var margin = {top: 75, right: 30, bottom: 30, left: 40};
 
 
         var logChart = dc.barChart(location);
@@ -163,7 +163,7 @@ function bad_event_histogram_panel(interval, location, end) {
                 .elasticY(true)
                 .brushOn(false)
                 .renderlet(click_renderlet)
-                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+                .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
                 .title(function (d) {
                     return d.key
                         + "\n\n" + d.value.fatalEvents + " FATALS"
@@ -223,7 +223,7 @@ function bad_event_histogram_panel(interval, location, end) {
 
         var panelWidth = $(location).width();
         var panelHeight = 300;
-        var margin = {top: 30, right: 30, bottom: 30, left: 40};
+        var margin = {top: 50, right: 30, bottom: 30, left: 40};
 
         var uri = "/intelligence/compute/cpu_stats?start_time=".
             concat(String(Math.round(start.getTime() / 1000)),
@@ -291,7 +291,7 @@ function bad_event_histogram_panel(interval, location, end) {
                 .centerBar(true)
                 .elasticY(true)
                 .brushOn(false)
-                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+                .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
                 .title(function (d) {
                     return d.key
                         + "\n\n" + (d.value.phys_cpu_avg_total - d.value.phys_cpu_avg_used) + " Free"
@@ -329,7 +329,7 @@ function bad_event_histogram_panel(interval, location, end) {
 
         var panelWidth = $(location).width();
         var panelHeight = 300;
-        var margin = {top: 30, right: 30, bottom: 30, left: 40};
+        var margin = {top: 50, right: 30, bottom: 30, left: 40};
 
         var uri = "/intelligence/compute/cpu_stats?start_time=".
             concat(String(Math.round(start.getTime() / 1000)),
@@ -397,7 +397,7 @@ function bad_event_histogram_panel(interval, location, end) {
                 .centerBar(true)
                 .elasticY(true)
                 .brushOn(false)
-                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+                .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
                 .title(function (d) {
                     return d.key
                         + "\n\n" + (d.value.virt_cpu_avg_total - d.value.virt_cpu_avg_used) + " Free"
@@ -435,7 +435,7 @@ function bad_event_histogram_panel(interval, location, end) {
 
         var panelWidth = $(location).width();
         var panelHeight = 300;
-        var margin = {top: 30, right: 30, bottom: 30, left: 40};
+        var margin = {top: 50, right: 30, bottom: 30, left: 40};
 
         var uri = "/intelligence/compute/mem_stats?start_time=".
             concat(String(Math.round(start.getTime() / 1000)),
@@ -503,7 +503,7 @@ function bad_event_histogram_panel(interval, location, end) {
                 .centerBar(true)
                 .elasticY(true)
                 .brushOn(false)
-                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+                .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
                 .title(function (d) {
                     return d.key
                         + "\n\n" + (d.value.phys_mem_avg_total - d.value.phys_mem_avg_used) + " Free"
@@ -541,7 +541,7 @@ function bad_event_histogram_panel(interval, location, end) {
 
         var panelWidth = $(location).width();
         var panelHeight = 300;
-        var margin = {top: 30, right: 30, bottom: 30, left: 40};
+        var margin = {top: 50, right: 30, bottom: 30, left: 40};
 
         var uri = "/intelligence/compute/mem_stats?start_time=".
             concat(String(Math.round(start.getTime() / 1000)),
@@ -609,7 +609,7 @@ function bad_event_histogram_panel(interval, location, end) {
                 .centerBar(true)
                 .elasticY(true)
                 .brushOn(false)
-                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+                .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
                 .title(function (d) {
                     return d.key
                         + "\n\n" + (d.value.virt_mem_avg_total - d.value.virt_mem_avg_used) + " Free"
@@ -648,7 +648,7 @@ function bad_event_histogram_panel(interval, location, end) {
 
         var panelWidth = $(location).width();
         var panelHeight = 300;
-        var margin = {top: 30, right: 30, bottom: 30, left: 40};
+        var margin = {top: 50, right: 30, bottom: 30, left: 40};
 
         var uri = "/intelligence/compute/disk_stats?start_time=".
             concat(String(Math.round(start.getTime() / 1000)),
@@ -658,7 +658,6 @@ function bad_event_histogram_panel(interval, location, end) {
         var chart = dc.barChart(location);
         d3.json(uri, function (error, events) {
             events.forEach(function(d) {
-                console.log("[physDiskChart] d = " + JSON.stringify(d))
                 d.time = new Date(d.time);
                 d.phys_disk_max_total = +d.phys_disk_max_total;
                 d.phys_disk_avg_total = +d.phys_disk_avg_total;
@@ -673,15 +672,12 @@ function bad_event_histogram_panel(interval, location, end) {
 
             var minDate = timeDim.bottom(1)[0].time;
             var maxDate = timeDim.top(1)[0].time;
-            console.log("[physDiskChart] minDate = " + minDate);
-            console.log("[physDiskChart] maxDate = " + maxDate);
             var eventsByTime = timeDim.group().reduce(
                 function (p, v) {
                     p.phys_disk_max_total += v.phys_disk_max_total;
                     p.phys_disk_avg_total += v.phys_disk_avg_total;
                     p.phys_disk_max_used += v.phys_disk_max_used;
                     p.phys_disk_avg_used += v.phys_disk_avg_used;
-                    console.log("[physDiskChart] p = " + JSON.stringify(p));
                     return p;
                 },
                 function (p, v) {
@@ -689,7 +685,6 @@ function bad_event_histogram_panel(interval, location, end) {
                     p.phys_disk_avg_total -= v.phys_disk_avg_total;
                     p.phys_disk_max_used -= v.phys_disk_max_used;
                     p.phys_disk_avg_used -= v.phys_disk_avg_used;
-                    console.log("[physDiskChart] removing p = " + JSON.stringify(p));
                     return p;
                 },
                 function () {
@@ -702,19 +697,16 @@ function bad_event_histogram_panel(interval, location, end) {
                 }
             );
 
-            console.log("[physDiskChart] panelWidth = " + panelWidth)
             chart
                 .width(panelWidth)
                 .height(panelHeight)
                 .margins(margin)
                 .dimension(timeDim)
-                .group(eventsByTime, "Avg. TB Used Disk")
+                .group(eventsByTime, "Avg. GB Used Disk")
                 .valueAccessor(function (d) {
-                    console.log("used_val = " + d.value.phys_disk_avg_used);
                     return d.value.phys_disk_avg_used;
                 })
-                .stack(eventsByTime, "Avg. TB Free Disk", function (d) {
-                    console.log("free_val = " + (d.value.phys_disk_avg_total - d.value.phys_disk_avg_used));
+                .stack(eventsByTime, "Avg. GB Free Disk", function (d) {
                     return (d.value.phys_disk_avg_total - d.value.phys_disk_avg_used);
                 })
                 .x(d3.time.scale().domain([minDate, maxDate]))
@@ -723,7 +715,7 @@ function bad_event_histogram_panel(interval, location, end) {
                 .centerBar(true)
                 .elasticY(true)
                 .brushOn(false)
-                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+                .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
                 .title(function (d) {
                     return d.key
                         + "\n\n" + (d.value.phys_disk_avg_total - d.value.phys_disk_avg_used) + " Free"
@@ -761,7 +753,7 @@ function bad_event_histogram_panel(interval, location, end) {
 
         var panelWidth = $(location).width();
         var panelHeight = 300;
-        var margin = {top: 30, right: 30, bottom: 30, left: 40};
+        var margin = {top: 50, right: 30, bottom: 30, left: 40};
 
         var uri = "/intelligence/compute/disk_stats?start_time=".
             concat(String(Math.round(start.getTime() / 1000)),
@@ -829,7 +821,7 @@ function bad_event_histogram_panel(interval, location, end) {
                 .centerBar(true)
                 .elasticY(true)
                 .brushOn(false)
-                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+                .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
                 .title(function (d) {
                     return d.key
                         + "\n\n" + (d.value.virt_disk_avg_total - d.value.virt_disk_avg_used) + " Free"
@@ -930,7 +922,7 @@ function bad_event_histogram_panel(interval, location, end) {
                 .xUnits(xUnitInterval)
                 .elasticY(true)
                 .renderHorizontalGridLines(true)
-                .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+                .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
                 .brushOn(false)
                 .group(vcpuGroup, "Total vCPUs")
                 .valueAccessor(function (d) {
