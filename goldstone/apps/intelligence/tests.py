@@ -257,8 +257,7 @@ class LogDataModel(TestCase):
 
     def test_get_err_and_warn_hists(self):
         def test_scenario():
-            interval_mapper = {"minute": "second", "hour": "minute",
-                               "day": "hour", "month": "day"}
+
             test_q = {
                 "query": {
                     "bool": {
@@ -283,7 +282,7 @@ class LogDataModel(TestCase):
                     "events_by_time": {
                         "date_histogram": {
                             "field": "@timestamp",
-                            "interval": interval_mapper.get(interval, 'hour'),
+                            "interval": interval,
                             "min_doc_count": 0
                         },
                         "aggs": {
@@ -304,17 +303,13 @@ class LogDataModel(TestCase):
 
         end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
-        interval = 'minute'
+        interval = '1m'
         test_scenario()
-        interval = 'hour'
+        interval = '1h'
         test_scenario()
-        interval = 'day'
+        interval = '1d'
         test_scenario()
-        interval = 'month'
-        test_scenario()
-        interval = None
-        test_scenario()
-        interval = 'xyz'
+        interval = '1w'
         test_scenario()
 
     def test_get_err_and_warn_range(self):
@@ -628,7 +623,7 @@ class IntelViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(json.loads(response.content), [])
         logger.debug("[test_get_cpu_stats_view] response = %s",
-                    json.loads(response.content))
+                     json.loads(response.content))
 
     def test_get_mem_stats_view(self):
         end = datetime(2014, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
@@ -640,11 +635,11 @@ class IntelViewTest(TestCase):
               str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
 
         response = self.client.get(uri)
-        logger.info("[test_get_mem_stats_view] uri = %s", uri)
+        logger.debug("[test_get_mem_stats_view] uri = %s", uri)
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(json.loads(response.content), [])
-        logger.info("[test_get_mem_stats_view] response = %s",
-                    json.loads(response.content))
+        logger.debug("[test_get_mem_stats_view] response = %s",
+                     json.loads(response.content))
 
     def test_get_phys_cpu_stats_view(self):
         end = datetime(2014, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
@@ -724,7 +719,7 @@ class IntelViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(json.loads(response.content), [])
         logger.debug("[test_get_phys_disk_stats_view] response = %s",
-                    json.loads(response.content))
+                     json.loads(response.content))
 
     def test_get_virt_disk_stats_view(self):
         end = datetime(2014, 12, 31, 23, 59, 59, tzinfo=pytz.utc)

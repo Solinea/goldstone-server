@@ -5,6 +5,8 @@
 {% block localcss %}
     <link href="{% static 'css/plugins/dataTables/dataTables.bootstrap.css' %}"
           rel="stylesheet" media="screen">
+    <link href="{% static 'css/plugins/datetimepicker/jquery.datetimepicker.css' %}"
+          rel="stylesheet" media="screen">
     <link href="{% static 'intelligence/css/intelligence.css' %}"
           rel="stylesheet" media="screen">
     <link href="{% static 'css/dc.css' %}" rel="stylesheet" media="screen"/>
@@ -14,6 +16,7 @@
     <script src="{% static 'js/plugins/dataTables/jquery.dataTables.js' %}"></script>
     <script src="{% static 'js/plugins/dataTables/dataTables.bootstrap.js' %}"></script>
     <script src="{% static 'intelligence/js/fnReloadAjax.js' %}"></script>
+    <script src="{% static 'js/plugins/datetimepicker/jquery.datetimepicker.js' %}"></script>
     <script src="{% static 'js/d3.js' %}"></script>
     <script src="{% static 'js/crossfilter.js' %}"></script>
     <script src="{% static 'js/dc.js' %}"></script>
@@ -29,24 +32,74 @@
 
 
     <div class="row">
-        <div id="row2-full" class="col-md-12">
+        <div class="col-md-3">
+            <div class="panel panel-primary intel_panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-cog"></i> Settings</h3>
+                </div>
+                <div class="panel-body" style="height:400px">
+                    <h4 align="center">Charts</h4>
+                    <form class="form-horizontal" role="form">
+                        <div class="form-group">
+                            <label for="cockpitStartTime" class="col-sm-3 control-label">Start:</label>
+                            <div class="col-sm-9">
+                                <input id="cockpitStartTime" class="form-control" type="text" placeholder="1 weeks ago">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="cockpitEndTime" class="col-sm-3 control-label">End:</label>
+                            <div class="col-sm-9">
+                                <input id="cockpitEndTime" class="form-control" type="text" placeholder="now">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="cockpitInterval" class="col-sm-3 control-label">Interval:</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="cockpitIntervalUnit" >
+                                    <option value="minutes">Minutes</option>
+                                    <option value="hours" selected>Hours</option>
+                                    <option value="days">Days</option>
+                                    <option value="weeks">Weeks</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button type="button" id="cockpitUpdateButton" class="btn btn-info btn-block">Update</button>
+                            </div>
+                        </div>
+                    </form>
+                    <hr>
+                    <h4 align="center">Logging Status</h4>
+                    <form class="form-horizontal" role="form">
+                        <div class="form-group">
+                            <label for="hostPresenceQty" class="col-sm-2 control-label">Last:</label>
+                            <div class="col-sm-4">
+                                    <input class="form-control" type="number" id="hostPresenceQty" min="1" placeholder="1"/>
+                                </div>
+                                <div class="col-sm-6">
+                                    <select class="form-control" id="hostPresenceUnit" >
+                                        <option value="m">Minutes</option>
+                                        <option value="h" selected>Hours</option>
+                                        <option value="d">Days</option>
+                                        <option value="w">Weeks</option>
+                                    </select>
+                                </div>
+                            </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button type="button" id="hostPresenceButton" class="btn btn-info btn-block">Update</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div id="row2-full" class="col-md-6">
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-dashboard"></i> <a
-                            href="/intelligence/search">Log Analysis</a></h3>
-                </div>
-                <div class="panel-extra">
-        <span class="btn-group btn-group-xs pull-right">
-            <button id="bad-event-month-btn" type="button"
-                    class="btn btn-default">Month
-            </button>
-            <button id="bad-event-day-btn" type="button"
-                    class="btn btn-default">Day
-            </button>
-            <button id="bad-event-hour-btn" type="button"
-                    class="btn btn-default">Hour
-            </button>
-        </span>
+                            href="/intelligence/search"> Log Analysis</a></h3>
                 </div>
                 <div id="bad-event-chart" class="panel-body"
                      style="height:400px">
@@ -62,13 +115,39 @@
                 </div>
             </div>
         </div>
+            <div id="table-col" class="col-md-3">
+            <div class="panel panel-primary log_table_panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-thumbs-up"></i>
+                        Logging Status
+                    <i class="fa fa-thumbs-down"></i></h3>
+                </div>
+                <div id="host-presence-body" class="panel-body" style="height:400px">
+
+
+
+                    <table id="host-presence-table" class="table table-hover">
+                        <!-- table rows filled by draw_host_presence_table -->
+                        <thead>
+                        <tr class="header">
+                            <th>Host</th>
+                            <th>Status</th>
+                        </tr>
+                        </thead>
+                    </table>
+                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                         id="host-presence-table-loading-indicator"
+                         class="ajax-loader"/>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="row">
         <div class="col-md-6">
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>CPU
+                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> CPU
                         Stats (No Oversubscription)</h3>
                 </div>
                 <div id="phys-cpu-chart" class="panel-body"
@@ -88,7 +167,7 @@
         <div class="col-md-6">
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>CPU
+                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> CPU
                         Stats (With Oversubscription)</h3>
                 </div>
                 <div id="virt-cpu-chart" class="panel-body"
@@ -105,11 +184,12 @@
                 </div>
             </div>
         </div>
+        </div>
         <div class="row">
             <div class="col-md-6">
                 <div class="panel panel-primary intel_panel">
                     <div class="panel-heading">
-                        <h3 class="panel-title"><i class="fa fa-dashboard"></i>Memory
+                        <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> Memory
                             Stats (No Oversubscription)</h3>
                     </div>
                     <div id="phys-mem-chart" class="panel-body"
@@ -130,7 +210,7 @@
             <div class="col-md-6">
                 <div class="panel panel-primary intel_panel">
                     <div class="panel-heading">
-                        <h3 class="panel-title"><i class="fa fa-dashboard"></i>Memory
+                        <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> Memory
                             Stats (With Oversubscription)</h3>
                     </div>
                     <div id="virt-mem-chart" class="panel-body"
@@ -149,13 +229,12 @@
                 </div>
             </div>
         </div>
-    </div>
 
     <div class="row">
         <div class="col-md-6">
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>Disk
+                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> Disk
                         Stats (No Oversubscription)</h3>
                 </div>
                 <div id="phys-disk-chart" class="panel-body"
@@ -175,7 +254,7 @@
         <div class="col-md-6">
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>Disk
+                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> Disk
                         Stats (With Oversubscription)</h3>
                 </div>
                 <div id="virt-disk-chart" class="panel-body"
@@ -195,77 +274,12 @@
         </div>
     </div>
 
-    <div class="row">
-        <div id="table-col" class="col-md-6">
-            <div class="panel panel-primary log_table_panel">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>
-                        New and Unseen Hosts
-                    </h3>
-                </div>
-                <div id="host-presence-body" class="panel-body">
-                    <form class="form-inline" role="form">
-                        <div class="form-group">
-                            <label class="sr-only" for="lookbackNum">Look
-                                back: </label>
-                            <input type="number" class="form-control"
-                                   id="lookbackNum" placeholder="Qty Lookback">
-                        </div>
-                        <div class="form-group">
-                            <label class="sr-only"
-                                   for="lookbackUnit">Unit</label>
-                            <select class="form-control" id="lookbackUnit">
-                                <option value="minutes">Minutes</option>
-                                <option value="hours">Hours</option>
-                                <option value="days">Days</option>
-                                <option value="weeks">Weeks</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="sr-only" for="comparisonNum">Compare
-                                to last: </label>
-                            <input type="number" class="form-control"
-                                   id="comparisonNum"
-                                   placeholder="Qty Compare">
-                        </div>
-                        <div class="form-group">
-                            <label class="sr-only"
-                                   for="comparisonUnit">Unit</label>
-                            <select class="form-control" id="comparisonUnit">
-                                <option value="minutes">Minutes</option>
-                                <option value="hours">Hours</option>
-                                <option value="days">Days</option>
-                            </select>
-                        </div>
-                        <button type="button" class="btn btn-primary btn-lg"
-                                id="submit-host-presence">Search
-                        </button>
-                    </form>
-
-
-                    <table id="host-presence-table" class="table table-hover">
-                        <!-- table rows filled by draw_host_presence_table -->
-                        <thead>
-                        <tr class="header">
-                            <th>Host</th>
-                            <th>Status</th>
-                        </tr>
-                        </thead>
-                    </table>
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="host-presence-table-loading-indicator"
-                         class="ajax-loader"/>
-                </div>
-            </div>
-        </div>
-    </div>
-
     {% switch gse %}
         <div class="row">
             <div id="row3-col1" class="col-md-6">
                 <div class="panel panel-primary intel_panel">
                     <div class="panel-heading">
-                        <h3 class="panel-title"><i class="fa fa-dashboard"></i>
+                        <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i>
                             vCPU Usage</h3>
                     </div>
                     <div class="panel-extra">
@@ -295,12 +309,6 @@
                     </div>
                 </div>
             </div>
-            <div id="row3-col2" class="col-md-6"></div>
-        </div>
-    {% endswitch %}
-
-    {% switch gse %}
-        <div class="row">
             <div id="lease-col" class="col-md-6">
                 <div class="panel panel-primary lease_panel">
                     <!-- Default panel contents -->
@@ -333,10 +341,6 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
-
-            <div id="row1-col2" class="col-md-6">
-
             </div>
         </div>
     {% endswitch %}

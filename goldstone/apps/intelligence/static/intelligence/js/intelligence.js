@@ -18,36 +18,81 @@ Date.prototype.addWeeks = function (d) {
     return this;
 }
 
-function convertDateToUTC(date) {
-    return new Date(
-        date.getUTCFullYear(),
-        date.getUTCMonth(),
-        date.getUTCDate(),
-        date.getUTCHours(),
-        date.getUTCMinutes(),
-        date.getUTCSeconds());
+var _timeIntervalMapping = {
+/* validate the time interval.  Should be {posint}{s,m,h,d,w} */
+
+        '1s': d3.time.seconds,
+        '1m': d3.time.minutes,
+        '1h': d3.time.hours,
+        '1d': d3.time.days,
+        '1w': d3.time.weeks
+};
+
+function _timeIntervalValid(intervalStr) {
+    return (intervalStr in _timeIntervalMapping);
+};
+
+function _timeIntervalFromStr(intervalStr) {
+
+    if (_timeIntervalValid(intervalStr)) {
+        return _timeIntervalMapping[intervalStr];
+    } else {
+        return d3.time.hours;
+    }
+};
+
+function _paramToDate(param) {
+    if (param instanceof Date) {
+        return param
+    } else {
+        return new Date(Number(param))
+    }
 }
 
+function _processTimeBasedChartParams(interval, start, end, pct) {
+    interval = typeof interval !== 'undefined' ?
+        function () {
+            if (_timeIntervalValid(interval)) {
+                return interval;
+            } else {
+                return '1h'
+            }
+        }() : '1h';
 
-function bad_event_histogram_panel(interval, location, end) {
-    $("#log-loading-indicator").show();
-    end = typeof end !== 'undefined' ? new Date(Number(end) * 1000) : new Date();
+    end = typeof end !== 'undefined' ?
+        _paramToDate(end) :
+        new Date();
 
-    var xUnitInterval = function (interval) {
-        if (interval == 'minute') {
-            return d3.time.seconds;
-        } else if (interval == 'hour') {
-            return d3.time.minutes;
-        } else if (interval == 'day') {
-            return d3.time.hours;
-        } else if (interval == 'month') {
-            return d3.time.days;
-        } else {
-            raiseDanger("Valid intervals are 'month', 'day', " +
-                "'hour', and 'minute'");
-            return d3.time.seconds;
-        }
-    }
+    start = typeof start !== 'undefined'?
+        _paramToDate(start) :
+        function() {
+            var s = new Date(end)
+            s.addWeeks(-1)
+            return s
+        }();
+    pct = typeof pct !== 'undefined' ? Boolean(pct) : false;
+
+    return {'interval': interval,
+            'start': start,
+            'end': end,
+            'pct': pct
+    };
+}
+
+function bad_event_histogram_panel(location, interval, start, end, pct) {
+    var loadingIndicator = "#log-loading-indicator";
+    var params = _processTimeBasedChartParams(interval, start, end, pct);
+    $(loadingIndicator).show();
+    var panelWidth = $(location).width();
+    var margin = {top: 70, right: 30, bottom: 60, left: 40};
+
+    // times are divided by 1000 to be a more friendly to the backend
+    var uri = "/intelligence/log/cockpit/data?start_time=".
+            concat(String(Math.round(params['start'].getTime() / 1000)),
+                "&end_time=", String(Math.round(params['end'].getTime() / 1000)),
+                "&interval=", params['interval']);
+
+    var chart = dc.barChart(location);
 
     var click_renderlet = function (_chart) {
 
@@ -57,51 +102,36 @@ function bad_event_histogram_panel(interval, location, end) {
                 // to this range.
                 var start = new Date(d.data.key);
                 var end = new Date(start);
-                var new_interval;
-
-                if (interval === 'hour') {
+                var new_interval = '1h';
+                console.log("[renderlet] interval = " + params['interval']);
+                if (params['interval'] === '1m') {
                     end.addMinutes(1);
-                    new_interval = 'minute';
-                } else if (interval === 'day') {
+                    new_interval = '1s';
+                } else if (params['interval'] === '1h') {
                     end.addHours(1);
-                    new_interval = 'hour';
-                } else if (interval === 'month') {
+                    new_interval = '1m';
+                } else if (params['interval'] === '1d') {
                     end.addDays(1);
-                    new_interval = 'day';
-                } else if (interval === 'minute') {
-                    new_interval = 'seconds';
-                    end.addMinutes(1);
+                    new_interval = '1h';
+                } else if (params['interval'] === '1w') {
+                    end.addWeeks(1);
+                    new_interval = '1h';
+                } else {
+                    new_interval = 'unsupported';
+
                 }
 
-                var uri = '/intelligence/search?start_time='.
-                    concat(String(Math.round(start.getTime() / 1000)),
-                        "&end_time=", String(Math.round(end.getTime() / 1000)),
-                        "&interval=", new_interval);
-                window.location.assign(uri);
+                if (new_interval !== 'unsupported') {
+                    var uri = '/intelligence/search?start_time='.
+                        concat(String(Math.round(start.getTime()/1000)),
+                            "&end_time=", String(Math.round(end.getTime()/1000)),
+                            "&interval=", new_interval);
+                    window.location.assign(uri);
+                } else {
+                    raiseWarning("Unsupported interval");
+                }
             });
         };
-
-        var panelWidth = $(location).width();
-        var panelHeight = 300;
-        var margin = {top: 75, right: 30, bottom: 30, left: 40};
-
-
-        var logChart = dc.barChart(location);
-
-        var start = new Date(end);
-        if (interval === 'hour') {
-            start.addHours(-1);
-        } else if (interval === 'day') {
-            start.addDays(-1);
-        } else if (interval === 'month') {
-            start.addWeeks(-4);
-        } else if (interval === 'minute') {
-            start.addMinutes(-1);
-        }
-        var uri = "/intelligence/log/cockpit/data?start_time=".
-            concat(String(Math.round(start.getTime() / 1000)),
-                "&end_time=", String(Math.round(end.getTime() / 1000)),
-                "&interval=", interval);
 
         d3.json(uri, function (error, events) {
             events.data.forEach(function (d) {
@@ -141,9 +171,8 @@ function bad_event_histogram_panel(interval, location, end) {
             var minDate = timeDim.bottom(1)[0].time;
             var maxDate = timeDim.top(1)[0].time;
 
-            logChart
+            chart
                 .width(panelWidth)
-                .height(panelHeight)
                 .margins(margin)
                 .dimension(timeDim)
                 .group(eventsByTime, "Warning Events")
@@ -157,11 +186,11 @@ function bad_event_histogram_panel(interval, location, end) {
                     return d.value.fatalEvents;
                 })
                 .x(d3.time.scale().domain([minDate, maxDate]))
-                .xUnits(xUnitInterval(interval))
-                .renderHorizontalGridLines(true)
+                .xUnits(_timeIntervalFromStr(params['interval']))
                 .centerBar(true)
                 .elasticY(true)
                 .brushOn(false)
+
                 .renderlet(click_renderlet)
                 .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
                 .title(function (d) {
@@ -171,72 +200,29 @@ function bad_event_histogram_panel(interval, location, end) {
                         + "\n\n" + d.value.warnEvents + " WARNINGS";
                 });
 
-            logChart.render();
-            $("#log-loading-indicator").hide();
+            chart.render();
+            $(loadingIndicator).hide();
         });
     }
 
-    var _timeIntervalMapping = {
-            'second': d3.time.seconds,
-            'minute': d3.time.minutes,
-            'hour': d3.time.hours,
-            'day': d3.time.days,
-            'month': d3.time.months
-    };
-
-    function _timeIntervalValid(intervalStr) {
-        return (intervalStr in _timeIntervalMapping);
-    };
-
-    function _timeIntervalFromStr(intervalStr) {
-
-        if (_timeIntervalValid(intervalStr)) {
-            return _timeIntervalMapping[intervalStr];
-        } else {
-            return d3.time.hours;
-        }
-    };
-
     function phys_cpu_chart(location, interval, start, end, pct) {
-        $("#phys-cpu-loading-indicator").show();
-
-        interval = typeof interval !== 'undefined' ?
-            function () {
-                if (_timeIntervalValid(interval)) {
-                    interval;
-                } else {
-                    'hour'
-                }
-            }() : 'hour';
-
-        end = typeof end !== 'undefined' ?
-            new Date(Number(end) * 1000) :
-            new Date();
-        start = typeof start !== 'undefined'?
-            new Date(Number(start) * 1000) :
-            function() {
-                var s = new Date(end)
-                s.addWeeks(-4)
-                return s
-            }();
-        pct = typeof pct !== 'undefined' ? Boolean(pct) : false;
-
+        var loadingIndicator = "#phys-cpu-loading-indicator";
+        $(loadingIndicator).show();
+        var params = _processTimeBasedChartParams(interval, start, end, pct);
         var panelWidth = $(location).width();
-        var panelHeight = 300;
         var margin = {top: 50, right: 30, bottom: 30, left: 40};
 
+        // times are divided by 1000 to be a more friendly to the backend
         var uri = "/intelligence/compute/cpu_stats?start_time=".
-            concat(String(Math.round(start.getTime() / 1000)),
-                "&end_time=", String(Math.round(end.getTime() / 1000)),
-                "&interval=", interval);
+            concat(String(Math.round(params['start'].getTime() / 1000)),
+                "&end_time=", String(Math.round(params['end'].getTime() / 1000)),
+                "&interval=", params['interval']);
 
-        var cpuChart = dc.barChart(location);
+        var chart = dc.barChart(location);
         d3.json(uri, function (error, events) {
             events.forEach(function(d) {
                 d.time = new Date(d.time);
-                d.phys_cpu_max_total = +d.phys_cpu_max_total;
                 d.phys_cpu_avg_total = +d.phys_cpu_avg_total;
-                d.phys_cpu_max_used = +d.phys_cpu_max_used;
                 d.phys_cpu_avg_used = +d.phys_cpu_avg_used;
             });
 
@@ -250,32 +236,25 @@ function bad_event_histogram_panel(interval, location, end) {
 
             var eventsByTime = timeDim.group().reduce(
                 function (p, v) {
-                    p.phys_cpu_max_total += v.phys_cpu_max_total;
                     p.phys_cpu_avg_total += v.phys_cpu_avg_total;
-                    p.phys_cpu_max_used += v.phys_cpu_max_used;
                     p.phys_cpu_avg_used += v.phys_cpu_avg_used;
                     return p;
                 },
                 function (p, v) {
-                    p.phys_cpu_max_total -= v.phys_cpu_max_total;
                     p.phys_cpu_avg_total -= v.phys_cpu_avg_total;
-                    p.phys_cpu_max_used -= v.phys_cpu_max_used;
                     p.phys_cpu_avg_used -= v.phys_cpu_avg_used;
                     return p;
                 },
                 function () {
                     return {
-                        phys_cpu_max_total: 0,
                         phys_cpu_avg_total: 0,
-                        phys_cpu_max_used: 0,
                         phys_cpu_avg_used: 0
                     };
                 }
             );
 
-            cpuChart
+            chart
                 .width(panelWidth)
-                .height(panelHeight)
                 .margins(margin)
                 .dimension(timeDim)
                 .group(eventsByTime, "Avg. Used CPU Cores")
@@ -286,8 +265,7 @@ function bad_event_histogram_panel(interval, location, end) {
                     return (d.value.phys_cpu_avg_total - d.value.phys_cpu_avg_used);
                 })
                 .x(d3.time.scale().domain([minDate, maxDate]))
-                .xUnits(_timeIntervalFromStr(interval))
-                .renderHorizontalGridLines(true)
+                .xUnits(_timeIntervalFromStr(params['interval']))
                 .centerBar(true)
                 .elasticY(true)
                 .brushOn(false)
@@ -298,51 +276,29 @@ function bad_event_histogram_panel(interval, location, end) {
                         + "\n\n" + d.value.phys_cpu_avg_used + " Used";
                 });
 
-            cpuChart.render();
-            $("#phys-cpu-loading-indicator").hide();
+            chart.render();
+            $(loadingIndicator).hide();
         });
     }
 
     function virt_cpu_chart(location, interval, start, end, pct) {
-        $("#virt-cpu-loading-indicator").show();
-
-        interval = typeof interval !== 'undefined' ?
-            function () {
-                if (_timeIntervalValid(interval)) {
-                    interval;
-                } else {
-                    'hour'
-                }
-            }() : 'hour';
-
-        end = typeof end !== 'undefined' ?
-            new Date(Number(end) * 1000) :
-            new Date();
-        start = typeof start !== 'undefined'?
-            new Date(Number(start) * 1000) :
-            function() {
-                var s = new Date(end)
-                s.addWeeks(-4)
-                return s
-            }();
-        pct = typeof pct !== 'undefined' ? Boolean(pct) : false;
-
+        var loadingIndicator = "#virt-cpu-loading-indicator";
+        var params = _processTimeBasedChartParams(interval, start, end, pct);
+        $(loadingIndicator).show();
         var panelWidth = $(location).width();
-        var panelHeight = 300;
         var margin = {top: 50, right: 30, bottom: 30, left: 40};
 
+        // times are divided by 1000 to be a more friendly to the backend
         var uri = "/intelligence/compute/cpu_stats?start_time=".
-            concat(String(Math.round(start.getTime() / 1000)),
-                "&end_time=", String(Math.round(end.getTime() / 1000)),
-                "&interval=", interval);
+            concat(String(Math.round(params['start'].getTime() / 1000)),
+                "&end_time=", String(Math.round(params['end'].getTime() / 1000)),
+                "&interval=", params['interval']);
 
-        var cpuChart = dc.barChart(location);
+        var chart = dc.barChart(location);
         d3.json(uri, function (error, events) {
             events.forEach(function(d) {
                 d.time = new Date(d.time);
-                d.virt_cpu_max_total = +d.virt_cpu_max_total;
                 d.virt_cpu_avg_total = +d.virt_cpu_avg_total;
-                d.virt_cpu_max_used = +d.virt_cpu_max_used;
                 d.virt_cpu_avg_used = +d.virt_cpu_avg_used;
             });
 
@@ -356,32 +312,25 @@ function bad_event_histogram_panel(interval, location, end) {
 
             var eventsByTime = timeDim.group().reduce(
                 function (p, v) {
-                    p.virt_cpu_max_total += v.virt_cpu_max_total;
                     p.virt_cpu_avg_total += v.virt_cpu_avg_total;
-                    p.virt_cpu_max_used += v.virt_cpu_max_used;
                     p.virt_cpu_avg_used += v.virt_cpu_avg_used;
                     return p;
                 },
                 function (p, v) {
-                    p.virt_cpu_max_total -= v.virt_cpu_max_total;
                     p.virt_cpu_avg_total -= v.virt_cpu_avg_total;
-                    p.virt_cpu_max_used -= v.virt_cpu_max_used;
                     p.virt_cpu_avg_used -= v.virt_cpu_avg_used;
                     return p;
                 },
                 function () {
                     return {
-                        virt_cpu_max_total: 0,
                         virt_cpu_avg_total: 0,
-                        virt_cpu_max_used: 0,
                         virt_cpu_avg_used: 0
                     };
                 }
             );
 
-            cpuChart
+            chart
                 .width(panelWidth)
-                .height(panelHeight)
                 .margins(margin)
                 .dimension(timeDim)
                 .group(eventsByTime, "Avg. Used CPU Cores")
@@ -392,7 +341,7 @@ function bad_event_histogram_panel(interval, location, end) {
                     return (d.value.virt_cpu_avg_total - d.value.virt_cpu_avg_used);
                 })
                 .x(d3.time.scale().domain([minDate, maxDate]))
-                .xUnits(_timeIntervalFromStr(interval))
+                .xUnits(_timeIntervalFromStr(params['interval']))
                 .renderHorizontalGridLines(true)
                 .centerBar(true)
                 .elasticY(true)
@@ -404,51 +353,29 @@ function bad_event_histogram_panel(interval, location, end) {
                         + "\n\n" + d.value.virt_cpu_avg_used + " Used";
                 });
 
-            cpuChart.render();
-            $("#virt-cpu-loading-indicator").hide();
+            chart.render();
+            $(loadingIndicator).hide();
         });
     }
 
     function phys_mem_chart(location, interval, start, end, pct) {
-        $("#phys-mem-loading-indicator").show();
-
-        interval = typeof interval !== 'undefined' ?
-            function () {
-                if (_timeIntervalValid(interval)) {
-                    interval;
-                } else {
-                    'hour'
-                }
-            }() : 'hour';
-
-        end = typeof end !== 'undefined' ?
-            new Date(Number(end) * 1000) :
-            new Date();
-        start = typeof start !== 'undefined'?
-            new Date(Number(start) * 1000) :
-            function() {
-                var s = new Date(end)
-                s.addWeeks(-4)
-                return s
-            }();
-        pct = typeof pct !== 'undefined' ? Boolean(pct) : false;
-
+        var loadingIndicator = "#phys-mem-loading-indicator";
+        var params = _processTimeBasedChartParams(interval, start, end, pct);
+        $(loadingIndicator).show();
         var panelWidth = $(location).width();
-        var panelHeight = 300;
         var margin = {top: 50, right: 30, bottom: 30, left: 40};
 
+        // times are divided by 1000 to be a more friendly to the backend
         var uri = "/intelligence/compute/mem_stats?start_time=".
-            concat(String(Math.round(start.getTime() / 1000)),
-                "&end_time=", String(Math.round(end.getTime() / 1000)),
-                "&interval=", interval);
+            concat(String(Math.round(params['start'].getTime() / 1000)),
+                "&end_time=", String(Math.round(params['end'].getTime() / 1000)),
+                "&interval=", params['interval']);
 
         var chart = dc.barChart(location);
         d3.json(uri, function (error, events) {
             events.forEach(function(d) {
                 d.time = new Date(d.time);
-                d.phys_mem_max_total = +d.phys_mem_max_total;
                 d.phys_mem_avg_total = +d.phys_mem_avg_total;
-                d.phys_mem_max_used = +d.phys_mem_max_used;
                 d.phys_mem_avg_used = +d.phys_mem_avg_used;
             });
 
@@ -460,26 +387,21 @@ function bad_event_histogram_panel(interval, location, end) {
             var minDate = timeDim.bottom(1)[0].time;
             var maxDate = timeDim.top(1)[0].time;
 
+            // reported in MB, converted to GB
             var eventsByTime = timeDim.group().reduce(
                 function (p, v) {
-                    p.phys_mem_max_total += v.phys_mem_max_total/1000;
                     p.phys_mem_avg_total += v.phys_mem_avg_total/1000;
-                    p.phys_mem_max_used += v.phys_mem_max_used/1000;
                     p.phys_mem_avg_used += v.phys_mem_avg_used/1000;
                     return p;
                 },
                 function (p, v) {
-                    p.phys_mem_max_total -= v.phys_mem_max_total/1000;
                     p.phys_mem_avg_total -= v.phys_mem_avg_total/1000;
-                    p.phys_mem_max_used -= v.phys_mem_max_used/1000;
                     p.phys_mem_avg_used -= v.phys_mem_avg_used/1000;
                     return p;
                 },
                 function () {
                     return {
-                        phys_mem_max_total: 0,
                         phys_mem_avg_total: 0,
-                        phys_mem_max_used: 0,
                         phys_mem_avg_used: 0
                     };
                 }
@@ -487,7 +409,6 @@ function bad_event_histogram_panel(interval, location, end) {
 
             chart
                 .width(panelWidth)
-                .height(panelHeight)
                 .margins(margin)
                 .dimension(timeDim)
                 .group(eventsByTime, "Avg. GB Used Memory")
@@ -498,7 +419,7 @@ function bad_event_histogram_panel(interval, location, end) {
                     return (d.value.phys_mem_avg_total - d.value.phys_mem_avg_used);
                 })
                 .x(d3.time.scale().domain([minDate, maxDate]))
-                .xUnits(_timeIntervalFromStr(interval))
+                .xUnits(_timeIntervalFromStr(params['interval']))
                 .renderHorizontalGridLines(true)
                 .centerBar(true)
                 .elasticY(true)
@@ -511,50 +432,28 @@ function bad_event_histogram_panel(interval, location, end) {
                 });
 
             chart.render();
-            $("#phys-mem-loading-indicator").hide();
+            $(loadingIndicator).hide();
         });
     }
 
     function virt_mem_chart(location, interval, start, end, pct) {
-        $("#virt-mem-loading-indicator").show();
-
-        interval = typeof interval !== 'undefined' ?
-            function () {
-                if (_timeIntervalValid(interval)) {
-                    interval;
-                } else {
-                    'hour'
-                }
-            }() : 'hour';
-
-        end = typeof end !== 'undefined' ?
-            new Date(Number(end) * 1000) :
-            new Date();
-        start = typeof start !== 'undefined'?
-            new Date(Number(start) * 1000) :
-            function() {
-                var s = new Date(end)
-                s.addWeeks(-4)
-                return s
-            }();
-        pct = typeof pct !== 'undefined' ? Boolean(pct) : false;
-
+        var loadingIndicator = "#virt-mem-loading-indicator";
+        var params = _processTimeBasedChartParams(interval, start, end, pct);
+        $(loadingIndicator).show();
         var panelWidth = $(location).width();
-        var panelHeight = 300;
         var margin = {top: 50, right: 30, bottom: 30, left: 40};
 
+        // times are divided by 1000 to be a more friendly to the backend
         var uri = "/intelligence/compute/mem_stats?start_time=".
-            concat(String(Math.round(start.getTime() / 1000)),
-                "&end_time=", String(Math.round(end.getTime() / 1000)),
-                "&interval=", interval);
+            concat(String(Math.round(params['start'].getTime() / 1000)),
+                "&end_time=", String(Math.round(params['end'].getTime() / 1000)),
+                "&interval=", params['interval']);
 
         var chart = dc.barChart(location);
         d3.json(uri, function (error, events) {
             events.forEach(function(d) {
                 d.time = new Date(d.time);
-                d.virt_mem_max_total = +d.virt_mem_max_total;
                 d.virt_mem_avg_total = +d.virt_mem_avg_total;
-                d.virt_mem_max_used = +d.virt_mem_max_used;
                 d.virt_mem_avg_used = +d.virt_mem_avg_used;
             });
 
@@ -566,26 +465,21 @@ function bad_event_histogram_panel(interval, location, end) {
             var minDate = timeDim.bottom(1)[0].time;
             var maxDate = timeDim.top(1)[0].time;
 
+            // reported in MB, converted to GB
             var eventsByTime = timeDim.group().reduce(
                 function (p, v) {
-                    p.virt_mem_max_total += v.virt_mem_max_total/1000;
                     p.virt_mem_avg_total += v.virt_mem_avg_total/1000;
-                    p.virt_mem_max_used += v.virt_mem_max_used/1000;
                     p.virt_mem_avg_used += v.virt_mem_avg_used/1000;
                     return p;
                 },
                 function (p, v) {
-                    p.virt_mem_max_total -= v.virt_mem_max_total/1000;
                     p.virt_mem_avg_total -= v.virt_mem_avg_total/1000;
-                    p.virt_mem_max_used -= v.virt_mem_max_used/1000;
                     p.virt_mem_avg_used -= v.virt_mem_avg_used/1000;
                     return p;
                 },
                 function () {
                     return {
-                        virt_mem_max_total: 0,
                         virt_mem_avg_total: 0,
-                        virt_mem_max_used: 0,
                         virt_mem_avg_used: 0
                     };
                 }
@@ -593,7 +487,6 @@ function bad_event_histogram_panel(interval, location, end) {
 
             chart
                 .width(panelWidth)
-                .height(panelHeight)
                 .margins(margin)
                 .dimension(timeDim)
                 .group(eventsByTime, "Avg. GB Used Memory")
@@ -604,7 +497,7 @@ function bad_event_histogram_panel(interval, location, end) {
                     return (d.value.virt_mem_avg_total - d.value.virt_mem_avg_used);
                 })
                 .x(d3.time.scale().domain([minDate, maxDate]))
-                .xUnits(_timeIntervalFromStr(interval))
+                .xUnits(_timeIntervalFromStr(params['interval']))
                 .renderHorizontalGridLines(true)
                 .centerBar(true)
                 .elasticY(true)
@@ -617,51 +510,29 @@ function bad_event_histogram_panel(interval, location, end) {
                 });
 
             chart.render();
-            $("#virt-mem-loading-indicator").hide();
+            $(loadingIndicator).hide();
         });
     }
 
 
     function phys_disk_chart(location, interval, start, end, pct) {
-        $("#phys-disk-loading-indicator").show();
-
-        interval = typeof interval !== 'undefined' ?
-            function () {
-                if (_timeIntervalValid(interval)) {
-                    interval;
-                } else {
-                    'hour'
-                }
-            }() : 'hour';
-
-        end = typeof end !== 'undefined' ?
-            new Date(Number(end) * 1000) :
-            new Date();
-        start = typeof start !== 'undefined'?
-            new Date(Number(start) * 1000) :
-            function() {
-                var s = new Date(end)
-                s.addWeeks(-4)
-                return s
-            }();
-        pct = typeof pct !== 'undefined' ? Boolean(pct) : false;
-
+        var loadingIndicator = "#phys-disk-loading-indicator";
+        var params = _processTimeBasedChartParams(interval, start, end, pct);
+        $(loadingIndicator).show();
         var panelWidth = $(location).width();
-        var panelHeight = 300;
         var margin = {top: 50, right: 30, bottom: 30, left: 40};
 
+        // times are divided by 1000 to be a more friendly to the backend
         var uri = "/intelligence/compute/disk_stats?start_time=".
-            concat(String(Math.round(start.getTime() / 1000)),
-                "&end_time=", String(Math.round(end.getTime() / 1000)),
-                "&interval=", interval);
+            concat(String(Math.round(params['start'].getTime() / 1000)),
+                "&end_time=", String(Math.round(params['end'].getTime() / 1000)),
+                "&interval=", params['interval']);
 
         var chart = dc.barChart(location);
         d3.json(uri, function (error, events) {
             events.forEach(function(d) {
                 d.time = new Date(d.time);
-                d.phys_disk_max_total = +d.phys_disk_max_total;
                 d.phys_disk_avg_total = +d.phys_disk_avg_total;
-                d.phys_disk_max_used = +d.phys_disk_max_used;
                 d.phys_disk_avg_used = +d.phys_disk_avg_used;
             });
 
@@ -674,24 +545,18 @@ function bad_event_histogram_panel(interval, location, end) {
             var maxDate = timeDim.top(1)[0].time;
             var eventsByTime = timeDim.group().reduce(
                 function (p, v) {
-                    p.phys_disk_max_total += v.phys_disk_max_total;
                     p.phys_disk_avg_total += v.phys_disk_avg_total;
-                    p.phys_disk_max_used += v.phys_disk_max_used;
                     p.phys_disk_avg_used += v.phys_disk_avg_used;
                     return p;
                 },
                 function (p, v) {
-                    p.phys_disk_max_total -= v.phys_disk_max_total;
                     p.phys_disk_avg_total -= v.phys_disk_avg_total;
-                    p.phys_disk_max_used -= v.phys_disk_max_used;
                     p.phys_disk_avg_used -= v.phys_disk_avg_used;
                     return p;
                 },
                 function () {
                     return {
-                        phys_disk_max_total: 0,
                         phys_disk_avg_total: 0,
-                        phys_disk_max_used: 0,
                         phys_disk_avg_used: 0
                     };
                 }
@@ -699,7 +564,6 @@ function bad_event_histogram_panel(interval, location, end) {
 
             chart
                 .width(panelWidth)
-                .height(panelHeight)
                 .margins(margin)
                 .dimension(timeDim)
                 .group(eventsByTime, "Avg. GB Used Disk")
@@ -710,7 +574,7 @@ function bad_event_histogram_panel(interval, location, end) {
                     return (d.value.phys_disk_avg_total - d.value.phys_disk_avg_used);
                 })
                 .x(d3.time.scale().domain([minDate, maxDate]))
-                .xUnits(_timeIntervalFromStr(interval))
+                .xUnits(_timeIntervalFromStr(params['interval']))
                 .renderHorizontalGridLines(true)
                 .centerBar(true)
                 .elasticY(true)
@@ -723,50 +587,28 @@ function bad_event_histogram_panel(interval, location, end) {
                 });
 
             chart.render();
-            $("#phys-disk-loading-indicator").hide();
+            $(loadingIndicator).hide();
         });
     }
 
     function virt_disk_chart(location, interval, start, end, pct) {
-        $("#virt-disk-loading-indicator").show();
-
-        interval = typeof interval !== 'undefined' ?
-            function () {
-                if (_timeIntervalValid(interval)) {
-                    interval;
-                } else {
-                    'hour'
-                }
-            }() : 'hour';
-
-        end = typeof end !== 'undefined' ?
-            new Date(Number(end) * 1000) :
-            new Date();
-        start = typeof start !== 'undefined'?
-            new Date(Number(start) * 1000) :
-            function() {
-                var s = new Date(end)
-                s.addWeeks(-4)
-                return s
-            }();
-        pct = typeof pct !== 'undefined' ? Boolean(pct) : false;
-
+        var loadingIndicator = "#virt-disk-loading-indicator";
+        var params = _processTimeBasedChartParams(interval, start, end, pct);
+        $(loadingIndicator).show();
         var panelWidth = $(location).width();
-        var panelHeight = 300;
         var margin = {top: 50, right: 30, bottom: 30, left: 40};
 
+        // times are divided by 1000 to be a more friendly to the backend
         var uri = "/intelligence/compute/disk_stats?start_time=".
-            concat(String(Math.round(start.getTime() / 1000)),
-                "&end_time=", String(Math.round(end.getTime() / 1000)),
-                "&interval=", interval);
+            concat(String(Math.round(params['start'].getTime() / 1000)),
+                "&end_time=", String(Math.round(params['end'].getTime() / 1000)),
+                "&interval=", params['interval']);
 
         var chart = dc.barChart(location);
         d3.json(uri, function (error, events) {
             events.forEach(function(d) {
                 d.time = new Date(d.time);
-                d.virt_disk_max_total = +d.virt_disk_max_total;
                 d.virt_disk_avg_total = +d.virt_disk_avg_total;
-                d.virt_disk_max_used = +d.virt_disk_max_used;
                 d.virt_disk_avg_used = +d.virt_disk_avg_used;
             });
 
@@ -780,24 +622,18 @@ function bad_event_histogram_panel(interval, location, end) {
 
             var eventsByTime = timeDim.group().reduce(
                 function (p, v) {
-                    p.virt_disk_max_total += v.virt_disk_max_total/1000;
                     p.virt_disk_avg_total += v.virt_disk_avg_total/1000;
-                    p.virt_disk_max_used += v.virt_disk_max_used/1000;
                     p.virt_disk_avg_used += v.virt_disk_avg_used/1000;
                     return p;
                 },
                 function (p, v) {
-                    p.virt_disk_max_total -= v.virt_disk_max_total/1000;
                     p.virt_disk_avg_total -= v.virt_disk_avg_total/1000;
-                    p.virt_disk_max_used -= v.virt_disk_max_used/1000;
                     p.virt_disk_avg_used -= v.virt_disk_avg_used/1000;
                     return p;
                 },
                 function () {
                     return {
-                        virt_disk_max_total: 0,
                         virt_disk_avg_total: 0,
-                        virt_disk_max_used: 0,
                         virt_disk_avg_used: 0
                     };
                 }
@@ -805,7 +641,6 @@ function bad_event_histogram_panel(interval, location, end) {
 
             chart
                 .width(panelWidth)
-                .height(panelHeight)
                 .margins(margin)
                 .dimension(timeDim)
                 .group(eventsByTime, "Avg. GB Used Memory")
@@ -816,7 +651,7 @@ function bad_event_histogram_panel(interval, location, end) {
                     return (d.value.virt_disk_avg_total - d.value.virt_disk_avg_used);
                 })
                 .x(d3.time.scale().domain([minDate, maxDate]))
-                .xUnits(_timeIntervalFromStr(interval))
+                .xUnits(_timeIntervalFromStr(params['interval']))
                 .renderHorizontalGridLines(true)
                 .centerBar(true)
                 .elasticY(true)
@@ -829,7 +664,7 @@ function bad_event_histogram_panel(interval, location, end) {
                 });
 
             chart.render();
-            $("#virt-disk-loading-indicator").hide();
+            $(loadingIndicator).hide();
         });
     }
 
@@ -860,7 +695,7 @@ function bad_event_histogram_panel(interval, location, end) {
 
 
         var panelWidth = $(location).width();
-        var panelHeight = 300;
+        var panelHeight = 350;
         var margin = {top: 30, right: 30, bottom: 60, left: 50};
 
         var uri = "/intelligence/compute/vcpu_stats?start_time=".
@@ -941,7 +776,7 @@ function bad_event_histogram_panel(interval, location, end) {
     }
 
 
-    function draw_search_table(location, interval, end, start) {
+    function draw_search_table(location, interval, start, end) {
         $("#log-table-loading-indicator").show();
         interval = typeof interval !== 'undefined' ?
             interval :
@@ -1017,29 +852,37 @@ function bad_event_histogram_panel(interval, location, end) {
     }
 
     function draw_host_presence_table(location, lookbackQty, lookbackUnit,
-                                      comparisonQty, comparisonUnit) {
+                                      start, end) {
+        var params = _processTimeBasedChartParams('', start, end);
 
         $("#host-presence-table-loading-indicator").show();
-        // defaults to comparing the last 5 minutes to the last 60 minutes
-        // starting now.
+
         lookbackQty = typeof lookbackQty !== 'undefined' ?
             lookbackQty :
-            60;
-        comparisonQty = typeof comparisonQty !== 'undefined' ?
-            comparisonQty :
-            5;
-        lookbackUnit = typeof lookbackUnit !== 'undefined' ?
-            lookbackUnit :
-            'minutes';
-        comparisonUnit = typeof comparisonUnit !== 'undefined' ?
-            comparisonUnit :
-            'minutes';
+            1;
+
+        var inspectStart = function () {
+            var d = new Date(params['end']);
+            if (lookbackUnit === 'm') {
+                d.addMinutes(-1 * lookbackQty);
+                return d;
+            } else if (lookbackUnit === 'd') {
+                d.addDays(-1 * lookbackQty);
+                return d;
+            } else if (lookbackUnit === 'w') {
+                d.addWeeks(-1 * lookbackQty);
+                return d;
+            } else {
+                d.addHours(-1 * lookbackQty);
+                return d;
+            }
+        }();
 
         var uri = '/intelligence/host_presence_stats'.concat(
-            '?lookbackQty=', String(lookbackQty),
-            '&lookbackUnit=', lookbackUnit,
-            '&comparisonQty=', String(comparisonQty),
-            '&comparisonUnit=', comparisonUnit);
+            '?domainStart=', String(Math.round(params['start'].getTime() / 1000)),
+            '&inspectStart=', String(Math.round(inspectStart.getTime() / 1000)),
+            '&domainEnd=', String(Math.round(params['end'].getTime() / 1000)));
+
         if ($.fn.dataTable.isDataTable(location)) {
             var oTable = $(location).dataTable();
             oTable.fnReloadAjax(uri);
@@ -1049,7 +892,7 @@ function bad_event_histogram_panel(interval, location, end) {
                 "bServerSide": true,
                 "sAjaxSource": uri,
                 "bPaginate": false,
-                "sScrollY": "150px",
+                "sScrollY": "350px",
                 "bFilter": false,
                 "bSort": false,
                 "bInfo": false,

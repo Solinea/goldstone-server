@@ -82,6 +82,15 @@ class LogData(object):
         }
 
     @staticmethod
+    def _regexp_filter(field, value):
+
+        return {
+            "regexp": {
+                field: value
+            }
+        }
+
+    @staticmethod
     def _term_facet(name, field, facet_filter=None, all_terms=True,
                     order=None):
         result = {
@@ -135,7 +144,10 @@ class LogData(object):
 
     def _loglevel_by_time_agg(self, conn, start, end, interval,
                               query_filter=None):
-
+        logger.debug("[_loglevel_by_time_agg] ENTERING>>")
+        logger.debug("[_loglevel_by_time_agg] interval = %s", interval)
+        logger.debug("[_loglevel_by_time_agg] start = %s", start.isoformat())
+        logger.debug("[_loglevel_by_time_agg] end = %s", end.isoformat())
         q = {
             "query": {
                 "bool": {
@@ -173,6 +185,7 @@ class LogData(object):
                 }
             }
         }
+        logger.debug("[_loglevel_by_time_agg] query = %s", json.dumps(q))
         return conn.search(index="_all", body=q)
 
     def get_components(self, conn):
@@ -203,21 +216,10 @@ class LogData(object):
 
         return result
 
-    def get_loglevel_histogram_data(self, conn, start, end, interval=None):
-
-        if interval == 'minute':
-            search_interval = 'second'
-        elif interval == 'hour':
-            search_interval = 'minute'
-        elif interval == 'day':
-            search_interval = 'hour'
-        elif interval == 'month':
-            search_interval = 'day'
-        else:
-            search_interval = 'hour'
+    def get_loglevel_histogram_data(self, conn, start, end, interval):
 
         result = self._loglevel_by_time_agg(conn, start, end,
-                                            search_interval)['aggregations']
+                                            interval)['aggregations']
 
         return result
 
@@ -233,8 +235,8 @@ class LogData(object):
         warn_filt = self._term_filter('loglevel', 'warning')
         bad_filt = {'or': [err_filt, fat_filt, warn_filt]}
 
-        global_filt = self._term_filter('_all',
-                                        global_filter_text.lower()) \
+        global_filt = self._regexp_filter('_all',
+                                          global_filter_text.lower()) \
             if global_filter_text and global_filter_text != '' else None
         f1 = bad_filt if not global_filt \
             else {'and': [bad_filt, global_filt]}
