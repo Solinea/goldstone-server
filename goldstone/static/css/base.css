@@ -52,3 +52,22 @@ code {
     margin-top: -32px;  /* -1 * image height / 2 */
     display: block;
 }
+
+.row {
+    margin-bottom: 20px;
+}
+.panel {
+    border: none;
+    border-radius: 4px;
+    box-shadow: none;
+}
+
+.panel-primary > .panel-heading {
+    background-color: #777777;
+    border-color: #777777;
+    color: #FFFFFF;
+}
+
+.panel-body {
+    background-color: #FFFFFF;
+}

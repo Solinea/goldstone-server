@@ -36,10 +36,12 @@ filter {
             mutate {
                 rename => [ "msg", "message" ]
                 rename => [ "syslog5424_host", "hostname" ]
+                # TODO GOLD-240 if hostname is not used, rename to host instead
+                replace => [ "host", "%{hostname}" ]  
                 remove_field => "syslog_ts"
                 remove_field => "syslog5424_pri"
                 remove_field => "os_message"
-                add_field => { "matched_type" => "openstack_syslog" }
+                add_tag => ["processed", "openstack_syslog", "filter_34"]
             }
         }
     }

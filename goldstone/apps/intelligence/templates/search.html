@@ -5,6 +5,8 @@
     <link href="{% static 'css/plugins/dataTables/dataTables.bootstrap.css' %}"
           rel="stylesheet"
           media="screen">
+    <link href="{% static 'css/plugins/datetimepicker/jquery.datetimepicker.css' %}"
+          rel="stylesheet" media="screen">
     <link href="{% static 'intelligence/css/intelligence.css' %}"
           rel="stylesheet" media="screen">
     <link href="{% static 'css/dc.css' %}" rel="stylesheet" media="screen"/>
@@ -14,31 +16,83 @@
     <script src="{% static 'js/plugins/dataTables/jquery.dataTables.js' %}"></script>
     <script src="{% static 'js/plugins/dataTables/dataTables.bootstrap.js' %}"></script>
     <script src="{% static 'intelligence/js/fnReloadAjax.js' %}"></script>
+    <script src="{% static 'js/plugins/datetimepicker/jquery.datetimepicker.js' %}"></script>
     <script src="{% static 'js/d3.js' %}"></script>
     <script src="{% static 'js/crossfilter.js' %}"></script>
     <script src="{% static 'js/dc.js' %}"></script>
     <script src="{% static 'intelligence/js/intelligence.js' %}"></script>
     <script type="text/javascript">
+
+    // TODO GOLD-243 TODO: search.html needs lots of JS refactoring
+        $('#cockpitStartTime').datetimepicker({
+            format:'M d Y H:i:s',
+            lang:'en'
+        });
+
+        $('#cockpitEndTime').datetimepicker({
+          format:'M d Y H:i:s',
+          lang:'en'
+        });
+
+        function _getFormDates() {
+            //grab the values from the form elements
+            var start = $("input#cockpitStartTime").val();
+            var end = $("input#cockpitEndTime").val();
+            if (end !== '') {
+                var d = new Date(end);
+                if (d === 'Invalid Date') {
+                        alert("End date must be valid. Using now.");
+                        end = new Date();
+                } else {
+                    end = d;
+                }
+            } else {
+                end = new Date();
+            };
+
+            if (start !== '') {
+                console.log("[start] " + start);
+                var d = new Date(start);
+                if (d === 'Invalid Date') {
+                        alert("Start date must be valid. Using 1 week1 prior to end date.");
+                        d.addWeeks(-1);
+                        start = d;
+                    } else {
+                    start = d;
+                }
+            } else {
+                var start = new Date(end);
+                start.addWeeks(-1);
+            };
+
+            return [start,end]
+        };
+
+        function refreshSearchPage(interval, start, end) {
+            bad_event_histogram_panel('#bad-event-chart', interval, start, end);
+            draw_search_table('#log-search-table', interval, start/1000, end/1000);
+        }
+
         $(document).ready(function () {
-            bad_event_histogram_panel('{{ interval }}', '#bad-event-chart',
-                    '{{ end_ts }}'
+            var start = {{ start_ts }} * 1000;
+            var end = {{ end_ts }} * 1000;
+            bad_event_histogram_panel('#bad-event-chart', '{{ interval }}',
+                    start, end
             );
             draw_search_table('#log-search-table', '{{ interval }}',
-                    '{{ end_ts }}', '{{ start_ts }}'
+                    '{{ start_ts }}', '{{ end_ts }}'
             );
-            $("#bad-event-month-btn").click(function () {
-                bad_event_histogram_panel("month", "#bad-event-chart");
-                draw_search_table('#log-search-table', 'month');
-            });
-            $("#bad-event-day-btn").click(function () {
-                bad_event_histogram_panel("day", "#bad-event-chart");
-                draw_search_table('#log-search-table', 'day');
-            });
-            $("#bad-event-hour-btn").click(function () {
-                bad_event_histogram_panel("hour", "#bad-event-chart");
-                draw_search_table('#log-search-table', 'hour');
-            });
-        })
+        });
+
+        $("#searchUpdateButton").click(function() {
+            var dates = _getFormDates();
+            var start = dates[0];
+            var end = dates[1];
+            var intervalUnit = $("select#cockpitIntervalUnit").val();
+            var interval = "1".concat(intervalUnit.substring(0,1));
+            console.log("calling cockpit refresh with [start=" + start + ", end=" + end + ", interval = " + interval + "]");
+            refreshSearchPage(interval, start, end);
+        });
 
     </script>
 
@@ -47,41 +101,53 @@
 
 {% block content %}
 
-    <div class="row" style="height:300px">
-        <!--
-            <div class="col-md-2">
-                <div id="search-params"
-                     class="panel panel-primary search_params_panel">
-                    <div class="panel-heading">
-                        <h3 class="panel-title"><i class="fa fa-dashboard"></i>
-                            Search Parameters
-                        </h3>
-                    </div>
-                    <div id="log-search-params" class="panel-body">
-
-                    </div>
+    <div class="row">
+       <div class="col-md-3">
+            <div class="panel panel-primary intel_panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-cog"></i> Settings</h3>
+                </div>
+                <div class="panel-body" style="height:400px">
+                    <form class="form-horizontal" role="form">
+                        <div class="form-group">
+                            <label for="cockpitStartTime" class="col-sm-3 control-label">Start:</label>
+                            <div class="col-sm-9">
+                                <input id="cockpitStartTime" class="form-control" type="text" placeholder="1 weeks ago">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="cockpitEndTime" class="col-sm-3 control-label">End:</label>
+                            <div class="col-sm-9">
+                                <input id="cockpitEndTime" class="form-control" type="text" placeholder="now">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="cockpitInterval" class="col-sm-3 control-label">Interval:</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="cockpitIntervalUnit" >
+                                    <option value="minutes">Minutes</option>
+                                    <option value="hours" selected>Hours</option>
+                                    <option value="days">Days</option>
+                                    <option value="weeks">Weeks</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button type="button" id="searchUpdateButton" class="btn btn-info btn-block">Update</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
-            -->
-        <div class="col-md-12">
+        </div>
+
+        <div class="col-md-9">
 
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-dashboard"></i> <a
                             href="/intelligence/search">Log Analysis</a></h3>
-                </div>
-                <div class="panel-extra">
-        <span class="btn-group btn-group-xs pull-right">
-            <button id="bad-event-month-btn" type="button"
-                    class="btn btn-default">Month
-            </button>
-            <button id="bad-event-day-btn" type="button"
-                    class="btn btn-default">Day
-            </button>
-            <button id="bad-event-hour-btn" type="button"
-                    class="btn btn-default">Hour
-            </button>
-        </span>
                 </div>
                 <div id="bad-event-chart" class="panel-body"
                      style="height:400px">
@@ -98,7 +164,7 @@
             </div>
         </div>
     </div>
-    <div class="row" style="height:300px">
+    <div class="row">
         <div id="table-col" class="col-md-12">
             <div class="panel panel-primary log_table_panel">
                 <div class="panel-heading">

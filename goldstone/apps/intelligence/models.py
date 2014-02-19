@@ -82,6 +82,15 @@ class LogData(object):
         }
 
     @staticmethod
+    def _regexp_filter(field, value):
+
+        return {
+            "regexp": {
+                field: value
+            }
+        }
+
+    @staticmethod
     def _term_facet(name, field, facet_filter=None, all_terms=True,
                     order=None):
         result = {
@@ -135,7 +144,10 @@ class LogData(object):
 
     def _loglevel_by_time_agg(self, conn, start, end, interval,
                               query_filter=None):
-
+        logger.debug("[_loglevel_by_time_agg] ENTERING>>")
+        logger.debug("[_loglevel_by_time_agg] interval = %s", interval)
+        logger.debug("[_loglevel_by_time_agg] start = %s", start.isoformat())
+        logger.debug("[_loglevel_by_time_agg] end = %s", end.isoformat())
         q = {
             "query": {
                 "bool": {
@@ -173,6 +185,7 @@ class LogData(object):
                 }
             }
         }
+        logger.debug("[_loglevel_by_time_agg] query = %s", json.dumps(q))
         return conn.search(index="_all", body=q)
 
     def get_components(self, conn):
@@ -203,21 +216,10 @@ class LogData(object):
 
         return result
 
-    def get_loglevel_histogram_data(self, conn, start, end, interval=None):
-
-        if interval == 'minute':
-            search_interval = 'second'
-        elif interval == 'hour':
-            search_interval = 'minute'
-        elif interval == 'day':
-            search_interval = 'hour'
-        elif interval == 'month':
-            search_interval = 'day'
-        else:
-            search_interval = 'hour'
+    def get_loglevel_histogram_data(self, conn, start, end, interval):
 
         result = self._loglevel_by_time_agg(conn, start, end,
-                                            search_interval)['aggregations']
+                                            interval)['aggregations']
 
         return result
 
@@ -233,8 +235,8 @@ class LogData(object):
         warn_filt = self._term_filter('loglevel', 'warning')
         bad_filt = {'or': [err_filt, fat_filt, warn_filt]}
 
-        global_filt = self._term_filter('_all',
-                                        global_filter_text.lower()) \
+        global_filt = self._regexp_filter('_all',
+                                          global_filter_text.lower()) \
             if global_filter_text and global_filter_text != '' else None
         f1 = bad_filt if not global_filt \
             else {'and': [bad_filt, global_filt]}
@@ -288,6 +290,142 @@ class LogData(object):
             "missing_nodes": list(missing_nodes),
             "new_nodes": list(new_nodes)
         }
+
+    @staticmethod
+    def _claims_resource_query(start, end, interval, resource,
+                               event_type):
+
+        type_field = {
+            'nova_claims_summary_phys': ['total', 'max_used',
+                                         'avg_used', 'used'],
+            'nova_claims_summary_virt': ['limit', 'max_free',
+                                         'avg_free', 'free']
+        }
+
+        return {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "range": {
+                                "@timestamp": {
+                                    "gte": start.isoformat(),
+                                    "lte": end.isoformat()
+                                }
+                            }
+                        },
+                        {
+                            "term": {
+                                "type": event_type
+                            }
+                        },
+                        {
+                            "term": {
+                                "resource": resource
+                            }
+                        }
+                    ]
+                }
+            },
+            "aggs": {
+                "events_by_date": {
+                    "date_histogram": {
+                        "field": "@timestamp",
+                        "interval": interval,
+                        "min_doc_count": 0
+                    },
+                    "aggs": {
+                        "events_by_host": {
+                            "terms": {
+                                "field": "host.raw"
+                            },
+                            "aggs": {
+                                "max_total": {
+                                    "max": {
+                                        "field": type_field[event_type][0]
+                                    }
+                                },
+                                "avg_total": {
+                                    "avg": {
+                                        "field": type_field[event_type][0]
+                                    }
+                                },
+                                type_field[event_type][1]: {
+                                    "max": {
+                                        "field": type_field[event_type][3]
+                                    }
+                                },
+                                type_field[event_type][2]: {
+                                    "avg": {
+                                        "field": type_field[event_type][3]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    def gsl_phys_cpu_stats(self, conn, start, end, interval, first=0,
+                           size=10, sort=''):
+        q = self._claims_resource_query(start, end, interval, 'cpu',
+                                        'nova_claims_summary_phys')
+        logger.debug('[gsl_phys_cpu_stats] query = ' + json.dumps(q))
+        result = conn.search(index="_all", body=q, from_=first, size=size,
+                             sort=sort)
+        logger.debug('[gsl_phys_cpu_stats] result = ' + json.dumps(result))
+        return result
+
+    def gsl_virt_cpu_stats(self, conn, start, end, interval, first=0,
+                           size=10, sort=''):
+        q = self._claims_resource_query(start, end, interval, 'cpu',
+                                        'nova_claims_summary_virt')
+        logger.debug('[gsl_virt_cpu_stats] query = ' + json.dumps(q))
+        result = conn.search(index="_all", body=q, from_=first, size=size,
+                             sort=sort)
+        logger.debug('[gsl_virt_cpu_stats] result = ' + json.dumps(result))
+        return result
+
+    def gsl_phys_mem_stats(self, conn, start, end, interval, first=0,
+                           size=10, sort=''):
+        q = self._claims_resource_query(start, end, interval, 'memory',
+                                        'nova_claims_summary_phys')
+        logger.debug('[gsl_phys_mem_stats] query = ' + json.dumps(q))
+        result = conn.search(index="_all", body=q, from_=first, size=size,
+                             sort=sort)
+        logger.debug('[gsl_phys_mem_stats] result = ' + json.dumps(result))
+        return result
+
+    def gsl_virt_mem_stats(self, conn, start, end, interval, first=0,
+                           size=10, sort=''):
+        q = self._claims_resource_query(start, end, interval, 'memory',
+                                        'nova_claims_summary_virt')
+        logger.debug('[gsl_virt_mem_stats] query = ' + json.dumps(q))
+        result = conn.search(index="_all", body=q, from_=first, size=size,
+                             sort=sort)
+        logger.debug('[gsl_virt_mem_stats] result = ' + json.dumps(result))
+        return result
+
+    def gsl_phys_disk_stats(self, conn, start, end, interval, first=0,
+                            size=10, sort=''):
+        q = self._claims_resource_query(start, end, interval, 'disk',
+                                        'nova_claims_summary_phys')
+        logger.debug('[gsl_phys_disk_stats] query = ' + json.dumps(q))
+        result = conn.search(index="_all", body=q, from_=first, size=size,
+                             sort=sort)
+        logger.debug('[gsl_phys_disk_stats] result = ' + json.dumps(result))
+        return result
+
+    def gsl_virt_disk_stats(self, conn, start, end, interval, first=0,
+                            size=10, sort=''):
+        q = self._claims_resource_query(start, end, interval, 'disk',
+                                        'nova_claims_summary_virt')
+        logger.debug('[gsl_virt_disk_stats] query = ' + json.dumps(q))
+        result = conn.search(index="_all", body=q, from_=first, size=size,
+                             sort=sort)
+        logger.debug('[gsl_virt_disk_stats] result = ' + json.dumps(result))
+        return result
 
     def get_hypervisor_stats(self, conn, start, end, interval, first=0,
                              size=10, sort=''):
