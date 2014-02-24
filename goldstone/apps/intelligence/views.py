@@ -26,7 +26,7 @@ class IntelSearchView(TemplateView):
         context = super(IntelSearchView, self).get_context_data(**kwargs)
         end_time = self.request.GET.get('end_time', None)
         start_time = self.request.GET.get('start_time', None)
-        context['interval'] = self.request.GET.get('interval', '1w')
+        context['interval'] = self.request.GET.get('interval', '1h')
 
         end_dt = datetime.fromtimestamp(int(end_time),
                                         tz=pytz.utc) \
@@ -34,7 +34,7 @@ class IntelSearchView(TemplateView):
 
         start_dt = datetime.\
             fromtimestamp(int(start_time), tz=pytz.utc) \
-            if start_time else end_dt - timedelta(weeks=4)
+            if start_time else end_dt - timedelta(weeks=1)
 
         context['end_ts'] = calendar.timegm(end_dt.utctimetuple())
         context['start_ts'] = calendar.timegm(start_dt.utctimetuple())
