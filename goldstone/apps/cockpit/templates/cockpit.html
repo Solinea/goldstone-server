@@ -23,7 +23,10 @@
     <script src="{% static 'js/colorbrewer.js' %}"></script>
     <script src="{% static 'intelligence/js/intelligence.js' %}"></script>
     <script src="{% static 'js/cockpit.js' %}"></script>
-
+    {% switch gse %}
+    <script src="{% static 'intelligence/js/intelligence-gse.js' %}"></script>
+    <script src="{% static 'js/cockpit-gse.js' %}"></script>
+    {% endswitch %}
 
 {% endblock %}
 
@@ -281,19 +284,6 @@
                     <div class="panel-heading">
                         <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i>
                             vCPU Usage</h3>
-                    </div>
-                    <div class="panel-extra">
-        <span class="btn-group btn-group-xs pull-right">
-            <button id="vcpu-cockpit-month-btn" type="button"
-                    class="btn btn-default">Month
-            </button>
-            <button id="vcpu-cockpit-day-btn" type="button"
-                    class="btn btn-default">Day
-            </button>
-            <button id="vcpu-cockpit-hour-btn" type="button"
-                    class="btn btn-default">Hour
-            </button>
-        </span>
                     </div>
                     <div id="vcpu-graph" class="panel-body"
                          style="height:400px">
