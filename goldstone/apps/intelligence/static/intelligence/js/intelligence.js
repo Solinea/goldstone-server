@@ -121,7 +121,7 @@ function badEventHistogramPanel(location, interval, start, end) {
                     end = new Date(start),
                     new_interval = '1h'
 
-                switch (params['interval']) {
+                switch (params.interval) {
                     case '1m':
                         end.addMinutes(1)
                         new_interval = '1s'
@@ -144,8 +144,8 @@ function badEventHistogramPanel(location, interval, start, end) {
 
                 if (new_interval !== 'unsupported') {
                     var uri = '/intelligence/search?start_time='.
-                        concat(String(Math.round(start.getTime()/1000)),
-                            "&end_time=", String(Math.round(end.getTime()/1000)),
+                        concat(String(Math.round(start.getTime() / 1000)),
+                            "&end_time=", String(Math.round(end.getTime() / 1000)),
                             "&interval=", new_interval)
                     window.location.assign(uri)
                 } else {
@@ -392,7 +392,7 @@ function badEventHistogramPanel(location, interval, start, end) {
         _renderResourceChart(location, interval, start, end, chartConstants)
     }
 
-    function draw_search_table(location, interval, start, end) {
+    function drawSearchTable(location, interval, start, end) {
         $("#log-table-loading-indicator").show();
         interval = typeof interval !== 'undefined' ?
             interval :
@@ -466,7 +466,7 @@ function badEventHistogramPanel(location, interval, start, end) {
         $("#log-table-loading-indicator").hide();
     }
 
-    function draw_host_presence_table(location, lookbackQty, lookbackUnit,
+    function hostPresenceTable(location, lookbackQty, lookbackUnit,
                                       start, end) {
         var params = _processTimeBasedChartParams('', start, end);
 

@@ -1,11 +1,11 @@
 $('#cockpitStartTime').datetimepicker({
-  format:'M d Y H:i:s',
-  lang:'en'
+    format: 'M d Y H:i:s',
+    lang: 'en'
 })
 
 $('#cockpitEndTime').datetimepicker({
-  format:'M d Y H:i:s',
-  lang:'en'
+    format: 'M d Y H:i:s',
+    lang: 'en'
 })
 
 function _getFormDates() {
@@ -42,7 +42,7 @@ function _getFormDates() {
 }
 
 function refreshHostPresence(lookbackQty, lookbackUnit, start, end) {
-    draw_host_presence_table('#host-presence-table', lookbackQty, lookbackUnit, start, end)
+    hostPresenceTable('#host-presence-table', lookbackQty, lookbackUnit, start, end)
 }
 
 function refreshCharts(interval, start, end) {
@@ -58,7 +58,7 @@ function refreshCharts(interval, start, end) {
 $(document).ready(function () {
     // load the default charts
     badEventHistogramPanel('#bad-event-chart')
-    draw_host_presence_table('#host-presence-table')
+    hostPresenceTable('#host-presence-table')
     physCpuChart("#phys-cpu-chart")
     virtCpuChart("#virt-cpu-chart")
     physMemChart("#phys-mem-chart")
@@ -82,6 +82,6 @@ $("#hostPresenceButton").click(function () {
         end = dates[1],
         presenceUnit = $("select#hostPresenceUnit").val(),
         presenceQty = $("input#hostPresenceQty").val()
-    presenceQty = typeof presenceQty !== 'defined' ? 1 : presenceQty
+    presenceQty = typeof presenceQty === 'undefined' ? 1 : presenceQty
     refreshHostPresence(presenceQty, presenceUnit, start, end)
 });
