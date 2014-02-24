@@ -1,46 +1,3 @@
-$('#cockpitStartTime').datetimepicker({
-    format: 'M d Y H:i:s',
-    lang: 'en'
-})
-
-$('#cockpitEndTime').datetimepicker({
-    format: 'M d Y H:i:s',
-    lang: 'en'
-})
-
-function _getFormDates() {
-    //grab the values from the form elements
-    var start = $("input#cockpitStartTime").val()
-    var end = $("input#cockpitEndTime").val()
-    if (end !== '') {
-        var d = new Date(end)
-        if (d === 'Invalid Date') {
-                alert("End date must be valid. Using now.")
-                end = new Date()
-        } else {
-            end = d
-        }
-    } else {
-        end = new Date()
-    }
-
-    if (start !== '') {
-        var d = new Date(start);
-        if (d === 'Invalid Date') {
-                alert("Start date must be valid. Using 1 week1 prior to end date.")
-                d.addWeeks(-1)
-                start = d
-            } else {
-            start = d
-        }
-    } else {
-        var start = new Date(end)
-        start.addWeeks(-1)
-    }
-
-    return [start, end]
-}
-
 function refreshHostPresence(lookbackQty, lookbackUnit, start, end) {
     hostPresenceTable('#host-presence-table', lookbackQty, lookbackUnit, start, end)
 }
@@ -67,17 +24,17 @@ $(document).ready(function () {
     virtDiskChart("#virt-disk-chart")
 });
 
-$("#cockpitUpdateButton").click(function () {
-    var dates = _getFormDates(),
+$("#settingsUpdateButton").click(function () {
+    var dates = _getSearchFormDates(),
         start = dates[0],
         end = dates[1],
-        intervalUnit = $("select#cockpitIntervalUnit").val(),
+        intervalUnit = $("select#settingsIntervalUnit").val(),
         interval = "1".concat(intervalUnit.substring(0, 1))
     refreshCharts(interval, start, end)
 });
 
 $("#hostPresenceButton").click(function () {
-    var dates = _getFormDates(),
+    var dates = _getSearchFormDates(),
         start = dates[0],
         end = dates[1],
         presenceUnit = $("select#hostPresenceUnit").val(),

@@ -15,9 +15,8 @@ urlpatterns = patterns(
     # data calls
     url(r'^log/cockpit/data[/]?$',
         bad_event_histogram, name='bad-event-data'),
-    # TODO GOLD-239 parameterize the log search data start/end time
-    url(r'^log/search/data/(?P<start_time>\d+)/(?P<end_time>\d+)[/]?$',
-        log_search_data, name='intel-log-search-data'),
+    url(r'^log/search/data[/]?$', log_search_data,
+        name='intel-log-search-data'),
     url(r'^compute/virt_cpu_stats[/]?$', get_virt_cpu_stats,
         name='compute_virt_cpu_stats'),
     url(r'^compute/phys_cpu_stats[/]?$', get_phys_cpu_stats,
