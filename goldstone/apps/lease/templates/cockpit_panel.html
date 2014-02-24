@@ -1,0 +1,32 @@
+<div class="panel panel-primary lease_panel">
+    <!-- Default panel contents -->
+    <div class="panel-heading">
+        <h3 class="panel-title"><i class="fa fa-calendar"></i>
+            <a
+                    href="/leases">Leases</a> <span
+                    class="badge  pull-right">{{ lease_count }}</span>
+        </h3>
+    </div>
+    <table class="table table-condensed table-hover">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Identifier</th>
+            <th>Expiration</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for lease in leases %}
+            <tr>
+                <td>{{ lease }}</td>
+                <td>{{ lease.scope }}</td>
+                <td>{{ lease.resource_type }}</td>
+                <td>{{ lease.expiration_time|date:"SHORT_DATE_FORMAT" }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>

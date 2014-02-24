@@ -9,7 +9,7 @@ from datetime import timedelta
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import redirect, render
-from django.views.generic import ListView
+from django.views.generic import ListView, TemplateView
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.utils import timezone
 from crispy_forms.helper import FormHelper
@@ -92,3 +92,17 @@ class DeleteLeaseView(DeleteView):
 
     def get_success_url(self):
         return reverse('lease-list')
+
+
+class LeaseCockpitView(TemplateView):
+    template_name = 'cockpit_panel.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(LeaseCockpitView, self).get_context_data(**kwargs)
+        leases_to_show = 5
+        leases = Lease.objects.filter(expiration_time__gte=timezone.now(),
+                                  deleted=False,
+                                  ).order_by('expiration_time')
+        context['lease_count'] = len(leases)
+        context['leases'] = leases[:leases_to_show]
+        return context

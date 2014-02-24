@@ -5,7 +5,8 @@ function refreshChartsGse(interval, start, end) {
 
 $(document).ready(function () {
     // load the default panels
-    vcpuGraph('#vcpu-graph');
+    vcpuGraph('#vcpu-graph')
+    $('#lease-col').load("/leases/cockpit")
 });
 
 $("#cockpitUpdateButton").click(function () {
