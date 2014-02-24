@@ -408,14 +408,14 @@ def get_phys_disk_stats(request):
 @waffle_switch('gse')
 def compute_vcpu_stats(request):
 
-    interval = request.GET.get('interval', 'day')
+    interval = request.GET.get('interval', '1h')
     end_time = request.GET.get('end_time',
                                calendar.timegm(
                                    datetime.now(tz=pytz.utc).utctimetuple()))
     end_dt = datetime.fromtimestamp(int(end_time), tz=pytz.utc)
     start_time = request.GET.get('start_time',
                                  calendar.timegm(
-                                     _calc_start('day', end_dt).
+                                     _calc_start('week', end_dt).
                                      utctimetuple()))
 
     start_dt = datetime.fromtimestamp(int(start_time), tz=pytz.utc)
