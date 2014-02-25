@@ -26,7 +26,7 @@ class IntelSearchView(TemplateView):
         context = super(IntelSearchView, self).get_context_data(**kwargs)
         end_time = self.request.GET.get('end_time', None)
         start_time = self.request.GET.get('start_time', None)
-        context['interval'] = self.request.GET.get('interval', '1w')
+        context['interval'] = self.request.GET.get('interval', '1h')
 
         end_dt = datetime.fromtimestamp(int(end_time),
                                         tz=pytz.utc) \
@@ -34,7 +34,7 @@ class IntelSearchView(TemplateView):
 
         start_dt = datetime.\
             fromtimestamp(int(start_time), tz=pytz.utc) \
-            if start_time else end_dt - timedelta(weeks=4)
+            if start_time else end_dt - timedelta(weeks=1)
 
         context['end_ts'] = calendar.timegm(end_dt.utctimetuple())
         context['start_ts'] = calendar.timegm(start_dt.utctimetuple())
@@ -92,7 +92,7 @@ def bad_event_histogram(request):
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 
-def log_search_data(request, start_time, end_time):
+def log_search_data(request):
 
     conn = LogData.get_connection(settings.ES_SERVER)
 
@@ -100,8 +100,8 @@ def log_search_data(request, start_time, end_time):
                'path', 'pid', 'program', 'request_id_list', 'type',
                'received_at']
 
-    start_ts = int(start_time)
-    end_ts = int(end_time)
+    end_ts = int(request.GET.get('end_time'))
+    start_ts = int(request.GET.get('start_time'))
     sort_index = int(request.GET.get('iSortCol_0'))
     sort_col = keylist[sort_index] if sort_index else keylist[0]
     sort_dir_in = request.GET.get('sSortDir_0')
