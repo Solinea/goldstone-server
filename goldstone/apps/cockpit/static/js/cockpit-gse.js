@@ -9,11 +9,11 @@ $(document).ready(function () {
     $('#lease-col').load("/leases/cockpit")
 });
 
-$("#cockpitUpdateButton").click(function () {
-    var dates = _getFormDates(),
+$("#settingsUpdateButton").click(function () {
+    var dates = _getSearchFormDates(),
         start = dates[0],
         end = dates[1],
-        intervalUnit = $("select#cockpitIntervalUnit").val(),
+        intervalUnit = $("select#settingsIntervalUnit").val(),
         interval = "1".concat(intervalUnit.substring(0, 1));
     refreshChartsGse(interval, start, end);
 });

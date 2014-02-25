@@ -18,6 +18,51 @@ Date.prototype.addWeeks = function (d) {
     return this;
 }
 
+$('#settingsStartTime').datetimepicker({
+    format: 'M d Y H:i:s',
+    lang: 'en'
+})
+
+$('#settingsEndTime').datetimepicker({
+    format: 'M d Y H:i:s',
+    lang: 'en'
+})
+
+function _getSearchFormDates() {
+    //grab the values from the form elements
+    var end = (function () {
+            var e = $("input#settingsEndTime").val()
+            switch (e) {
+                case '':
+                    return new Date()
+                default:
+                    var d = new Date(e)
+                    if (d === 'Invalid Date') {
+                        alert("End date must be valid. Using now.")
+                        d = new Date()
+                    }
+                    return d
+            }
+        })(),
+        start = (function () {
+            var s = $("input#settingsStartTime").val()
+            switch (s) {
+                case '':
+                    return (new Date(end)).addWeeks(-1)
+                default:
+                    var d = new Date(s)
+                    if (d === 'Invalid Date') {
+                        alert("Start date must be valid. Using 1 week1 " +
+                            "prior to end date.")
+                        d = (new Date(end)).addWeeks(-1)
+                    }
+                    return d
+            }
+        })()
+
+    return [start, end]
+}
+
 var _timeIntervalMapping = {
 /* validate the time interval.  Should be {posint}{s,m,h,d,w} */
 
@@ -63,9 +108,9 @@ function _processTimeBasedChartParams(interval, start, end) {
         _paramToDate(end) :
         new Date();
 
-    start = typeof start !== 'undefined'?
+    start = typeof start !== 'undefined' ?
         _paramToDate(start) :
-        function() {
+        function () {
             var s = new Date(end)
             s.addWeeks(-1)
             return s
@@ -121,7 +166,7 @@ function badEventHistogramPanel(location, interval, start, end) {
                     end = new Date(start),
                     new_interval = '1h'
 
-                switch (params['interval']) {
+                switch (params.interval) {
                     case '1m':
                         end.addMinutes(1)
                         new_interval = '1s'
@@ -144,8 +189,8 @@ function badEventHistogramPanel(location, interval, start, end) {
 
                 if (new_interval !== 'unsupported') {
                     var uri = '/intelligence/search?start_time='.
-                        concat(String(Math.round(start.getTime()/1000)),
-                            "&end_time=", String(Math.round(end.getTime()/1000)),
+                        concat(String(Math.round(start.getTime() / 1000)),
+                            "&end_time=", String(Math.round(end.getTime() / 1000)),
                             "&interval=", new_interval)
                     window.location.assign(uri)
                 } else {
@@ -392,7 +437,7 @@ function badEventHistogramPanel(location, interval, start, end) {
         _renderResourceChart(location, interval, start, end, chartConstants)
     }
 
-    function draw_search_table(location, interval, start, end) {
+    function drawSearchTable(location, interval, start, end) {
         $("#log-table-loading-indicator").show();
         interval = typeof interval !== 'undefined' ?
             interval :
@@ -421,9 +466,9 @@ function badEventHistogramPanel(location, interval, start, end) {
         }
 
         //TODO rework this url to use params
-        var uri = '/intelligence/log/search/data/'.
-            concat(String(Math.round(start.getTime() / 1000)), "/",
-                String(Math.round(end.getTime() / 1000)));
+        var uri = '/intelligence/log/search/data'.concat(
+            "?start_time=", String(Math.round(start.getTime() / 1000)),
+            "&end_time=", String(Math.round(end.getTime() / 1000)))
 
         if ($.fn.dataTable.isDataTable(location)) {
             var oTable = $(location).dataTable();
@@ -466,7 +511,7 @@ function badEventHistogramPanel(location, interval, start, end) {
         $("#log-table-loading-indicator").hide();
     }
 
-    function draw_host_presence_table(location, lookbackQty, lookbackUnit,
+    function hostPresenceTable(location, lookbackQty, lookbackUnit,
                                       start, end) {
         var params = _processTimeBasedChartParams('', start, end);
 
