@@ -224,24 +224,43 @@ class LogData(object):
         return result
 
     def get_err_and_warn_range(self, conn, start_t, end_t, first, size,
-                               sort='', global_filter_text=None):
+                               sort='', search_text=None):
 
-        # TODO refactor this block of code, seen it before...
-        q = self._range_query('@timestamp', start_t.isoformat(),
-                              end_t.isoformat())
+        if search_text:
+            search_text = "*" + search_text + "*"
+
+        q = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "range": {
+                                "@timestamp": {
+                                    "gte": start_t.isoformat(),
+                                    "lte": end_t.isoformat()
+                                }
+                            }
+                        }
+                    ]
+                }
+
+            }
+        }
+
+        if search_text:
+            sq = {
+                "wildcard": {
+                    "_message.raw": search_text
+                }
+            }
+            q['query']['bool']['must'].append(sq)
 
         err_filt = self._term_filter('loglevel', 'error')
         fat_filt = self._term_filter('loglevel', 'fatal')
         warn_filt = self._term_filter('loglevel', 'warning')
         bad_filt = {'or': [err_filt, fat_filt, warn_filt]}
 
-        global_filt = self._regexp_filter('_all',
-                                          global_filter_text.lower()) \
-            if global_filter_text and global_filter_text != '' else None
-        f1 = bad_filt if not global_filt \
-            else {'and': [bad_filt, global_filt]}
-
-        q['filter'] = f1
+        q['filter'] = bad_filt
         fq = {
             'query': {'filtered': q}
         }
