@@ -27,8 +27,5 @@ $("#settingsUpdateButton").click(function () {
         end = dates[1],
         interval = $("select#settingsIntervalUnit").val()
 
-    console.log("start = " + start)
-    console.log("end = " + end)
-
     refreshSearchPage(interval, start, end)
 })
