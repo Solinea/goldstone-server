@@ -18,6 +18,7 @@ from datetime import *
 import pytz
 import gzip
 import logging
+from elasticsearch import *
 
 logger = logging.getLogger(__name__)
 
@@ -26,40 +27,37 @@ class LogDataModel(TestCase):
     INDEX_NAME = 'logstash-test'
     DOCUMENT_TYPE = 'logs'
     conn = Elasticsearch(settings.ES_SERVER)
+    template_f = gzip.open(os.path.join(os.path.dirname(__file__), "..",
+                                        "..", "..", "test_data",
+                                        "template.json.gz"), 'rb')
+    template = json.load(template_f)
+
+    try:
+        conn.indices.delete("_all")
+    finally:
+        {}
+
+    conn.indices.create(INDEX_NAME, body=template)
+
+    q = {"query": {"match_all": {}}}
+    data_f = gzip.open(os.path.join(os.path.dirname(__file__), "..", "..",
+                                    "..", "test_data",
+                                    "data.json.gz"))
+    data = json.load(data_f)
+    for dataset in data:
+        for event in dataset['hits']['hits']:
+            rv = conn.index(INDEX_NAME, DOCUMENT_TYPE,
+                            event['_source'])
+
+    conn.indices.refresh([INDEX_NAME])
+    q = {"query": {"match_all": {}}}
+    rs = conn.search(body=q, index="_all")
 
     def setUp(self):
+        pass
 
-        template_f = gzip.open(os.path.join(os.path.dirname(__file__), "..",
-                                            "..", "..", "test_data",
-                                            "template.json.gz"), 'rb')
-        template = json.load(template_f)
-
-        try:
-            self.conn.indices.delete("_all")
-        finally:
-            {}
-
-        self.conn.indices.create(self.INDEX_NAME, body=template)
-
-        q = {"query": {"match_all": {}}}
-        data_f = gzip.open(os.path.join(os.path.dirname(__file__), "..", "..",
-                                        "..", "test_data",
-                                        "data.json.gz"))
-        data = json.load(data_f)
-        for dataset in data:
-            for event in dataset['hits']['hits']:
-                rv = self.conn.index(self.INDEX_NAME, self.DOCUMENT_TYPE,
-                                     event['_source'])
-
-        self.conn.indices.refresh([self.INDEX_NAME])
-        q = {"query": {"match_all": {}}}
-        rs = self.conn.search(body=q, index="_all")
-
-    #def tearDown(self):
-    #    try:
-    #        self.conn.indices.delete("_all")
-    #    finally:
-    #        {}
+    def tearDown(self):
+        pass
 
     def test_get_connection(self):
         q = dict(query={"match": {"type": "syslog"}})
