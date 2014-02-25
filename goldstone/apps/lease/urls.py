@@ -2,6 +2,7 @@ from django.conf.urls import patterns, include, url
 
 from .views import ListLeaseView, CreateLeaseView
 from .views import UpdateLeaseView, DeleteLeaseView
+from .views import LeaseCockpitView
 
 urlpatterns = patterns(
     '',
@@ -12,4 +13,5 @@ urlpatterns = patterns(
         name='lease-edit',),
     url(r'^delete/(?P<pk>\d+)/$', DeleteLeaseView.as_view(),
         name='lease-delete',),
+    url(r'^cockpit[/]?$',  LeaseCockpitView.as_view(), name='lease-cockpit'),
 )

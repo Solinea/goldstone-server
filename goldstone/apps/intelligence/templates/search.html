@@ -69,14 +69,14 @@
         };
 
         function refreshSearchPage(interval, start, end) {
-            bad_event_histogram_panel('#bad-event-chart', interval, start, end);
+            badEventHistogramPanel('#bad-event-chart', interval, start, end);
             draw_search_table('#log-search-table', interval, start/1000, end/1000);
         }
 
         $(document).ready(function () {
             var start = {{ start_ts }} * 1000;
             var end = {{ end_ts }} * 1000;
-            bad_event_histogram_panel('#bad-event-chart', '{{ interval }}',
+            badEventHistogramPanel('#bad-event-chart', '{{ interval }}',
                     start, end
             );
             draw_search_table('#log-search-table', '{{ interval }}',

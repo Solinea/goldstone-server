@@ -1,6 +1,7 @@
 {% load staticfiles %}
+{% load waffle_tags %}
 <html>
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -8,11 +9,14 @@
 
     <!-- Core CSS - Include with every page -->
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
-    <link href="{% static 'font-awesome/css/font-awesome.css' %}" rel="stylesheet">
+    <link href="{% static 'font-awesome/css/font-awesome.css' %}"
+          rel="stylesheet">
 
     <!-- Page-Level Plugin CSS - Dashboard -->
-    <link href="{% static 'css/plugins/morris/morris-0.4.3.min.css' %}" rel="stylesheet">
-    <link href="{% static 'css/plugins/timeline/timeline.css' %}" rel="stylesheet">
+    <link href="{% static 'css/plugins/morris/morris-0.4.3.min.css' %}"
+          rel="stylesheet">
+    <link href="{% static 'css/plugins/timeline/timeline.css' %}"
+          rel="stylesheet">
 
     <!-- SB Admin CSS - Include with every page -->
     <link href="{% static 'css/sb-admin.css' %}" rel="stylesheet">
@@ -21,84 +25,108 @@
 
     {% block localcss %}
     {% endblock %}
-  </head>
+</head>
 
-  <body>
-      <div id="wrap">
-          <!-- Fixed navbar -->
-          <div class="navbar navbar-default navbar-fixed-top" role="navigation">
-            <div class="container">
-              <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                  <span class="sr-only">Toggle navigation</span>
-                  <span class="icon-bar"></span>
-                  <span class="icon-bar"></span>
-                  <span class="icon-bar"></span>
+<body>
+<div id="wrap">
+    <!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle"
+                        data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
                 </button>
                 <a class="navbar-brand" href="#">GoldStone</a>
-              </div>
-              <div class="collapse navbar-collapse">
-                <ul class="nav navbar-nav">
-                  <li><a href="/"><i class="fa fa-cloud"></i> Home</a></li>
-
-                  <li class="dropdown">
-                    <a href="#compliance" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-camera"></i> Compliance <b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                      <li><a href="/leases/"><i class="fa fa-calendar"></i> Leases</a></li>
-                    </ul>
-                  </li>
-
-                  <li class="dropdown">
-                  <a href="#automation" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-gears"></i> Automation <b class="caret"></b></a>
-                  <ul class="dropdown-menu">
-                    <li><a href="/intelligence/"><i class="fa fa-shopping-cart"></i> Flavors</a></li>
-                  </ul>
-              </li>
-
-                  <li class="dropdown">
-                      <a href="#intelligence" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-dashboard"></i> Intelligence <b class="caret"></b></a>
-                  <ul class="dropdown-menu">
-                    <li><a href="/intelligence/search"><i class="fa fa-search"></i> Log Search</a></li>
-                    <li><a href="/intelligence/test-flight"><i class="fa fa-fighter-jet"></i> TestFlight</a></li>
-                  </ul>
-              </li>
-                </ul>
-              </div><!--/.nav-collapse -->
             </div>
-          </div>
+            <div class="collapse navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="/"><i class="fa fa-cloud"></i> Home</a></li>
 
+                    <li class="dropdown">
+                        <a href="#intelligence" class="dropdown-toggle"
+                           data-toggle="dropdown"><i
+                                class="fa fa-dashboard"></i> Intelligence <b
+                                class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/intelligence/search"><i
+                                    class="fa fa-search"></i> Log Search</a>
+                            </li>
+                            {% switch gse %}
+                                <li><a href="/intelligence/test-flight"><i
+                                        class="fa fa-fighter-jet"></i>
+                                    TestFlight</a></li>
+                            {% endswitch %}
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#compliance" class="dropdown-toggle"
+                           data-toggle="dropdown"><i class="fa fa-camera"></i>
+                            Compliance <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            {% switch gse %}
+                                <li><a href="/leases/"><i
+                                        class="fa fa-calendar"></i> Leases</a>
+                                </li>
+                            {% endswitch %}
+                        </ul>
+                    </li>
 
-          <!-- BEGIN PAGE CONTENT -->
-          <div id="body-container" class="container">
-          <div class="row alert alert-danger alert-dismissable" hidden="true"></div>
-          <div class="alert alert-warning alert-dismissable" hidden="true"></div>
-          <div class="alert alert-info alert-dismissable" hidden="true"></div>
-          <div class="alert alert-success alert-dismissable" hidden="true"></div>
-              {% block content %}
-              {% endblock %}
+                    <li class="dropdown">
+                        <a href="#automation" class="dropdown-toggle"
+                           data-toggle="dropdown"><i class="fa fa-gears"></i>
+                            Automation <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            {% switch gse %}
+                                <li><a href="/intelligence/"><i
+                                        class="fa fa-shopping-cart"></i>
+                                    Flavors</a></li>
+                            {% endswitch %}
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <!--/.nav-collapse -->
         </div>
     </div>
 
-        <div id="footer">
-          <div id="footer-container" class="container">
-            <p class="text-muted credit">Copyright 2013, <a href="http://solinea.com">Solinea, Inc.</a></p>
-          </div>
-        </div>
 
-    <!-- Core Scripts - Include with every page -->
-    <script src="{% static 'js/jquery-1.10.2.js' %}"></script>
-    <script src="{% static 'js/bootstrap.min.js' %}"></script>
-    <script src="{% static 'js/plugins/metisMenu/jquery.metisMenu.js' %}"></script>
+    <!-- BEGIN PAGE CONTENT -->
+    <div id="body-container" class="container">
+        <div class="row alert alert-danger alert-dismissable"
+             hidden="true"></div>
+        <div class="alert alert-warning alert-dismissable" hidden="true"></div>
+        <div class="alert alert-info alert-dismissable" hidden="true"></div>
+        <div class="alert alert-success alert-dismissable" hidden="true"></div>
+        {% block content %}
+        {% endblock %}
+    </div>
+</div>
 
-    <!-- Page-Level Plugin Scripts - Dashboard -->
-    <script src="{% static 'js/plugins/morris/raphael-2.1.0.min.js' %}"></script>
-    <script src="{% static 'js/plugins/morris/morris.js' %}"></script>
+<div id="footer">
+    <div id="footer-container" class="container">
+        <p class="text-muted credit">Copyright 2013, <a
+                href="http://solinea.com">Solinea, Inc.</a></p>
+    </div>
+</div>
 
-    <!-- SB Admin Scripts - Include with every page -->
-    <script src="{% static 'js/sb-admin.js' %}"></script>
+<!-- Core Scripts - Include with every page -->
+<script src="{% static 'js/jquery-1.10.2.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+<script src="{% static 'js/plugins/metisMenu/jquery.metisMenu.js' %}"></script>
 
-    <script src="{% static 'js/base.js' %}"></script>
-    {% block localjs %}
-    {% endblock %}
-  </body>
+<!-- Page-Level Plugin Scripts - Dashboard -->
+<script src="{% static 'js/plugins/morris/raphael-2.1.0.min.js' %}"></script>
+<script src="{% static 'js/plugins/morris/morris.js' %}"></script>
+
+<!-- SB Admin Scripts - Include with every page -->
+<script src="{% static 'js/sb-admin.js' %}"></script>
+
+<script src="{% static 'js/base.js' %}"></script>
+{% block localjs %}
+{% endblock %}
+</body>
 </html>
