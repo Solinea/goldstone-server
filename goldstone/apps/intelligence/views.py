@@ -114,7 +114,7 @@ def log_search_data(request):
         datetime.fromtimestamp(end_ts, tz=pytz.utc),
         int(request.GET.get('iDisplayStart')),
         int(request.GET.get('iDisplayLength')),
-        global_filter_text=request.GET.get('sSearch', None),
+        search_text=request.GET.get('sSearch', None),
         sort=["".join([sort_col, ":", sort_dir])]
     )
 
