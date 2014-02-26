@@ -146,7 +146,7 @@ class LogDataModel(TestCase):
                                                   facet_field)
             self.assertEqual(result['hits'], control['hits'])
 
-        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
+        end = datetime(2014, 02, 24, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
 
         filter_field = 'component'
@@ -195,7 +195,7 @@ class LogDataModel(TestCase):
                                                 facet_field)
             self.assertEqual(result, control)
 
-        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
+        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         filter_field = 'component'
         filter_list = LogData().get_components(self.conn)
@@ -208,7 +208,7 @@ class LogDataModel(TestCase):
         test_scenario()
 
     def test_loglevel_by_time_agg(self):
-        end = datetime(2014, 02, 13, 23, 59, 59, tzinfo=pytz.utc)
+        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         interval = 'hour'
         test_q = {
@@ -299,7 +299,7 @@ class LogDataModel(TestCase):
                                                            end, interval)
             self.assertEqual(result, control['aggregations'])
 
-        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
+        end = datetime(2014, 02, 24, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         interval = '1m'
         test_scenario()
@@ -312,39 +312,64 @@ class LogDataModel(TestCase):
 
     def test_get_err_and_warn_range(self):
 
-        def test_scenario(sort='', global_filter_text=None):
-            test_q = {'query': {'filtered': {'query': {'range': {
-                '@timestamp': {'gte': start.isoformat(),
-                               'lte': end.isoformat()}}}}}}
-            loglevel_filt = {'or': [{'term': {'loglevel': 'error'}},
-                                    {'term': {'loglevel': 'fatal'}},
-                                    {'term': {'loglevel': 'warning'}}]}
-            global_filt = {'term': {'_all': global_filter_text.lower()}} \
-                if global_filter_text and global_filter_text != '' else None
-            f1 = loglevel_filt if not global_filt \
-                else {'and': [loglevel_filt, global_filt]}
+        def test_scenario(sort='', search_text=None):
+            my_search_text = None
+            if search_text:
+                my_search_text = "*" + search_text + "*"
 
-            test_q['query']['filtered']['filter'] = f1
+            test_q = {
+                'query': {
+                    'filtered': {
+                        'filter': {
+                            'or': [
+                                {'term': {'loglevel': 'error'}},
+                                {'term': {'loglevel': 'fatal'}},
+                                {'term': {'loglevel': 'warning'}}
+                            ]
+                        },
+                        'query': {
+                            'bool': {
+                                'must': [
+                                    {
+                                        'range': {
+                                            '@timestamp': {
+                                                'gte':  start.isoformat(),
+                                                'lte':  end.isoformat()
+                                            }
+                                        }
+                                    },
+
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+            if my_search_text:
+                wildcard = {'wildcard': {'_message.raw': my_search_text}}
+                test_q['query']['filtered']['query']['bool']['must'].\
+                    append(wildcard)
+
             control = self.conn.search(index="_all", body=test_q, sort=sort)
             result = LogData().get_err_and_warn_range(self.conn, start, end,
                                                       0, 10, sort,
-                                                      global_filter_text)
+                                                      search_text)
             self.assertEqual(result['hits'], control['hits'])
 
-        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
+        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
 
         test_scenario()
         test_scenario(sort={'loglevel': {'order': 'asc'}})
         test_scenario(sort={'loglevel': {'order': 'desc'}})
-        test_scenario(global_filter_text="keystone.common.wsgi")
+        test_scenario(search_text="keystone.common.wsgi")
         test_scenario(sort={'loglevel': {'order': 'asc'}},
-                      global_filter_text="keystone.common.wsgi")
+                      search_text="keystone.common.wsgi")
 
     def test_get_new_and_missing_nodes(self):
-        short_lookback = datetime(2014, 02, 14, 0, 0, 0, tzinfo=pytz.utc)
-        long_lookback = datetime(2014, 02, 13, 0, 0, 0, tzinfo=pytz.utc)
-        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
+        short_lookback = datetime(2014, 2, 24, 0, 0, 0, tzinfo=pytz.utc)
+        long_lookback = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
 
         test_q1 = {'query': {'range': {
             '@timestamp': {'gte': long_lookback.isoformat(),
@@ -377,8 +402,8 @@ class LogDataModel(TestCase):
         self.assertEqual(result, control)
 
     def test_claims_resource_queries(self):
-        start = datetime(2014, 2, 17, 0, 0, 0, tzinfo=pytz.utc)
-        end = datetime(2014, 2, 18, 0, 0, 0, tzinfo=pytz.utc)
+        start = datetime(2014, 2, 23, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime(2014, 2, 24, 0, 0, 0, tzinfo=pytz.utc)
         interval = 'hour'
 
         type_field = {
@@ -488,8 +513,8 @@ class LogDataModel(TestCase):
         the dev ES database.
         '''
 
-        start = datetime(2014, 2, 7, 0, 0, 0, 0, pytz.utc)
-        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
+        start = datetime(2014, 2, 20, 0, 0, 0, 0, pytz.utc)
+        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
         interval = 'hour'
 
         test_q = {
@@ -573,8 +598,8 @@ class IntelViewTest(TestCase):
         self.assertTemplateUsed(response, 'search.html')
 
     def test_log_cockpit_summary(self):
-        end = datetime(2014, 02, 14, 23, 59, 59, tzinfo=pytz.utc)
-        start = end - timedelta(weeks=4)
+        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
+        start = end - timedelta(weeks=2)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
         response = self.client.get(
@@ -608,8 +633,8 @@ class IntelViewTest(TestCase):
                                           json.loads(response.content))
 
     def test_get_cpu_stats_view(self):
-        end = datetime(2014, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
+        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
@@ -624,8 +649,8 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_mem_stats_view(self):
-        end = datetime(2014, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
+        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
@@ -640,8 +665,8 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_phys_cpu_stats_view(self):
-        end = datetime(2014, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
+        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
@@ -656,8 +681,8 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_virt_cpu_stats_view(self):
-        end = datetime(2014, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
+        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
@@ -672,8 +697,8 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_phys_mem_stats_view(self):
-        end = datetime(2014, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
+        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
@@ -688,8 +713,8 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_virt_mem_stats_view(self):
-        end = datetime(2014, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
+        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
@@ -704,8 +729,8 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_phys_disk_stats_view(self):
-        end = datetime(2014, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
+        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
@@ -720,8 +745,8 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_virt_disk_stats_view(self):
-        end = datetime(2014, 12, 31, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
+        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
