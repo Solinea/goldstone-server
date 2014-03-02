@@ -50,7 +50,7 @@ LOGGING = {
         },
         'goldstone': {
             # set this to DEBUG if you need more detail
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['console']
         },
     },
