@@ -30,14 +30,18 @@ SYSLOG5424PRINUM (?:\<%{NONNEGINT:syslog5424_pri}\>)
 OPENSTACK_SYSLOGLINE %{SYSLOG5424PRINUM}%{CISCOTIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} %{OPENSTACK_MESSAGE:os_message}
 GENERIC_SYSLOGLINE %{SYSLOG5424PRINUM}%{CISCOTIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} %{GREEDYDATA:msg}
 
-CLAIM_INSTANCE (?:\[instance: %{UUID:instance_id}\])
+NOVA_INSTANCE (?:\[instance: %{UUID:instance_id}\])
 CLAIM_RSRC_PHYS (?:Total %{WORD:resource}: %{NUMBER:total:float} %{WORD}, used: %{NUMBER:used:float} %{WORD})
 CLAIM_RSRC_VIRT (?:%{WORD:resource} limit: %{NUMBER:limit:float} %{WORD}, free: %{NUMBER:free:float} %{WORD})
 CLAIM_REQ (?:Attempting claim: memory %{NUMBER:mem:float} MB, disk %{NUMBER:disk:float} GB, VCPUs %{NUMBER:cpu:float})
-NOVA_CLAIMS_REQUEST %{CLAIM_INSTANCE} %{CLAIM_REQ}
-NOVA_CLAIMS_SUMMARY_PHYS %{CLAIM_INSTANCE} %{CLAIM_RSRC_PHYS}
-NOVA_CLAIMS_SUMMARY_VIRT %{CLAIM_INSTANCE} %{CLAIM_RSRC_VIRT}
+NOVA_INSTANCE_REQUEST %{NOVA_INSTANCE} %{CLAIM_REQ}
+NOVA_CLAIMS_SUMMARY_PHYS %{NOVA_INSTANCE} %{CLAIM_RSRC_PHYS}
+NOVA_CLAIMS_SUMMARY_VIRT %{NOVA_INSTANCE} %{CLAIM_RSRC_VIRT}
 
+NOVA_SPAWN_START %{NOVA_INSTANCE} (?:Creating image)
+NOVA_SPAWN_SUCCESS %{NOVA_INSTANCE} (?:Instance spawned successfully.)
+NOVA_SPAWN_ABORT %{NOVA_INSTANCE} (?:aborted: Instance was deleted during spawn.)
+NOVA_SPAWN_FAIL %{NOVA_INSTANCE} (?:Setting instance to ERROR state.)
 #
 # setting the field names to match the openstack log until I can figure out a better way of doing
 # the search table
