@@ -60,7 +60,7 @@ INSTALLED_APPS = (
     'floppyforms',
     'crispy_forms',
     'djcelery',
-    'goldstone.apps.lease',
+    #'goldstone.apps.lease',
     'goldstone.apps.intelligence',
     'goldstone.apps.cockpit',
 )
@@ -79,7 +79,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.request',
     'django.contrib.auth.context_processors.auth',
 )
-
 
 ROOT_URLCONF = 'goldstone.urls'
 
@@ -127,19 +126,23 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_TASK_SERIALIZER = 'json'
 
-from datetime import timedelta
+# GOLD-247 commented out lease scheduled tasks.  Should revisit
+# the settings when fixing GOLD-257.  Unfortunately, looks like you
+# can't even import waffle here, else we get an ImproperlyConfigured exception
 
-CELERYBEAT_SCHEDULE = {
-    'find_expirations': {
-        'task': 'goldstone.apps.lease.tasks.find_expirations',
-        'schedule': timedelta(seconds=30),
-        'args': ()
-    },
-    'find_notifications': {
-        'task': 'goldstone.apps.lease.tasks.find_notifications',
-        'schedule': timedelta(seconds=30),
-        'args': ()
-    },
-}
+#from datetime import timedelta
+#
+#CELERYBEAT_SCHEDULE = {
+#    'find_expirations': {
+#        'task': 'goldstone.apps.lease.tasks.find_expirations',
+#        'schedule': timedelta(seconds=30),
+#        'args': ()
+#    },
+#    'find_notifications': {
+#        'task': 'goldstone.apps.lease.tasks.find_notifications',
+#        'schedule': timedelta(seconds=30),
+#        'args': ()
+#    },
+#}
 
 MAILHOST = 'localhost'
