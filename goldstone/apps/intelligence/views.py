@@ -310,46 +310,19 @@ def get_mem_stats(request):
 
 def get_disk_stats(request):
     (start_dt, end_dt, interval) = _unload_start_end_interval(request)
-    cf = {'max': 'max_free', 'avg': 'avg_free'}
-    vdisk_response = _get_claims_metric_stats(start_dt, end_dt, interval,
-                                              'gsl_virt_disk_stats', cf)
+
     cf = {'max': 'max_used', 'avg': 'avg_used'}
     pdisk_response = _get_claims_metric_stats(start_dt, end_dt, interval,
                                               'gsl_phys_disk_stats', cf)
     logger.info("disk_response = " + json.dumps(pdisk_response))
-    vdisk_times = [e['time'] for e in vdisk_response]
-    pdisk_times = [e['time'] for e in pdisk_response]
 
-    all_times = set(pdisk_times + vdisk_times)
     response = []
-    for t in all_times:
-        to_append = {'time': t}
-        if t in vdisk_times:
-            rec = (item for item in vdisk_response if item["time"] == t).next()
-            to_append['virt_disk_max_total'] = rec['max_total']
-            to_append['virt_disk_avg_total'] = rec['avg_total']
-            to_append['virt_disk_max_used'] = \
-                rec['max_total'] - rec['max_free']
-            to_append['virt_disk_avg_used'] = \
-                rec['avg_total'] - rec['avg_free']
-        else:
-            to_append['virt_disk_max_total'] = 0
-            to_append['virt_disk_avg_total'] = 0
-            to_append['virt_disk_max_used'] = 0
-            to_append['virt_disk_avg_used'] = 0
-
-        if t in pdisk_times:
-            rec = (item for item in pdisk_response if item["time"] == t).next()
-            to_append['phys_disk_max_total'] = rec['max_total']
-            to_append['phys_disk_avg_total'] = rec['avg_total']
-            to_append['phys_disk_max_used'] = rec['max_used']
-            to_append['phys_disk_avg_used'] = rec['avg_used']
-        else:
-            to_append['phys_disk_max_total'] = 0
-            to_append['phys_disk_avg_total'] = 0
-            to_append['phys_disk_max_used'] = 0
-            to_append['phys_disk_avg_used'] = 0
-
+    for rec in pdisk_response:
+        to_append = {'time': rec['time'],
+                     'phys_disk_max_total': rec['max_total'],
+                     'phys_disk_avg_total': rec['avg_total'],
+                     'phys_disk_max_used': rec['max_used'],
+                     'phys_disk_avg_used': rec['avg_used']}
         response.append(to_append)
 
     sorted_response = sorted(response, key=lambda k: k['time'])
@@ -386,14 +359,6 @@ def get_phys_mem_stats(request):
     cf = {'max': 'max_used', 'avg': 'avg_used'}
     response = _get_claims_metric_stats(start_dt, end_dt, interval,
                                         'gsl_phys_mem_stats', cf)
-    return HttpResponse(json.dumps(response), content_type="application/json")
-
-
-def get_virt_disk_stats(request):
-    (start_dt, end_dt, interval) = _unload_start_end_interval(request)
-    cf = {'max': 'max_free', 'avg': 'avg_free'}
-    response = _get_claims_metric_stats(start_dt, end_dt, interval,
-                                        'gsl_virt_disk_stats', cf)
     return HttpResponse(json.dumps(response), content_type="application/json")
 
 

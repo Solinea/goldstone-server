@@ -254,27 +254,6 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="panel panel-primary intel_panel">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> Disk
-                        Stats (With Oversubscription)</h3>
-                </div>
-                <div id="virt-disk-chart" class="panel-body"
-                     style="height:400px">
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="virt-disk-loading-indicator"
-                         class="ajax-loader"/>
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
-                    <a class="reset"
-                       href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
-                       style="display: none;">reset</a>
-
-                    <div class="clearfix"></div>
-                </div>
-            </div>
-        </div>
     </div>
 
     {% switch gse %}
