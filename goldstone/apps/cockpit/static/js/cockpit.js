@@ -9,7 +9,6 @@ function refreshCharts(interval, start, end) {
     physMemChart("#phys-mem-chart", interval, start, end)
     virtMemChart("#virt-mem-chart", interval, start, end)
     physDiskChart("#phys-disk-chart", interval, start, end)
-    virtDiskChart("#virt-disk-chart", interval, start, end)
 }
 
 $(document).ready(function () {
@@ -21,7 +20,6 @@ $(document).ready(function () {
     physMemChart("#phys-mem-chart")
     virtMemChart("#virt-mem-chart")
     physDiskChart("#phys-disk-chart")
-    virtDiskChart("#virt-disk-chart")
 });
 
 $("#settingsUpdateButton").click(function () {
