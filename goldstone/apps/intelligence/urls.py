@@ -33,8 +33,6 @@ urlpatterns = patterns(
         name='compute_virt_mem_stats'),
     url(r'^compute/phys_disk_stats[/]?$', get_phys_disk_stats,
         name='compute_phys_disk_stats'),
-    url(r'^compute/virt_disk_stats[/]?$', get_virt_disk_stats,
-        name='compute_virt_disk_stats'),
     url(r'^host_presence_stats[/]?$', host_presence_stats,
         name='host_presence_stats'),
     # for GSE

@@ -586,18 +586,6 @@ function physDiskChart(location, start, end) {
 
 }
 
-function virtDiskChart(location, start, end) {
-    var chartConstants = {
-            uriBase: "/intelligence/compute/disk_stats",
-            totalField: "virt_disk_avg_total",
-            usedField: "virt_disk_avg_used",
-            resourceLabel: "Disk",
-            loadingIndicator: "#virt-disk-loading-indicator"
-        }
-
-    _renderResourceChart(location, start, end, chartConstants)
-}
-
 function drawSearchTable(location, start, end) {
     $("#log-table-loading-indicator").show();
 
