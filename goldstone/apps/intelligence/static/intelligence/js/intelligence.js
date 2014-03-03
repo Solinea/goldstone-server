@@ -1,3 +1,8 @@
+Date.prototype.addSeconds = function (m) {
+    this.setTime(this.getTime() + (m * 1000));
+    return this;
+}
+
 Date.prototype.addMinutes = function (m) {
     this.setTime(this.getTime() + (m * 60 * 1000));
     return this;
@@ -29,6 +34,7 @@ $('#settingsEndTime').datetimepicker({
 })
 
 function _getSearchFormDates() {
+    "use strict";
     //grab the values from the form elements
     var end = (function () {
             var e = $("input#settingsEndTime").val()
@@ -63,30 +69,35 @@ function _getSearchFormDates() {
     return [start, end]
 }
 
-var _timeIntervalMapping = {
-/* validate the time interval.  Should be {posint}{s,m,h,d,w} */
+/**
+ * Returns an appropriately sized interval to retrieve a max number
+ * of points/bars on the chart
+ * @param {Date} start Instance of Date representing start of interval
+ * @param {Date} end Instance of Date representing end of interval
+ * @param {Number} maxBuckets maximum number of buckets for the time range
+ * @return {String} A string consisting of a number and a time abbreviation
+ * (ex: 1h or 12.5s)
+ */
+function _autoSizeTimeInterval(start, end, maxPoints) {
+    "use strict";
+    console.log("startDate = " + start)
+    console.log("endDate = " + end)
+    console.log("maxPoints = " + maxPoints)
+    var diffSeconds = (end.getTime() - start.getTime()) / 1000,
+        intervalSecs = diffSeconds / maxPoints,
+        result = String(intervalSecs) + "s"
 
-        '1s': d3.time.seconds,
-        '1m': d3.time.minutes,
-        '1h': d3.time.hours,
-        '1d': d3.time.days,
-        '1w': d3.time.weeks
-};
-
-function _timeIntervalValid(intervalStr) {
-    return (intervalStr in _timeIntervalMapping);
+    console.log("interval = " + result)
+    return result
 }
 
-function _timeIntervalFromStr(intervalStr) {
-
-    if (_timeIntervalValid(intervalStr)) {
-        return _timeIntervalMapping[intervalStr];
-    } else {
-        return d3.time.hours;
-    }
-}
-
+/**
+ * Returns a Date object if given a Date or a numeric string
+ * @param {[Date, String]} the date representation
+ * @return {Date} the date representation of the string
+ */
 function _paramToDate(param) {
+    "use strict";
     if (param instanceof Date) {
         return param
     } else {
@@ -94,35 +105,42 @@ function _paramToDate(param) {
     }
 }
 
-function _processTimeBasedChartParams(interval, start, end) {
-    interval = typeof interval !== 'undefined' ?
-        function () {
-            if (_timeIntervalValid(interval)) {
-                return interval;
-            } else {
-                return '1h'
-            }
-        }() : '1h';
+/**
+ * Returns appropriately formatted start, end, and interval specifications when
+ * provided the parameter strings from the request
+ * @param {String} start Instance of String representing start of interval
+ * @param {String} end Instance of String representing end of interval
+ * @return {Object} An object of {start:Date, end:Date, interval:String}
+ */
+function _processTimeBasedChartParams(end, start, maxPoints) {
+    "use strict";
 
-    end = typeof end !== 'undefined' ?
+    var endDate = typeof end !== 'undefined' ?
         _paramToDate(end) :
-        new Date();
-
-    start = typeof start !== 'undefined' ?
+        new Date(),
+    startDate = typeof start !== 'undefined' ?
         _paramToDate(start) :
         (function () {
-            var s = new Date(end)
+            var s = new Date(endDate)
             s.addWeeks(-1)
             return s
         })()
 
-    return {'interval': interval,
-            'start': start,
-            'end': end
+    return {'interval': _autoSizeTimeInterval(startDate, endDate, maxPoints),
+            'start': startDate,
+            'end': endDate
     };
 }
 
+/**
+ * Returns a chart stub based on a dc.barChart
+ * @param {String} location String representation of a jquery selector
+ * @param {Object} margins Object containing top, bottom, left, right margins
+ * @param {Function} renderlet Function to be passed as a renderlet
+ * @return {Object} A dc.js bar chart
+ */
 function _barChartBase(location, margins, renderlet) {
+    "use strict";
     var panelWidth = $(location).width(),
         chart = dc.barChart(location)
 
@@ -145,7 +163,15 @@ function _barChartBase(location, margins, renderlet) {
     return chart
 }
 
+/**
+ * Returns a chart stub based on a dc.lineChart
+ * @param {String} location String representation of a jquery selector
+ * @param {Object} margins Object containing top, bottom, left, right margins
+ * @param {Function} renderlet Function to be passed as a renderlet
+ * @return {Object} A dc.js line chart
+ */
 function _lineChartBase(location, margins, renderlet) {
+    "use strict";
     var panelWidth = $(location).width(),
         chart = dc.lineChart(location)
 
@@ -157,22 +183,23 @@ function _lineChartBase(location, margins, renderlet) {
         .width(panelWidth)
         .margins(margins)
         .transitionDuration(1000)
-        .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
 
+    console.log("type of renderlet = " + typeof renderlet)
     if (typeof renderlet !== 'undefined') {
+        console.log("adding renderlet to chart at location = " + location)
         chart.renderlet(renderlet)
     }
 
     return chart
 }
 
-
-// TODO be sure to remove this.  it's only for testing...
-var badEventHistChart;
-
+/**
+ * Triggers a refresh of the data in the log search table
+ * @param {Date} start Instance of Date representing start of interval
+ * @param {Date} end Instance of Date representing end of interval
+ */
 function refreshSearchTable(start, end) {
-    console.log("zoomed range chart")
-    console.log("filter[0] time = " + start.getTime())
+    "use strict";
     var oTable,
         uri = '/intelligence/log/search/data'.concat(
         "?start_time=", String(Math.round(start.getTime() / 1000)),
@@ -184,12 +211,41 @@ function refreshSearchTable(start, end) {
     }
 }
 
-function badEventMultiLine(location, interval, start, end) {
-    var rangeWidth = $(location).width()
-    var chart = _lineChartBase(location),
-        rangeChart = dc.barChart("#bad-event-range"),
+
+/**
+ * Draws a multiline chart in the provided location with x range of start/end.
+ * Includes a range chart below it.
+ * @param {String} location String representation of a jquery selector
+ * @param {Date} start Instance of Date representing start of interval
+ * @param {Date} end Instance of Date representing end of interval
+ */
+function badEventMultiLine(location, start, end) {
+    var rangeWidth = $(location).width(),
+        maxPoints = rangeWidth / 10,
+        clickRenderlet = function (_chart) {
+            _chart.selectAll("circle.dot")
+                .on("click", function (d) {
+                    // load the log search page with chart and table set
+                    // to this range.  Params is being accessed through closure
+                    var interval = Number(params.interval.slice(0, -1))
+                    console.log("in renderlet, interval = " + interval)
+                    var start = (new Date(d.data.key)).addSeconds(-1 * interval),
+                        end = (new Date(d.data.key)).addSeconds(interval),
+                        uri = '/intelligence/search?start_time='
+                            .concat(String(Math.round(start.getTime() / 1000)),
+                                "&end_time=", String(Math.round(end.getTime() / 1000)))
+
+                    window.location.assign(uri)
+
+                })
+        },
+        chart = _lineChartBase(location,
+            { top: 50, bottom: 60, right: 30, left: 40 },
+            clickRenderlet
+        ),
+        rangeChart = _lineChartBase("#bad-event-range"),
         loadingIndicator = "#log-multiline-loading-indicator",
-        params = _processTimeBasedChartParams(interval, start, end),
+        params = _processTimeBasedChartParams(end, start, maxPoints),
         uri = "/intelligence/log/cockpit/data?start_time="
             .concat(String(Math.round(params.start.getTime() / 1000)),
                 "&end_time=", String(Math.round(params.end.getTime() / 1000)),
@@ -247,10 +303,7 @@ function badEventMultiLine(location, interval, start, end) {
             })
             .mouseZoomable(true)
             .brushOn(true)
-            .centerBar(true)
-            .gap(1)
             .x(d3.time.scale().domain([minDate, maxDate]))
-            .xUnits(_timeIntervalFromStr(params.interval))
             .yAxis().ticks(1)
 
 
@@ -274,24 +327,16 @@ function badEventMultiLine(location, interval, start, end) {
             //    return d.value.fatalEvents;
             //})
             .x(d3.time.scale().domain([minDate, maxDate]))
-            .xUnits(_timeIntervalFromStr(params.interval))
             .title(function (d) {
                 return d.key
                     //+ "\n\n" + d.value.fatalEvents + " FATALS"
                     + "\n\n" + d.value.errorEvents + " ERRORS"
                     + "\n\n" + d.value.warnEvents + " WARNINGS";
             })
+            .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
             .on("filtered", function (_chart, filter) {
                 refreshSearchTable(filter[0], filter[1])
             });
-
-        chart.renderlet(function (chart) {
-            // smooth the rendering through event throttling
-            dc.events.trigger(function () {
-                // focus some other chart to the range selected by user on this chart
-                badEventHistChart.focus(chart.filter())
-            })
-        })
 
         chart.render()
         $(loadingIndicator).hide()
@@ -299,58 +344,20 @@ function badEventMultiLine(location, interval, start, end) {
 
 }
 
+// TODO migrate renderlet to the multiline impl and remove this function
 function badEventHistogramPanel(location, interval, start, end) {
-
+    "use strict";
+    console.log("[badEventHistogramPanel] location = " + location)
     var loadingIndicator = "#log-loading-indicator",
-        params = _processTimeBasedChartParams(interval, start, end),
+        params = _processTimeBasedChartParams(end, start, interval),
         margins = {top: 70, right: 30, bottom: 60, left: 40},
         uri = "/intelligence/log/cockpit/data?start_time="
             .concat(String(Math.round(params.start.getTime() / 1000)),
                 "&end_time=", String(Math.round(params.end.getTime() / 1000)),
                 "&interval=", params.interval),
-        clickRenderlet = function (_chart) {
-            _chart.selectAll("rect.bar")
-                .on("click", function (d) {
-                    // load the log search page with chart and table set
-                    // to this range.
-                    var start = new Date(d.data.key),
-                        end = new Date(start),
-                        newInterval = '1h'
-                    switch (params.interval) {
-                        case '1m':
-                            end.addMinutes(1)
-                            newInterval = '1s'
-                            break
-                        case '1h':
-                            end.addHours(1)
-                            newInterval = '1m'
-                            break
-                        case '1d':
-                            end.addDays(1)
-                            newInterval = '1h'
-                            break
-                        case '1w':
-                            end.addWeeks(1)
-                            newInterval = '1h'
-                            break
-                        default:
-                            newInterval = 'unsupported'
-                    }
 
-                    if (newInterval !== 'unsupported') {
-                        var uri = '/intelligence/search?start_time='
-                            .concat(String(Math.round(start.getTime() / 1000)),
-                                "&end_time=", String(Math.round(end.getTime() / 1000)),
-                                "&interval=", newInterval)
-                        window.location.assign(uri)
-                    } else {
-                        raiseWarning("Unsupported interval")
-                    }
-                })
-        }
 
-    // TODO be sure to turn this back into a local var after done testing.
-    badEventHistChart = _barChartBase(location, margins, clickRenderlet);
+    chart = _barChartBase(location, margins, clickRenderlet);
 
     $(loadingIndicator).show()
     d3.json(uri, function (error, events) {
@@ -389,7 +396,7 @@ function badEventHistogramPanel(location, interval, start, end) {
                 }
             )
 
-        badEventHistChart
+        chart
             .dimension(timeDim)
             .group(eventsByTime, "Warning Events")
             .valueAccessor(function (d) {
@@ -402,7 +409,6 @@ function badEventHistogramPanel(location, interval, start, end) {
                 return d.value.fatalEvents;
             })
             .x(d3.time.scale().domain([minDate, maxDate]))
-            .xUnits(_timeIntervalFromStr(params.interval))
             .title(function (d) {
                 return d.key
                     + "\n\n" + d.value.fatalEvents + " FATALS"
@@ -481,7 +487,7 @@ function _customizeChart(_chart, xf, cfSetup, chartConstants,
                 return (d.value[chartConstants.totalField] - d.value[chartConstants.usedField])
             })
             .x(d3.time.scale().domain([minDate, maxDate]))
-            .xUnits(_timeIntervalFromStr(xUnitsInterval))
+            //.xUnits(_timeIntervalFromStr(xUnitsInterval))
             .title(function (d) {
                 return d.key +
                     "\n\n" + (d.value[chartConstants.totalField] - d.value[chartConstants.usedField]) + " Free" +
@@ -491,13 +497,17 @@ function _customizeChart(_chart, xf, cfSetup, chartConstants,
     return _chart
 }
 
-function _renderResourceChart(location, interval, start, end,
+function _renderResourceChart(location, start, end,
                               chartConstants) {
-    var params = _processTimeBasedChartParams(interval, start, end),
-        chart = _barChartBase(location),
+    "use strict";
+    console.log("[_renderResourceChart] location = " + location)
+    var maxPoints = ($(location).width()) / 10,
+        params = _processTimeBasedChartParams(end, start, maxPoints),
+        chart = _lineChartBase(location),
         cfSetup = _chartCrossFilterSetup(params, chartConstants)
 
     $(chartConstants.loadingIndicator).show()
+
     d3.json(cfSetup.uri, function (error, events) {
         events.forEach(cfSetup.jsonFunction)
         var xf = crossfilter(events)
@@ -509,7 +519,7 @@ function _renderResourceChart(location, interval, start, end,
     $(chartConstants.loadingIndicator).hide()
 }
 
-function physCpuChart(location, interval, start, end) {
+function physCpuChart(location, start, end) {
 
     var chartConstants = {
             uriBase: "/intelligence/compute/cpu_stats",
@@ -519,10 +529,10 @@ function physCpuChart(location, interval, start, end) {
             loadingIndicator: "#phys-cpu-loading-indicator"
         }
 
-    _renderResourceChart(location, interval, start, end, chartConstants)
+    _renderResourceChart(location, start, end, chartConstants)
 }
 
-function virtCpuChart(location, interval, start, end) {
+function virtCpuChart(location, start, end) {
 
     var chartConstants = {
             uriBase: "/intelligence/compute/cpu_stats",
@@ -532,10 +542,10 @@ function virtCpuChart(location, interval, start, end) {
             loadingIndicator: "#virt-cpu-loading-indicator"
         }
 
-    _renderResourceChart(location, interval, start, end, chartConstants)
+    _renderResourceChart(location, start, end, chartConstants)
 }
 
-function physMemChart(location, interval, start, end) {
+function physMemChart(location, start, end) {
 
     var chartConstants = {
             uriBase: "/intelligence/compute/mem_stats",
@@ -545,11 +555,11 @@ function physMemChart(location, interval, start, end) {
             loadingIndicator: "#phys-mem-loading-indicator"
         }
 
-    _renderResourceChart(location, interval, start, end, chartConstants)
+    _renderResourceChart(location, start, end, chartConstants)
 
 }
 
-function virtMemChart(location, interval, start, end) {
+function virtMemChart(location, start, end) {
     var chartConstants = {
             uriBase: "/intelligence/compute/mem_stats",
             totalField: "virt_mem_avg_total",
@@ -558,11 +568,11 @@ function virtMemChart(location, interval, start, end) {
             loadingIndicator: "#virt-mem-loading-indicator"
         }
 
-    _renderResourceChart(location, interval, start, end, chartConstants)
+    _renderResourceChart(location, start, end, chartConstants)
 }
 
 
-function physDiskChart(location, interval, start, end) {
+function physDiskChart(location, start, end) {
 
     var chartConstants = {
             uriBase: "/intelligence/compute/disk_stats",
@@ -572,11 +582,11 @@ function physDiskChart(location, interval, start, end) {
             loadingIndicator: "#phys-disk-loading-indicator"
         }
 
-    _renderResourceChart(location, interval, start, end, chartConstants)
+    _renderResourceChart(location, start, end, chartConstants)
 
 }
 
-function virtDiskChart(location, interval, start, end) {
+function virtDiskChart(location, start, end) {
     var chartConstants = {
             uriBase: "/intelligence/compute/disk_stats",
             totalField: "virt_disk_avg_total",
@@ -585,38 +595,24 @@ function virtDiskChart(location, interval, start, end) {
             loadingIndicator: "#virt-disk-loading-indicator"
         }
 
-    _renderResourceChart(location, interval, start, end, chartConstants)
+    _renderResourceChart(location, start, end, chartConstants)
 }
 
-function drawSearchTable(location, interval, start, end) {
+function drawSearchTable(location, start, end) {
     $("#log-table-loading-indicator").show();
-    interval = typeof interval !== 'undefined' ?
-        interval :
-        'month';
+
 
     end = typeof end !== 'undefined' ?
         new Date(Number(end) * 1000) :
         new Date();
 
-    if (typeof start === 'undefined') {
-        start = new Date(end);
-
-        if (interval === 'month') {
-            start.addWeeks(-4);
-        } else if (interval === 'day') {
-            start.addDays(-1)
-        } else if (interval === 'hour') {
-            start.addHours(-1);
-        } else if (interval === 'minute') {
-            start.addMinutes(-1);
-        } else {
-            start = new Date(Number(start) * 1000);
-        }
+    if (typeof start !== 'undefined') {
+        start = new Date(Number(start) * 1000)
     } else {
-        start = new Date(Number(start) * 1000);
+        start = new Date(Number(start) * 1000)
+        start.addWeeks(-1)
     }
 
-    //TODO rework this url to use params
     var oTable,
         uri = '/intelligence/log/search/data'.concat(
         "?start_time=", String(Math.round(start.getTime() / 1000)),
@@ -665,7 +661,8 @@ function drawSearchTable(location, interval, start, end) {
 
 function hostPresenceTable(location, lookbackQty, lookbackUnit,
                                   start, end) {
-    var params = _processTimeBasedChartParams('', start, end);
+    "use strict";
+    var params = _processTimeBasedChartParams(end, start);
 
     $("#host-presence-table-loading-indicator").show();
 

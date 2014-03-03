@@ -25,20 +25,13 @@
     <script type="text/javascript">
         // this code needs to stay here because it uses django template markup
         $(document).ready(function () {
-            var start =
-            {{ start_ts }} *
-            1000,
-                    end =
-            {{ end_ts }} *
-            1000
+            var start = {{ start_ts }} * 1000,
+                end = {{ end_ts }} * 1000
 
-            badEventMultiLine('#bad-event-multiline', '{{ interval }}',
-                    start, end)
-            badEventHistogramPanel('#bad-event-chart', '{{ interval }}',
-                    start, end)
-            drawSearchTable('#log-search-table', '{{ interval }}',
-                    '{{ start_ts }}', '{{ end_ts }}')
-            populateSettingsFields('{{ interval }}', start, end)
+            badEventMultiLine('#bad-event-multiline',start, end)
+            drawSearchTable('#log-search-table', '{{ start_ts }}',
+                    '{{ end_ts }}')
+            populateSettingsFields(start, end)
         })
     </script>
 
