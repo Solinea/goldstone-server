@@ -75,7 +75,7 @@ var _timeIntervalMapping = {
 
 function _timeIntervalValid(intervalStr) {
     return (intervalStr in _timeIntervalMapping);
-};
+}
 
 function _timeIntervalFromStr(intervalStr) {
 
@@ -84,7 +84,7 @@ function _timeIntervalFromStr(intervalStr) {
     } else {
         return d3.time.hours;
     }
-};
+}
 
 function _paramToDate(param) {
     if (param instanceof Date) {
@@ -110,11 +110,11 @@ function _processTimeBasedChartParams(interval, start, end) {
 
     start = typeof start !== 'undefined' ?
         _paramToDate(start) :
-        function () {
+        (function () {
             var s = new Date(end)
             s.addWeeks(-1)
             return s
-        }();
+        })()
 
     return {'interval': interval,
             'start': start,
@@ -124,9 +124,10 @@ function _processTimeBasedChartParams(interval, start, end) {
 
 function _barChartBase(location, margins, renderlet) {
     var panelWidth = $(location).width(),
-        margins = typeof margins !== 'undefined' ?
-            margins : { top: 50, bottom: 60, right: 30, left: 40 },
         chart = dc.barChart(location)
+
+    margins = typeof margins !== 'undefined' ?
+            margins : { top: 50, bottom: 60, right: 30, left: 40 },
 
     chart
         .width(panelWidth)
@@ -144,440 +145,591 @@ function _barChartBase(location, margins, renderlet) {
     return chart
 }
 
-function badEventHistogramPanel(location, interval, start, end) {
-    var loadingIndicator = "#log-loading-indicator"
-    var params = _processTimeBasedChartParams(interval, start, end)
-    $(loadingIndicator).show()
-    var margins = {top: 70, right: 30, bottom: 60, left: 40};
+function _lineChartBase(location, margins, renderlet) {
+    var panelWidth = $(location).width(),
+        chart = dc.lineChart(location)
 
-    // times are divided by 1000 to be a more friendly to the backend
-    var uri = "/intelligence/log/cockpit/data?start_time=".
-            concat(String(Math.round(params['start'].getTime() / 1000)),
-                "&end_time=", String(Math.round(params['end'].getTime() / 1000)),
-                "&interval=", params['interval'])
+    margins = typeof margins !== 'undefined' ?
+            margins : { top: 50, bottom: 60, right: 30, left: 40 }
 
-    var clickRenderlet = function (_chart) {
+    chart
+        .renderArea(true)
+        .width(panelWidth)
+        .margins(margins)
+        .transitionDuration(1000)
+        .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
 
-        _chart.selectAll("rect.bar")
-            .on("click", function (d) {
-                // load the log search page with chart and table set
-                // to this range.
-                var start = new Date(d.data.key),
-                    end = new Date(start),
-                    new_interval = '1h'
-
-                switch (params.interval) {
-                    case '1m':
-                        end.addMinutes(1)
-                        new_interval = '1s'
-                        break
-                    case '1h':
-                        end.addHours(1)
-                        new_interval = '1m'
-                        break
-                    case '1d':
-                        end.addDays(1)
-                        new_interval = '1h'
-                        break
-                    case '1w':
-                        end.addWeeks(1)
-                        new_interval = '1h'
-                        break
-                    default:
-                        new_interval = 'unsupported'
-                }
-
-                if (new_interval !== 'unsupported') {
-                    var uri = '/intelligence/search?start_time='.
-                        concat(String(Math.round(start.getTime() / 1000)),
-                            "&end_time=", String(Math.round(end.getTime() / 1000)),
-                            "&interval=", new_interval)
-                    window.location.assign(uri)
-                } else {
-                    raiseWarning("Unsupported interval")
-                }
-            })
-        }
-
-        var chart = _barChartBase(location, margins, clickRenderlet);
-
-        d3.json(uri, function (error, events) {
-            events.data.forEach(function (d) {
-                d.time = new Date(d.time)
-                d.fatal = +d.fatal
-                d.warning = +d.warning
-                d.error = +d.error
-            })
-
-            var xf = crossfilter(events.data),
-                timeDim = xf.dimension(function (d) {
-                    return d.time
-                }),
-                minDate = timeDim.bottom(1)[0].time,
-                maxDate = timeDim.top(1)[0].time,
-                eventsByTime = timeDim.group().reduce(
-                    function (p, v) {
-                        p.errorEvents += v.error;
-                        p.warnEvents += v.warning;
-                        p.fatalEvents += v.fatal;
-                        return p;
-                    },
-                    function (p, v) {
-                        p.errorEvents -= v.error;
-                        p.warnEvents -= v.warning;
-                        p.fatalEvents -= v.fatal;
-                        return p;
-                    },
-                    function () {
-                        return {
-                            errorEvents: 0,
-                            warnEvents: 0,
-                            fatalEvents: 0
-                        }
-                    }
-                )
-
-            chart
-                .dimension(timeDim)
-                .group(eventsByTime, "Warning Events")
-                .valueAccessor(function (d) {
-                    return d.value.warnEvents;
-                })
-                .stack(eventsByTime, "Error Events", function (d) {
-                    return d.value.errorEvents;
-                })
-                .stack(eventsByTime, "Fatal Events", function (d) {
-                    return d.value.fatalEvents;
-                })
-                .x(d3.time.scale().domain([minDate, maxDate]))
-                .xUnits(_timeIntervalFromStr(params['interval']))
-                .title(function (d) {
-                    return d.key
-                        + "\n\n" + d.value.fatalEvents + " FATALS"
-                        + "\n\n" + d.value.errorEvents + " ERRORS"
-                        + "\n\n" + d.value.warnEvents + " WARNINGS";
-                });
-
-            chart.render();
-            $(loadingIndicator).hide();
-        });
+    if (typeof renderlet !== 'undefined') {
+        chart.renderlet(renderlet)
     }
 
-    function _chartCrossFilterSetup(params, chartConstants) {
+    return chart
+}
 
-        // times are divided by 1000 to be a more friendly to the backend
-        var uri = chartConstants.uriBase.
-            concat(
-                "?start_time=",
-                String(Math.round(params['start'].getTime() / 1000)),
-                "&end_time=",
-                String(Math.round(params['end'].getTime() / 1000)),
-                "&interval=",
-                params['interval']
-            ),
-            jsonProcessingFunction = function(d) {
-                d.time = new Date(d.time)
-                d[chartConstants.totalField] = +d[chartConstants.totalField]
-                d[chartConstants.usedField] = +d[chartConstants.usedField]
-            },
-            reduceEnterFunction = function (p, v) {
-                p[chartConstants.totalField] += v[chartConstants.totalField]
-                p[chartConstants.usedField] += v[chartConstants.usedField]
-                return p
-            },
-            reduceExitFunction = function (p, v) {
-                p[chartConstants.totalField] -= v[chartConstants.totalField]
-                p[chartConstants.usedField] -= v[chartConstants.usedField]
-                return p
-            },
-            reduceInitFunction = function () {
-                var obj = {}
-                obj[chartConstants.totalField] = 0
-                obj[chartConstants.usedField] = 0
-                return obj
-            }
 
-        return {
-            uri: uri,
-            jsonFunction: jsonProcessingFunction,
-            enterFunction: reduceEnterFunction,
-            exitFunction: reduceExitFunction,
-            initFunction: reduceInitFunction
-        }
+// TODO be sure to remove this.  it's only for testing...
+var badEventHistChart;
+
+function refreshSearchTable(start, end) {
+    console.log("zoomed range chart")
+    console.log("filter[0] time = " + start.getTime())
+    var oTable,
+        uri = '/intelligence/log/search/data'.concat(
+        "?start_time=", String(Math.round(start.getTime() / 1000)),
+        "&end_time=", String(Math.round(end.getTime() / 1000)))
+
+    if ($.fn.dataTable.isDataTable("#log-search-table")) {
+        oTable = $("#log-search-table").dataTable();
+        oTable.fnReloadAjax(uri);
     }
+}
 
-    function _customizeChart(_chart, xf, cfSetup, chartConstants,
-                             xUnitsInterval) {
+function badEventMultiLine(location, interval, start, end) {
+    var rangeWidth = $(location).width()
+    var chart = _lineChartBase(location),
+        rangeChart = dc.barChart("#bad-event-range"),
+        loadingIndicator = "#log-multiline-loading-indicator",
+        params = _processTimeBasedChartParams(interval, start, end),
+        uri = "/intelligence/log/cockpit/data?start_time="
+            .concat(String(Math.round(params.start.getTime() / 1000)),
+                "&end_time=", String(Math.round(params.end.getTime() / 1000)),
+                "&interval=", params.interval)
 
-        var timeDim = xf.dimension(function (d) {
-                return d.time;
+    d3.json(uri, function (error, events) {
+        events.data.forEach(function (d) {
+            d.time = new Date(d.time)
+            d.fatal = +d.fatal
+            d.warning = +d.warning
+            d.error = +d.error
+            d.total = d.fatal + d.warning + d.error
+        })
+
+
+        var xf = crossfilter(events.data),
+            timeDim = xf.dimension(function (d) {
+                return d.time
             }),
             minDate = timeDim.bottom(1)[0].time,
             maxDate = timeDim.top(1)[0].time,
             eventsByTime = timeDim.group().reduce(
-                cfSetup.enterFunction,
-                cfSetup.exitFunction,
-                cfSetup.initFunction
+                function (p, v) {
+                    p.errorEvents += v.error
+                    p.warnEvents += v.warning
+                    p.fatalEvents += v.fatal
+                    p.totalEvents += v.total
+                    return p;
+                },
+                function (p, v) {
+                    p.errorEvents -= v.error
+                    p.warnEvents -= v.warning
+                    p.fatalEvents -= v.fatal
+                    p.totalEvents -= v.total
+                    return p
+                },
+                function () {
+                    return {
+                        errorEvents: 0,
+                        warnEvents: 0,
+                        fatalEvents: 0,
+                        totalEvents: 0
+                    }
+                }
             )
 
-        _chart
-                .dimension(timeDim)
-                .group(eventsByTime, "Avg. Used " + chartConstants.resourceLabel)
-                .valueAccessor(function (d) {
-                    return d.value[chartConstants.usedField]
-                })
-                .stack(eventsByTime, "Avg. Free "  + chartConstants.resourceLabel, function (d) {
-                    return (d.value[chartConstants.totalField] - d.value[chartConstants.usedField])
-                })
-                .x(d3.time.scale().domain([minDate, maxDate]))
-                .xUnits(_timeIntervalFromStr(xUnitsInterval))
-                .title(function (d) {
-                    return d.key
-                        + "\n\n" + (d.value[chartConstants.totalField] - d.value[chartConstants.usedField]) + " Free"
-                        + "\n\n" + d.value[chartConstants.usedField] + " Used";
-                })
+        rangeChart
+            .width(rangeWidth)
+            .height(100)
+            .margins({ top: 0, bottom: 60, right: 30, left: 40 })
+            .dimension(timeDim)
+            .group(eventsByTime)
+            .valueAccessor(function (d) {
+                return d.value.totalEvents
+            })
+            .mouseZoomable(true)
+            .brushOn(true)
+            .centerBar(true)
+            .gap(1)
+            .x(d3.time.scale().domain([minDate, maxDate]))
+            .xUnits(_timeIntervalFromStr(params.interval))
+            .yAxis().ticks(1)
 
-        return _chart
-    }
 
-    function _renderResourceChart(location, interval, start, end,
-                                  chartConstants) {
-        var params = _processTimeBasedChartParams(interval, start, end),
-            chart = _barChartBase(location),
-            cfSetup = _chartCrossFilterSetup(params, chartConstants)
+        rangeChart.render()
 
-        $(chartConstants.loadingIndicator).show()
-        d3.json(cfSetup.uri, function (error, events) {
-            events.forEach(cfSetup.jsonFunction)
-            var xf = crossfilter(events)
-            chart = _customizeChart(chart, xf, cfSetup, chartConstants,
-                params.interval)
-            chart.render()
+        chart
+            .rangeChart(rangeChart)
+            .elasticY(true)
+            .renderHorizontalGridLines(true)
+            .brushOn(false)
+            .mouseZoomable(true)
+            .dimension(timeDim)
+            .group(eventsByTime, "Warning Events")
+            .valueAccessor(function (d) {
+                return d.value.warnEvents;
+            })
+            .stack(eventsByTime, "Error Events", function (d) {
+                return d.value.errorEvents;
+            })
+            //.stack(eventsByTime, "Fatal Events", function (d) {
+            //    return d.value.fatalEvents;
+            //})
+            .x(d3.time.scale().domain([minDate, maxDate]))
+            .xUnits(_timeIntervalFromStr(params.interval))
+            .title(function (d) {
+                return d.key
+                    //+ "\n\n" + d.value.fatalEvents + " FATALS"
+                    + "\n\n" + d.value.errorEvents + " ERRORS"
+                    + "\n\n" + d.value.warnEvents + " WARNINGS";
+            })
+            .on("filtered", function (_chart, filter) {
+                refreshSearchTable(filter[0], filter[1])
+            });
+
+        chart.renderlet(function (chart) {
+            // smooth the rendering through event throttling
+            dc.events.trigger(function () {
+                // focus some other chart to the range selected by user on this chart
+                badEventHistChart.focus(chart.filter())
+            })
         })
 
-        $(chartConstants.loadingIndicator).hide()
-    }
+        chart.render()
+        $(loadingIndicator).hide()
+    })
 
-    function physCpuChart(location, interval, start, end) {
+}
 
-        var chartConstants = {
-                uriBase: "/intelligence/compute/cpu_stats",
-                totalField : "phys_cpu_avg_total",
-                usedField : "phys_cpu_avg_used",
-                resourceLabel: "CPU Cores",
-                loadingIndicator: "#phys-cpu-loading-indicator"
+function badEventHistogramPanel(location, interval, start, end) {
+
+    var loadingIndicator = "#log-loading-indicator",
+        params = _processTimeBasedChartParams(interval, start, end),
+        margins = {top: 70, right: 30, bottom: 60, left: 40},
+        uri = "/intelligence/log/cockpit/data?start_time="
+            .concat(String(Math.round(params.start.getTime() / 1000)),
+                "&end_time=", String(Math.round(params.end.getTime() / 1000)),
+                "&interval=", params.interval),
+        clickRenderlet = function (_chart) {
+            _chart.selectAll("rect.bar")
+                .on("click", function (d) {
+                    // load the log search page with chart and table set
+                    // to this range.
+                    var start = new Date(d.data.key),
+                        end = new Date(start),
+                        newInterval = '1h'
+                    switch (params.interval) {
+                        case '1m':
+                            end.addMinutes(1)
+                            newInterval = '1s'
+                            break
+                        case '1h':
+                            end.addHours(1)
+                            newInterval = '1m'
+                            break
+                        case '1d':
+                            end.addDays(1)
+                            newInterval = '1h'
+                            break
+                        case '1w':
+                            end.addWeeks(1)
+                            newInterval = '1h'
+                            break
+                        default:
+                            newInterval = 'unsupported'
+                    }
+
+                    if (newInterval !== 'unsupported') {
+                        var uri = '/intelligence/search?start_time='
+                            .concat(String(Math.round(start.getTime() / 1000)),
+                                "&end_time=", String(Math.round(end.getTime() / 1000)),
+                                "&interval=", newInterval)
+                        window.location.assign(uri)
+                    } else {
+                        raiseWarning("Unsupported interval")
+                    }
+                })
         }
 
-        _renderResourceChart(location, interval, start, end, chartConstants)
-    }
+    // TODO be sure to turn this back into a local var after done testing.
+    badEventHistChart = _barChartBase(location, margins, clickRenderlet);
 
-    function virtCpuChart(location, interval, start, end) {
+    $(loadingIndicator).show()
+    d3.json(uri, function (error, events) {
+        events.data.forEach(function (d) {
+            d.time = new Date(d.time)
+            d.fatal = +d.fatal
+            d.warning = +d.warning
+            d.error = +d.error
+        })
 
-        var chartConstants = {
-                uriBase: "/intelligence/compute/cpu_stats",
-                totalField : "virt_cpu_avg_total",
-                usedField : "virt_cpu_avg_used",
-                resourceLabel: "CPU Cores",
-                loadingIndicator: "#virt-cpu-loading-indicator"
+        var xf = crossfilter(events.data),
+            timeDim = xf.dimension(function (d) {
+                return d.time
+            }),
+            minDate = timeDim.bottom(1)[0].time,
+            maxDate = timeDim.top(1)[0].time,
+            eventsByTime = timeDim.group().reduce(
+                function (p, v) {
+                    p.errorEvents += v.error;
+                    p.warnEvents += v.warning;
+                    p.fatalEvents += v.fatal;
+                    return p;
+                },
+                function (p, v) {
+                    p.errorEvents -= v.error;
+                    p.warnEvents -= v.warning;
+                    p.fatalEvents -= v.fatal;
+                    return p;
+                },
+                function () {
+                    return {
+                        errorEvents: 0,
+                        warnEvents: 0,
+                        fatalEvents: 0
+                    }
+                }
+            )
+
+        badEventHistChart
+            .dimension(timeDim)
+            .group(eventsByTime, "Warning Events")
+            .valueAccessor(function (d) {
+                return d.value.warnEvents;
+            })
+            .stack(eventsByTime, "Error Events", function (d) {
+                return d.value.errorEvents;
+            })
+            .stack(eventsByTime, "Fatal Events", function (d) {
+                return d.value.fatalEvents;
+            })
+            .x(d3.time.scale().domain([minDate, maxDate]))
+            .xUnits(_timeIntervalFromStr(params.interval))
+            .title(function (d) {
+                return d.key
+                    + "\n\n" + d.value.fatalEvents + " FATALS"
+                    + "\n\n" + d.value.errorEvents + " ERRORS"
+                    + "\n\n" + d.value.warnEvents + " WARNINGS";
+            });
+
+        badEventHistChart.render();
+        $(loadingIndicator).hide();
+    });
+}
+
+function _chartCrossFilterSetup(params, chartConstants) {
+
+    // times are divided by 1000 to be a more friendly to the backend
+    var uri = chartConstants.uriBase.concat(
+            "?start_time=",
+            String(Math.round(params.start.getTime() / 1000)),
+            "&end_time=",
+            String(Math.round(params.end.getTime() / 1000)),
+            "&interval=",
+            params.interval
+        ),
+        jsonProcessingFunction = function (d) {
+            d.time = new Date(d.time)
+            d[chartConstants.totalField] = +d[chartConstants.totalField]
+            d[chartConstants.usedField] = +d[chartConstants.usedField]
+        },
+        reduceEnterFunction = function (p, v) {
+            p[chartConstants.totalField] += v[chartConstants.totalField]
+            p[chartConstants.usedField] += v[chartConstants.usedField]
+            return p
+        },
+        reduceExitFunction = function (p, v) {
+            p[chartConstants.totalField] -= v[chartConstants.totalField]
+            p[chartConstants.usedField] -= v[chartConstants.usedField]
+            return p
+        },
+        reduceInitFunction = function () {
+            var obj = {}
+            obj[chartConstants.totalField] = 0
+            obj[chartConstants.usedField] = 0
+            return obj
         }
 
-        _renderResourceChart(location, interval, start, end, chartConstants)
+    return {
+        uri: uri,
+        jsonFunction: jsonProcessingFunction,
+        enterFunction: reduceEnterFunction,
+        exitFunction: reduceExitFunction,
+        initFunction: reduceInitFunction
     }
+}
 
-    function physMemChart(location, interval, start, end) {
+function _customizeChart(_chart, xf, cfSetup, chartConstants,
+                         xUnitsInterval) {
 
-        var chartConstants = {
-                uriBase: "/intelligence/compute/mem_stats",
-                totalField: "phys_mem_avg_total",
-                usedField: "phys_mem_avg_used",
-                resourceLabel: "Memory",
-                loadingIndicator: "#phys-mem-loading-indicator"
+    var timeDim = xf.dimension(function (d) {
+            return d.time;
+        }),
+        minDate = timeDim.bottom(1)[0].time,
+        maxDate = timeDim.top(1)[0].time,
+        eventsByTime = timeDim.group().reduce(
+            cfSetup.enterFunction,
+            cfSetup.exitFunction,
+            cfSetup.initFunction
+        )
+
+    _chart
+            .dimension(timeDim)
+            .group(eventsByTime, "Avg. Used " + chartConstants.resourceLabel)
+            .valueAccessor(function (d) {
+                return d.value[chartConstants.usedField]
+            })
+            .stack(eventsByTime, "Avg. Free "  + chartConstants.resourceLabel, function (d) {
+                return (d.value[chartConstants.totalField] - d.value[chartConstants.usedField])
+            })
+            .x(d3.time.scale().domain([minDate, maxDate]))
+            .xUnits(_timeIntervalFromStr(xUnitsInterval))
+            .title(function (d) {
+                return d.key +
+                    "\n\n" + (d.value[chartConstants.totalField] - d.value[chartConstants.usedField]) + " Free" +
+                    "\n\n" + d.value[chartConstants.usedField] + " Used"
+            })
+
+    return _chart
+}
+
+function _renderResourceChart(location, interval, start, end,
+                              chartConstants) {
+    var params = _processTimeBasedChartParams(interval, start, end),
+        chart = _barChartBase(location),
+        cfSetup = _chartCrossFilterSetup(params, chartConstants)
+
+    $(chartConstants.loadingIndicator).show()
+    d3.json(cfSetup.uri, function (error, events) {
+        events.forEach(cfSetup.jsonFunction)
+        var xf = crossfilter(events)
+        chart = _customizeChart(chart, xf, cfSetup, chartConstants,
+            params.interval)
+        chart.render()
+    })
+
+    $(chartConstants.loadingIndicator).hide()
+}
+
+function physCpuChart(location, interval, start, end) {
+
+    var chartConstants = {
+            uriBase: "/intelligence/compute/cpu_stats",
+            totalField : "phys_cpu_avg_total",
+            usedField : "phys_cpu_avg_used",
+            resourceLabel: "CPU Cores",
+            loadingIndicator: "#phys-cpu-loading-indicator"
         }
 
-        _renderResourceChart(location, interval, start, end, chartConstants)
+    _renderResourceChart(location, interval, start, end, chartConstants)
+}
 
-    }
+function virtCpuChart(location, interval, start, end) {
 
-    function virtMemChart(location, interval, start, end) {
-        var chartConstants = {
-                uriBase: "/intelligence/compute/mem_stats",
-                totalField: "virt_mem_avg_total",
-                usedField: "virt_mem_avg_used",
-                resourceLabel: "Memory",
-                loadingIndicator: "#virt-mem-loading-indicator"
+    var chartConstants = {
+            uriBase: "/intelligence/compute/cpu_stats",
+            totalField : "virt_cpu_avg_total",
+            usedField : "virt_cpu_avg_used",
+            resourceLabel: "CPU Cores",
+            loadingIndicator: "#virt-cpu-loading-indicator"
         }
 
-        _renderResourceChart(location, interval, start, end, chartConstants)
-    }
+    _renderResourceChart(location, interval, start, end, chartConstants)
+}
 
+function physMemChart(location, interval, start, end) {
 
-    function physDiskChart(location, interval, start, end) {
-
-        var chartConstants = {
-                uriBase: "/intelligence/compute/disk_stats",
-                totalField: "phys_disk_avg_total",
-                usedField: "phys_disk_avg_used",
-                resourceLabel: "Disk",
-                loadingIndicator: "#phys-disk-loading-indicator"
+    var chartConstants = {
+            uriBase: "/intelligence/compute/mem_stats",
+            totalField: "phys_mem_avg_total",
+            usedField: "phys_mem_avg_used",
+            resourceLabel: "Memory",
+            loadingIndicator: "#phys-mem-loading-indicator"
         }
 
-        _renderResourceChart(location, interval, start, end, chartConstants)
+    _renderResourceChart(location, interval, start, end, chartConstants)
 
-    }
+}
 
-    function virtDiskChart(location, interval, start, end) {
-        var chartConstants = {
-                uriBase: "/intelligence/compute/disk_stats",
-                totalField: "virt_disk_avg_total",
-                usedField: "virt_disk_avg_used",
-                resourceLabel: "Disk",
-                loadingIndicator: "#virt-disk-loading-indicator"
+function virtMemChart(location, interval, start, end) {
+    var chartConstants = {
+            uriBase: "/intelligence/compute/mem_stats",
+            totalField: "virt_mem_avg_total",
+            usedField: "virt_mem_avg_used",
+            resourceLabel: "Memory",
+            loadingIndicator: "#virt-mem-loading-indicator"
         }
 
-        _renderResourceChart(location, interval, start, end, chartConstants)
-    }
+    _renderResourceChart(location, interval, start, end, chartConstants)
+}
 
-    function drawSearchTable(location, interval, start, end) {
-        $("#log-table-loading-indicator").show();
-        interval = typeof interval !== 'undefined' ?
-            interval :
-            'month';
 
-        end = typeof end !== 'undefined' ?
-            new Date(Number(end) * 1000) :
-            new Date();
+function physDiskChart(location, interval, start, end) {
 
-        if (typeof start === 'undefined') {
-            start = new Date(end);
+    var chartConstants = {
+            uriBase: "/intelligence/compute/disk_stats",
+            totalField: "phys_disk_avg_total",
+            usedField: "phys_disk_avg_used",
+            resourceLabel: "Disk",
+            loadingIndicator: "#phys-disk-loading-indicator"
+        }
 
-            if (interval === 'month') {
-                start.addWeeks(-4);
-            } else if (interval === 'day') {
-                start.addDays(-1)
-            } else if (interval === 'hour') {
-                start.addHours(-1);
-            } else if (interval === 'minute') {
-                start.addMinutes(-1);
-            } else {
-                start = new Date(Number(start) * 1000);
-            }
+    _renderResourceChart(location, interval, start, end, chartConstants)
+
+}
+
+function virtDiskChart(location, interval, start, end) {
+    var chartConstants = {
+            uriBase: "/intelligence/compute/disk_stats",
+            totalField: "virt_disk_avg_total",
+            usedField: "virt_disk_avg_used",
+            resourceLabel: "Disk",
+            loadingIndicator: "#virt-disk-loading-indicator"
+        }
+
+    _renderResourceChart(location, interval, start, end, chartConstants)
+}
+
+function drawSearchTable(location, interval, start, end) {
+    $("#log-table-loading-indicator").show();
+    interval = typeof interval !== 'undefined' ?
+        interval :
+        'month';
+
+    end = typeof end !== 'undefined' ?
+        new Date(Number(end) * 1000) :
+        new Date();
+
+    if (typeof start === 'undefined') {
+        start = new Date(end);
+
+        if (interval === 'month') {
+            start.addWeeks(-4);
+        } else if (interval === 'day') {
+            start.addDays(-1)
+        } else if (interval === 'hour') {
+            start.addHours(-1);
+        } else if (interval === 'minute') {
+            start.addMinutes(-1);
         } else {
             start = new Date(Number(start) * 1000);
         }
-
-        //TODO rework this url to use params
-        var uri = '/intelligence/log/search/data'.concat(
-            "?start_time=", String(Math.round(start.getTime() / 1000)),
-            "&end_time=", String(Math.round(end.getTime() / 1000)))
-
-        if ($.fn.dataTable.isDataTable(location)) {
-            var oTable = $(location).dataTable();
-            oTable.fnReloadAjax(uri);
-        } else {
-            var oTableParams = {
-                "bProcessing": true,
-                "bServerSide": true,
-                "sAjaxSource": uri,
-                "bPaginate": true,
-                "bFilter": true,
-                "bSort": true,
-                "bInfo": false,
-                "bAutoWidth": true,
-                "bLengthChange": true,
-                "aoColumnDefs": [
-                    { "bVisible": false, "aTargets": [ 5, 6, 7, 8, 9, 10 ] },
-                    { "sName": "timestamp", "aTargets": [ 0 ] },
-                    { "sType": "date", "aTargets": [0] },
-                    { "sName": "loglevel", "aTargets": [ 1 ] },
-                    { "sName": "component", "aTargets": [ 2 ] },
-                    { "sName": "host", "aTargets": [ 3 ] },
-                    { "sName": "message", "aTargets": [ 4 ] },
-                    { "sName": "location", "aTargets": [ 5 ] },
-                    { "sName": "pid", "aTargets": [ 6 ] },
-                    { "sName": "source", "aTargets": [ 7 ] },
-                    { "sName": "request_id", "aTargets": [ 8 ] },
-                    { "sName": "type", "aTargets": [ 9 ] },
-                    { "sName": "received", "aTargets": [ 10 ] },
-                    { "sType": "date", "aTargets": [10] }
-                ]
-            }
-
-            var oTable = $(location).dataTable(oTableParams);
-
-            $(window).bind('resize', function () {
-                oTable.fnAdjustColumnSizing();
-            });
-        }
-        $("#log-table-loading-indicator").hide();
+    } else {
+        start = new Date(Number(start) * 1000);
     }
 
-    function hostPresenceTable(location, lookbackQty, lookbackUnit,
-                                      start, end) {
-        var params = _processTimeBasedChartParams('', start, end);
+    //TODO rework this url to use params
+    var oTable,
+        uri = '/intelligence/log/search/data'.concat(
+        "?start_time=", String(Math.round(start.getTime() / 1000)),
+        "&end_time=", String(Math.round(end.getTime() / 1000)))
 
-        $("#host-presence-table-loading-indicator").show();
-
-        lookbackQty = typeof lookbackQty !== 'undefined' ?
-            lookbackQty :
-            1;
-
-        var inspectStart = function () {
-            var d = new Date(params['end']);
-            if (lookbackUnit === 'm') {
-                d.addMinutes(-1 * lookbackQty);
-                return d;
-            } else if (lookbackUnit === 'd') {
-                d.addDays(-1 * lookbackQty);
-                return d;
-            } else if (lookbackUnit === 'w') {
-                d.addWeeks(-1 * lookbackQty);
-                return d;
-            } else {
-                d.addHours(-1 * lookbackQty);
-                return d;
-            }
-        }();
-
-        var uri = '/intelligence/host_presence_stats'.concat(
-            '?domainStart=', String(Math.round(params['start'].getTime() / 1000)),
-            '&inspectStart=', String(Math.round(inspectStart.getTime() / 1000)),
-            '&domainEnd=', String(Math.round(params['end'].getTime() / 1000)));
-
-        if ($.fn.dataTable.isDataTable(location)) {
-            var oTable = $(location).dataTable();
-            oTable.fnReloadAjax(uri);
-        } else {
-            var oTableParams = {
-                "bProcessing": true,
-                "bServerSide": true,
-                "sAjaxSource": uri,
-                "bPaginate": false,
-                "sScrollY": "350px",
-                "bFilter": false,
-                "bSort": false,
-                "bInfo": false,
-                "bAutoWidth": true,
-                "bLengthChange": true,
-                "aoColumnDefs": [
-                    { "sName": "host", "aTargets": [ 0 ] },
-                    { "sName": "status", "aTargets": [ 1 ] }
-                    /* TODO GOLD-241 add support for time last seen to JS
-                    ,
-                    { "bVisible": false, "aTargets": [ 2 ] },
-                    { "sName": "lastSeen", "aTargets": [ 2 ] },
-                    { "sType": "date", "aTargets": [2] }
-                    */
-                ]
-            }
-
-            var oTable = $(location).dataTable(oTableParams);
-
-            $(window).bind('resize', function () {
-                oTable.fnAdjustColumnSizing();
-            });
+    if ($.fn.dataTable.isDataTable(location)) {
+        oTable = $(location).dataTable();
+        oTable.fnReloadAjax(uri);
+    } else {
+        var oTableParams = {
+            "bProcessing": true,
+            "bServerSide": true,
+            "sAjaxSource": uri,
+            "bPaginate": true,
+            "bFilter": true,
+            "bSort": true,
+            "bInfo": false,
+            "bAutoWidth": true,
+            "bLengthChange": true,
+            "aoColumnDefs": [
+                { "bVisible": false, "aTargets": [ 5, 6, 7, 8, 9, 10 ] },
+                { "sName": "timestamp", "aTargets": [ 0 ] },
+                { "sType": "date", "aTargets": [0] },
+                { "sName": "loglevel", "aTargets": [ 1 ] },
+                { "sName": "component", "aTargets": [ 2 ] },
+                { "sName": "host", "aTargets": [ 3 ] },
+                { "sName": "message", "aTargets": [ 4 ] },
+                { "sName": "location", "aTargets": [ 5 ] },
+                { "sName": "pid", "aTargets": [ 6 ] },
+                { "sName": "source", "aTargets": [ 7 ] },
+                { "sName": "request_id", "aTargets": [ 8 ] },
+                { "sName": "type", "aTargets": [ 9 ] },
+                { "sName": "received", "aTargets": [ 10 ] },
+                { "sType": "date", "aTargets": [10] }
+            ]
         }
-        $("#host-presence-table-loading-indicator").hide();
+
+        oTable = $(location).dataTable(oTableParams);
+
+        $(window).bind('resize', function () {
+            oTable.fnAdjustColumnSizing();
+        });
     }
+    $("#log-table-loading-indicator").hide();
+}
+
+function hostPresenceTable(location, lookbackQty, lookbackUnit,
+                                  start, end) {
+    var params = _processTimeBasedChartParams('', start, end);
+
+    $("#host-presence-table-loading-indicator").show();
+
+    lookbackQty = typeof lookbackQty !== 'undefined' ?
+        lookbackQty :
+        1;
+
+    var inspectStart = (function () {
+        var d = new Date(params.end);
+        if (lookbackUnit === 'm') {
+            d.addMinutes(-1 * lookbackQty);
+            return d;
+        } else if (lookbackUnit === 'd') {
+            d.addDays(-1 * lookbackQty);
+            return d;
+        } else if (lookbackUnit === 'w') {
+            d.addWeeks(-1 * lookbackQty);
+            return d;
+        } else {
+            d.addHours(-1 * lookbackQty);
+            return d;
+        }
+    })();
+
+    var uri = '/intelligence/host_presence_stats'.concat(
+        '?domainStart=', String(Math.round(params.start.getTime() / 1000)),
+        '&inspectStart=', String(Math.round(inspectStart.getTime() / 1000)),
+        '&domainEnd=', String(Math.round(params.end.getTime() / 1000)));
+
+    if ($.fn.dataTable.isDataTable(location)) {
+        oTable = $(location).dataTable();
+        oTable.fnReloadAjax(uri);
+    } else {
+        var oTableParams = {
+            "bProcessing": true,
+            "bServerSide": true,
+            "sAjaxSource": uri,
+            "bPaginate": false,
+            "sScrollY": "350px",
+            "bFilter": false,
+            "bSort": false,
+            "bInfo": false,
+            "bAutoWidth": true,
+            "bLengthChange": true,
+            "aoColumnDefs": [
+                { "sName": "host", "aTargets": [ 0 ] },
+                { "sName": "status", "aTargets": [ 1 ] }
+                /* TODO GOLD-241 add support for time last seen to JS
+                ,
+                { "bVisible": false, "aTargets": [ 2 ] },
+                { "sName": "lastSeen", "aTargets": [ 2 ] },
+                { "sType": "date", "aTargets": [2] }
+                */
+            ]
+        }
+
+        var oTable = $(location).dataTable(oTableParams)
+
+        $(window).bind('resize', function () {
+            oTable.fnAdjustColumnSizing()
+        });
+    }
+    $("#host-presence-table-loading-indicator").hide();
+}
 
 
 /*

@@ -1,4 +1,4 @@
-path {
+/*path {
     stroke: steelblue;
     stroke-width: 2;
     fill: none;
@@ -10,7 +10,7 @@ path {
     stroke: grey;
     stroke-width: 1;
     shape-rendering: crispEdges;
-}
+}*/
 
 /* Datatable font sizes */
 #log-search-table th {

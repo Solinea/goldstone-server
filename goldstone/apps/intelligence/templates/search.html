@@ -23,17 +23,23 @@
     <script src="{% static 'intelligence/js/intelligence.js' %}"></script>
     <script src="{% static 'intelligence/js/search.js' %}"></script>
     <script type="text/javascript">
-    // this code needs to stay here because it uses django template markup
-    $(document).ready(function () {
-        var start = {{ start_ts }} * 1000,
-            end = {{ end_ts }} * 1000
+        // this code needs to stay here because it uses django template markup
+        $(document).ready(function () {
+            var start =
+            {{ start_ts }} *
+            1000,
+                    end =
+            {{ end_ts }} *
+            1000
 
-        badEventHistogramPanel('#bad-event-chart', '{{ interval }}',
-                start, end)
-        drawSearchTable('#log-search-table', '{{ interval }}',
-            '{{ start_ts }}', '{{ end_ts }}')
-        populateSettingsFields('{{ interval }}', start, end)
-    })
+            badEventMultiLine('#bad-event-multiline', '{{ interval }}',
+                    start, end)
+            badEventHistogramPanel('#bad-event-chart', '{{ interval }}',
+                    start, end)
+            drawSearchTable('#log-search-table', '{{ interval }}',
+                    '{{ start_ts }}', '{{ end_ts }}')
+            populateSettingsFields('{{ interval }}', start, end)
+        })
     </script>
 
 {% endblock %}
@@ -42,29 +48,41 @@
 {% block content %}
 
     <div class="row">
-       <div class="col-md-3">
+        <div class="col-md-3">
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-cog"></i> Settings</h3>
+                    <h3 class="panel-title"><i class="fa fa-cog"></i> Settings
+                    </h3>
                 </div>
                 <div class="panel-body" style="height:400px">
                     <form class="form-horizontal" role="form">
                         <div class="form-group">
-                            <label for="settingsStartTime" class="col-sm-3 control-label">Start:</label>
+                            <label for="settingsStartTime"
+                                   class="col-sm-3 control-label">Start:</label>
+
                             <div class="col-sm-9">
-                                <input id="settingsStartTime" class="form-control" type="text" placeholder="1 weeks ago">
+                                <input id="settingsStartTime"
+                                       class="form-control" type="text"
+                                       placeholder="1 weeks ago">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="settingsEndTime" class="col-sm-3 control-label">End:</label>
+                            <label for="settingsEndTime"
+                                   class="col-sm-3 control-label">End:</label>
+
                             <div class="col-sm-9">
-                                <input id="settingsEndTime" class="form-control" type="text" placeholder="now">
+                                <input id="settingsEndTime"
+                                       class="form-control" type="text"
+                                       placeholder="now">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="settingsIntervalUnit" class="col-sm-3 control-label">Interval:</label>
+                            <label for="settingsIntervalUnit"
+                                   class="col-sm-3 control-label">Interval:</label>
+
                             <div class="col-sm-9">
-                                <select class="form-control" id="settingsIntervalUnit" >
+                                <select class="form-control"
+                                        id="settingsIntervalUnit">
                                     <option value="1m">Minutes</option>
                                     <option value="1h" selected>Hours</option>
                                     <option value="1d">Days</option>
@@ -74,7 +92,9 @@
                         </div>
                         <div class="form-group">
                             <div class="col-sm-12">
-                                <button type="button" id="settingsUpdateButton" class="btn btn-info btn-block">Update</button>
+                                <button type="button" id="settingsUpdateButton"
+                                        class="btn btn-info btn-block">Update
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -83,26 +103,33 @@
         </div>
 
         <div class="col-md-9">
-
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-dashboard"></i> <a
                             href="/intelligence/search">Log Analysis</a></h3>
                 </div>
-                <div id="bad-event-chart" class="panel-body"
-                     style="height:400px">
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="log-loading-indicator" class="ajax-loader"/>
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
+                <div class="panel-body" style="height:400px">
+                    <div id="bad-event-multiline">
+                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                         id="log-multiline-loading-indicator" class="ajax-loader"/>
+                        <span class="reset" style="display: none;">range: <span
+                                class="filter"></span></span>
                     <a class="reset"
-                       href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
+                       href="javascript:rangeChart.filterAll();chart.filterAll();dc.redrawAll();"
                        style="display: none;">reset</a>
 
                     <div class="clearfix"></div>
+                    </div>
+                    <div id="bad-event-range">
+                        <div class="clearfix"></div>
+                    </div>
+
                 </div>
             </div>
         </div>
+    </div>
+    <div class="row">
+
     </div>
     <div class="row">
         <div id="table-col" class="col-md-12">
