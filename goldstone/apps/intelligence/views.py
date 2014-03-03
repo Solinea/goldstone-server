@@ -26,7 +26,6 @@ class IntelSearchView(TemplateView):
         context = super(IntelSearchView, self).get_context_data(**kwargs)
         end_time = self.request.GET.get('end_time', None)
         start_time = self.request.GET.get('start_time', None)
-        context['interval'] = self.request.GET.get('interval', '1h')
 
         end_dt = datetime.fromtimestamp(int(end_time),
                                         tz=pytz.utc) \

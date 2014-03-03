@@ -107,7 +107,7 @@
                 <div id="bad-event-chart" class="panel-body"
                      style="height:400px">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="log-loading-indicator" class="ajax-loader"/>
+                         id="log-multiline-loading-indicator" class="ajax-loader"/>
                     <span class="reset" style="display: none;">range: <span
                             class="filter"></span></span>
                     <a class="reset"
@@ -115,6 +115,9 @@
                        style="display: none;">reset</a>
 
                     <div class="clearfix"></div>
+                    <div id="bad-event-range">
+                        <div class="clearfix"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -126,9 +129,6 @@
                     <i class="fa fa-thumbs-down"></i></h3>
                 </div>
                 <div id="host-presence-body" class="panel-body" style="height:400px">
-
-
-
                     <table id="host-presence-table" class="table table-hover">
                         <!-- table rows filled by draw_host_presence_table -->
                         <thead>
@@ -157,12 +157,6 @@
                      style="height:400px">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                          id="phys-cpu-loading-indicator" class="ajax-loader"/>
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
-                    <a class="reset"
-                       href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
-                       style="display: none;">reset</a>
-
                     <div class="clearfix"></div>
                 </div>
             </div>
@@ -177,12 +171,6 @@
                      style="height:400px">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                          id="virt-cpu-loading-indicator" class="ajax-loader"/>
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
-                    <a class="reset"
-                       href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
-                       style="display: none;">reset</a>
-
                     <div class="clearfix"></div>
                 </div>
             </div>
@@ -200,12 +188,6 @@
                         <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                              id="phys-mem-loading-indicator"
                              class="ajax-loader"/>
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
-                        <a class="reset"
-                           href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
-                           style="display: none;">reset</a>
-
                         <div class="clearfix"></div>
                     </div>
                 </div>
@@ -221,12 +203,6 @@
                         <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                              id="virt-mem-loading-indicator"
                              class="ajax-loader"/>
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
-                        <a class="reset"
-                           href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
-                           style="display: none;">reset</a>
-
                         <div class="clearfix"></div>
                     </div>
                 </div>
@@ -244,12 +220,6 @@
                      style="height:400px">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                          id="phys-disk-loading-indicator" class="ajax-loader"/>
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
-                    <a class="reset"
-                       href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
-                       style="display: none;">reset</a>
-
                     <div class="clearfix"></div>
                 </div>
             </div>
@@ -263,15 +233,8 @@
                 <div id="virt-disk-chart" class="panel-body"
                      style="height:400px">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="virt-disk-loading-indicator"
-                         class="ajax-loader"/>
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
-                    <a class="reset"
-                       href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
-                       style="display: none;">reset</a>
-
-                    <div class="clearfix"></div>
+                             id="virt-disk-loading-indicator" class="ajax-loader"/>
+                        <div class="clearfix"></div>
                 </div>
             </div>
         </div>
@@ -287,14 +250,8 @@
                     </div>
                     <div id="vcpu-graph" class="panel-body"
                          style="height:400px">
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
                         <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                              id="vcpu-loading-indicator" class="ajax-loader"/>
-                        <a class="reset"
-                           href="javascript:vcpuChart.filterAll();vcpuChart.filterAll();dc.redrawAll();"
-                           style="display: none;">reset</a>
-
                         <div class="clearfix"></div>
                     </div>
                 </div>

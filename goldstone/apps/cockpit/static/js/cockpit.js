@@ -2,19 +2,19 @@ function refreshHostPresence(lookbackQty, lookbackUnit, start, end) {
     hostPresenceTable('#host-presence-table', lookbackQty, lookbackUnit, start, end)
 }
 
-function refreshCharts(interval, start, end) {
-    badEventHistogramPanel('#bad-event-chart', interval, start, end)
-    physCpuChart("#phys-cpu-chart", interval, start, end)
-    virtCpuChart("#virt-cpu-chart", interval, start, end)
-    physMemChart("#phys-mem-chart", interval, start, end)
-    virtMemChart("#virt-mem-chart", interval, start, end)
-    physDiskChart("#phys-disk-chart", interval, start, end)
-    virtDiskChart("#virt-disk-chart", interval, start, end)
+function refreshCharts(start, end) {
+    badEventMultiLine('#bad-event-chart', start, end)
+    physCpuChart("#phys-cpu-chart", start, end)
+    virtCpuChart("#virt-cpu-chart", start, end)
+    physMemChart("#phys-mem-chart", start, end)
+    virtMemChart("#virt-mem-chart", start, end)
+    physDiskChart("#phys-disk-chart", start, end)
+    virtDiskChart("#virt-disk-chart", start, end)
 }
 
 $(document).ready(function () {
     // load the default charts
-    badEventHistogramPanel('#bad-event-chart')
+    badEventMultiLine('#bad-event-chart')
     hostPresenceTable('#host-presence-table')
     physCpuChart("#phys-cpu-chart")
     virtCpuChart("#virt-cpu-chart")
