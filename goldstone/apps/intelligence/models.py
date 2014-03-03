@@ -436,16 +436,6 @@ class LogData(object):
         logger.debug('[gsl_phys_disk_stats] result = ' + json.dumps(result))
         return result
 
-    def gsl_virt_disk_stats(self, conn, start, end, interval, first=0,
-                            size=10, sort=''):
-        q = self._claims_resource_query(start, end, interval, 'disk',
-                                        'nova_claims_summary_virt')
-        logger.debug('[gsl_virt_disk_stats] query = ' + json.dumps(q))
-        result = conn.search(index="_all", body=q, from_=first, size=size,
-                             sort=sort)
-        logger.debug('[gsl_virt_disk_stats] result = ' + json.dumps(result))
-        return result
-
     def get_hypervisor_stats(self, conn, start, end, interval, first=0,
                              size=10, sort=''):
 

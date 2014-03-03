@@ -424,8 +424,6 @@ class LogDataModel(TestCase):
              'function': 'gsl_virt_cpu_stats'},
             {'type': 'nova_claims_summary_virt', 'resource': 'memory',
              'function': 'gsl_virt_mem_stats'},
-            {'type': 'nova_claims_summary_virt', 'resource': 'disk',
-             'function': 'gsl_virt_disk_stats'}
         ]
 
         for params in test_params:
@@ -742,24 +740,6 @@ class IntelViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(json.loads(response.content), [])
         logger.debug("[test_get_phys_disk_stats_view] response = %s",
-                     json.loads(response.content))
-
-    def test_get_virt_disk_stats_view(self):
-        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
-        end_ts = calendar.timegm(end.utctimetuple())
-        start_ts = calendar.timegm(start.utctimetuple())
-
-        uri = '/intelligence/compute/virt_disk_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
-
-        response = self.client.get(uri)
-        logger.debug("[test_get_virt_disk_stats_view] uri = %s", uri)
-        self.assertEqual(response.status_code, 200)
-        # assertion fails because virtual disk is unlimited,
-        # unfortunately, you also lose the used information.
-        #self.assertNotEqual(json.loads(response.content), [])
-        logger.debug("[test_get_virt_disk_stats_view] response = %s",
                      json.loads(response.content))
 
 
