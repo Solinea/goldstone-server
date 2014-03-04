@@ -161,8 +161,8 @@ class LogData(object):
                             }
                         },
                         {
-                            "term": {
-                                "type": "syslog"
+                            "wildcard": {
+                                "type": "*syslog"
                             }
                         }
                     ]
@@ -186,7 +186,9 @@ class LogData(object):
             }
         }
         logger.debug("[_loglevel_by_time_agg] query = %s", json.dumps(q))
-        return conn.search(index="_all", body=q)
+        result = conn.search(index="_all", body=q)
+        logger.debug("[_loglevel_by_time_agg] result = %s", json.dumps(result))
+        return result
 
     def get_components(self, conn):
         return self._get_term_facet_terms(conn, "component")
