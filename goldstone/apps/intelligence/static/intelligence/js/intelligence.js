@@ -33,6 +33,8 @@ $('#settingsEndTime').datetimepicker({
     lang: 'en'
 })
 
+var secondaryCockpitCharts = {}
+
 function refreshHostPresence(lookbackQty, lookbackUnit, start, end) {
     hostPresenceTable('#host-presence-table', lookbackQty, lookbackUnit, start, end)
 }
@@ -41,6 +43,8 @@ function refreshCockpitCharts(start, end) {
     "use strict";
     refreshCockpitEventCharts(start, end)
     refreshCockpitSecondaryCharts(start, end)
+    dc.filterAll()
+    //dc.refocusAll()
 }
 
 function refreshCockpitEventCharts(start, end) {
@@ -59,6 +63,16 @@ function refreshCockpitSecondaryCharts(start, end) {
         presenceQty = $("input#hostPresenceQty").val()
         presenceQty = typeof presenceQty === 'undefined' ? 1 : presenceQty
     refreshHostPresence(presenceQty, presenceUnit, start, end)
+}
+
+function refocusCockpitSecondaryCharts(filter) {
+    "use strict";
+    console.log("charts = " + JSON.stringify(secondaryCockpitCharts))
+    var keys = Object.keys(secondaryCockpitCharts)
+
+    keys.forEach(function (key) {
+        secondaryCockpitCharts[key].focus(filter)
+    })
 }
 
 function _getSearchFormDates() {
@@ -369,10 +383,17 @@ function badEventMultiLine(location, start, end) {
             })
             .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
             .on("filtered", function (_chart, filter) {
-                refreshSearchTable(filter[0], filter[1])
+                refocusCockpitSecondaryCharts(chart.filter())
             })
-            .on("filtered", function (_chart, filter) {
-                refreshCockpitSecondaryCharts(filter[0], filter[1])
+            .renderlet(function (chart) {
+                // smooth the rendering through event throttling
+                dc.events.trigger(function () {
+                    // focus some other chart to the range selected by user on this chart
+                    if (chart.filter() !== null) {
+                        console.log("filter = " + JSON.stringify(chart.filter()))
+                        refocusCockpitSecondaryCharts(chart.filter())
+                    }
+                })
             });
         $(loadingIndicator).show()
         chart.render()
@@ -470,6 +491,7 @@ function _renderResourceChart(location, start, end,
         var xf = crossfilter(events)
         chart = _customizeChart(chart, xf, cfSetup, chartConstants,
             params.interval)
+        secondaryCockpitCharts[location.slice(1)] = chart
         console.log("[_renderResourceChart] showing " + chartConstants.loadingIndicator)
         $(chartConstants.loadingIndicator).show()
         chart.render()
