@@ -1,40 +1,56 @@
 #
-# categorize openstack syslog messages
-# the openstack specific fields will be in os_message
-# for further processing.  
+# categorize openstack syslog messages related to instance
+# spawning.  
 #
 filter {
     if ("openstack_syslog" in [tags] and
         "processed" in [tags] and 
-        "nova.compute.claims" in [program]) {
+        ("nova.virt.libvirt.driver" in [program] or 
+         "nova.scheduler.driver" in [program])) {
 
         grok { 
             patterns_dir => "/opt/logstash/patterns"
-            match => { "message" => "%{NOVA_CLAIMS_SUMMARY_PHYS}" }
+            match => { "message" => "%{NOVA_SPAWN_START}" }
         }
         if ("_grokparsefailure" not in [tags]) {
             mutate {
-                replace => [ "type", "nova_claims_summary_phys" ]  
+                replace => [ "type", "nova_spawn_start" ]  
             }
         } else {
             grok {
                 remove_tag => ["_grokparsefailure"]
                 patterns_dir => "/opt/logstash/patterns"
-                match => { "message" => "%{NOVA_CLAIMS_SUMMARY_VIRT}" }
+                match => { "message" => "%{NOVA_SPAWN_SUCCESS}" }
             }
             if ("_grokparsefailure" not in [tags]) {
                 mutate {
-                    replace => [ "type", "nova_claims_summary_virt" ]
+                    replace => [ "type", "nova_spawn_finish" ]
+                    add_field => [ "success", true ]
                 }
             } else {
                 grok {
                     remove_tag => ["_grokparsefailure"]
                     patterns_dir => "/opt/logstash/patterns"
-                    match => { "message" => "%{NOVA_INSTANCE_REQUEST}" }
+                    match => { "message" => "%{NOVA_SPAWN_ABORT}" }
                 }
                 if ("_grokparsefailure" not in [tags]) {
                     mutate {
-                        replace => [ "type", "nova_claims_request" ]         
+                        replace => [ "type", "nova_spawn_finish" ]         
+                        add_field => [ "success", false ]
+                        add_field => [ "failure_mode", "ABORTED" ]
+                    }
+                } else {
+                    grok {
+                        remove_tag => ["_grokparsefailure"]
+                        patterns_dir => "/opt/logstash/patterns"
+                        match => { "message" => "%{NOVA_SPAWN_FAIL}" }
+                    }
+                    if ("_grokparsefailure" not in [tags]) {
+                        mutate {
+                            replace => [ "type", "nova_spawn_finish" ]
+                            add_field => [ "success", false ]
+                            add_field => [ "failure_mode", "ERROR" ]
+                        }
                     }
                 }
             }
@@ -46,13 +62,12 @@ filter {
                 remove_field => "pid"
                 remove_field => "hostname"
                 remove_field => "message"
-                remove_field => "_message"
                 remove_field => "loglevel"
                 remove_field => "syslog_severity_code"
                 remove_field => "syslog_facility_code"
                 remove_field => "syslog_facility"
                 remove_field => "syslog_severity"
-                add_tag => ["metric", "filter_35"]
+                add_tag => ["filter_36"]
             }
         } else {
             # not our type, but no hard feelings
