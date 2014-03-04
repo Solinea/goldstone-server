@@ -33,6 +33,34 @@ $('#settingsEndTime').datetimepicker({
     lang: 'en'
 })
 
+function refreshHostPresence(lookbackQty, lookbackUnit, start, end) {
+    hostPresenceTable('#host-presence-table', lookbackQty, lookbackUnit, start, end)
+}
+
+function refreshCockpitCharts(start, end) {
+    "use strict";
+    refreshCockpitEventCharts(start, end)
+    refreshCockpitSecondaryCharts(start, end)
+}
+
+function refreshCockpitEventCharts(start, end) {
+    "use strict";
+    badEventMultiLine('#bad-event-multiline', start, end)
+}
+
+function refreshCockpitSecondaryCharts(start, end) {
+    "use strict";
+    physCpuChart("#phys-cpu-chart", start, end)
+    virtCpuChart("#virt-cpu-chart", start, end)
+    physMemChart("#phys-mem-chart", start, end)
+    virtMemChart("#virt-mem-chart", start, end)
+    physDiskChart("#phys-disk-chart", start, end)
+    var presenceUnit = $("select#hostPresenceUnit").val(),
+        presenceQty = $("input#hostPresenceQty").val()
+        presenceQty = typeof presenceQty === 'undefined' ? 1 : presenceQty
+    refreshHostPresence(presenceQty, presenceUnit, start, end)
+}
+
 function _getSearchFormDates() {
     "use strict";
     //grab the values from the form elements
@@ -86,7 +114,6 @@ function _autoSizeTimeInterval(start, end, maxPoints) {
     var diffSeconds = (end.getTime() - start.getTime()) / 1000,
         intervalSecs = diffSeconds / maxPoints,
         result = String(intervalSecs) + "s"
-
     console.log("interval = " + result)
     return result
 }
@@ -124,12 +151,18 @@ function _processTimeBasedChartParams(end, start, maxPoints) {
             var s = new Date(endDate)
             s.addWeeks(-1)
             return s
-        })()
+        })(),
+    result = {
+        'start': startDate,
+        'end': endDate
+    }
 
-    return {'interval': _autoSizeTimeInterval(startDate, endDate, maxPoints),
-            'start': startDate,
-            'end': endDate
-    };
+    if (typeof maxPoints !== 'undefined') {
+        result.interval = _autoSizeTimeInterval(startDate, endDate, maxPoints)
+    }
+
+    return result
+
 }
 
 /**
@@ -183,10 +216,10 @@ function _lineChartBase(location, margins, renderlet) {
         .width(panelWidth)
         .margins(margins)
         .transitionDuration(1000)
+        .renderHorizontalGridLines(true)
+        .brushOn(false)
 
-    console.log("type of renderlet = " + typeof renderlet)
     if (typeof renderlet !== 'undefined') {
-        console.log("adding renderlet to chart at location = " + location)
         chart.renderlet(renderlet)
     }
 
@@ -240,10 +273,11 @@ function badEventMultiLine(location, start, end) {
                 })
         },
         chart = _lineChartBase(location,
-            { top: 50, bottom: 60, right: 30, left: 40 },
+            { top: 50, bottom: 30, right: 30, left: 60 },
             clickRenderlet
         ),
-        rangeChart = _lineChartBase("#bad-event-range"),
+        rangeChart = _lineChartBase("#bad-event-range",
+            { top: 0, bottom: 50, right: 30, left: 60 }),
         loadingIndicator = "#log-multiline-loading-indicator",
         params = _processTimeBasedChartParams(end, start, maxPoints),
         uri = "/intelligence/log/cockpit/data?start_time="
@@ -295,7 +329,6 @@ function badEventMultiLine(location, start, end) {
         rangeChart
             .width(rangeWidth)
             .height(100)
-            .margins({ top: 0, bottom: 60, right: 30, left: 40 })
             .dimension(timeDim)
             .group(eventsByTime)
             .valueAccessor(function (d) {
@@ -304,13 +337,14 @@ function badEventMultiLine(location, start, end) {
             .mouseZoomable(true)
             .brushOn(true)
             .x(d3.time.scale().domain([minDate, maxDate]))
-            .yAxis().ticks(1)
+            .yAxis().ticks(2)
 
 
         rangeChart.render()
 
         chart
             .rangeChart(rangeChart)
+            .height(300)
             .elasticY(true)
             .renderHorizontalGridLines(true)
             .brushOn(false)
@@ -336,89 +370,15 @@ function badEventMultiLine(location, start, end) {
             .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
             .on("filtered", function (_chart, filter) {
                 refreshSearchTable(filter[0], filter[1])
+            })
+            .on("filtered", function (_chart, filter) {
+                refreshCockpitSecondaryCharts(filter[0], filter[1])
             });
-
+        $(loadingIndicator).show()
         chart.render()
         $(loadingIndicator).hide()
     })
 
-}
-
-// TODO migrate renderlet to the multiline impl and remove this function
-function badEventHistogramPanel(location, interval, start, end) {
-    "use strict";
-    console.log("[badEventHistogramPanel] location = " + location)
-    var loadingIndicator = "#log-loading-indicator",
-        params = _processTimeBasedChartParams(end, start, interval),
-        margins = {top: 70, right: 30, bottom: 60, left: 40},
-        uri = "/intelligence/log/cockpit/data?start_time="
-            .concat(String(Math.round(params.start.getTime() / 1000)),
-                "&end_time=", String(Math.round(params.end.getTime() / 1000)),
-                "&interval=", params.interval),
-
-
-    chart = _barChartBase(location, margins, clickRenderlet);
-
-    $(loadingIndicator).show()
-    d3.json(uri, function (error, events) {
-        events.data.forEach(function (d) {
-            d.time = new Date(d.time)
-            d.fatal = +d.fatal
-            d.warning = +d.warning
-            d.error = +d.error
-        })
-
-        var xf = crossfilter(events.data),
-            timeDim = xf.dimension(function (d) {
-                return d.time
-            }),
-            minDate = timeDim.bottom(1)[0].time,
-            maxDate = timeDim.top(1)[0].time,
-            eventsByTime = timeDim.group().reduce(
-                function (p, v) {
-                    p.errorEvents += v.error;
-                    p.warnEvents += v.warning;
-                    p.fatalEvents += v.fatal;
-                    return p;
-                },
-                function (p, v) {
-                    p.errorEvents -= v.error;
-                    p.warnEvents -= v.warning;
-                    p.fatalEvents -= v.fatal;
-                    return p;
-                },
-                function () {
-                    return {
-                        errorEvents: 0,
-                        warnEvents: 0,
-                        fatalEvents: 0
-                    }
-                }
-            )
-
-        chart
-            .dimension(timeDim)
-            .group(eventsByTime, "Warning Events")
-            .valueAccessor(function (d) {
-                return d.value.warnEvents;
-            })
-            .stack(eventsByTime, "Error Events", function (d) {
-                return d.value.errorEvents;
-            })
-            .stack(eventsByTime, "Fatal Events", function (d) {
-                return d.value.fatalEvents;
-            })
-            .x(d3.time.scale().domain([minDate, maxDate]))
-            .title(function (d) {
-                return d.key
-                    + "\n\n" + d.value.fatalEvents + " FATALS"
-                    + "\n\n" + d.value.errorEvents + " ERRORS"
-                    + "\n\n" + d.value.warnEvents + " WARNINGS";
-            });
-
-        badEventHistChart.render();
-        $(loadingIndicator).hide();
-    });
 }
 
 function _chartCrossFilterSetup(params, chartConstants) {
@@ -487,7 +447,6 @@ function _customizeChart(_chart, xf, cfSetup, chartConstants,
                 return (d.value[chartConstants.totalField] - d.value[chartConstants.usedField])
             })
             .x(d3.time.scale().domain([minDate, maxDate]))
-            //.xUnits(_timeIntervalFromStr(xUnitsInterval))
             .title(function (d) {
                 return d.key +
                     "\n\n" + (d.value[chartConstants.totalField] - d.value[chartConstants.usedField]) + " Free" +
@@ -506,17 +465,17 @@ function _renderResourceChart(location, start, end,
         chart = _lineChartBase(location),
         cfSetup = _chartCrossFilterSetup(params, chartConstants)
 
-    $(chartConstants.loadingIndicator).show()
-
     d3.json(cfSetup.uri, function (error, events) {
         events.forEach(cfSetup.jsonFunction)
         var xf = crossfilter(events)
         chart = _customizeChart(chart, xf, cfSetup, chartConstants,
             params.interval)
+        console.log("[_renderResourceChart] showing " + chartConstants.loadingIndicator)
+        $(chartConstants.loadingIndicator).show()
         chart.render()
+        console.log("[_renderResourceChart] hiding " + chartConstants.loadingIndicator)
+        $(chartConstants.loadingIndicator).hide()
     })
-
-    $(chartConstants.loadingIndicator).hide()
 }
 
 function physCpuChart(location, start, end) {
@@ -652,8 +611,6 @@ function hostPresenceTable(location, lookbackQty, lookbackUnit,
     "use strict";
     var params = _processTimeBasedChartParams(end, start);
 
-    $("#host-presence-table-loading-indicator").show();
-
     lookbackQty = typeof lookbackQty !== 'undefined' ?
         lookbackQty :
         1;
@@ -689,7 +646,7 @@ function hostPresenceTable(location, lookbackQty, lookbackUnit,
             "bServerSide": true,
             "sAjaxSource": uri,
             "bPaginate": false,
-            "sScrollY": "350px",
+            "sScrollY": "250px",
             "bFilter": false,
             "bSort": false,
             "bInfo": false,
@@ -713,7 +670,6 @@ function hostPresenceTable(location, lookbackQty, lookbackUnit,
             oTable.fnAdjustColumnSizing()
         });
     }
-    $("#host-presence-table-loading-indicator").hide();
 }
 
 
