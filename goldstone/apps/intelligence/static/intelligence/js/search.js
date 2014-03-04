@@ -10,7 +10,7 @@ function refreshSearchPage(interval, start, end) {
     window.open(uri, "_self")
 }
 
-function populateSettingsFields(interval, start, end) {
+function populateSettingsFields(start, end) {
     var s = new Date(start).toString(),
         e = new Date(end).toString(),
         sStr = s.substr(s.indexOf(" ") + 1),
@@ -18,7 +18,6 @@ function populateSettingsFields(interval, start, end) {
 
     $('#settingsStartTime').val(sStr)
     $('#settingsEndTime').val(eStr)
-    $('#settingsIntervalUnit').val(interval)
 }
 
 $("#settingsUpdateButton").click(function () {
