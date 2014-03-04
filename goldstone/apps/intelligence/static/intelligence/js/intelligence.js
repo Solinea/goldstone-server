@@ -267,6 +267,7 @@ function refreshSearchTable(start, end) {
  * @param {Date} end Instance of Date representing end of interval
  */
 function badEventMultiLine(location, start, end) {
+
     var rangeWidth = $(location).width(),
         maxPoints = rangeWidth / 10,
         clickRenderlet = function (_chart) {
@@ -298,6 +299,8 @@ function badEventMultiLine(location, start, end) {
             .concat(String(Math.round(params.start.getTime() / 1000)),
                 "&end_time=", String(Math.round(params.end.getTime() / 1000)),
                 "&interval=", params.interval)
+
+    $(loadingIndicator).show()
 
     d3.json(uri, function (error, events) {
         events.data.forEach(function (d) {
@@ -395,7 +398,7 @@ function badEventMultiLine(location, start, end) {
                     }
                 })
             });
-        $(loadingIndicator).show()
+
         chart.render()
         $(loadingIndicator).hide()
     })
@@ -481,6 +484,7 @@ function _renderResourceChart(location, start, end,
                               chartConstants) {
     "use strict";
     console.log("[_renderResourceChart] location = " + location)
+    $(chartConstants.loadingIndicator).show()
     var maxPoints = ($(location).width()) / 10,
         params = _processTimeBasedChartParams(end, start, maxPoints),
         chart = _lineChartBase(location),
@@ -492,10 +496,7 @@ function _renderResourceChart(location, start, end,
         chart = _customizeChart(chart, xf, cfSetup, chartConstants,
             params.interval)
         secondaryCockpitCharts[location.slice(1)] = chart
-        console.log("[_renderResourceChart] showing " + chartConstants.loadingIndicator)
-        $(chartConstants.loadingIndicator).show()
         chart.render()
-        console.log("[_renderResourceChart] hiding " + chartConstants.loadingIndicator)
         $(chartConstants.loadingIndicator).hide()
     })
 }
