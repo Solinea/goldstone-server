@@ -40,6 +40,45 @@ class IntelSearchView(TemplateView):
         return context
 
 
+def log_event_histogram(request):
+    end_time = request.GET.get('end_time')
+    start_time = request.GET.get('start_time')
+    interval = request.GET.get('interval', '1h')
+    logger.debug("[bad_event_histogram] interval = %s", interval)
+    logger.debug("[bad_event_histogram] start_time = %s", start_time)
+    logger.debug("[bad_event_histogram] end_time = %s", end_time)
+
+    end_dt = datetime.fromtimestamp(int(end_time),
+                                    tz=pytz.utc) \
+        if end_time else datetime.now(tz=pytz.utc)
+
+    start_dt = datetime.\
+        fromtimestamp(int(start_time), tz=pytz.utc) \
+        if start_time else end_dt - timedelta(weeks=1)
+
+    conn = LogData.get_connection(settings.ES_SERVER)
+
+    ld = LogData()
+    logger.debug("[bad_event_histogram] interval = %s", interval)
+    raw_data = ld.get_loglevel_histogram_data(conn, start_dt, end_dt, interval)
+
+    result = []
+    for time_bucket in raw_data['events_by_time']['buckets']:
+        entry = {}
+        for level_bucket in time_bucket['events_by_loglevel']['buckets']:
+            vals = level_bucket.values()
+            lev = vals[0]
+            entry[lev] = vals[1]
+
+        entry['time'] = time_bucket['key']
+        result.append(entry)
+
+    data = {'data': result,
+            'levels': ['error', 'warning', 'audit', 'info', 'debug']}
+    logger.debug("[log_event_histogram]: data = %s", json.dumps(data))
+    return HttpResponse(json.dumps(data), content_type="application/json")
+
+
 def bad_event_histogram(request):
 
     end_time = request.GET.get('end_time')

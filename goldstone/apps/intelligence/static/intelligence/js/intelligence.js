@@ -305,10 +305,11 @@ function badEventMultiLine(location, start, end) {
     d3.json(uri, function (error, events) {
         events.data.forEach(function (d) {
             d.time = new Date(d.time)
-            d.fatal = +d.fatal
-            d.warning = +d.warning
-            d.error = +d.error
-            d.total = d.fatal + d.warning + d.error
+            d.total = 0
+            events.levels.forEach(function (level) {
+                d[level] = +d[level] || 0
+                d.total += d[level]
+            })
         })
 
 
@@ -320,26 +321,27 @@ function badEventMultiLine(location, start, end) {
             maxDate = timeDim.top(1)[0].time,
             eventsByTime = timeDim.group().reduce(
                 function (p, v) {
-                    p.errorEvents += v.error
-                    p.warnEvents += v.warning
-                    p.fatalEvents += v.fatal
-                    p.totalEvents += v.total
-                    return p;
+                    events.levels.forEach(function (level) {
+                        p[level] += v[level]
+                    })
+                    p.total += v.total
+                    console.log("p = " + JSON.stringify(p))
+                    return p
                 },
                 function (p, v) {
-                    p.errorEvents -= v.error
-                    p.warnEvents -= v.warning
-                    p.fatalEvents -= v.fatal
-                    p.totalEvents -= v.total
+                    events.levels.forEach(function (level) {
+                        p[level] -= v[level]
+                    })
+                    p.total -= v.total
                     return p
                 },
                 function () {
-                    return {
-                        errorEvents: 0,
-                        warnEvents: 0,
-                        fatalEvents: 0,
-                        totalEvents: 0
-                    }
+                    var p = {}
+                    events.levels.forEach(function (level) {
+                        p[level] = 0
+                    })
+                    p.total = 0
+                    return p
                 }
             )
 
@@ -349,7 +351,7 @@ function badEventMultiLine(location, start, end) {
             .dimension(timeDim)
             .group(eventsByTime)
             .valueAccessor(function (d) {
-                return d.value.totalEvents
+                return d.value.total
             })
             .mouseZoomable(true)
             .brushOn(true)
@@ -367,24 +369,33 @@ function badEventMultiLine(location, start, end) {
             .brushOn(false)
             .mouseZoomable(true)
             .dimension(timeDim)
-            .group(eventsByTime, "Warning Events")
+            .group(eventsByTime, "Debug")
             .valueAccessor(function (d) {
-                return d.value.warnEvents;
+                return d.value.debug
             })
-            .stack(eventsByTime, "Error Events", function (d) {
-                return d.value.errorEvents;
+            .stack(eventsByTime, "Audit", function (d) {
+                return d.value.audit
             })
-            //.stack(eventsByTime, "Fatal Events", function (d) {
-            //    return d.value.fatalEvents;
-            //})
+            .stack(eventsByTime, "Info", function (d) {
+                return d.value.info
+            })
+            .stack(eventsByTime, "Warning", function (d) {
+                return d.value.warning
+            })
+            .stack(eventsByTime, "Error", function (d) {
+                return d.value.error
+            })
             .x(d3.time.scale().domain([minDate, maxDate]))
             .title(function (d) {
                 return d.key
                     //+ "\n\n" + d.value.fatalEvents + " FATALS"
-                    + "\n\n" + d.value.errorEvents + " ERRORS"
-                    + "\n\n" + d.value.warnEvents + " WARNINGS";
+                    + "\n\n" + d.value.error + " Errors"
+                    + "\n\n" + d.value.warning + " Warnings"
+                    + "\n\n" + d.value.info + " Infos"
+                    + "\n\n" + d.value.audit + " Audits"
+                    + "\n\n" + d.value.debug + " Debugs"
             })
-            .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
+            .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5).horizontal(true))
             .on("filtered", function (_chart, filter) {
                 refocusCockpitSecondaryCharts(chart.filter())
             })
