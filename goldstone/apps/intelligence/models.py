@@ -161,8 +161,8 @@ class LogData(object):
                             }
                         },
                         {
-                            "wildcard": {
-                                "type": "*syslog"
+                            "terms": {
+                                "type": ["syslog", "openstack_log"]
                             }
                         }
                     ]
@@ -225,8 +225,8 @@ class LogData(object):
 
         return result
 
-    def get_err_and_warn_range(self, conn, start_t, end_t, first, size,
-                               sort='', search_text=None):
+    def get_log_data(self, conn, start_t, end_t, first, size,
+                     level_filters=dict(), sort='', search_text=None):
 
         if search_text:
             search_text = "*" + search_text + "*"
@@ -257,18 +257,19 @@ class LogData(object):
             }
             q['query']['bool']['must'].append(sq)
 
-        err_filt = self._term_filter('loglevel', 'error')
-        fat_filt = self._term_filter('loglevel', 'fatal')
-        warn_filt = self._term_filter('loglevel', 'warning')
-        bad_filt = {'or': [err_filt, fat_filt, warn_filt]}
+        lev_filts = []
+        for lev in [k for k in level_filters.keys() if level_filters[k]]:
+                lev_filts.append(self._term_filter('loglevel', lev))
 
-        q['filter'] = bad_filt
-        fq = {
-            'query': {'filtered': q}
-        }
+        if len(lev_filts) > 0:
+            or_filt = {'or': lev_filts}
+            q['filter'] = or_filt
+            q = {
+                'query': {'filtered': q}
+            }
 
-        logger.debug("[get_err_warn_range] query = %s", fq)
-        return conn.search(index="_all", body=fq, from_=first, size=size,
+        logger.debug("[get_log_data] query = %s", q)
+        return conn.search(index="_all", body=q, from_=first, size=size,
                            sort=sort)
 
     def get_new_and_missing_nodes(self, conn, long_lookback, short_lookback,

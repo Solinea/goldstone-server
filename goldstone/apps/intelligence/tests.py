@@ -351,7 +351,7 @@ class LogDataModel(TestCase):
                     append(wildcard)
 
             control = self.conn.search(index="_all", body=test_q, sort=sort)
-            result = LogData().get_err_and_warn_range(self.conn, start, end,
+            result = LogData().get_log_data(self.conn, start, end,
                                                       0, 10, sort,
                                                       search_text)
             self.assertEqual(result['hits'], control['hits'])

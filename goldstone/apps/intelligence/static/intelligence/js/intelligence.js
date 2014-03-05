@@ -240,12 +240,34 @@ function _lineChartBase(location, margins, renderlet) {
  * @param {Date} start Instance of Date representing start of interval
  * @param {Date} end Instance of Date representing end of interval
  */
-function refreshSearchTable(start, end) {
+function refreshSearchTable(start, end, levels) {
     "use strict";
     var oTable,
+        toPyTs = function (t) {
+        switch (typeof t) {
+            case 'number':
+                return String(Math.round(t / 1000))
+            case 'Date':
+                return String(Math.round(t.getTime() / 1000))
+
+        }},
+        startTs = toPyTs(start),
+        endTs = toPyTs(end),
         uri = '/intelligence/log/search/data'.concat(
-        "?start_time=", String(Math.round(start.getTime() / 1000)),
-        "&end_time=", String(Math.round(end.getTime() / 1000)))
+        "?start_time=", startTs,
+        "&end_time=", endTs)
+
+
+    levels = levels || {}
+
+    console.log("[refreshSearchTable] levels = " + JSON.stringify(levels))
+
+    for (var k in levels) {
+        uri = uri.concat("&", k, "=", levels[k])
+    }
+
+    console.log("[refreshSearchTable] uri = " + uri)
+
 
     if ($.fn.dataTable.isDataTable("#log-search-table")) {
         oTable = $("#log-search-table").dataTable();
@@ -315,6 +337,7 @@ function badEventMultiLine(location, start, end) {
         levelHidingRenderlet = function (_chart) {
             // if the search table is present in the page, look up the hidden
             // status of all levels and redraw the page
+            if ($('#log-search-table').length > 0) {
 
             _chart.selectAll("g.dc-legend-item *")
                 .on("click", function (d) {
@@ -338,7 +361,9 @@ function badEventMultiLine(location, start, end) {
                         })
                     }
                     console.log("levelFilter = " + JSON.stringify(levelFilter))
+                    refreshSearchTable(start, end, levelFilter)
                 })
+            }
         },
         chart = _lineChartBase(location,
             { top: 50, bottom: 30, right: 30, left: 60 },
@@ -356,100 +381,105 @@ function badEventMultiLine(location, start, end) {
     $(loadingIndicator).show()
 
     d3.json(uri, function (error, events) {
-        events.data.forEach(function (d) {
-            d.time = new Date(d.time)
-            d.total = 0
-            events.levels.forEach(function (level) {
-                d[level] = +d[level] || 0
-                d.total += d[level]
-            })
-        })
-
-
-        var xf = crossfilter(events.data),
-            timeDim = xf.dimension(function (d) {
-                return d.time
-            }),
-            minDate = timeDim.bottom(1)[0].time,
-            maxDate = timeDim.top(1)[0].time,
-            errorGroup = eventGroup(timeDim, 'error', false),
-            warnGroup = eventGroup(timeDim, 'warning', false),
-            infoGroup = eventGroup(timeDim, 'info', false),
-            auditGroup = eventGroup(timeDim, 'audit', false),
-            debugGroup = eventGroup(timeDim, 'debug', false),
-            totalGroup = eventGroup(timeDim, 'total', false)
-
-        rangeChart
-            .width(rangeWidth)
-            .height(100)
-            .dimension(timeDim)
-            .group(totalGroup)
-            .valueAccessor(function (d) {
-                return d.value.total
-            })
-            .mouseZoomable(true)
-            .brushOn(true)
-            .x(d3.time.scale().domain([minDate, maxDate]))
-            .title(function (d) {
-                return d.key + "\n" + d.value.total + " total events"
-            })
-            .yAxis().ticks(2)
-
-
-
-        rangeChart.render()
-
-        chart
-            .rangeChart(rangeChart)
-            .height(300)
-            .elasticY(true)
-            .renderHorizontalGridLines(true)
-            .brushOn(false)
-            .mouseZoomable(true)
-            .hidableStacks(true)
-            .dimension(timeDim)
-            .group(debugGroup, "Debug").valueAccessor(function (d) {
-                return d.value.debug
-            })
-            .stack(auditGroup, "Audit", function (d) {
-                return d.value.audit
-            })
-            .stack(infoGroup, "Info", function (d) {
-                return d.value.info
-            })
-            .stack(warnGroup, "Warning", function (d) {
-                return d.value.warning
-            })
-            .stack(errorGroup, "Error", function (d) {
-                return d.value.error
-            })
-            .x(d3.time.scale().domain([minDate, maxDate]))
-            .title(function (d) {
-                var eventKey = Object.keys(d.value)[0]
-                return d.key
-                    + "\n" + d.value[eventKey] + " " + eventKey + " events"
-            })
-            .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5).horizontal(true))
-            //.on("filtered", function (_chart, filter) {
-            //    refocusCockpitSecondaryCharts(chart.filter())
-            //})
-            .renderlet(function (_chart) {
-                // smooth the rendering through event throttling
-                dc.events.trigger(function () {
-                    // focus some other chart to the range selected by user on this chart
-                    if (_chart.filter() !== null) {
-                        console.log("filter[0] = " + _chart.filter()[0] + ", filter[1] = " + _chart.filter()[1])
-                        refocusCockpitSecondaryCharts(_chart.filter())
-                    } else {
-                        console.log("received null filter")
-                    }
+        if (events.data.length > 0) {
+            events.data.forEach(function (d) {
+                d.time = new Date(d.time)
+                d.total = 0
+                events.levels.forEach(function (level) {
+                    d[level] = +d[level] || 0
+                    d.total += d[level]
                 })
             })
-            .renderlet(levelHidingRenderlet)
 
 
-        chart.render()
+            var xf = crossfilter(events.data),
+                timeDim = xf.dimension(function (d) {
+                    return d.time
+                }),
+                minDate = timeDim.bottom(1)[0].time,
+                maxDate = timeDim.top(1)[0].time,
+                errorGroup = eventGroup(timeDim, 'error', false),
+                warnGroup = eventGroup(timeDim, 'warning', false),
+                infoGroup = eventGroup(timeDim, 'info', false),
+                auditGroup = eventGroup(timeDim, 'audit', false),
+                debugGroup = eventGroup(timeDim, 'debug', false),
+                totalGroup = eventGroup(timeDim, 'total', false)
+
+            rangeChart
+                .width(rangeWidth)
+                .height(100)
+                .dimension(timeDim)
+                .group(totalGroup)
+                .valueAccessor(function (d) {
+                    return d.value.total
+                })
+                .mouseZoomable(true)
+                .brushOn(true)
+                .x(d3.time.scale().domain([minDate, maxDate]))
+                .title(function (d) {
+                    return d.key + "\n" + d.value.total + " total events"
+                })
+                .yAxis().ticks(2)
+
+
+
+            rangeChart.render()
+
+            chart
+                .rangeChart(rangeChart)
+                .height(300)
+                .elasticY(true)
+                .renderHorizontalGridLines(true)
+                .brushOn(false)
+                .mouseZoomable(true)
+                .hidableStacks(true)
+                .dimension(timeDim)
+                .group(debugGroup, "Debug").valueAccessor(function (d) {
+                    return d.value.debug
+                })
+                .stack(auditGroup, "Audit", function (d) {
+                    return d.value.audit
+                })
+                .stack(infoGroup, "Info", function (d) {
+                    return d.value.info
+                })
+                .stack(warnGroup, "Warning", function (d) {
+                    return d.value.warning
+                })
+                .stack(errorGroup, "Error", function (d) {
+                    return d.value.error
+                })
+                .x(d3.time.scale().domain([minDate, maxDate]))
+                .title(function (d) {
+                    var eventKey = Object.keys(d.value)[0]
+                    return d.key
+                        + "\n" + d.value[eventKey] + " " + eventKey + " events"
+                })
+                .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5).horizontal(true))
+                //.on("filtered", function (_chart, filter) {
+                //    refocusCockpitSecondaryCharts(chart.filter())
+                //})
+                .renderlet(function (_chart) {
+                    // smooth the rendering through event throttling
+                    dc.events.trigger(function () {
+                        // focus some other chart to the range selected by user on this chart
+                        if (_chart.filter() !== null) {
+                            console.log("filter[0] = " + _chart.filter()[0] + ", filter[1] = " + _chart.filter()[1])
+                            refocusCockpitSecondaryCharts(_chart.filter())
+                        } else {
+                            console.log("received null filter")
+                        }
+                    })
+                })
+                .renderlet(levelHidingRenderlet)
+
+
+            chart.render()
+        } else {
+            raiseInfo("no data found")
+        }
         $(loadingIndicator).hide()
+
     })
 
 }
