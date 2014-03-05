@@ -6,4 +6,5 @@ from .views import CockpitView
 urlpatterns = patterns(
     '',
     url(r'^$',  CockpitView.as_view(), name='cockpit'),
+    url(r'^report[/]?$',  CockpitView.as_view(), name='report'),
 )
