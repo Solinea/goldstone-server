@@ -47,9 +47,9 @@
                     <li><a href="/"><i class="fa fa-cloud"></i> Home</a></li>
 
                     <li class="dropdown">
-                        <a href="#intelligence" class="dropdown-toggle"
+                        <a href="#discover" class="dropdown-toggle"
                            data-toggle="dropdown"><i
-                                class="fa fa-dashboard"></i> Intelligence <b
+                                class="fa fa-dashboard"></i> Discover <b
                                 class="caret"></b></a>
                         <ul class="dropdown-menu">
                             <li><a href="/intelligence/search"><i
@@ -63,10 +63,13 @@
                         </ul>
                     </li>
                     <li class="dropdown">
-                        <a href="#compliance" class="dropdown-toggle"
-                           data-toggle="dropdown"><i class="fa fa-camera"></i>
-                            Compliance <b class="caret"></b></a>
+                        <a href="#report" class="dropdown-toggle"
+                           data-toggle="dropdown"><i
+                                class="fa fa-camera">Report</i><b
+                                class="caret"></b></a>
                         <ul class="dropdown-menu">
+                                <li><a href="/"><i
+                                       class="fa fa-bar-chart-o"></i> Overview</a></li>
                             {% switch gse %}
                                 <li><a href="/leases/"><i
                                         class="fa fa-calendar"></i> Leases</a>
@@ -74,19 +77,25 @@
                             {% endswitch %}
                         </ul>
                     </li>
-
+                    {% switch gse %}
                     <li class="dropdown">
-                        <a href="#automation" class="dropdown-toggle"
+                        <a href="#analyze" class="dropdown-toggle"
                            data-toggle="dropdown"><i class="fa fa-gears"></i>
-                            Automation <b class="caret"></b></a>
+                            Analyze <b class="caret"></b></a>
                         <ul class="dropdown-menu">
-                            {% switch gse %}
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#automate" class="dropdown-toggle"
+                           data-toggle="dropdown"><i class="fa fa-gears"></i>
+                            Automate <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
                                 <li><a href="/intelligence/"><i
                                         class="fa fa-shopping-cart"></i>
                                     Flavors</a></li>
-                            {% endswitch %}
                         </ul>
                     </li>
+                    {% endswitch %}
                 </ul>
             </div>
             <!--/.nav-collapse -->
