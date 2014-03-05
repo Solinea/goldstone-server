@@ -44,6 +44,14 @@
 
 .resource-chart g.stack._1 path.line {
     stroke-width: 1.5px;
+}
+
+.resource-chart g.stack._2 path.area {
+    fill-opacity: 0
+}
+
+.resource-chart g.stack._2 path.line {
+    stroke-width: 1.5px;
     stroke-dasharray: 5,3;
 }
 

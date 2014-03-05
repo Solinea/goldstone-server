@@ -86,12 +86,12 @@
     </div>
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i>
                         CPU
-                        Stats (No Oversubscription)</h3>
+                        Stats</h3>
                 </div>
                 <div id="phys-cpu-chart" class="panel-body resource-chart"
                      style="height:400px">
@@ -102,30 +102,12 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="panel panel-primary intel_panel">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i>
-                        CPU
-                        Stats (With Oversubscription)</h3>
-                </div>
-                <div id="virt-cpu-chart" class="panel-body resource-chart"
-                     style="height:400px">
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="virt-cpu-loading-indicator" class="ajax-loader"/>
-
-                    <div class="clearfix"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i>
                         Memory
-                        Stats (No Oversubscription)</h3>
+                        Stats</h3>
                 </div>
                 <div id="phys-mem-chart" class="panel-body resource-chart"
                      style="height:400px">
@@ -136,33 +118,13 @@
                     <div class="clearfix"></div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="panel panel-primary intel_panel">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i>
-                        Memory
-                        Stats (With Oversubscription)</h3>
-                </div>
-                <div id="virt-mem-chart" class="panel-body resource-chart"
-                     style="height:400px">
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="virt-mem-loading-indicator"
-                         class="ajax-loader"/>
-
-                    <div class="clearfix"></div>
-                </div>
             </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6">
+            <div class="col-md-4">
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i>
                         Disk
-                        Stats (No Oversubscription)</h3>
+                        Stats</h3>
                 </div>
                 <div id="phys-disk-chart" class="panel-body resource-chart"
                      style="height:400px">

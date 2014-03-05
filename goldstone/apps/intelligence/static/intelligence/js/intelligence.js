@@ -55,9 +55,7 @@ function refreshCockpitEventCharts(start, end) {
 function refreshCockpitSecondaryCharts(start, end) {
     "use strict";
     physCpuChart("#phys-cpu-chart", start, end)
-    virtCpuChart("#virt-cpu-chart", start, end)
     physMemChart("#phys-mem-chart", start, end)
-    virtMemChart("#virt-mem-chart", start, end)
     physDiskChart("#phys-disk-chart", start, end)
     var presenceUnit = $("select#hostPresenceUnit").val(),
         presenceQty = $("input#hostPresenceQty").val()
@@ -218,7 +216,7 @@ function _lineChartBase(location, margins, renderlet) {
         chart = dc.lineChart(location)
 
     margins = typeof margins !== 'undefined' ?
-            margins : { top: 50, bottom: 60, right: 30, left: 40 }
+            margins : { top: 70, bottom: 60, right: 30, left: 50 }
 
     chart
         .renderArea(true)
@@ -486,22 +484,26 @@ function _chartCrossFilterSetup(params, chartConstants) {
         ),
         jsonProcessingFunction = function (d) {
             d.time = new Date(d.time)
-            d[chartConstants.totalField] = +d[chartConstants.totalField]
+            d[chartConstants.totalPhysField] = +d[chartConstants.totalPhysField]
+            d[chartConstants.totalVirtField] = +d[chartConstants.totalVirtField]
             d[chartConstants.usedField] = +d[chartConstants.usedField]
         },
         reduceEnterFunction = function (p, v) {
-            p[chartConstants.totalField] += v[chartConstants.totalField]
+            p[chartConstants.totalPhysField] += v[chartConstants.totalPhysField]
+            p[chartConstants.totalVirtField] += v[chartConstants.totalVirtField]
             p[chartConstants.usedField] += v[chartConstants.usedField]
             return p
         },
         reduceExitFunction = function (p, v) {
-            p[chartConstants.totalField] -= v[chartConstants.totalField]
+            p[chartConstants.totalPhysField] -= v[chartConstants.totalPhysField]
+            p[chartConstants.totalVirtField] -= v[chartConstants.totalVirtField]
             p[chartConstants.usedField] -= v[chartConstants.usedField]
             return p
         },
         reduceInitFunction = function () {
             var obj = {}
-            obj[chartConstants.totalField] = 0
+            obj[chartConstants.totalPhysField] = 0
+            obj[chartConstants.totalVirtField] = 0
             obj[chartConstants.usedField] = 0
             return obj
         }
@@ -531,19 +533,38 @@ function _customizeChart(_chart, xf, cfSetup, chartConstants,
 
     _chart
             .dimension(timeDim)
-            .group(eventsByTime, "Avg. Used " + chartConstants.resourceLabel)
+            .group(eventsByTime, "Used " + chartConstants.resourceLabel)
             .valueAccessor(function (d) {
                 return d.value[chartConstants.usedField]
             })
-            .stack(eventsByTime, "Avg. Total "  + chartConstants.resourceLabel, function (d) {
-                return (d.value[chartConstants.totalField])
+            .stack(eventsByTime, "Physical "  + chartConstants.resourceLabel, function (d) {
+                return (d.value[chartConstants.totalPhysField] - d.value[chartConstants.usedField])
             })
             .x(d3.time.scale().domain([minDate, maxDate]))
+            .ordinalColors(["#6a51a3", "#2171b5", "#d94801"])
+            .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
             .title(function (d) {
-                return d.key +
-                    "\n\n" + d.value[chartConstants.totalField] + " Total" +
+                    return d.key +
+                    "\n\n" + d.value[chartConstants.totalPhysField] + " Total Physical" +
                     "\n\n" + d.value[chartConstants.usedField] + " Used"
             })
+            .xAxis().ticks(5)
+
+
+    // the disk chart does not have a virtual field
+    if (typeof chartConstants.totalVirtField !== 'undefined') {
+        _chart
+            .stack(eventsByTime, "Virtual "  + chartConstants.resourceLabel, function (d) {
+                return (d.value[chartConstants.totalVirtField] - d.value[chartConstants.totalPhysField])
+            })
+            .title(function (d) {
+                    return d.key +
+                    "\n\n" + d.value[chartConstants.totalPhysField] + " Total Physical" +
+                    "\n\n" + d.value[chartConstants.totalVirtField] + " Total Virtual" +
+                    "\n\n" + d.value[chartConstants.usedField] + " Used"
+                })
+    }
+
 
     return _chart
 }
@@ -572,23 +593,11 @@ function physCpuChart(location, start, end) {
 
     var chartConstants = {
             uriBase: "/intelligence/compute/cpu_stats",
-            totalField : "phys_cpu_avg_total",
-            usedField : "phys_cpu_avg_used",
-            resourceLabel: "CPU Cores",
-            loadingIndicator: "#phys-cpu-loading-indicator"
-        }
-
-    _renderResourceChart(location, start, end, chartConstants)
-}
-
-function virtCpuChart(location, start, end) {
-
-    var chartConstants = {
-            uriBase: "/intelligence/compute/cpu_stats",
-            totalField : "virt_cpu_avg_total",
+            totalPhysField : "phys_cpu_avg_total",
+            totalVirtField : "virt_cpu_avg_total",
             usedField : "virt_cpu_avg_used",
-            resourceLabel: "CPU Cores",
-            loadingIndicator: "#virt-cpu-loading-indicator"
+            resourceLabel: "Cores",
+            loadingIndicator: "#phys-cpu-loading-indicator"
         }
 
     _renderResourceChart(location, start, end, chartConstants)
@@ -598,9 +607,10 @@ function physMemChart(location, start, end) {
 
     var chartConstants = {
             uriBase: "/intelligence/compute/mem_stats",
-            totalField: "phys_mem_avg_total",
-            usedField: "phys_mem_avg_used",
-            resourceLabel: "Memory",
+            totalPhysField: "phys_mem_avg_total",
+            totalVirtField: "virt_mem_avg_total",
+            usedField: "virt_mem_avg_used",
+            resourceLabel: "GB",
             loadingIndicator: "#phys-mem-loading-indicator"
         }
 
@@ -608,26 +618,13 @@ function physMemChart(location, start, end) {
 
 }
 
-function virtMemChart(location, start, end) {
-    var chartConstants = {
-            uriBase: "/intelligence/compute/mem_stats",
-            totalField: "virt_mem_avg_total",
-            usedField: "virt_mem_avg_used",
-            resourceLabel: "Memory",
-            loadingIndicator: "#virt-mem-loading-indicator"
-        }
-
-    _renderResourceChart(location, start, end, chartConstants)
-}
-
-
 function physDiskChart(location, start, end) {
 
     var chartConstants = {
             uriBase: "/intelligence/compute/disk_stats",
-            totalField: "phys_disk_avg_total",
+            totalPhysField: "phys_disk_avg_total",
             usedField: "phys_disk_avg_used",
-            resourceLabel: "Disk",
+            resourceLabel: "GB",
             loadingIndicator: "#phys-disk-loading-indicator"
         }
 
