@@ -216,7 +216,7 @@ function _lineChartBase(location, margins, renderlet) {
         chart = dc.lineChart(location)
 
     margins = typeof margins !== 'undefined' ?
-            margins : { top: 70, bottom: 60, right: 30, left: 50 }
+            margins : { top: 30, bottom: 60, right: 30, left: 50 }
 
     chart
         .renderArea(true)
@@ -344,11 +344,11 @@ function badEventMultiLine(location, start, end) {
             }
         },
         chart = _lineChartBase(location,
-            { top: 50, bottom: 30, right: 30, left: 60 },
+            { top: 30, bottom: 30, right: 30, left: 50 },
             clickRenderlet
         ),
         rangeChart = _lineChartBase("#bad-event-range",
-            { top: 0, bottom: 50, right: 30, left: 60 }),
+            { top: 0, bottom: 30, right: 30, left: 50 }),
         loadingIndicator = "#log-multiline-loading-indicator",
         params = _processTimeBasedChartParams(end, start, maxPoints),
         uri = "/intelligence/log/cockpit/data?start_time="
@@ -447,6 +447,7 @@ function badEventMultiLine(location, start, end) {
                     return d.key
                         + "\n" + d.value[eventKey] + " " + eventKey + " events"
                 })
+                .yAxisLabel("Log Events")
                 .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5).horizontal(true))
                 .renderlet(function (_chart) {
                     // smooth the rendering through event throttling
@@ -533,28 +534,29 @@ function _customizeChart(_chart, xf, cfSetup, chartConstants,
 
     _chart
             .dimension(timeDim)
-            .group(eventsByTime, "Used " + chartConstants.resourceLabel)
+            .group(eventsByTime, "Used")
             .valueAccessor(function (d) {
                 return d.value[chartConstants.usedField]
             })
-            .stack(eventsByTime, "Physical "  + chartConstants.resourceLabel, function (d) {
+            .stack(eventsByTime, "Physical", function (d) {
                 return (d.value[chartConstants.totalPhysField] - d.value[chartConstants.usedField])
             })
             .x(d3.time.scale().domain([minDate, maxDate]))
             .ordinalColors(["#6a51a3", "#2171b5", "#d94801"])
-            .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5))
+            .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5).horizontal(true))
             .title(function (d) {
                     return d.key +
                     "\n\n" + d.value[chartConstants.totalPhysField] + " Total Physical" +
                     "\n\n" + d.value[chartConstants.usedField] + " Used"
             })
+            .yAxisLabel(chartConstants.resourceLabel)
             .xAxis().ticks(5)
 
 
     // the disk chart does not have a virtual field
     if (typeof chartConstants.totalVirtField !== 'undefined') {
         _chart
-            .stack(eventsByTime, "Virtual "  + chartConstants.resourceLabel, function (d) {
+            .stack(eventsByTime, "Virtual", function (d) {
                 return (d.value[chartConstants.totalVirtField] - d.value[chartConstants.totalPhysField])
             })
             .title(function (d) {

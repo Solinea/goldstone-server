@@ -91,7 +91,7 @@ def log_search_data(request):
     start_ts = int(request.GET.get('start_time'))
     level_filters = {
         'error': request.GET.get('error', True),
-        'warning' : request.GET.get('warning', True),
+        'warning': request.GET.get('warning', True),
         'info': request.GET.get('info', True),
         'audit': request.GET.get('audit', True),
         'debug': request.GET.get('debug', True)
@@ -117,7 +117,7 @@ def log_search_data(request):
         int(request.GET.get('iDisplayLength')),
         level_filters,
         search_text=request.GET.get('sSearch', None),
-        sort=["".join([sort_col, ":", sort_dir])]
+        sort=["".join([sort_col, ":", sort_dir])],
     )
 
     aa_data = []
