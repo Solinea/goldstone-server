@@ -4,9 +4,7 @@ $(document).ready(function () {
     badEventMultiLine('#bad-event-multiline')
     hostPresenceTable('#host-presence-table')
     physCpuChart("#phys-cpu-chart")
-    virtCpuChart("#virt-cpu-chart")
     physMemChart("#phys-mem-chart")
-    virtMemChart("#virt-mem-chart")
     physDiskChart("#phys-disk-chart")
 });
 
