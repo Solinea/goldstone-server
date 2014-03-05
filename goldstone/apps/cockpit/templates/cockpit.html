@@ -7,9 +7,10 @@
           rel="stylesheet" media="screen">
     <link href="{% static 'css/plugins/datetimepicker/jquery.datetimepicker.css' %}"
           rel="stylesheet" media="screen">
+    <link href="{% static 'css/dc.css' %}" rel="stylesheet" media="screen"/>
     <link href="{% static 'intelligence/css/intelligence.css' %}"
           rel="stylesheet" media="screen">
-    <link href="{% static 'css/dc.css' %}" rel="stylesheet" media="screen"/>
+
 {% endblock %}
 
 {% block localjs %}
@@ -92,7 +93,7 @@
                         CPU
                         Stats (No Oversubscription)</h3>
                 </div>
-                <div id="phys-cpu-chart" class="panel-body"
+                <div id="phys-cpu-chart" class="panel-body resource-chart"
                      style="height:400px">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                          id="phys-cpu-loading-indicator" class="ajax-loader"/>
@@ -108,7 +109,7 @@
                         CPU
                         Stats (With Oversubscription)</h3>
                 </div>
-                <div id="virt-cpu-chart" class="panel-body"
+                <div id="virt-cpu-chart" class="panel-body resource-chart"
                      style="height:400px">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                          id="virt-cpu-loading-indicator" class="ajax-loader"/>
@@ -126,7 +127,7 @@
                         Memory
                         Stats (No Oversubscription)</h3>
                 </div>
-                <div id="phys-mem-chart" class="panel-body"
+                <div id="phys-mem-chart" class="panel-body resource-chart"
                      style="height:400px">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                          id="phys-mem-loading-indicator"
@@ -143,7 +144,7 @@
                         Memory
                         Stats (With Oversubscription)</h3>
                 </div>
-                <div id="virt-mem-chart" class="panel-body"
+                <div id="virt-mem-chart" class="panel-body resource-chart"
                      style="height:400px">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                          id="virt-mem-loading-indicator"
@@ -163,7 +164,7 @@
                         Disk
                         Stats (No Oversubscription)</h3>
                 </div>
-                <div id="phys-disk-chart" class="panel-body"
+                <div id="phys-disk-chart" class="panel-body resource-chart"
                      style="height:400px">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                          id="phys-disk-loading-indicator" class="ajax-loader"/>
@@ -183,7 +184,7 @@
                                 class="fa fa-bar-chart-o"></i>
                             vCPU Usage</h3>
                     </div>
-                    <div id="vcpu-graph" class="panel-body"
+                    <div id="vcpu-graph" class="panel-body resource-chart"
                          style="height:400px">
                         <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                              id="vcpu-loading-indicator" class="ajax-loader"/>

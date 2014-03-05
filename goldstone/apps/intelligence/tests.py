@@ -323,8 +323,10 @@ class LogDataModel(TestCase):
                         'filter': {
                             'or': [
                                 {'term': {'loglevel': 'error'}},
-                                {'term': {'loglevel': 'fatal'}},
-                                {'term': {'loglevel': 'warning'}}
+                                {'term': {'loglevel': 'warning'}},
+                                {'term': {'loglevel': 'info'}},
+                                {'term': {'loglevel': 'audit'}},
+                                {'term': {'loglevel': 'debug'}}
                             ]
                         },
                         'query': {
@@ -352,8 +354,8 @@ class LogDataModel(TestCase):
 
             control = self.conn.search(index="_all", body=test_q, sort=sort)
             result = LogData().get_log_data(self.conn, start, end,
-                                                      0, 10, sort,
-                                                      search_text)
+                                                      0, 10, sort=sort,
+                                                      search_text=search_text)
             self.assertEqual(result['hits'], control['hits'])
 
         end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
