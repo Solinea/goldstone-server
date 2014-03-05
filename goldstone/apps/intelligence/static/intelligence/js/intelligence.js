@@ -535,13 +535,13 @@ function _customizeChart(_chart, xf, cfSetup, chartConstants,
             .valueAccessor(function (d) {
                 return d.value[chartConstants.usedField]
             })
-            .stack(eventsByTime, "Avg. Free "  + chartConstants.resourceLabel, function (d) {
-                return (d.value[chartConstants.totalField] - d.value[chartConstants.usedField])
+            .stack(eventsByTime, "Avg. Total "  + chartConstants.resourceLabel, function (d) {
+                return (d.value[chartConstants.totalField])
             })
             .x(d3.time.scale().domain([minDate, maxDate]))
             .title(function (d) {
                 return d.key +
-                    "\n\n" + (d.value[chartConstants.totalField] - d.value[chartConstants.usedField]) + " Free" +
+                    "\n\n" + d.value[chartConstants.totalField] + " Total" +
                     "\n\n" + d.value[chartConstants.usedField] + " Used"
             })
 
