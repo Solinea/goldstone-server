@@ -396,6 +396,7 @@ function badEventMultiLine(location, start, end) {
                 .mouseZoomable(true)
                 .brushOn(true)
                 .x(d3.time.scale().domain([minDate, maxDate]))
+                .ordinalColors(["#d9d9d9"])
                 .title(function (d) {
                     return d.key + "\n" + d.value.total + " total events"
                 })
@@ -430,24 +431,32 @@ function badEventMultiLine(location, start, end) {
                     return d.value.error
                 })
                 .x(d3.time.scale().domain([minDate, maxDate]))
+                // spectral blue/red
+                // ["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"]
+                //.ordinalColors(["#313695", "#74add1", "#e0f3f8", "#fee090", "#f46d43"])
+                // spectral blue/yellow/red
+                .ordinalColors(["#6a51a3", "#2171b5", "#238b45", "#d94801", "#cb181d"])
+                // blue purple
+                //.ordinalColors(["#edf8fb", "#bfd3e6", "#9ebcda", "#8c96c6", "#8856a7", "#810f7c"])
+                // red purple
+                //.ordinalColors(["#f1eef6","#d4b9da","#c994c7","#df65b0","#dd1c77","#980043"])
+                // flat
+                //.ordinalColors(["#334d5c", "#45b29d","#efc94c","#e27a3f","#df5a49"])
+                //flat2
+                //.ordinalColors(["#553657", "#334d5c", "#45b29d","#efc94c","#df5a49"])
                 .title(function (d) {
                     var eventKey = Object.keys(d.value)[0]
                     return d.key
                         + "\n" + d.value[eventKey] + " " + eventKey + " events"
                 })
                 .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5).horizontal(true))
-                //.on("filtered", function (_chart, filter) {
-                //    refocusCockpitSecondaryCharts(chart.filter())
-                //})
                 .renderlet(function (_chart) {
                     // smooth the rendering through event throttling
                     dc.events.trigger(function () {
                         // focus some other chart to the range selected by user on this chart
                         if (_chart.filter() !== null) {
-                            console.log("filter[0] = " + _chart.filter()[0] + ", filter[1] = " + _chart.filter()[1])
                             refocusCockpitSecondaryCharts(_chart.filter())
                         } else {
-                            console.log("received null filter")
                         }
                     })
                 })

@@ -259,6 +259,7 @@ class LogData(object):
             q['query']['bool']['must'].append(sq)
 
         lev_filts = []
+
         for lev in [k for k in level_filters.keys() if level_filters[k]]:
                 lev_filts.append(self._term_filter('loglevel', lev))
 
