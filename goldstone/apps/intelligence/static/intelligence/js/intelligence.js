@@ -257,17 +257,10 @@ function refreshSearchTable(start, end, levels) {
         "?start_time=", startTs,
         "&end_time=", endTs)
 
-
     levels = levels || {}
-
-    console.log("[refreshSearchTable] levels = " + JSON.stringify(levels))
-
     for (var k in levels) {
         uri = uri.concat("&", k, "=", levels[k])
     }
-
-    console.log("[refreshSearchTable] uri = " + uri)
-
 
     if ($.fn.dataTable.isDataTable("#log-search-table")) {
         oTable = $("#log-search-table").dataTable();
@@ -307,15 +300,6 @@ function badEventMultiLine(location, start, end) {
         )
     }
 
-    var filterLevelRenderlet = function (_chart) {
-        chart.selectAll("g.dc-legend-item rect")
-            .on("click", function (d) {
-                d.hidden = !d.hidden
-                console.log("d = " + JSON.stringify(d))
-                _chart.redraw()
-            })
-    }
-
     var rangeWidth = $(location).width(),
         maxPoints = rangeWidth / 10,
         clickRenderlet = function (_chart) {
@@ -341,7 +325,6 @@ function badEventMultiLine(location, start, end) {
 
             _chart.selectAll("g.dc-legend-item *")
                 .on("click", function (d) {
-                    console.log("onclick d = " + JSON.stringify(d))
                     var levelFilter = {}
                     // looks like we take the opposite value of hidden for
                     // the element that was clicked, and the current value
@@ -349,8 +332,6 @@ function badEventMultiLine(location, start, end) {
                     levelFilter[d.name.toLowerCase()] = d.hidden
 
                     var rects = _chart.selectAll("g.dc-legend-item rect")
-                    //var parent = d3.select(this.parentNode)
-                    //console.log("parent = " + JSON.stringify(parent.data()))
                     if (rects.length > 0) {
                         // we have an array of elements in [0]
                         rects = rects[0]
@@ -360,7 +341,6 @@ function badEventMultiLine(location, start, end) {
                             }
                         })
                     }
-                    console.log("levelFilter = " + JSON.stringify(levelFilter))
                     refreshSearchTable(start, end, levelFilter)
                 })
             }
@@ -667,10 +647,11 @@ function drawSearchTable(location, start, end) {
         "&end_time=", String(Math.round(end.getTime() / 1000)))
 
     if ($.fn.dataTable.isDataTable(location)) {
-        oTable = $(location).dataTable();
-        oTable.fnReloadAjax(uri);
+        oTable = $(location).dataTable()
+        oTable.fnReloadAjax(uri)
     } else {
         var oTableParams = {
+            "fnInitComplete": function () {this.fnSetFilteringDelay(500)},
             "bProcessing": true,
             "bServerSide": true,
             "sAjaxSource": uri,
@@ -695,10 +676,11 @@ function drawSearchTable(location, start, end) {
                 { "sName": "type", "aTargets": [ 9 ] },
                 { "sName": "received", "aTargets": [ 10 ] },
                 { "sType": "date", "aTargets": [10] }
-            ]
+            ],
         }
 
-        oTable = $(location).dataTable(oTableParams);
+        oTable = $(location).dataTable(oTableParams)
+
 
         $(window).bind('resize', function () {
             oTable.fnAdjustColumnSizing();

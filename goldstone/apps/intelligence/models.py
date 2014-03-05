@@ -250,6 +250,7 @@ class LogData(object):
         }
 
         if search_text:
+
             sq = {
                 "wildcard": {
                     "_message.raw": search_text
