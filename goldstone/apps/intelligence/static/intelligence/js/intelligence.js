@@ -67,7 +67,6 @@ function refreshCockpitSecondaryCharts(start, end) {
 
 function refocusCockpitSecondaryCharts(filter) {
     "use strict";
-    console.log("charts = " + JSON.stringify(secondaryCockpitCharts))
     var keys = Object.keys(secondaryCockpitCharts)
 
     keys.forEach(function (key) {
@@ -122,13 +121,9 @@ function _getSearchFormDates() {
  */
 function _autoSizeTimeInterval(start, end, maxPoints) {
     "use strict";
-    console.log("startDate = " + start)
-    console.log("endDate = " + end)
-    console.log("maxPoints = " + maxPoints)
     var diffSeconds = (end.getTime() - start.getTime()) / 1000,
         intervalSecs = diffSeconds / maxPoints,
         result = String(intervalSecs) + "s"
-    console.log("interval = " + result)
     return result
 }
 
@@ -268,6 +263,37 @@ function refreshSearchTable(start, end) {
  */
 function badEventMultiLine(location, start, end) {
 
+    var eventGroup = function (dim, level, supressed) {
+        return dim.group().reduce(
+            function (p, v) {
+                    if (! supressed) {
+                        p[level] += v[level]
+                    }
+                    return p
+                },
+            function (p, v) {
+                    if (! supressed) {
+                        p[level] -= v[level]
+                    }
+                    return p
+                },
+            function () {
+                var p = {}
+                p[level] = 0
+                return p
+            }
+        )
+    }
+
+    var filterLevelRenderlet = function (_chart) {
+        chart.selectAll("g.dc-legend-item rect")
+            .on("click", function (d) {
+                d.hidden = !d.hidden
+                console.log("d = " + JSON.stringify(d))
+                _chart.redraw()
+            })
+    }
+
     var rangeWidth = $(location).width(),
         maxPoints = rangeWidth / 10,
         clickRenderlet = function (_chart) {
@@ -276,7 +302,6 @@ function badEventMultiLine(location, start, end) {
                     // load the log search page with chart and table set
                     // to this range.  Params is being accessed through closure
                     var interval = Number(params.interval.slice(0, -1))
-                    console.log("in renderlet, interval = " + interval)
                     var start = (new Date(d.data.key)).addSeconds(-1 * interval),
                         end = (new Date(d.data.key)).addSeconds(interval),
                         uri = '/intelligence/search?start_time='
@@ -285,6 +310,34 @@ function badEventMultiLine(location, start, end) {
 
                     window.location.assign(uri)
 
+                })
+        },
+        levelHidingRenderlet = function (_chart) {
+            // if the search table is present in the page, look up the hidden
+            // status of all levels and redraw the page
+
+            _chart.selectAll("g.dc-legend-item *")
+                .on("click", function (d) {
+                    console.log("onclick d = " + JSON.stringify(d))
+                    var levelFilter = {}
+                    // looks like we take the opposite value of hidden for
+                    // the element that was clicked, and the current value
+                    // for others
+                    levelFilter[d.name.toLowerCase()] = d.hidden
+
+                    var rects = _chart.selectAll("g.dc-legend-item rect")
+                    //var parent = d3.select(this.parentNode)
+                    //console.log("parent = " + JSON.stringify(parent.data()))
+                    if (rects.length > 0) {
+                        // we have an array of elements in [0]
+                        rects = rects[0]
+                        rects.forEach(function (r) {
+                            if (r.__data__.name !== d.name) {
+                                levelFilter[r.__data__.name.toLowerCase()] = !r.__data__.hidden
+                            }
+                        })
+                    }
+                    console.log("levelFilter = " + JSON.stringify(levelFilter))
                 })
         },
         chart = _lineChartBase(location,
@@ -319,44 +372,29 @@ function badEventMultiLine(location, start, end) {
             }),
             minDate = timeDim.bottom(1)[0].time,
             maxDate = timeDim.top(1)[0].time,
-            eventsByTime = timeDim.group().reduce(
-                function (p, v) {
-                    events.levels.forEach(function (level) {
-                        p[level] += v[level]
-                    })
-                    p.total += v.total
-                    console.log("p = " + JSON.stringify(p))
-                    return p
-                },
-                function (p, v) {
-                    events.levels.forEach(function (level) {
-                        p[level] -= v[level]
-                    })
-                    p.total -= v.total
-                    return p
-                },
-                function () {
-                    var p = {}
-                    events.levels.forEach(function (level) {
-                        p[level] = 0
-                    })
-                    p.total = 0
-                    return p
-                }
-            )
+            errorGroup = eventGroup(timeDim, 'error', false),
+            warnGroup = eventGroup(timeDim, 'warning', false),
+            infoGroup = eventGroup(timeDim, 'info', false),
+            auditGroup = eventGroup(timeDim, 'audit', false),
+            debugGroup = eventGroup(timeDim, 'debug', false),
+            totalGroup = eventGroup(timeDim, 'total', false)
 
         rangeChart
             .width(rangeWidth)
             .height(100)
             .dimension(timeDim)
-            .group(eventsByTime)
+            .group(totalGroup)
             .valueAccessor(function (d) {
                 return d.value.total
             })
             .mouseZoomable(true)
             .brushOn(true)
             .x(d3.time.scale().domain([minDate, maxDate]))
+            .title(function (d) {
+                return d.key + "\n" + d.value.total + " total events"
+            })
             .yAxis().ticks(2)
+
 
 
         rangeChart.render()
@@ -368,47 +406,47 @@ function badEventMultiLine(location, start, end) {
             .renderHorizontalGridLines(true)
             .brushOn(false)
             .mouseZoomable(true)
+            .hidableStacks(true)
             .dimension(timeDim)
-            .group(eventsByTime, "Debug")
-            .valueAccessor(function (d) {
+            .group(debugGroup, "Debug").valueAccessor(function (d) {
                 return d.value.debug
             })
-            .stack(eventsByTime, "Audit", function (d) {
+            .stack(auditGroup, "Audit", function (d) {
                 return d.value.audit
             })
-            .stack(eventsByTime, "Info", function (d) {
+            .stack(infoGroup, "Info", function (d) {
                 return d.value.info
             })
-            .stack(eventsByTime, "Warning", function (d) {
+            .stack(warnGroup, "Warning", function (d) {
                 return d.value.warning
             })
-            .stack(eventsByTime, "Error", function (d) {
+            .stack(errorGroup, "Error", function (d) {
                 return d.value.error
             })
             .x(d3.time.scale().domain([minDate, maxDate]))
             .title(function (d) {
+                var eventKey = Object.keys(d.value)[0]
                 return d.key
-                    //+ "\n\n" + d.value.fatalEvents + " FATALS"
-                    + "\n\n" + d.value.error + " Errors"
-                    + "\n\n" + d.value.warning + " Warnings"
-                    + "\n\n" + d.value.info + " Infos"
-                    + "\n\n" + d.value.audit + " Audits"
-                    + "\n\n" + d.value.debug + " Debugs"
+                    + "\n" + d.value[eventKey] + " " + eventKey + " events"
             })
             .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5).horizontal(true))
-            .on("filtered", function (_chart, filter) {
-                refocusCockpitSecondaryCharts(chart.filter())
-            })
-            .renderlet(function (chart) {
+            //.on("filtered", function (_chart, filter) {
+            //    refocusCockpitSecondaryCharts(chart.filter())
+            //})
+            .renderlet(function (_chart) {
                 // smooth the rendering through event throttling
                 dc.events.trigger(function () {
                     // focus some other chart to the range selected by user on this chart
-                    if (chart.filter() !== null) {
-                        console.log("filter = " + JSON.stringify(chart.filter()))
-                        refocusCockpitSecondaryCharts(chart.filter())
+                    if (_chart.filter() !== null) {
+                        console.log("filter[0] = " + _chart.filter()[0] + ", filter[1] = " + _chart.filter()[1])
+                        refocusCockpitSecondaryCharts(_chart.filter())
+                    } else {
+                        console.log("received null filter")
                     }
                 })
-            });
+            })
+            .renderlet(levelHidingRenderlet)
+
 
         chart.render()
         $(loadingIndicator).hide()
@@ -494,7 +532,6 @@ function _customizeChart(_chart, xf, cfSetup, chartConstants,
 function _renderResourceChart(location, start, end,
                               chartConstants) {
     "use strict";
-    console.log("[_renderResourceChart] location = " + location)
     $(chartConstants.loadingIndicator).show()
     var maxPoints = ($(location).width()) / 10,
         params = _processTimeBasedChartParams(end, start, maxPoints),
