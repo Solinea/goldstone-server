@@ -7,9 +7,10 @@
           rel="stylesheet" media="screen">
     <link href="{% static 'css/plugins/datetimepicker/jquery.datetimepicker.css' %}"
           rel="stylesheet" media="screen">
+    <link href="{% static 'css/dc.css' %}" rel="stylesheet" media="screen"/>
     <link href="{% static 'intelligence/css/intelligence.css' %}"
           rel="stylesheet" media="screen">
-    <link href="{% static 'css/dc.css' %}" rel="stylesheet" media="screen"/>
+
 {% endblock %}
 
 {% block localjs %}
@@ -24,8 +25,8 @@
     <script src="{% static 'intelligence/js/intelligence.js' %}"></script>
     <script src="{% static 'js/cockpit.js' %}"></script>
     {% switch gse %}
-    <script src="{% static 'intelligence/js/intelligence-gse.js' %}"></script>
-    <script src="{% static 'js/cockpit-gse.js' %}"></script>
+        <script src="{% static 'intelligence/js/intelligence-gse.js' %}"></script>
+        <script src="{% static 'js/cockpit-gse.js' %}"></script>
     {% endswitch %}
 
 {% endblock %}
@@ -35,100 +36,41 @@
 
 
     <div class="row">
-        <div class="col-md-3">
-            <div class="panel panel-primary intel_panel">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-cog"></i> Settings</h3>
-                </div>
-                <div class="panel-body" style="height:400px">
-                    <h4 align="center">Charts</h4>
-                    <form class="form-horizontal" role="form">
-                        <div class="form-group">
-                            <label for="settingsStartTime" class="col-sm-3 control-label">Start:</label>
-                            <div class="col-sm-9">
-                                <input id="settingsStartTime" class="form-control" type="text" placeholder="1 weeks ago">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="settingsEndTime" class="col-sm-3 control-label">End:</label>
-                            <div class="col-sm-9">
-                                <input id="settingsEndTime" class="form-control" type="text" placeholder="now">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="settingsIntervalUnit" class="col-sm-3 control-label">Interval:</label>
-                            <div class="col-sm-9">
-                                <select class="form-control" id="settingsIntervalUnit" >
-                                    <option value="minutes">Minutes</option>
-                                    <option value="hours" selected>Hours</option>
-                                    <option value="days">Days</option>
-                                    <option value="weeks">Weeks</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <button type="button" id="settingsUpdateButton" class="btn btn-info btn-block">Update</button>
-                            </div>
-                        </div>
-                    </form>
-                    <hr>
-                    <h4 align="center">Logging Status</h4>
-                    <form class="form-horizontal" role="form">
-                        <div class="form-group">
-                            <label for="hostPresenceQty" class="col-sm-2 control-label">Last:</label>
-                            <div class="col-sm-4">
-                                    <input class="form-control" type="number" id="hostPresenceQty" min="1" placeholder="1"/>
-                                </div>
-                                <div class="col-sm-6">
-                                    <select class="form-control" id="hostPresenceUnit" >
-                                        <option value="m">Minutes</option>
-                                        <option value="h" selected>Hours</option>
-                                        <option value="d">Days</option>
-                                        <option value="w">Weeks</option>
-                                    </select>
-                                </div>
-                            </div>
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <button type="button" id="hostPresenceButton" class="btn btn-info btn-block">Update</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div id="row2-full" class="col-md-6">
+        <div id="row2-full" class="col-md-9">
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-dashboard"></i> <a
-                            href="/intelligence/search"> Log Analysis</a></h3>
-                </div>
-                <div id="bad-event-chart" class="panel-body"
-                     style="height:400px">
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="log-loading-indicator" class="ajax-loader"/>
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
-                    <a class="reset"
-                       href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
-                       style="display: none;">reset</a>
+                            href="/intelligence/search"> Log Analysis</a>
+                        <i class="fa fa-cog pull-right" data-toggle="modal"
+                           data-target="#logSettingsModal"></i>
+                    </h3>
 
-                    <div class="clearfix"></div>
+                </div>
+                <div class="panel-body" style="height:400px">
+                    <div id="bad-event-multiline">
+                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                             id="log-multiline-loading-indicator"
+                             class="ajax-loader"/>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div id="bad-event-range">
+                        <div class="clearfix"></div>
+                    </div>
+
                 </div>
             </div>
         </div>
-            <div id="table-col" class="col-md-3">
+        <div id="table-col" class="col-md-3">
             <div class="panel panel-primary log_table_panel">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-thumbs-up"></i>
                         Logging Status
-                    <i class="fa fa-thumbs-down"></i></h3>
+                        <i class="fa fa-thumbs-down"></i>
+                        <i class="fa fa-cog pull-right" data-toggle="modal"
+                           data-target="#hostStatusSettingsModal"></i></h3>
                 </div>
-                <div id="host-presence-body" class="panel-body" style="height:400px">
-
-
-
+                <div id="host-presence-body" class="panel-body"
+                     style="height:400px">
                     <table id="host-presence-table" class="table table-hover">
                         <!-- table rows filled by draw_host_presence_table -->
                         <thead>
@@ -138,117 +80,56 @@
                         </tr>
                         </thead>
                     </table>
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="host-presence-table-loading-indicator"
-                         class="ajax-loader"/>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> CPU
-                        Stats (No Oversubscription)</h3>
+                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i>
+                        CPU
+                        Stats</h3>
                 </div>
-                <div id="phys-cpu-chart" class="panel-body"
+                <div id="phys-cpu-chart" class="panel-body resource-chart"
                      style="height:400px">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                          id="phys-cpu-loading-indicator" class="ajax-loader"/>
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
-                    <a class="reset"
-                       href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
-                       style="display: none;">reset</a>
 
                     <div class="clearfix"></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> CPU
-                        Stats (With Oversubscription)</h3>
+                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i>
+                        Memory
+                        Stats</h3>
                 </div>
-                <div id="virt-cpu-chart" class="panel-body"
+                <div id="phys-mem-chart" class="panel-body resource-chart"
                      style="height:400px">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="virt-cpu-loading-indicator" class="ajax-loader"/>
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
-                    <a class="reset"
-                       href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
-                       style="display: none;">reset</a>
+                         id="phys-mem-loading-indicator"
+                         class="ajax-loader"/>
 
                     <div class="clearfix"></div>
                 </div>
             </div>
-        </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <div class="panel panel-primary intel_panel">
-                    <div class="panel-heading">
-                        <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> Memory
-                            Stats (No Oversubscription)</h3>
-                    </div>
-                    <div id="phys-mem-chart" class="panel-body"
-                         style="height:400px">
-                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                             id="phys-mem-loading-indicator"
-                             class="ajax-loader"/>
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
-                        <a class="reset"
-                           href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
-                           style="display: none;">reset</a>
-
-                        <div class="clearfix"></div>
-                    </div>
-                </div>
             </div>
-            <div class="col-md-6">
-                <div class="panel panel-primary intel_panel">
-                    <div class="panel-heading">
-                        <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> Memory
-                            Stats (With Oversubscription)</h3>
-                    </div>
-                    <div id="virt-mem-chart" class="panel-body"
-                         style="height:400px">
-                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                             id="virt-mem-loading-indicator"
-                             class="ajax-loader"/>
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
-                        <a class="reset"
-                           href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
-                           style="display: none;">reset</a>
-
-                        <div class="clearfix"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    <div class="row">
-        <div class="col-md-6">
+            <div class="col-md-4">
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> Disk
-                        Stats (No Oversubscription)</h3>
+                    <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i>
+                        Disk
+                        Stats</h3>
                 </div>
-                <div id="phys-disk-chart" class="panel-body"
+                <div id="phys-disk-chart" class="panel-body resource-chart"
                      style="height:400px">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                          id="phys-disk-loading-indicator" class="ajax-loader"/>
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
-                    <a class="reset"
-                       href="javascript:logChart.filterAll();logChart.filterAll();dc.redrawAll();"
-                       style="display: none;">reset</a>
 
                     <div class="clearfix"></div>
                 </div>
@@ -261,18 +142,14 @@
             <div id="row3-col1" class="col-md-6">
                 <div class="panel panel-primary intel_panel">
                     <div class="panel-heading">
-                        <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i>
+                        <h3 class="panel-title"><i
+                                class="fa fa-bar-chart-o"></i>
                             vCPU Usage</h3>
                     </div>
-                    <div id="vcpu-graph" class="panel-body"
+                    <div id="vcpu-graph" class="panel-body resource-chart"
                          style="height:400px">
-                    <span class="reset" style="display: none;">range: <span
-                            class="filter"></span></span>
                         <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                              id="vcpu-loading-indicator" class="ajax-loader"/>
-                        <a class="reset"
-                           href="javascript:vcpuChart.filterAll();vcpuChart.filterAll();dc.redrawAll();"
-                           style="display: none;">reset</a>
 
                         <div class="clearfix"></div>
                     </div>
@@ -283,6 +160,102 @@
             </div>
         </div>
     {% endswitch %}
+
+    <!-- log settings modal -->
+    <div class="modal fade" id="logSettingsModal" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Chart Range
+                        Settings</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal" role="form">
+                        <div class="form-group">
+                            <label for="settingsStartTime"
+                                   class="col-sm-3 control-label">Start:</label>
+
+                            <div class="col-sm-9">
+                                <input id="settingsStartTime"
+                                       class="form-control" type="text"
+                                       placeholder="1 weeks ago">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="settingsEndTime"
+                                   class="col-sm-3 control-label">End:</label>
+
+                            <div class="col-sm-9">
+                                <input id="settingsEndTime"
+                                       class="form-control" type="text"
+                                       placeholder="now">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <div class="form-group">
+                        <button type="button" id="settingsUpdateButton"
+                                class="btn btn-primary"
+                                data-dismiss="modal">Update
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- host status settings modal -->
+    <div class="modal fade" id="hostStatusSettingsModal" tabindex="-1"
+         role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Host Status
+                        Settings</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal" role="form">
+                        <div class="form-group">
+                            <label for="hostPresenceQty"
+                                   class="col-sm-6 control-label">Status
+                                Changed in Last:</label>
+
+                            <div class="col-sm-2">
+                                <input class="form-control" type="number"
+                                       id="hostPresenceQty" min="1"
+                                       placeholder="1"/>
+                            </div>
+                            <div class="col-sm-4">
+                                <select class="form-control"
+                                        id="hostPresenceUnit">
+                                    <option value="m">Minutes</option>
+                                    <option value="h" selected>Hours</option>
+                                    <option value="d">Days</option>
+                                    <option value="w">Weeks</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <div class="form-group">
+                            <button type="button" id="hostPresenceButton"
+                                    class="btn btn-primary"
+                                    data-dismiss="modal">Update
+                            </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 {% endblock %}
 

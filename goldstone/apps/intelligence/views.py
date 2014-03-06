@@ -26,7 +26,6 @@ class IntelSearchView(TemplateView):
         context = super(IntelSearchView, self).get_context_data(**kwargs)
         end_time = self.request.GET.get('end_time', None)
         start_time = self.request.GET.get('start_time', None)
-        context['interval'] = self.request.GET.get('interval', '1h')
 
         end_dt = datetime.fromtimestamp(int(end_time),
                                         tz=pytz.utc) \
@@ -41,8 +40,7 @@ class IntelSearchView(TemplateView):
         return context
 
 
-def bad_event_histogram(request):
-
+def log_event_histogram(request):
     end_time = request.GET.get('end_time')
     start_time = request.GET.get('start_time')
     interval = request.GET.get('interval', '1h')
@@ -61,7 +59,7 @@ def bad_event_histogram(request):
     conn = LogData.get_connection(settings.ES_SERVER)
 
     ld = LogData()
-    logger.debug("[bad_event_histogram] interval = %s", interval)
+    logger.debug("[log_event_histogram] interval = %s", interval)
     raw_data = ld.get_loglevel_histogram_data(conn, start_dt, end_dt, interval)
 
     result = []
@@ -70,25 +68,14 @@ def bad_event_histogram(request):
         for level_bucket in time_bucket['events_by_loglevel']['buckets']:
             vals = level_bucket.values()
             lev = vals[0]
-            ct = vals[1]
-            if lev in ['fatal', 'error', 'warning']:
-                entry[lev] = ct
+            entry[lev] = vals[1]
 
-        for lev in ['fatal', 'error', 'warning']:
-            if lev not in entry.keys():
-                entry[lev] = 0
         entry['time'] = time_bucket['key']
         result.append(entry)
 
-    # let's make sure we fill the complete graph by putting a record at the
-    # front and back
-    first_key = int(start_time) * 1000
-    last_key = int(end_time) * 1000
-    first_entry = [{'time': first_key, 'fatal': 0, 'error': 0, 'warning': 0}]
-    last_entry = [{'time': last_key, 'fatal': 0, 'error': 0, 'warning': 0}]
-
-    data = {'data': first_entry + result + last_entry}
-    logger.debug("[bad_event_histogram]: data = %s", json.dumps(data))
+    data = {'data': result,
+            'levels': ['error', 'warning', 'audit', 'info', 'debug']}
+    logger.debug("[log_event_histogram]: data = %s", json.dumps(data))
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 
@@ -102,20 +89,35 @@ def log_search_data(request):
 
     end_ts = int(request.GET.get('end_time'))
     start_ts = int(request.GET.get('start_time'))
+    level_filters = {
+        'error': request.GET.get('error', True),
+        'warning': request.GET.get('warning', True),
+        'info': request.GET.get('info', True),
+        'audit': request.GET.get('audit', True),
+        'debug': request.GET.get('debug', True)
+    }
+    for k in level_filters.keys():
+        if level_filters[k].__class__.__name__ != 'bool':
+            if level_filters[k].lower() == 'false':
+                level_filters[k] = False
+            else:
+                level_filters[k] = True
+
     sort_index = int(request.GET.get('iSortCol_0'))
     sort_col = keylist[sort_index] if sort_index else keylist[0]
     sort_dir_in = request.GET.get('sSortDir_0')
-    sort_dir = sort_dir_in if sort_dir_in else "asc"
+    sort_dir = sort_dir_in if sort_dir_in else "desc"
 
     ld = LogData()
-    rs = ld.get_err_and_warn_range(
+    rs = ld.get_log_data(
         conn,
         datetime.fromtimestamp(start_ts, tz=pytz.utc),
         datetime.fromtimestamp(end_ts, tz=pytz.utc),
         int(request.GET.get('iDisplayStart')),
         int(request.GET.get('iDisplayLength')),
+        level_filters,
         search_text=request.GET.get('sSearch', None),
-        sort=["".join([sort_col, ":", sort_dir])]
+        sort=["".join([sort_col, ":", sort_dir])],
     )
 
     aa_data = []

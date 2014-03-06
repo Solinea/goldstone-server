@@ -310,50 +310,51 @@ class LogDataModel(TestCase):
         interval = '1w'
         test_scenario()
 
-    def test_get_err_and_warn_range(self):
-
-        def test_scenario(sort='', search_text=None):
+    def test_get_log_data(self):
+        def test_scenario(sort='', level_filters={}, search_text=None):
             my_search_text = None
             if search_text:
                 my_search_text = "*" + search_text + "*"
 
             test_q = {
                 'query': {
-                    'filtered': {
-                        'filter': {
-                            'or': [
-                                {'term': {'loglevel': 'error'}},
-                                {'term': {'loglevel': 'fatal'}},
-                                {'term': {'loglevel': 'warning'}}
-                            ]
-                        },
-                        'query': {
-                            'bool': {
-                                'must': [
-                                    {
-                                        'range': {
-                                            '@timestamp': {
-                                                'gte':  start.isoformat(),
-                                                'lte':  end.isoformat()
-                                            }
-                                        }
-                                    },
+                    'bool': {
+                        'must': [
+                            {
+                                'range': {
+                                    '@timestamp': {
+                                        'gte':  start.isoformat(),
+                                        'lte':  end.isoformat()
+                                    }
+                                }
+                            },
 
-                                ]
-                            }
-                        }
+                        ]
                     }
                 }
             }
+
             if my_search_text:
                 wildcard = {'wildcard': {'_message.raw': my_search_text}}
-                test_q['query']['filtered']['query']['bool']['must'].\
+                test_q['query']['bool']['must'].\
                     append(wildcard)
 
+            lev_filts = []
+
+            for lev in [k for k in level_filters.keys() if level_filters[k]]:
+                lev_filts.append(self._term_filter('loglevel', lev))
+
+            if len(lev_filts) > 0:
+                or_filt = {'or': lev_filts}
+                q['filter'] = or_filt
+                q = {
+                    'query': {'filtered': q}
+                }
+
             control = self.conn.search(index="_all", body=test_q, sort=sort)
-            result = LogData().get_err_and_warn_range(self.conn, start, end,
-                                                      0, 10, sort,
-                                                      search_text)
+            result = LogData().get_log_data(self.conn, start, end,
+                                            0, 10, sort=sort,
+                                            search_text=search_text)
             self.assertEqual(result['hits'], control['hits'])
 
         end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)

@@ -161,8 +161,8 @@ class LogData(object):
                             }
                         },
                         {
-                            "term": {
-                                "type": "syslog"
+                            "terms": {
+                                "type": ["syslog", "openstack_log"]
                             }
                         }
                     ]
@@ -186,7 +186,9 @@ class LogData(object):
             }
         }
         logger.debug("[_loglevel_by_time_agg] query = %s", json.dumps(q))
-        return conn.search(index="_all", body=q)
+        result = conn.search(index="_all", body=q)
+        logger.debug("[_loglevel_by_time_agg] result = %s", json.dumps(result))
+        return result
 
     def get_components(self, conn):
         return self._get_term_facet_terms(conn, "component")
@@ -223,8 +225,8 @@ class LogData(object):
 
         return result
 
-    def get_err_and_warn_range(self, conn, start_t, end_t, first, size,
-                               sort='', search_text=None):
+    def get_log_data(self, conn, start_t, end_t, first, size,
+                     level_filters=dict(), sort='', search_text=None):
 
         if search_text:
             search_text = "*" + search_text + "*"
@@ -248,6 +250,7 @@ class LogData(object):
         }
 
         if search_text:
+
             sq = {
                 "wildcard": {
                     "_message.raw": search_text
@@ -255,18 +258,20 @@ class LogData(object):
             }
             q['query']['bool']['must'].append(sq)
 
-        err_filt = self._term_filter('loglevel', 'error')
-        fat_filt = self._term_filter('loglevel', 'fatal')
-        warn_filt = self._term_filter('loglevel', 'warning')
-        bad_filt = {'or': [err_filt, fat_filt, warn_filt]}
+        lev_filts = []
 
-        q['filter'] = bad_filt
-        fq = {
-            'query': {'filtered': q}
-        }
+        for lev in [k for k in level_filters.keys() if level_filters[k]]:
+                lev_filts.append(self._term_filter('loglevel', lev))
 
-        logger.debug("[get_err_warn_range] query = %s", fq)
-        return conn.search(index="_all", body=fq, from_=first, size=size,
+        if len(lev_filts) > 0:
+            or_filt = {'or': lev_filts}
+            q['filter'] = or_filt
+            q = {
+                'query': {'filtered': q}
+            }
+
+        logger.debug("[get_log_data] query = %s", q)
+        return conn.search(index="_all", body=q, from_=first, size=size,
                            sort=sort)
 
     def get_new_and_missing_nodes(self, conn, long_lookback, short_lookback,
