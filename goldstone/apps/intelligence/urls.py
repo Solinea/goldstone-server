@@ -15,7 +15,7 @@ urlpatterns = patterns(
     url(r'^search[/]?$', IntelSearchView.as_view(), name='intel-search'),
     # data calls
     url(r'^log/cockpit/data[/]?$',
-        bad_event_histogram, name='bad-event-data'),
+        log_event_histogram, name='bad-event-data'),
     url(r'^log/search/data[/]?$', log_search_data,
         name='intel-log-search-data'),
     url(r'^compute/virt_cpu_stats[/]?$', get_virt_cpu_stats,

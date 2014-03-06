@@ -9,7 +9,7 @@ filter {
             patterns_dir => "/opt/logstash/patterns"
             match => { "message" => "%{OPENSTACK_SYSLOGLINE}" }
             add_field => { "received_at" => "%{@timestamp}" }
-            add_field => { "_message" => "%{message}" }
+            add_field => { "_message" => "%{syslog5424_host} %{message}" }
         }
         if ("_grokparsefailure" not in [tags]) {
             syslog_pri {
