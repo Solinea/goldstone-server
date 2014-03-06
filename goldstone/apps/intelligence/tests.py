@@ -346,9 +346,9 @@ class LogDataModel(TestCase):
 
             if len(lev_filts) > 0:
                 or_filt = {'or': lev_filts}
-                q['filter'] = or_filt
-                q = {
-                    'query': {'filtered': q}
+                test_q['filter'] = or_filt
+                test_q = {
+                    'query': {'filtered': test_q}
                 }
 
             control = self.conn.search(index="_all", body=test_q, sort=sort)
