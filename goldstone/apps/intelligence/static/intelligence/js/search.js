@@ -5,7 +5,6 @@ var updateLogSearch = function() {
         start = dates[0],
         end = dates[1]
 
-    console.log("[updateLogSearch] start = " + start + ", end = " + end)
     badEventMultiLine('#bad-event-multiline', start, end)
     drawSearchTable('#log-search-table', start, end)
 }
@@ -18,7 +17,6 @@ var refreshLogSearch = function () {
         refreshInterval = $('#autoRefreshInterval').val()
 
     start.addSeconds(refreshInterval / 1000)
-    console.log("refreshLogSearch] refreshInterval = " + refreshInterval + ", start =" + start)
     populateSettingsFields(start, end)
     updateLogSearch()
 }
