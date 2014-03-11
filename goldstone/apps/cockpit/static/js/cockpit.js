@@ -1,5 +1,7 @@
+var autoRefreshInterval
 
 $(document).ready(function () {
+    "use strict";
     // load the default charts
     badEventMultiLine('#bad-event-multiline')
     hostPresenceTable('#host-presence-table')
@@ -8,19 +10,56 @@ $(document).ready(function () {
     physDiskChart("#phys-disk-chart")
 });
 
-$("#settingsUpdateButton").click(function () {
+
+var updateCockpitCharts = function () {
+    "use strict";
     var dates = _getSearchFormDates(),
         start = dates[0],
         end = dates[1]
-    refreshCockpitCharts(start, end)
+
+    refreshCockpitEventCharts(start, end)
+    refreshCockpitSecondaryCharts(start, end)
+    dc.filterAll()
+    //dc.refocusAll()
+}
+
+var refreshCockpitCharts = function () {
+    "use strict";
+    var dates = _getSearchFormDates(),
+        start = new Date(dates[0]),
+        end = dates[1],
+        refreshInterval = $('#autoRefreshInterval').val()
+
+    start.addSeconds(refreshInterval / 1000)
+    console.log("refreshLogSearch] refreshInterval = " + refreshInterval + ", start =" + start)
+    populateSettingsFields(start, end)
+    updateCockpitCharts()
+}
+
+
+$("#settingsUpdateButton").click(function () {
+    "use strict";
+    updateCockpitCharts()
+    if (isRefreshing()) {
+        window.clearInterval(autoRefreshInterval)
+        startCockpitRefresh()
+    } else {
+        if (typeof autoRefreshInterval !== 'undefined') {
+            window.clearInterval(autoRefreshInterval)
+        }
+    }
+
 });
 
 $("#hostPresenceButton").click(function () {
+    "use strict";
     var dates = _getSearchFormDates(),
         start = dates[0],
-        end = dates[1],
-        presenceUnit = $("select#hostPresenceUnit").val(),
-        presenceQty = $("input#hostPresenceQty").val()
-    presenceQty = typeof presenceQty === 'undefined' ? 1 : presenceQty
-    refreshHostPresence(presenceQty, presenceUnit, start, end)
+        end = dates[1]
+    refreshHostPresence(start, end)
 });
+
+function startCockpitRefresh() {
+    "use strict";
+    autoRefreshInterval = window.setInterval(refreshCockpitCharts, getRefreshInterval())
+}

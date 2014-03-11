@@ -1,30 +1,43 @@
+var autoRefreshInterval
 
+var updateLogSearch = function() {
+    var dates = _getSearchFormDates(),
+        start = dates[0],
+        end = dates[1]
 
-function refreshSearchPage(interval, start, end) {
-    var uri = "/intelligence/search".concat(
-        "?start_time=", String(Math.round(start.getTime() / 1000)),
-        "&end_time=", String(Math.round(end.getTime() / 1000)),
-        "&interval=", interval
-    )
-
-    window.open(uri, "_self")
+    console.log("[updateLogSearch] start = " + start + ", end = " + end)
+    badEventMultiLine('#bad-event-multiline', start, end)
+    drawSearchTable('#log-search-table', start, end)
 }
 
-function populateSettingsFields(start, end) {
-    var s = new Date(start).toString(),
-        e = new Date(end).toString(),
-        sStr = s.substr(s.indexOf(" ") + 1),
-        eStr = e.substr(e.indexOf(" ") + 1)
+var refreshLogSearch = function () {
+    "use strict";
+    var dates = _getSearchFormDates(),
+        start = new Date(dates[0]),
+        end = dates[1],
+        refreshInterval = $('#autoRefreshInterval').val()
 
-    $('#settingsStartTime').val(sStr)
-    $('#settingsEndTime').val(eStr)
+    start.addSeconds(refreshInterval / 1000)
+    console.log("refreshLogSearch] refreshInterval = " + refreshInterval + ", start =" + start)
+    populateSettingsFields(start, end)
+    updateLogSearch()
 }
 
 $("#settingsUpdateButton").click(function () {
-    var dates = _getSearchFormDates(),
-        start = dates[0],
-        end = dates[1],
-        interval = $("select#settingsIntervalUnit").val()
+    "use strict";
+    updateLogSearch()
+    if (isRefreshing()) {
+        window.clearInterval(autoRefreshInterval)
+        startLogSearchRefresh()
+    } else {
+        if (typeof autoRefreshInterval !== 'undefined') {
+            window.clearInterval(autoRefreshInterval)
+        }
+    }
 
-    refreshSearchPage(interval, start, end)
-})
+});
+
+function startLogSearchRefresh() {
+    "use strict";
+    autoRefreshInterval = window.setInterval(refreshLogSearch, getRefreshInterval())
+}

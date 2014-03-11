@@ -31,8 +31,7 @@
                 end = {{ end_ts }} * 1000
 
             badEventMultiLine('#bad-event-multiline',start, end)
-            drawSearchTable('#log-search-table', '{{ start_ts }}',
-                    '{{ end_ts }}')
+            drawSearchTable('#log-search-table', start, end)
             populateSettingsFields(start, end)
         })
     </script>
@@ -124,16 +123,61 @@
                                        placeholder="1 weeks ago">
                             </div>
                         </div>
-                        <div class="form-group">
+<div class="form-group">
+
                             <label for="settingsEndTime"
                                    class="col-sm-3 control-label">End:</label>
 
                             <div class="col-sm-9">
-                                <input id="settingsEndTime"
-                                       class="form-control" type="text"
-                                       placeholder="now">
+
+                                <div class="input-group">
+                                        <span class="input-group-addon">
+                                            <input type="radio"
+                                                   name="optionsEndTime"
+                                                   value="option1"
+                                                   id="endTimeNow" checked>
+                                        </span>
+                                    <input
+                                            class="form-control form-control-static" type="text"
+                                            placeholder="use current time" disabled>
+                                </div>
+
+                                <div class="input-group">
+                                        <span class="input-group-addon">
+                                            <input type="radio"
+                                                   name="optionsEndTime"
+                                                   value="option2"
+                                                   id="endTimeSelected">
+                                        </span>
+                                    <input id="settingsEndTime"
+                                           class="form-control" type="text"
+                                           placeholder="select time">
+                                </div>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label for="autoRefresh"
+                                   class="col-sm-3 control-label">Refresh:</label>
+
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                        <span class="input-group-addon">
+                                            <input type="checkbox"
+                                                   id="autoRefresh">
+                                        </span>
+                                    <select class="form-control"
+                                            id="autoRefreshInterval">
+                                        <option value="15000">15 seconds</option>
+                                        <option value="30000" selected>30
+                                            seconds
+                                        </option>
+                                        <option value="60000">1 minute</option>
+                                        <option value="300000">5 minutes</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
                     </form>
                 </div>
                 <div class="modal-footer">
