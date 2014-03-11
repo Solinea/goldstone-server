@@ -109,18 +109,6 @@ function refocusCockpitSecondaryCharts(filter) {
     })
 }
 
-function slideDomainToRight(start, end, newEnd) {
-    "use strict";
-    var delta = newEnd.getTime() - end.getTime()
-    console.log("[slideDomainToRight] delta = " + delta)
-    return {
-        start: new Date(start.getTime() + delta),
-        end: newEnd
-    }
-}
-
-
-
 function _getSearchFormDates() {
     "use strict";
     //grab the values from the form elements
