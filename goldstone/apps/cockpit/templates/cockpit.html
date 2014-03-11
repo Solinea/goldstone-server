@@ -51,6 +51,7 @@
                         <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                              id="log-multiline-loading-indicator"
                              class="ajax-loader"/>
+
                         <div class="clearfix"></div>
                     </div>
                     <div id="bad-event-range">
@@ -118,8 +119,8 @@
                     <div class="clearfix"></div>
                 </div>
             </div>
-            </div>
-            <div class="col-md-4">
+        </div>
+        <div class="col-md-4">
             <div class="panel panel-primary intel_panel">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i>
@@ -185,13 +186,57 @@
                             </div>
                         </div>
                         <div class="form-group">
+
                             <label for="settingsEndTime"
                                    class="col-sm-3 control-label">End:</label>
 
                             <div class="col-sm-9">
-                                <input id="settingsEndTime"
-                                       class="form-control" type="text"
-                                       placeholder="now">
+
+                                <div class="input-group">
+                                        <span class="input-group-addon">
+                                            <input type="radio"
+                                                   name="optionsEndTime"
+                                                   value="option1"
+                                                   id="endTimeNow" checked>
+                                        </span>
+                                    <input
+                                            class="form-control form-control-static" type="text"
+                                            placeholder="use current time" disabled>
+                                </div>
+
+                                <div class="input-group">
+                                        <span class="input-group-addon">
+                                            <input type="radio"
+                                                   name="optionsEndTime"
+                                                   value="option2"
+                                                   id="endTimeSelected">
+                                        </span>
+                                    <input id="settingsEndTime"
+                                           class="form-control" type="text"
+                                           placeholder="select time">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="autoRefresh"
+                                   class="col-sm-3 control-label">Refresh:</label>
+
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                        <span class="input-group-addon">
+                                            <input type="checkbox"
+                                                   id="autoRefresh">
+                                        </span>
+                                    <select class="form-control"
+                                            id="autoRefreshInterval">
+                                        <option value="15000">15 seconds</option>
+                                        <option value="30000" selected>30
+                                            seconds
+                                        </option>
+                                        <option value="60000">1 minute</option>
+                                        <option value="300000">5 minutes</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -246,10 +291,10 @@
                 </div>
                 <div class="modal-footer">
                     <div class="form-group">
-                            <button type="button" id="hostPresenceButton"
-                                    class="btn btn-primary"
-                                    data-dismiss="modal">Update
-                            </button>
+                        <button type="button" id="hostPresenceButton"
+                                class="btn btn-primary"
+                                data-dismiss="modal">Update
+                        </button>
                     </div>
                 </div>
             </div>
