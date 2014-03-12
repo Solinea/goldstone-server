@@ -60,6 +60,7 @@ INSTALLED_APPS = (
     'floppyforms',
     'crispy_forms',
     'djcelery',
+    'djangojs',
     #'goldstone.apps.lease',
     'goldstone.apps.intelligence',
     'goldstone.apps.cockpit',
