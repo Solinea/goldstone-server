@@ -32,7 +32,7 @@
 	// Define as an AMD module if possible
 	if ( typeof define === 'function' && define.amd )
 	{
-		define( 'datatables', ['jquery'], factory );
+		define( 'datatables', ['../../../../../../.virtualenvs/devstack/lib/python2'], factory );
 	}
 	/* Define using browser globals otherwise
 	 * Prevent multiple instantiations if the script is loaded twice

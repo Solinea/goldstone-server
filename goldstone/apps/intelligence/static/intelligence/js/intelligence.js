@@ -50,10 +50,20 @@ $("#endTimeNow").click(function () {
     $("#autoRefresh").prop("disabled", false)
     $("#autoRefresh").prop("checked", true)
     $("#autoRefreshInterval").prop("disabled", false)
+    $("#settingsEndTime").prop("disabled", true)
 })
 
 $("#endTimeSelected").click(function () {
     "use strict";
+    $("#autoRefresh").prop("checked", false)
+    $("#autoRefresh").prop("disabled", true)
+    $("#autoRefreshInterval").prop("disabled", true)
+    $("#settingsEndTime").prop("disabled", false)
+})
+
+$("#settingsEndTime").click(function () {
+    "use strict";
+    $("#endTimeSelected").prop("checked", true)
     $("#autoRefresh").prop("checked", false)
     $("#autoRefresh").prop("disabled", true)
     $("#autoRefreshInterval").prop("disabled", true)
@@ -161,7 +171,7 @@ function _getSearchFormDates() {
 function _autoSizeTimeInterval(start, end, maxPoints) {
     "use strict";
     var diffSeconds = (end.getTime() - start.getTime()) / 1000
-    return Math.round(diffSeconds / maxPoints)
+    return diffSeconds / maxPoints
 }
 
 /**
