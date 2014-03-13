@@ -5,7 +5,7 @@ from djangojs.runners import JasmineSuite, QUnitSuite
 class QUnitTests(QUnitSuite, JsTestCase):
     title = 'My QUnit suite'
     url_name = 'my_qunit_view'
-    #js_files = [
-    #    'intelligence/static/intelligence/js/*',
-    #]
+    js_files = [
+        'intelligence/static/intelligence/js/*',
+    ]
 
