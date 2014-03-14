@@ -15,8 +15,10 @@ urlpatterns = patterns(
     url(r'^admin/', include(admin.site.urls)),
     url(r'^djangojs/', include('djangojs.urls')),
     url(r'^$', include('goldstone.apps.cockpit.urls')),
-    url(r'^qunit$', QUnitView.as_view(js_files='js/tests/*.tests.js',
-                                     jquery=True), name='my_qunit_view'),
+    url(r'^qunit$', QUnitView.as_view(template_name='qunit.tests.html',
+                                      js_files='js/tests/*.tests.js',
+                                      jquery=True, django_js=True),
+        name='my_qunit_view'),
 )
 
 #urlpatterns += patterns(
