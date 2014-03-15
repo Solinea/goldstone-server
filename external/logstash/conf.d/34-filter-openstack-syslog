@@ -28,7 +28,9 @@ filter {
                     "local1", "openvswitch",
                     "local2", "neutron",
                     "local3", "ceilometer",
-                    "local4", "swift"
+                    "local4", "swift",
+                    "local5", "cinder",
+                    "local6", "keystone"
                 ]
                 fallback => "unknown"
                 destination => "component"
