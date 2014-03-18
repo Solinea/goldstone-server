@@ -1,19 +1,14 @@
 # This file is here because many Platforms as a Service look for
 #        requirements.txt in the root directory of a project.
+# requirements/base.txt is linked to it.
 
-#-r requirements/production.txt
 Django==1.6.1
-South==0.8.4
 wsgiref==0.1.2
 django-admin-bootstrapped
 psycopg2
 django-crispy-forms
-django-floppyforms
-django-extensions
 django-waffle
 django.js
 pbr
-celery==3.1.7
-django-celery
-python-novaclient
 elasticsearch>=1.0
+pytz
