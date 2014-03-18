@@ -647,7 +647,7 @@ function physCpuChart(location, start, end) {
             uriBase: "/intelligence/compute/cpu_stats",
             totalPhysField : "phys_cpu_avg_total",
             totalVirtField : "virt_cpu_avg_total",
-            usedField : "virt_cpu_avg_used",
+            usedField : "virt_cpu_max_used",
             resourceLabel: "Cores",
             loadingIndicator: "#phys-cpu-loading-indicator"
         }
@@ -661,7 +661,7 @@ function physMemChart(location, start, end) {
             uriBase: "/intelligence/compute/mem_stats",
             totalPhysField: "phys_mem_avg_total",
             totalVirtField: "virt_mem_avg_total",
-            usedField: "virt_mem_avg_used",
+            usedField: "virt_mem_max_used",
             resourceLabel: "GB",
             loadingIndicator: "#phys-mem-loading-indicator"
         }
@@ -675,7 +675,7 @@ function physDiskChart(location, start, end) {
     var chartConstants = {
             uriBase: "/intelligence/compute/disk_stats",
             totalPhysField: "phys_disk_avg_total",
-            usedField: "phys_disk_avg_used",
+            usedField: "phys_disk_max_used",
             resourceLabel: "GB",
             loadingIndicator: "#phys-disk-loading-indicator"
         }
