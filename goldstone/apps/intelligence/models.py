@@ -340,11 +340,6 @@ class LogData(object):
                         },
                         {
                             "term": {
-                                "type": event_type
-                            }
-                        },
-                        {
-                            "term": {
                                 "resource": resource
                             }
                         }
@@ -396,8 +391,8 @@ class LogData(object):
         q = self._claims_resource_query(start, end, interval, 'cpu',
                                         'nova_claims_summary_phys')
         logger.debug('[gsl_phys_cpu_stats] query = ' + json.dumps(q))
-        result = conn.search(index="_all", body=q, from_=first, size=size,
-                             sort=sort)
+        result = conn.search(index="_all", doc_type="nova_claims_summary_phys",
+                             body=q, from_=first, size=size, sort=sort)
         logger.debug('[gsl_phys_cpu_stats] result = ' + json.dumps(result))
         return result
 
@@ -406,8 +401,8 @@ class LogData(object):
         q = self._claims_resource_query(start, end, interval, 'cpu',
                                         'nova_claims_summary_virt')
         logger.debug('[gsl_virt_cpu_stats] query = ' + json.dumps(q))
-        result = conn.search(index="_all", body=q, from_=first, size=size,
-                             sort=sort)
+        result = conn.search(index="_all", doc_type='nova_claims_summary_virt',
+                             body=q, from_=first, size=size, sort=sort)
         logger.debug('[gsl_virt_cpu_stats] result = ' + json.dumps(result))
         return result
 
@@ -416,8 +411,8 @@ class LogData(object):
         q = self._claims_resource_query(start, end, interval, 'memory',
                                         'nova_claims_summary_phys')
         logger.debug('[gsl_phys_mem_stats] query = ' + json.dumps(q))
-        result = conn.search(index="_all", body=q, from_=first, size=size,
-                             sort=sort)
+        result = conn.search(index="_all", doc_type='nova_claims_summary_phys',
+                             body=q, from_=first, size=size, sort=sort)
         logger.debug('[gsl_phys_mem_stats] result = ' + json.dumps(result))
         return result
 
@@ -426,8 +421,8 @@ class LogData(object):
         q = self._claims_resource_query(start, end, interval, 'memory',
                                         'nova_claims_summary_virt')
         logger.debug('[gsl_virt_mem_stats] query = ' + json.dumps(q))
-        result = conn.search(index="_all", body=q, from_=first, size=size,
-                             sort=sort)
+        result = conn.search(index="_all", doc_type='nova_claims_summary_virt',
+                             body=q, from_=first, size=size, sort=sort)
         logger.debug('[gsl_virt_mem_stats] result = ' + json.dumps(result))
         return result
 
@@ -436,8 +431,8 @@ class LogData(object):
         q = self._claims_resource_query(start, end, interval, 'disk',
                                         'nova_claims_summary_phys')
         logger.debug('[gsl_phys_disk_stats] query = ' + json.dumps(q))
-        result = conn.search(index="_all", body=q, from_=first, size=size,
-                             sort=sort)
+        result = conn.search(index="_all", doc_type='nova_claims_summary_phys',
+                             body=q, from_=first, size=size, sort=sort)
         logger.debug('[gsl_phys_disk_stats] result = ' + json.dumps(result))
         return result
 

@@ -46,7 +46,7 @@ class LogDataModel(TestCase):
     data = json.load(data_f)
     for dataset in data:
         for event in dataset['hits']['hits']:
-            rv = conn.index(INDEX_NAME, DOCUMENT_TYPE,
+            rv = conn.index(INDEX_NAME, event['_type'],
                             event['_source'])
 
     conn.indices.refresh([INDEX_NAME])
@@ -210,7 +210,7 @@ class LogDataModel(TestCase):
     def test_loglevel_by_time_agg(self):
         end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
-        interval = 'hour'
+        interval = '3600s'
         test_q = {
             "query": {
                 "bool": {
@@ -403,9 +403,9 @@ class LogDataModel(TestCase):
         self.assertEqual(result, control)
 
     def test_claims_resource_queries(self):
-        start = datetime(2014, 2, 23, 0, 0, 0, tzinfo=pytz.utc)
-        end = datetime(2014, 2, 24, 0, 0, 0, tzinfo=pytz.utc)
-        interval = 'hour'
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        interval = '3600s'
 
         type_field = {
             'nova_claims_summary_phys': ['total', 'max_used',
@@ -438,11 +438,6 @@ class LogDataModel(TestCase):
                                         "gte": start.isoformat(),
                                         "lte": end.isoformat()
                                     }
-                                }
-                            },
-                            {
-                                "term": {
-                                    "type": params['type']
                                 }
                             },
                             {
@@ -497,7 +492,12 @@ class LogDataModel(TestCase):
                 }
             }
 
-            control = self.conn.search(index="_all", body=test_q, sort='')
+            logger.debug("[test_claims_resource_queries] test_q = %s",
+                        json.dumps(test_q))
+            logger.debug("[test_claims_resource_queries] doc_type = %s",
+                        params['type'])
+            control = self.conn.search(index="_all", doc_type=params['type'],
+                                       body=test_q, sort='')
             logger.debug("test_q = %s", json.dumps(test_q))
             logger.debug("control[aggregations] = %s",
                          json.dumps(control['aggregations']))
@@ -632,13 +632,13 @@ class IntelViewTest(TestCase):
                                           json.loads(response.content))
 
     def test_get_cpu_stats_view(self):
-        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
         uri = '/intelligence/compute/cpu_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
 
         response = self.client.get(uri)
         logger.debug("[test_get_cpu_stats_view] uri = %s", uri)
@@ -648,13 +648,13 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_mem_stats_view(self):
-        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
         uri = '/intelligence/compute/mem_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
 
         response = self.client.get(uri)
         logger.debug("[test_get_mem_stats_view] uri = %s", uri)
@@ -664,13 +664,13 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_phys_cpu_stats_view(self):
-        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
         uri = '/intelligence/compute/phys_cpu_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
 
         response = self.client.get(uri)
         logger.debug("[test_get_phys_cpu_stats_view] uri = %s", uri)
@@ -680,13 +680,13 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_virt_cpu_stats_view(self):
-        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
         uri = '/intelligence/compute/virt_cpu_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
 
         response = self.client.get(uri)
         logger.debug("[test_get_virt_cpu_stats_view] uri = %s", uri)
@@ -696,13 +696,13 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_phys_mem_stats_view(self):
-        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
         uri = '/intelligence/compute/phys_mem_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
 
         response = self.client.get(uri)
         logger.debug("[test_get_phys_mem_stats_view] uri = %s", uri)
@@ -712,13 +712,13 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_virt_mem_stats_view(self):
-        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
         uri = '/intelligence/compute/virt_mem_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
 
         response = self.client.get(uri)
         logger.debug("[test_get_virt_mem_stats_view] uri = %s", uri)
@@ -728,13 +728,13 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_phys_disk_stats_view(self):
-        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
         uri = '/intelligence/compute/phys_disk_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
 
         response = self.client.get(uri)
         logger.debug("[test_get_phys_disk_stats_view] uri = %s", uri)
