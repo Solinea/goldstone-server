@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 import pytz
 import json
 import logging
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -187,32 +188,52 @@ def _get_claims_metric_stats(start_dt, end_dt, interval, method_name,
             custom_fields['avg']: 0
         }
         for host_bucket in date_bucket['events_by_host']['buckets']:
-            item['max_total'] += (host_bucket['max_total']).get('value', 0)
-            item['avg_total'] += (host_bucket['avg_total']).get('value', 0)
+            item['max_total'] += (host_bucket['max_total']).\
+                get('value', 0)
+            item['avg_total'] += (host_bucket['avg_total']).\
+                get('value', 0)
             item[custom_fields['max']] += (host_bucket[custom_fields['max']]).\
                 get('value', 0)
             item[custom_fields['avg']] += (host_bucket[custom_fields['avg']]).\
                 get('value', 0)
 
+        logger.debug("[_get_claims_metric_stats] item = %s", json.dumps(item))
+
+        # if not all data is in, try to carry the previous value forward
+        if len(response) > 0 and \
+                item['max_total'] < response[-1]['max_total']:
+            item['max_total'] = response[-1]['max_total']
+            item['avg_total'] = response[-1]['avg_total']
+            item[custom_fields['max']] = \
+                response[-1][custom_fields['max']]
+            item[custom_fields['avg']] = \
+                response[-1][custom_fields['avg']]
+
         response.append(item)
 
     # let's make sure we fill the complete graph by putting a record at the
     # front and back
-    first_item = [{
-        'time': int(calendar.timegm(start_dt.utctimetuple())) * 1000,
-        'max_total': 0,
-        'avg_total': 0,
-        custom_fields['max']: 0,
-        custom_fields['avg']: 0
-    }]
-    last_item = [{
-        'time': int(calendar.timegm(end_dt.utctimetuple())) * 1000,
-        'max_total': 0,
-        'avg_total': 0,
-        custom_fields['max']: 0,
-        custom_fields['avg']: 0
-    }]
-    response = first_item + response + last_item
+    first_t = int(calendar.timegm(start_dt.utctimetuple())) * 1000
+    if response[0]['time'] != first_t:
+        first_item = [{
+            'time': first_t,
+            'max_total': 0,
+            'avg_total': 0,
+            custom_fields['max']: 0,
+            custom_fields['avg']: 0
+        }]
+        response = first_item + response
+
+    last_t = (int(calendar.timegm(end_dt.utctimetuple())) * 1000) - \
+             math.ceil(float(interval[:-1]) * 1000)
+
+    logger.debug("[_get_claims_metric_stats] last_t = %d, t[-1] = %d", last_t, response[-1]['time'])
+
+    if response[-1]['time'] < last_t:
+        last_item = response[-1].copy()
+        last_item['time'] = last_t
+        response = response + [last_item]
+
     return response
 
 
