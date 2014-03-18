@@ -8,4 +8,3 @@ class QUnitTests(QUnitSuite, JsTestCase):
     js_files = [
         'intelligence/static/intelligence/js/*',
     ]
-

@@ -1,8 +1,8 @@
+# tox uses this file
 pep8
 pyflakes
 coverage
 selenium
-pygraphviz
 sphinx
 mock
 -e git+git://github.com/kmmbvnr/django-jenkins.git#egg=django-jenkins
