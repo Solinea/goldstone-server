@@ -23,6 +23,9 @@ from elasticsearch import *
 logger = logging.getLogger(__name__)
 
 
+class SpawnDataModel(TestCase):
+    INDEX_NAME = 'logstash-test'
+
 class LogDataModel(TestCase):
     INDEX_NAME = 'logstash-test'
     DOCUMENT_TYPE = 'logs'
