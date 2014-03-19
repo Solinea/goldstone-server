@@ -18,6 +18,109 @@ import json
 logger = logging.getLogger(__name__)
 
 
+#
+# query construction helpers
+#
+def _query_base():
+    return {
+        "query": {}
+    }
+
+
+def _filtered_query_base():
+    return {
+        "query": {
+            "filtered": {
+                "query": {},
+                "filter": {}
+            }
+        }
+    }
+
+
+def _add_facet(q, facet):
+        result = q.copy()
+        if not 'facets' in result:
+            result['facets'] = {}
+
+        result['facets'][facet.keys()[0]] = facet[facet.keys()[0]]
+        return result
+
+
+def _query_term(field, value):
+    return {
+        "term": {
+            field: value
+        }
+    }
+
+
+def _query_range(field, start, end, gte=True, lte=True, facet=None):
+        start_op = "gte" if gte else "gt"
+        end_op = "lte" if lte else "lt"
+        result = {
+            "range": {
+                field: {
+                    start_op: start,
+                    end_op: end
+                }
+            }
+        }
+
+        if facet:
+            result = _add_facet(result, facet)
+
+        return result
+
+
+def _agg_date_hist(interval, field="@timestamp", name="events_by_date",
+                   min_doc_count=1):
+    return {
+        name: {
+            "field": field,
+            "interval": interval,
+            "min_doc_count": min_doc_count
+        }
+
+    }
+
+
+class GSConnection(object):
+    @staticmethod
+    def __init__(self, server):
+        self.conn = Elasticsearch(server)
+
+
+class SpawnData(object):
+    START_DOC_TYPE = 'nova_spawn_start'
+    FINISH_DOC_TYPE = 'nova_spawn_finish'
+    conn = GSConnection(settings.ES_SERVER).conn
+
+    def __init__(self, start, end, interval):
+        self.start = start
+        self.end = end
+        self.interval = interval
+
+    def get_spawn_start(self):
+        """Return the result of a query for nova spawn start events"""
+        q = _query_base()
+        q['query'] = _query_range('@timestamp', self.start.isoformat(),
+                                  self.end.isoformat())
+        q['aggs'] = _agg_date_hist(self.interval)
+
+        logger.debug("[get_spawn_start] query = %s", json.dumps(q))
+        response = self.conn.search(index="_all", doc_type=self.START_DOC_TYPE,
+                                    body=q, size=0)
+        logger.debug("[get_spawn_start] response = %s", json.dumps(response))
+        return response
+
+    #def get_spawn_success(self):
+    #    """Return the result of a query for nova spawn success events"""
+
+
+    #def get_spawn_failure(self):
+    #    """Return the result of a query for nova spawn failure events"""
+
 class LogData(object):
     @staticmethod
     def _subtract_months(sourcedate, months):
@@ -42,6 +145,7 @@ class LogData(object):
             t = self._subtract_months(end, 1)
         return t.replace(tzinfo=pytz.utc)
 
+    # TODO GOLD-270 refactor _range_query out and use the module method
     def _range_query(self, field, start, end, gte=True, lte=True, facet=None):
 
         start_op = "gte" if gte else "gt"
@@ -62,6 +166,7 @@ class LogData(object):
 
         return result
 
+    # TODO GOLD-271 refactor _add_facet out and use the module method
     @staticmethod
     def _add_facet(q, facet):
 
@@ -71,6 +176,7 @@ class LogData(object):
 
         result['facets'][facet.keys()[0]] = facet[facet.keys()[0]]
         return result
+
 
     @staticmethod
     def _term_filter(field, value):
