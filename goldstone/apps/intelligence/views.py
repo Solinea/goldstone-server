@@ -225,9 +225,10 @@ def _get_claims_metric_stats(start_dt, end_dt, interval, method_name,
         response = first_item + response
 
     last_t = (int(calendar.timegm(end_dt.utctimetuple())) * 1000) - \
-             math.ceil(float(interval[:-1]) * 1000)
+        math.ceil(float(interval[:-1]) * 1000)
 
-    logger.debug("[_get_claims_metric_stats] last_t = %d, t[-1] = %d", last_t, response[-1]['time'])
+    logger.debug("[_get_claims_metric_stats] last_t = %d, t[-1] = %d", last_t,
+                 response[-1]['time'])
 
     if response[-1]['time'] < last_t:
         last_item = response[-1].copy()

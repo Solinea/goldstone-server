@@ -81,6 +81,7 @@ def _query_term(field, value):
         }
     }
 
+
 def _agg_date_hist(interval, field="@timestamp", name="events_by_date",
                    min_doc_count=0):
     return {
@@ -138,7 +139,8 @@ class SpawnData(object):
         q['query'] = _query_range('@timestamp',
                                   self.start.isoformat(),
                                   self.end.isoformat())
-        q['aggs'] = _agg_filter_term("success", str(success).lower(), filter_name)
+        q['aggs'] = _agg_filter_term("success", str(success).lower(),
+                                     filter_name)
         q['aggs'][filter_name]['aggs'] = _agg_date_hist(
             self.interval, name=agg_name)
         return q
@@ -157,7 +159,6 @@ class SpawnData(object):
             response['aggregations'][agg_name]['buckets'])
         )
 
-
     def _get_spawn_finish(self, success):
         fname = "success_filter"
         aname = "events_by_date"
@@ -175,7 +176,6 @@ class SpawnData(object):
         """Return a pandas dataframe with the results of a query for nova spawn
         success events"""
         return self._get_spawn_finish(True)
-
 
     def get_spawn_failure(self):
         """Return a pandas dataframe with the results of a query for nova spawn
@@ -238,7 +238,6 @@ class LogData(object):
 
         result['facets'][facet.keys()[0]] = facet[facet.keys()[0]]
         return result
-
 
     @staticmethod
     def _term_filter(field, value):
