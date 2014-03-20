@@ -47,35 +47,34 @@ class SpawnDataModel(TestCase):
                          goldstone.apps.intelligence.models._query_range(
                              '@timestamp',
                              self.start.isoformat(),
-                             self.end.isoformat())['range']
-        )
-        self.assertEqual(q['aggs'],
+                             self.end.isoformat())['range'])
+        self.assertEqual(
+            q['aggs'],
             goldstone.apps.intelligence.models._agg_date_hist(self.interval))
 
     def test_spawn_finish_query(self):
         import goldstone.apps.intelligence.models
         q = self.sd._spawn_finish_query(True)
-        self.assertEqual(q['query']['range'],
-                         goldstone.apps.intelligence.models._query_range(
-                             '@timestamp',
-                             self.start.isoformat(),
-                             self.end.isoformat())['range']
-        )
-        self.assertDictEqual(q['aggs']['success_filter']['aggs'],
-                         goldstone.apps.intelligence.models._agg_date_hist(
-                             self.interval)
-        )
-        self.assertDictEqual(q['aggs']['success_filter']['filter'],
-                         goldstone.apps.intelligence.models._agg_filter_term(
-                             "success", "true",
-                             "success_filter")['success_filter']['filter']
-        )
+        self.assertEqual(
+            q['query']['range'],
+            goldstone.apps.intelligence.models._query_range(
+                '@timestamp',
+                self.start.isoformat(),
+                self.end.isoformat())['range'])
+        self.assertDictEqual(
+            q['aggs']['success_filter']['aggs'],
+            goldstone.apps.intelligence.models._agg_date_hist(self.interval))
+        self.assertDictEqual(
+            q['aggs']['success_filter']['filter'],
+            goldstone.apps.intelligence.models._agg_filter_term(
+                "success", "true",
+                "success_filter")['success_filter']['filter'])
         q = self.sd._spawn_finish_query(False)
-        self.assertDictEqual(q['aggs']['success_filter']['filter'],
-                         goldstone.apps.intelligence.models._agg_filter_term(
-                             "success", "false",
-                             "success_filter")['success_filter']['filter']
-        )
+        self.assertDictEqual(
+            q['aggs']['success_filter']['filter'],
+            goldstone.apps.intelligence.models._agg_filter_term(
+                "success", "false",
+                "success_filter")['success_filter']['filter'])
 
     def test_get_spawn_start(self):
         sd = SpawnData(self.start, self.end, self.interval)
@@ -583,9 +582,9 @@ class LogDataModel(TestCase):
             }
 
             logger.debug("[test_claims_resource_queries] test_q = %s",
-                        json.dumps(test_q))
+                         json.dumps(test_q))
             logger.debug("[test_claims_resource_queries] doc_type = %s",
-                        params['type'])
+                         params['type'])
             control = self.conn.search(index="_all", doc_type=params['type'],
                                        body=test_q, sort='')
             logger.debug("test_q = %s", json.dumps(test_q))
