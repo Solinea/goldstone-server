@@ -27,10 +27,14 @@
     <script type="text/javascript">
         // this code needs to stay here because it uses django template markup
         $(document).ready(function () {
-            var start = {{ start_ts }} * 1000,
-                end = {{ end_ts }} * 1000
+            var start =
+            {{ start_ts }} *
+            1000,
+                    end =
+            {{ end_ts }} *
+            1000
 
-            badEventMultiLine('#bad-event-multiline',start, end)
+            badEventMultiLine('#bad-event-multiline', start, end)
             drawSearchTable('#log-search-table', start, end)
             populateSettingsFields(start, end)
         })
@@ -57,6 +61,7 @@
                         <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                              id="log-multiline-loading-indicator"
                              class="ajax-loader"/>
+
                         <div class="clearfix"></div>
                     </div>
                     <div id="bad-event-range">
@@ -100,7 +105,7 @@
         </div>
     </div>
 
-        <!-- log settings modal -->
+    <!-- log settings modal -->
     <div class="modal fade" id="logSettingsModal" tabindex="-1" role="dialog"
          aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -123,7 +128,7 @@
                                        placeholder="1 weeks ago">
                             </div>
                         </div>
-<div class="form-group">
+                        <div class="form-group">
 
                             <label for="settingsEndTime"
                                    class="col-sm-3 control-label">End:</label>
@@ -138,8 +143,10 @@
                                                    id="endTimeNow" checked>
                                         </span>
                                     <input
-                                            class="form-control form-control-static" type="text"
-                                            placeholder="use current time" disabled>
+                                            class="form-control form-control-static"
+                                            type="text"
+                                            placeholder="use current time"
+                                            disabled>
                                 </div>
 
                                 <div class="input-group">
@@ -167,12 +174,14 @@
                                         </span>
                                     <select class="form-control"
                                             id="autoRefreshInterval">
-                                        <option value="15000">15 seconds</option>
+                                        <option value="15000">15 seconds
+                                        </option>
                                         <option value="30000" selected>30
                                             seconds
                                         </option>
                                         <option value="60000">1 minute</option>
-                                        <option value="300000">5 minutes</option>
+                                        <option value="300000">5 minutes
+                                        </option>
                                     </select>
                                 </div>
                             </div>

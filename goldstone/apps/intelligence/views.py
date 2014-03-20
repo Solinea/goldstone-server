@@ -88,6 +88,9 @@ def log_search_data(request):
                'path', 'pid', 'program', 'request_id_list', 'type',
                'received_at']
 
+    logger.debug("[log_search_data] end_time = %s",
+                 request.GET.get('end_time'))
+
     end_ts = int(request.GET.get('end_time'))
     start_ts = int(request.GET.get('start_time'))
     level_filters = {
