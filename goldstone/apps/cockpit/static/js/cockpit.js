@@ -31,7 +31,6 @@ var refreshCockpitCharts = function () {
         refreshInterval = $('#autoRefreshInterval').val()
 
     start.addSeconds(refreshInterval / 1000)
-    console.log("refreshLogSearch] refreshInterval = " + refreshInterval + ", start =" + start)
     populateSettingsFields(start, end)
     updateCockpitCharts()
 }

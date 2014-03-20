@@ -825,8 +825,6 @@ function hostPresenceTable(location, start, end) {
  xAxis = d3.svg.axis().scale(x)
  .orient("bottom").ticks(5);
 
- console.log("adjusted width = " + panelWidth);
- console.log("adjusted height = " + panelHeight);
  svg.attr("width", panelWidth)
  .attr("height", panelHeight);
  svg.select(".x.axis")
