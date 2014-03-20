@@ -35,6 +35,10 @@ result = [conn.search(index="_all", doc_type='syslog', body=fq,
           conn.search(index="_all", doc_type="nova_claims_summary_phys",
                       body=fq, size=1000),
           conn.search(index="_all", doc_type="nova_claims_summary_virt",
+                      body=fq, size=1000),
+          conn.search(index="_all", doc_type="nova_spawn_start",
+                      body=fq, size=1000),
+          conn.search(index="_all", doc_type="nova_spawn_finish",
                       body=fq, size=1000)]
 
 print "exporting " + str(len(result)) + " sets"
