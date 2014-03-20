@@ -1,5 +1,5 @@
-from djangojs.runners import JsTestCase, JsFileTestCase, JsTemplateTestCase
-from djangojs.runners import JasmineSuite, QUnitSuite
+from djangojs.runners import JsTestCase
+from djangojs.runners import QUnitSuite
 
 
 class QUnitTests(QUnitSuite, JsTestCase):

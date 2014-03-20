@@ -2,7 +2,8 @@
 #        requirements.txt in the root directory of a project.
 # requirements/base.txt is linked to it.
 
-Django==1.6.1
+Django==1.6.2
+South==0.8.4
 wsgiref==0.1.2
 django-admin-bootstrapped
 psycopg2

@@ -1,8 +1,9 @@
 # settings/development.py
 from .base import *
 
-DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+
+QUNIT_ENABLED = True
 
 DATABASES = {
     "default": {

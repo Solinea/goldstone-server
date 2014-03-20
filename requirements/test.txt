@@ -1,6 +1,0 @@
--r base.txt 
-
-pep8
-pyflakes
-coverage
-selenium
