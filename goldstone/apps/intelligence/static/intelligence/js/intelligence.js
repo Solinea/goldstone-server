@@ -45,6 +45,15 @@ function populateSettingsFields(start, end) {
     $('#settingsEndTime').val(eStr)
 }
 
+function _toPyTs(t) {
+    "use strict";
+    if (typeof t === 'number') {
+        return String(Math.round(t / 1000))
+    } else if (Object.prototype.toString.call(t) === '[object Date]') {
+        return String(Math.round(t.getTime() / 1000))
+    }
+}
+
 $("#endTimeNow").click(function () {
     "use strict";
     $("#autoRefresh").prop("disabled", false)
@@ -94,8 +103,6 @@ function hostPresenceQty() {
 function refreshHostPresence(start, end) {
     hostPresenceTable('#host-presence-table', start, end)
 }
-
-
 
 function refreshCockpitEventCharts(start, end) {
     "use strict";
@@ -290,16 +297,8 @@ function _lineChartBase(location, margins, renderlet) {
 function refreshSearchTable(start, end, levels) {
     "use strict";
     var oTable,
-        toPyTs = function (t) {
-        switch (typeof t) {
-            case 'number':
-                return String(Math.round(t / 1000))
-            case 'Date':
-                return String(Math.round(t.getTime() / 1000))
-
-        }},
-        startTs = toPyTs(start),
-        endTs = toPyTs(end),
+        startTs = _toPyTs(start),
+        endTs = _toPyTs(end),
         uri = '/intelligence/log/search/data'.concat(
         "?start_time=", startTs,
         "&end_time=", endTs)
@@ -369,27 +368,26 @@ function badEventMultiLine(location, start, end) {
             // if the search table is present in the page, look up the hidden
             // status of all levels and redraw the page
             if ($('#log-search-table').length > 0) {
+                _chart.selectAll("g.dc-legend-item *")
+                    .on("click", function (d) {
+                        var levelFilter = {}
+                        // looks like we take the opposite value of hidden for
+                        // the element that was clicked, and the current value
+                        // for others
+                        levelFilter[d.name.toLowerCase()] = d.hidden
 
-            _chart.selectAll("g.dc-legend-item *")
-                .on("click", function (d) {
-                    var levelFilter = {}
-                    // looks like we take the opposite value of hidden for
-                    // the element that was clicked, and the current value
-                    // for others
-                    levelFilter[d.name.toLowerCase()] = d.hidden
-
-                    var rects = _chart.selectAll("g.dc-legend-item rect")
-                    if (rects.length > 0) {
-                        // we have an array of elements in [0]
-                        rects = rects[0]
-                        rects.forEach(function (r) {
-                            if (r.__data__.name !== d.name) {
-                                levelFilter[r.__data__.name.toLowerCase()] = !r.__data__.hidden
-                            }
-                        })
-                    }
-                    refreshSearchTable(start, end, levelFilter)
-                })
+                        var rects = _chart.selectAll("g.dc-legend-item rect")
+                        if (rects.length > 0) {
+                            // we have an array of elements in [0]
+                            rects = rects[0]
+                            rects.forEach(function (r) {
+                                if (r.__data__.name !== d.name) {
+                                    levelFilter[r.__data__.name.toLowerCase()] = !r.__data__.hidden
+                                }
+                            })
+                        }
+                        refreshSearchTable(start, end, levelFilter)
+                    })
             }
         },
         chart = _lineChartBase(location,

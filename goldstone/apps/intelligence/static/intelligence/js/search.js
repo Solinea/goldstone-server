@@ -1,15 +1,14 @@
 var autoRefreshInterval
 
-var updateLogSearch = function() {
+function updateLogSearch() {
     var dates = _getSearchFormDates(),
         start = dates[0],
         end = dates[1]
-
     badEventMultiLine('#bad-event-multiline', start, end)
     drawSearchTable('#log-search-table', start, end)
 }
 
-var refreshLogSearch = function () {
+function refreshLogSearch() {
     "use strict";
     var dates = _getSearchFormDates(),
         start = new Date(dates[0]),
