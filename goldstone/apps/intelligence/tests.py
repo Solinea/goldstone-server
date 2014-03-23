@@ -44,7 +44,7 @@ class SpawnDataModel(TestCase):
         import goldstone.apps.intelligence.models
         q = self.sd._spawn_start_query()
         self.assertEqual(q['query']['range'],
-                         goldstone.apps.intelligence.models._query_range(
+                         goldstone.apps.intelligence.models._range_clause(
                              '@timestamp',
                              self.start.isoformat(),
                              self.end.isoformat())['range'])
@@ -57,7 +57,7 @@ class SpawnDataModel(TestCase):
         q = self.sd._spawn_finish_query(True)
         self.assertEqual(
             q['query']['range'],
-            goldstone.apps.intelligence.models._query_range(
+            goldstone.apps.intelligence.models._range_clause(
                 '@timestamp',
                 self.start.isoformat(),
                 self.end.isoformat())['range'])
@@ -110,6 +110,23 @@ class SpawnDataModel(TestCase):
         response = sd.get_spawn_failure()
         control = sd._get_spawn_finish(False)
         self.assertTrue(response.equals(control))
+
+
+class NovaResourceDataModel(TestCase):
+    start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
+    end = datetime.now(tz=pytz.utc)
+    interval = '1h'
+
+    obj = NovaResourceData(start, end, interval, 'physical')
+
+    def test_claims_resource_query(self):
+        import goldstone.apps.intelligence.models
+        for resource_type in ['physical', 'virtual']:
+            self.obj.resource_type = resource_type
+            for resource in ["cpu", "memory", "disk"]:
+                # TODO find a straight forward way to test this query
+                q = self.obj._claims_resource_query(resource)
+                pass
 
 
 class LogDataModel(TestCase):

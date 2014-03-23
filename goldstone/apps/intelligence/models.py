@@ -3,7 +3,7 @@
 #
 # Copyright 2014 Solinea, Inc.
 #
-
+from types import StringType
 
 from django.db import models
 from django.conf import settings
@@ -28,12 +28,12 @@ def _query_base():
     }
 
 
-def _filtered_query_base():
+def _filtered_query_base(filter={}, query={}):
     return {
         "query": {
             "filtered": {
-                "query": {},
-                "filter": {}
+                "query": query,
+                "filter": filter
             }
         }
     }
@@ -48,7 +48,7 @@ def _add_facet(q, facet):
         return result
 
 
-def _query_term(field, value):
+def _term_clause(field, value):
     return {
         "term": {
             field: value
@@ -56,7 +56,24 @@ def _query_term(field, value):
     }
 
 
-def _query_range(field, start, end, gte=True, lte=True, facet=None):
+def _terms_clause(field):
+    return {
+        "terms": {
+            "field": field
+        }
+    }
+
+
+def _bool_clause(must=[], must_not=[]):
+    return {
+        "bool": {
+            "must": must,
+            "must_not": must_not
+        }
+    }
+
+
+def _range_clause(field, start, end, gte=True, lte=True, facet=None):
         start_op = "gte" if gte else "gt"
         end_op = "lte" if lte else "lt"
         result = {
@@ -72,14 +89,6 @@ def _query_range(field, start, end, gte=True, lte=True, facet=None):
             result = _add_facet(result, facet)
 
         return result
-
-
-def _query_term(field, value):
-    return {
-        "term": {
-            field: value
-        }
-    }
 
 
 def _agg_date_hist(interval, field="@timestamp", name="events_by_date",
@@ -107,6 +116,22 @@ def _agg_filter_term(field, value, name):
     }
 
 
+def _max_aggs_clause(name, field):
+    return {
+        name: {
+            "max": {
+                "field": field
+            }
+        }
+    }
+
+
+def _agg_clause(name, clause):
+    return {
+        name: clause
+    }
+
+
 class GSConnection(object):
     conn = None
 
@@ -126,9 +151,9 @@ class SpawnData(object):
 
     def _spawn_start_query(self, agg_name="events_by_date"):
         q = _query_base()
-        q['query'] = _query_range('@timestamp',
-                                  self.start.isoformat(),
-                                  self.end.isoformat())
+        q['query'] = _range_clause('@timestamp',
+                                   self.start.isoformat(),
+                                   self.end.isoformat())
         q['aggs'] = _agg_date_hist(self.interval, name=agg_name)
         return q
 
@@ -136,9 +161,9 @@ class SpawnData(object):
         filter_name = "success_filter"
         agg_name = "events_by_date"
         q = _query_base()
-        q['query'] = _query_range('@timestamp',
-                                  self.start.isoformat(),
-                                  self.end.isoformat())
+        q['query'] = _range_clause('@timestamp',
+                                   self.start.isoformat(),
+                                   self.end.isoformat())
         q['aggs'] = _agg_filter_term("success", str(success).lower(),
                                      filter_name)
         q['aggs'][filter_name]['aggs'] = _agg_date_hist(
@@ -182,6 +207,101 @@ class SpawnData(object):
         failure events"""
         return self._get_spawn_finish(False)
 
+
+class NovaResourceData(object):
+    _PHYS_DOC_TYPE = 'nova_claims_summary_phys'
+    _VIRT_DOC_TYPE = 'nova_claims_summary_virt'
+    _TYPE_FIELDS = {
+        'physical': ['total', 'used'],
+        'virtual': ['limit', 'free']
+    }
+    _conn = GSConnection().conn
+
+    def __init__(self, start, end, interval, resource_type):
+        """
+        :arg start: datetime used to filter the query range
+        :arg end: datetime used to filter the query range
+        :arg interval: string representation of the time interval to use when
+            aggregating the results.  Form should be something like: '1.5s'.
+            Supported time postfixes are s, m, h, d, w, m.
+        :arg resource_type: one of 'physical' or 'virtual'
+        """
+        assert type(start) is datetime, "start is not a datetime: %r" % start
+        assert type(end) is datetime, "end is not a datetime: %r" % end
+        assert type(interval) is StringType, "interval is not a string: %r" \
+            % interval
+        assert interval[-1] in ['s', 'm', 'h', 'd'], \
+            "valid units for interval are ['s', 'm', 'h', 'd']: %r" \
+            % interval
+        assert resource_type in ['physical', 'virtual'], \
+            "resource_type must be one of ['physical', 'virtual']: %r" \
+            % resource_type
+
+        self.start = start
+        self.end = end
+        self.interval = interval
+        self.resource_type = resource_type
+
+    def _claims_resource_query(self, resource):
+        date_agg_name = "events_by_date"
+        host_agg_name = "events_by_host"
+        max_total_agg = "max_total"
+        max_used_agg = self._TYPE_FIELDS[self.resource_type][1]
+
+        range_filter = _range_clause('@timestamp', self.start.isoformat(),
+                                     self.end.isoformat())
+        term_filter = _term_clause('resource', resource)
+        q = _filtered_query_base(_bool_clause([range_filter, term_filter]),
+                                 {'match_all': {}})
+
+        tl_aggs_clause = _agg_date_hist(self.interval, name=date_agg_name)
+        host_aggs_clause = _agg_clause(host_agg_name,
+                                       _terms_clause("host.raw"))
+        stats_aggs_clause = dict(
+            _max_aggs_clause(max_total_agg,
+                             self._TYPE_FIELDS[self.resource_type][0]).
+            items() +
+            _max_aggs_clause(max_used_agg,
+                             self._TYPE_FIELDS[self.resource_type][1]).items())
+        host_aggs_clause[host_agg_name]['aggs'] = stats_aggs_clause
+        tl_aggs_clause[date_agg_name]['aggs'] = host_aggs_clause
+        q['aggs'] = tl_aggs_clause
+        return q
+
+    def _get_resource(self, resource_type, resource):
+        q = self._claims_resource_query(resource)
+        doc_type = self._PHYS_DOC_TYPE
+        if resource_type == 'virtual':
+            doc_type = self._VIRT_DOC_TYPE
+        # TODO GOLD-275 need an error handling strategy for ES queries
+        r = self._conn.search(index="_all", body=q, size=0, doc_type=doc_type)
+        return pd.read_json(json.dumps(r))
+
+    def get_phys_cpu_usage(self):
+        result = self._get_resource('physical', 'cpu')
+        logger.debug('[get_phys_cpu_usage] result = ' + result)
+        return result
+
+    def get_virt_cpu_usage(self):
+        result = self._get_resource('virtual', 'cpu')
+        logger.debug('[get_virt_cpu_usage] result = ' + result)
+        return result
+
+    def get_phys_mem_usage(self):
+        result = self._get_resource('physical', 'memory')
+        logger.debug('[get_phys_mem_usage] result = ' + result)
+        return result
+
+    def get_virt_mem_usage(self):
+        result = self._get_resource('virtual', 'memory')
+        logger.debug('[get_virt_mem_usage] result = ' + result)
+        return result
+
+    def get_phys_disk_usage(self):
+        result = self._get_resource('physical', 'disk')
+        logger.debug('[get_phys_disk_usage] result = ' + result)
+        return result
+    
 
 class LogData(object):
     @staticmethod
