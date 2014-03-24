@@ -60,6 +60,7 @@ INSTALLED_APPS = (
     'waffle',
     'crispy_forms',
     'djangojs',
+    'goldstone.apps.core',
     'goldstone.apps.intelligence',
     'goldstone.apps.cockpit',
     'goldstone.apps.nova',

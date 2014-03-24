@@ -11,6 +11,8 @@ from .views import *
 
 urlpatterns = patterns(
     '',
+    url(r'^discover[/]?$', DiscoverView.as_view(),
+        name='nova-discover-view'),
     url(r'^hypervisor/spawns[/]?$', SpawnsView.as_view(),
         name='nova-spawn-view'),
     #url(r'^hypervisor/(?P<name>\w+)/spawns[/]?', NovaInstanceSpawnsView.as_view()),

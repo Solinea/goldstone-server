@@ -31,6 +31,67 @@ def _parse_timestamp(ts, tz=pytz.utc):
         return None
 
 
+def _validate(arg_list, context):
+    validation_errors = []
+    if 'start' in arg_list and context['start'] is None:
+        validation_errors.append('parameter missing [start]')
+    if 'end' in arg_list:
+        if context['end'] is None:
+            validation_errors.append('parameter missing [end]')
+        else:
+            context['end_dt'] = _parse_timestamp(context['end'])
+            if context['end_dt'] is None:
+                validation_errors.append('malformed parameter [end]')
+            elif 'start' in arg_list:
+                context['start_dt'] = _parse_timestamp(context['start'])
+                if context['start_dt'] is None:
+                    validation_errors.append('malformed parameter [start]')
+    if 'interval' in arg_list:
+        if context['interval'] is None:
+            validation_errors.append('parameter missing [interval]')
+        elif context['interval'][-1] not in ['s', 'm', 'h', 'd', 'w']:
+            validation_errors.append('malformed parameter [interval]')
+            try:
+                int(context['interval'][:-1])
+            except Exception:
+                validation_errors.append('malformed parameter [interval]')
+    if 'render' in arg_list:
+        if context['render'] not in ["True", "False"]:
+            validation_errors.append('malformed parameter [render]')
+        else:
+            context['render'] = bool(context['render'])
+
+    if len(validation_errors) > 0:
+        return HttpResponseBadRequest(json.dumps(validation_errors))
+    else:
+        return context
+
+
+class DiscoverView(TemplateView):
+    template_name = 'discover.html'
+
+    def get_context_data(self, **kwargs):
+        context = TemplateView.get_context_data(self, **kwargs)
+        context['start'] = self.request.GET.get('start', None)
+        context['end'] = self.request.GET.get('end', None)
+        context['interval'] = self.request.GET.get('interval', None)
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        context = _validate(['start', 'end', 'interval'], context)
+        # check for a validation error
+        if isinstance(context, HttpResponseBadRequest):
+            return context
+        else:
+            return TemplateView.render_to_response(
+                self,
+                {
+                    'start_ts': context['start'],
+                    'end_ts': context['end'],
+                    'interval': context['interval']
+                })
+
+
 class SpawnsView(TemplateView):
 
     data = pd.DataFrame()
@@ -45,10 +106,10 @@ class SpawnsView(TemplateView):
 
         # if render is true, we will return a full template, otherwise only
         # a json data payload
-        if context['render']:
-            template_name = 'spawns.html'
+        if context['render'] == 'True':
+            self.template_name = 'spawns.html'
         else:
-            template_name = None
+            self.template_name = None
             TemplateView.content_type = 'application/json'
 
         return context
@@ -81,12 +142,8 @@ class SpawnsView(TemplateView):
                 validation_errors.append('malformed parameter [start]')
 
         if len(validation_errors) > 0:
-            logger.info("[_handle_request] validation_errors = %s",
-                        json.dumps(validation_errors))
             return HttpResponseBadRequest(json.dumps(validation_errors))
 
-        logger.info("[get_context_data] start_dt = %s", context['start_dt'])
-        logger.info("[get_context_data] end_dt = %s", context['end_dt'])
         sd = SpawnData(context['start_dt'], context['end_dt'],
                        context['interval'])
         success_data = sd.get_spawn_success()
@@ -113,25 +170,24 @@ class SpawnsView(TemplateView):
                                  inplace=True)
 
         response = self.data.to_dict(outtype='dict')
-        return HttpResponse(json.dumps(response),
-                            content_type="application/json")
+        return response
 
     def render_to_response(self, context, **response_kwargs):
         """
         Overriding to handle case of data only request (render=False).  In
         that case an application/json data payload is returned.
         """
-
-        if self.template_name is None:
-            return self._handle_request(context)
+        response = self._handle_request(context)
+        if isinstance(response, HttpResponseBadRequest):
+            return response
         else:
-            response_kwargs.setdefault('content_type', self.content_type)
-            return self.response_class(
-                request=self.request,
-                template=self.get_template_names(),
-                context=context,
-                **response_kwargs
-            )
+            if self.template_name is None:
+                return HttpResponse(json.dumps(response),
+                                    content_type="application/json")
+            else:
+                return TemplateView.render_to_response(
+                    self, {'data': json.dumps(response)})
+
 
 
 class NovaInstanceSpawnView():
