@@ -16,6 +16,7 @@ admin.autodiscover()
 urlpatterns = patterns(
     '',
     url(r'^intelligence/', include('goldstone.apps.intelligence.urls')),
+    url(r'^nova/', include('goldstone.apps.nova.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', include('goldstone.apps.cockpit.urls')))
 
