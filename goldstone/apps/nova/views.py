@@ -24,14 +24,15 @@ def _parse_timestamp(ts, tz=pytz.utc):
 
     try:
         dt = datetime.fromtimestamp(int(ts), tz=tz)
-        logger.info("[_parse_timestamp] dt = %s", str(dt))
+        logger.debug("[_parse_timestamp] dt = %s", str(dt))
         return dt
     except Exception:
-        logger.info("[_parse_timestamp] timestamp creation failed, ")
+        logger.debug("[_parse_timestamp] timestamp creation failed, ")
         return None
 
 
 def _validate(arg_list, context):
+    context = context.copy()
     validation_errors = []
     if 'start' in arg_list and context['start'] is None:
         validation_errors.append('parameter missing [start]')
@@ -81,15 +82,16 @@ class DiscoverView(TemplateView):
         context = _validate(['start', 'end', 'interval'], context)
         # check for a validation error
         if isinstance(context, HttpResponseBadRequest):
+            # validation error
             return context
-        else:
-            return TemplateView.render_to_response(
-                self,
-                {
-                    'start_ts': context['start'],
-                    'end_ts': context['end'],
-                    'interval': context['interval']
-                })
+
+        return TemplateView.render_to_response(
+            self,
+            {
+                'start_ts': context['start'],
+                'end_ts': context['end'],
+                'interval': context['interval']
+            })
 
 
 class SpawnsView(TemplateView):
@@ -115,60 +117,44 @@ class SpawnsView(TemplateView):
         return context
 
     def _handle_request(self, context):
-        validation_errors = []
-        if context['start'] is None:
-            validation_errors.append('parameter missing [start]')
-        if context['end'] is None:
-            validation_errors.append('parameter missing [end]')
-        if context['interval'] is None:
-            validation_errors.append('parameter missing [interval]')
-        elif context['interval'][-1] not in ['s', 'm', 'h', 'd', 'w']:
-            validation_errors.append('malformed parameter [interval]')
-            try:
-                int(context['interval'][:-1])
-            except Exception:
-                validation_errors.append('malformed parameter [interval]')
-        if context['render'] not in ["True", "False"]:
-            validation_errors.append('malformed parameter [render]')
-        else:
-            context['render'] = bool(context['render'])
+        context = _validate(['start', 'end', 'interval', 'render'], context)
 
-        context['end_dt'] = _parse_timestamp(context['end'])
-        if context['end_dt'] is None:
-            validation_errors.append('malformed parameter [end]')
-        else:
-            context['start_dt'] = _parse_timestamp(context['start'])
-            if context['start_dt'] is None:
-                validation_errors.append('malformed parameter [start]')
-
-        if len(validation_errors) > 0:
-            return HttpResponseBadRequest(json.dumps(validation_errors))
+        if isinstance(context, HttpResponseBadRequest):
+            # validation error
+            return context
 
         sd = SpawnData(context['start_dt'], context['end_dt'],
                        context['interval'])
         success_data = sd.get_spawn_success()
         failure_data = sd.get_spawn_failure()
 
+        # there are a few cases to handle here
+        #  - both empty: return empty dataframe
+        #  - one empty: return zero filled column in non-empty dataframe
+        #  - neither empty: merge them on the 'key' field
+
         if not (success_data.empty and failure_data.empty):
             if success_data.empty:
                 failure_data['successes'] = 0
-                failure_data.rename(
-                    columns={'doc_count': 'failures'}, inplace=True)
-                self.data = failure_data
+                failure_data = failure_data.rename(
+                    columns={'doc_count': 'failures'})
+                self.data = failure_data.fillna(0).set_index('key')
             elif failure_data.empty:
                 success_data['failures'] = 0
-                success_data.rename(
-                    columns={'doc_count': 'successes'}, inplace=True)
-                self.data = success_data
+                success_data = success_data.rename(
+                    columns={'doc_count': 'successes'})
+                self.data = success_data.fillna(0).set_index('key')
             else:
+                logger.debug("[_handle_request] successes = %s", success_data)
+                logger.debug("[_handle_request] failures = %s", failure_data)
                 self.data = pd.ordered_merge(
-                    success_data, failure_data,
-                    on='key', suffixes=('successes', 'failures'),
-                    fill_method=None)
-                self.data.rename(columns={'doc_count_successes': 'successes',
-                                          'doc_count_failures': 'failures'},
-                                 inplace=True)
+                    success_data, failure_data, on='key',
+                    suffixes=['_successes', '_failures'])\
+                    .rename(columns={'doc_count_successes': 'successes',
+                                     'doc_count_failures': 'failures'})\
+                    .set_index('key').fillna(0)
 
+        logger.debug("[_handle_request] self.data = %s", self.data)
         response = self.data.to_dict(outtype='dict')
         return response
 
@@ -180,13 +166,13 @@ class SpawnsView(TemplateView):
         response = self._handle_request(context)
         if isinstance(response, HttpResponseBadRequest):
             return response
-        else:
-            if self.template_name is None:
-                return HttpResponse(json.dumps(response),
-                                    content_type="application/json")
-            else:
-                return TemplateView.render_to_response(
-                    self, {'data': json.dumps(response)})
+
+        if self.template_name is None:
+            return HttpResponse(json.dumps(response),
+                                content_type="application/json")
+
+        return TemplateView.render_to_response(
+            self, {'data': json.dumps(response)})
 
 
 

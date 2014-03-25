@@ -81,6 +81,12 @@ class NovaSpawnsViewTest(TestCase):
     invalid_end = '999999999999'
     invalid_interval = 'abc'
 
+    def test_observed_failure(self):
+        url = '/nova/hypervisor/spawns?start=1395100235&end=1395666536&interval=1h'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'spawns.html')
+
     def test_with_explicit_render(self):
         url = '/nova/hypervisor/spawns?start=' + self.valid_start + \
             "&end=" + self.valid_end + \

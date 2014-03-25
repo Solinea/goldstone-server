@@ -1,6 +1,6 @@
 {% load staticfiles %}
 {% load custom_filters %}
-<div class="panel panel-primary">
+<div id = "nova-spawns-panel" class="panel panel-primary">
     <div class="panel-heading">
         <h3 class="panel-title"><i class="fa fa-tasks"></i>Nova Spawns</h3>
     </div>
@@ -10,9 +10,8 @@
 // script assumes that goldstone.js and nova.js have been loaded into the
 // surrounding page.
 $('#nova-spawns-chart').ready(function () {
-    goldstone.namespace('nova.data.spawns')
-    goldstone.nova.data.spawns = {{ data|to_js }}
-    (goldstone.nova.dom.spawns(goldstone.nova.data.spawns))()
+    goldstone.nova.spawns.data = {{ data|to_js }}
+    $('#nova-spawns-chart').append("<p>" + goldstone.nova.spawns.data)
 })
             </script>
             <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
