@@ -23,6 +23,95 @@ from elasticsearch import *
 logger = logging.getLogger(__name__)
 
 
+class GSConnectionModel(TestCase):
+    def test_connection(self):
+        conn1 = GSConnection().conn
+        conn2 = GSConnection(settings.ES_SERVER).conn
+        q = {"query": {"match_all": {}}}
+        r1 = conn1.search(body=q)
+        self.assertIsNotNone(r1)
+        r2 = conn2.search(body=q)
+        self.assertIsNotNone(r2)
+
+
+class SpawnDataModel(TestCase):
+    start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
+    end = datetime.now(tz=pytz.utc)
+    interval = '1h'
+    sd = SpawnData(start, end, interval)
+
+    def test_spawn_start_query(self):
+        import goldstone.apps.intelligence.models
+        q = self.sd._spawn_start_query()
+        self.assertEqual(q['query']['range'],
+                         goldstone.apps.intelligence.models._query_range(
+                             '@timestamp',
+                             self.start.isoformat(),
+                             self.end.isoformat())['range'])
+        self.assertEqual(
+            q['aggs'],
+            goldstone.apps.intelligence.models._agg_date_hist(self.interval))
+
+    def test_spawn_finish_query(self):
+        import goldstone.apps.intelligence.models
+        q = self.sd._spawn_finish_query(True)
+        self.assertEqual(
+            q['query']['range'],
+            goldstone.apps.intelligence.models._query_range(
+                '@timestamp',
+                self.start.isoformat(),
+                self.end.isoformat())['range'])
+        self.assertDictEqual(
+            q['aggs']['success_filter']['aggs'],
+            goldstone.apps.intelligence.models._agg_date_hist(self.interval))
+        self.assertDictEqual(
+            q['aggs']['success_filter']['filter'],
+            goldstone.apps.intelligence.models._agg_filter_term(
+                "success", "true",
+                "success_filter")['success_filter']['filter'])
+        q = self.sd._spawn_finish_query(False)
+        self.assertDictEqual(
+            q['aggs']['success_filter']['filter'],
+            goldstone.apps.intelligence.models._agg_filter_term(
+                "success", "false",
+                "success_filter")['success_filter']['filter'])
+
+    def test_get_spawn_start(self):
+        sd = SpawnData(self.start, self.end, self.interval)
+        response = sd.get_spawn_start()
+        self.assertEqual(False, response.empty)
+        # test for an empty response
+        sd.start = datetime.now(tz=pytz.utc)
+        sd.end = datetime.now(tz=pytz.utc)
+        sd.interval = "1s"
+        response = sd.get_spawn_start()
+        logger.debug("response = %s", response)
+        self.assertEqual(True, response.empty)
+
+    def test_get_spawn_finish(self):
+        sd = SpawnData(self.start, self.end, self.interval)
+        response = sd._get_spawn_finish(True)
+        self.assertEqual(False, response.empty)
+        # test for an empty response
+        sd.start = datetime.now(tz=pytz.utc)
+        sd.end = datetime.now(tz=pytz.utc)
+        sd.interval = "1s"
+        response = sd.get_spawn_start()
+        self.assertEqual(True, response.empty)
+
+    def test_get_spawn_success(self):
+        sd = SpawnData(self.start, self.end, self.interval)
+        response = sd.get_spawn_success()
+        control = sd._get_spawn_finish(True)
+        self.assertTrue(response.equals(control))
+
+    def test_get_spawn_failure(self):
+        sd = SpawnData(self.start, self.end, self.interval)
+        response = sd.get_spawn_failure()
+        control = sd._get_spawn_finish(False)
+        self.assertTrue(response.equals(control))
+
+
 class LogDataModel(TestCase):
     INDEX_NAME = 'logstash-test'
     DOCUMENT_TYPE = 'logs'
@@ -46,7 +135,7 @@ class LogDataModel(TestCase):
     data = json.load(data_f)
     for dataset in data:
         for event in dataset['hits']['hits']:
-            rv = conn.index(INDEX_NAME, DOCUMENT_TYPE,
+            rv = conn.index(INDEX_NAME, event['_type'],
                             event['_source'])
 
     conn.indices.refresh([INDEX_NAME])
@@ -210,7 +299,7 @@ class LogDataModel(TestCase):
     def test_loglevel_by_time_agg(self):
         end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
-        interval = 'hour'
+        interval = '3600s'
         test_q = {
             "query": {
                 "bool": {
@@ -403,9 +492,9 @@ class LogDataModel(TestCase):
         self.assertEqual(result, control)
 
     def test_claims_resource_queries(self):
-        start = datetime(2014, 2, 23, 0, 0, 0, tzinfo=pytz.utc)
-        end = datetime(2014, 2, 24, 0, 0, 0, tzinfo=pytz.utc)
-        interval = 'hour'
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        interval = '3600s'
 
         type_field = {
             'nova_claims_summary_phys': ['total', 'max_used',
@@ -438,11 +527,6 @@ class LogDataModel(TestCase):
                                         "gte": start.isoformat(),
                                         "lte": end.isoformat()
                                     }
-                                }
-                            },
-                            {
-                                "term": {
-                                    "type": params['type']
                                 }
                             },
                             {
@@ -497,7 +581,12 @@ class LogDataModel(TestCase):
                 }
             }
 
-            control = self.conn.search(index="_all", body=test_q, sort='')
+            logger.debug("[test_claims_resource_queries] test_q = %s",
+                         json.dumps(test_q))
+            logger.debug("[test_claims_resource_queries] doc_type = %s",
+                         params['type'])
+            control = self.conn.search(index="_all", doc_type=params['type'],
+                                       body=test_q, sort='')
             logger.debug("test_q = %s", json.dumps(test_q))
             logger.debug("control[aggregations] = %s",
                          json.dumps(control['aggregations']))
@@ -632,13 +721,13 @@ class IntelViewTest(TestCase):
                                           json.loads(response.content))
 
     def test_get_cpu_stats_view(self):
-        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
         uri = '/intelligence/compute/cpu_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
 
         response = self.client.get(uri)
         logger.debug("[test_get_cpu_stats_view] uri = %s", uri)
@@ -648,13 +737,13 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_mem_stats_view(self):
-        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
         uri = '/intelligence/compute/mem_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
 
         response = self.client.get(uri)
         logger.debug("[test_get_mem_stats_view] uri = %s", uri)
@@ -664,13 +753,13 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_phys_cpu_stats_view(self):
-        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
         uri = '/intelligence/compute/phys_cpu_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
 
         response = self.client.get(uri)
         logger.debug("[test_get_phys_cpu_stats_view] uri = %s", uri)
@@ -680,13 +769,13 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_virt_cpu_stats_view(self):
-        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
         uri = '/intelligence/compute/virt_cpu_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
 
         response = self.client.get(uri)
         logger.debug("[test_get_virt_cpu_stats_view] uri = %s", uri)
@@ -696,13 +785,13 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_phys_mem_stats_view(self):
-        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
         uri = '/intelligence/compute/phys_mem_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
 
         response = self.client.get(uri)
         logger.debug("[test_get_phys_mem_stats_view] uri = %s", uri)
@@ -712,13 +801,13 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_virt_mem_stats_view(self):
-        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
         uri = '/intelligence/compute/virt_mem_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
 
         response = self.client.get(uri)
         logger.debug("[test_get_virt_mem_stats_view] uri = %s", uri)
@@ -728,13 +817,13 @@ class IntelViewTest(TestCase):
                      json.loads(response.content))
 
     def test_get_phys_disk_stats_view(self):
-        end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
-        start = datetime(2014, 2, 14, 0, 0, 0, tzinfo=pytz.utc)
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
 
         uri = '/intelligence/compute/phys_disk_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=hour"
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
 
         response = self.client.get(uri)
         logger.debug("[test_get_phys_disk_stats_view] uri = %s", uri)
