@@ -1,27 +1,4 @@
-Date.prototype.addSeconds = function (m) {
-    this.setTime(this.getTime() + (m * 1000));
-    return this;
-}
 
-Date.prototype.addMinutes = function (m) {
-    this.setTime(this.getTime() + (m * 60 * 1000));
-    return this;
-}
-
-Date.prototype.addHours = function (h) {
-    this.setTime(this.getTime() + (h * 60 * 60 * 1000));
-    return this;
-}
-
-Date.prototype.addDays = function (d) {
-    this.setTime(this.getTime() + (d * 24 * 60 * 60 * 1000));
-    return this;
-}
-
-Date.prototype.addWeeks = function (d) {
-    this.setTime(this.getTime() + (d * 7 * 24 * 60 * 60 * 1000));
-    return this;
-}
 
 $('#settingsStartTime').datetimepicker({
     format: 'M d Y H:i:s',
@@ -512,7 +489,7 @@ function badEventMultiLine(location, start, end) {
 
             chart.render()
         } else {
-            raiseInfo("no data found")
+            goldstone.raiseInfo("no data found")
         }
         $(loadingIndicator).hide()
 
