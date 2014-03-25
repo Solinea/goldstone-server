@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load staticfiles %}
 {% load custom_filters %}
 
 
@@ -28,13 +28,17 @@
     <script>
 // script assumes that goldstone.js and nova.js have been loaded into the
 // surrounding page.
+
 $(document).ready(function () {
-    goldstone.namespace('nova.data.discover')
-    goldstone.namespace('nova.dom.discover')
-    goldstone.namespace('nova.events.discover')
-    goldstone.nova.data.discover.start = {{ start_ts|to_js }}
-    goldstone.nova.data.discover.end = {{ end_ts|to_js }}
-    goldstone.nova.data.discover.interval = {{ interval|to_js }}
+    // wonder if this can get called before the namespace is created in
+    // nova.js.  Found some references suggesting that event handlers always
+    // execute in the order they were bound, but haven't confirmed.
+    var gnd = goldstone.nova.discover
+    var gns = goldstone.nova.spawns
+    gnd.start = {{ start_ts|to_js }}
+    gnd.end = {{ end_ts|to_js }}
+    gnd.interval = {{ interval|to_js }}
+    $('#nova-discover-r1-c1').load(gns.url(gnd.start, gnd.end, gnd.interval))
 })
     </script>
 
