@@ -35,16 +35,73 @@ $('#settingsEndTime').datetimepicker({
 
 var secondaryCockpitCharts = {}
 
-function refreshHostPresence(lookbackQty, lookbackUnit, start, end) {
-    hostPresenceTable('#host-presence-table', lookbackQty, lookbackUnit, start, end)
+function populateSettingsFields(start, end) {
+    var s = new Date(start).toString(),
+        e = new Date(end).toString(),
+        sStr = s.substr(s.indexOf(" ") + 1),
+        eStr = e.substr(e.indexOf(" ") + 1)
+
+    $('#settingsStartTime').val(sStr)
+    $('#settingsEndTime').val(eStr)
 }
 
-function refreshCockpitCharts(start, end) {
+function _toPyTs(t) {
     "use strict";
-    refreshCockpitEventCharts(start, end)
-    refreshCockpitSecondaryCharts(start, end)
-    dc.filterAll()
-    //dc.refocusAll()
+    if (typeof t === 'number') {
+        return String(Math.round(t / 1000))
+    } else if (Object.prototype.toString.call(t) === '[object Date]') {
+        return String(Math.round(t.getTime() / 1000))
+    }
+}
+
+$("#endTimeNow").click(function () {
+    "use strict";
+    $("#autoRefresh").prop("disabled", false)
+    $("#autoRefresh").prop("checked", true)
+    $("#autoRefreshInterval").prop("disabled", false)
+    $("#settingsEndTime").prop("disabled", true)
+})
+
+$("#endTimeSelected").click(function () {
+    "use strict";
+    $("#autoRefresh").prop("checked", false)
+    $("#autoRefresh").prop("disabled", true)
+    $("#autoRefreshInterval").prop("disabled", true)
+    $("#settingsEndTime").prop("disabled", false)
+})
+
+$("#settingsEndTime").click(function () {
+    "use strict";
+    $("#endTimeSelected").prop("checked", true)
+    $("#autoRefresh").prop("checked", false)
+    $("#autoRefresh").prop("disabled", true)
+    $("#autoRefreshInterval").prop("disabled", true)
+})
+
+function isRefreshing() {
+    "use strict";
+    return $("#autoRefresh").prop("checked")
+}
+
+function getRefreshInterval() {
+    "use strict";
+    return $("select#autoRefreshInterval").val()
+}
+
+function hostPresenceUnit() {
+    "use strict";
+    return $("select#hostPresenceUnit").val()
+}
+
+function hostPresenceQty() {
+    "use strict";
+    var presenceQty = $("input#hostPresenceQty").val()
+    presenceQty = typeof presenceQty === 'undefined' || presenceQty === "" ? 1 : presenceQty
+    return presenceQty
+}
+
+function refreshHostPresence(start, end) {
+    hostPresenceTable('#host-presence-table', start, end)
 }
 
 function refreshCockpitEventCharts(start, end) {
@@ -57,10 +114,7 @@ function refreshCockpitSecondaryCharts(start, end) {
     physCpuChart("#phys-cpu-chart", start, end)
     physMemChart("#phys-mem-chart", start, end)
     physDiskChart("#phys-disk-chart", start, end)
-    var presenceUnit = $("select#hostPresenceUnit").val(),
-        presenceQty = $("input#hostPresenceQty").val()
-        presenceQty = typeof presenceQty === 'undefined' ? 1 : presenceQty
-    refreshHostPresence(presenceQty, presenceUnit, start, end)
+    refreshHostPresence(start, end)
 }
 
 function refocusCockpitSecondaryCharts(filter) {
@@ -76,17 +130,21 @@ function _getSearchFormDates() {
     "use strict";
     //grab the values from the form elements
     var end = (function () {
-            var e = $("input#settingsEndTime").val()
-            switch (e) {
-                case '':
-                    return new Date()
-                default:
-                    var d = new Date(e)
-                    if (d === 'Invalid Date') {
-                        alert("End date must be valid. Using now.")
-                        d = new Date()
-                    }
-                    return d
+            if (! $("#endTimeNow").prop("checked")) {
+                var e = $("input#settingsEndTime").val()
+                switch (e) {
+                    case '':
+                        return new Date()
+                    default:
+                        var d = new Date(e)
+                        if (d === 'Invalid Date') {
+                            alert("End date must be valid. Using now.")
+                            d = new Date()
+                        }
+                        return d
+                }
+            } else {
+                return new Date()
             }
         })(),
         start = (function () {
@@ -114,15 +172,13 @@ function _getSearchFormDates() {
  * @param {Date} start Instance of Date representing start of interval
  * @param {Date} end Instance of Date representing end of interval
  * @param {Number} maxBuckets maximum number of buckets for the time range
- * @return {String} A string consisting of a number and a time abbreviation
- * (ex: 1h or 12.5s)
+ * @return {Number} An integer representation of the number of seconds of
+ * an optimal interval
  */
 function _autoSizeTimeInterval(start, end, maxPoints) {
     "use strict";
-    var diffSeconds = (end.getTime() - start.getTime()) / 1000,
-        intervalSecs = diffSeconds / maxPoints,
-        result = String(intervalSecs) + "s"
-    return result
+    var diffSeconds = (end.getTime() - start.getTime()) / 1000
+    return diffSeconds / maxPoints
 }
 
 /**
@@ -165,7 +221,7 @@ function _processTimeBasedChartParams(end, start, maxPoints) {
     }
 
     if (typeof maxPoints !== 'undefined') {
-        result.interval = _autoSizeTimeInterval(startDate, endDate, maxPoints)
+        result.interval = String(_autoSizeTimeInterval(startDate, endDate, maxPoints)) + "s"
     }
 
     return result
@@ -241,16 +297,8 @@ function _lineChartBase(location, margins, renderlet) {
 function refreshSearchTable(start, end, levels) {
     "use strict";
     var oTable,
-        toPyTs = function (t) {
-        switch (typeof t) {
-            case 'number':
-                return String(Math.round(t / 1000))
-            case 'Date':
-                return String(Math.round(t.getTime() / 1000))
-
-        }},
-        startTs = toPyTs(start),
-        endTs = toPyTs(end),
+        startTs = _toPyTs(start),
+        endTs = _toPyTs(end),
         uri = '/intelligence/log/search/data'.concat(
         "?start_time=", startTs,
         "&end_time=", endTs)
@@ -320,27 +368,26 @@ function badEventMultiLine(location, start, end) {
             // if the search table is present in the page, look up the hidden
             // status of all levels and redraw the page
             if ($('#log-search-table').length > 0) {
+                _chart.selectAll("g.dc-legend-item *")
+                    .on("click", function (d) {
+                        var levelFilter = {}
+                        // looks like we take the opposite value of hidden for
+                        // the element that was clicked, and the current value
+                        // for others
+                        levelFilter[d.name.toLowerCase()] = d.hidden
 
-            _chart.selectAll("g.dc-legend-item *")
-                .on("click", function (d) {
-                    var levelFilter = {}
-                    // looks like we take the opposite value of hidden for
-                    // the element that was clicked, and the current value
-                    // for others
-                    levelFilter[d.name.toLowerCase()] = d.hidden
-
-                    var rects = _chart.selectAll("g.dc-legend-item rect")
-                    if (rects.length > 0) {
-                        // we have an array of elements in [0]
-                        rects = rects[0]
-                        rects.forEach(function (r) {
-                            if (r.__data__.name !== d.name) {
-                                levelFilter[r.__data__.name.toLowerCase()] = !r.__data__.hidden
-                            }
-                        })
-                    }
-                    refreshSearchTable(start, end, levelFilter)
-                })
+                        var rects = _chart.selectAll("g.dc-legend-item rect")
+                        if (rects.length > 0) {
+                            // we have an array of elements in [0]
+                            rects = rects[0]
+                            rects.forEach(function (r) {
+                                if (r.__data__.name !== d.name) {
+                                    levelFilter[r.__data__.name.toLowerCase()] = !r.__data__.hidden
+                                }
+                            })
+                        }
+                        refreshSearchTable(start, end, levelFilter)
+                    })
             }
         },
         chart = _lineChartBase(location,
@@ -398,6 +445,7 @@ function badEventMultiLine(location, start, end) {
                 .title(function (d) {
                     return d.key + "\n" + d.value.total + " total events"
                 })
+                .yAxisLabel("Range")
                 .yAxis().ticks(2)
 
 
@@ -597,7 +645,7 @@ function physCpuChart(location, start, end) {
             uriBase: "/intelligence/compute/cpu_stats",
             totalPhysField : "phys_cpu_avg_total",
             totalVirtField : "virt_cpu_avg_total",
-            usedField : "virt_cpu_avg_used",
+            usedField : "virt_cpu_max_used",
             resourceLabel: "Cores",
             loadingIndicator: "#phys-cpu-loading-indicator"
         }
@@ -611,7 +659,7 @@ function physMemChart(location, start, end) {
             uriBase: "/intelligence/compute/mem_stats",
             totalPhysField: "phys_mem_avg_total",
             totalVirtField: "virt_mem_avg_total",
-            usedField: "virt_mem_avg_used",
+            usedField: "virt_mem_max_used",
             resourceLabel: "GB",
             loadingIndicator: "#phys-mem-loading-indicator"
         }
@@ -625,7 +673,7 @@ function physDiskChart(location, start, end) {
     var chartConstants = {
             uriBase: "/intelligence/compute/disk_stats",
             totalPhysField: "phys_disk_avg_total",
-            usedField: "phys_disk_avg_used",
+            usedField: "phys_disk_max_used",
             resourceLabel: "GB",
             loadingIndicator: "#phys-disk-loading-indicator"
         }
@@ -639,13 +687,13 @@ function drawSearchTable(location, start, end) {
 
 
     end = typeof end !== 'undefined' ?
-        new Date(Number(end) * 1000) :
+        new Date(Number(end)) :
         new Date();
 
     if (typeof start !== 'undefined') {
-        start = new Date(Number(start) * 1000)
+        start = new Date(Number(start))
     } else {
-        start = new Date(Number(start) * 1000)
+        start = new Date(Number(start))
         start.addWeeks(-1)
     }
 
@@ -697,14 +745,11 @@ function drawSearchTable(location, start, end) {
     $("#log-table-loading-indicator").hide();
 }
 
-function hostPresenceTable(location, lookbackQty, lookbackUnit,
-                                  start, end) {
+function hostPresenceTable(location, start, end) {
     "use strict";
-    var params = _processTimeBasedChartParams(end, start);
-
-    lookbackQty = typeof lookbackQty !== 'undefined' ?
-        lookbackQty :
-        1;
+    var params = _processTimeBasedChartParams(end, start),
+        lookbackUnit = hostPresenceUnit(),
+        lookbackQty = hostPresenceQty()
 
     var inspectStart = (function () {
         var d = new Date(params.end);
@@ -763,7 +808,6 @@ function hostPresenceTable(location, lookbackQty, lookbackUnit,
     }
 }
 
-
 /*
  function updateWindow(){
 
@@ -779,8 +823,6 @@ function hostPresenceTable(location, lookbackQty, lookbackUnit,
  xAxis = d3.svg.axis().scale(x)
  .orient("bottom").ticks(5);
 
- console.log("adjusted width = " + panelWidth);
- console.log("adjusted height = " + panelHeight);
  svg.attr("width", panelWidth)
  .attr("height", panelHeight);
  svg.select(".x.axis")

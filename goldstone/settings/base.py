@@ -42,6 +42,8 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
+QUNIT_ENABLED = True
+
 ALLOWED_HOSTS = []
 
 # Application definition
@@ -54,13 +56,10 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_extensions',
-    'waffle',
     'south',
-    'floppyforms',
+    'waffle',
     'crispy_forms',
-    'djcelery',
-    #'goldstone.apps.lease',
+    'djangojs',
     'goldstone.apps.intelligence',
     'goldstone.apps.cockpit',
 )
@@ -119,30 +118,5 @@ STATIC_URL = '/static/'
 
 # Crispy Forms
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
-
-# Celery
-CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
-# BROKER_URL = 'redis://localhost:6379/0'
-# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-CELERY_TASK_SERIALIZER = 'json'
-
-# GOLD-247 commented out lease scheduled tasks.  Should revisit
-# the settings when fixing GOLD-257.  Unfortunately, looks like you
-# can't even import waffle here, else we get an ImproperlyConfigured exception
-
-#from datetime import timedelta
-#
-#CELERYBEAT_SCHEDULE = {
-#    'find_expirations': {
-#        'task': 'goldstone.apps.lease.tasks.find_expirations',
-#        'schedule': timedelta(seconds=30),
-#        'args': ()
-#    },
-#    'find_notifications': {
-#        'task': 'goldstone.apps.lease.tasks.find_notifications',
-#        'schedule': timedelta(seconds=30),
-#        'args': ()
-#    },
-#}
 
 MAILHOST = 'localhost'

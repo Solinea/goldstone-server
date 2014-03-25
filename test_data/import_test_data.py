@@ -17,7 +17,7 @@ data = json.load(data_f)
 for dataset in data:
     for event in dataset['hits']['hits']:
         print "indexing event: ", event
-        rv = conn.index('logstash_test', 'logs', event['_source'])
+        rv = conn.index('logstash_test', event['_type'], event['_source'])
         print "result: ", rv
 
 conn.indices.refresh(["logstash_test"])
