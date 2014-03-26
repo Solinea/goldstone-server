@@ -1,14 +1,6 @@
 
 
-$('#settingsStartTime').datetimepicker({
-    format: 'M d Y H:i:s',
-    lang: 'en'
-})
 
-$('#settingsEndTime').datetimepicker({
-    format: 'M d Y H:i:s',
-    lang: 'en'
-})
 
 var secondaryCockpitCharts = {}
 
@@ -31,29 +23,7 @@ function _toPyTs(t) {
     }
 }
 
-$("#endTimeNow").click(function () {
-    "use strict";
-    $("#autoRefresh").prop("disabled", false)
-    $("#autoRefresh").prop("checked", true)
-    $("#autoRefreshInterval").prop("disabled", false)
-    $("#settingsEndTime").prop("disabled", true)
-})
 
-$("#endTimeSelected").click(function () {
-    "use strict";
-    $("#autoRefresh").prop("checked", false)
-    $("#autoRefresh").prop("disabled", true)
-    $("#autoRefreshInterval").prop("disabled", true)
-    $("#settingsEndTime").prop("disabled", false)
-})
-
-$("#settingsEndTime").click(function () {
-    "use strict";
-    $("#endTimeSelected").prop("checked", true)
-    $("#autoRefresh").prop("checked", false)
-    $("#autoRefresh").prop("disabled", true)
-    $("#autoRefreshInterval").prop("disabled", true)
-})
 
 function isRefreshing() {
     "use strict";

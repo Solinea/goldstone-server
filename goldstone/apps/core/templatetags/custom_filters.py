@@ -6,6 +6,7 @@ import json
 
 register = template.Library()
 
+
 @register.filter
 def to_js(value):
     """

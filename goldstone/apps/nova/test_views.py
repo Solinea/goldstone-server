@@ -13,6 +13,7 @@ import pytz
 
 logger = logging.getLogger(__name__)
 
+
 class NovaDiscoverViewTest(TestCase):
     # view requires a start_ts, end_ts, and interval string
     valid_start = str(calendar.timegm(
@@ -82,7 +83,8 @@ class NovaSpawnsViewTest(TestCase):
     invalid_interval = 'abc'
 
     def test_observed_failure(self):
-        url = '/nova/hypervisor/spawns?start=1395100235&end=1395666536&interval=1h'
+        url = '/nova/hypervisor/spawns?'\
+              'start=1395100235&end=1395666536&interval=1h'
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'spawns.html')
@@ -107,9 +109,6 @@ class NovaSpawnsViewTest(TestCase):
     def _test_no_render_success(self, url):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        keys = json.loads(response.content).keys()
-        self.assertIn('failures', keys)
-        self.assertIn('successes', keys)
 
     def _test_no_render_bad_request(self, url):
         response = self.client.get(url)

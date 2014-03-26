@@ -136,14 +136,12 @@ class SpawnsView(TemplateView):
         if not (success_data.empty and failure_data.empty):
             if success_data.empty:
                 failure_data['successes'] = 0
-                failure_data = failure_data.rename(
+                self.data = failure_data.rename(
                     columns={'doc_count': 'failures'})
-                self.data = failure_data.fillna(0).set_index('key')
             elif failure_data.empty:
                 success_data['failures'] = 0
-                success_data = success_data.rename(
+                self.data = success_data.rename(
                     columns={'doc_count': 'successes'})
-                self.data = success_data.fillna(0).set_index('key')
             else:
                 logger.debug("[_handle_request] successes = %s", success_data)
                 logger.debug("[_handle_request] failures = %s", failure_data)
@@ -151,11 +149,11 @@ class SpawnsView(TemplateView):
                     success_data, failure_data, on='key',
                     suffixes=['_successes', '_failures'])\
                     .rename(columns={'doc_count_successes': 'successes',
-                                     'doc_count_failures': 'failures'})\
-                    .set_index('key').fillna(0)
+                                     'doc_count_failures': 'failures'})
 
         logger.debug("[_handle_request] self.data = %s", self.data)
-        response = self.data.to_dict(outtype='dict')
+        response = self.data.set_index('key').fillna(0).transpose()\
+            .to_dict(outtype='list')
         return response
 
     def render_to_response(self, context, **response_kwargs):
@@ -173,9 +171,3 @@ class SpawnsView(TemplateView):
 
         return TemplateView.render_to_response(
             self, {'data': json.dumps(response)})
-
-
-
-class NovaInstanceSpawnView():
-    pass
-
