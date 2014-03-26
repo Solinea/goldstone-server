@@ -14,3 +14,4 @@ pbr
 elasticsearch>=1.0
 pytz
 pandas
+celery[redis]
