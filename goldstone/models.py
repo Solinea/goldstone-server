@@ -70,7 +70,8 @@ class ESData(object):
             return result
 
     @staticmethod
-    def _agg_date_hist(self, interval, field="@timestamp", name="events_by_date",
+    def _agg_date_hist(self, interval, field="@timestamp",
+                       name="events_by_date",
                        min_doc_count=0):
         return {
             name: {

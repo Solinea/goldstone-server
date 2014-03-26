@@ -14,4 +14,3 @@ class GSConnectionModel(TestCase):
         self.assertIsNotNone(r1)
         r2 = conn2.search(body=q)
         self.assertIsNotNone(r2)
-
