@@ -34,24 +34,27 @@ def _parse_timestamp(ts, tz=pytz.utc):
 def _validate(arg_list, context):
     context = context.copy()
     validation_errors = []
-    if 'start' in arg_list and context['start'] is None:
-        validation_errors.append('parameter missing [start]')
-    if 'end' in arg_list:
-        if context['end'] is None:
-            validation_errors.append('parameter missing [end]')
+
+    context['end_dt'] = _parse_timestamp(context['end'])
+    if context['end_dt'] is None:
+        validation_errors.append('malformed parameter [end]')
+    elif 'start' in arg_list:
+        if context['start'] is None:
+            delta = timedelta(days=settings.DEFAULT_LOOKBACK_DAYS)
+            context['start_dt'] = context['end_dt'] - delta
         else:
-            context['end_dt'] = _parse_timestamp(context['end'])
-            if context['end_dt'] is None:
-                validation_errors.append('malformed parameter [end]')
-            elif 'start' in arg_list:
-                context['start_dt'] = _parse_timestamp(context['start'])
-                if context['start_dt'] is None:
-                    validation_errors.append('malformed parameter [start]')
+            context['start_dt'] = _parse_timestamp(context['start'])
+            if context['start_dt'] is None:
+                validation_errors.append('malformed parameter [start]')
+
     if 'interval' in arg_list:
         if context['interval'] is None:
-            validation_errors.append('parameter missing [interval]')
-        elif context['interval'][-1] not in ['s', 'm', 'h', 'd', 'w']:
-            validation_errors.append('malformed parameter [interval]')
+            delta_secs = (context['end_dt'] - context['start_dt']).total_seconds()
+            context['interval'] = str(
+                delta_secs / settings.DEFAULT_CHART_BUCKETS) + "s"
+        #elif context['interval'][-1] not in ['s', 'm', 'h', 'd', 'w']:
+        elif context['interval'][-1] not in ['s']:
+            validation_errors.append('malformed parameter [interval], valid example is 3600.0s')
             try:
                 int(context['interval'][:-1])
             except Exception:
@@ -73,8 +76,11 @@ class DiscoverView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = TemplateView.get_context_data(self, **kwargs)
+        # use "now" if not provided, will calc start and interval in _validate
+        context['end'] = self.request.GET.get('end', str(calendar.timegm(
+            datetime.utcnow().timetuple())))
         context['start'] = self.request.GET.get('start', None)
-        context['end'] = self.request.GET.get('end', None)
+
         context['interval'] = self.request.GET.get('interval', None)
         return context
 
