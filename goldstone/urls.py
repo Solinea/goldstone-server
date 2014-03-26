@@ -2,6 +2,7 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf import settings
+from django.views.generic import RedirectView
 
 from djangojs.views import QUnitView
 
@@ -15,10 +16,15 @@ admin.autodiscover()
 
 urlpatterns = patterns(
     '',
+    # TODO create the main discover page and remove redirect
+    url(r'^discover[/]?$', RedirectView.as_view(url='/nova/discover'),
+        name='discover'),
     url(r'^intelligence/', include('goldstone.apps.intelligence.urls')),
     url(r'^nova/', include('goldstone.apps.nova.urls')),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^$', include('goldstone.apps.cockpit.urls')))
+    #url(r'^$', include('goldstone.apps.cockpit.urls')))
+    url(r'^$', RedirectView.as_view(url='/discover'), name='home')
+)
 
 if settings.QUNIT_ENABLED:
     urlpatterns += patterns(
