@@ -20,37 +20,40 @@ class NovaDiscoverViewTest(TestCase):
         datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))
     valid_end = str(calendar.timegm(
         datetime.now(tz=pytz.utc).utctimetuple()))
-    valid_interval = '1h'
+    valid_interval = '3600s'
     invalid_start = '999999999999'
     invalid_end = '999999999999'
     invalid_interval = 'abc'
-
-    def test_good_request(self):
-        url = '/nova/discover?start=' + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'discover.html')
 
     def _test_bad_request(self, url):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 400)
 
+    def _test_good_request(self, url):
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'discover.html')
+
+    def test_good_request(self):
+        url = '/nova/discover?start=' + self.valid_start + \
+            "&end=" + self.valid_end + \
+            "&interval=" + self.valid_interval
+        self._test_good_request(url)
+
     def test_no_start(self):
         url = "/nova/discover?end=" + self.valid_end + \
             "&interval=" + self.valid_interval
-        self._test_bad_request(url)
+        self._test_good_request(url)
 
     def test_no_end(self):
         url = "/nova/discover?start=" + self.valid_start + \
             "&interval=" + self.valid_interval
-        self._test_bad_request(url)
+        self._test_good_request(url)
 
     def test_no_interval(self):
         url = "/nova/discover?start=" + self.valid_start + \
             "&end=" + self.valid_end
-        self._test_bad_request(url)
+        self._test_good_request(url)
 
     def test_invalid_start(self):
         url = "/nova/discover?start=" + self.invalid_start + \
@@ -77,17 +80,10 @@ class NovaSpawnsViewTest(TestCase):
         datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))
     valid_end = str(calendar.timegm(
         datetime.now(tz=pytz.utc).utctimetuple()))
-    valid_interval = '1h'
+    valid_interval = '3600s'
     invalid_start = '999999999999'
     invalid_end = '999999999999'
     invalid_interval = 'abc'
-
-    def test_observed_failure(self):
-        url = '/nova/hypervisor/spawns?'\
-              'start=1395100235&end=1395666536&interval=1h'
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'spawns.html')
 
     def test_with_explicit_render(self):
         url = '/nova/hypervisor/spawns?start=' + self.valid_start + \
@@ -125,19 +121,19 @@ class NovaSpawnsViewTest(TestCase):
         url = "/nova/hypervisor/spawns?end=" + self.valid_end + \
             "&interval=" + self.valid_interval + \
             "&render=false"
-        self._test_no_render_bad_request(url)
+        self._test_no_render_success(url)
 
     def test_no_end(self):
         url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
             "&interval=" + self.valid_interval + \
             "&render=false"
-        self._test_no_render_bad_request(url)
+        self._test_no_render_success(url)
 
     def test_no_interval(self):
         url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
             "&end=" + self.valid_end + \
             "&render=false"
-        self._test_no_render_bad_request(url)
+        self._test_no_render_success(url)
 
     def test_invalid_start(self):
         url = "/nova/hypervisor/spawns?start=" + self.invalid_start + \

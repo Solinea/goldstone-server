@@ -75,10 +75,6 @@ class SpawnData(ESData):
             response['aggregations'][fname][aname]['buckets']),
             orient='records')
 
-        # this causes trouble with the merge later on.
-        #if not data.empty:
-        #    data.set_index('key', inplace=True)
-
         logger.debug("[get_spawn_finish] data = %s", data)
         return data
 

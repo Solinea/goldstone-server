@@ -49,12 +49,14 @@ def _validate(arg_list, context):
 
     if 'interval' in arg_list:
         if context['interval'] is None:
-            delta_secs = (context['end_dt'] - context['start_dt']).total_seconds()
+            delta_secs = (context['end_dt'] - context['start_dt']).\
+                total_seconds()
             context['interval'] = str(
                 delta_secs / settings.DEFAULT_CHART_BUCKETS) + "s"
         #elif context['interval'][-1] not in ['s', 'm', 'h', 'd', 'w']:
         elif context['interval'][-1] not in ['s']:
-            validation_errors.append('malformed parameter [interval], valid example is 3600.0s')
+            validation_errors.append(
+                'malformed parameter [interval], valid example is 3600.0s')
             try:
                 int(context['interval'][:-1])
             except Exception:
@@ -108,8 +110,10 @@ class SpawnsView(TemplateView):
         context = TemplateView.get_context_data(self, **kwargs)
         context['render'] = self.request.GET.get('render', "True").\
             lower().capitalize()
+        # use "now" if not provided, will calc start and interval in _validate
+        context['end'] = self.request.GET.get('end', str(calendar.timegm(
+            datetime.utcnow().timetuple())))
         context['start'] = self.request.GET.get('start', None)
-        context['end'] = self.request.GET.get('end', None)
         context['interval'] = self.request.GET.get('interval', None)
 
         # if render is true, we will return a full template, otherwise only
@@ -158,8 +162,10 @@ class SpawnsView(TemplateView):
                                      'doc_count_failures': 'failures'})
 
         logger.debug("[_handle_request] self.data = %s", self.data)
-        response = self.data.set_index('key').fillna(0).transpose()\
-            .to_dict(outtype='list')
+        if not self.data.empty:
+            self.data = self.data.set_index('key').fillna(0)
+
+        response = self.data.transpose().to_dict(outtype='list')
         return response
 
     def render_to_response(self, context, **response_kwargs):

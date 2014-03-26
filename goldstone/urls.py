@@ -22,7 +22,7 @@ urlpatterns = patterns(
     url(r'^intelligence/', include('goldstone.apps.intelligence.urls')),
     url(r'^nova/', include('goldstone.apps.nova.urls')),
     url(r'^admin/', include(admin.site.urls)),
-    #url(r'^$', include('goldstone.apps.cockpit.urls')))
+    url(r'^cockpit[/]?$', include('goldstone.apps.cockpit.urls')),
     url(r'^$', RedirectView.as_view(url='/discover'), name='home')
 )
 
