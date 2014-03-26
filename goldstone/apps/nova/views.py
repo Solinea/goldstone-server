@@ -49,8 +49,10 @@ def _validate(arg_list, context):
 
     if 'interval' in arg_list:
         if context['interval'] is None:
-            delta_secs = (context['end_dt'] - context['start_dt']).\
-                total_seconds()
+            td = (context['end_dt'] - context['start_dt'])
+            # timdelta.total_seconds not available in py26
+            delta_secs = (td.microseconds +
+                         (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
             context['interval'] = str(
                 delta_secs / settings.DEFAULT_CHART_BUCKETS) + "s"
         #elif context['interval'][-1] not in ['s', 'm', 'h', 'd', 'w']:
