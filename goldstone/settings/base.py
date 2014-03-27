@@ -124,10 +124,20 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 MAILHOST = 'localhost'
 
 # Celery
-#CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_TASK_SERIALIZER = 'json'
+
+from celery.schedules import crontab
+
+CELERYBEAT_SCHEDULE = {
+    # List the availability zone info every 5 minutes
+    'nova-az-list': {
+        'task': 'goldstone.apps.nova.tasks.nova_az_list',
+        'schedule': crontab(minute='*/2'),
+    },
+}
+
 
 # GOLD-247 commented out lease scheduled tasks.  Should revisit
 # the settings when fixing GOLD-257.  Unfortunately, looks like you
@@ -152,3 +162,8 @@ CELERY_TASK_SERIALIZER = 'json'
 DEFAULT_LOOKBACK_DAYS = 7
 DEFAULT_CHART_BUCKETS = 80
 DEFAULT_PRESENCE_LOOKBACK_HOURS = 1
+
+OS_USERNAME = 'admin'
+OS_TENANT_NAME= 'admin'
+OS_PASSWORD= 'cr0n0v0r3'
+OS_AUTH_URL= 'http://10.10.11.20:35357/v2.0/'

@@ -15,6 +15,30 @@ class ESData(object):
 
     _conn = GSConnection().conn
 
+    def _get_latest_index(self, prefix):
+        """
+        Get an index based on a prefix filter and simple list sort.  assumes
+         that sorting the list of indexes with matching prefix will
+         result in the most current one at the end of the list.  Works for
+         typical datestamp index names like logstash-2014.03.27.  If you know
+         your index names have homogeneous, should work without the prefix, but
+         use caution!
+
+        :arg prefix: the prefix used to filter index list
+        :returns: index name
+        """
+
+        candidates = []
+        if prefix is not None:
+            candidates = [k for k in
+                          self._conn.indices.status()['indices'].keys() if
+                          k.startswith(prefix)]
+        else:
+            candidates = [k for k in
+                          self._conn.indices.status()['indices'].keys()]
+        candidates.sort()
+        return candidates.pop()
+
     #
     # query construction helpers
     #
