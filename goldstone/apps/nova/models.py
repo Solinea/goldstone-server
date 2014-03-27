@@ -22,29 +22,41 @@ class AvailabilityZoneData(ESData):
     _INDEX_PREFIX = 'logstash-'
 
     def get_date_range(self, start, end, first=0, count=10, sort='desc'):
-        """Return a JSON Array of entries for the date range.  This payload
-        could be fairly large, so it is best to use the count and first params
-        along with a pagination strategy."""
-
-        q = ESData._query_base()
-        q = ESData._filtered_query_base()
+        """
+        get Availability Zone for a date range from the database.
+        :arg start: datetime of early boundary
+        :arg end: datetime of late boundary
+        :arg first: index of first record (optional)
+        :arg count: max number of records (optional)
+        :arg sort: sort order {'asc', 'desc'} (optional)
+        :return array of records
+        """
+        q = ESData._filtered_query_base(self)
         q['query']['filtered']['query'] = {'match_all':{}}
         q['query']['filtered']['filter'] = ESData._query_range(
             self, '@timestamp',
             start.isoformat(),
             end.isoformat())
+        logger.debug("[get_date_range] query = %s", json.dumps(q))
         response = self._conn.search(index="_all",
                                      doc_type=self._DOC_TYPE,
-                                     body=q, size=count, _from=first,
+                                     body=q, size=count, from_=first,
                                      sort={'@timestamp': sort})
+        logger.debug("[get_date_range] response = %s", json.dumps(response))
         return response['hits']['hits']
 
     def get(self, count=1):
+        """
+        get the last count Availability Zone records from the database.
+        :arg count: number of records to return
+        :return array of records
+        """
         q = {'query': {'match_all': {}}}
         response = self._conn.search(index="_all",
                                      doc_type=self._DOC_TYPE,
                                      body=q, size=count,
                                      sort={'@timestamp': 'desc'})
+        logger.debug("[get] response = %s", json.dumps(response))
         return response['hits']['hits']
 
     def post(self, body):
@@ -56,8 +68,26 @@ class AvailabilityZoneData(ESData):
         response = self._conn.create(
             ESData._get_latest_index(self, self._INDEX_PREFIX),
             self._DOC_TYPE, body, refresh=True)
+        logger.debug('[post] response = %s', json.dumps(response))
         return response['_id']
 
+    def delete(self, doc_id):
+        """
+        deletes an Availability Zone record from the database by id.
+        :arg doc_id: the id of the doc as returned by post
+        :return bool
+        """
+        q = ESData._query_base(self)
+        q['query'] = ESData._query_term(self, "_id", doc_id)
+        response = self._conn.delete_by_query("_all", self._DOC_TYPE, body=q)
+        logger.debug("[delete] response = %s", json.dumps(response))
+
+        # need to test for a single index case where there is no "all" field
+        if 'all' in response['_indices']:
+            return not bool(response['_indices']['all']['_shards']['failed'])
+        else:
+            return not bool(response['_indices'].
+                            values()[0]['_shards']['failed'])
 
 
 class SpawnData(ESData):

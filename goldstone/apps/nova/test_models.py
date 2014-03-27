@@ -15,6 +15,34 @@ import pytz
 logger = logging.getLogger(__name__)
 
 
+class AvailabilityZoneDataModel(TestCase):
+    start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
+    end = datetime.now(tz=pytz.utc)
+    azd = AvailabilityZoneData()
+    id_to_delete = None
+
+    def setUp(self):
+        # test post of a record
+        rec = {"@timestamp": self.end.isoformat(),
+               "zones": "availabilty_zone_test"}
+        self.id_to_delete = self.azd.post(rec)
+        self.assertIsNotNone(self.id_to_delete)
+
+    def tearDown(self):
+        # test delete of a record
+        response = self.azd.delete(self.id_to_delete)
+        self.assertTrue(response)
+
+    def test_get(self):
+        recs = self.azd.get(1)
+        self.assertEqual(len(recs), 1)
+
+    def test_get_range(self):
+        recs = self.azd.get_date_range(self.start, self.end)
+        self.assertGreater(len(recs), 0)
+
+
+
 class SpawnDataModel(TestCase):
     start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
     end = datetime.now(tz=pytz.utc)
@@ -23,6 +51,7 @@ class SpawnDataModel(TestCase):
 
     def test_spawn_start_query(self):
         import goldstone.apps.intelligence.models
+
         q = self.sd._spawn_start_query()
         self.assertEqual(q['query']['range'],
                          goldstone.apps.intelligence.models._query_range(
@@ -35,6 +64,7 @@ class SpawnDataModel(TestCase):
 
     def test_spawn_finish_query(self):
         import goldstone.apps.intelligence.models
+
         q = self.sd._spawn_finish_query(True)
         self.assertEqual(
             q['query']['range'],
