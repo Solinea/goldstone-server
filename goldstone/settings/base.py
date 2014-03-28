@@ -60,8 +60,10 @@ INSTALLED_APPS = (
     'waffle',
     'crispy_forms',
     'djangojs',
+    'goldstone.apps.core',
     'goldstone.apps.intelligence',
     'goldstone.apps.cockpit',
+    'goldstone.apps.nova',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -120,3 +122,48 @@ STATIC_URL = '/static/'
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 MAILHOST = 'localhost'
+
+# Celery
+BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_TASK_SERIALIZER = 'json'
+
+from celery.schedules import crontab
+
+CELERYBEAT_SCHEDULE = {
+    # List the availability zone info every 5 minutes
+    'nova-az-list': {
+        'task': 'goldstone.apps.nova.tasks.nova_az_list',
+        'schedule': crontab(minute='*/2'),
+    },
+}
+
+
+# GOLD-247 commented out lease scheduled tasks.  Should revisit
+# the settings when fixing GOLD-257.  Unfortunately, looks like you
+# can't even import waffle here, else we get an ImproperlyConfigured exception
+
+#from datetime import timedelta
+#
+#CELERYBEAT_SCHEDULE = {
+#    'find_expirations': {
+#        'task': 'goldstone.apps.lease.tasks.find_expirations',
+#        'schedule': timedelta(seconds=30),
+#        'args': ()
+#    },
+#    'find_notifications': {
+#        'task': 'goldstone.apps.lease.tasks.find_notifications',
+#        'schedule': timedelta(seconds=30),
+#        'args': ()
+#    },
+#}
+
+# Goldstone config settings
+DEFAULT_LOOKBACK_DAYS = 7
+DEFAULT_CHART_BUCKETS = 80
+DEFAULT_PRESENCE_LOOKBACK_HOURS = 1
+
+OS_USERNAME = 'admin'
+OS_TENANT_NAME= 'admin'
+OS_PASSWORD= 'cr0n0v0r3'
+OS_AUTH_URL= 'http://10.10.11.20:35357/v2.0/'

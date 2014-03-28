@@ -20,19 +20,20 @@ class CockpitViewTest(TestCase):
         pass
 
     def test_cockpit_template(self):
-        response = self.client.get('/')
+        response = self.client.get('/cockpit')
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'cockpit.html')
 
     def test_leases_panel(self):
         switch, created = Switch.objects.get_or_create(name='gse',
                                                        active=False)
         self.assertNotEqual(switch, None)
-        response = self.client.get('/')
+        response = self.client.get('/cockpit')
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, 'lease_panel')
         switch.active = True
         switch.save()
-        response = self.client.get('/')
+        response = self.client.get('/cockpit')
         self.assertEqual(response.status_code, 200)
         # TODO find a better way to tests dynamic loaded lease panel
         #self.assertContains(response, 'lease_panel')
