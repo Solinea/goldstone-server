@@ -162,3 +162,66 @@ class NovaSpawnsViewTest(TestCase):
             "&interval=" + self.valid_interval + \
             "&render=xyz"
         self._test_no_render_bad_request(url)
+
+
+class ResourceViewTest(TestCase):
+    # view requires a start_ts, end_ts, and interval string
+    valid_start = str(calendar.timegm(
+        datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))
+    valid_end = str(calendar.timegm(
+        datetime.now(tz=pytz.utc).utctimetuple()))
+    valid_interval = '3600s'
+    invalid_start = '999999999999'
+    invalid_end = '999999999999'
+    invalid_interval = 'abc'
+
+    @skip('TODO')
+    def test_get_cpu(self):
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
+        end_ts = calendar.timegm(end.utctimetuple())
+        start_ts = calendar.timegm(start.utctimetuple())
+
+        uri = '/intelligence/compute/cpu_stats?start_time=' + \
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
+
+        response = self.client.get(uri)
+        logger.debug("[test_get_cpu_stats_view] uri = %s", uri)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(json.loads(response.content), [])
+        logger.debug("[test_get_cpu_stats_view] response = %s",
+                     json.loads(response.content))
+
+    @skip('TODO')
+    def test_get_mem(self):
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
+        end_ts = calendar.timegm(end.utctimetuple())
+        start_ts = calendar.timegm(start.utctimetuple())
+
+        uri = '/intelligence/compute/mem_stats?start_time=' + \
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
+
+        response = self.client.get(uri)
+        logger.debug("[test_get_mem_stats_view] uri = %s", uri)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(json.loads(response.content), [])
+        logger.debug("[test_get_mem_stats_view] response = %s",
+                     json.loads(response.content))
+
+    @skip('TODO')
+    def test_get_disk(self):
+        end = datetime.now(tz=pytz.utc)
+        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
+        end_ts = calendar.timegm(end.utctimetuple())
+        start_ts = calendar.timegm(start.utctimetuple())
+
+        uri = '/intelligence/compute/phys_disk_stats?start_time=' + \
+              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
+
+        response = self.client.get(uri)
+        logger.debug("[test_get_phys_disk_stats_view] uri = %s", uri)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(json.loads(response.content), [])
+        logger.debug("[test_get_phys_disk_stats_view] response = %s",
+                     json.loads(response.content))

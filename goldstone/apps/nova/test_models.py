@@ -42,7 +42,6 @@ class AvailabilityZoneDataModel(TestCase):
         self.assertGreater(len(recs), 0)
 
 
-
 class SpawnDataModel(TestCase):
     start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
     end = datetime.now(tz=pytz.utc)
@@ -53,10 +52,10 @@ class SpawnDataModel(TestCase):
         q = self.sd._spawn_start_query()
         self.assertEqual(q['query']['range'],
                          ESData._range_clause('@timestamp',
-                                             self.start.isoformat(),
-                                             self.end.isoformat())['range'])
+                                              self.start.isoformat(),
+                                              self.end.isoformat())['range'])
         self.assertEqual(q['aggs'],
-                        ESData._agg_date_hist(self.interval))
+                         ESData._agg_date_hist(self.interval))
 
     def test_spawn_finish_query(self):
         q = self.sd._spawn_finish_query(True)
@@ -123,15 +122,12 @@ class ResourceDataTest(TestCase):
     interval = '3600s'
 
     def _test_claims(self, type_field, test_params, rd):
-
         for params in test_params:
             result = getattr(rd, params['function'])()
             self.assertFalse(result.empty)
 
-
     def test_virt_resource_data(self):
-
-        vrd = ResourceData(self.start, self.end, self.interval, 'virtual')
+        vrd = ResourceData(self.start, self.end, self.interval)
         type_field = {
             'nova_claims_summary_virt': ['limit', 'max_free',
                                          'avg_free', 'free']
@@ -146,14 +142,13 @@ class ResourceDataTest(TestCase):
 
         self._test_claims(type_field, test_params, vrd)
 
-    def test_phys_claims_resource_queries(self):
-
-        prd = ResourceData(self.start, self.end, self.interval, 'physical')
+    def test_phys_resource_data(self):
+        prd = ResourceData(self.start, self.end, self.interval)
 
         type_field = {
             'nova_claims_summary_phys': ['total', 'max_used',
                                          'avg_used', 'used'],
-            }
+        }
 
         test_params = [
             {'type': 'nova_claims_summary_phys', 'resource': 'cpu',
@@ -165,6 +160,3 @@ class ResourceDataTest(TestCase):
         ]
 
         self._test_claims(type_field, test_params, prd)
-
-
-

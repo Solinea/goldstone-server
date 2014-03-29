@@ -6,6 +6,7 @@
 
 from django.test.client import Client
 from django.test.client import RequestFactory
+from django.utils.unittest.case import skip
 from django.test import TestCase
 from django.conf import settings
 from waffle import Switch
@@ -402,7 +403,6 @@ class LogDataModel(TestCase):
                                                      short_lookback, end)
         self.assertEqual(result, control)
 
-
     def test_get_hypervisor_stats(self):
         '''
         all tests should look at data after 2014-02-04 20:03:01 UTC.  There
@@ -529,6 +529,7 @@ class IntelViewTest(TestCase):
             self.assertDictContainsSubset({'sEcho': 6},
                                           json.loads(response.content))
 
+    @skip('deprecated')
     def test_get_cpu_stats_view(self):
         end = datetime.now(tz=pytz.utc)
         start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
@@ -545,6 +546,7 @@ class IntelViewTest(TestCase):
         logger.debug("[test_get_cpu_stats_view] response = %s",
                      json.loads(response.content))
 
+    @skip('deprecated')
     def test_get_mem_stats_view(self):
         end = datetime.now(tz=pytz.utc)
         start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
@@ -561,6 +563,7 @@ class IntelViewTest(TestCase):
         logger.debug("[test_get_mem_stats_view] response = %s",
                      json.loads(response.content))
 
+    @skip('deprecated')
     def test_get_phys_cpu_stats_view(self):
         end = datetime.now(tz=pytz.utc)
         start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
@@ -577,6 +580,7 @@ class IntelViewTest(TestCase):
         logger.debug("[test_get_phys_cpu_stats_view] response = %s",
                      json.loads(response.content))
 
+    @skip('deprecated')
     def test_get_virt_cpu_stats_view(self):
         end = datetime.now(tz=pytz.utc)
         start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
@@ -593,6 +597,7 @@ class IntelViewTest(TestCase):
         logger.debug("[test_get_virt_cpu_stats_view] response = %s",
                      json.loads(response.content))
 
+    @skip('deprecated')
     def test_get_phys_mem_stats_view(self):
         end = datetime.now(tz=pytz.utc)
         start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
@@ -609,6 +614,7 @@ class IntelViewTest(TestCase):
         logger.debug("[test_get_phys_mem_stats_view] response = %s",
                      json.loads(response.content))
 
+    @skip('deprecated')
     def test_get_virt_mem_stats_view(self):
         end = datetime.now(tz=pytz.utc)
         start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
@@ -625,6 +631,7 @@ class IntelViewTest(TestCase):
         logger.debug("[test_get_virt_mem_stats_view] response = %s",
                      json.loads(response.content))
 
+    @skip('deprecated')
     def test_get_phys_disk_stats_view(self):
         end = datetime.now(tz=pytz.utc)
         start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)

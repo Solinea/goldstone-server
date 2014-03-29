@@ -9,7 +9,7 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf import settings
 from django.views.generic import TemplateView
 from waffle.decorators import waffle_switch
-from .models import SpawnData
+from .models import *
 from datetime import datetime, timedelta
 import pytz
 import json
@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 
 def _parse_timestamp(ts, tz=pytz.utc):
-
     try:
         dt = datetime.fromtimestamp(int(ts), tz=tz)
         logger.debug("[_parse_timestamp] dt = %s", str(dt))
@@ -42,6 +41,8 @@ def _validate(arg_list, context):
         if context['start'] is None:
             delta = timedelta(days=settings.DEFAULT_LOOKBACK_DAYS)
             context['start_dt'] = context['end_dt'] - delta
+            context['start'] = str(calendar.timegm(
+                context['start_dt'].timetuple()))
         else:
             context['start_dt'] = _parse_timestamp(context['start'])
             if context['start_dt'] is None:
@@ -51,8 +52,8 @@ def _validate(arg_list, context):
         if context['interval'] is None:
             td = (context['end_dt'] - context['start_dt'])
             # timdelta.total_seconds not available in py26
-            delta_secs = (td.microseconds +
-                         (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+            delta_secs = (td.microseconds + (
+                td.seconds + td.days * 24 * 3600) * 10 ** 6) / 10 ** 6
             context['interval'] = str(
                 delta_secs / settings.DEFAULT_CHART_BUCKETS) + "s"
         #elif context['interval'][-1] not in ['s', 'm', 'h', 'd', 'w']:
@@ -75,9 +76,7 @@ def _validate(arg_list, context):
         return context
 
 
-class DiscoverView(TemplateView):
-    template_name = 'discover.html'
-
+class TopLevelView(TemplateView):
     def get_context_data(self, **kwargs):
         context = TemplateView.get_context_data(self, **kwargs)
         # use "now" if not provided, will calc start and interval in _validate
@@ -104,13 +103,20 @@ class DiscoverView(TemplateView):
             })
 
 
-class SpawnsView(TemplateView):
+class DiscoverView(TopLevelView):
+    template_name = 'discover.html'
 
+
+class ReportView(TopLevelView):
+    template_name = 'report.html'
+
+
+class SpawnsView(TemplateView):
     data = pd.DataFrame()
 
     def get_context_data(self, **kwargs):
         context = TemplateView.get_context_data(self, **kwargs)
-        context['render'] = self.request.GET.get('render', "True").\
+        context['render'] = self.request.GET.get('render', "True"). \
             lower().capitalize()
         # use "now" if not provided, will calc start and interval in _validate
         context['end'] = self.request.GET.get('end', str(calendar.timegm(
@@ -135,6 +141,7 @@ class SpawnsView(TemplateView):
             # validation error
             return context
 
+        logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
         sd = SpawnData(context['start_dt'], context['end_dt'],
                        context['interval'])
         success_data = sd.get_spawn_success()
@@ -159,7 +166,7 @@ class SpawnsView(TemplateView):
                 logger.debug("[_handle_request] failures = %s", failure_data)
                 self.data = pd.ordered_merge(
                     success_data, failure_data, on='key',
-                    suffixes=['_successes', '_failures'])\
+                    suffixes=['_successes', '_failures']) \
                     .rename(columns={'doc_count_successes': 'successes',
                                      'doc_count_failures': 'failures'})
 
@@ -185,3 +192,138 @@ class SpawnsView(TemplateView):
 
         return TemplateView.render_to_response(
             self, {'data': json.dumps(response)})
+
+
+class ResourceView(TemplateView):
+    data = pd.DataFrame()
+    # override in subclass
+    my_template_name = None
+
+    def get_context_data(self, **kwargs):
+        context = TemplateView.get_context_data(self, **kwargs)
+        context['render'] = self.request.GET.get('render', "True"). \
+            lower().capitalize()
+        # use "now" if not provided, will calc start and interval in _validate
+        context['end'] = self.request.GET.get('end', str(calendar.timegm(
+            datetime.utcnow().timetuple())))
+        context['start'] = self.request.GET.get('start', None)
+        context['interval'] = self.request.GET.get('interval', None)
+
+        # if render is true, we will return a full template, otherwise only
+        # a json data payload
+        if context['render'] == 'True':
+            self.template_name = self.my_template_name
+        else:
+            self.template_name = None
+            TemplateView.content_type = 'application/json'
+
+        return context
+
+    def _handle_phys_and_virt_responses(self, phys, virt):
+        # there are a few cases to handle here
+        #  - both empty: return empty dataframe
+        #  - one empty: return zero filled column in non-empty dataframe
+        #  - neither empty: merge them on the 'key' field
+
+        if not (phys.empty and virt.empty):
+            if phys.empty:
+                virt['total_phys'] = 0
+                virt['used_phys'] = pd.NaN
+                self.data = virt.rename(
+                    columns={'total': 'virt_total', 'used': 'virt_used'})
+            elif virt.empty:
+                phys['total_virt'] = 0
+                phys['used_virt'] = pd.NaN
+                self.data = phys.rename(
+                    columns={'total': 'total_phys', 'used': 'used_phys'})
+            else:
+                self.data = pd.ordered_merge(
+                    phys, virt, on='key',
+                    suffixes=['_phys', '_virt'])
+
+        # since this is spotty data, we'll use the cummulative max to carry
+        # totals forward
+        self.data['total_phys'] = self.data['total_phys'].cummax()
+        self.data['total_virt'] = self.data['total_virt'].cummax()
+        # for the used columns, we want to fill zeros with the last non-zero
+        # value
+        self.data['used_phys'].fillna(method='pad', inplace=True)
+        self.data['used_virt'].fillna(method='pad', inplace=True)
+
+        logger.debug("[_handle_phys_and_virt_responses] self.data = %s",
+                     self.data)
+        if not self.data.empty:
+            self.data = self.data.set_index('key').fillna(0)
+
+        response = self.data.transpose().to_dict(outtype='list')
+        return response
+
+    def render_to_response(self, context, **response_kwargs):
+        """
+        Overriding to handle case of data only request (render=False).  In
+        that case an application/json data payload is returned.
+        """
+        response = self._handle_request(context)
+        if isinstance(response, HttpResponseBadRequest):
+            return response
+
+        if self.template_name is None:
+            return HttpResponse(json.dumps(response),
+                                content_type="application/json")
+
+        return TemplateView.render_to_response(
+            self, {'data': json.dumps(response)})
+
+
+class CpuView(ResourceView):
+    my_template_name = 'cpu.html'
+
+    def _handle_request(self, context):
+        context = _validate(['start', 'end', 'interval', 'render'], context)
+
+        if isinstance(context, HttpResponseBadRequest):
+            # validation error
+            return context
+        rd = ResourceData(context['start_dt'], context['end_dt'],
+                          context['interval'])
+        p_cpu = rd.get_phys_cpu()
+        v_cpu = rd.get_virt_cpu()
+        response = self._handle_phys_and_virt_responses(p_cpu, v_cpu)
+        return response
+
+
+class MemoryView(ResourceView):
+    my_template_name = 'mem.html'
+
+    def _handle_request(self, context):
+        context = _validate(['start', 'end', 'interval', 'render'], context)
+
+        if isinstance(context, HttpResponseBadRequest):
+            # validation error
+            return context
+        rd = ResourceData(context['start_dt'], context['end_dt'],
+                          context['interval'])
+        p_mem = rd.get_phys_mem()
+        v_mem = rd.get_virt_mem()
+        response = self._handle_phys_and_virt_responses(p_mem, v_mem)
+        return response
+
+
+class DiskView(ResourceView):
+    my_template_name = 'disk.html'
+
+    def _handle_request(self, context):
+        context = _validate(['start', 'end', 'interval', 'render'], context)
+
+        if isinstance(context, HttpResponseBadRequest):
+            # validation error
+            return context
+        rd = ResourceData(context['start_dt'], context['end_dt'],
+                          context['interval'])
+        self.data = rd.get_phys_disk()
+
+        if not self.data.empty:
+            self.data = self.data.set_index('key').fillna(0)
+
+        response = self.data.transpose().to_dict(outtype='list')
+        return response

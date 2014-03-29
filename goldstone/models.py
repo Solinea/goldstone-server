@@ -137,7 +137,6 @@ class ESData(object):
             }
         }
 
-
     @staticmethod
     def _max_aggs_clause(name, field):
         return {

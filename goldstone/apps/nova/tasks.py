@@ -9,6 +9,7 @@ from .models import AvailabilityZoneData
 
 logger = logging.getLogger(__name__)
 
+
 @celery_app.task(bind=True)
 def nova_az_list(self):
     nt = client.Client(settings.OS_USERNAME, settings.OS_PASSWORD,
