@@ -23,4 +23,6 @@ urlpatterns = patterns(
         name='nova-hypervisor-mem'),
     url(r'^hypervisor/disk[/]?$', DiskView.as_view(),
         name='nova-hypervisor-disk'),
+    url(r'^zones[/]?$', ZonesView.as_view(),
+        name='nova-zones'),
 )

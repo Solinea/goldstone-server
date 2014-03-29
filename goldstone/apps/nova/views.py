@@ -327,3 +327,96 @@ class DiskView(ResourceView):
 
         response = self.data.transpose().to_dict(outtype='list')
         return response
+
+
+class ZonesView(TemplateView):
+
+    data = pd.DataFrame()
+
+    def get_context_data(self, **kwargs):
+        context = TemplateView.get_context_data(self, **kwargs)
+        context['render'] = self.request.GET.get('render', "True"). \
+            lower().capitalize()
+        # use "now" if not provided, will calc start and interval in _validate
+        context['end'] = self.request.GET.get('end', str(calendar.timegm(
+            datetime.utcnow().timetuple())))
+        context['start'] = self.request.GET.get('start', None)
+        context['interval'] = self.request.GET.get('interval', None)
+
+        # if render is true, we will return a full template, otherwise only
+        # a json data payload
+        if context['render'] == 'True':
+            self.template_name = 'zones.html'
+        else:
+            self.template_name = None
+            TemplateView.content_type = 'application/json'
+
+        return context
+
+
+    def _handle_request(self, context):
+        context = _validate(['start', 'end', 'interval', 'render'], context)
+
+        if isinstance(context, HttpResponseBadRequest):
+            # validation error
+            return context
+
+        logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
+        #
+        # we need a couple different things to pull this together:
+        #   - AZ data from the start and end.  The older one is used to
+        #        identify new hosts
+        #   - log error count for each host
+        #   - missing host data based on logging to be used to identify
+        #       hosts that show up in AZ data, but have not logged anything
+
+        azd = AvailabilityZoneData()
+        #new_az = sd.get_date_range(
+        #    context['start_dt'], context['end_dt'], count=1)
+        current_az = azd.get()
+        current_az = dict() if len(current_az) == 0 else current_az[0]['zones']
+        old_az = azd.get_date_range(
+            datetime.fromtimestamp(0), context['start_dt'], count=1)
+        old_az = dict() if len(old_az) == 0 else old_az[0]['zones']
+
+        # let's scrub out some stuff we don't need in the view, and make it
+        # friendly for a d3 tree map
+        response = {'name': 'zones', 'children': []}
+        for z in current_az:
+            new_z = {'name': z['zoneName'], 'children': []}
+            for h in z['hosts']:
+                new_h = {'name': h, 'children':
+                    [{'name': s} for s in z['hosts'][h].keys()]}
+                new_z['children'].append(new_h)
+            response['children'].append(new_z)
+
+        logger.info("[_handle_request] response = %s", json.dumps(response))
+
+
+
+        # TODO get missing host data
+
+        # TODO get error counts
+
+        # there are a few cases to handle here
+        #  - both empty: return empty dataframe
+        #  - one empty: return zero filled column in non-empty dataframe
+        #  - neither empty: merge them on the 'key' field
+
+        return response
+
+    def render_to_response(self, context, **response_kwargs):
+        """
+        Overriding to handle case of data only request (render=False).  In
+        that case an application/json data payload is returned.
+        """
+        response = self._handle_request(context)
+        if isinstance(response, HttpResponseBadRequest):
+            return response
+
+        if self.template_name is None:
+            return HttpResponse(json.dumps(response),
+                                content_type="application/json")
+
+        return TemplateView.render_to_response(
+            self, {'data': json.dumps(response)})

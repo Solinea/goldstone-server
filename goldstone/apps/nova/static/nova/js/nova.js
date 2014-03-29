@@ -9,17 +9,17 @@ goldstone.namespace('nova.mem')
 goldstone.namespace('nova.mem.renderlets')
 goldstone.namespace('nova.disk')
 goldstone.namespace('nova.disk.renderlets')
+goldstone.namespace('nova.zones')
+goldstone.namespace('nova.zones.renderlets')
 
-goldstone.nova.spawns.url = function (start, end, interval, render) {
+goldstone.nova._url = function (ns, start, end, interval, render, path) {
     "use strict";
-    var ns = goldstone.nova.spawns
     var gt = goldstone.time
     start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start)
     end = end ? gt.toPyTs(end) : gt.toPyTs(ns.end)
     interval = interval ? interval : ns.interval
 
-
-    var url = "/nova/hypervisor/spawns" +
+    var url = path +
         "?start=" + start +
         "&end=" + end +
         "&interval=" + interval
@@ -27,63 +27,42 @@ goldstone.nova.spawns.url = function (start, end, interval, render) {
         url += "&render=" + render
     }
     return url
+}
+
+goldstone.nova.spawns.url = function (start, end, interval, render) {
+    "use strict";
+    var ns = goldstone.nova.spawns,
+        path = "/nova/hypervisor/spawns"
+    return goldstone.nova._url(ns, start, end, interval, render, path)
 }
 
 goldstone.nova.cpu.url = function (start, end, interval, render) {
     "use strict";
-    var ns = goldstone.nova.cpu
-    var gt = goldstone.time
-    start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start)
-    end = end ? gt.toPyTs(end) : gt.toPyTs(ns.end)
-    interval = interval ? interval : ns.interval
-
-
-    var url = "/nova/hypervisor/cpu" +
-        "?start=" + start +
-        "&end=" + end +
-        "&interval=" + interval
-    if (typeof render !== 'undefined') {
-        url += "&render=" + render
-    }
-    return url
+    var ns = goldstone.nova.cpu,
+        path = "/nova/hypervisor/cpu"
+    return goldstone.nova._url(ns, start, end, interval, render, path)
 }
 
 goldstone.nova.mem.url = function (start, end, interval, render) {
     "use strict";
-    var ns = goldstone.nova.mem
-    var gt = goldstone.time
-    start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start)
-    end = end ? gt.toPyTs(end) : gt.toPyTs(ns.end)
-    interval = interval ? interval : ns.interval
-
-
-    var url = "/nova/hypervisor/mem" +
-        "?start=" + start +
-        "&end=" + end +
-        "&interval=" + interval
-    if (typeof render !== 'undefined') {
-        url += "&render=" + render
-    }
-    return url
+    var ns = goldstone.nova.mem,
+        path = "/nova/hypervisor/mem"
+    return goldstone.nova._url(ns, start, end, interval, render, path)
 }
+
 
 goldstone.nova.disk.url = function (start, end, interval, render) {
     "use strict";
-    var ns = goldstone.nova.disk
-    var gt = goldstone.time
-    start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start)
-    end = end ? gt.toPyTs(end) : gt.toPyTs(ns.end)
-    interval = interval ? interval : ns.interval
+    var ns = goldstone.nova.disk,
+        path = "/nova/hypervisor/disk"
+    return goldstone.nova._url(ns, start, end, interval, render, path)
+}
 
-
-    var url = "/nova/hypervisor/disk" +
-        "?start=" + start +
-        "&end=" + end +
-        "&interval=" + interval
-    if (typeof render !== 'undefined') {
-        url += "&render=" + render
-    }
-    return url
+goldstone.nova.zones.url = function (start, end, interval, render) {
+    "use strict";
+    var ns = goldstone.nova.zones,
+        path = "/nova/zones"
+    return goldstone.nova._url(ns, start, end, interval, render, path)
 }
 
 goldstone.nova._loadUrl = function (ns, start, end, interval, location, render) {
@@ -135,6 +114,12 @@ goldstone.nova.disk.loadUrl = function (start, end, interval, location, render) 
     goldstone.nova._loadUrl(ns, start, end, interval, location, render)
 }
 
+goldstone.nova.zones.loadUrl = function (start, end, interval, location, render) {
+    "use strict";
+    var ns = goldstone.nova.zones
+
+    goldstone.nova._loadUrl(ns, start, end, interval, location, render)
+}
 
 goldstone.nova.spawns.drawChart = function () {
     // now we can customize it to handle our data.  Data structure looks like:
@@ -354,6 +339,140 @@ goldstone.nova.disk.drawChart = function () {
 
             ns.chart.render()
             $(ns.spinner).hide()
+        }
+    }
+}
+
+goldstone.nova.zones.drawChart = function () {
+    "use strict";
+    var ns = goldstone.nova.zones,
+        panelWidth = $(ns.location).width(),
+        force = d3.layout.force()
+            .size([panelWidth, ns.height])
+            .on("tick", tick),
+        svg = d3.select(ns.location).append("svg")
+            .attr("width", panelWidth)
+            .attr("height", ns.height),
+        link = svg.selectAll(".link"),
+        node = svg.selectAll(".node"),
+        root
+
+    function update() {
+        var nodes = flatten(root),
+          links = d3.layout.tree().links(nodes);
+
+        // Restart the force layout.
+        force
+          .nodes(nodes)
+          .links(links)
+          .start();
+
+        // Update the links…
+        link = link.data(links, function (d) {
+            console.log("updating link, returning " + d.target.id)
+            return d.target.id; });
+
+        // Exit any old links.
+        link.exit().remove();
+
+        // Enter any new links.
+        link.enter().insert("line", ".node")
+          .attr("class", "link")
+          .attr("x1", function (d) {
+                console.log("entering new link, setting x1 = " + d.source.x)
+                return d.source.x; })
+          .attr("y1", function (d) {
+                console.log("entering new link, setting y1 = " + d.source.y)
+                return d.source.y; })
+          .attr("x2", function (d) {
+                console.log("entering new link, setting x2 = " + d.target.x)
+                return d.target.x; })
+          .attr("y2", function (d) {
+                console.log("entering new link, setting y2 = " + d.target.y)
+                return d.target.y; });
+
+        // Update the nodes…
+        node = node.data(nodes, function (d) {
+            console.log("updating node with id " + d.id)
+            return d.id; }).style("fill", color);
+
+        // Exit any old nodes.
+        node.exit().remove();
+
+        // Enter any new nodes.
+        node.enter().append("circle")
+          .attr("class", "node")
+          .attr("cx", function (d) {
+                console.log("entering new node, setting cx = " + d.x)
+                return d.x; })
+          .attr("cy", function (d) {
+                console.log("entering new node, setting cy = " + d.y)
+                return d.y; })
+          .attr("r", function (d) {
+                console.log("entering new node, setting r = " + (Math.sqrt(d.size) / 10 || 4.5))
+                return Math.sqrt(d.size) / 10 || 4.5; })
+          .style("fill", color)
+          .on("click", click)
+          .call(force.drag);
+    }
+
+    function tick() {
+        link.attr("x1", function (d) {
+            console.log("in tick, setting x1 = " + d.source.x)
+            return d.source.x; })
+          .attr("y1", function (d) { return d.source.y; })
+          .attr("x2", function (d) { return d.target.x; })
+          .attr("y2", function (d) { return d.target.y; });
+
+        node.attr("cx", function (d) { return d.x; })
+          .attr("cy", function (d) { return d.y; });
+    }
+
+    // Color leaf nodes orange, and packages white or blue.
+    function color(d) {
+        console.log("setting color to " + (d._children ? "#3182bd" : d.children ? "#c6dbef" : "#fd8d3c"))
+        return d._children ? "#3182bd" : d.children ? "#c6dbef" : "#fd8d3c";
+    }
+
+    // Toggle children on click.
+    function click(d) {
+        if (!d3.event.defaultPrevented) {
+            if (d.children) {
+                d._children = d.children;
+                d.children = null;
+            } else {
+                d.children = d._children;
+                d._children = null;
+            }
+            update();
+        }
+    }
+
+    // Returns a list of all nodes under the root.
+    function flatten(root) {
+        var nodes = [], i = 0;
+
+        function recurse(node) {
+            if (node.children) node.children.forEach(recurse);
+            if (!node.id) node.id = ++i;
+            nodes.push(node);
+        }
+
+        recurse(root);
+        return nodes;
+    }
+
+
+
+    if (ns.data !== 'undefined') {
+        if (Object.keys(ns.data).length === 0) {
+            $(ns.location).append("<p> Response was empty.")
+            $(ns.spinner).hide()
+        } else {
+            (function (json) {
+                root = json;
+                update();
+            })(ns.data);
         }
     }
 }

@@ -43,8 +43,8 @@ class AvailabilityZoneData(ESData):
                                      doc_type=self._DOC_TYPE,
                                      body=q, size=count, from_=first,
                                      sort={'@timestamp': sort})
-        logger.debug("[get_date_range] response = %s", json.dumps(response))
-        return response['hits']['hits']
+        logger.info("[get_date_range] response = %s", json.dumps(response))
+        return [h['_source'] for h in response['hits']['hits']]
 
     def get(self, count=1):
         """
@@ -58,7 +58,7 @@ class AvailabilityZoneData(ESData):
                                      body=q, size=count,
                                      sort={'@timestamp': 'desc'})
         logger.debug("[get] response = %s", json.dumps(response))
-        return response['hits']['hits']
+        return [h['_source'] for h in response['hits']['hits']]
 
     def post(self, body):
         """
