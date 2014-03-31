@@ -358,8 +358,8 @@ goldstone.nova.zones.drawChart = function () {
             .attr("height", ns.height),
         link = svg.selectAll(".link"),
         node = svg.selectAll(".node"),
-        labelLink = svg.selectAll("g.labelLink"),
-        labelNode = svg.selectAll("g.labelNode"),
+        labelLink = svg.selectAll(".labelLink"),
+        labelNode = svg.selectAll(".labelNode"),
         labelDistance = 0,
         root
 
@@ -414,7 +414,8 @@ goldstone.nova.zones.drawChart = function () {
           .attr("class", "node")
           .attr("cx", function (d) { return d.x; })
           .attr("cy", function (d) { return d.y; })
-          .attr("r", function (d) { return Math.sqrt(d.size) / 10 || 4.5; })
+          //.attr("r", function (d) { return Math.sqrt(d.size) / 10 || 4.5; })
+          .attr("r", 10)
           .style("fill", color)
           .on("click", click)
           .call(force.drag)
@@ -442,46 +443,19 @@ goldstone.nova.zones.drawChart = function () {
         // update existing elements here
 
         // enter new elements
-        labelLink.enter()
-            .insert("line", ".labelNode")
-            .attr("class", "labelLink")
-            .attr("x1", function (d) { return d.source.x; })
-            .attr("y1", function (d) { return d.source.y; })
-            .attr("x2", function (d) { return d.target.x; })
-            .attr("y2", function (d) { return d.target.y; })
-            //.append("svg:line")
-            //.attr("class", "labelLink")
-            .style("stroke", "#333333")
-
-        labelNode.enter()
-            .append("circle")
+        var lne = labelNode.enter()
+            .append("svg:g")
             .attr("class", "labelNode")
-            .style("fill", "#111111")
-            .attr("cx", function (d) { return d.x; })
-            .attr("cy", function (d) { return d.y; })
-            .attr("r", 0)
-            //.append("svg:g")
-            //.attr("class", "labelNode")
-            .on("click", click)
-            .call(force.drag)
+
+        lne.append("svg:circle").attr("r", 0).style("fill", "#000")
+
+        lne.append("svg:text").text(function (d, i) {
+				return i % 2 == 0 ? "" : d.node.name
+			}).style("fill", "#555").style("font-family", "Arial").style("font-size", 12);
+
 
         // update existing and new elements
-        labelNode
-            .append("circle")
-            .attr("cx", function (d) { return d.x; })
-            .attr("cy", function (d) { return d.y; })
-            .attr("r", 0)
-            .style("fill", "#333333")
 
-        labelNode
-            .append("text")
-            .text(function (d, i) {
-                console.log("adding name " + d.node.name + " to d " + JSON.stringify(d))
-				return i % 2 == 0 ? "" : d.node.name
-            })
-            .style("fill", "#000000")
-            .style("font-family", "Arial")
-            .style("font-size", 12);
 
         // exit old elements
         labelLink.exit().remove()
@@ -489,23 +463,21 @@ goldstone.nova.zones.drawChart = function () {
     }
 
     function tick() {
-        link
-          .attr("x1", function (d) { return d.source.x; })
-          .attr("y1", function (d) { return d.source.y; })
-          .attr("x2", function (d) { return d.target.x; })
-          .attr("y2", function (d) { return d.target.y; });
 
         node
           .attr("cx", function (d) { return d.x; })
-          .attr("cy", function (d) { return d.y; });
+          .attr("cy", function (d) { return d.y; })
+          //.attr("transform", function (d) {
+		  //			return "translate(" + d.x + "," + d.y + ")"
+          //      })
 
         labelNode.each(function (d, i) {
             if (i % 2 == 0) {
-                console.log("label node id was even, x, y = [" + d.node.x + ", " + d.node.y + "]")
+                //console.log("label node id was even, x, y = [" + d.node.x + ", " + d.node.y + "]")
                 d.x = d.node.x;
                 d.y = d.node.y;
             } else {
-                console.log("label node id was odd")
+                //console.log("label node id was odd")
                 var b = this.childNodes[1].getBBox()
                 var diffX = d.x - d.node.x,
                     diffY = d.y - d.node.y,
@@ -514,11 +486,25 @@ goldstone.nova.zones.drawChart = function () {
                     shiftY = 5;
 
                 shiftX = Math.max(-b.width, Math.min(0, shiftX))
-                console.log("shift = [" + shiftX + ", " + shiftY + "]")
+                //console.log("shift = [" + shiftX + ", " + shiftY + "]")
                 this.childNodes[1]
                     .setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
             }
         })
+
+        labelNode
+          .attr("cx", function (d) { return d.x; })
+          .attr("cy", function (d) { return d.y; })
+          .attr("transform", function (d) {
+					return "translate(" + d.x + "," + d.y + ")"
+                })
+
+
+        link
+          .attr("x1", function (d) { return d.source.x; })
+          .attr("y1", function (d) { return d.source.y; })
+          .attr("x2", function (d) { return d.target.x; })
+          .attr("y2", function (d) { return d.target.y; });
 
         labelLink
           .attr("x1", function (d) { return d.source.x; })
@@ -526,16 +512,13 @@ goldstone.nova.zones.drawChart = function () {
           .attr("x2", function (d) { return d.target.x; })
           .attr("y2", function (d) { return d.target.y; });
 
-        labelNode
-          .attr("cx", function (d) { return d.x; })
-          .attr("cy", function (d) { return d.y; });
 
 
     }
 
     // Color leaf nodes orange, and packages white or blue.
     function color(d) {
-        //console.log("setting color to " + (d._children ? "#3182bd" : d.children ? "#c6dbef" : "#fd8d3c"))
+        console.log("setting color to " + (d._children ? "#3182bd" : d.children ? "#c6dbef" : "#fd8d3c"))
         return d._children ? "#3182bd" : d.children ? "#c6dbef" : "#fd8d3c";
     }
 
