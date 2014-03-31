@@ -374,9 +374,7 @@ goldstone.nova.zones.drawChart = function () {
                 root = json
                 root.x0 = panelHeight / 2
                 root.y0 = 0
-
-                console.log("root[x0,y0] = [" + root.x0 + ", " + root.y0 + "]")
-
+                
                 function toggleAll(d) {
                     if (d.children) {
                         d.children.forEach(toggleAll)
@@ -400,7 +398,7 @@ goldstone.nova.zones.drawChart = function () {
         // Normalize for fixed-depth.
         nodes.forEach(function (d) {
             // TODO make the tree branch length configurable
-            d.y = d.depth * 120;
+            d.y = d.depth * 140;
         });
 
         // Update the nodes…
@@ -421,8 +419,8 @@ goldstone.nova.zones.drawChart = function () {
             });
 
         nodeEnter.append("image")
-            .attr("class", "network-icon")
-            .attr("xlink:href", "/static/images/icon_network.svg")
+            .attr("class", function (d) { return "icon " + (d.rsrcType || "cloud") + "-icon"})
+            .attr("xlink:href", function (d) { return "/static/images/icon_" + (d.rsrcType || "cloud") + ".svg"})
             .attr("width", 1e-6)
             .attr("height", 1e-6)
             .attr("x", -10)
@@ -458,9 +456,9 @@ goldstone.nova.zones.drawChart = function () {
                 return "translate(" + d.y + "," + d.x + ")";
             });
 
-        nodeUpdate.select(".network-icon")
-            .attr("height", 20)
-            .attr("width", 20)
+        nodeUpdate.select(".icon")
+            .attr("height", 25)
+            .attr("width", 25)
             .style("fill", function (d) {
                 return d._children ? "lightsteelblue" : "#fff";
             });

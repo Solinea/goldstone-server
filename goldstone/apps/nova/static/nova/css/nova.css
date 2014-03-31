@@ -9,6 +9,11 @@
   stroke-width: 0;
 }
 
+.icon text {
+  font-size: 12px;
+  stroke-width: 0;
+}
+
 .link {
   fill: none;
   stroke: #9ecae1;

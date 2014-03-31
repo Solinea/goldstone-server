@@ -353,7 +353,6 @@ class ZonesView(TemplateView):
 
         return context
 
-
     def _handle_request(self, context):
         context = _validate(['start', 'end', 'interval', 'render'], context)
 
@@ -383,10 +382,11 @@ class ZonesView(TemplateView):
         # friendly for a d3 tree map
         response = {'name': 'zones', 'children': []}
         for z in current_az:
-            new_z = {'name': z['zoneName'], 'children': []}
+            new_z = {'name': z['zoneName'], 'rsrcType': 'zone', 'children': []}
             for h in z['hosts']:
-                new_h = {'name': h, 'children':
-                    [{'name': s} for s in z['hosts'][h].keys()]}
+                new_h = {'name': h, 'rsrcType': 'host', 'children':
+                    [{'name': s, 'rsrcType': 'service'} \
+                     for s in z['hosts'][h].keys()]}
                 new_z['children'].append(new_h)
             response['children'].append(new_z)
 
