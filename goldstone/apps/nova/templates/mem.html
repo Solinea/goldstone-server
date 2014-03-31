@@ -5,7 +5,7 @@
         <h3 class="panel-title"><i class="fa fa-tasks"></i> Memory Resources</h3>
     </div>
     <div class="panel-body" style="height:300px">
-        <div id="nova-mem-chart">
+        <div id="nova-mem-chart" class="resource-chart">
             <script>
 var ns = goldstone.nova.mem
 ns.data = JSON.parse({{ data|to_js }})
