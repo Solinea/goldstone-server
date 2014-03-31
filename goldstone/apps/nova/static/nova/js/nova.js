@@ -343,213 +343,25 @@ goldstone.nova.disk.drawChart = function () {
     }
 }
 
+/*
+A collabsible tree view of the nova zone heirarchy
+ */
 goldstone.nova.zones.drawChart = function () {
     "use strict";
     var ns = goldstone.nova.zones,
-        panelWidth = $(ns.location).width(),
-        force = d3.layout.force()
-            .size([panelWidth, ns.height])
-            .on("tick", tick),
-        labelForce = d3.layout.force()
-            .size([panelWidth, ns.height])
-            .on("tick", tick),
-        svg = d3.select(ns.location).append("svg")
-            .attr("width", panelWidth)
-            .attr("height", ns.height),
-        link = svg.selectAll(".link"),
-        node = svg.selectAll(".node"),
-        labelLink = svg.selectAll(".labelLink"),
-        labelNode = svg.selectAll(".labelNode"),
-        labelDistance = 0,
-        root
-
-    function update() {
-        var nodes = flatten(root),
-            links = d3.layout.tree().links(nodes),
-            labelNodes = [],
-            labelLinks = []
-
-        _.forEach(nodes, function (node) {
-            labelNodes.push({node : node })
-            labelNodes.push({node : node })
-        })
-        for (var i = 0 ; i < nodes.length; i++) {
-            labelLinks.push({
-					source : i * 2,
-					target : i * 2 + 1,
-					weight : 1
-				});
-        }
-
-        // Restart the force layout.
-        force
-          .nodes(nodes)
-          .links(links)
-          .gravity(0)
-          .charge(function (d) { return d._children ? -d.size / 100 : -60; })
-          .linkDistance(function (d) { return d.target._children ? 80 : 30; })
-          .start()
-
-        // join the data with elements
-        link = link.data(links, function (d) {
-            console.log("updating link, d =  " + JSON.stringify(d))
-            console.log("updating link, returning " + d.target.id)
-            return d.target.id;
-        })
-        node = node.data(nodes, function (d) {
-            return d.id
-        }).style("fill", color)
-
-        // update existing elements here
-
-        // enter any new elements
-        link.enter().insert("line", ".node")
-          .attr("class", "link")
-          .attr("x1", function (d) { return d.source.x; })
-          .attr("y1", function (d) { return d.source.y; })
-          .attr("x2", function (d) { return d.target.x; })
-          .attr("y2", function (d) { return d.target.y; })
-
-        node.enter().append("circle")
-          .attr("class", "node")
-          .attr("cx", function (d) { return d.x; })
-          .attr("cy", function (d) { return d.y; })
-          //.attr("r", function (d) { return Math.sqrt(d.size) / 10 || 4.5; })
-          .attr("r", 10)
-          .style("fill", color)
-          .on("click", click)
-          .call(force.drag)
-
-        // update existing and new elements here
-
-        // exist old elements
-        link.exit().remove()
-        node.exit().remove()
-
-        // now we take care of the labels
-        labelForce
-            .nodes(labelNodes)
-            .links(labelLinks)
-            .gravity(0)
-            .linkDistance(0)
-            .linkStrength(8)
-            .charge(-100)
-            .start()
-
-        // join the data with elements
-        labelLink = labelLink.data(labelLinks)
-        labelNode = labelNode.data(labelForce.nodes())
-
-        // update existing elements here
-
-        // enter new elements
-        var lne = labelNode.enter()
+        i = 0,
+        m = [20, 80, 20, 80],
+        panelWidth = $(ns.location).width() - m[1] - m[3],
+        panelHeight = ns.height - m[0] - m[2],
+        tree = d3.layout.tree().size([ns.height, panelWidth]),
+        diagonal = d3.svg.diagonal()
+            .projection(function (d) { return [d.y, d.x]; }),
+        vis = d3.select(ns.location).append("svg")
+            .attr("width", panelWidth + m[1] + m[3])
+            .attr("height", panelHeight + m[0] + m[2])
             .append("svg:g")
-            .attr("class", "labelNode")
-
-        lne.append("svg:circle").attr("r", 0).style("fill", "#000")
-
-        lne.append("svg:text").text(function (d, i) {
-				return i % 2 == 0 ? "" : d.node.name
-			}).style("fill", "#555").style("font-family", "Arial").style("font-size", 12);
-
-
-        // update existing and new elements
-
-
-        // exit old elements
-        labelLink.exit().remove()
-        labelNode.exit().remove()
-    }
-
-    function tick() {
-
-        node
-          .attr("cx", function (d) { return d.x; })
-          .attr("cy", function (d) { return d.y; })
-          //.attr("transform", function (d) {
-		  //			return "translate(" + d.x + "," + d.y + ")"
-          //      })
-
-        labelNode.each(function (d, i) {
-            if (i % 2 == 0) {
-                //console.log("label node id was even, x, y = [" + d.node.x + ", " + d.node.y + "]")
-                d.x = d.node.x;
-                d.y = d.node.y;
-            } else {
-                //console.log("label node id was odd")
-                var b = this.childNodes[1].getBBox()
-                var diffX = d.x - d.node.x,
-                    diffY = d.y - d.node.y,
-                    dist = Math.sqrt(diffX * diffX + diffY * diffY),
-                    shiftX = b.width * (diffX - dist) / (dist * 2),
-                    shiftY = 5;
-
-                shiftX = Math.max(-b.width, Math.min(0, shiftX))
-                //console.log("shift = [" + shiftX + ", " + shiftY + "]")
-                this.childNodes[1]
-                    .setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
-            }
-        })
-
-        labelNode
-          .attr("cx", function (d) { return d.x; })
-          .attr("cy", function (d) { return d.y; })
-          .attr("transform", function (d) {
-					return "translate(" + d.x + "," + d.y + ")"
-                })
-
-
-        link
-          .attr("x1", function (d) { return d.source.x; })
-          .attr("y1", function (d) { return d.source.y; })
-          .attr("x2", function (d) { return d.target.x; })
-          .attr("y2", function (d) { return d.target.y; });
-
-        labelLink
-          .attr("x1", function (d) { return d.source.x; })
-          .attr("y1", function (d) { return d.source.y; })
-          .attr("x2", function (d) { return d.target.x; })
-          .attr("y2", function (d) { return d.target.y; });
-
-
-
-    }
-
-    // Color leaf nodes orange, and packages white or blue.
-    function color(d) {
-        console.log("setting color to " + (d._children ? "#3182bd" : d.children ? "#c6dbef" : "#fd8d3c"))
-        return d._children ? "#3182bd" : d.children ? "#c6dbef" : "#fd8d3c";
-    }
-
-    // Toggle children on click.
-    function click(d) {
-        if (!d3.event.defaultPrevented) {
-            if (d.children) {
-                d._children = d.children;
-                d.children = null;
-            } else {
-                d.children = d._children;
-                d._children = null;
-            }
-            update();
-        }
-    }
-
-    // Returns a list of all nodes under the root.
-    function flatten(root) {
-        var nodes = [], i = 0;
-
-        function recurse(node) {
-            if (node.children) node.children.forEach(recurse);
-            if (!node.id) node.id = ++i;
-            nodes.push(node);
-
-        }
-
-        recurse(root);
-        return nodes;
-    }
+            .attr("transform", "translate(" + m[3] + "," + m[0] + ")"),
+        root
 
 
 
@@ -559,11 +371,164 @@ goldstone.nova.zones.drawChart = function () {
             $(ns.spinner).hide()
         } else {
             (function (json) {
-                root = json;
-                update();
+                root = json
+                root.x0 = panelHeight / 2
+                root.y0 = 0
+
+                console.log("root[x0,y0] = [" + root.x0 + ", " + root.y0 + "]")
+
+                function toggleAll(d) {
+                    if (d.children) {
+                        d.children.forEach(toggleAll)
+                        toggle(d)
+                    }
+                }
+
+                // Initialize the display to show only the first tier of children
+                root.children.forEach(toggleAll)
+                update(root)
             })(ns.data);
         }
     }
-}
 
+    function update(source) {
+        var duration = d3.event && d3.event.altKey ? 5000 : 500;
+
+        // Compute the new tree layout.
+        var nodes = tree.nodes(root).reverse();
+
+        // Normalize for fixed-depth.
+        nodes.forEach(function (d) {
+            // TODO make the tree branch length configurable
+            d.y = d.depth * 120;
+        });
+
+        // Update the nodes…
+        var node = vis.selectAll("g.node")
+            .data(nodes, function (d) {
+                return d.id || (d.id = ++i);
+            });
+
+        // Enter any new nodes at the parent's previous position.
+        var nodeEnter = node.enter().append("svg:g")
+            .attr("class", "node")
+            .attr("transform", function (d) {
+                return "translate(" + source.y0 + "," + source.x0 + ")";
+            })
+            .on("click", function (d) {
+                toggle(d);
+                update(d);
+            });
+
+        nodeEnter.append("image")
+            .attr("class", "network-icon")
+            .attr("xlink:href", "/static/images/icon_network.svg")
+            .attr("width", 1e-6)
+            .attr("height", 1e-6)
+            .attr("x", -10)
+            .style("fill", function (d) {
+                    return d._children ? "lightsteelblue" : "#fff";
+                });
+
+        //nodeEnter.append("svg:circle")
+        //    .attr("r", 1e-6)
+        //    .style("fill", function (d) {
+        //        return d._children ? "lightsteelblue" : "#fff";
+        //    });
+
+        nodeEnter.append("svg:text")
+            //.attr("x", function (d) {
+            //    return d.children || d._children ? -10 : 10;
+            //})
+            .attr("x", 0)
+            .attr("dy", "-1em")
+            .attr("text-anchor", "middle")
+            //.attr("text-anchor", function (d) {
+            //    return d.children || d._children ? "end" : "start";
+            //})
+            .text(function (d) {
+                return d.name;
+            })
+            .style("fill-opacity", 1e-6);
+
+        // Transition nodes to their new position.
+        var nodeUpdate = node.transition()
+            .duration(duration)
+            .attr("transform", function (d) {
+                return "translate(" + d.y + "," + d.x + ")";
+            });
+
+        nodeUpdate.select(".network-icon")
+            .attr("height", 20)
+            .attr("width", 20)
+            .style("fill", function (d) {
+                return d._children ? "lightsteelblue" : "#fff";
+            });
+
+        nodeUpdate.select("text")
+            .style("fill-opacity", 1);
+
+        // Transition exiting nodes to the parent's new position.
+        var nodeExit = node.exit().transition()
+            .duration(duration)
+            .attr("transform", function (d) {
+                return "translate(" + source.y + "," + source.x + ")";
+            })
+            .remove();
+
+        nodeExit.select("circle")
+            .attr("r", 1e-6);
+
+        nodeExit.select("text")
+            .style("fill-opacity", 1e-6);
+
+        // Update the links…
+        var link = vis.selectAll("path.link")
+            .data(tree.links(nodes), function (d) {
+                return d.target.id;
+            });
+
+        // Enter any new links at the parent's previous position.
+        link.enter().insert("svg:path", "g")
+            .attr("class", "link")
+            .attr("d", function (d) {
+                var o = {x: source.x0, y: source.y0};
+                return diagonal({source: o, target: o});
+            })
+            .transition()
+            .duration(duration)
+            .attr("d", diagonal);
+
+        // Transition links to their new position.
+        link.transition()
+            .duration(duration)
+            .attr("d", diagonal);
+
+        // Transition exiting nodes to the parent's new position.
+        link.exit().transition()
+            .duration(duration)
+            .attr("d", function (d) {
+                var o = {x: source.x, y: source.y};
+                return diagonal({source: o, target: o});
+            })
+            .remove();
+
+        // Stash the old positions for transition.
+        nodes.forEach(function (d) {
+            d.x0 = d.x;
+            d.y0 = d.y;
+        });
+    }
+
+    // Toggle children.
+    function toggle(d) {
+        if (d.children) {
+            d._children = d.children;
+            d.children = null;
+        } else {
+            d.children = d._children;
+            d._children = null;
+        }
+    }
+}
 
