@@ -4,6 +4,11 @@
   stroke-width: 1.5px;
 }
 
+.node text {
+  font-size: 12px;
+  stroke-width: 0;
+}
+
 .link {
   fill: none;
   stroke: #9ecae1;
