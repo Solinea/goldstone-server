@@ -379,7 +379,6 @@ goldstone.nova.zones.drawChart = function () {
 					target : i * 2 + 1,
 					weight : 1
 				});
-
         }
 
         // Restart the force layout.
@@ -391,17 +390,19 @@ goldstone.nova.zones.drawChart = function () {
           .linkDistance(function (d) { return d.target._children ? 80 : 30; })
           .start()
 
-        // Update the links…
+        // join the data with elements
         link = link.data(links, function (d) {
             console.log("updating link, d =  " + JSON.stringify(d))
             console.log("updating link, returning " + d.target.id)
             return d.target.id;
         })
+        node = node.data(nodes, function (d) {
+            return d.id
+        }).style("fill", color)
 
-        // Exit any old links.
-        link.exit().remove()
+        // update existing elements here
 
-        // Enter any new links.
+        // enter any new elements
         link.enter().insert("line", ".node")
           .attr("class", "link")
           .attr("x1", function (d) { return d.source.x; })
@@ -409,15 +410,6 @@ goldstone.nova.zones.drawChart = function () {
           .attr("x2", function (d) { return d.target.x; })
           .attr("y2", function (d) { return d.target.y; })
 
-        // Update the nodes…
-        node = node.data(nodes, function (d) {
-            return d.id
-        }).style("fill", color)
-
-        // Exit any old nodes.
-        node.exit().remove();
-
-        // Enter any new nodes.
         node.enter().append("circle")
           .attr("class", "node")
           .attr("cx", function (d) { return d.x; })
@@ -426,6 +418,12 @@ goldstone.nova.zones.drawChart = function () {
           .style("fill", color)
           .on("click", click)
           .call(force.drag)
+
+        // update existing and new elements here
+
+        // exist old elements
+        link.exit().remove()
+        node.exit().remove()
 
         // now we take care of the labels
         labelForce
@@ -437,8 +435,13 @@ goldstone.nova.zones.drawChart = function () {
             .charge(-100)
             .start()
 
+        // join the data with elements
         labelLink = labelLink.data(labelLinks)
+        labelNode = labelNode.data(labelForce.nodes())
 
+        // update existing elements here
+
+        // enter new elements
         labelLink.enter()
             .insert("line", ".labelNode")
             .attr("class", "labelLink")
@@ -448,12 +451,7 @@ goldstone.nova.zones.drawChart = function () {
             .attr("y2", function (d) { return d.target.y; })
             //.append("svg:line")
             //.attr("class", "labelLink")
-            .style("stroke", "#333333");
-
-        labelLink.exit()
-            .remove()
-
-        labelNode = labelNode.data(labelForce.nodes())
+            .style("stroke", "#333333")
 
         labelNode.enter()
             .append("circle")
@@ -467,23 +465,27 @@ goldstone.nova.zones.drawChart = function () {
             .on("click", click)
             .call(force.drag)
 
+        // update existing and new elements
         labelNode
-            .append("svg:circle")
+            .append("circle")
             .attr("cx", function (d) { return d.x; })
             .attr("cy", function (d) { return d.y; })
             .attr("r", 0)
             .style("fill", "#333333")
 
         labelNode
-            .append("svg:text")
+            .append("text")
             .text(function (d, i) {
                 console.log("adding name " + d.node.name + " to d " + JSON.stringify(d))
 				return i % 2 == 0 ? "" : d.node.name
-			})
+            })
             .style("fill", "#000000")
             .style("font-family", "Arial")
             .style("font-size", 12);
 
+        // exit old elements
+        labelLink.exit().remove()
+        labelNode.exit().remove()
     }
 
     function tick() {
