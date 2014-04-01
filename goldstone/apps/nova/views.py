@@ -10,6 +10,7 @@ from django.conf import settings
 from django.views.generic import TemplateView
 from waffle.decorators import waffle_switch
 from .models import *
+from goldstone.apps.intelligence.views import _host_presence_stats
 from datetime import datetime, timedelta
 import pytz
 import json
@@ -360,7 +361,12 @@ class ZonesView(TemplateView):
             # validation error
             return context
 
-        logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
+        context['inspect_dt'] = context['end_dt'] - \
+            timedelta(seconds=int(context['interval'][:-1]))
+        logger.info("[_handle_request] start_dt = %s", context['start_dt'])
+        logger.info("[_handle_request] inspect_dt = %s",
+                    context['inspect_dt'])
+        logger.info("[_handle_request] end_dt = %s", context['end_dt'])
         #
         # we need a couple different things to pull this together:
         #   - AZ data from the start and end.  The older one is used to
@@ -378,23 +384,58 @@ class ZonesView(TemplateView):
             datetime.fromtimestamp(0), context['start_dt'], count=1)
         old_az = dict() if len(old_az) == 0 else old_az[0]['zones']
 
+        # let's find new and removed hosts
+        curr_hosts = [host for zone in current_az for host in zone['hosts']]
+        prev_hosts = [host for zone in old_az for host in zone['hosts']]
+        new_hosts = set(curr_hosts) - set(prev_hosts)
+        removed_hosts = set(prev_hosts) - set(curr_hosts)
+
+
+        # here's the process to determine if a host is new or missing:
+        # if the host is in the new_az, but not the old_az, it's new
+        #    it's new
+        # if the host is in the old_az, but not the new_az, it's removed
+        # if the host shows up as missing in host_presence check
+        #    it's missing
+        # if it shows up in both,
+        #    it's new and missing
+        #
+
+        # TODO GOLD-277 TODO: logging for all hosts should use FQDN
+        presence_data = _host_presence_stats(
+            context['start_dt'],
+            context['inspect_dt'],
+            context['end_dt'])
+
         # let's scrub out some stuff we don't need in the view, and make it
         # friendly for a d3 tree map
-        response = {'name': 'zones', 'children': []}
+        response = {'name': 'region', 'children': []}
         for z in current_az:
             new_z = {'name': z['zoneName'], 'rsrcType': 'zone', 'children': []}
             for h in z['hosts']:
-                new_h = {'name': h, 'rsrcType': 'host', 'children':
-                    [{'name': s, 'rsrcType': 'service'} \
-                     for s in z['hosts'][h].keys()]}
+                new_h = {'name': h, 'rsrcType': 'host',
+                         'children': [{'name': s, 'rsrcType': 'service'}
+                                      for s in z['hosts'][h].keys()],
+                         'lifeStage': 'new' if h in new_hosts else 'seen'}
                 new_z['children'].append(new_h)
             response['children'].append(new_z)
 
+        if len(removed_hosts) > 0:
+            removed_z = {'name': 'removed', 'rsrcType': 'zone',
+                         'children': [
+                             {'name': name, 'rsrcType': 'host',
+                              'children': []} for name in removed_hosts]}
+
+            response['children'].append(removed_z)
+
         logger.info("[_handle_request] response = %s", json.dumps(response))
 
-
+        # additionally, for zones and the root, we'll roll up the various
+        # states so they are visible when collapsed
 
         # TODO get missing host data
+
+
 
         # TODO get error counts
 

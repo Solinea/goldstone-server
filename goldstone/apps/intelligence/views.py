@@ -216,6 +216,25 @@ def _calc_host_presence_time(reftime, qty, unit):
     return result[unit.lower()]
 
 
+def _host_presence_stats(domain_start_dt, inspect_start_dt, domain_end_dt):
+
+    conn = LogData.get_connection(settings.ES_SERVER)
+
+    #keylist = ['host', 'status']
+    ld = LogData()
+    response = ld.get_new_and_missing_nodes(conn, domain_start_dt,
+                                            inspect_start_dt,
+                                            domain_end_dt)
+
+    aa_data = []
+    for rec in response['missing_nodes']:
+        aa_data.append([rec, 'MISSING'])
+    for rec in response['new_nodes']:
+        aa_data.append([rec, 'NEW'])
+
+    return aa_data
+
+
 def host_presence_stats(request):
 
     valid_units = {
@@ -239,26 +258,14 @@ def host_presence_stats(request):
     logger.debug("[host_presence_stats], inspect_start = %s", inspect_start)
     logger.debug("[host_presence_stats], domain_end = %s", domain_end)
 
-    conn = LogData.get_connection(settings.ES_SERVER)
-
-    #keylist = ['host', 'status']
-    ld = LogData()
-    response = ld.get_new_and_missing_nodes(conn, domain_start_dt,
-                                            inspect_start_dt,
-                                            domain_end_dt)
-
-    aa_data = []
-    for rec in response['missing_nodes']:
-        aa_data.append([rec, 'MISSING'])
-    for rec in response['new_nodes']:
-        aa_data.append([rec, 'NEW'])
-
+    aa_data = _host_presence_stats(domain_start_dt, inspect_start_dt,
+                                   domain_end_dt)
     response = {
         "sEcho": int(request.GET.get('sEcho')),
         # This should be the result count without filtering, but no obvious
         # way to get that without doing the query twice.
-        "iTotalRecords": len(response),
-        "iTotalDisplayRecords": len(response),
+        "iTotalRecords": len(aa_data),
+        "iTotalDisplayRecords": len(aa_data),
         "aaData": aa_data
     }
 

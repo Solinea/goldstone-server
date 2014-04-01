@@ -374,7 +374,7 @@ goldstone.nova.zones.drawChart = function () {
                 root = json
                 root.x0 = panelHeight / 2
                 root.y0 = 0
-                
+
                 function toggleAll(d) {
                     if (d.children) {
                         d.children.forEach(toggleAll)
@@ -418,8 +418,9 @@ goldstone.nova.zones.drawChart = function () {
                 update(d);
             });
 
+        // add the main icon
         nodeEnter.append("image")
-            .attr("class", function (d) { return "icon " + (d.rsrcType || "cloud") + "-icon"})
+            .attr("class", function (d) { return "icon main " + (d.rsrcType || "cloud") + "-icon"})
             .attr("xlink:href", function (d) { return "/static/images/icon_" + (d.rsrcType || "cloud") + ".svg"})
             .attr("width", 1e-6)
             .attr("height", 1e-6)
@@ -428,11 +429,15 @@ goldstone.nova.zones.drawChart = function () {
                     return d._children ? "lightsteelblue" : "#fff";
                 });
 
-        //nodeEnter.append("svg:circle")
-        //    .attr("r", 1e-6)
-        //    .style("fill", function (d) {
-        //        return d._children ? "lightsteelblue" : "#fff";
-        //    });
+        // add the "new host" image
+        nodeEnter.append("image")
+            .attr("class", function (d) { return "icon attribute plus-icon"})
+            .attr("xlink:href", function (d) { return "/static/images/metrize/plus.svg"})
+            .attr("width", 1e-6)
+            .attr("height", 1e-6)
+            .attr("x", -15)
+            .attr("y", 20)
+
 
         nodeEnter.append("svg:text")
             //.attr("x", function (d) {
@@ -456,12 +461,23 @@ goldstone.nova.zones.drawChart = function () {
                 return "translate(" + d.y + "," + d.x + ")";
             });
 
-        nodeUpdate.select(".icon")
+        nodeUpdate.select(".icon.main")
             .attr("height", 25)
             .attr("width", 25)
             .style("fill", function (d) {
                 return d._children ? "lightsteelblue" : "#fff";
             });
+
+        // add the "new host" image
+        nodeUpdate.select(".icon.attribute")
+            .attr("width", 10)
+            .attr("height", 10)
+
+        nodeUpdate.select("icon.attribute.plus-icon")
+            .style("stroke", function (d) {
+                    console.log("setting stroke color on icon svg path")
+                    return d.lifeStage === 'new' ? "green" : "#fff";
+                });
 
         nodeUpdate.select("text")
             .style("fill-opacity", 1);
