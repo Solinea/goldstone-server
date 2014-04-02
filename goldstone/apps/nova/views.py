@@ -389,8 +389,9 @@ class ZonesView(TemplateView):
         prev_hosts = [host for zone in old_az for host in zone['hosts']]
         new_hosts = set(curr_hosts) - set(prev_hosts)
         removed_hosts = set(prev_hosts) - set(curr_hosts)
-        removed_hosts = [curr_hosts[0]]
 
+        # TODO remove this entry when done testing
+        removed_hosts = ['removedhost.lab.solinea.com']
 
         # here's the process to determine if a host is new or missing:
         # if the host is in the new_az, but not the old_az, it's new
@@ -429,25 +430,14 @@ class ZonesView(TemplateView):
             removed_z = {'name': 'removed', 'rsrcType': 'zone',
                          'children': [
                              {'name': name, 'rsrcType': 'host',
+                              'lifeStage': 'removed',
                               'children': []} for name in removed_hosts]}
 
             response['children'].append(removed_z)
 
         logger.info("[_handle_request] response = %s", json.dumps(response))
 
-        # additionally, for zones and the root, we'll roll up the various
-        # states so they are visible when collapsed
-
-        # TODO get missing host data
-
-
-
         # TODO get error counts
-
-        # there are a few cases to handle here
-        #  - both empty: return empty dataframe
-        #  - one empty: return zero filled column in non-empty dataframe
-        #  - neither empty: merge them on the 'key' field
 
         return response
 
