@@ -418,6 +418,26 @@ goldstone.nova.zones.drawChart = function () {
                 update(d);
             });
 
+        // add the "new host" image
+        nodeEnter
+            .append("g")
+            .attr("class", function (x) { return "icon attribute plus-icon"})
+            .attr("transform", "scale(0.0000001) translate(-15, 20)")
+            .call(function (d) {
+                $.get("/static/images/metrize/plus.svg", function (data) {
+                    d.html($(data).find('g').html())
+                })
+            })
+
+        nodeEnter.append("svg:text")
+            .attr("x", 0)
+            .attr("dy", "-1em")
+            .attr("text-anchor", "middle")
+            .text(function (d) {
+                return d.name;
+            })
+            .style("fill-opacity", 1e-6);
+
         // add the main icon
         nodeEnter.append("image")
             .attr("class", function (d) { return "icon main " + (d.rsrcType || "cloud") + "-icon"})
@@ -428,31 +448,6 @@ goldstone.nova.zones.drawChart = function () {
             .style("fill", function (d) {
                     return d._children ? "lightsteelblue" : "#fff";
                 });
-
-        // add the "new host" image
-        nodeEnter.append("image")
-            .attr("class", function (d) { return "icon attribute plus-icon"})
-            .attr("xlink:href", function (d) { return "/static/images/metrize/plus.svg"})
-            .attr("width", 1e-6)
-            .attr("height", 1e-6)
-            .attr("x", -15)
-            .attr("y", 20)
-
-
-        nodeEnter.append("svg:text")
-            //.attr("x", function (d) {
-            //    return d.children || d._children ? -10 : 10;
-            //})
-            .attr("x", 0)
-            .attr("dy", "-1em")
-            .attr("text-anchor", "middle")
-            //.attr("text-anchor", function (d) {
-            //    return d.children || d._children ? "end" : "start";
-            //})
-            .text(function (d) {
-                return d.name;
-            })
-            .style("fill-opacity", 1e-6);
 
         // Transition nodes to their new position.
         var nodeUpdate = node.transition()
@@ -468,16 +463,29 @@ goldstone.nova.zones.drawChart = function () {
                 return d._children ? "lightsteelblue" : "#fff";
             });
 
-        // add the "new host" image
-        nodeUpdate.select(".icon.attribute")
-            .attr("width", 10)
-            .attr("height", 10)
+        function hasNewHiddenChildren(d) {
+            return d._children && _.findWhere(d._children, {'lifeStage': 'new'})
+        }
 
-        nodeUpdate.select("icon.attribute.plus-icon")
+        function isNewChild(d) {
+            return d.lifeStage === 'new'
+        }
+
+        // add the "update host" icon
+        nodeUpdate.select(".icon.attribute.plus-icon")
+            .style("fill", function (d) {
+                    return hasNewHiddenChildren(d) || isNewChild(d) ? "green" : "#000";
+                })
             .style("stroke", function (d) {
-                    console.log("setting stroke color on icon svg path")
-                    return d.lifeStage === 'new' ? "green" : "#fff";
-                });
+                    return hasNewHiddenChildren(d) || isNewChild(d) ? "green" : "#000";
+                })
+            .attr("transform", function (d) {
+                    return hasNewHiddenChildren(d) || isNewChild(d) ?
+                        'translate(-15, 20) scale(0.025)':
+                        'translate(-15, 20) scale(0.0000001)'
+                })
+
+
 
         nodeUpdate.select("text")
             .style("fill-opacity", 1);
