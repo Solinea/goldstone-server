@@ -359,6 +359,7 @@ goldstone.nova.zones.drawChart = function () {
         vis = d3.select(ns.location).append("svg")
             .attr("width", panelWidth + m[1] + m[3])
             .attr("height", panelHeight + m[0] + m[2])
+            .attr("type", "image/svg+xml")
             .append("svg:g")
             .attr("transform", "translate(" + m[3] + "," + m[0] + ")"),
         root
@@ -422,10 +423,21 @@ goldstone.nova.zones.drawChart = function () {
         nodeEnter
             .append("g")
             .attr("class", function (x) { return "icon attribute plus-icon"})
-            .attr("transform", "scale(0.0000001) translate(-15, 20)")
+            .attr("transform", "scale(0.0000001) translate(-15, 10)")
             .call(function (d) {
                 $.get("/static/images/metrize/plus.svg", function (data) {
-                    d.html($(data).find('g').html())
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        // add the "missing host" image
+        nodeEnter
+            .append("g")
+            .attr("class", function (x) { return "icon attribute question-icon"})
+            .attr("transform", "scale(0.0000001) translate(15, 10)")
+            .call(function (d) {
+                $.get("/static/images/metrize/question.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
                 })
             })
 
@@ -438,16 +450,40 @@ goldstone.nova.zones.drawChart = function () {
             })
             .style("fill-opacity", 1e-6);
 
-        // add the main icon
-        nodeEnter.append("image")
-            .attr("class", function (d) { return "icon main " + (d.rsrcType || "cloud") + "-icon"})
-            .attr("xlink:href", function (d) { return "/static/images/icon_" + (d.rsrcType || "cloud") + ".svg"})
-            .attr("width", 1e-6)
-            .attr("height", 1e-6)
-            .attr("x", -10)
-            .style("fill", function (d) {
-                    return d._children ? "lightsteelblue" : "#fff";
-                });
+        nodeEnter
+            .append("g")
+            .attr("class", function (d) {
+                return "icon main " + (d.rsrcType || "cloud") + "-icon"
+            })
+            .attr("transform", "scale(0.0000001)")
+
+        vis.selectAll(".icon.main.cloud-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_cloud.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        vis.selectAll(".icon.main.zone-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_zone.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        vis.selectAll(".icon.main.host-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_host.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        vis.selectAll(".icon.main.service-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_service.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
 
         // Transition nodes to their new position.
         var nodeUpdate = node.transition()
@@ -457,10 +493,9 @@ goldstone.nova.zones.drawChart = function () {
             });
 
         nodeUpdate.select(".icon.main")
-            .attr("height", 25)
-            .attr("width", 25)
+            .attr("transform", 'translate(-5, -10) scale(0.05)')
             .style("fill", function (d) {
-                return d._children ? "lightsteelblue" : "#fff";
+                return d._children ? "lightsteelblue" : "#fff"
             });
 
         function hasNewHiddenChildren(d) {
@@ -471,20 +506,41 @@ goldstone.nova.zones.drawChart = function () {
             return d.lifeStage === 'new'
         }
 
-        // add the "update host" icon
+        function hasMissingHiddenChildren(d) {
+            return d._children && _.findWhere(d._children, {'missing': true})
+        }
+
+        function isMissingChild(d) {
+            return d.missing
+        }
+
+        // update the "new host" icon
         nodeUpdate.select(".icon.attribute.plus-icon")
             .style("fill", function (d) {
-                    return hasNewHiddenChildren(d) || isNewChild(d) ? "green" : "#000";
+                    return hasNewHiddenChildren(d) || isNewChild(d) ? "green" : "#fff";
                 })
             .style("stroke", function (d) {
-                    return hasNewHiddenChildren(d) || isNewChild(d) ? "green" : "#000";
+                    return hasNewHiddenChildren(d) || isNewChild(d) ? "green" : "#fff";
                 })
             .attr("transform", function (d) {
                     return hasNewHiddenChildren(d) || isNewChild(d) ?
-                        'translate(-15, 20) scale(0.025)':
-                        'translate(-15, 20) scale(0.0000001)'
+                        'translate(-15, 10) scale(0.025)':
+                        'translate(-15, 10) scale(0.0000001)'
                 })
 
+        // update the "missing host" icon
+        nodeUpdate.select(".icon.attribute.question-icon")
+            .style("fill", function (d) {
+                    return hasMissingHiddenChildren(d) || isMissingChild(d) ? "red" : "#fff";
+                })
+            .style("stroke", function (d) {
+                    return hasMissingHiddenChildren(d) || isMissingChild(d) ? "red" : "#fff";
+                })
+            .attr("transform", function (d) {
+                    return hasMissingHiddenChildren(d) || isMissingChild(d) ?
+                        'translate(15, 10) scale(0.025)':
+                        'translate(15, 10) scale(0.0000001)'
+                })
 
 
         nodeUpdate.select("text")

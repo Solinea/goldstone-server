@@ -409,14 +409,17 @@ class ZonesView(TemplateView):
 
         # let's scrub out some stuff we don't need in the view, and make it
         # friendly for a d3 tree map
-        response = {'name': 'region', 'children': []}
+        response = {'name': 'region', 'rsrcType': 'cloud', 'children': []}
         for z in current_az:
             new_z = {'name': z['zoneName'], 'rsrcType': 'zone', 'children': []}
             for h in z['hosts']:
+                short_name = h.split(".", 1)[0]
                 new_h = {'name': h, 'rsrcType': 'host',
                          'children': [{'name': s, 'rsrcType': 'service'}
                                       for s in z['hosts'][h].keys()],
-                         'lifeStage': 'new' if h in new_hosts else 'seen'}
+                         'lifeStage': 'new' if h in new_hosts else 'seen',
+                         'missing': len([hn[0] for hn in presence_data
+                                        if hn[0] == short_name]) > 0}
                 new_z['children'].append(new_h)
             response['children'].append(new_z)
 
