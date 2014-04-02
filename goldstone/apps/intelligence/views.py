@@ -232,6 +232,8 @@ def _host_presence_stats(domain_start_dt, inspect_start_dt, domain_end_dt):
     for rec in response['new_nodes']:
         aa_data.append([rec, 'NEW'])
 
+    # TODO remove this after basic testing of zones view
+    aa_data.append(['compute-2', 'MISSING'])
     return aa_data
 
 
