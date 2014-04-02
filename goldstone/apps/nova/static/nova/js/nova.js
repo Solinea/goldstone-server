@@ -534,6 +534,14 @@ goldstone.nova.zones.drawChart = function () {
             return d.missing
         }
 
+        function hasRemovedChildren(d) {
+            return d._children && _.findWhere(d._children, {'lifeStage': 'removed'})
+        }
+
+        function isRemovedChild(d) {
+            return d.lifeStage === 'removed'
+        }
+
         // update the "new host" icon
         nodeUpdate.select(".icon.attribute.plus-icon")
             .style("fill", function (d) {
@@ -565,13 +573,21 @@ goldstone.nova.zones.drawChart = function () {
 
         nodeUpdate.select(".icon.attribute.info-icon")
             .attr("transform", function (d) {
+                if (! (hasRemovedChildren(d) || isRemovedChild(d))) {
                     return d.hasInfo  ?
                         'translate(0, 10) scale(0.025)':
                         'translate(0, 10) scale(0.0000001)'
+                } else {
+                    return 'translate(0, 10) scale(0.0000001)'
+                }
             })
 
         nodeUpdate.select("text")
             .style("fill-opacity", 1)
+            .style("text-decoration", function (d) {
+                return (hasRemovedChildren(d) || isRemovedChild(d)) ?
+                    "line-through" : ""
+            })
 
         // Transition exiting nodes to the parent's new position.
         var nodeExit = node.exit().transition()
