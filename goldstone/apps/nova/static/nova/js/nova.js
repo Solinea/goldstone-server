@@ -441,6 +441,26 @@ goldstone.nova.zones.drawChart = function () {
                 })
             })
 
+        nodeEnter
+            .append("g")
+            .attr("class", function (x) { return "icon attribute info-icon"})
+            .attr("transform", "scale(0.0000001) translate(0, 10)")
+            .call(function (d) {
+                $.get("/static/images/metrize/info.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        nodeEnter
+            .append("g")
+            .attr("class", function (x) { return "icon attribute cross-icon"})
+            .attr("transform", "scale(0.0000001) translate(0, 10)")
+            .call(function (d) {
+                $.get("/static/images/metrize/cross.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
         nodeEnter.append("svg:text")
             .attr("x", 0)
             .attr("dy", "-1em")
@@ -543,8 +563,15 @@ goldstone.nova.zones.drawChart = function () {
                 })
 
 
+        nodeUpdate.select(".icon.attribute.info-icon")
+            .attr("transform", function (d) {
+                    return d.hasInfo  ?
+                        'translate(0, 10) scale(0.025)':
+                        'translate(0, 10) scale(0.0000001)'
+            })
+
         nodeUpdate.select("text")
-            .style("fill-opacity", 1);
+            .style("fill-opacity", 1)
 
         // Transition exiting nodes to the parent's new position.
         var nodeExit = node.exit().transition()
