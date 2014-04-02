@@ -389,6 +389,7 @@ class ZonesView(TemplateView):
         prev_hosts = [host for zone in old_az for host in zone['hosts']]
         new_hosts = set(curr_hosts) - set(prev_hosts)
         removed_hosts = set(prev_hosts) - set(curr_hosts)
+        removed_hosts = [curr_hosts[0]]
 
 
         # here's the process to determine if a host is new or missing:
@@ -419,7 +420,8 @@ class ZonesView(TemplateView):
                                       for s in z['hosts'][h].keys()],
                          'lifeStage': 'new' if h in new_hosts else 'seen',
                          'missing': len([hn[0] for hn in presence_data
-                                        if hn[0] == short_name]) > 0}
+                                        if hn[0] == short_name]) > 0,
+                         'hasInfo': True}
                 new_z['children'].append(new_h)
             response['children'].append(new_z)
 
