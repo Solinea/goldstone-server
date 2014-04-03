@@ -316,6 +316,7 @@ goldstone.nova.disk.drawChart = function () {
                 }),
                 minDate = timeDim.bottom(1)[0][0],
                 maxDate = timeDim.top(1)[0][0],
+                // TODO GOLD-278 TODO: resource utilization should be one group so the title for each time can have all data
                 totalPhys = timeDim.group().reduceSum(function (d) { return d[1] }),
                 usedPhys = timeDim.group().reduceSum(function (d) { return d[2] })
 
