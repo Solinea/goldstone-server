@@ -87,22 +87,31 @@ goldstone.nova._loadUrl = function (ns, start, end, interval, location, render) 
     }
 }
 
-goldstone.nova.util.rsrcChartFunctions = function () {
+goldstone.nova.util.rsrcChartFunctions = function (hasVirtual) {
     "use strict";
-    var reduceEnterFunction = function (p, v) {
+    var reduceEnterFunction = hasVirtual ? function (p, v) {
             p[0] += v[1]
             p[1] += v[2]
             p[2] += v[3]
             return p
+        } : function (p, v) {
+            p[0] += v[1]
+            p[1] += v[2]
+            return p
         },
-        reduceExitFunction = function (p, v) {
+        reduceExitFunction = hasVirtual ? function (p, v) {
             p[0] -= v[1]
             p[1] -= v[2]
             p[2] -= v[3]
             return p
+        } : function (p, v) {
+            p[0] -= v[1]
+            p[1] -= v[2]
         },
-        reduceInitFunction = function () {
+        reduceInitFunction = hasVirtual ? function () {
             return [0, 0, 0]
+        } : function () {
+            return [0, 0]
         }
 
     return {
@@ -124,9 +133,8 @@ goldstone.nova.util.renderRsrcChart = function (ns) {
         } else {
             // this gets us a basic chart
             ns.chart = dc.compositeChart(ns.location)
-            ns.totalsChart = goldstone.charts.lineChartBase(ns.location, null, ns.renderlets.clickDrill)
+            ns.totalPhysChart = goldstone.charts.lineChartBase(ns.location, null, ns.renderlets.clickDrill)
             ns.usedChart = goldstone.charts.lineChartBase(ns.location, null, ns.renderlets.clickDrill)
-            console.log('data = ' + JSON.stringify(ns.data))
             var events = _.map(ns.data, function (v, k) {
                 // [time, total_phys, used, total_virt
                 if (v.length === 4) {
@@ -135,17 +143,15 @@ goldstone.nova.util.renderRsrcChart = function (ns) {
                 } else {
                     // disk, no virtual
                     hasVirtual = false
-                    return [new Date(Number(k)), v[0], v[1], 0, 0]
+                    return [new Date(Number(k)), v[0], v[1]]
                 }
             }).sort(function (a, b) {
                 return (a[0] > b[0]) ? 1: (a[0] < b[0]) ? -1 : 0
             })
 
-            console.log('sorted events = ' + JSON.stringify(events))
             var groupFunctions = goldstone.nova.util.rsrcChartFunctions()
             var xf = crossfilter(events),
                 timeDim = xf.dimension(function (d) {
-                    console.log("d = " + JSON.stringify(d))
                     return d[0]
                 }),
                 minDate = timeDim.bottom(1)[0][0],
@@ -156,43 +162,22 @@ goldstone.nova.util.renderRsrcChart = function (ns) {
                     groupFunctions.initFunction
                 )
 
-            ns.totalsChart
+            ns.totalPhysChart
                 .renderArea(false)
                 .dimension(timeDim)
                 .group(group, "Physical")
-                .ordinalColors(goldstone.settings.charts.ordinalColors.slice(0, 1))
+                .ordinalColors(goldstone.settings.charts.ordinalColors.slice(0))
                 .valueAccessor(function (d) {
                     return d.value[0]
                 })
-                .title(function (d) {
-                    return d.key +
-                    "\n\n" + d.value[0] + " Total Physical"
-                })
-
-            if (hasVirtual) {
-                ns.totalsChart
-                    .stack(group, "Virtual", function (d) {
-                        console.log("stacking virtual, d = " + JSON.stringify(d))
-                        return (d.value[2] - d.value[0])
-                })
-                .title(function (d) {
-                    return d.key +
-                    "\n\n" + d.value[0] + " Total Physical" +
-                    "\n\n" + d.value[2] + " Total Virtual"
-                })
-            }
 
             ns.usedChart
                 .renderArea(true)
                 .dimension(timeDim)
                 .group(group, "Used")
-                .ordinalColors(goldstone.settings.charts.ordinalColors.slice(2))
+                .ordinalColors(goldstone.settings.charts.ordinalColors.slice(3))
                 .valueAccessor(function (d) {
                     return d.value[1]
-                })
-                .title(function (d) {
-                    return d.key +
-                    "\n\n" + d.value[1] + " Used"
                 })
 
             ns.chart
@@ -207,8 +192,29 @@ goldstone.nova.util.renderRsrcChart = function (ns) {
                 .x(d3.time.scale().domain([minDate, maxDate]))
                 .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5).horizontal(true))
                 .yAxisLabel(ns.resourceLabel)
-                .compose([ns.totalsChart, ns.usedChart])
                 .xAxis().ticks(5)
+
+            if (hasVirtual) {
+                ns.totalVirtChart = goldstone.charts.lineChartBase(ns.location, null, ns.renderlets.clickDrill)
+                ns.totalVirtChart
+                    .renderArea(false)
+                    .dimension(timeDim)
+                    .group(group, "Virtual")
+                    .ordinalColors(goldstone.settings.charts.ordinalColors.slice(2))
+                    .valueAccessor(function (d) {
+                        return d.value[2]
+                    })
+
+                // TODO GOLD-279 TODO: why are the legends different forms (block vs line) for the various resource charts?
+                // looks like adding the dashStyle to a composite chart forces the legends to be lines.  Without
+                // this statement, they are rects.
+                ns.totalPhysChart.dashStyle([5, 3])
+
+                ns.chart
+                    .compose([ns.usedChart, ns.totalPhysChart, ns.totalVirtChart])
+            } else {
+                ns.chart.compose([ns.usedChart, ns.totalPhysChart])
+            }
 
             ns.chart.render()
             $(ns.spinner).hide()
