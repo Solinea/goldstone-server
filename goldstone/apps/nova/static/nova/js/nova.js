@@ -3,6 +3,7 @@ goldstone.namespace('nova.discover')
 goldstone.namespace('nova.report')
 goldstone.namespace('nova.spawns')
 goldstone.namespace('nova.spawns.renderlets')
+goldstone.namespace('nova.util')
 goldstone.namespace('nova.cpu')
 goldstone.namespace('nova.cpu.renderlets')
 goldstone.namespace('nova.mem')
@@ -83,6 +84,114 @@ goldstone.nova._loadUrl = function (ns, start, end, interval, location, render) 
             ns.data = data
             // TODO trigger a redraw of the chart with the new data
         })
+    }
+}
+
+goldstone.nova.util.rsrcChartFunctions = function () {
+    "use strict";
+    var reduceEnterFunction = function (p, v) {
+            p[0] += v[1]
+            p[1] += v[3]
+            p[2] += v[4]
+            return p
+        },
+        reduceExitFunction = function (p, v) {
+            p[0] -= v[1]
+            p[1] -= v[3]
+            p[2] -= v[4]
+            return p
+        },
+        reduceInitFunction = function () {
+            return [0, 0, 0]
+        }
+
+    return {
+        enterFunction: reduceEnterFunction,
+        exitFunction: reduceExitFunction,
+        initFunction: reduceInitFunction
+    }
+}
+
+goldstone.nova.util.renderRsrcChart = function (ns) {
+    "use strict";
+    var hasVirtual = true
+    if (ns.data !== 'undefined') {
+        if (Object.keys(ns.data).length === 0) {
+            $(ns.location).append("<p> Response was empty.")
+            $(ns.spinner).hide()
+        } else {
+            // this gets us a basic chart
+            
+            ns.chart = goldstone.charts.lineChartBase(ns.location, null, ns.renderlets.clickDrill)
+            console.log('data = ' + JSON.stringify(ns.data))
+            var events = _.map(ns.data, function (v, k) {
+                // [time, total_phys, used, total_virt
+                if (v.length === 4) {
+                    // cpu/mem, physical and virtual
+                    return [new Date(Number(k)), v[0], v[3], v[2]]
+                } else {
+                    // disk, no virtual
+                    hasVirtual = false
+                    return [new Date(Number(k)), v[0], v[1], 0, 0]
+                }
+            }).sort(function (a, b) {
+                return (a[0] > b[0]) ? 1: (a[0] < b[0]) ? -1 : 0
+            })
+
+            console.log('sorted events = ' + JSON.stringify(events))
+            var groupFunctions = goldstone.nova.util.rsrcChartFunctions()
+            var xf = crossfilter(events),
+                timeDim = xf.dimension(function (d) {
+                    console.log("d = " + JSON.stringify(d))
+                    return d[0]
+                }),
+                minDate = timeDim.bottom(1)[0][0],
+                maxDate = timeDim.top(1)[0][0],
+                group = timeDim.group().reduce(
+                    groupFunctions.enterFunction,
+                    groupFunctions.exitFunction,
+                    groupFunctions.initFunction
+                )
+
+            ns.chart
+                .height(ns.height)
+                .elasticY(true)
+                .hidableStacks(true)
+                .dimension(timeDim)
+                .group(group, "Used")
+                .valueAccessor(function (d) {
+                    return d.value[1]
+                })
+                .stack(group, "Physical", function (d) {
+                    return (d.value[0] - d.value[1])
+                })
+                .x(d3.time.scale().domain([minDate, maxDate]))
+                .title(function (d) {
+                    return d.key +
+                    "\n\n" + d.value[0] + " Total Physical" +
+                    "\n\n" + d.value[1] + " Used"
+                })
+                .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5).horizontal(true))
+                .yAxisLabel(ns.resourceLabel)
+                .xAxis().ticks(5)
+
+            // the disk chart does not have a virtual field
+            if (! hasVirtual) {
+                ns.chart
+                    .stack(group, "Virtual", function (d) {
+                        return (d.value[2] - d.value[0])
+                })
+                .title(function (d) {
+                    return d.key +
+                    "\n\n" + d.value[0] + " Total Physical" +
+                    "\n\n" + d.value[2] + " Total Virtual" +
+                    "\n\n" + d.value[1] + " Used"
+                })
+            }
+
+            ns.chart.render()
+            $(ns.spinner).hide()
+        }
     }
 }
 
@@ -189,58 +298,12 @@ goldstone.nova.cpu.drawChart = function () {
         // {'timestamp'(String): [total_phys(Number), used_phys(Number),
         //                       [total_virt(Number), used_virt(Number)], ...}
     var ns = goldstone.nova.cpu
-    if (ns.data !== 'undefined') {
-        if (Object.keys(ns.data).length === 0) {
-            $(ns.location).append("<p> Response was empty.")
-            $(ns.spinner).hide()
-        } else {
-            // this gets us a basic chart
-            ns.chart = goldstone.charts.lineChartBase(ns.location, null, ns.renderlets.clickDrill)
-            var events = _.map(ns.data, function (v, k) {
-                return [new Date(Number(k)), v[0], v[1], v[2], v[3]]
-            })
-            var xf = crossfilter(events),
-                timeDim = xf.dimension(function (d) {
-                    return d[0]
-                }),
-                minDate = timeDim.bottom(1)[0][0],
-                maxDate = timeDim.top(1)[0][0],
-                totalPhys = timeDim.group().reduceSum(function (d) { return d[1] }),
-                usedPhys = timeDim.group().reduceSum(function (d) { return d[2] }),
-                totalVirt = timeDim.group().reduceSum(function (d) { return d[3] }),
-                usedVirt = timeDim.group().reduceSum(function (d) { return d[4] })
+    goldstone.nova.util.renderRsrcChart(ns)
 
-            ns.chart
-                .height(ns.height)
-                .elasticY(true)
-                .hidableStacks(true)
-                .dimension(timeDim)
-                .group(usedVirt, "Used vCPUs").valueAccessor(function (d) {
-                    return d.value
-                })
-                .stack(usedPhys, "Used pCPUs", function (d) {
-                    return d.value
-                })
-                .stack(totalPhys, "Total pCPUs", function (d) {
-                    return d.value
-                })
-                .stack(totalVirt, "Total vCPUs", function (d) {
-                    return d.value
-                })
-                .x(d3.time.scale().domain([minDate, maxDate]))
-                .title(function (d) {
-                    return d.key + ": " + d.value
-                })
-                .yAxisLabel("CPU Count")
-                .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5).horizontal(true))
-
-            ns.chart.render()
-            $(ns.spinner).hide()
-        }
-    }
 }
 
 goldstone.nova.mem.drawChart = function () {
+
     // now we can customize it to handle our data.  Data structure looks like:
         // {'timestamp'(String): [total_phys(Number), used_phys(Number),
         //                       [total_virt(Number), used_virt(Number)], ...}
@@ -250,11 +313,13 @@ goldstone.nova.mem.drawChart = function () {
             $(ns.location).append("<p> Response was empty.")
             $(ns.spinner).hide()
         } else {
-            // this gets us a basic chart
+            // this gets us the basic chart
             ns.chart = goldstone.charts.lineChartBase(ns.location, null, ns.renderlets.clickDrill)
+
             var events = _.map(ns.data, function (v, k) {
                 return [new Date(Number(k)), v[0], v[1], v[2], v[3]]
             })
+
             var xf = crossfilter(events),
                 timeDim = xf.dimension(function (d) {
                     return d[0]
@@ -262,7 +327,6 @@ goldstone.nova.mem.drawChart = function () {
                 minDate = timeDim.bottom(1)[0][0],
                 maxDate = timeDim.top(1)[0][0],
                 totalPhys = timeDim.group().reduceSum(function (d) { return d[1] }),
-                usedPhys = timeDim.group().reduceSum(function (d) { return d[2] }),
                 totalVirt = timeDim.group().reduceSum(function (d) { return d[3] }),
                 usedVirt = timeDim.group().reduceSum(function (d) { return d[4] })
 
@@ -271,18 +335,39 @@ goldstone.nova.mem.drawChart = function () {
                 .elasticY(true)
                 .hidableStacks(true)
                 .dimension(timeDim)
-                .group(usedVirt, "Used vRAM").valueAccessor(function (d) {
-                    return d.value
+                .group(usedVirt, "Used vRAM").valueAccessor(function (d) { return d.value })
+                .stack(totalPhys, "Total pRAM", function (d) { return d.value })
+                .stack(totalVirt, "Total vRAM", function (d) { return d.value })
+                .x(d3.time.scale().domain([minDate, maxDate]))
+                .title(function (d) {
+                    return d.key + ": " + d.value
                 })
-                .stack(usedPhys, "Used pRAM", function (d) {
-                    return d.value
+                .yAxisLabel("RAM GBs")
+                .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5).horizontal(true))
+
+            ns.virtUsedChart
+                .height(ns.height)
+                .elasticY(true)
+                .hidableStacks(true)
+                .dimension(timeDim)
+                .group(usedVirt, "Used vRAM").valueAccessor(function (d) { return d.value })
+                .stack(totalPhys, "Total pRAM", function (d) { return d.value })
+                .stack(totalVirt, "Total vRAM", function (d) { return d.value })
+                .x(d3.time.scale().domain([minDate, maxDate]))
+                .title(function (d) {
+                    return d.key + ": " + d.value
                 })
-                .stack(totalPhys, "Total pRAM", function (d) {
-                    return d.value
-                })
-                .stack(totalVirt, "Total vRAM", function (d) {
-                    return d.value
-                })
+                .yAxisLabel("RAM GBs")
+                .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5).horizontal(true))
+
+            ns.virtUsedChart
+                .height(ns.height)
+                .elasticY(true)
+                .hidableStacks(true)
+                .dimension(timeDim)
+                .group(usedVirt, "Used vRAM").valueAccessor(function (d) { return d.value })
+                .stack(totalPhys, "Total pRAM", function (d) { return d.value })
+                .stack(totalVirt, "Total vRAM", function (d) { return d.value })
                 .x(d3.time.scale().domain([minDate, maxDate]))
                 .title(function (d) {
                     return d.key + ": " + d.value
@@ -317,8 +402,8 @@ goldstone.nova.disk.drawChart = function () {
                 minDate = timeDim.bottom(1)[0][0],
                 maxDate = timeDim.top(1)[0][0],
                 // TODO GOLD-278 TODO: resource utilization should be one group so the title for each time can have all data
-                totalPhys = timeDim.group().reduceSum(function (d) { return d[1] }),
-                usedPhys = timeDim.group().reduceSum(function (d) { return d[2] })
+                totalPhys = timeDim.group().reduceSum(function (d) {return d[1] }),
+                usedPhys = timeDim.group().reduceSum(function (d) {return d[2] })
 
             ns.chart
                 .height(ns.height)
