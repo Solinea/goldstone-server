@@ -363,10 +363,10 @@ class ZonesView(TemplateView):
 
         context['inspect_dt'] = context['end_dt'] - \
             timedelta(seconds=int(context['interval'][:-1]))
-        logger.info("[_handle_request] start_dt = %s", context['start_dt'])
-        logger.info("[_handle_request] inspect_dt = %s",
+        logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
+        logger.debug("[_handle_request] inspect_dt = %s",
                     context['inspect_dt'])
-        logger.info("[_handle_request] end_dt = %s", context['end_dt'])
+        logger.debug("[_handle_request] end_dt = %s", context['end_dt'])
         #
         # we need a couple different things to pull this together:
         #   - AZ data from the start and end.  The older one is used to
@@ -435,7 +435,7 @@ class ZonesView(TemplateView):
 
             response['children'].append(removed_z)
 
-        logger.info("[_handle_request] response = %s", json.dumps(response))
+        logger.debug("[_handle_request] response = %s", json.dumps(response))
 
         # TODO get error counts
 

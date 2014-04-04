@@ -197,7 +197,19 @@ class ResourceData(ESData):
         date_agg_name = "events_by_date"
         host_agg_name = "events_by_host"
         max_total_agg = "max_total"
-        max_used_agg = self._TYPE_FIELDS[resource_type][1]
+        used_or_free_agg = self._TYPE_FIELDS[resource_type][1]
+
+        # virtual resource report free instead of used.  We need to find the
+        # min of the bucket rather than the max.
+        max_or_min_aggs_clause = None
+        if used_or_free_agg == 'free':
+            max_or_min_aggs_clause = self._min_aggs_clause(
+                used_or_free_agg, self._TYPE_FIELDS[resource_type][1])
+        else:
+            max_or_min_aggs_clause = self._max_aggs_clause(
+                used_or_free_agg, self._TYPE_FIELDS[resource_type][1])
+
+
 
         range_filter = self._range_clause('@timestamp', self.start.isoformat(),
                                           self.end.isoformat())
@@ -211,9 +223,7 @@ class ResourceData(ESData):
         stats_aggs_clause = dict(
             self._max_aggs_clause(max_total_agg,
                                   self._TYPE_FIELDS[resource_type][0]).
-            items() +
-            self._max_aggs_clause(max_used_agg,
-                                  self._TYPE_FIELDS[resource_type][1]).items())
+            items() + max_or_min_aggs_clause.items())
         host_aggs_clause[host_agg_name]['aggs'] = stats_aggs_clause
         tl_aggs_clause[date_agg_name]['aggs'] = host_aggs_clause
         q['aggs'] = tl_aggs_clause
@@ -227,7 +237,7 @@ class ResourceData(ESData):
         # TODO GOLD-275 need an error handling strategy for ES queries
         r = self._conn.search(index="_all", body=q, size=0, doc_type=doc_type)
 
-        logger.debug('[_get_resource] items = %s', json.dumps(r))
+        logger.debug('[_get_resource] search response = = %s', json.dumps(r))
         items = []
         for date_bucket in r['aggregations']['events_by_date']['buckets']:
             logger.debug("[_get_resource] processing date_bucket: %s",
@@ -244,8 +254,6 @@ class ResourceData(ESData):
                     (host_bucket[custom_field]).get('value', 0)
 
             if custom_field is 'free':
-                logger.debug("[_get_resource] processing item with free: %s",
-                             json.dumps(item))
                 item['used'] = item['total'] - item['free']
                 del item['free']
 

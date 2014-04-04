@@ -148,6 +148,16 @@ class ESData(object):
         }
 
     @staticmethod
+    def _min_aggs_clause(name, field):
+        return {
+            name: {
+                "min": {
+                    "field": field
+                }
+            }
+        }
+
+    @staticmethod
     def _agg_clause(name, clause):
         return {
             name: clause
