@@ -323,6 +323,13 @@ class DiskView(ResourceView):
                           context['interval'])
         self.data = rd.get_phys_disk()
 
+         # since this is spotty data, we'll use the cummulative max to carry
+        # totals forward
+        self.data['total'] = self.data['total'].cummax()
+        # for the used columns, we want to fill zeros with the last non-zero
+        # value
+        self.data['used'].fillna(method='pad', inplace=True)
+
         if not self.data.empty:
             self.data = self.data.set_index('key').fillna(0)
 
