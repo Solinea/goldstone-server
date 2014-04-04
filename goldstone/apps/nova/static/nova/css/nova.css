@@ -20,19 +20,9 @@
   stroke-width: 1.5px;
 }
 
-.resource-chart g.stack._1 path.area {
-    fill-opacity: 0
+.resource-chart g.stack path.line {
+    stroke-width: 1.5px
 }
-
-.resource-chart g.stack._1 path.line {
-    stroke-width: 1.5px;
-}
-
-.resource-chart g.stack._2 path.area {
-    fill-opacity: 0
-}
-
-.resource-chart g.stack._2 path.line {
-    stroke-width: 1.5px;
+.sub._0 .resource-chart g.stack._0 path.line {
     stroke-dasharray: 5,3;
 }
