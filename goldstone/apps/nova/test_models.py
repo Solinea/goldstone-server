@@ -4,7 +4,7 @@
 # Copyright 2014 Solinea, Inc.
 #
 
-from django.test import TestCase
+from django.test import SimpleTestCase
 from .models import *
 import os
 import gzip
@@ -15,7 +15,7 @@ import pytz
 logger = logging.getLogger(__name__)
 
 
-class AvailabilityZoneDataModel(TestCase):
+class AvailabilityZoneDataModel(SimpleTestCase):
     start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
     end = datetime.now(tz=pytz.utc)
     azd = AvailabilityZoneData()
@@ -42,7 +42,7 @@ class AvailabilityZoneDataModel(TestCase):
         self.assertGreater(len(recs), 0)
 
 
-class HypervisorStatsDataModel(TestCase):
+class HypervisorStatsDataModel(SimpleTestCase):
     start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
     end = datetime.now(tz=pytz.utc)
     hsd = HypervisorStatsData()
@@ -68,7 +68,7 @@ class HypervisorStatsDataModel(TestCase):
         self.assertGreater(len(recs), 0)
 
 
-class SpawnDataModel(TestCase):
+class SpawnDataModel(SimpleTestCase):
     start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
     end = datetime.now(tz=pytz.utc)
     interval = '1h'
@@ -142,7 +142,7 @@ class SpawnDataModel(TestCase):
         self.assertTrue(response.equals(control))
 
 
-class ResourceDataTest(TestCase):
+class ResourceDataTest(SimpleTestCase):
     start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
     end = datetime.now(tz=pytz.utc)
     interval = '3600s'

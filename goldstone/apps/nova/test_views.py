@@ -4,7 +4,8 @@
 # Copyright 2014 Solinea, Inc.
 #
 
-from django.test import TestCase
+
+from django.test import SimpleTestCase
 from django.utils.unittest.case import skip
 from .views import *
 from datetime import datetime
@@ -14,7 +15,7 @@ import pytz
 logger = logging.getLogger(__name__)
 
 
-class NovaDiscoverViewTest(TestCase):
+class NovaDiscoverViewTest(SimpleTestCase):
     # view requires a start_ts, end_ts, and interval string
     valid_start = str(calendar.timegm(
         datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))
@@ -74,7 +75,7 @@ class NovaDiscoverViewTest(TestCase):
         self._test_bad_request(url)
 
 
-class NovaSpawnsViewTest(TestCase):
+class NovaSpawnsViewTest(SimpleTestCase):
     # view requires a start_ts, end_ts, and interval string
     valid_start = str(calendar.timegm(
         datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))
@@ -164,7 +165,35 @@ class NovaSpawnsViewTest(TestCase):
         self._test_no_render_bad_request(url)
 
 
-class ResourceViewTest(TestCase):
+class LatestStatsViewTest(SimpleTestCase):
+
+    def test_no_render(self):
+        uri = '/nova/hypervisor/latest-stats?render=false'
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 200)
+        logger.info("[test_no_render] response = %s",
+                    response.content)
+        self.assertNotEqual(json.loads(response.content), [])
+
+
+    def test_with_render(self):
+        uri = '/nova/hypervisor/latest-stats?render=true'
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 200)
+        logger.info("[test_with_render] response = %s",
+                     response.content)
+        #self.assertNotEqual(json.loads(response.content), {})
+
+    def test_default_render(self):
+        uri = '/nova/hypervisor/latest-stats'
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 200)
+        #self.assertNotEqual(json.loads(response.content), {})
+        logger.info("[test_default_render] response = %s",
+                     response.content)
+
+
+class ResourceViewTest(SimpleTestCase):
     # view requires a start_ts, end_ts, and interval string
     valid_start = str(calendar.timegm(
         datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))

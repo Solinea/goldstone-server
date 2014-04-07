@@ -7,7 +7,7 @@
 from django.test.client import Client
 from django.test.client import RequestFactory
 from django.utils.unittest.case import skip
-from django.test import TestCase
+from django.test import SimpleTestCase
 from django.conf import settings
 from waffle import Switch
 
@@ -24,7 +24,7 @@ from elasticsearch import *
 logger = logging.getLogger(__name__)
 
 
-class LogDataModel(TestCase):
+class LogDataModel(SimpleTestCase):
     INDEX_NAME = 'logstash-test'
     DOCUMENT_TYPE = 'logs'
     conn = Elasticsearch(settings.ES_SERVER)
@@ -479,7 +479,7 @@ class LogDataModel(TestCase):
         self.assertEqual(result['aggregations'], control['aggregations'])
 
 
-class IntelViewTest(TestCase):
+class IntelViewTest(SimpleTestCase):
     """Lease list view tests"""
     switch = None
 
