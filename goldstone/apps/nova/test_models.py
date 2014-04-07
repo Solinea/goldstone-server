@@ -42,6 +42,32 @@ class AvailabilityZoneDataModel(TestCase):
         self.assertGreater(len(recs), 0)
 
 
+class HypervisorStatsDataModel(TestCase):
+    start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
+    end = datetime.now(tz=pytz.utc)
+    hsd = HypervisorStatsData()
+    id_to_delete = None
+
+    def setUp(self):
+        # test post of a record
+        rec = {"@timestamp": self.end.isoformat()}
+        self.id_to_delete = self.hsd.post(rec)
+        self.assertIsNotNone(self.id_to_delete)
+
+    def tearDown(self):
+        # test delete of a record
+        response = self.hsd.delete(self.id_to_delete)
+        self.assertTrue(response)
+
+    def test_get(self):
+        recs = self.hsd.get(1)
+        self.assertEqual(len(recs), 1)
+
+    def test_get_range(self):
+        recs = self.hsd.get_date_range(self.start, self.end)
+        self.assertGreater(len(recs), 0)
+
+
 class SpawnDataModel(TestCase):
     start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
     end = datetime.now(tz=pytz.utc)

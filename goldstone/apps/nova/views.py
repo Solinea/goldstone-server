@@ -372,7 +372,7 @@ class ZonesView(TemplateView):
             timedelta(seconds=int(context['interval'][:-1]))
         logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
         logger.debug("[_handle_request] inspect_dt = %s",
-                    context['inspect_dt'])
+                     context['inspect_dt'])
         logger.debug("[_handle_request] end_dt = %s", context['end_dt'])
         #
         # we need a couple different things to pull this together:
