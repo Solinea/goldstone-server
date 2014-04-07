@@ -488,7 +488,7 @@ class LatestStatsView(TemplateView):
 
         if self.template_name:
             return TemplateView.render_to_response(
-                self, {'data': response})
+                self, {'data': json.dumps(response)})
         else:
             return HttpResponse(json.dumps({'data': response}),
                                 content_type='application/json')

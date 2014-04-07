@@ -4,6 +4,8 @@ goldstone.namespace('nova.report')
 goldstone.namespace('nova.spawns')
 goldstone.namespace('nova.spawns.renderlets')
 goldstone.namespace('nova.util')
+goldstone.namespace('nova.instantaneous')
+goldstone.namespace('nova.timeRange')
 goldstone.namespace('nova.cpu')
 goldstone.namespace('nova.cpu.renderlets')
 goldstone.namespace('nova.mem')
@@ -12,8 +14,10 @@ goldstone.namespace('nova.disk')
 goldstone.namespace('nova.disk.renderlets')
 goldstone.namespace('nova.zones')
 goldstone.namespace('nova.zones.renderlets')
+goldstone.namespace('nova.latestStats')
+goldstone.namespace('nova.latestStats.renderlets')
 
-goldstone.nova._url = function (ns, start, end, interval, render, path) {
+goldstone.nova.timeRange._url = function (ns, start, end, interval, render, path) {
     "use strict";
     var gt = goldstone.time
     start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start)
@@ -30,43 +34,59 @@ goldstone.nova._url = function (ns, start, end, interval, render, path) {
     return url
 }
 
+goldstone.nova.instantaneous._url = function (ns, render, path) {
+    "use strict";
+
+    var url = path
+    if (typeof render !== 'undefined') {
+        url += "?render=" + render
+    }
+    return url
+}
+
+goldstone.nova.latestStats.url = function (render) {
+    "use strict";
+    var ns = goldstone.nova.latestStats,
+        path = "/nova/hypervisor/latest-stats"
+    return goldstone.nova.instantaneous._url(ns, render, path)
+}
+
 goldstone.nova.spawns.url = function (start, end, interval, render) {
     "use strict";
     var ns = goldstone.nova.spawns,
         path = "/nova/hypervisor/spawns"
-    return goldstone.nova._url(ns, start, end, interval, render, path)
+    return goldstone.nova.timeRange._url(ns, start, end, interval, render, path)
 }
 
 goldstone.nova.cpu.url = function (start, end, interval, render) {
     "use strict";
     var ns = goldstone.nova.cpu,
         path = "/nova/hypervisor/cpu"
-    return goldstone.nova._url(ns, start, end, interval, render, path)
+    return goldstone.nova.timeRange._url(ns, start, end, interval, render, path)
 }
 
 goldstone.nova.mem.url = function (start, end, interval, render) {
     "use strict";
     var ns = goldstone.nova.mem,
         path = "/nova/hypervisor/mem"
-    return goldstone.nova._url(ns, start, end, interval, render, path)
+    return goldstone.nova.timeRange._url(ns, start, end, interval, render, path)
 }
-
 
 goldstone.nova.disk.url = function (start, end, interval, render) {
     "use strict";
     var ns = goldstone.nova.disk,
         path = "/nova/hypervisor/disk"
-    return goldstone.nova._url(ns, start, end, interval, render, path)
+    return goldstone.nova.timeRange._url(ns, start, end, interval, render, path)
 }
 
 goldstone.nova.zones.url = function (start, end, interval, render) {
     "use strict";
     var ns = goldstone.nova.zones,
         path = "/nova/zones"
-    return goldstone.nova._url(ns, start, end, interval, render, path)
+    return goldstone.nova.timeRange._url(ns, start, end, interval, render, path)
 }
 
-goldstone.nova._loadUrl = function (ns, start, end, interval, location, render) {
+goldstone.nova.timeRange._loadUrl = function (ns, start, end, interval, location, render) {
     "use strict";
     location = location ? location : ns.parent
 
@@ -81,6 +101,24 @@ goldstone.nova._loadUrl = function (ns, start, end, interval, location, render) 
     } else {
         // just get the data and set it in the spawn object
         $.getJSON(ns.url(start, end, interval, render), function (data) {
+            ns.data = data
+            // TODO trigger a redraw of the chart with the new data
+        })
+    }
+}
+
+goldstone.nova.instantaneous._loadUrl = function (ns, location, render) {
+    "use strict";
+    location = location ? location : ns.parent
+
+    ns.parent = location
+
+    render = typeof render !== 'undefined' ? render : false
+    if (render) {
+        $(ns.parent).load(ns.url(render))
+    } else {
+        // just get the data and set it in the spawn object
+        $.getJSON(ns.url(render), function (data) {
             ns.data = data
             // TODO trigger a redraw of the chart with the new data
         })
@@ -226,35 +264,42 @@ goldstone.nova.spawns.loadUrl = function (start, end, interval, location, render
     "use strict";
     var ns = goldstone.nova.spawns
 
-    goldstone.nova._loadUrl(ns, start, end, interval, location, render)
+    goldstone.nova.timeRange._loadUrl(ns, start, end, interval, location, render)
 }
 
 goldstone.nova.cpu.loadUrl = function (start, end, interval, location, render) {
     "use strict";
     var ns = goldstone.nova.cpu
 
-    goldstone.nova._loadUrl(ns, start, end, interval, location, render)
+    goldstone.nova.timeRange._loadUrl(ns, start, end, interval, location, render)
 }
 
 goldstone.nova.mem.loadUrl = function (start, end, interval, location, render) {
     "use strict";
     var ns = goldstone.nova.mem
 
-    goldstone.nova._loadUrl(ns, start, end, interval, location, render)
+    goldstone.nova.timeRange._loadUrl(ns, start, end, interval, location, render)
 }
 
 goldstone.nova.disk.loadUrl = function (start, end, interval, location, render) {
     "use strict";
     var ns = goldstone.nova.disk
 
-    goldstone.nova._loadUrl(ns, start, end, interval, location, render)
+    goldstone.nova.timeRange._loadUrl(ns, start, end, interval, location, render)
 }
 
 goldstone.nova.zones.loadUrl = function (start, end, interval, location, render) {
     "use strict";
     var ns = goldstone.nova.zones
 
-    goldstone.nova._loadUrl(ns, start, end, interval, location, render)
+    goldstone.nova.timeRange._loadUrl(ns, start, end, interval, location, render)
+}
+
+goldstone.nova.latestStats.loadUrl = function (location, render) {
+    "use strict";
+    var ns = goldstone.nova.latestStats
+
+    goldstone.nova.instantaneous._loadUrl(ns, location, render)
 }
 
 goldstone.nova.spawns.drawChart = function () {
@@ -340,6 +385,57 @@ goldstone.nova.disk.drawChart = function () {
 }
 
 
+/*
+Text view of key statistics for nova hypervisors
+ */
+goldstone.nova.latestStats.drawText = function () {
+    "use strict";
+    var ns = goldstone.nova.latestStats,
+        m = [20, 80, 20, 80],
+        panelWidth = $(ns.location).width() - m[1] - m[3],
+        panelHeight = ns.height - m[0] - m[2],
+        vis = d3.select(ns.location).append("svg")
+            .attr("width", panelWidth + m[1] + m[3])
+            .attr("height", panelHeight + m[0] + m[2])
+            .attr("type", "image/svg+xml")
+            .append("svg:g")
+            .attr("transform", "translate(" + m[3] + "," + m[0] + ")")
+            .append("text")
+            .attr("x", 10)
+            .attr("y", 10)
+
+
+    if (ns.data !== 'undefined') {
+        if (Object.keys(ns.data).length === 0) {
+            $(ns.location).append("<p> Response was empty.")
+            $(ns.spinner).hide()
+        } else {
+            (function (json) {
+                vis.append("tspan")
+                    .attr("x", 10)
+                    .attr("dy", 10)
+                    .attr("class", "instantaneous-data")
+                    .text(json[0].count)
+                vis.append("tspan")
+                    .attr("x", 10)
+                    .attr("dy", 50)
+                    .attr("class", "instantaneous-label")
+                    .text("Hypervisors")
+                vis.append("tspan")
+                    .attr("x", 10)
+                    .attr("dy", 80)
+                    .attr("class", "instantaneous-data")
+                    .text(json[0].running_vms)
+                vis.append("tspan")
+                    .attr("x", 10)
+                    .attr("dy", 50)
+                    .attr("class", "instantaneous-label")
+                    .text("Running VMs")
+            })(ns.data)
+            $(ns.spinner).hide()
+        }
+    }
+}
 /*
 A collabsible tree view of the nova zone heirarchy
  */
