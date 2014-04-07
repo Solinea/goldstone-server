@@ -60,7 +60,7 @@ class NovaClientData(ESData):
                                      doc_type=self._DOC_TYPE,
                                      body=q, size=count,
                                      sort={'@timestamp': 'desc'})
-        logger.debug("[get] response = %s", json.dumps(response))
+        logger.info("[get] response = %s", json.dumps(response))
         return [h['_source'] for h in response['hits']['hits']]
 
     def post(self, body):

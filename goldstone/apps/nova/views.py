@@ -35,6 +35,7 @@ def _validate(arg_list, context):
     context = context.copy()
     validation_errors = []
 
+    # TODO GOLD-280 TODO: need to check for key existence in _validate first
     context['end_dt'] = _parse_timestamp(context['end'])
     if context['end_dt'] is None:
         validation_errors.append('malformed parameter [end]')
@@ -463,3 +464,31 @@ class ZonesView(TemplateView):
 
         return TemplateView.render_to_response(
             self, {'data': json.dumps(response)})
+
+
+class LatestStatsView(TemplateView):
+    template_name = 'latest_stats.html'
+
+    def get_context_data(self, **kwargs):
+        context = TemplateView.get_context_data(self, **kwargs)
+        context['render'] = self.request.GET.get('render', "True"). \
+            lower().capitalize()
+
+        # if render is true, we will return a full template, otherwise only
+        # a json data payload
+        if context['render'] != 'True':
+            self.template_name = None
+
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+
+        model = HypervisorStatsData()
+        response = model.get(1)
+
+        if self.template_name:
+            return TemplateView.render_to_response(
+                self, {'data': response})
+        else:
+            return HttpResponse(json.dumps({'data': response}),
+                                content_type='application/json')
