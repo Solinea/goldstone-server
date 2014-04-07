@@ -18,8 +18,11 @@ from goldstone.models import ESData
 logger = logging.getLogger(__name__)
 
 
-class AvailabilityZoneData(ESData):
-    _DOC_TYPE = 'nova_availability_zones'
+class NovaClientData(ESData):
+    """
+    abstract class for data pulled from nova client.  Override _DOC_TYPE
+    """
+    _DOC_TYPE = None
     _INDEX_PREFIX = 'logstash-'
 
     def get_date_range(self, start, end, first=0, count=10, sort='desc'):
@@ -43,7 +46,7 @@ class AvailabilityZoneData(ESData):
                                      doc_type=self._DOC_TYPE,
                                      body=q, size=count, from_=first,
                                      sort={'@timestamp': sort})
-        logger.info("[get_date_range] response = %s", json.dumps(response))
+        logger.debug("[get_date_range] response = %s", json.dumps(response))
         return [h['_source'] for h in response['hits']['hits']]
 
     def get(self, count=1):
@@ -89,6 +92,14 @@ class AvailabilityZoneData(ESData):
         else:
             return not bool(response['_indices'].
                             values()[0]['_shards']['failed'])
+
+
+class AvailabilityZoneData(NovaClientData):
+    _DOC_TYPE = 'nova_availability_zones'
+
+
+class HypervisorStatsData(NovaClientData):
+    _DOC_TYPE = 'nova_hypervisor_stats'
 
 
 class SpawnData(ESData):
@@ -208,8 +219,6 @@ class ResourceData(ESData):
         else:
             max_or_min_aggs_clause = self._max_aggs_clause(
                 used_or_free_agg, self._TYPE_FIELDS[resource_type][1])
-
-
 
         range_filter = self._range_clause('@timestamp', self.start.isoformat(),
                                           self.end.isoformat())

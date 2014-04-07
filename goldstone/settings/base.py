@@ -134,7 +134,12 @@ CELERYBEAT_SCHEDULE = {
     # List the availability zone info every 5 minutes
     'nova-az-list': {
         'task': 'goldstone.apps.nova.tasks.nova_az_list',
-        'schedule': crontab(minute='*/2'),
+        'schedule': crontab(minute='*/5'),
+    },
+    # List the hypervisor stats every 5 minutes
+    'nova-hypervisors-stats': {
+        'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
+        'schedule': crontab(minute='*/5'),
     },
 }
 
