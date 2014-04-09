@@ -129,39 +129,20 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_TASK_SERIALIZER = 'json'
 
 from celery.schedules import crontab
+CONTROLLER_QUERY_INTERVAL = crontab(minute='*/5')
 
 CELERYBEAT_SCHEDULE = {
     # List the availability zone info every 5 minutes
     'nova-az-list': {
         'task': 'goldstone.apps.nova.tasks.nova_az_list',
-        'schedule': crontab(minute='*/5'),
+        'schedule': CONTROLLER_QUERY_INTERVAL,
     },
     # List the hypervisor stats every 5 minutes
     'nova-hypervisors-stats': {
         'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
-        'schedule': crontab(minute='*/5'),
+        'schedule': CONTROLLER_QUERY_INTERVAL,
     },
 }
-
-
-# GOLD-247 commented out lease scheduled tasks.  Should revisit
-# the settings when fixing GOLD-257.  Unfortunately, looks like you
-# can't even import waffle here, else we get an ImproperlyConfigured exception
-
-#from datetime import timedelta
-#
-#CELERYBEAT_SCHEDULE = {
-#    'find_expirations': {
-#        'task': 'goldstone.apps.lease.tasks.find_expirations',
-#        'schedule': timedelta(seconds=30),
-#        'args': ()
-#    },
-#    'find_notifications': {
-#        'task': 'goldstone.apps.lease.tasks.find_notifications',
-#        'schedule': timedelta(seconds=30),
-#        'args': ()
-#    },
-#}
 
 # Goldstone config settings
 DEFAULT_LOOKBACK_DAYS = 7
