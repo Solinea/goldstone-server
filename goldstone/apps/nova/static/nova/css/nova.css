@@ -1,0 +1,35 @@
+.node {
+  cursor: pointer;
+  stroke: #3182bd;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  font-size: 12px;
+  stroke-width: 0;
+}
+
+.icon text {
+  font-size: 12px;
+  stroke-width: 0;
+}
+
+.link {
+  fill: none;
+  stroke: #9ecae1;
+  stroke-width: 1.5px;
+}
+
+.instantaneous-data {
+    font-size: 36px;
+    stroke-width: 0;
+    fill: #3282ac;
+    alignment-baseline: middle;
+}
+
+.instantaneous-label {
+    font-size: 24px;
+    stroke-width: 0;
+    fill: #3282ac;
+    alignment-baseline: middle;
+}

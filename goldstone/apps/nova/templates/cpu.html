@@ -1,0 +1,24 @@
+{% load staticfiles %}
+{% load custom_filters %}
+<div id = "nova-cpu-panel" class="panel panel-primary">
+    <div class="panel-heading">
+        <h3 class="panel-title"><i class="fa fa-tasks"></i> CPU Resources</h3>
+    </div>
+    <div class="panel-body" style="height:300px">
+        <div id="nova-cpu-chart" class="resource-chart">
+            <script>
+var ns = goldstone.nova.cpu
+ns.data = JSON.parse({{ data|to_js }})
+ns.height = 300
+ns.location = '#nova-cpu-chart'
+ns.spinner = '#nova-cpu-spinner'
+ns.resourceLabel = 'Cores'
+ns.drawChart()
+            </script>
+            <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                 id="nova-cpu-spinner"
+                 class="ajax-loader"/>
+            <div class="clearfix"></div>
+        </div>
+    </div>
+</div>

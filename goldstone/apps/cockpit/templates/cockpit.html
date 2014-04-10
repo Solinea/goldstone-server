@@ -3,31 +3,17 @@
 {% load waffle_tags %}
 
 {% block localcss %}
-    <link href="{% static 'dataTables/dataTables.bootstrap.css' %}"
-          rel="stylesheet" media="screen">
-    <link href="{% static 'css/plugins/datetimepicker/jquery.datetimepicker.css' %}"
-          rel="stylesheet" media="screen">
-    <link href="{% static 'css/dc.css' %}" rel="stylesheet" media="screen"/>
     <link href="{% static 'intelligence/css/intelligence.css' %}"
           rel="stylesheet" media="screen">
-
 {% endblock %}
 
 {% block localjs %}
-    <script src="{% static 'dataTables/jquery.dataTables.js' %}"></script>
-    <script src="{% static 'dataTables/dataTables.bootstrap.js' %}"></script>
-    <script src="{% static 'intelligence/js/fnReloadAjax.js' %}"></script>
-    <script src="{% static 'js/plugins/datetimepicker/jquery.datetimepicker.js' %}"></script>
-    <script src="{% static 'js/d3.js' %}"></script>
-    <script src="{% static 'js/crossfilter.js' %}"></script>
-    <script src="{% static 'js/dc.js' %}"></script>
     <script src="{% static 'intelligence/js/intelligence.js' %}"></script>
     <script src="{% static 'js/cockpit.js' %}"></script>
     {% switch gse %}
         <script src="{% static 'intelligence/js/intelligence-gse.js' %}"></script>
         <script src="{% static 'js/cockpit-gse.js' %}"></script>
     {% endswitch %}
-
 {% endblock %}
 
 
