@@ -1,0 +1,23 @@
+{% load staticfiles %}
+{% load custom_filters %}
+<div id = "nova-zones-panel" class="panel panel-primary">
+    <div class="panel-heading">
+        <h3 class="panel-title"><i class="fa fa-tasks"></i> Compute Zone Map</h3>
+    </div>
+    <div class="panel-body" style="height:500px">
+        <div id="nova-zones-chart">
+            <script>
+var ns = goldstone.nova.zones
+ns.data = JSON.parse({{ data|to_js }})
+ns.height = 500
+ns.location = '#nova-zones-chart'
+ns.spinner = '#nova-zones-spinner'
+ns.drawChart()
+            </script>
+            <!--<img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                 id="nova-zones-spinner"
+                 class="ajax-loader"/>
+            <div class="clearfix"></div>-->
+        </div>
+    </div>
+</div>

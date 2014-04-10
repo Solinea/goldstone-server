@@ -1,0 +1,24 @@
+{% load staticfiles %}
+{% load custom_filters %}
+<div id = "nova-mem-panel" class="panel panel-primary">
+    <div class="panel-heading">
+        <h3 class="panel-title"><i class="fa fa-tasks"></i> Memory Resources</h3>
+    </div>
+    <div class="panel-body" style="height:300px">
+        <div id="nova-mem-chart" class="resource-chart">
+            <script>
+var ns = goldstone.nova.mem
+ns.data = JSON.parse({{ data|to_js }})
+ns.height = 300
+ns.location = '#nova-mem-chart'
+ns.spinner = '#nova-mem-spinner'
+ns.resourceLabel = 'GB'
+ns.drawChart()
+            </script>
+            <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                 id="nova-mem-spinner"
+                 class="ajax-loader"/>
+            <div class="clearfix"></div>
+        </div>
+    </div>
+</div>

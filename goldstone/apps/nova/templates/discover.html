@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load custom_filters %}
+
+
+{% block localcss %}
+    <link href="{% static 'intelligence/css/intelligence.css' %}"
+          rel="stylesheet" media="screen">
+    <link href="{% static 'nova/css/nova.css' %}"
+          rel="stylesheet" media="screen">
+{% endblock %}
+
+{% block localjs %}
+    <script src="{% static 'nova/js/nova.js' %}"></script>
+    <script>
+// script assumes that goldstone.js and nova.js have been loaded into the
+// surrounding page.
+
+$(document).ready(function () {
+    // wonder if this can get called before the namespace is created in
+    // nova.js.  Found some references suggesting that event handlers always
+    // execute in the order they were bound, but haven't confirmed.
+    var gnd = goldstone.nova.discover
+    var gnzones = goldstone.nova.zones
+    var gnls = goldstone.nova.latestStats
+    gnd.start = goldstone.time.fromPyTs({{ start_ts|to_js }})
+    gnd.end = goldstone.time.fromPyTs({{ end_ts|to_js }})
+    // TODO remove interval.  I don't think it is relevant here.
+    gnd.interval = {{ interval|to_js }}
+
+    gnzones.loadUrl(gnd.start, gnd.end, gnd.interval, '#nova-discover-r1-c1', true)
+    gnls.loadUrl('#nova-discover-r1-c2', true)
+
+
+})
+    </script>
+
+{% endblock %}
+
+
+{% block content %}
+    <!-- <object id="icon-network-svg" data="{% static 'images/icon_network.svg' %}" type="image/svg+xml"> -->
+
+    <div id="nova-discover-r1" class="row">
+        <div id="nova-discover-r1-c1" class="col-md-8"></div>
+        <div id="nova-discover-r1-c2" class="col-md-4"></div>
+    </div>
+    <div id="nova-discover-r2" class="row">
+        <div id="nova-discover-r2-c1" class="col-md-6"></div>
+        <div id="nova-discover-r2-c2" class="col-md-6"></div>
+    </div>
+
+{% endblock %}
+
+
+
+
+
+

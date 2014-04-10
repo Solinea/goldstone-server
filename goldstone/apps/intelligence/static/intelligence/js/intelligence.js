@@ -1,37 +1,6 @@
-Date.prototype.addSeconds = function (m) {
-    this.setTime(this.getTime() + (m * 1000));
-    return this;
-}
 
-Date.prototype.addMinutes = function (m) {
-    this.setTime(this.getTime() + (m * 60 * 1000));
-    return this;
-}
 
-Date.prototype.addHours = function (h) {
-    this.setTime(this.getTime() + (h * 60 * 60 * 1000));
-    return this;
-}
 
-Date.prototype.addDays = function (d) {
-    this.setTime(this.getTime() + (d * 24 * 60 * 60 * 1000));
-    return this;
-}
-
-Date.prototype.addWeeks = function (d) {
-    this.setTime(this.getTime() + (d * 7 * 24 * 60 * 60 * 1000));
-    return this;
-}
-
-$('#settingsStartTime').datetimepicker({
-    format: 'M d Y H:i:s',
-    lang: 'en'
-})
-
-$('#settingsEndTime').datetimepicker({
-    format: 'M d Y H:i:s',
-    lang: 'en'
-})
 
 var secondaryCockpitCharts = {}
 
@@ -54,29 +23,7 @@ function _toPyTs(t) {
     }
 }
 
-$("#endTimeNow").click(function () {
-    "use strict";
-    $("#autoRefresh").prop("disabled", false)
-    $("#autoRefresh").prop("checked", true)
-    $("#autoRefreshInterval").prop("disabled", false)
-    $("#settingsEndTime").prop("disabled", true)
-})
 
-$("#endTimeSelected").click(function () {
-    "use strict";
-    $("#autoRefresh").prop("checked", false)
-    $("#autoRefresh").prop("disabled", true)
-    $("#autoRefreshInterval").prop("disabled", true)
-    $("#settingsEndTime").prop("disabled", false)
-})
-
-$("#settingsEndTime").click(function () {
-    "use strict";
-    $("#endTimeSelected").prop("checked", true)
-    $("#autoRefresh").prop("checked", false)
-    $("#autoRefresh").prop("disabled", true)
-    $("#autoRefreshInterval").prop("disabled", true)
-})
 
 function isRefreshing() {
     "use strict";
@@ -512,7 +459,7 @@ function badEventMultiLine(location, start, end) {
 
             chart.render()
         } else {
-            raiseInfo("no data found")
+            goldstone.raiseInfo("no data found")
         }
         $(loadingIndicator).hide()
 

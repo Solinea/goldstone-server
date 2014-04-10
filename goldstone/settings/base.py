@@ -60,8 +60,10 @@ INSTALLED_APPS = (
     'waffle',
     'crispy_forms',
     'djangojs',
+    'goldstone.apps.core',
     'goldstone.apps.intelligence',
     'goldstone.apps.cockpit',
+    'goldstone.apps.nova',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -120,3 +122,34 @@ STATIC_URL = '/static/'
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 MAILHOST = 'localhost'
+
+# Celery
+BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_TASK_SERIALIZER = 'json'
+
+from celery.schedules import crontab
+CONTROLLER_QUERY_INTERVAL = crontab(minute='*/5')
+
+CELERYBEAT_SCHEDULE = {
+    # List the availability zone info every 5 minutes
+    'nova-az-list': {
+        'task': 'goldstone.apps.nova.tasks.nova_az_list',
+        'schedule': CONTROLLER_QUERY_INTERVAL,
+    },
+    # List the hypervisor stats every 5 minutes
+    'nova-hypervisors-stats': {
+        'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
+        'schedule': CONTROLLER_QUERY_INTERVAL,
+    },
+}
+
+# Goldstone config settings
+DEFAULT_LOOKBACK_DAYS = 7
+DEFAULT_CHART_BUCKETS = 80
+DEFAULT_PRESENCE_LOOKBACK_HOURS = 1
+
+OS_USERNAME = 'admin'
+OS_TENANT_NAME = 'admin'
+OS_PASSWORD = 'cr0n0v0r3'
+OS_AUTH_URL = 'http://10.10.11.20:35357/v2.0/'
