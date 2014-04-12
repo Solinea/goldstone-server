@@ -105,12 +105,77 @@ class TopLevelView(TemplateView):
             })
 
 
+class InnerTimeRangeView(TemplateView):
+
+    my_template_name = None
+
+    def get_context_data(self, **kwargs):
+        context = TemplateView.get_context_data(self, **kwargs)
+        context['render'] = self.request.GET.get('render', "True"). \
+            lower().capitalize()
+        # use "now" if not provided, will calc start and interval in _validate
+        context['end'] = self.request.GET.get('end', str(calendar.timegm(
+            datetime.utcnow().timetuple())))
+        context['start'] = self.request.GET.get('start', None)
+        context['interval'] = self.request.GET.get('interval', None)
+
+        # if render is true, we will return a full template, otherwise only
+        # a json data payload
+        if context['render'] == 'True':
+            self.template_name = self.my_template_name
+        else:
+            self.template_name = None
+            TemplateView.content_type = 'application/json'
+
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        """
+        Overriding to handle case of data only request (render=False).  In
+        that case an application/json data payload is returned.
+        """
+        response = self._handle_request(context)
+        if isinstance(response, HttpResponseBadRequest):
+            return response
+
+        if self.template_name is None:
+            return HttpResponse(json.dumps(response),
+                                content_type="application/json")
+
+        return TemplateView.render_to_response(
+            self, {'data': json.dumps(response)})
+
+
 class DiscoverView(TopLevelView):
     template_name = 'discover.html'
 
 
 class ReportView(TopLevelView):
     template_name = 'report.html'
+
+
+class ApiPerfView(InnerTimeRangeView):
+    data = pd.DataFrame()
+    my_template_name = 'api_perf.html'
+
+    def _handle_request(self, context):
+        context = _validate(['start', 'end', 'interval', 'render'], context)
+
+        if isinstance(context, HttpResponseBadRequest):
+            # validation error
+            return context
+
+        logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
+        self.data = ApiPerfData(context['start_dt'], context['end_dt'],
+                           context['interval']).get()
+        logger.debug("[_handle_request] data = %s", self.data)
+
+        if not self.data.empty:
+            self.data = self.data.set_index('key').fillna(0)
+
+        response = self.data.transpose().to_dict(outtype='list')
+        logger.debug('[_handle_request] response = %s', json.dumps(response))
+        return response
 
 
 class SpawnsView(TemplateView):
