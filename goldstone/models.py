@@ -148,6 +148,16 @@ class ESData(object):
         }
 
     @staticmethod
+    def _avg_aggs_clause(name, field):
+        return {
+            name: {
+                "avg": {
+                    "field": field
+                }
+            }
+        }
+
+    @staticmethod
     def _min_aggs_clause(name, field):
         return {
             name: {
@@ -157,6 +167,52 @@ class ESData(object):
             }
         }
 
+    @staticmethod
+    def _stats_aggs_clause(name, field):
+        return {
+            name: {
+                "stats": {
+                    "field": field
+                }
+            }
+        }
+
+    @staticmethod
+    def _ext_stats_aggs_clause(name, field):
+        return {
+            name: {
+                "extended_stats": {
+                    "field": field
+                }
+            }
+        }
+
+    @staticmethod
+    def _http_response_aggs_clause(name, field):
+        return {
+                name: {
+                    "range": {
+                        "field": field,
+                        "keyed": True,
+                        "ranges": [
+                            {"from": 200, "to": 299},
+                            {"from": 300, "to": 399},
+                            {"from": 400, "to": 499},
+                            {"from": 500, "to": 599}
+                        ]
+                    }
+                }
+            }
+
+    @staticmethod
+    def _percentiles_aggs_clause(name, field):
+        return {
+            name: {
+                "percentiles": {
+                    "field": field
+                }
+            }
+        }
     @staticmethod
     def _agg_clause(name, clause):
         return {
