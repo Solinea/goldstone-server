@@ -171,7 +171,7 @@ class LatestStatsViewTest(SimpleTestCase):
         uri = '/nova/hypervisor/latest-stats?render=false'
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
-        logger.info("[test_no_render] response = %s",
+        logger.debug("[test_no_render] response = %s",
                     response.content)
         self.assertNotEqual(json.loads(response.content), [])
 
@@ -179,15 +179,14 @@ class LatestStatsViewTest(SimpleTestCase):
         uri = '/nova/hypervisor/latest-stats?render=true'
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
-        logger.info("[test_with_render] response = %s",
+        logger.debug("[test_with_render] response = %s",
                     response.content)
 
     def test_default_render(self):
         uri = '/nova/hypervisor/latest-stats'
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
-        #self.assertNotEqual(json.loads(response.content), {})
-        logger.info("[test_default_render] response = %s",
+        logger.debug("[test_default_render] response = %s",
                     response.content)
 
 

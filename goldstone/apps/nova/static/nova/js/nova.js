@@ -16,6 +16,7 @@ goldstone.namespace('nova.zones')
 goldstone.namespace('nova.zones.renderlets')
 goldstone.namespace('nova.latestStats')
 goldstone.namespace('nova.latestStats.renderlets')
+goldstone.namespace('nova.apiPerf')
 
 goldstone.nova.timeRange._url = function (ns, start, end, interval, render, path) {
     "use strict";
@@ -83,6 +84,13 @@ goldstone.nova.zones.url = function (start, end, interval, render) {
     "use strict";
     var ns = goldstone.nova.zones,
         path = "/nova/zones"
+    return goldstone.nova.timeRange._url(ns, start, end, interval, render, path)
+}
+
+goldstone.nova.zones.url = function (start, end, interval, render) {
+    "use strict";
+    var ns = goldstone.nova.apiPerf,
+        path = "/nova/api-perf"
     return goldstone.nova.timeRange._url(ns, start, end, interval, render, path)
 }
 
@@ -295,12 +303,147 @@ goldstone.nova.zones.loadUrl = function (start, end, interval, location, render)
     goldstone.nova.timeRange._loadUrl(ns, start, end, interval, location, render)
 }
 
+goldstone.nova.apiPerf.loadUrl = function (start, end, interval, location, render) {
+    "use strict";
+    var ns = goldstone.nova.apiPerf
+
+    goldstone.nova.timeRange._loadUrl(ns, start, end, interval, location, render)
+}
+
 goldstone.nova.latestStats.loadUrl = function (location, render) {
     "use strict";
     var ns = goldstone.nova.latestStats
 
     goldstone.nova.instantaneous._loadUrl(ns, location, render)
 }
+
+
+// pure d3 pattern for a line chart with data refresh capabilities.  Should
+// abstract this to a more general goldstone library if it proves useful.
+
+// the init function sets up the svg element on the page, pulls in the first
+// dataset, and sets up the recurring call to the update function.
+goldstone.nova.apiPerf.init = function (location, start, end, interval) {
+    "use strict";
+    var ns = goldstone.nova.apiPerf
+    ns.start = start
+    ns.end = end.addSeconds(interval)
+    ns.interval = interval
+    ns.location = location
+    ns.margin = {top: 20, right: 30, bottom: 30, left: 40}
+
+    // set up the SVG
+
+    // The initial display.
+    ns.loadUrl(ns, true)
+
+    // Grab a random sample of letters from the alphabet, in alphabetical order.
+    setInterval(function () {
+        var now = new Date()
+        if (now > ns.end) {
+            ns.end = ns.end.addSeconds(interval)
+            ns.start = ns.start.addSeconds(interval)
+        }
+        ns.loadUrl(ns, false)
+    }, 300000)
+}
+
+// here we'll configure as much of the structure of the SVG as possible.  This
+// includes legends, axis, labels, renderlets, etc.
+goldstone.nova.apiPerf.initSvg = function () {
+    "use strict";
+    var w = $(ns.location).width(),
+        h = $(ns.location).height(),
+        mw = w - ns.margin.left - ns.margin.right,
+        mh = h - ns.margin.top - ns.margin.bottom,
+        svg = d3.select("body")
+            .append("svg")
+                .attr("width", w)
+                .attr("height", h)
+            .append("g")
+                .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")")
+
+}
+
+// this shouldn't have to repaint everything, but we'll see...
+goldstone.nova.apiPerf.updateSvg = function () {
+    "use strict";
+    var x = d3.time.scale()
+            .domain([new Date(Number(ns.data[0])), d3.time.day.offset(new Date(data[data.length - 1].date), 1)])
+    .rangeRound([0, width - margin.left - margin.right]),
+        y = d3.scale.linear()
+            .range([height, 0]),
+        xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom"),
+        yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left");
+
+}
+
+goldstone.nova.apiPerf.loadUrl = function (ns, render) {
+    "use strict";
+
+    render = typeof render !== 'undefined' ? render : false
+    if (render) {
+        $(ns.parent).load(ns.url(ns.start, ns.end, ns.interval, render))
+        if (ns.hasOwnProperty('update')) {
+            ns.update()
+        }
+    } else {
+        // just get the data and set it in the spawn object
+        $.getJSON(ns.url(ns.start, ns.end, ns.interval, ns.render), function (data) {
+            ns.data = data
+            if (ns.hasOwnProperty('update')) {
+                ns.update()
+            }
+        })
+    }
+}
+
+// the update function processes new, existing, and removed data.  Its arg
+// can be the loadUrl function that returns the JSON payload from the server.
+// Time intervals will be interesting here.  Probably need to rethink the
+// use of 'now' as the starting point for calculating an interval, and go to
+// a more fixed reference model and rounded intervals.  Repeated calls would
+// fill up the last interval bucket until we get to the next rounded value.
+
+goldstone.nova.apiPerf.update = function (data) {
+    "use strict";
+    // DATA JOIN
+    // Join new data with old elements, if any.
+    var text = svg.selectAll("text")
+        .data(data)
+
+    // UPDATE
+    // Update old elements as needed.
+    text.attr("class", "update")
+
+    // ENTER
+    // Create new elements as needed.
+    text.enter().append("text")
+        .attr("class", "enter")
+        .attr("x", function (d, i) { return i * 32; })
+        .attr("dy", ".35em")
+
+    // ENTER + UPDATE
+    // Appending to the enter selection expands the update selection to include
+    // entering elements; so, operations on the update selection after appending to
+    // the enter selection will apply to both entering and updating nodes.
+    text.text(function (d) { return d })
+
+    // EXIT
+    // Remove old elements as needed.
+    text.exit().remove()
+}
+
+
+
+// mostly based on crossfilter and dc.js below here (except zones chart)
+// works ok, but no concept of streaming data in crossfilter, so basically
+// need to recalc the dataset each time an update comes in.  fine for now,
+// but not really our philosophy for the long run.
 
 goldstone.nova.spawns.drawChart = function () {
     // now we can customize it to handle our data.  Data structure looks like:

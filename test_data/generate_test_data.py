@@ -41,6 +41,8 @@ result = [conn.search(index="_all", doc_type='syslog', body=fq,
           conn.search(index="_all", doc_type="nova_spawn_finish",
                       body=fq, size=1000),
           conn.search(index="_all", doc_type="nova_hypervisor_stats",
+                      body=fq, size=100),
+          conn.search(index="_all", doc_type="openstack_api_stats",
                       body=fq, size=100)]
 
 print "exporting " + str(len(result)) + " sets"
