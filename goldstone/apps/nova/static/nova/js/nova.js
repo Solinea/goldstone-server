@@ -32,6 +32,7 @@ goldstone.nova.timeRange._url = function (ns, start, end, interval, render, path
     if (typeof render !== 'undefined') {
         url += "&render=" + render
     }
+    console.log("url = " + url)
     return url
 }
 
@@ -87,10 +88,10 @@ goldstone.nova.zones.url = function (start, end, interval, render) {
     return goldstone.nova.timeRange._url(ns, start, end, interval, render, path)
 }
 
-goldstone.nova.zones.url = function (start, end, interval, render) {
+goldstone.nova.apiPerf.url = function (start, end, interval, render) {
     "use strict";
     var ns = goldstone.nova.apiPerf,
-        path = "/nova/api-perf"
+        path = "/nova/api_perf"
     return goldstone.nova.timeRange._url(ns, start, end, interval, render, path)
 }
 
@@ -303,13 +304,6 @@ goldstone.nova.zones.loadUrl = function (start, end, interval, location, render)
     goldstone.nova.timeRange._loadUrl(ns, start, end, interval, location, render)
 }
 
-goldstone.nova.apiPerf.loadUrl = function (start, end, interval, location, render) {
-    "use strict";
-    var ns = goldstone.nova.apiPerf
-
-    goldstone.nova.timeRange._loadUrl(ns, start, end, interval, location, render)
-}
-
 goldstone.nova.latestStats.loadUrl = function (location, render) {
     "use strict";
     var ns = goldstone.nova.latestStats
@@ -323,83 +317,65 @@ goldstone.nova.latestStats.loadUrl = function (location, render) {
 
 // the init function sets up the svg element on the page, pulls in the first
 // dataset, and sets up the recurring call to the update function.
-goldstone.nova.apiPerf.init = function (location, start, end, interval) {
+goldstone.nova.apiPerf.init = function () {
     "use strict";
     var ns = goldstone.nova.apiPerf
-    ns.start = start
-    ns.end = end.addSeconds(interval)
-    ns.interval = interval
-    ns.location = location
-    ns.margin = {top: 20, right: 30, bottom: 30, left: 40}
-
-    // set up the SVG
-
-    // The initial display.
-    ns.loadUrl(ns, true)
+    ns.initSvg()
+    ns.update()
 
     // Grab a random sample of letters from the alphabet, in alphabetical order.
-    setInterval(function () {
-        var now = new Date()
-        if (now > ns.end) {
-            ns.end = ns.end.addSeconds(interval)
-            ns.start = ns.start.addSeconds(interval)
-        }
-        ns.loadUrl(ns, false)
-    }, 300000)
+    //setInterval(function () {
+    //    var now = new Date()
+    //    if (now > ns.end) {
+    //        ns.end = ns.end.addSeconds(ns.interval)
+    //        ns.start = ns.start.addSeconds(ns.interval)
+    //    }
+    //    ns.loadUrl(ns.start, ns.end, ns.interval)
+    //}, 60000)
+}
+
+goldstone.nova.apiPerf.loadUrl = function (start, end, interval, render, location) {
+    "use strict";
+    var ns = goldstone.nova.apiPerf
+
+    render = typeof render !== 'undefined' ? render : false
+    if (render) {
+        console.log("render was true")
+        $(location).load(ns.url(start, end, interval, render))
+    } else {
+        // just get the data and set it in the spawn object
+        console.log("render was false")
+        d3.json(ns.url(ns.start, ns.end, ns.interval), function (error, data) {
+            ns.data = data
+            ns.update()
+        })
+    }
 }
 
 // here we'll configure as much of the structure of the SVG as possible.  This
 // includes legends, axis, labels, renderlets, etc.
 goldstone.nova.apiPerf.initSvg = function () {
     "use strict";
-    var w = $(ns.location).width(),
-        h = $(ns.location).height(),
-        mw = w - ns.margin.left - ns.margin.right,
-        mh = h - ns.margin.top - ns.margin.bottom,
-        svg = d3.select("body")
-            .append("svg")
-                .attr("width", w)
-                .attr("height", h)
-            .append("g")
-                .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")")
-
+    var ns = goldstone.nova.apiPerf
+    ns.margin = { top: 30, bottom: 60, right: 30, left: 60 }
+    ns.w = $(ns.location).width()
+    //ns.h = $(ns.location).height()
+    ns.mw = ns.w - ns.margin.left - ns.margin.right
+    ns.mh = ns.h - ns.margin.top - ns.margin.bottom
+    ns.svg = d3.select(ns.location)
+        .append("svg")
+            .attr("width", ns.w)
+            .attr("height", ns.h)
+    ns.chart = ns.svg.append("g")
+        .attr('class', 'chart')
+        .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")")
 }
 
-// this shouldn't have to repaint everything, but we'll see...
-goldstone.nova.apiPerf.updateSvg = function () {
+// refresh the axes when new data comes in
+goldstone.nova.apiPerf.updateAxes = function (data) {
     "use strict";
-    var x = d3.time.scale()
-            .domain([new Date(Number(ns.data[0])), d3.time.day.offset(new Date(data[data.length - 1].date), 1)])
-    .rangeRound([0, width - margin.left - margin.right]),
-        y = d3.scale.linear()
-            .range([height, 0]),
-        xAxis = d3.svg.axis()
-            .scale(x)
-            .orient("bottom"),
-        yAxis = d3.svg.axis()
-            .scale(y)
-            .orient("left");
+    var ns = goldstone.nova.apiPerf
 
-}
-
-goldstone.nova.apiPerf.loadUrl = function (ns, render) {
-    "use strict";
-
-    render = typeof render !== 'undefined' ? render : false
-    if (render) {
-        $(ns.parent).load(ns.url(ns.start, ns.end, ns.interval, render))
-        if (ns.hasOwnProperty('update')) {
-            ns.update()
-        }
-    } else {
-        // just get the data and set it in the spawn object
-        $.getJSON(ns.url(ns.start, ns.end, ns.interval, ns.render), function (data) {
-            ns.data = data
-            if (ns.hasOwnProperty('update')) {
-                ns.update()
-            }
-        })
-    }
 }
 
 // the update function processes new, existing, and removed data.  Its arg
@@ -409,33 +385,113 @@ goldstone.nova.apiPerf.loadUrl = function (ns, render) {
 // a more fixed reference model and rounded intervals.  Repeated calls would
 // fill up the last interval bucket until we get to the next rounded value.
 
-goldstone.nova.apiPerf.update = function (data) {
+goldstone.nova.apiPerf.update = function () {
     "use strict";
-    // DATA JOIN
-    // Join new data with old elements, if any.
-    var text = svg.selectAll("text")
-        .data(data)
+    var ns = goldstone.nova.apiPerf
 
-    // UPDATE
-    // Update old elements as needed.
-    text.attr("class", "update")
+    if (ns.data !== 'undefined') {
+        if (Object.keys(ns.data).length === 0) {
+            $(ns.location).append("<p> Response was empty.")
+            $(ns.spinner).hide()
+        } else {
+            (function (json) {
+                // set up data, add a time field based on key and convert all times
+                // to milliseconds
+                json.forEach(function (d) {
+                    d.time = new Date(Number(d.key))
+                    d.min = d.min * 1000
+                    d.max = d.max * 1000
+                    d.avg = d.avg * 1000
+                    d.sum_of_squares = d.sum_of_squares * 1000
+                    d.sum = d.sum * 1000
+                })
+                // define our x and y scaling functions
+                var x = d3.time.scale()
+                    .domain([json[0].time, json[json.length - 1].time])
+                    .rangeRound([0, ns.mw])
+                var y = d3.scale.linear()
+                    .domain([0, d3.max(json, function (d) { return d.max })])
+                    .range([ns.mh, 0])
 
-    // ENTER
-    // Create new elements as needed.
-    text.enter().append("text")
-        .attr("class", "enter")
-        .attr("x", function (d, i) { return i * 32; })
-        .attr("dy", ".35em")
+                // define our line functions
+                var maxLine = d3.svg.line()
+                    .interpolate("basis")
+                    .x(function (d) { return x(d.time) })
+                    .y(function (d) { return y(d.max) })
+                var minLine = d3.svg.line()
+                    .interpolate("basis")
+                    .x(function (d) { return x(d.time) })
+                    .y(function (d) { return y(d.min) })
+                var avgLine = d3.svg.line()
+                    .interpolate("basis")
+                    .x(function (d) { return x(d.time) })
+                    .y(function (d) { return y(d.avg) })
 
-    // ENTER + UPDATE
-    // Appending to the enter selection expands the update selection to include
-    // entering elements; so, operations on the update selection after appending to
-    // the enter selection will apply to both entering and updating nodes.
-    text.text(function (d) { return d })
+                // define our axis functions
+                var xAxis = d3.svg.axis()
+                    .scale(x)
+                    .orient("bottom")
+                var yAxis = d3.svg.axis()
+                    .scale(y)
+                    .orient("left")
 
-    // EXIT
-    // Remove old elements as needed.
-    text.exit().remove()
+                // initialized the axes
+                ns.chart.append('g')
+                    .attr('class', 'x axis')
+                    .attr('transform', 'translate(0, ' + ns.mh + ')')
+                    .call(xAxis);
+                ns.chart.append('g')
+                    .attr('class', 'y axis')
+                    .call(yAxis)
+                ns.svg.append("text")
+                    .attr("class", "axis.label")
+                    .attr("transform", "rotate(-90)")
+                    .attr("x", 0 - (ns.h / 2))
+                    .attr("y", -5)
+                    .attr("dy", "1.5em")
+                    .text("Response Time (ms)")
+                    .style("text-anchor", "middle")
+
+                // initialize the chart lines
+                ns.chart.append('path')
+                    .attr('class', 'line')
+                    .attr('id', 'maxLine')
+                    .datum(json)
+                    .attr('d', maxLine)
+                ns.chart.append('path')
+                    .attr('class', 'line')
+                    .attr('id', 'avgLine')
+                    .datum(json)
+                    .attr('d', avgLine)
+                ns.chart.append('path')
+                    .attr('class', 'line')
+                    .attr('id', 'minLine')
+                    .datum(json)
+                    .attr('d', minLine)
+
+
+
+                // UPDATE
+                // Update old elements as needed.
+
+
+                // ENTER
+                // Create new elements as needed.
+
+
+                // ENTER + UPDATE
+                // Appending to the enter selection expands the update selection to include
+                // entering elements; so, operations on the update selection after appending to
+                // the enter selection will apply to both entering and updating nodes.
+
+
+                // EXIT
+                // Remove old elements as needed.
+
+            })(ns.data)
+            $(ns.spinner).hide()
+        }
+    }
 }
 
 

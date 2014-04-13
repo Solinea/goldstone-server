@@ -8,11 +8,14 @@
         <div id="nova-api-perf-chart">
             <script>
 var ns = goldstone.nova.apiPerf
-ns.data = JSON.parse({{ data|to_js }})
-ns.height = 300
+ns.data = JSON.parse(JSON.parse({{ data|to_js }}))
+ns.h = 300
 ns.location = '#nova-api-perf-chart'
 ns.spinner = '#nova-api-perf-spinner'
-ns.drawChart()
+ns.start = {{ start|to_js }}
+ns.end = {{ end|to_js }}
+ns.interval = {{ interval|to_js }}
+ns.init()
             </script>
             <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                  id="nova-api-perf-spinner"

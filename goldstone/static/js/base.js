@@ -329,7 +329,9 @@ goldstone.charts.lineChartBase = function (location, margins, renderlet) {
     return chart
 }
 
-
+window.onerror = function (message, fileURL, lineNumber) {
+    console.log(message + ': ' + fileURL + ': ' + lineNumber)
+}
 
 // convenience for date manipulation
 Date.prototype.addSeconds = function (m) {

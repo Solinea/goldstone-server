@@ -239,10 +239,10 @@ class ApiPerfData(ESData):
 
             items.append(item)
 
-        logger.debug('[get] items = %s', json.dumps(items))
+        logger.info('[get] items = %s', json.dumps(items))
         result = pd.read_json(json.dumps(items), orient='records',
                               convert_axes=False)
-        logger.debug('[get] pd = %s', result)
+        logger.info('[get] pd = %s', result)
         return result
 
 
