@@ -407,21 +407,29 @@ goldstone.nova.apiPerf.update = function () {
                 })
                 // define our x and y scaling functions
                 var x = d3.time.scale()
-                    .domain([json[0].time, json[json.length - 1].time])
+                    .domain(d3.extent(json, function(d) { return d.time }))
                     .rangeRound([0, ns.mw])
                 var y = d3.scale.linear()
                     .domain([0, d3.max(json, function (d) { return d.max })])
                     .range([ns.mh, 0])
 
                 // define our line functions
+                var area = d3.svg.area()
+                    .interpolate("basis")
+                    .x(function (d) { return x(d.time) })
+                    .y0(function (d) { return y(d.min) })
+                    .y1(function (d) { return y(d.max) })
+
                 var maxLine = d3.svg.line()
                     .interpolate("basis")
                     .x(function (d) { return x(d.time) })
                     .y(function (d) { return y(d.max) })
+
                 var minLine = d3.svg.line()
                     .interpolate("basis")
                     .x(function (d) { return x(d.time) })
                     .y(function (d) { return y(d.min) })
+
                 var avgLine = d3.svg.line()
                     .interpolate("basis")
                     .x(function (d) { return x(d.time) })
@@ -453,21 +461,38 @@ goldstone.nova.apiPerf.update = function () {
                     .style("text-anchor", "middle")
 
                 // initialize the chart lines
-                ns.chart.append('path')
-                    .attr('class', 'line')
-                    .attr('id', 'maxLine')
+                ns.chart.append("path")
                     .datum(json)
-                    .attr('d', maxLine)
-                ns.chart.append('path')
-                    .attr('class', 'line')
-                    .attr('id', 'avgLine')
-                    .datum(json)
-                    .attr('d', avgLine)
+                    .attr("class", "area")
+                    .attr("id", "minMaxArea")
+                    .attr("d", area)
+                    .attr("fill", colorbrewer.Spectral[10][4])
+                    .style("opacity", 0.3)
+
                 ns.chart.append('path')
                     .attr('class', 'line')
                     .attr('id', 'minLine')
+                    .style("stroke", colorbrewer.Spectral[10][8])
                     .datum(json)
                     .attr('d', minLine)
+
+
+                ns.chart.append('path')
+                    .attr('class', 'line')
+                    .attr('id', 'maxLine')
+                    .style("stroke", colorbrewer.Spectral[10][1])
+                    .datum(json)
+                    .attr('d', maxLine)
+
+
+                ns.chart.append('path')
+                    .attr('class', 'line')
+                    .attr('id', 'avgLine')
+                    .style("stroke-dasharray", ("3, 3"))
+                    .style("stroke", colorbrewer.Greys[3][1])
+                    .datum(json)
+                    .attr('d', avgLine)
+
 
 
 
