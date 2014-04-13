@@ -143,7 +143,8 @@ class InnerTimeRangeView(TemplateView):
                                 content_type="application/json")
 
         return TemplateView.render_to_response(
-            self, {'data': json.dumps(response)})
+            self, {'data': json.dumps(response), 'start': context['start'],
+                   'end': context['end'], 'interval': context['interval']})
 
 
 class DiscoverView(TopLevelView):
@@ -170,11 +171,17 @@ class ApiPerfView(InnerTimeRangeView):
                            context['interval']).get()
         logger.debug("[_handle_request] data = %s", self.data)
 
+        # good policy, but don't think it is required for this specific dataset
         if not self.data.empty:
-            self.data = self.data.set_index('key').fillna(0)
+            self.data = self.data.fillna(0)
 
-        response = self.data.transpose().to_dict(outtype='list')
-        logger.debug('[_handle_request] response = %s', json.dumps(response))
+        # record output may be a bit bulkier, but easier to process by D3.
+        # keys appear to be in alphabetical order, so could use orient=values
+        # to trim it down, or pass it in a binary format if things get really
+        # messy.
+        response = self.data.to_json(orient='records')
+        #response = self.data.transpose().to_dict(outtype='list')
+        logger.info('[_handle_request] response = %s', json.dumps(response))
         return response
 
 
