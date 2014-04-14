@@ -168,7 +168,7 @@ class ApiPerfView(InnerTimeRangeView):
 
         logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
         self.data = ApiPerfData(context['start_dt'], context['end_dt'],
-                           context['interval']).get()
+                                context['interval']).get()
         logger.debug("[_handle_request] data = %s", self.data)
 
         # good policy, but don't think it is required for this specific dataset
