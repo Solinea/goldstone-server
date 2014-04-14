@@ -188,9 +188,8 @@ class ApiPerfData(ESData):
         assert type(start) is datetime, "start is not a datetime: %r" % \
                                         type(start)
         assert type(end) is datetime, "end is not a datetime: %r" % type(end)
-        assert type(interval) in [StringType,
-                                  unicode], "interval is not a string: %r" \
-                                            % type(interval)
+        assert type(interval) in [StringType, unicode], \
+            "interval is not a string: %r" % type(interval)
         assert interval[-1] in ['s', 'm', 'h', 'd'], \
             "valid units for interval are ['s', 'm', 'h', 'd']: %r" \
             % interval

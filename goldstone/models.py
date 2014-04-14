@@ -190,19 +190,19 @@ class ESData(object):
     @staticmethod
     def _http_response_aggs_clause(name, field):
         return {
-                name: {
-                    "range": {
-                        "field": field,
-                        "keyed": True,
-                        "ranges": [
-                            {"from": 200, "to": 299},
-                            {"from": 300, "to": 399},
-                            {"from": 400, "to": 499},
-                            {"from": 500, "to": 599}
-                        ]
-                    }
+            name: {
+                "range": {
+                    "field": field,
+                    "keyed": True,
+                    "ranges": [
+                        {"from": 200, "to": 299},
+                        {"from": 300, "to": 399},
+                        {"from": 400, "to": 499},
+                        {"from": 500, "to": 599}
+                    ]
                 }
             }
+        }
 
     @staticmethod
     def _percentiles_aggs_clause(name, field):
@@ -213,6 +213,7 @@ class ESData(object):
                 }
             }
         }
+
     @staticmethod
     def _agg_clause(name, clause):
         return {
