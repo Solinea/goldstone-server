@@ -32,7 +32,6 @@ goldstone.nova.timeRange._url = function (ns, start, end, interval, render, path
     if (typeof render !== 'undefined') {
         url += "&render=" + render
     }
-    console.log("url = " + url)
     return url
 }
 
@@ -340,11 +339,9 @@ goldstone.nova.apiPerf.loadUrl = function (start, end, interval, render, locatio
 
     render = typeof render !== 'undefined' ? render : false
     if (render) {
-        console.log("render was true")
         $(location).load(ns.url(start, end, interval, render))
     } else {
         // just get the data and set it in the spawn object
-        console.log("render was false")
         d3.json(ns.url(ns.start, ns.end, ns.interval), function (error, data) {
             ns.data = data
             ns.update()
@@ -405,6 +402,8 @@ goldstone.nova.apiPerf.update = function () {
                     d.sum_of_squares = d.sum_of_squares * 1000
                     d.sum = d.sum * 1000
                 })
+
+
                 // define our x and y scaling functions
                 var x = d3.time.scale()
                     .domain(d3.extent(json, function(d) { return d.time }))
@@ -435,6 +434,9 @@ goldstone.nova.apiPerf.update = function () {
                     .x(function (d) { return x(d.time) })
                     .y(function (d) { return y(d.avg) })
 
+                var point = ns.chart.selectAll('circle')
+                    .data(json)
+
                 // define our axis functions
                 var xAxis = d3.svg.axis()
                     .scale(x)
@@ -442,6 +444,13 @@ goldstone.nova.apiPerf.update = function () {
                 var yAxis = d3.svg.axis()
                     .scale(y)
                     .orient("left")
+
+                var tip = d3.tip()
+                    .attr('class', 'd3-tip')
+                    .html(function (d) {
+                    return "<p>" + d.time + "<br>Max: " + d.max +
+                        "<br>Avg: " + d.avg + "<br>Min: " + d.min + "<p>"
+                })
 
                 // initialized the axes
                 ns.chart.append('g')
@@ -460,6 +469,9 @@ goldstone.nova.apiPerf.update = function () {
                     .text("Response Time (ms)")
                     .style("text-anchor", "middle")
 
+                // Invoke the tip in the context of your visualization
+                ns.chart.call(tip)
+
                 // initialize the chart lines
                 ns.chart.append("path")
                     .datum(json)
@@ -472,29 +484,32 @@ goldstone.nova.apiPerf.update = function () {
                 ns.chart.append('path')
                     .attr('class', 'line')
                     .attr('id', 'minLine')
+                    .attr('data-legend', "Min")
                     .style("stroke", colorbrewer.Spectral[10][8])
                     .datum(json)
                     .attr('d', minLine)
 
-
                 ns.chart.append('path')
                     .attr('class', 'line')
                     .attr('id', 'maxLine')
+                    .attr('data-legend', "Max")
                     .style("stroke", colorbrewer.Spectral[10][1])
                     .datum(json)
                     .attr('d', maxLine)
 
-
                 ns.chart.append('path')
                     .attr('class', 'line')
                     .attr('id', 'avgLine')
+                    .attr('data-legend', "Avg")
                     .style("stroke-dasharray", ("3, 3"))
                     .style("stroke", colorbrewer.Greys[3][1])
                     .datum(json)
                     .attr('d', avgLine)
 
-
-
+                var legend = ns.chart.append("g")
+                    .attr("class", "legend")
+                    .attr("transform", "translate(20,0)")
+                    .call(d3.legend)
 
                 // UPDATE
                 // Update old elements as needed.
@@ -502,6 +517,31 @@ goldstone.nova.apiPerf.update = function () {
 
                 // ENTER
                 // Create new elements as needed.
+                point.enter()
+                    .append('circle')
+                    .attr('r', function () { return 5 })
+                    .attr('cy', function (d) { return y(d.max) })
+                    .attr('cx', function (d, i) { return x(d.time) })
+                    .style('opacity', 0)
+                    .on('mouseover', tip.show)
+                    .on('mouseout', tip.hide)
+                point.enter()
+                    .append('circle')
+                    .attr('r', function () { return 5 })
+                    .attr('cy', function (d) { return y(d.avg) })
+                    .attr('cx', function (d, i) { return x(d.time) })
+                    .style('opacity', 0)
+                    .on('mouseover', tip.show)
+                    .on('mouseout', tip.hide)
+                point.enter()
+                    .append('circle')
+                    .attr('r', function () { return 5 })
+                    .attr('cy', function (d) { return y(d.min) })
+                    .attr('cx', function (d, i) { return x(d.time) })
+                    .style('opacity', 0)
+                    .on('mouseover', tip.show)
+                    .on('mouseout', tip.hide)
+
 
 
                 // ENTER + UPDATE
