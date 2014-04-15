@@ -10,12 +10,11 @@ class DiscoverView(TopLevelView):
 
 
 class ReportView(TopLevelView):
-    logger.info("entering KeystoneReportView")
     template_name = 'keystone_report.html'
 
 
-class ApiPerfView(ApiPerfView):
-    my_template_name = 'keystone_api_perf.html'
+class AuthApiPerfView(ApiPerfView):
+    my_template_name = 'auth_api_perf.html'
 
     def _get_data(self, context):
         return ApiPerfData().get(context['start_dt'], context['end_dt'],

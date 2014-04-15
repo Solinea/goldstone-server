@@ -2,7 +2,7 @@
  * Created by stanford on 4/14/14.
  */
 goldstone.namespace('keystone.report')
-goldstone.namespace('keystone.apiPerf')
+goldstone.namespace('keystone.authApiPerf')
 goldstone.namespace('keystone.timeRange')
 
 goldstone.keystone.timeRange._url = function (ns, start, end, interval, render, path) {
@@ -22,9 +22,9 @@ goldstone.keystone.timeRange._url = function (ns, start, end, interval, render, 
     return url
 }
 
-goldstone.keystone.apiPerf.url = function (start, end, interval, render) {
+goldstone.keystone.authApiPerf.url = function (start, end, interval, render) {
     "use strict";
-    var ns = goldstone.keystone.apiPerf,
-        path = "/keystone/api_perf"
+    var ns = goldstone.keystone.authApiPerf,
+        path = "/keystone/auth_api_perf"
     return goldstone.keystone.timeRange._url(ns, start, end, interval, render, path)
 }

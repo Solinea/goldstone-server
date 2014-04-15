@@ -13,12 +13,12 @@
     <script>
 $(document).ready(function () {
     var nsReport = goldstone.keystone.report
-    var nsApiPerf = goldstone.keystone.apiPerf
-    nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf)
+    var nsAuthApiPerf = goldstone.keystone.authApiPerf
+    nsAuthApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsAuthApiPerf)
     nsReport.start = goldstone.time.fromPyTs({{ start_ts|to_js }})
     nsReport.end = goldstone.time.fromPyTs({{ end_ts|to_js }})
     nsReport.interval = {{ interval|to_js }}
-    nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval, true, '#keystone-report-r1-c1')
+    nsAuthApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval, true, '#keystone-report-r1-c1')
 })
     </script>
 
