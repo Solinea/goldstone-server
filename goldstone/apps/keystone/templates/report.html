@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load custom_filters %}
+
+{% block localcss %}
+    <link href="{% static 'intelligence/css/intelligence.css' %}"
+          rel="stylesheet" media="screen">
+{% endblock %}
+
+{% block localjs %}
+    <script src="{% static 'nova/js/nova.js' %}"></script>
+    <script>
+$(document).ready(function () {
+    var gnd = goldstone.keystone.report
+    var gnapi = goldstone.keystone.apiPerf
+    gnd.start = goldstone.time.fromPyTs({{ start_ts|to_js }})
+    gnd.end = goldstone.time.fromPyTs({{ end_ts|to_js }})
+    gnd.interval = {{ interval|to_js }}
+    gnapi.loadUrl(gnd.start, gnd.end, gnd.interval, true, '#keystone-report-r1-c1')
+})
+    </script>
+
+{% endblock %}
+
+
+{% block content %}
+
+    <div id="keystone-report-r1" class="row">
+        <div id="keystone-report-r1-c1" class="col-md-6"></div>
+        <div id="keystone-report-r1-c2" class="col-md-6"></div>
+    </div>
+    <div id="keystone-report-r2" class="row">
+        <div id="keystone-report-r2-c1" class="col-md-6"></div>
+        <div id="keystone-report-r2-c2" class="col-md-6"></div>
+    </div>
+    <div id="keystone-report-r3" class="row">
+        <div id="keystone-report-r3-c1" class="col-md-6"></div>
+        <div id="keystone-report-r3-c2" class="col-md-6"></div>
+    </div>
+
+{% endblock %}
+
+
+
+
+
+
