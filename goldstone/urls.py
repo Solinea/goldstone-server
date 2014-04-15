@@ -3,11 +3,8 @@ from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf import settings
 from django.views.generic import RedirectView
-
 from djangojs.views import QUnitView
-
 import logging
-
 import waffle
 
 logger = logging.getLogger(__name__)
@@ -21,9 +18,10 @@ urlpatterns = patterns(
         name='discover'),
     url(r'^intelligence/', include('goldstone.apps.intelligence.urls')),
     url(r'^nova/', include('goldstone.apps.nova.urls')),
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^keystone/', include('goldstone.apps.keystone.urls')),
     url(r'^cockpit[/]?$', include('goldstone.apps.cockpit.urls')),
-    url(r'^$', RedirectView.as_view(url='/discover'), name='home')
+    url(r'^$', RedirectView.as_view(url='/discover'), name='home'),
+    url(r'^admin/', include(admin.site.urls)),
 )
 
 if settings.QUNIT_ENABLED:

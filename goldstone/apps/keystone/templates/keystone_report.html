@@ -5,18 +5,20 @@
 {% block localcss %}
     <link href="{% static 'intelligence/css/intelligence.css' %}"
           rel="stylesheet" media="screen">
+
 {% endblock %}
 
 {% block localjs %}
-    <script src="{% static 'nova/js/nova.js' %}"></script>
+    <script src="{% static 'keystone/js/keystone.js' %}"></script>
     <script>
 $(document).ready(function () {
-    var gnd = goldstone.keystone.report
-    var gnapi = goldstone.keystone.apiPerf
-    gnd.start = goldstone.time.fromPyTs({{ start_ts|to_js }})
-    gnd.end = goldstone.time.fromPyTs({{ end_ts|to_js }})
-    gnd.interval = {{ interval|to_js }}
-    gnapi.loadUrl(gnd.start, gnd.end, gnd.interval, true, '#keystone-report-r1-c1')
+    var nsReport = goldstone.keystone.report
+    var nsApiPerf = goldstone.keystone.apiPerf
+    nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf)
+    nsReport.start = goldstone.time.fromPyTs({{ start_ts|to_js }})
+    nsReport.end = goldstone.time.fromPyTs({{ end_ts|to_js }})
+    nsReport.interval = {{ interval|to_js }}
+    nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval, true, '#keystone-report-r1-c1')
 })
     </script>
 

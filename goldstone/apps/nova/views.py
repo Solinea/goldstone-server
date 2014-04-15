@@ -22,15 +22,15 @@ logger = logging.getLogger(__name__)
 
 
 class DiscoverView(TopLevelView):
-    template_name = 'discover.html'
+    template_name = 'nova_discover.html'
 
 
 class ReportView(TopLevelView):
-    template_name = 'report.html'
+    template_name = 'nova_report.html'
 
 
 class ApiPerfView(ApiPerfView):
-    my_template_name = 'api_perf.html'
+    my_template_name = 'nova_api_perf.html'
 
     def _get_data(self, context):
         return ApiPerfData().get(context['start_dt'], context['end_dt'],
