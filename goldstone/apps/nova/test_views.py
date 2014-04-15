@@ -33,7 +33,7 @@ class NovaDiscoverViewTest(SimpleTestCase):
     def _test_good_request(self, url):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'discover.html')
+        self.assertTemplateUsed(response, 'nova_discover.html')
 
     def test_good_request(self):
         url = '/nova/discover?start=' + self.valid_start + \
@@ -183,7 +183,7 @@ class NovaApiPerfViewTest(SimpleTestCase):
             "&render=true"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'api_perf.html')
+        self.assertTemplateUsed(response, 'nova_api_perf.html')
 
     def test_with_implicit_render(self):
         url = '/nova/api_perf?start=' + self.valid_start + \
@@ -191,7 +191,7 @@ class NovaApiPerfViewTest(SimpleTestCase):
             "&interval=" + self.valid_interval
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'api_perf.html')
+        self.assertTemplateUsed(response, 'nova_api_perf.html')
 
     def _test_no_render_success(self, url):
         response = self.client.get(url)

@@ -69,7 +69,6 @@ def _validate(arg_list, context):
 
 class TopLevelView(TemplateView):
     def get_context_data(self, **kwargs):
-        logger.info("entering TopLevelView.get_context_data")
         context = TemplateView.get_context_data(self, **kwargs)
         # use "now" if not provided, will calc start and interval in _validate
         context['end'] = self.request.GET.get('end', str(calendar.timegm(
@@ -168,5 +167,5 @@ class ApiPerfView(InnerTimeRangeView):
         # messy.
         response = self.data.to_json(orient='records')
         #response = self.data.transpose().to_dict(outtype='list')
-        logger.info('[_handle_request] response = %s', json.dumps(response))
+        logger.debug('[_handle_request] response = %s', json.dumps(response))
         return response

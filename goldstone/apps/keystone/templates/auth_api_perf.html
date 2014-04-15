@@ -2,12 +2,12 @@
 {% load custom_filters %}
 <div id = "keystone-api-perf-panel" class="panel panel-primary">
     <div class="panel-heading">
-        <h3 class="panel-title"><i class="fa fa-tasks"></i> Keystone API Performance</h3>
+        <h3 class="panel-title"><i class="fa fa-tasks"></i> Keystone Auth API Performance</h3>
     </div>
     <div class="panel-body" style="height:300px">
         <div id="keystone-api-perf-chart">
             <script>
-var ns = goldstone.keystone.apiPerf
+var ns = goldstone.keystone.authApiPerf
 ns.data = JSON.parse(JSON.parse({{ data|to_js }}))
 ns.h = 300
 ns.location = '#keystone-api-perf-chart'
