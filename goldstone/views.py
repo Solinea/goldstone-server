@@ -68,8 +68,8 @@ def _validate(arg_list, context):
 
 
 class TopLevelView(TemplateView):
-
     def get_context_data(self, **kwargs):
+        logger.info("entering TopLevelView.get_context_data")
         context = TemplateView.get_context_data(self, **kwargs)
         # use "now" if not provided, will calc start and interval in _validate
         context['end'] = self.request.GET.get('end', str(calendar.timegm(
