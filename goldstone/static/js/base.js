@@ -452,6 +452,11 @@ goldstone.charts.bivariateWithAverage = {
                         .x(function (d) { return x(d.time) })
                         .y(function (d) { return y(d.avg) })
 
+                    var hiddenBar = ns.chart.selectAll('.hiddenBar')
+                        .data(json)
+
+                    var hiddenBarWidth = ns.mw / json.length
+
                     var point = ns.chart.selectAll('circle')
                         .data(json)
 
@@ -535,37 +540,66 @@ goldstone.charts.bivariateWithAverage = {
 
                     // ENTER
                     // Create new elements as needed.
-                    point.enter()
-                        .append('circle')
-                        .attr('r', function () { return 5 })
-                        .attr('cy', function (d) { return y(d.max) })
-                        .attr('cx', function (d, i) { return x(d.time) })
-                        .style('opacity', 0)
-                        .on('mouseover', tip.show)
-                        .on('mouseout', tip.hide)
-                    point.enter()
-                        .append('circle')
-                        .attr('r', function () { return 5 })
-                        .attr('cy', function (d) { return y(d.avg) })
-                        .attr('cx', function (d, i) { return x(d.time) })
-                        .style('opacity', 0)
-                        .on('mouseover', tip.show)
-                        .on('mouseout', tip.hide)
-                    point.enter()
-                        .append('circle')
-                        .attr('r', function () { return 5 })
-                        .attr('cy', function (d) { return y(d.min) })
-                        .attr('cx', function (d, i) { return x(d.time) })
-                        .style('opacity', 0)
-                        .on('mouseover', tip.show)
-                        .on('mouseout', tip.hide)
+//                    point.enter()
+//                        .append('circle')
+//                        .attr('r', function () { return 5 })
+//                        .attr('cy', function (d) { return y(d.max) })
+//                        .attr('cx', function (d, i) { return x(d.time) })
+//                        .style('opacity', 0)
+//                        .on('mouseover', tip.show)
+//                        .on('mouseout', tip.hide)
+//                    point.enter()
+//                        .append('circle')
+//                        .attr('r', function () { return 5 })
+//                        .attr('cy', function (d) { return y(d.avg) })
+//                        .attr('cx', function (d, i) { return x(d.time) })
+//                        .style('opacity', 0)
+//                        .on('mouseover', tip.show)
+//                        .on('mouseout', tip.hide)
+//                    point.enter()
+//                        .append('circle')
+//                        .attr('r', function () { return 5 })
+//                        .attr('cy', function (d) { return y(d.min) })
+//                        .attr('cx', function (d, i) { return x(d.time) })
+//                        .style('opacity', 0)
+//                        .on('mouseover', tip.show)
+//                        .on('mouseout', tip.hide)
 
-
+                    hiddenBar.enter()
+                        .append('g')
+                        .attr("transform", function (d, i) {
+                            return "translate(" + i * hiddenBarWidth + ",0)"
+                        })
 
                     // ENTER + UPDATE
                     // Appending to the enter selection expands the update selection to include
                     // entering elements; so, operations on the update selection after appending to
                     // the enter selection will apply to both entering and updating nodes.
+                    hiddenBar.append("rect")
+                        .attr('class', 'hiddenBar')
+                        .attr("y", function (d) { return y(d.max); })
+                        .attr("height", function (d) { return ns.mh - y(d.max) })
+                        .attr("width", hiddenBarWidth - 1)
+                        .on('mouseover', function (d, i) {
+                            var id = "#verticalGuideLine" + i
+                            tip.show(d)
+                            console.log("mouseover id = " + id)
+                            d3.select(id).style("opacity", 0.8)
+                        })
+                        .on('mouseout', function (d, i) {
+                            var id = "#verticalGuideLine" + i
+                            console.log("mouseout id = " + id)
+                            d3.select(id).style("opacity", 0)
+                            tip.hide(d)
+                        })
+
+                    hiddenBar.append("rect")
+                        .attr("class", "verticalGuideLine")
+                        .attr("id", function (d, i) { return "verticalGuideLine" + i})
+                        .attr("x", Math.round(hiddenBarWidth / 2))
+                        .attr("height", ns.mh)
+                        .attr("width", 1)
+                        .style("opacity", 0)
 
 
                     // EXIT
