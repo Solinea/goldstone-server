@@ -158,6 +158,13 @@ svg.e {
 margin-left: 50px;
 }
 
+.hiddenBar {
+    opacity: 0
+}
+
+.verticalGuideLine {
+    opacity: .8
+}
 /* Northward tooltips */
 .d3-tip.n:after {
   content: "\25BC";
