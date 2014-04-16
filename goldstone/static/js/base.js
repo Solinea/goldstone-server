@@ -432,23 +432,27 @@ goldstone.charts.bivariateWithAverage = {
 
                     // define our line functions
                     var area = d3.svg.area()
-                        .interpolate("basis")
+                        .interpolate("cardinal")
+                        .tension(0.85)
                         .x(function (d) { return x(d.time) })
                         .y0(function (d) { return y(d.min) })
                         .y1(function (d) { return y(d.max) })
 
                     var maxLine = d3.svg.line()
-                        .interpolate("basis")
+                        .interpolate("cardinal")
+                        .tension(0.85)
                         .x(function (d) { return x(d.time) })
                         .y(function (d) { return y(d.max) })
 
                     var minLine = d3.svg.line()
-                        .interpolate("basis")
+                        .interpolate("cardinal")
+                        .tension(0.85)
                         .x(function (d) { return x(d.time) })
                         .y(function (d) { return y(d.min) })
 
                     var avgLine = d3.svg.line()
-                        .interpolate("basis")
+                        .interpolate("cardinal")
+                        .tension(0.85)
                         .x(function (d) { return x(d.time) })
                         .y(function (d) { return y(d.avg) })
 
@@ -540,31 +544,6 @@ goldstone.charts.bivariateWithAverage = {
 
                     // ENTER
                     // Create new elements as needed.
-//                    point.enter()
-//                        .append('circle')
-//                        .attr('r', function () { return 5 })
-//                        .attr('cy', function (d) { return y(d.max) })
-//                        .attr('cx', function (d, i) { return x(d.time) })
-//                        .style('opacity', 0)
-//                        .on('mouseover', tip.show)
-//                        .on('mouseout', tip.hide)
-//                    point.enter()
-//                        .append('circle')
-//                        .attr('r', function () { return 5 })
-//                        .attr('cy', function (d) { return y(d.avg) })
-//                        .attr('cx', function (d, i) { return x(d.time) })
-//                        .style('opacity', 0)
-//                        .on('mouseover', tip.show)
-//                        .on('mouseout', tip.hide)
-//                    point.enter()
-//                        .append('circle')
-//                        .attr('r', function () { return 5 })
-//                        .attr('cy', function (d) { return y(d.min) })
-//                        .attr('cx', function (d, i) { return x(d.time) })
-//                        .style('opacity', 0)
-//                        .on('mouseover', tip.show)
-//                        .on('mouseout', tip.hide)
-
                     hiddenBar.enter()
                         .append('g')
                         .attr("transform", function (d, i) {
@@ -583,12 +562,10 @@ goldstone.charts.bivariateWithAverage = {
                         .on('mouseover', function (d, i) {
                             var id = "#verticalGuideLine" + i
                             tip.show(d)
-                            console.log("mouseover id = " + id)
                             d3.select(id).style("opacity", 0.8)
                         })
                         .on('mouseout', function (d, i) {
                             var id = "#verticalGuideLine" + i
-                            console.log("mouseout id = " + id)
                             d3.select(id).style("opacity", 0)
                             tip.hide(d)
                         })
