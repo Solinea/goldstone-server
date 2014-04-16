@@ -19,7 +19,6 @@ goldstone.namespace('settings.charts')
 
 goldstone.settings.charts.maxChartPoints = 100
 goldstone.settings.charts.ordinalColors = ["#6a51a3", "#2171b5", "#238b45", "#d94801", "#cb181d"]
-
 goldstone.settings.charts.margins = { top: 30, bottom: 60, right: 30, left: 50 }
 
 // set up the alert elements in the base template
@@ -376,8 +375,6 @@ goldstone.charts.bivariateWithAverage = {
         render = typeof render !== 'undefined' ? render : false
         if (render) {
             // TODO can we generalize the url function?
-            console.log("this.ns = " + this.ns)
-            console.log("this.ns has url = " + this.ns.hasOwnProperty('url'))
             $(location).load(this.ns.url(start, end, interval, render))
         } else {
             // just get the data
@@ -420,7 +417,6 @@ goldstone.charts.bivariateWithAverage = {
                         d.sum_of_squares = d.sum_of_squares * 1000
                         d.sum = d.sum * 1000
                     })
-
 
                     // define our x and y scaling functions
                     var x = d3.time.scale()
@@ -493,7 +489,7 @@ goldstone.charts.bivariateWithAverage = {
                         .attr("x", 0 - (ns.h / 2))
                         .attr("y", -5)
                         .attr("dy", "1.5em")
-                        .text("Response Time (ms)")
+                        .text(ns.yAxisLabel)
                         .style("text-anchor", "middle")
 
                     // Invoke the tip in the context of your visualization
