@@ -65,6 +65,7 @@ INSTALLED_APPS = (
     'goldstone.apps.cockpit',
     'goldstone.apps.nova',
     'goldstone.apps.keystone',
+    'goldstone.apps.cinder',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -144,10 +145,14 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
         'schedule': RESOURCE_QUERY_INTERVAL,
     },
-    'time_keystone_auth' : {
+    'time_keystone_auth': {
         'task': 'goldstone.apps.keystone.tasks.time_keystone_auth',
         'schedule': API_PERF_QUERY_INTERVAL,
     },
+    'time_cinder_volume_list': {
+        'task': 'goldstone.apps.cinder.tasks.time_cinder_volume_list',
+        'schedule': API_PERF_QUERY_INTERVAL
+    }
 }
 
 # Goldstone config settings
@@ -158,4 +163,4 @@ DEFAULT_PRESENCE_LOOKBACK_HOURS = 1
 OS_USERNAME = 'admin'
 OS_TENANT_NAME = 'admin'
 OS_PASSWORD = 'cr0n0v0r3'
-OS_AUTH_URL = 'http://10.10.11.20:35357/v2.0/'
+OS_AUTH_URL = 'http://10.10.11.20:35357/v2.0'

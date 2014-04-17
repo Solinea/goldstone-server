@@ -11,6 +11,7 @@ import pytz
 
 logger = logging.getLogger(__name__)
 
+
 def _parse_timestamp(ts, tz=pytz.utc):
     try:
         dt = datetime.fromtimestamp(int(ts), tz=tz)
