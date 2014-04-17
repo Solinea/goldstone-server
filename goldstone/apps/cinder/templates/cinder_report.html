@@ -9,16 +9,16 @@
 {% endblock %}
 
 {% block localjs %}
-    <script src="{% static 'keystone/js/keystone.js' %}"></script>
+    <script src="{% static 'cinder/js/cinder.js' %}"></script>
     <script>
 $(document).ready(function () {
-    var nsReport = goldstone.keystone.report
-    var nsAuthApiPerf = goldstone.keystone.authApiPerf
-    nsAuthApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsAuthApiPerf)
+    var nsReport = goldstone.cinder.report
+    var nsVolListPerf = goldstone.cinder.volListApiPerf
+    nsVolListPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsVolListPerf)
     nsReport.start = goldstone.time.fromPyTs({{ start_ts|to_js }})
     nsReport.end = goldstone.time.fromPyTs({{ end_ts|to_js }})
     nsReport.interval = {{ interval|to_js }}
-    nsAuthApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval, true, '#keystone-report-r1-c1')
+    nsVolListPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval, true, '#cinder-report-r1-c1')
 })
     </script>
 
@@ -27,17 +27,17 @@ $(document).ready(function () {
 
 {% block content %}
 
-    <div id="keystone-report-r1" class="row">
-        <div id="keystone-report-r1-c1" class="col-md-6"></div>
-        <div id="keystone-report-r1-c2" class="col-md-6"></div>
+    <div id="cinder-report-r1" class="row">
+        <div id="cinder-report-r1-c1" class="col-md-6"></div>
+        <div id="cinder-report-r1-c2" class="col-md-6"></div>
     </div>
-    <div id="keystone-report-r2" class="row">
-        <div id="keystone-report-r2-c1" class="col-md-6"></div>
-        <div id="keystone-report-r2-c2" class="col-md-6"></div>
+    <div id="cinder-report-r2" class="row">
+        <div id="cinder-report-r2-c1" class="col-md-6"></div>
+        <div id="cinder-report-r2-c2" class="col-md-6"></div>
     </div>
-    <div id="keystone-report-r3" class="row">
-        <div id="keystone-report-r3-c1" class="col-md-6"></div>
-        <div id="keystone-report-r3-c2" class="col-md-6"></div>
+    <div id="cinder-report-r3" class="row">
+        <div id="cinder-report-r3-c1" class="col-md-6"></div>
+        <div id="cinder-report-r3-c2" class="col-md-6"></div>
     </div>
 
 {% endblock %}
