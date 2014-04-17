@@ -13,6 +13,6 @@ urlpatterns = patterns(
         name='cinder-discover-view'),
     url(r'^report[/]?$', ReportView.as_view(),
         name='cinder-report-view'),
-    url(r'^auth_api_perf[/]?$', VolumeListApiPerfView.as_view(),
+    url(r'^vol_list_api_perf[/]?$', VolumeListApiPerfView.as_view(),
         name='cinder-volume-list-api-perf'),
 )
