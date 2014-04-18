@@ -9,8 +9,8 @@ from .views import *
 
 urlpatterns = patterns(
     '',
-    url(r'^discover[/]?$', DiscoverView.as_view(),
-        name='cinder-discover-view'),
+    # url(r'^discover[/]?$', DiscoverView.as_view(),
+    #     name='cinder-discover-view'),
     url(r'^report[/]?$', ReportView.as_view(),
         name='cinder-report-view'),
     url(r'^vol_list_api_perf[/]?$', VolumeListApiPerfView.as_view(),
