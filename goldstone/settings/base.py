@@ -149,8 +149,8 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.apps.keystone.tasks.time_keystone_auth',
         'schedule': API_PERF_QUERY_INTERVAL,
     },
-    'time_cinder_volume_list': {
-        'task': 'goldstone.apps.cinder.tasks.time_cinder_volume_list',
+    'time_cinder_service_list': {
+        'task': 'goldstone.apps.cinder.tasks.time_cinder_service_list',
         'schedule': API_PERF_QUERY_INTERVAL
     }
 }
