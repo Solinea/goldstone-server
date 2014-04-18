@@ -36,4 +36,4 @@ class CockpitViewTest(TestCase):
         response = self.client.get('/cockpit')
         self.assertEqual(response.status_code, 200)
         # TODO find a better way to tests dynamic loaded lease panel
-        #self.assertContains(response, 'lease_panel')
+        # self.assertContains(response, 'lease_panel')

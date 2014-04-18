@@ -137,8 +137,8 @@ def log_search_data(request):
                        kv['program'] if 'program' in kv else "",
                        kv['request_id_list'] if
                        'request_id_list' in kv else "",
-                       kv['type'] if 'type' in kv else "",
-                       kv['received_at'] if 'received_at' in kv else ""])
+                        kv['type'] if 'type' in kv else "",
+                        kv['received_at'] if 'received_at' in kv else ""])
 
     response = {
         "sEcho": int(request.GET.get('sEcho')),
@@ -220,7 +220,7 @@ def _host_presence_stats(domain_start_dt, inspect_start_dt, domain_end_dt):
 
     conn = LogData.get_connection(settings.ES_SERVER)
 
-    #keylist = ['host', 'status']
+    # keylist = ['host', 'status']
     ld = LogData()
     response = ld.get_new_and_missing_nodes(conn, domain_start_dt,
                                             inspect_start_dt,
