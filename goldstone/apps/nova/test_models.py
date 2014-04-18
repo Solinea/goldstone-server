@@ -194,6 +194,6 @@ class ApiPerfDataTest(SimpleTestCase):
     interval = '3600s'
 
     def test_api_perf_data(self):
-        apd = ApiPerfData(self.start, self.end, self.interval)
-        result = apd.get()
+        apd = ApiPerfData()
+        result = apd.get(self.start, self.end, self.interval)
         self.assertFalse(result.empty)

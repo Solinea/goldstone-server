@@ -64,6 +64,7 @@ INSTALLED_APPS = (
     'goldstone.apps.intelligence',
     'goldstone.apps.cockpit',
     'goldstone.apps.nova',
+    'goldstone.apps.keystone',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -129,18 +130,23 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_TASK_SERIALIZER = 'json'
 
 from celery.schedules import crontab
-CONTROLLER_QUERY_INTERVAL = crontab(minute='*/5')
+RESOURCE_QUERY_INTERVAL = crontab(minute='*/5')
+API_PERF_QUERY_INTERVAL = crontab(minute='*/1')
 
 CELERYBEAT_SCHEDULE = {
     # List the availability zone info every 5 minutes
     'nova-az-list': {
         'task': 'goldstone.apps.nova.tasks.nova_az_list',
-        'schedule': CONTROLLER_QUERY_INTERVAL,
+        'schedule': RESOURCE_QUERY_INTERVAL,
     },
     # List the hypervisor stats every 5 minutes
     'nova-hypervisors-stats': {
         'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
-        'schedule': CONTROLLER_QUERY_INTERVAL,
+        'schedule': RESOURCE_QUERY_INTERVAL,
+    },
+    'time_keystone_auth' : {
+        'task': 'goldstone.apps.keystone.tasks.time_keystone_auth',
+        'schedule': API_PERF_QUERY_INTERVAL,
     },
 }
 

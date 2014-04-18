@@ -1,8 +1,15 @@
 from django.conf import settings
 from elasticsearch import Elasticsearch
+from datetime import datetime
+from types import StringType
+import json
+import logging
+import pandas as pd
+
 
 __author__ = 'stanford'
 
+logger = logging.getLogger(__name__)
 
 class GSConnection(object):
     conn = None
@@ -219,3 +226,107 @@ class ESData(object):
         return {
             name: clause
         }
+
+
+class ApiPerfData(ESData):
+    _DOC_TYPE = 'openstack_api_stats'
+    _INDEX_PREFIX = 'logstash-'
+    # override component for implementation
+    component = None
+
+    def _api_perf_query(self, start, end, interval):
+        """
+        Sets up a query that does aggregations on the response_time field min,
+        max, avg for the bucket.
+        """
+        range_filter = self._range_clause('@timestamp', start.isoformat(),
+                                          end.isoformat())
+        filter_list = [range_filter]
+        if self.component:
+            component_filter = self._term_clause('component', self.component)
+            filter_list.append(component_filter)
+
+        q = self._filtered_query_base(self._bool_clause(
+            filter_list), {'match_all': {}})
+        date_agg = self._agg_date_hist(interval)
+        stats_agg = self._ext_stats_aggs_clause("stats", "response_time")
+        http_response_agg = self._http_response_aggs_clause("range",
+                                                            "response_status")
+        date_agg['events_by_date']['aggs'] = dict(stats_agg.items() +
+                                                  http_response_agg.items())
+        q['aggs'] = date_agg
+        logger.debug('[_api_perf_query] query = ' + json.dumps(q))
+        return q
+
+    def get(self, start, end, interval):
+        """
+        :arg start: datetime used to filter the query range
+        :arg end: datetime used to filter the query range
+        :arg interval: string representation of the time interval to use when
+        aggregating the results.  Form should be something like: '1.5s'.
+        Supported time postfixes are s, m, h, d, w, m.
+        """
+        assert type(start) is datetime, "start is not a datetime: %r" % \
+                                        type(start)
+        assert type(end) is datetime, "end is not a datetime: %r" % type(end)
+        assert type(interval) in [StringType, unicode], \
+            "interval is not a string: %r" % type(interval)
+        assert interval[-1] in ['s', 'm', 'h', 'd'], \
+            "valid units for interval are ['s', 'm', 'h', 'd']: %r" \
+            % interval
+
+        q = self._api_perf_query(start, end, interval)
+        r = self._conn.search(index="_all", body=q, doc_type=self._DOC_TYPE)
+        logger.debug('[get] search response = = %s', json.dumps(r))
+        items = []
+        for date_bucket in r['aggregations']['events_by_date']['buckets']:
+            logger.debug("[get] processing date_bucket: %s",
+                         json.dumps(date_bucket))
+            item = {'key': date_bucket['key']}
+            item = dict(item.items() + date_bucket['stats'].items())
+            item['2xx'] = \
+                date_bucket['range']['buckets']['200.0-299.0']['doc_count']
+            item['3xx'] = \
+                date_bucket['range']['buckets']['300.0-399.0']['doc_count']
+            item['4xx'] = \
+                date_bucket['range']['buckets']['400.0-499.0']['doc_count']
+            item['5xx'] = \
+                date_bucket['range']['buckets']['500.0-599.0']['doc_count']
+
+            items.append(item)
+
+        logger.debug('[get] items = %s', json.dumps(items))
+        result = pd.read_json(json.dumps(items), orient='records',
+                              convert_axes=False)
+        logger.debug('[get] pd = %s', result)
+        return result
+
+    def post(self, body):
+        """
+        posts an ApiPerf record to the database.
+        :arg body: record body as JSON object
+        :return id of the inserted record
+        """
+        response = self._conn.create(
+            ESData._get_latest_index(self, self._INDEX_PREFIX),
+            self._DOC_TYPE, body, refresh=True)
+        logger.debug('[post] response = %s', json.dumps(response))
+        return response['_id']
+
+    def delete(self, doc_id):
+        """
+        deletes an ApiPerf Zone record from the database by id.
+        :arg doc_id: the id of the doc as returned by post
+        :return bool
+        """
+        q = ESData._query_base()
+        q['query'] = ESData._term_clause("_id", doc_id)
+        response = self._conn.delete_by_query("_all", self._DOC_TYPE, body=q)
+        logger.debug("[delete] response = %s", json.dumps(response))
+
+        # need to test for a single index case where there is no "all" field
+        if 'all' in response['_indices']:
+            return not bool(response['_indices']['all']['_shards']['failed'])
+        else:
+            return not bool(response['_indices'].
+                            values()[0]['_shards']['failed'])

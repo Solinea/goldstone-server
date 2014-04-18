@@ -71,3 +71,136 @@ code {
 .panel-body {
     background-color: #FFFFFF;
 }
+
+.node {
+  cursor: pointer;
+  stroke: #3182bd;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  font-size: 12px;
+  stroke-width: 0;
+}
+
+.icon text {
+  font-size: 12px;
+  stroke-width: 0;
+}
+
+.link {
+  fill: none;
+  stroke: #9ecae1;
+  stroke-width: 1.5px;
+}
+
+.instantaneous-data {
+    font-size: 36px;
+    stroke-width: 0;
+    fill: #3282ac;
+    alignment-baseline: middle;
+}
+
+.instantaneous-label {
+    font-size: 24px;
+    stroke-width: 0;
+    fill: #3282ac;
+    alignment-baseline: middle;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke-width: 1.5px;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+.axis text {
+    font: 10px sans-serif;
+}
+
+.axis.label text {
+    font: 14px sans-serif;
+}
+
+.line {
+  fill: none;
+  stroke-width: 1.5px;
+}
+
+.d3-tip {
+  line-height: 1;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  position: absolute;
+  pointer-events: none;
+}
+
+svg.n, svg.s {
+    margin-left: 50px;
+    margin-right: 50px;
+}
+
+svg.e {
+margin-left: 50px;
+}
+
+.hiddenBar {
+    opacity: 0
+}
+
+.verticalGuideLine {
+    opacity: .8
+}
+/* Northward tooltips */
+.d3-tip.n:after {
+  content: "\25BC";
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+  text-align: center;
+}
+
+/* Eastward tooltips */
+.d3-tip.e:after {
+  content: "\25C0";
+  margin: -4px 0 0 0;
+  top: 50%;
+  left: -8px;
+}
+
+/* Southward tooltips */
+.d3-tip.s:after {
+  content: "\25B2";
+  margin: 0 0 1px 0;
+  top: -8px;
+  left: 0;
+  text-align: center;
+}
+
+/* Westward tooltips */
+.d3-tip.w:after {
+  content: "\25B6";
+  margin: -4px 0 0 -1px;
+  top: 50%;
+  left: 100%;
+}
+
+.legend rect {
+  fill:white;
+  stroke:black;
+  opacity:0.0;
+}
