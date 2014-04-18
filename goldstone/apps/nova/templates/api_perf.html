@@ -1,0 +1,26 @@
+{% load staticfiles %}
+{% load custom_filters %}
+<div id = "nova-api-perf-panel" class="panel panel-primary">
+    <div class="panel-heading">
+        <h3 class="panel-title"><i class="fa fa-tasks"></i> API Performance</h3>
+    </div>
+    <div class="panel-body" style="height:300px">
+        <div id="nova-api-perf-chart">
+            <script>
+var ns = goldstone.nova.apiPerf
+ns.data = JSON.parse(JSON.parse({{ data|to_js }}))
+ns.h = 300
+ns.location = '#nova-api-perf-chart'
+ns.spinner = '#nova-api-perf-spinner'
+ns.start = {{ start|to_js }}
+ns.end = {{ end|to_js }}
+ns.interval = {{ interval|to_js }}
+ns.init()
+            </script>
+            <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                 id="nova-api-perf-spinner"
+                 class="ajax-loader"/>
+            <div class="clearfix"></div>
+        </div>
+    </div>
+</div>

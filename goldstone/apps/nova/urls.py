@@ -29,4 +29,6 @@ urlpatterns = patterns(
         name='nova-hypervisor-latest-stats'),
     url(r'^zones[/]?$', ZonesView.as_view(),
         name='nova-zones'),
+    url(r'^api_perf[/]?$', ApiPerfView.as_view(),
+        name='nova-api-perf'),
 )

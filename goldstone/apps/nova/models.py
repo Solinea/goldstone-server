@@ -60,7 +60,7 @@ class NovaClientData(ESData):
                                      doc_type=self._DOC_TYPE,
                                      body=q, size=count,
                                      sort={'@timestamp': 'desc'})
-        logger.info("[get] response = %s", json.dumps(response))
+        logger.debug("[get] response = %s", json.dumps(response))
         return [h['_source'] for h in response['hits']['hits']]
 
     def post(self, body):
@@ -172,6 +172,77 @@ class SpawnData(ESData):
         """Return a pandas dataframe with the results of a query for nova spawn
         failure events"""
         return self._get_spawn_finish(False)
+
+
+class ApiPerfData(ESData):
+    _DOC_TYPE = 'openstack_api_stats'
+
+    def __init__(self, start, end, interval):
+        """
+        :arg start: datetime used to filter the query range
+        :arg end: datetime used to filter the query range
+        :arg interval: string representation of the time interval to use when
+        aggregating the results.  Form should be something like: '1.5s'.
+        Supported time postfixes are s, m, h, d, w, m.
+        """
+        assert type(start) is datetime, "start is not a datetime: %r" % \
+                                        type(start)
+        assert type(end) is datetime, "end is not a datetime: %r" % type(end)
+        assert type(interval) in [StringType, unicode], \
+            "interval is not a string: %r" % type(interval)
+        assert interval[-1] in ['s', 'm', 'h', 'd'], \
+            "valid units for interval are ['s', 'm', 'h', 'd']: %r" \
+            % interval
+
+        self.start = start
+        self.end = end
+        self.interval = interval
+
+    def _api_perf_query(self):
+        """
+        Sets up a query that does aggregations on the response_time field min,
+        max, avg for the bucket.
+        """
+        range_filter = self._range_clause('@timestamp', self.start.isoformat(),
+                                          self.end.isoformat())
+        q = self._filtered_query_base(self._bool_clause(
+            [range_filter]), {'match_all': {}})
+        date_agg = self._agg_date_hist(self.interval)
+        stats_agg = self._ext_stats_aggs_clause("stats", "response_time")
+        http_response_agg = self._http_response_aggs_clause("range",
+                                                            "response_status")
+        date_agg['events_by_date']['aggs'] = dict(stats_agg.items() +
+                                                  http_response_agg.items())
+        q['aggs'] = date_agg
+        logger.debug('[_api_perf_query] query = ' + json.dumps(q))
+        return q
+
+    def get(self):
+        q = self._api_perf_query()
+        r = self._conn.search(index="_all", body=q, doc_type=self._DOC_TYPE)
+        logger.debug('[get] search response = = %s', json.dumps(r))
+        items = []
+        for date_bucket in r['aggregations']['events_by_date']['buckets']:
+            logger.debug("[get] processing date_bucket: %s",
+                         json.dumps(date_bucket))
+            item = {'key': date_bucket['key']}
+            item = dict(item.items() + date_bucket['stats'].items())
+            item['2xx'] = \
+                date_bucket['range']['buckets']['200.0-299.0']['doc_count']
+            item['3xx'] = \
+                date_bucket['range']['buckets']['300.0-399.0']['doc_count']
+            item['4xx'] = \
+                date_bucket['range']['buckets']['400.0-499.0']['doc_count']
+            item['5xx'] = \
+                date_bucket['range']['buckets']['500.0-599.0']['doc_count']
+
+            items.append(item)
+
+        logger.info('[get] items = %s', json.dumps(items))
+        result = pd.read_json(json.dumps(items), orient='records',
+                              convert_axes=False)
+        logger.info('[get] pd = %s', result)
+        return result
 
 
 class ResourceData(ESData):

@@ -19,6 +19,7 @@ goldstone.namespace('settings.charts')
 
 goldstone.settings.charts.maxChartPoints = 100
 goldstone.settings.charts.ordinalColors = ["#6a51a3", "#2171b5", "#238b45", "#d94801", "#cb181d"]
+
 goldstone.settings.charts.margins = { top: 30, bottom: 60, right: 30, left: 50 }
 
 // set up the alert elements in the base template
@@ -329,7 +330,9 @@ goldstone.charts.lineChartBase = function (location, margins, renderlet) {
     return chart
 }
 
-
+window.onerror = function (message, fileURL, lineNumber) {
+    console.log(message + ': ' + fileURL + ': ' + lineNumber)
+}
 
 // convenience for date manipulation
 Date.prototype.addSeconds = function (m) {

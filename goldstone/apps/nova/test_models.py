@@ -186,3 +186,14 @@ class ResourceDataTest(SimpleTestCase):
         ]
 
         self._test_claims(type_field, test_params, prd)
+
+
+class ApiPerfDataTest(SimpleTestCase):
+    start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
+    end = datetime.now(tz=pytz.utc)
+    interval = '3600s'
+
+    def test_api_perf_data(self):
+        apd = ApiPerfData(self.start, self.end, self.interval)
+        result = apd.get()
+        self.assertFalse(result.empty)
