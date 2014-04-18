@@ -20,7 +20,7 @@ def nova_az_list(self):
     response['@timestamp'] = t.strftime(
         "%Y-%m-%dT%H:%M:%S." + str(int(round(t.microsecond/1000))) + "Z")
     response['task_id'] = self.request.id
-    #logger.info("[nova_az_list] response = %s", json.dumps(response))
+    # logger.info("[nova_az_list] response = %s", json.dumps(response))
     azdb = AvailabilityZoneData()
     id = azdb.post(response)
     logger.info("[nova_az_list] id = %s", id)

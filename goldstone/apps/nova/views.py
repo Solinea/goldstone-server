@@ -58,7 +58,7 @@ def _validate(arg_list, context):
                 td.seconds + td.days * 24 * 3600) * 10 ** 6) / 10 ** 6
             context['interval'] = str(
                 delta_secs / settings.DEFAULT_CHART_BUCKETS) + "s"
-        #elif context['interval'][-1] not in ['s', 'm', 'h', 'd', 'w']:
+        # elif context['interval'][-1] not in ['s', 'm', 'h', 'd', 'w']:
         elif context['interval'][-1] not in ['s']:
             validation_errors.append(
                 'malformed parameter [interval], valid example is 3600.0s')
@@ -180,7 +180,7 @@ class ApiPerfView(InnerTimeRangeView):
         # to trim it down, or pass it in a binary format if things get really
         # messy.
         response = self.data.to_json(orient='records')
-        #response = self.data.transpose().to_dict(outtype='list')
+        # response = self.data.transpose().to_dict(outtype='list')
         logger.info('[_handle_request] response = %s', json.dumps(response))
         return response
 
@@ -396,7 +396,7 @@ class DiskView(ResourceView):
                           context['interval'])
         self.data = rd.get_phys_disk()
 
-         # since this is spotty data, we'll use the cummulative max to carry
+        # since this is spotty data, we'll use the cummulative max to carry
         # totals forward
         self.data['total'] = self.data['total'].cummax()
         # for the used columns, we want to fill zeros with the last non-zero
@@ -456,7 +456,7 @@ class ZonesView(TemplateView):
         #       hosts that show up in AZ data, but have not logged anything
 
         azd = AvailabilityZoneData()
-        #new_az = sd.get_date_range(
+        # new_az = sd.get_date_range(
         #    context['start_dt'], context['end_dt'], count=1)
         current_az = azd.get()
         current_az = dict() if len(current_az) == 0 else current_az[0]['zones']
