@@ -19,7 +19,6 @@ goldstone.namespace('settings.charts')
 
 goldstone.settings.charts.maxChartPoints = 100
 goldstone.settings.charts.ordinalColors = ["#6a51a3", "#2171b5", "#238b45", "#d94801", "#cb181d"]
-
 goldstone.settings.charts.margins = { top: 30, bottom: 60, right: 30, left: 50 }
 
 // set up the alert elements in the base template
@@ -328,6 +327,262 @@ goldstone.charts.lineChartBase = function (location, margins, renderlet) {
     }
 
     return chart
+}
+
+goldstone.charts.bivariateWithAverage = {
+    ns: null,
+    /**
+     * Get a new instance of a bivariate chart with your namespace
+     * @param ns
+     * @private
+     */
+    _getInstance: function (ns) {
+        "use strict";
+        var o = Object.create(this)
+        o.ns = ns
+        return o
+    },
+    /**
+     * initialize the chart.  Should not need to override.
+     */
+    init: function () {
+        "use strict";
+        this.initSvg()
+        this.update()
+
+        // TODO test out setInterval and develop updating chart functionality
+        //setInterval(function () {
+        //    var now = new Date()
+        //    if (now > ns.end) {
+        //        ns.end = ns.end.addSeconds(ns.interval)
+        //        ns.start = ns.start.addSeconds(ns.interval)
+        //    }
+        //    ns.loadUrl(ns.start, ns.end, ns.interval)
+        //}, 60000)
+    },
+    /**
+     * Call the backend and retrieve page content and data if render = true,
+     * or just data if render = false.
+     * @param start
+     * @param end
+     * @param interval
+     * @param render
+     * @param location
+     */
+        // TODO can the update in init be pulled to here?
+    loadUrl: function (start, end, interval, render, location) {
+        "use strict";
+        render = typeof render !== 'undefined' ? render : false
+        if (render) {
+            // TODO can we generalize the url function?
+            $(location).load(this.ns.url(start, end, interval, render))
+        } else {
+            // just get the data
+            d3.json(this.ns.url(start, end, interval), function (error, data) {
+                this.ns.data = data
+                this.update()
+            })
+        }
+    },
+    initSvg: function () {
+        "use strict";
+        //TODO can we just make all these ns fields part of this?
+        this.ns.margin = { top: 30, bottom: 60, right: 30, left: 60 }
+        this.ns.w = $(this.ns.location).width()
+        this.ns.mw = this.ns.w - this.ns.margin.left - this.ns.margin.right
+        this.ns.mh = this.ns.h - this.ns.margin.top - this.ns.margin.bottom
+        this.ns.svg = d3.select(this.ns.location)
+            .append("svg")
+                .attr("width", this.ns.w)
+                .attr("height", this.ns.h)
+        this.ns.chart = this.ns.svg.append("g")
+            .attr('class', 'chart')
+            .attr("transform", "translate(" + this.ns.margin.left + "," + this.ns.margin.top + ")")
+    },
+    update: function () {
+        "use strict";
+        if (this.ns.data !== 'undefined') {
+            if (Object.keys(this.ns.data).length === 0) {
+                $(this.ns.location).append("<p> Response was empty.")
+                $(this.ns.spinner).hide()
+            } else {
+                (function (json, ns) {
+                    // set up data, add a time field based on key and convert all times
+                    // to milliseconds
+                    json.forEach(function (d) {
+                        d.time = new Date(Number(d.key))
+                        d.min = d.min * 1000
+                        d.max = d.max * 1000
+                        d.avg = d.avg * 1000
+                        d.sum_of_squares = d.sum_of_squares * 1000
+                        d.sum = d.sum * 1000
+                    })
+
+                    // define our x and y scaling functions
+                    var x = d3.time.scale()
+                        .domain(d3.extent(json, function (d) { return d.time }))
+                        .rangeRound([0, ns.mw])
+                    var y = d3.scale.linear()
+                        .domain([0, d3.max(json, function (d) { return d.max })])
+                        .range([ns.mh, 0])
+
+                    // define our line functions
+                    var area = d3.svg.area()
+                        .interpolate("cardinal")
+                        .tension(0.85)
+                        .x(function (d) { return x(d.time) })
+                        .y0(function (d) { return y(d.min) })
+                        .y1(function (d) { return y(d.max) })
+
+                    var maxLine = d3.svg.line()
+                        .interpolate("cardinal")
+                        .tension(0.85)
+                        .x(function (d) { return x(d.time) })
+                        .y(function (d) { return y(d.max) })
+
+                    var minLine = d3.svg.line()
+                        .interpolate("cardinal")
+                        .tension(0.85)
+                        .x(function (d) { return x(d.time) })
+                        .y(function (d) { return y(d.min) })
+
+                    var avgLine = d3.svg.line()
+                        .interpolate("cardinal")
+                        .tension(0.85)
+                        .x(function (d) { return x(d.time) })
+                        .y(function (d) { return y(d.avg) })
+
+                    var hiddenBar = ns.chart.selectAll('.hiddenBar')
+                        .data(json)
+
+                    var hiddenBarWidth = ns.mw / json.length
+
+                    var point = ns.chart.selectAll('circle')
+                        .data(json)
+
+                    // define our axis functions
+                    var xAxis = d3.svg.axis()
+                        .scale(x)
+                        .orient("bottom")
+                    var yAxis = d3.svg.axis()
+                        .scale(y)
+                        .orient("left")
+
+                    var tip = d3.tip()
+                        .attr('class', 'd3-tip')
+                        .html(function (d) {
+                        return "<p>" + d.time + "<br>Max: " + d.max +
+                            "<br>Avg: " + d.avg + "<br>Min: " + d.min + "<p>"
+                    })
+
+                    // initialized the axes
+                    ns.chart.append('g')
+                        .attr('class', 'x axis')
+                        .attr('transform', 'translate(0, ' + ns.mh + ')')
+                        .call(xAxis);
+                    ns.chart.append('g')
+                        .attr('class', 'y axis')
+                        .call(yAxis)
+                    ns.svg.append("text")
+                        .attr("class", "axis.label")
+                        .attr("transform", "rotate(-90)")
+                        .attr("x", 0 - (ns.h / 2))
+                        .attr("y", -5)
+                        .attr("dy", "1.5em")
+                        .text(ns.yAxisLabel)
+                        .style("text-anchor", "middle")
+
+                    // Invoke the tip in the context of your visualization
+                    ns.chart.call(tip)
+
+                    // initialize the chart lines
+                    ns.chart.append("path")
+                        .datum(json)
+                        .attr("class", "area")
+                        .attr("id", "minMaxArea")
+                        .attr("d", area)
+                        .attr("fill", colorbrewer.Spectral[10][4])
+                        .style("opacity", 0.3)
+
+                    ns.chart.append('path')
+                        .attr('class', 'line')
+                        .attr('id', 'minLine')
+                        .attr('data-legend', "Min")
+                        .style("stroke", colorbrewer.Spectral[10][8])
+                        .datum(json)
+                        .attr('d', minLine)
+
+                    ns.chart.append('path')
+                        .attr('class', 'line')
+                        .attr('id', 'maxLine')
+                        .attr('data-legend', "Max")
+                        .style("stroke", colorbrewer.Spectral[10][1])
+                        .datum(json)
+                        .attr('d', maxLine)
+
+                    ns.chart.append('path')
+                        .attr('class', 'line')
+                        .attr('id', 'avgLine')
+                        .attr('data-legend', "Avg")
+                        .style("stroke-dasharray", ("3, 3"))
+                        .style("stroke", colorbrewer.Greys[3][1])
+                        .datum(json)
+                        .attr('d', avgLine)
+
+                    var legend = ns.chart.append("g")
+                        .attr("class", "legend")
+                        .attr("transform", "translate(20,0)")
+                        .call(d3.legend)
+
+                    // UPDATE
+                    // Update old elements as needed.
+
+
+                    // ENTER
+                    // Create new elements as needed.
+                    hiddenBar.enter()
+                        .append('g')
+                        .attr("transform", function (d, i) {
+                            return "translate(" + i * hiddenBarWidth + ",0)"
+                        })
+
+                    // ENTER + UPDATE
+                    // Appending to the enter selection expands the update selection to include
+                    // entering elements; so, operations on the update selection after appending to
+                    // the enter selection will apply to both entering and updating nodes.
+                    hiddenBar.append("rect")
+                        .attr('class', 'hiddenBar')
+                        .attr("y", function (d) { return y(d.max); })
+                        .attr("height", function (d) { return ns.mh - y(d.max) })
+                        .attr("width", hiddenBarWidth - 1)
+                        .on('mouseover', function (d, i) {
+                            var id = "#verticalGuideLine" + i
+                            tip.show(d)
+                            d3.select(id).style("opacity", 0.8)
+                        })
+                        .on('mouseout', function (d, i) {
+                            var id = "#verticalGuideLine" + i
+                            d3.select(id).style("opacity", 0)
+                            tip.hide(d)
+                        })
+
+                    hiddenBar.append("rect")
+                        .attr("class", "verticalGuideLine")
+                        .attr("id", function (d, i) { return "verticalGuideLine" + i})
+                        .attr("x", Math.round(hiddenBarWidth / 2))
+                        .attr("height", ns.mh)
+                        .attr("width", 1)
+                        .style("opacity", 0)
+
+
+                    // EXIT
+                    // Remove old elements as needed.
+
+                })(this.ns.data, this.ns)
+                $(this.ns.spinner).hide()
+            }
+        }
+    }
 }
 
 window.onerror = function (message, fileURL, lineNumber) {
