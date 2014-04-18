@@ -9,8 +9,8 @@ from .views import *
 
 urlpatterns = patterns(
     '',
-    url(r'^discover[/]?$', DiscoverView.as_view(),
-        name='keystone-discover-view'),
+    # url(r'^discover[/]?$', DiscoverView.as_view(),
+    #     name='keystone-discover-view'),
     url(r'^report[/]?$', ReportView.as_view(),
         name='keystone-report-view'),
     url(r'^auth_api_perf[/]?$', AuthApiPerfView.as_view(),
