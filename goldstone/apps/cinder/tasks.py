@@ -36,7 +36,7 @@ def time_cinder_service_list(self):
         logger.error(e.message)
 
     kt = _get_keystone_client(user, passwd, tenant, auth_url)
-    logger.info(_get_keystone_client.cache_info())
+    logger.debug(_get_keystone_client.cache_info())
 
     try:
         md5 = hashlib.md5()
@@ -62,7 +62,7 @@ def time_cinder_service_list(self):
                         "Z"),
                     'task_id': self.request.id
                     }
-        logger.info("[time_cinder_volume_list] response = %s",
+        logger.debug("response = %s",
                     json.dumps(response))
 
         # clear the cache if the call failed for any reason.
