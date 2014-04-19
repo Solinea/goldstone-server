@@ -59,7 +59,6 @@ class NovaClientData(ESData):
         else:
             return []
 
-
     def get(self, count=1):
         """
         get the last count records from the database.
