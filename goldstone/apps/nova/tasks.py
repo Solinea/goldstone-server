@@ -23,7 +23,7 @@ def nova_az_list(self):
     #logger.info("[nova_az_list] response = %s", json.dumps(response))
     azdb = AvailabilityZoneData()
     id = azdb.post(response)
-    logger.info("[nova_az_list] id = %s", id)
+    logger.debug("[nova_az_list] id = %s", id)
 
 
 @celery_app.task(bind=True)

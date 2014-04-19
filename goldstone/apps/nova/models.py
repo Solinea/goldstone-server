@@ -54,7 +54,7 @@ class NovaClientData(ESData):
                                      sort=sort_str)
         logger.debug("[get_date_range] response = %s", json.dumps(response))
         if len(response['hits']['hits']) > 0:
-            logger.info("[get] response = %s", json.dumps(response))
+            logger.debug("[get] response = %s", json.dumps(response))
             return [h['_source'] for h in response['hits']['hits']]
         else:
             return []
@@ -73,7 +73,7 @@ class NovaClientData(ESData):
                                      sort='@timestamp:desc')
 
         if len(response['hits']['hits']) > 0:
-            logger.info("[get] response = %s", json.dumps(response))
+            logger.debug("[get] response = %s", json.dumps(response))
             return [response['hits']['hits'][0]['_source']]
         else:
             return []

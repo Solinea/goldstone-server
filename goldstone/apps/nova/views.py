@@ -316,8 +316,8 @@ class ZonesView(TemplateView):
             datetime.fromtimestamp(0), context['start_dt'], count=1)
         old_az = dict() if len(old_az) == 0 else old_az[0]['zones']
 
-        logger.info("current_az = %s", json.dumps(current_az))
-        logger.info("old_az = %s", json.dumps(old_az))
+        logger.debug("current_az = %s", json.dumps(current_az))
+        logger.debug("old_az = %s", json.dumps(old_az))
 
         # let's find new and removed hosts
         curr_hosts = [host for zone in current_az for host in zone['hosts']]
