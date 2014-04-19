@@ -63,7 +63,7 @@ def time_cinder_service_list(self):
                     'task_id': self.request.id
                     }
         logger.debug("response = %s",
-                    json.dumps(response))
+                     json.dumps(response))
 
         # clear the cache if the call failed for any reason.
         if not self.reply.status_code == 200:
