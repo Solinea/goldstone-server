@@ -46,17 +46,23 @@ class NovaClientData(ESData):
             '@timestamp',
             start.isoformat(),
             end.isoformat())
+        sort_str = '@timestamp:' + sort
         logger.debug("[get_date_range] query = %s", json.dumps(q))
         response = self._conn.search(index="_all",
                                      doc_type=self._DOC_TYPE,
                                      body=q, size=count, from_=first,
-                                     sort={'@timestamp': sort})
+                                     sort=sort_str)
         logger.debug("[get_date_range] response = %s", json.dumps(response))
-        return [h['_source'] for h in response['hits']['hits']]
+        if len(response['hits']['hits']) > 0:
+            logger.info("[get] response = %s", json.dumps(response))
+            return [h['_source'] for h in response['hits']['hits']]
+        else:
+            return []
+
 
     def get(self, count=1):
         """
-        get the last count Availability Zone records from the database.
+        get the last count records from the database.
         :arg count: number of records to return
         :return array of records
         """
@@ -64,9 +70,13 @@ class NovaClientData(ESData):
         response = self._conn.search(index="_all",
                                      doc_type=self._DOC_TYPE,
                                      body=q, size=count,
-                                     sort={'@timestamp': 'desc'})
-        logger.debug("[get] response = %s", json.dumps(response))
-        return [h['_source'] for h in response['hits']['hits']]
+                                     sort='@timestamp:desc')
+
+        if len(response['hits']['hits']) > 0:
+            logger.info("[get] response = %s", json.dumps(response))
+            return [response['hits']['hits'][0]['_source']]
+        else:
+            return []
 
     def post(self, body):
         """
