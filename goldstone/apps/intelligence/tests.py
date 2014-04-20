@@ -648,7 +648,6 @@ class IntelViewTest(SimpleTestCase):
         logger.debug("[test_get_phys_disk_stats_view] response = %s",
                      json.loads(response.content))
 
-
     # the URI is being used for GSL.  Need to review contents of agent
     # payload and reconcile with data from logs.
     # def test_vcpu_stats_view(self):

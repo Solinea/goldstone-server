@@ -248,7 +248,7 @@ class DiskView(ResourceView):
                           context['interval'])
         self.data = rd.get_phys_disk()
 
-         # since this is spotty data, we'll use the cummulative max to carry
+        # since this is spotty data, we'll use the cummulative max to carry
         # totals forward
         self.data['total'] = self.data['total'].cummax()
         # for the used columns, we want to fill zeros with the last non-zero
@@ -308,7 +308,7 @@ class ZonesView(TemplateView):
         #       hosts that show up in AZ data, but have not logged anything
 
         azd = AvailabilityZoneData()
-        #new_az = sd.get_date_range(
+        # new_az = sd.get_date_range(
         #    context['start_dt'], context['end_dt'], count=1)
         current_az = azd.get()
         current_az = dict() if len(current_az) == 0 else current_az[0]['zones']
