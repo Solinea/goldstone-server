@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load custom_filters %}
+
+
+{% block localcss %}
+    <link href="{% static 'intelligence/css/intelligence.css' %}"
+          rel="stylesheet" media="screen">
+{% endblock %}
+
+{% block localjs %}
+    <script src="{% static 'neutron/js/neutron.js' %}"></script>
+    <script>
+
+$(document).ready(function () {
+    var gnd = goldstone.neutron.discover
+    gnd.start = goldstone.time.fromPyTs({{ start_ts|to_js }})
+    gnd.end = goldstone.time.fromPyTs({{ end_ts|to_js }})
+    // TODO remove interval.  I don't think it is relevant here.
+    gnd.interval = {{ interval|to_js }}
+})
+    </script>
+
+{% endblock %}
+
+
+{% block content %}
+    <div id="neutron-discover-r1" class="row">
+        <div id="neutron-discover-r1-c1" class="col-md-8"></div>
+        <div id="neutron-discover-r1-c2" class="col-md-4"></div>
+    </div>
+    <div id="neutron-discover-r2" class="row">
+        <div id="neutron-discover-r2-c1" class="col-md-6"></div>
+        <div id="neutron-discover-r2-c2" class="col-md-6"></div>
+    </div>
+
+{% endblock %}
+
+
+
+
+
+

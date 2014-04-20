@@ -66,6 +66,8 @@ INSTALLED_APPS = (
     'goldstone.apps.nova',
     'goldstone.apps.keystone',
     'goldstone.apps.cinder',
+    'goldstone.apps.neutron',
+    'goldstone.apps.glance',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -152,7 +154,15 @@ CELERYBEAT_SCHEDULE = {
     'time_cinder_service_list': {
         'task': 'goldstone.apps.cinder.tasks.time_cinder_service_list',
         'schedule': API_PERF_QUERY_INTERVAL
-    }
+    },
+    'time_neutron_agent_list': {
+        'task': 'goldstone.apps.neutron.tasks.time_neutron_agent_list',
+        'schedule': API_PERF_QUERY_INTERVAL
+    },
+    'time_glance_images_list': {
+        'task': 'goldstone.apps.glance.tasks.time_glance_images_list',
+        'schedule': API_PERF_QUERY_INTERVAL
+    },
 }
 
 # Goldstone config settings
