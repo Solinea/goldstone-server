@@ -25,6 +25,6 @@ goldstone.cinder.timeRange._url = function (ns, start, end, interval, render, pa
 goldstone.cinder.volListApiPerf.url = function (start, end, interval, render) {
     "use strict";
     var ns = goldstone.cinder.volListApiPerf,
-        path = "/cinder/vol_list_api_perf"
+        path = "/cinder/service_list_api_perf"
     return goldstone.cinder.timeRange._url(ns, start, end, interval, render, path)
 }

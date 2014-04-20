@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load custom_filters %}
+
+{% block localcss %}
+    <link href="{% static 'intelligence/css/intelligence.css' %}"
+          rel="stylesheet" media="screen">
+
+{% endblock %}
+
+{% block localjs %}
+    <script src="{% static 'glance/js/glance.js' %}"></script>
+    <script>
+$(document).ready(function () {
+    var nsReport = goldstone.glance.report
+    var ns = goldstone.glance.imageApiPerf
+    ns.bivariate = goldstone.charts.bivariateWithAverage._getInstance(ns)
+    nsReport.start = goldstone.time.fromPyTs({{ start_ts|to_js }})
+    nsReport.end = goldstone.time.fromPyTs({{ end_ts|to_js }})
+    nsReport.interval = {{ interval|to_js }}
+    ns.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval, true, '#glance-report-r1-c1')
+})
+    </script>
+
+{% endblock %}
+
+
+{% block content %}
+
+    <div id="glance-report-r1" class="row">
+        <div id="glance-report-r1-c1" class="col-md-6"></div>
+        <div id="glance-report-r1-c2" class="col-md-6"></div>
+    </div>
+    <div id="glance-report-r2" class="row">
+        <div id="glance-report-r2-c1" class="col-md-6"></div>
+        <div id="glance-report-r2-c2" class="col-md-6"></div>
+    </div>
+    <div id="glance-report-r3" class="row">
+        <div id="glance-report-r3-c1" class="col-md-6"></div>
+        <div id="glance-report-r3-c2" class="col-md-6"></div>
+    </div>
+
+{% endblock %}
+
+
+
+
+
+
