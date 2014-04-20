@@ -127,18 +127,18 @@ def log_search_data(request):
     aa_data = []
     for rec in rs['hits']['hits']:
         kv = rec['_source']
-        aa_data.append([kv['@timestamp'] if '@timestamp' in kv else "",
-                       kv['loglevel'] if 'loglevel' in kv else "",
-                       kv['component'] if 'component' in kv else "",
-                       kv['host'] if 'host' in kv else "",
-                       kv['message'] if 'message' in kv else "",
-                       kv['path'] if 'path' in kv else "",
-                       kv['pid'] if 'pid' in kv else "",
-                       kv['program'] if 'program' in kv else "",
-                       kv['request_id_list'] if
-                       'request_id_list' in kv else "",
-                       kv['type'] if 'type' in kv else "",
-                       kv['received_at'] if 'received_at' in kv else ""])
+        aa_data.append([
+            kv['@timestamp'] if '@timestamp' in kv else "",
+            kv['loglevel'] if 'loglevel' in kv else "",
+            kv['component'] if 'component' in kv else "",
+            kv['host'] if 'host' in kv else "",
+            kv['message'] if 'message' in kv else "",
+            kv['path'] if 'path' in kv else "",
+            kv['pid'] if 'pid' in kv else "",
+            kv['program'] if 'program' in kv else "",
+            kv['request_id_list'] if 'request_id_list' in kv else "",
+            kv['type'] if 'type' in kv else "",
+            kv['received_at'] if 'received_at' in kv else ""])
 
     response = {
         "sEcho": int(request.GET.get('sEcho')),
@@ -220,7 +220,7 @@ def _host_presence_stats(domain_start_dt, inspect_start_dt, domain_end_dt):
 
     conn = LogData.get_connection(settings.ES_SERVER)
 
-    #keylist = ['host', 'status']
+    # keylist = ['host', 'status']
     ld = LogData()
     response = ld.get_new_and_missing_nodes(conn, domain_start_dt,
                                             inspect_start_dt,
