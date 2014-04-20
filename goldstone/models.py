@@ -70,7 +70,7 @@ class ESData(object):
     @staticmethod
     def _add_facet(q, facet):
             result = q.copy()
-            if not 'facets' in result:
+            if 'facets' not in result:
                 result['facets'] = {}
 
             result['facets'][facet.keys()[0]] = facet[facet.keys()[0]]

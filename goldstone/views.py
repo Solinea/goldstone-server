@@ -167,6 +167,6 @@ class ApiPerfView(InnerTimeRangeView):
         # to trim it down, or pass it in a binary format if things get really
         # messy.
         response = self.data.to_json(orient='records')
-        #response = self.data.transpose().to_dict(outtype='list')
+        # response = self.data.transpose().to_dict(outtype='list')
         logger.debug('[_handle_request] response = %s', json.dumps(response))
         return response
