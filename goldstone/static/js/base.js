@@ -420,60 +420,47 @@ goldstone.charts.bivariateWithAverage = {
 
                     // define our x and y scaling functions
                     var x = d3.time.scale()
-                        .domain(d3.extent(json, function (d) { return d.time }))
-                        .rangeRound([0, ns.mw])
-                    var y = d3.scale.linear()
-                        .domain([0, d3.max(json, function (d) { return d.max })])
-                        .range([ns.mh, 0])
-
-                    // define our line functions
-                    var area = d3.svg.area()
-                        .interpolate("cardinal")
-                        .tension(0.85)
-                        .x(function (d) { return x(d.time) })
-                        .y0(function (d) { return y(d.min) })
-                        .y1(function (d) { return y(d.max) })
-
-                    var maxLine = d3.svg.line()
-                        .interpolate("cardinal")
-                        .tension(0.85)
-                        .x(function (d) { return x(d.time) })
-                        .y(function (d) { return y(d.max) })
-
-                    var minLine = d3.svg.line()
-                        .interpolate("cardinal")
-                        .tension(0.85)
-                        .x(function (d) { return x(d.time) })
-                        .y(function (d) { return y(d.min) })
-
-                    var avgLine = d3.svg.line()
-                        .interpolate("cardinal")
-                        .tension(0.85)
-                        .x(function (d) { return x(d.time) })
-                        .y(function (d) { return y(d.avg) })
-
-                    var hiddenBar = ns.chart.selectAll('.hiddenBar')
-                        .data(json)
-
-                    var hiddenBarWidth = ns.mw / json.length
-
-                    var point = ns.chart.selectAll('circle')
-                        .data(json)
-
-                    // define our axis functions
-                    var xAxis = d3.svg.axis()
-                        .scale(x)
-                        .orient("bottom")
-                    var yAxis = d3.svg.axis()
-                        .scale(y)
-                        .orient("left")
-
-                    var tip = d3.tip()
-                        .attr('class', 'd3-tip')
-                        .html(function (d) {
-                        return "<p>" + d.time + "<br>Max: " + d.max +
-                            "<br>Avg: " + d.avg + "<br>Min: " + d.min + "<p>"
-                    })
+                            .domain(d3.extent(json, function (d) { return d.time }))
+                            .rangeRound([0, ns.mw]),
+                        y = d3.scale.linear()
+                            .domain([0, d3.max(json, function (d) { return d.max })])
+                            .range([ns.mh, 0]),
+                        area = d3.svg.area()
+                            .interpolate("cardinal")
+                            .tension(0.85)
+                            .x(function (d) { return x(d.time) })
+                            .y0(function (d) { return y(d.min) })
+                            .y1(function (d) { return y(d.max) }),
+                        maxLine = d3.svg.line()
+                            .interpolate("cardinal")
+                            .tension(0.85)
+                            .x(function (d) { return x(d.time) })
+                            .y(function (d) { return y(d.max) }),
+                        minLine = d3.svg.line()
+                            .interpolate("cardinal")
+                            .tension(0.85)
+                            .x(function (d) { return x(d.time) })
+                            .y(function (d) { return y(d.min) }),
+                        avgLine = d3.svg.line()
+                            .interpolate("cardinal")
+                            .tension(0.85)
+                            .x(function (d) { return x(d.time) })
+                            .y(function (d) { return y(d.avg) }),
+                        hiddenBar = ns.chart.selectAll('.hiddenBar')
+                            .data(json),
+                        hiddenBarWidth = ns.mw / json.length,
+                        xAxis = d3.svg.axis()
+                            .scale(x)
+                            .orient("bottom"),
+                        yAxis = d3.svg.axis()
+                            .scale(y)
+                            .orient("left"),
+                        tip = d3.tip()
+                            .attr('class', 'd3-tip')
+                            .html(function (d) {
+                                return "<p>" + d.time + "<br>Max: " + d.max +
+                                    "<br>Avg: " + d.avg + "<br>Min: " + d.min + "<p>"
+                            })
 
                     // initialized the axes
                     ns.chart.append('g')
@@ -550,22 +537,15 @@ goldstone.charts.bivariateWithAverage = {
                     // Appending to the enter selection expands the update selection to include
                     // entering elements; so, operations on the update selection after appending to
                     // the enter selection will apply to both entering and updating nodes.
+
+                    // hidden rectangle for tooltip tethering
                     hiddenBar.append("rect")
                         .attr('class', 'hiddenBar')
+                        .attr("id", function (d, i) { return "verticalRect" + i})
                         .attr("y", function (d) { return y(d.max); })
                         .attr("height", function (d) { return ns.mh - y(d.max) })
                         .attr("width", hiddenBarWidth - 1)
-                        .on('mouseover', function (d, i) {
-                            var id = "#verticalGuideLine" + i
-                            tip.show(d)
-                            d3.select(id).style("opacity", 0.8)
-                        })
-                        .on('mouseout', function (d, i) {
-                            var id = "#verticalGuideLine" + i
-                            d3.select(id).style("opacity", 0)
-                            tip.hide(d)
-                        })
-
+                    // narrow guideline turns on when mouse enters hidden bar
                     hiddenBar.append("rect")
                         .attr("class", "verticalGuideLine")
                         .attr("id", function (d, i) { return "verticalGuideLine" + i})
@@ -573,7 +553,24 @@ goldstone.charts.bivariateWithAverage = {
                         .attr("height", ns.mh)
                         .attr("width", 1)
                         .style("opacity", 0)
-
+                    // wide guideline with mouse event handling to show guide and
+                    // tooltip.
+                    hiddenBar.append("rect")
+                        .attr('class', 'hiddenBar')
+                        .attr("height", ns.mh)
+                        .attr("width", hiddenBarWidth - 1)
+                        .on('mouseover', function (d, i) {
+                            var rectId = "#verticalRect" + i,
+                                guideId = "#verticalGuideLine" + i,
+                                targ = d3.select(rectId).pop().pop()
+                            d3.select(guideId).style("opacity", 0.8)
+                            tip.show(d, targ)
+                        })
+                        .on('mouseout', function (d, i) {
+                            var id = "#verticalGuideLine" + i
+                            d3.select(id).style("opacity", 0)
+                            tip.hide
+                        })
 
                     // EXIT
                     // Remove old elements as needed.

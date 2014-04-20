@@ -11,6 +11,7 @@ __author__ = 'stanford'
 
 logger = logging.getLogger(__name__)
 
+
 class GSConnection(object):
     conn = None
 

@@ -3,4 +3,4 @@ from goldstone.models import ApiPerfData
 
 
 class ApiPerfData(ApiPerfData):
-    component = 'keystone'
+    component = 'cinder'

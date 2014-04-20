@@ -12,12 +12,6 @@ from .models import ApiPerfData
 
 logger = logging.getLogger(__name__)
 
-# wrap a function with args for timeit
-def _func_wrapper(func, *args, **kwargs):
-    def wrapped():
-        return func(*args, **kwargs)
-    return wrapped
-
 
 @celery_app.task(bind=True)
 def time_keystone_auth(self):
@@ -35,8 +29,8 @@ def time_keystone_auth(self):
     user = settings.OS_USERNAME
     passwd = settings.OS_PASSWORD
     url = settings.OS_AUTH_URL + "/tokens"
-    payload = {"auth":{"passwordCredentials":{"username": user,
-                                              "password": passwd}}}
+    payload = {"auth": {"passwordCredentials": {"username": user,
+                                                "password": passwd}}}
     headers = {'content-type': 'application/json'}
     self.reply = requests.post(url, data=json.dumps(payload),
                                headers=headers)
@@ -58,4 +52,3 @@ def time_keystone_auth(self):
     apidb = ApiPerfData()
     id = apidb.post(response)
     logger.info("[time_keystone_auth] id = %s", id)
-
