@@ -48,7 +48,10 @@ def _get_keystone_client(user=settings.OS_USERNAME,
 
 
 def _construct_api_rec(reply, component, ts):
-    rec = {'response_time': reply.elapsed.total_seconds(),
+    td = reply.elapsed
+    total_secs = (td.microseconds + (td.seconds + td.days * 24 * 3600) *
+                  10**6) / 10**6
+    rec = {'response_time': total_secs,
            'response_status': reply.status_code,
            'response_length': int(reply.headers['content-length']),
            'component': component,

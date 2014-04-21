@@ -103,8 +103,10 @@ class UtilsTests(SimpleTestCase):
         ts = datetime.utcnow()
         rec = _construct_api_rec(reply, component, ts)
         self.assertIn('response_time', rec)
-        self.assertEqual(rec['response_time'],
-                         reply.elapsed.total_seconds())
+        td = reply.elapsed
+        total_secs = (td.microseconds + (td.seconds + td.days * 24 * 3600) *
+                      10**6) / 10**6
+        self.assertEqual(rec['response_time'], total_secs)
         self.assertIn('response_status', rec)
         self.assertEqual(rec['response_status'], reply.status_code)
         self.assertIn('response_length', rec)
@@ -112,7 +114,3 @@ class UtilsTests(SimpleTestCase):
                          int(reply.headers['content-length']))
         self.assertIn('component', rec)
         self.assertEqual(rec['component'], component)
-
-
-
-
