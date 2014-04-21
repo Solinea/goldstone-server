@@ -137,20 +137,18 @@ RESOURCE_QUERY_INTERVAL = crontab(minute='*/5')
 API_PERF_QUERY_INTERVAL = crontab(minute='*/1')
 
 CELERYBEAT_SCHEDULE = {
-    # List the availability zone info every 5 minutes
-    'nova-az-list': {
-        'task': 'goldstone.apps.nova.tasks.nova_az_list',
-        'schedule': RESOURCE_QUERY_INTERVAL,
-    },
-    # List the hypervisor stats every 5 minutes
-    'nova-hypervisors-stats': {
-        'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
-        'schedule': RESOURCE_QUERY_INTERVAL,
-    },
-    'time_keystone_auth': {
-        'task': 'goldstone.apps.keystone.tasks.time_keystone_auth',
-        'schedule': API_PERF_QUERY_INTERVAL,
-    },
+#    'nova-az-list': {
+#        'task': 'goldstone.apps.nova.tasks.nova_az_list',
+#        'schedule': RESOURCE_QUERY_INTERVAL,
+#    },
+#    'nova-hypervisors-stats': {
+#        'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
+#        'schedule': RESOURCE_QUERY_INTERVAL,
+#    },
+#    'time_keystone_auth': {
+#        'task': 'goldstone.apps.keystone.tasks.time_keystone_auth',
+#        'schedule': API_PERF_QUERY_INTERVAL,
+#    },
     'time_cinder_service_list': {
         'task': 'goldstone.apps.cinder.tasks.time_cinder_service_list',
         'schedule': API_PERF_QUERY_INTERVAL
