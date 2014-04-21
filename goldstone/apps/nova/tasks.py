@@ -43,6 +43,7 @@ def nova_hypervisors_stats(self):
     id = hvdb.post(response)
     logger.info("[hypervisor_stats] id = %s", id)
 
+
 @celery_app.task(bind=True)
 def time_nova_api(self):
     """

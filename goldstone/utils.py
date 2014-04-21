@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 class GoldstoneAuthError(Exception):
     pass
 
+
 @lru_cache(maxsize=16)
 def _get_keystone_client(user=settings.OS_USERNAME,
                          passwd=settings.OS_PASSWORD,
@@ -52,11 +53,11 @@ def _construct_api_rec(reply, component, ts):
            'uri': urlparse.urlparse(reply.url).path,
            '@timestamp': ts.strftime("%Y-%m-%dT%H:%M:%S." +
                                      str(int(round(ts.microsecond/1000))) +
-                                     "Z")
-    }
+                                     "Z")}
     logger.debug("response = %s",
                  json.dumps(rec))
     return rec
+
 
 def _stored_api_call(component, endpt, path, headers={}, data=None,
                      user=settings.OS_USERNAME,
