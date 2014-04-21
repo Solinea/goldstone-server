@@ -27,22 +27,24 @@ def _get_keystone_client(user=settings.OS_USERNAME,
     clear the cache and retry.
     """
 
-    kt = client.Client(username=user,
-                       password=passwd,
-                       tenant_name=tenant,
-                       auth_url=auth_url)
-
-    if kt.auth_token is None:
+    try:
+        kt = client.Client(username=user,
+                           password=passwd,
+                           tenant_name=tenant,
+                           auth_url=auth_url)
+    except Exception:
         raise GoldstoneAuthError("Keystone client call succeeded, but auth "
                                  "token was not returned.  Check credential "
                                  "settings.")
     else:
-        # not sure if the API would accept an md5 hash of a UUID.
-        # TODO should try to detect whether key is a UUID or a PKI first
-        # doesn't seem to be an obvious pull from the keystone client.  defer.
-        md5 = hashlib.md5()
-        md5.update(kt.auth_token)
-        return {'client': kt, 'hex_token': md5.hexdigest()}
+        if kt.auth_token is None:
+            raise GoldstoneAuthError("Keystone client call succeeded, but "
+                                     "auth token was not returned.  Check "
+                                     "credentials.")
+        else:
+            md5 = hashlib.md5()
+            md5.update(kt.auth_token)
+            return {'client': kt, 'hex_token': md5.hexdigest()}
 
 
 def _construct_api_rec(reply, component, ts):

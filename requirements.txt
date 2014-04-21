@@ -16,3 +16,4 @@ pytz
 pandas
 celery[redis]
 python-novaclient
+python-keystoneclient
