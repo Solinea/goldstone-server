@@ -137,28 +137,32 @@ RESOURCE_QUERY_INTERVAL = crontab(minute='*/5')
 API_PERF_QUERY_INTERVAL = crontab(minute='*/1')
 
 CELERYBEAT_SCHEDULE = {
-#    'nova-az-list': {
-#        'task': 'goldstone.apps.nova.tasks.nova_az_list',
-#        'schedule': RESOURCE_QUERY_INTERVAL,
-#    },
-#    'nova-hypervisors-stats': {
-#        'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
-#        'schedule': RESOURCE_QUERY_INTERVAL,
-#    },
-#    'time_keystone_auth': {
-#        'task': 'goldstone.apps.keystone.tasks.time_keystone_auth',
-#        'schedule': API_PERF_QUERY_INTERVAL,
-#    },
-    'time_cinder_service_list': {
-        'task': 'goldstone.apps.cinder.tasks.time_cinder_service_list',
+    'nova-az-list': {
+        'task': 'goldstone.apps.nova.tasks.nova_az_list',
+        'schedule': RESOURCE_QUERY_INTERVAL,
+    },
+    'nova-hypervisors-stats': {
+        'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
+        'schedule': RESOURCE_QUERY_INTERVAL,
+    },
+    'time_keystone_api': {
+        'task': 'goldstone.apps.keystone.tasks.time_keystone_api',
+        'schedule': API_PERF_QUERY_INTERVAL,
+    },
+    'time_nova_api': {
+        'task': 'goldstone.apps.nova.tasks.time_nova_api',
         'schedule': API_PERF_QUERY_INTERVAL
     },
-    'time_neutron_agent_list': {
-        'task': 'goldstone.apps.neutron.tasks.time_neutron_agent_list',
+    'time_cinder_api': {
+        'task': 'goldstone.apps.cinder.tasks.time_cinder_api',
         'schedule': API_PERF_QUERY_INTERVAL
     },
-    'time_glance_images_list': {
-        'task': 'goldstone.apps.glance.tasks.time_glance_images_list',
+    'time_neutron_api': {
+        'task': 'goldstone.apps.neutron.tasks.time_neutron_api',
+        'schedule': API_PERF_QUERY_INTERVAL
+    },
+    'time_glance_api': {
+        'task': 'goldstone.apps.glance.tasks.time_glance_api',
         'schedule': API_PERF_QUERY_INTERVAL
     },
 }
