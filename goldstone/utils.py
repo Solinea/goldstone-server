@@ -44,7 +44,21 @@ def _get_keystone_client(user=settings.OS_USERNAME,
         return {'client': kt, 'hex_token': md5.hexdigest()}
 
 
-def _stored_api_call(endpt, path, headers={}, data=None,
+def _construct_api_rec(reply, component, ts):
+    rec = {'response_time': reply.elapsed.total_seconds(),
+           'response_status': reply.status_code,
+           'response_length': int(reply.headers['content-length']),
+           'component': component,
+           'uri': urlparse.urlparse(reply.url).path,
+           '@timestamp': ts.strftime("%Y-%m-%dT%H:%M:%S." +
+                                     str(int(round(ts.microsecond/1000))) +
+                                     "Z")
+    }
+    logger.debug("response = %s",
+                 json.dumps(rec))
+    return rec
+
+def _stored_api_call(component, endpt, path, headers={}, data=None,
                      user=settings.OS_USERNAME,
                      passwd=settings.OS_PASSWORD,
                      tenant=settings.OS_TENANT_NAME,
@@ -64,20 +78,6 @@ def _stored_api_call(endpt, path, headers={}, data=None,
         headers.items())
     t = datetime.utcnow()
     reply = requests.get(url, headers=headers, data=data)
-    # TODO should add the host and IP entries here, but it would have to be
-    # pulled out of the URL
-    rec = {'response_time': reply.elapsed.total_seconds(),
-           'response_status': reply.status_code,
-           'response_length': int(reply.headers['content-length']),
-           'component': 'cinder',
-           'uri': urlparse.urlparse(reply.url).path,
-           '@timestamp': t.strftime("%Y-%m-%dT%H:%M:%S." +
-                                    str(int(round(t.microsecond/1000))) +
-                                    "Z")
-    }
-
-    logger.debug("response = %s",
-                 json.dumps(rec))
 
     # someone could change the upstream password to
     # match the configuration credentials after the result was cached.
@@ -87,5 +87,5 @@ def _stored_api_call(endpt, path, headers={}, data=None,
 
     return {
         'reply': reply,
-        'db_record': rec
+        'db_record': _construct_api_rec(reply, component, t)
     }
