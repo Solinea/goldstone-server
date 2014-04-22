@@ -33,17 +33,17 @@ print "query = " + json.dumps(fq)
 result = [conn.search(index="_all", doc_type='syslog', body=fq,
                       size=1000),
           conn.search(index="_all", doc_type="nova_claims_summary_phys",
-                      body=fq, size=1000),
+                      body=fq, size=1000, sort='@timestamp:desc'),
           conn.search(index="_all", doc_type="nova_claims_summary_virt",
-                      body=fq, size=1000),
+                      body=fq, size=1000, sort='@timestamp:desc'),
           conn.search(index="_all", doc_type="nova_spawn_start",
-                      body=fq, size=1000),
+                      body=fq, size=1000, sort='@timestamp:desc'),
           conn.search(index="_all", doc_type="nova_spawn_finish",
-                      body=fq, size=1000),
+                      body=fq, size=1000, sort='@timestamp:desc'),
           conn.search(index="_all", doc_type="nova_hypervisor_stats",
-                      body=fq, size=100),
+                      body=fq, size=1000, sort='@timestamp:desc'),
           conn.search(index="_all", doc_type="openstack_api_stats",
-                      body=fq, size=100)]
+                      body=fq, size=1000, sort='@timestamp:desc')]
 
 print "exporting " + str(len(result)) + " sets"
 
