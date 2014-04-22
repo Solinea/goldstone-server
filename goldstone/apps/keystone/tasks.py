@@ -35,4 +35,8 @@ def time_keystone_api(self):
     t = datetime.utcnow()
     rec = _construct_api_rec(self.reply, "keystone", t)
     apidb = ApiPerfData()
-    apidb.post(rec)
+    rec_id = apidb.post(rec)
+    return {
+        'id': rec_id,
+        'record': rec
+    }
