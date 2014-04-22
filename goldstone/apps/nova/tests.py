@@ -11,4 +11,3 @@ class TaskTests(SimpleTestCase):
         result = time_nova_api()
         self.assertIn('id', result)
         self.assertIn('record', result)
-

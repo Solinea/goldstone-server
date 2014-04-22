@@ -17,6 +17,7 @@ class TaskTests(SimpleTestCase):
         self.assertIn('id', result)
         self.assertIn('record', result)
 
+
 class ViewTests(SimpleTestCase):
     start_dt = datetime.fromtimestamp(0, tz=pytz.utc)
     end_dt = datetime.utcnow()
