@@ -58,4 +58,3 @@ class ViewTests(SimpleTestCase):
 
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
-
