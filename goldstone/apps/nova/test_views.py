@@ -341,3 +341,5 @@ class ResourceViewTest(SimpleTestCase):
         self.assertNotEqual(json.loads(response.content), [])
         logger.debug("[test_get_phys_disk_stats_view] response = %s",
                      json.loads(response.content))
+
+
