@@ -20,3 +20,7 @@ def time_cinder_api(self):
     api_db = ApiPerfData()
     rec_id = api_db.post(result['db_record'])
     logger.debug("[time_cinder_api] id = %s", rec_id)
+    return {
+        'id': rec_id,
+        'record': result['db_record']
+    }
