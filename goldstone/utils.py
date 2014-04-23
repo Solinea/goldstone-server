@@ -1,4 +1,5 @@
 from django.conf import settings
+from keystoneclient.apiclient.exceptions import ClientException
 from goldstone.lru_cache import lru_cache
 from keystoneclient.v2_0 import client
 import logging
@@ -32,16 +33,16 @@ def _get_keystone_client(user=settings.OS_USERNAME,
                            password=passwd,
                            tenant_name=tenant,
                            auth_url=auth_url)
-    except Exception:
-        raise GoldstoneAuthError("Keystone client call succeeded, but auth "
-                                 "token was not returned.  Check credential "
-                                 "settings.")
+    except ClientException:
+        raise
     else:
+        logger.info('kt.auth_token = %s', kt.auth_token)
         if kt.auth_token is None:
             raise GoldstoneAuthError("Keystone client call succeeded, but "
                                      "auth token was not returned.  Check "
                                      "credentials.")
         else:
+            logger.info('kt.auth_token = %s', kt.auth_token)
             md5 = hashlib.md5()
             md5.update(kt.auth_token)
             return {'client': kt, 'hex_token': md5.hexdigest()}
@@ -64,34 +65,34 @@ def _construct_api_rec(reply, component, ts):
     return rec
 
 
-def _stored_api_call(component, endpt, path, headers={}, data=None,
+def stored_api_call(component, endpt, path, headers={}, data=None,
                      user=settings.OS_USERNAME,
                      passwd=settings.OS_PASSWORD,
                      tenant=settings.OS_TENANT_NAME,
                      auth_url=settings.OS_AUTH_URL):
 
     kt = _get_keystone_client(user, passwd, tenant, auth_url)
-    url = None
+
     try:
         url = kt['client'].service_catalog.\
             get_endpoints()[endpt][0]['publicURL'] + path
     except:
         raise LookupError("Could not find a public URL endpoint for %s", endpt)
+    else:
+        headers = dict(
+            {'x-auth-token': kt['hex_token'],
+             'content-type': 'application/json'}.items() +
+            headers.items())
+        t = datetime.utcnow()
+        reply = requests.get(url, headers=headers, data=data)
 
-    headers = dict(
-        {'x-auth-token': kt['hex_token'],
-         'content-type': 'application/json'}.items() +
-        headers.items())
-    t = datetime.utcnow()
-    reply = requests.get(url, headers=headers, data=data)
+        # someone could change the upstream password to
+        # match the configuration credentials after the result was cached.
+        if reply.status_code == requests.codes.unauthorized:
+            logger.debug("clearing keystone client cache due to 401 response")
+            _get_keystone_client.cache_clear()
 
-    # someone could change the upstream password to
-    # match the configuration credentials after the result was cached.
-    if reply.status_code == requests.codes.unauthorized:
-        logger.debug("clearing keystone client cache due to 401 response")
-        _get_keystone_client.cache_clear()
-
-    return {
-        'reply': reply,
-        'db_record': _construct_api_rec(reply, component, t)
-    }
+        return {
+            'reply': reply,
+            'db_record': _construct_api_rec(reply, component, t)
+        }
