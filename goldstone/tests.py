@@ -13,8 +13,9 @@ from goldstone.utils import stored_api_call, _get_keystone_client, \
     _construct_api_rec, GoldstoneAuthError
 import logging
 from datetime import datetime, timedelta
-from mock import patch, PropertyMock
+from mock import patch, PropertyMock, MagicMock, Mock
 from requests.models import Response
+from keystoneclient.v2_0.client import Client
 
 logger = logging.getLogger(__name__)
 
@@ -88,24 +89,45 @@ class UtilsTests(SimpleTestCase):
         self.assertIn('client', reply)
         self.assertIn('hex_token', reply)
 
-    def test_stored_api_call(self, kc, get):
+    @patch('requests.get')
+    @patch('keystoneclient.v2_0.client.Client')
+    @patch('goldstone.utils._get_keystone_client')
+    def test_stored_api_call(self, kc, c, get):
         component = 'nova'
         endpoint = 'compute'
         bad_endpoint = 'xyz'
         path = '/os-hypervisors'
         bad_path = '/xyz'
 
+        # hairy.  need to mock the Client.service_catalog.get_endpoints() call
+        # two ways.  1) raise an exception, 2) return a url
+        fake_response = Response()
+        fake_response.status_code = 200
+        fake_response.url = "http://mock.url"
+        fake_response._content = '{"a":1,"b":2}'
+        fake_response.headers = {'content-length': 1024}
+        fake_response.elapsed = timedelta(days=1)
+        c.service_catalog.get_endpoints.side_effect = ClientException
+        kc.return_value = {'client': c,
+                           'hex_token': 'mock_token'}
         self.assertRaises(LookupError, stored_api_call, component,
                           bad_endpoint, path)
+        c.service_catalog.get_endpoints.side_effect = None
+        c.service_catalog.get_endpoints.return_value = {
+            endpoint: [{'publicURL': fake_response.url}]
+        }
+        fake_response.status_code = 404
+        get.return_value = fake_response
         bad_path_call = stored_api_call(component, endpoint, bad_path)
         self.assertIn('reply', bad_path_call)
         self.assertIn('db_record', bad_path_call)
         self.assertEquals(bad_path_call['db_record']['response_status'], 404)
+        fake_response.status_code = 200
+        get.return_value = fake_response
         good_call = stored_api_call(component, endpoint, path)
         self.assertIn('reply', good_call)
         self.assertIn('db_record', good_call)
         self.assertEquals(good_call['db_record']['response_status'], 200)
-
 
     @patch('goldstone.tests.stored_api_call')
     def test_construct_api_rec(self, sac):

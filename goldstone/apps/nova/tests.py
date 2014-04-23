@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class TaskTests(SimpleTestCase):
-# the patch is specified with the package where the thing is looked up.
+    # the patch is specified with the package where the thing is looked up.
     # see http://www.voidspace.org.uk/python/mock/patch.html#id1.  Also
     # note that the decorators are applied from the bottom upwards. This is
     # the standard way that Python applies decorators. The order of the

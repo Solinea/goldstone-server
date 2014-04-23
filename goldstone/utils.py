@@ -36,13 +36,11 @@ def _get_keystone_client(user=settings.OS_USERNAME,
     except ClientException:
         raise
     else:
-        logger.info('kt.auth_token = %s', kt.auth_token)
         if kt.auth_token is None:
             raise GoldstoneAuthError("Keystone client call succeeded, but "
                                      "auth token was not returned.  Check "
                                      "credentials.")
         else:
-            logger.info('kt.auth_token = %s', kt.auth_token)
             md5 = hashlib.md5()
             md5.update(kt.auth_token)
             return {'client': kt, 'hex_token': md5.hexdigest()}
@@ -66,16 +64,17 @@ def _construct_api_rec(reply, component, ts):
 
 
 def stored_api_call(component, endpt, path, headers={}, data=None,
-                     user=settings.OS_USERNAME,
-                     passwd=settings.OS_PASSWORD,
-                     tenant=settings.OS_TENANT_NAME,
-                     auth_url=settings.OS_AUTH_URL):
+                    user=settings.OS_USERNAME,
+                    passwd=settings.OS_PASSWORD,
+                    tenant=settings.OS_TENANT_NAME,
+                    auth_url=settings.OS_AUTH_URL):
 
     kt = _get_keystone_client(user, passwd, tenant, auth_url)
 
     try:
         url = kt['client'].service_catalog.\
             get_endpoints()[endpt][0]['publicURL'] + path
+
     except:
         raise LookupError("Could not find a public URL endpoint for %s", endpt)
     else:

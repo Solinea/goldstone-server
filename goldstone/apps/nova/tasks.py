@@ -59,8 +59,8 @@ def time_nova_api(self):
         body = json.loads(result['reply'].text)
         if 'hypervisors' in body and len(body['hypervisors']) > 0:
             result = stored_api_call("nova", "compute",
-                                      "/os-hypervisors/" +
-                                      str(body['hypervisors'][0]['id']))
+                                     "/os-hypervisors/" +
+                                     str(body['hypervisors'][0]['id']))
             logger.debug(_get_keystone_client.cache_info())
 
     api_db = ApiPerfData()
