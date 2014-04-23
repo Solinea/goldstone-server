@@ -8,7 +8,7 @@ from datetime import datetime
 import json
 import hashlib
 from .models import ApiPerfData
-from goldstone.utils import _get_keystone_client, _stored_api_call
+from goldstone.utils import _get_keystone_client, stored_api_call
 
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ def time_neutron_api(self):
     Call the agent list command, and if there are agents, calls the
     agent show command.  Inserts record with agent show preferred.
     """
-    result = _stored_api_call("neutron", "network", "/v2.0/agents")
+    result = stored_api_call("neutron", "network", "/v2.0/agents")
     logger.debug(_get_keystone_client.cache_info())
 
     # check for existing agents. if they exist, redo the call with a
@@ -28,7 +28,7 @@ def time_neutron_api(self):
     if result['reply'].status_code == requests.codes.ok:
         body = json.loads(result['reply'].text)
         if 'agents' in body and len(body['agents']) > 0:
-            result = _stored_api_call("neutron", "network",
+            result = stored_api_call("neutron", "network",
                                       "/v2.0/agents/" +
                                       str(body['agents'][0]['id']))
             logger.debug(_get_keystone_client.cache_info())

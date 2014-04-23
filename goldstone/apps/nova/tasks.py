@@ -7,7 +7,7 @@ import json
 import requests
 from datetime import datetime
 from .models import AvailabilityZoneData, HypervisorStatsData, ApiPerfData
-from goldstone.utils import _get_keystone_client, _stored_api_call
+from goldstone.utils import _get_keystone_client, stored_api_call
 
 
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ def time_nova_api(self):
     Call the hypervisor list command, and if there are hypervisors, calls the
     hypervisor show command.  Inserts record with hypervisor show preferred.
     """
-    result = _stored_api_call("nova", "compute", "/os-hypervisors")
+    result = stored_api_call("nova", "compute", "/os-hypervisors")
     logger.debug(_get_keystone_client.cache_info())
 
     # check for existing hypervisors. if they exist, redo the call with a
@@ -58,7 +58,7 @@ def time_nova_api(self):
     if result['reply'].status_code == requests.codes.ok:
         body = json.loads(result['reply'].text)
         if 'hypervisors' in body and len(body['hypervisors']) > 0:
-            result = _stored_api_call("nova", "compute",
+            result = stored_api_call("nova", "compute",
                                       "/os-hypervisors/" +
                                       str(body['hypervisors'][0]['id']))
             logger.debug(_get_keystone_client.cache_info())

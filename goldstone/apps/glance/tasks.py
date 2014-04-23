@@ -4,7 +4,7 @@ import requests
 import logging
 import json
 from .models import ApiPerfData
-from goldstone.utils import _get_keystone_client, _stored_api_call
+from goldstone.utils import _get_keystone_client, stored_api_call
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ def time_glance_api(self):
     otherwise uses the results from image list to inserts a record
     in the DB.
     """
-    result = _stored_api_call("glance", "image", "/v2/images")
+    result = stored_api_call("glance", "image", "/v2/images")
     logger.debug(_get_keystone_client.cache_info())
 
     # check for existing volumes. if they exist, redo the call with a single
@@ -26,7 +26,7 @@ def time_glance_api(self):
     if result['reply'].status_code == requests.codes.ok:
         body = json.loads(result['reply'].text)
         if 'images' in body and len(body['images']) > 0:
-            result = _stored_api_call("glance", "image",
+            result = stored_api_call("glance", "image",
                                       "/v2/images/" + body['images'][0]['id'])
             logger.debug(_get_keystone_client.cache_info())
 

@@ -308,6 +308,7 @@ class ApiPerfData(ESData):
         :arg body: record body as JSON object
         :return id of the inserted record
         """
+        logger.info("post called with body = %s", json.dumps(body))
         response = self._conn.create(
             ESData._get_latest_index(self, self._INDEX_PREFIX),
             self._DOC_TYPE, body, refresh=True)

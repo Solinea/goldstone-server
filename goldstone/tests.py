@@ -1,3 +1,5 @@
+from keystoneclient.apiclient.exceptions import ClientException
+
 __author__ = 'stanford'
 
 from django.test import TestCase, SimpleTestCase
@@ -7,10 +9,12 @@ from elasticsearch import *
 import gzip
 import os
 import json
-from goldstone.utils import _stored_api_call, _get_keystone_client, \
+from goldstone.utils import stored_api_call, _get_keystone_client, \
     _construct_api_rec, GoldstoneAuthError
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
+from mock import patch, PropertyMock
+from requests.models import Response
 
 logger = logging.getLogger(__name__)
 
@@ -60,47 +64,69 @@ class GSConnectionModel(SimpleTestCase):
 
 class UtilsTests(SimpleTestCase):
 
-    def test_get_keystone_client(self):
-        self.assertRaises(GoldstoneAuthError,
+    @patch('keystoneclient.v2_0.client.Client')
+    def test_get_keystone_client(self, kc):
+        kc.side_effect = ClientException
+        self.assertRaises(ClientException,
                           _get_keystone_client, user='abc')
-        self.assertRaises(GoldstoneAuthError,
+        self.assertRaises(ClientException,
                           _get_keystone_client, passwd='abc')
-        self.assertRaises(GoldstoneAuthError,
+        self.assertRaises(ClientException,
                           _get_keystone_client, tenant='no-tenant')
-        self.assertRaises(GoldstoneAuthError,
+        self.assertRaises(ClientException,
                           _get_keystone_client,
                           auth_url='http://www.solinea.com')
+        kc.side_effect = None
+        kc.auth_token = None
+        type(kc.return_value).auth_token = \
+            PropertyMock(return_value=None)
+        self.assertRaises(GoldstoneAuthError,
+                          _get_keystone_client)
+        type(kc.return_value).auth_token = \
+            PropertyMock(return_value='mocked_token')
         reply = _get_keystone_client()
         self.assertIn('client', reply)
         self.assertIn('hex_token', reply)
 
-    def test_stored_api_call(self):
+    def test_stored_api_call(self, kc, get):
         component = 'nova'
         endpoint = 'compute'
         bad_endpoint = 'xyz'
         path = '/os-hypervisors'
         bad_path = '/xyz'
 
-        self.assertRaises(LookupError, _stored_api_call, component,
+        self.assertRaises(LookupError, stored_api_call, component,
                           bad_endpoint, path)
-        bad_path_call = _stored_api_call(component, endpoint, bad_path)
+        bad_path_call = stored_api_call(component, endpoint, bad_path)
         self.assertIn('reply', bad_path_call)
         self.assertIn('db_record', bad_path_call)
         self.assertEquals(bad_path_call['db_record']['response_status'], 404)
-        good_call = _stored_api_call(component, endpoint, path)
+        good_call = stored_api_call(component, endpoint, path)
         self.assertIn('reply', good_call)
         self.assertIn('db_record', good_call)
         self.assertEquals(good_call['db_record']['response_status'], 200)
 
-    def test_construct_api_rec(self):
+
+    @patch('goldstone.tests.stored_api_call')
+    def test_construct_api_rec(self, sac):
         component = 'abc'
         endpoint = 'compute'
         path = '/os-hypervisors'
-        good_call = _stored_api_call(component, endpoint, path)
+        ts = datetime.utcnow()
+        fake_response = Response()
+        fake_response.status_code = 200
+        fake_response.url = "http://mock.url"
+        fake_response._content = '{"a":1,"b":2}'
+        fake_response.headers = {'content-length': 1024}
+        fake_response.elapsed = timedelta(days=1)
+        sac.return_value = {
+            'reply': fake_response
+        }
+        good_call = stored_api_call(component, endpoint, path)
+        self.assertTrue(sac.called)
         self.assertIn('reply', good_call)
         reply = good_call['reply']
-        self.assertIn('db_record', good_call)
-        ts = datetime.utcnow()
+
         rec = _construct_api_rec(reply, component, ts)
         self.assertIn('response_time', rec)
         td = reply.elapsed
