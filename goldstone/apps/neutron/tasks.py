@@ -29,8 +29,8 @@ def time_neutron_api(self):
         body = json.loads(result['reply'].text)
         if 'agents' in body and len(body['agents']) > 0:
             result = stored_api_call("neutron", "network",
-                                      "/v2.0/agents/" +
-                                      str(body['agents'][0]['id']))
+                                     "/v2.0/agents/" +
+                                     str(body['agents'][0]['id']))
             logger.debug(_get_keystone_client.cache_info())
 
     api_db = ApiPerfData()

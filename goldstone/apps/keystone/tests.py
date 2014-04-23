@@ -40,7 +40,6 @@ class TaskTests(SimpleTestCase):
         self.assertEqual(result['record'], construct_rec.return_value)
 
 
-
 class ViewTests(SimpleTestCase):
     start_dt = datetime.fromtimestamp(0, tz=pytz.utc)
     end_dt = datetime.utcnow()

@@ -27,7 +27,7 @@ def time_glance_api(self):
         body = json.loads(result['reply'].text)
         if 'images' in body and len(body['images']) > 0:
             result = stored_api_call("glance", "image",
-                                      "/v2/images/" + body['images'][0]['id'])
+                                     "/v2/images/" + body['images'][0]['id'])
             logger.debug(_get_keystone_client.cache_info())
 
     api_db = ApiPerfData()
