@@ -1,3 +1,19 @@
+# Copyright 2014 Solinea, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+__author__ = 'Ken Pepple'
+
 # settings/base.py
 """
 Django settings for goldstone project.
@@ -66,6 +82,8 @@ INSTALLED_APPS = (
     'goldstone.apps.nova',
     'goldstone.apps.keystone',
     'goldstone.apps.cinder',
+    'goldstone.apps.neutron',
+    'goldstone.apps.glance',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -135,28 +153,38 @@ RESOURCE_QUERY_INTERVAL = crontab(minute='*/5')
 API_PERF_QUERY_INTERVAL = crontab(minute='*/1')
 
 CELERYBEAT_SCHEDULE = {
-    # List the availability zone info every 5 minutes
     'nova-az-list': {
         'task': 'goldstone.apps.nova.tasks.nova_az_list',
         'schedule': RESOURCE_QUERY_INTERVAL,
     },
-    # List the hypervisor stats every 5 minutes
     'nova-hypervisors-stats': {
         'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
         'schedule': RESOURCE_QUERY_INTERVAL,
     },
-    'time_keystone_auth': {
-        'task': 'goldstone.apps.keystone.tasks.time_keystone_auth',
+    'time_keystone_api': {
+        'task': 'goldstone.apps.keystone.tasks.time_keystone_api',
         'schedule': API_PERF_QUERY_INTERVAL,
     },
-    'time_cinder_service_list': {
-        'task': 'goldstone.apps.cinder.tasks.time_cinder_service_list',
+    'time_nova_api': {
+        'task': 'goldstone.apps.nova.tasks.time_nova_api',
         'schedule': API_PERF_QUERY_INTERVAL
-    }
+    },
+    'time_cinder_api': {
+        'task': 'goldstone.apps.cinder.tasks.time_cinder_api',
+        'schedule': API_PERF_QUERY_INTERVAL
+    },
+    'time_neutron_api': {
+        'task': 'goldstone.apps.neutron.tasks.time_neutron_api',
+        'schedule': API_PERF_QUERY_INTERVAL
+    },
+    'time_glance_api': {
+        'task': 'goldstone.apps.glance.tasks.time_glance_api',
+        'schedule': API_PERF_QUERY_INTERVAL
+    },
 }
 
 # Goldstone config settings
-DEFAULT_LOOKBACK_DAYS = 7
+DEFAULT_LOOKBACK_DAYS = 30
 DEFAULT_CHART_BUCKETS = 80
 DEFAULT_PRESENCE_LOOKBACK_HOURS = 1
 

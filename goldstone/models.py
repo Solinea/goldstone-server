@@ -1,3 +1,19 @@
+# Copyright 2014 Solinea, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+__author__ = 'John Stanford'
+
 from django.conf import settings
 from elasticsearch import Elasticsearch
 from datetime import datetime
@@ -5,9 +21,6 @@ from types import StringType
 import json
 import logging
 import pandas as pd
-
-
-__author__ = 'stanford'
 
 logger = logging.getLogger(__name__)
 
@@ -308,6 +321,7 @@ class ApiPerfData(ESData):
         :arg body: record body as JSON object
         :return id of the inserted record
         """
+        logger.info("post called with body = %s", json.dumps(body))
         response = self._conn.create(
             ESData._get_latest_index(self, self._INDEX_PREFIX),
             self._DOC_TYPE, body, refresh=True)
