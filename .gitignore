@@ -120,3 +120,6 @@ atlassian-ide-plugin.xml
 goldstone/.idea/
 
 celerybeat-schedule
+
+# local stuff
+/utils
