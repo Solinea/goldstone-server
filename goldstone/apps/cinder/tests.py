@@ -76,16 +76,16 @@ class ViewTests(SimpleTestCase):
         self.assertTemplateUsed(response, 'cinder_report.html')
 
     def test_rendered_api_perf_view(self):
-        uri = '/cinder/service_list_api_perf?start_time=' + \
+        uri = '/cinder/api_perf?start_time=' + \
               str(self.start_ts) + "&end_time=" + \
               str(self.end_ts) + "&interval=3600s"
 
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'service_list_api_perf.html')
+        self.assertTemplateUsed(response, 'cinder_api_perf.html')
 
     def test_unrendered_api_perf_view(self):
-        uri = '/cinder/service_list_api_perf?start_time=' + \
+        uri = '/cinder/api_perf?start_time=' + \
               str(self.start_ts) + "&end_time=" + \
               str(self.end_ts) + "&interval=3600s&render=false"
 
