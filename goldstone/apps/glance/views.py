@@ -30,7 +30,7 @@ class ReportView(TopLevelView):
 
 
 class ImageApiPerfView(ApiPerfView):
-    my_template_name = 'image_api_perf.html'
+    my_template_name = 'glance_api_perf.html'
 
     def _get_data(self, context):
         return ApiPerfData().get(context['start_dt'], context['end_dt'],

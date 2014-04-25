@@ -21,9 +21,6 @@
 {% load custom_filters %}
 
 {% block localcss %}
-    <link href="{% static 'intelligence/css/intelligence.css' %}"
-          rel="stylesheet" media="screen">
-
 {% endblock %}
 
 {% block localjs %}
@@ -31,12 +28,13 @@
     <script>
 $(document).ready(function () {
     var nsReport = goldstone.neutron.report
-    var ns = goldstone.neutron.agentListApiPerf
-    ns.bivariate = goldstone.charts.bivariateWithAverage._getInstance(ns)
+    var nsApiPerf = goldstone.neutron.apiPerf
+    nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf)
     nsReport.start = goldstone.time.fromPyTs({{ start_ts|to_js }})
     nsReport.end = goldstone.time.fromPyTs({{ end_ts|to_js }})
     nsReport.interval = {{ interval|to_js }}
-    ns.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval, true, '#neutron-report-r1-c1')
+    nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
+            true, '#neutron-report-r1-c1')
 })
     </script>
 

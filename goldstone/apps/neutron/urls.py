@@ -23,6 +23,6 @@ urlpatterns = patterns(
     #     name='cinder-discover-view'),
     url(r'^report[/]?$', ReportView.as_view(),
         name='neutron-report-view'),
-    url(r'^agent_list_api_perf[/]?$', AgentListApiPerfView.as_view(),
-        name='neutron-agent-list-api-perf'),
+    url(r'^api_perf[/]?$', AgentListApiPerfView.as_view(),
+        name='neutron-api-perf'),
 )
