@@ -17,13 +17,13 @@
  */
 
 goldstone.namespace('glance.report')
-goldstone.namespace('glance.imageApiPerf')
+goldstone.namespace('glance.apiPerf')
 
-goldstone.glance.imageApiPerf.url = function (start, end, interval, render) {
+goldstone.glance.apiPerf.url = function (start, end, interval, render) {
     "use strict";
-    var ns = goldstone.glance.imageApiPerf,
+    var ns = goldstone.glance.apiPerf,
         gt = goldstone.time,
-        path = "/glance/image_api_perf",
+        path = "/glance/api_perf",
         url
 
     start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start)

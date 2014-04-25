@@ -20,7 +20,9 @@
 {% load custom_filters %}
 <div id = "nova-api-perf-panel" class="panel panel-primary">
     <div class="panel-heading">
-        <h3 class="panel-title"><i class="fa fa-tasks"></i> API Performance</h3>
+        <h3 class="panel-title"><i class="fa fa-tasks"></i> Nova API Performance
+                <i class="pull-right fa fa-info-circle panel-info"  id="nova-api-perf-info"></i>
+        </h3>
     </div>
     <div class="panel-body" style="height:300px">
         <div id="nova-api-perf-chart">
@@ -33,6 +35,8 @@ ns.spinner = '#nova-api-perf-spinner'
 ns.start = {{ start|to_js }}
 ns.end = {{ end|to_js }}
 ns.interval = {{ interval|to_js }}
+ns.infoIcon = '#nova-api-perf-info'
+ns.infoCustom = [{key: "API Call", value: "hypervisor show"}]
 ns.init()
             </script>
             <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"

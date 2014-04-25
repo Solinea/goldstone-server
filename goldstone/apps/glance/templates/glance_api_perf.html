@@ -20,14 +20,14 @@
 {% load custom_filters %}
 <div id = "glance-api-perf-panel" class="panel panel-primary">
     <div class="panel-heading">
-        <h3 class="panel-title"><i class="fa fa-tasks"></i> Glance Image API Performance
-                <i class="pull-right fa fa-info-circle panel-info"></i>
+        <h3 class="panel-title"><i class="fa fa-tasks"></i> Glance API Performance
+                <i class="pull-right fa fa-info-circle panel-info"  id="glance-api-perf-info"></i>
         </h3>
     </div>
     <div class="panel-body" style="height:300px">
         <div id="glance-api-perf-chart">
             <script>
-var ns = goldstone.glance.imageApiPerf
+var ns = goldstone.glance.apiPerf
 ns.data = JSON.parse(JSON.parse({{ data|to_js }}))
 ns.h = 300
 ns.location = '#glance-api-perf-chart'
@@ -36,20 +36,9 @@ ns.start = {{ start|to_js }}
 ns.end = {{ end|to_js }}
 ns.interval = {{ interval|to_js }}
 ns.yAxisLabel = "Response Time (ms)"
-ns.info = function() {
-    return '<div class="body"><br>' +
-    'Start: ' + Date(ns.start) + '<br>' +
-    'End: ' + Date(ns.end) + '<br>' +
-    'Interval: ' + ns.interval + '<br>' +
-    '<br></div>'
-}
+ns.infoIcon = '#glance-api-perf-info'
+ns.infoCustom = [{key: "API Call", value: "image show"}]
 ns.bivariate.init()
-$(".panel-info").popover({
-    trigger: 'click',
-    content: ns.info,
-    placement: 'bottom',
-    html: 'true'
-})
             </script>
             <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                  id="glance-api-perf-spinner"

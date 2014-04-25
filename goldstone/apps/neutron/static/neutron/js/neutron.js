@@ -17,7 +17,7 @@
  */
 
 goldstone.namespace('neutron.report')
-goldstone.namespace('neutron.agentListApiPerf')
+goldstone.namespace('neutron.apiPerf')
 goldstone.namespace('neutron.timeRange')
 
 goldstone.neutron.timeRange._url = function (ns, start, end, interval, render, path) {
@@ -37,9 +37,9 @@ goldstone.neutron.timeRange._url = function (ns, start, end, interval, render, p
     return url
 }
 
-goldstone.neutron.agentListApiPerf.url = function (start, end, interval, render) {
+goldstone.neutron.apiPerf.url = function (start, end, interval, render) {
     "use strict";
-    var ns = goldstone.neutron.agentListApiPerf,
-        path = "/neutron/agent_list_api_perf"
+    var ns = goldstone.neutron.apiPerf,
+        path = "/neutron/api_perf"
     return goldstone.neutron.timeRange._url(ns, start, end, interval, render, path)
 }
