@@ -17,7 +17,7 @@
  */
 
 goldstone.namespace('cinder.report')
-goldstone.namespace('cinder.volListApiPerf')
+goldstone.namespace('cinder.apiPerf')
 goldstone.namespace('cinder.timeRange')
 
 goldstone.cinder.timeRange._url = function (ns, start, end, interval, render, path) {
@@ -37,9 +37,9 @@ goldstone.cinder.timeRange._url = function (ns, start, end, interval, render, pa
     return url
 }
 
-goldstone.cinder.volListApiPerf.url = function (start, end, interval, render) {
+goldstone.cinder.apiPerf.url = function (start, end, interval, render) {
     "use strict";
-    var ns = goldstone.cinder.volListApiPerf,
-        path = "/cinder/service_list_api_perf"
+    var ns = goldstone.cinder.apiPerf,
+        path = "/cinder/api_perf"
     return goldstone.cinder.timeRange._url(ns, start, end, interval, render, path)
 }
