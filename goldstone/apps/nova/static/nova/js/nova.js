@@ -35,6 +35,7 @@ goldstone.namespace('nova.zones.renderlets')
 goldstone.namespace('nova.latestStats')
 goldstone.namespace('nova.latestStats.renderlets')
 goldstone.namespace('nova.apiPerf')
+goldstone.namespace('nova.apiPerf.timeRange')
 
 goldstone.nova.timeRange._url = function (ns, start, end, interval, render, path) {
     "use strict";
@@ -109,7 +110,24 @@ goldstone.nova.apiPerf.url = function (start, end, interval, render) {
     "use strict";
     var ns = goldstone.nova.apiPerf,
         path = "/nova/api_perf"
-    return goldstone.nova.timeRange._url(ns, start, end, interval, render, path)
+    return goldstone.nova.apiPerf.timeRange._url(ns, start, end, interval, render, path)
+}
+
+goldstone.nova.apiPerf.timeRange._url = function (ns, start, end, interval, render, path) {
+    "use strict";
+    var gt = goldstone.time
+    start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start)
+    end = end ? gt.toPyTs(end) : gt.toPyTs(ns.end)
+    interval = interval ? interval : ns.interval
+
+    var url = path +
+        "?start=" + start +
+        "&end=" + end +
+        "&interval=" + interval
+    if (typeof render !== 'undefined') {
+        url += "&render=" + render
+    }
+    return url
 }
 
 goldstone.nova.timeRange._loadUrl = function (ns, start, end, interval, location, render) {
@@ -327,256 +345,6 @@ goldstone.nova.latestStats.loadUrl = function (location, render) {
 
     goldstone.nova.instantaneous._loadUrl(ns, location, render)
 }
-
-
-// pure d3 pattern for a line chart with data refresh capabilities.  Should
-// abstract this to a more general goldstone library if it proves useful.
-
-// the init function sets up the svg element on the page, pulls in the first
-// dataset, and sets up the recurring call to the update function.
-goldstone.nova.apiPerf.init = function () {
-    "use strict";
-    var ns = goldstone.nova.apiPerf
-    ns.initSvg()
-    ns.update()
-
-    // Grab a random sample of letters from the alphabet, in alphabetical order.
-    //setInterval(function () {
-    //    var now = new Date()
-    //    if (now > ns.end) {
-    //        ns.end = ns.end.addSeconds(ns.interval)
-    //        ns.start = ns.start.addSeconds(ns.interval)
-    //    }
-    //    ns.loadUrl(ns.start, ns.end, ns.interval)
-    //}, 60000)
-}
-
-goldstone.nova.apiPerf.loadUrl = function (start, end, interval, render, location) {
-    "use strict";
-    var ns = goldstone.nova.apiPerf
-
-    render = typeof render !== 'undefined' ? render : false
-    if (render) {
-        $(location).load(ns.url(start, end, interval, render))
-    } else {
-        // just get the data and set it in the spawn object
-        d3.json(ns.url(ns.start, ns.end, ns.interval), function (error, data) {
-            ns.data = data
-            ns.update()
-        })
-    }
-}
-
-// here we'll configure as much of the structure of the SVG as possible.  This
-// includes legends, axis, labels, renderlets, etc.
-goldstone.nova.apiPerf.initSvg = function () {
-    "use strict";
-    var ns = goldstone.nova.apiPerf
-    ns.margin = { top: 30, bottom: 60, right: 30, left: 60 }
-    ns.w = $(ns.location).width()
-    //ns.h = $(ns.location).height()
-    ns.mw = ns.w - ns.margin.left - ns.margin.right
-    ns.mh = ns.h - ns.margin.top - ns.margin.bottom
-    ns.svg = d3.select(ns.location)
-        .append("svg")
-            .attr("width", ns.w)
-            .attr("height", ns.h)
-    ns.chart = ns.svg.append("g")
-        .attr('class', 'chart')
-        .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")")
-}
-
-// refresh the axes when new data comes in
-goldstone.nova.apiPerf.updateAxes = function (data) {
-    "use strict";
-    var ns = goldstone.nova.apiPerf
-
-}
-
-// the update function processes new, existing, and removed data.  Its arg
-// can be the loadUrl function that returns the JSON payload from the server.
-// Time intervals will be interesting here.  Probably need to rethink the
-// use of 'now' as the starting point for calculating an interval, and go to
-// a more fixed reference model and rounded intervals.  Repeated calls would
-// fill up the last interval bucket until we get to the next rounded value.
-
-goldstone.nova.apiPerf.update = function () {
-    "use strict";
-    var ns = goldstone.nova.apiPerf
-
-    if (ns.data !== 'undefined') {
-        if (Object.keys(ns.data).length === 0) {
-            $(ns.location).append("<p> Response was empty.")
-            $(ns.spinner).hide()
-        } else {
-            (function (json) {
-                // set up data, add a time field based on key and convert all times
-                // to milliseconds
-                json.forEach(function (d) {
-                    d.time = new Date(Number(d.key))
-                    d.min = d.min * 1000
-                    d.max = d.max * 1000
-                    d.avg = d.avg * 1000
-                    d.sum_of_squares = d.sum_of_squares * 1000
-                    d.sum = d.sum * 1000
-                })
-
-
-                // define our x and y scaling functions
-                var x = d3.time.scale()
-                    .domain(d3.extent(json, function(d) { return d.time }))
-                    .rangeRound([0, ns.mw])
-                var y = d3.scale.linear()
-                    .domain([0, d3.max(json, function (d) { return d.max })])
-                    .range([ns.mh, 0])
-
-                // define our line functions
-                var area = d3.svg.area()
-                    .interpolate("basis")
-                    .x(function (d) { return x(d.time) })
-                    .y0(function (d) { return y(d.min) })
-                    .y1(function (d) { return y(d.max) })
-
-                var maxLine = d3.svg.line()
-                    .interpolate("basis")
-                    .x(function (d) { return x(d.time) })
-                    .y(function (d) { return y(d.max) })
-
-                var minLine = d3.svg.line()
-                    .interpolate("basis")
-                    .x(function (d) { return x(d.time) })
-                    .y(function (d) { return y(d.min) })
-
-                var avgLine = d3.svg.line()
-                    .interpolate("basis")
-                    .x(function (d) { return x(d.time) })
-                    .y(function (d) { return y(d.avg) })
-
-                var point = ns.chart.selectAll('circle')
-                    .data(json)
-
-                // define our axis functions
-                var xAxis = d3.svg.axis()
-                    .scale(x)
-                    .orient("bottom")
-                var yAxis = d3.svg.axis()
-                    .scale(y)
-                    .orient("left")
-
-                var tip = d3.tip()
-                    .attr('class', 'd3-tip')
-                    .html(function (d) {
-                    return "<p>" + d.time + "<br>Max: " + d.max +
-                        "<br>Avg: " + d.avg + "<br>Min: " + d.min + "<p>"
-                })
-
-                // initialized the axes
-                ns.chart.append('g')
-                    .attr('class', 'x axis')
-                    .attr('transform', 'translate(0, ' + ns.mh + ')')
-                    .call(xAxis);
-                ns.chart.append('g')
-                    .attr('class', 'y axis')
-                    .call(yAxis)
-                ns.svg.append("text")
-                    .attr("class", "axis.label")
-                    .attr("transform", "rotate(-90)")
-                    .attr("x", 0 - (ns.h / 2))
-                    .attr("y", -5)
-                    .attr("dy", "1.5em")
-                    .text("Response Time (ms)")
-                    .style("text-anchor", "middle")
-
-                // Invoke the tip in the context of your visualization
-                ns.chart.call(tip)
-
-                // initialize the chart lines
-                ns.chart.append("path")
-                    .datum(json)
-                    .attr("class", "area")
-                    .attr("id", "minMaxArea")
-                    .attr("d", area)
-                    .attr("fill", colorbrewer.Spectral[10][4])
-                    .style("opacity", 0.3)
-
-                ns.chart.append('path')
-                    .attr('class', 'line')
-                    .attr('id', 'minLine')
-                    .attr('data-legend', "Min")
-                    .style("stroke", colorbrewer.Spectral[10][8])
-                    .datum(json)
-                    .attr('d', minLine)
-
-                ns.chart.append('path')
-                    .attr('class', 'line')
-                    .attr('id', 'maxLine')
-                    .attr('data-legend', "Max")
-                    .style("stroke", colorbrewer.Spectral[10][1])
-                    .datum(json)
-                    .attr('d', maxLine)
-
-                ns.chart.append('path')
-                    .attr('class', 'line')
-                    .attr('id', 'avgLine')
-                    .attr('data-legend', "Avg")
-                    .style("stroke-dasharray", ("3, 3"))
-                    .style("stroke", colorbrewer.Greys[3][1])
-                    .datum(json)
-                    .attr('d', avgLine)
-
-                var legend = ns.chart.append("g")
-                    .attr("class", "legend")
-                    .attr("transform", "translate(20,0)")
-                    .call(d3.legend)
-
-                // UPDATE
-                // Update old elements as needed.
-
-
-                // ENTER
-                // Create new elements as needed.
-                point.enter()
-                    .append('circle')
-                    .attr('r', function () { return 5 })
-                    .attr('cy', function (d) { return y(d.max) })
-                    .attr('cx', function (d, i) { return x(d.time) })
-                    .style('opacity', 0)
-                    .on('mouseover', tip.show)
-                    .on('mouseout', tip.hide)
-                point.enter()
-                    .append('circle')
-                    .attr('r', function () { return 5 })
-                    .attr('cy', function (d) { return y(d.avg) })
-                    .attr('cx', function (d, i) { return x(d.time) })
-                    .style('opacity', 0)
-                    .on('mouseover', tip.show)
-                    .on('mouseout', tip.hide)
-                point.enter()
-                    .append('circle')
-                    .attr('r', function () { return 5 })
-                    .attr('cy', function (d) { return y(d.min) })
-                    .attr('cx', function (d, i) { return x(d.time) })
-                    .style('opacity', 0)
-                    .on('mouseover', tip.show)
-                    .on('mouseout', tip.hide)
-
-
-
-                // ENTER + UPDATE
-                // Appending to the enter selection expands the update selection to include
-                // entering elements; so, operations on the update selection after appending to
-                // the enter selection will apply to both entering and updating nodes.
-
-
-                // EXIT
-                // Remove old elements as needed.
-
-            })(ns.data)
-            $(ns.spinner).hide()
-        }
-    }
-}
-
 
 
 // mostly based on crossfilter and dc.js below here (except zones chart)
