@@ -20,7 +20,9 @@
 {% load custom_filters %}
 <div id = "glance-api-perf-panel" class="panel panel-primary">
     <div class="panel-heading">
-        <h3 class="panel-title"><i class="fa fa-tasks"></i> Glance Image API Performance</h3>
+        <h3 class="panel-title"><i class="fa fa-tasks"></i> Glance Image API Performance
+                <i class="pull-right fa fa-info-circle panel-info"></i>
+        </h3>
     </div>
     <div class="panel-body" style="height:300px">
         <div id="glance-api-perf-chart">
@@ -34,7 +36,20 @@ ns.start = {{ start|to_js }}
 ns.end = {{ end|to_js }}
 ns.interval = {{ interval|to_js }}
 ns.yAxisLabel = "Response Time (ms)"
+ns.info = function() {
+    return '<div class="body"><br>' +
+    'Start: ' + Date(ns.start) + '<br>' +
+    'End: ' + Date(ns.end) + '<br>' +
+    'Interval: ' + ns.interval + '<br>' +
+    '<br></div>'
+}
 ns.bivariate.init()
+$(".panel-info").popover({
+    trigger: 'click',
+    content: ns.info,
+    placement: 'bottom',
+    html: 'true'
+})
             </script>
             <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                  id="glance-api-perf-spinner"
