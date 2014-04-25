@@ -83,6 +83,7 @@ INSTALLED_APPS = (
     'goldstone.apps.cinder',
     'goldstone.apps.neutron',
     'goldstone.apps.glance',
+    'goldstone.apps.api_perf',
 )
 
 MIDDLEWARE_CLASSES = (

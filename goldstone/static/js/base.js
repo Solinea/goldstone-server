@@ -471,27 +471,27 @@ goldstone.charts.bivariateWithAverage = {
                             .domain([0, d3.max(json, function (d) { return d.max })])
                             .range([ns.mh, 0]),
                         area = d3.svg.area()
-                            .interpolate("cardinal")
+                            .interpolate("basis")
                             .tension(0.85)
                             .x(function (d) { return x(d.time) })
                             .y0(function (d) { return y(d.min) })
                             .y1(function (d) { return y(d.max) }),
                         maxLine = d3.svg.line()
-                            .interpolate("cardinal")
+                            .interpolate("basis")
                             .tension(0.85)
                             .x(function (d) { return x(d.time) })
                             .y(function (d) { return y(d.max) }),
                         minLine = d3.svg.line()
-                            .interpolate("cardinal")
+                            .interpolate("basis")
                             .tension(0.85)
                             .x(function (d) { return x(d.time) })
                             .y(function (d) { return y(d.min) }),
                         avgLine = d3.svg.line()
-                            .interpolate("cardinal")
+                            .interpolate("basis")
                             .tension(0.85)
                             .x(function (d) { return x(d.time) })
                             .y(function (d) { return y(d.avg) }),
-                        hiddenBar = ns.chart.selectAll('.hiddenBar')
+                        hiddenBar = ns.chart.selectAll(ns.location + ' .hiddenBar')
                             .data(json),
                         hiddenBarWidth = ns.mw / json.length,
                         xAxis = d3.svg.axis()
@@ -608,14 +608,14 @@ goldstone.charts.bivariateWithAverage = {
                         .attr("width", hiddenBarWidth)
                         // TODO GOLD-303 TODO: fix excessive firing of events when passing through the partial rectangle
                         .on('mouseenter', function (d, i) {
-                            var rectId = "#verticalRect" + i,
-                                guideId = "#verticalGuideLine" + i,
+                            var rectId = ns.location + " #verticalRect" + i,
+                                guideId = ns.location + " #verticalGuideLine" + i,
                                 targ = d3.select(rectId).pop().pop()
                             d3.select(guideId).style("opacity", 0.8)
                             tip.show(d, targ)
                         })
                         .on('mouseleave', function (d, i) {
-                            var id = "#verticalGuideLine" + i
+                            var id = ns.location + " #verticalGuideLine" + i
                             d3.select(id).style("opacity", 0)
                             tip.hide()
                         })
