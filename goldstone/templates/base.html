@@ -68,16 +68,9 @@
                         <ul class="dropdown-menu">
                             <li><a href="/nova/discover"><i
                                     class="fa fa-cloud"></i> Compute </a></li>
-                            <!-- <li><a href="/keystone/discover"><i
-                                    class="fa fa-key"></i> Auth </a></li> -->
                             <li><a href="/intelligence/search"><i
                                     class="fa fa-search"></i> Log Search</a>
                             </li>
-                            {% switch gse %}
-                                <li><a href="/intelligence/test-flight"><i
-                                        class="fa fa-fighter-jet"></i>
-                                    TestFlight</a></li>
-                            {% endswitch %}
                         </ul>
                     </li>
                     <li class="dropdown">
@@ -86,42 +79,20 @@
                                 class="fa fa-camera"></i> Report<b
                                 class="caret"></b></a>
                         <ul class="dropdown-menu">
+                                <li><a href="/api_perf/report"><i
+                                    class="fa fa-puzzle-piece"></i> API Performance</a></li>
                                 <li><a href="/nova/report"><i
                                     class="fa fa-cloud"></i> Compute Stats</a></li>
-                                <li><a href="/keystone/report"><i
-                                    class="fa fa-key"></i> Auth Stats</a></li>
-                                <li><a href="/cinder/report"><i
-                                    class="fa fa-fire"></i> Block Storage Stats</a></li>
                                 <li><a href="/neutron/report"><i
                                     class="fa fa-star"></i> Network Stats</a></li>
+                                <li><a href="/cinder/report"><i
+                                    class="fa fa-fire"></i> Block Storage Stats</a></li>
                                 <li><a href="/glance/report"><i
                                     class="fa fa-hdd-o"></i> Image Stats</a></li>
-                            {% switch gse %}
-                                <li><a href="/leases/"><i
-                                        class="fa fa-calendar"></i> Leases</a>
-                                </li>
-                            {% endswitch %}
+                                <li><a href="/keystone/report"><i
+                                    class="fa fa-key"></i> Auth Stats</a></li>
                         </ul>
                     </li>
-                    {% switch gse %}
-                    <li class="dropdown">
-                        <a href="#analyze" class="dropdown-toggle"
-                           data-toggle="dropdown"><i class="fa fa-gears"></i>
-                            Analyze <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a href="#automate" class="dropdown-toggle"
-                           data-toggle="dropdown"><i class="fa fa-gears"></i>
-                            Automate <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                                <li><a href="/intelligence/"><i
-                                        class="fa fa-shopping-cart"></i>
-                                    Flavors</a></li>
-                        </ul>
-                    </li>
-                    {% endswitch %}
                 </ul>
             </div>
             <!--/.nav-collapse -->
