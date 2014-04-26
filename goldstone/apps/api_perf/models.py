@@ -12,20 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__author__ = 'Ken Pepple'
+__author__ = 'John Stanford'
 
 from django.db import models
-
-
-class Cockpit(models.Model):
-    """
-    Cockpits are custom dashboards for operators
-    """
-
-    name = models.CharField(max_length=100)
-    owner = models.CharField(max_length=100)
-    public = models.BooleanField(default=False)
-    modules = models.CharField(max_length=200)
-
-    def __unicode__(self):
-        return self.name

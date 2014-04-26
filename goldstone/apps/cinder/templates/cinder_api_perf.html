@@ -18,18 +18,22 @@
 
 {% load staticfiles %}
 {% load custom_filters %}
-<div id = "glance-api-perf-panel" class="panel panel-primary">
+<div id="cinder-api-perf-panel" class="panel panel-primary">
     <div class="panel-heading">
-        <h3 class="panel-title"><i class="fa fa-tasks"></i> Glance Image API Performance</h3>
+        <h3 class="panel-title"><i class="fa fa-tasks"></i> Cinder API Performance
+                <i class="pull-right fa fa-info-circle panel-info" id="cinder-api-perf-info"></i>
+        </h3>
     </div>
     <div class="panel-body" style="height:300px">
-        <div id="glance-api-perf-chart">
+        <div id="cinder-api-perf-chart">
             <script>
-var ns = goldstone.glance.imageApiPerf
+var ns = goldstone.cinder.apiPerf
 ns.data = JSON.parse(JSON.parse({{ data|to_js }}))
 ns.h = 300
-ns.location = '#glance-api-perf-chart'
-ns.spinner = '#glance-api-perf-spinner'
+ns.location = '#cinder-api-perf-chart'
+ns.spinner = '#cinder-api-perf-spinner'
+ns.infoIcon = '#cinder-api-perf-info'
+ns.infoCustom = [{key: "API Call", value: "service list"}]
 ns.start = {{ start|to_js }}
 ns.end = {{ end|to_js }}
 ns.interval = {{ interval|to_js }}
@@ -37,7 +41,7 @@ ns.yAxisLabel = "Response Time (ms)"
 ns.bivariate.init()
             </script>
             <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                 id="glance-api-perf-spinner"
+                 id="cinder-api-perf-spinner"
                  class="ajax-loader"/>
             <div class="clearfix"></div>
         </div>

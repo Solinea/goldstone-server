@@ -14,15 +14,23 @@
 
 __author__ = 'John Stanford'
 
-from django.conf.urls import patterns, url
-from .views import *
+import calendar
+from django.test import SimpleTestCase
+import logging
+import pytz
+from datetime import datetime
 
-urlpatterns = patterns(
-    '',
-    # url(r'^discover[/]?$', DiscoverView.as_view(),
-    #     name='cinder-discover-view'),
-    url(r'^report[/]?$', ReportView.as_view(),
-        name='neutron-report-view'),
-    url(r'^api_perf[/]?$', AgentListApiPerfView.as_view(),
-        name='neutron-api-perf'),
-)
+logger = logging.getLogger(__name__)
+
+
+class ViewTests(SimpleTestCase):
+    start_dt = datetime.fromtimestamp(0, tz=pytz.utc)
+    end_dt = datetime.utcnow()
+    start_ts = calendar.timegm(start_dt.utctimetuple())
+    end_ts = calendar.timegm(end_dt.utctimetuple())
+
+    def test_report_view(self):
+        uri = '/api_perf/report'
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'api_perf_report.html')

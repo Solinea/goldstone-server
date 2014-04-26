@@ -361,10 +361,37 @@ goldstone.charts.bivariateWithAverage = {
         return o
     },
     /**
+     * Get basic information about the chart
+     */
+    info: function () {
+        "use strict";
+        var html = function () {
+                var start = dateFormat(Date(this.ns.start)),
+                    end = dateFormat(Date(this.ns.end)),
+                    custom = _.map(this.ns.infoCustom, function (e) {
+                            return e.key + ": " + e.value + "<br>"
+                    }),
+                    result = '<div class="body"><br>' + custom +
+                    'Start: ' + start + '<br>' +
+                    'End: ' + end + '<br>' +
+                    'Interval: ' + this.ns.interval + '<br>' +
+                    '<br></div>'
+                return result
+            }
+
+        $(this.ns.infoIcon).popover({
+            trigger: 'click',
+            content: html.apply(this),
+            placement: 'bottom',
+            html: 'true'
+        })
+    },
+    /**
      * initialize the chart.  Should not need to override.
      */
     init: function () {
         "use strict";
+        this.info()
         this.initSvg()
         this.update()
 
@@ -444,27 +471,27 @@ goldstone.charts.bivariateWithAverage = {
                             .domain([0, d3.max(json, function (d) { return d.max })])
                             .range([ns.mh, 0]),
                         area = d3.svg.area()
-                            .interpolate("cardinal")
+                            .interpolate("basis")
                             .tension(0.85)
                             .x(function (d) { return x(d.time) })
                             .y0(function (d) { return y(d.min) })
                             .y1(function (d) { return y(d.max) }),
                         maxLine = d3.svg.line()
-                            .interpolate("cardinal")
+                            .interpolate("basis")
                             .tension(0.85)
                             .x(function (d) { return x(d.time) })
                             .y(function (d) { return y(d.max) }),
                         minLine = d3.svg.line()
-                            .interpolate("cardinal")
+                            .interpolate("basis")
                             .tension(0.85)
                             .x(function (d) { return x(d.time) })
                             .y(function (d) { return y(d.min) }),
                         avgLine = d3.svg.line()
-                            .interpolate("cardinal")
+                            .interpolate("basis")
                             .tension(0.85)
                             .x(function (d) { return x(d.time) })
                             .y(function (d) { return y(d.avg) }),
-                        hiddenBar = ns.chart.selectAll('.hiddenBar')
+                        hiddenBar = ns.chart.selectAll(ns.location + ' .hiddenBar')
                             .data(json),
                         hiddenBarWidth = ns.mw / json.length,
                         xAxis = d3.svg.axis()
@@ -476,18 +503,12 @@ goldstone.charts.bivariateWithAverage = {
                         tip = d3.tip()
                             .attr('class', 'd3-tip')
                             .html(function (d) {
-                                return "<p>" + d.time + "<br>Max: " + d.max +
-                                    "<br>Avg: " + d.avg + "<br>Min: " + d.min + "<p>"
+                                return "<p>" + dateFormat(d.time)  + "<br>Max: " + d.max.toFixed(0) +
+                                    "<br>Avg: " + d.avg.toFixed(0) + "<br>Min: " + d.min.toFixed(0) + "<p>"
                             })
 
                     // initialized the axes
-                    ns.chart.append('g')
-                        .attr('class', 'x axis')
-                        .attr('transform', 'translate(0, ' + ns.mh + ')')
-                        .call(xAxis);
-                    ns.chart.append('g')
-                        .attr('class', 'y axis')
-                        .call(yAxis)
+
                     ns.svg.append("text")
                         .attr("class", "axis.label")
                         .attr("transform", "rotate(-90)")
@@ -534,6 +555,14 @@ goldstone.charts.bivariateWithAverage = {
                         .datum(json)
                         .attr('d', avgLine)
 
+                    ns.chart.append('g')
+                        .attr('class', 'x axis')
+                        .attr('transform', 'translate(0, ' + ns.mh + ')')
+                        .call(xAxis);
+                    ns.chart.append('g')
+                        .attr('class', 'y axis')
+                        .call(yAxis)
+
                     var legend = ns.chart.append("g")
                         .attr("class", "legend")
                         .attr("transform", "translate(20,0)")
@@ -558,11 +587,11 @@ goldstone.charts.bivariateWithAverage = {
 
                     // hidden rectangle for tooltip tethering
                     hiddenBar.append("rect")
-                        .attr('class', 'hiddenBar')
+                        .attr('class', 'partialHiddenBar')
                         .attr("id", function (d, i) { return "verticalRect" + i})
                         .attr("y", function (d) { return y(d.max); })
                         .attr("height", function (d) { return ns.mh - y(d.max) })
-                        .attr("width", hiddenBarWidth - 1)
+                        .attr("width", hiddenBarWidth)
                     // narrow guideline turns on when mouse enters hidden bar
                     hiddenBar.append("rect")
                         .attr("class", "verticalGuideLine")
@@ -576,18 +605,19 @@ goldstone.charts.bivariateWithAverage = {
                     hiddenBar.append("rect")
                         .attr('class', 'hiddenBar')
                         .attr("height", ns.mh)
-                        .attr("width", hiddenBarWidth - 1)
-                        .on('mouseover', function (d, i) {
-                            var rectId = "#verticalRect" + i,
-                                guideId = "#verticalGuideLine" + i,
+                        .attr("width", hiddenBarWidth)
+                        // TODO GOLD-303 TODO: fix excessive firing of events when passing through the partial rectangle
+                        .on('mouseenter', function (d, i) {
+                            var rectId = ns.location + " #verticalRect" + i,
+                                guideId = ns.location + " #verticalGuideLine" + i,
                                 targ = d3.select(rectId).pop().pop()
                             d3.select(guideId).style("opacity", 0.8)
                             tip.show(d, targ)
                         })
-                        .on('mouseout', function (d, i) {
-                            var id = "#verticalGuideLine" + i
+                        .on('mouseleave', function (d, i) {
+                            var id = ns.location + " #verticalGuideLine" + i
                             d3.select(id).style("opacity", 0)
-                            tip.hide
+                            tip.hide()
                         })
 
                     // EXIT

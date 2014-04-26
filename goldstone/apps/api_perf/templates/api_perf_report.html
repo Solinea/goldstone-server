@@ -1,0 +1,90 @@
+<!--
+ Copyright 2014 Solinea, Inc.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+ Author: John Stanford
+ -->
+
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load custom_filters %}
+
+{% block localcss %}
+{% endblock %}
+
+{% block localjs %}
+    <script src="{% static 'nova/js/nova.js' %}"></script>
+    <script src="{% static 'neutron/js/neutron.js' %}"></script>
+    <script src="{% static 'keystone/js/keystone.js' %}"></script>
+    <script src="{% static 'glance/js/glance.js' %}"></script>
+    <script src="{% static 'cinder/js/cinder.js' %}"></script>
+    <script src="{% static 'api_perf/js/api_perf.js' %}"></script>
+    <script>
+$(document).ready(function () {
+    var nsReport = goldstone.apiPerf.report
+    var nsNovaApiPerf = goldstone.nova.apiPerf
+    var nsNeutronApiPerf = goldstone.neutron.apiPerf
+    var nsKeystoneApiPerf = goldstone.keystone.apiPerf
+    var nsGlanceApiPerf = goldstone.glance.apiPerf
+    var nsCinderApiPerf = goldstone.cinder.apiPerf
+
+    nsReport.start = goldstone.time.fromPyTs({{ start_ts|to_js }})
+    nsReport.end = goldstone.time.fromPyTs({{ end_ts|to_js }})
+    nsReport.interval = {{ interval|to_js }}
+
+    nsNovaApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsNovaApiPerf)
+    nsNeutronApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsNeutronApiPerf)
+    nsKeystoneApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsKeystoneApiPerf)
+    nsGlanceApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsGlanceApiPerf)
+    nsCinderApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsCinderApiPerf)
+
+    nsNovaApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
+            true, '#api-perf-report-r1-c1')
+    nsNeutronApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
+            true, '#api-perf-report-r1-c2')
+    nsKeystoneApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
+            true, '#api-perf-report-r2-c1')
+    nsGlanceApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
+            true, '#api-perf-report-r2-c2')
+    nsCinderApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
+            true, '#api-perf-report-r3-c1')
+})
+
+    </script>
+
+{% endblock %}
+
+
+{% block content %}
+
+    <div id="api-perf-report-r1" class="row">
+        <div id="api-perf-report-r1-c1" class="col-md-6"></div>
+        <div id="api-perf-report-r1-c2" class="col-md-6"></div>
+    </div>
+    <div id="api-perf-report-r2" class="row">
+        <div id="api-perf-report-r2-c1" class="col-md-6"></div>
+        <div id="api-perf-report-r2-c2" class="col-md-6"></div>
+    </div>
+    <div id="api-perf-report-r3" class="row">
+        <div id="api-perf-report-r3-c1" class="col-md-6"></div>
+        <div id="api-perf-report-r3-c2" class="col-md-6"></div>
+    </div>
+
+{% endblock %}
+
+
+
+
+
+

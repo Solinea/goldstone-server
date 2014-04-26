@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__author__ = 'Ken Pepple'
+__author__ = 'John Stanford'
 
-from django.conf.urls import patterns, include, url
+from goldstone.views import *
+import logging
 
-# from .views import ListCockpitView
-from .views import CockpitView
+logger = logging.getLogger(__name__)
 
-urlpatterns = patterns(
-    '',
-    url(r'^$',  CockpitView.as_view(), name='cockpit'),
-)
+
+class ReportView(TopLevelView):
+    template_name = 'api_perf_report.html'
