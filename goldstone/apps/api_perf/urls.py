@@ -12,4 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__author__ = 'Ken Pepple'
+__author__ = 'John Stanford'
+
+from django.conf.urls import patterns, url
+from .views import *
+
+urlpatterns = patterns(
+    '',
+    url(r'^report[/]?$', ReportView.as_view(),
+        name='api-perf-report-view'),
+)

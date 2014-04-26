@@ -78,12 +78,12 @@ INSTALLED_APPS = (
     'djangojs',
     'goldstone.apps.core',
     'goldstone.apps.intelligence',
-    'goldstone.apps.cockpit',
     'goldstone.apps.nova',
     'goldstone.apps.keystone',
     'goldstone.apps.cinder',
     'goldstone.apps.neutron',
     'goldstone.apps.glance',
+    'goldstone.apps.api_perf',
 )
 
 MIDDLEWARE_CLASSES = (

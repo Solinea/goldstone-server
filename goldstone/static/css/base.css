@@ -90,6 +90,30 @@ code {
     background-color: #FFFFFF;
 }
 
+.popover {
+    background: rgba(0,0,0,.4);!important
+    border-radius: 10px;
+    padding: 0;
+    width: 250px;
+}
+
+.popover.bottom .arrow:after {
+  border-bottom-color:rgba(0,0,0,.4);
+}
+
+.popover-content ul {
+   list-style-type:none;
+   list-style-position:inside;
+}
+
+.popover-content {
+  line-height: 1;
+  padding: 10px;
+  color: #fff;
+  width: 100%;
+  font-size: 14px;
+}
+
 .node {
   cursor: pointer;
   stroke: #3182bd;
@@ -176,7 +200,7 @@ svg.e {
 margin-left: 50px;
 }
 
-.hiddenBar {
+.partialHiddenBar, .hiddenBar {
     opacity: 0
 }
 

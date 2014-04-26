@@ -30,7 +30,7 @@ class ReportView(TopLevelView):
 
 
 class AgentListApiPerfView(ApiPerfView):
-    my_template_name = 'agent_list_api_perf.html'
+    my_template_name = 'neutron_api_perf.html'
 
     def _get_data(self, context):
         return ApiPerfData().get(context['start_dt'], context['end_dt'],

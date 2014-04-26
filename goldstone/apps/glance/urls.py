@@ -23,6 +23,6 @@ urlpatterns = patterns(
     #     name='cinder-discover-view'),
     url(r'^report[/]?$', ReportView.as_view(),
         name='glance-report-view'),
-    url(r'^image_api_perf[/]?$', ImageApiPerfView.as_view(),
-        name='glance-image-api-perf'),
+    url(r'^api_perf[/]?$', ImageApiPerfView.as_view(),
+        name='glance-api-perf'),
 )

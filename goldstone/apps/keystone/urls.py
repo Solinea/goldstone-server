@@ -23,6 +23,6 @@ urlpatterns = patterns(
     #     name='keystone-discover-view'),
     url(r'^report[/]?$', ReportView.as_view(),
         name='keystone-report-view'),
-    url(r'^auth_api_perf[/]?$', AuthApiPerfView.as_view(),
-        name='keystone-auth-api-perf'),
+    url(r'^api_perf[/]?$', AuthApiPerfView.as_view(),
+        name='keystone-api-perf'),
 )
