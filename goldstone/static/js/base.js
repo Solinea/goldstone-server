@@ -503,8 +503,8 @@ goldstone.charts.bivariateWithAverage = {
                         tip = d3.tip()
                             .attr('class', 'd3-tip')
                             .html(function (d) {
-                                return "<p>" + dateFormat(d.time)  + "<br>Max: " + d.max.toFixed(0) +
-                                    "<br>Avg: " + d.avg.toFixed(0) + "<br>Min: " + d.min.toFixed(0) + "<p>"
+                                return "<p>" + dateFormat(d.time)  + "<br>Max: " + d.max.toFixed(2) +
+                                    "<br>Avg: " + d.avg.toFixed(2) + "<br>Min: " + d.min.toFixed(2) + "<p>"
                             })
 
                     // initialized the axes
