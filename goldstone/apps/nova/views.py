@@ -179,14 +179,14 @@ class ResourceView(TemplateView):
                     phys, virt, on='key',
                     suffixes=['_phys', '_virt'])
 
-        # since this is spotty data, we'll use the cummulative max to carry
-        # totals forward
-        self.data['total_phys'] = self.data['total_phys'].cummax()
-        self.data['total_virt'] = self.data['total_virt'].cummax()
-        # for the used columns, we want to fill zeros with the last non-zero
-        # value
-        self.data['used_phys'].fillna(method='pad', inplace=True)
-        self.data['used_virt'].fillna(method='pad', inplace=True)
+            # since this is spotty data, we'll use the cummulative max to carry
+            # totals forward
+            self.data['total_phys'] = self.data['total_phys'].cummax()
+            self.data['total_virt'] = self.data['total_virt'].cummax()
+            # for the used columns, we want to fill zeros with the last non-zero
+            # value
+            self.data['used_phys'].fillna(method='pad', inplace=True)
+            self.data['used_virt'].fillna(method='pad', inplace=True)
 
         logger.debug("[_handle_phys_and_virt_responses] self.data = %s",
                      self.data)
@@ -260,14 +260,13 @@ class DiskView(ResourceView):
                           context['interval'])
         self.data = rd.get_phys_disk()
 
-        # since this is spotty data, we'll use the cummulative max to carry
-        # totals forward
-        self.data['total'] = self.data['total'].cummax()
-        # for the used columns, we want to fill zeros with the last non-zero
-        # value
-        self.data['used'].fillna(method='pad', inplace=True)
-
         if not self.data.empty:
+            # since this is spotty data, we'll use the cummulative max to carry
+            # totals forward
+            self.data['total'] = self.data['total'].cummax()
+            # for the used columns, we want to fill zeros with the last non-zero
+            # value
+            self.data['used'].fillna(method='pad', inplace=True)
             self.data = self.data.set_index('key').fillna(0)
 
         response = self.data.transpose().to_dict(outtype='list')
