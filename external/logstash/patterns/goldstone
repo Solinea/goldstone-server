@@ -36,6 +36,7 @@ OPENSTACK_TRACE %{TIMESTAMP_ISO8601:timestamp} %{POSINT:pid:int} ([T|t]race|TRAC
 OPENSTACK_MESSAGE %{OPENSTACK_NORMAL}|%{OPENSTACK_TRACE}
 
 NOT_OVSW_SEPARATOR (?:[^|]*)
+HTTP_METHOD (?:GET|PUT|POST|DELETE)
 
 #
 # Nova logs that have been passed through syslog
@@ -58,6 +59,8 @@ NOVA_SPAWN_START %{NOVA_INSTANCE} (?:Creating image)
 NOVA_SPAWN_SUCCESS %{NOVA_INSTANCE} (?:Instance spawned successfully.)
 NOVA_SPAWN_ABORT %{NOVA_INSTANCE} (?:aborted: Instance was deleted during spawn.)
 NOVA_SPAWN_FAIL %{NOVA_INSTANCE} (?:Setting instance to ERROR state.)
+
+NOVA_API_CALL %{IP:ip} "(?:GET|PUT|POST|DELETE) %{URIPATH:uri} %{NOTSPACE:protocol}" status: %{NUMBER:response_status:int} len: %{NUMBER:response_length:int} time: %{NUMBER:response_time:float}
 #
 # setting the field names to match the openstack log until I can figure out a better way of doing
 # the search table

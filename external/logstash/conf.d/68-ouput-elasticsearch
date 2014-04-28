@@ -18,8 +18,9 @@
 # push processed events to elasticsearch
 # 
 output {
-    elasticsearch_http { 
+    elasticsearch { 
         host => localhost
         port => 9200 
+        protocol => http
     }
 }
