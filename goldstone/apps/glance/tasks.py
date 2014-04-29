@@ -21,7 +21,7 @@ import requests
 import logging
 import json
 from .models import ApiPerfData
-from goldstone.utils import _get_keystone_client, stored_api_call
+from goldstone.utils import _get_client, _get_keystone_client, stored_api_call
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ def time_glance_api(self):
     in the DB.
     """
     result = stored_api_call("glance", "image", "/v2/images")
-    logger.debug(_get_keystone_client.cache_info())
+    logger.debug(_get_client.cache_info())
 
     # check for existing volumes. if they exist, redo the call with a single
     # volume for a more consistent result.
@@ -45,7 +45,7 @@ def time_glance_api(self):
         if 'images' in body and len(body['images']) > 0:
             result = stored_api_call("glance", "image",
                                      "/v2/images/" + body['images'][0]['id'])
-            logger.debug(_get_keystone_client.cache_info())
+            logger.debug(_get_client.cache_info())
 
     api_db = ApiPerfData()
     rec_id = api_db.post(result['db_record'])

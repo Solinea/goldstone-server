@@ -19,7 +19,7 @@ __author__ = 'John Stanford'
 from goldstone.celery import app as celery_app
 import logging
 from .models import ApiPerfData
-from goldstone.utils import _get_keystone_client, stored_api_call
+from goldstone.utils import _get_client, _get_keystone_client, stored_api_call
 from django.conf import settings
 from datetime import datetime
 import requests
@@ -37,7 +37,7 @@ def time_cinder_api(self):
     in the DB.
     """
     result = stored_api_call("cinder", "volume", "/os-services")
-    logger.debug(_get_keystone_client.cache_info())
+    logger.debug(_get_client.cache_info())
     api_db = ApiPerfData()
     rec_id = api_db.post(result['db_record'])
     logger.debug("[time_cinder_api] id = %s", rec_id)
