@@ -33,3 +33,6 @@ pandas
 celery[redis]
 python-novaclient
 python-keystoneclient
+python-cinderclient
+python-neutronclient
+python-glanceclient
