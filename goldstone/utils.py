@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytz
 
 __author__ = 'John Stanford'
 
 from django.conf import settings
-from keystoneclient.apiclient.exceptions import ClientException
+from keystoneclient.exceptions import ClientException
 from goldstone.lru_cache import lru_cache
 from keystoneclient.v2_0 import client as ksclient
 from novaclient.v1_1 import client as nvclient
@@ -25,47 +26,39 @@ import logging
 import hashlib
 import requests
 from datetime import datetime
-from urllib2 import urlparse
+from urlparse import urlparse
 import json
 from exceptions import LookupError
 import socket
 import functools
 from datetime import date
+import calendar
 
 
 logger = logging.getLogger(__name__)
 
 
-class GoldstoneAuthError(Exception):
+class GoldstoneBaseException(Exception):
     pass
 
 
-# @lru_cache(maxsize=16)
-# def _get_keystone_client(user=settings.OS_USERNAME,
-#                          passwd=settings.OS_PASSWORD,
-#                          tenant=settings.OS_TENANT_NAME,
-#                          auth_url=settings.OS_AUTH_URL):
-#     """
-#     Authenticate and cache a token.  If token doesn't work, caller should
-#     clear the cache and retry.
-#     """
-#
-#     try:
-#         kt = client.Client(username=user,
-#                            password=passwd,
-#                            tenant_name=tenant,
-#                            auth_url=auth_url)
-#     except ClientException:
-#         raise
-#     else:
-#         if kt.auth_token is None:
-#             raise GoldstoneAuthError("Keystone client call succeeded, but "
-#                                      "auth token was not returned.  Check "
-#                                      "credentials.")
-#         else:
-#             md5 = hashlib.md5()
-#             md5.update(kt.auth_token)
-#             return {'client': kt, 'hex_token': md5.hexdigest()}
+class GoldstoneAuthError(GoldstoneBaseException):
+    pass
+
+
+class NoDailyIndex(GoldstoneBaseException):
+    pass
+
+
+def utc_timestamp():
+    return calendar.timegm(datetime.now(tz=pytz.utc).timetuple())
+
+
+def to_es_date(d):
+    s = d.strftime('%Y-%m-%dT%H:%M:%S.')
+    s += '%03d' % int(round(d.microsecond / 1000.0))
+    s += d.strftime('%z')
+    return s
 
 @lru_cache(maxsize=16)
 def _get_client(service, user=settings.OS_USERNAME,
@@ -144,14 +137,6 @@ def _is_ip_addr(candidate):
     return _is_v4_ip_addr(candidate) or _is_v6_ip_addr(candidate)
 
 
-def _current_index(basename):
-    """
-    returns the name of the current ES index based on the date
-    """
-    now = date.today()
-    return basename + "-" + now.strftime("%Y.%m.%d")
-
-
 def _partition_hostname(hostname):
     """
     separates a hostname into host and domain parts
@@ -220,6 +205,48 @@ def _decompose_url(url):
 
     return result
 
+def _get_region_for_client(catalog, management_url, service_type):
+    """
+    returns the region for a management url and service type given the service
+    catalog.
+    """
+
+    candidates = [
+        svc
+        for svc in catalog if svc['type'] == service_type
+    ]
+
+    matches = [
+        ep
+        for cand in candidates
+        for ep in cand['endpoints']
+        if ep['internalURL'] == management_url
+        or ep['publicURL'] == management_url
+        or ep['adminURL'] == management_url
+    ]
+
+    if len(matches) < 1:
+        raise GoldstoneBaseException(
+            "no matching region found for management url [" +
+            management_url + "]")
+    elif len(matches) > 1:
+        logger.warn("multiple endpoints have matching management urls,"
+                    "using first one.")
+
+    return matches[0]['region']
+
+
+def get_region_for_nova_client(client):
+    mgmt_url = client.client.management_url
+    catalog = client.client.service_catalog.catalog['access']['serviceCatalog']
+    return _get_region_for_client(catalog, mgmt_url, 'compute')
+
+
+def get_region_for_keystone_client(client):
+    mgmt_url = client.management_url
+    catalog = client.service_catalog.catalog['serviceCatalog']
+    return _get_region_for_client(catalog, mgmt_url, 'identity')
+
 
 def _construct_api_rec(reply, component, ts):
     td = reply.elapsed
@@ -229,7 +256,7 @@ def _construct_api_rec(reply, component, ts):
            'response_status': reply.status_code,
            'response_length': int(reply.headers['content-length']),
            'component': component,
-           'uri': urlparse.urlparse(reply.url).path,
+           'uri': urlparse(reply.url).path,
            '@timestamp': ts.strftime("%Y-%m-%dT%H:%M:%S." +
                                      str(int(round(ts.microsecond/1000))) +
                                      "Z")}

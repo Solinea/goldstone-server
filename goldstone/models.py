@@ -16,11 +16,13 @@ __author__ = 'John Stanford'
 
 from django.conf import settings
 from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import ElasticsearchException
 from datetime import datetime
 from types import StringType
 import json
 import logging
 import pandas as pd
+from goldstone.utils import NoDailyIndex
 
 logger = logging.getLogger(__name__)
 
@@ -53,12 +55,16 @@ class ESData(object):
         if prefix is not None:
             candidates = [k for k in
                           self._conn.indices.status()['indices'].keys() if
-                          k.startswith(prefix)]
+                          k.startswith(prefix + "-")]
         else:
             candidates = [k for k in
                           self._conn.indices.status()['indices'].keys()]
         candidates.sort()
-        return candidates.pop()
+        try:
+            return candidates.pop()
+        except IndexError:
+            raise NoDailyIndex("No daily indices with prefix " +
+                               prefix + " found.")
 
     #
     # query construction helpers
@@ -241,10 +247,42 @@ class ESData(object):
             name: clause
         }
 
+    def post(self, body, **kwargs):
+        """
+        posts a record to the database.
+        :arg body: record body as JSON object
+        :arg **kwargs: named parameters to be passed to ES create
+        :return id of the inserted record
+        """
+        logger.info("post called with body = %s", json.dumps(body))
+        response = self._conn.create(
+            ESData._get_latest_index(self, self._INDEX_PREFIX),
+            self._DOC_TYPE, body, refresh=True)
+        logger.debug('[post] response = %s', json.dumps(response))
+        return response['_id']
+
+    def delete(self, doc_id):
+        """
+        deletes a record from the database by id.
+        :arg doc_id: the id of the doc as returned by post
+        :return bool
+        """
+        q = ESData._query_base()
+        q['query'] = ESData._term_clause("_id", doc_id)
+        response = self._conn.delete_by_query("_all", self._DOC_TYPE, body=q)
+        logger.debug("[delete] response = %s", json.dumps(response))
+
+        # need to test for a single index case where there is no "all" field
+        if 'all' in response['_indices']:
+            return not bool(response['_indices']['all']['_shards']['failed'])
+        else:
+            return not bool(response['_indices'].
+                            values()[0]['_shards']['failed'])
+
 
 class ApiPerfData(ESData):
     _DOC_TYPE = 'openstack_api_stats'
-    _INDEX_PREFIX = 'logstash-'
+    _INDEX_PREFIX = 'logstash'
     # override component for implementation
     component = None
 
@@ -345,3 +383,23 @@ class ApiPerfData(ESData):
         else:
             return not bool(response['_indices'].
                             values()[0]['_shards']['failed'])
+
+
+class TopologyData(ESData):
+
+    def get(self, count=1, sort_key="@timestamp"):
+        """
+        returns the latest n
+        """
+        sort_str = sort_key + ":desc"
+        try:
+            r = self._conn.search(index="_all",
+                                  body='{"query": {"match_all": {}}}',
+                                  doc_type=self._DOC_TYPE, size=count,
+                                  sort=sort_str)
+            logger.debug('[get] search response = = %s', json.dumps(r))
+            return r['hits']['hits']
+        except ElasticsearchException as e:
+            logger.warn("get from ES failed")
+            logger.exception(e)
+            return []

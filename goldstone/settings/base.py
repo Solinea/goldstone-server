@@ -149,13 +149,19 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_TASK_SERIALIZER = 'json'
 
 from celery.schedules import crontab
+DAILY_INDEX_CREATE_INTERVAL = crontab(minute='0', hour='0', day_of_week='*')
+TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
 RESOURCE_QUERY_INTERVAL = crontab(minute='*/5')
 API_PERF_QUERY_INTERVAL = crontab(minute='*/1')
 
 CELERYBEAT_SCHEDULE = {
+    'create-daily-index': {
+        'task': 'goldstone.apps.core.tasks.create_daily_index',
+        'schedule': DAILY_INDEX_CREATE_INTERVAL,
+    },
     'nova-az-list': {
         'task': 'goldstone.apps.nova.tasks.nova_az_list',
-        'schedule': RESOURCE_QUERY_INTERVAL,
+        'schedule': TOPOLOGY_QUERY_INTERVAL,
     },
     'nova-hypervisors-stats': {
         'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
@@ -180,6 +186,10 @@ CELERYBEAT_SCHEDULE = {
     'time_glance_api': {
         'task': 'goldstone.apps.glance.tasks.time_glance_api',
         'schedule': API_PERF_QUERY_INTERVAL
+    },
+    'discover_keystone_topology': {
+        'task': 'goldstone.apps.keystone.tasks.discover_keystone_topology',
+        'schedule': TOPOLOGY_QUERY_INTERVAL
     },
 }
 
