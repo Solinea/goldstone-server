@@ -496,7 +496,12 @@ goldstone.nova.zones.drawChart = function () {
         m = [20, 80, 20, 80],
         panelWidth = $(ns.location).width() - m[1] - m[3],
         panelHeight = ns.height - m[0] - m[2],
-        tree = d3.layout.tree().size([ns.height, panelWidth]),
+        tree = d3.layout.tree().size([ns.height, panelWidth])
+        .separation(function (a, b) {
+                var sep = a.parent === b.parent ? 0.5 : 1
+                console.log("separation = " + sep)
+                return sep
+            }),
         diagonal = d3.svg.diagonal()
             .projection(function (d) { return [d.y, d.x]; }),
         vis = d3.select(ns.location).append("svg")

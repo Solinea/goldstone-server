@@ -630,6 +630,322 @@ goldstone.charts.bivariateWithAverage = {
     }
 }
 
+goldstone.charts.topologyTree = {
+    ns: null,
+    /**
+     * Get a new instance of a topology tree chart with your namespace
+     * @param ns
+     * @private
+     */
+    _getInstance: function (ns) {
+        "use strict";
+        var o = Object.create(this)
+        o.ns = ns
+        return o
+    },
+    /**
+     * Get basic information about the chart
+     */
+    info: function () {
+        "use strict";
+        var html = function () {
+            var custom = _.map(this.ns.infoCustom, function (e) {
+                            return e.key + ": " + e.value + "<br>"
+                        }),
+                result = '<div class="body"><br>' + custom +
+                    '<br></div>'
+            return result
+        }
+
+        $(this.ns.infoIcon).popover({
+            trigger: 'click',
+            content: html.apply(this),
+            placement: 'bottom',
+            html: 'true'
+        })
+    },
+    /**
+     * initialize the chart.  Should not need to override.
+     */
+    init: function () {
+        "use strict";
+        //this.info()
+        this.initSvg()
+        this.update()
+    },
+    /**
+     * Call the backend and retrieve page content and data if render = true,
+     * or just data if render = false.
+     * @param render
+     * @param location
+     */
+    // TODO can the update in init be pulled to here?
+    loadUrl: function (render, location) {
+        "use strict";
+        //Error.stackTraceLimit = Infinity;
+        render = typeof render !== 'undefined' ? render : false
+        if (render) {
+            // TODO can we generalize the url function?
+            $(location).load(this.ns.url(render))
+        } else {
+            // just get the data
+            d3.json(this.ns.url(), function (error, data) {
+                this.ns.data = data
+                this.update()
+            })
+        }
+    },
+    initSvg: function () {
+        "use strict";
+        //TODO can we just make all these ns fields part of this?
+        this.ns.self = this
+        this.ns.margin = { top: 0, bottom: 0, right: 0, left: 50 }
+        this.ns.w = $(this.ns.location).width()
+        this.ns.mw = this.ns.w - this.ns.margin.left - this.ns.margin.right
+        this.ns.mh = this.ns.h - this.ns.margin.top - this.ns.margin.bottom
+        this.ns.svg = d3.select(this.ns.location)
+            .append("svg")
+                .attr("width", this.ns.w)
+                .attr("height", this.ns.h)
+        this.ns.tree = d3.layout.tree()
+            .size([this.ns.mh, this.ns.mw])
+            .separation(function (a, b) {
+                var sep = a.parent === b.parent ? 0.5 : 1
+                console.log("separation = " + sep)
+                return sep
+            })
+        this.ns.i = 0 // used in processTree for node id
+        this.ns.diagonal = d3.svg.diagonal()
+            .projection(function (d) { return [d.y, d.x]; }),
+        this.ns.chart = this.ns.svg.append("g")
+            .attr('class', 'chart')
+            .attr("transform", "translate(" + this.ns.margin.left + "," + this.ns.margin.top + ")")
+    },
+    hasNewHiddenChildren: function (d) {
+        "use strict";
+        return d._children && _.findWhere(d._children, {'lifeStage': 'new'})
+    },
+    isNewChild: function (d) {
+        "use strict";
+        return d.lifeStage === 'new'
+    },
+    hasMissingHiddenChildren: function (d) {
+        "use strict";
+        return d._children && _.findWhere(d._children, {'missing': true})
+    },
+    isMissingChild: function (d) {
+        "use strict";
+        return d.missing
+    },
+    hasRemovedChildren: function (d) {
+        "use strict";
+        return d._children && _.findWhere(d._children, {'lifeStage': 'removed'})
+    },
+    isRemovedChild: function (d) {
+        "use strict";
+        return d.lifeStage === 'removed'
+    },
+    toggleAll: function (d) {
+        "use strict";
+        if (d.children) {
+            d.children.forEach(goldstone.charts.topologyTree.toggleAll, this)
+            goldstone.charts.topologyTree.toggle(d)
+        }
+    },
+    toggle: function (d) {
+        "use strict";
+        if (d.children) {
+            d._children = d.children;
+            d.children = null;
+        } else {
+            d.children = d._children;
+            d._children = null;
+        }
+    },
+    processTree: function (json, ns) {
+        "use strict";
+        var duration = d3.event && d3.event.altKey ? 5000 : 500
+
+        // Compute the new tree layout.
+        var nodes = ns.tree.nodes(ns.data).reverse()
+
+        // Normalize for fixed-depth.
+        nodes.forEach(function (d) {
+            // TODO make the tree branch length configurable
+            d.y = d.depth * 140;
+        })
+
+        // Update the nodes…
+
+        var node = ns.chart.selectAll("g.node")
+            .data(nodes, function (d) {
+                return d.id || (d.id = ++ns.i);
+            })
+
+        // Enter any new nodes at the parent's previous position.
+        var nodeEnter = node.enter().append("svg:g")
+            .attr("class", "node")
+            .attr("transform", function (d) {
+                return "translate(" + json.y0 + "," + json.x0 + ")";
+            })
+            .on("click", function (d) {
+                ns.self.toggle(d)
+                ns.self.processTree(d, ns)
+            })
+
+        // Add the text label (initially transparent)
+        nodeEnter.append("svg:text")
+            .attr("x", 0)
+            .attr("dy", "-1em")
+            .attr("text-anchor", "middle")
+            .text(function (d) {
+                return d.label
+            })
+            .style("fill-opacity", 1e-6)
+
+        // Add the main icon (initially miniscule)
+        nodeEnter
+            .append("g")
+            .attr("class", function (d) {
+                return "icon main " + (d.rsrcType || "cloud") + "-icon"
+            })
+            .attr("transform", "scale(0.0000001)")
+
+        // TODO need a function to abstract the class/icon path relationship
+        ns.chart.selectAll(".icon.main.cloud-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_cloud.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.region-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_cloud.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.zone-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_zone.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.host-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_host.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.service-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_service.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+        ns.chart.selectAll(".icon.main.endpoint-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_endpoint.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        // Transition nodes to their new position.
+        var nodeUpdate = node.transition()
+            .duration(duration)
+            .attr("transform", function (d) {
+                return "translate(" + d.y + "," + d.x + ")"
+            })
+
+        nodeUpdate.select(".icon.main")
+            .attr("transform", 'translate(-5, -10) scale(0.05)')
+            .style("fill", function (d) {
+                return d._children ? "lightsteelblue" : "#fff"
+            })
+
+        nodeUpdate.select("text")
+            .style("fill-opacity", 1)
+            .style("text-decoration", function (d) {
+                return (ns.self.hasRemovedChildren(d) || ns.self.isRemovedChild(d)) ?
+                    "line-through" : ""
+            })
+
+        // Transition exiting nodes to the parent's new position.
+        var nodeExit = node.exit().transition()
+            .duration(duration)
+            .attr("transform", function (d) {
+                return "translate(" + json.y + "," + json.x + ")";
+            })
+            .remove()
+
+        // TODO is this necessary?
+        //nodeExit.select("circle")
+        //    .attr("r", 1e-6)
+
+        nodeExit.select("text")
+            .style("fill-opacity", 1e-6)
+
+        // Update the links…
+        var link = ns.chart.selectAll("path.link")
+            .data(ns.tree.links(nodes), function (d) {
+                return d.target.id
+            })
+
+        // Enter any new links at the parent's previous position.
+        link.enter().insert("svg:path", "g")
+            .attr("class", "link")
+            .attr("d", function (d) {
+                var o = {x: json.x0, y: json.y0};
+                return ns.diagonal({source: o, target: o});
+            })
+            .transition()
+            .duration(duration)
+            .attr("d", ns.diagonal)
+
+        // Transition links to their new position.
+        link.transition()
+            .duration(duration)
+            .attr("d", ns.diagonal);
+
+        // Transition exiting nodes to the parent's new position.
+        link.exit().transition()
+            .duration(duration)
+            .attr("d", function (d) {
+                var o = {x: json.x, y: json.y};
+                return ns.diagonal({source: o, target: o});
+            })
+            .remove();
+
+        // Stash the old positions for transition.
+        nodes.forEach(function (d) {
+            d.x0 = d.x
+            d.y0 = d.y
+        })
+    },
+    update: function () {
+        "use strict";
+
+        if (this.ns.data !== 'undefined') {
+            if (Object.keys(this.ns.data).length === 0) {
+                $(this.ns.location).append("<p> Response was empty.")
+                $(this.ns.spinner).hide()
+            } else {
+                (function (ns) {
+                    ns.data.x0 = ns.h / 2
+                    ns.data.y0 = 0
+                    // Initialize the display to show only the first tier of children
+                    ns.data.children.forEach(ns.self.toggleAll, this)
+                    ns.self.processTree(ns.data, ns)
+                    $(ns.spinner).hide()
+                })(this.ns)
+            }
+        }
+    }
+}
+
 window.onerror = function (message, fileURL, lineNumber) {
     console.log(message + ': ' + fileURL + ': ' + lineNumber)
 }

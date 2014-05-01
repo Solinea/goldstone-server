@@ -29,10 +29,9 @@
     <script>
 
 $(document).ready(function () {
-    var gnd = goldstone.keystone.discover
-    gnd.start = goldstone.time.fromPyTs({{ start_ts|to_js }})
-    gnd.end = goldstone.time.fromPyTs({{ end_ts|to_js }})
-    gnd.interval = {{ interval|to_js }}
+    var gnd = goldstone.keystone.discover,
+        ns = goldstone.keystone.topology
+    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns)
     ns.topologyTree.loadUrl(true, '#keystone-discover-r1-c1')
 })
     </script>
