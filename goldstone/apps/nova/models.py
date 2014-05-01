@@ -37,7 +37,7 @@ class NovaClientData(ESData):
     abstract class for data pulled from nova client.  Override _DOC_TYPE
     """
     _DOC_TYPE = None
-    _INDEX_PREFIX = 'logstash-'
+    _INDEX_PREFIX = 'logstash'
 
     def get_date_range(self, start, end, first=0, count=10, sort='desc'):
         """

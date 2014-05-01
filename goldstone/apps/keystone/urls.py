@@ -19,10 +19,12 @@ from .views import *
 
 urlpatterns = patterns(
     '',
-    # url(r'^discover[/]?$', DiscoverView.as_view(),
-    #     name='keystone-discover-view'),
+    url(r'^discover[/]?$', DiscoverView.as_view(),
+        name='keystone-discover-view'),
     url(r'^report[/]?$', ReportView.as_view(),
         name='keystone-report-view'),
     url(r'^api_perf[/]?$', AuthApiPerfView.as_view(),
         name='keystone-api-perf'),
+    url(r'^topology[/]?$', TopologyView.as_view(),
+        name='keystone-topology'),
 )

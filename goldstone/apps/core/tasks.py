@@ -25,7 +25,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 @celery_app.task(bind=True)
-def create_daily_goldstone_index(self, server=settings.ES_SERVER,
+def create_daily_index(self, server=settings.ES_SERVER,
                                  basename='goldstone'):
     """
     Create a new index in ElasticSearch and set up

@@ -80,6 +80,12 @@ class ViewTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'keystone_report.html')
 
+    def test_report_view(self):
+        uri = '/keystone/discover'
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'keystone_discover.html')
+
     def test_rendered_api_perf_view(self):
         uri = '/keystone/api_perf?start_time=' + \
               str(self.start_ts) + "&end_time=" + \
@@ -96,3 +102,15 @@ class ViewTests(SimpleTestCase):
 
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
+
+    def test_rendered_topology_view(self):
+        uri = '/keystone/topology'
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'keystone_topology.html')
+
+    def test_unrendered_topology_view(self):
+        uri = '/keystone/topology?render=false'
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 200)
+
