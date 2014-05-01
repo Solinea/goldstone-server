@@ -19,6 +19,16 @@
 goldstone.namespace('keystone.report')
 goldstone.namespace('keystone.apiPerf')
 goldstone.namespace('keystone.timeRange')
+goldstone.namespace('keystone.topology')
+
+goldstone.keystone.topology._url = function (path, render) {
+    "use strict";
+    var url = path
+    if (typeof render !== 'undefined') {
+        url += "?render=" + render
+    }
+    return url
+}
 
 goldstone.keystone.timeRange._url = function (ns, start, end, interval, render, path) {
     "use strict";
@@ -42,4 +52,14 @@ goldstone.keystone.apiPerf.url = function (start, end, interval, render) {
     var ns = goldstone.keystone.apiPerf,
         path = "/keystone/api_perf"
     return goldstone.keystone.timeRange._url(ns, start, end, interval, render, path)
+}
+
+goldstone.keystone.topology.url = function (render) {
+    "use strict";
+    var url = "/keystone/topology"
+
+    if (typeof render !== 'undefined') {
+        url += "?render=" + render
+    }
+    return url
 }
