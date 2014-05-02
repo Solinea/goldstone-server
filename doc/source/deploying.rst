@@ -79,6 +79,9 @@ customization should be applied:
 
     * copy goldstone/external/rsyslog/conf.d/10-goldstone.conf /etc/rsyslog.d/conf.d
 
+    * if you have SElinux enabled, add access to the tcp port used by goldstone:
+
+    $ sudo semanage port -a -t syslogd_port_t -p tcp 5514
     $ sudo service rsyslog restart
 
 Configure OpenStack services::
@@ -117,6 +120,8 @@ The following service mapping is used for syslog_log_facility:
     * swift => LOG_LOCAL4
     * cinder => LOG_LOCAL5
     * keystone => LOG_LOCAL6
+
+* Restart the openstack services or reboot the node.
 
 Notes::
     * future versions will leverage the configuration setting to insert the appname into the outgoing message.

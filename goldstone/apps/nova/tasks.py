@@ -58,7 +58,7 @@ def nova_hypervisors_stats(self):
     response['task_id'] = self.request.id
     hvdb = HypervisorStatsData()
     id = hvdb.post(response)
-    logger.info("[hypervisor_stats] id = %s", id)
+    logger.debug("[hypervisor_stats] id = %s", id)
 
 
 @celery_app.task(bind=True)

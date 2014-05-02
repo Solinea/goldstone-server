@@ -85,7 +85,7 @@ def _update_keystone_endpoint_records(cl):
 
     try:
 
-        logger.info("endpoint list = %s", json.dumps(el))
+        logger.debug("endpoint list = %s", json.dumps(el))
         db.post({"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
                  "endpoints": el})
     except Exception as e:
