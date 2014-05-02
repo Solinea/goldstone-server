@@ -18,6 +18,7 @@
 
 goldstone.namespace('glance.report')
 goldstone.namespace('glance.apiPerf')
+goldstone.namespace('glance.topology')
 
 goldstone.glance.apiPerf.url = function (start, end, interval, render) {
     "use strict";
@@ -39,3 +40,14 @@ goldstone.glance.apiPerf.url = function (start, end, interval, render) {
     }
     return url
 }
+
+goldstone.glance.topology.url = function (render) {
+    "use strict";
+    var url = "/glance/topology"
+
+    if (typeof render !== 'undefined') {
+        url += "?render=" + render
+    }
+    return url
+}
+

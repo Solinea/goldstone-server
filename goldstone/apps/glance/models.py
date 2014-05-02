@@ -15,8 +15,13 @@
 __author__ = 'John Stanford'
 
 from django.db import models
-from goldstone.models import ApiPerfData
+from goldstone.models import ApiPerfData, TopologyData
 
 
 class ApiPerfData(ApiPerfData):
     component = 'glance'
+
+
+class ImageData(TopologyData):
+    _DOC_TYPE = 'glance_image_list'
+    _INDEX_PREFIX = 'goldstone'

@@ -95,6 +95,84 @@
                     }
                 }
             }
+        },
+        "glance_image_list" : {
+            "_timestamp": {
+                "enabled": true,
+                "path": "@timestamp"
+            },
+            "_source": {
+                "enabled": true
+            },
+            "properties": {
+                "@timestamp": {
+                    "type": "date"
+                },
+                "images": {
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "name": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "disk_format": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "status": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "container_format": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "size": {
+                            "type": "integer"
+                        },
+                        "min_ram": {
+                            "type": "integer"
+                        },
+                        "min_disk": {
+                            "type": "integer"
+                        },
+                        "created_at": {
+                            "type": "date"
+                        },
+                        "updated_at": {
+                            "type": "date"
+                        },
+                        "checksum": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "visibility": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "owner": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "file": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "protected": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "schema": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        }
+                    }
+                }
+            }
         }
     }
 }
+
