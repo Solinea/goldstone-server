@@ -287,7 +287,10 @@ def stored_api_call(component, endpt, path, headers={}, data=None,
                     tenant=settings.OS_TENANT_NAME,
                     auth_url=settings.OS_AUTH_URL):
 
-    kt = _get_keystone_client(user, passwd, tenant, auth_url)
+    kt = _get_keystone_client(user=user,
+                              passwd=passwd,
+                              tenant=tenant,
+                              auth_url=auth_url)
 
     try:
         url = kt['client'].service_catalog.\

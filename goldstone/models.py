@@ -254,7 +254,7 @@ class ESData(object):
         :arg **kwargs: named parameters to be passed to ES create
         :return id of the inserted record
         """
-        logger.info("post called with body = %s", json.dumps(body))
+        logger.debug("post called with body = %s", json.dumps(body))
         response = self._conn.create(
             ESData._get_latest_index(self, self._INDEX_PREFIX),
             self._DOC_TYPE, body, refresh=True)
@@ -328,8 +328,9 @@ class ApiPerfData(ESData):
             % interval
 
         q = self._api_perf_query(start, end, interval)
+        logger.debug('[get] query = %s', json.dumps(q))
         r = self._conn.search(index="_all", body=q, doc_type=self._DOC_TYPE)
-        logger.debug('[get] search response = = %s', json.dumps(r))
+        logger.debug('[get] search response = %s', json.dumps(r))
         items = []
         for date_bucket in r['aggregations']['events_by_date']['buckets']:
             logger.debug("[get] processing date_bucket: %s",
@@ -359,7 +360,7 @@ class ApiPerfData(ESData):
         :arg body: record body as JSON object
         :return id of the inserted record
         """
-        logger.info("post called with body = %s", json.dumps(body))
+        logger.debug("post called with body = %s", json.dumps(body))
         response = self._conn.create(
             ESData._get_latest_index(self, self._INDEX_PREFIX),
             self._DOC_TYPE, body, refresh=True)

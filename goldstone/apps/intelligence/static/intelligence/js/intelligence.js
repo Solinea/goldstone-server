@@ -242,6 +242,8 @@ function _lineChartBase(location, margins, renderlet) {
         .transitionDuration(1000)
         .renderHorizontalGridLines(true)
         .brushOn(false)
+        .interpolate('basis')
+        .tension(0.85)
 
     if (typeof renderlet !== 'undefined') {
         chart.renderlet(renderlet)

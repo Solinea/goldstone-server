@@ -338,6 +338,8 @@ goldstone.charts.lineChartBase = function (location, margins, renderlet) {
         .renderHorizontalGridLines(true)
         .brushOn(false)
         .ordinalColors(goldstone.settings.charts.ordinalColors)
+        .interpolate("basis")
+        .tension(0.85)
         .xAxis().ticks(5)
 
     if (typeof renderlet !== 'undefined') {
@@ -711,7 +713,6 @@ goldstone.charts.topologyTree = {
             .size([this.ns.mh, this.ns.mw])
             .separation(function (a, b) {
                 var sep = a.parent === b.parent ? 0.5 : 1
-                console.log("separation = " + sep)
                 return sep
             })
         this.ns.i = 0 // used in processTree for node id
@@ -880,10 +881,6 @@ goldstone.charts.topologyTree = {
                 return "translate(" + json.y + "," + json.x + ")";
             })
             .remove()
-
-        // TODO is this necessary?
-        //nodeExit.select("circle")
-        //    .attr("r", 1e-6)
 
         nodeExit.select("text")
             .style("fill-opacity", 1e-6)

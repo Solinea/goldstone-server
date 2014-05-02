@@ -165,13 +165,13 @@ class ResourceView(TemplateView):
 
         if not (phys.empty and virt.empty):
             if phys.empty:
-                virt['total_phys'] = 0
-                virt['used_phys'] = pd.NaN
+                virt['total_phys'] = virt['total']
+                virt['used_phys'] = virt['used']
                 self.data = virt.rename(
                     columns={'total': 'virt_total', 'used': 'virt_used'})
             elif virt.empty:
-                phys['total_virt'] = 0
-                phys['used_virt'] = pd.NaN
+                phys['total_virt'] = phys['total']
+                phys['used_virt'] = phys['used']
                 self.data = phys.rename(
                     columns={'total': 'total_phys', 'used': 'used_phys'})
             else:

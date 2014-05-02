@@ -263,6 +263,7 @@ class ResourceData(ESData):
 
     def _get_resource(self, resource_type, resource, custom_field):
         q = self._claims_resource_query(resource_type, resource)
+        logger.debug('query = %s', json.dumps(q))
         doc_type = self._PHYS_DOC_TYPE
         if resource_type == 'virtual':
             doc_type = self._VIRT_DOC_TYPE
@@ -302,11 +303,11 @@ class ResourceData(ESData):
         return result
 
     def get_phys_cpu(self):
-        result = self._get_resource('physical', 'cpu', 'used')
+        result = self._get_resource('physical', 'cpus', 'used')
         return result
 
     def get_virt_cpu(self):
-        result = self._get_resource('virtual', 'cpu', 'free')
+        result = self._get_resource('virtual', 'cpus', 'free')
         return result
 
     def get_phys_mem(self):

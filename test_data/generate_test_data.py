@@ -66,8 +66,13 @@ result1 = [
 
 result2 = [
     _get_dataset('keystone_service_list', '@timestamp:desc'),
-    _get_dataset('keystone_endpoint_list', '@timestamp:desc')
+    _get_dataset('keystone_endpoint_list', '@timestamp:desc'),
+    _get_dataset('glance_image_list', '@timestamp:desc')
 ]
+
+
+
+
 
 print "exporting " + str(len(result1)) + " logstash sets"
 print "exporting " + str(len(result2)) + " goldstone sets"

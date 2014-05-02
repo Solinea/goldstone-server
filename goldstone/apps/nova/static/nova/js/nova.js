@@ -499,7 +499,6 @@ goldstone.nova.zones.drawChart = function () {
         tree = d3.layout.tree().size([ns.height, panelWidth])
         .separation(function (a, b) {
                 var sep = a.parent === b.parent ? 0.5 : 1
-                console.log("separation = " + sep)
                 return sep
             }),
         diagonal = d3.svg.diagonal()
