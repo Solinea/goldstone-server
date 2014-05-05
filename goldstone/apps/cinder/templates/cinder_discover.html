@@ -29,11 +29,10 @@
     <script>
 
 $(document).ready(function () {
-    var gnd = goldstone.cinder.discover
-    gnd.start = goldstone.time.fromPyTs({{ start_ts|to_js }})
-    gnd.end = goldstone.time.fromPyTs({{ end_ts|to_js }})
-    // TODO remove interval.  I don't think it is relevant here.
-    gnd.interval = {{ interval|to_js }}
+    var gnd = goldstone.cinder.discover,
+        ns = goldstone.cinder.topology
+    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns)
+    ns.topologyTree.loadUrl(true, '#cinder-discover-r1-c1')
 })
     </script>
 

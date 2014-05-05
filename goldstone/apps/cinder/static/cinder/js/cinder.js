@@ -18,16 +18,20 @@
 
 goldstone.namespace('cinder.report')
 goldstone.namespace('cinder.apiPerf')
-goldstone.namespace('cinder.timeRange')
+goldstone.namespace('cinder.topology')
 
-goldstone.cinder.timeRange._url = function (ns, start, end, interval, render, path) {
+goldstone.cinder.apiPerf.url = function (start, end, interval, render) {
     "use strict";
-    var gt = goldstone.time
+    var ns = goldstone.cinder.apiPerf,
+        gt = goldstone.time,
+        path = "/cinder/api_perf",
+        url
+
     start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start)
     end = end ? gt.toPyTs(end) : gt.toPyTs(ns.end)
     interval = interval ? interval : ns.interval
 
-    var url = path +
+    url = path +
         "?start=" + start +
         "&end=" + end +
         "&interval=" + interval
@@ -37,9 +41,12 @@ goldstone.cinder.timeRange._url = function (ns, start, end, interval, render, pa
     return url
 }
 
-goldstone.cinder.apiPerf.url = function (start, end, interval, render) {
+goldstone.cinder.topology.url = function (render) {
     "use strict";
-    var ns = goldstone.cinder.apiPerf,
-        path = "/cinder/api_perf"
-    return goldstone.cinder.timeRange._url(ns, start, end, interval, render, path)
+    var url = "/cinder/topology"
+
+    if (typeof render !== 'undefined') {
+        url += "?render=" + render
+    }
+    return url
 }
