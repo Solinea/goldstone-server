@@ -75,7 +75,7 @@ class TopologyView(TemplateView):
 
     def _transform_service_list(self):
         logger.debug("in _transform_service_list, s[0] = %s",
-                    json.dumps(self.services[0]))
+                     json.dumps(self.services[0]))
         try:
             updated = self.services[0]['_source']['@timestamp']
             region = self.services[0]['_source']['region']

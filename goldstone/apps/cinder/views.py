@@ -11,11 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from goldstone.utils import _is_ip_addr, _partition_hostname, _resolve_fqdn, \
+    _resolve_addr, _host_details
 
 __author__ = 'John Stanford'
 
 from goldstone.views import *
-from .models import ApiPerfData
+from .models import ApiPerfData, ServiceData, VolumeData
 import logging
 
 logger = logging.getLogger(__name__)
@@ -36,9 +38,10 @@ class ServiceListApiPerfView(ApiPerfView):
         return ApiPerfData().get(context['start_dt'], context['end_dt'],
                                  context['interval'])
 
+
 class TopologyView(TemplateView):
     """
-    Produces a view of the glance topology (or json data if render=false).
+    Produces a view of the cinder topology (or json data if render=false).
     The data structure is a list of resource types.  If the list contains
     only one element, it will be used as the root node, otherwise a "cloud"
     resource will be constructed as the root.
@@ -46,7 +49,7 @@ class TopologyView(TemplateView):
     A resource has the following structure:
 
     {
-        "rsrcType": "cloud|region|image",
+        "rsrcType": "cloud|region|zone|service|volume",
         "label": "string",
         "info": {"key": "value" [, "key": "value", ...]}, (optional)
         "lifeStage": "new|existing|absent", (optional)
@@ -61,8 +64,120 @@ class TopologyView(TemplateView):
         self.services = ServiceData().get()
         self.volumes = VolumeData().get()
 
-    def _get_image_regions(self):
-        return set([s['_source']['region'] for s in self.images])
+    def _get_service_regions(self):
+        return set([s['_source']['region'] for s in self.services])
+
+    def _get_volume_regions(self):
+        return set(
+            [
+                ep['_source']['region']
+                for ep in self.volumes
+            ])
+
+    def _get_zones(self, updated, region):
+        """
+        returns the zone structure derived from both services and volumes.
+        has children hosts populated as the attachment point for the services
+        and volumes in the graph.
+        """
+        zones = set(
+            z['zone']
+            for z in self.services[0]['_source']['services']
+        ).union(set([v['availability_zone']
+                     for v in self.volumes[0]['_source']['volumes']]))
+        result = []
+        for zone in zones:
+            # build the initial list from services and volumes
+            hosts = set(
+                s['host']
+                for s in self.services[0]['_source']['services']
+                if s['zone'] == zone
+            ).union(set([
+                v['os-vol-host-attr:host']
+                for v in self.volumes[0]['_source']['volumes']
+                if v['availability_zone'] == zone]))
+            # remove domain names from hostnames if they are there
+            base_hosts = []
+            for h in hosts:
+                if _is_ip_addr(h):
+                    # try to resolve the hostname
+                    hn = _resolve_fqdn(h)
+                    if hn:
+                        base_hosts.append({
+                            "rsrcType": "host",
+                            "label": hn['hostname'],
+                            "info": {
+                                "last_update": updated,
+                                "ip_addr": h
+                            }})
+                    else:
+                        base_hosts.append({
+                            "rsrcType": "host",
+                            "label": h,
+                            "info": {
+                                "last_update": updated,
+                                "hostname": "unresolved"
+                            }})
+                else:
+                    addr = _resolve_addr(h)
+
+                    base_hosts.append({
+                        "rsrcType": "host",
+                        "label": _partition_hostname(h)['hostname'],
+                        "info": {
+                            "last_update": updated,
+                            "ip_addr": addr if addr else "unresolved"
+                        }})
+            result.append({
+                "rsrcType": "zone",
+                "label": zone,
+                "region": region,
+                "info": {
+                    "last_update": updated
+                 },
+                "children": base_hosts
+            })
+
+        return result
+
+    def _transform_service_list(self):
+        logger.debug("in _transform_service_list, s[0] = %s",
+                     json.dumps(self.services[0]))
+        try:
+            updated = self.services[0]['_source']['@timestamp']
+            region = self.services[0]['_source']['region']
+            zones = self._get_zones(updated, region)
+
+            # want to weave services in as children of a host in a zone
+            for z in zones:
+                for h in z['children']:
+                    children = []
+                    host_details = _host_details(h['label'])
+
+                    h_ip_addr = host_details.get('ip_addr', None)
+                    h_name = host_details.get('hostname', None)
+                    h_fqdn = h_name + "." + host_details.get('domainname', '')
+                    host_match_options = [
+                        n for n in [h_ip_addr, h_name, h_fqdn] if n
+                    ]
+
+                    for s in self.services[0]['_source']['services']:
+                        if s['zone'] == z['label'] and \
+                           (s['host'] in host_match_options):
+                            children.append(
+                                {"rsrcType": "service",
+                                 "label": s['binary'],
+                                 "enabled": True
+                                 if s['status'] == "enabled" else False,
+                                 "region": region,
+                                 "info": dict(s.items() + {
+                                     'last_update': updated}.items())})
+                    h['children'] = children
+
+            return zones
+        except Exception as e:
+            logger.exception(e)
+            return []
 
     def _transform_image_list(self):
         logger.debug("in _transform_image_list, s[0] = %s",
@@ -100,19 +215,44 @@ class TopologyView(TemplateView):
             logger.exception(e)
             return []
 
+    def _map_service_children(self):
+        """
+        use the service ID of the endpoint to append a child to the list
+        of service children.
+        """
+        sl = self._transform_service_list()
+        el = self._transform_volume_list()
+
+        for s in sl:
+            children = []
+            for e in el:
+                if e['service_id'] == s['info']['id']:
+                    children.append(e)
+            if len(children) > 0:
+                s['children'] = children
+
+        for s in sl:
+            for e in s['children']:
+                e['label'] = s['label']
+                del e['service_id']
+
+        return sl
+
     def _build_region_tree(self):
+        # TODO may be able to abstract by using params for the list of methods
         rl = [{"rsrcType": "region", "label": r} for r in
-              self._get_image_regions()]
+              self._get_service_regions().union(
+                  self._get_volume_regions())]
         if len(rl) == 0:
             return {}
 
-        il = self._transform_image_list()
+        sl = self._map_service_children()
 
         for r in rl:
             children = []
-            for i in il:
-                if i['region'] == r['label']:
-                    children.append(i)
+            for s in sl:
+                if s['region'] == r['label']:
+                    children.append(s)
             if len(children) > 0:
                 r['children'] = children
 

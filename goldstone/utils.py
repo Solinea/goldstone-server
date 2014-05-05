@@ -218,6 +218,23 @@ def _resolve_addr(hostname):
         return None
 
 
+def _host_details(name_or_addr):
+    if _is_ip_addr(name_or_addr):
+        # try to resolve the hostname
+        hn = _resolve_fqdn(name_or_addr)
+        if hn:
+            return dict({'ip_addr': name_or_addr}.items() + hn.items())
+        else:
+            return {'ip_addr': name_or_addr}
+    else:
+        addr = _resolve_addr(name_or_addr)
+        hn = _partition_hostname(name_or_addr)
+        if addr:
+            return dict({'ip_addr': addr}.items() + hn.items())
+        else:
+            return hn
+
+
 def _decompose_url(url):
     """
     returns the scheme, host, and possibly port for a url
