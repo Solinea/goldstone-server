@@ -70,12 +70,11 @@ def _update_glance_image_records(cl, region):
         db.post(body)
     except Exception as e:
         logging.exception(e)
-        logger.warn("failed to index glance services")
+        logger.warn("failed to index glance images")
 
 
 @celery_app.task(bind=True)
 def discover_glance_topology(self):
     glance_access = _get_glance_client()
-    c = glance_access['client']
     _update_glance_image_records(glance_access['client'],
                                  glance_access['region'])

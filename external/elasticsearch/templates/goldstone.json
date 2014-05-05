@@ -16,6 +16,21 @@
     },
     "template": "goldstone-*",
     "mappings": {
+        "_default_": {
+            "_timestamp": {
+                "enabled": true,
+                "path": "@timestamp"
+            },
+            "_source": {
+                "enabled": true
+            },
+            "properties": {
+                "@timestamp": {
+                    "type": "date"
+                }
+
+            }
+        },
         "keystone_service_list": {
             "_timestamp": {
                 "enabled": true,

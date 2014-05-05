@@ -61,12 +61,13 @@ def to_es_date(d):
     s += d.strftime('%z')
     return s
 
-def _get_region_for_client(catalog, management_url, service_type):
+def _get_region_for_client(kc, management_url, service_type):
     """
     returns the region for a management url and service type given the service
     catalog.
     """
 
+    catalog = kc.service_catalog.catalog['serviceCatalog']
     candidates = [
         svc
         for svc in catalog if svc['type'] == service_type
@@ -90,6 +91,7 @@ def _get_region_for_client(catalog, management_url, service_type):
                     "using first one.")
 
     return matches[0]['region']
+
 
 @lru_cache(maxsize=16)
 def _get_client(service, user=settings.OS_USERNAME,
@@ -117,7 +119,12 @@ def _get_client(service, user=settings.OS_USERNAME,
         elif service == 'cinder':
             c = ciclient.Client(user, passwd, tenant, auth_url,
                                 service_type='volume')
-            return {'client': c}
+            # force authentication to populate management url
+            c.authenticate()
+            management_url = c.client.management_url
+            region = _get_region_for_client(_get_keystone_client()['client'],
+                                            management_url, 'volume')
+            return {'client': c, 'region': region}
         elif service == 'neutron':
             c = neclient.Client(user, passwd, tenant, auth_url)
             return {'client': c}
@@ -125,9 +132,7 @@ def _get_client(service, user=settings.OS_USERNAME,
             kc = _get_client(service='keystone')['client']
             internalurl = kc.endpoints.find(service_id=kc.services.
                                             find(name='glance').id).internalurl
-            region = _get_region_for_client(
-                kc.service_catalog.catalog['serviceCatalog'],
-                internalurl, 'image')
+            region = _get_region_for_client(kc, internalurl, 'image')
             c = glclient.Client(endpoint=internalurl, token=kc.auth_token)
             return {'client': c, 'region': region}
         else:

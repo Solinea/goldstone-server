@@ -195,6 +195,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.apps.glance.tasks.discover_glance_topology',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
+    'discover_cinder_topology': {
+        'task': 'goldstone.apps.cinder.tasks.discover_cinder_topology',
+        'schedule': TOPOLOGY_QUERY_INTERVAL
+    },
 }
 
 # Goldstone config settings
