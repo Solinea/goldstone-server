@@ -39,13 +39,18 @@ class ImageApiPerfView(ApiPerfView):
 
 class TopologyView(TopologyView):
 
-    my_template_name = 'glance_topology.html'
+    def my_template_name(self):
+        return 'glance_topology.html'
 
     def __init__(self):
         self.images = ImageData().get()
 
     def _get_image_regions(self):
         return set([s['_source']['region'] for s in self.images])
+
+    def _get_regions(self):
+        return [{"rsrcType": "region", "label": r} for r in
+                self._get_image_regions()]
 
     def _transform_image_list(self):
         logger.debug("in _transform_image_list, s[0] = %s",
@@ -83,9 +88,9 @@ class TopologyView(TopologyView):
             logger.exception(e)
             return []
 
-    def _build_region_tree(self):
-        rl = [{"rsrcType": "region", "label": r} for r in
-              self._get_image_regions()]
+    def _build_topology_tree(self):
+        rl = self._get_regions()
+
         if len(rl) == 0:
             return {}
 
