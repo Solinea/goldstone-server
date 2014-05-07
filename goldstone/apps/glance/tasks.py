@@ -23,8 +23,8 @@ import requests
 import logging
 import json
 from .models import ApiPerfData, ImageData
-from goldstone.utils import _get_client, _get_keystone_client, stored_api_call, \
-    get_region_for_glance_client, to_es_date, _get_glance_client
+from goldstone.utils import _get_client, stored_api_call, \
+    to_es_date, _get_glance_client
 
 logger = logging.getLogger(__name__)
 
