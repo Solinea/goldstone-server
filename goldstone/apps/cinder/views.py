@@ -11,8 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import ast
+import copy
+import itertools
 from goldstone.utils import _is_ip_addr, _partition_hostname, _resolve_fqdn, \
-    _resolve_addr, _host_details
+    _resolve_addr, _host_details, _normalize_hostnames, _normalize_hostname
 
 __author__ = 'John Stanford'
 
@@ -74,6 +77,90 @@ class TopologyView(TemplateView):
                 for ep in self.volumes
             ])
 
+    @staticmethod
+    def _eval_condition(d1, d2, sc, tc, cond):
+        """
+        evaluates the source and target dicts to see if the condition holds.
+        returns boolean.
+        """
+        # substitute reference to source and target in condition
+        cond = cond.replace("%source%", "d1").replace("%target%", "d2")
+        cond = cond.replace("%source_child%", "sc")
+        cond = cond.replace("%target_child%", "tc")
+        return ast.literal_eval(cond)
+
+    def _get_children(self, d, rsrc_type):
+        assert (type(d) is dict or type(d) is list), "d must be a list or dict"
+        assert rsrc_type, "rsrc_type must have a value"
+
+        if type(d) is list:
+            # make it into a dict
+            d = {
+                'rsrcType': None,
+                'children': d
+            }
+        # this is a matching child
+        if d['rsrcType'] == rsrc_type:
+            return d
+        # this is not a match, but has children to check
+        elif d.get('children', None):
+
+            result = [self._get_children(c, rsrc_type)
+                      for c in d['children']]
+            if len(result) > 0 and type(result[0]) is list:
+                # flatten it so we don't end up with nested lists
+                print "flattening " + json.dumps(result)
+                return [c for l in result for c in l]
+            else:
+                print "NOT flattening " + json.dumps(result)
+                return result
+        # anything else is a leaf that doesn't match and has no children,
+        # so we don't return anything.
+
+    def _attach_resource(self, attach_descriptor, source, target):
+        """
+        Attaches one resource tree to another at a described point.  The
+        descriptor format is:
+
+            {'sourceRsrcType': 'string',
+             'targetRsrcType': 'string',
+             'conditions': 'string'}
+
+        If sourceRsrcType will be treated as the top level thing to attach.  If
+        there are resources above it in the source dict, they will be ignored.
+        The resource(s) of type sourceResourceType along with their descendants
+        will be attached to resources of targetRsrcType in the target dict
+        which match the condition expression.  The target dict assumes that
+        nesting is via the 'children' key.  The condition will be evaluated as
+        a boolean expression, and will have access to the items in both source
+        and target.
+        """
+
+        # basic sanity check.  all args should be dicts, source and target
+        # should have a rsrcType field
+        assert type(source) is list, "source param must be a list"
+        assert type(target) is list, "target param must be a list"
+        assert type(attach_descriptor) is dict, \
+            "attach_descriptor param must be a dict"
+
+        # make copies so they are not subject to mutation during or after the
+        # the call.
+        targ = copy.deepcopy(target)
+        src = copy.deepcopy(source)
+        ad = attach_descriptor
+
+        targ_children = self._get_children(targ, ad['targetRsrcType'])
+        src_children = self._get_children(src, ad['sourceRsrcType'])
+        for tc in targ_children:
+            for sc in src_children:
+                match = self._eval_condition(src, targ, sc, tc,
+                                             ad['conditions'])
+                if match:
+                    if not tc.has_key('children'):
+                        tc['children'] = []
+                    tc['children'].append(sc)
+        return targ
+
     def _get_zones(self, updated, region):
         """
         returns the zone structure derived from both services and volumes.
@@ -97,37 +184,15 @@ class TopologyView(TemplateView):
                 for v in self.volumes[0]['_source']['volumes']
                 if v['availability_zone'] == zone]))
             # remove domain names from hostnames if they are there
+            hosts = set([_normalize_hostname(h) for h in hosts])
             base_hosts = []
             for h in hosts:
-                if _is_ip_addr(h):
-                    # try to resolve the hostname
-                    hn = _resolve_fqdn(h)
-                    if hn:
-                        base_hosts.append({
-                            "rsrcType": "host",
-                            "label": hn['hostname'],
-                            "info": {
-                                "last_update": updated,
-                                "ip_addr": h
-                            }})
-                    else:
-                        base_hosts.append({
-                            "rsrcType": "host",
-                            "label": h,
-                            "info": {
-                                "last_update": updated,
-                                "hostname": "unresolved"
-                            }})
-                else:
-                    addr = _resolve_addr(h)
-
-                    base_hosts.append({
-                        "rsrcType": "host",
-                        "label": _partition_hostname(h)['hostname'],
-                        "info": {
-                            "last_update": updated,
-                            "ip_addr": addr if addr else "unresolved"
-                        }})
+                base_hosts.append({
+                    "rsrcType": "host",
+                    "label": h,
+                    "info": {
+                        "last_update": updated,
+                    }})
             result.append({
                 "rsrcType": "zone",
                 "label": zone,
@@ -140,103 +205,45 @@ class TopologyView(TemplateView):
 
         return result
 
-    def _transform_service_list(self):
+    def _transform_service_list(self, updated, region):
         logger.debug("in _transform_service_list, s[0] = %s",
                      json.dumps(self.services[0]))
         try:
-            updated = self.services[0]['_source']['@timestamp']
-            region = self.services[0]['_source']['region']
-            zones = self._get_zones(updated, region)
+            svcs = {"services": [
+                {"rsrcType": "service",
+                 "label": s['binary'],
+                 "enabled": True
+                 if s['status'] == "enabled" else False,
+                 "region": region,
+                 "info": dict(s.items() + {
+                     'last_update': updated}.items()),
+                 "children": []}
+                for s in self.services[0]['_source']['services']
+            ]}
+            _normalize_hostnames(['host'], svcs)
+            return svcs['services']
 
-            # want to weave services in as children of a host in a zone
-            for z in zones:
-                for h in z['children']:
-                    children = []
-                    host_details = _host_details(h['label'])
-
-                    h_ip_addr = host_details.get('ip_addr', None)
-                    h_name = host_details.get('hostname', None)
-                    h_fqdn = h_name + "." + host_details.get('domainname', '')
-                    host_match_options = [
-                        n for n in [h_ip_addr, h_name, h_fqdn] if n
-                    ]
-
-                    for s in self.services[0]['_source']['services']:
-                        if s['zone'] == z['label'] and \
-                           (s['host'] in host_match_options):
-                            children.append(
-                                {"rsrcType": "service",
-                                 "label": s['binary'],
-                                 "enabled": True
-                                 if s['status'] == "enabled" else False,
-                                 "region": region,
-                                 "info": dict(s.items() + {
-                                     'last_update': updated}.items())})
-                    h['children'] = children
-
-            return zones
         except Exception as e:
             logger.exception(e)
             return []
 
-    def _transform_image_list(self):
-        logger.debug("in _transform_image_list, s[0] = %s",
-                     json.dumps(self.images[0]))
+    def _transform_volume_list(self, updated, region):
+        logger.debug("in _transform_volume_list, s[0] = %s",
+                     json.dumps(self.volumes[0]))
         try:
-            updated = self.images[0]['_source']['@timestamp']
-            region = self.images[0]['_source']['region']
             return [
-                {"rsrcType": "service",
-                 "label": s['name'],
-                 "enabled": True if s['status'] == 'active' else False,
+                {"rsrcType": "volume",
+                 "label": v['display_name'],
+                 "enabled": True if not (v['status'] == 'error' or
+                                         v['status'] == 'deleting') else False,
                  "region": region,
-                 "info": {
-                     'id': s['id'],
-                     'name': s['name'],
-                     'tags': s['tags'],
-                     'container_format': s['container_format'],
-                     'disk_format': s['disk_format'],
-                     'protected': s['protected'],
-                     'size': s['size'],
-                     'checksum': s['checksum'],
-                     'min_disk': s['min_disk'],
-                     'min_ram': s['min_ram'],
-                     'created_at': s['created_at'],
-                     'updated_at': s['updated_at'],
-                     'visibility': s['visibility'],
-                     'owner': s['owner'],
-                     'file': s['file'],
-                     'schema': s['schema'],
-                     "last_update": updated
-
-                 }} for s in self.images[0]['_source']['images']
+                 "info": dict(v.items() + {'last_update': updated}.items())
+                }
+                for v in self.volumes[0]['_source']['volumes']
             ]
         except Exception as e:
             logger.exception(e)
             return []
-
-    def _map_service_children(self):
-        """
-        use the service ID of the endpoint to append a child to the list
-        of service children.
-        """
-        sl = self._transform_service_list()
-        el = self._transform_volume_list()
-
-        for s in sl:
-            children = []
-            for e in el:
-                if e['service_id'] == s['info']['id']:
-                    children.append(e)
-            if len(children) > 0:
-                s['children'] = children
-
-        for s in sl:
-            for e in s['children']:
-                e['label'] = s['label']
-                del e['service_id']
-
-        return sl
 
     def _build_region_tree(self):
         # TODO may be able to abstract by using params for the list of methods
@@ -246,7 +253,24 @@ class TopologyView(TemplateView):
         if len(rl) == 0:
             return {}
 
-        sl = self._map_service_children()
+        updated = self.services[0]['_source']['@timestamp']
+        region = self.services[0]['_source']['region']
+        zl = self._get_zones(updated, region)
+        sl = self._transform_service_list(updated, region)
+        vl = self._transform_volume_list(updated, region)
+        # combine services with zones at the host level when service[zone]
+        # == zone[label] and service[childx][host] == zone[childy][label]
+        # god help us all if it works...
+        ad = {'sourceRsrcType': 'service',
+              'targetRsrcType': 'host',
+              'conditions': "%source%['zone'] == %target%['label'] and "
+                            "%source_child%['host'] == %target_child%['label']"
+        }
+        sl = self._attach_resource(ad, sl, zl)
+
+
+
+
 
         for r in rl:
             children = []
