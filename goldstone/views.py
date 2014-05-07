@@ -247,7 +247,8 @@ class TopologyView(TemplateView):
         """
         # substitute reference to source and target in condition
         cond = cond.replace("%source%", "sc").replace("%target%", "tc")
-        return eval(cond, {'__builtins__': {}}, locals())
+        return eval(cond, {'__builtins__': {}}, {"sc": sc, "tc": tc,
+                                                 "len": len})
 
     def _get_children(self, d, rsrc_type):
         assert (type(d) is dict or type(d) is list), "d must be a list or dict"
@@ -389,12 +390,14 @@ class GoldstoneTopologyView(TopologyView):
         from .apps.keystone.views import TopologyView as KeystoneTopoView
         from .apps.glance.views import TopologyView as GlanceTopoView
         from .apps.cinder.views import TopologyView as CinderTopoView
+        from .apps.nova.views import TopologyView as NovaTopoView
 
         keystone_topo = KeystoneTopoView()
         glance_topo = GlanceTopoView()
         cinder_topo = CinderTopoView()
+        nova_topo = NovaTopoView()
 
-        topo_list = [keystone_topo, glance_topo, cinder_topo]
+        topo_list = [nova_topo, keystone_topo, glance_topo, cinder_topo]
 
         # get regions from everyone and remove the dups
         rll = [topo._get_regions() for topo in topo_list]
@@ -404,7 +407,7 @@ class GoldstoneTopologyView(TopologyView):
 
         rl = [dict(t) for t in set([tuple(d.items()) for d in rl])]
 
-        # we're going to bind everyone to the region tree, order is most likely
+        # we're going to bind everyone to the region tree. order is most likely
         # going to be important for some modules, so eventually we'll have
         # to be able to find a way to order or otherwise express module
         # dependencies.  It will also be helpful to build from the bottom up.
@@ -417,6 +420,21 @@ class GoldstoneTopologyView(TopologyView):
               'targetRsrcType': 'region',
               'conditions': "%source%['region'] == %target%['label']"}
         rl = self._attach_resource(ad, cl, rl)
+
+        # bind nova hosts to existing zones
+        nl = [nova_topo._build_topology_tree()]
+        ad = {'sourceRsrcType': 'host',
+              'targetRsrcType': 'zone',
+              'conditions': "%source%['info']['zone'] == %target%['label']"}
+        rl = self._attach_resource(ad, nl, rl)
+
+        # bind nova zones to region if the zone is not there already
+        ad = {'sourceRsrcType': 'zone',
+              'targetRsrcType': 'region',
+              'conditions': "%source%['region'] == %target%['label'] and "
+                            "len([c for c in %target%['children'] "
+                            "if c['label'] == %source%['label']]) == 0"}
+        rl = self._attach_resource(ad, nl, rl)
 
         # bind glance region to region, but rename glance
         gl = self._rescope_module_tree(
