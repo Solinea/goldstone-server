@@ -42,25 +42,8 @@ class ServiceListApiPerfView(ApiPerfView):
                                  context['interval'])
 
 
-class TopologyView(TemplateView):
-    """
-    Produces a view of the cinder topology (or json data if render=false).
-    The data structure is a list of resource types.  If the list contains
-    only one element, it will be used as the root node, otherwise a "cloud"
-    resource will be constructed as the root.
+class TopologyView(TopologyView):
 
-    A resource has the following structure:
-
-    {
-        "rsrcType": "cloud|region|zone|service|volume",
-        "label": "string",
-        "info": {"key": "value" [, "key": "value", ...]}, (optional)
-        "lifeStage": "new|existing|absent", (optional)
-        "enabled": True|False, (optional)
-        "children": [rsrcType] (optional)
-     }
-
-    """
     my_template_name = 'cinder_topology.html'
 
     def __init__(self):
@@ -76,87 +59,6 @@ class TopologyView(TemplateView):
                 ep['_source']['region']
                 for ep in self.volumes
             ])
-
-    @staticmethod
-    def _eval_condition(sc, tc, cond):
-        """
-        evaluates the source and target dicts to see if the condition holds.
-        returns boolean.
-        """
-        # substitute reference to source and target in condition
-        cond = cond.replace("%source%", "sc").replace("%target%", "tc")
-        return eval(cond, {'__builtins__': {}}, locals())
-
-    def _get_children(self, d, rsrc_type):
-        assert (type(d) is dict or type(d) is list), "d must be a list or dict"
-        assert rsrc_type, "rsrc_type must have a value"
-
-        if type(d) is list:
-            # make it into a dict
-            d = {
-                'rsrcType': None,
-                'children': d
-            }
-        # this is a matching child
-        if d['rsrcType'] == rsrc_type:
-            return d
-        # this is not a match, but has children to check
-        elif d.get('children', None):
-
-            result = [self._get_children(c, rsrc_type)
-                      for c in d['children']]
-            if len(result) > 0 and type(result[0]) is list:
-                # flatten it so we don't end up with nested lists
-                print "flattening " + json.dumps(result)
-                return [c for l in result for c in l]
-            else:
-                print "NOT flattening " + json.dumps(result)
-                return result
-                # anything else is a leaf that doesn't match and has no children,
-                # so we don't return anything.
-
-    def _attach_resource(self, attach_descriptor, source, target):
-        """
-        Attaches one resource tree to another at a described point.  The
-        descriptor format is:
-
-            {'sourceRsrcType': 'string',
-             'targetRsrcType': 'string',
-             'conditions': 'string'}
-
-        If sourceRsrcType will be treated as the top level thing to attach.  If
-        there are resources above it in the source dict, they will be ignored.
-        The resource(s) of type sourceResourceType along with their descendants
-        will be attached to resources of targetRsrcType in the target dict
-        which match the condition expression.  The target dict assumes that
-        nesting is via the 'children' key.  The condition will be evaluated as
-        a boolean expression, and will have access to the items in both source
-        and target.
-        """
-
-        # basic sanity check.  all args should be dicts, source and target
-        # should have a rsrcType field
-        assert type(source) is list, "source param must be a list"
-        assert type(target) is list, "target param must be a list"
-        assert type(attach_descriptor) is dict, \
-            "attach_descriptor param must be a dict"
-
-        # make copies so they are not subject to mutation during or after the
-        # the call.
-        targ = copy.deepcopy(target)
-        src = copy.deepcopy(source)
-        ad = attach_descriptor
-
-        targ_children = self._get_children(targ, ad['targetRsrcType'])
-        src_children = self._get_children(src, ad['sourceRsrcType'])
-        for tc in targ_children:
-            for sc in src_children:
-                match = self._eval_condition(sc, tc, ad['conditions'])
-                if match:
-                    if not tc.has_key('children'):
-                        tc['children'] = []
-                    tc['children'].append(sc)
-        return targ
 
     def _get_zones(self, updated, region):
         """
@@ -290,33 +192,4 @@ class TopologyView(TemplateView):
         else:
             return rl[0]
 
-    def get_context_data(self, **kwargs):
-        context = TemplateView.get_context_data(self, **kwargs)
-        context['render'] = self.request.GET.get('render', "True"). \
-            lower().capitalize()
 
-        # if render is true, we will return a full template, otherwise only
-        # a json data payload
-        if context['render'] == 'True':
-            self.template_name = self.my_template_name
-        else:
-            self.template_name = None
-            TemplateView.content_type = 'application/json'
-
-        return context
-
-    def render_to_response(self, context, **response_kwargs):
-        """
-        Overriding to handle case of data only request (render=False).  In
-        that case an application/json data payload is returned.
-        """
-        response = self._build_region_tree()
-        if isinstance(response, HttpResponseBadRequest):
-            return response
-
-        if self.template_name is None:
-            return HttpResponse(json.dumps(response),
-                                content_type="application/json")
-
-        return TemplateView.render_to_response(
-            self, {'data': json.dumps(response)})

@@ -37,25 +37,8 @@ class ImageApiPerfView(ApiPerfView):
                                  context['interval'])
 
 
-class TopologyView(TemplateView):
-    """
-    Produces a view of the glance topology (or json data if render=false).
-    The data structure is a list of resource types.  If the list contains
-    only one element, it will be used as the root node, otherwise a "cloud"
-    resource will be constructed as the root.
+class TopologyView(TopologyView):
 
-    A resource has the following structure:
-
-    {
-        "rsrcType": "cloud|region|image",
-        "label": "string",
-        "info": {"key": "value" [, "key": "value", ...]}, (optional)
-        "lifeStage": "new|existing|absent", (optional)
-        "enabled": True|False, (optional)
-        "children": [rsrcType] (optional)
-     }
-
-    """
     my_template_name = 'glance_topology.html'
 
     def __init__(self):
@@ -108,50 +91,13 @@ class TopologyView(TemplateView):
 
         il = self._transform_image_list()
 
-        for r in rl:
-            children = []
-            for i in il:
-                if i['region'] == r['label']:
-                    children.append(i)
-            if len(children) > 0:
-                r['children'] = children
+        ad = {'sourceRsrcType': 'image',
+              'targetRsrcType': 'region',
+              'conditions': "%source%['region'] == %target%['label']"}
 
-        for r in rl:
-            for s in r['children']:
-                del s['region']
+        rl = self._attach_resource(ad, il, rl)
 
         if len(rl) > 1:
             return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
         else:
             return rl[0]
-
-    def get_context_data(self, **kwargs):
-        context = TemplateView.get_context_data(self, **kwargs)
-        context['render'] = self.request.GET.get('render', "True"). \
-            lower().capitalize()
-
-        # if render is true, we will return a full template, otherwise only
-        # a json data payload
-        if context['render'] == 'True':
-            self.template_name = self.my_template_name
-        else:
-            self.template_name = None
-            TemplateView.content_type = 'application/json'
-
-        return context
-
-    def render_to_response(self, context, **response_kwargs):
-        """
-        Overriding to handle case of data only request (render=False).  In
-        that case an application/json data payload is returned.
-        """
-        response = self._build_region_tree()
-        if isinstance(response, HttpResponseBadRequest):
-            return response
-
-        if self.template_name is None:
-            return HttpResponse(json.dumps(response),
-                                content_type="application/json")
-
-        return TemplateView.render_to_response(
-            self, {'data': json.dumps(response)})
