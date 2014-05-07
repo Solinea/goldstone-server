@@ -773,7 +773,7 @@ goldstone.charts.topologyTree = {
         // Normalize for fixed-depth.
         nodes.forEach(function (d) {
             // TODO make the tree branch length configurable
-            d.y = d.depth * 140;
+            d.y = d.depth * 100;
         })
 
         // Update the nodes…
@@ -850,6 +850,13 @@ goldstone.charts.topologyTree = {
         ns.chart.selectAll(".icon.main.endpoint-icon")
             .call(function (d) {
                 $.get("/static/images/icon_endpoint.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.volume-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_volume.svg", function (data) {
                     d.html($(data).find('g').removeAttr('xmlns:a').html())
                 })
             })

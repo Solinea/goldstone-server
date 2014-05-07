@@ -78,16 +78,14 @@ class TopologyView(TemplateView):
             ])
 
     @staticmethod
-    def _eval_condition(d1, d2, sc, tc, cond):
+    def _eval_condition(sc, tc, cond):
         """
         evaluates the source and target dicts to see if the condition holds.
         returns boolean.
         """
         # substitute reference to source and target in condition
-        cond = cond.replace("%source%", "d1").replace("%target%", "d2")
-        cond = cond.replace("%source_child%", "sc")
-        cond = cond.replace("%target_child%", "tc")
-        return ast.literal_eval(cond)
+        cond = cond.replace("%source%", "sc").replace("%target%", "tc")
+        return eval(cond, {'__builtins__': {}}, locals())
 
     def _get_children(self, d, rsrc_type):
         assert (type(d) is dict or type(d) is list), "d must be a list or dict"
@@ -114,8 +112,8 @@ class TopologyView(TemplateView):
             else:
                 print "NOT flattening " + json.dumps(result)
                 return result
-        # anything else is a leaf that doesn't match and has no children,
-        # so we don't return anything.
+                # anything else is a leaf that doesn't match and has no children,
+                # so we don't return anything.
 
     def _attach_resource(self, attach_descriptor, source, target):
         """
@@ -153,8 +151,7 @@ class TopologyView(TemplateView):
         src_children = self._get_children(src, ad['sourceRsrcType'])
         for tc in targ_children:
             for sc in src_children:
-                match = self._eval_condition(src, targ, sc, tc,
-                                             ad['conditions'])
+                match = self._eval_condition(sc, tc, ad['conditions'])
                 if match:
                     if not tc.has_key('children'):
                         tc['children'] = []
@@ -190,7 +187,9 @@ class TopologyView(TemplateView):
                 base_hosts.append({
                     "rsrcType": "host",
                     "label": h,
+                    "zone": zone,  # supports _attach_resource
                     "info": {
+
                         "last_update": updated,
                     }})
             result.append({
@@ -199,7 +198,7 @@ class TopologyView(TemplateView):
                 "region": region,
                 "info": {
                     "last_update": updated
-                 },
+                },
                 "children": base_hosts
             })
 
@@ -231,16 +230,20 @@ class TopologyView(TemplateView):
         logger.debug("in _transform_volume_list, s[0] = %s",
                      json.dumps(self.volumes[0]))
         try:
-            return [
+            vols = [
                 {"rsrcType": "volume",
                  "label": v['display_name'],
                  "enabled": True if not (v['status'] == 'error' or
                                          v['status'] == 'deleting') else False,
                  "region": region,
+                 "host": v['os-vol-host-attr:host'],
                  "info": dict(v.items() + {'last_update': updated}.items())
                 }
                 for v in self.volumes[0]['_source']['volumes']
             ]
+            _normalize_hostnames(['host'], vols)
+            return vols
+
         except Exception as e:
             logger.exception(e)
             return []
@@ -258,31 +261,29 @@ class TopologyView(TemplateView):
         zl = self._get_zones(updated, region)
         sl = self._transform_service_list(updated, region)
         vl = self._transform_volume_list(updated, region)
-        # combine services with zones at the host level when service[zone]
-        # == zone[label] and service[childx][host] == zone[childy][label]
-        # god help us all if it works...
+
+        # combine volumes with services
+        ad = {'sourceRsrcType': 'volume',
+              'targetRsrcType': 'service',
+              'conditions': "%source%['host'] == "
+                            "%target%['info']['host'] and "
+                            "%source%['info']['availability_zone'] == "
+                            "%target%['info']['zone'] and "
+                            "%target%['label'] == 'cinder-volume'"}
+        sl = self._attach_resource(ad, vl, sl)
+
+        # combine services with zones at the host level
         ad = {'sourceRsrcType': 'service',
               'targetRsrcType': 'host',
-              'conditions': "%source%['zone'] == %target%['label'] and "
-                            "%source_child%['host'] == %target_child%['label']"
-        }
-        sl = self._attach_resource(ad, sl, zl)
+              'conditions': "%source%['info']['zone'] == %target%['zone'] and "
+                            "%source%['info']['host'] == %target%['label']"}
+        zl = self._attach_resource(ad, sl, zl)
 
+        ad = {'sourceRsrcType': 'zone',
+              'targetRsrcType': 'region',
+              'conditions': "%source%['region'] == %target%['label']"}
 
-
-
-
-        for r in rl:
-            children = []
-            for s in sl:
-                if s['region'] == r['label']:
-                    children.append(s)
-            if len(children) > 0:
-                r['children'] = children
-
-        for r in rl:
-            for s in r['children']:
-                del s['region']
+        rl = self._attach_resource(ad, zl, rl)
 
         if len(rl) > 1:
             return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
