@@ -861,6 +861,13 @@ goldstone.charts.topologyTree = {
                 })
             })
 
+        ns.chart.selectAll(".icon.main.image-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_image.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
         // Transition nodes to their new position.
         var nodeUpdate = node.transition()
             .duration(duration)
