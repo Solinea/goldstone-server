@@ -701,7 +701,7 @@ goldstone.charts.topologyTree = {
         "use strict";
         //TODO can we just make all these ns fields part of this?
         this.ns.self = this
-        this.ns.margin = { top: 0, bottom: 0, right: 0, left: 50 }
+        this.ns.margin = { top: 10, bottom: 10, right: 10, left: 50 }
         this.ns.w = $(this.ns.location).width()
         this.ns.mw = this.ns.w - this.ns.margin.left - this.ns.margin.right
         this.ns.mh = this.ns.h - this.ns.margin.top - this.ns.margin.bottom
@@ -712,7 +712,7 @@ goldstone.charts.topologyTree = {
         this.ns.tree = d3.layout.tree()
             .size([this.ns.mh, this.ns.mw])
             .separation(function (a, b) {
-                var sep = a.parent === b.parent ? 0.5 : 1
+                var sep = a.parent === b.parent ? 1 : 2
                 return sep
             })
         this.ns.i = 0 // used in processTree for node id
@@ -773,7 +773,7 @@ goldstone.charts.topologyTree = {
         // Normalize for fixed-depth.
         nodes.forEach(function (d) {
             // TODO make the tree branch length configurable
-            d.y = d.depth * 100;
+            d.y = d.depth * 150;
         })
 
         // Update the nodes…
@@ -796,13 +796,15 @@ goldstone.charts.topologyTree = {
 
         // Add the text label (initially transparent)
         nodeEnter.append("svg:text")
-            .attr("x", 0)
-            .attr("dy", "-1em")
-            .attr("text-anchor", "middle")
+            .attr("x", function (d) { return d.children ?  0 : 40 })
+            .attr("dy", function (d) {return d.children ? "-1em" : ".5em" })
+            .attr("text-anchor", function (d) { return d.children ? "middle" : "left" })
             .text(function (d) {
                 return d.label
             })
             .style("fill-opacity", 1e-6)
+            //.attr("x", 0)
+            //.attr("dy", "-1em")
 
         // Add the main icon (initially miniscule)
         nodeEnter
@@ -868,12 +870,15 @@ goldstone.charts.topologyTree = {
                 })
             })
 
-        // Transition nodes to their new position.
-        var nodeUpdate = node.transition()
-            .duration(duration)
-            .attr("transform", function (d) {
-                return "translate(" + d.y + "," + d.x + ")"
+        ns.chart.selectAll(".icon.main.module-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_module.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
             })
+
+        // Transition nodes to their new position.
+        var nodeUpdate = node
 
         nodeUpdate.select(".icon.main")
             .attr("transform", 'translate(-5, -10) scale(0.05)')
@@ -882,10 +887,19 @@ goldstone.charts.topologyTree = {
             })
 
         nodeUpdate.select("text")
+            .attr("x", function (d) { return d.children ?  0 : 25 })
+            .attr("dy", function (d) {return d.children ? "-1em" : ".5em" })
+            .attr("text-anchor", function (d) { return d.children ? "middle" : "left" })
             .style("fill-opacity", 1)
             .style("text-decoration", function (d) {
                 return (ns.self.hasRemovedChildren(d) || ns.self.isRemovedChild(d)) ?
                     "line-through" : ""
+            })
+
+        nodeUpdate.transition()
+            .duration(duration)
+            .attr("transform", function (d) {
+                return "translate(" + d.y + "," + d.x + ")"
             })
 
         // Transition exiting nodes to the parent's new position.

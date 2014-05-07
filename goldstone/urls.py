@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from goldstone.views import GoldstoneTopologyView, DiscoverView
 
 __author__ = 'John Stanford'
 
@@ -30,8 +31,10 @@ admin.autodiscover()
 urlpatterns = patterns(
     '',
     # TODO create the main discover page and remove redirect
-    url(r'^discover[/]?$', RedirectView.as_view(url='/nova/discover'),
-        name='discover'),
+    url(r'^discover[/]?$', DiscoverView.as_view(),
+        name='goldstone-discover-view'),
+    url(r'^topology[/]?$', GoldstoneTopologyView.as_view(),
+        name='goldstone-topology'),
     url(r'^intelligence/', include('goldstone.apps.intelligence.urls')),
     url(r'^nova/', include('goldstone.apps.nova.urls')),
     url(r'^keystone/', include('goldstone.apps.keystone.urls')),

@@ -192,6 +192,10 @@ class ApiPerfView(InnerTimeRangeView):
         return response
 
 
+class DiscoverView(TopLevelView):
+    template_name = 'goldstone_discover.html'
+
+
 class TopologyView(TemplateView):
     """
     Produces a view of a module topology (or json data if render=false).
@@ -354,6 +358,26 @@ class GoldstoneTopologyView(TopologyView):
     def _get_regions(self):
         return []
 
+    def _rescope_module_tree(self, tree, module_name):
+        """
+        Returns a tree that is ready to merge with the global tree.  Uses
+        a rsrc_type of module, and a label of the module name.  If cloud
+        rsrc_type is the root, throws it away.  Result is wrapped in a list.
+        """
+        if tree['rsrcType'] == 'cloud':
+            result = []
+            for child in tree['children']:
+                child['region'] = child['label']
+                child['rsrcType'] = 'module'
+                child['label'] = module_name
+                result.append(child)
+            return result
+        else:
+            tree['region'] = tree['label']
+            tree['rsrcType'] = 'module'
+            tree['label'] = module_name
+            return [tree]
+
     def _build_topology_tree(self):
 
         # this is going to be a little clunky until we find a good way
@@ -372,14 +396,46 @@ class GoldstoneTopologyView(TopologyView):
 
         topo_list = [keystone_topo, glance_topo, cinder_topo]
 
-        # let's get the aggregate list of regions
-        rl1 = [ reg
-               for topo in topo_list
-               for rl in topo._get_regions()
-               for reg in rl
-        ]
-
+        # get regions from everyone and remove the dups
         rll = [topo._get_regions() for topo in topo_list]
-        rl2 = [reg
+        rl = [reg
               for rl in rll
               for reg in rl]
+
+        rl = [dict(t) for t in set([tuple(d.items()) for d in rl])]
+
+        # we're going to bind everyone to the region tree, order is most likely
+        # going to be important for some modules, so eventually we'll have
+        # to be able to find a way to order or otherwise express module
+        # dependencies.  It will also be helpful to build from the bottom up.
+
+        # TODO devise mechanism for expressing module dependencies
+
+        # bind cinder zones to global at region
+        cl = [cinder_topo._build_topology_tree()]
+        ad = {'sourceRsrcType': 'zone',
+              'targetRsrcType': 'region',
+              'conditions': "%source%['region'] == %target%['label']"}
+        rl = self._attach_resource(ad, cl, rl)
+
+        # bind glance region to region, but rename glance
+        gl = self._rescope_module_tree(
+            glance_topo._build_topology_tree(), "glance")
+        ad = {'sourceRsrcType': 'module',
+              'targetRsrcType': 'region',
+              'conditions': "%source%['region'] == %target%['label']"}
+        rl = self._attach_resource(ad, gl, rl)
+
+
+        # bind keystone region to region, but rename keystone
+        kl = self._rescope_module_tree(
+            keystone_topo._build_topology_tree(), "keystone")
+        ad = {'sourceRsrcType': 'module',
+              'targetRsrcType': 'region',
+              'conditions': "%source%['region'] == %target%['label']"}
+        rl = self._attach_resource(ad, kl, rl)
+
+        if len(rl) > 1:
+            return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
+        else:
+            return rl[0]
