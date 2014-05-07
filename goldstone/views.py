@@ -19,6 +19,7 @@ __author__ = 'John Stanford'
 
 
 import calendar
+from abc import ABCMeta, abstractmethod, abstractproperty
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.generic import TemplateView
 from django.conf import settings
@@ -213,8 +214,26 @@ class TopologyView(TemplateView):
      }
 
     """
+    __metaclass__ = ABCMeta
 
-    my_template_name = None
+    @abstractproperty
+    def my_template_name(self):
+        """
+        Returns the template name to be used by TemplateView
+        """
+
+    @abstractmethod
+    def _get_regions(self):
+        """
+        Returns a list of region names.
+        """
+
+    @abstractmethod
+    def _build_topology_tree(self):
+        """
+         Returns the entire topology tree for a module with a cloud or region
+         root node.
+        """
 
     @staticmethod
     def _eval_condition(sc, tc, cond):
@@ -303,7 +322,7 @@ class TopologyView(TemplateView):
         # if render is true, we will return a full template, otherwise only
         # a json data payload
         if context['render'] == 'True':
-            self.template_name = self.my_template_name
+            self.template_name = self.my_template_name()
         else:
             self.template_name = None
             TemplateView.content_type = 'application/json'
@@ -315,7 +334,7 @@ class TopologyView(TemplateView):
         Overriding to handle case of data only request (render=False).  In
         that case an application/json data payload is returned.
         """
-        response = self._build_region_tree()
+        response = self._build_topology_tree()
         if isinstance(response, HttpResponseBadRequest):
             return response
 
@@ -325,3 +344,42 @@ class TopologyView(TemplateView):
 
         return TemplateView.render_to_response(
             self, {'data': json.dumps(response)})
+
+
+class GoldstoneTopologyView(TopologyView):
+
+    def my_template_name(self):
+        return 'goldstone_topology.html'
+
+    def _get_regions(self):
+        return []
+
+    def _build_topology_tree(self):
+
+        # this is going to be a little clunky until we find a good way
+        # to register modules.  Looking at iPOPO/Pelix as one option, but
+        # still exploring.
+
+        # TODO make global map more module friendly
+
+        from .apps.keystone.views import TopologyView as KeystoneTopoView
+        from .apps.glance.views import TopologyView as GlanceTopoView
+        from .apps.cinder.views import TopologyView as CinderTopoView
+
+        keystone_topo = KeystoneTopoView()
+        glance_topo = GlanceTopoView()
+        cinder_topo = CinderTopoView()
+
+        topo_list = [keystone_topo, glance_topo, cinder_topo]
+
+        # let's get the aggregate list of regions
+        rl1 = [ reg
+               for topo in topo_list
+               for rl in topo._get_regions()
+               for reg in rl
+        ]
+
+        rll = [topo._get_regions() for topo in topo_list]
+        rl2 = [reg
+              for rl in rll
+              for reg in rl]

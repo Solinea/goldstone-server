@@ -39,7 +39,8 @@ class AuthApiPerfView(ApiPerfView):
 
 class TopologyView(TopologyView):
 
-    my_template_name = 'keystone_topology.html'
+    def my_template_name(self):
+        return 'keystone_topology.html'
 
     def __init__(self):
         self.services = ServiceData().get()
@@ -55,6 +56,11 @@ class TopologyView(TopologyView):
                 for ep in self.endpoints
                 for r in ep['_source']['endpoints']
             ])
+
+    def _get_regions(self):
+        return [{"rsrcType": "region", "label": r} for r in
+                self._get_service_regions().union(
+                self._get_endpoint_regions())]
 
     def _transform_service_list(self):
         logger.debug("in _transform_service_list, s[0] = %s",
@@ -121,10 +127,8 @@ class TopologyView(TopologyView):
 
         return sl
 
-    def _build_region_tree(self):
-        rl = [{"rsrcType": "region", "label": r} for r in
-              self._get_service_regions().union(
-                  self._get_endpoint_regions())]
+    def _build_topology_tree(self):
+        rl = self._get_regions()
         if len(rl) == 0:
             return {}
 
