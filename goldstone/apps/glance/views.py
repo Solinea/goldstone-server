@@ -71,7 +71,7 @@ class TopologyView(TemplateView):
             updated = self.images[0]['_source']['@timestamp']
             region = self.images[0]['_source']['region']
             return [
-                {"rsrcType": "service",
+                {"rsrcType": "image",
                  "label": s['name'],
                  "enabled": True if s['status'] == 'active' else False,
                  "region": region,

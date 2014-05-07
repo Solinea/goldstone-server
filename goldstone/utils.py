@@ -235,6 +235,47 @@ def _host_details(name_or_addr):
             return hn
 
 
+def _normalize_hostname(name_or_addr):
+    """
+    Takes host or ip and returns either an unqualified hostname or an ip
+    address.
+    """
+    hd = _host_details(name_or_addr)
+    if hd.get('hostname', None):
+        return hd['hostname']
+    else:
+        return hd['ip_addr']
+
+
+def _normalize_hostnames(host_keys, source, key=None):
+    """
+    Mutates the source dict with potential modifications to the
+    keys listed in host_keys.  The keys will be modified in the following
+    ways:
+        - an attempt to resolve ip addresses will be made.  if resolvable,
+          the unqualified hostname will be used, otherwise the ip address
+          will be used
+        - fully qualified hostnames will be reduced to unqualified
+          hostnames
+    """
+
+    if isinstance(source, dict):
+        for k,v in source.items():
+            source[k] = _normalize_hostnames(host_keys, v, key=k)
+        if key:
+            return source
+    elif isinstance(source, list):
+        for v in source:
+            v = _normalize_hostnames(host_keys, v)
+        if key:
+            return source
+    elif key in host_keys:
+        # compare key to our list and normalize if a match
+        return _normalize_hostname(source)
+    elif key:
+        return source
+
+
 def _decompose_url(url):
     """
     returns the scheme, host, and possibly port for a url
