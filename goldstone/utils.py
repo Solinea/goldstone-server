@@ -61,13 +61,12 @@ def to_es_date(d):
     s += d.strftime('%z')
     return s
 
-def _get_region_for_client(kc, management_url, service_type):
+
+def _get_region_for_client(catalog, management_url, service_type):
     """
     returns the region for a management url and service type given the service
     catalog.
     """
-
-    catalog = kc.service_catalog.catalog['serviceCatalog']
     candidates = [
         svc
         for svc in catalog if svc['type'] == service_type
@@ -91,6 +90,34 @@ def _get_region_for_client(kc, management_url, service_type):
                     "using first one.")
 
     return matches[0]['region']
+
+
+def _get_region_for_cinder_client(client):
+    # force authentication to populate management url
+    client.authenticate()
+    mgmt_url = client.client.management_url
+    kc = _get_keystone_client()['client']
+    catalog = kc.service_catalog.catalog['serviceCatalog']
+    return _get_region_for_client(catalog, mgmt_url, 'volume')
+
+
+def _get_region_for_glance_client(client):
+    mgmt_url = client.endpoints.find(service_id=client.services.
+                                     find(name='glance').id).internalurl
+    catalog = client.service_catalog.catalog['serviceCatalog']
+    return _get_region_for_client(catalog, mgmt_url, 'image')
+
+
+def get_region_for_nova_client(client):
+    mgmt_url = client.client.management_url
+    catalog = client.client.service_catalog.catalog['access']['serviceCatalog']
+    return _get_region_for_client(catalog, mgmt_url, 'compute')
+
+
+def get_region_for_keystone_client(client):
+    mgmt_url = client.management_url
+    catalog = client.service_catalog.catalog['serviceCatalog']
+    return _get_region_for_client(catalog, mgmt_url, 'identity')
 
 
 @lru_cache(maxsize=16)
@@ -119,21 +146,17 @@ def _get_client(service, user=settings.OS_USERNAME,
         elif service == 'cinder':
             c = ciclient.Client(user, passwd, tenant, auth_url,
                                 service_type='volume')
-            # force authentication to populate management url
-            c.authenticate()
-            management_url = c.client.management_url
-            region = _get_region_for_client(_get_keystone_client()['client'],
-                                            management_url, 'volume')
+            region = _get_region_for_cinder_client(c)
             return {'client': c, 'region': region}
         elif service == 'neutron':
             c = neclient.Client(user, passwd, tenant, auth_url)
             return {'client': c}
         elif service == 'glance':
             kc = _get_client(service='keystone')['client']
-            internalurl = kc.endpoints.find(service_id=kc.services.
-                                            find(name='glance').id).internalurl
-            region = _get_region_for_client(kc, internalurl, 'image')
-            c = glclient.Client(endpoint=internalurl, token=kc.auth_token)
+            mgmt_url = kc.endpoints.find(service_id=kc.services.
+                                 find(name='glance').id).internalurl
+            region = _get_region_for_glance_client(kc)
+            c = glclient.Client(endpoint=mgmt_url, token=kc.auth_token)
             return {'client': c, 'region': region}
         else:
             raise GoldstoneAuthError("Unknown service")
@@ -308,23 +331,6 @@ def _decompose_url(url):
             result['ip_address'] = addr
 
     return result
-
-
-def get_region_for_nova_client(client):
-    mgmt_url = client.client.management_url
-    catalog = client.client.service_catalog.catalog['access']['serviceCatalog']
-    return _get_region_for_client(catalog, mgmt_url, 'compute')
-
-
-def get_region_for_keystone_client(client):
-    mgmt_url = client.management_url
-    catalog = client.service_catalog.catalog['serviceCatalog']
-    return _get_region_for_client(catalog, mgmt_url, 'identity')
-
-def get_region_for_glance_client(client):
-    mgmt_url = client.management_url
-    catalog = client.service_catalog.catalog['serviceCatalog']
-    return _get_region_for_client(catalog, mgmt_url, 'image')
 
 
 def _construct_api_rec(reply, component, ts):
