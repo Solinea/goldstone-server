@@ -179,6 +179,12 @@ code {
   pointer-events: none;
 }
 
+.d3-tip pre {
+  background: rgba(0, 0, 0, 0.0);
+  color: #fff;
+  border: 0px;
+}
+
 /* Creates a small triangle extender for the tooltip */
 .d3-tip:after {
   box-sizing: border-box;
