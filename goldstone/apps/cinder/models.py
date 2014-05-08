@@ -30,5 +30,3 @@ class ServiceData(TopologyData):
 class VolumeData(TopologyData):
     _DOC_TYPE = 'cinder_volume_list'
     _INDEX_PREFIX = 'goldstone'
-
-

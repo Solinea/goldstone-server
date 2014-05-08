@@ -24,9 +24,6 @@ from goldstone.utils import _get_client, _get_cinder_client, stored_api_call, \
     to_es_date
 from .models import ServiceData, VolumeData
 from datetime import datetime
-import requests
-import json
-
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +72,7 @@ def _update_cinder_volume_records(cl, region):
     except Exception as e:
         logging.exception(e)
         logger.warn("failed to index cinder volumes")
+
 
 @celery_app.task(bind=True)
 def discover_cinder_topology(self):

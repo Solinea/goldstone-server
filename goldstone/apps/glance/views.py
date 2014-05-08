@@ -11,11 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from goldstone.utils import _get_region_for_glance_client, \
+    _normalize_hostnames, _get_keystone_client, _get_client
 
 __author__ = 'John Stanford'
 
 from goldstone.views import *
-from .models import ApiPerfData, ImageData
+from .models import ApiPerfData, ImageData, HostData
 import logging
 
 logger = logging.getLogger(__name__)
@@ -37,32 +39,46 @@ class ImageApiPerfView(ApiPerfView):
                                  context['interval'])
 
 
-class TopologyView(TemplateView):
-    """
-    Produces a view of the glance topology (or json data if render=false).
-    The data structure is a list of resource types.  If the list contains
-    only one element, it will be used as the root node, otherwise a "cloud"
-    resource will be constructed as the root.
+class TopologyView(TopologyView):
 
-    A resource has the following structure:
-
-    {
-        "rsrcType": "cloud|region|image",
-        "label": "string",
-        "info": {"key": "value" [, "key": "value", ...]}, (optional)
-        "lifeStage": "new|existing|absent", (optional)
-        "enabled": True|False, (optional)
-        "children": [rsrcType] (optional)
-     }
-
-    """
-    my_template_name = 'glance_topology.html'
+    def my_template_name(self):
+        return 'glance_topology.html'
 
     def __init__(self):
+        self.hosts = HostData().get()
         self.images = ImageData().get()
 
     def _get_image_regions(self):
         return set([s['_source']['region'] for s in self.images])
+
+    def _get_regions(self):
+        kc = _get_client(service='keystone')['client']
+        r = _get_region_for_glance_client(kc)
+        return [{"rsrcType": "region", "label": r}]
+
+    def _transform_hosts_list(self):
+        logger.debug("in _transform_host_list, s[0] = %s",
+                     json.dumps(self.hosts[0]))
+        # hosts list can have more than one list of hosts depending on the
+        # count param of HostsData.get.  We will wrap each of them and preserve
+        # the list structure
+        try:
+            updated = self.hosts[-1]['@timestamp']
+            region = self._get_regions()[0]['label']
+
+            hlist = [
+                {"rsrcType": "host",
+                 "label": h,
+                 "region": region,
+                 "info": {"last_update": updated}
+                 }
+                for h in self.hosts[-1]['hosts']
+            ]
+            _normalize_hostnames(['label'], hlist)
+            return hlist
+        except Exception as e:
+            logger.exception(e)
+            return []
 
     def _transform_image_list(self):
         logger.debug("in _transform_image_list, s[0] = %s",
@@ -100,58 +116,21 @@ class TopologyView(TemplateView):
             logger.exception(e)
             return []
 
-    def _build_region_tree(self):
-        rl = [{"rsrcType": "region", "label": r} for r in
-              self._get_image_regions()]
+    def _build_topology_tree(self):
+        rl = self._get_regions()
+
         if len(rl) == 0:
             return {}
 
-        il = self._transform_image_list()
+        hl = self._transform_hosts_list()
 
-        for r in rl:
-            children = []
-            for i in il:
-                if i['region'] == r['label']:
-                    children.append(i)
-            if len(children) > 0:
-                r['children'] = children
+        ad = {'sourceRsrcType': 'host',
+              'targetRsrcType': 'region',
+              'conditions': "%source%['region'] == %target%['label']"}
 
-        for r in rl:
-            for s in r['children']:
-                del s['region']
+        rl = self._attach_resource(ad, hl, rl)
 
         if len(rl) > 1:
             return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
         else:
             return rl[0]
-
-    def get_context_data(self, **kwargs):
-        context = TemplateView.get_context_data(self, **kwargs)
-        context['render'] = self.request.GET.get('render', "True"). \
-            lower().capitalize()
-
-        # if render is true, we will return a full template, otherwise only
-        # a json data payload
-        if context['render'] == 'True':
-            self.template_name = self.my_template_name
-        else:
-            self.template_name = None
-            TemplateView.content_type = 'application/json'
-
-        return context
-
-    def render_to_response(self, context, **response_kwargs):
-        """
-        Overriding to handle case of data only request (render=False).  In
-        that case an application/json data payload is returned.
-        """
-        response = self._build_region_tree()
-        if isinstance(response, HttpResponseBadRequest):
-            return response
-
-        if self.template_name is None:
-            return HttpResponse(json.dumps(response),
-                                content_type="application/json")
-
-        return TemplateView.render_to_response(
-            self, {'data': json.dumps(response)})

@@ -199,6 +199,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.apps.cinder.tasks.discover_cinder_topology',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
+    'discover_nova_topology': {
+        'task': 'goldstone.apps.nova.tasks.discover_nova_topology',
+        'schedule': TOPOLOGY_QUERY_INTERVAL
+    },
 }
 
 # Goldstone config settings
@@ -206,16 +210,9 @@ DEFAULT_LOOKBACK_DAYS = 30
 DEFAULT_CHART_BUCKETS = 80
 DEFAULT_PRESENCE_LOOKBACK_HOURS = 1
 
-
-#OS_USERNAME = 'admin'
-#OS_TENANT_NAME = 'admin'
-#OS_PASSWORD = 'cr0n0v0r3'
-#OS_AUTH_URL = 'http://10.10.11.20:35357/v2.0'
-
 OS_USERNAME = 'admin'
 OS_PASSWORD = 'fe67c09d85041ae383c66a83e362f566'
 OS_TENANT_NAME = 'admin'
 OS_AUTH_URL = 'http://10.10.11.230:5000/v2.0'
 
 ES_SERVER = "10.10.11.122:9200"
-#ES_SERVER = "10.10.11.121:9200"

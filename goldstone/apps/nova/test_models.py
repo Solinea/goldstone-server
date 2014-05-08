@@ -162,7 +162,6 @@ class ResourceDataTest(SimpleTestCase):
         for params in test_params:
             result = getattr(rd, params['function'])()
             self.assertIsInstance(result, pandas.core.frame.DataFrame)
-            #self.assertFalse(result.empty)
 
     def test_virt_resource_data(self):
         vrd = ResourceData(self.start, self.end, self.interval)

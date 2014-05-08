@@ -18,7 +18,7 @@ import logging
 import json
 from datetime import datetime
 from types import StringType
-from goldstone.models import ApiPerfData
+from goldstone.models import ApiPerfData, TopologyData
 
 import pandas as pd
 
@@ -30,6 +30,16 @@ logger = logging.getLogger(__name__)
 
 class ApiPerfData(ApiPerfData):
     component = 'nova'
+
+
+class ServiceData(TopologyData):
+    _DOC_TYPE = 'nova_service_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class HypervisorData(TopologyData):
+    _DOC_TYPE = 'nova_hypervisor_list'
+    _INDEX_PREFIX = 'goldstone'
 
 
 class NovaClientData(ESData):
