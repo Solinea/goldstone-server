@@ -36,6 +36,7 @@ goldstone.namespace('nova.latestStats')
 goldstone.namespace('nova.latestStats.renderlets')
 goldstone.namespace('nova.apiPerf')
 goldstone.namespace('nova.apiPerf.timeRange')
+goldstone.namespace('nova.topology')
 
 goldstone.nova.timeRange._url = function (ns, start, end, interval, render, path) {
     "use strict";
@@ -70,6 +71,17 @@ goldstone.nova.latestStats.url = function (render) {
         path = "/nova/hypervisor/latest-stats"
     return goldstone.nova.instantaneous._url(ns, render, path)
 }
+
+goldstone.nova.topology.url = function (render) {
+    "use strict";
+    var url = "/nova/topology"
+
+    if (typeof render !== 'undefined') {
+        url += "?render=" + render
+    }
+    return url
+}
+
 
 goldstone.nova.spawns.url = function (start, end, interval, render) {
     "use strict";

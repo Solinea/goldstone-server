@@ -23,6 +23,8 @@ urlpatterns = patterns(
     '',
     url(r'^discover[/]?$', DiscoverView.as_view(),
         name='nova-discover-view'),
+    url(r'^topology[/]?$', TopologyView.as_view(),
+        name='nova-topology'),
     url(r'^report[/]?$', ReportView.as_view(),
         name='nova-report-view'),
     url(r'^hypervisor/spawns[/]?$', SpawnsView.as_view(),

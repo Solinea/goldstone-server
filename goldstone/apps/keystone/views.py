@@ -37,26 +37,10 @@ class AuthApiPerfView(ApiPerfView):
                                  context['interval'])
 
 
-class TopologyView(TemplateView):
-    """
-    Produces a view of the keystone topology (or json data if render=false).
-    The data structure is a list of resource types.  If the list contains
-    only one element, it will be used as the root node, otherwise a "cloud"
-    resource will be constructed as the root.
+class TopologyView(TopologyView):
 
-    A resource has the following structure:
-
-    {
-        "rsrcType": "region|service|endpoints",
-        "label": "string",
-        "info": {"key": "value" [, "key": "value", ...]}, (optional)
-        "lifeStage": "new|existing|absent", (optional)
-        "enabled": True|False, (optional)
-        "children": [rsrcType] (optional)
-     }
-
-    """
-    my_template_name = 'keystone_topology.html'
+    def my_template_name(self):
+        return 'keystone_topology.html'
 
     def __init__(self):
         self.services = ServiceData().get()
@@ -72,6 +56,11 @@ class TopologyView(TemplateView):
                 for ep in self.endpoints
                 for r in ep['_source']['endpoints']
             ])
+
+    def _get_regions(self):
+        return [{"rsrcType": "region", "label": r} for r in
+                self._get_service_regions().union(
+                self._get_endpoint_regions())]
 
     def _transform_service_list(self):
         logger.debug("in _transform_service_list, s[0] = %s",
@@ -138,59 +127,20 @@ class TopologyView(TemplateView):
 
         return sl
 
-    def _build_region_tree(self):
-        rl = [{"rsrcType": "region", "label": r} for r in
-              self._get_service_regions().union(
-                  self._get_endpoint_regions())]
+    def _build_topology_tree(self):
+        rl = self._get_regions()
         if len(rl) == 0:
             return {}
 
         sl = self._map_service_children()
 
-        for r in rl:
-            children = []
-            for s in sl:
-                if s['region'] == r['label']:
-                    children.append(s)
-            if len(children) > 0:
-                r['children'] = children
+        ad = {'sourceRsrcType': 'service',
+              'targetRsrcType': 'region',
+              'conditions': "%source%['region'] == %target%['label']"}
 
-        for r in rl:
-            for s in r['children']:
-                del s['region']
+        rl = self._attach_resource(ad, sl, rl)
 
         if len(rl) > 1:
             return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
         else:
             return rl[0]
-
-    def get_context_data(self, **kwargs):
-        context = TemplateView.get_context_data(self, **kwargs)
-        context['render'] = self.request.GET.get('render', "True"). \
-            lower().capitalize()
-
-        # if render is true, we will return a full template, otherwise only
-        # a json data payload
-        if context['render'] == 'True':
-            self.template_name = self.my_template_name
-        else:
-            self.template_name = None
-            TemplateView.content_type = 'application/json'
-
-        return context
-
-    def render_to_response(self, context, **response_kwargs):
-        """
-        Overriding to handle case of data only request (render=False).  In
-        that case an application/json data payload is returned.
-        """
-        response = self._build_region_tree()
-        if isinstance(response, HttpResponseBadRequest):
-            return response
-
-        if self.template_name is None:
-            return HttpResponse(json.dumps(response),
-                                content_type="application/json")
-
-        return TemplateView.render_to_response(
-            self, {'data': json.dumps(response)})

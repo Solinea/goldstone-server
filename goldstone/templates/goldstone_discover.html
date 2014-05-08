@@ -25,14 +25,14 @@
 {% endblock %}
 
 {% block localjs %}
-    <script src="{% static 'keystone/js/keystone.js' %}"></script>
+    <script src="{% static 'js/goldstone.js' %}"></script>
     <script>
 
 $(document).ready(function () {
-    var gnd = goldstone.keystone.discover,
-        ns = goldstone.keystone.topology
+    var gnd = goldstone.goldstone.discover,
+        ns = goldstone.goldstone.topology
     ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns)
-    ns.topologyTree.loadUrl(true, '#keystone-discover-r1-c1')
+    ns.topologyTree.loadUrl(true, '#goldstone-discover-r1-c1')
 })
     </script>
 
@@ -40,13 +40,12 @@ $(document).ready(function () {
 
 
 {% block content %}
-    <div id="keystone-discover-r1" class="row">
-        <div id="keystone-discover-r1-c1" class="col-md-8"></div>
-        <div id="keystone-discover-r1-c2" class="col-md-4"></div>
+    <div id="goldstone-discover-r1" class="row">
+        <div id="goldstone-discover-r1-c1" class="col-md-12"></div>
     </div>
-    <div id="keystone-discover-r2" class="row">
-        <div id="keystone-discover-r2-c1" class="col-md-6"></div>
-        <div id="keystone-discover-r2-c2" class="col-md-6"></div>
+    <div id="goldstone-discover-r2" class="row">
+        <div id="goldstone-discover-r2-c1" class="col-md-6"></div>
+        <div id="goldstone-discover-r2-c2" class="col-md-6"></div>
     </div>
 
 {% endblock %}

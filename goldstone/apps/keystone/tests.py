@@ -113,4 +113,3 @@ class ViewTests(SimpleTestCase):
         uri = '/keystone/topology?render=false'
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
-
