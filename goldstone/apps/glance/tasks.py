@@ -13,6 +13,8 @@ from __future__ import absolute_import
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from datetime import datetime
+import pytz
 
 __author__ = 'John Stanford'
 
@@ -20,8 +22,9 @@ from goldstone.celery import app as celery_app
 import requests
 import logging
 import json
-from .models import ApiPerfData
-from goldstone.utils import _get_keystone_client, stored_api_call
+from .models import ApiPerfData, ImageData
+from goldstone.utils import _get_client, stored_api_call, \
+    to_es_date, _get_glance_client
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +39,7 @@ def time_glance_api(self):
     in the DB.
     """
     result = stored_api_call("glance", "image", "/v2/images")
-    logger.debug(_get_keystone_client.cache_info())
+    logger.debug(_get_client.cache_info())
 
     # check for existing volumes. if they exist, redo the call with a single
     # volume for a more consistent result.
@@ -45,7 +48,7 @@ def time_glance_api(self):
         if 'images' in body and len(body['images']) > 0:
             result = stored_api_call("glance", "image",
                                      "/v2/images/" + body['images'][0]['id'])
-            logger.debug(_get_keystone_client.cache_info())
+            logger.debug(_get_client.cache_info())
 
     api_db = ApiPerfData()
     rec_id = api_db.post(result['db_record'])
@@ -54,3 +57,24 @@ def time_glance_api(self):
         'id': rec_id,
         'record': result['db_record']
     }
+
+
+def _update_glance_image_records(cl, region):
+    db = ImageData()
+    il = cl.images.list()
+    # image list is a generator, so we need to make it not sol lazy it...
+    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+            "region": region,
+            "images": [i for i in il]}
+    try:
+        db.post(body)
+    except Exception as e:
+        logging.exception(e)
+        logger.warn("failed to index glance images")
+
+
+@celery_app.task(bind=True)
+def discover_glance_topology(self):
+    glance_access = _get_glance_client()
+    _update_glance_image_records(glance_access['client'],
+                                 glance_access['region'])

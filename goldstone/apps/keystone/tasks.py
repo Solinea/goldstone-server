@@ -13,19 +13,21 @@ from __future__ import absolute_import
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytz
 
 __author__ = 'John Stanford'
 
 from django.conf import settings
 from goldstone.celery import app as celery_app
-from keystoneclient.v2_0 import client
 import requests
-from urllib2 import urlparse
 import logging
 from datetime import datetime
 import json
-from .models import ApiPerfData
-from goldstone.utils import _construct_api_rec
+from .models import ApiPerfData, ServiceData, EndpointData
+from goldstone.utils import _construct_api_rec, _decompose_url, \
+    _get_keystone_client, get_region_for_keystone_client, utc_timestamp, \
+    to_es_date
+
 logger = logging.getLogger(__name__)
 
 
@@ -57,3 +59,43 @@ def time_keystone_api(self):
         'id': rec_id,
         'record': rec
     }
+
+
+def _update_keystone_service_records(cl):
+    db = ServiceData()
+    sl = [s.to_dict() for s in cl.services.list()]
+    region = get_region_for_keystone_client(cl)
+    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+            "region": region,
+            "services": sl}
+    try:
+        db.post(body)
+    except Exception as e:
+        logging.exception(e)
+        logger.warn("failed to index keystone services")
+
+
+def _update_keystone_endpoint_records(cl):
+    db = EndpointData()
+    el = [e.to_dict() for e in cl.endpoints.list()]
+    for ep in el:
+        ep['adminurl_detail'] = _decompose_url(ep['adminurl'])
+        ep['internalurl_detail'] = _decompose_url(ep['internalurl'])
+        ep['publicurl_detail'] = _decompose_url(ep['publicurl'])
+
+    try:
+
+        logger.debug("endpoint list = %s", json.dumps(el))
+        db.post({"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+                 "endpoints": el})
+    except Exception as e:
+        logging.exception(e)
+        logger.warn("failed to index keystone endpoint list")
+
+
+@celery_app.task(bind=True)
+def discover_keystone_topology(self):
+    keystone_access = _get_keystone_client()
+    c = keystone_access['client']
+    _update_keystone_service_records(c)
+    _update_keystone_endpoint_records(c)

@@ -41,7 +41,7 @@ filter {
                 field => "syslog_facility"
                 dictionary => [ 
                     "local0", "nova",
-                    "local1", "openvswitch",
+                    "local1", "glance",
                     "local2", "neutron",
                     "local3", "ceilometer",
                     "local4", "swift",

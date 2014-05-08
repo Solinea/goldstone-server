@@ -18,7 +18,7 @@ import logging
 import json
 from datetime import datetime
 from types import StringType
-from goldstone.models import ApiPerfData
+from goldstone.models import ApiPerfData, TopologyData
 
 import pandas as pd
 
@@ -32,12 +32,22 @@ class ApiPerfData(ApiPerfData):
     component = 'nova'
 
 
+class ServiceData(TopologyData):
+    _DOC_TYPE = 'nova_service_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class HypervisorData(TopologyData):
+    _DOC_TYPE = 'nova_hypervisor_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
 class NovaClientData(ESData):
     """
     abstract class for data pulled from nova client.  Override _DOC_TYPE
     """
     _DOC_TYPE = None
-    _INDEX_PREFIX = 'logstash-'
+    _INDEX_PREFIX = 'logstash'
 
     def get_date_range(self, start, end, first=0, count=10, sort='desc'):
         """
@@ -263,6 +273,7 @@ class ResourceData(ESData):
 
     def _get_resource(self, resource_type, resource, custom_field):
         q = self._claims_resource_query(resource_type, resource)
+        logger.debug('query = %s', json.dumps(q))
         doc_type = self._PHYS_DOC_TYPE
         if resource_type == 'virtual':
             doc_type = self._VIRT_DOC_TYPE
@@ -302,11 +313,11 @@ class ResourceData(ESData):
         return result
 
     def get_phys_cpu(self):
-        result = self._get_resource('physical', 'cpu', 'used')
+        result = self._get_resource('physical', 'cpus', 'used')
         return result
 
     def get_virt_cpu(self):
-        result = self._get_resource('virtual', 'cpu', 'free')
+        result = self._get_resource('virtual', 'cpus', 'free')
         return result
 
     def get_phys_mem(self):

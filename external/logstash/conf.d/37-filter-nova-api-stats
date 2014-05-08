@@ -1,0 +1,49 @@
+# Copyright 2014 Solinea, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: John Stanford
+
+filter {
+    if ("openstack_syslog" in [tags] and
+        "processed" in [tags]) {
+
+        grok { 
+            patterns_dir => "/opt/logstash/patterns"
+            match => { "message" => "%{NOVA_API_CALL}" }
+        }
+
+        if ("_grokparsefailure" not in [tags]) {
+            # clean up extra fields and tag us
+            mutate {
+                replace => [ "type", "openstack_api_stats" ]  
+                remove_field => "pid"
+                remove_field => "hostname"
+                remove_field => "message"
+                remove_field => "_message"
+                remove_field => "loglevel"
+                remove_field => "syslog_severity_code"
+                remove_field => "syslog_facility_code"
+                remove_field => "syslog_facility"
+                remove_field => "syslog_severity"
+                add_tag => ["metric", "filter_37"]
+            }
+        } else {
+            # not our type, but no hard feelings
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
+        }
+    }
+}
+

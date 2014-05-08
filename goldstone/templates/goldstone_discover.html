@@ -25,14 +25,14 @@
 {% endblock %}
 
 {% block localjs %}
-    <script src="{% static 'cinder/js/cinder.js' %}"></script>
+    <script src="{% static 'js/goldstone.js' %}"></script>
     <script>
 
 $(document).ready(function () {
-    var gnd = goldstone.cinder.discover,
-        ns = goldstone.cinder.topology
+    var gnd = goldstone.goldstone.discover,
+        ns = goldstone.goldstone.topology
     ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns)
-    ns.topologyTree.loadUrl(true, '#cinder-discover-r1-c1')
+    ns.topologyTree.loadUrl(true, '#goldstone-discover-r1-c1')
 })
     </script>
 
@@ -40,15 +40,12 @@ $(document).ready(function () {
 
 
 {% block content %}
-    <!-- <object id="icon-network-svg" data="{% static 'images/icon_network.svg' %}" type="image/svg+xml"> -->
-
-    <div id="cinder-discover-r1" class="row">
-        <div id="cinder-discover-r1-c1" class="col-md-8"></div>
-        <div id="cinder-discover-r1-c2" class="col-md-4"></div>
+    <div id="goldstone-discover-r1" class="row">
+        <div id="goldstone-discover-r1-c1" class="col-md-12"></div>
     </div>
-    <div id="cinder-discover-r2" class="row">
-        <div id="cinder-discover-r2-c1" class="col-md-6"></div>
-        <div id="cinder-discover-r2-c2" class="col-md-6"></div>
+    <div id="goldstone-discover-r2" class="row">
+        <div id="goldstone-discover-r2-c1" class="col-md-6"></div>
+        <div id="goldstone-discover-r2-c2" class="col-md-6"></div>
     </div>
 
 {% endblock %}

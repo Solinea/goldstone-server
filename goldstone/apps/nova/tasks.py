@@ -13,6 +13,7 @@ from __future__ import absolute_import
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytz
 
 __author__ = 'John Stanford'
 
@@ -23,8 +24,10 @@ import logging
 import json
 import requests
 from datetime import datetime
-from .models import AvailabilityZoneData, HypervisorStatsData, ApiPerfData
-from goldstone.utils import _get_keystone_client, stored_api_call
+from .models import AvailabilityZoneData, HypervisorStatsData, ApiPerfData, \
+    ServiceData, HypervisorData
+from goldstone.utils import _get_client, stored_api_call, to_es_date, \
+    _get_nova_client, get_region_for_nova_client
 
 
 logger = logging.getLogger(__name__)
@@ -58,7 +61,7 @@ def nova_hypervisors_stats(self):
     response['task_id'] = self.request.id
     hvdb = HypervisorStatsData()
     id = hvdb.post(response)
-    logger.info("[hypervisor_stats] id = %s", id)
+    logger.debug("[hypervisor_stats] id = %s", id)
 
 
 @celery_app.task(bind=True)
@@ -68,7 +71,7 @@ def time_nova_api(self):
     hypervisor show command.  Inserts record with hypervisor show preferred.
     """
     result = stored_api_call("nova", "compute", "/os-hypervisors")
-    logger.debug(_get_keystone_client.cache_info())
+    logger.debug(_get_client.cache_info())
 
     # check for existing hypervisors. if they exist, redo the call with a
     # single hypervisor for a more consistent result.
@@ -78,7 +81,7 @@ def time_nova_api(self):
             result = stored_api_call("nova", "compute",
                                      "/os-hypervisors/" +
                                      str(body['hypervisors'][0]['id']))
-            logger.debug(_get_keystone_client.cache_info())
+            logger.debug(_get_client.cache_info())
 
     api_db = ApiPerfData()
     rec_id = api_db.post(result['db_record'])
@@ -87,3 +90,39 @@ def time_nova_api(self):
         'id': rec_id,
         'record': result['db_record']
     }
+
+
+def _update_nova_service_records(cl):
+    db = ServiceData()
+    sl = [s.to_dict() for s in cl.services.list()]
+    region = get_region_for_nova_client(cl)
+    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+            "region": region,
+            "services": sl}
+    try:
+        db.post(body)
+    except Exception as e:
+        logging.exception(e)
+        logger.warn("failed to index nova services")
+
+
+def _update_nova_hypervisor_records(cl):
+    db = HypervisorData()
+    sl = [s.to_dict() for s in cl.services.list()]
+    region = get_region_for_nova_client(cl)
+    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+            "region": region,
+            "hypervisors": sl}
+    try:
+        db.post(body)
+    except Exception as e:
+        logging.exception(e)
+        logger.warn("failed to index nova hypervisors")
+
+
+@celery_app.task(bind=True)
+def discover_nova_topology(self):
+    nova_access = _get_nova_client()
+    c = nova_access['client']
+    _update_nova_service_records(c)
+    _update_nova_hypervisor_records(c)

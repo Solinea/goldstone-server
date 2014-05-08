@@ -15,8 +15,22 @@
 __author__ = 'John Stanford'
 
 from django.db import models
-from goldstone.models import ApiPerfData
+from goldstone.models import ApiPerfData, ESData, TopologyData
+import logging
+import json
+
+logger = logging.getLogger(__name__)
 
 
 class ApiPerfData(ApiPerfData):
     component = 'keystone'
+
+
+class ServiceData(TopologyData):
+    _DOC_TYPE = 'keystone_service_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class EndpointData(TopologyData):
+    _DOC_TYPE = 'keystone_endpoint_list'
+    _INDEX_PREFIX = 'goldstone'

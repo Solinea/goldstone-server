@@ -19,10 +19,12 @@ from .views import *
 
 urlpatterns = patterns(
     '',
-    # url(r'^discover[/]?$', DiscoverView.as_view(),
-    #     name='cinder-discover-view'),
+    url(r'^discover[/]?$', DiscoverView.as_view(),
+        name='cinder-discover-view'),
     url(r'^report[/]?$', ReportView.as_view(),
         name='cinder-report-view'),
     url(r'^api_perf[/]?$', ServiceListApiPerfView.as_view(),
         name='cinder-api-perf'),
+    url(r'^topology[/]?$', TopologyView.as_view(),
+        name='cinder-topology'),
 )

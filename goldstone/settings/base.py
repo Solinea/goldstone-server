@@ -149,13 +149,19 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_TASK_SERIALIZER = 'json'
 
 from celery.schedules import crontab
+DAILY_INDEX_CREATE_INTERVAL = crontab(minute='0', hour='0', day_of_week='*')
+TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
 RESOURCE_QUERY_INTERVAL = crontab(minute='*/5')
 API_PERF_QUERY_INTERVAL = crontab(minute='*/1')
 
 CELERYBEAT_SCHEDULE = {
+    'create-daily-index': {
+        'task': 'goldstone.apps.core.tasks.create_daily_index',
+        'schedule': DAILY_INDEX_CREATE_INTERVAL,
+    },
     'nova-az-list': {
         'task': 'goldstone.apps.nova.tasks.nova_az_list',
-        'schedule': RESOURCE_QUERY_INTERVAL,
+        'schedule': TOPOLOGY_QUERY_INTERVAL,
     },
     'nova-hypervisors-stats': {
         'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
@@ -181,6 +187,22 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.apps.glance.tasks.time_glance_api',
         'schedule': API_PERF_QUERY_INTERVAL
     },
+    'discover_keystone_topology': {
+        'task': 'goldstone.apps.keystone.tasks.discover_keystone_topology',
+        'schedule': TOPOLOGY_QUERY_INTERVAL
+    },
+    'discover_glance_topology': {
+        'task': 'goldstone.apps.glance.tasks.discover_glance_topology',
+        'schedule': TOPOLOGY_QUERY_INTERVAL
+    },
+    'discover_cinder_topology': {
+        'task': 'goldstone.apps.cinder.tasks.discover_cinder_topology',
+        'schedule': TOPOLOGY_QUERY_INTERVAL
+    },
+    'discover_nova_topology': {
+        'task': 'goldstone.apps.nova.tasks.discover_nova_topology',
+        'schedule': TOPOLOGY_QUERY_INTERVAL
+    },
 }
 
 # Goldstone config settings
@@ -189,6 +211,8 @@ DEFAULT_CHART_BUCKETS = 80
 DEFAULT_PRESENCE_LOOKBACK_HOURS = 1
 
 OS_USERNAME = 'admin'
+OS_PASSWORD = 'fe67c09d85041ae383c66a83e362f566'
 OS_TENANT_NAME = 'admin'
-OS_PASSWORD = 'cr0n0v0r3'
-OS_AUTH_URL = 'http://10.10.11.20:35357/v2.0'
+OS_AUTH_URL = 'http://10.10.11.230:5000/v2.0'
+
+ES_SERVER = "10.10.11.122:9200"

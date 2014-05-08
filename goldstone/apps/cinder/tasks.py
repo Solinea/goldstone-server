@@ -13,18 +13,17 @@ from __future__ import absolute_import
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytz
 
 __author__ = 'John Stanford'
 
 from goldstone.celery import app as celery_app
 import logging
 from .models import ApiPerfData
-from goldstone.utils import _get_keystone_client, stored_api_call
-from django.conf import settings
+from goldstone.utils import _get_client, _get_cinder_client, stored_api_call, \
+    to_es_date
+from .models import ServiceData, VolumeData
 from datetime import datetime
-import requests
-import json
-
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +36,7 @@ def time_cinder_api(self):
     in the DB.
     """
     result = stored_api_call("cinder", "volume", "/os-services")
-    logger.debug(_get_keystone_client.cache_info())
+    logger.debug(_get_client.cache_info())
     api_db = ApiPerfData()
     rec_id = api_db.post(result['db_record'])
     logger.debug("[time_cinder_api] id = %s", rec_id)
@@ -45,3 +44,40 @@ def time_cinder_api(self):
         'id': rec_id,
         'record': result['db_record']
     }
+
+
+def _update_cinder_service_records(cl, region):
+    db = ServiceData()
+    sl = cl.services.list()
+    # image list is a generator, so we need to make it not sol lazy it...
+    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+            "region": region,
+            "services": [s.__dict__['_info'] for s in sl]}
+    try:
+        db.post(body)
+    except Exception as e:
+        logging.exception(e)
+        logger.warn("failed to index cinder services")
+
+
+def _update_cinder_volume_records(cl, region):
+    db = VolumeData()
+    vl = cl.volumes.list()
+    # image list is a generator, so we need to make it not sol lazy it...
+    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+            "region": region,
+            "volumes": [v.__dict__['_info'] for v in vl]}
+    try:
+        db.post(body)
+    except Exception as e:
+        logging.exception(e)
+        logger.warn("failed to index cinder volumes")
+
+
+@celery_app.task(bind=True)
+def discover_cinder_topology(self):
+    cinder_access = _get_cinder_client()
+    _update_cinder_service_records(cinder_access['client'],
+                                   cinder_access['region'])
+    _update_cinder_volume_records(cinder_access['client'],
+                                  cinder_access['region'])
