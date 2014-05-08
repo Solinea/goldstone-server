@@ -146,7 +146,7 @@ class TopologyView(TopologyView):
                  "region": region,
                  "host": v['os-vol-host-attr:host'],
                  "info": dict(v.items() + {'last_update': updated}.items())
-                }
+                 }
                 for v in self.volumes[0]['_source']['volumes']
             ]
             _normalize_hostnames(['host'], vols)
@@ -196,5 +196,3 @@ class TopologyView(TopologyView):
             return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
         else:
             return rl[0]
-
-

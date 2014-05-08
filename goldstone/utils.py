@@ -154,7 +154,7 @@ def _get_client(service, user=settings.OS_USERNAME,
         elif service == 'glance':
             kc = _get_client(service='keystone')['client']
             mgmt_url = kc.endpoints.find(service_id=kc.services.
-                                 find(name='glance').id).internalurl
+                                         find(name='glance').id).internalurl
             region = _get_region_for_glance_client(kc)
             c = glclient.Client(endpoint=mgmt_url, token=kc.auth_token)
             return {'client': c, 'region': region}
@@ -283,7 +283,7 @@ def _normalize_hostnames(host_keys, source, key=None):
     """
 
     if isinstance(source, dict):
-        for k,v in source.items():
+        for k, v in source.items():
             source[k] = _normalize_hostnames(host_keys, v, key=k)
         if key:
             return source

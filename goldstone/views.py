@@ -273,8 +273,8 @@ class TopologyView(TemplateView):
                 return [c for l in result for c in l]
             else:
                 return result
-                # anything else is a leaf that doesn't match and has no children,
-                # so we don't return anything.
+                # anything else is a leaf that doesn't match and has no
+                # children, so we don't return anything.
 
     def _attach_resource(self, attach_descriptor, source, target):
         """
@@ -314,7 +314,7 @@ class TopologyView(TemplateView):
             for sc in src_children:
                 match = self._eval_condition(sc, tc, ad['conditions'])
                 if match:
-                    if not tc.has_key('children'):
+                    if 'children' not in tc:
                         tc['children'] = []
                     tc['children'].append(sc)
         return targ
@@ -443,7 +443,6 @@ class GoldstoneTopologyView(TopologyView):
               'targetRsrcType': 'region',
               'conditions': "%source%['region'] == %target%['label']"}
         rl = self._attach_resource(ad, gl, rl)
-
 
         # bind keystone region to region, but rename keystone
         kl = self._rescope_module_tree(

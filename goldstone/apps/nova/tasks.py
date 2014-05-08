@@ -119,6 +119,7 @@ def _update_nova_hypervisor_records(cl):
         logging.exception(e)
         logger.warn("failed to index nova hypervisors")
 
+
 @celery_app.task(bind=True)
 def discover_nova_topology(self):
     nova_access = _get_nova_client()
