@@ -15,8 +15,18 @@
 __author__ = 'John Stanford'
 
 from django.db import models
-from goldstone.models import ApiPerfData
+from goldstone.models import ApiPerfData, TopologyData
 
 
 class ApiPerfData(ApiPerfData):
     component = 'cinder'
+
+
+class ServiceData(TopologyData):
+    _DOC_TYPE = 'cinder_service_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class VolumeData(TopologyData):
+    _DOC_TYPE = 'cinder_volume_list'
+    _INDEX_PREFIX = 'goldstone'

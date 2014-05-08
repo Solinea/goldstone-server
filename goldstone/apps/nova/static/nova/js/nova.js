@@ -36,6 +36,7 @@ goldstone.namespace('nova.latestStats')
 goldstone.namespace('nova.latestStats.renderlets')
 goldstone.namespace('nova.apiPerf')
 goldstone.namespace('nova.apiPerf.timeRange')
+goldstone.namespace('nova.topology')
 
 goldstone.nova.timeRange._url = function (ns, start, end, interval, render, path) {
     "use strict";
@@ -70,6 +71,17 @@ goldstone.nova.latestStats.url = function (render) {
         path = "/nova/hypervisor/latest-stats"
     return goldstone.nova.instantaneous._url(ns, render, path)
 }
+
+goldstone.nova.topology.url = function (render) {
+    "use strict";
+    var url = "/nova/topology"
+
+    if (typeof render !== 'undefined') {
+        url += "?render=" + render
+    }
+    return url
+}
+
 
 goldstone.nova.spawns.url = function (start, end, interval, render) {
     "use strict";
@@ -496,7 +508,11 @@ goldstone.nova.zones.drawChart = function () {
         m = [20, 80, 20, 80],
         panelWidth = $(ns.location).width() - m[1] - m[3],
         panelHeight = ns.height - m[0] - m[2],
-        tree = d3.layout.tree().size([ns.height, panelWidth]),
+        tree = d3.layout.tree().size([ns.height, panelWidth])
+        .separation(function (a, b) {
+                var sep = a.parent === b.parent ? 0.5 : 1
+                return sep
+            }),
         diagonal = d3.svg.diagonal()
             .projection(function (d) { return [d.y, d.x]; }),
         vis = d3.select(ns.location).append("svg")

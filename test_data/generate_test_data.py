@@ -20,12 +20,13 @@ from datetime import *
 import pytz
 import gzip
 
-conn = Elasticsearch("10.10.11.121:9200", bulk_size=500)
+conn = Elasticsearch("10.10.11.122:9200", bulk_size=500)
 
 start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
 end = datetime.now(tz=pytz.utc)
 
 data_f = gzip.open('data.json.gz', 'wb')
+data_f2 = gzip.open('goldstone_data.json.gz', 'wb')
 template_f = gzip.open("./template.json.gz", 'wb')
 
 template = conn.indices.get_template('logstash')
@@ -46,24 +47,39 @@ fq = {
 
 print "query = " + json.dumps(fq)
 
-result = [conn.search(index="_all", doc_type='syslog', body=fq,
-                      size=1000),
-          conn.search(index="_all", doc_type="nova_claims_summary_phys",
-                      body=fq, size=1000, sort='@timestamp:desc'),
-          conn.search(index="_all", doc_type="nova_claims_summary_virt",
-                      body=fq, size=1000, sort='@timestamp:desc'),
-          conn.search(index="_all", doc_type="nova_spawn_start",
-                      body=fq, size=1000, sort='@timestamp:desc'),
-          conn.search(index="_all", doc_type="nova_spawn_finish",
-                      body=fq, size=1000, sort='@timestamp:desc'),
-          conn.search(index="_all", doc_type="nova_hypervisor_stats",
-                      body=fq, size=1000, sort='@timestamp:desc'),
-          conn.search(index="_all", doc_type="openstack_api_stats",
-                      body=fq, size=1000, sort='@timestamp:desc')]
 
-print "exporting " + str(len(result)) + " sets"
+def _get_dataset(doc_type, sort=''):
+    try:
+        return conn.search(index="_all", doc_type=doc_type, sort=sort)
+    except:
+        return {'hits': {'hits': []}}
+
+result1 = [
+    _get_dataset('syslog'),
+    _get_dataset('nova_claims_summary_phys', '@timestamp:desc'),
+    _get_dataset('nova_claims_summary_virt', '@timestamp:desc'),
+    _get_dataset('nova_spawn_start', '@timestamp:desc'),
+    _get_dataset('nova_spawn_finish', '@timestamp:desc'),
+    _get_dataset('nova_hypervisor_stats', '@timestamp:desc'),
+    _get_dataset('openstack_api_stats', '@timestamp:desc'),
+]
+
+result2 = [
+    _get_dataset('keystone_service_list', '@timestamp:desc'),
+    _get_dataset('keystone_endpoint_list', '@timestamp:desc'),
+    _get_dataset('glance_image_list', '@timestamp:desc')
+]
 
 
-json.dump(result, data_f)
+
+
+
+print "exporting " + str(len(result1)) + " logstash sets"
+print "exporting " + str(len(result2)) + " goldstone sets"
+
+
+json.dump(result1, data_f)
+json.dump(result2, data_f2)
 
 data_f.close()
+data_f2.close()

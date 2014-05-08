@@ -38,10 +38,10 @@ $(document).ready(function () {
     nsReport.end = goldstone.time.fromPyTs({{ end_ts|to_js }})
     nsReport.interval = {{ interval|to_js }}
 
-    gnspawns.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r1-c1', true)
-    gncpu.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r1-c2', true)
-    gnmem.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r2-c1', true)
-    gndisk.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r2-c2', true)
+    gnspawns.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r1-c2', true)
+    gncpu.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r2-c1', true)
+    gnmem.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r2-c2', true)
+    gndisk.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r3-c1', true)
     nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf)
     nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
             true, '#nova-report-r1-c1')

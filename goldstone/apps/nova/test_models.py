@@ -20,6 +20,7 @@ import os
 import gzip
 from datetime import datetime
 import pytz
+import pandas
 
 
 logger = logging.getLogger(__name__)
@@ -160,7 +161,7 @@ class ResourceDataTest(SimpleTestCase):
     def _test_claims(self, type_field, test_params, rd):
         for params in test_params:
             result = getattr(rd, params['function'])()
-            self.assertFalse(result.empty)
+            self.assertIsInstance(result, pandas.core.frame.DataFrame)
 
     def test_virt_resource_data(self):
         vrd = ResourceData(self.start, self.end, self.interval)
@@ -170,7 +171,7 @@ class ResourceDataTest(SimpleTestCase):
         }
 
         test_params = [
-            {'type': 'nova_claims_summary_virt', 'resource': 'cpu',
+            {'type': 'nova_claims_summary_virt', 'resource': 'cpus',
              'function': 'get_virt_cpu'},
             {'type': 'nova_claims_summary_virt', 'resource': 'memory',
              'function': 'get_virt_mem'},
@@ -187,7 +188,7 @@ class ResourceDataTest(SimpleTestCase):
         }
 
         test_params = [
-            {'type': 'nova_claims_summary_phys', 'resource': 'cpu',
+            {'type': 'nova_claims_summary_phys', 'resource': 'cpus',
              'function': 'get_phys_cpu'},
             {'type': 'nova_claims_summary_phys', 'resource': 'memory',
              'function': 'get_phys_mem'},

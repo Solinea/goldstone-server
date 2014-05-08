@@ -1,0 +1,193 @@
+{
+    "aliases": {},
+    "order": 0,
+    "settings": {
+        "analysis": {
+            "analyzer": {
+                "custom_whitespace": {
+                    "filter": ["lowercase"],
+                    "tokenizer": "whitespace"
+                }
+            }
+        },
+        "index.analysis.analyzer.default.stopwords": "_none_",
+        "index.analysis.analyzer.default.type": "whitespace",
+        "index.refresh_interval": "5s"
+    },
+    "template": "goldstone-*",
+    "mappings": {
+        "_default_": {
+            "_timestamp": {
+                "enabled": true,
+                "path": "@timestamp"
+            },
+            "_source": {
+                "enabled": true
+            },
+            "properties": {
+                "@timestamp": {
+                    "type": "date"
+                }
+
+            }
+        },
+        "keystone_service_list": {
+            "_timestamp": {
+                "enabled": true,
+                "path": "@timestamp"
+            },
+            "_source": {
+                "enabled": true
+            },
+            "properties": {
+                "@timestamp": {
+                    "type": "date"
+                },
+                "region": {
+                    "type": "string",
+                    "analyzer": "custom_whitespace"
+                },
+                "services": {
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "name": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "description": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "type": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        }
+                    }
+                }
+            }
+        },
+        "keystone_endpoint_list": {
+            "_timestamp": {
+                "enabled": true,
+                "path": "@timestamp"
+            },
+            "_source": {
+                "enabled": true
+            },
+            "properties": {
+                "@timestamp": {
+                    "type": "date"
+                },
+                "endpoints": {
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "service_id": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "region": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "adminurl": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "publicurl": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "internalurl": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        }
+                    }
+                }
+            }
+        },
+        "glance_image_list" : {
+            "_timestamp": {
+                "enabled": true,
+                "path": "@timestamp"
+            },
+            "_source": {
+                "enabled": true
+            },
+            "properties": {
+                "@timestamp": {
+                    "type": "date"
+                },
+                "images": {
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "name": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "disk_format": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "status": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "container_format": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "size": {
+                            "type": "integer"
+                        },
+                        "min_ram": {
+                            "type": "integer"
+                        },
+                        "min_disk": {
+                            "type": "integer"
+                        },
+                        "created_at": {
+                            "type": "date"
+                        },
+                        "updated_at": {
+                            "type": "date"
+                        },
+                        "checksum": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "visibility": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "owner": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "file": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "protected": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        },
+                        "schema": {
+                            "type": "string",
+                            "analyzer": "custom_whitespace"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+

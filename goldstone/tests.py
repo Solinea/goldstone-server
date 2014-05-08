@@ -11,13 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from goldstone.apps.core.tasks import create_daily_index
+from goldstone.apps.keystone.tasks import discover_keystone_topology
 
 __author__ = 'John Stanford'
 
-from keystoneclient.apiclient.exceptions import ClientException
+from keystoneclient.exceptions import ClientException
 from django.test import TestCase, SimpleTestCase
 from django.conf import settings
-from goldstone.models import GSConnection
+from goldstone.models import GSConnection, ESData
 from elasticsearch import *
 import gzip
 import os
@@ -35,7 +37,8 @@ logger = logging.getLogger(__name__)
 
 class PrimeData(TestCase):
     # this should run before all SimpleTestCase methods.
-    INDEX_NAME = 'logstash-test'
+    LOGSTASH_INDEX_NAME = 'logstash-test'
+
     DOCUMENT_TYPE = 'logs'
     conn = Elasticsearch(settings.ES_SERVER)
     template_f = gzip.open(os.path.join(os.path.dirname(__file__), "apps",
@@ -48,7 +51,7 @@ class PrimeData(TestCase):
     finally:
         {}
 
-    conn.indices.create(INDEX_NAME, body=template)
+    conn.indices.create(LOGSTASH_INDEX_NAME, body=template)
 
     q = {"query": {"match_all": {}}}
     data_f = gzip.open(os.path.join(os.path.dirname(__file__), "apps", "..",
@@ -56,12 +59,24 @@ class PrimeData(TestCase):
     data = json.load(data_f)
     for dataset in data:
         for event in dataset['hits']['hits']:
-            rv = conn.index(INDEX_NAME, event['_type'],
+            rv = conn.index(LOGSTASH_INDEX_NAME, event['_type'],
                             event['_source'])
 
-    conn.indices.refresh([INDEX_NAME])
-    q = {"query": {"match_all": {}}}
-    rs = conn.search(body=q, index="_all")
+    conn.indices.refresh([LOGSTASH_INDEX_NAME])
+
+    create_daily_index()
+
+    GOLDSTONE_INDEX_NAME = ESData()._get_latest_index('goldstone')
+    data_f = gzip.open(os.path.join(os.path.dirname(__file__), "apps", "..",
+                                    "..", "test_data",
+                                    "goldstone_data.json.gz"))
+    data = json.load(data_f)
+    for dataset in data:
+        for event in dataset['hits']['hits']:
+            rv = conn.index(GOLDSTONE_INDEX_NAME, event['_type'],
+                            event['_source'])
+
+    conn.indices.refresh([GOLDSTONE_INDEX_NAME])
 
 
 class GSConnectionModel(SimpleTestCase):
