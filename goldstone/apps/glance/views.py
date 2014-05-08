@@ -11,11 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from goldstone.utils import _get_region_for_glance_client, \
+    _normalize_hostnames, _get_keystone_client, _get_client
 
 __author__ = 'John Stanford'
 
 from goldstone.views import *
-from .models import ApiPerfData, ImageData
+from .models import ApiPerfData, ImageData, HostData
 import logging
 
 logger = logging.getLogger(__name__)
@@ -43,14 +45,40 @@ class TopologyView(TopologyView):
         return 'glance_topology.html'
 
     def __init__(self):
+        self.hosts = HostData().get()
         self.images = ImageData().get()
 
     def _get_image_regions(self):
         return set([s['_source']['region'] for s in self.images])
 
     def _get_regions(self):
-        return [{"rsrcType": "region", "label": r} for r in
-                self._get_image_regions()]
+        kc = _get_client(service='keystone')['client']
+        r = _get_region_for_glance_client(kc)
+        return [{"rsrcType": "region", "label": r}]
+
+    def _transform_hosts_list(self):
+        logger.debug("in _transform_host_list, s[0] = %s",
+                     json.dumps(self.hosts[0]))
+        # hosts list can have more than one list of hosts depending on the
+        # count param of HostsData.get.  We will wrap each of them and preserve
+        # the list structure
+        try:
+            updated = self.hosts[-1]['@timestamp']
+            region = self._get_regions()[0]['label']
+
+            hlist = [
+                {"rsrcType": "host",
+                 "label": h,
+                 "region": region,
+                 "info": {"last_update": updated}
+                 }
+                for h in self.hosts[-1]['hosts']
+            ]
+            _normalize_hostnames(['label'], hlist)
+            return hlist
+        except Exception as e:
+            logger.exception(e)
+            return []
 
     def _transform_image_list(self):
         logger.debug("in _transform_image_list, s[0] = %s",
@@ -94,13 +122,13 @@ class TopologyView(TopologyView):
         if len(rl) == 0:
             return {}
 
-        il = self._transform_image_list()
+        hl = self._transform_hosts_list()
 
-        ad = {'sourceRsrcType': 'image',
+        ad = {'sourceRsrcType': 'host',
               'targetRsrcType': 'region',
               'conditions': "%source%['region'] == %target%['label']"}
 
-        rl = self._attach_resource(ad, il, rl)
+        rl = self._attach_resource(ad, hl, rl)
 
         if len(rl) > 1:
             return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
