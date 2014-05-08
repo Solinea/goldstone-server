@@ -93,12 +93,9 @@ def _update_keystone_endpoint_records(cl):
         logger.warn("failed to index keystone endpoint list")
 
 
-
 @celery_app.task(bind=True)
 def discover_keystone_topology(self):
     keystone_access = _get_keystone_client()
     c = keystone_access['client']
     _update_keystone_service_records(c)
     _update_keystone_endpoint_records(c)
-
-

@@ -184,8 +184,8 @@ class ResourceView(TemplateView):
             # totals forward
             self.data['total_phys'] = self.data['total_phys'].cummax()
             self.data['total_virt'] = self.data['total_virt'].cummax()
-            # for the used columns, we want to fill zeros with the last non-zero
-            # value
+            # for the used columns, we want to fill zeros with the last
+            # non-zero value
             self.data['used_phys'].fillna(method='pad', inplace=True)
             self.data['used_virt'].fillna(method='pad', inplace=True)
 
@@ -265,8 +265,8 @@ class DiskView(ResourceView):
             # since this is spotty data, we'll use the cummulative max to carry
             # totals forward
             self.data['total'] = self.data['total'].cummax()
-            # for the used columns, we want to fill zeros with the last non-zero
-            # value
+            # for the used columns, we want to fill zeros with the last
+            # non-zero value
             self.data['used'].fillna(method='pad', inplace=True)
             self.data = self.data.set_index('key').fillna(0)
 
@@ -523,7 +523,7 @@ class TopologyView(TopologyView):
                  "label": h['host'],
                  "region": region,
                  "info": dict(h.items() + {'last_update': updated}.items())
-                } for h in self.hypervisors[0]['_source']['hypervisors']
+                 } for h in self.hypervisors[0]['_source']['hypervisors']
             ]
             _normalize_hostnames(['label', 'host'],
                                  hypers)
@@ -542,7 +542,6 @@ class TopologyView(TopologyView):
         sl = self._transform_service_list()
         hl = self._transform_hypervisor_list()
         zl = self._get_zones(updated, region, sl, hl)
-
 
         # hypervisors are already bound to zones.  just need to bind services
         # to hosts within zones.

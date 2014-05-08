@@ -110,7 +110,6 @@ class HostData(TopologyData):
             # want to return just the hostnames, and @timestamp from the
             # aggregations.
 
-
             x = [{'@timestamp': y['key_as_string'], 'hosts': z}
                  for y in r['aggregations']['events_by_date']['buckets']
                  for z in [y['events_by_host']['buckets']]]
