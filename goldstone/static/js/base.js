@@ -765,7 +765,18 @@ goldstone.charts.topologyTree = {
     },
     processTree: function (json, ns) {
         "use strict";
-        var duration = d3.event && d3.event.altKey ? 5000 : 500
+        var duration = d3.event && d3.event.altKey ? 5000 : 500,
+        tip = d3.tip()
+            .attr('class', 'd3-tip')
+            .direction(function (d) {
+                var dir = "n"
+                dir = (d.x > (ns.h * 0.5)) ? "n" : "s"
+                dir = (d.y > (ns.w * 0.33)) ? dir + "w" : dir + "e"
+                return dir
+            })
+            .html(function (d) {
+                return "<pre>" + JSON.stringify(d.info, null, 4) + "</pre>"
+            })
 
         // Compute the new tree layout.
         var nodes = ns.tree.nodes(ns.data).reverse()
@@ -786,6 +797,7 @@ goldstone.charts.topologyTree = {
         // Enter any new nodes at the parent's previous position.
         var nodeEnter = node.enter().append("svg:g")
             .attr("class", "node")
+            .attr("id", function (d, i) {return "node-" + d.label + i})
             .attr("transform", function (d) {
                 return "translate(" + json.y0 + "," + json.x0 + ")";
             })
@@ -793,6 +805,22 @@ goldstone.charts.topologyTree = {
                 ns.self.toggle(d)
                 ns.self.processTree(d, ns)
             })
+            .on('mouseenter', function (d, i) {
+                var nodeId = ns.location + " #node-" + d.label + i,
+                    targ = d3.select(nodeId).pop().pop()
+                if (typeof(d.info) !== 'undefined') {
+                    tip.show(d, targ)
+                    setTimeout(function () {
+                        tip.hide()
+                    }, 3000);
+                }
+            })
+            .on('mouseleave', function (d, i) {
+                tip.hide()
+            })
+
+        // Invoke the tip in the context of your visualization
+        ns.chart.call(tip)
 
         // Add the text label (initially transparent)
         nodeEnter.append("svg:text")
