@@ -22,64 +22,79 @@ Goldstone
 Initial Setup
 *************
 
-Create your virtual environment for goldstone. Virtualenvwrapper makes this easy::
+Create your virtual environment for goldstone. Virtualenvwrapper makes this easy
+(see http://virtualenvwrapper.readthedocs.org/en/latest/install.html)::
 
-$ pip install virtualenvwrapper
-$ mkvirtualenv goldstone
+    $ pip install virtualenvwrapper
+    $ pip install tox
 
-This will also install virtualenv.
+Add the following or similar to your .bash_profile::
+
+    export ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future # for Mavericks
+    export JAVA_HOME="$(/usr/libexec/java_home)"
+    export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
+    export WORKON_HOME=$HOME/.virtualenvs
+    export PROJECT_HOME=$HOME/devel
+    source /usr/local/bin/virtualenvwrapper.sh
+
+Create the virtual environment (this will also install virtualenv)::
+
+    $ mkvirtualenv goldstone
 
 **OPTIONAL**: Customize your virtualenv postactive script to make it yours. I use the following commands in my virtualenv::
 
     #!/bin/bash    
-    cd /Users/kpepple/Documents/dev/Solinea/goldstone-ui
-    export DJANGO_SETTINGS_MODULE=goldstone.settings.development
+    cd ~/devel/goldstone
 
-This changes to my goldstone development git directory and sets my default django setting module so that I don't have to include it on the command line every time.
+    export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
+    export DJANGO_SETTINGS_MODULE=goldstone.settings.development    
+
+    postgres -D /usr/local/var/postgres &
+    redis-server > /dev/null 2>&1 &
+    elasticsearch > /dev/null 2>&1 &
+    celery worker --app=goldstone --loglevel=info --beat > /dev/null 2>&1 &
+
+
+This changes to my goldstone development git directory and sets my default django setting module so that I don't have to include it on the command line every time.  It also starts all of the required software (which we will install in a minute).
+
+Activating and deactivating the environment can be done with the following commands::
+
+    $ workon goldstone
+    $ deactivate
 
 Install postgresql and create development and test databases. Create a user goldstone with the role goldstone (or edit your development.py setttings file)::
 
-$ brew install postgres  # for the mac, assuming you have brew installed
-$ pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start
-$ createdb goldstone-dev
-$ createuser goldstone
+    $ brew install postgres  # for the mac, assuming you have brew installed
+    $ pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start
+    $ createdb goldstone_dev
+    $ createdb goldstone
+    $ createuser goldstone -d
+    $ brew install elasticsearch 
+    $ brew install redis 
+
+Clone Goldstone from the bitbucket repo::
+
+    $ cd $PROJECT_HOME
+    $ git clone git@bitbucket.org:solinea/goldstone.git
 
 Now, install pip prerequesites into your shiny new virtualenv. This will let your run the application on your laptop::
 
-$ pip install -r requirements.txt
-$ pip install -r test_requirements.txt
-
-Clone Goldstone from the 'Stash repo::
-
-$ git clone ssh://git@dev.solinea.com:7999/gold/goldstone-ui.git
+    $ cd goldstone
+    $ pip install -r requirements.txt
+    $ pip install -r test_requirements.txt
 
 Make sure your default settings are exported::
 
-$ export DJANGO_SETTINGS_MODULE=goldstone.settings.development
+    $ export DJANGO_SETTINGS_MODULE=goldstone.settings.development
 
 Sync and migrate the databases::
 
-$ python ./manage.py syncdb
-$ python ./manage.py migrate
-
-RabbitMQ should be configured to support celery tasks.  For the brew install, ensure that /usr/local/sbin is in your PATH:
-
-$ brew install rabbitmq
-$ rabbitmq-server
-
-Elasticsearch must also be configured.  You can set up a local version (see below), or refer to the one in the lab.  Instructions for local setup are below::
-
-$ brew install elasticsearch # for the mac, assuming you have brew installed
-$ elasticsearch
-$ (cd ./test_data; python ./bulk_import_es.py)
-
-If running locally, you should also update ./goldstone/settings/development.py and set:
-
-ES_SERVER = "127.0.0.1:9200"
+    $ python ./manage.py syncdb  # Answer 'no' to create superuser
+    $ python ./manage.py migrate
 
 Now test out the server::
 
-$ python ./manage.py runserver
+    $ python ./manage.py runserver
 
 You should now see the application running at http://localhost:8000/
 
