@@ -368,8 +368,8 @@ goldstone.charts.bivariateWithAverage = {
     info: function () {
         "use strict";
         var html = function () {
-                var start = dateFormat(Date(this.ns.start)),
-                    end = dateFormat(Date(this.ns.end)),
+                var start = dateFormat(goldstone.time.fromPyTs(this.ns.start)),
+                    end = dateFormat(goldstone.time.fromPyTs(this.ns.end)),
                     custom = _.map(this.ns.infoCustom, function (e) {
                             return e.key + ": " + e.value + "<br>"
                     }),
@@ -382,11 +382,22 @@ goldstone.charts.bivariateWithAverage = {
             }
 
         $(this.ns.infoIcon).popover({
-            trigger: 'click',
-            content: html.apply(this),
-            placement: 'bottom',
-            html: 'true'
-        })
+                trigger: 'manual',
+                content: html.apply(this),
+                placement: 'bottom',
+                html: 'true'
+            }).on("click", function (d) {
+                var targ = "#" + d.target.id
+                $(targ).popover('toggle')
+                // passing an arg to setTimeout is not supported in IE < 10
+                // see https://developer.mozilla.org/en-US/docs/Web/API/Window.setTimeout#Callback_arguments
+                setTimeout(function (d) {
+                    console.log("calling hide popover")
+                    console.log("infoIcon = " + d)
+                    $(d).popover('hide')
+                }, 3000, targ)
+            })
+
     },
     /**
      * initialize the chart.  Should not need to override.
