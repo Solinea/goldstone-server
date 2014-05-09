@@ -821,7 +821,7 @@ goldstone.charts.topologyTree = {
                     tip.show(d, targ)
                     setTimeout(function () {
                         tip.hide()
-                    }, 3000);
+                    }, 7500);
                 }
             })
             .on('mouseleave', function (d, i) {
