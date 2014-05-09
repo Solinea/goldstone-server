@@ -392,8 +392,6 @@ goldstone.charts.bivariateWithAverage = {
                 // passing an arg to setTimeout is not supported in IE < 10
                 // see https://developer.mozilla.org/en-US/docs/Web/API/Window.setTimeout#Callback_arguments
                 setTimeout(function (d) {
-                    console.log("calling hide popover")
-                    console.log("infoIcon = " + d)
                     $(d).popover('hide')
                 }, 3000, targ)
             })
