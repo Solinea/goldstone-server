@@ -57,12 +57,13 @@ class TopologyView(TopologyView):
         return [{"rsrcType": "region", "label": r}]
 
     def _transform_hosts_list(self):
-        logger.debug("in _transform_host_list, s[0] = %s",
-                     json.dumps(self.hosts[0]))
+
         # hosts list can have more than one list of hosts depending on the
         # count param of HostsData.get.  We will wrap each of them and preserve
         # the list structure
         try:
+            logger.debug("in _transform_host_list, s[0] = %s",
+                         json.dumps(self.hosts[0]))
             updated = self.hosts[-1]['@timestamp']
             region = self._get_regions()[0]['label']
 
@@ -81,9 +82,10 @@ class TopologyView(TopologyView):
             return []
 
     def _transform_image_list(self):
-        logger.debug("in _transform_image_list, s[0] = %s",
-                     json.dumps(self.images[0]))
+
         try:
+            logger.debug("in _transform_image_list, s[0] = %s",
+                         json.dumps(self.images[0]))
             updated = self.images[0]['_source']['@timestamp']
             region = self.images[0]['_source']['region']
             return [
@@ -128,7 +130,7 @@ class TopologyView(TopologyView):
               'targetRsrcType': 'region',
               'conditions': "%source%['region'] == %target%['label']"}
 
-        rl = self._attach_resource(ad, hl, rl)
+        rl = self._attach_resource(ad, hl, rl) if hl else rl
 
         if len(rl) > 1:
             return {"rsrcType": "cloud", "label": "Cloud", "children": rl}

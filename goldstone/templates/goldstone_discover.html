@@ -24,19 +24,7 @@
 {% block localcss %}
 {% endblock %}
 
-{% block localjs %}
-    <script src="{% static 'js/goldstone.js' %}"></script>
-    <script>
 
-$(document).ready(function () {
-    var gnd = goldstone.goldstone.discover,
-        ns = goldstone.goldstone.topology
-    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns)
-    ns.topologyTree.loadUrl(true, '#goldstone-discover-r1-c1')
-})
-    </script>
-
-{% endblock %}
 
 
 {% block content %}
@@ -50,6 +38,19 @@ $(document).ready(function () {
 
 {% endblock %}
 
+{% block localjs %}
+    <script src="{% static 'js/goldstone.js' %}"></script>
+    <script>
+
+$(document).ready(function () {
+    var gnd = goldstone.goldstone.discover,
+        ns = goldstone.goldstone.topology
+    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns)
+    ns.topologyTree.loadUrl(true, '#goldstone-discover-r1-c1')
+})
+    </script>
+
+{% endblock %}
 
 
 
