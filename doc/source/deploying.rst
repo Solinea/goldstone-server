@@ -152,6 +152,30 @@ Notes::
     * glance-cache.conf does not have a syslog_log_facility by default, check to see if it is a valid setting.
 
 
+Configuring goldstone under Apache
+==================================
+
+    Compile, install, and enable mod_wsgi if it's not already available::
+
+    * see: https://code.google.com/p/modwsgi/wiki/QuickInstallationGuide
+
+    Edit httpd.conf, append the following (very minimalist) config::
+
+    WSGIScriptAlias / /opt/goldstone/goldstone/wsgi.py
+    WSGIPythonPath /opt/goldstone:/opt/goldstone/lib/python2.6/site-packages
+
+    <Directory /opt/goldstone/goldstone>
+    <Files wsgi.py>
+    # probably need an auth theme for this
+    # Require all granted
+    </Files>
+    </Directory>
+
+    Install the static files::
+
+    $ sudo mkdir -p /var/www/goldstone/static
+    $ sudo python manage.py collectstatic --settings=goldstone.settings.production
+
 
 How to run the tests
 ====================
