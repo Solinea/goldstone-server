@@ -36,6 +36,9 @@ DATABASES = {
 
 SECRET_KEY = 'dev-v=jazz^xno*0(aou-6ir*q-c+v&r#ue5b4wxt-xy#rebph8q)'
 
+STATIC_ROOT = '/var/www/goldstone/static/'
+STATIC_URL = '/static/'
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
