@@ -36,7 +36,7 @@ def time_keystone_api(self):
     """
     Call the token url via http rather than the python client so we can get
     a full set of data for the record in the DB.  This will make things
-    easier to model. 
+    easier to model.
     """
     user = settings.OS_USERNAME
     passwd = settings.OS_PASSWORD

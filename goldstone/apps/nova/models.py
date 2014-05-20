@@ -127,10 +127,6 @@ class NovaClientData(ESData):
                             values()[0]['_shards']['failed'])
 
 
-class AvailabilityZoneData(NovaClientData):
-    _DOC_TYPE = 'nova_availability_zones'
-
-
 class HypervisorStatsData(NovaClientData):
     _DOC_TYPE = 'nova_hypervisor_stats'
 
