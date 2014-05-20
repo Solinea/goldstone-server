@@ -24,7 +24,7 @@ wsgiref==0.1.2
 django-admin-bootstrapped
 psycopg2
 django-crispy-forms
-django-waffle
+#django-waffle
 django.js
 pbr
 elasticsearch>=1.0
@@ -36,3 +36,4 @@ python-keystoneclient
 python-cinderclient
 python-neutronclient
 python-glanceclient
+urllib3

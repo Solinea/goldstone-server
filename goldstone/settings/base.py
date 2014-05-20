@@ -60,7 +60,7 @@ TEMPLATE_DEBUG = True
 
 QUNIT_ENABLED = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*',]
 
 # Application definition
 
@@ -73,7 +73,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'south',
-    'waffle',
     'crispy_forms',
     'djangojs',
     'goldstone.apps.core',
@@ -93,7 +92,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'waffle.middleware.WaffleMiddleware',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (

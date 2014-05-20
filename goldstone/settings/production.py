@@ -22,3 +22,51 @@ DEBUG = False
 TEMPLATE_DEBUG = False
 
 QUNIT_ENABLED = False
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": "goldstone",
+        "USER": "goldstone",
+        "PASSWORD": "goldstone",
+        "HOST": "127.0.0.1",
+        "PORT": "",
+    }
+}
+
+SECRET_KEY = 'dev-v=jazz^xno*0(aou-6ir*q-c+v&r#ue5b4wxt-xy#rebph8q)'
+
+STATIC_ROOT = '/var/www/goldstone/static/'
+STATIC_URL = '/static/'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'brief': {
+            'format': '%(levelname)s %(message)s'
+        },
+        'default': {
+            'format': '%(asctime)s %(levelname)-8s %(name)-15s %(message)s',
+            'datefmt': '%Y-%m-%dT%H:%M:%S%z'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'default'
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'propagate': False,
+            'level': 'INFO',
+        },
+        'goldstone': {
+            'level': 'INFO',
+            'handlers': ['console']
+        },
+    },
+}
