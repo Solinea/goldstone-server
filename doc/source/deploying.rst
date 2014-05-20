@@ -38,6 +38,7 @@ Install procedure::
     $ sudo yum install libffi-devel
     $ sudo yum install openssl-devel
     $ sudo yum install httpd
+    $ sudo yum install mod_wsgi
     $ sudo rpm -Uhv elasticsearch-1.1.1.noarch.rpm
     $ sudo chkconfig --add elasticsearch
     $ sudo service elasticsearch start
@@ -152,46 +153,44 @@ Notes::
     * glance-cache.conf does not have a syslog_log_facility by default, check to see if it is a valid setting.
 
 
+Installing goldstone
+==================================
+    * deploy the goldstone tree to /opt/goldstone
+    * update settings in goldstone/settings/base.py and goldstone/settings/production.py (should templatize)
+
+    Install dependencies::
+
+    $ sudo pip install -r requirements.txt
+
 Configuring goldstone under Apache
 ==================================
 
-    Compile, install, and enable mod_wsgi if it's not already available::
+    Edit httpd.conf, append the following config::
 
-    * see: https://code.google.com/p/modwsgi/wiki/QuickInstallationGuide
-
-    Edit httpd.conf, append the following (very minimalist) config::
-
-    WSGIScriptAlias / /opt/goldstone/goldstone/wsgi.py
     WSGIPythonPath /opt/goldstone:/opt/goldstone/lib/python2.6/site-packages
 
-    <Directory /opt/goldstone/goldstone>
-    <Files wsgi.py>
-    # probably need an auth theme for this
-    # Require all granted
-    </Files>
-    </Directory>
+    <VirtualHost *:80>
+        ServerAdmin you@example.com
+        ServerName goldstone.example.com
+        WSGIScriptAlias / /opt/goldstone/goldstone/wsgi.py
+        Alias /static/ /var/www/goldstone/static/
+        Alias /favicon.ico /var/www/goldstone/static/images/favicon.ico
+        <Location "/static/">
+            Options -Indexes
+        </Location>
+    </VirtualHost>
 
     Install the static files::
 
     $ sudo mkdir -p /var/www/goldstone/static
+    $ cd /opt/goldstone
     $ sudo python manage.py collectstatic --settings=goldstone.settings.production
 
+    Start/restart the server::
 
-How to run the tests
-====================
+    $ sudo service httpd restart
 
-Install libraries::
+    Verify that goldstone is running::
 
-    $ sudo pip install -r requirements.txt
+    * point browser at http://{addr} to get to the top level discovery screen
 
-Set SECRET KEY environment variable::
-
-    $ set SECRET_KEY="fsaafkjsdfiojsoivjfvoj"
-
-You can generate strong SECRET_KEYS at http://www.miniwebtool.com/django-secret-key-generator/
-
-Start the server::
-
-    $ python manage.py runserver --settings=goldstone.settings.production
-
-This will be better serverd through a true webserver like Apache.
