@@ -18,6 +18,7 @@ __author__ = 'John Stanford'
 from django.conf import settings
 from keystoneclient.exceptions import ClientException
 from goldstone.lru_cache import lru_cache
+import cinderclient.v2.services
 from keystoneclient.v2_0 import client as ksclient
 from novaclient.v1_1 import client as nvclient
 from cinderclient.v2 import client as ciclient
@@ -37,6 +38,11 @@ import calendar
 
 
 logger = logging.getLogger(__name__)
+
+
+# hacking in a patch for the cinder service __repr__ method
+def _patched_cinder_service_repr(self):
+    return "<Service: %s>" % self.binary
 
 
 class GoldstoneBaseException(Exception):
@@ -144,6 +150,8 @@ def _get_client(service, user=settings.OS_USERNAME,
                                 service_type='compute')
             return {'client': c}
         elif service == 'cinder':
+            cinderclient.v2.services.Service.__repr__ = \
+                _patched_cinder_service_repr
             c = ciclient.Client(user, passwd, tenant, auth_url,
                                 service_type='volume')
             region = _get_region_for_cinder_client(c)
