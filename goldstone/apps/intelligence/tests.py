@@ -19,7 +19,6 @@ from django.test.client import RequestFactory
 from django.utils.unittest.case import skip
 from django.test import SimpleTestCase
 from django.conf import settings
-from waffle import Switch
 
 from .views import IntelSearchView
 from .models import *

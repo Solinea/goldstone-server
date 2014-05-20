@@ -28,8 +28,16 @@ Install procedure::
     $ curl -XGET https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.noarch.rpm \
             > elasticsearch-1.1.1.noarch.rpm
     $ curl -XGET https://download.elasticsearch.org/logstash/logstash/packages/centos/logstash-1.4.0-1_c82dc09.noarch.rpm \
-            > logstash-1.4.0-1_c82dc09.noarch.r
+            > logstash-1.4.0-1_c82dc09.noarch.rpm
     $ sudo yum install java-1.7.0-openjdk.x86_64
+    $ sudo yum install gcc
+    $ sudo yum install gcc-c++
+    $ sudo yum install python-devel
+    $ sudo yum install postgresql-server
+    $ sudo yum install postgresql-devel
+    $ sudo yum install libffi-devel
+    $ sudo yum install openssl-devel
+    $ sudo yum install httpd
     $ sudo rpm -Uhv elasticsearch-1.1.1.noarch.rpm
     $ sudo chkconfig --add elasticsearch
     $ sudo service elasticsearch start
@@ -43,6 +51,7 @@ Add the following lines to /etc/sysconfig/iptables in the ":OUTPUT ACCEPT [0:0]"
 starting with "-A INPUT -j REJECT".  You may want to review and customize these settings to meet your own
 security requirements:
 
+    -A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -m comment --comment "httpd incoming" -j ACCEPT
     -A INPUT -m state --state NEW -m tcp -p tcp --dport 9200 -m comment --comment "elastcisearch incoming" -j ACCEPT
     -A INPUT -m state --state NEW -m tcp -p tcp --dport 5514 -m comment --comment "goldstone rsyslog incoming" -j ACCEPT
 
@@ -61,7 +70,22 @@ Start logstash::
 
     $ sudo service logstash start
 
+Configure postgresql::
 
+    $ sudo service postgresql initdb
+    $ sudo chkconfig postgresql on
+    $ sudo service postgresql start
+    $ su - postgres
+    (postgres) $ createuser goldstone -d
+    (postgres) $ psql -c "alter user goldstone password 'goldstone'"
+    $ exit
+
+    * edit /var/lib/pgsql/data/pg_hba.conf 
+    * update the IPv4 section so it looks roughly like the following:
+    host    goldstone         goldstone         127.0.0.1/32          password
+    host    all         all         127.0.0.1/32          ident
+   
+    
 =================
 Configuring Goldstone Clients
 =================

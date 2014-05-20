@@ -83,7 +83,8 @@ def _validate(arg_list, context):
             context['render'] = bool(context['render'])
 
     if len(validation_errors) > 0:
-        return HttpResponseBadRequest(json.dumps(validation_errors))
+        return HttpResponseBadRequest(json.dumps(validation_errors),
+                                      'application/json')
     else:
         return context
 
@@ -135,7 +136,7 @@ class InnerTimeRangeView(TemplateView):
             self.template_name = self.my_template_name
         else:
             self.template_name = None
-            TemplateView.content_type = 'application/json'
+            # TemplateView.content_type = 'application/json'
 
         return context
 
