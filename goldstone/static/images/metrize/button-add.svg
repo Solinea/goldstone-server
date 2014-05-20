@@ -1,4 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" width="512px" height="512px" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve" xmlns:xml="http://www.w3.org/XML/1998/namespace">
-<path d="m 256 0 c -141.391 0 -256 114.609 -256 256 s 114.609 256 256 256 s 256 -114.609 256 -256 s -114.609 -256 -256 -256 z m 0 472 c -119.297 0 -216 -96.703 -216 -216 s 96.703 -216 216 -216 s 216 96.703 216 216 s -96.703 216 -216 216 z"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="m 256 128 c -70.695 0 -128 57.312 -128 128 s 57.305 128 128 128 c 70.688 0 128 -57.312 128 -128 s -57.312 -128 -128 -128 z m 64 144 h -48 v 48 h -32 v -48 h -48 v -32 h 48 v -48 h 32 v 48 h 48 v 32 z"/>
-</svg>

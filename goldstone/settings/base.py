@@ -60,7 +60,7 @@ TEMPLATE_DEBUG = True
 
 QUNIT_ENABLED = True
 
-ALLOWED_HOSTS = ['*',]
+ALLOWED_HOSTS = ['*', ]
 
 # Application definition
 
