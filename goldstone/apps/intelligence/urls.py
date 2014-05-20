@@ -17,7 +17,6 @@ __author__ = 'John Stanford'
 from django.conf.urls import patterns, include, url
 
 from .views import *
-import waffle
 
 urlpatterns = patterns(
     '',
@@ -31,7 +30,3 @@ urlpatterns = patterns(
     url(r'^host_presence_stats[/]?$', host_presence_stats,
         name='host_presence_stats'),
 )
-
-if waffle.switch_is_active('gse'):
-    urlpatterns += patterns(url(r'^compute/vcpu_stats[/]?$',
-                                compute_vcpu_stats, name='compute_cpu_stats'),)

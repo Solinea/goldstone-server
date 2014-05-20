@@ -22,7 +22,6 @@ from django.conf import settings
 from django.views.generic import RedirectView
 from djangojs.views import QUnitView
 import logging
-import waffle
 
 logger = logging.getLogger(__name__)
 
@@ -54,10 +53,5 @@ if settings.QUNIT_ENABLED:
             template_name='qunit.tests.html', js_files='js/tests/*.tests.js',
             jquery=True, django_js=True), name='my_qunit_view')
     )
-
-if waffle.switch_is_active('gse'):
-    urlpatterns += patterns('', url(r'^leases/',
-                                    include('goldstone.apps.lease.urls')))
-
 
 urlpatterns += staticfiles_urlpatterns()
