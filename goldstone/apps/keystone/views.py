@@ -63,9 +63,10 @@ class TopologyView(TopologyView):
                 self._get_endpoint_regions())]
 
     def _transform_service_list(self):
-        logger.debug("in _transform_service_list, s[0] = %s",
-                     json.dumps(self.services[0]))
+
         try:
+            logger.debug("in _transform_service_list, s[0] = %s",
+                         json.dumps(self.services[0]))
             updated = self.services[0]['_source']['@timestamp']
             region = self.services[0]['_source']['region']
             return [

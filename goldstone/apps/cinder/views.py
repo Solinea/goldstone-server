@@ -113,9 +113,10 @@ class TopologyView(TopologyView):
         return result
 
     def _transform_service_list(self, updated, region):
-        logger.debug("in _transform_service_list, s[0] = %s",
-                     json.dumps(self.services[0]))
+
         try:
+            logger.debug("in _transform_service_list, s[0] = %s",
+                         json.dumps(self.services[0]))
             svcs = {"services": [
                 {"rsrcType": "service",
                  "label": s['binary'],
@@ -135,9 +136,10 @@ class TopologyView(TopologyView):
             return []
 
     def _transform_volume_list(self, updated, region):
-        logger.debug("in _transform_volume_list, s[0] = %s",
-                     json.dumps(self.volumes[0]))
+
         try:
+            logger.debug("in _transform_volume_list, s[0] = %s",
+                         json.dumps(self.volumes[0]))
             vols = [
                 {"rsrcType": "volume",
                  "label": v['display_name'],

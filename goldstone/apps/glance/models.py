@@ -101,6 +101,7 @@ class HostData(TopologyData):
                 }
             }
         }
+        logger.debug('[get] query = %s', json.dumps(q))
         try:
             r = self._conn.search(index="_all",
                                   body=q,
