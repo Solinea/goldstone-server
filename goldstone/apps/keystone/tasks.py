@@ -36,12 +36,7 @@ def time_keystone_api(self):
     """
     Call the token url via http rather than the python client so we can get
     a full set of data for the record in the DB.  This will make things
-    easier to model.  Call is equivalent to:
-
-    curl -H "Content-type: application/json" -d '{
-        "auth":{"passwordCredentials":
-            {"username": "user", "password": "passwd"}}}'
-        http://10.10.11.20:35357/v2.0/tokens
+    easier to model. 
     """
     user = settings.OS_USERNAME
     passwd = settings.OS_PASSWORD

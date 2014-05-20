@@ -20,7 +20,6 @@ import calendar
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.conf import settings
 from django.views.generic import TemplateView
-from waffle.decorators import waffle_switch
 from .models import LogData
 from datetime import datetime, timedelta
 import pytz
@@ -170,50 +169,6 @@ def _calc_start(interval, end):
                'day': timedelta(days=1), 'hour': timedelta(hours=1),
                'minute': timedelta(minutes=1)}
     return end - options[interval]
-
-
-@waffle_switch('gse')
-def compute_vcpu_stats(request):
-
-    interval = request.GET.get('interval', '1h')
-    end_time = request.GET.get('end_time',
-                               calendar.timegm(
-                                   datetime.now(tz=pytz.utc).utctimetuple()))
-    end_dt = datetime.fromtimestamp(int(end_time), tz=pytz.utc)
-    start_time = request.GET.get('start_time',
-                                 calendar.timegm(
-                                     _calc_start('week', end_dt).
-                                     utctimetuple()))
-
-    start_dt = datetime.fromtimestamp(int(start_time), tz=pytz.utc)
-
-    conn = LogData.get_connection(settings.ES_SERVER)
-
-    ld = LogData()
-    raw_data = ld.get_hypervisor_stats(conn, start_dt, end_dt, interval)
-    logger.debug("raw_data = %s", json.dumps(raw_data))
-    response = []
-    for date_bucket in raw_data['aggregations']['events_by_date']['buckets']:
-        item = {
-            'time': date_bucket['key'],
-            'total_configured_vcpus': 0,
-            'avg_configured_vcpus': 0,
-            'total_inuse_vcpus': 0,
-            'avg_inuse_vcpus': 0
-        }
-        for host_bucket in date_bucket['events_by_host']['buckets']:
-            item['total_configured_vcpus'] += \
-                host_bucket['max_total_vcpus']['value']
-            item['avg_configured_vcpus'] += \
-                host_bucket['avg_total_vcpus']['value']
-            item['total_inuse_vcpus'] += \
-                host_bucket['max_active_vcpus']['value']
-            item['avg_inuse_vcpus'] += \
-                host_bucket['avg_active_vcpus']['value']
-
-        response.append(item)
-
-    return HttpResponse(json.dumps(response), content_type="application/json")
 
 
 def _calc_host_presence_time(reftime, qty, unit):
