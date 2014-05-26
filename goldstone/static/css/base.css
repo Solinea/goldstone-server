@@ -125,6 +125,10 @@ code {
   stroke-width: 0;
 }
 
+.icon-bug {
+    color: black;
+}
+
 .icon text {
   font-size: 12px;
   stroke-width: 0;
