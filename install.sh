@@ -17,17 +17,18 @@
 # 9. 
 
 function bail_out() {
+    echo "This server is incompatible"
     exit
 }
 
 function pre_install_sanity() {
     server_os=`uname -o`
     if [[ $server_os == 'GNU/Linux' ]]; then
-        bail_out("You need to be running a Linux server")
+        bail_out
     fi
     redhat_release=`cat /etc/redhat-release`
-    if [[ $redhat_release == 'CentOS release 6.5 (Final)' ]]
-        bail_out("You need to be running CentOS 6.5")
+    if [[ $redhat_release == 'CentOS release 6.5 (Final)' ]]; then
+        bail_out
     fi
 }
 
@@ -71,18 +72,18 @@ function eth($line) {
 }
 
 function configure_goldstone() {
-    eth("WSGIPythonPath /opt/goldstone:/opt/goldstone/lib/python2.6/site-packages")
-    eth("<VirtualHost *:80>")
-    eth("ServerAdmin you@example.com")
-    h = `hostname`
-    eth("ServerName ${h}")    
-    eth("WSGIScriptAlias / /opt/goldstone/goldstone/wsgi.py")
-    eth("Alias /static/ /var/www/goldstone/static/")
-    eth("Alias /favicon.ico /var/www/goldstone/static/images/favicon.ico")
-    eth("<Location \"/static/\">")
-    eth("    Options -Indexes")
-    eth("</Location>")
-    eth("</VirtualHost>")
+    echo "WSGIPythonPath /opt/goldstone:/opt/goldstone/lib/python2.6/site-packages" >> /etc/httpd/conf
+    echo "<VirtualHost *:80>" >> /etc/httpd/conf
+    echo "ServerAdmin you@example.com" >> /etc/httpd/conf
+    h=`hostname`
+    echo "ServerName ${h}" >> /etc/httpd/conf
+    echo "WSGIScriptAlias / /opt/goldstone/goldstone/wsgi.py" >> /etc/httpd/conf
+    echo "Alias /static/ /var/www/goldstone/static/" >> /etc/httpd/conf
+    echo "Alias /favicon.ico /var/www/goldstone/static/images/favicon.ico" >> /etc/httpd/conf
+    echo "<Location \"/static/\">" >> /etc/httpd/conf
+    echo "    Options -Indexes" >> /etc/httpd/conf
+    echo "</Location>" >> /etc/httpd/conf
+    echo "</VirtualHost>" >> /etc/httpd/conf
     
     cp -r goldstone /opt/goldstone
     pip install -r requirements.txt
