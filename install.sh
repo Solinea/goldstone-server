@@ -97,7 +97,7 @@ function configure_goldstone() {
     yum install -y python-pip
     pip install -r requirements.txt
     mkdir -p /var/www/goldstone/static
-    cd /opt/goldstone/goldstone
+    cd /opt/goldstone
     python manage.py collectstatic --settings=goldstone.settings.production
     service httpd restart
 }
