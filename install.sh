@@ -57,8 +57,8 @@ function install_logstash() {
     curl -XGET https://download.elasticsearch.org/logstash/logstash/packages/centos/logstash-1.4.0-1_c82dc09.noarch.rpm > logstash-1.4.0-1_c82dc09.noarch.rpm
     yum localinstall -y logstash-1.4.0-1_c82dc09.noarch.rpm
     /opt/logstash/bin/plugin install contrib  # required for translate plugin
-    cp goldstone/external/logstash/conf.d/* /etc/logstash/conf.d/
-    cp goldstone/external/logstash/patterns/goldstone /opt/logstash/patterns/goldstone
+    cp external/logstash/conf.d/* /etc/logstash/conf.d/
+    cp external/logstash/patterns/goldstone /opt/logstash/patterns/goldstone
     service logstash start 
 }
 
