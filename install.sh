@@ -1,5 +1,8 @@
 #!/usr/bin/env bash -x
 
+# turn on trace
+set -x 
+
 # ken@solinea.com
 # (c) Solinea, Inc  2014
 
