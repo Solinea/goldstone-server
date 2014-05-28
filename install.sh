@@ -16,14 +16,17 @@
 # 8. sanity tests
 # 9. 
 
+function bail_out() {
+    exit
+}
 
 function pre_install_sanity() {
-    server_os = `uname -o`
-    if [[ server_os = 'GNU/Linux' ]]; then
+    server_os=`uname -o`
+    if [[ $server_os == 'GNU/Linux' ]]; then
         bail_out("You need to be running a Linux server")
     fi
-    redhat_release = `cat /etc/redhat-release`
-    if [[ redhat_release = 'CentOS release 6.5 (Final)' ]]
+    redhat_release=`cat /etc/redhat-release`
+    if [[ $redhat_release == 'CentOS release 6.5 (Final)' ]]
         bail_out("You need to be running CentOS 6.5")
     fi
 }
