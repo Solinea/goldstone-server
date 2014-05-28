@@ -62,6 +62,13 @@ function install_logstash() {
     service logstash start 
 }
 
+function config_iptables() {
+    iptables -I INPUT 2 -m state --state NEW -m tcp -p tcp --dport 80 -m comment --comment "httpd incoming" -j ACCEPT
+    iptables -I INPUT 2 -m state --state NEW -m tcp -p tcp --dport 9200 -m comment --comment "elastcisearch incoming" -j ACCEPT
+    iptables -I INPUT 2 -m state --state NEW -m tcp -p tcp --dport 5514 -m comment --comment "goldstone rsyslog incoming" -j ACCEPT
+    service iptables restart
+}
+
 function install_pg() {
     yum install postgresql
     service postgresql initdb
@@ -95,6 +102,7 @@ function configure_goldstone() {
 }
 
 # pre_install_sanity
+config_iptables
 install_elasticsearch
 install_logstash
 install_pg
