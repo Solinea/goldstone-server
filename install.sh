@@ -93,11 +93,11 @@ function configure_goldstone() {
     echo "</Location>" >> $hc
     echo "</VirtualHost>" >> $hc
     
-    cp -r goldstone /opt/goldstone
+    cp -r . /opt/goldstone
     yum install -y python-pip
     pip install -r requirements.txt
     mkdir -p /var/www/goldstone/static
-    cd /opt/goldstone
+    cd /opt/goldstone/goldstone
     python manage.py collectstatic --settings=goldstone.settings.production
     service httpd restart
 }
