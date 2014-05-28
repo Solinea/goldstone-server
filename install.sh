@@ -8,7 +8,7 @@ set -x
 
 # MAKE SURE YOU SDIST THE PACKAGE BEFORE YOU DO THIS !
 
-# 0. sanity check
+# 0. pre sanity check
 # 1. install elasticsearch schema (external)
 # 2. install logstash configs
 # 3. create package for syslog distribution to OS clients
@@ -16,8 +16,8 @@ set -x
 # 5. install pips
 # 6. install apache
 # 7. create mod_wsgi
-# 8. sanity tests
-# 9. 
+# 8. post sanity tests
+ 
 
 function bail_out() {
     echo "This server is incompatible"
