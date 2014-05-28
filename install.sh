@@ -24,6 +24,13 @@ function bail_out() {
     exit
 }
 
+function setup_epel() {
+    yum install -y wget 
+    wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+    wget http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
+    yum localinstall -y remi-release-6*.rpm epel-release-6*.rpm
+}
+
 function pre_install_sanity() {
     server_os=`uname -o`
     if [[ $server_os == 'GNU/Linux' ]]; then
@@ -47,7 +54,7 @@ function install_elasticsearch() {
     yum install -y openssl-devel
     yum install -y httpd
     yum install -y mod_wsgi
-    yum install -u redis
+    yum install -y redis
     yum localinstall -y elasticsearch-1.1.1.noarch.rpm
     chkconfig --add elasticsearch
     service elasticsearch start
@@ -103,6 +110,7 @@ function configure_goldstone() {
 }
 
 # pre_install_sanity
+setup_epel
 config_iptables
 install_elasticsearch
 install_logstash
