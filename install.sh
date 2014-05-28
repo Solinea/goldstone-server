@@ -105,7 +105,7 @@ function configure_goldstone() {
     pip install -r requirements.txt
     mkdir -p /var/www/goldstone/static
     cd /opt/goldstone
-    python manage.py collectstatic --settings=goldstone.settings.production
+    python manage.py collectstatic --settings=goldstone.settings.production --noinput
     service httpd restart
 }
 
