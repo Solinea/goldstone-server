@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -x
 
 # ken@solinea.com
 # (c) Solinea, Inc  2014
@@ -32,7 +32,7 @@ function pre_install_sanity() {
     fi
 }
 
-function install_elasticsearch () {
+function install_elasticsearch() {
     curl -XGET https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.noarch.rpm > elasticsearch-1.1.1.noarch.rpm
     yum install java-1.7.0-openjdk.x86_64
     yum install gcc
@@ -67,10 +67,6 @@ function install_pg() {
     psql -c "alter user goldstone password 'goldstone'"
 }
 
-function eth($line) {
-    echo $line >> /etc/httpd/conf
-}
-
 function configure_goldstone() {
     echo "WSGIPythonPath /opt/goldstone:/opt/goldstone/lib/python2.6/site-packages" >> /etc/httpd/conf
     echo "<VirtualHost *:80>" >> /etc/httpd/conf
@@ -92,3 +88,9 @@ function configure_goldstone() {
     python manage.py collectstatic --settings=goldstone.settings.production
     service httpd restart
 }
+
+pre_install_sanity
+install_elasticsearch
+install_logstash
+install_pg
+configure_goldstone
