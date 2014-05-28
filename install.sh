@@ -3,6 +3,8 @@
 # ken@solinea.com
 # (c) Solinea, Inc  2014
 
+# MAKE SURE YOU SDIST THE PACKAGE BEFORE YOU DO THIS !
+
 # 0. sanity check
 # 1. install elasticsearch schema (external)
 # 2. install logstash configs
