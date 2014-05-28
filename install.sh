@@ -94,6 +94,7 @@ function configure_goldstone() {
     echo "</VirtualHost>" >> $hc
     
     cp -r goldstone /opt/goldstone
+    yum install -y python-pip
     pip install -r requirements.txt
     mkdir -p /var/www/goldstone/static
     cd /opt/goldstone
