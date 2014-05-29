@@ -32,6 +32,7 @@ function setup_epel() {
     
     # turn off SE Linux to troubleshoot
     echo 0 >/selinux/enforce
+    echo "1"
 }
 
 function pre_install_sanity() {
@@ -43,6 +44,7 @@ function pre_install_sanity() {
     if [[ $redhat_release == 'CentOS release 6.5 (Final)' ]]; then
         bail_out
     fi
+    echo "1"
 }
 
 function install_elasticsearch() {
@@ -61,6 +63,7 @@ function install_elasticsearch() {
     yum localinstall -y elasticsearch-1.1.1.noarch.rpm
     chkconfig --add elasticsearch
     service elasticsearch start
+    echo "1"
 }
 
 function install_logstash() {
@@ -70,6 +73,7 @@ function install_logstash() {
     cp external/logstash/conf.d/* /etc/logstash/conf.d/
     cp external/logstash/patterns/goldstone /opt/logstash/patterns/goldstone
     service logstash start 
+    echo "1"
 }
 
 function config_iptables() {
@@ -80,6 +84,7 @@ function config_iptables() {
     # iptables -A INPUT -p tcp --dport 5514 -j ACCEPT
     iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 5514 -m comment --comment "goldstone rsyslog incoming" -j ACCEPT
     service iptables save
+    echo "1"
 }
 
 function install_pg() {
@@ -89,6 +94,7 @@ function install_pg() {
     service postgresql start
     createuser goldstone -s -d
     psql -c "alter user goldstone password 'goldstone'"
+    echo "1"
 }
 
 function configure_goldstone() {
@@ -114,18 +120,22 @@ function configure_goldstone() {
     cd /opt/goldstone
     python manage.py collectstatic --settings=goldstone.settings.production --noinput
     service httpd restart
+    echo "1"
 }
 
 function start_celery() {
     export DJANGO_SETTINGS_MODULE=goldstone.settings.production
     celery worker --app=goldstone --loglevel=info --beat
+    echo "1"
 }
 
-# pre_install_sanity
-setup_epel
-config_iptables
-install_elasticsearch
-install_logstash
-install_pg
-configure_goldstone
-start_celery
+# result=$(setup_epel)
+
+
+# setup_epel
+# config_iptables
+# install_elasticsearch
+# install_logstash
+# install_pg
+# configure_goldstone
+# start_celery
