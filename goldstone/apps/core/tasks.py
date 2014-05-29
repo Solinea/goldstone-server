@@ -37,9 +37,8 @@ def create_daily_index(self, server=settings.ES_SERVER, basename='goldstone'):
     index_name = basename + "-" + now.strftime("%Y.%m.%d")
     prev_index_name = basename + "-" + yesterday.strftime("%Y.%m.%d")
     conn = Elasticsearch(server, bulk_size=500)
-    template_f = open(os.path.join(os.path.dirname(__file__), "..", "..",
-                                   "..", "external", "elasticsearch",
-                                   "templates", "goldstone.json"), 'rb')
+    template_f = open(os.path.join(os.path.dirname(__file__),
+                                   "goldstone_es_template.json"), 'rb')
     template = json.load(template_f)
 
     conn.indices.create(index_name, body=template)
