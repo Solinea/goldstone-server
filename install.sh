@@ -29,6 +29,9 @@ function setup_epel() {
     wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
     wget http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
     yum localinstall -y remi-release-6*.rpm epel-release-6*.rpm
+    
+    # turn off SE Linux to troubleshoot
+    echo 0 >/selinux/enforce
 }
 
 function pre_install_sanity() {
@@ -70,9 +73,12 @@ function install_logstash() {
 }
 
 function config_iptables() {
-    iptables -I INPUT 2 -m state --state NEW -m tcp -p tcp --dport 80 -m comment --comment "httpd incoming" -j ACCEPT
-    iptables -I INPUT 2 -m state --state NEW -m tcp -p tcp --dport 9200 -m comment --comment "elastcisearch incoming" -j ACCEPT
-    iptables -I INPUT 2 -m state --state NEW -m tcp -p tcp --dport 5514 -m comment --comment "goldstone rsyslog incoming" -j ACCEPT
+    # iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+    iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 80 -m comment --comment "httpd incoming" -j ACCEPT
+    # iptables -A INPUT -p tcp --dport 9200 -j ACCEPT
+    iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 9200 -m comment --comment "elastcisearch incoming" -j ACCEPT
+    # iptables -A INPUT -p tcp --dport 5514 -j ACCEPT
+    iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 5514 -m comment --comment "goldstone rsyslog incoming" -j ACCEPT
     service iptables restart
 }
 
