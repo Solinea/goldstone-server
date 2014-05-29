@@ -79,7 +79,7 @@ function config_iptables() {
     iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 9200 -m comment --comment "elastcisearch incoming" -j ACCEPT
     # iptables -A INPUT -p tcp --dport 5514 -j ACCEPT
     iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 5514 -m comment --comment "goldstone rsyslog incoming" -j ACCEPT
-    service iptables restart
+    service iptables save
 }
 
 function install_pg() {
