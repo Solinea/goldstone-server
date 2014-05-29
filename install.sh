@@ -93,6 +93,7 @@ function install_pg() {
 
 function configure_goldstone() {
     hc='/etc/httpd/conf/httpd.conf'
+    echo "LoadModule wsgi_module modules/http://mod_wsgi.so" >> $hc
     echo "WSGIPythonPath /opt/goldstone:/opt/goldstone/lib/python2.6/site-packages" >> $hc
     echo "<VirtualHost *:80>" >> $hc
     echo "ServerAdmin you@example.com" >> $hc
@@ -115,6 +116,10 @@ function configure_goldstone() {
     service httpd restart
 }
 
+function start_celery() {
+    celery worker --app=goldstone --loglevel=info --beat
+}
+
 # pre_install_sanity
 setup_epel
 config_iptables
@@ -122,3 +127,4 @@ install_elasticsearch
 install_logstash
 install_pg
 configure_goldstone
+start_celery
