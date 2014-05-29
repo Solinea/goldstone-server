@@ -272,8 +272,8 @@ function refreshSearchTable(start, end, levels) {
     }
 
     if ($.fn.dataTable.isDataTable("#log-search-table")) {
-        oTable = $("#log-search-table").dataTable();
-        oTable.fnReloadAjax(uri);
+        oTable = $("#log-search-table").DataTable();
+        oTable.ajax.reload(uri);
     }
 }
 
@@ -666,11 +666,10 @@ function drawSearchTable(location, start, end) {
         "&end_time=", String(Math.round(end.getTime() / 1000)))
 
     if ($.fn.dataTable.isDataTable(location)) {
-        oTable = $(location).dataTable()
-        oTable.fnReloadAjax(uri)
+        oTable = $(location).DataTable()
+        oTable.ajax.reload(uri)
     } else {
         var oTableParams = {
-            "fnInitComplete": function () {this.fnSetFilteringDelay(500)},
             "bProcessing": true,
             "bServerSide": true,
             "sAjaxSource": uri,
@@ -737,8 +736,8 @@ function hostPresenceTable(location, start, end) {
         '&domainEnd=', String(Math.round(params.end.getTime() / 1000)));
 
     if ($.fn.dataTable.isDataTable(location)) {
-        oTable = $(location).dataTable();
-        oTable.fnReloadAjax(uri);
+        oTable = $(location).DataTable();
+        oTable.ajax.reload(uri);
     } else {
         var oTableParams = {
             "bProcessing": true,
