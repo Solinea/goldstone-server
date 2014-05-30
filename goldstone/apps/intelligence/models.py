@@ -265,8 +265,9 @@ class LogData(object):
         if search_text:
 
             sq = {
-                "wildcard": {
-                    "_message.raw": search_text
+                "query_string": {
+                    "default_operator": "AND",
+                    "query": search_text
                 }
             }
             q['query']['bool']['must'].append(sq)
