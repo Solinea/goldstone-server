@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.views import GoldstoneTopologyView, DiscoverView
+from goldstone.views import GoldstoneTopologyView, DiscoverView, HelpView
 
 __author__ = 'John Stanford'
 
@@ -34,6 +34,7 @@ urlpatterns = patterns(
         name='goldstone-discover-view'),
     url(r'^topology[/]?$', GoldstoneTopologyView.as_view(),
         name='goldstone-topology'),
+    url(r'^help[/]?$', HelpView.as_view()),
     url(r'^intelligence/', include('goldstone.apps.intelligence.urls')),
     url(r'^nova/', include('goldstone.apps.nova.urls')),
     url(r'^keystone/', include('goldstone.apps.keystone.urls')),
@@ -43,6 +44,7 @@ urlpatterns = patterns(
     url(r'^api_perf/', include('goldstone.apps.api_perf.urls')),
     url(r'^$', RedirectView.as_view(url='/discover'), name='home'),
     url(r'^admin/', include(admin.site.urls)),
+
 )
 
 if settings.QUNIT_ENABLED:

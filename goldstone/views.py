@@ -457,3 +457,7 @@ class GoldstoneTopologyView(TopologyView):
             return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
         else:
             return rl[0]
+
+
+class HelpView(TemplateView):
+    template_name = 'help.html'
