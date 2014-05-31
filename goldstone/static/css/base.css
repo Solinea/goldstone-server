@@ -58,6 +58,10 @@ body {
   padding-right: 15px;
 }
 
+.fa {
+    color: #777;
+}
+
 code {
   font-size: 80%;
 }
@@ -123,10 +127,6 @@ code {
 .node text {
   font-size: 12px;
   stroke-width: 0;
-}
-
-.icon-bug {
-    color: black;
 }
 
 .icon text {
