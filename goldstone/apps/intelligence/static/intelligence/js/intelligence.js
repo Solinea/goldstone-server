@@ -37,8 +37,6 @@ function _toPyTs(t) {
     }
 }
 
-
-
 function isRefreshing() {
     "use strict";
     return $("#autoRefresh").prop("checked")
@@ -47,35 +45,6 @@ function isRefreshing() {
 function getRefreshInterval() {
     "use strict";
     return $("select#autoRefreshInterval").val()
-}
-
-function hostPresenceUnit() {
-    "use strict";
-    return $("select#hostPresenceUnit").val()
-}
-
-function hostPresenceQty() {
-    "use strict";
-    var presenceQty = $("input#hostPresenceQty").val()
-    presenceQty = typeof presenceQty === 'undefined' || presenceQty === "" ? 1 : presenceQty
-    return presenceQty
-}
-
-function refreshHostPresence(start, end) {
-    hostPresenceTable('#host-presence-table', start, end)
-}
-
-function refreshCockpitEventCharts(start, end) {
-    "use strict";
-    badEventMultiLine('#bad-event-multiline', start, end)
-}
-
-function refreshCockpitSecondaryCharts(start, end) {
-    "use strict";
-    physCpuChart("#phys-cpu-chart", start, end)
-    physMemChart("#phys-mem-chart", start, end)
-    physDiskChart("#phys-disk-chart", start, end)
-    refreshHostPresence(start, end)
 }
 
 function refocusCockpitSecondaryCharts(filter) {
@@ -272,8 +241,9 @@ function refreshSearchTable(start, end, levels) {
     }
 
     if ($.fn.dataTable.isDataTable("#log-search-table")) {
-        oTable = $("#log-search-table").DataTable();
-        oTable.ajax.reload(uri);
+        oTable = $("#log-search-table").DataTable()
+        oTable.ajax.url(uri)
+        oTable.ajax.reload()
     }
 }
 
@@ -667,7 +637,8 @@ function drawSearchTable(location, start, end) {
 
     if ($.fn.dataTable.isDataTable(location)) {
         oTable = $(location).DataTable()
-        oTable.ajax.reload(uri)
+        oTable.ajax.url(uri)
+        oTable.ajax.reload()
     } else {
         var oTableParams = {
             "bProcessing": true,
@@ -707,68 +678,6 @@ function drawSearchTable(location, start, end) {
     $("#log-table-loading-indicator").hide();
 }
 
-function hostPresenceTable(location, start, end) {
-    "use strict";
-    var params = _processTimeBasedChartParams(end, start),
-        lookbackUnit = hostPresenceUnit(),
-        lookbackQty = hostPresenceQty()
-
-    var inspectStart = (function () {
-        var d = new Date(params.end);
-        if (lookbackUnit === 'm') {
-            d.addMinutes(-1 * lookbackQty);
-            return d;
-        } else if (lookbackUnit === 'd') {
-            d.addDays(-1 * lookbackQty);
-            return d;
-        } else if (lookbackUnit === 'w') {
-            d.addWeeks(-1 * lookbackQty);
-            return d;
-        } else {
-            d.addHours(-1 * lookbackQty);
-            return d;
-        }
-    })();
-
-    var uri = '/intelligence/host_presence_stats'.concat(
-        '?domainStart=', String(Math.round(params.start.getTime() / 1000)),
-        '&inspectStart=', String(Math.round(inspectStart.getTime() / 1000)),
-        '&domainEnd=', String(Math.round(params.end.getTime() / 1000)));
-
-    if ($.fn.dataTable.isDataTable(location)) {
-        oTable = $(location).DataTable();
-        oTable.ajax.reload(uri);
-    } else {
-        var oTableParams = {
-            "bProcessing": true,
-            "bServerSide": true,
-            "sAjaxSource": uri,
-            "bPaginate": false,
-            "sScrollY": "250px",
-            "bFilter": false,
-            "bSort": false,
-            "bInfo": false,
-            "bAutoWidth": true,
-            "bLengthChange": true,
-            "aoColumnDefs": [
-                { "sName": "host", "aTargets": [ 0 ] },
-                { "sName": "status", "aTargets": [ 1 ] }
-                /* TODO GOLD-241 add support for time last seen to JS
-                ,
-                { "bVisible": false, "aTargets": [ 2 ] },
-                { "sName": "lastSeen", "aTargets": [ 2 ] },
-                { "sType": "date", "aTargets": [2] }
-                */
-            ]
-        }
-
-        var oTable = $(location).dataTable(oTableParams)
-
-        $(window).bind('resize', function () {
-            oTable.fnAdjustColumnSizing()
-        });
-    }
-}
 
 /*
  function updateWindow(){
