@@ -58,8 +58,12 @@ body {
   padding-right: 15px;
 }
 
-.fa {
+.navbar .fa {
     color: #777;
+}
+
+.panel-heading .fa {
+    color: #ffffff;
 }
 
 code {
