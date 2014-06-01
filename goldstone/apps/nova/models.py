@@ -128,6 +128,7 @@ class NovaClientData(ESData):
 
 
 class HypervisorStatsData(NovaClientData):
+    _INDEX_PREFIX = 'goldstone'
     _DOC_TYPE = 'nova_hypervisor_stats'
 
 
