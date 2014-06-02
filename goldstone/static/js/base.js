@@ -999,8 +999,8 @@ goldstone.charts.topologyTree = {
                     ns.data.x0 = ns.h / 2
                     ns.data.y0 = 0
                     // Initialize the display to show only the first tier of children
-                    ns.data.children.forEach(ns.self.toggleAll, this)
-                    ns.self.processTree(ns.data, ns)
+                    ns.data.children.forEach(ns.topologyTree.toggleAll)
+                    ns.topologyTree.processTree(ns.data, ns)
                     $(ns.spinner).hide()
                 })(this.ns)
             }
