@@ -30,3 +30,28 @@ class ServiceData(TopologyData):
 class VolumeData(TopologyData):
     _DOC_TYPE = 'cinder_volume_list'
     _INDEX_PREFIX = 'goldstone'
+
+
+class BackupData(TopologyData):
+    _DOC_TYPE = 'cinder_backup_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class SnapshotData(TopologyData):
+    _DOC_TYPE = 'cinder_snapshot_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class VolTypeData(TopologyData):
+    _DOC_TYPE = 'cinder_voltype_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class EncryptionTypeData(TopologyData):
+    _DOC_TYPE = 'cinder_encrypttype_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class TransferData(TopologyData):
+    _DOC_TYPE = 'cinder_transfer_list'
+    _INDEX_PREFIX = 'goldstone'
