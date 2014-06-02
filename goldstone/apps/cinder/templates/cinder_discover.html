@@ -35,7 +35,14 @@ $(document).ready(function () {
     ns.data = JSON.parse({{ data|to_js }})
     ns.h = 400
     ns.location = '#cinder-topology-tree'
+    ns.singleRsrcLocation = '#single-rsrc-table'
+    ns.multiRsrcLocation = '#multi-rsrc-table'
     ns.spinner = '#cinder-topology-spinner'
+    ns.singleRsrcSpinner = '#single-rsrc-loading-indicator'
+    ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator'
+    $(ns.spinner).hide()
+    $(ns.singleRsrcSpinner).hide()
+    $(ns.multiRsrcSpinner).hide()
     //ns.infoIcon = '#cinder-topology-info'
     ns.topologyTree.init()
 })
@@ -64,10 +71,57 @@ $(document).ready(function () {
                 </div>
             </div>
         </div>
-        <div id="cinder-discover-r1-c2" class="col-md-4"></div>
+        <div id="cinder-discover-r1-c2" class="col-md-4">
+            <div class="panel panel-primary multi-rsrc-panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>
+                        Resource Info
+                    </h3>
+                </div>
+                <div id="single-rsrc-body" class="panel-body">
+                    <table id="single-rsrc-table" class="table table-hover">
+                        <!-- table filled by draw_search_table -->
+                    </table>
+                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                         id="single-rsrc-loading-indicator" class="ajax-loader"
+                         hidden="true"/>
+                </div>
+            </div>
+        </div>
     </div>
     <div id="cinder-discover-r2" class="row">
-        <div id="cinder-discover-r2-c1" class="col-md-12"></div>
+        <div id="cinder-discover-r2-c1" class="col-md-12">
+            <div class="panel panel-primary multi-rsrc-panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>
+                        Resource List
+                    </h3>
+                </div>
+                <div id="multi-rsrc-body" class="panel-body">
+                    <table id="multi-rsrc-table" class="table table-hover">
+                        <!-- table rows filled by draw_search_table -->
+                        <thead>
+                        <tr class="header">
+                            <th>Timestamp</th>
+                            <th>Level</th>
+                            <th>Component</th>
+                            <th>Host</th>
+                            <th>Message</th>
+                            <th>Log Location</th>
+                            <th>Process ID</th>
+                            <th>Source</th>
+                            <th>Request ID</th>
+                            <th>Log Type</th>
+                            <th>Processed At</th>
+                        </tr>
+                        </thead>
+                    </table>
+                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                         id="multi-rsrc-loading-indicator" class="ajax-loader"
+                         hidden="true"/>
+                </div>
+            </div>
+        </div>
     </div>
 
 {% endblock %}

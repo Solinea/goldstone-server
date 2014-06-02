@@ -772,6 +772,38 @@ goldstone.charts.topologyTree = {
             d._children = null;
         }
     },
+    drawSingleRsrcInfoTable: function (location, spinner, scrollYpx, json) {
+        "use strict";
+        var oTable,
+            keys = Object.keys(json),
+            data = _.map(keys, function (k) {
+                return [k, json[k]]
+            })
+        $(spinner).show()
+        if ($.fn.dataTable.isDataTable(location)) {
+            oTable = $(location).DataTable()
+            oTable.clear().rows.add(data).draw()
+        } else {
+            var oTableParams = {
+                "data": data,
+                "scrollY": scrollYpx,
+                "autoWidth": true,
+                "info": false,
+                "paging": false,
+                "searching": false,
+                //"scrollY": true,
+                "columns": [
+                    { "title": "Key" },
+                    { "title": "Value" }
+                ]
+            }
+            oTable = $(location).dataTable(oTableParams)
+            //$(window).bind('resize', function () {
+            //    oTable.fnAdjustColumnSizing();
+            //});
+        }
+        $(spinner).hide()
+    },
     processTree: function (json, ns) {
         "use strict";
         var duration = d3.event && d3.event.altKey ? 5000 : 500,
@@ -818,6 +850,9 @@ goldstone.charts.topologyTree = {
                 var nodeId = ns.location + " #node-" + d.label + i,
                     targ = d3.select(nodeId).pop().pop()
                 if (typeof(d.info) !== 'undefined') {
+                    ns.topologyTree.drawSingleRsrcInfoTable(
+                        ns.singleRsrcLocation, ns.singleRsrcSpinner,
+                        ns.h, d.info)
                     tip.show(d, targ)
                     setTimeout(function () {
                         tip.hide()
