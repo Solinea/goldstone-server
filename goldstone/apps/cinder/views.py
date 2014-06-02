@@ -26,10 +26,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class DiscoverView(TopLevelView):
-    template_name = 'cinder_discover.html'
-
-
 class ReportView(TopLevelView):
     template_name = 'cinder_report.html'
 
@@ -42,10 +38,10 @@ class ServiceListApiPerfView(ApiPerfView):
                                  context['interval'])
 
 
-class TopologyView(TopologyView):
+class DiscoverView(TopologyView):
 
     def my_template_name(self):
-        return 'cinder_topology.html'
+        return 'cinder_discover.html'
 
     def __init__(self):
         self.services = ServiceData().get()

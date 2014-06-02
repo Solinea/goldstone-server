@@ -25,6 +25,4 @@ urlpatterns = patterns(
         name='cinder-report-view'),
     url(r'^api_perf[/]?$', ServiceListApiPerfView.as_view(),
         name='cinder-api-perf'),
-    url(r'^topology[/]?$', TopologyView.as_view(),
-        name='cinder-topology'),
 )

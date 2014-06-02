@@ -32,7 +32,12 @@ $(document).ready(function () {
     var gnd = goldstone.cinder.discover,
         ns = goldstone.cinder.topology
     ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns)
-    ns.topologyTree.loadUrl(true, '#cinder-discover-r1-c1')
+    ns.data = JSON.parse({{ data|to_js }})
+    ns.h = 400
+    ns.location = '#cinder-topology-tree'
+    ns.spinner = '#cinder-topology-spinner'
+    //ns.infoIcon = '#cinder-topology-info'
+    ns.topologyTree.init()
 })
     </script>
 
@@ -40,10 +45,25 @@ $(document).ready(function () {
 
 
 {% block content %}
-    <!-- <object id="icon-network-svg" data="{% static 'images/icon_network.svg' %}" type="image/svg+xml"> -->
-
     <div id="cinder-discover-r1" class="row">
-        <div id="cinder-discover-r1-c1" class="col-md-8"></div>
+        <div id="cinder-discover-r1-c1" class="col-md-8">
+            <div id = "cinder-topology-panel" class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-tasks"></i> Cinder Topology
+                            <i class="pull-right fa fa-info-circle panel-info"  id="cinder-topology-info"
+                                    style="opacity: 0.0"></i>
+                    </h3>
+                </div>
+                <div class="panel-body" style="height:400px">
+                    <div id="cinder-topology-tree">
+                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                             id="cinder-topology-spinner"
+                             class="ajax-loader"/>
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div id="cinder-discover-r1-c2" class="col-md-4"></div>
     </div>
     <div id="cinder-discover-r2" class="row">
