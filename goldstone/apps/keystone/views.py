@@ -21,10 +21,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class DiscoverView(TopLevelView):
-    template_name = 'keystone_discover.html'
-
-
 class ReportView(TopLevelView):
     template_name = 'keystone_report.html'
 
@@ -37,10 +33,10 @@ class AuthApiPerfView(ApiPerfView):
                                  context['interval'])
 
 
-class TopologyView(TopologyView):
+class DiscoverView(TopologyView):
 
     def my_template_name(self):
-        return 'keystone_topology.html'
+        return 'keystone_discover.html'
 
     def __init__(self):
         self.services = ServiceData().get()

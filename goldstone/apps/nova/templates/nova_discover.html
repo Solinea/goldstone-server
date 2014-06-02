@@ -30,15 +30,17 @@
 
 $(document).ready(function () {
     var gnd = goldstone.nova.discover,
-        gntopo = goldstone.nova.topology
-    //var gnzones = goldstone.nova.zones
-    var gnls = goldstone.nova.latestStats
+        gntopo = goldstone.nova.topology,
+        gnls = goldstone.nova.latestStats
 
-    //gnzones.loadUrl(gnd.start, gnd.end, gnd.interval, '#nova-discover-r1-c1', true)
-    gntopo.topologyTree = goldstone.charts.topologyTree._getInstance(gntopo)
-    gntopo.topologyTree.loadUrl(true, '#nova-discover-r1-c1')
     gnls.loadUrl('#nova-discover-r1-c2', true)
-
+    gntopo.topologyTree = goldstone.charts.topologyTree._getInstance(gntopo)
+    gntopo.data = JSON.parse({{ data|to_js }})
+    gntopo.h = 400
+    gntopo.location = '#nova-topology-tree'
+    gntopo.spinner = '#nova-topology-spinner'
+    //ns.infoIcon = '#nova-topology-info'
+    gntopo.topologyTree.init()
 
 })
     </script>
@@ -50,7 +52,24 @@ $(document).ready(function () {
     <!-- <object id="icon-network-svg" data="{% static 'images/icon_network.svg' %}" type="image/svg+xml"> -->
 
     <div id="nova-discover-r1" class="row">
-        <div id="nova-discover-r1-c1" class="col-md-8"></div>
+        <div id="nova-discover-r1-c1" class="col-md-8">
+            <div id = "nova-topology-panel" class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-tasks"></i> Nova Topology
+                            <i class="pull-right fa fa-info-circle panel-info"  id="nova-topology-info"
+                                    style="opacity: 0.0"></i>
+                    </h3>
+                </div>
+                <div class="panel-body" style="height:400px">
+                    <div id="nova-topology-tree">
+                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                             id="nova-topology-spinner"
+                             class="ajax-loader"/>
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div id="nova-discover-r1-c2" class="col-md-4"></div>
     </div>
     <div id="nova-discover-r2" class="row">

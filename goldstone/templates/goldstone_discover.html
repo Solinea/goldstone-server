@@ -29,8 +29,27 @@
 
 {% block content %}
     <div id="goldstone-discover-r1" class="row">
-        <div id="goldstone-discover-r1-c1" class="col-md-12"></div>
+        <div id="goldstone-discover-r1-c1" class="col-md-8">
+            <div id = "goldstone-topology-panel" class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-tasks"></i> Cloud Topology
+                            <i class="pull-right fa fa-info-circle panel-info"  id="goldstone-topology-info"
+                               style="opacity: 0.0"></i>
+                    </h3>
+                </div>
+                <div class="panel-body" style="height:600px">
+                    <div id="goldstone-topology-tree">
+                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                             id="goldstone-topology-spinner"
+                             class="ajax-loader"/>
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
+    <div id="goldstone-discover-r1-c2" class="col-md-4"></div>
     <div id="goldstone-discover-r2" class="row">
         <div id="goldstone-discover-r2-c1" class="col-md-6"></div>
         <div id="goldstone-discover-r2-c2" class="col-md-6"></div>
@@ -46,7 +65,12 @@ $(document).ready(function () {
     var gnd = goldstone.goldstone.discover,
         ns = goldstone.goldstone.topology
     ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns)
-    ns.topologyTree.loadUrl(true, '#goldstone-discover-r1-c1')
+    ns.data = JSON.parse({{ data|to_js }})
+    ns.h = 600
+    ns.location = '#goldstone-topology-tree'
+    ns.spinner = '#goldstone-topology-spinner'
+    //ns.infoIcon = '#glance-topology-info'
+    ns.topologyTree.init()
 })
     </script>
 

@@ -11,10 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.views import GoldstoneTopologyView, DiscoverView, HelpView
 
 __author__ = 'John Stanford'
 
+from goldstone.views import DiscoverView, HelpView
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
@@ -32,8 +32,6 @@ urlpatterns = patterns(
     # TODO create the main discover page and remove redirect
     url(r'^discover[/]?$', DiscoverView.as_view(),
         name='goldstone-discover-view'),
-    url(r'^topology[/]?$', GoldstoneTopologyView.as_view(),
-        name='goldstone-topology'),
     url(r'^help[/]?$', HelpView.as_view()),
     url(r'^intelligence/', include('goldstone.apps.intelligence.urls')),
     url(r'^nova/', include('goldstone.apps.nova.urls')),
