@@ -24,14 +24,6 @@
     font-size: 10px;
 }
 
-/* Datatable font sizes */
-.table-hover th {
-    font-size: 10px;
-}
-.table-hover td {
-    font-size: 10px;
-}
-
 .dc-chart path.area {
     fill-opacity: 0.3;
     stroke: none;

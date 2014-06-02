@@ -103,6 +103,14 @@ code {
     background-color: #FFFFFF;
 }
 
+/* Datatable font sizes */
+.table-hover th {
+    font-size: 10px;
+}
+.table-hover td {
+    font-size: 10px;
+}
+
 .popover {
     background: rgba(0,0,0,.4);!important
     border-radius: 10px;
