@@ -32,7 +32,12 @@ $(document).ready(function () {
     var gnd = goldstone.keystone.discover,
         ns = goldstone.keystone.topology
     ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns)
-    ns.topologyTree.loadUrl(true, '#keystone-discover-r1-c1')
+    ns.data = JSON.parse({{ data|to_js }})
+    ns.h = 400
+    ns.location = '#keystone-topology-tree'
+    ns.spinner = '#keystone-topology-spinner'
+    //ns.infoIcon = '#keystone-topology-info'
+    ns.topologyTree.init()
 })
     </script>
 
@@ -41,12 +46,28 @@ $(document).ready(function () {
 
 {% block content %}
     <div id="keystone-discover-r1" class="row">
-        <div id="keystone-discover-r1-c1" class="col-md-8"></div>
+        <div id="keystone-discover-r1-c1" class="col-md-8">
+            <div id = "keystone-topology-panel" class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-tasks"></i> Keystone Topology
+                            <i class="pull-right fa fa-info-circle panel-info"  id="keystone-topology-info"
+                                    style="opacity: 0.0"></i>
+                    </h3>
+                </div>
+                <div class="panel-body" style="height:400px">
+                    <div id="keystone-topology-tree">
+                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                             id="keystone-topology-spinner"
+                             class="ajax-loader"/>
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div id="keystone-discover-r1-c2" class="col-md-4"></div>
     </div>
     <div id="keystone-discover-r2" class="row">
-        <div id="keystone-discover-r2-c1" class="col-md-6"></div>
-        <div id="keystone-discover-r2-c2" class="col-md-6"></div>
+        <div id="keystone-discover-r2-c1" class="col-md-12"></div>
     </div>
 
 {% endblock %}

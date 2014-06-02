@@ -193,10 +193,6 @@ class ApiPerfView(InnerTimeRangeView):
         return response
 
 
-class DiscoverView(TopLevelView):
-    template_name = 'goldstone_discover.html'
-
-
 class TopologyView(TemplateView):
     """
     Produces a view of a module topology (or json data if render=false).
@@ -352,10 +348,10 @@ class TopologyView(TemplateView):
             self, {'data': json.dumps(response)})
 
 
-class GoldstoneTopologyView(TopologyView):
+class DiscoverView(TopologyView):
 
     def my_template_name(self):
-        return 'goldstone_topology.html'
+        return 'goldstone_discover.html'
 
     def _get_regions(self):
         return []
@@ -388,10 +384,10 @@ class GoldstoneTopologyView(TopologyView):
 
         # TODO make global map more module friendly
 
-        from .apps.keystone.views import TopologyView as KeystoneTopoView
-        from .apps.glance.views import TopologyView as GlanceTopoView
-        from .apps.cinder.views import TopologyView as CinderTopoView
-        from .apps.nova.views import TopologyView as NovaTopoView
+        from .apps.keystone.views import DiscoverView as KeystoneTopoView
+        from .apps.glance.views import DiscoverView as GlanceTopoView
+        from .apps.cinder.views import DiscoverView as CinderTopoView
+        from .apps.nova.views import DiscoverView as NovaTopoView
 
         keystone_topo = KeystoneTopoView()
         glance_topo = GlanceTopoView()
