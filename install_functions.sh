@@ -49,6 +49,7 @@ function pre_install_sanity() {
 
 function install_elasticsearch() {
     curl -XGET https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.noarch.rpm > elasticsearch-1.1.1.noarch.rpm
+    yum install -y zip unzip
     yum install -y java-1.7.0-openjdk.x86_64
     yum install -y gcc
     yum install -y gcc-c++
