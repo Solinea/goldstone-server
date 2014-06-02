@@ -36,12 +36,12 @@ function setup_epel() {
 }
 
 function pre_install_sanity() {
-    server_os=`uname -o`
-    if [[ $server_os == 'GNU/Linux' ]]; then
+    server_os=`uname -s`
+    if [[ $server_os != 'GNU/Linux' ]]; then
         bail_out
     fi
     redhat_release=`cat /etc/redhat-release`
-    if [[ $redhat_release == 'CentOS release 6.5 (Final)' ]]; then
+    if [[ $redhat_release != 'CentOS release 6.5 (Final)' ]]; then
         bail_out
     fi
     echo "1"
@@ -135,6 +135,7 @@ function set_logging() {
     mkdir /var/log/goldstone
     chown /var/log/goldstone apache
     chgrp /var/log/goldstone apache
+    echo "1"
 }
 
 
