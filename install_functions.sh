@@ -129,7 +129,14 @@ function start_celery() {
     echo "1"
 }
 
-# result=$(setup_epel)
+function set_logging() {
+    # set django production logging to /var/log/goldstone
+    # set ownership to apache:apache
+    mkdir /var/log/goldstone
+    chown /var/log/goldstone apache
+    chgrp /var/log/goldstone apache
+}
+
 
 
 # setup_epel
