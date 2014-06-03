@@ -912,6 +912,59 @@ goldstone.charts.topologyTree = {
                     d.html($(data).find('g').removeAttr('xmlns:a').html())
                 })
             })
+        ns.chart.selectAll(".icon.main.transfers-root-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_vol_transfer.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.transfer-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_vol_transfer.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.volume-types-root-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_types.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.volume-type-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_types.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.volumes-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_volume.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+        ns.chart.selectAll(".icon.main.services-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_service.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+        ns.chart.selectAll(".icon.main.backups-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_backup.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+        ns.chart.selectAll(".icon.main.snapshots-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_backup.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
 
         ns.chart.selectAll(".icon.main.image-icon")
             .call(function (d) {
