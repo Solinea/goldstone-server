@@ -807,20 +807,8 @@ goldstone.charts.topologyTree = {
     processTree: function (json, ns) {
         "use strict";
         var duration = d3.event && d3.event.altKey ? 5000 : 500,
-        tip = d3.tip()
-            .attr('class', 'd3-tip')
-            .direction(function (d) {
-                var dir = "n"
-                dir = (d.x > (ns.h * 0.5)) ? "n" : "s"
-                dir = (d.y > (ns.w * 0.33)) ? dir + "w" : dir + "e"
-                return dir
-            })
-            .html(function (d) {
-                return "<pre>" + JSON.stringify(d.info, null, 4) + "</pre>"
-            })
-
-        // Compute the new tree layout.
-        var nodes = ns.tree.nodes(ns.data).reverse()
+            // Compute the new tree layout.
+            nodes = ns.tree.nodes(ns.data).reverse()
 
         // Normalize for fixed-depth.
         nodes.forEach(function (d) {
@@ -852,19 +840,9 @@ goldstone.charts.topologyTree = {
                 if (typeof(d.info) !== 'undefined') {
                     ns.topologyTree.drawSingleRsrcInfoTable(
                         ns.singleRsrcLocation, ns.singleRsrcSpinner,
-                        ns.h, d.info)
-                    tip.show(d, targ)
-                    setTimeout(function () {
-                        tip.hide()
-                    }, 7500);
+                        ns.mh, d.info)
                 }
             })
-            .on('mouseleave', function (d, i) {
-                tip.hide()
-            })
-
-        // Invoke the tip in the context of your visualization
-        ns.chart.call(tip)
 
         // Add the text label (initially transparent)
         nodeEnter.append("svg:text")
