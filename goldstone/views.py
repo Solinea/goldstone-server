@@ -244,8 +244,11 @@ class TopologyView(TemplateView):
         """
         # substitute reference to source and target in condition
         cond = cond.replace("%source%", "sc").replace("%target%", "tc")
-        return eval(cond, {'__builtins__': {}}, {"sc": sc, "tc": tc,
-                                                 "len": len})
+        try:
+            return eval(cond, {'__builtins__': {}}, {"sc": sc, "tc": tc,
+                        "len": len})
+        except TypeError:
+            return False
 
     def _get_children(self, d, rsrc_type):
         assert (type(d) is dict or type(d) is list), "d must be a list or dict"
@@ -413,25 +416,30 @@ class DiscoverView(TopologyView):
 
         # bind cinder zones to global at region
         cl = [cinder_topo._build_topology_tree()]
-        ad = {'sourceRsrcType': 'zone',
+        # convert top level items to cinder modules
+        new_cl = []
+        for c in cl:
+            c['rsrcType'] = 'module'
+            c['region'] = c['label']
+            c['label'] = 'cinder'
+            new_cl.append(c)
+
+        ad = {'sourceRsrcType': 'module',
               'targetRsrcType': 'region',
               'conditions': "%source%['region'] == %target%['label']"}
-        rl = self._attach_resource(ad, cl, rl)
+        rl = self._attach_resource(ad, new_cl, rl)
 
         # bind nova hosts to existing zones
         nl = [nova_topo._build_topology_tree()]
-        ad = {'sourceRsrcType': 'host',
-              'targetRsrcType': 'zone',
-              'conditions': "%source%['info']['zone'] == %target%['label']"}
-        rl = self._attach_resource(ad, nl, rl)
+        # convert top level items to nova module
+        new_nl = []
+        for n in nl:
+            n['rsrcType'] = 'module'
+            n['region'] = n['label']
+            n['label'] = 'nova'
+            new_nl.append(n)
 
-        # bind nova zones to region if the zone is not there already
-        ad = {'sourceRsrcType': 'zone',
-              'targetRsrcType': 'region',
-              'conditions': "%source%['region'] == %target%['label'] and "
-                            "len([c for c in %target%['children'] "
-                            "if c['label'] == %source%['label']]) == 0"}
-        rl = self._attach_resource(ad, nl, rl)
+        rl = self._attach_resource(ad, new_nl, rl)
 
         # bind glance region to region, but rename glance
         gl = self._rescope_module_tree(
