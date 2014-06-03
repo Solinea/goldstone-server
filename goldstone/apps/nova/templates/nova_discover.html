@@ -33,12 +33,19 @@ $(document).ready(function () {
         gntopo = goldstone.nova.topology,
         gnls = goldstone.nova.latestStats
 
-    gnls.loadUrl('#nova-discover-r1-c2', true)
+    //gnls.loadUrl('#nova-discover-r1-c2', true)
     gntopo.topologyTree = goldstone.charts.topologyTree._getInstance(gntopo)
     gntopo.data = JSON.parse({{ data|to_js }})
     gntopo.h = 400
     gntopo.location = '#nova-topology-tree'
+    gntopo.singleRsrcLocation = '#single-rsrc-table'
+    gntopo.multiRsrcLocation = '#multi-rsrc-table'
     gntopo.spinner = '#nova-topology-spinner'
+    gntopo.singleRsrcSpinner = '#single-rsrc-loading-indicator'
+    gntopo.multiRsrcSpinner = '#multi-rsrc-loading-indicator'
+    $(gntopo.spinner).hide()
+    $(gntopo.singleRsrcSpinner).hide()
+    $(gntopo.multiRsrcSpinner).hide()
     //ns.infoIcon = '#nova-topology-info'
     gntopo.topologyTree.init()
 
@@ -70,7 +77,23 @@ $(document).ready(function () {
                 </div>
             </div>
         </div>
-        <div id="nova-discover-r1-c2" class="col-md-4"></div>
+        <div id="nova-discover-r1-c2" class="col-md-4">
+            <div class="panel panel-primary multi-rsrc-panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>
+                        Resource Info
+                    </h3>
+                </div>
+                <div id="single-rsrc-body" class="panel-body">
+                    <table id="single-rsrc-table" class="table table-hover">
+                        <!-- table filled by draw_search_table -->
+                    </table>
+                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                         id="single-rsrc-loading-indicator" class="ajax-loader"
+                         hidden="true"/>
+                </div>
+            </div>
+        </div>
     </div>
     <div id="nova-discover-r2" class="row">
         <div id="nova-discover-r2-c1" class="col-md-6"></div>
