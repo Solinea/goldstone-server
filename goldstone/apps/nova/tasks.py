@@ -92,11 +92,11 @@ def _update_nova_service_records(cl):
 
 def _update_nova_hypervisor_records(cl):
     db = HypervisorData()
-    sl = [s.to_dict() for s in cl.services.list()]
+    hl = [s.to_dict() for s in cl.hypervisors.list()]
     region = get_region_for_nova_client(cl)
     body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
             "region": region,
-            "hypervisors": sl}
+            "hypervisors": hl}
     try:
         db.post(body)
     except Exception as e:
