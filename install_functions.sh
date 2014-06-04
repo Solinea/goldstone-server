@@ -50,9 +50,10 @@ function pre_install_sanity() {
 function install_elasticsearch() {
     curl -XGET https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.noarch.rpm > elasticsearch-1.1.1.noarch.rpm
     yum install -y zip unzip
-    yum install -y java-1.7.0-openjdk.x86_64
-    yum install -y gcc
-    yum install -y gcc-c++
+    # Pull these out and have people hand install them
+    # yum install -y java-1.7.0-openjdk.x86_64
+    # yum install -y gcc
+    # yum install -y gcc-c++
     yum install -y python-devel
     yum install -y postgresql-server
     yum install -y postgresql-devel
@@ -141,10 +142,11 @@ function set_logging() {
 
 
 
-# setup_epel
-# config_iptables
-# install_elasticsearch
-# install_logstash
-# install_pg
-# configure_goldstone
-# start_celery
+setup_epel
+config_iptables
+install_elasticsearch
+install_logstash
+set_logging
+install_pg
+configure_goldstone
+start_celery
