@@ -844,6 +844,15 @@ goldstone.charts.topologyTree = {
                 }
             })
 
+        // add a circle to make clicking cleaner
+        nodeEnter.append("svg:circle")
+            .attr("id", function (d, i) {return "circle" + i})
+            .attr("cx", 8)
+            .attr("cy", 2)
+            .attr("r", 15)
+            .style("fill-opacity", 1e-6)
+            .style("stroke-opacity", 1e-6)
+
         // Add the text label (initially transparent)
         nodeEnter.append("svg:text")
             .attr("x", function (d) { return d.children ?  0 : 40 })
