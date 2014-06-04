@@ -20,7 +20,8 @@ from goldstone.utils import _is_ip_addr, _partition_hostname, _resolve_fqdn, \
 __author__ = 'John Stanford'
 
 from goldstone.views import *
-from .models import ApiPerfData, ServiceData, TransferData, VolTypeData
+from .models import ApiPerfData, ServiceData, TransferData, VolTypeData, \
+    VolumeData, BackupData, SnapshotData
 import logging
 
 logger = logging.getLogger(__name__)
@@ -208,3 +209,41 @@ class DiscoverView(TopologyView):
             return {"rsrcType": "cloud", "label": "Cloud", "children": new_rl}
         else:
             return new_rl[0]
+
+
+def _get_data_for_json_view(context, data, key):
+    result = []
+    for item in data:
+        region = item['_source']['region']
+        new_list = []
+        for rec in item['_source'][key]:
+            rec['region'] = region
+            new_list.append(rec)
+
+        result.append({'@timestamp': item['_source']['@timestamp'],
+                      key: new_list})
+        return result
+
+
+class VolumeDataView(JSONView):
+    def _get_data(self, context):
+        data = VolumeData().get()
+        return _get_data_for_json_view(context, data, 'volumes')
+
+
+class BackupDataView(JSONView):
+    def _get_data(self, context):
+        data = BackupData().get()
+        return _get_data_for_json_view(context, data, 'backups')
+
+
+class SnapshotDataView(JSONView):
+    def _get_data(self, context):
+        data = SnapshotData().get()
+        return _get_data_for_json_view(context, data, 'snapshots')
+
+
+class ServiceDataView(JSONView):
+    def _get_data(self, context):
+        data = ServiceData().get()
+        return _get_data_for_json_view(context, data, 'services')

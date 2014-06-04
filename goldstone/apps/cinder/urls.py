@@ -25,4 +25,12 @@ urlpatterns = patterns(
         name='cinder-report-view'),
     url(r'^api_perf[/]?$', ServiceListApiPerfView.as_view(),
         name='cinder-api-perf'),
+    url(r'^volumes[/]?$', VolumeDataView.as_view(),
+        name='cinder-volumes'),
+    url(r'^backups[/]?$', BackupDataView.as_view(),
+        name='cinder-backups'),
+    url(r'^snapshots[/]?$', SnapshotDataView.as_view(),
+        name='cinder-snapshots'),
+    url(r'^services[/]?$', ServiceDataView.as_view(),
+        name='cinder-services'),
 )
