@@ -21,7 +21,8 @@ __author__ = 'John Stanford'
 import calendar
 from abc import ABCMeta, abstractmethod, abstractproperty
 from django.http import HttpResponse, HttpResponseBadRequest
-from django.views.generic import TemplateView
+from django.views.generic.base import ContextMixin
+from django.views.generic import TemplateView, View
 from django.conf import settings
 from datetime import datetime, timedelta
 import json
@@ -461,6 +462,20 @@ class DiscoverView(TopologyView):
             return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
         else:
             return rl[0]
+
+
+class JSONView(ContextMixin, View):
+    """
+    A view that renders a JSON response.  This view will also pass into the
+    context any keyword arguments passed by the url conf.
+    """
+    def _get_data(self, context):
+        return {}
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        return HttpResponse(json.dumps(self._get_data(context)),
+                            mimetype='application/json')
 
 
 class HelpView(TemplateView):
