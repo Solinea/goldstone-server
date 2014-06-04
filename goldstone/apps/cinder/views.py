@@ -215,13 +215,14 @@ def _get_data_for_json_view(context, data, key):
     result = []
     for item in data:
         region = item['_source']['region']
+        ts = item['_source']['@timestamp']
         new_list = []
         for rec in item['_source'][key]:
             rec['region'] = region
+            rec['@timestamp'] = ts
             new_list.append(rec)
 
-        result.append({'@timestamp': item['_source']['@timestamp'],
-                      key: new_list})
+        result.append(new_list)
         return result
 
 

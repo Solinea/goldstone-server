@@ -804,6 +804,46 @@ goldstone.charts.topologyTree = {
         }
         $(spinner).hide()
     },
+    loadLeafData: function (url, ns) {
+        "use strict";
+        $.get(url, function (payload) {
+            // the response may have multiple lists of services for different
+            // timestamps.  The first one will be the most recent.
+            var tableData = payload[0] !== 'undefined' ? payload[0] : [],
+                keys,
+                columns,
+                oTable
+            // tableData[0] if it exists, contains key/values representative
+            // of table structure.
+            if (tableData[0] !== 'undefined') {
+                keys = Object.keys(tableData[0])
+                columns = _.map(keys, function (k) {
+                    return {'data': k, 'title': k}
+                })
+                if ($.fn.dataTable.isDataTable("#multi-rsrc-table")) {
+                    oTable = $("#multi-rsrc-table").DataTable()
+                    oTable.destroy(true)
+                }
+
+                $("#multi-rsrc-body").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>')
+                oTable = $("#multi-rsrc-table").DataTable({
+                    "processing": true,
+                    "serverSide": false,
+                    "data": tableData,
+                    "columns": columns,
+                    "scrollX": true
+                })
+                $("#multi-rsrc-table tbody").on('click', 'tr', function (event) {
+                        ns.topologyTree.drawSingleRsrcInfoTable(
+                            ns.singleRsrcLocation, ns.singleRsrcSpinner,
+                            ns.mh, oTable.row(this).data())
+                    })
+            }
+        })
+
+
+
+    },
     processTree: function (json, ns) {
         "use strict";
         var duration = d3.event && d3.event.altKey ? 5000 : 500,
@@ -825,14 +865,27 @@ goldstone.charts.topologyTree = {
 
         // Enter any new nodes at the parent's previous position.
         var nodeEnter = node.enter().append("svg:g")
-            .attr("class", "node")
+            .attr("class", function (d) {
+                if (d.rsrcType.match(/-leaf$/)) {
+                    return "data-leaf node"
+                } else {
+                    return "node"
+                }
+            })
             .attr("id", function (d, i) {return "node-" + d.label + i})
             .attr("transform", function (d) {
-                return "translate(" + json.y0 + "," + json.x0 + ")";
+                return "translate(" + json.y0 + "," + json.x0 + ")"
             })
             .on("click", function (d) {
-                ns.self.toggle(d)
-                ns.self.processTree(d, ns)
+                if (d.rsrcType.match(/-leaf$/)) {
+                    var url = ns.leafDataUrls[d.rsrcType]
+                    if (url !== 'undefined') {
+                        ns.self.loadLeafData(url, ns)
+                    }
+                } else {
+                    ns.self.toggle(d)
+                    ns.self.processTree(d, ns)
+                }
             })
             .on('mouseenter', function (d, i) {
                 var nodeId = ns.location + " #node-" + d.label + i,
@@ -862,8 +915,6 @@ goldstone.charts.topologyTree = {
                 return d.label
             })
             .style("fill-opacity", 1e-6)
-            //.attr("x", 0)
-            //.attr("dy", "-1em")
 
         // Add the main icon (initially miniscule)
         nodeEnter
