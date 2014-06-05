@@ -126,6 +126,18 @@ goldstone.raiseAlert = function (selector, message) {
     }, 4000)
 }
 
+goldstone.uuid = function () {
+    "use strict";
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+               .toString(16)
+               .substring(1);
+    }
+    return function () {
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+            s4() + '-' + s4() + s4() + s4();
+    }
+}
 
 goldstone.populateSettingsFields = function (start, end) {
     "use strict";
@@ -655,6 +667,19 @@ goldstone.charts.topologyTree = {
         return o
     },
     /**
+     * Override in module's js to reduce the data that is presented in the
+     * multiRsrcTable on discover pages.  Do not remove the DatatableRsrcId
+     * field.  It will be hidden in the rendered table, and is required for
+     * proper functionality.
+     * @param data
+     * @returns {*}
+     */
+    filterMultiRsrcData: function (data, ns) {
+        "use strict";
+        console.log(ns.name)
+        return data
+    },
+    /**
      * Get basic information about the chart
      */
     info: function () {
@@ -809,17 +834,33 @@ goldstone.charts.topologyTree = {
         $.get(url, function (payload) {
             // the response may have multiple lists of services for different
             // timestamps.  The first one will be the most recent.
-            var tableData = payload[0] !== 'undefined' ? payload[0] : [],
+            var firstTsData = payload[0] !== 'undefined' ? payload[0] : [],
+                myUuid = goldstone.uuid()(),
+                filteredFirstTsData,
                 keys,
                 columns,
+                columnDefs,
                 oTable
-            // tableData[0] if it exists, contains key/values representative
+
+            // firstTsData[0] if it exists, contains key/values representative
             // of table structure.
-            if (tableData[0] !== 'undefined') {
-                keys = Object.keys(tableData[0])
-                columns = _.map(keys, function (k) {
-                    return {'data': k, 'title': k}
+            if (firstTsData[0] !== 'undefined') {
+                firstTsData = _.map(firstTsData, function (e) {
+                    e.datatableRecId = goldstone.uuid()()
+                    return e
                 })
+
+                filteredFirstTsData = ns.topologyTree.filterMultiRsrcData(firstTsData, ns)
+
+                keys = Object.keys(filteredFirstTsData[0])
+                columns = _.map(keys, function (k) {
+                    if (k === 'datatableRecId') {
+                        return {'data': k, 'title': k, 'visible': false, 'searchable': false}
+                    } else {
+                        return {'data': k, 'title': k}
+                    }
+                })
+
                 if ($.fn.dataTable.isDataTable("#multi-rsrc-table")) {
                     oTable = $("#multi-rsrc-table").DataTable()
                     oTable.destroy(true)
@@ -829,15 +870,23 @@ goldstone.charts.topologyTree = {
                 oTable = $("#multi-rsrc-table").DataTable({
                     "processing": true,
                     "serverSide": false,
-                    "data": tableData,
+                    "data": filteredFirstTsData,
                     "columns": columns,
                     "scrollX": true
                 })
                 $("#multi-rsrc-table tbody").on('click', 'tr', function (event) {
+                    // we want to identify the row, find the datatable id,
+                    // then find the matching element in the full data.s
+                    var row = oTable.row(this).data()
+                    var data = _.where(firstTsData, {'datatableRecId': row.datatableRecId})
+                    var singleRsrcData = data[0]
+                    if (singleRsrcData !== 'undefined') {
+                        delete singleRsrcData.datatableRecId
                         ns.topologyTree.drawSingleRsrcInfoTable(
-                            ns.singleRsrcLocation, ns.singleRsrcSpinner,
-                            ns.mh, oTable.row(this).data())
-                    })
+                        ns.singleRsrcLocation, ns.singleRsrcSpinner,
+                        ns.mh, data[0])
+                    }
+                })
             }
         })
 
