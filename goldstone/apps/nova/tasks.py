@@ -24,8 +24,7 @@ import logging
 import json
 import requests
 from datetime import datetime
-from .models import HypervisorStatsData, ApiPerfData, ServiceData, \
-    HypervisorData
+from .models import *
 from goldstone.utils import _get_client, stored_api_call, to_es_date, \
     _get_nova_client, get_region_for_nova_client
 
@@ -76,37 +75,83 @@ def time_nova_api(self):
     }
 
 
-def _update_nova_service_records(cl):
-    db = ServiceData()
-    sl = [s.to_dict() for s in cl.services.list()]
-    region = get_region_for_nova_client(cl)
+# def _update_nova_service_records(cl):
+#     db = ServiceData()
+#     sl = [s.to_dict() for s in cl.services.list()]
+#     region = get_region_for_nova_client(cl)
+#     body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+#             "region": region,
+#             "services": sl}
+#     try:
+#         db.post(body)
+#     except Exception as e:
+#         logging.exception(e)
+#         logger.warn("failed to index nova services")
+#
+#
+# def _update_nova_hypervisor_records(cl):
+#     db = HypervisorData()
+#     hl = [s.to_dict() for s in cl.hypervisors.list()]
+#     region = get_region_for_nova_client(cl)
+#     body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+#             "region": region,
+#             "hypervisors": hl}
+#     try:
+#         db.post(body)
+#     except Exception as e:
+#         logging.exception(e)
+#         logger.warn("failed to index nova hypervisors")
+#
+#
+# @celery_app.task(bind=True)
+# def discover_nova_topology(self):
+#     nova_access = _get_nova_client()
+#     c = nova_access['client']
+#     _update_nova_service_records(c)
+#     _update_nova_hypervisor_records(c)
+
+
+def _update_nova_records(rec_type, region, db, items):
+
+    # image list is a generator, so we need to make it not sol lazy it...
     body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
             "region": region,
-            "services": sl}
+            rec_type: [item.__dict__['_info'] for item in items]}
     try:
         db.post(body)
     except Exception as e:
         logging.exception(e)
-        logger.warn("failed to index nova services")
-
-
-def _update_nova_hypervisor_records(cl):
-    db = HypervisorData()
-    hl = [s.to_dict() for s in cl.hypervisors.list()]
-    region = get_region_for_nova_client(cl)
-    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
-            "region": region,
-            "hypervisors": hl}
-    try:
-        db.post(body)
-    except Exception as e:
-        logging.exception(e)
-        logger.warn("failed to index nova hypervisors")
+        logger.warn("failed to index nova %s", rec_type)
 
 
 @celery_app.task(bind=True)
 def discover_nova_topology(self):
     nova_access = _get_nova_client()
-    c = nova_access['client']
-    _update_nova_service_records(c)
-    _update_nova_hypervisor_records(c)
+    cl = nova_access['client']
+    cl.client.authenticate()
+    reg = get_region_for_nova_client(cl)
+
+    _update_nova_records("agents",  reg, AgentsData(),
+                         cl.agents.list())
+    _update_nova_records("aggregates",  reg, AggregatesData(),
+                         cl.aggregates.list())
+    _update_nova_records("availability_zones",  reg, AvailZonesData(),
+                         cl.availability_zones.list())
+    _update_nova_records("cloudpipes",  reg, CloudpipesData(),
+                         cl.cloudpipe.list())
+    _update_nova_records("flavors",  reg, FlavorsData(),
+                         cl.flavors.list())
+    _update_nova_records("floating_ip_pools",  reg, FloatingIpPoolsData(),
+                         cl.floating_ip_pools.list())
+    _update_nova_records("hosts",  reg, HostsData(),
+                         cl.hosts.list())
+    _update_nova_records("hypervisors",  reg, HypervisorsData(),
+                         cl.hypervisors.list())
+    _update_nova_records("networks",  reg, NetworksData(),
+                         cl.networks.list())
+    _update_nova_records("secgroups",  reg, SecGroupsData(),
+                         cl.security_groups.list())
+    _update_nova_records("servers",  reg, ServersData(),
+                         cl.servers.list())
+    _update_nova_records("services",  reg, ServicesData(),
+                         cl.services.list())
