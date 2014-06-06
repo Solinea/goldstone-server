@@ -55,4 +55,3 @@ class EncryptionTypeData(TopologyData):
 class TransferData(TopologyData):
     _DOC_TYPE = 'cinder_transfer_list'
     _INDEX_PREFIX = 'goldstone'
-
