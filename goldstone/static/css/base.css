@@ -115,11 +115,15 @@ code {
     background: rgba(0,0,0,.4);!important
     border-radius: 10px;
     padding: 0;
-    width: 250px;
+    max-width: 350px;
 }
 
 .popover.bottom .arrow:after {
   border-bottom-color:rgba(0,0,0,.4);
+}
+
+.popover.left .arrow {
+    border-left-color: rgba(0,0,0,.4);
 }
 
 .popover-content ul {
@@ -133,6 +137,24 @@ code {
   color: #fff;
   width: 100%;
   font-size: 14px;
+}
+
+#multi-rsrc-table_wrapper > .dataTables_scroll {
+    min-height: 500px;
+}
+
+#multi-rsrc-panel > div.popover.fade.left.in {
+    max-width: 350px;
+    max-height: 500px;
+    background: rgba(0, 0, 0, 0.4);
+    color: #fff;
+    top: 50px !important;
+    left: -350px !important;
+}
+
+#multi-rsrc-panel > div.popover.fade.left.in > h3 {
+    background-color: rgba(0,0,0,.4);
+    border-bottom-color: rgba(0,0,0,.4);
 }
 
 .node {
