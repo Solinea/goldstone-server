@@ -126,6 +126,18 @@ goldstone.raiseAlert = function (selector, message) {
     }, 4000)
 }
 
+goldstone.uuid = function () {
+    "use strict";
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+               .toString(16)
+               .substring(1);
+    }
+    return function () {
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+            s4() + '-' + s4() + s4() + s4();
+    }
+}
 
 goldstone.populateSettingsFields = function (start, end) {
     "use strict";
@@ -655,6 +667,19 @@ goldstone.charts.topologyTree = {
         return o
     },
     /**
+     * Override in module's js to reduce the data that is presented in the
+     * multiRsrcTable on discover pages.  Do not remove the DatatableRsrcId
+     * field.  It will be hidden in the rendered table, and is required for
+     * proper functionality.
+     * @param data
+     * @returns {*}
+     */
+    filterMultiRsrcData: function (data, ns) {
+        "use strict";
+        console.log(ns.name)
+        return data
+    },
+    /**
      * Get basic information about the chart
      */
     info: function () {
@@ -772,23 +797,117 @@ goldstone.charts.topologyTree = {
             d._children = null;
         }
     },
+    drawSingleRsrcInfoTable: function (location, spinner, scrollYpx, json) {
+        "use strict";
+        var oTable,
+            keys = Object.keys(json),
+            data = _.map(keys, function (k) {
+                return [k, json[k]]
+            })
+
+        $("#multi-rsrc-body").popover({
+            trigger: "manual",
+            placement: "left",
+            html: true,
+            title: '<div>Resource Info<button type="button" style="color:#fff; opacity:1.0;" id="popover-close" class="close pull-right" data-dismiss="modal"' +
+                'aria-hidden="true">&times;</button></div>',
+            content: '<div id="single-rsrc-body" class="panel-body">' +
+                '<table id="single-rsrc-table" class="table table-hover"></table>' +
+                '</div>'
+        })
+        $("#multi-rsrc-body").popover("show")
+        $("#popover-close").on("click", function () {$("#multi-rsrc-body").popover("hide")})
+        if ($.fn.dataTable.isDataTable(location)) {
+            oTable = $(location).DataTable()
+            oTable.clear().rows.add(data).draw()
+        } else {
+            var oTableParams = {
+                "data": data,
+                "scrollY": "300px",
+                "autoWidth": true,
+                "info": false,
+                "paging": false,
+                "searching": false,
+                "columns": [
+                    { "title": "Key" },
+                    { "title": "Value" }
+                ]
+            }
+            oTable = $(location).dataTable(oTableParams)
+            //$(window).bind('resize', function () {
+            //    oTable.fnAdjustColumnSizing();
+            //});
+        }
+    },
+    loadLeafData: function (url, ns) {
+        "use strict";
+        $.get(url, function (payload) {
+            // the response may have multiple lists of services for different
+            // timestamps.  The first one will be the most recent.
+            var firstTsData = payload[0] !== 'undefined' ? payload[0] : [],
+                myUuid = goldstone.uuid()(),
+                filteredFirstTsData,
+                keys,
+                columns,
+                columnDefs,
+                oTable
+
+            // firstTsData[0] if it exists, contains key/values representative
+            // of table structure.
+            if (firstTsData[0] !== 'undefined') {
+                firstTsData = _.map(firstTsData, function (e) {
+                    e.datatableRecId = goldstone.uuid()()
+                    return e
+                })
+
+                filteredFirstTsData = ns.topologyTree.filterMultiRsrcData(firstTsData, ns)
+
+                keys = Object.keys(filteredFirstTsData[0])
+                columns = _.map(keys, function (k) {
+                    if (k === 'datatableRecId') {
+                        return {'data': k, 'title': k, 'visible': false, 'searchable': false}
+                    } else {
+                        return {'data': k, 'title': k}
+                    }
+                })
+
+                if ($.fn.dataTable.isDataTable("#multi-rsrc-table")) {
+                    oTable = $("#multi-rsrc-table").DataTable()
+                    oTable.destroy(true)
+                }
+
+                $("#multi-rsrc-body").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>')
+                oTable = $("#multi-rsrc-table").DataTable({
+                    "processing": true,
+                    "serverSide": false,
+                    "data": filteredFirstTsData,
+                    "columns": columns,
+                    "scrollX": true
+                })
+                $("#multi-rsrc-table tbody").on('click', 'tr', function (event) {
+                    // we want to identify the row, find the datatable id,
+                    // then find the matching element in the full data.s
+                    var row = oTable.row(this).data()
+                    var data = _.where(firstTsData, {'datatableRecId': row.datatableRecId})
+                    var singleRsrcData = jQuery.extend(true, {}, data[0])
+                    if (singleRsrcData !== 'undefined') {
+                        delete singleRsrcData.datatableRecId
+                        ns.topologyTree.drawSingleRsrcInfoTable(
+                        ns.singleRsrcLocation, ns.singleRsrcSpinner,
+                        ns.mh, data[0])
+                    }
+                })
+            }
+        })
+
+
+
+    },
     processTree: function (json, ns) {
         "use strict";
         var duration = d3.event && d3.event.altKey ? 5000 : 500,
-        tip = d3.tip()
-            .attr('class', 'd3-tip')
-            .direction(function (d) {
-                var dir = "n"
-                dir = (d.x > (ns.h * 0.5)) ? "n" : "s"
-                dir = (d.y > (ns.w * 0.33)) ? dir + "w" : dir + "e"
-                return dir
-            })
-            .html(function (d) {
-                return "<pre>" + JSON.stringify(d.info, null, 4) + "</pre>"
-            })
-
-        // Compute the new tree layout.
-        var nodes = ns.tree.nodes(ns.data).reverse()
+            // Compute the new tree layout.
+            nodes = ns.tree.nodes(ns.data).reverse()
 
         // Normalize for fixed-depth.
         nodes.forEach(function (d) {
@@ -805,31 +924,37 @@ goldstone.charts.topologyTree = {
 
         // Enter any new nodes at the parent's previous position.
         var nodeEnter = node.enter().append("svg:g")
-            .attr("class", "node")
-            .attr("id", function (d, i) {return "node-" + d.label + i})
-            .attr("transform", function (d) {
-                return "translate(" + json.y0 + "," + json.x0 + ")";
-            })
-            .on("click", function (d) {
-                ns.self.toggle(d)
-                ns.self.processTree(d, ns)
-            })
-            .on('mouseenter', function (d, i) {
-                var nodeId = ns.location + " #node-" + d.label + i,
-                    targ = d3.select(nodeId).pop().pop()
-                if (typeof(d.info) !== 'undefined') {
-                    tip.show(d, targ)
-                    setTimeout(function () {
-                        tip.hide()
-                    }, 7500);
+            .attr("class", function (d) {
+                if (d.rsrcType.match(/-leaf$/)) {
+                    return "data-leaf node"
+                } else {
+                    return "node"
                 }
             })
-            .on('mouseleave', function (d, i) {
-                tip.hide()
+            .attr("id", function (d, i) {return "node-" + d.label + i})
+            .attr("transform", function (d) {
+                return "translate(" + json.y0 + "," + json.x0 + ")"
+            })
+            .on("click", function (d) {
+                if (d.rsrcType.match(/-leaf$/)) {
+                    var url = ns.leafDataUrls[d.rsrcType]
+                    if (url !== 'undefined') {
+                        ns.self.loadLeafData(url, ns)
+                    }
+                } else {
+                    ns.self.toggle(d)
+                    ns.self.processTree(d, ns)
+                }
             })
 
-        // Invoke the tip in the context of your visualization
-        ns.chart.call(tip)
+        // add a circle to make clicking cleaner
+        nodeEnter.append("svg:circle")
+            .attr("id", function (d, i) {return "circle" + i})
+            .attr("cx", 8)
+            .attr("cy", 2)
+            .attr("r", 15)
+            .style("fill-opacity", 1e-6)
+            .style("stroke-opacity", 1e-6)
 
         // Add the text label (initially transparent)
         nodeEnter.append("svg:text")
@@ -840,8 +965,6 @@ goldstone.charts.topologyTree = {
                 return d.label
             })
             .style("fill-opacity", 1e-6)
-            //.attr("x", 0)
-            //.attr("dy", "-1em")
 
         // Add the main icon (initially miniscule)
         nodeEnter
@@ -899,6 +1022,45 @@ goldstone.charts.topologyTree = {
                     d.html($(data).find('g').removeAttr('xmlns:a').html())
                 })
             })
+        ns.chart.selectAll(".icon.main.transfers-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_vol_transfer.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.volume-types-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_types.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.volumes-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_volume.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+        ns.chart.selectAll(".icon.main.services-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_service.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+        ns.chart.selectAll(".icon.main.backups-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_backup.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+        ns.chart.selectAll(".icon.main.snapshots-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_backup.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
 
         ns.chart.selectAll(".icon.main.image-icon")
             .call(function (d) {
@@ -999,8 +1161,10 @@ goldstone.charts.topologyTree = {
                     ns.data.x0 = ns.h / 2
                     ns.data.y0 = 0
                     // Initialize the display to show only the first tier of children
-                    ns.data.children.forEach(ns.self.toggleAll, this)
-                    ns.self.processTree(ns.data, ns)
+                    if (ns.data.hasOwnProperty('children')) {
+                        ns.data.children.forEach(ns.topologyTree.toggleAll)
+                    }
+                    ns.topologyTree.processTree(ns.data, ns)
                     $(ns.spinner).hide()
                 })(this.ns)
             }
