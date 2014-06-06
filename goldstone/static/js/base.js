@@ -804,19 +804,30 @@ goldstone.charts.topologyTree = {
             data = _.map(keys, function (k) {
                 return [k, json[k]]
             })
-        $(spinner).show()
+
+        $("#multi-rsrc-body").popover({
+            trigger: "manual",
+            placement: "left",
+            html: true,
+            title: '<div>Resource Info<button type="button" style="color:#fff; opacity:1.0;" id="popover-close" class="close pull-right" data-dismiss="modal"' +
+                'aria-hidden="true">&times;</button></div>',
+            content: '<div id="single-rsrc-body" class="panel-body">' +
+                '<table id="single-rsrc-table" class="table table-hover"></table>' +
+                '</div>'
+        })
+        $("#multi-rsrc-body").popover("show")
+        $("#popover-close").on("click", function () {$("#multi-rsrc-body").popover("hide")})
         if ($.fn.dataTable.isDataTable(location)) {
             oTable = $(location).DataTable()
             oTable.clear().rows.add(data).draw()
         } else {
             var oTableParams = {
                 "data": data,
-                "scrollY": scrollYpx,
+                "scrollY": "300px",
                 "autoWidth": true,
                 "info": false,
                 "paging": false,
                 "searching": false,
-                //"scrollY": true,
                 "columns": [
                     { "title": "Key" },
                     { "title": "Value" }
@@ -827,7 +838,6 @@ goldstone.charts.topologyTree = {
             //    oTable.fnAdjustColumnSizing();
             //});
         }
-        $(spinner).hide()
     },
     loadLeafData: function (url, ns) {
         "use strict";
@@ -879,7 +889,7 @@ goldstone.charts.topologyTree = {
                     // then find the matching element in the full data.s
                     var row = oTable.row(this).data()
                     var data = _.where(firstTsData, {'datatableRecId': row.datatableRecId})
-                    var singleRsrcData = data[0]
+                    var singleRsrcData = jQuery.extend(true, {}, data[0])
                     if (singleRsrcData !== 'undefined') {
                         delete singleRsrcData.datatableRecId
                         ns.topologyTree.drawSingleRsrcInfoTable(
@@ -934,15 +944,6 @@ goldstone.charts.topologyTree = {
                 } else {
                     ns.self.toggle(d)
                     ns.self.processTree(d, ns)
-                }
-            })
-            .on('mouseenter', function (d, i) {
-                var nodeId = ns.location + " #node-" + d.label + i,
-                    targ = d3.select(nodeId).pop().pop()
-                if (typeof(d.info) !== 'undefined') {
-                    ns.topologyTree.drawSingleRsrcInfoTable(
-                        ns.singleRsrcLocation, ns.singleRsrcSpinner,
-                        ns.mh, d.info)
                 }
             })
 

@@ -71,7 +71,7 @@ $(document).ready(function () {
 
 {% block content %}
     <div id="cinder-discover-r1" class="row">
-        <div id="cinder-discover-r1-c1" class="col-md-8">
+        <div id="cinder-discover-r1-c1" class="col-md-6">
             <div id = "cinder-topology-panel" class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-tasks"></i> Cinder Topology
@@ -89,27 +89,9 @@ $(document).ready(function () {
                 </div>
             </div>
         </div>
-        <div id="cinder-discover-r1-c2" class="col-md-4">
-            <div class="panel panel-primary multi-rsrc-panel">
-                <div class="panel-heading">
-                    <h3 class="panel-title single-rsrc-title"><i class="fa fa-dashboard"></i>
-                        Resource Info
-                    </h3>
-                </div>
-                <div id="single-rsrc-body" class="panel-body">
-                    <table id="single-rsrc-table" class="table table-hover">
-                        <!-- table filled by draw_search_table -->
-                    </table>
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="single-rsrc-loading-indicator" class="ajax-loader"
-                         hidden="true"/>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div id="cinder-discover-r2" class="row">
-        <div id="cinder-discover-r2-c1" class="col-md-12">
-            <div class="panel panel-primary multi-rsrc-panel">
+        <div id="cinder-discover-r1-c2" class="col-md-6">
+
+            <div class="panel panel-primary multi-rsrc-panel" id="multi-rsrc-panel">
                 <div class="panel-heading">
                     <h3 class="panel-title multi-rsrc-title"><i class="fa fa-dashboard"></i>
                         Resource List
@@ -121,8 +103,59 @@ $(document).ready(function () {
                          hidden="true"/>
                 </div>
             </div>
+
+
         </div>
     </div>
+
+
+    <div class="modal fade" id="logSettingsModal" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel" aria-hidden="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-hidden="true">&times;</button>
+                    <h4 class="modal-title single-rsrc-title" id="myModalLabel">Resource Info</h4>
+                </div>
+                <div class="modal-body single-rsrc-panel">
+                    <div id="single-rsrc-body" class="panel-body">
+                        <table id="single-rsrc-table" class="table table-hover">
+                        </table>
+                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                             id="single-rsrc-loading-indicator" class="ajax-loader"
+                             hidden="true"/>
+                    </div>
+                </div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <!--
+    <div id="cinder-discover-r2" class="row">
+        <div id="cinder-discover-r2-c1" class="col-md-4">
+            <div class="panel panel-primary single-rsrc-panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title single-rsrc-title"><i class="fa fa-dashboard"></i>
+                        Resource Info
+                    </h3>
+                </div>
+                <div id="single-rsrc-body" class="panel-body">
+                    <table id="single-rsrc-table" class="table table-hover">
+                    </table>
+                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                         id="single-rsrc-loading-indicator" class="ajax-loader"
+                         hidden="true"/>
+                </div>
+            </div>
+        </div>
+    </div>
+    -->
 
 {% endblock %}
 
