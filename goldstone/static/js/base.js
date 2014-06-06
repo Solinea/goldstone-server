@@ -1022,28 +1022,14 @@ goldstone.charts.topologyTree = {
                     d.html($(data).find('g').removeAttr('xmlns:a').html())
                 })
             })
-        ns.chart.selectAll(".icon.main.transfers-root-icon")
+        ns.chart.selectAll(".icon.main.transfers-leaf-icon")
             .call(function (d) {
                 $.get("/static/images/icon_vol_transfer.svg", function (data) {
                     d.html($(data).find('g').removeAttr('xmlns:a').html())
                 })
             })
 
-        ns.chart.selectAll(".icon.main.transfer-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_vol_transfer.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.volume-types-root-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_types.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.volume-type-icon")
+        ns.chart.selectAll(".icon.main.volume-types-leaf-icon")
             .call(function (d) {
                 $.get("/static/images/icon_types.svg", function (data) {
                     d.html($(data).find('g').removeAttr('xmlns:a').html())

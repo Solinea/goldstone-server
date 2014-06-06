@@ -33,4 +33,8 @@ urlpatterns = patterns(
         name='cinder-snapshots'),
     url(r'^services[/]?$', ServiceDataView.as_view(),
         name='cinder-services'),
+    url(r'^volume_types[/]?$', VolumeTypeDataView.as_view(),
+        name='cinder-volume-types'),
+    url(r'^transfers[/]?$', TransferDataView.as_view(),
+        name='cinder-transfers'),
 )

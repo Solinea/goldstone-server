@@ -110,22 +110,20 @@ class DiscoverView(TopologyView):
                  "info": {"last_updated": updated},
                  "children": [
                      {
-                         "rsrcType": "volume-types-root",
+                         "rsrcType": "volume-types-leaf",
                          "label": "volume types",
                          "region": r,
                          "info": {
                              "last_update": updated
-                         },
-                         "children": vtl
+                         }
                      },
                      {
-                         "rsrcType": "transfers-root",
+                         "rsrcType": "transfers-leaf",
                          "label": "transfers",
                          "region": r,
                          "info": {
                              "last_update": updated
-                         },
-                         "children": ttl
+                         }
                      },
                  ]}
             )
@@ -248,3 +246,15 @@ class ServiceDataView(JSONView):
     def _get_data(self, context):
         data = ServiceData().get()
         return _get_data_for_json_view(context, data, 'services')
+
+
+class VolumeTypeDataView(JSONView):
+    def _get_data(self, context):
+        data = VolTypeData().get()
+        return _get_data_for_json_view(context, data, 'volume_types')
+
+
+class TransferDataView(JSONView):
+    def _get_data(self, context):
+        data = TransferData().get()
+        return _get_data_for_json_view(context, data, 'transfers')
