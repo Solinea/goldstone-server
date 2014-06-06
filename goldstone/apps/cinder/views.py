@@ -20,14 +20,11 @@ from goldstone.utils import _is_ip_addr, _partition_hostname, _resolve_fqdn, \
 __author__ = 'John Stanford'
 
 from goldstone.views import *
-from .models import ApiPerfData, ServiceData, VolumeData
+from .models import ApiPerfData, ServiceData, TransferData, VolTypeData, \
+    VolumeData, BackupData, SnapshotData
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-class DiscoverView(TopLevelView):
-    template_name = 'cinder_discover.html'
 
 
 class ReportView(TopLevelView):
@@ -42,64 +39,111 @@ class ServiceListApiPerfView(ApiPerfView):
                                  context['interval'])
 
 
-class TopologyView(TopologyView):
+class DiscoverView(TopologyView):
 
     def my_template_name(self):
-        return 'cinder_topology.html'
+        return 'cinder_discover.html'
 
     def __init__(self):
+        self.transfers = TransferData().get()
+        self.vol_types = VolTypeData().get()
         self.services = ServiceData().get()
-        self.volumes = VolumeData().get()
+        # to minimize payload here, we'll assume that there are no zones
+        # that don't have at least one service.
 
     def _get_service_regions(self):
         return set([s['_source']['region'] for s in self.services])
 
-    def _get_volume_regions(self):
-        return set(
-            [
-                ep['_source']['region']
-                for ep in self.volumes
-            ])
+    def _transform_voltype_list(self, updated, region):
+        try:
+            logger.debug("in _transform_voltype_list, s[0] = %s",
+                         json.dumps(self.vol_types[0]))
+            voltypes = {"vol_types": [
+                {"rsrcType": "volume-type",
+                 "label": s['name'],
+                 "enabled": True,
+                 "region": region,
+                 "info": dict(s.items() + {
+                     'last_update': updated}.items())}
+                for s in self.vol_types[0]['_source']['volume_types']
+            ]}
+            return voltypes['vol_types']
+
+        except Exception as e:
+            logger.exception(e)
+            return []
+
+    def _transform_transfer_list(self, updated, region):
+        try:
+            logger.debug("in _transform_transfer_list, s[0] = %s",
+                         json.dumps(self.transfers[0]))
+            transfers = {"transfers": [
+                {"rsrcType": "transfer",
+                 "label": s['name'] if s['name'] else 'unnamed',
+                 "enabled": True,
+                 "region": region,
+                 "info": dict(s.items() + {
+                     'last_update': updated}.items())}
+                for s in self.transfers[0]['_source']['transfers']
+            ]}
+            return transfers['transfers']
+
+        except Exception as e:
+            logger.exception(e)
+            return []
 
     def _get_regions(self):
         return [{"rsrcType": "region", "label": r} for r in
-                self._get_service_regions().union(
-                self._get_volume_regions())]
+                self._get_service_regions()]
+
+    def _populate_regions(self):
+        result = []
+        updated = self.services[0]['_source']['@timestamp']
+        for r in self._get_service_regions():
+            vtl = [vt for vt in self._transform_voltype_list(updated, r)
+                   if vt['region'] == r]
+            ttl = [tt for tt in self._transform_transfer_list(updated, r)
+                   if tt['region'] == r]
+            result.append(
+                {"rsrcType": "region",
+                 "label": r,
+                 "info": {"last_updated": updated},
+                 "children": [
+                     {
+                         "rsrcType": "volume-types-leaf",
+                         "label": "volume types",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     },
+                     {
+                         "rsrcType": "transfers-leaf",
+                         "label": "transfers",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     },
+                 ]}
+            )
+
+        return result
 
     def _get_zones(self, updated, region):
         """
-        returns the zone structure derived from both services and volumes.
+        returns the zone structure derived from both services.
         has children hosts populated as the attachment point for the services
         and volumes in the graph.
         """
         zones = set(
             z['zone']
             for z in self.services[0]['_source']['services']
-        ).union(set([v['availability_zone']
-                     for v in self.volumes[0]['_source']['volumes']]))
+        )
+
         result = []
         for zone in zones:
-            # build the initial list from services and volumes
-            hosts = set(
-                s['host']
-                for s in self.services[0]['_source']['services']
-                if s['zone'] == zone
-            ).union(set([
-                v['os-vol-host-attr:host']
-                for v in self.volumes[0]['_source']['volumes']
-                if v['availability_zone'] == zone]))
-            # remove domain names from hostnames if they are there
-            hosts = set([_normalize_hostname(h) for h in hosts])
-            base_hosts = []
-            for h in hosts:
-                base_hosts.append({
-                    "rsrcType": "host",
-                    "label": h,
-                    "zone": zone,  # supports _attach_resource
-                    "info": {
-
-                        "last_update": updated,
-                    }})
+            # create children for services, volumes, backups, and snapshots
             result.append({
                 "rsrcType": "zone",
                 "label": zone,
@@ -107,94 +151,110 @@ class TopologyView(TopologyView):
                 "info": {
                     "last_update": updated
                 },
-                "children": base_hosts
+                "children": [
+                    {
+                        "rsrcType": "services-leaf",
+                        "label": "services",
+                        "region": region,
+                        "info": {
+                            "last_update": updated
+                        }
+                    },
+                    {
+                        "rsrcType": "volumes-leaf",
+                        "label": "volumes",
+                        "region": region,
+                        "info": {
+                            "last_update": updated
+                        }
+                    },
+                    {
+                        "rsrcType": "backups-leaf",
+                        "label": "backups",
+                        "region": region,
+                        "info": {
+                            "last_update": updated
+                        }
+                    },
+                    {
+                        "rsrcType": "snapshots-leaf",
+                        "label": "snapshots",
+                        "region": region,
+                        "info": {
+                            "last_update": updated
+                        }
+                    }
+                ]
             })
 
         return result
 
-    def _transform_service_list(self, updated, region):
-
-        try:
-            logger.debug("in _transform_service_list, s[0] = %s",
-                         json.dumps(self.services[0]))
-            svcs = {"services": [
-                {"rsrcType": "service",
-                 "label": s['binary'],
-                 "enabled": True
-                 if s['status'] == "enabled" else False,
-                 "region": region,
-                 "info": dict(s.items() + {
-                     'last_update': updated}.items()),
-                 "children": []}
-                for s in self.services[0]['_source']['services']
-            ]}
-            _normalize_hostnames(['host'], svcs)
-            return svcs['services']
-
-        except Exception as e:
-            logger.exception(e)
-            return []
-
-    def _transform_volume_list(self, updated, region):
-
-        try:
-            logger.debug("in _transform_volume_list, s[0] = %s",
-                         json.dumps(self.volumes[0]))
-            vols = [
-                {"rsrcType": "volume",
-                 "label": v['display_name'],
-                 "enabled": True if not (v['status'] == 'error' or
-                                         v['status'] == 'deleting') else False,
-                 "region": region,
-                 "host": v['os-vol-host-attr:host'],
-                 "info": dict(v.items() + {'last_update': updated}.items())
-                 }
-                for v in self.volumes[0]['_source']['volumes']
-            ]
-            _normalize_hostnames(['host'], vols)
-            return vols
-
-        except Exception as e:
-            logger.exception(e)
-            return []
-
     def _build_topology_tree(self):
 
-        rl = self._get_regions()
-
-        if len(rl) == 0:
-            return {}
-
         updated = self.services[0]['_source']['@timestamp']
-        region = self.services[0]['_source']['region']
-        zl = self._get_zones(updated, region)
-        sl = self._transform_service_list(updated, region)
-        vl = self._transform_volume_list(updated, region)
+        rl = self._populate_regions()
+        new_rl = []
+        for region in rl:
+            zl = self._get_zones(updated, region['label'])
+            ad = {'sourceRsrcType': 'zone',
+                  'targetRsrcType': 'region',
+                  'conditions': "%source%['region'] == %target%['label']"}
+            region = self._attach_resource(ad, zl, [region])[0]
 
-        # combine volumes with services
-        ad = {'sourceRsrcType': 'volume',
-              'targetRsrcType': 'service',
-              'conditions': "%source%['host'] == "
-                            "%target%['info']['host'] and "
-                            "%source%['info']['availability_zone'] == "
-                            "%target%['info']['zone'] and "
-                            "%target%['label'] == 'cinder-volume'"}
-        sl = self._attach_resource(ad, vl, sl)
+            new_rl.append(region)
 
-        # combine services with zones at the host level
-        ad = {'sourceRsrcType': 'service',
-              'targetRsrcType': 'host',
-              'conditions': "%source%['info']['zone'] == %target%['zone'] and "
-                            "%source%['info']['host'] == %target%['label']"}
-        zl = self._attach_resource(ad, sl, zl)
-
-        ad = {'sourceRsrcType': 'zone',
-              'targetRsrcType': 'region',
-              'conditions': "%source%['region'] == %target%['label']"}
-
-        rl = self._attach_resource(ad, zl, rl)
-
-        if len(rl) > 1:
-            return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
+        if len(new_rl) > 1:
+            return {"rsrcType": "cloud", "label": "Cloud", "children": new_rl}
         else:
-            return rl[0]
+            return new_rl[0]
+
+
+def _get_data_for_json_view(context, data, key):
+    result = []
+    for item in data:
+        region = item['_source']['region']
+        ts = item['_source']['@timestamp']
+        new_list = []
+        for rec in item['_source'][key]:
+            rec['region'] = region
+            rec['@timestamp'] = ts
+            new_list.append(rec)
+
+        result.append(new_list)
+        return result
+
+
+class VolumeDataView(JSONView):
+    def _get_data(self, context):
+        data = VolumeData().get()
+        return _get_data_for_json_view(context, data, 'volumes')
+
+
+class BackupDataView(JSONView):
+    def _get_data(self, context):
+        data = BackupData().get()
+        return _get_data_for_json_view(context, data, 'backups')
+
+
+class SnapshotDataView(JSONView):
+    def _get_data(self, context):
+        data = SnapshotData().get()
+        return _get_data_for_json_view(context, data, 'snapshots')
+
+
+class ServiceDataView(JSONView):
+    def _get_data(self, context):
+        data = ServiceData().get()
+        return _get_data_for_json_view(context, data, 'services')
+
+
+class VolumeTypeDataView(JSONView):
+    def _get_data(self, context):
+        data = VolTypeData().get()
+        return _get_data_for_json_view(context, data, 'volume_types')
+
+
+class TransferDataView(JSONView):
+    def _get_data(self, context):
+        data = TransferData().get()
+        return _get_data_for_json_view(context, data, 'transfers')

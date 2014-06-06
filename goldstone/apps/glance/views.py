@@ -23,10 +23,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class DiscoverView(TopLevelView):
-    template_name = 'glance_discover.html'
-
-
 class ReportView(TopLevelView):
     template_name = 'glance_report.html'
 
@@ -39,10 +35,10 @@ class ImageApiPerfView(ApiPerfView):
                                  context['interval'])
 
 
-class TopologyView(TopologyView):
+class DiscoverView(TopologyView):
 
     def my_template_name(self):
-        return 'glance_topology.html'
+        return 'glance_discover.html'
 
     def __init__(self):
         self.hosts = HostData().get()

@@ -21,7 +21,8 @@ __author__ = 'John Stanford'
 import calendar
 from abc import ABCMeta, abstractmethod, abstractproperty
 from django.http import HttpResponse, HttpResponseBadRequest
-from django.views.generic import TemplateView
+from django.views.generic.base import ContextMixin
+from django.views.generic import TemplateView, View
 from django.conf import settings
 from datetime import datetime, timedelta
 import json
@@ -193,10 +194,6 @@ class ApiPerfView(InnerTimeRangeView):
         return response
 
 
-class DiscoverView(TopLevelView):
-    template_name = 'goldstone_discover.html'
-
-
 class TopologyView(TemplateView):
     """
     Produces a view of a module topology (or json data if render=false).
@@ -248,8 +245,11 @@ class TopologyView(TemplateView):
         """
         # substitute reference to source and target in condition
         cond = cond.replace("%source%", "sc").replace("%target%", "tc")
-        return eval(cond, {'__builtins__': {}}, {"sc": sc, "tc": tc,
-                                                 "len": len})
+        try:
+            return eval(cond, {'__builtins__': {}}, {"sc": sc, "tc": tc,
+                        "len": len})
+        except TypeError:
+            return False
 
     def _get_children(self, d, rsrc_type):
         assert (type(d) is dict or type(d) is list), "d must be a list or dict"
@@ -352,10 +352,10 @@ class TopologyView(TemplateView):
             self, {'data': json.dumps(response)})
 
 
-class GoldstoneTopologyView(TopologyView):
+class DiscoverView(TopologyView):
 
     def my_template_name(self):
-        return 'goldstone_topology.html'
+        return 'goldstone_discover.html'
 
     def _get_regions(self):
         return []
@@ -388,10 +388,10 @@ class GoldstoneTopologyView(TopologyView):
 
         # TODO make global map more module friendly
 
-        from .apps.keystone.views import TopologyView as KeystoneTopoView
-        from .apps.glance.views import TopologyView as GlanceTopoView
-        from .apps.cinder.views import TopologyView as CinderTopoView
-        from .apps.nova.views import TopologyView as NovaTopoView
+        from .apps.keystone.views import DiscoverView as KeystoneTopoView
+        from .apps.glance.views import DiscoverView as GlanceTopoView
+        from .apps.cinder.views import DiscoverView as CinderTopoView
+        from .apps.nova.views import DiscoverView as NovaTopoView
 
         keystone_topo = KeystoneTopoView()
         glance_topo = GlanceTopoView()
@@ -417,25 +417,30 @@ class GoldstoneTopologyView(TopologyView):
 
         # bind cinder zones to global at region
         cl = [cinder_topo._build_topology_tree()]
-        ad = {'sourceRsrcType': 'zone',
+        # convert top level items to cinder modules
+        new_cl = []
+        for c in cl:
+            c['rsrcType'] = 'module'
+            c['region'] = c['label']
+            c['label'] = 'cinder'
+            new_cl.append(c)
+
+        ad = {'sourceRsrcType': 'module',
               'targetRsrcType': 'region',
               'conditions': "%source%['region'] == %target%['label']"}
-        rl = self._attach_resource(ad, cl, rl)
+        rl = self._attach_resource(ad, new_cl, rl)
 
         # bind nova hosts to existing zones
         nl = [nova_topo._build_topology_tree()]
-        ad = {'sourceRsrcType': 'host',
-              'targetRsrcType': 'zone',
-              'conditions': "%source%['info']['zone'] == %target%['label']"}
-        rl = self._attach_resource(ad, nl, rl)
+        # convert top level items to nova module
+        new_nl = []
+        for n in nl:
+            n['rsrcType'] = 'module'
+            n['region'] = n['label']
+            n['label'] = 'nova'
+            new_nl.append(n)
 
-        # bind nova zones to region if the zone is not there already
-        ad = {'sourceRsrcType': 'zone',
-              'targetRsrcType': 'region',
-              'conditions': "%source%['region'] == %target%['label'] and "
-                            "len([c for c in %target%['children'] "
-                            "if c['label'] == %source%['label']]) == 0"}
-        rl = self._attach_resource(ad, nl, rl)
+        rl = self._attach_resource(ad, new_nl, rl)
 
         # bind glance region to region, but rename glance
         gl = self._rescope_module_tree(
@@ -457,6 +462,20 @@ class GoldstoneTopologyView(TopologyView):
             return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
         else:
             return rl[0]
+
+
+class JSONView(ContextMixin, View):
+    """
+    A view that renders a JSON response.  This view will also pass into the
+    context any keyword arguments passed by the url conf.
+    """
+    def _get_data(self, context):
+        return {}
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        return HttpResponse(json.dumps(self._get_data(context)),
+                            mimetype='application/json')
 
 
 class HelpView(TemplateView):
