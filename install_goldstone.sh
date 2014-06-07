@@ -11,7 +11,7 @@ txtrst=$(tput sgr0) # reset
 
 
 function report_status() {
-    if [[ $result = 1 ]]; then
+    if [[ $result -eq 1 ]]; then
         echo -e "${stage}         ${green_text}[ PASS ]${txtrst}"
     else
         echo -e "${stage}         ${red_text}[ FAIL ]${txtrst}"
