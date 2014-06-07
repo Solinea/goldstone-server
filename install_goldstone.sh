@@ -26,14 +26,14 @@ function datestamp() {
 
 logrunname="install.log"
 
-stage="EPEL"; datestamp; result=$(setup_epel 2>&1 $logrunname); report_status
-stage="IPTABLES"; datestamp; result=$(config_iptables 2>&1 $logrunname); report_status
-stage="ELASTICSEARCH"; datestamp; result=$(install_elasticsearch 2>&1 $logrunname); report_status
-stage="LOGSTASH"; datestamp; result=$(install_logstash 2>&1 $logrunname); report_status
-stage="LOGGING"; datestamp; result=$(set_logging 2>&1 $logrunname); report_status
-stage="POSTGRESQL"; datestamp; result=$(install_pg 2>&1 $logrunname); report_status
-stage="GOLDSTONE"; datestamp; result=$(configure_goldstone 2>&1 $logrunname); report_status
-stage="CELERY"; datestamp; result=$(start_celery 2>&1 $logrunname); report_status
+stage="EPEL"; datestamp; result=$(setup_epel > $logrunname 2>&1 ); report_status
+stage="IPTABLES"; datestamp; result=$(config_iptables > $logrunname 2>&1); report_status
+stage="ELASTICSEARCH"; datestamp; result=$(install_elasticsearch > $logrunname 2>&1); report_status
+stage="LOGSTASH"; datestamp; result=$(install_logstash > $logrunname 2>&1); report_status
+stage="LOGGING"; datestamp; result=$(set_logging > $logrunname 2>&1); report_status
+stage="POSTGRESQL"; datestamp; result=$(install_pg > $logrunname 2>&1); report_status
+stage="GOLDSTONE"; datestamp; result=$(configure_goldstone > $logrunname 2>&1); report_status
+stage="CELERY"; datestamp; result=$(start_celery > $logrunname 2>&1 ); report_status
 
 
 # setup_epel
