@@ -132,8 +132,8 @@ function set_logging() {
     # set django production logging to /var/log/goldstone
     # set ownership to apache:apache
     mkdir /var/log/goldstone
-    chown /var/log/goldstone apache
-    chgrp /var/log/goldstone apache
+    chown apache /var/log/goldstone 
+    chgrp apache /var/log/goldstone 
     echo "1"
 }
 
