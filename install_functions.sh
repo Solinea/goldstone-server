@@ -110,26 +110,27 @@ function configure_goldstone() {
     echo "</VirtualHost>" >> $hc
     
     cp -r . /opt/goldstone
-    #yum install -y python-pip
-    yum install -y numpy scipy python-matplotlib ipython python-pandas sympy python-nose python-pip
-    pip install -r requirements.txt
+    yum install -y python-pip
+    scl enable python27 `pip install wheel`
+    scl enable python27 `wheel install pandas`
+    scl enable python27 `pip install -r requirements.txt`
     mkdir -p /var/www/goldstone/static
     cd /opt/goldstone
-    python manage.py collectstatic --settings=goldstone.settings.production --noinput
+    scl enable python27 `python manage.py collectstatic --settings=goldstone.settings.production --noinput`
     service httpd restart
 }
 
 function start_celery() {
-    export DJANGO_SETTINGS_MODULE=goldstone.settings.production
-    celery worker --app=goldstone --loglevel=info --beat
+    #export DJANGO_SETTINGS_MODULE=goldstone.settings.production
+    scl enable python27 `export DJANGO_SETTINGS_MODULE=goldstone.settings.production; celery worker --app=goldstone --loglevel=info --beat`
 }
 
 function set_logging() {
     # set django production logging to /var/log/goldstone
     # set ownership to apache:apache
     mkdir /var/log/goldstone
-    chown apache /var/log/goldstone 
-    chgrp apache /var/log/goldstone 
+    chown apache /var/log/goldstone
+    chgrp apache /var/log/goldstone
 }
 
 
