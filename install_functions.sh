@@ -86,9 +86,10 @@ function config_iptables() {
 
 function install_pg() {
     # yum install postgresql
+    sed -i 's/ident/md5/g' /var/lib/pgsql/data/pg_hba.conf
     service postgresql initdb
     chkconfig postgresql on
-    service postgresql start
+    service postgresql restart
     createuser goldstone -s -d
     psql -c "alter user goldstone password 'goldstone'"
 }
@@ -111,18 +112,18 @@ function configure_goldstone() {
     
     cp -r . /opt/goldstone
     yum install -y python-pip
-    scl enable python27 `pip install wheel`
-    scl enable python27 `wheel install pandas`
-    scl enable python27 `pip install -r requirements.txt`
+    #scl enable python27 'pip install wheel'
+    #scl enable python27 'wheel install pandas'
+    scl enable python27 'pip install -r requirements.txt'
     mkdir -p /var/www/goldstone/static
     cd /opt/goldstone
-    scl enable python27 `python manage.py collectstatic --settings=goldstone.settings.production --noinput`
+    scl enable python27 'python manage.py collectstatic --settings=goldstone.settings.production --noinput'
     service httpd restart
 }
 
 function start_celery() {
     #export DJANGO_SETTINGS_MODULE=goldstone.settings.production
-    scl enable python27 `export DJANGO_SETTINGS_MODULE=goldstone.settings.production; celery worker --app=goldstone --loglevel=info --beat`
+    scl enable python27 'export DJANGO_SETTINGS_MODULE=goldstone.settings.production; celery worker --app=goldstone --loglevel=info --beat'
 }
 
 function set_logging() {
