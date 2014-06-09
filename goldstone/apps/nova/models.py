@@ -374,6 +374,7 @@ class NetworksData(TopologyData):
     _DOC_TYPE = 'nova_networks_list'
     _INDEX_PREFIX = 'goldstone'
 
+
 class SecGroupsData(TopologyData):
     _DOC_TYPE = 'nova_secgroups_list'
     _INDEX_PREFIX = 'goldstone'

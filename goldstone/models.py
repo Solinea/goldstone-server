@@ -395,9 +395,9 @@ class TopologyData(ESData):
         sort_str = sort_key + ":desc"
         try:
             logger.debug('[get] {"query details":  {"index": "_all", "query": '
-                        '{"query": {"match_all": {}}}, "doc_type": %s, '
-                        '"size": %d, "sort": %s"', self._DOC_TYPE, count,
-                        sort_str)
+                         '{"query": {"match_all": {}}}, "doc_type": %s, '
+                         '"size": %d, "sort": %s"', self._DOC_TYPE, count,
+                         sort_str)
             r = self._conn.search(index="_all",
                                   body='{"query": {"match_all": {}}}',
                                   doc_type=self._DOC_TYPE, size=count,

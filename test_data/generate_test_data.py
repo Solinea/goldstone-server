@@ -74,11 +74,19 @@ result2 = [
     _get_dataset('cinder_transfer_list', '@timestamp:desc'),
     _get_dataset('cinder_backup_list', '@timestamp:desc'),
     _get_dataset('cinder_snapshot_list', '@timestamp:desc'),
+    _get_dataset('nova_agents_list', '@timestamp:desc'),
+    _get_dataset('nova_aggregates_list', '@timestamp:desc'),
+    _get_dataset('nova_avail_zones_list', '@timestamp:desc'),
+    _get_dataset('nova_cloudpipes_list', '@timestamp:desc'),
+    _get_dataset('nova_flavors_list', '@timestamp:desc'),
+    _get_dataset('nova_floating_ip_pools_list', '@timestamp:desc'),
+    _get_dataset('nova_hosts_list', '@timestamp:desc'),
+    _get_dataset('nova_hypervisors_list', '@timestamp:desc'),
+    _get_dataset('nova_networks_list', '@timestamp:desc'),
+    _get_dataset('nova_secgroups_list', '@timestamp:desc'),
+    _get_dataset('nova_servers_list', '@timestamp:desc'),
+    _get_dataset('nova_services_list', '@timestamp:desc'),
 ]
-
-
-
-
 
 print "exporting " + str(len(result1)) + " logstash sets"
 print "exporting " + str(len(result2)) + " goldstone sets"

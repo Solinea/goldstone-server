@@ -109,28 +109,19 @@ class DataViewTests(SimpleTestCase):
             self.assertIsInstance(j[0], list)
 
     def test_get_volumes(self):
-        v = VolumesDataView()
-        self._evaluate(v.get(None))
+        self._evaluate(self.client.get("/cinder/volumes"))
 
     def test_get_backups(self):
-        v = BackupsDataView()
-        self._evaluate(v.get(None))
+        self._evaluate(self.client.get("/cinder/backups"))
 
     def test_get_snapshots(self):
-        v = SnapshotsDataView()
-        self._evaluate(v.get(None))
+        self._evaluate(self.client.get("/cinder/snapshots"))
 
     def test_get_services(self):
-        v = ServicesDataView()
-        self._evaluate(v.get(None))
+        self._evaluate(self.client.get("/cinder/services"))
 
     def test_get_volume_types(self):
-        v = VolumeTypesDataView()
-        self._evaluate(v.get(None))
+        self._evaluate(self.client.get("/cinder/volume_types"))
 
     def test_get_transfers(self):
-        v = TransfersDataView()
-        self._evaluate(v.get(None))
-
-
-
+        self._evaluate(self.client.get("/cinder/transfers"))

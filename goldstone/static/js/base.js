@@ -802,7 +802,11 @@ goldstone.charts.topologyTree = {
         var oTable,
             keys = Object.keys(json),
             data = _.map(keys, function (k) {
-                return [k, json[k]]
+                if (json[k] === Object(json[k])) {
+                    return [k, JSON.stringify(json[k])]
+                } else {
+                    return [k, json[k]]
+                }
             })
 
         $("#multi-rsrc-body").popover({

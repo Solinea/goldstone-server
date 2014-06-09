@@ -310,6 +310,10 @@ class DiscoverView(TopologyView):
         return set([s['_source']['region'] for s in self.azs])
 
     def _get_regions(self):
+        return [{"rsrcType": "region", "label": r}
+                for r in self._get_region_names()]
+
+    def _populate_regions(self):
         result = []
         updated = self.azs[0]['_source']['@timestamp']
         for r in self._get_region_names():
@@ -444,7 +448,7 @@ class DiscoverView(TopologyView):
 
     def _build_topology_tree(self):
         updated = self.azs[0]['_source']['@timestamp']
-        rl = self._get_regions()
+        rl = self._populate_regions()
         new_rl = []
         for region in rl:
             zl = self._get_zones(updated, region['label'])
@@ -459,7 +463,6 @@ class DiscoverView(TopologyView):
             return {"rsrcType": "cloud", "label": "Cloud", "children": new_rl}
         else:
             return new_rl[0]
-
 
 
 class AgentsDataView(JSONView):
