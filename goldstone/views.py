@@ -464,18 +464,37 @@ class DiscoverView(TopologyView):
             return rl[0]
 
 
+
 class JSONView(ContextMixin, View):
     """
     A view that renders a JSON response.  This view will also pass into the
     context any keyword arguments passed by the url conf.
     """
+    def _get_data_for_json_view(self, context, data, key):
+        result = []
+        for item in data:
+            region = item['_source']['region']
+            ts = item['_source']['@timestamp']
+            new_list = []
+            for rec in item['_source'][key]:
+                rec['region'] = region
+                rec['@timestamp'] = ts
+                new_list.append(rec)
+
+            result.append(new_list)
+
+        return result
+
     def _get_data(self, context):
-        return {}
+        try:
+            return self._get_data_for_json_view(context, self.data, self.key)
+        except TypeError:
+            return [[]]
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
-        return HttpResponse(json.dumps(self._get_data(context)),
-                            mimetype='application/json')
+        content = json.dumps(self._get_data(context))
+        return HttpResponse(content=content, content_type='application/json')
 
 
 class HelpView(TemplateView):

@@ -431,3 +431,75 @@ class DiscoverView(TopologyView):
             return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
         else:
             return rl[0]
+
+
+class AgentsDataView(JSONView):
+    def __init__(self):
+        self.data = AgentsData().get()
+        self.key = 'agents'
+
+
+class AggregatesDataView(JSONView):
+    def __init__(self):
+        self.data = AggregatesData().get()
+        self.key = 'aggregates'
+
+
+class AvailZonesDataView(JSONView):
+    def __init__(self):
+        self.data = AvailZonesData().get()
+        self.key = 'availability_zones'
+
+
+class CloudpipesDataView(JSONView):
+    def __init__(self):
+        self.data = CloudpipesData().get()
+        self.key = 'cloudpipes'
+
+
+class FlavorsDataView(JSONView):
+    def __init__(self):
+        self.data = FlavorsData().get()
+        self.key = 'flavors'
+
+
+class FloatingIpPoolsDataView(JSONView):
+    def __init__(self):
+        self.data = FloatingIpPoolsData().get()
+        self.key = 'floating_ip_pools'
+
+
+class HostsDataView(JSONView):
+    def __init__(self):
+        self.data = HostsData().get()
+        self.key = 'hosts'
+
+
+class HypervisorsDataView(JSONView):
+    def __init__(self):
+        self.data = HypervisorsData().get()
+        self.key = 'hypervisors'
+
+
+class NetworksDataView(JSONView):
+    def __init__(self):
+        self.data = NetworksData().get()
+        self.key = 'networks'
+
+
+class SecGroupsDataView(JSONView):
+    def __init__(self):
+        self.data = SecGroupsData().get()
+        self.key = 'secgroups'
+
+
+class ServersDataView(JSONView):
+    def __init__(self):
+        self.data = ServersData().get()
+        self.key = 'servers'
+
+
+class ServicesDataView(JSONView):
+    def __init__(self):
+        self.data = ServicesData().get()
+        self.key = 'services'
