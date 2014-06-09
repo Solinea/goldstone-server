@@ -76,6 +76,14 @@ class DiscoverView(TopologyView):
                          }
                      },
                      {
+                         "rsrcType": "snapshots-leaf",
+                         "label": "snapshots",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     },
+                     {
                          "rsrcType": "transfers-leaf",
                          "label": "transfers",
                          "region": r,
@@ -114,6 +122,7 @@ class DiscoverView(TopologyView):
                         "rsrcType": "services-leaf",
                         "label": "services",
                         "region": region,
+                        "zone": zone,
                         "info": {
                             "last_update": updated
                         }
@@ -122,6 +131,7 @@ class DiscoverView(TopologyView):
                         "rsrcType": "volumes-leaf",
                         "label": "volumes",
                         "region": region,
+                        "zone": zone,
                         "info": {
                             "last_update": updated
                         }
@@ -130,18 +140,12 @@ class DiscoverView(TopologyView):
                         "rsrcType": "backups-leaf",
                         "label": "backups",
                         "region": region,
+                        "zone": zone,
                         "info": {
                             "last_update": updated
                         }
                     },
-                    {
-                        "rsrcType": "snapshots-leaf",
-                        "label": "snapshots",
-                        "region": region,
-                        "info": {
-                            "last_update": updated
-                        }
-                    }
+
                 ]
             })
 
@@ -171,12 +175,14 @@ class VolumesDataView(JSONView):
     def __init__(self):
         self.data = VolumesData().get()
         self.key = 'volumes'
+        self.zone_key = 'availability_zone'
 
 
 class BackupsDataView(JSONView):
     def __init__(self):
         self.data = BackupsData().get()
         self.key = 'backups'
+        self.zone_key = 'availability_zone'
 
 
 class SnapshotsDataView(JSONView):
@@ -189,6 +195,7 @@ class ServicesDataView(JSONView):
     def __init__(self):
         self.data = ServicesData().get()
         self.key = 'services'
+        self.zone_key = 'zone'
 
 
 class VolumeTypesDataView(JSONView):
