@@ -1022,6 +1022,77 @@ goldstone.charts.topologyTree = {
                     d.html($(data).find('g').removeAttr('xmlns:a').html())
                 })
             })
+
+        ns.chart.selectAll(".icon.main.agents-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_vol_transfer.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.aggregates-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_zone.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.cloudpipes-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_zone.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.flavors-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_zone.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.floating-ip-pools-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_zone.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.hosts-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_host.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.hypervisors-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_host.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.networks-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_zone.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.security-groups-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_module.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.servers-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_host.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
         ns.chart.selectAll(".icon.main.transfers-leaf-icon")
             .call(function (d) {
                 $.get("/static/images/icon_vol_transfer.svg", function (data) {

@@ -54,44 +54,6 @@ class DiscoverView(TopologyView):
     def _get_service_regions(self):
         return set([s['_source']['region'] for s in self.services])
 
-    def _transform_voltype_list(self, updated, region):
-        try:
-            logger.debug("in _transform_voltype_list, s[0] = %s",
-                         json.dumps(self.vol_types[0]))
-            voltypes = {"vol_types": [
-                {"rsrcType": "volume-type",
-                 "label": s['name'],
-                 "enabled": True,
-                 "region": region,
-                 "info": dict(s.items() + {
-                     'last_update': updated}.items())}
-                for s in self.vol_types[0]['_source']['volume_types']
-            ]}
-            return voltypes['vol_types']
-
-        except Exception as e:
-            logger.exception(e)
-            return []
-
-    def _transform_transfer_list(self, updated, region):
-        try:
-            logger.debug("in _transform_transfer_list, s[0] = %s",
-                         json.dumps(self.transfers[0]))
-            transfers = {"transfers": [
-                {"rsrcType": "transfer",
-                 "label": s['name'] if s['name'] else 'unnamed',
-                 "enabled": True,
-                 "region": region,
-                 "info": dict(s.items() + {
-                     'last_update': updated}.items())}
-                for s in self.transfers[0]['_source']['transfers']
-            ]}
-            return transfers['transfers']
-
-        except Exception as e:
-            logger.exception(e)
-            return []
-
     def _get_regions(self):
         return [{"rsrcType": "region", "label": r} for r in
                 self._get_service_regions()]
@@ -100,10 +62,6 @@ class DiscoverView(TopologyView):
         result = []
         updated = self.services[0]['_source']['@timestamp']
         for r in self._get_service_regions():
-            vtl = [vt for vt in self._transform_voltype_list(updated, r)
-                   if vt['region'] == r]
-            ttl = [tt for tt in self._transform_transfer_list(updated, r)
-                   if tt['region'] == r]
             result.append(
                 {"rsrcType": "region",
                  "label": r,
