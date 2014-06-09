@@ -54,7 +54,7 @@ function install_elasticsearch() {
     # yum install -y java-1.7.0-openjdk.x86_64
     # yum install -y gcc
     # yum install -y gcc-c++
-    # yum install -y python-devel
+    yum install -y python-devel
     yum install -y postgresql-server postgresql-devel
     yum install -y libffi-devel openssl-devel
     yum install -y httpd mod_wsgi
@@ -110,7 +110,8 @@ function configure_goldstone() {
     echo "</VirtualHost>" >> $hc
     
     cp -r . /opt/goldstone
-    yum install -y python-pip
+    #yum install -y python-pip
+    yum install -y numpy scipy python-matplotlib ipython python-pandas sympy python-nose python-pip
     pip install -r requirements.txt
     mkdir -p /var/www/goldstone/static
     cd /opt/goldstone
