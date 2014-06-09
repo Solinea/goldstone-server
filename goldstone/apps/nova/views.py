@@ -351,6 +351,14 @@ class DiscoverView(TopologyView):
                          }
                      },
                      {
+                         "rsrcType": "hypervisors-leaf",
+                         "label": "hypervisors",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     },
+                     {
                          "rsrcType": "networks-leaf",
                          "label": "networks",
                          "region": r,
@@ -359,7 +367,7 @@ class DiscoverView(TopologyView):
                          }
                      },
                      {
-                         "rsrcType": "secgroup-leaf",
+                         "rsrcType": "secgroups-leaf",
                          "label": "security groups",
                          "region": r,
                          "info": {
@@ -397,6 +405,7 @@ class DiscoverView(TopologyView):
                         "rsrcType": "aggregates-leaf",
                         "label": "aggregates",
                         "region": region,
+                        "zone": zone,
                         "info": {
                             "last_update": updated
                         }
@@ -405,14 +414,7 @@ class DiscoverView(TopologyView):
                         "rsrcType": "hosts-leaf",
                         "label": "hosts",
                         "region": region,
-                        "info": {
-                            "last_update": updated
-                        }
-                    },
-                    {
-                        "rsrcType": "hypervisors-leaf",
-                        "label": "hypervisors",
-                        "region": region,
+                        "zone": zone,
                         "info": {
                             "last_update": updated
                         }
@@ -421,6 +423,7 @@ class DiscoverView(TopologyView):
                         "rsrcType": "servers-leaf",
                         "label": "servers",
                         "region": region,
+                        "zone": zone,
                         "info": {
                             "last_update": updated
                         }
@@ -429,6 +432,7 @@ class DiscoverView(TopologyView):
                         "rsrcType": "services-leaf",
                         "label": "services",
                         "region": region,
+                        "zone": zone,
                         "info": {
                             "last_update": updated
                         }
@@ -468,6 +472,7 @@ class AggregatesDataView(JSONView):
     def __init__(self):
         self.data = AggregatesData().get()
         self.key = 'aggregates'
+        self.zone_key = 'availability_zone'
 
 
 class AvailZonesDataView(JSONView):
@@ -498,6 +503,7 @@ class HostsDataView(JSONView):
     def __init__(self):
         self.data = HostsData().get()
         self.key = 'hosts'
+        self.zone_key = 'zone'
 
 
 class HypervisorsDataView(JSONView):
@@ -522,9 +528,11 @@ class ServersDataView(JSONView):
     def __init__(self):
         self.data = ServersData().get()
         self.key = 'servers'
+        self.zone_key = 'OS-EXT-AZ:availability_zone'
 
 
 class ServicesDataView(JSONView):
     def __init__(self):
         self.data = ServicesData().get()
         self.key = 'services'
+        self.zone_key = 'zone'

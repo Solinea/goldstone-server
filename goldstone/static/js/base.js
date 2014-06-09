@@ -839,9 +839,9 @@ goldstone.charts.topologyTree = {
             //});
         }
     },
-    loadLeafData: function (url, ns) {
+    loadLeafData: function (dataUrl, ns) {
         "use strict";
-        $.get(url, function (payload) {
+        $.get(dataUrl, function (payload) {
             // the response may have multiple lists of services for different
             // timestamps.  The first one will be the most recent.
             var firstTsData = payload[0] !== 'undefined' ? payload[0] : [],
@@ -860,43 +860,48 @@ goldstone.charts.topologyTree = {
                     return e
                 })
 
-                filteredFirstTsData = ns.topologyTree.filterMultiRsrcData(firstTsData, ns)
-
-                keys = Object.keys(filteredFirstTsData[0])
-                columns = _.map(keys, function (k) {
-                    if (k === 'datatableRecId') {
-                        return {'data': k, 'title': k, 'visible': false, 'searchable': false}
-                    } else {
-                        return {'data': k, 'title': k}
-                    }
-                })
-
                 if ($.fn.dataTable.isDataTable("#multi-rsrc-table")) {
                     oTable = $("#multi-rsrc-table").DataTable()
                     oTable.destroy(true)
                 }
 
-                $("#multi-rsrc-body").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>')
-                oTable = $("#multi-rsrc-table").DataTable({
-                    "processing": true,
-                    "serverSide": false,
-                    "data": filteredFirstTsData,
-                    "columns": columns,
-                    "scrollX": true
-                })
-                $("#multi-rsrc-table tbody").on('click', 'tr', function (event) {
-                    // we want to identify the row, find the datatable id,
-                    // then find the matching element in the full data.s
-                    var row = oTable.row(this).data()
-                    var data = _.where(firstTsData, {'datatableRecId': row.datatableRecId})
-                    var singleRsrcData = jQuery.extend(true, {}, data[0])
-                    if (singleRsrcData !== 'undefined') {
-                        delete singleRsrcData.datatableRecId
-                        ns.topologyTree.drawSingleRsrcInfoTable(
-                        ns.singleRsrcLocation, ns.singleRsrcSpinner,
-                        ns.mh, data[0])
-                    }
-                })
+                filteredFirstTsData = ns.topologyTree.filterMultiRsrcData(firstTsData, ns)
+                if (filteredFirstTsData.length > 0) {
+                    keys = Object.keys(filteredFirstTsData[0])
+                    columns = _.map(keys, function (k) {
+                        if (k === 'datatableRecId') {
+                            return {'data': k, 'title': k, 'visible': false, 'searchable': false}
+                        } else {
+                            return {'data': k, 'title': k}
+                        }
+                    })
+
+
+
+                    $("#multi-rsrc-body").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>')
+                    oTable = $("#multi-rsrc-table").DataTable({
+                        "processing": true,
+                        "serverSide": false,
+                        "data": filteredFirstTsData,
+                        "columns": columns,
+                        "scrollX": true
+                    })
+                    $("#multi-rsrc-table tbody").on('click', 'tr', function (event) {
+                        // we want to identify the row, find the datatable id,
+                        // then find the matching element in the full data.s
+                        var row = oTable.row(this).data()
+                        var data = _.where(firstTsData, {'datatableRecId': row.datatableRecId})
+                        var singleRsrcData = jQuery.extend(true, {}, data[0])
+                        if (singleRsrcData !== 'undefined') {
+                            delete singleRsrcData.datatableRecId
+                            ns.topologyTree.drawSingleRsrcInfoTable(
+                            ns.singleRsrcLocation, ns.singleRsrcSpinner,
+                            ns.mh, data[0])
+                        }
+                    })
+                } else {
+                    $("#multi-rsrc-table").html("<p>No data</p>")
+                }
             }
         })
 
@@ -938,7 +943,18 @@ goldstone.charts.topologyTree = {
             .on("click", function (d) {
                 if (d.rsrcType.match(/-leaf$/)) {
                     var url = ns.leafDataUrls[d.rsrcType]
-                    if (url !== 'undefined') {
+                    if (url !== undefined) {
+                        var hasParam = false
+                        if (d.hasOwnProperty('region')) {
+                            url = hasParam ? url + "&" : url + "?"
+                            hasParam = true
+                            url = url + "region=" + d.region
+                        }
+                        if (d.hasOwnProperty('zone')) {
+                            url = hasParam ? url + "&" : url + "?"
+                            hasParam = true
+                            url = url + "zone=" + d.zone
+                        }
                         ns.self.loadLeafData(url, ns)
                     }
                 } else {
@@ -1079,7 +1095,7 @@ goldstone.charts.topologyTree = {
                 })
             })
 
-        ns.chart.selectAll(".icon.main.security-groups-leaf-icon")
+        ns.chart.selectAll(".icon.main.secgroups-leaf-icon")
             .call(function (d) {
                 $.get("/static/images/icon_module.svg", function (data) {
                     d.html($(data).find('g').removeAttr('xmlns:a').html())
