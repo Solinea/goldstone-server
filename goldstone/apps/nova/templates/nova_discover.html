@@ -30,25 +30,47 @@
 
 $(document).ready(function () {
     var gnd = goldstone.nova.discover,
-        gntopo = goldstone.nova.topology,
-        gnls = goldstone.nova.latestStats
-
-    //gnls.loadUrl('#nova-discover-r1-c2', true)
-    gntopo.topologyTree = goldstone.charts.topologyTree._getInstance(gntopo)
-    gntopo.data = JSON.parse({{ data|to_js }})
-    gntopo.h = 400
-    gntopo.location = '#nova-topology-tree'
-    gntopo.singleRsrcLocation = '#single-rsrc-table'
-    gntopo.multiRsrcLocation = '#multi-rsrc-table'
-    gntopo.spinner = '#nova-topology-spinner'
-    gntopo.singleRsrcSpinner = '#single-rsrc-loading-indicator'
-    gntopo.multiRsrcSpinner = '#multi-rsrc-loading-indicator'
-    $(gntopo.spinner).hide()
-    $(gntopo.singleRsrcSpinner).hide()
-    $(gntopo.multiRsrcSpinner).hide()
+        ns = goldstone.nova.topology
+    ns.data = JSON.parse({{ data|to_js }})
+    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns)
+    ns.leafDataUrls = {
+        "agents-leaf": "/nova/agents",
+        "aggregates-leaf": "/nova/aggregates",
+        "availability-zones-leaf": "/nova/availability_zones",
+        "cloudpipes-leaf": "/nova/cloudpipes",
+        "flavors-leaf": "/nova/flavors",
+        "floating-ip-pools-leaf": "/nova/floating_ip_pools",
+        "hosts": "/nova/hosts",
+        "hypervisors": "/nova/hypervisors",
+        "networks": "/nova/networks",
+        "security-groups": "/nova/security_groups",
+        "servers": "/nova/servers",
+        "services": "/nova/services"
+    }
+    ns.h = 400
+    ns.location = '#nova-topology-tree'
+    ns.singleRsrcLocation = '#single-rsrc-table'
+    ns.spinner = '#nova-topology-spinner'
+    ns.singleRsrcSpinner = '#single-rsrc-loading-indicator'
+    ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator'
+    $(ns.spinner).hide()
+    $(ns.singleRsrcSpinner).hide()
+    $(ns.multiRsrcSpinner).hide()
     //ns.infoIcon = '#nova-topology-info'
-    gntopo.topologyTree.init()
 
+    // override the default filter for the multi resource table
+    ns.topologyTree.filterMultiRsrcData = function (data) {
+        "use strict";
+        var newData = jQuery.extend(true, {}, data)
+        newData = _.map(newData, function(d) {
+            delete d['@timestamp']
+            delete d['metadata']
+            delete d['region']
+            return d
+        })
+        return newData
+    }
+    ns.topologyTree.init()
 })
     </script>
 
@@ -56,10 +78,8 @@ $(document).ready(function () {
 
 
 {% block content %}
-    <!-- <object id="icon-network-svg" data="{% static 'images/icon_network.svg' %}" type="image/svg+xml"> -->
-
     <div id="nova-discover-r1" class="row">
-        <div id="nova-discover-r1-c1" class="col-md-8">
+        <div id="nova-discover-r1-c1" class="col-md-6">
             <div id = "nova-topology-panel" class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-tasks"></i> Nova Topology
@@ -77,27 +97,47 @@ $(document).ready(function () {
                 </div>
             </div>
         </div>
-        <div id="nova-discover-r1-c2" class="col-md-4">
-            <div class="panel panel-primary multi-rsrc-panel">
+        <div id="nova-discover-r1-c2" class="col-md-6">
+
+            <div class="panel panel-primary multi-rsrc-panel" id="multi-rsrc-panel">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>
-                        Resource Info
+                    <h3 class="panel-title multi-rsrc-title"><i class="fa fa-dashboard"></i>
+                        Resource List
                     </h3>
                 </div>
-                <div id="single-rsrc-body" class="panel-body">
-                    <table id="single-rsrc-table" class="table table-hover">
-                        <!-- table filled by draw_search_table -->
-                    </table>
+                <div id="multi-rsrc-body" class="panel-body">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="single-rsrc-loading-indicator" class="ajax-loader"
+                         id="multi-rsrc-loading-indicator" class="ajax-loader"
                          hidden="true"/>
                 </div>
             </div>
+
+
         </div>
     </div>
-    <div id="nova-discover-r2" class="row">
-        <div id="nova-discover-r2-c1" class="col-md-6"></div>
-        <div id="nova-discover-r2-c2" class="col-md-6"></div>
+
+
+    <div class="modal fade" id="logSettingsModal" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel" aria-hidden="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-hidden="true">&times;</button>
+                    <h4 class="modal-title single-rsrc-title" id="myModalLabel">Resource Info</h4>
+                </div>
+                <div class="modal-body single-rsrc-panel">
+                    <div id="single-rsrc-body" class="panel-body">
+                        <table id="single-rsrc-table" class="table table-hover">
+                        </table>
+                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                             id="single-rsrc-loading-indicator" class="ajax-loader"
+                             hidden="true"/>
+                    </div>
+                </div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
     </div>
 
 {% endblock %}

@@ -304,52 +304,87 @@ class DiscoverView(TopologyView):
         return 'nova_discover.html'
 
     def __init__(self):
-        self.services = ServiceData().get()
-        self.hypervisors = HypervisorData().get()
+        self.azs = AvailZonesData().get()
+
+    def _get_region_names(self):
+        return set([s['_source']['region'] for s in self.azs])
 
     def _get_regions(self):
-        return [{"rsrcType": "region", "label": r} for r in
-                set([s['_source']['region'] for s in self.services])]
+        result = []
+        updated = self.azs[0]['_source']['@timestamp']
+        for r in self._get_region_names():
+            result.append(
+                {"rsrcType": "region",
+                 "label": r,
+                 "info": {"last_updated": updated},
+                 "children": [
+                     {
+                         "rsrcType": "agents-leaf",
+                         "label": "agents",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     },
+                     {
+                         "rsrcType": "cloudpipes-leaf",
+                         "label": "cloudpipes",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     },
+                     {
+                         "rsrcType": "flavors-leaf",
+                         "label": "flavors",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     },
+                     {
+                         "rsrcType": "floating-ip-pools-leaf",
+                         "label": "floating IP pools",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     },
+                     {
+                         "rsrcType": "networks-leaf",
+                         "label": "networks",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     },
+                     {
+                         "rsrcType": "secgroup-leaf",
+                         "label": "security groups",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     },
+                 ]}
+            )
 
-    @staticmethod
-    def _get_zones(updated, region, sl, hl):
+        return result
+
+    def _get_zones(self, updated, region):
         """
-        returns the zone structure derived from the services list and
+        returns the zone structure derived from both services.
         has children hosts populated as the attachment point for the services
         and volumes in the graph.
         """
         zones = set(
-            s['info']['zone']
-            for s in sl
+            [zn['zoneName']
+             for zn in self.azs[0]['_source']['availability_zones']]
         )
+
         result = []
         for zone in zones:
-            # build the initial list from services and volumes
-            hosts = set(
-                s['info']['host']
-                for s in sl
-                if s['info']['zone'] == zone and s['label'] != 'nova-compute'
-            )
-            hypers = set(
-                s['info']['host']
-                for s in sl
-                if s['info']['zone'] == zone and s['label'] == 'nova-compute'
-            )
-
-            base_hosts = []
-            for h in hosts:
-                base_hosts.append({
-                    "rsrcType": "host",
-                    "label": h,
-                    "info": {
-                        "zone": zone,  # supports _attach_resource
-                        "last_update": updated,
-                    }})
-            # process these separately so we can get their info structure
-            for h in hypers:
-                for hy in hl:
-                    if h == hy['label']:
-                        base_hosts.append(hy)
+            # create children for services, volumes, backups, and snapshots
             result.append({
                 "rsrcType": "zone",
                 "label": zone,
@@ -357,80 +392,70 @@ class DiscoverView(TopologyView):
                 "info": {
                     "last_update": updated
                 },
-                "children": base_hosts
+                "children": [
+                    {
+                        "rsrcType": "aggregates-leaf",
+                        "label": "aggregates",
+                        "region": region,
+                        "info": {
+                            "last_update": updated
+                        }
+                    },
+                    {
+                        "rsrcType": "hosts-leaf",
+                        "label": "hosts",
+                        "region": region,
+                        "info": {
+                            "last_update": updated
+                        }
+                    },
+                    {
+                        "rsrcType": "hypervisors-leaf",
+                        "label": "hypervisors",
+                        "region": region,
+                        "info": {
+                            "last_update": updated
+                        }
+                    },
+                    {
+                        "rsrcType": "servers-leaf",
+                        "label": "servers",
+                        "region": region,
+                        "info": {
+                            "last_update": updated
+                        }
+                    },
+                    {
+                        "rsrcType": "services-leaf",
+                        "label": "services",
+                        "region": region,
+                        "info": {
+                            "last_update": updated
+                        }
+                    }
+                ]
             })
 
         return result
 
-    def _transform_service_list(self):
-
-        try:
-            logger.debug("in _transform_service_list, s[0] = %s",
-                         json.dumps(self.services[0]))
-            updated = self.services[0]['_source']['@timestamp']
-            region = self.services[0]['_source']['region']
-            svcs = [
-                {"rsrcType": "service",
-                 "label": s['binary'],
-                 "enabled": True if s['status'] == 'enabled' else False,
-                 "region": region,
-                 "info": dict(s.items() + {'last_update': updated}.items())
-                 } for s in self.services[0]['_source']['services']
-            ]
-            _normalize_hostnames(['host'], svcs)
-            return svcs
-        except Exception as e:
-            logger.exception(e)
-            return []
-
-    def _transform_hypervisor_list(self):
-        try:
-            updated = self.hypervisors[0]['_source']['@timestamp']
-            region = self.hypervisors[0]['_source']['region']
-            hypers = [
-                {"rsrcType": "host",
-                 "label": h['host'],
-                 "region": region,
-                 "info": dict(h.items() + {'last_update': updated}.items())
-                 } for h in self.hypervisors[0]['_source']['hypervisors']
-            ]
-            _normalize_hostnames(['label', 'host'],
-                                 hypers)
-            return hypers
-        except Exception as e:
-            logger.exception(e)
-            return []
-
     def _build_topology_tree(self):
+        updated = self.azs[0]['_source']['@timestamp']
         rl = self._get_regions()
-        if len(rl) == 0:
-            return {}
+        new_rl = []
+        for region in rl:
+            zl = self._get_zones(updated, region['label'])
+            ad = {'sourceRsrcType': 'zone',
+                  'targetRsrcType': 'region',
+                  'conditions': "%source%['region'] == %target%['label']"}
+            region = self._attach_resource(ad, zl, [region])[0]
 
-        updated = self.services[0]['_source']['@timestamp']
-        region = self.services[0]['_source']['region']
-        sl = self._transform_service_list()
-        hl = self._transform_hypervisor_list()
-        zl = self._get_zones(updated, region, sl, hl)
+            new_rl.append(region)
 
-        # hypervisors are already bound to zones.  just need to bind services
-        # to hosts within zones.
-        ad = {'sourceRsrcType': 'service',
-              'targetRsrcType': 'host',
-              'conditions': "%source%['info']['zone'] == "
-                            "%target%['info']['zone'] and "
-                            "%source%['info']['host'] == %target%['label']"}
-        zl = self._attach_resource(ad, sl, zl)
-
-        ad = {'sourceRsrcType': 'zone',
-              'targetRsrcType': 'region',
-              'conditions': "%source%['region'] == %target%['label']"}
-
-        rl = self._attach_resource(ad, zl, rl)
-
-        if len(rl) > 1:
-            return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
+        if len(new_rl) > 1:
+            return {"rsrcType": "cloud", "label": "Cloud", "children": new_rl}
         else:
-            return rl[0]
+            return new_rl[0]
+
 
 
 class AgentsDataView(JSONView):
