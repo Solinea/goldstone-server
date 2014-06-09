@@ -464,7 +464,6 @@ class DiscoverView(TopologyView):
             return rl[0]
 
 
-
 class JSONView(ContextMixin, View):
     """
     A view that renders a JSON response.  This view will also pass into the

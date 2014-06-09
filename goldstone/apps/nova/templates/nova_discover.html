@@ -43,7 +43,7 @@ $(document).ready(function () {
         "hosts-leaf": "/nova/hosts",
         "hypervisors-leaf": "/nova/hypervisors",
         "networks-leaf": "/nova/networks",
-        "security-groups-leaf": "/nova/security_groups",
+        "secgroups-leaf": "/nova/security_groups",
         "servers-leaf": "/nova/servers",
         "services-leaf": "/nova/services"
     }
@@ -115,7 +115,7 @@ $(document).ready(function () {
             delete d['progress']
             delete d['region']
             delete d['security_groups']
-
+            delete d['rules']
             return d
         })
         return newData
