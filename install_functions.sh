@@ -54,7 +54,7 @@ function install_elasticsearch() {
     # yum install -y java-1.7.0-openjdk.x86_64
     # yum install -y gcc
     # yum install -y gcc-c++
-    yum install -y python-devel
+    # yum install -y python-devel
     yum install -y postgresql-server postgresql-devel
     yum install -y libffi-devel openssl-devel
     yum install -y httpd mod_wsgi
@@ -85,7 +85,7 @@ function config_iptables() {
 }
 
 function install_pg() {
-    yum install postgresql
+    # yum install postgresql
     service postgresql initdb
     chkconfig postgresql on
     service postgresql start
