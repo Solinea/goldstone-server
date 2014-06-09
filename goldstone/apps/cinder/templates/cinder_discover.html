@@ -60,6 +60,16 @@ $(document).ready(function () {
             delete d['@timestamp']
             delete d['metadata']
             delete d['region']
+            delete d['extra_specs']
+            delete d['display_description']
+            delete d['os-extended-snapshot-attributes:progress']
+            delete d['links']
+            delete d['attachments']
+            delete d['availability_zone']
+            delete d['os-vol-mig-status-attr:migstat']
+            delete d['os-vol-mig-status-attr:name_id']
+            delete d['snapshot_id']
+            delete d['source_volid']
             return d
         })
         return newData
