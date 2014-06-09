@@ -14,14 +14,14 @@
 import ast
 import copy
 import itertools
+from django.test import SimpleTestCase
 from goldstone.utils import _is_ip_addr, _partition_hostname, _resolve_fqdn, \
     _resolve_addr, _host_details, _normalize_hostnames, _normalize_hostname
 
 __author__ = 'John Stanford'
 
 from goldstone.views import *
-from .models import ApiPerfData, ServiceData, TransferData, VolTypeData, \
-    VolumeData, BackupData, SnapshotData
+from .models import *
 import logging
 
 logger = logging.getLogger(__name__)
@@ -45,9 +45,9 @@ class DiscoverView(TopologyView):
         return 'cinder_discover.html'
 
     def __init__(self):
-        self.transfers = TransferData().get()
-        self.vol_types = VolTypeData().get()
-        self.services = ServiceData().get()
+        self.transfers = TransfersData().get()
+        self.vol_types = VolTypesData().get()
+        self.services = ServicesData().get()
         # to minimize payload here, we'll assume that there are no zones
         # that don't have at least one service.
 
@@ -209,52 +209,37 @@ class DiscoverView(TopologyView):
             return new_rl[0]
 
 
-def _get_data_for_json_view(context, data, key):
-    result = []
-    for item in data:
-        region = item['_source']['region']
-        ts = item['_source']['@timestamp']
-        new_list = []
-        for rec in item['_source'][key]:
-            rec['region'] = region
-            rec['@timestamp'] = ts
-            new_list.append(rec)
-
-        result.append(new_list)
-        return result
+class VolumesDataView(JSONView):
+    def __init__(self):
+        self.data = VolumesData().get()
+        self.key = 'volumes'
 
 
-class VolumeDataView(JSONView):
-    def _get_data(self, context):
-        data = VolumeData().get()
-        return _get_data_for_json_view(context, data, 'volumes')
+class BackupsDataView(JSONView):
+    def __init__(self):
+        self.data = BackupsData().get()
+        self.key = 'backups'
 
 
-class BackupDataView(JSONView):
-    def _get_data(self, context):
-        data = BackupData().get()
-        return _get_data_for_json_view(context, data, 'backups')
+class SnapshotsDataView(JSONView):
+    def __init__(self):
+        self.data = SnapshotsData().get()
+        self.key = 'snapshots'
 
 
-class SnapshotDataView(JSONView):
-    def _get_data(self, context):
-        data = SnapshotData().get()
-        return _get_data_for_json_view(context, data, 'snapshots')
+class ServicesDataView(JSONView):
+    def __init__(self):
+        self.data = ServicesData().get()
+        self.key = 'services'
 
 
-class ServiceDataView(JSONView):
-    def _get_data(self, context):
-        data = ServiceData().get()
-        return _get_data_for_json_view(context, data, 'services')
+class VolumeTypesDataView(JSONView):
+    def __init__(self):
+        self.data = VolTypesData().get()
+        self.key = 'volume_types'
 
 
-class VolumeTypeDataView(JSONView):
-    def _get_data(self, context):
-        data = VolTypeData().get()
-        return _get_data_for_json_view(context, data, 'volume_types')
-
-
-class TransferDataView(JSONView):
-    def _get_data(self, context):
-        data = TransferData().get()
-        return _get_data_for_json_view(context, data, 'transfers')
+class TransfersDataView(JSONView):
+    def __init__(self):
+        self.data = TransfersData().get()
+        self.key = 'transfers'
