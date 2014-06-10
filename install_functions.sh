@@ -98,11 +98,11 @@ function install_mysql() {
     # Add this to the README
     # yum install -y mysql-server mysql-devel
     chkconfig mysqld on
-    service mysqld restart
     mysqladmin -u root password 'goldstone'
     mysqladmin -u root -pgoldstone create goldstone
     mysql -uroot -pgoldstone -e "GRANT ALL PRIVILEGES ON goldstone.* TO goldstone@localhost IDENTIFIED BY 'goldstone'"
     mysql -uroot -pgoldstone -e "FLUSH PRIVILEGES"
+    service mysqld restart
 }
 
 function configure_goldstone() {

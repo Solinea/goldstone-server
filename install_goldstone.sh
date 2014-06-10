@@ -107,13 +107,11 @@ function configure_goldstone() {
     
     cp -r . /opt/goldstone
     yum install -y python-pip
-    #scl enable python27 'pip install wheel'
-    #scl enable python27 'wheel install pandas'
     scl enable python27 'pip install -r requirements.txt'
     mkdir -p /var/www/goldstone/static
     cd /opt/goldstone
     scl enable python27 'python manage.py collectstatic --settings=goldstone.settings.production --noinput'
-    service httpd restart
+    scl enable python27 'service httpd restart'
 }
 
 function start_celery() {
@@ -155,13 +153,5 @@ stage="LOGGING"; datestamp; result=$(set_logging >> $logrunname 2>&1); report_st
 stage="MySQL"; datestamp; result=$(install_mysql >> $logrunname 2>&1); report_status
 stage="GOLDSTONE"; datestamp; result=$(configure_goldstone >> $logrunname 2>&1); report_status
 stage="CELERY"; datestamp; result=$(start_celery >> $logrunname 2>&1 ); report_status
-
-
-# setup_epel
-# config_iptables
-# install_elasticsearch
-# install_logstash
-# * set_logging
-# install_pg
-# configure_goldstone
-# start_celery
+d=`date`
+echo -e "${d}	${green_text}[ FINISHED ]${txtrst}"
