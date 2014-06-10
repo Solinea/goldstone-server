@@ -51,6 +51,7 @@ function pre_install_sanity() {
 function install_elasticsearch() {
     yum install -y zip unzip
     # Pull these out and have people hand install them
+    # Add this to the README
     # yum install -y java-1.7.0-openjdk.x86_64
     # yum install -y gcc
     # yum install -y gcc-c++
@@ -94,11 +95,14 @@ function install_pg() {
 }
 
 function install_mysql() {
-    yum install -y mysql-server mysql-devel
+    # Add this to the README
+    # yum install -y mysql-server mysql-devel
     chkconfig mysqld on
     service mysqld restart
     mysqladmin -u root password 'goldstone'
     mysqladmin -u root -pgoldstone create goldstone
+    mysql -uroot -pgoldstone -e "GRANT ALL PRIVILEGES ON goldstone.* TO goldstone@localhost IDENTIFIED BY 'goldstone'"
+    mysql -uroot -pgoldstone -e "FLUSH PRIVILEGES"
 }
 
 function configure_goldstone() {
@@ -136,7 +140,7 @@ function start_celery() {
 function set_logging() {
     # set django production logging to /var/log/goldstone
     # set ownership to apache:apache
-    mkdir /var/log/goldstone
+    mkdir -p /var/log/goldstone
     chown apache /var/log/goldstone
     chgrp apache /var/log/goldstone
 }
