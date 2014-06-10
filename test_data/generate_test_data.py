@@ -67,7 +67,13 @@ result1 = [
 result2 = [
     _get_dataset('keystone_service_list', '@timestamp:desc'),
     _get_dataset('keystone_endpoint_list', '@timestamp:desc'),
-    _get_dataset('glance_image_list', '@timestamp:desc')
+    _get_dataset('glance_image_list', '@timestamp:desc'),
+    _get_dataset('cinder_service_list', '@timestamp:desc'),
+    _get_dataset('cinder_volume_list', '@timestamp:desc'),
+    _get_dataset('cinder_volume_type_list', '@timestamp:desc'),
+    _get_dataset('cinder_transfer_list', '@timestamp:desc'),
+    _get_dataset('cinder_backup_list', '@timestamp:desc'),
+    _get_dataset('cinder_snapshot_list', '@timestamp:desc'),
 ]
 
 

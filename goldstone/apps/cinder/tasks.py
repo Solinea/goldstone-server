@@ -19,10 +19,9 @@ __author__ = 'John Stanford'
 
 from goldstone.celery import app as celery_app
 import logging
-from .models import ApiPerfData
 from goldstone.utils import _get_client, _get_cinder_client, stored_api_call, \
     to_es_date
-from .models import ServiceData, VolumeData
+from .models import *
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -46,38 +45,36 @@ def time_cinder_api(self):
     }
 
 
-def _update_cinder_service_records(cl, region):
-    db = ServiceData()
-    sl = cl.services.list()
+def _update_cinder_records(rec_type, region, db, items):
+
     # image list is a generator, so we need to make it not sol lazy it...
     body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
             "region": region,
-            "services": [s.__dict__['_info'] for s in sl]}
+            rec_type: [item.__dict__['_info'] for item in items]}
     try:
         db.post(body)
     except Exception as e:
         logging.exception(e)
-        logger.warn("failed to index cinder services")
-
-
-def _update_cinder_volume_records(cl, region):
-    db = VolumeData()
-    vl = cl.volumes.list()
-    # image list is a generator, so we need to make it not sol lazy it...
-    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
-            "region": region,
-            "volumes": [v.__dict__['_info'] for v in vl]}
-    try:
-        db.post(body)
-    except Exception as e:
-        logging.exception(e)
-        logger.warn("failed to index cinder volumes")
+        logger.warn("failed to index cinder %s", rec_type)
 
 
 @celery_app.task(bind=True)
 def discover_cinder_topology(self):
     cinder_access = _get_cinder_client()
-    _update_cinder_service_records(cinder_access['client'],
-                                   cinder_access['region'])
-    _update_cinder_volume_records(cinder_access['client'],
-                                  cinder_access['region'])
+    cl = cinder_access['client']
+    reg = cinder_access['region']
+
+    _update_cinder_records("services",  reg, ServiceData(),
+                           cl.services.list())
+    _update_cinder_records("volumes",  reg, VolumeData(),
+                           cl.volumes.list())
+    _update_cinder_records("backups",  reg, BackupData(),
+                           cl.backups.list())
+    _update_cinder_records("snapshots",  reg, SnapshotData(),
+                           cl.volume_snapshots.list())
+    _update_cinder_records("volume_types",  reg, VolTypeData(),
+                           cl.volume_types.list())
+    _update_cinder_records("encryption_types",  reg, EncryptionTypeData(),
+                           cl.volume_encryption_types.list())
+    _update_cinder_records("transfers",  reg, TransferData(),
+                           cl.transfers.list())

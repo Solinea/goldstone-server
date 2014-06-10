@@ -57,16 +57,21 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'default'
         },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/goldstone/goldstone.log',
+        },
     },
     'loggers': {
         'django.request': {
-            'handlers': ['console'],
+            'handlers': ['file'],
             'propagate': False,
             'level': 'INFO',
         },
         'goldstone': {
             'level': 'INFO',
-            'handlers': ['console']
+            'handlers': ['file']
         },
     },
 }

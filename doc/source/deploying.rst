@@ -19,8 +19,8 @@ Deploying Goldstone Index Server
 =================
 
 Tested environment::
-* Centos 6.5
-* ElasticSearch 1.1.1
+* CentOS 6.5 +
+* ElasticSearch 1.1.1 + 
 * Logstash 1.4.0-1
 
 Install procedure::

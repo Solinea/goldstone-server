@@ -104,12 +104,12 @@ class ViewTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_rendered_topology_view(self):
-        uri = '/keystone/topology'
+        uri = '/keystone/discover'
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'keystone_topology.html')
+        self.assertTemplateUsed(response, 'keystone_discover.html')
 
     def test_unrendered_topology_view(self):
-        uri = '/keystone/topology?render=false'
+        uri = '/keystone/discover?render=false'
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)

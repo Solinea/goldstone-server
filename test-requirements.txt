@@ -15,10 +15,10 @@
 # Author: Ken Pepple
 
 # tox uses this file
-pep8
-pyflakes
-coverage
-selenium
+pep8==1.4.6
+pyflakes==0.7.3
+coverage==3.7.1
+selenium==2.40.0
 sphinx
-mock
+mock==1.0.1
 -e git+git://github.com/kmmbvnr/django-jenkins.git#egg=django-jenkins

@@ -25,63 +25,12 @@ logger = logging.getLogger(__name__)
 
 
 class NovaDiscoverViewTest(SimpleTestCase):
-    # view requires a start_ts, end_ts, and interval string
-    valid_start = str(calendar.timegm(
-        datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))
-    valid_end = str(calendar.timegm(
-        datetime.now(tz=pytz.utc).utctimetuple()))
-    valid_interval = '3600s'
-    invalid_start = '999999999999'
-    invalid_end = '999999999999'
-    invalid_interval = 'abc'
 
-    def _test_bad_request(self, url):
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 400)
-
-    def _test_good_request(self, url):
+    def test_good_request(self):
+        url = '/nova/discover'
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'nova_discover.html')
-
-    def test_good_request(self):
-        url = '/nova/discover?start=' + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval
-        self._test_good_request(url)
-
-    def test_no_start(self):
-        url = "/nova/discover?end=" + self.valid_end + \
-            "&interval=" + self.valid_interval
-        self._test_good_request(url)
-
-    def test_no_end(self):
-        url = "/nova/discover?start=" + self.valid_start + \
-            "&interval=" + self.valid_interval
-        self._test_good_request(url)
-
-    def test_no_interval(self):
-        url = "/nova/discover?start=" + self.valid_start + \
-            "&end=" + self.valid_end
-        self._test_good_request(url)
-
-    def test_invalid_start(self):
-        url = "/nova/discover?start=" + self.invalid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval
-        self._test_bad_request(url)
-
-    def test_invalid_finish(self):
-        url = "/nova/discover?start=" + self.valid_start + \
-            "&end=" + self.invalid_end + \
-            "&interval=" + self.valid_interval
-        self._test_bad_request(url)
-
-    def test_invalid_interval(self):
-        url = "/nova/discover?start=" + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.invalid_interval
-        self._test_bad_request(url)
 
 
 class NovaSpawnsViewTest(SimpleTestCase):
