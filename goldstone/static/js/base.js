@@ -945,7 +945,7 @@ goldstone.charts.topologyTree = {
                 return "translate(" + json.y0 + "," + json.x0 + ")"
             })
             .on("click", function (d) {
-                if (d.rsrcType.match(/-leaf$/)) {
+                if (d.rsrcType.match(/-leaf$/) && ns.hasOwnProperty('leafDataUrls')) {
                     var url = ns.leafDataUrls[d.rsrcType]
                     if (url !== undefined) {
                         var hasParam = false
