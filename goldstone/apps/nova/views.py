@@ -34,10 +34,6 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-class DiscoverView(TopLevelView):
-    template_name = 'nova_discover.html'
-
-
 class ReportView(TopLevelView):
     template_name = 'nova_report.html'
 
@@ -302,10 +298,10 @@ class LatestStatsView(TemplateView):
                                 content_type='application/json')
 
 
-class TopologyView(TopologyView):
+class DiscoverView(TopologyView):
 
     def my_template_name(self):
-        return 'nova_topology.html'
+        return 'nova_discover.html'
 
     def __init__(self):
         self.services = ServiceData().get()

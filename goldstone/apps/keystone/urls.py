@@ -25,6 +25,4 @@ urlpatterns = patterns(
         name='keystone-report-view'),
     url(r'^api_perf[/]?$', AuthApiPerfView.as_view(),
         name='keystone-api-perf'),
-    url(r'^topology[/]?$', TopologyView.as_view(),
-        name='keystone-topology'),
 )
