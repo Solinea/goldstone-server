@@ -22,7 +22,7 @@ QUNIT_ENABLED = True
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql', 
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': 'goldstone_dev',
         'USER': 'goldstone',
         'PASSWORD': 'goldstone',
