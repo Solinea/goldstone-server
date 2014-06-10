@@ -55,7 +55,6 @@ function install_elasticsearch() {
     # yum install -y gcc
     # yum install -y gcc-c++
     yum install -y python-devel
-    yum install -y postgresql-server postgresql-devel
     yum install -y libffi-devel openssl-devel
     yum install -y httpd mod_wsgi
     yum install -y redis
@@ -92,6 +91,14 @@ function install_pg() {
     service postgresql restart
     createuser goldstone -s -d
     psql -c "alter user goldstone password 'goldstone'"
+}
+
+function install_mysql() {
+    yum install -y mysql-server mysql-devel
+    chkconfig mysqld on
+    service mysqld restart
+    mysqladmin -u root password 'goldstone'
+    mysqladmin -u root -pgoldstone create goldstone
 }
 
 function configure_goldstone() {

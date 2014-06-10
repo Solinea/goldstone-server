@@ -27,7 +27,8 @@ stage="IPTABLES"; datestamp; result=$(config_iptables >> $logrunname 2>&1); repo
 stage="ELASTICSEARCH"; datestamp; result=$(install_elasticsearch >> $logrunname 2>&1); report_status
 stage="LOGSTASH"; datestamp; result=$(install_logstash >> $logrunname 2>&1); report_status
 stage="LOGGING"; datestamp; result=$(set_logging >> $logrunname 2>&1); report_status
-stage="POSTGRESQL"; datestamp; result=$(install_pg >> $logrunname 2>&1); report_status
+# stage="POSTGRESQL"; datestamp; result=$(install_pg >> $logrunname 2>&1); report_status
+stage="MySQL"; datestamp; result=$(install_mysql >> $logrunname 2>&1); report_status
 stage="GOLDSTONE"; datestamp; result=$(configure_goldstone >> $logrunname 2>&1); report_status
 stage="CELERY"; datestamp; result=$(start_celery >> $logrunname 2>&1 ); report_status
 
