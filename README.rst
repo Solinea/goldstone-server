@@ -49,7 +49,7 @@ Create the virtual environment (this will also install virtualenv)::
     export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
     export DJANGO_SETTINGS_MODULE=goldstone.settings.development    
 
-    postgres -D /usr/local/var/postgres &
+    mysql.server start
     redis-server > /dev/null 2>&1 &
     elasticsearch > /dev/null 2>&1 &
     celery worker --app=goldstone --loglevel=info --beat > /dev/null 2>&1 &
@@ -62,13 +62,12 @@ Activating and deactivating the environment can be done with the following comma
     $ workon goldstone
     $ deactivate
 
-Install postgresql and create development and test databases. Create a user goldstone with the role goldstone (or edit your development.py setttings file)::
+Install mysql and create development and test databases. Create a user goldstone with the role goldstone (or edit your development.py settings file)::
 
-    $ brew install postgres  # for the mac, assuming you have brew installed
-    $ pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start
-    $ createdb goldstone_dev
-    $ createdb goldstone
-    $ createuser goldstone -d
+    $ brew install mysql  # for the mac, assuming you have brew installed
+    $ mysqladmin  -u root -p create goldstone_dev
+    $ mysqladmin  -u root -p create goldstone_test
+    $ mysqladmin  -u root -p create goldstone
     $ brew install elasticsearch 
     $ brew install redis 
 
@@ -164,12 +163,3 @@ To create the product documentation:
 * make the documentation - $ make html
 
 The documentation will be in the doc/build/html directory
-
-Libraries
-=========
-
-This project uses the following libraries:
-
-* jQuery-Timepicker-Addon (https://github.com/trentrichardson/jQuery-Timepicker-Addon) by Trent Richardson (MIT license)
-* jQuery and jQuery-UI
-* Django
