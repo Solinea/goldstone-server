@@ -24,13 +24,13 @@ TEMPLATE_DEBUG = False
 QUNIT_ENABLED = False
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "goldstone",
-        "USER": "goldstone",
-        "PASSWORD": "goldstone",
-        "HOST": "127.0.0.1",
-        "PORT": "",
+    'default': {
+        'ENGINE': 'django.db.backends.mysql', 
+        'NAME': 'goldstone_dev',
+        'USER': 'goldstone',
+        'PASSWORD': 'goldstone',
+        'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
+        'PORT': '3306',
     }
 }
 
