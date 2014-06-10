@@ -323,32 +323,8 @@ class DiscoverView(TopologyView):
                  "info": {"last_updated": updated},
                  "children": [
                      {
-                         "rsrcType": "agents-leaf",
-                         "label": "agents",
-                         "region": r,
-                         "info": {
-                             "last_update": updated
-                         }
-                     },
-                     {
-                         "rsrcType": "cloudpipes-leaf",
-                         "label": "cloudpipes",
-                         "region": r,
-                         "info": {
-                             "last_update": updated
-                         }
-                     },
-                     {
                          "rsrcType": "flavors-leaf",
                          "label": "flavors",
-                         "region": r,
-                         "info": {
-                             "last_update": updated
-                         }
-                     },
-                     {
-                         "rsrcType": "floating-ip-pools-leaf",
-                         "label": "floating IP pools",
                          "region": r,
                          "info": {
                              "last_update": updated
@@ -361,23 +337,7 @@ class DiscoverView(TopologyView):
                          "info": {
                              "last_update": updated
                          }
-                     },
-                     {
-                         "rsrcType": "networks-leaf",
-                         "label": "networks",
-                         "region": r,
-                         "info": {
-                             "last_update": updated
-                         }
-                     },
-                     {
-                         "rsrcType": "secgroups-leaf",
-                         "label": "security groups",
-                         "region": r,
-                         "info": {
-                             "last_update": updated
-                         }
-                     },
+                     }
                  ]}
             )
 
@@ -425,7 +385,7 @@ class DiscoverView(TopologyView):
                     },
                     {
                         "rsrcType": "servers-leaf",
-                        "label": "servers",
+                        "label": "instances",
                         "region": region,
                         "zone": zone,
                         "info": {
