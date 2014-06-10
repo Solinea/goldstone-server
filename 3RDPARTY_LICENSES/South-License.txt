@@ -1,3 +1,0 @@
-= License =
-
-South is released under the [http://www.apache.org/licenses/LICENSE-2.0 Apache Public License, version two].
