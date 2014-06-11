@@ -1153,7 +1153,7 @@ goldstone.charts.topologyTree = {
             })
 
 
-        ns.chart.selectAll(".icon.main.image-icon")
+        ns.chart.selectAll(".icon.main.images-leaf-icon")
             .call(function (d) {
                 $.get("/static/images/icon_image.svg", function (data) {
                     d.html($(data).find('g').removeAttr('xmlns:a').html())

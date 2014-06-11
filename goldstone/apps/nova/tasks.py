@@ -75,8 +75,6 @@ def time_nova_api(self):
     }
 
 
-
-
 def _update_nova_records(rec_type, region, db, items):
 
     # image list is a generator, so we need to make it not sol lazy it...
