@@ -90,7 +90,7 @@ function install_mysql() {
     service mysqld restart
 }
 
-function configure_goldstone() {
+function configure_apache() {
     hc='/etc/httpd/conf/httpd.conf'
     echo "LoadModule wsgi_module modules/http://mod_wsgi.so" >> $hc
     echo "WSGIPythonPath /opt/goldstone" >> $hc
@@ -120,6 +120,30 @@ function configure_goldstone() {
     scl enable python27 'pip install mod_wsgi'
     scl enable python27 'python manage.py collectstatic --settings=goldstone.settings.production --noinput'
     scl enable python27 'service httpd restart'
+}
+
+function configure_nginx() {
+    cp -r . /opt/goldstone
+    scl enable python27 'easy_install pip'
+    scl enable python27 'pip install -r requirements.txt'
+    mkdir -p /var/www/goldstone/static
+    cd /opt/goldstone
+    scl enable python27 'pip install gunicorn'
+    # upfile='/etc/init/goldstone.conf'
+    # echo 'description "myapp"' >> $upfile
+    # echo 'start on (filesystem)' >> $upfile
+    # echo 'stop on runlevel [016]' >> $upfile
+    # echo 'respawn' >> $upfile
+    # echo 'console log' >> $upfile
+    # echo 'setuid nobody' >> $upfile
+    # echo 'setgid nogroup' >> $upfile
+    # echo 'chdir /opt/goldstone/goldstone' >> $upfile
+    # echo 'exec /opt/rh/python27/root/usr/bin/gunicorn wsgi:application' >> $upfile
+    yum install -y nginx
+    scl enable python27 'python manage.py collectstatic --settings=goldstone.settings.production --noinput'
+    ln -fs /lib/init/upstart-job /etc/init.d/goldstone
+    chkconfig nginx on
+    service nginx restart
 }
 
 function start_celery() {
