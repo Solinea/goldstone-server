@@ -93,7 +93,7 @@ function install_mysql() {
 function configure_goldstone() {
     hc='/etc/httpd/conf/httpd.conf'
     echo "LoadModule wsgi_module modules/http://mod_wsgi.so" >> $hc
-    echo "WSGIPythonPath /opt/goldstone:/opt/goldstone/lib/python2.6/site-packages" >> $hc
+    echo "WSGIPythonPath /opt/goldstone" >> $hc
     echo "<VirtualHost *:80>" >> $hc
     echo "ServerAdmin you@example.com" >> $hc
     h=`hostname`
@@ -105,6 +105,11 @@ function configure_goldstone() {
     echo "    Options -Indexes" >> $hc
     echo "</Location>" >> $hc
     echo "</VirtualHost>" >> $hc
+    echo '<Directory /opt/goldstone>'  >> $hc
+    echo '<Files wsgi.py>' >> $hc
+    echo 'Require all granted' >> $hc
+    echo '</Files>' >> $hc
+    echo '</Directory>' >> $hc
     
     cp -r . /opt/goldstone
     # yum install -y python-pip
@@ -112,6 +117,7 @@ function configure_goldstone() {
     scl enable python27 'pip install -r requirements.txt'
     mkdir -p /var/www/goldstone/static
     cd /opt/goldstone
+    scl enable python27 'pip install mod_wsgi'
     scl enable python27 'python manage.py collectstatic --settings=goldstone.settings.production --noinput'
     scl enable python27 'service httpd restart'
 }
