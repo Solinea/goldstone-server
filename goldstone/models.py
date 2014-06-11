@@ -394,6 +394,10 @@ class TopologyData(ESData):
         """
         sort_str = sort_key + ":desc"
         try:
+            logger.debug('[get] {"query details":  {"index": "_all", "query": '
+                         '{"query": {"match_all": {}}}, "doc_type": %s, '
+                         '"size": %d, "sort": %s"', self._DOC_TYPE, count,
+                         sort_str)
             r = self._conn.search(index="_all",
                                   body='{"query": {"match_all": {}}}',
                                   doc_type=self._DOC_TYPE, size=count,
@@ -401,6 +405,5 @@ class TopologyData(ESData):
             logger.debug('[get] search response = %s', json.dumps(r))
             return r['hits']['hits']
         except ElasticsearchException as e:
-            logger.warn("get from ES failed")
-            logger.exception(e)
-            return []
+            logger.debug("get from ES failed, exception was %s", e.message)
+            return None
