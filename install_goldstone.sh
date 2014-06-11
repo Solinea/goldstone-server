@@ -39,7 +39,7 @@ function install_elasticsearch() {
     # yum install -y java-1.7.0-openjdk.x86_64
     # yum install -y gcc
     # yum install -y gcc-c++
-    yum install -y python-devel
+    # yum install -y python-devel
     yum install -y libffi-devel openssl-devel
     yum install -y httpd mod_wsgi
     yum install -y redis
@@ -81,6 +81,7 @@ function install_pg() {
 function install_mysql() {
     # Add this to the README
     # yum install -y mysql-server mysql-devel
+    service mysqld restart
     chkconfig mysqld on
     mysqladmin -u root password 'goldstone'
     mysqladmin -u root -pgoldstone create goldstone
@@ -106,7 +107,8 @@ function configure_goldstone() {
     echo "</VirtualHost>" >> $hc
     
     cp -r . /opt/goldstone
-    yum install -y python-pip
+    # yum install -y python-pip
+    scl enable python27 'easy_install pip'
     scl enable python27 'pip install -r requirements.txt'
     mkdir -p /var/www/goldstone/static
     cd /opt/goldstone
@@ -134,7 +136,7 @@ function report_status() {
 
 function datestamp() {
     d=`date`
-    echo -e "${d} 	STARTING ${stage} ...."
+    echo -e "${d} 	INSTALLING ${stage} ...."
 }
 
 
