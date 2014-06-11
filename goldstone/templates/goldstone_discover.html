@@ -29,7 +29,7 @@
 
 {% block content %}
     <div id="goldstone-discover-r1" class="row">
-        <div id="goldstone-discover-r1-c1" class="col-md-8">
+        <div id="goldstone-discover-r1-c1" class="col-md-12">
             <div id = "goldstone-topology-panel" class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-tasks"></i> Cloud Topology
@@ -47,28 +47,6 @@
                 </div>
             </div>
         </div>
-        <div id="goldstone-discover-r1-c2" class="col-md-4">
-            <div class="panel panel-primary multi-rsrc-panel">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-dashboard"></i>
-                        Resource Info
-                    </h3>
-                </div>
-                <div id="single-rsrc-body" class="panel-body">
-                    <table id="single-rsrc-table" class="table table-hover">
-                        <!-- table filled by draw_search_table -->
-                    </table>
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="single-rsrc-loading-indicator" class="ajax-loader"
-                         hidden="true"/>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="goldstone-discover-r2" class="row">
-        <div id="goldstone-discover-r2-c1" class="col-md-6"></div>
-        <div id="goldstone-discover-r2-c2" class="col-md-6"></div>
     </div>
 
 {% endblock %}
