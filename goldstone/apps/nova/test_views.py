@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from django.http import HttpRequest
 
 __author__ = 'John Stanford'
 
@@ -299,3 +300,55 @@ class ResourceViewTest(SimpleTestCase):
         self.assertNotEqual(json.loads(response.content), [])
         logger.debug("[test_get_phys_disk_stats_view] response = %s",
                      json.loads(response.content))
+
+
+class DataViewTests(SimpleTestCase):
+
+    def _evaluate(self, response):
+        self.assertIsInstance(response, HttpResponse)
+        self.assertNotEqual(response.content, None)
+        try:
+            j = json.loads(response.content)
+        except:
+            self.fail("Could not convert content to JSON, content was %s",
+                      response.content)
+        else:
+            self.assertIsInstance(j, list)
+            self.assertGreaterEqual(len(j), 1)
+            self.assertIsInstance(j[0], list)
+
+    def test_get_agents(self):
+        self._evaluate(self.client.get("/nova/agents"))
+
+    def test_get_aggregates(self):
+        self._evaluate(self.client.get("/nova/aggregates"))
+
+    def test_get_avail_zones(self):
+        self._evaluate(self.client.get("/nova/availability_zones"))
+
+    def test_get_cloudpipes(self):
+        self._evaluate(self.client.get("/nova/cloudpipes"))
+
+    def test_get_flavors(self):
+        self._evaluate(self.client.get("/nova/flavors"))
+
+    def test_get_floating_ip_pools(self):
+        self._evaluate(self.client.get("/nova/floating_ip_pools"))
+
+    def test_get_hosts(self):
+        self._evaluate(self.client.get("/nova/hosts"))
+
+    def test_get_hypervisors(self):
+        self._evaluate(self.client.get("/nova/hypervisors"))
+
+    def test_get_networks(self):
+        self._evaluate(self.client.get("/nova/networks"))
+
+    def test_get_sec_groups(self):
+        self._evaluate(self.client.get("/nova/security_groups"))
+
+    def test_get_servers(self):
+        self._evaluate(self.client.get("/nova/servers"))
+
+    def test_get_services(self):
+        self._evaluate(self.client.get("/nova/services"))

@@ -15,14 +15,14 @@
 import ast
 import copy
 import itertools
+from django.test import SimpleTestCase
 from goldstone.utils import _is_ip_addr, _partition_hostname, _resolve_fqdn, \
     _resolve_addr, _host_details, _normalize_hostnames, _normalize_hostname
 
 __author__ = 'John Stanford'
 
 from goldstone.views import *
-from .models import ApiPerfData, ServiceData, TransferData, VolTypeData, \
-    VolumeData, BackupData, SnapshotData
+from .models import *
 import logging
 
 logger = logging.getLogger(__name__)
@@ -46,52 +46,14 @@ class DiscoverView(TopologyView):
         return 'cinder_discover.html'
 
     def __init__(self):
-        self.transfers = TransferData().get()
-        self.vol_types = VolTypeData().get()
-        self.services = ServiceData().get()
+        self.transfers = TransfersData().get()
+        self.vol_types = VolTypesData().get()
+        self.services = ServicesData().get()
         # to minimize payload here, we'll assume that there are no zones
         # that don't have at least one service.
 
     def _get_service_regions(self):
         return set([s['_source']['region'] for s in self.services])
-
-    def _transform_voltype_list(self, updated, region):
-        try:
-            logger.debug("in _transform_voltype_list, s[0] = %s",
-                         json.dumps(self.vol_types[0]))
-            voltypes = {"vol_types": [
-                {"rsrcType": "volume-type",
-                 "label": s['name'],
-                 "enabled": True,
-                 "region": region,
-                 "info": dict(s.items() + {
-                     'last_update': updated}.items())}
-                for s in self.vol_types[0]['_source']['volume_types']
-            ]}
-            return voltypes['vol_types']
-
-        except Exception as e:
-            logger.exception(e)
-            return []
-
-    def _transform_transfer_list(self, updated, region):
-        try:
-            logger.debug("in _transform_transfer_list, s[0] = %s",
-                         json.dumps(self.transfers[0]))
-            transfers = {"transfers": [
-                {"rsrcType": "transfer",
-                 "label": s['name'] if s['name'] else 'unnamed',
-                 "enabled": True,
-                 "region": region,
-                 "info": dict(s.items() + {
-                     'last_update': updated}.items())}
-                for s in self.transfers[0]['_source']['transfers']
-            ]}
-            return transfers['transfers']
-
-        except Exception as e:
-            logger.exception(e)
-            return []
 
     def _get_regions(self):
         return [{"rsrcType": "region", "label": r} for r in
@@ -101,10 +63,6 @@ class DiscoverView(TopologyView):
         result = []
         updated = self.services[0]['_source']['@timestamp']
         for r in self._get_service_regions():
-            vtl = [vt for vt in self._transform_voltype_list(updated, r)
-                   if vt['region'] == r]
-            ttl = [tt for tt in self._transform_transfer_list(updated, r)
-                   if tt['region'] == r]
             result.append(
                 {"rsrcType": "region",
                  "label": r,
@@ -113,6 +71,14 @@ class DiscoverView(TopologyView):
                      {
                          "rsrcType": "volume-types-leaf",
                          "label": "volume types",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     },
+                     {
+                         "rsrcType": "snapshots-leaf",
+                         "label": "snapshots",
                          "region": r,
                          "info": {
                              "last_update": updated
@@ -157,6 +123,7 @@ class DiscoverView(TopologyView):
                         "rsrcType": "services-leaf",
                         "label": "services",
                         "region": region,
+                        "zone": zone,
                         "info": {
                             "last_update": updated
                         }
@@ -165,6 +132,7 @@ class DiscoverView(TopologyView):
                         "rsrcType": "volumes-leaf",
                         "label": "volumes",
                         "region": region,
+                        "zone": zone,
                         "info": {
                             "last_update": updated
                         }
@@ -173,18 +141,12 @@ class DiscoverView(TopologyView):
                         "rsrcType": "backups-leaf",
                         "label": "backups",
                         "region": region,
+                        "zone": zone,
                         "info": {
                             "last_update": updated
                         }
                     },
-                    {
-                        "rsrcType": "snapshots-leaf",
-                        "label": "snapshots",
-                        "region": region,
-                        "info": {
-                            "last_update": updated
-                        }
-                    }
+
                 ]
             })
 
@@ -210,52 +172,40 @@ class DiscoverView(TopologyView):
             return new_rl[0]
 
 
-def _get_data_for_json_view(context, data, key):
-    result = []
-    for item in data:
-        region = item['_source']['region']
-        ts = item['_source']['@timestamp']
-        new_list = []
-        for rec in item['_source'][key]:
-            rec['region'] = region
-            rec['@timestamp'] = ts
-            new_list.append(rec)
-
-        result.append(new_list)
-        return result
+class VolumesDataView(JSONView):
+    def __init__(self):
+        self.data = VolumesData().get()
+        self.key = 'volumes'
+        self.zone_key = 'availability_zone'
 
 
-class VolumeDataView(JSONView):
-    def _get_data(self, context):
-        data = VolumeData().get()
-        return _get_data_for_json_view(context, data, 'volumes')
+class BackupsDataView(JSONView):
+    def __init__(self):
+        self.data = BackupsData().get()
+        self.key = 'backups'
+        self.zone_key = 'availability_zone'
 
 
-class BackupDataView(JSONView):
-    def _get_data(self, context):
-        data = BackupData().get()
-        return _get_data_for_json_view(context, data, 'backups')
+class SnapshotsDataView(JSONView):
+    def __init__(self):
+        self.data = SnapshotsData().get()
+        self.key = 'snapshots'
 
 
-class SnapshotDataView(JSONView):
-    def _get_data(self, context):
-        data = SnapshotData().get()
-        return _get_data_for_json_view(context, data, 'snapshots')
+class ServicesDataView(JSONView):
+    def __init__(self):
+        self.data = ServicesData().get()
+        self.key = 'services'
+        self.zone_key = 'zone'
 
 
-class ServiceDataView(JSONView):
-    def _get_data(self, context):
-        data = ServiceData().get()
-        return _get_data_for_json_view(context, data, 'services')
+class VolumeTypesDataView(JSONView):
+    def __init__(self):
+        self.data = VolTypesData().get()
+        self.key = 'volume_types'
 
 
-class VolumeTypeDataView(JSONView):
-    def _get_data(self, context):
-        data = VolTypeData().get()
-        return _get_data_for_json_view(context, data, 'volume_types')
-
-
-class TransferDataView(JSONView):
-    def _get_data(self, context):
-        data = TransferData().get()
-        return _get_data_for_json_view(context, data, 'transfers')
+class TransfersDataView(JSONView):
+    def __init__(self):
+        self.data = TransfersData().get()
+        self.key = 'transfers'

@@ -22,36 +22,36 @@ class ApiPerfData(ApiPerfData):
     component = 'cinder'
 
 
-class ServiceData(TopologyData):
+class ServicesData(TopologyData):
     _DOC_TYPE = 'cinder_service_list'
     _INDEX_PREFIX = 'goldstone'
 
 
-class VolumeData(TopologyData):
+class VolumesData(TopologyData):
     _DOC_TYPE = 'cinder_volume_list'
     _INDEX_PREFIX = 'goldstone'
 
 
-class BackupData(TopologyData):
+class BackupsData(TopologyData):
     _DOC_TYPE = 'cinder_backup_list'
     _INDEX_PREFIX = 'goldstone'
 
 
-class SnapshotData(TopologyData):
+class SnapshotsData(TopologyData):
     _DOC_TYPE = 'cinder_snapshot_list'
     _INDEX_PREFIX = 'goldstone'
 
 
-class VolTypeData(TopologyData):
+class VolTypesData(TopologyData):
     _DOC_TYPE = 'cinder_voltype_list'
     _INDEX_PREFIX = 'goldstone'
 
 
-class EncryptionTypeData(TopologyData):
+class EncryptionTypesData(TopologyData):
     _DOC_TYPE = 'cinder_encrypttype_list'
     _INDEX_PREFIX = 'goldstone'
 
 
-class TransferData(TopologyData):
+class TransfersData(TopologyData):
     _DOC_TYPE = 'cinder_transfer_list'
     _INDEX_PREFIX = 'goldstone'

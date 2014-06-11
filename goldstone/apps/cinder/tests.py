@@ -17,7 +17,7 @@ __author__ = 'John Stanford'
 import calendar
 from django.test import SimpleTestCase
 from .tasks import *
-from .views import ServiceListApiPerfView
+from .views import *
 from .models import ApiPerfData
 import logging
 import pytz
@@ -91,3 +91,37 @@ class ViewTests(SimpleTestCase):
 
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
+
+
+class DataViewTests(SimpleTestCase):
+
+    def _evaluate(self, response):
+        self.assertIsInstance(response, HttpResponse)
+        self.assertNotEqual(response.content, None)
+        try:
+            j = json.loads(response.content)
+        except:
+            self.fail("Could not convert content to JSON, content was %s",
+                      response.content)
+        else:
+            self.assertIsInstance(j, list)
+            self.assertGreaterEqual(len(j), 1)
+            self.assertIsInstance(j[0], list)
+
+    def test_get_volumes(self):
+        self._evaluate(self.client.get("/cinder/volumes"))
+
+    def test_get_backups(self):
+        self._evaluate(self.client.get("/cinder/backups"))
+
+    def test_get_snapshots(self):
+        self._evaluate(self.client.get("/cinder/snapshots"))
+
+    def test_get_services(self):
+        self._evaluate(self.client.get("/cinder/services"))
+
+    def test_get_volume_types(self):
+        self._evaluate(self.client.get("/cinder/volume_types"))
+
+    def test_get_transfers(self):
+        self._evaluate(self.client.get("/cinder/transfers"))
