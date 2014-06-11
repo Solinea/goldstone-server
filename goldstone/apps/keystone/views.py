@@ -15,7 +15,7 @@
 __author__ = 'John Stanford'
 
 from goldstone.views import *
-from .models import ApiPerfData, ServiceData, EndpointData
+from .models import *
 import logging
 
 logger = logging.getLogger(__name__)
@@ -141,3 +141,33 @@ class DiscoverView(TopologyView):
             return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
         else:
             return rl[0]
+
+
+class EndpointsDataView(JSONView):
+    def __init__(self):
+        self.data = EndpointsData().get()
+        self.key = 'endpoints'
+
+
+class RolesDataView(JSONView):
+    def __init__(self):
+        self.data = RolesData().get()
+        self.key = 'roles'
+
+
+class ServicesDataView(JSONView):
+    def __init__(self):
+        self.data = ServicesData().get()
+        self.key = 'services'
+
+
+class TenantsDataView(JSONView):
+    def __init__(self):
+        self.data = TenantsData().get()
+        self.key = 'tenants'
+
+
+class UsersDataView(JSONView):
+    def __init__(self):
+        self.data = UsersData().get()
+        self.key = 'users'
