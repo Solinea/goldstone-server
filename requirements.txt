@@ -22,7 +22,8 @@ Django==1.6.2
 South==0.8.4
 wsgiref==0.1.2
 django-admin-bootstrapped==1.6.4
-psycopg2==2.5.2
+#psycopg2==2.5.2
+MySQL-python==1.2.4
 django-crispy-forms==1.4.0
 django.js==0.8.1
 pbr==0.8.0

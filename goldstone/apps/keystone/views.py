@@ -56,7 +56,7 @@ class DiscoverView(TopologyView):
     def _get_regions(self):
         return [{"rsrcType": "region", "label": r} for r in
                 self._get_service_regions().union(
-                self._get_endpoint_regions())]
+                    self._get_endpoint_regions())]
 
     def _transform_service_list(self):
 
