@@ -469,13 +469,43 @@ class JSONView(ContextMixin, View):
     A view that renders a JSON response.  This view will also pass into the
     context any keyword arguments passed by the url conf.
     """
+
+    zone_key = None
+
+    def get_context_data(self, **kwargs):
+        context = ContextMixin.get_context_data(self, **kwargs)
+        context['zone'] = self.request.GET.get('zone', None)
+        context['region'] = self.request.GET.get('region', None)
+        return context
+
+    def _get_data_for_json_view(self, context, data, key):
+        result = []
+        for item in data:
+            region = item['_source']['region']
+            if context['region'] is None or context['region'] == region:
+                ts = item['_source']['@timestamp']
+                new_list = []
+                for rec in item['_source'][key]:
+                    if context['zone'] is None or self.zone_key is None or \
+                            context['zone'] == rec[self.zone_key]:
+                        rec['region'] = region
+                        rec['@timestamp'] = ts
+                        new_list.append(rec)
+
+                result.append(new_list)
+
+        return result
+
     def _get_data(self, context):
-        return {}
+        try:
+            return self._get_data_for_json_view(context, self.data, self.key)
+        except TypeError:
+            return [[]]
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
-        return HttpResponse(json.dumps(self._get_data(context)),
-                            mimetype='application/json')
+        content = json.dumps(self._get_data(context))
+        return HttpResponse(content=content, content_type='application/json')
 
 
 class HelpView(TemplateView):

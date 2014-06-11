@@ -328,3 +328,63 @@ class ResourceData(ESData):
     def get_phys_disk(self):
         result = self._get_resource('physical', 'disk', 'used')
         return result
+
+
+class AgentsData(TopologyData):
+    _DOC_TYPE = 'nova_agents_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class AggregatesData(TopologyData):
+    _DOC_TYPE = 'nova_aggregates_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class AvailZonesData(TopologyData):
+    _DOC_TYPE = 'nova_avail_zones_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class CloudpipesData(TopologyData):
+    _DOC_TYPE = 'nova_cloudpipes_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class FlavorsData(TopologyData):
+    _DOC_TYPE = 'nova_flavors_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class FloatingIpPoolsData(TopologyData):
+    _DOC_TYPE = 'nova_floating_ip_pools_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class HostsData(TopologyData):
+    _DOC_TYPE = 'nova_hosts_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class HypervisorsData(TopologyData):
+    _DOC_TYPE = 'nova_hypervisors_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class NetworksData(TopologyData):
+    _DOC_TYPE = 'nova_networks_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class SecGroupsData(TopologyData):
+    _DOC_TYPE = 'nova_secgroups_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class ServersData(TopologyData):
+    _DOC_TYPE = 'nova_servers_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class ServicesData(TopologyData):
+    _DOC_TYPE = 'nova_services_list'
+    _INDEX_PREFIX = 'goldstone'
