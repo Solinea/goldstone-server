@@ -22,7 +22,7 @@ from goldstone.celery import app as celery_app
 import requests
 import logging
 import json
-from .models import ApiPerfData, ImageData
+from .models import ApiPerfData, ImagesData
 from goldstone.utils import _get_client, stored_api_call, \
     to_es_date, _get_glance_client
 
@@ -60,7 +60,7 @@ def time_glance_api(self):
 
 
 def _update_glance_image_records(cl, region):
-    db = ImageData()
+    db = ImagesData()
     il = cl.images.list()
     # image list is a generator, so we need to make it not sol lazy it...
     body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),

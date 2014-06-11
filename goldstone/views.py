@@ -430,7 +430,6 @@ class DiscoverView(TopologyView):
               'conditions': "%source%['region'] == %target%['label']"}
         rl = self._attach_resource(ad, new_cl, rl)
 
-        # bind nova hosts to existing zones
         nl = [nova_topo._build_topology_tree()]
         # convert top level items to nova module
         new_nl = []
