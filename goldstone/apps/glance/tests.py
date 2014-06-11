@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
+from django.http import HttpResponse
 
 __author__ = 'John Stanford'
 
@@ -96,3 +98,31 @@ class ViewTests(SimpleTestCase):
 
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
+
+
+class GlanceDiscoverViewTest(SimpleTestCase):
+
+    def test_good_request(self):
+        url = '/glance/discover'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'glance_discover.html')
+
+
+class DataViewTests(SimpleTestCase):
+
+    def _evaluate(self, response):
+        self.assertIsInstance(response, HttpResponse)
+        self.assertNotEqual(response.content, None)
+        try:
+            j = json.loads(response.content)
+        except:
+            self.fail("Could not convert content to JSON, content was %s",
+                      response.content)
+        else:
+            self.assertIsInstance(j, list)
+            self.assertGreaterEqual(len(j), 1)
+            self.assertIsInstance(j[0], list)
+
+    def test_get_images(self):
+        self._evaluate(self.client.get("/glance/images"))
