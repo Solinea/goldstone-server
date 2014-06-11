@@ -30,7 +30,7 @@ class ApiPerfData(ApiPerfData):
     component = 'glance'
 
 
-class ImageData(TopologyData):
+class ImagesData(TopologyData):
     _DOC_TYPE = 'glance_image_list'
     _INDEX_PREFIX = 'goldstone'
 
