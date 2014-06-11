@@ -25,4 +25,6 @@ urlpatterns = patterns(
         name='glance-report-view'),
     url(r'^api_perf[/]?$', ImageApiPerfView.as_view(),
         name='glance-api-perf'),
+    url(r'^images[/]?$', ImagesDataView.as_view(),
+        name='glance-images'),
 )
