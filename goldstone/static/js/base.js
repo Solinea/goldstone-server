@@ -475,15 +475,8 @@ goldstone.charts.bivariateWithAverage = {
                 $(this.ns.spinner).hide()
             } else {
                 (function (json, ns) {
-                    // set up data, add a time field based on key and convert all times
-                    // to milliseconds
                     json.forEach(function (d) {
                         d.time = new Date(Number(d.key))
-                        d.min = d.min * 1000
-                        d.max = d.max * 1000
-                        d.avg = d.avg * 1000
-                        d.sum_of_squares = d.sum_of_squares * 1000
-                        d.sum = d.sum * 1000
                     })
 
                     // define our x and y scaling functions
