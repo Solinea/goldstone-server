@@ -26,11 +26,26 @@ class ApiPerfData(ApiPerfData):
     component = 'keystone'
 
 
-class ServiceData(TopologyData):
+class EndpointsData(TopologyData):
+    _DOC_TYPE = 'keystone_endpoint_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class RolesData(TopologyData):
+    _DOC_TYPE = 'keystone_role_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class ServicesData(TopologyData):
     _DOC_TYPE = 'keystone_service_list'
     _INDEX_PREFIX = 'goldstone'
 
 
-class EndpointData(TopologyData):
-    _DOC_TYPE = 'keystone_endpoint_list'
+class TenantsData(TopologyData):
+    _DOC_TYPE = 'keystone_tenant_list'
+    _INDEX_PREFIX = 'goldstone'
+
+
+class UsersData(TopologyData):
+    _DOC_TYPE = 'keystone_user_list'
     _INDEX_PREFIX = 'goldstone'
