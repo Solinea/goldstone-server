@@ -72,44 +72,14 @@ function configure_apache() {
     echo "    Options -Indexes" >> $hc
     echo "</Location>" >> $hc
     echo "</VirtualHost>" >> $hc
-    # echo '<Directory /opt/goldstone>'  >> $hc
-    # echo '<Files wsgi.py>' >> $hc
-    # echo 'Require all granted' >> $hc
-    # echo '</Files>' >> $hc
-    # echo '</Directory>' >> $hc
     
     cp -r . /opt/goldstone
     yum install -y python-pip
-    # pip install pip -U
     pip install -r requirements.txt
     mkdir -p /var/www/goldstone/static
     cd /opt/goldstone
     python manage.py collectstatic --settings=goldstone.settings.production --noinput
     service httpd restart
-}
-
-function configure_nginx() {
-    cp -r . /opt/goldstone
-    scl enable python27 'easy_install pip'
-    scl enable python27 'pip install -r requirements.txt'
-    mkdir -p /var/www/goldstone/static
-    cd /opt/goldstone
-    scl enable python27 'pip install gunicorn'
-    # upfile='/etc/init/goldstone.conf'
-    # echo 'description "myapp"' >> $upfile
-    # echo 'start on (filesystem)' >> $upfile
-    # echo 'stop on runlevel [016]' >> $upfile
-    # echo 'respawn' >> $upfile
-    # echo 'console log' >> $upfile
-    # echo 'setuid nobody' >> $upfile
-    # echo 'setgid nogroup' >> $upfile
-    # echo 'chdir /opt/goldstone/goldstone' >> $upfile
-    # echo 'exec /opt/rh/python27/root/usr/bin/gunicorn wsgi:application' >> $upfile
-    yum install -y nginx
-    scl enable python27 'python manage.py collectstatic --settings=goldstone.settings.production --noinput'
-    ln -fs /lib/init/upstart-job /etc/init.d/goldstone
-    chkconfig nginx on
-    service nginx restart
 }
 
 function start_celery() {
@@ -124,6 +94,7 @@ function set_logging() {
     chgrp apache /var/log/goldstone
     touch /var/log/goldstone/goldstone.log
     chown apache /var/log/goldstone/goldstone.log
+    chgrp apache /var/log/goldstone/goldstone.log
 }
 
 function report_status() {
@@ -148,7 +119,6 @@ stage="IPTABLES"; datestamp; result=$(config_iptables >> $logrunname 2>&1); repo
 stage="ELASTICSEARCH"; datestamp; result=$(install_elasticsearch >> $logrunname 2>&1); report_status
 stage="LOGSTASH"; datestamp; result=$(install_logstash >> $logrunname 2>&1); report_status
 stage="LOGGING"; datestamp; result=$(set_logging >> $logrunname 2>&1); report_status
-# stage="POSTGRESQL"; datestamp; result=$(install_pg >> $logrunname 2>&1); report_status
 stage="MySQL"; datestamp; result=$(install_mysql >> $logrunname 2>&1); report_status
 stage="GOLDSTONE"; datestamp; result=$(configure_apache >> $logrunname 2>&1); report_status
 stage="CELERY"; datestamp; result=$(start_celery >> $logrunname 2>&1 ); report_status
