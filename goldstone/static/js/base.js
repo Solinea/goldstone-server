@@ -1029,9 +1029,30 @@ goldstone.charts.topologyTree = {
                     d.html($(data).find('g').removeAttr('xmlns:a').html())
                 })
             })
-        ns.chart.selectAll(".icon.main.endpoint-icon")
+        ns.chart.selectAll(".icon.main.endpoints-leaf-icon")
             .call(function (d) {
                 $.get("/static/images/icon_endpoint.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.roles-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_role.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.tenants-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_tenant.svg", function (data) {
+                    d.html($(data).find('g').removeAttr('xmlns:a').html())
+                })
+            })
+
+        ns.chart.selectAll(".icon.main.users-leaf-icon")
+            .call(function (d) {
+                $.get("/static/images/icon_user.svg", function (data) {
                     d.html($(data).find('g').removeAttr('xmlns:a').html())
                 })
             })
