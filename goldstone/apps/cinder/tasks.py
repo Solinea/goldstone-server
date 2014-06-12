@@ -63,17 +63,17 @@ def discover_cinder_topology(self):
     cl = cinder_access['client']
     reg = cinder_access['region']
 
-    _update_cinder_records("services",  reg, ServiceData(),
+    _update_cinder_records("services",  reg, ServicesData(),
                            cl.services.list())
-    _update_cinder_records("volumes",  reg, VolumeData(),
+    _update_cinder_records("volumes",  reg, VolumesData(),
                            cl.volumes.list())
-    _update_cinder_records("backups",  reg, BackupData(),
+    _update_cinder_records("backups",  reg, BackupsData(),
                            cl.backups.list())
-    _update_cinder_records("snapshots",  reg, SnapshotData(),
+    _update_cinder_records("snapshots",  reg, SnapshotsData(),
                            cl.volume_snapshots.list())
-    _update_cinder_records("volume_types",  reg, VolTypeData(),
+    _update_cinder_records("volume_types",  reg, VolTypesData(),
                            cl.volume_types.list())
-    _update_cinder_records("encryption_types",  reg, EncryptionTypeData(),
+    _update_cinder_records("encryption_types",  reg, EncryptionTypesData(),
                            cl.volume_encryption_types.list())
-    _update_cinder_records("transfers",  reg, TransferData(),
+    _update_cinder_records("transfers",  reg, TransfersData(),
                            cl.transfers.list())
