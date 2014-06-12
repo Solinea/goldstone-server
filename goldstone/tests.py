@@ -181,9 +181,11 @@ class UtilsTests(SimpleTestCase):
         rec = _construct_api_rec(reply, component, ts)
         self.assertIn('response_time', rec)
         td = reply.elapsed
-        total_secs = (td.microseconds + (td.seconds + td.days * 24 * 3600) *
-                      10**6) / 10**6
-        self.assertEqual(rec['response_time'], total_secs)
+        secs = td.seconds + td.days * 24 * 3600
+        microsecs = float(td.microseconds) / 10**6
+        millisecs = int(round((secs * 1000) + (microsecs/1000)))
+
+        self.assertEqual(rec['response_time'], millisecs)
         self.assertIn('response_status', rec)
         self.assertEqual(rec['response_status'], reply.status_code)
         self.assertIn('response_length', rec)

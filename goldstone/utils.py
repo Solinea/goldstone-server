@@ -345,7 +345,8 @@ def _decompose_url(url):
 
 def _construct_api_rec(reply, component, ts):
     td = reply.elapsed
-    secs, microsecs = math.modf(td.total_seconds())
+    secs = td.seconds + td.days * 24 * 3600
+    microsecs = float(td.microseconds) / 10**6
     millisecs = int(round((secs * 1000) + (microsecs/1000)))
     rec = {'response_time': millisecs,
            'response_status': reply.status_code,
