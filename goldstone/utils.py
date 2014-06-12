@@ -36,6 +36,7 @@ import socket
 import functools
 from datetime import date
 import calendar
+import math
 
 
 logger = logging.getLogger(__name__)
@@ -344,9 +345,9 @@ def _decompose_url(url):
 
 def _construct_api_rec(reply, component, ts):
     td = reply.elapsed
-    total_secs = (td.microseconds + (td.seconds + td.days * 24 * 3600) *
-                  10**6) / 10**6
-    rec = {'response_time': total_secs,
+    secs, microsecs = math.modf(td.total_seconds())
+    millisecs = int(round((secs * 1000) + (microsecs/1000)))
+    rec = {'response_time': millisecs,
            'response_status': reply.status_code,
            'response_length': int(reply.headers['content-length']),
            'component': component,
