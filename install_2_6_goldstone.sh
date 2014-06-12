@@ -4,7 +4,8 @@
 # (c) Solinea, Inc  2014
 
 function setup_epel() {
-    yum install -y wget 
+    yum -y update
+    yum install -y wget
     wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
     wget http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
     yum localinstall -y remi-release-6*.rpm epel-release-6*.rpm
@@ -23,8 +24,7 @@ function install_elasticsearch() {
     # yum install -y java-1.7.0-openjdk.x86_64
     # yum install -y gcc
     # yum install -y gcc-c++
-    # yum install -y python-devel
-    yum install -y libffi-devel openssl-devel
+    yum install -y python-devel libffi-devel openssl-devel
     yum install -y httpd mod_wsgi
     yum install -y redis
     curl -XGET https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.noarch.rpm > elasticsearch-1.1.1.noarch.rpm
@@ -75,18 +75,17 @@ function configure_apache() {
     echo "    Options -Indexes" >> $hc
     echo "</Location>" >> $hc
     echo "</VirtualHost>" >> $hc
-    echo '<Directory /opt/goldstone>'  >> $hc
-    echo '<Files wsgi.py>' >> $hc
-    echo 'Require all granted' >> $hc
-    echo '</Files>' >> $hc
-    echo '</Directory>' >> $hc
+    # echo '<Directory /opt/goldstone>'  >> $hc
+    # echo '<Files wsgi.py>' >> $hc
+    # echo 'Require all granted' >> $hc
+    # echo '</Files>' >> $hc
+    # echo '</Directory>' >> $hc
     
     cp -r . /opt/goldstone
-    easy_install pip
+    yum install -y python-pip
     pip install -r requirements.txt
     mkdir -p /var/www/goldstone/static
     cd /opt/goldstone
-    # pip install mod_wsgi
     python manage.py collectstatic --settings=goldstone.settings.production --noinput
     service httpd restart
 }
@@ -125,6 +124,8 @@ function set_logging() {
     mkdir -p /var/log/goldstone
     chown apache /var/log/goldstone
     chgrp apache /var/log/goldstone
+    touch /var/log/goldstone/goldstone.log
+    chown apache /var/log/goldstone/goldstone.log
 }
 
 function report_status() {
@@ -151,7 +152,7 @@ stage="LOGSTASH"; datestamp; result=$(install_logstash >> $logrunname 2>&1); rep
 stage="LOGGING"; datestamp; result=$(set_logging >> $logrunname 2>&1); report_status
 # stage="POSTGRESQL"; datestamp; result=$(install_pg >> $logrunname 2>&1); report_status
 stage="MySQL"; datestamp; result=$(install_mysql >> $logrunname 2>&1); report_status
-stage="GOLDSTONE"; datestamp; result=$(configure_goldstone >> $logrunname 2>&1); report_status
+stage="GOLDSTONE"; datestamp; result=$(configure_apache >> $logrunname 2>&1); report_status
 stage="CELERY"; datestamp; result=$(start_celery >> $logrunname 2>&1 ); report_status
 d=`date`
 echo -e "${d}	${green_text}[ FINISHED ]${txtrst}"
