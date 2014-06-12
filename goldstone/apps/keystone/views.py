@@ -39,11 +39,7 @@ class DiscoverView(TopologyView):
         return 'keystone_discover.html'
 
     def __init__(self):
-        self.services = ServiceData().get()
-        self.endpoints = EndpointData().get()
-
-    def _get_service_regions(self):
-        return set([s['_source']['region'] for s in self.services])
+        self.endpoints = EndpointsData().get()
 
     def _get_endpoint_regions(self):
         return set(
@@ -55,87 +51,64 @@ class DiscoverView(TopologyView):
 
     def _get_regions(self):
         return [{"rsrcType": "region", "label": r} for r in
-                self._get_service_regions().union(
-                    self._get_endpoint_regions())]
+                self._get_endpoint_regions()]
 
-    def _transform_service_list(self):
+    def _populate_regions(self):
+        result = []
+        updated = self.endpoints[0]['_source']['@timestamp']
+        for r in self._get_endpoint_regions():
+            result.append(
+                {"rsrcType": "region",
+                 "label": r,
+                 "info": {"last_updated": updated},
+                 "children": [
+                     {
+                         "rsrcType": "endpoints-leaf",
+                         "label": "endpoints",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     },
+                     {
+                         "rsrcType": "roles-leaf",
+                         "label": "roles",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     },
+                     {
+                         "rsrcType": "services-leaf",
+                         "label": "services",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     },
+                     {
+                         "rsrcType": "tenants-leaf",
+                         "label": "tenants",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     },
+                     {
+                         "rsrcType": "users-leaf",
+                         "label": "users",
+                         "region": r,
+                         "info": {
+                             "last_update": updated
+                         }
+                     }
+                 ]}
+            )
 
-        try:
-            logger.debug("in _transform_service_list, s[0] = %s",
-                         json.dumps(self.services[0]))
-            updated = self.services[0]['_source']['@timestamp']
-            region = self.services[0]['_source']['region']
-            return [
-                {"rsrcType": "service",
-                 "label": s['name'],
-                 "enabled": s['enabled'],
-                 "region": region,
-                 "info": {
-                     "id": s['id'],
-                     "description": s['description'],
-                     "type": s['type'],
-                     "last_update": updated
-
-                 }} for s in self.services[0]['_source']['services']
-            ]
-        except Exception as e:
-            logger.exception(e)
-            return []
-
-    def _transform_endpoint_list(self):
-
-        try:
-            updated = self.endpoints[0]['_source']['@timestamp']
-            return [
-                {"rsrcType": "endpoint",
-                 "service_id": s['service_id'],
-                 "info": {
-                     "id": s['id'],
-                     "admin_URL": s['adminurl'],
-                     "internal_URL": s['internalurl'],
-                     "public_URL": s['publicurl'],
-                     "last_update": updated
-                 }} for s in self.endpoints[0]['_source']['endpoints']
-            ]
-        except Exception as e:
-            logger.exception(e)
-            return []
-
-    def _map_service_children(self):
-        """
-        use the service ID of the endpoint to append a child to the list
-        of service children.
-        """
-        sl = self._transform_service_list()
-        el = self._transform_endpoint_list()
-
-        for s in sl:
-            children = []
-            for e in el:
-                if e['service_id'] == s['info']['id']:
-                    children.append(e)
-            if len(children) > 0:
-                s['children'] = children
-
-        for s in sl:
-            for e in s['children']:
-                e['label'] = s['label']
-                del e['service_id']
-
-        return sl
+        return result
 
     def _build_topology_tree(self):
-        rl = self._get_regions()
-        if len(rl) == 0:
-            return {}
-
-        sl = self._map_service_children()
-
-        ad = {'sourceRsrcType': 'service',
-              'targetRsrcType': 'region',
-              'conditions': "%source%['region'] == %target%['label']"}
-
-        rl = self._attach_resource(ad, sl, rl)
+        rl = self._populate_regions()
 
         if len(rl) > 1:
             return {"rsrcType": "cloud", "label": "Cloud", "children": rl}

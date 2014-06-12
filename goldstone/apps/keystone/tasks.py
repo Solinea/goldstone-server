@@ -23,10 +23,9 @@ import requests
 import logging
 from datetime import datetime
 import json
-from .models import ApiPerfData, ServiceData, EndpointData
-from goldstone.utils import _construct_api_rec, _decompose_url, \
-    _get_keystone_client, get_region_for_keystone_client, utc_timestamp, \
-    to_es_date
+from .models import *
+from goldstone.utils import _construct_api_rec, \
+    _get_keystone_client, to_es_date, get_region_for_keystone_client
 
 logger = logging.getLogger(__name__)
 
@@ -56,41 +55,32 @@ def time_keystone_api(self):
     }
 
 
-def _update_keystone_service_records(cl):
-    db = ServiceData()
-    sl = [s.to_dict() for s in cl.services.list()]
-    region = get_region_for_keystone_client(cl)
+def _update_keystone_records(rec_type, region, db, items):
+
+    # image list is a generator, so we need to make it not sol lazy it...
     body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
             "region": region,
-            "services": sl}
+            rec_type: [item.to_dict() for item in items]}
     try:
         db.post(body)
     except Exception as e:
         logging.exception(e)
-        logger.warn("failed to index keystone services")
-
-
-def _update_keystone_endpoint_records(cl):
-    db = EndpointData()
-    el = [e.to_dict() for e in cl.endpoints.list()]
-    for ep in el:
-        ep['adminurl_detail'] = _decompose_url(ep['adminurl'])
-        ep['internalurl_detail'] = _decompose_url(ep['internalurl'])
-        ep['publicurl_detail'] = _decompose_url(ep['publicurl'])
-
-    try:
-
-        logger.debug("endpoint list = %s", json.dumps(el))
-        db.post({"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
-                 "endpoints": el})
-    except Exception as e:
-        logging.exception(e)
-        logger.warn("failed to index keystone endpoint list")
+        logger.warn("failed to index keystone %s", rec_type)
 
 
 @celery_app.task(bind=True)
 def discover_keystone_topology(self):
-    keystone_access = _get_keystone_client()
-    c = keystone_access['client']
-    _update_keystone_service_records(c)
-    _update_keystone_endpoint_records(c)
+    access = _get_keystone_client()
+    cl = access['client']
+    reg = get_region_for_keystone_client(cl)
+
+    _update_keystone_records("endpoints",  reg, EndpointsData(),
+                             cl.endpoints.list())
+    _update_keystone_records("roles",  reg, RolesData(),
+                             cl.roles.list())
+    _update_keystone_records("services",  reg, ServicesData(),
+                             cl.services.list())
+    _update_keystone_records("tenants",  reg, TenantsData(),
+                             cl.tenants.list())
+    _update_keystone_records("users",  reg, UsersData(),
+                             cl.users.list())
