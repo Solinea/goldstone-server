@@ -238,11 +238,21 @@ class LogData(object):
 
         return result
 
+    def _escape(self, str):
+        """Escape lucene reserved characters in string."""
+        s = list(str)
+        reserved = ["+", "-" "!", "(", ")", "{", "}", "[", "]", '"',
+                    "~", ":", "\\", "/"]
+        for i, c in enumerate(str):
+            if c in reserved:
+                if c == "\000":
+                    s[i] = "\\000"
+                else:
+                    s[i] = "\\" + c
+        return str[:0].join(s)
+
     def get_log_data(self, conn, start_t, end_t, first, size,
                      level_filters=dict(), sort='', search_text=None):
-
-        if search_text:
-            search_text = "*" + search_text + "*"
 
         q = {
             "query": {
@@ -263,11 +273,13 @@ class LogData(object):
         }
 
         if search_text:
+            escaped_search_text = self._escape(search_text)
 
             sq = {
                 "query_string": {
                     "default_operator": "AND",
-                    "query": search_text
+                    "query": escaped_search_text,
+                    "lenient": "true"
                 }
             }
             q['query']['bool']['must'].append(sq)
@@ -284,7 +296,7 @@ class LogData(object):
                 'query': {'filtered': q}
             }
 
-        logger.debug("[get_log_data] query = %s", q)
+        logger.debug("[get_log_data] query = %s", json.dumps(q))
         return conn.search(index="_all", body=q, from_=first, size=size,
                            sort=sort)
 
