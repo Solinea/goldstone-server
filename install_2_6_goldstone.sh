@@ -12,9 +12,6 @@ function setup_epel() {
     
     # turn off SE Linux to troubleshoot
     echo 0 >/selinux/enforce
-    # get python 2.7
-    # yum install -y centos-release-SCL
-    # yum install -y python27
 }
 
 function install_elasticsearch() {
@@ -39,7 +36,7 @@ function install_logstash() {
     /opt/logstash/bin/plugin install contrib  # required for translate plugin
     cp external/logstash/conf.d/* /etc/logstash/conf.d/
     cp external/logstash/patterns/goldstone /opt/logstash/patterns/goldstone
-    service logstash start 
+    service logstash restart 
 }
 
 function config_iptables() {
@@ -83,6 +80,7 @@ function configure_apache() {
     
     cp -r . /opt/goldstone
     yum install -y python-pip
+    # pip install pip -U
     pip install -r requirements.txt
     mkdir -p /var/www/goldstone/static
     cd /opt/goldstone
