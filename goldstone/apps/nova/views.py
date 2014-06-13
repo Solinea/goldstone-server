@@ -407,22 +407,26 @@ class DiscoverView(TopologyView):
         return result
 
     def _build_topology_tree(self):
-        updated = self.azs[0]['_source']['@timestamp']
-        rl = self._populate_regions()
-        new_rl = []
-        for region in rl:
-            zl = self._get_zones(updated, region['label'])
-            ad = {'sourceRsrcType': 'zone',
-                  'targetRsrcType': 'region',
-                  'conditions': "%source%['region'] == %target%['label']"}
-            region = self._attach_resource(ad, zl, [region])[0]
+        try:
+            updated = self.azs[0]['_source']['@timestamp']
+            rl = self._populate_regions()
+            new_rl = []
+            for region in rl:
+                zl = self._get_zones(updated, region['label'])
+                ad = {'sourceRsrcType': 'zone',
+                      'targetRsrcType': 'region',
+                      'conditions': "%source%['region'] == %target%['label']"}
+                region = self._attach_resource(ad, zl, [region])[0]
 
-            new_rl.append(region)
+                new_rl.append(region)
 
-        if len(new_rl) > 1:
-            return {"rsrcType": "cloud", "label": "Cloud", "children": new_rl}
-        else:
-            return new_rl[0]
+            if len(new_rl) > 1:
+                return {"rsrcType": "cloud", "label": "Cloud",
+                        "children": new_rl}
+            else:
+                return new_rl[0]
+        except IndexError:
+            return {"rsrcType": "error", "label": "No data found"}
 
 
 class AgentsDataView(JSONView):
