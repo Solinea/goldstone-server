@@ -14,6 +14,7 @@ from __future__ import unicode_literals
 # limitations under the License.
 
 import copy
+from django.shortcuts import render
 
 __author__ = 'John Stanford'
 
@@ -29,6 +30,17 @@ import json
 import pandas as pd
 import logging
 import pytz
+from cinderclient.exceptions import AuthorizationFailure as CinderAuthException
+from cinderclient.openstack.common.apiclient.exceptions \
+    import AuthorizationFailure as CinderApiAuthException
+from novaclient.exceptions import AuthorizationFailure \
+    as NovaAuthException
+from novaclient.openstack.common.apiclient.exceptions \
+    import AuthorizationFailure as NovaApiAuthException
+from keystoneclient.openstack.common.apiclient.exceptions \
+    import AuthorizationFailure as KeystoneApiAuthException
+from ceilometerclient.openstack.common.apiclient.exceptions \
+    import AuthorizationFailure as CeilometerAuthException
 
 logger = logging.getLogger(__name__)
 
@@ -340,16 +352,25 @@ class TopologyView(TemplateView):
         Overriding to handle case of data only request (render=False).  In
         that case an application/json data payload is returned.
         """
-        response = self._build_topology_tree()
-        if isinstance(response, HttpResponseBadRequest):
-            return response
+        try:
+            response = self._build_topology_tree()
+            if isinstance(response, HttpResponseBadRequest):
+                return response
 
-        if self.template_name is None:
-            return HttpResponse(json.dumps(response),
-                                content_type="application/json")
+            if self.template_name is None:
+                return HttpResponse(json.dumps(response),
+                                    content_type="application/json")
 
-        return TemplateView.render_to_response(
-            self, {'data': json.dumps(response)})
+            return TemplateView.render_to_response(
+                self, {'data': json.dumps(response)})
+        except (CinderAuthException, CinderApiAuthException, NovaAuthException,
+                NovaApiAuthException, KeystoneApiAuthException,
+                CeilometerAuthException) as e:
+            logger.exception(e)
+            if self.template_name is None:
+                return HttpResponse(status=401)
+            else:
+                return render(self.request, '401.html', status=401)
 
 
 class DiscoverView(TopologyView):
