@@ -25,6 +25,7 @@ function install_elasticsearch() {
     yum install -y httpd mod_wsgi
     yum install -y redis
     service redis start
+    chkconfig --add redis
     curl -XGET https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.noarch.rpm > elasticsearch-1.1.1.noarch.rpm
     yum localinstall -y elasticsearch-1.1.1.noarch.rpm
     chkconfig --add elasticsearch
