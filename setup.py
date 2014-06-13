@@ -21,14 +21,15 @@ sys.prefix = "/opt/goldstone"
 
 setuptools.setup(
     setup_requires=['pbr'],
-    data_files = [('external/rsyslog','external/rsyslog/rsyslog.conf'),
-                  ('external/rsyslog/rsyslog.d/', 'external/rsyslog/rsyslog.d/10-goldstone.conf'),
-                  ('external/logstash/patterns/', 'external/logstash/patterns/goldstone'),
+    data_files = 
+		  [('external/rsyslog',['external/rsyslog/rsyslog.conf']),
+                  ('external/rsyslog/rsyslog.d/', ['external/rsyslog/rsyslog.d/10-goldstone.conf']),
+                  ('external/logstash/patterns/', ['external/logstash/patterns/goldstone']),
                   ('external/logstash/conf.d/', ['external/logstash/conf.d/02-input-tcp5514',
                    'external/logstash/conf.d/34-filter-openstack-syslog', 'external/logstash/conf.d/35-filter-nova-claims',
                    'external/logstash/conf.d/36-filter-nova-spawns', 'external/logstash/conf.d/37-filter-nova-api-stats',
                    'external/logstash/conf.d/38-filter-goldstone-nodeinfo', 'external/logstash/conf.d/50-filter-generic-syslog',
                    'external/logstash/conf.d/67-output-debug', 'external/logstash/conf.d/68-ouput-elasticsearch']),
-                  ("",['install_goldstone.sh', 'requirements.txt', 'setup.cfg', 'setup.py', 'manage.py',
+                  ('',['install_goldstone.sh', 'requirements.txt', 'setup.cfg', 'setup.py', 'manage.py',
                         'README.rst', 'INSTALL.rst', 'OSS_LICENSE_DISCLOSURE.pdf'])],
     pbr=True)
