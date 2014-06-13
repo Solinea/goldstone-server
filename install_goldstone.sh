@@ -24,6 +24,7 @@ function install_elasticsearch() {
     yum install -y python-devel libffi-devel openssl-devel
     yum install -y httpd mod_wsgi
     yum install -y redis
+    service redis start
     curl -XGET https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.noarch.rpm > elasticsearch-1.1.1.noarch.rpm
     yum localinstall -y elasticsearch-1.1.1.noarch.rpm
     chkconfig --add elasticsearch
@@ -83,7 +84,9 @@ function configure_apache() {
 }
 
 function start_celery() {
-    export DJANGO_SETTINGS_MODULE=goldstone.settings.production; celery worker --app=goldstone --loglevel=info --beat
+    useradd -m goldstone
+    cd /opt/goldstone
+    export DJANGO_SETTINGS_MODULE=goldstone.settings.production; celery worker --app=goldstone --loglevel=info --beat --uid=goldstone
 }
 
 function set_logging() {
