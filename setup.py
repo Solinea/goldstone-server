@@ -16,6 +16,12 @@ __author__ = 'Ken Pepple'
 
 import setuptools
 
+import sys
+sys.prefix = /opt/goldstone
+
 setuptools.setup(
     setup_requires=['pbr'],
+    data_files = [('external/',['external/*']),
+                  ("",['install_goldstone.sh', 'requirements.txt',
+                  'setup.cfg', 'setup.py', 'manage.py'])],
     pbr=True)
