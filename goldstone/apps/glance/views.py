@@ -75,13 +75,16 @@ class DiscoverView(TopologyView):
         return result
 
     def _build_topology_tree(self):
-        updated = self.images[0]['_source']['@timestamp']
-        rl = self._populate_regions()
+        try:
+            updated = self.images[0]['_source']['@timestamp']
+            rl = self._populate_regions()
 
-        if len(rl) > 1:
-            return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
-        else:
-            return rl[0]
+            if len(rl) > 1:
+                return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
+            else:
+                return rl[0]
+        except IndexError:
+            return {"rsrcType": "error", "label": "No data found"}
 
 
 class ImagesDataView(JSONView):
