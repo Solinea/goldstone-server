@@ -39,8 +39,6 @@ from novaclient.openstack.common.apiclient.exceptions \
     import AuthorizationFailure as NovaApiAuthException
 from keystoneclient.openstack.common.apiclient.exceptions \
     import AuthorizationFailure as KeystoneApiAuthException
-from ceilometerclient.openstack.common.apiclient.exceptions \
-    import AuthorizationFailure as CeilometerAuthException
 
 logger = logging.getLogger(__name__)
 
@@ -286,8 +284,8 @@ class TopologyView(TemplateView):
                 return [c for l in result for c in l]
             else:
                 return result
-                # anything else is a leaf that doesn't match and has no
-                # children, so we don't return anything.
+        else:
+            return []
 
     def _attach_resource(self, attach_descriptor, source, target):
         """
@@ -364,8 +362,7 @@ class TopologyView(TemplateView):
             return TemplateView.render_to_response(
                 self, {'data': json.dumps(response)})
         except (CinderAuthException, CinderApiAuthException, NovaAuthException,
-                NovaApiAuthException, KeystoneApiAuthException,
-                CeilometerAuthException) as e:
+                NovaApiAuthException, KeystoneApiAuthException) as e:
             logger.exception(e)
             if self.template_name is None:
                 return HttpResponse(status=401)
@@ -441,24 +438,27 @@ class DiscoverView(TopologyView):
         # convert top level items to cinder modules
         new_cl = []
         for c in cl:
-            c['rsrcType'] = 'module'
-            c['region'] = c['label']
-            c['label'] = 'cinder'
-            new_cl.append(c)
+            if c['rsrcType'] != 'error':
+                c['rsrcType'] = 'module'
+                c['region'] = c['label']
+                c['label'] = 'cinder'
+                new_cl.append(c)
 
         ad = {'sourceRsrcType': 'module',
               'targetRsrcType': 'region',
               'conditions': "%source%['region'] == %target%['label']"}
+
         rl = self._attach_resource(ad, new_cl, rl)
 
         nl = [nova_topo._build_topology_tree()]
         # convert top level items to nova module
         new_nl = []
         for n in nl:
-            n['rsrcType'] = 'module'
-            n['region'] = n['label']
-            n['label'] = 'nova'
-            new_nl.append(n)
+            if c['rsrcType'] != 'error':
+                n['rsrcType'] = 'module'
+                n['region'] = n['label']
+                n['label'] = 'nova'
+                new_nl.append(n)
 
         rl = self._attach_resource(ad, new_nl, rl)
 
@@ -480,8 +480,10 @@ class DiscoverView(TopologyView):
 
         if len(rl) > 1:
             return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
-        else:
+        elif len(rl) == 1:
             return rl[0]
+        else:
+            return {"rsrcType": "error", "label": "No data found"}
 
 
 class JSONView(ContextMixin, View):
