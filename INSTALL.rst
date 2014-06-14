@@ -47,7 +47,7 @@ Once you are sure that your server or VM meets those requirements, install these
 RUN GOLDSTONE INSTALLER
 ***********************
 
-script and run script
+Now run the goldstone installer script as root:
 
 # ./install_goldstone.sh
 
