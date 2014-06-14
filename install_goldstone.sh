@@ -99,6 +99,8 @@ function set_logging() {
     touch /var/log/goldstone/goldstone.log
     chown apache /var/log/goldstone/goldstone.log
     chgrp apache /var/log/goldstone/goldstone.log
+    # Allow apache and celery to log here
+    chmod 777 /var/log/goldstone/goldstone.log
 }
 
 function report_status() {
