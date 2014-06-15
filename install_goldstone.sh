@@ -77,7 +77,6 @@ function configure_apache() {
     echo "</Location>" >> $hc
     echo "</VirtualHost>" >> $hc
     
-    cp -r . /opt/goldstone
     yum install -y python-pip
     pip install -r requirements.txt
     mkdir -p /var/www/goldstone/static
