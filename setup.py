@@ -16,8 +16,8 @@ __author__ = 'Ken Pepple'
 
 import setuptools
 
-import sys
-sys.prefix = "/opt/goldstone"
+#import sys
+#sys.prefix = "/opt/goldstone"
 
 setuptools.setup(
     setup_requires=['pbr'],
