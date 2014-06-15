@@ -47,8 +47,20 @@ Once you are sure that your server or VM meets those requirements, install these
 RUN GOLDSTONE INSTALLER
 ***********************
 
+First, add the goldstone repository then install the goldstone application.
+
+# cat << EOF > /etc/yum.repos.d/goldstone.repo
+> [goldstone]
+> name=goldstone
+> baseurl=http://repo.solinea.com/repo
+> enabled=1
+> gpgcheck=0
+> EOF
+# yum install goldstone
+
 Now run the goldstone installer script as root:
 
+# cd /opt/goldstone
 # ./install_goldstone.sh
 
 The output of this script will look like this:
