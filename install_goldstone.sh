@@ -91,6 +91,7 @@ function start_celery() {
     useradd -m goldstone
     chown goldstone /opt/goldstone
     cd /opt/goldstone
+    python -c 'from goldstone.apps.core.tasks import create_daily_index; create_daily_index()'
     export DJANGO_SETTINGS_MODULE=goldstone.settings.production; celery worker --app=goldstone --loglevel=warn --beat --uid=goldstone &
 }
 
