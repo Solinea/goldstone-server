@@ -91,7 +91,7 @@ function start_celery() {
     useradd -m goldstone
     chown goldstone /opt/goldstone
     cd /opt/goldstone
-    export DJANGO_SETTINGS_MODULE=goldstone.settings.production; celery worker --app=goldstone --loglevel=warn --beat --uid=goldstone
+    export DJANGO_SETTINGS_MODULE=goldstone.settings.production; celery worker --app=goldstone --loglevel=warn --beat --uid=goldstone &
 }
 
 function set_logging() {
