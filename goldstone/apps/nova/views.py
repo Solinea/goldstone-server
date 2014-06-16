@@ -24,7 +24,6 @@ from django.views.generic import TemplateView
 from .models import *
 from goldstone.views import *
 from goldstone.views import _validate
-from goldstone.apps.intelligence.views import _host_presence_stats
 from datetime import datetime, timedelta
 import pytz
 import json
