@@ -26,14 +26,14 @@ function install_elasticsearch() {
     yum install -y redis
     service redis start
     chkconfig --add redis
-    curl -XGET https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.noarch.rpm > elasticsearch-1.1.1.noarch.rpm
+    curl -k -XGET https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.noarch.rpm > elasticsearch-1.1.1.noarch.rpm
     yum localinstall -y elasticsearch-1.1.1.noarch.rpm
     chkconfig --add elasticsearch
     service elasticsearch start
 }
 
 function install_logstash() {
-    curl -XGET https://download.elasticsearch.org/logstash/logstash/packages/centos/logstash-1.4.0-1_c82dc09.noarch.rpm > logstash-1.4.0-1_c82dc09.noarch.rpm
+    curl -k -XGET https://download.elasticsearch.org/logstash/logstash/packages/centos/logstash-1.4.0-1_c82dc09.noarch.rpm > logstash-1.4.0-1_c82dc09.noarch.rpm
     yum localinstall -y logstash-1.4.0-1_c82dc09.noarch.rpm
     cd /opt/logstash
     ./bin/plugin install contrib  # required for translate plugin
