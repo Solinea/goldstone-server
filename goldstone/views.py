@@ -57,7 +57,6 @@ def _validate(arg_list, context):
     context = context.copy()
     validation_errors = []
 
-    # TODO GOLD-280 TODO: need to check for key existence in _validate first
     context['end_dt'] = _parse_timestamp(context['end'])
     if context['end_dt'] is None:
         validation_errors.append('malformed parameter [end]')

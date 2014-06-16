@@ -157,10 +157,6 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.apps.core.tasks.create_daily_index',
         'schedule': DAILY_INDEX_CREATE_INTERVAL,
     },
-    'nova-az-list': {
-        'task': 'goldstone.apps.nova.tasks.nova_az_list',
-        'schedule': TOPOLOGY_QUERY_INTERVAL,
-    },
     'nova-hypervisors-stats': {
         'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
         'schedule': RESOURCE_QUERY_INTERVAL,
