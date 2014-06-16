@@ -58,6 +58,14 @@ First, add the goldstone repository then install the goldstone application.
 > EOF
 # yum install goldstone
 
+Once the goldstone rpm is installed, edit the /opt/goldstone/goldstone/settings/production.py file to add your OpenStack admin credentials. These are located at the bottom of the file:
+
+OS_USERNAME = 'admin'
+OS_PASSWORD = 'fe6ac09d85041ae384c66a83e362f565'
+OS_TENANT_NAME = 'admin'
+OS_AUTH_URL = 'http://10.10.15.230:5000/v2.0'
+
+
 Now run the goldstone installer script as root:
 
 # cd /opt/goldstone
@@ -84,13 +92,6 @@ Sat Jun  7 14:51:44 PDT 2014	CELERY         [ DONE ]
 Sat Jun  7 14:52:44 PDT 2014	[ FINISHED ]
 
 This script may take up to 2 hours to run, as it needs to compile a number of libraries. While it is running, you can monitor the install.log file for low-level reports on its activities.
-
-Once the script has finished, edit the /opt/goldstone/goldstone/settings/production.py file to add your OpenStack admin credentials. These are located at the bottom of the file:
-
-OS_USERNAME = 'admin'
-OS_PASSWORD = 'fe6ac09d85041ae384c66a83e362f565'
-OS_TENANT_NAME = 'admin'
-OS_AUTH_URL = 'http://10.10.15.230:5000/v2.0'
 
 
 DIRECT LOGS TO GOLDSTONE SERVER
