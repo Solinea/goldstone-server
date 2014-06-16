@@ -622,7 +622,6 @@ goldstone.charts.bivariateWithAverage = {
                         .attr('class', 'hiddenBar')
                         .attr("height", ns.mh)
                         .attr("width", hiddenBarWidth)
-                        // TODO GOLD-303 TODO: fix excessive firing of events when passing through the partial rectangle
                         .on('mouseenter', function (d, i) {
                             var rectId = ns.location + " #verticalRect" + i,
                                 guideId = ns.location + " #verticalGuideLine" + i,

@@ -27,6 +27,4 @@ urlpatterns = patterns(
         log_event_histogram, name='bad-event-data'),
     url(r'^log/search/data[/]?$', log_search_data,
         name='intel-log-search-data'),
-    url(r'^host_presence_stats[/]?$', host_presence_stats,
-        name='host_presence_stats'),
 )

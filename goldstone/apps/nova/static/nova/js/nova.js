@@ -299,9 +299,6 @@ goldstone.nova.util.renderRsrcChart = function (ns) {
                         return d.value[2]
                     })
 
-                // TODO GOLD-279 TODO: why are the legends different forms (block vs line) for the various resource charts?
-                // looks like adding the dashStyle to a composite chart forces the legends to be lines.  Without
-                // this statement, they are rects.
                 ns.totalPhysChart.dashStyle([5, 3])
 
                 ns.chart
