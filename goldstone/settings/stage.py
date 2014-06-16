@@ -15,3 +15,10 @@
 __author__ = 'Ken Pepple'
 
 from .base import *
+
+OS_USERNAME = 'admin'
+OS_PASSWORD = 'fe67c09d85041ae383c66a83e362f566'
+OS_TENANT_NAME = 'admin'
+OS_AUTH_URL = 'http://10.10.11.230:5000/v2.0'
+
+ES_SERVER = "10.10.11.122:9200"
