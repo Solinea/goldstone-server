@@ -274,7 +274,6 @@ class ResourceData(ESData):
         doc_type = self._PHYS_DOC_TYPE
         if resource_type == 'virtual':
             doc_type = self._VIRT_DOC_TYPE
-        # TODO GOLD-275 need an error handling strategy for ES queries
         r = self._conn.search(index="_all", body=q, size=0, doc_type=doc_type)
 
         logger.debug('[_get_resource] search response = = %s', json.dumps(r))
