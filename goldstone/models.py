@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from goldstone.apps.core.tasks import create_daily_index
 
 __author__ = 'John Stanford'
 
@@ -63,8 +64,18 @@ class ESData(object):
         try:
             return candidates.pop()
         except IndexError:
-            raise NoDailyIndex("No daily indices with prefix " +
-                               prefix + " found.")
+            # if we can't find a goldstone index, let's just create one
+            if prefix == 'goldstone':
+                create_daily_index()
+                candidates = [k for k in
+                              self._conn.indices.status()['indices'].keys() if
+                              k.startswith(prefix + "-")]
+                candidates.sort()
+                try:
+                    return candidates.pop()
+                except IndexError:
+                    raise NoDailyIndex("No daily indices with prefix " +
+                                       prefix + " found.")
 
     #
     # query construction helpers
