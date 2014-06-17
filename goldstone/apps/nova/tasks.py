@@ -58,7 +58,8 @@ def time_nova_api(self):
 
     # check for existing hypervisors. if they exist, redo the call with a
     # single hypervisor for a more consistent result.
-    if result['reply'].status_code == requests.codes.ok:
+    if result['reply'] is not None and \
+            result['reply'].status_code == requests.codes.ok:
         body = json.loads(result['reply'].text)
         if 'hypervisors' in body and len(body['hypervisors']) > 0:
             result = stored_api_call("nova", "compute",

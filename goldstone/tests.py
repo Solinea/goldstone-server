@@ -127,6 +127,7 @@ class UtilsTests(SimpleTestCase):
         bad_endpoint = 'xyz'
         path = '/os-hypervisors'
         bad_path = '/xyz'
+        timeout = settings.API_PERF_QUERY_TIMEOUT
 
         # hairy.  need to mock the Client.service_catalog.get_endpoints() call
         # two ways.  1) raise an exception, 2) return a url
@@ -140,20 +141,21 @@ class UtilsTests(SimpleTestCase):
         kc.return_value = {'client': c,
                            'hex_token': 'mock_token'}
         self.assertRaises(LookupError, stored_api_call, component,
-                          bad_endpoint, path)
+                          bad_endpoint, path, timeout=timeout)
         c.service_catalog.get_endpoints.side_effect = None
         c.service_catalog.get_endpoints.return_value = {
             endpoint: [{'publicURL': fake_response.url}]
         }
         fake_response.status_code = 404
         get.return_value = fake_response
-        bad_path_call = stored_api_call(component, endpoint, bad_path)
+        bad_path_call = stored_api_call(component, endpoint, bad_path,
+                                        timeout=timeout)
         self.assertIn('reply', bad_path_call)
         self.assertIn('db_record', bad_path_call)
         self.assertEquals(bad_path_call['db_record']['response_status'], 404)
         fake_response.status_code = 200
         get.return_value = fake_response
-        good_call = stored_api_call(component, endpoint, path)
+        good_call = stored_api_call(component, endpoint, path, timeout=timeout)
         self.assertIn('reply', good_call)
         self.assertIn('db_record', good_call)
         self.assertEquals(good_call['db_record']['response_status'], 200)
@@ -163,6 +165,7 @@ class UtilsTests(SimpleTestCase):
         component = 'abc'
         endpoint = 'compute'
         path = '/os-hypervisors'
+        timeout = settings.API_PERF_QUERY_TIMEOUT
         ts = datetime.utcnow()
         fake_response = Response()
         fake_response.status_code = 200
@@ -173,17 +176,17 @@ class UtilsTests(SimpleTestCase):
         sac.return_value = {
             'reply': fake_response
         }
-        good_call = stored_api_call(component, endpoint, path)
+        good_call = stored_api_call(component, endpoint, path, timeout=timeout)
         self.assertTrue(sac.called)
         self.assertIn('reply', good_call)
         reply = good_call['reply']
 
-        rec = _construct_api_rec(reply, component, ts)
+        rec = _construct_api_rec(reply, component, ts, timeout, path)
         self.assertIn('response_time', rec)
         td = reply.elapsed
         secs = td.seconds + td.days * 24 * 3600
         microsecs = float(td.microseconds) / 10**6
-        millisecs = int(round((secs * 1000) + (microsecs/1000)))
+        millisecs = int(round((secs + microsecs) * 1000))
 
         self.assertEqual(rec['response_time'], millisecs)
         self.assertIn('response_status', rec)
