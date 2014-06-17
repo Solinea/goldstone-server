@@ -282,7 +282,7 @@ class ESData(object):
 
 class ApiPerfData(ESData):
     _DOC_TYPE = 'openstack_api_stats'
-    _INDEX_PREFIX = 'logstash'
+    _INDEX_PREFIX = 'goldstone'
     # override component for implementation
     component = None
 
@@ -329,7 +329,8 @@ class ApiPerfData(ESData):
 
         q = self._api_perf_query(start, end, interval)
         logger.debug('[get] query = %s', json.dumps(q))
-        r = self._conn.search(index="_all", body=q, doc_type=self._DOC_TYPE)
+        r = self._conn.search(index="_all", body=q,
+                              doc_type=self._DOC_TYPE)
         logger.debug('[get] search response = %s', json.dumps(r))
         items = []
         for date_bucket in r['aggregations']['events_by_date']['buckets']:
@@ -375,7 +376,8 @@ class ApiPerfData(ESData):
         """
         q = ESData._query_base()
         q['query'] = ESData._term_clause("_id", doc_id)
-        response = self._conn.delete_by_query("_all", self._DOC_TYPE, body=q)
+        response = self._conn.delete_by_query("_all", self._DOC_TYPE,
+                                              body=q)
         logger.debug("[delete] response = %s", json.dumps(response))
 
         # need to test for a single index case where there is no "all" field
