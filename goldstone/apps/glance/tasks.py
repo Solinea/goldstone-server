@@ -43,7 +43,8 @@ def time_glance_api(self):
 
     # check for existing volumes. if they exist, redo the call with a single
     # volume for a more consistent result.
-    if result['reply'].status_code == requests.codes.ok:
+    if result['reply'] is not None and \
+            result['reply'].status_code == requests.codes.ok:
         body = json.loads(result['reply'].text)
         if 'images' in body and len(body['images']) > 0:
             result = stored_api_call("glance", "image",

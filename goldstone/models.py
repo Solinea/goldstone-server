@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from goldstone.apps.core.tasks import create_daily_index
 
 __author__ = 'John Stanford'
 
@@ -63,8 +64,18 @@ class ESData(object):
         try:
             return candidates.pop()
         except IndexError:
-            raise NoDailyIndex("No daily indices with prefix " +
-                               prefix + " found.")
+            # if we can't find a goldstone index, let's just create one
+            if prefix == 'goldstone':
+                create_daily_index()
+                candidates = [k for k in
+                              self._conn.indices.status()['indices'].keys() if
+                              k.startswith(prefix + "-")]
+                candidates.sort()
+                try:
+                    return candidates.pop()
+                except IndexError:
+                    raise NoDailyIndex("No daily indices with prefix " +
+                                       prefix + " found.")
 
     #
     # query construction helpers
@@ -282,7 +293,7 @@ class ESData(object):
 
 class ApiPerfData(ESData):
     _DOC_TYPE = 'openstack_api_stats'
-    _INDEX_PREFIX = 'logstash'
+    _INDEX_PREFIX = 'goldstone'
     # override component for implementation
     component = None
 
@@ -329,7 +340,8 @@ class ApiPerfData(ESData):
 
         q = self._api_perf_query(start, end, interval)
         logger.debug('[get] query = %s', json.dumps(q))
-        r = self._conn.search(index="_all", body=q, doc_type=self._DOC_TYPE)
+        r = self._conn.search(index="_all", body=q,
+                              doc_type=self._DOC_TYPE)
         logger.debug('[get] search response = %s', json.dumps(r))
         items = []
         for date_bucket in r['aggregations']['events_by_date']['buckets']:
@@ -375,7 +387,8 @@ class ApiPerfData(ESData):
         """
         q = ESData._query_base()
         q['query'] = ESData._term_clause("_id", doc_id)
-        response = self._conn.delete_by_query("_all", self._DOC_TYPE, body=q)
+        response = self._conn.delete_by_query("_all", self._DOC_TYPE,
+                                              body=q)
         logger.debug("[delete] response = %s", json.dumps(response))
 
         # need to test for a single index case where there is no "all" field

@@ -46,7 +46,8 @@ def time_keystone_api(self):
     self.reply = requests.post(url, data=json.dumps(payload),
                                headers=headers)
     t = datetime.utcnow()
-    rec = _construct_api_rec(self.reply, "keystone", t)
+    rec = _construct_api_rec(self.reply, "keystone", t,
+                             timeout=settings.API_PERF_QUERY_TIMEOUT, url=url)
     apidb = ApiPerfData()
     rec_id = apidb.post(rec)
     return {
