@@ -28,6 +28,7 @@ from glanceclient.v2 import client as glclient
 import logging
 import hashlib
 import requests
+from requests.exceptions import Timeout
 from datetime import datetime
 from urlparse import urlparse
 import json
@@ -343,29 +344,42 @@ def _decompose_url(url):
     return result
 
 
-def _construct_api_rec(reply, component, ts):
-    td = reply.elapsed
-    secs = td.seconds + td.days * 24 * 3600
-    microsecs = float(td.microseconds) / 10**6
-    millisecs = int(round((secs * 1000) + (microsecs/1000)))
-    rec = {'response_time': millisecs,
-           'response_status': reply.status_code,
-           'response_length': int(reply.headers['content-length']),
-           'component': component,
-           'uri': urlparse(reply.url).path,
-           '@timestamp': ts.strftime("%Y-%m-%dT%H:%M:%S." +
-                                     str(int(round(ts.microsecond/1000))) +
-                                     "Z")}
-    logger.debug("response = %s",
-                 json.dumps(rec))
-    return rec
+def _construct_api_rec(reply, component, ts, timeout, url):
+    if reply is not None:
+        td = reply.elapsed
+        secs = td.seconds + td.days * 24 * 3600
+        fraction = float(td.microseconds) / 10**6
+        millisecs = int(round((secs + fraction) * 1000))
+        rec = {'response_time': millisecs,
+               'response_status': reply.status_code,
+               'response_length': int(reply.headers['content-length']),
+               'component': component,
+               'uri': urlparse(url).path,
+               '@timestamp': ts.strftime("%Y-%m-%dT%H:%M:%S." +
+                                         str(int(round(ts.microsecond/1000))) +
+                                         "Z")}
+        logger.debug("response = %s",
+                     json.dumps(rec))
+        return rec
+    else:
+        rec = {'response_time': timeout*1000,
+               'response_status': 504,
+               'response_length': 0,
+               'component': component,
+               'uri': urlparse(url).path,
+               '@timestamp': ts.strftime("%Y-%m-%dT%H:%M:%S." +
+                                         str(int(round(ts.microsecond/1000))) +
+                                         "Z")}
+        logger.debug("response = %s",
+                     json.dumps(rec))
+        return rec
 
 
 def stored_api_call(component, endpt, path, headers={}, data=None,
                     user=settings.OS_USERNAME,
                     passwd=settings.OS_PASSWORD,
                     tenant=settings.OS_TENANT_NAME,
-                    auth_url=settings.OS_AUTH_URL):
+                    auth_url=settings.OS_AUTH_URL, timeout=30):
 
     kt = _get_keystone_client(user=user,
                               passwd=passwd,
@@ -384,15 +398,25 @@ def stored_api_call(component, endpt, path, headers={}, data=None,
              'content-type': 'application/json'}.items() +
             headers.items())
         t = datetime.utcnow()
-        reply = requests.get(url, headers=headers, data=data)
+        reply = None
+        try:
+            reply = requests.get(url, headers=headers, data=data,
+                                 timeout=settings.API_PERF_QUERY_TIMEOUT)
 
-        # someone could change the upstream password to
-        # match the configuration credentials after the result was cached.
-        if reply.status_code == requests.codes.unauthorized:
-            logger.debug("clearing keystone client cache due to 401 response")
+            # someone could change the upstream password to
+            # match the configuration credentials after the result was cached.
+            if reply.status_code == requests.codes.unauthorized:
+                logger.debug("clearing keystone client cache due to 401 "
+                             "response")
+                _get_client.cache_clear()
+
+        except Timeout:
+            reply = None
+            logger.debug("clearing keystone client cache due to 508 "
+                         "response")
             _get_client.cache_clear()
 
         return {
             'reply': reply,
-            'db_record': _construct_api_rec(reply, component, t)
+            'db_record': _construct_api_rec(reply, component, t, timeout, url)
         }
