@@ -169,7 +169,7 @@ Creating Release
 To create a release, follow these steps:
 
 # Bump the version number in the setup.cfg file (if not done already)
-# Tag and sign the commit ($ git tag -s 1.0 -m 'first customer ship')
+# Tag and sign the commit ($ git tag -s 1.0 -m 'first customer ship') -- PBR requires SIGNED tags to correctly build the version number into the RPM.
 # Push the tags to bitbucket ($ git push origin 1.0)
 # Create the RPM (on CentOS/Red Hat machine with # python setup.py bdist_rpm)
 # SCP the RPM to the repo (# scp dist/goldstone-1.0-1.noarch.rpm repo.solinea.com:/var/www/html/repo/)
