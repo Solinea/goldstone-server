@@ -10,8 +10,11 @@ function setup_epel() {
     wget http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
     yum localinstall -y remi-release-6*.rpm epel-release-6*.rpm
     
-    # turn off SE Linux to troubleshoot
+    # turn SE Linux to permissive for logging
     echo 0 >/selinux/enforce
+    cp /etc/selinux/config /etc/selinux/config.bak
+    sed 's/SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config.bak > /etc/selinux/config
+    setsebool -P httpd_can_network_connect 1
 }
 
 function install_elasticsearch() {
