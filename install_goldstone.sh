@@ -68,7 +68,7 @@ function install_mysql() {
 function configure_apache() {
     hc='/etc/httpd/conf/httpd.conf'
     echo "LoadModule wsgi_module modules/http://mod_wsgi.so" >> $hc
-    echo "WSGIPythonPath /opt/goldstone/:/usr/lib/python2.6/site-packages/:/opt/goldstone/goldstone/" >> $hc
+    echo "WSGIPythonPath /opt/goldstone/:/usr/lib/python2.6/site-packages/" >> $hc
     echo "<VirtualHost *:80>" >> $hc
     echo "ServerAdmin you@example.com" >> $hc
     h=`hostname`
