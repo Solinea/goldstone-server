@@ -72,7 +72,7 @@ LOGGING = {
         'elasticsearch': {
             'level': 'WARN',
             'handlers': ['file']
-        }
+        },
         'goldstone': {
             'level': 'INFO',
             'handlers': ['file']
