@@ -70,6 +70,12 @@ LOGGING = {
     },
 }
 
+DEBUG = True
+
+TEMPLATE_DEBUG = True
+
+QUNIT_ENABLED = True
+
 # Intel app config
 ES_SERVER = "127.0.0.1:9200"
 # OS_AUTH_URL = 'http://10.10.11.230:35357/v2.0'
