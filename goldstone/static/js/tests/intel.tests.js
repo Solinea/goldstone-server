@@ -16,14 +16,15 @@
  * Author: John Stanford
  */
 
-test( "hello test", function() {
-  ok( 1 == "1", "Passed!" );
+test("hello test", function () {
+    ok(1 == "1", "Passed!")
 });
 
 /*test( "hello test", function() {
   ok( 2 == "1", "Passed!" );
 });*/
 
+/*
 test("Add time to date (in seconds)", function () {
     var d = new Date(),
         dPlus = new Date(d.getTime())
@@ -148,3 +149,4 @@ test("Testing populateSettingsFields", function () {
     $('#settingsStartTime').remove()
     $('#settingsEndTime').remove()
 })
+*/
