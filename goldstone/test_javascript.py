@@ -19,13 +19,14 @@ from djangojs.runners import QUnitSuite
 
 
 class GoldstoneBaseQUnitTests(QUnitSuite, JsTemplateTestCase):
-    template_name='qunit_base_tests.html'
-    js_files='js/tests/base_tests.js'
-    django_js=True
+    template_name = 'qunit_base_tests.html'
+    js_files = 'js/tests/base_tests.js'
+    django_js = True
     url_name = 'goldstone_base_qunit_view'
 
+
 class GoldstoneBase2QUnitTests(QUnitSuite, JsTestCase):
-    template_name='qunit_base_tests.html'
-    js_files='js/tests/base_tests.js'
-    django_js=True
+    template_name = 'qunit_base_tests.html'
+    js_files = 'js/tests/base_tests.js'
+    django_js = True
     url_name = 'goldstone_base_qunit_view'

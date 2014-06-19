@@ -62,6 +62,10 @@ LOGGING = {
             'propagate': False,
             'level': 'DEBUG',
         },
+        'elasticsearch': {
+            'level': 'WARN',
+            'handlers': ['console']
+        },
         'goldstone': {
             # set this to DEBUG if you need more detail
             'level': 'INFO',
