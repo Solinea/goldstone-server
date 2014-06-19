@@ -14,13 +14,12 @@
 
 __author__ = 'John Stanford'
 
-from djangojs.runners import JsTestCase
+from djangojs.runners import JsTestCase, JsTemplateTestCase
 from djangojs.runners import QUnitSuite
 
 
-# class QUnitTests(QUnitSuite, JsTestCase):
-#     title = 'My QUnit suite'
-#     url_name = 'my_qunit_view'
-#     js_files = [
-#         'intelligence/static/intelligence/js/*',
-#     ]
+class GoldstoneBaseQUnitTests(QUnitSuite, JsTemplateTestCase):
+    template_name = 'qunit_base_tests.html'
+    js_files = 'js/tests/base_tests.js'
+    django_js = True
+    url_name = 'goldstone_base_qunit_view'
