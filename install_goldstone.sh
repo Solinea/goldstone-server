@@ -26,9 +26,11 @@ function install_elasticsearch() {
     yum install -y redis
     service redis start
     chkconfig --add redis
+    chkconfig redis on
     curl -k -XGET https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.noarch.rpm > elasticsearch-1.1.1.noarch.rpm
     yum localinstall -y elasticsearch-1.1.1.noarch.rpm
     chkconfig --add elasticsearch
+    chkconfig elasticsearch on
     service elasticsearch start
 }
 
@@ -40,6 +42,8 @@ function install_logstash() {
     cd -
     cp external/logstash/conf.d/* /etc/logstash/conf.d/
     cp external/logstash/patterns/goldstone /opt/logstash/patterns/goldstone
+    chkconfig --add logstash
+    chkconfig logstash on
     service logstash restart 
 }
 
@@ -64,7 +68,7 @@ function install_mysql() {
 function configure_apache() {
     hc='/etc/httpd/conf/httpd.conf'
     echo "LoadModule wsgi_module modules/http://mod_wsgi.so" >> $hc
-    echo "WSGIPythonPath /opt/goldstone;/opt/goldstone/lib/python2.6/site-packages/" >> $hc
+    echo "WSGIPythonPath /opt/goldstone/:/usr/lib/python2.6/site-packages/:/opt/goldstone/goldstone/" >> $hc
     echo "<VirtualHost *:80>" >> $hc
     echo "ServerAdmin you@example.com" >> $hc
     h=`hostname`
@@ -84,6 +88,7 @@ function configure_apache() {
     ln -s /usr/lib/python2.6/site-packages/goldstone goldstone
     chown -R goldstone:goldstone .
     python manage.py collectstatic --settings=goldstone.settings.production --noinput
+    chkconfig httpd on
     service httpd restart
 }
 
