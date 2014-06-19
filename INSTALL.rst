@@ -63,7 +63,7 @@ First, add the goldstone repository then install the goldstone application. ::
     > EOF
     # yum install goldstone
 
-Once the goldstone rpm is installed, edit the ``/opt/goldstone/goldstone/settings/production.py`` file to add your OpenStack admin credentials. These are located at the bottom of the file: ::
+Once the goldstone rpm is installed, edit the ``/usr/lib/python2.6/site-packages/goldstone/settings/production.py`` file to add your OpenStack admin credentials. These are located at the bottom of the file: ::
 
     OS_USERNAME = 'admin'
     OS_PASSWORD = 'fe6ac09d85041ae384c66a83e362f565'
