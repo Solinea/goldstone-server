@@ -49,9 +49,10 @@ if settings.QUNIT_ENABLED:
     urlpatterns += patterns(
         '',
         url(r'^djangojs/', include('djangojs.urls')),
-        url(r'^qunit$', QUnitView.as_view(
-            template_name='qunit.tests.html', js_files='js/tests/*.tests.js',
-            jquery=True, django_js=True), name='my_qunit_view')
+        url(r'^qunit/base$', QUnitView.as_view(
+            template_name='qunit_base_tests.html',
+            js_files='js/tests/base_tests.js', django_js=True),
+            name='goldstone_base_qunit_view')
     )
 
 urlpatterns += staticfiles_urlpatterns()

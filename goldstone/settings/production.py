@@ -69,6 +69,10 @@ LOGGING = {
             'propagate': False,
             'level': 'INFO',
         },
+        'elasticsearch': {
+            'level': 'WARN',
+            'handlers': ['file']
+        }
         'goldstone': {
             'level': 'INFO',
             'handlers': ['file']
@@ -82,4 +86,4 @@ OS_PASSWORD = 'CHANGEME'
 OS_TENANT_NAME = 'admin'
 OS_AUTH_URL = 'http://10.10.11.230:5000/v2.0'
 
-ES_SERVER = "localhost:9200"
+ES_SERVER = "127.0.0.1:9200"

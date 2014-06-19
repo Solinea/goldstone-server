@@ -62,6 +62,10 @@ LOGGING = {
             'propagate': False,
             'level': 'DEBUG',
         },
+        'elasticsearch': {
+            'level': 'WARN',
+            'handlers': ['console']
+        },
         'goldstone': {
             # set this to DEBUG if you need more detail
             'level': 'INFO',
@@ -69,6 +73,12 @@ LOGGING = {
         },
     },
 }
+
+DEBUG = True
+
+TEMPLATE_DEBUG = True
+
+QUNIT_ENABLED = True
 
 # Intel app config
 ES_SERVER = "127.0.0.1:9200"
