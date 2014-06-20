@@ -31,7 +31,7 @@ CELERYD_PID_FILE="/var/run/celery/%N.pid"
 #   You need to create this user manually (or you can choose
 #   a user/group combination that already exists, e.g. nobody).
 CELERYD_USER="goldstone"
-CELERYD_GROUP="golstone"
+CELERYD_GROUP="goldstone"
 
 # If enabled pid and log directories will be created if missing,
 # and owned by the userid/group configured.
