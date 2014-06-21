@@ -34,7 +34,22 @@ DATABASES = {
     }
 }
 
-SECRET_KEY = 'dev-v=jazz^xno*0(aou-6ir*q-c+v&r#ue5b4wxt-xy#rebph8q)'
+# SECRET_KEY = 'dev-v=jazz^xno*0(aou-6ir*q-c+v&r#ue5b4wxt-xy#rebph8q)'
+SECRET_KEY = None
+LOCAL_PATH = None
+
+# Ensure that we always have a SECRET_KEY set, even when no local_settings.py
+# file is present. See local_settings.py.example for full documentation on the
+# horizon.utils.secret_key module and its use.
+if not SECRET_KEY:
+    if not LOCAL_PATH:
+        LOCAL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                  'local')
+
+    from horizon.utils import secret_key
+    SECRET_KEY = secret_key.generate_or_read_from_file(os.path.join(LOCAL_PATH,
+                                                       '.secret_key_store'))
+
 
 STATIC_ROOT = '/var/www/goldstone/static/'
 STATIC_URL = '/static/'
