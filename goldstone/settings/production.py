@@ -43,8 +43,7 @@ LOCAL_PATH = None
 # horizon.utils.secret_key module and its use.
 if not SECRET_KEY:
     if not LOCAL_PATH:
-        LOCAL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                  'local')
+        LOCAL_PATH = os.path.dirname(os.path.abspath(__file__))
 
     from goldstone.libs import secret_key
     SECRET_KEY = secret_key.generate_or_read_from_file(os.path.join(LOCAL_PATH,
