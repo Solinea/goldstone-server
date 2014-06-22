@@ -100,7 +100,10 @@ function start_celery() {
     chown goldstone /opt/goldstone
     cd /opt/goldstone
     python -c 'from goldstone.apps.core.tasks import create_daily_index; create_daily_index()'
-    export DJANGO_SETTINGS_MODULE=goldstone.settings.production; celery worker --app=goldstone --loglevel=warn --beat --uid=goldstone &
+    # export DJANGO_SETTINGS_MODULE=goldstone.settings.production; celery worker --app=goldstone --loglevel=warn --beat --uid=goldstone &
+    chkconfig --add celerybeat
+    chkconfig celerybeat on
+    service celerybeat restart
 }
 
 function set_logging() {
