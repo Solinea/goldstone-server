@@ -69,21 +69,6 @@ function install_mysql() {
 }
 
 function configure_apache() {
-    hc='/etc/httpd/conf/httpd.conf'
-    echo "LoadModule wsgi_module modules/http://mod_wsgi.so" >> $hc
-    echo "WSGIPythonPath /opt/goldstone/:/usr/lib/python2.6/site-packages/" >> $hc
-    echo "<VirtualHost *:80>" >> $hc
-    echo "ServerAdmin you@example.com" >> $hc
-    h=`hostname`
-    echo "ServerName ${h}" >> $hc
-    echo "WSGIScriptAlias / /opt/goldstone/goldstone/wsgi.py" >> $hc
-    echo "Alias /static/ /var/www/goldstone/static/" >> $hc
-    echo "Alias /favicon.ico /var/www/goldstone/static/images/favicon.ico" >> $hc
-    echo "<Location \"/static/\">" >> $hc
-    echo "    Options -Indexes" >> $hc
-    echo "</Location>" >> $hc
-    echo "</VirtualHost>" >> $hc
-    
     yum install -y python-pip
     pip install -r requirements.txt
     mkdir -p /var/www/goldstone/static
