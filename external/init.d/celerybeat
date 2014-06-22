@@ -1,5 +1,4 @@
 #!/bin/sh
-set -x
 # ============================================
 #  celerybeat - Starts the Celery periodic task scheduler.
 # ============================================
