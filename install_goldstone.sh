@@ -89,6 +89,9 @@ function start_celery() {
     chkconfig --add celerybeat
     chkconfig celerybeat on
     service celerybeat restart
+    chkconfig --add celeryd
+    chkconfig celeryd on
+    service celeryd restart
 }
 
 function set_logging() {

@@ -49,7 +49,7 @@ SLEEP_SECONDS=5
 
 DEFAULT_PID_FILE="/var/run/celery/$prog-%n.pid"
 DEFAULT_LOG_FILE="/var/log/celery/$prog-%n%I.log"
-DEFAULT_LOG_LEVEL="WARN"
+DEFAULT_LOG_LEVEL="INFO"
 DEFAULT_NODES="celery"
 DEFAULT_CELERYD="-m celery.bin.celeryd_detach"
 
