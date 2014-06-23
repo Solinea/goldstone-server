@@ -8,10 +8,12 @@ CELERYBEAT_CHDIR="/opt/goldstone"
 CELERY_BIN="/usr/bin/celery"
 
 # App instance to use (value for --app argument).
-CELERY_APP="goldstone"
+#CELERY_APP="goldstone"
 
 # Beat run as an unprivileged user
 CELERYBEAT_USER="goldstone"
 CELERYBEAT_GROUP="goldstone"
+
+CELERYBEAT_OPTS="--app="goldstone" --schedule=/var/run/celery/celerybeat-schedule"
 
 export DJANGO_SETTINGS_MODULE=goldstone.settings.production
