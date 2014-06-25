@@ -1,0 +1,75 @@
+# yum -y update
+# wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+# wget http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
+# yum localinstall -y remi-release-6*.rpm epel-release-6*.rpm
+
+# turn SE Linux to permissive for logging
+echo 0 >/selinux/enforce
+if [ ! -f /etc/selinux/config.bak ]; then
+    cp /etc/selinux/config /etc/selinux/config.bak
+fi
+sed 's/SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config.bak > /etc/selinux/config
+setsebool -P httpd_can_network_connect 1
+
+iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 80 -m comment --comment "httpd incoming" -j ACCEPT
+iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 9200 -m comment --comment "elastcisearch incoming" -j ACCEPT
+iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 5514 -m comment --comment "goldstone rsyslog incoming" -j ACCEPT
+service iptables save
+
+chkconfig --add redis
+chkconfig redis on
+service redis start
+chkconfig --add elasticsearch
+chkconfig elasticsearch on
+service elasticsearch start
+
+cd /opt/logstash
+./bin/plugin install contrib  # required for translate plugin
+cd -
+# cp external/logstash/conf.d/* /etc/logstash/conf.d/
+# cp external/logstash/patterns/goldstone /opt/logstash/patterns/goldstone
+chkconfig --add logstash
+chkconfig logstash on
+service logstash restart 
+
+# set django production logging to /var/log/goldstone
+# set ownership to apache:apache
+mkdir -p /var/log/goldstone
+chown apache /var/log/goldstone
+chgrp apache /var/log/goldstone
+touch /var/log/goldstone/goldstone.log
+chown apache /var/log/goldstone/goldstone.log
+chgrp apache /var/log/goldstone/goldstone.log
+# Allow apache and celery to log here
+chmod 777 /var/log/goldstone/goldstone.log
+
+service mysqld restart
+chkconfig mysqld on
+mysqladmin -u root password 'goldstone'
+mysqladmin -u root -pgoldstone create goldstone
+mysql -uroot -pgoldstone -e "GRANT ALL PRIVILEGES ON goldstone.* TO goldstone@localhost IDENTIFIED BY 'goldstone'"
+mysql -uroot -pgoldstone -e "FLUSH PRIVILEGES"
+service mysqld restart
+
+pip install -r requirements.txt
+mkdir -p /var/www/goldstone/static
+cd /opt/goldstone
+ln -s /usr/lib/python2.6/site-packages/goldstone goldstone
+chown -R goldstone:goldstone .
+python manage.py collectstatic --settings=goldstone.settings.production --noinput
+chkconfig httpd on
+service httpd restart
+
+useradd -m goldstone
+chown goldstone /opt/goldstone
+cd /opt/goldstone
+python -c 'from goldstone.apps.core.tasks import create_daily_index; create_daily_index()'
+
+chkconfig --add celerybeat
+chkconfig celerybeat on
+service celerybeat restart
+
+chkconfig --add celeryd
+chkconfig celeryd on
+service celeryd restart
+
