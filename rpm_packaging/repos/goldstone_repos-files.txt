@@ -3,8 +3,5 @@
 
 %dir /etc/yum.repos.d
 %attr(644,-,-) /etc/yum.repos.d/elasticsearch-1.2.repo
-%attr(644,-,-) /etc/yum.repos.d/epel-testing.repo
-%attr(644,-,-) /etc/yum.repos.d/remi.repo
 %attr(644,-,-) /etc/yum.repos.d/goldstone.repo
-%attr(644,-,-) /etc/yum.repos.d/epel.repo
 %attr(644,-,-) /etc/yum.repos.d/logstash-1.4.repo

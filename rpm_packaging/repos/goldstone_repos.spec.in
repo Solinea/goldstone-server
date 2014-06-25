@@ -7,12 +7,12 @@
 %define _sourcedir @FAKEROOT@/..
 %define debug_package %{nil}
 
-Summary: TODO. PLEASE EDIT ME!
-Vendor: TODO. PLEASE EDIT ME!
-Packager: TODO. PLEASE EDIT ME!
-License: TODO. PLEASE EDIT ME!
-Group: TODO. PLEASE EDIT ME!
-URL: http://TODO.example.com/
+Summary: Yum repository definitions for goldstone dependencies
+Vendor: Solinea, Inc.
+Packager: Solinea, Inc.
+License: None
+Group: None
+URL: http://www.solinea.com/goldstone
 
 Name: @NAME@
 Version: @VERSION@
@@ -23,7 +23,7 @@ AutoReqProv: no
 #Requires:
 
 %description
-TODO. PLEASE EDIT ME!
+Yum repository definitions for goldstone dependencies
 
 ##########################################################################################
 # BUILD-TIME SCRIPTS
