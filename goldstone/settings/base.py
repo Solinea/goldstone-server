@@ -83,6 +83,7 @@ INSTALLED_APPS = (
     'goldstone.apps.neutron',
     'goldstone.apps.glance',
     'goldstone.apps.api_perf',
+    'goldstone.apps.logging',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -146,6 +147,11 @@ BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
+BROKER_TRANSPORT_OPTIONS = {
+    'fanout_prefix': True, 
+    'fanout_patterns': True
+}
+
 
 from celery.schedules import crontab
 DAILY_INDEX_CREATE_INTERVAL = crontab(minute='0', hour='0', day_of_week='*')
