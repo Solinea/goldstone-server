@@ -23,9 +23,9 @@ chkconfig --add elasticsearch
 chkconfig elasticsearch on
 service elasticsearch start
 
-cd /opt/logstash
-./bin/plugin install contrib  # required for translate plugin
-cd -
+# cd /opt/logstash
+# ./bin/plugin install contrib  # required for translate plugin
+# cd -
 # cp external/logstash/conf.d/* /etc/logstash/conf.d/
 # cp external/logstash/patterns/goldstone /opt/logstash/patterns/goldstone
 chkconfig --add logstash
