@@ -1,6 +1,0 @@
-#bintray--ken-rpm - packages by  from Bintray
-[bintray--ken-rpm]
-name=bintray--ken-rpm
-baseurl=http://dl.bintray.com/ken/rpm
-gpgcheck=0
-enabled=1
