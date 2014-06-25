@@ -45,7 +45,7 @@ To view and use goldstone, you will need a recent version of the `Google Chrome 
 
 Once you are sure that your server or VM meets those requirements, install these required packages via the command line as root: ::
  
-# yum install -y java-1.7.0-openjdk.x86_64 gcc gcc-c++ 
+# yum install -y java-1.7.0-openjdk.x86_64 gcc gcc-c++
 # yum install -y mysql-server mysql-devel
 
 

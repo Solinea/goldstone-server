@@ -5,7 +5,7 @@
 
 function setup_epel() {
     yum -y update
-    yum install -y wget
+    # yum install -y wget
     wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
     wget http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
     yum localinstall -y remi-release-6*.rpm epel-release-6*.rpm
@@ -24,22 +24,22 @@ function install_elasticsearch() {
     # yum install -y java-1.7.0-openjdk.x86_64
     # yum install -y gcc
     # yum install -y gcc-c++
-    yum install -y python-devel libffi-devel openssl-devel
-    yum install -y httpd mod_wsgi
-    yum install -y redis
+    # yum install -y python-devel libffi-devel openssl-devel
+    # yum install -y httpd mod_wsgi
+    # yum install -y redis
     service redis start
     chkconfig --add redis
     chkconfig redis on
-    curl -k -XGET https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.noarch.rpm > elasticsearch-1.1.1.noarch.rpm
-    yum localinstall -y elasticsearch-1.1.1.noarch.rpm
+    # curl -k -XGET https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.noarch.rpm > elasticsearch-1.1.1.noarch.rpm
+    # yum localinstall -y elasticsearch-1.1.1.noarch.rpm
     chkconfig --add elasticsearch
     chkconfig elasticsearch on
     service elasticsearch start
 }
 
 function install_logstash() {
-    curl -k -XGET https://download.elasticsearch.org/logstash/logstash/packages/centos/logstash-1.4.0-1_c82dc09.noarch.rpm > logstash-1.4.0-1_c82dc09.noarch.rpm
-    yum localinstall -y logstash-1.4.0-1_c82dc09.noarch.rpm
+    # curl -k -XGET https://download.elasticsearch.org/logstash/logstash/packages/centos/logstash-1.4.0-1_c82dc09.noarch.rpm > logstash-1.4.0-1_c82dc09.noarch.rpm
+    # yum localinstall -y logstash-1.4.0-1_c82dc09.noarch.rpm
     cd /opt/logstash
     ./bin/plugin install contrib  # required for translate plugin
     cd -
@@ -69,7 +69,7 @@ function install_mysql() {
 }
 
 function configure_apache() {
-    yum install -y python-pip
+    # yum install -y python-pip
     pip install -r requirements.txt
     mkdir -p /var/www/goldstone/static
     cd /opt/goldstone
