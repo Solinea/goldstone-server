@@ -41,17 +41,19 @@ To view and use goldstone, you will need a recent version of the `Google Chrome 
 RUN GOLDSTONE INSTALLER
 ***********************
 
+First install a Java: ::
+
+    # yum install -y java-1.7.0-openjdk.x86_64
+    
+Then add the EPEL repositories:
+
+    # yum install  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+
 First, add the goldstone repository: ::
 
-    # cat << EOF > /etc/yum.repos.d/goldstone.repo
-    > [goldstone]
-    > name=goldstone
-    > baseurl=http://repo.solinea.com/repo
-    > enabled=1
-    > gpgcheck=0
-    > EOF
+    # yum install http://repo.solinea.com/repo/goldstone_repos-1.1-1.noarch.rpm
 
-Then, install the goldstone application: ::
+Finally, install the goldstone application: ::
 
     # yum install goldstone
 
