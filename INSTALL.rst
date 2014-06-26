@@ -43,7 +43,7 @@ RUN GOLDSTONE INSTALLER
 
 First, enable the EPEL repositories:
 
-    # yum install  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+    # yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 
 Then install Java SDK: ::
 
@@ -51,11 +51,11 @@ Then install Java SDK: ::
 
 After that, enable the goldstone repository: ::
 
-    # yum install http://repo.solinea.com/repo/goldstone_repos-1.1-1.noarch.rpm
+    # yum install -y http://repo.solinea.com/repo/goldstone_repos-1.1-1.noarch.rpm
 
 Finally, install the goldstone application: ::
 
-    # yum install goldstone
+    # yum install -y goldstone
 
 This package installation may take up to 2 hours to run, as it needs to compile a number of libraries.
 
