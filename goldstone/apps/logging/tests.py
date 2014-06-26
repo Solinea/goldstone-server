@@ -16,8 +16,67 @@ __author__ = 'John Stanford'
 
 from django.test import SimpleTestCase
 import logging
-import pytz
+import uuid
 from datetime import datetime
+import pytz
+import redis
+import json
+from base64 import b64encode
 
 logger = logging.getLogger(__name__)
 
+class TaskTests(SimpleTestCase):
+    """
+    Remember that celery should be running, and if changes have been made
+    to task code, it should be restarted.
+    """
+
+    def test_publish_message(self):
+        """
+        Should be able to publish a message to redis and have the task receive
+        it.
+        """
+        host1_name = str(uuid.uuid4())
+        host1_time = datetime.now(tz=pytz.utc).isoformat()
+
+        body = {
+            "body": b64encode(json.dumps({
+                'task': 'goldstone.apps.logging.tasks.process_host_stream',
+                'id': str(uuid.uuid1()),
+                'args': [host1_name, host1_time],
+                "kwargs": {},
+                "retries": 0,
+                "eta": str(datetime.now())
+            })),
+            "headers": {},
+            "content-type": "application/json",
+            "properties": {
+                "body_encoding": "base64",
+                "delivery_info": {
+                    "priority": 0,
+                    "routing_key": "host_stream.#",
+                    "exchange": "default"
+                },
+                "delivery_mode": 2,
+                "delivery_tag": str(uuid.uuid4())
+            },
+            "content-encoding": "utf-8"
+        }
+        body = json.dumps(body)
+        r = redis.StrictRedis(host='localhost', port=6379, db=0)
+        r.lpush("host_stream", body)
+
+        # the records should be stored in redis with keys of
+        # host_stream.whitelist.hostname and values of their respective
+        # timestamps
+
+        from time import sleep
+        sleep(5)
+        key = 'host_stream.whitelist.' + host1_name
+        host1_redis_time = r.get(key)
+        try:
+            self.assertEqual(host1_time, host1_redis_time)
+            r.delete(key)
+        except Exception:
+            r.delete(key)
+            raise

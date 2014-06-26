@@ -143,6 +143,9 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 MAILHOST = 'localhost'
 
 # Celery
+
+from kombu import Exchange, Queue
+
 BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_TASK_SERIALIZER = 'json'
@@ -151,6 +154,11 @@ BROKER_TRANSPORT_OPTIONS = {
     'fanout_prefix': True, 
     'fanout_patterns': True
 }
+CELERY_QUEUES = (
+    Queue('default', Exchange('default'), routing_key='default'),
+    Queue('host_stream', Exchange('default'), routing_key='host_stream.#'),
+)
+CELERY_ROUTES = {'goldstone.apps.logging.tasks.process_host_stream': {'queue': 'host_stream'}}
 
 
 from celery.schedules import crontab
