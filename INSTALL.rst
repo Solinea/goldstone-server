@@ -41,13 +41,10 @@ To view and use goldstone, you will need a recent version of the `Google Chrome 
 RUN GOLDSTONE INSTALLER
 ***********************
 
-First, enable the EPEL repositories:
+First, enable the CentOS EPEL repositories and install some dependencies:
 
     # yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-
-Then install Java SDK: ::
-
-    # yum install -y java-1.7.0-openjdk.x86_64
+    # yum install -y gcc gcc-c++ mysql-server mysql-devel
 
 After that, enable the goldstone repository: ::
 
@@ -73,7 +70,6 @@ With goldstone installed, the only task left is to point the OpenStack server lo
 
     1. Configure OpenStack services to use syslog
     2. Configure syslog to forward to your goldstone server
-
 
 OpenStack Service Logging
 ---------------------------
