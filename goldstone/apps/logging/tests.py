@@ -40,18 +40,13 @@ class TaskTests(SimpleTestCase):
         host1_time = datetime.now(tz=pytz.utc).isoformat()
 
         body = {
-            "body": b64encode(json.dumps({
+            "body": json.dumps({
                 'task': 'goldstone.apps.logging.tasks.process_host_stream',
                 'id': str(uuid.uuid1()),
-                'args': [host1_name, host1_time],
-                "kwargs": {},
-                "retries": 0,
-                "eta": str(datetime.now())
-            })),
-            "headers": {},
+                'args': [host1_name, host1_time]
+            }),
             "content-type": "application/json",
             "properties": {
-                "body_encoding": "base64",
                 "delivery_info": {
                     "priority": 0,
                     "routing_key": "host_stream.#",
