@@ -21,7 +21,8 @@ from datetime import datetime
 import pytz
 import redis
 import json
-from base64 import b64encode
+from time import sleep
+from goldstone.apps.logging.tasks import *
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +66,6 @@ class TaskTests(SimpleTestCase):
         # host_stream.whitelist.hostname and values of their respective
         # timestamps
 
-        from time import sleep
         sleep(5)
         key = 'host_stream.whitelist.' + host1_name
         host1_redis_time = r.get(key)
@@ -74,4 +74,30 @@ class TaskTests(SimpleTestCase):
             r.delete(key)
         except Exception:
             r.delete(key)
+            raise
+
+    def test_check_host_avail(self):
+        r = redis.StrictRedis(host='localhost', port=6379, db=0)
+        timestamp1 = (
+            datetime.now(tz=pytz.utc) -
+            settings.HOST_AVAILABLE_PING_THRESHOLD -
+            timedelta(hours=1)
+        ).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        timestamp2 = (
+            datetime.now(tz=pytz.utc) -
+            settings.HOST_AVAILABLE_PING_THRESHOLD +
+            timedelta(hours=1)
+        ).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        r.set('host_stream.whitelist.test', timestamp1)
+        r.set('host_stream.whitelist.test2', timestamp2)
+        sleep(1)
+        l = check_host_avail()
+        try:
+            self.assertIn('test', l)
+            self.assertNotIn('test2', l)
+            r.delete('host_stream.whitelist.test')
+            r.delete('host_stream.whitelist.test2')
+        except:
+            r.delete('host_stream.whitelist.test')
+            r.delete('host_stream.whitelist.test2')
             raise

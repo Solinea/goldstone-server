@@ -162,11 +162,13 @@ CELERY_ROUTES = {'goldstone.apps.logging.tasks.process_host_stream': {'queue': '
 
 
 from celery.schedules import crontab
+from datetime import timedelta
 DAILY_INDEX_CREATE_INTERVAL = crontab(minute='0', hour='0', day_of_week='*')
 TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
 RESOURCE_QUERY_INTERVAL = crontab(minute='*/5')
 API_PERF_QUERY_INTERVAL = crontab(minute='*/5')
 API_PERF_QUERY_TIMEOUT = 30
+HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
 
 CELERYBEAT_SCHEDULE = {
     'create-daily-index': {

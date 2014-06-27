@@ -22,7 +22,8 @@ from goldstone.celery import app as celery_app
 import logging
 import redis
 import json
-from datetime import datetime
+import re
+from datetime import datetime, timedelta
 import pytz
 
 
@@ -47,4 +48,27 @@ def process_host_stream(self, host, timestamp):
         r.set(key, timestamp)
         logger.debug("set key %s to %s", key, timestamp)
 
+@celery_app.task(bind=True)
+def check_host_avail(self):
+    """
+    Inspect the hosts in the whitelist store, and initiate a ping task for
+    ones that have not been seen within the configured window.
+    :return: None
+    """
+    # connect to redis
+    # TODO make these config params
+    # TODO use a connection pool
+    cutoff = (
+        datetime.now(tz=pytz.utc) - settings.HOST_AVAILABLE_PING_THRESHOLD
+    ).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    logger.debug("[check_host_avail] cutoff = %s", cutoff)
+    r = redis.StrictRedis(host='localhost', port=6379, db=0)
+    keys = r.keys("host_stream.whitelist.*")
+    values = r.mget(keys)
+    kv_list = zip(keys, values)
+    logger.debug("[check_host_avail] kv_list = %s", json.dumps(kv_list))
+    to_ping = [re.sub('^host_stream\.whitelist\.', '', k)
+               for k,v in kv_list if v < cutoff]
+    logger.debug("hosts to ping = %s", json.dumps(to_ping))
+    return to_ping
 
