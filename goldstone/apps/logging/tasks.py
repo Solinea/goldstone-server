@@ -48,6 +48,7 @@ def process_host_stream(self, host, timestamp):
         r.set(key, timestamp)
         logger.debug("set key %s to %s", key, timestamp)
 
+
 @celery_app.task(bind=True)
 def check_host_avail(self):
     """
@@ -68,7 +69,6 @@ def check_host_avail(self):
     kv_list = zip(keys, values)
     logger.debug("[check_host_avail] kv_list = %s", json.dumps(kv_list))
     to_ping = [re.sub('^host_stream\.whitelist\.', '', k)
-               for k,v in kv_list if v < cutoff]
+               for k, v in kv_list if v < cutoff]
     logger.debug("hosts to ping = %s", json.dumps(to_ping))
     return to_ping
-

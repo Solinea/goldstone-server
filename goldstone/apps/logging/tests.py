@@ -26,6 +26,7 @@ from goldstone.apps.logging.tasks import *
 
 logger = logging.getLogger(__name__)
 
+
 class TaskTests(SimpleTestCase):
     """
     Remember that celery should be running, and if changes have been made
