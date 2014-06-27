@@ -31,7 +31,7 @@ class TaskTests(SimpleTestCase):
     to task code, it should be restarted.
     """
 
-    def test_publish_message(self):
+    def test_publish_host_stream_message(self):
         """
         Should be able to publish a message to redis and have the task receive
         it.
