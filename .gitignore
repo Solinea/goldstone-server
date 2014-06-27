@@ -123,3 +123,6 @@ celerybeat-schedule
 
 # local stuff
 /utils
+
+# vagrant related
+.vagrant/*

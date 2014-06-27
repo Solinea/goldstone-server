@@ -1,0 +1,23 @@
+# encoding: utf-8
+
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# This vagrantfile installs the newest **PRODUCTION** version of goldstone 
+# on a CentOS 6.5 image
+
+Vagrant.configure("2") do |config|
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = 3072
+    vb.cpus = 1
+  end
+
+  config.vm.box = "centos65-x86_64"
+  config.vm.box_url = "https://github.com/2creatives/vagrant-centos/releases/download/v6.5.3/centos65-x86_64-20140116.box"
+
+  config.vm.network "forwarded_port", guest: 80, host: 8080
+
+  # EPEL is already installed on this box
+  config.vm.provision :shell, :inline => "yum install -y http://repo.solinea.com/repo/goldstone_repos-1.1-1.noarch.rpm"
+  config.vm.provision :shell, :inline => "yum install -y goldstone"
+end
