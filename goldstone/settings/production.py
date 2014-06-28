@@ -98,6 +98,6 @@ LOGGING = {
 OS_USERNAME = 'admin'
 OS_PASSWORD = '3dcdf1ad1ac442d5'
 OS_TENANT_NAME = 'admin'
-OS_AUTH_URL = 'http://192.168.1.2:5000/v2.0'
+OS_AUTH_URL = 'http://192.168.1.3:5000/v2.0'
 
 ES_SERVER = "127.0.0.1:9200"
