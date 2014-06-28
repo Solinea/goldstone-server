@@ -23,6 +23,7 @@ import redis
 import json
 from time import sleep
 from goldstone.apps.logging.tasks import *
+from goldstone.apps.logging.models import *
 
 logger = logging.getLogger(__name__)
 
@@ -102,3 +103,11 @@ class TaskTests(SimpleTestCase):
             r.delete('host_stream.whitelist.test')
             r.delete('host_stream.whitelist.test2')
             raise
+
+class ModelTests(SimpleTestCase):
+
+    def test_get_host_avail_data(self):
+        ha = HostAvailData()
+        response = ha.get()
+        self.assertTrue(response.has_key('blacklist'))
+        self.assertTrue(response.has_key('whitelist'))

@@ -18,3 +18,5 @@ from goldstone.views import *
 import logging
 
 logger = logging.getLogger(__name__)
+
+class HostAvailView(JSONView):

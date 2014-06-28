@@ -142,12 +142,17 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 MAILHOST = 'localhost'
 
+REDIS_HOST = 'localhost'
+REDIS_PORT = '6379'
+REDIS_DB = '0'
+REDIS_CONNECT_STR = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/' + REDIS_DB
+
 # Celery
 
 from kombu import Exchange, Queue
 
-BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+BROKER_URL = REDIS_CONNECT_STR
+CELERY_RESULT_BACKEND = REDIS_CONNECT_STR
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
 BROKER_TRANSPORT_OPTIONS = {
