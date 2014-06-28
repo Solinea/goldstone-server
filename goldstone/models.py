@@ -18,6 +18,7 @@ __author__ = 'John Stanford'
 from django.conf import settings
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ElasticsearchException
+import redis
 from datetime import datetime
 from types import StringType
 import json
@@ -33,6 +34,17 @@ class GSConnection(object):
 
     def __init__(self, server=settings.ES_SERVER):
         self.conn = Elasticsearch(server)
+
+
+class RedisConnection(object):
+    conn = None
+
+    def __init__(self,
+                 host=settings.REDIS_HOST,
+                 port=settings.REDIS_PORT,
+                 db=settings.REDIS_DB):
+
+        self.conn = redis.StrictRedis(host=host, port=port, db=db)
 
 
 class ESData(object):

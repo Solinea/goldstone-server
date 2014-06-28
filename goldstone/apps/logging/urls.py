@@ -16,3 +16,9 @@ __author__ = 'John Stanford'
 
 from django.conf.urls import patterns, url
 from .views import *
+
+urlpatterns = patterns(
+    '',
+    url(r'^report/host_avail[/]?$', HostAvailView.as_view(),
+        name='logging-host-avail-view'),
+)
