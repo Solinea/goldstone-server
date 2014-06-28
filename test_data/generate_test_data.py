@@ -20,7 +20,7 @@ from datetime import *
 import pytz
 import gzip
 
-conn = Elasticsearch("10.10.11.122:9200", bulk_size=500)
+conn = Elasticsearch("10.10.11.121:9200", bulk_size=500)
 
 start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
 end = datetime.now(tz=pytz.utc)
@@ -67,10 +67,13 @@ result1 = [
 result2 = [
     _get_dataset('keystone_service_list', '@timestamp:desc'),
     _get_dataset('keystone_endpoint_list', '@timestamp:desc'),
+    _get_dataset('keystone_tenant_list', '@timestamp:desc'),
+    _get_dataset('keystone_user_list', '@timestamp:desc'),
+    _get_dataset('keystone_role_list', '@timestamp:desc'),
     _get_dataset('glance_image_list', '@timestamp:desc'),
     _get_dataset('cinder_service_list', '@timestamp:desc'),
     _get_dataset('cinder_volume_list', '@timestamp:desc'),
-    _get_dataset('cinder_volume_type_list', '@timestamp:desc'),
+    _get_dataset('cinder_voltype_list', '@timestamp:desc'),
     _get_dataset('cinder_transfer_list', '@timestamp:desc'),
     _get_dataset('cinder_backup_list', '@timestamp:desc'),
     _get_dataset('cinder_snapshot_list', '@timestamp:desc'),
