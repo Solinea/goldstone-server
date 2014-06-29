@@ -25,6 +25,7 @@ import json
 import re
 from datetime import datetime, timedelta
 import pytz
+from goldstone.apps.logging.models import HostAvailData
 
 
 logger = logging.getLogger(__name__)
@@ -39,14 +40,9 @@ def process_host_stream(self, host, timestamp):
     the result to ES periodically.
     :return: None
     """
-    # connect to redis
-    # TODO make these config params
-    # TODO use a connection pool
-    r = redis.StrictRedis(host='localhost', port=6379, db=0)
-    if not r.exists("host_stream.blacklist." + host):
-        key = "host_stream.whitelist." + host
-        r.set(key, timestamp)
-        logger.debug("set key %s to %s", key, timestamp)
+
+    had = HostAvailData()
+    return had.set(host, timestamp)
 
 
 @celery_app.task(bind=True)
