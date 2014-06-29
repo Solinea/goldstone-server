@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from django.http import HttpResponse
 
 __author__ = 'John Stanford'
 
@@ -104,6 +105,7 @@ class TaskTests(SimpleTestCase):
             r.delete('host_stream.whitelist.test2')
             raise
 
+
 class ModelTests(SimpleTestCase):
 
     def test_get_host_avail_data(self):
@@ -111,3 +113,19 @@ class ModelTests(SimpleTestCase):
         response = ha.get()
         self.assertTrue(response.has_key('blacklist'))
         self.assertTrue(response.has_key('whitelist'))
+
+
+class ViewTests(SimpleTestCase):
+
+    def test_get_agents(self):
+        response = self.client.get("/logging/report/host_availability")
+        self.assertIsInstance(response, HttpResponse)
+        self.assertNotEqual(response.content, None)
+        try:
+            j = json.loads(response.content)
+        except:
+            self.fail("Could not convert content to JSON")
+        else:
+            self.assertIsInstance(j, dict)
+            self.assertTrue(j.has_key('status'))
+            self.assertTrue(j.has_key('data'))

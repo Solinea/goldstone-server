@@ -19,6 +19,6 @@ from .views import *
 
 urlpatterns = patterns(
     '',
-    url(r'^report/host_avail[/]?$', HostAvailView.as_view(),
+    url(r'^report/host_availability[/]?$', HostAvailView.as_view(),
         name='logging-host-avail-view'),
 )
