@@ -60,6 +60,21 @@ class NoDailyIndex(GoldstoneBaseException):
     pass
 
 
+def stringify_stack(self, stack):
+    s = []
+    for item in stack:
+        fn = item[0]
+        line_no = str(item[1])
+        module = item[2]
+        line_txt = item[3]
+        s.append({'file': fn,
+                  'line_number': line_no,
+                  'module': module,
+                  'line_text': line_txt})
+
+    return json.dumps(s)
+
+
 def utc_timestamp():
     return calendar.timegm(datetime.now(tz=pytz.utc).timetuple())
 

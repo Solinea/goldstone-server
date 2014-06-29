@@ -21,6 +21,7 @@ __author__ = 'stanford'
 
 logger = logging.getLogger(__name__)
 
+
 class HostAvailData(RedisConnection):
 
     def _get_datalist(self, prefix):
@@ -36,8 +37,8 @@ class HostAvailData(RedisConnection):
     def get(self):
         white_data = self._get_datalist('''host_stream.whitelist.''')
         black_data = self._get_datalist('''host_stream.blacklist.''')
-        logger.info("white_data = %s", json.dumps(white_data))
-        logger.info("black_data = %s", json.dumps(black_data))
+        logger.debug("[get] white_data = %s", json.dumps(white_data))
+        logger.debug("[get] black_data = %s", json.dumps(black_data))
         return {
             'whitelist': white_data,
             'blacklist': black_data
