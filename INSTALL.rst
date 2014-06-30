@@ -41,7 +41,7 @@ To view and use goldstone, you will need a recent version of the `Google Chrome 
 RUN GOLDSTONE INSTALLER
 ***********************
 
-First, enable the CentOS EPEL repositories and install some dependencies:
+First, enable the CentOS EPEL repositories and install some dependencies: ::
 
     # yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
     # yum install -y gcc gcc-c++ mysql-server mysql-devel
