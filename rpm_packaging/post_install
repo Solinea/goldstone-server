@@ -1,8 +1,3 @@
-# yum -y update
-# wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-# wget http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
-# yum localinstall -y remi-release-6*.rpm epel-release-6*.rpm
-
 # turn SE Linux to permissive for logging
 echo 0 >/selinux/enforce
 if [ ! -f /etc/selinux/config.bak ]; then
@@ -23,17 +18,12 @@ chkconfig --add elasticsearch
 chkconfig elasticsearch on
 service elasticsearch start
 
-# cd /opt/logstash
-# ./bin/plugin install contrib  # required for translate plugin
-# cd -
-# cp external/logstash/conf.d/* /etc/logstash/conf.d/
-# cp external/logstash/patterns/goldstone /opt/logstash/patterns/goldstone
 chkconfig --add logstash
 chkconfig logstash on
 service logstash restart 
 
 useradd -m goldstone
-chown goldstone /opt/goldstone
+#chown goldstone /opt/goldstone
 cd /opt/goldstone
 python -c 'from goldstone.apps.core.tasks import create_daily_index; create_daily_index()'
 
@@ -43,10 +33,11 @@ mkdir -p /var/log/goldstone
 chown apache /var/log/goldstone
 chgrp apache /var/log/goldstone
 touch /var/log/goldstone/goldstone.log
-chown apache /var/log/goldstone/goldstone.log
-chgrp apache /var/log/goldstone/goldstone.log
+#chown apache /var/log/goldstone/goldstone.log
+#chgrp apache /var/log/goldstone/goldstone.log
 # Allow apache and celery to log here
-chmod 777 /var/log/goldstone/goldstone.log
+#chmod 777 /var/log/goldstone/goldstone.log
+chmod 777 /var/log/goldstone/
 
 service mysqld restart
 chkconfig mysqld on
@@ -60,7 +51,8 @@ cd /opt/goldstone
 pip install -r requirements.txt
 mkdir -p /var/www/goldstone/static
 ln -s /usr/lib/python2.6/site-packages/goldstone goldstone
-chown -R goldstone:goldstone .
+#chown -R goldstone:goldstone .
+chmod 666 /opt/goldstone/goldstone/settings/
 python manage.py collectstatic --settings=goldstone.settings.production --noinput
 chkconfig httpd on
 service httpd restart
