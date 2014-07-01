@@ -15,6 +15,7 @@ from __future__ import unicode_literals
 
 import copy
 from django.shortcuts import render
+from goldstone.utils import GoldstoneAuthError
 
 __author__ = 'John Stanford'
 
@@ -361,7 +362,8 @@ class TopologyView(TemplateView):
             return TemplateView.render_to_response(
                 self, {'data': json.dumps(response)})
         except (CinderAuthException, CinderApiAuthException, NovaAuthException,
-                NovaApiAuthException, KeystoneApiAuthException) as e:
+                NovaApiAuthException, KeystoneApiAuthException,
+                GoldstoneAuthError) as e:
             logger.exception(e)
             if self.template_name is None:
                 return HttpResponse(status=401)

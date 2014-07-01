@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from goldstone.utils import _get_region_for_glance_client, \
-    _normalize_hostnames, _get_keystone_client, _get_client, NoResourceFound
+     _get_client, NoResourceFound, GoldstoneAuthError
 
 __author__ = 'John Stanford'
 
@@ -48,9 +48,10 @@ class DiscoverView(TopologyView):
         return set([s['_source']['region'] for s in self.images])
 
     def _get_regions(self):
-        kc = _get_client(service='keystone')['client']
-        r = _get_region_for_glance_client(kc)
-        return [{"rsrcType": "region", "label": r}]
+            kc = _get_client(service='keystone')['client']
+            r = _get_region_for_glance_client(kc)
+            return [{"rsrcType": "region", "label": r}]
+
 
     def _populate_regions(self):
         result = []
@@ -88,6 +89,8 @@ class DiscoverView(TopologyView):
                 return rl[0]
         except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
+        except GoldstoneAuthError:
+            raise
 
 
 class ImagesDataView(JSONView):
