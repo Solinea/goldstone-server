@@ -43,8 +43,28 @@ This environment brings up a CentOS 6.5 virtualbox (3GB RAM, 8GB HD, 1vCPU) and 
 Vagrant-CentOS-Dev
 ******************
 
-This environment brings up a CentOS 6.5 virtualbox (3GB RAM, 8GB HD, 1vCPU) and then installs the goldstone prerequesites and then mounts Solinea's local Dropbox folder with the development RPMs in it under /goldstone. From here, you can install any unreleased goldstone version with: ::
+This environment brings up:
 
-    # yum localinstall /goldstone/goldstone-1.1.dev19.ga96ad94-1.noarch.rpm
+* **GOLDSTONE**: CentOS 6.5 virtualbox (2GB RAM, 8GB HD, 1vCPU) for goldstone and then installs the goldstone prerequesites and then mounts Solinea's local Dropbox folder with the development RPMs in it under /goldstone. This VM already has EPEL enabled on it also.
+* **RDO**: CentOS 6.5 virtualbox (2GB RAM, 8GB HD, 1vCPU) with RDO (current Icehouse) preinstalled on it. The credential are stored in the home directory (`keystonerc_admin` and `keystonerc_demo`) and most services are running. The OpenStack Dashboard browse to http://localhost:8081/dashboard. To use Nagios, browse to http://localhost:8081/nagios (username: nagiosadmin, password: 627d12e0096c45b1). The generated puppet manifests are at `/var/tmp/packstack/20140628-003620-OhN37L/manifests`. System logs are redirected for OpenStack daemons through rsyslog (in `/etc/rsyslog.d/10-goldstone.conf`).
 
-This VM already has EPEL enabled on it also.
+To access either machine, use the `vagrant ssh` command with the VM name: ::
+
+    $ vagrant ssh rdo
+    Last login: Sat Jun 28 22:30:26 2014 from 10.0.2.2
+    [vagrant@vagrant-centos65 ~]$ exit
+    logout
+    Connection to 127.0.0.1 closed.
+    $ vagrant ssh goldstone
+    Last login: Sat Jun 28 22:26:45 2014 from 10.0.2.2
+    [vagrant@vagrant-centos65 ~]$ exit
+    logout
+    Connection to 127.0.0.1 closed.
+    $ 
+
+Inside the goldstone VM, you can install any unreleased goldstone version with: ::
+
+    # yum localinstall -y /goldstone/goldstone-1.1.dev19.ga96ad94-1.noarch.rpm
+
+
+
