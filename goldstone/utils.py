@@ -149,9 +149,9 @@ def _get_client(service, user=settings.OS_USERNAME,
         c = None
         try:
             c = ksclient.Client(username=user,
-                            password=passwd,
-                            tenant_name=tenant,
-                            auth_url=auth_url)
+                                password=passwd,
+                                tenant_name=tenant,
+                                auth_url=auth_url)
             if c.auth_token is None:
                 raise GoldstoneAuthError("Keystone client call succeeded, but "
                                          "auth token was not returned.  Check "
@@ -212,8 +212,6 @@ def _get_client(service, user=settings.OS_USERNAME,
             )
     else:
         raise GoldstoneAuthError("Unknown service")
-
-
 
 
 _get_keystone_client = functools.partial(_get_client, service='keystone')

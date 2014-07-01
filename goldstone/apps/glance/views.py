@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from goldstone.utils import _get_region_for_glance_client, \
-     _get_client, NoResourceFound, GoldstoneAuthError
+from goldstone.utils import _get_region_for_glance_client, _get_client, \
+    NoResourceFound, GoldstoneAuthError
 
 __author__ = 'John Stanford'
 
@@ -51,7 +51,6 @@ class DiscoverView(TopologyView):
             kc = _get_client(service='keystone')['client']
             r = _get_region_for_glance_client(kc)
             return [{"rsrcType": "region", "label": r}]
-
 
     def _populate_regions(self):
         result = []
