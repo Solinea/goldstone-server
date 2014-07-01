@@ -33,10 +33,7 @@ mkdir -p /var/log/goldstone
 chown apache /var/log/goldstone
 chgrp apache /var/log/goldstone
 touch /var/log/goldstone/goldstone.log
-#chown apache /var/log/goldstone/goldstone.log
-#chgrp apache /var/log/goldstone/goldstone.log
-# Allow apache and celery to log here
-#chmod 777 /var/log/goldstone/goldstone.log
+chown apache:apache /var/log/goldstone/goldstone.log
 chmod 777 /var/log/goldstone/
 
 service mysqld restart
@@ -53,7 +50,7 @@ mkdir -p /var/www/goldstone/static
 ln -s /usr/lib/python2.6/site-packages/goldstone goldstone
 chown -R apache:apache /opt/goldstone
 chown -R apache:apache /usr/lib/python2.6/site-packages/goldstone
-chmod 666 /opt/goldstone/goldstone/settings/
+chmod 755 /opt/goldstone/goldstone/settings/
 python manage.py collectstatic --settings=goldstone.settings.production --noinput
 chkconfig httpd on
 service httpd restart
