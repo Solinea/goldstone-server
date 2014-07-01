@@ -60,6 +60,10 @@ class NoDailyIndex(GoldstoneBaseException):
     pass
 
 
+class NoResourceFound(GoldstoneBaseException):
+    pass
+
+
 def utc_timestamp():
     return calendar.timegm(datetime.now(tz=pytz.utc).timetuple())
 
