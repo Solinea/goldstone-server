@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from goldstone.utils import _get_region_for_glance_client, \
-    _normalize_hostnames, _get_keystone_client, _get_client
+    _normalize_hostnames, _get_keystone_client, _get_client, NoResourceFound
 
 __author__ = 'John Stanford'
 
@@ -76,6 +76,9 @@ class DiscoverView(TopologyView):
 
     def _build_topology_tree(self):
         try:
+            if self.images is None or len(self.images) == 0:
+                raise NoResourceFound(
+                    "No glance images found in database")
             updated = self.images[0]['_source']['@timestamp']
             rl = self._populate_regions()
 
@@ -83,7 +86,7 @@ class DiscoverView(TopologyView):
                 return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
             else:
                 return rl[0]
-        except IndexError:
+        except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
 
 
