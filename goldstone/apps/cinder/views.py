@@ -182,6 +182,8 @@ class DiscoverView(TopologyView):
                 return new_rl[0]
         except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
+        except GoldstoneAuthError:
+            raise
 
 
 class VolumesDataView(JSONView):
