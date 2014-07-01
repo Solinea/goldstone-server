@@ -17,7 +17,8 @@ import copy
 import itertools
 from django.test import SimpleTestCase
 from goldstone.utils import _is_ip_addr, _partition_hostname, _resolve_fqdn, \
-    _resolve_addr, _host_details, _normalize_hostnames, _normalize_hostname
+    _resolve_addr, _host_details, _normalize_hostnames, _normalize_hostname, \
+    NoResourceFound
 
 __author__ = 'John Stanford'
 
@@ -53,7 +54,10 @@ class DiscoverView(TopologyView):
         # that don't have at least one service.
 
     def _get_service_regions(self):
-        return set([s['_source']['region'] for s in self.services])
+        if self.services is None:
+            return []
+        else:
+            return set([s['_source']['region'] for s in self.services])
 
     def _get_regions(self):
         return [{"rsrcType": "region", "label": r} for r in
@@ -155,6 +159,10 @@ class DiscoverView(TopologyView):
     def _build_topology_tree(self):
 
         try:
+            if self.services is None or len(self.services) == 0:
+                raise NoResourceFound(
+                    "No cinder services found in database")
+
             updated = self.services[0]['_source']['@timestamp']
             rl = self._populate_regions()
             new_rl = []
@@ -172,8 +180,10 @@ class DiscoverView(TopologyView):
                         "children": new_rl}
             else:
                 return new_rl[0]
-        except IndexError:
+        except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
+        except GoldstoneAuthError:
+            raise
 
 
 class VolumesDataView(JSONView):

@@ -15,10 +15,15 @@
 
 from __future__ import with_statement  # Python 2.5 compliance
 
+import grp
 import lockfile
+import logging
 import os
+import pwd
 import random
 import string
+
+logger = logging.getLogger(__name__)
 
 
 class FilePermissionError(Exception):
@@ -40,7 +45,8 @@ def generate_key(key_length=64):
                    range(key_length)))
 
 
-def generate_or_read_from_file(key_file='.secret_key', key_length=64):
+def generate_or_read_from_file(key_file='.secret_key', key_length=64,
+                               uid_and_gid='apache'):
     """Multiprocess-safe secret key file generator.
 
     Useful to replace the default (and thus unsafe) SECRET_KEY in settings.py
@@ -57,6 +63,13 @@ def generate_or_read_from_file(key_file='.secret_key', key_length=64):
             with open(key_file, 'w') as f:
                 f.write(key)
             os.umask(old_umask)
+            try:
+                uid = pwd.getpwnam(uid_and_gid).pw_uid
+                gid = grp.getgrnam(uid_and_gid).gr_gid
+                os.chown(key_file, uid, gid)
+            except:
+                logger.debug("Error changing permission on secret file to %s",
+                             uid_and_gid)
         else:
             if oct(os.stat(key_file).st_mode & 0o777) != '0600':
                 raise FilePermissionError("Insecure key file permissions!")
