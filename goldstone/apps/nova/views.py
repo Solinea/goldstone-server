@@ -13,7 +13,7 @@ from __future__ import unicode_literals
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from goldstone.utils import _normalize_hostnames
+from goldstone.utils import _normalize_hostnames, NoResourceFound
 
 __author__ = 'John Stanford'
 
@@ -306,7 +306,10 @@ class DiscoverView(TopologyView):
         self.azs = AvailZonesData().get()
 
     def _get_region_names(self):
-        return set([s['_source']['region'] for s in self.azs])
+        if self.azs is None:
+            return []
+        else:
+            return set([s['_source']['region'] for s in self.azs])
 
     def _get_regions(self):
         return [{"rsrcType": "region", "label": r}
@@ -407,6 +410,9 @@ class DiscoverView(TopologyView):
 
     def _build_topology_tree(self):
         try:
+            if self.azs is None or len(self.azs) == 0:
+                raise NoResourceFound(
+                    "No nova availability zones found in database")
             updated = self.azs[0]['_source']['@timestamp']
             rl = self._populate_regions()
             new_rl = []
@@ -424,8 +430,10 @@ class DiscoverView(TopologyView):
                         "children": new_rl}
             else:
                 return new_rl[0]
-        except IndexError:
+        except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
+        except GoldstoneAuthError:
+            raise
 
 
 class AgentsDataView(JSONView):

@@ -17,7 +17,6 @@ import pytz
 __author__ = 'John Stanford'
 
 from django.conf import settings
-from keystoneclient.exceptions import ClientException
 from goldstone.lru_cache import lru_cache
 import cinderclient.v2.services
 from keystoneclient.v2_0 import client as ksclient
@@ -38,6 +37,13 @@ import functools
 from datetime import date
 import calendar
 import math
+from keystoneclient.openstack.common.apiclient.exceptions \
+    import Unauthorized as KeystoneUnauthorized
+from novaclient.openstack.common.apiclient.exceptions \
+    import Unauthorized as NovaUnauthorized
+from cinderclient.openstack.common.apiclient.exceptions \
+    import Unauthorized as CinderUnauthorized
+from neutronclient.common.exceptions import Unauthorized as NeutronUnauthorized
 
 
 logger = logging.getLogger(__name__)
@@ -57,6 +63,10 @@ class GoldstoneAuthError(GoldstoneBaseException):
 
 
 class NoDailyIndex(GoldstoneBaseException):
+    pass
+
+
+class NoResourceFound(GoldstoneBaseException):
     pass
 
 
@@ -134,8 +144,10 @@ def _get_client(service, user=settings.OS_USERNAME,
                 passwd=settings.OS_PASSWORD,
                 tenant=settings.OS_TENANT_NAME,
                 auth_url=settings.OS_AUTH_URL):
-    try:
-        if service == 'keystone':
+
+    if service == 'keystone':
+        c = None
+        try:
             c = ksclient.Client(username=user,
                                 password=passwd,
                                 tenant_name=tenant,
@@ -143,36 +155,63 @@ def _get_client(service, user=settings.OS_USERNAME,
             if c.auth_token is None:
                 raise GoldstoneAuthError("Keystone client call succeeded, but "
                                          "auth token was not returned.  Check "
-                                         "credentials.")
+                                         "credentials in goldstone settings.")
             else:
                 md5 = hashlib.md5()
                 md5.update(c.auth_token)
                 return {'client': c, 'hex_token': md5.hexdigest()}
-        elif service == 'nova':
+        except KeystoneUnauthorized:
+                raise GoldstoneAuthError(
+                    "Keystone client failed to authorize. Check credentials in"
+                    " goldstone settings."
+                )
+    elif service == 'nova':
+        try:
             c = nvclient.Client(user, passwd, tenant, auth_url,
                                 service_type='compute')
             return {'client': c}
-        elif service == 'cinder':
+        except NovaUnauthorized:
+            raise GoldstoneAuthError(
+                "Nova client failed to authorize. Check credentials in"
+                " goldstone settings."
+            )
+    elif service == 'cinder':
+        try:
             cinderclient.v2.services.Service.__repr__ = \
                 _patched_cinder_service_repr
             c = ciclient.Client(user, passwd, tenant, auth_url,
                                 service_type='volume')
             region = _get_region_for_cinder_client(c)
             return {'client': c, 'region': region}
-        elif service == 'neutron':
+        except CinderUnauthorized:
+            raise GoldstoneAuthError(
+                "Cinder client failed to authorize. Check credentials in"
+                " goldstone settings."
+            )
+    elif service == 'neutron':
+        try:
             c = neclient.Client(user, passwd, tenant, auth_url)
             return {'client': c}
-        elif service == 'glance':
+        except NeutronUnauthorized:
+            raise GoldstoneAuthError(
+                "Neutron client failed to authorize. Check credentials in"
+                " goldstone settings."
+            )
+    elif service == 'glance':
+        try:
             kc = _get_client(service='keystone')['client']
             mgmt_url = kc.endpoints.find(service_id=kc.services.
                                          find(name='glance').id).internalurl
             region = _get_region_for_glance_client(kc)
             c = glclient.Client(endpoint=mgmt_url, token=kc.auth_token)
             return {'client': c, 'region': region}
-        else:
-            raise GoldstoneAuthError("Unknown service")
-    except ClientException:
-        raise
+        except KeystoneUnauthorized:
+            raise GoldstoneAuthError(
+                "Glance client failed to authorize. Check credentials in"
+                " goldstone settings."
+            )
+    else:
+        raise GoldstoneAuthError("Unknown service")
 
 
 _get_keystone_client = functools.partial(_get_client, service='keystone')
