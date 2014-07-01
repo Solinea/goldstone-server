@@ -309,8 +309,7 @@ class DiscoverView(TopologyView):
         if self.azs is None:
             return []
         else:
-            #return set([s['_source']['region'] for s in self.azs])
-            return []
+            return set([s['_source']['region'] for s in self.azs])
 
     def _get_regions(self):
         return [{"rsrcType": "region", "label": r}
