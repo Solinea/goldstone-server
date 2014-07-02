@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from goldstone.utils import _get_region_for_glance_client, \
-    _normalize_hostnames, _get_keystone_client, _get_client
+from goldstone.utils import _get_region_for_glance_client, _get_client, \
+    NoResourceFound, GoldstoneAuthError
 
 __author__ = 'John Stanford'
 
@@ -48,9 +48,9 @@ class DiscoverView(TopologyView):
         return set([s['_source']['region'] for s in self.images])
 
     def _get_regions(self):
-        kc = _get_client(service='keystone')['client']
-        r = _get_region_for_glance_client(kc)
-        return [{"rsrcType": "region", "label": r}]
+            kc = _get_client(service='keystone')['client']
+            r = _get_region_for_glance_client(kc)
+            return [{"rsrcType": "region", "label": r}]
 
     def _populate_regions(self):
         result = []
@@ -76,6 +76,9 @@ class DiscoverView(TopologyView):
 
     def _build_topology_tree(self):
         try:
+            if self.images is None or len(self.images) == 0:
+                raise NoResourceFound(
+                    "No glance images found in database")
             updated = self.images[0]['_source']['@timestamp']
             rl = self._populate_regions()
 
@@ -83,8 +86,10 @@ class DiscoverView(TopologyView):
                 return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
             else:
                 return rl[0]
-        except IndexError:
+        except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
+        except GoldstoneAuthError:
+            raise
 
 
 class ImagesDataView(JSONView):

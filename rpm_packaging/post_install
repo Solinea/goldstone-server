@@ -1,0 +1,64 @@
+# turn SE Linux to permissive for logging
+echo 0 >/selinux/enforce
+if [ ! -f /etc/selinux/config.bak ]; then
+    cp /etc/selinux/config /etc/selinux/config.bak
+fi
+sed 's/SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config.bak > /etc/selinux/config
+setsebool -P httpd_can_network_connect 1
+
+iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 80 -m comment --comment "httpd incoming" -j ACCEPT
+iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 9200 -m comment --comment "elastcisearch incoming" -j ACCEPT
+iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 5514 -m comment --comment "goldstone rsyslog incoming" -j ACCEPT
+service iptables save
+
+chkconfig --add redis
+chkconfig redis on
+service redis start
+chkconfig --add elasticsearch
+chkconfig elasticsearch on
+service elasticsearch start
+
+chkconfig --add logstash
+chkconfig logstash on
+service logstash restart 
+
+useradd -m goldstone
+#chown goldstone /opt/goldstone
+cd /opt/goldstone
+python -c 'from goldstone.apps.core.tasks import create_daily_index; create_daily_index()'
+
+# set django production logging to /var/log/goldstone
+# set ownership to apache:apache
+mkdir -p /var/log/goldstone
+chown apache /var/log/goldstone
+chgrp apache /var/log/goldstone
+touch /var/log/goldstone/goldstone.log
+chown apache:apache /var/log/goldstone/goldstone.log
+chmod 777 /var/log/goldstone/
+
+service mysqld restart
+chkconfig mysqld on
+mysqladmin -u root password 'goldstone'
+mysqladmin -u root -pgoldstone create goldstone
+mysql -uroot -pgoldstone -e "GRANT ALL PRIVILEGES ON goldstone.* TO goldstone@localhost IDENTIFIED BY 'goldstone'"
+mysql -uroot -pgoldstone -e "FLUSH PRIVILEGES"
+service mysqld restart
+
+cd /opt/goldstone
+pip install -r requirements.txt
+mkdir -p /var/www/goldstone/static
+ln -s /usr/lib/python2.6/site-packages/goldstone goldstone
+chown -R apache:apache /opt/goldstone
+chown -R apache:apache /usr/lib/python2.6/site-packages/goldstone
+chmod 755 /opt/goldstone/goldstone/settings/
+python manage.py collectstatic --settings=goldstone.settings.production --noinput
+chkconfig httpd on
+service httpd restart
+
+chkconfig --add celerybeat
+chkconfig celerybeat on
+service celerybeat restart
+
+chkconfig --add celeryd
+chkconfig celeryd on
+service celeryd restart

@@ -1,0 +1,5 @@
+[goldstone]
+name=goldstone
+baseurl=http://repo.solinea.com/repo
+enabled=1
+gpgcheck=0

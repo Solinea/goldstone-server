@@ -22,17 +22,12 @@ limitations under the License.
 INSTALLING GOLDSTONE
 *********************
 
-Installing goldstone is a three step process:
+Installing goldstone is a two step process:
 
-1. Install prerequisites
-2. Run goldstone installer script
-3. Direct OpenStack server logs to goldstone server
+1. Install goldstone packages
+2. Direct OpenStack server logs to goldstone server
 
-
-INSTALL PREREQUISITES
-*********************
-
-Your goldstone server needs to meet the following prerequesites:
+Before installing goldstone, your server needs to meet the following prerequesites:
 
 * 4GB RAM
 * x64 CPU
@@ -43,61 +38,30 @@ To view and use goldstone, you will need a recent version of the `Google Chrome 
 
 .. _Google Chrome browser: https://www.google.com/intl/en-US/chrome/browser/
 
-Once you are sure that your server or VM meets those requirements, install these required packages via the command line as root: ::
- 
-# yum install -y java-1.7.0-openjdk.x86_64 gcc gcc-c++ 
-# yum install -y mysql-server mysql-devel
-
-
 RUN GOLDSTONE INSTALLER
 ***********************
 
-First, add the goldstone repository then install the goldstone application. ::
+First, enable the CentOS EPEL repositories and install some dependencies: ::
 
-    # cat << EOF > /etc/yum.repos.d/goldstone.repo
-    > [goldstone]
-    > name=goldstone
-    > baseurl=http://repo.solinea.com/repo
-    > enabled=1
-    > gpgcheck=0
-    > EOF
-    # yum install goldstone
+    # yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+    # yum install -y gcc gcc-c++ mysql-server mysql-devel
 
-Once the goldstone rpm is installed, edit the ``/usr/lib/python2.6/site-packages/goldstone/settings/production.py`` file to add your OpenStack admin credentials. These are located at the bottom of the file: ::
+After that, enable the goldstone repository: ::
+
+    # yum install -y http://repo.solinea.com/repo/goldstone_repos-1.1-1.noarch.rpm
+
+Finally, install the goldstone application: ::
+
+    # yum install -y goldstone
+
+This package installation may take up to 2 hours to run, as it needs to compile a number of libraries.
+
+Once the goldstone rpm is installed, edit the ``/opt/goldstone/goldstone/settings/production.py`` file to add your OpenStack admin credentials. These are located at the bottom of the file: ::
 
     OS_USERNAME = 'admin'
     OS_PASSWORD = 'fe6ac09d85041ae384c66a83e362f565'
     OS_TENANT_NAME = 'admin'
     OS_AUTH_URL = 'http://10.10.15.230:5000/v2.0'
-
-
-Now run the goldstone installer script as root: ::
-
-# cd /opt/goldstone
-# ./install_goldstone.sh
-
-The output of this script will look like this: ::
-
-    Sat Jun  7 14:10:56 PDT 2014 	STARTING EPEL ....
-    Sat Jun  7 14:13:28 PDT 2014	EPEL         [ DONE ]
-    Sat Jun  7 14:13:28 PDT 2014 	STARTING IPTABLES ....
-    Sat Jun  7 14:13:29 PDT 2014	IPTABLES         [ DONE ]
-    Sat Jun  7 14:13:29 PDT 2014 	STARTING ELASTICSEARCH ....
-    Sat Jun  7 14:17:52 PDT 2014	ELASTICSEARCH         [ DONE ]
-    Sat Jun  7 14:17:52 PDT 2014 	STARTING LOGSTASH ....
-    Sat Jun  7 14:20:11 PDT 2014	LOGSTASH         [ DONE ]
-    Sat Jun  7 14:20:11 PDT 2014 	STARTING LOGGING ....
-    Sat Jun  7 14:20:11 PDT 2014	LOGGING         [ DONE ]
-    Sat Jun  7 14:20:11 PDT 2014 	STARTING POSTGRESQL ....
-    Sat Jun  7 14:20:45 PDT 2014	POSTGRESQL         [ DONE ]
-    Sat Jun  7 14:20:45 PDT 2014 	STARTING GOLDSTONE ....
-    Sat Jun  7 14:51:41 PDT 2014	GOLDSTONE         [ DONE ]
-    Sat Jun  7 14:51:41 PDT 2014 	STARTING CELERY ....
-    Sat Jun  7 14:51:44 PDT 2014	CELERY         [ DONE ]
-    Sat Jun  7 14:52:44 PDT 2014	[ FINISHED ]
-
-This script may take up to 2 hours to run, as it needs to compile a number of libraries. While it is running, you can monitor the ``/opt/goldstone/install.log`` file for low-level reports on its activities.
-
 
 DIRECT LOGS TO GOLDSTONE SERVER
 *******************************
@@ -106,7 +70,6 @@ With goldstone installed, the only task left is to point the OpenStack server lo
 
     1. Configure OpenStack services to use syslog
     2. Configure syslog to forward to your goldstone server
-
 
 OpenStack Service Logging
 ---------------------------

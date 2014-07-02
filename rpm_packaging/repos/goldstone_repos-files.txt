@@ -1,0 +1,7 @@
+#File list of goldstone_repos
+#See details of directives at http://www.rpm.org/max-rpm/s1-rpm-inside-files-list-directives.html
+
+%dir /etc/yum.repos.d
+%attr(644,-,-) /etc/yum.repos.d/elasticsearch-1.2.repo
+%attr(644,-,-) /etc/yum.repos.d/goldstone.repo
+%attr(644,-,-) /etc/yum.repos.d/logstash-1.4.repo
