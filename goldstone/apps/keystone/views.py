@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from goldstone.utils import NoResourceFound
 
 __author__ = 'John Stanford'
 
@@ -42,12 +43,15 @@ class DiscoverView(TopologyView):
         self.endpoints = EndpointsData().get()
 
     def _get_endpoint_regions(self):
-        return set(
-            [
-                r['region']
-                for ep in self.endpoints
-                for r in ep['_source']['endpoints']
-            ])
+        if self.endpoints is None:
+            return []
+        else:
+            return set(
+                [
+                    r['region']
+                    for ep in self.endpoints
+                    for r in ep['_source']['endpoints']
+                ])
 
     def _get_regions(self):
         return [{"rsrcType": "region", "label": r} for r in
@@ -55,6 +59,9 @@ class DiscoverView(TopologyView):
 
     def _populate_regions(self):
         result = []
+        if self.endpoints is None or len(self.endpoints) == 0:
+                raise NoResourceFound(
+                    "No keystone endpoints found in database")
         updated = self.endpoints[0]['_source']['@timestamp']
         for r in self._get_endpoint_regions():
             result.append(
@@ -115,8 +122,10 @@ class DiscoverView(TopologyView):
                 return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
             else:
                 return rl[0]
-        except IndexError:
+        except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
+        except GoldstoneAuthError:
+            raise
 
 
 class EndpointsDataView(JSONView):
