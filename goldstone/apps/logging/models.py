@@ -24,6 +24,9 @@ logger = logging.getLogger(__name__)
 
 class HostAvailData(RedisConnection):
 
+    white_prefix = '''host_stream.whitelist.'''
+    black_prefix = '''host_stream.blacklist.'''
+
     def _get_datalist(self, prefix):
         kl = self.conn.keys(prefix + "*")
         # mget doesn't handle empty list well
@@ -34,13 +37,30 @@ class HostAvailData(RedisConnection):
         f = lambda k, v: {re.sub(prefix, '', k): v}
         return map(f, kl, vl)
 
-    def get(self):
-        white_data = self._get_datalist('''host_stream.whitelist.''')
-        black_data = self._get_datalist('''host_stream.blacklist.''')
+    def get_all(self):
+        white_data = self._get_datalist(self.white_prefix)
+        black_data = self._get_datalist(self.black_prefix)
         logger.debug("[get] white_data = %s", json.dumps(white_data))
         logger.debug("[get] black_data = %s", json.dumps(black_data))
         return {
             'whitelist': white_data,
             'blacklist': black_data
         }
+
+    def set(self, host, datetime_string, status='white'):
+        """
+        set or update the state of a host entry
+        :param host: host name string
+        :param datetime_string: string
+        :param status: white|black
+        :return: key or None
+        """
+
+        if not self.conn.exists(self.black_prefix + host):
+            key = self.white_prefix + host
+            self.conn.set(key, datetime_string)
+            logger.debug("set key %s to %s", key, datetime_string)
+            return key
+        else:
+            return None
 
