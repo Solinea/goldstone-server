@@ -110,7 +110,7 @@ class ModelTests(SimpleTestCase):
 
     def test_get_host_avail_data(self):
         ha = HostAvailData()
-        response = ha.get()
+        response = ha.get_all()
         self.assertTrue(response.has_key('blacklist'))
         self.assertTrue(response.has_key('whitelist'))
 
