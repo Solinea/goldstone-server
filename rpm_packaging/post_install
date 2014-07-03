@@ -59,6 +59,12 @@ chkconfig --add celerybeat
 chkconfig celerybeat on
 service celerybeat restart
 
-chkconfig --add celeryd
-chkconfig celeryd on
-service celeryd restart
+chkconfig --add celeryd-default
+chkconfig celeryd-default on
+service celeryd-default restart
+
+ln -s /etc/init.d/celeryd-default /etc/init.d/celeryd-host-stream
+
+chkconfig --add celeryd-host-stream
+chkconfig celeryd-host-stream on
+service celeryd-host-stream restart
