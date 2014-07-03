@@ -36,19 +36,15 @@ class HostAvailView(ContextMixin, View):
             data = dao.get_all()
             content = {
                 "status": "success",
-                "data" : data
+                "data": data
             }
             return HttpResponse(content=json.dumps(content),
                                 content_type='application/json')
         except:
             content = {
-                "status" : "error",
+                "status": "error",
                 "message": sys.exc_info()[1].message,
                 "trace": traceback.format_stack()
             }
             return HttpResponse(content=json.dumps(content), status=400,
                                 content_type='application/json')
-
-
-
-
