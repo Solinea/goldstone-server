@@ -51,7 +51,8 @@ print "query = " + json.dumps(fq)
 def _get_dataset(doc_type, sort=''):
     try:
         return conn.search(index="_all", doc_type=doc_type, sort=sort)
-    except:
+    except Exception as e:
+        print "[_get_dataset] exception for " + doc_type + ": " + e.message
         return {'hits': {'hits': []}}
 
 result1 = [
