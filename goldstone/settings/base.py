@@ -159,10 +159,12 @@ BROKER_TRANSPORT_OPTIONS = {
     'fanout_prefix': True,
     'fanout_patterns': True
 }
+CELERY_DEFAULT_QUEUE = 'default'
 CELERY_QUEUES = (
     Queue('default', Exchange('default'), routing_key='default'),
     Queue('host_stream', Exchange('default'), routing_key='host_stream.#'),
 )
+
 CELERY_ROUTES = {
     'goldstone.apps.logging.tasks.process_host_stream': {
         'queue': 'host_stream'}
@@ -171,9 +173,9 @@ CELERY_ROUTES = {
 from celery.schedules import crontab
 from datetime import timedelta
 DAILY_INDEX_CREATE_INTERVAL = crontab(minute='0', hour='0', day_of_week='*')
-TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
-RESOURCE_QUERY_INTERVAL = crontab(minute='*/5')
-API_PERF_QUERY_INTERVAL = crontab(minute='*/5')
+TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/2')
+RESOURCE_QUERY_INTERVAL = crontab(minute='*/2')
+API_PERF_QUERY_INTERVAL = crontab(minute='*/2')
 API_PERF_QUERY_TIMEOUT = 30
 HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
 
