@@ -31,7 +31,7 @@ from goldstone.apps.logging.models import HostAvailData
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
 def process_host_stream(self, host, timestamp):
     """
     This task reads a list of host names  out of the incoming message on the

@@ -25,6 +25,7 @@ import json
 from time import sleep
 from goldstone.apps.logging.tasks import *
 from goldstone.apps.logging.models import *
+from celery.result import AsyncResult
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +43,11 @@ class TaskTests(SimpleTestCase):
         """
         host1_name = str(uuid.uuid4())
         host1_time = datetime.now(tz=pytz.utc).isoformat()
-
+        task_id = str(uuid.uuid1())
         body = {
             "body": json.dumps({
                 'task': 'goldstone.apps.logging.tasks.process_host_stream',
-                'id': str(uuid.uuid1()),
+                'id': task_id,
                 'args': [host1_name, host1_time]
             }),
             "content-type": "application/json",
@@ -65,12 +66,16 @@ class TaskTests(SimpleTestCase):
         r = redis.StrictRedis(host='localhost', port=6379, db=0)
         r.lpush("host_stream", body)
 
+        # this should wait for the task to complete (making it synchronous)
+        # task returns the key
+        key = 'host_stream.whitelist.' + host1_name
+        result = AsyncResult(task_id).get(timeout=6)
+        self.assertEqual(result, key)
+
         # the records should be stored in redis with keys of
         # host_stream.whitelist.hostname and values of their respective
         # timestamps
 
-        sleep(5)
-        key = 'host_stream.whitelist.' + host1_name
         host1_redis_time = r.get(key)
         try:
             self.assertEqual(host1_time, host1_redis_time)
