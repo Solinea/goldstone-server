@@ -116,8 +116,8 @@ class ModelTests(SimpleTestCase):
     def test_get_host_avail_data(self):
         ha = HostAvailData()
         response = ha.get_all()
-        self.assertTrue(response.has_key('blacklist'))
-        self.assertTrue(response.has_key('whitelist'))
+        self.assertTrue('blacklist' in response)
+        self.assertTrue('whitelist' in response)
 
 
 class ViewTests(SimpleTestCase):
@@ -132,5 +132,5 @@ class ViewTests(SimpleTestCase):
             self.fail("Could not convert content to JSON")
         else:
             self.assertIsInstance(j, dict)
-            self.assertTrue(j.has_key('status'))
-            self.assertTrue(j.has_key('data'))
+            self.assertTrue('status' in j)
+            self.assertTrue('data' in j)
