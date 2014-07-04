@@ -1,0 +1,7 @@
+output {
+    if [type] == "host_stream" {
+        host_stream { 
+	    redis_host => ["127.0.0.1"]
+        }
+    }
+}

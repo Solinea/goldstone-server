@@ -1,10 +1,10 @@
 # Copyright 2014 Solinea, Inc.
 #
-# Licensed under the Solinea Software License Agreement (goldstone),
-# Version 1.0 (the "License"); you may not use this file except in compliance
-# with the License. You may obtain a copy of the License at:
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-#     http://www.solinea.com/goldstone/LICENSE.pdf
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,8 +44,10 @@ HTTP_METHOD (?:GET|PUT|POST|DELETE)
 #
 SYSLOG5424PRINUM (?:\<%{NONNEGINT:syslog5424_pri}\>)
 
-OPENSTACK_SYSLOGLINE %{SYSLOG5424PRINUM}%{CISCOTIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} %{OPENSTACK_MESSAGE:os_message}
-GENERIC_SYSLOGLINE %{SYSLOG5424PRINUM}%{CISCOTIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} %{GREEDYDATA:msg}
+MY_SYSLOG_TIMESTAMP %{SYSLOGTIMESTAMP}|%{TIMESTAMP_ISO8601}
+
+OPENSTACK_SYSLOGLINE %{SYSLOG5424PRINUM}%{MY_SYSLOG_TIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} %{OPENSTACK_MESSAGE:os_message}
+GENERIC_SYSLOGLINE %{SYSLOG5424PRINUM}%{MY_SYSLOG_TIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} %{GREEDYDATA:msg}
 
 NOVA_INSTANCE (?:\[instance: %{UUID:instance_id}\])
 CLAIM_RSRC_PHYS (?:Total %{WORD:resource}: %{NUMBER:total:float} %{WORD}, used: %{NUMBER:used:float} %{WORD})
