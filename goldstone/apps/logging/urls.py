@@ -11,12 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Author: John Stanford
 
-#
-# push processed events to stdout
-#
-output {
-    stdout { }
-}
+__author__ = 'John Stanford'
+
+from django.conf.urls import patterns, url
+from .views import *
+
+urlpatterns = patterns(
+    '',
+    url(r'^report/host_availability[/]?$', HostAvailView.as_view(),
+        name='logging-host-avail-view'),
+)

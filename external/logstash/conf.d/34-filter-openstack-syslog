@@ -29,6 +29,10 @@ filter {
             add_field => { "_message" => "%{syslog5424_host} %{message}" }
         }
         if ("_grokparsefailure" not in [tags]) {
+            clone {
+                clones => ["host_stream"]
+                    remove_field => ["@message", "@tags", "@fields"]
+            }
             syslog_pri {
                 severity_labels => ["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"]
                 syslog_pri_field_name => "syslog5424_pri"

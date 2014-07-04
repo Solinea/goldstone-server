@@ -83,6 +83,7 @@ INSTALLED_APPS = (
     'goldstone.apps.neutron',
     'goldstone.apps.glance',
     'goldstone.apps.api_perf',
+    'goldstone.apps.logging',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -141,18 +142,43 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 MAILHOST = 'localhost'
 
+REDIS_HOST = 'localhost'
+REDIS_PORT = '6379'
+REDIS_DB = '0'
+REDIS_CONNECT_STR = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/' + REDIS_DB
+
 # Celery
-BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+from kombu import Exchange, Queue
+
+BROKER_URL = REDIS_CONNECT_STR
+CELERY_RESULT_BACKEND = REDIS_CONNECT_STR
 CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
+BROKER_TRANSPORT_OPTIONS = {
+    'fanout_prefix': True,
+    'fanout_patterns': True
+}
+CELERY_DEFAULT_QUEUE = 'default'
+CELERY_QUEUES = (
+    Queue('default', Exchange('default'), routing_key='default'),
+    Queue('host_stream', Exchange('default'), routing_key='host_stream.#'),
+)
+
+CELERY_ROUTES = {
+    'goldstone.apps.logging.tasks.process_host_stream': {
+        'queue': 'host_stream'}
+}
 
 from celery.schedules import crontab
+from datetime import timedelta
 DAILY_INDEX_CREATE_INTERVAL = crontab(minute='0', hour='0', day_of_week='*')
-TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/5')
-RESOURCE_QUERY_INTERVAL = crontab(minute='*/5')
-API_PERF_QUERY_INTERVAL = crontab(minute='*/5')
+TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/2')
+RESOURCE_QUERY_INTERVAL = crontab(minute='*/2')
+API_PERF_QUERY_INTERVAL = crontab(minute='*/2')
 API_PERF_QUERY_TIMEOUT = 30
+HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
 
 CELERYBEAT_SCHEDULE = {
     'create-daily-index': {
