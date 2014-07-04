@@ -31,7 +31,7 @@ class HostAvailData(RedisConnection):
         kl = self.conn.keys(prefix + "*")
         # mget doesn't handle empty list well
         if len(kl) == 0:
-            return {}
+            return []
 
         vl = self.conn.mget(kl)
         f = lambda k, v: {re.sub(prefix, '', k): v}

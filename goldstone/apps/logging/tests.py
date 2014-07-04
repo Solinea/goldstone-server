@@ -18,14 +18,12 @@ __author__ = 'John Stanford'
 from django.test import SimpleTestCase
 import logging
 import uuid
-from datetime import datetime
-import pytz
 import redis
-import json
 from time import sleep
 from goldstone.apps.logging.tasks import *
 from goldstone.apps.logging.models import *
 from celery.result import AsyncResult
+from mock import patch, PropertyMock, MagicMock, Mock
 
 logger = logging.getLogger(__name__)
 
@@ -113,11 +111,61 @@ class TaskTests(SimpleTestCase):
 
 class ModelTests(SimpleTestCase):
 
+    # @patch('goldstone.apps.logging.models.HostAvailData')
+    # def test_get_datalist_empty(self, conn):
+    #     # test empty key list
+    #     # logger.info('type of conn = %s', type(conn))
+    #     # logger.info('type of conn.keys = %s', type(conn.keys))
+    #     conn.keys.side_effect = None
+    #     conn.keys.return_value = []
+    #     # logger.info('return from conn.keys = %s', str(conn.keys()))
+    #     self.assertEqual(conn.keys.called, True)
+    #     had = HostAvailData()
+    #     result = had._get_datalist('''host_stream.xyz.''')
+    #     self.assertListEqual(result, [])
+
+    def test_get_datalist_whitelist(self):
+        had = HostAvailData()
+        mock_mget_response = Mock(spec=file)
+        mock_keys_response = Mock(spec=file)
+        mock_conn = Mock()
+        config = {'keys.return_value': mock_keys_response,
+                  'mget.return_value': mock_mget_response}
+        mock_conn.configure_mock(**config)
+        had.conn = mock_conn
+
+        logger.info('type of rc = %s', type(had.conn))
+        logger.info('type of rc.conn = %s', type(had.conn))
+        logger.info('type of rc.conn.keys = %s', type(had.conn.keys))
+        had.conn.keys.return_value = ['host_stream.whitelist.test123']
+        #logger.info('return from conn.keys = %s', str(conn.keys()))
+        #self.assertEqual(had.conn.keys.called, True)
+        #had.conn.mget.side_effect = None
+        had.conn.mget.return_value = ['2014-07-04T01:06:27.750046+00:00']
+        #logger.info('return from conn.mget = %s', str(conn.mget()))
+
+        #self.assertEqual(had.conn.mget.called, True)
+        result = had._get_datalist('''host_stream.whitelist.''')
+        self.assertListEqual(result,
+                             [{'test123': '2014-07-04T01:06:27.750046+00:00'}])
+    #
+    # @patch('redis.StrictRedis')
+    # def test_get_datalist_blacklist(self, rc3):
+    #     rc3.conn.keys.side_effect = None
+    #     rc3.conn.keys.return_value = ['host_stream.blacklist.test123']
+    #     rc3.conn.mget.side_effect = None
+    #     rc3.conn.mget.return_value = ['2014-07-04T01:06:27.750046+00:00']
+    #     had = HostAvailData()
+    #     result = had._get_datalist('''host_stream.blacklist.''')
+    #     self.assertListEqual(result,
+    #                          [{'test123': '2014-07-04T01:06:27.750046+00:00'}])
+
     def test_get_host_avail_data(self):
         ha = HostAvailData()
         response = ha.get_all()
         self.assertTrue('blacklist' in response)
         self.assertTrue('whitelist' in response)
+
 
 
 class ViewTests(SimpleTestCase):
