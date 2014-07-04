@@ -47,12 +47,11 @@ class HostAvailData(RedisConnection):
             'blacklist': black_data
         }
 
-    def set(self, host, datetime_string, status='white'):
+    def set(self, host, datetime_string):
         """
         set or update the state of a host entry
         :param host: host name string
         :param datetime_string: string
-        :param status: white|black
         :return: key or None
         """
 
