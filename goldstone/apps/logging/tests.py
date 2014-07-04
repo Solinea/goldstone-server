@@ -186,8 +186,15 @@ class HostAvailModelTests(SimpleTestCase):
 
 class ViewTests(SimpleTestCase):
 
-    def test_get_agents(self):
+    @patch.object(HostAvailData, 'get_all')
+    def test_get_agents(self, get_all):
+        rv = [
+            {'test123': '2014-07-04T01:06:27.750046+00:00'},
+            {'test456': '2015-07-04T01:06:27.750046+00:00'}
+        ]
+        get_all.return_value = {'whitelist': rv, 'blacklist': rv}
         response = self.client.get("/logging/report/host_availability")
+        self.assertTrue(get_all.called)
         self.assertIsInstance(response, HttpResponse)
         self.assertNotEqual(response.content, None)
         try:
@@ -198,3 +205,4 @@ class ViewTests(SimpleTestCase):
             self.assertIsInstance(j, dict)
             self.assertTrue('status' in j)
             self.assertTrue('data' in j)
+            self.assertDictEqual(j['data'], get_all.return_value)
