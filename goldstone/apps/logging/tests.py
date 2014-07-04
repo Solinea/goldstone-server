@@ -109,63 +109,79 @@ class TaskTests(SimpleTestCase):
             raise
 
 
-class ModelTests(SimpleTestCase):
+class HostAvailModelTests(SimpleTestCase):
 
-    # @patch('goldstone.apps.logging.models.HostAvailData')
-    # def test_get_datalist_empty(self, conn):
-    #     # test empty key list
-    #     # logger.info('type of conn = %s', type(conn))
-    #     # logger.info('type of conn.keys = %s', type(conn.keys))
-    #     conn.keys.side_effect = None
-    #     conn.keys.return_value = []
-    #     # logger.info('return from conn.keys = %s', str(conn.keys()))
-    #     self.assertEqual(conn.keys.called, True)
-    #     had = HostAvailData()
-    #     result = had._get_datalist('''host_stream.xyz.''')
-    #     self.assertListEqual(result, [])
+    def test_get_datalist_empty(self):
+        had = HostAvailData()
+        mock_conn = Mock()
+        config = {'keys.return_value': []}
+        mock_conn.configure_mock(**config)
+        had.conn = mock_conn
+        result = had._get_datalist('''host_stream.whitelist.''')
+        self.assertEqual(had.conn.keys.called, True)
+        self.assertListEqual(result, [])
 
     def test_get_datalist_whitelist(self):
         had = HostAvailData()
-        mock_mget_response = Mock(spec=file)
-        mock_keys_response = Mock(spec=file)
         mock_conn = Mock()
-        config = {'keys.return_value': mock_keys_response,
-                  'mget.return_value': mock_mget_response}
+        config = {'keys.return_value': ['host_stream.whitelist.test123'],
+                  'mget.return_value': ['2014-07-04T01:06:27.750046+00:00']}
         mock_conn.configure_mock(**config)
         had.conn = mock_conn
-
-        logger.info('type of rc = %s', type(had.conn))
-        logger.info('type of rc.conn = %s', type(had.conn))
-        logger.info('type of rc.conn.keys = %s', type(had.conn.keys))
-        had.conn.keys.return_value = ['host_stream.whitelist.test123']
-        #logger.info('return from conn.keys = %s', str(conn.keys()))
-        #self.assertEqual(had.conn.keys.called, True)
-        #had.conn.mget.side_effect = None
-        had.conn.mget.return_value = ['2014-07-04T01:06:27.750046+00:00']
-        #logger.info('return from conn.mget = %s', str(conn.mget()))
-
-        #self.assertEqual(had.conn.mget.called, True)
         result = had._get_datalist('''host_stream.whitelist.''')
+        self.assertEqual(had.conn.keys.called, True)
+        self.assertEqual(had.conn.mget.called, True)
         self.assertListEqual(result,
                              [{'test123': '2014-07-04T01:06:27.750046+00:00'}])
-    #
-    # @patch('redis.StrictRedis')
-    # def test_get_datalist_blacklist(self, rc3):
-    #     rc3.conn.keys.side_effect = None
-    #     rc3.conn.keys.return_value = ['host_stream.blacklist.test123']
-    #     rc3.conn.mget.side_effect = None
-    #     rc3.conn.mget.return_value = ['2014-07-04T01:06:27.750046+00:00']
-    #     had = HostAvailData()
-    #     result = had._get_datalist('''host_stream.blacklist.''')
-    #     self.assertListEqual(result,
-    #                          [{'test123': '2014-07-04T01:06:27.750046+00:00'}])
 
-    def test_get_host_avail_data(self):
-        ha = HostAvailData()
-        response = ha.get_all()
-        self.assertTrue('blacklist' in response)
-        self.assertTrue('whitelist' in response)
+    def test_get_datalist_blacklist(self):
+        had = HostAvailData()
+        mock_conn = Mock()
+        config = {'keys.return_value': ['host_stream.blacklist.test123',
+                                        'host_stream.blacklist.test456'],
+                  'mget.return_value': ['2014-07-04T01:06:27.750046+00:00',
+                                        '2015-07-04T01:06:27.750046+00:00']}
+        mock_conn.configure_mock(**config)
+        had.conn = mock_conn
+        result = had._get_datalist('''host_stream.blacklist.''')
+        self.assertEqual(had.conn.keys.called, True)
+        self.assertEqual(had.conn.mget.called, True)
+        self.assertListEqual(result,
+                             [{'test123': '2014-07-04T01:06:27.750046+00:00'},
+                              {'test456': '2015-07-04T01:06:27.750046+00:00'}])
 
+    def test_get_all(self):
+        rv = [{'test123': '2014-07-04T01:06:27.750046+00:00'},
+              {'test456': '2015-07-04T01:06:27.750046+00:00'}]
+        had = HostAvailData()
+        mock_get_datalist = Mock(return_value=rv)
+        had._get_datalist = mock_get_datalist
+        result = had.get_all()
+        self.assertEqual(had._get_datalist.call_count, 2)
+        self.assertDictEqual(result, {'whitelist': rv, 'blacklist': rv})
+
+    def test_set(self):
+        had = HostAvailData()
+        mock_conn = Mock()
+        # already exists in the blacklist
+        config = {'exists.return_value': True,
+                  'set.return_value': 'do not care'}
+        mock_conn.configure_mock(**config)
+        had.conn = mock_conn
+        result = had.set('test123', datetime.now(tz=pytz.utc).isoformat())
+        self.assertTrue(had.conn.exists.called)
+        self.assertFalse(had.conn.set.called)
+        self.assertEqual(result, None)
+
+        mock_conn = Mock()
+        # not in the blacklist
+        config = {'exists.return_value': False,
+                  'set.return_value': 'do not care'}
+        mock_conn.configure_mock(**config)
+        had.conn = mock_conn
+        result = had.set('test123', datetime.now(tz=pytz.utc).isoformat())
+        self.assertTrue(had.conn.set.called)
+        self.assertEqual(result, 'host_stream.whitelist.test123')
 
 
 class ViewTests(SimpleTestCase):
