@@ -70,8 +70,8 @@ class TaskTests(SimpleTestCase):
     # TODO this should be part of the integration test suite
     # def test_publish_host_stream_message(self):
     #     """
-    #     Should be able to publish a message to redis and have the task receive
-    #     it.
+    #     Should be able to publish a message to redis and have the task
+    #     receive it.
     #     """
     #     host1_name = str(uuid.uuid4())
     #     host1_time = datetime.now(tz=pytz.utc).isoformat()
@@ -199,7 +199,7 @@ class HostAvailModelTests(SimpleTestCase):
     def test_set(self):
         had = HostAvailData()
         mock_conn = Mock()
-        # already exists in the blacklist
+        # already exists in the blacklist, set whitelist
         config = {'exists.return_value': True,
                   'set.return_value': 'do not care'}
         mock_conn.configure_mock(**config)
@@ -209,8 +209,7 @@ class HostAvailModelTests(SimpleTestCase):
         self.assertFalse(had.conn.set.called)
         self.assertEqual(result, None)
 
-        mock_conn = Mock()
-        # not in the blacklist
+        # not in the blacklist, set whitelist
         config = {'exists.return_value': False,
                   'set.return_value': 'do not care'}
         mock_conn.configure_mock(**config)
@@ -218,6 +217,43 @@ class HostAvailModelTests(SimpleTestCase):
         result = had.set('test123', datetime.now(tz=pytz.utc).isoformat())
         self.assertTrue(had.conn.set.called)
         self.assertEqual(result, 'host_stream.whitelist.test123')
+
+        # already exists in the whitelist, set blacklist
+        config = {'exists.return_value': True,
+                  'set.return_value': 'do not care'}
+        mock_conn.configure_mock(**config)
+        had.conn = mock_conn
+        result = had.set('test123',
+                         datetime.now(tz=pytz.utc).isoformat(),
+                         'black')
+        self.assertEqual(result, None)
+
+         # not in the whitelist, set blacklist
+        config = {'exists.return_value': False,
+                  'set.return_value': 'do not care'}
+        mock_conn.configure_mock(**config)
+        had.conn = mock_conn
+        result = had.set('test123',
+                         datetime.now(tz=pytz.utc).isoformat(),
+                         'black')
+        self.assertEqual(result, 'host_stream.blacklist.test123')
+
+
+    @patch.object(redis.StrictRedis, 'set')
+    @patch.object(redis.StrictRedis, 'get')
+    @patch.object(HostAvailData, 'delete')
+    def test_to_blacklist(self, delete, get, set):
+        had = HostAvailData()
+        # test when host exists in whitelist
+        get.return_value = 'host_stream.whitelist.test123'
+        set.return_value = 'host_stream.blacklist.test123'
+        delete.return_value = None
+        result = had.to_blacklist('test123')
+        self.assertTrue(set.called)
+        self.assertTrue(get.called)
+        self.assertTrue(delete.called)
+        self.assertEqual(result, set.return_value)
+        # test when host is not in blacklist
 
 
 class ViewTests(SimpleTestCase):
