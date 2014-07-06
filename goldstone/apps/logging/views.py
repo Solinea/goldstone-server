@@ -48,3 +48,22 @@ class HostAvailView(ContextMixin, View):
             }
             return HttpResponse(content=json.dumps(content), status=400,
                                 content_type='application/json')
+
+    # def put(self, request, *args, **kwargs):
+    #     """
+    #     updates a data about a known host. the only recognized key is
+    #     list_color.  valid values are white or black.
+    #     """
+    #     context = self.get_context_data(**kwargs)
+    #     if 'list_color' in context:
+    #         if context['list_color'] == 'white':
+    #
+    #         elif context['list_color'] == 'black':
+    #
+    #         else:
+    #             return HttpResponseBadRequest(
+    #                 "list_color accepts white or black")
+    #
+    #
+    #     else:
+    #         return HttpResponseBadRequest("Unknown parameter(s)")
