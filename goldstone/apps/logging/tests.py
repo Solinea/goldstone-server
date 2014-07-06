@@ -188,6 +188,18 @@ class NodeListTests(SimpleTestCase):
         self.assertIsInstance(all_black[0], BlackListNode)
         self.assertEqual(all_black[0].name, self.name3)
 
+    @patch.object(redis.StrictRedis, 'delete')
+    def test_delete(self, delete):
+        wl1 = WhiteListNode(self.name1, self.ts1)
+        bl1 = BlackListNode(self.name3)
+        delete.return_value = None
+        wl1.delete()
+        bl1.delete()
+        self.assertTrue(wl1._deleted)
+        self.assertTrue(bl1._deleted)
+
+
+
 
 class HostAvailModelTests(SimpleTestCase):
 
