@@ -28,12 +28,12 @@ logger = logging.getLogger(__name__)
 # TODO would like a better parent class
 class LoggingNode(RedisConnection):
     id_prefix = None
-    all_lambda = None
 
     def __init__(self, name,
                  datetime_str=datetime.now(tz=pytz.utc).isoformat()):
         super(LoggingNode, self).__init__()
         self.name = name
+        self.timestamp = None
         self.save(datetime_str)
         self._deleted = False
 
@@ -42,7 +42,7 @@ class LoggingNode(RedisConnection):
             return json.dumps({"name": self.name, "deleted": True})
         else:
             return json.dumps({"name": self.name,
-                               "timestamp": self.timestamp_str()})
+                               "timestamp": self.timestamp})
 
     @classmethod
     def _all(cls, k, v):
@@ -54,23 +54,10 @@ class LoggingNode(RedisConnection):
         :param datetime_str: string
         :return: True
         """
-        key = self.id_prefix + self.name
-        self.conn.set(key, datetime_str)
-        logger.debug("set key %s to %s", key, datetime_str)
+        self.conn.set(self.id_prefix + self.name, datetime_str)
+        self.timestamp = datetime_str
+        self._deleted = False
         return True
-
-    def timestamp_str(self):
-        """
-        :return: the timestamp for this record
-        """
-        if self._deleted:
-            raise Exception("this resource has been deleted")
-
-        ts = self.conn.get(self.id_prefix + self.name)
-        if ts is None:
-            raise Exception("not found in DB")
-
-        return ts
 
     # TODO would like a cleaner way to remove the object, not just the record
     def delete(self):
@@ -80,6 +67,7 @@ class LoggingNode(RedisConnection):
         """
         self.conn.delete(self.id_prefix + self.name)
         self._deleted = True
+        self.timestamp = None
 
     @classmethod
     def all(cls):
@@ -109,6 +97,19 @@ class WhiteListNode(LoggingNode):
     def _all(cls, k, v):
         return WhiteListNode(re.sub(cls.id_prefix, '', k), v)
 
+    @classmethod
+    def get(cls, host):
+        """
+        get a node by name
+        :return:
+        """
+        r = RedisConnection()
+        result = r.conn.get(cls.id_prefix + host)
+        if result is None:
+            return result
+        else:
+            return WhiteListNode(host, result)
+
     def to_blacklist(self):
         """
         move a host from the whitelist to the blacklist
@@ -130,6 +131,19 @@ class BlackListNode(LoggingNode):
     @classmethod
     def _all(cls, k, v):
         return BlackListNode(re.sub(cls.id_prefix, '', k), v)
+
+    @classmethod
+    def get(cls, host):
+        """
+        get a node by name
+        :return:
+        """
+        r = RedisConnection()
+        result = r.conn.get(cls.id_prefix + host)
+        if result is None:
+            return result
+        else:
+            return BlackListNode(host, result)
 
     def to_whitelist(self):
         """

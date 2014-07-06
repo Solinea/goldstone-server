@@ -20,8 +20,9 @@ import logging
 import uuid
 import redis
 from time import sleep
-from goldstone.apps.logging.tasks import *
-from goldstone.apps.logging.models import *
+from .tasks import *
+from .models import *
+from .serializers import *
 from celery.result import AsyncResult
 from mock import patch, PropertyMock, MagicMock, Mock
 
@@ -152,25 +153,18 @@ class NodeListTests(SimpleTestCase):
     ts1 = '2014-07-04T01:06:27.750046+00:00'
     ts2 = '2015-07-04T01:06:27.750046+00:00'
 
-    @patch.object(WhiteListNode, 'save')
-    @patch.object(BlackListNode, 'save')
-    @patch.object(redis.StrictRedis, 'get')
-    def test_init(self, get, black_save, white_save):
-        black_save.return_value = True
-        white_save.return_value = True
+    @patch.object(redis.StrictRedis, 'set')
+    def test_init(self, set):
+        set.return_value = None
         wl1 = WhiteListNode(self.name1, self.ts1)
         wl2 = WhiteListNode(self.name2, self.ts2)
-        self.assertEqual(white_save.called, True)
+        self.assertEqual(set.called, True)
         bl1 = BlackListNode(self.name3)
-        self.assertEqual(black_save.called, True)
         self.assertEqual(wl1.name, self.name1)
         self.assertEqual(wl2.name, self.name2)
         self.assertEqual(bl1.name, self.name3)
-        get.return_value = '2014-07-04T01:06:27.750046+00:00'
-        self.assertEqual(wl1.timestamp_str(), self.ts1)
-        self.assertEqual(get.called, True)
-        get.return_value = '2015-07-04T01:06:27.750046+00:00'
-        self.assertEqual(wl2.timestamp_str(), self.ts2)
+        self.assertEqual(wl1.timestamp, self.ts1)
+        self.assertEqual(wl2.timestamp, self.ts2)
 
     @patch.object(redis.StrictRedis, 'keys')
     @patch.object(redis.StrictRedis, 'mget')
@@ -200,6 +194,16 @@ class NodeListTests(SimpleTestCase):
         self.assertIsInstance(all_black[0], BlackListNode)
         self.assertEqual(all_black[0].name, self.name3)
 
+    def test_get(self):
+        WhiteListNode(self.name1, self.ts1)
+        BlackListNode(self.name2, self.ts2)
+        get_wl1 = WhiteListNode.get(self.name1)
+        get_bl1 = BlackListNode.get(self.name2)
+        self.assertEqual(get_wl1.name, self.name1)
+        self.assertEqual(get_bl1.name, self.name2)
+        self.assertEqual(get_wl1.timestamp, self.ts1)
+        self.assertEqual(get_bl1.timestamp, self.ts2)
+
     @patch.object(redis.StrictRedis, 'delete')
     @patch.object(WhiteListNode, 'save')
     @patch.object(BlackListNode, 'save')
@@ -221,82 +225,115 @@ class NodeListTests(SimpleTestCase):
         with self.assertRaises(RuntimeError):
             LoggingNode._all(self.name1, self.ts1)
 
-    @patch.object(WhiteListNode, 'save')
-    @patch.object(BlackListNode, 'save')
-    def test_repr(self, bl_save, wl_save):
-        bl_save.return_value = True
-        wl_save.return_value = True
+    @patch.object(redis.StrictRedis, 'set')
+    def test_repr(self, set):
+        set.return_value = None
         wl1 = WhiteListNode(self.name1, self.ts1)
         self.assertEqual(str(wl1), json.dumps({'name': self.name1,
-                                                   'timestamp': self.ts1}))
+                                               'timestamp': self.ts1}))
         wl1._deleted = True
         self.assertEqual(str(wl1), json.dumps({'name': self.name1,
                                                'deleted': True}))
 
-    @patch.object(WhiteListNode, 'save')
+    @patch.object(redis.StrictRedis, 'delete')
+    @patch.object(redis.StrictRedis, 'set')
     @patch.object(redis.StrictRedis, 'get')
-    def test_ts(self, get, wl_save):
-        wl_save.return_value = True
+    def test_ts(self, get, set, delete):
+        set.return_value = None
+        delete.return_value = None
         get.return_value = '2014-07-04T01:06:27.750046+00:00'
         wl1 = WhiteListNode(self.name1, self.ts1)
-        wl1._deleted = True
-        with self.assertRaises(Exception):
-            wl1.timestamp_str()
-        self.assertEqual(get.called, False)
-        wl1._deleted = False
-        get.return_value = None
-        with self.assertRaises(Exception):
-            wl1.timestamp_str()
-        self.assertEqual(get.called, True)
+        self.assertNotEqual(wl1.timestamp, None)
+        wl1.delete()
+        self.assertEqual(wl1.timestamp, None)
 
-    @patch.object(WhiteListNode, 'save')
-    @patch.object(BlackListNode, 'save')
+    @patch.object(redis.StrictRedis, 'set')
     @patch.object(redis.StrictRedis, 'delete')
     @patch.object(redis.StrictRedis, 'get')
-    def test_to_blacklist(self, get, delete, bl_save, wl_save):
+    def test_to_blacklist(self, get, delete, set):
         get.return_value = self.ts1
         delete.return_vale = None
-        bl_save.return_value = True
-        wl_save.return_value = True
+        set.return_value = None
         wl1 = WhiteListNode(self.name1, self.ts1)
         result = wl1.to_blacklist()
         self.assertIsInstance(result, BlackListNode)
         self.assertEqual(result.name, self.name1)
-        self.assertEqual(result.timestamp_str(), self.ts1)
+        self.assertEqual(result.timestamp, self.ts1)
         self.assertFalse(result._deleted)
         self.assertEqual(delete.called, True)
-        self.assertEqual(bl_save.called, True)
+        self.assertEqual(set.called, True)
         self.assertTrue(wl1._deleted)
+        self.assertEqual(wl1.timestamp, None)
 
         get.return_value = None
         wl2 = WhiteListNode(self.name2, self.ts2)
         with self.assertRaises(Exception):
             wl2.to_blacklist()
 
-
-    @patch.object(WhiteListNode, 'save')
-    @patch.object(BlackListNode, 'save')
+    @patch.object(redis.StrictRedis, 'set')
     @patch.object(redis.StrictRedis, 'delete')
     @patch.object(redis.StrictRedis, 'get')
-    def test_to_whitelist(self, get, delete, bl_save, wl_save):
+    def test_to_whitelist(self, get, delete, set):
         get.return_value = self.ts1
         delete.return_vale = None
-        bl_save.return_value = True
-        wl_save.return_value = True
+        set.return_value = None
         bl1 = BlackListNode(self.name1, self.ts1)
         result = bl1.to_whitelist()
         self.assertIsInstance(result, WhiteListNode)
         self.assertEqual(result.name, self.name1)
-        self.assertEqual(result.timestamp_str(), self.ts1)
+        self.assertEqual(result.timestamp, self.ts1)
         self.assertFalse(result._deleted)
         self.assertEqual(delete.called, True)
-        self.assertEqual(wl_save.called, True)
+        self.assertEqual(set.called, True)
         self.assertTrue(bl1._deleted)
+        self.assertEqual(bl1.timestamp, None)
 
         get.return_value = None
         bl2 = BlackListNode(self.name2, self.ts2)
         with self.assertRaises(Exception):
             bl2.to_whitelist()
+
+
+class LoggingNodeSerializerTests(SimpleTestCase):
+    name1 = "test_node_123"
+    name2 = "test_node_456"
+    name3 = "test_node_789"
+    ts1 = '2014-07-04T01:06:27.750046+00:00'
+    ts2 = '2015-07-04T01:06:27.750046+00:00'
+
+    @patch.object(redis.StrictRedis, 'set')
+    @patch.object(redis.StrictRedis, 'delete')
+    def test_white_serializer(self, delete, set):
+        set.return_value = None
+        delete.return_value = None
+        wl1 = WhiteListNode(self.name1, self.ts1)
+        self.assertTrue(set.called)
+        serializer = LoggingNodeSerializer(wl1)
+        self.assertIn('name', serializer.data)
+        self.assertIn('timestamp', serializer.data)
+        self.assertIn('_deleted', serializer.data)
+        self.assertEqual(serializer.data['name'], self.name1)
+        self.assertEqual(serializer.data['timestamp'], self.ts1)
+        self.assertEqual(serializer.data['_deleted'], False)
+        wl1.delete()
+        self.assertTrue(delete.called)
+        serializer = LoggingNodeSerializer(wl1)
+        self.assertEqual(serializer.data['_deleted'], True)
+
+    @patch.object(redis.StrictRedis, 'set')
+    @patch.object(redis.StrictRedis, 'delete')
+    def test_black_serializer(self, delete, set):
+        set.return_value = None
+        delete.return_value = None
+        bl1 = BlackListNode(self.name1, self.ts1)
+        serializer = LoggingNodeSerializer(bl1)
+        self.assertIn('name', serializer.data)
+        self.assertIn('timestamp', serializer.data)
+        self.assertIn('_deleted', serializer.data)
+        self.assertEqual(serializer.data['name'], self.name1)
+        self.assertEqual(serializer.data['timestamp'], self.ts1)
+        self.assertEqual(serializer.data['_deleted'], False)
+
 
 class HostAvailModelTests(SimpleTestCase):
 
