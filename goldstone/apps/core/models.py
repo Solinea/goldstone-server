@@ -11,14 +11,5 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Author: Ken Pepple
 
-# tox uses this file
-pep8==1.4.6
-pyflakes==0.7.3
-coverage==3.7.1
-selenium==2.40.0
-sphinx
-mock==1.0.1
--e git+git://github.com/kmmbvnr/django-jenkins.git@0.15.0#egg=django-jenkins
+__author__ = 'stanford'

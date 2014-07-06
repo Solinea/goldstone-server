@@ -145,6 +145,50 @@ class TaskTests(SimpleTestCase):
     #         raise
 
 
+class NodeListTests(SimpleTestCase):
+    name1 = "test_node_123"
+    name2 = "test_node_456"
+    name3 = "test_node_789"
+    ts1 = '2014-07-04T01:06:27.750046+00:00'
+    ts2 = '2015-07-04T01:06:27.750046+00:00'
+
+    @patch.object(WhiteListNode, 'save')
+    @patch.object(BlackListNode, 'save')
+    @patch.object(redis.StrictRedis, 'get')
+    def test_init(self, get, black_save, white_save):
+        black_save.return_value = True
+        white_save.return_value = True
+        wl1 = WhiteListNode(self.name1, self.ts1)
+        wl2 = WhiteListNode(self.name2, self.ts2)
+        bl1 = BlackListNode(self.name3)
+        self.assertEqual(wl1.name, self.name1)
+        self.assertEqual(wl2.name, self.name2)
+        self.assertEqual(bl1.name, self.name3)
+        get.return_value = '2014-07-04T01:06:27.750046+00:00'
+        self.assertEqual(wl1.timestamp_str(), self.ts1)
+        get.return_value = '2015-07-04T01:06:27.750046+00:00'
+        self.assertEqual(wl2.timestamp_str(), self.ts2)
+
+    @patch.object(redis.StrictRedis, 'keys')
+    @patch.object(redis.StrictRedis, 'mget')
+    def test_all(self, mget, keys):
+        keys.return_value = ['host_stream.whitelist.' + self.name1,
+                             'host_stream.whitelist.' + self.name2]
+        mget.return_value = ['2014-07-04T01:06:27.750046+00:00',
+                             '2015-07-04T01:06:27.750046+00:00']
+        all_white = WhiteListNode.all()
+        self.assertEqual(len(all_white), 2)
+        self.assertIsInstance(all_white[0], WhiteListNode)
+        self.assertEqual(all_white[0].name, self.name1)
+        self.assertEqual(all_white[1].name, self.name2)
+        keys.return_value = ['host_stream.blacklist.' + self.name3]
+        mget.return_value = ['2014-07-04T01:06:27.750046+00:00']
+        all_black = BlackListNode.all()
+        self.assertEqual(len(all_black), 1)
+        self.assertIsInstance(all_black[0], BlackListNode)
+        self.assertEqual(all_black[0].name, self.name3)
+
+
 class HostAvailModelTests(SimpleTestCase):
 
     def test_get_datalist_empty(self):
@@ -237,7 +281,6 @@ class HostAvailModelTests(SimpleTestCase):
                          datetime.now(tz=pytz.utc).isoformat(),
                          'black')
         self.assertEqual(result, 'host_stream.blacklist.test123')
-
 
     @patch.object(redis.StrictRedis, 'set')
     @patch.object(redis.StrictRedis, 'get')
