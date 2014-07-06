@@ -88,7 +88,12 @@ class LoggingNode(RedisConnection):
         :return:
         """
         rc = RedisConnection()
-        kl = rc.conn.keys(cls.id_prefix + "*")
+        kl = []
+        try:
+            kl = rc.conn.keys(cls.id_prefix + "*")
+        except TypeError:
+            raise Exception("id_prefix is not a string")
+
         # mget doesn't handle empty list well
         if len(kl) == 0:
             return []
