@@ -25,7 +25,7 @@ import json
 import re
 from datetime import datetime, timedelta
 import pytz
-from goldstone.apps.logging.models import HostAvailData
+from goldstone.apps.logging.models import *
 
 
 logger = logging.getLogger(__name__)
@@ -40,10 +40,11 @@ def process_host_stream(self, host, timestamp):
     the result to ES periodically.
     :return: None
     """
-
-    had = HostAvailData()
-    return had.set(host, timestamp)
-
+    in_black = BlackListNode.get(host)
+    if in_black is None:
+        return WhiteListNode(host, timestamp)
+    else:
+        return None
 
 @celery_app.task(bind=True)
 def check_host_avail(self):
@@ -59,12 +60,8 @@ def check_host_avail(self):
         datetime.now(tz=pytz.utc) - settings.HOST_AVAILABLE_PING_THRESHOLD
     ).strftime("%Y-%m-%dT%H:%M:%S.000Z")
     logger.debug("[check_host_avail] cutoff = %s", cutoff)
-    r = redis.StrictRedis(host='localhost', port=6379, db=0)
-    keys = r.keys("host_stream.whitelist.*")
-    values = r.mget(keys)
-    kv_list = zip(keys, values)
-    logger.debug("[check_host_avail] kv_list = %s", json.dumps(kv_list))
-    to_ping = [re.sub('^host_stream\.whitelist\.', '', k)
-               for k, v in kv_list if v < cutoff]
+    all = WhiteListNode.all()
+    logger.debug("[check_host_avail] kv_list = %s", all)
+    to_ping = [i.name for i in all if i.timestamp < cutoff]
     logger.debug("hosts to ping = %s", json.dumps(to_ping))
     return to_ping
