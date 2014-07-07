@@ -32,26 +32,35 @@ logger = logging.getLogger(__name__)
 
 
 class TaskTests(SimpleTestCase):
+    name1 = "test_node_123"
+    name2 = "test_node_456"
+    name3 = "test_node_789"
+    ts1 = '2014-07-04T01:06:27.750046+00:00'
+    ts2 = '2015-07-04T01:06:27.750046+00:00'
 
-    @patch.object(HostAvailData, 'set')
-    def test_process_host_stream(self, set):
-
+    @patch.object(redis.StrictRedis, 'set')
+    @patch.object(BlackListNode, 'get')
+    def test_process_host_stream(self, get, set):
         # test when host exists in blacklist
         set.return_value = None
-        result = process_host_stream('test123',
-                                     '2014-07-04T01:06:27.750046+00:00')
+        get.return_value = None # Not in blacklist
+        result = process_host_stream(self.name1,
+                                     self.ts1)
         self.assertTrue(set.called)
-        self.assertEqual(result, set.return_value)
-        # test when host is not in blacklist
-        set.return_value = 'host_stream.whitelist.test123'
-        result = process_host_stream('test123',
-                                     '2014-07-04T01:06:27.750046+00:00')
-        self.assertEqual(set.call_count, 2)
+        self.assertEqual(result.name, WhiteListNode(self.name1, self.ts1).name)
+        self.assertEqual(result.timestamp,
+                         WhiteListNode(self.name1, self.ts1).timestamp)
+        self.assertEqual(result._deleted,
+                         WhiteListNode(self.name1, self.ts1)._deleted)
+        get.return_value = "some" # In blacklist
+        result = process_host_stream(self.name2, self.ts2)
         self.assertEqual(result, set.return_value)
 
+    @patch.object(redis.StrictRedis, 'set')
     @patch.object(redis.StrictRedis, 'mget')
     @patch.object(redis.StrictRedis, 'keys')
-    def test_check_host_avail(self, keys, mget):
+    def test_check_host_avail(self, keys, mget, set):
+        set.return_value = None
         keys.return_value = ['host_stream.whitelist.test123',
                              'host_stream.whitelist.test456',
                              'host_stream.whitelist.test789']
