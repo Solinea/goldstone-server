@@ -44,7 +44,8 @@ urlpatterns = patterns(
     url(r'^api_perf/', include('goldstone.apps.api_perf.urls')),
     url(r'^$', RedirectView.as_view(url='/discover'), name='home'),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^api-auth/', include('rest_framework.urls',
+                               namespace='rest_framework')),
 )
 
 if settings.QUNIT_ENABLED:

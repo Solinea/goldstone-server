@@ -17,7 +17,6 @@ __author__ = 'John Stanford'
 from .views import *
 from rest_framework.routers import DefaultRouter
 
-router = DefaultRouter()
-router.register(r'whitelist', WhiteListNodeViewSet, base_name='white')
-router.register(r'blacklist', BlackListNodeViewSet, base_name='black')
+router = DefaultRouter(trailing_slash=False)
+router.register(r'nodes', LoggingNodeViewSet, base_name='node')
 urlpatterns = router.urls

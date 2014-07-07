@@ -13,7 +13,7 @@
 # limitations under the License.
 from django.http import HttpResponse
 from rest_framework import status
-from rest_framework.test import APIClient, APISimpleTestCase
+from rest_framework.test import APISimpleTestCase
 
 __author__ = 'John Stanford'
 
@@ -21,12 +21,11 @@ from django.test import SimpleTestCase
 import logging
 import uuid
 import redis
-from time import sleep
+from datetime import timedelta
 from .tasks import *
 from .models import *
 from .serializers import *
-from celery.result import AsyncResult
-from mock import patch, PropertyMock, MagicMock, Mock
+from mock import patch
 
 logger = logging.getLogger(__name__)
 
@@ -35,24 +34,29 @@ class TaskTests(SimpleTestCase):
     name1 = "test_node_123"
     name2 = "test_node_456"
     name3 = "test_node_789"
-    ts1 = '2014-07-04T01:06:27.750046+00:00'
+    ts1 = '2015-07-04T01:06:27.750046+00:00'
     ts2 = '2015-07-04T01:06:27.750046+00:00'
+    ts3 = '2013-07-04T01:06:27.750046+00:00'
 
     @patch.object(redis.StrictRedis, 'set')
-    @patch.object(BlackListNode, 'get')
+    @patch.object(LoggingNode, 'get')
     def test_process_host_stream(self, get, set):
-        # test when host exists in blacklist
+
+        # administratively enabled
+        node1 = LoggingNode(self.name1, self.ts1, disabled=False)
         set.return_value = None
-        get.return_value = None # Not in blacklist
-        result = process_host_stream(self.name1,
-                                     self.ts1)
+        get.return_value = node1
+        result = process_host_stream(self.name1, self.ts1)
         self.assertTrue(set.called)
-        self.assertEqual(result.name, WhiteListNode(self.name1, self.ts1).name)
-        self.assertEqual(result.timestamp,
-                         WhiteListNode(self.name1, self.ts1).timestamp)
-        self.assertEqual(result._deleted,
-                         WhiteListNode(self.name1, self.ts1)._deleted)
-        get.return_value = "some" # In blacklist
+        self.assertEqual(result.name, node1.name)
+        self.assertEqual(result.timestamp, node1.timestamp)
+        self.assertEqual(result.method, node1.method)
+        self.assertEqual(result.disabled, node1.disabled)
+        self.assertEqual(result._deleted, node1._deleted)
+
+        # administratively disabled
+        node2 = LoggingNode(self.name2, self.ts2, disabled=True)
+        get.return_value = node2
         result = process_host_stream(self.name2, self.ts2)
         self.assertEqual(result, set.return_value)
 
@@ -61,22 +65,24 @@ class TaskTests(SimpleTestCase):
     @patch.object(redis.StrictRedis, 'keys')
     def test_check_host_avail(self, keys, mget, set):
         set.return_value = None
-        keys.return_value = ['host_stream.whitelist.test123',
-                             'host_stream.whitelist.test456',
-                             'host_stream.whitelist.test789']
         now = datetime.now(tz=pytz.utc)
         last_year = now - timedelta(days=365)
-
-        mget.return_value = [now.isoformat(),
-                             now.isoformat(),
-                             last_year.isoformat()]
+        node1 = LoggingNode(self.name1)
+        node2 = LoggingNode(self.name2)
+        node3 = LoggingNode(self.name3, last_year.isoformat())
+        keys.return_value = ['host_stream.nodes.' + self.name1,
+                             'host_stream.nodes.' + self.name2,
+                             'host_stream.nodes.' + self.name3]
+        mget.return_value = [node1.__repr__(),
+                             node2.__repr__(),
+                             node3.__repr__()]
 
         result = check_host_avail()
         self.assertTrue(keys.called)
         self.assertTrue(mget.called)
-        self.assertNotIn('test123', result)
-        self.assertNotIn('test456', result)
-        self.assertIn('test789', result)
+        self.assertNotIn(node1.name, result)
+        self.assertNotIn(node2.name, result)
+        self.assertIn(node3.name, result)
 
 
     # TODO this should be part of the integration test suite
@@ -163,96 +169,121 @@ class NodeListTests(SimpleTestCase):
     name3 = "test_node_789"
     ts1 = '2014-07-04T01:06:27.750046+00:00'
     ts2 = '2015-07-04T01:06:27.750046+00:00'
+    ts3 = '2016-07-04T01:06:27.750046+00:00'
 
     @patch.object(redis.StrictRedis, 'set')
     def test_init(self, set):
         set.return_value = None
-        wl1 = WhiteListNode(self.name1, self.ts1)
-        wl2 = WhiteListNode(self.name2, self.ts2)
-        self.assertEqual(set.called, True)
-        bl1 = BlackListNode(self.name3)
-        self.assertEqual(wl1.name, self.name1)
-        self.assertEqual(wl2.name, self.name2)
-        self.assertEqual(bl1.name, self.name3)
-        self.assertEqual(wl1.timestamp, self.ts1)
-        self.assertEqual(wl2.timestamp, self.ts2)
+        node1 = LoggingNode(self.name1, self.ts1)
+        node2 = LoggingNode(self.name2, self.ts2, 'ping')
+        node3 = LoggingNode(self.name3, self.ts3, disabled=True)
+        self.assertEqual(set.call_count, 3)
+
+        self.assertEqual(node1.name, self.name1)
+        self.assertEqual(node2.name, self.name2)
+        self.assertEqual(node3.name, self.name3)
+
+        self.assertEqual(node1.timestamp, self.ts1)
+        self.assertEqual(node2.timestamp, self.ts2)
+        self.assertEqual(node3.timestamp, self.ts3)
+
+        self.assertEqual(node1.method, 'log_stream')
+        self.assertEqual(node2.method, 'ping')
+        self.assertEqual(node3.method, 'log_stream')
+
+        self.assertEqual(node1.disabled, False)
+        self.assertEqual(node2.disabled, False)
+        self.assertEqual(node3.disabled, True)
 
     @patch.object(redis.StrictRedis, 'keys')
     @patch.object(redis.StrictRedis, 'mget')
     @patch.object(redis.StrictRedis, 'set')
     def test_all(self, set, mget, keys):
-
-        # index not set / calling from superclass
-        keys.side_effect = TypeError()
-        with self.assertRaises(Exception):
-            WhiteListNode.all()
-        keys.side_effect = None
+        # No matches
         keys.return_value = []
         set.return_value = None
-        all_white = WhiteListNode.all()
-        self.assertEqual(all_white, [])
-        keys.return_value = ['host_stream.whitelist.' + self.name1,
-                             'host_stream.whitelist.' + self.name2]
-        mget.return_value = ['2014-07-04T01:06:27.750046+00:00',
-                             '2015-07-04T01:06:27.750046+00:00']
-        all_white = WhiteListNode.all()
-        self.assertEqual(len(all_white), 2)
-        self.assertIsInstance(all_white[0], WhiteListNode)
-        self.assertEqual(all_white[0].name, self.name1)
-        self.assertEqual(all_white[1].name, self.name2)
-        keys.return_value = ['host_stream.blacklist.' + self.name3]
-        mget.return_value = ['2014-07-04T01:06:27.750046+00:00']
-        all_black = BlackListNode.all()
-        self.assertEqual(len(all_black), 1)
-        self.assertIsInstance(all_black[0], BlackListNode)
-        self.assertEqual(all_black[0].name, self.name3)
+        nodes = LoggingNode.all()
+        self.assertEqual(nodes, [])
+        node1 = LoggingNode(self.name1, self.ts1)
+        node2 = LoggingNode(self.name2, self.ts2, 'ping')
+        node3 = LoggingNode(self.name3, self.ts3, disabled=True)
+        keys.return_value = ['host_stream.nodes.' + self.name1,
+                             'host_stream.nodes.' + self.name2,
+                             'host_stream.nodes.' + self.name3]
+        mget.return_value = [node1.__repr__(),
+                             node2.__repr__(),
+                             node3.__repr__()]
+        nodes = LoggingNode.all()
+        self.assertEqual(len(nodes), 3)
+        self.assertIsInstance(nodes[0], LoggingNode)
+        self.assertEqual(nodes[0].name, self.name1)
+        self.assertEqual(nodes[1].name, self.name2)
 
     @patch.object(redis.StrictRedis, 'set')
     @patch.object(redis.StrictRedis, 'get')
     def test_get(self, get, set):
         set.return_value = None
-        WhiteListNode(self.name1, self.ts1)
-        BlackListNode(self.name2, self.ts2)
-        get.return_value = self.ts1
-        get_wl1 = WhiteListNode.get(self.name1)
-        get.return_value = self.ts2
-        get_bl1 = BlackListNode.get(self.name2)
+        node1 = LoggingNode(self.name1, self.ts1)
+        node2 = LoggingNode(self.name2, self.ts2)
+        get.return_value = node1.__repr__()
+        get_wl1 = LoggingNode.get(self.name1)
+        get.return_value = node2.__repr__()
+        get_bl1 = LoggingNode.get(self.name2)
         self.assertEqual(get_wl1.name, self.name1)
         self.assertEqual(get_bl1.name, self.name2)
         self.assertEqual(get_wl1.timestamp, self.ts1)
         self.assertEqual(get_bl1.timestamp, self.ts2)
+        get.return_value = None
+        get_none = LoggingNode.get(self.name1)
+        self.assertEqual(get_none, None)
+
+    @patch.object(redis.StrictRedis, 'set')
+    @patch.object(redis.StrictRedis, 'get')
+    def test_update(self, get, set):
+        set.return_value = None
+        node1 = LoggingNode(self.name1, self.ts1)
+        get.return_value = node1.__repr__()
+        self.assertEqual(node1.method, 'log_stream')
+        node1 = node1.update(method='ping')
+        self.assertEqual(node1.method, 'ping')
+        node1 = node1.update(disabled=True)
+        self.assertEqual(node1.disabled, True)
+        node1.update(timestamp=self.ts2)
+        self.assertEqual(node1.timestamp, self.ts2)
 
     @patch.object(redis.StrictRedis, 'delete')
     @patch.object(redis.StrictRedis, 'set')
     def test_delete(self, set, delete):
         set.return_value = None
-        wl1 = WhiteListNode(self.name1, self.ts1)
-        bl1 = BlackListNode(self.name3)
-        self.assertFalse(wl1._deleted)
-        self.assertFalse(bl1._deleted)
-        self.assertTrue(wl1.timestamp is not None)
-        self.assertTrue(bl1.timestamp is not None)
+        node1 = LoggingNode(self.name1, self.ts1)
+        node2 = LoggingNode(self.name3)
+        self.assertFalse(node1._deleted)
+        self.assertFalse(node2._deleted)
+        self.assertTrue(node1.timestamp is not None)
+        self.assertTrue(node2.timestamp is not None)
         delete.return_value = None
-        wl1.delete()
-        bl1.delete()
-        self.assertTrue(wl1._deleted)
-        self.assertTrue(bl1._deleted)
-        self.assertTrue(wl1.timestamp is None)
-        self.assertTrue(bl1.timestamp is None)
-
-    def test_superclass_all(self):
-        with self.assertRaises(RuntimeError):
-            LoggingNode._all(self.name1, self.ts1)
+        node1.delete()
+        node2.delete()
+        self.assertTrue(node1._deleted)
+        self.assertTrue(node2._deleted)
+        self.assertTrue(node1.timestamp is None)
+        self.assertTrue(node2.timestamp is None)
 
     @patch.object(redis.StrictRedis, 'set')
     def test_repr(self, set):
         set.return_value = None
-        wl1 = WhiteListNode(self.name1, self.ts1)
+        wl1 = LoggingNode(self.name1, self.ts1)
         self.assertEqual(str(wl1), json.dumps({'name': self.name1,
-                                               'timestamp': self.ts1}))
+                                               'timestamp': self.ts1,
+                                               'method': 'log_stream',
+                                               'disabled': False,
+                                               '_deleted': False}))
         wl1._deleted = True
         self.assertEqual(str(wl1), json.dumps({'name': self.name1,
-                                               'deleted': True}))
+                                               'timestamp': self.ts1,
+                                               'method': 'log_stream',
+                                               'disabled': False,
+                                               '_deleted': True}))
 
     @patch.object(redis.StrictRedis, 'delete')
     @patch.object(redis.StrictRedis, 'set')
@@ -260,8 +291,8 @@ class NodeListTests(SimpleTestCase):
     def test_ts(self, get, set, delete):
         set.return_value = None
         delete.return_value = None
-        get.return_value = '2014-07-04T01:06:27.750046+00:00'
-        wl1 = WhiteListNode(self.name1, self.ts1)
+        get.return_value = 'whatever'
+        wl1 = LoggingNode(self.name1, self.ts1)
         self.assertNotEqual(wl1.timestamp, None)
         wl1.delete()
         self.assertEqual(wl1.timestamp, None)
@@ -269,46 +300,36 @@ class NodeListTests(SimpleTestCase):
     @patch.object(redis.StrictRedis, 'set')
     @patch.object(redis.StrictRedis, 'delete')
     @patch.object(redis.StrictRedis, 'get')
-    def test_to_blacklist(self, get, delete, set):
-        get.return_value = self.ts1
+    def test_disable(self, get, delete, set):
+        get.return_value = "whatever"
         delete.return_vale = None
         set.return_value = None
-        wl1 = WhiteListNode(self.name1, self.ts1)
-        result = wl1.to_blacklist()
-        self.assertIsInstance(result, BlackListNode)
+        node1 = LoggingNode(self.name1, self.ts1)
+        result = node1.update(disabled=True)
+        self.assertIsInstance(result, LoggingNode)
         self.assertEqual(result.name, self.name1)
         self.assertEqual(result.timestamp, self.ts1)
         self.assertFalse(result._deleted)
-        self.assertEqual(delete.called, True)
+        self.assertTrue(result.disabled)
         self.assertEqual(set.called, True)
-        self.assertTrue(wl1._deleted)
-        self.assertEqual(wl1.timestamp, None)
-        get.return_value = None
-        wl2 = WhiteListNode(self.name2, self.ts2)
-        with self.assertRaises(Exception):
-            wl2.to_blacklist()
 
     @patch.object(redis.StrictRedis, 'set')
     @patch.object(redis.StrictRedis, 'delete')
     @patch.object(redis.StrictRedis, 'get')
-    def test_to_whitelist(self, get, delete, set):
-        get.return_value = self.ts1
+    def test_enable(self, get, delete, set):
+        get.return_value = "whatever"
         delete.return_vale = None
         set.return_value = None
-        bl1 = BlackListNode(self.name1, self.ts1)
-        result = bl1.to_whitelist()
-        self.assertIsInstance(result, WhiteListNode)
+        node1 = LoggingNode(self.name1, self.ts1, disabled=True)
+        self.assertTrue(node1.disabled)
+        result = node1.update(disabled=False)
+        self.assertIsInstance(result, LoggingNode)
         self.assertEqual(result.name, self.name1)
         self.assertEqual(result.timestamp, self.ts1)
         self.assertFalse(result._deleted)
-        self.assertEqual(delete.called, True)
         self.assertEqual(set.called, True)
-        self.assertTrue(bl1._deleted)
-        self.assertEqual(bl1.timestamp, None)
-        get.return_value = None
-        bl2 = BlackListNode(self.name2, self.ts2)
-        with self.assertRaises(Exception):
-            bl2.to_whitelist()
+        self.assertFalse(result.disabled)
+
 
 class LoggingNodeSerializerTests(SimpleTestCase):
     name1 = "test_node_123"
@@ -319,10 +340,10 @@ class LoggingNodeSerializerTests(SimpleTestCase):
 
     @patch.object(redis.StrictRedis, 'set')
     @patch.object(redis.StrictRedis, 'delete')
-    def test_white_serializer(self, delete, set):
+    def test_serializer(self, delete, set):
         set.return_value = None
         delete.return_value = None
-        wl1 = WhiteListNode(self.name1, self.ts1)
+        wl1 = LoggingNode(self.name1, self.ts1)
         self.assertTrue(set.called)
         serializer = LoggingNodeSerializer(wl1)
         self.assertIn('name', serializer.data)
@@ -336,62 +357,165 @@ class LoggingNodeSerializerTests(SimpleTestCase):
         serializer = LoggingNodeSerializer(wl1)
         self.assertEqual(serializer.data['_deleted'], True)
 
-    @patch.object(redis.StrictRedis, 'set')
-    @patch.object(redis.StrictRedis, 'delete')
-    def test_black_serializer(self, delete, set):
-        set.return_value = None
-        delete.return_value = None
-        bl1 = BlackListNode(self.name1, self.ts1)
-        serializer = LoggingNodeSerializer(bl1)
-        self.assertIn('name', serializer.data)
-        self.assertIn('timestamp', serializer.data)
-        self.assertIn('_deleted', serializer.data)
-        self.assertEqual(serializer.data['name'], self.name1)
-        self.assertEqual(serializer.data['timestamp'], self.ts1)
-        self.assertEqual(serializer.data['_deleted'], False)
-
 
 class ViewTests(APISimpleTestCase):
     name1 = "test_node_123"
     name2 = "test_node_456"
     name3 = "test_node_789"
+    name4 = "test_node_987"
     ts1 = '2014-07-04T01:06:27.750046+00:00'
     ts2 = '2015-07-04T01:06:27.750046+00:00'
+    ts3 = '2016-07-04T01:06:27.750046+00:00'
+    ts4 = '2016-07-04T01:06:27.750046+00:00'
 
     @patch.object(redis.StrictRedis, 'set')
     @patch.object(redis.StrictRedis, 'keys')
     @patch.object(redis.StrictRedis, 'mget')
-    def test_get_whitelist(self, mget, keys, set):
+    def test_get_all(self, mget, keys, set):
+        node1 = LoggingNode(self.name1, self.ts1)
+        node2 = LoggingNode(self.name2, self.ts2, disabled=True)
+        node3 = LoggingNode(self.name3, self.ts3, disabled=True)
+        node4 = LoggingNode(self.name4, self.ts4)
+
         set.return_value = None
-        keys.return_value = ['host_stream.whitelist.' + self.name1,
-                             'host_stream.whitelist.' + self.name2]
-        mget.return_value = [self.ts1,
-                             self.ts2]
-        WhiteListNode(self.name1, self.ts1)
-        WhiteListNode(self.name2, self.ts2)
-        response = self.client.get('/logging/whitelist/')
+        keys.return_value = ['host_stream.nodes.' + self.name1,
+                             'host_stream.nodes.' + self.name2,
+                             'host_stream.nodes.' + self.name3,
+                             'host_stream.nodes.' + self.name4]
+        mget.return_value = [node1.__repr__(),
+                             node2.__repr__(),
+                             node3.__repr__(),
+                             node4.__repr__()]
+
+        response = self.client.get('/logging/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data), 4)
         self.assertEqual(response.data[0]['name'], self.name1)
         self.assertEqual(response.data[0]['timestamp'], self.ts1)
         self.assertEqual(response.data[1]['name'], self.name2)
         self.assertEqual(response.data[1]['timestamp'], self.ts2)
+        self.assertTrue(response.data[1]['disabled'])
+        self.assertTrue(response.data[2]['disabled'])
 
     @patch.object(redis.StrictRedis, 'set')
     @patch.object(redis.StrictRedis, 'keys')
     @patch.object(redis.StrictRedis, 'mget')
-    def test_get_blacklist(self, mget, keys, set):
+    def test_get_disabled(self, mget, keys, set):
+        node1 = LoggingNode(self.name1, self.ts1)
+        node2 = LoggingNode(self.name2, self.ts2, disabled=True)
+        node3 = LoggingNode(self.name3, self.ts3, disabled=True)
+        node4 = LoggingNode(self.name4, self.ts4)
+
         set.return_value = None
-        keys.return_value = ['host_stream.blacklist.' + self.name1,
-                             'host_stream.blacklist.' + self.name2]
-        mget.return_value = [self.ts1,
-                             self.ts2]
-        BlackListNode(self.name1, self.ts1)
-        BlackListNode(self.name2, self.ts2)
-        response = self.client.get('/logging/blacklist/')
+        keys.return_value = ['host_stream.nodes.' + self.name1,
+                             'host_stream.nodes.' + self.name2,
+                             'host_stream.nodes.' + self.name3,
+                             'host_stream.nodes.' + self.name4]
+        mget.return_value = [node1.__repr__(),
+                             node2.__repr__(),
+                             node3.__repr__(),
+                             node4.__repr__()]
+
+        response = self.client.get('/logging/nodes?disabled=True')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]['name'], self.name2)
+        self.assertEqual(response.data[0]['timestamp'], self.ts2)
+        self.assertEqual(response.data[1]['name'], self.name3)
+        self.assertEqual(response.data[1]['timestamp'], self.ts3)
+        self.assertTrue(response.data[0]['disabled'])
+        self.assertTrue(response.data[1]['disabled'])
+
+    @patch.object(redis.StrictRedis, 'set')
+    @patch.object(redis.StrictRedis, 'keys')
+    @patch.object(redis.StrictRedis, 'mget')
+    def test_get_enabled(self, mget, keys, set):
+        node1 = LoggingNode(self.name1, self.ts1)
+        node2 = LoggingNode(self.name2, self.ts2, disabled=True)
+        node3 = LoggingNode(self.name3, self.ts3, disabled=True)
+        node4 = LoggingNode(self.name4, self.ts4)
+
+        set.return_value = None
+        keys.return_value = ['host_stream.nodes.' + self.name1,
+                             'host_stream.nodes.' + self.name2,
+                             'host_stream.nodes.' + self.name3,
+                             'host_stream.nodes.' + self.name4]
+        mget.return_value = [node1.__repr__(),
+                             node2.__repr__(),
+                             node3.__repr__(),
+                             node4.__repr__()]
+
+        response = self.client.get('/logging/nodes?disabled=False')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
         self.assertEqual(response.data[0]['name'], self.name1)
         self.assertEqual(response.data[0]['timestamp'], self.ts1)
-        self.assertEqual(response.data[1]['name'], self.name2)
-        self.assertEqual(response.data[1]['timestamp'], self.ts2)
+        self.assertEqual(response.data[1]['name'], self.name4)
+        self.assertEqual(response.data[1]['timestamp'], self.ts4)
+        self.assertFalse(response.data[0]['disabled'])
+        self.assertFalse(response.data[1]['disabled'])
+
+    @patch.object(redis.StrictRedis, 'set')
+    @patch.object(redis.StrictRedis, 'keys')
+    @patch.object(redis.StrictRedis, 'mget')
+    def test_get_misspelled(self, mget, keys, set):
+        node1 = LoggingNode(self.name1, self.ts1)
+        node2 = LoggingNode(self.name2, self.ts2, disabled=True)
+        node3 = LoggingNode(self.name3, self.ts3, disabled=True)
+        node4 = LoggingNode(self.name4, self.ts4)
+
+        set.return_value = None
+        keys.return_value = ['host_stream.nodes.' + self.name1,
+                             'host_stream.nodes.' + self.name2,
+                             'host_stream.nodes.' + self.name3,
+                             'host_stream.nodes.' + self.name4]
+        mget.return_value = [node1.__repr__(),
+                             node2.__repr__(),
+                             node3.__repr__(),
+                             node4.__repr__()]
+
+        response = self.client.get('/logging/nodes?disabled=xyz')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+    @patch.object(LoggingNode, 'get')
+    @patch.object(redis.StrictRedis, 'set')
+    @patch.object(redis.StrictRedis, 'delete')
+    def test_delete_enabled(self, delete, set, get):
+        node1 = LoggingNode(self.name1, self.ts1)
+        set.return_value = "whatever"
+        delete.return_value = True
+        get.return_value = node1
+
+        response = self.client.delete('/logging/nodes/' + self.name1)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch.object(LoggingNode, 'get')
+    @patch.object(redis.StrictRedis, 'set')
+    @patch.object(redis.StrictRedis, 'delete')
+    def test_delete_disabled(self, delete, set, get):
+        node2 = LoggingNode(self.name2, self.ts2, disabled=True)
+        set.return_value = "whatever"
+        delete.return_value = True
+        get.return_value = node2
+        response = self.client.delete('/logging/nodes/' + self.name2)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    @patch.object(LoggingNode, 'get')
+    @patch.object(redis.StrictRedis, 'set')
+    def test_get_found(self, set, get):
+        set.return_value = "whatever"
+        node1 = LoggingNode(self.name1, self.ts1)
+        get.return_value = node1
+        response = self.client.get('/logging/nodes/' + self.name1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertDictEqual(response.data, json.loads(node1.__repr__()))
+
+    @patch.object(LoggingNode, 'get')
+    @patch.object(redis.StrictRedis, 'set')
+    def test_get_not_found(self, set, get):
+        set.return_value = "whatever"
+        node1 = LoggingNode(self.name1, self.ts1)
+        get.return_value = None
+        response = self.client.get('/logging/nodes/' + self.name1)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
