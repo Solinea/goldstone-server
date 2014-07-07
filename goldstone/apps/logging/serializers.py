@@ -20,12 +20,7 @@ class LoggingNodeSerializer(serializers.Serializer):
                                  read_only=True)
     timestamp = serializers.CharField(max_length=100,
                                       read_only=True)
+    method = serializers.CharField(max_length=20,
+                                   read_only=True)
+    disabled = serializers.BooleanField()
     _deleted = serializers.BooleanField(read_only=True)
-
-
-class WhiteListNodeSerializer(LoggingNodeSerializer):
-    pass
-
-
-class BlackListNodeSerializer(LoggingNodeSerializer):
-    pass

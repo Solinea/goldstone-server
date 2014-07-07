@@ -25,47 +25,66 @@ __author__ = 'stanford'
 logger = logging.getLogger(__name__)
 
 
-# TODO would like a better parent class
 class LoggingNode(RedisConnection):
-    id_prefix = None
+    id_prefix = '''host_stream.nodes.'''
 
-    def __init__(self, name,
-                 datetime_str=datetime.now(tz=pytz.utc).isoformat()):
+    def __init__(self,
+                 name,
+                 timestamp=datetime.now(tz=pytz.utc).isoformat(),
+                 method='log_stream',
+                 disabled=False):
         super(LoggingNode, self).__init__()
+        self.id = self.id_prefix + name
         self.name = name
-        self.timestamp = None
-        self.save(datetime_str)
+        self.timestamp = timestamp
+        self.method = method
+        self.disabled = disabled
         self._deleted = False
+        self.save()
 
     def __repr__(self):
-        if self._deleted:
-            return json.dumps({"name": self.name, "deleted": True})
-        else:
-            return json.dumps({"name": self.name,
-                               "timestamp": self.timestamp})
+        return json.dumps({"name": self.name,
+                           "timestamp": self.timestamp,
+                           "method": self.method,
+                           "disabled": self.disabled,
+                           "_deleted": self._deleted})
 
     @classmethod
     def _all(cls, k, v):
-        raise RuntimeError("Must implement in subclass")
+        logger.debug("v = %s", v)
+        params = json.loads(v)
+        del params['_deleted']
+        return LoggingNode(**params)
 
-    def save(self, datetime_str):
+    def update(self,
+               timestamp=None,
+               method=None,
+               disabled=None):
+
+        if timestamp is not None:
+            self.timestamp = timestamp
+        if method is not None:
+            self.method = method
+        if disabled is not None:
+            self.disabled = disabled
+        self.save()
+        return self
+
+    def save(self):
         """
-        update the persisted state of the entry
-        :param datetime_str: string
+        persist the state of the entry
         :return: True
         """
-        self.conn.set(self.id_prefix + self.name, datetime_str)
-        self.timestamp = datetime_str
-        self._deleted = False
+        self.conn.set(self.id, json.dumps(self.__repr__()))
         return True
 
     # TODO would like a cleaner way to remove the object, not just the record
     def delete(self):
         """
-        delete a host record from persistence
+        delete a host record from persistence.
         :return: None
         """
-        self.conn.delete(self.id_prefix + self.name)
+        self.conn.delete(self.id)
         self._deleted = True
         self.timestamp = None
 
@@ -76,12 +95,7 @@ class LoggingNode(RedisConnection):
         :return:
         """
         rc = RedisConnection()
-        kl = []
-        try:
-            kl = rc.conn.keys(cls.id_prefix + "*")
-        except TypeError:
-            raise Exception("id_prefix is not a string")
-
+        kl = rc.conn.keys(cls.id_prefix + "*")
         # mget doesn't handle empty list well
         if len(kl) == 0:
             return []
@@ -89,14 +103,6 @@ class LoggingNode(RedisConnection):
         vl = rc.conn.mget(kl)
         return map(cls._all, kl, vl)
 
-
-class WhiteListNode(LoggingNode):
-    id_prefix = '''host_stream.whitelist.'''
-
-    @classmethod
-    def _all(cls, k, v):
-        return WhiteListNode(re.sub(cls.id_prefix, '', k), v)
-
     @classmethod
     def get(cls, host):
         """
@@ -108,53 +114,6 @@ class WhiteListNode(LoggingNode):
         if result is None:
             return result
         else:
-            return WhiteListNode(host, result)
-
-    def to_blacklist(self):
-        """
-        move a host from the whitelist to the blacklist
-        :return: BlackListNode
-        """
-        key = self.id_prefix + self.name
-        val = self.conn.get(key)
-        if val is not None:
-            new_node = BlackListNode(self.name, val)
-            self.delete()
-            return new_node
-        else:
-            raise Exception("not found in DB")
-
-
-class BlackListNode(LoggingNode):
-    id_prefix = '''host_stream.blacklist.'''
-
-    @classmethod
-    def _all(cls, k, v):
-        return BlackListNode(re.sub(cls.id_prefix, '', k), v)
-
-    @classmethod
-    def get(cls, host):
-        """
-        get a node by name
-        :return:
-        """
-        r = RedisConnection()
-        result = r.conn.get(cls.id_prefix + host)
-        if result is None:
-            return result
-        else:
-            return BlackListNode(host, result)
-
-    def to_whitelist(self):
-        """
-        move this host from the blacklist to the whitelist
-        :return: WhiteListNode
-        """
-        key = self.id_prefix + self.name
-        val = self.conn.get(key)
-        if val is not None:
-            new_node = WhiteListNode(self.name, val)
-            self.delete()
-            return new_node
-        else:
-            raise Exception("not found in DB")
+            params = json.loads(result)
+            del params['_deleted']
+            return LoggingNode(**params)

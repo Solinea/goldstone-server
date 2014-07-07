@@ -20,11 +20,6 @@ __author__ = 'John Stanford'
 from django.conf import settings
 from goldstone.celery import app as celery_app
 import logging
-import redis
-import json
-import re
-from datetime import datetime, timedelta
-import pytz
 from goldstone.apps.logging.models import *
 
 
@@ -40,16 +35,17 @@ def process_host_stream(self, host, timestamp):
     the result to ES periodically.
     :return: None
     """
-    in_black = BlackListNode.get(host)
-    if in_black is None:
-        return WhiteListNode(host, timestamp)
-    else:
+    node = LoggingNode.get(host)
+    if node is None or node.disabled:
         return None
+
+    return node.update(timestamp=timestamp)
+
 
 @celery_app.task(bind=True)
 def check_host_avail(self):
     """
-    Inspect the hosts in the whitelist store, and initiate a ping task for
+    Inspect the hosts in the store, and initiate a ping task for
     ones that have not been seen within the configured window.
     :return: None
     """
@@ -60,8 +56,8 @@ def check_host_avail(self):
         datetime.now(tz=pytz.utc) - settings.HOST_AVAILABLE_PING_THRESHOLD
     ).strftime("%Y-%m-%dT%H:%M:%S.000Z")
     logger.debug("[check_host_avail] cutoff = %s", cutoff)
-    all = WhiteListNode.all()
+    all = LoggingNode.all()
     logger.debug("[check_host_avail] kv_list = %s", all)
-    to_ping = [i.name for i in all if i.timestamp < cutoff]
+    to_ping = [i.name for i in all if i.timestamp < cutoff and not i.disabled]
     logger.debug("hosts to ping = %s", json.dumps(to_ping))
     return to_ping
