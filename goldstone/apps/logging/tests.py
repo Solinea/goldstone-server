@@ -80,9 +80,24 @@ class TaskTests(SimpleTestCase):
         result = check_host_avail()
         self.assertTrue(keys.called)
         self.assertTrue(mget.called)
-        self.assertNotIn(node1.name, result)
-        self.assertNotIn(node2.name, result)
-        self.assertIn(node3.name, result)
+        self.assertNotIn(node1, result)
+        self.assertNotIn(node2, result)
+        self.assertEqual(node3, result[0])
+
+    @patch.object(redis.StrictRedis, 'set')
+    @patch.object(subprocess, 'call')
+    def test_ping(self, call, set):
+        now = datetime.now(tz=pytz.utc)
+        last_year = now - timedelta(days=365)
+        set.return_value = "something"
+        node1 = LoggingNode(self.name1)
+        node2 = LoggingNode(self.name2)
+        call.return_value = 0
+        result = ping(node1)
+        self.assertTrue(result)
+        call.return_value = 1
+        result = ping(node2)
+        self.assertFalse(result)
 
 
     # TODO this should be part of the integration test suite
