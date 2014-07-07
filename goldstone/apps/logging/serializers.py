@@ -12,12 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__author__ = 'John Stanford'
+from rest_framework import serializers
 
-from .views import *
-from rest_framework.routers import DefaultRouter
 
-router = DefaultRouter()
-router.register(r'whitelist', WhiteListNodeViewSet, base_name='white')
-router.register(r'blacklist', BlackListNodeViewSet, base_name='black')
-urlpatterns = router.urls
+class LoggingNodeSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=100,
+                                 read_only=True)
+    timestamp = serializers.CharField(max_length=100,
+                                      read_only=True)
+    _deleted = serializers.BooleanField(read_only=True)
+
+
+class WhiteListNodeSerializer(LoggingNodeSerializer):
+    pass
+
+
+class BlackListNodeSerializer(LoggingNodeSerializer):
+    pass

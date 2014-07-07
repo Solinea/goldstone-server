@@ -11,59 +11,46 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from django.http import Http404
+from rest_framework.response import Response
+from rest_framework.viewsets import ViewSet
 
 __author__ = 'John Stanford'
 
-from goldstone.views import *
-from goldstone.apps.logging.models import HostAvailData
+from .models import *
+from .serializers import *
 import logging
-import traceback
-import sys
 
 logger = logging.getLogger(__name__)
 
 
-class HostAvailView(ContextMixin, View):
+class WhiteListNodeViewSet(ViewSet):
 
-    def get_context_data(self, **kwargs):
-        context = ContextMixin.get_context_data(self, **kwargs)
-        return context
+    def list(self, request, format=None):
+        members = WhiteListNode.all()
+        serializer = WhiteListNodeSerializer(members, many=True)
+        return Response(serializer.data)
 
-    def get(self, request, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
-        try:
-            dao = HostAvailData()
-            data = dao.get_all()
-            content = {
-                "status": "success",
-                "data": data
-            }
-            return HttpResponse(content=json.dumps(content),
-                                content_type='application/json')
-        except:
-            content = {
-                "status": "error",
-                "message": sys.exc_info()[1].message,
-                "trace": traceback.format_stack()
-            }
-            return HttpResponse(content=json.dumps(content), status=400,
-                                content_type='application/json')
+    def retrieve(self, request, name, format=None):
+        item = WhiteListNode.get(name)
+        if item is not None:
+            serializer = WhiteListNodeSerializer(item)
+            return Response(serializer.data)
+        else:
+            raise Http404
 
-    # def put(self, request, *args, **kwargs):
-    #     """
-    #     updates a data about a known host. the only recognized key is
-    #     list_color.  valid values are white or black.
-    #     """
-    #     context = self.get_context_data(**kwargs)
-    #     if 'list_color' in context:
-    #         if context['list_color'] == 'white':
-    #
-    #         elif context['list_color'] == 'black':
-    #
-    #         else:
-    #             return HttpResponseBadRequest(
-    #                 "list_color accepts white or black")
-    #
-    #
-    #     else:
-    #         return HttpResponseBadRequest("Unknown parameter(s)")
+
+class BlackListNodeViewSet(ViewSet):
+
+    def list(self, request, format=None):
+        members = BlackListNode.all()
+        serializer = BlackListNodeSerializer(members, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, name, format=None):
+        item = BlackListNode.get(name)
+        if item is not None:
+            serializer = BlackListNodeSerializer(item)
+            return Response(serializer.data)
+        else:
+            raise Http404
