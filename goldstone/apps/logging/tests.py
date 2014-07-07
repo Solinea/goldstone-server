@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.http import HttpResponse
+from rest_framework import status
+from rest_framework.test import APIClient, APISimpleTestCase
 
 __author__ = 'John Stanford'
 
@@ -168,7 +170,8 @@ class NodeListTests(SimpleTestCase):
 
     @patch.object(redis.StrictRedis, 'keys')
     @patch.object(redis.StrictRedis, 'mget')
-    def test_all(self, mget, keys):
+    @patch.object(redis.StrictRedis, 'set')
+    def test_all(self, set, mget, keys):
 
         # index not set / calling from superclass
         keys.side_effect = TypeError()
@@ -176,6 +179,7 @@ class NodeListTests(SimpleTestCase):
             WhiteListNode.all()
         keys.side_effect = None
         keys.return_value = []
+        set.return_value = None
         all_white = WhiteListNode.all()
         self.assertEqual(all_white, [])
         keys.return_value = ['host_stream.whitelist.' + self.name1,
@@ -194,10 +198,15 @@ class NodeListTests(SimpleTestCase):
         self.assertIsInstance(all_black[0], BlackListNode)
         self.assertEqual(all_black[0].name, self.name3)
 
-    def test_get(self):
+    @patch.object(redis.StrictRedis, 'set')
+    @patch.object(redis.StrictRedis, 'get')
+    def test_get(self, get, set):
+        set.return_value = None
         WhiteListNode(self.name1, self.ts1)
         BlackListNode(self.name2, self.ts2)
+        get.return_value = self.ts1
         get_wl1 = WhiteListNode.get(self.name1)
+        get.return_value = self.ts2
         get_bl1 = BlackListNode.get(self.name2)
         self.assertEqual(get_wl1.name, self.name1)
         self.assertEqual(get_bl1.name, self.name2)
@@ -205,21 +214,22 @@ class NodeListTests(SimpleTestCase):
         self.assertEqual(get_bl1.timestamp, self.ts2)
 
     @patch.object(redis.StrictRedis, 'delete')
-    @patch.object(WhiteListNode, 'save')
-    @patch.object(BlackListNode, 'save')
-    def test_delete(self, bl_save, wl_save, delete):
-        bl_save.return_value = True
-        wl_save.return_value = True
+    @patch.object(redis.StrictRedis, 'set')
+    def test_delete(self, set, delete):
+        set.return_value = None
         wl1 = WhiteListNode(self.name1, self.ts1)
         bl1 = BlackListNode(self.name3)
-
         self.assertFalse(wl1._deleted)
         self.assertFalse(bl1._deleted)
+        self.assertTrue(wl1.timestamp is not None)
+        self.assertTrue(bl1.timestamp is not None)
         delete.return_value = None
         wl1.delete()
         bl1.delete()
         self.assertTrue(wl1._deleted)
         self.assertTrue(bl1._deleted)
+        self.assertTrue(wl1.timestamp is None)
+        self.assertTrue(bl1.timestamp is None)
 
     def test_superclass_all(self):
         with self.assertRaises(RuntimeError):
@@ -264,7 +274,6 @@ class NodeListTests(SimpleTestCase):
         self.assertEqual(set.called, True)
         self.assertTrue(wl1._deleted)
         self.assertEqual(wl1.timestamp, None)
-
         get.return_value = None
         wl2 = WhiteListNode(self.name2, self.ts2)
         with self.assertRaises(Exception):
@@ -287,12 +296,10 @@ class NodeListTests(SimpleTestCase):
         self.assertEqual(set.called, True)
         self.assertTrue(bl1._deleted)
         self.assertEqual(bl1.timestamp, None)
-
         get.return_value = None
         bl2 = BlackListNode(self.name2, self.ts2)
         with self.assertRaises(Exception):
             bl2.to_whitelist()
-
 
 class LoggingNodeSerializerTests(SimpleTestCase):
     name1 = "test_node_123"
@@ -335,135 +342,47 @@ class LoggingNodeSerializerTests(SimpleTestCase):
         self.assertEqual(serializer.data['_deleted'], False)
 
 
-class HostAvailModelTests(SimpleTestCase):
-
-    def test_get_datalist_empty(self):
-        had = HostAvailData()
-        mock_conn = Mock()
-        config = {'keys.return_value': []}
-        mock_conn.configure_mock(**config)
-        had.conn = mock_conn
-        result = had._get_datalist('''host_stream.whitelist.''')
-        self.assertEqual(had.conn.keys.called, True)
-        self.assertListEqual(result, [])
-
-    def test_get_datalist_whitelist(self):
-        had = HostAvailData()
-        mock_conn = Mock()
-        config = {'keys.return_value': ['host_stream.whitelist.test123'],
-                  'mget.return_value': ['2014-07-04T01:06:27.750046+00:00']}
-        mock_conn.configure_mock(**config)
-        had.conn = mock_conn
-        result = had._get_datalist('''host_stream.whitelist.''')
-        self.assertEqual(had.conn.keys.called, True)
-        self.assertEqual(had.conn.mget.called, True)
-        self.assertListEqual(result,
-                             [{'test123': '2014-07-04T01:06:27.750046+00:00'}])
-
-    def test_get_datalist_blacklist(self):
-        had = HostAvailData()
-        mock_conn = Mock()
-        config = {'keys.return_value': ['host_stream.blacklist.test123',
-                                        'host_stream.blacklist.test456'],
-                  'mget.return_value': ['2014-07-04T01:06:27.750046+00:00',
-                                        '2015-07-04T01:06:27.750046+00:00']}
-        mock_conn.configure_mock(**config)
-        had.conn = mock_conn
-        result = had._get_datalist('''host_stream.blacklist.''')
-        self.assertEqual(had.conn.keys.called, True)
-        self.assertEqual(had.conn.mget.called, True)
-        self.assertListEqual(result,
-                             [{'test123': '2014-07-04T01:06:27.750046+00:00'},
-                              {'test456': '2015-07-04T01:06:27.750046+00:00'}])
-
-    def test_get_all(self):
-        rv = [{'test123': '2014-07-04T01:06:27.750046+00:00'},
-              {'test456': '2015-07-04T01:06:27.750046+00:00'}]
-        had = HostAvailData()
-        mock_get_datalist = Mock(return_value=rv)
-        had._get_datalist = mock_get_datalist
-        result = had.get_all()
-        self.assertEqual(had._get_datalist.call_count, 2)
-        self.assertDictEqual(result, {'whitelist': rv, 'blacklist': rv})
-
-    def test_set(self):
-        had = HostAvailData()
-        mock_conn = Mock()
-        # already exists in the blacklist, set whitelist
-        config = {'exists.return_value': True,
-                  'set.return_value': 'do not care'}
-        mock_conn.configure_mock(**config)
-        had.conn = mock_conn
-        result = had.set('test123', datetime.now(tz=pytz.utc).isoformat())
-        self.assertTrue(had.conn.exists.called)
-        self.assertFalse(had.conn.set.called)
-        self.assertEqual(result, None)
-
-        # not in the blacklist, set whitelist
-        config = {'exists.return_value': False,
-                  'set.return_value': 'do not care'}
-        mock_conn.configure_mock(**config)
-        had.conn = mock_conn
-        result = had.set('test123', datetime.now(tz=pytz.utc).isoformat())
-        self.assertTrue(had.conn.set.called)
-        self.assertEqual(result, 'host_stream.whitelist.test123')
-
-        # already exists in the whitelist, set blacklist
-        config = {'exists.return_value': True,
-                  'set.return_value': 'do not care'}
-        mock_conn.configure_mock(**config)
-        had.conn = mock_conn
-        result = had.set('test123',
-                         datetime.now(tz=pytz.utc).isoformat(),
-                         'black')
-        self.assertEqual(result, None)
-
-         # not in the whitelist, set blacklist
-        config = {'exists.return_value': False,
-                  'set.return_value': 'do not care'}
-        mock_conn.configure_mock(**config)
-        had.conn = mock_conn
-        result = had.set('test123',
-                         datetime.now(tz=pytz.utc).isoformat(),
-                         'black')
-        self.assertEqual(result, 'host_stream.blacklist.test123')
+class ViewTests(APISimpleTestCase):
+    name1 = "test_node_123"
+    name2 = "test_node_456"
+    name3 = "test_node_789"
+    ts1 = '2014-07-04T01:06:27.750046+00:00'
+    ts2 = '2015-07-04T01:06:27.750046+00:00'
 
     @patch.object(redis.StrictRedis, 'set')
-    @patch.object(redis.StrictRedis, 'get')
-    @patch.object(HostAvailData, 'delete')
-    def test_to_blacklist(self, delete, get, set):
-        had = HostAvailData()
-        # test when host exists in whitelist
-        get.return_value = 'host_stream.whitelist.test123'
-        set.return_value = 'host_stream.blacklist.test123'
-        delete.return_value = None
-        result = had.to_blacklist('test123')
-        self.assertTrue(set.called)
-        self.assertTrue(get.called)
-        self.assertTrue(delete.called)
-        self.assertEqual(result, set.return_value)
-        # test when host is not in blacklist
+    @patch.object(redis.StrictRedis, 'keys')
+    @patch.object(redis.StrictRedis, 'mget')
+    def test_get_whitelist(self, mget, keys, set):
+        set.return_value = None
+        keys.return_value = ['host_stream.whitelist.' + self.name1,
+                             'host_stream.whitelist.' + self.name2]
+        mget.return_value = [self.ts1,
+                             self.ts2]
+        WhiteListNode(self.name1, self.ts1)
+        WhiteListNode(self.name2, self.ts2)
+        response = self.client.get('/logging/whitelist/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]['name'], self.name1)
+        self.assertEqual(response.data[0]['timestamp'], self.ts1)
+        self.assertEqual(response.data[1]['name'], self.name2)
+        self.assertEqual(response.data[1]['timestamp'], self.ts2)
 
-
-class ViewTests(SimpleTestCase):
-
-    @patch.object(HostAvailData, 'get_all')
-    def test_get_agents(self, get_all):
-        rv = [
-            {'test123': '2014-07-04T01:06:27.750046+00:00'},
-            {'test456': '2015-07-04T01:06:27.750046+00:00'}
-        ]
-        get_all.return_value = {'whitelist': rv, 'blacklist': rv}
-        response = self.client.get("/logging/report/host_availability")
-        self.assertTrue(get_all.called)
-        self.assertIsInstance(response, HttpResponse)
-        self.assertNotEqual(response.content, None)
-        try:
-            j = json.loads(response.content)
-        except:
-            self.fail("Could not convert content to JSON")
-        else:
-            self.assertIsInstance(j, dict)
-            self.assertTrue('status' in j)
-            self.assertTrue('data' in j)
-            self.assertDictEqual(j['data'], get_all.return_value)
+    @patch.object(redis.StrictRedis, 'set')
+    @patch.object(redis.StrictRedis, 'keys')
+    @patch.object(redis.StrictRedis, 'mget')
+    def test_get_blacklist(self, mget, keys, set):
+        set.return_value = None
+        keys.return_value = ['host_stream.blacklist.' + self.name1,
+                             'host_stream.blacklist.' + self.name2]
+        mget.return_value = [self.ts1,
+                             self.ts2]
+        BlackListNode(self.name1, self.ts1)
+        BlackListNode(self.name2, self.ts2)
+        response = self.client.get('/logging/blacklist/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]['name'], self.name1)
+        self.assertEqual(response.data[0]['timestamp'], self.ts1)
+        self.assertEqual(response.data[1]['name'], self.name2)
+        self.assertEqual(response.data[1]['timestamp'], self.ts2)
