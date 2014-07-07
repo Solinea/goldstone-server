@@ -49,6 +49,14 @@ class LoggingNode(RedisConnection):
                            "disabled": self.disabled,
                            "_deleted": self._deleted})
 
+    def __eq__(self, other):
+        d1 = self.__dict__
+        del d1['conn']
+        d2 = other.__dict__
+        if 'conn' in d2:
+            del d2['conn']
+        return d1 == d2
+
     @classmethod
     def _all(cls, k, v):
         logger.debug("v = %s", v)
@@ -75,7 +83,7 @@ class LoggingNode(RedisConnection):
         persist the state of the entry
         :return: True
         """
-        self.conn.set(self.id, json.dumps(self.__repr__()))
+        self.conn.set(self.id, self)
         return True
 
     # TODO would like a cleaner way to remove the object, not just the record

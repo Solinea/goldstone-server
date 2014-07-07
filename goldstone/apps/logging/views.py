@@ -62,6 +62,22 @@ class LoggingNodeViewSet(ViewSet):
         else:
             raise Http404
 
+    def update(self, request, pk, format=None):
+        """
+        update a node record. all but the disabled value are silently ignored
+        :param request:
+        :param pk:
+        :param format:
+        :return: the new record
+        """
+        item = LoggingNode.get(pk)
+        if item is not None:
+            response = item.update(disabled=request.DATA['disabled'])
+            serializer = LoggingNodeSerializer(response)
+            return Response(serializer.data)
+        else:
+            raise Http404
+
     def destroy(self, request, pk, format=None):
         node = LoggingNode.get(pk)
         if node.disabled:

@@ -180,6 +180,7 @@ RESOURCE_QUERY_INTERVAL = crontab(minute='*/2')
 API_PERF_QUERY_INTERVAL = crontab(minute='*/2')
 API_PERF_QUERY_TIMEOUT = 30
 HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
+HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/2')
 
 CELERYBEAT_SCHEDULE = {
     'create-daily-index': {
@@ -225,6 +226,10 @@ CELERYBEAT_SCHEDULE = {
     'discover_nova_topology': {
         'task': 'goldstone.apps.nova.tasks.discover_nova_topology',
         'schedule': TOPOLOGY_QUERY_INTERVAL
+    },
+    'logging_node_avail_test': {
+        'task': 'goldstone.apps.logging.tasks.check_host_avail',
+        'schedule': HOST_AVAILABLE_PING_INTERVAL
     },
 }
 

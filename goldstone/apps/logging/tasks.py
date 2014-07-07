@@ -14,6 +14,7 @@ from __future__ import absolute_import
 # limitations under the License.
 
 import pytz
+import subprocess
 
 __author__ = 'John Stanford'
 
@@ -21,10 +22,10 @@ from django.conf import settings
 from goldstone.celery import app as celery_app
 import logging
 from goldstone.apps.logging.models import *
+from datetime import datetime
 
 
 logger = logging.getLogger(__name__)
-
 
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
 def process_host_stream(self, host, timestamp):
@@ -43,6 +44,21 @@ def process_host_stream(self, host, timestamp):
 
 
 @celery_app.task(bind=True)
+def ping(self, node):
+    response = subprocess.call("ping -c 5 %s" % node.name,
+                               shell=True,
+                               stdout=open('/dev/null', 'w'),
+                               stderr=subprocess.STDOUT)
+    if response == 0:
+        logger.debug("%s is alive", node.name)
+        node.update(timestamp=datetime.now(tz=pytz.utc).isoformat())
+        return True
+    else:
+        logger.debug("%s did not respond", node.name)
+        return False
+
+
+@celery_app.task(bind=True)
 def check_host_avail(self):
     """
     Inspect the hosts in the store, and initiate a ping task for
@@ -58,6 +74,19 @@ def check_host_avail(self):
     logger.debug("[check_host_avail] cutoff = %s", cutoff)
     all = LoggingNode.all()
     logger.debug("[check_host_avail] kv_list = %s", all)
-    to_ping = [i.name for i in all if i.timestamp < cutoff and not i.disabled]
-    logger.debug("hosts to ping = %s", json.dumps(to_ping))
+    to_ping = [i for i in all if i.timestamp < cutoff and not i.disabled]
+    logger.debug("hosts to ping = %s", to_ping)
+    for host in to_ping:
+        ping(host)
+
     return to_ping
+
+
+@celery_app.task(bind=True)
+def create_event(self, event):
+    """
+    send an event to
+    :param event:
+    :return:
+    """
+    pass
