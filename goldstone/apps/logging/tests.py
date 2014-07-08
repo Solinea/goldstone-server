@@ -493,6 +493,26 @@ class ViewTests(APISimpleTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 0)
 
+    @patch.object(redis.StrictRedis, 'set')
+    @patch.object(redis.StrictRedis, 'get')
+    @patch.object(LoggingNode, 'get')
+    def test_update_disabled(self, lget, get, set):
+        node1 = LoggingNode(self.name1, self.ts1)
+        lget.return_value = node1
+        set.return_value = None
+        get.return_value = node1.__repr__()
+        data = node1
+        data.disabled = True
+        response = self.client.put('/logging/nodes/' + self.name1,
+                                   json.loads(data.__repr__()))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['disabled'], unicode('True'))
+
+        lget.return_value = None
+        response = self.client.put('/logging/nodes/xyz',
+                                   json.loads(data.__repr__()))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     @patch.object(LoggingNode, 'get')
     @patch.object(redis.StrictRedis, 'set')
     @patch.object(redis.StrictRedis, 'delete')
