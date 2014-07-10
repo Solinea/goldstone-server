@@ -19,10 +19,36 @@ import json
 from datetime import datetime
 import pytz
 from django.db import models
-
+from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
+    ModificationDateTimeField
 __author__ = 'stanford'
 
 logger = logging.getLogger(__name__)
+
+
+class LN(models.Model):
+    uuid = UUIDField(unique=True)
+    name = models.CharField(
+        max_length=100, unique=True)
+
+    created = CreationDateTimeField()
+
+    updated = ModificationDateTimeField()
+
+    method = models.CharField(
+        max_length=20,
+        default='ping',
+        validators=[lambda m: m.lower == 'ping' or m.lower == 'log_stream'])
+
+    disabled = models.BooleanField(
+        default=False)
+
+    def __unicode__(self):
+        return json.dumps({"name": self.name,
+                           "created": self.created.isoformat(),
+                           "updated": self.updated.isoformat(),
+                           "method": self.method,
+                           "disabled": self.disabled})
 
 
 class LoggingNode(RedisConnection):

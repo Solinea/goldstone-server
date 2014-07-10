@@ -15,6 +15,7 @@ from __future__ import absolute_import
 
 import pytz
 import subprocess
+from rest_framework.renderers import JSONRenderer
 
 __author__ = 'John Stanford'
 
@@ -36,11 +37,9 @@ def process_host_stream(self, host, timestamp):
     the result to ES periodically.
     :return: None
     """
-    node = LoggingNode.get(host)
-    if node is None or node.disabled:
-        return None
-
-    return node.update(timestamp=timestamp)
+    node, created = LN.objects.get_or_create(name=host)
+    if not node.disabled:
+        node.save()
 
 
 @celery_app.task(bind=True)
@@ -50,34 +49,29 @@ def ping(self, node):
                                stdout=open('/dev/null', 'w'),
                                stderr=subprocess.STDOUT)
     if response == 0:
-        logger.debug("%s is alive", node.name)
-        node.update(timestamp=datetime.now(tz=pytz.utc).isoformat())
+        logger.debug("%s is alive", node.uuid)
+        node.save()
         return True
     else:
-        logger.debug("%s did not respond", node.name)
+        logger.debug("%s did not respond", node.uuid)
         return False
 
 
 @celery_app.task(bind=True)
-def check_host_avail(self):
+def check_host_avail(self, offset=settings.HOST_AVAILABLE_PING_THRESHOLD):
     """
     Inspect the hosts in the store, and initiate a ping task for
     ones that have not been seen within the configured window.
     :return: None
     """
-    # connect to redis
-    # TODO make these config params
-    # TODO use a connection pool
     cutoff = (
-        datetime.now(tz=pytz.utc) - settings.HOST_AVAILABLE_PING_THRESHOLD
-    ).strftime("%Y-%m-%dT%H:%M:%S.000Z")
-    logger.debug("[check_host_avail] cutoff = %s", cutoff)
-    all = LoggingNode.all()
-    logger.debug("[check_host_avail] kv_list = %s", all)
-    to_ping = [i for i in all if i.timestamp < cutoff and not i.disabled]
-    logger.debug("hosts to ping = %s", to_ping)
-    for host in to_ping:
-        ping(host)
+        datetime.now(tz=pytz.utc) - offset
+    )
+    logger.info("[check_host_avail] cutoff = %s", cutoff)
+    to_ping = LN.objects.filter(updated__lte=cutoff, disabled=False)
+    logger.info("hosts to ping = %s", to_ping)
+    for node in to_ping.iterator():
+        ping(node)
 
     return to_ping
 

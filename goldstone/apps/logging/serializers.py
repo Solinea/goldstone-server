@@ -13,6 +13,20 @@
 # limitations under the License.
 
 from rest_framework import serializers
+from .models import LN
+
+
+class LNSerializer(serializers.ModelSerializer):
+    uuid = serializers.CharField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    created = serializers.DateTimeField(read_only=True)
+    updated = serializers.DateTimeField(read_only=True)
+    method = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = LN
+        lookup_field = 'uuid'
+        exclude = ['id']
 
 
 class LoggingNodeSerializer(serializers.Serializer):

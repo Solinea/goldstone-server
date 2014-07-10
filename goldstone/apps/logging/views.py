@@ -13,9 +13,9 @@
 # limitations under the License.
 from django.http import Http404
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.viewsets import ViewSet, GenericViewSet
-from rest_framework import filters
+from rest_framework.viewsets import ModelViewSet
 
 __author__ = 'John Stanford'
 
@@ -26,60 +26,52 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class LoggingNodeViewSet(ViewSet):
+class LNViewSet(ModelViewSet):
+    queryset = LN.objects.all()
+    serializer_class = LNSerializer
+    filter_fields = ('uuid', 'name', 'method', 'disabled')
+    lookup_field = 'uuid'
+    lookup_url_kwarg = 'uuid'
+    ordering_fields = '__all__'
+    ordering = 'updated'
 
-    def get_filtered_list(self):
-        """
-        Optionally restricts the returned purchases to a given user,
-        by filtering against a `username` query parameter in the URL.
-        """
-        nodes = LoggingNode.all()
-        disabled_str = self.request.QUERY_PARAMS.get('disabled', None)
-        if disabled_str is not None:
-            disabled = None
-            if disabled_str.lower() == 'false':
-                disabled = False
-            elif disabled_str.lower() == 'true':
-                disabled = True
-            logger.debug(
-                "[get_filtered_list] got a disabled filter parameter = %s",
-                str(disabled))
-            nodes = [node for node in nodes if node.disabled is disabled]
-        return nodes
+    def create(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_400_BAD_REQUEST,
+                        data="Node creation not supported.")
 
-    def list(self, request, format=None):
-        logger.debug("[list] request params = %s",
-                     json.dumps(request.QUERY_PARAMS))
-        serializer = LoggingNodeSerializer(self.get_filtered_list(),
-                                           many=True)
-        return Response(serializer.data)
+    def update(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_400_BAD_REQUEST,
+                        data="Node creation not supported.")
 
-    def retrieve(self, request, pk, format=None):
-        item = LoggingNode.get(pk)
-        if item is not None:
-            serializer = LoggingNodeSerializer(item)
+    def partial_update(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_400_BAD_REQUEST,
+                        data="Node creation not supported.")
+
+
+    @action(methods=['PATCH'])
+    def enable(self, request, uuid=None, format=None):
+        node = self.get_object()
+        if node is not None:
+            node.disabled = False
+            node.save()
+            serializer = LNSerializer(node)
             return Response(serializer.data)
         else:
             raise Http404
 
-    def update(self, request, pk, format=None):
-        """
-        update a node record. all but the disabled value are silently ignored
-        :param request:
-        :param pk:
-        :param format:
-        :return: the new record
-        """
-        item = LoggingNode.get(pk)
-        if item is not None:
-            response = item.update(disabled=request.DATA['disabled'])
-            serializer = LoggingNodeSerializer(response)
+    @action(methods=['PATCH'])
+    def disable(self, request, uuid=None, format=None):
+        node = self.get_object()
+        if node is not None:
+            node.disabled = True
+            node.save()
+            serializer = LNSerializer(node)
             return Response(serializer.data)
         else:
             raise Http404
 
-    def destroy(self, request, pk, format=None):
-        node = LoggingNode.get(pk)
+    def destroy(self, request, uuid=None, format=None):
+        node = self.get_object()
         if node.disabled:
             node.delete()
         else:
