@@ -37,7 +37,7 @@ def process_host_stream(self, host, timestamp):
     the result to ES periodically.
     :return: None
     """
-    node, created = LN.objects.get_or_create(name=host)
+    node, created = LoggingNode.objects.get_or_create(name=host)
     if not node.disabled:
         node.save()
 
@@ -67,9 +67,9 @@ def check_host_avail(self, offset=settings.HOST_AVAILABLE_PING_THRESHOLD):
     cutoff = (
         datetime.now(tz=pytz.utc) - offset
     )
-    logger.info("[check_host_avail] cutoff = %s", cutoff)
-    to_ping = LN.objects.filter(updated__lte=cutoff, disabled=False)
-    logger.info("hosts to ping = %s", to_ping)
+    logger.debug("[check_host_avail] cutoff = %s", cutoff)
+    to_ping = LoggingNode.objects.filter(updated__lte=cutoff, disabled=False)
+    logger.debug("hosts to ping = %s", to_ping)
     for node in to_ping.iterator():
         ping(node)
 

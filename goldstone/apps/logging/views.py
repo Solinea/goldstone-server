@@ -26,9 +26,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class LNViewSet(ModelViewSet):
-    queryset = LN.objects.all()
-    serializer_class = LNSerializer
+class LoggingNodeViewSet(ModelViewSet):
+    queryset = LoggingNode.objects.all()
+    serializer_class = LoggingNodeSerializer
     filter_fields = ('uuid', 'name', 'method', 'disabled')
     lookup_field = 'uuid'
     lookup_url_kwarg = 'uuid'
@@ -41,11 +41,11 @@ class LNViewSet(ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data="Node creation not supported.")
+                        data="Direct update not supported.")
 
     def partial_update(self, request, *args, **kwargs):
         return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data="Node creation not supported.")
+                        data="Direct partial update not supported.")
 
 
     @action(methods=['PATCH'])
@@ -54,7 +54,7 @@ class LNViewSet(ModelViewSet):
         if node is not None:
             node.disabled = False
             node.save()
-            serializer = LNSerializer(node)
+            serializer = LoggingNodeSerializer(node)
             return Response(serializer.data)
         else:
             raise Http404
@@ -65,7 +65,7 @@ class LNViewSet(ModelViewSet):
         if node is not None:
             node.disabled = True
             node.save()
-            serializer = LNSerializer(node)
+            serializer = LoggingNodeSerializer(node)
             return Response(serializer.data)
         else:
             raise Http404
