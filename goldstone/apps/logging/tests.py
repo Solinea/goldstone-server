@@ -39,35 +39,35 @@ class TaskTests(SimpleTestCase):
     ts3 = '2013-07-04T01:06:27.750046+00:00'
 
     def setUp(self):
-        for obj in LN.objects.iterator():
+        for obj in LoggingNode.objects.iterator():
             obj.delete()
 
     def test_process_host_stream(self):
         # administratively enabled
-        node1 = LN(name=self.name1, disabled=False)
+        node1 = LoggingNode(name=self.name1, disabled=False)
         node1.save()
         # get the object to get consistent date resolution
-        node1 = LN.objects.get(uuid=node1.uuid)
+        node1 = LoggingNode.objects.get(uuid=node1.uuid)
         sleep(1)
         process_host_stream(self.name1, self.ts1)
-        updated_node1 = LN.objects.get(uuid=node1.uuid)
+        updated_node1 = LoggingNode.objects.get(uuid=node1.uuid)
         self.assertGreater(updated_node1.updated, node1.updated)
 
         # administratively disabled
-        node2 = LN(name=self.name2, disabled=True)
+        node2 = LoggingNode(name=self.name2, disabled=True)
         node2.save()
-        node2 = LN.objects.get(uuid=node2.uuid)
+        node2 = LoggingNode.objects.get(uuid=node2.uuid)
         sleep(1)
         process_host_stream(self.name2, self.ts2)
-        updated_node2 = LN.objects.get(uuid=node2.uuid)
+        updated_node2 = LoggingNode.objects.get(uuid=node2.uuid)
         self.assertEqual(updated_node2.updated, node2.updated)
 
     def test_check_host_avail(self):
         now = datetime.now(tz=pytz.utc)
         last_year = now - timedelta(days=365)
-        node1 = LN(name=self.name1)
-        node2 = LN(name=self.name2, disabled=True)
-        node3 = LN(name=self.name3)
+        node1 = LoggingNode(name=self.name1)
+        node2 = LoggingNode(name=self.name2, disabled=True)
+        node3 = LoggingNode(name=self.name3)
         node3.save()
         node2.save()
         sleep(2)
@@ -81,9 +81,9 @@ class TaskTests(SimpleTestCase):
     def test_ping(self, call):
         now = datetime.now(tz=pytz.utc)
         last_year = now - timedelta(days=365)
-        node1 = LN(name=self.name1)
+        node1 = LoggingNode(name=self.name1)
         node1.save()
-        node2 = LN(name=self.name2)
+        node2 = LoggingNode(name=self.name2)
         node2.save()
         call.return_value = 0
         result = ping(node1)
@@ -99,13 +99,13 @@ class LNModelTests(SimpleTestCase):
     name3 = "test_node_789"
 
     def setUp(self):
-        for obj in LN.objects.iterator():
+        for obj in LoggingNode.objects.iterator():
             obj.delete()
 
     def test(self):
-        node1 = LN(name=self.name1)
+        node1 = LoggingNode(name=self.name1)
         node1.save()
-        node2 = LN(name=self.name2)
+        node2 = LoggingNode(name=self.name2)
         node2.save()
         self.assertNotEqual(node1.id, node2.id)
         self.assertNotEqual(node1.uuid, node2.uuid)
@@ -117,7 +117,7 @@ class LNModelTests(SimpleTestCase):
         self.assertTrue(node1.disabled)
 
     def test_unicode(self):
-        node1 = LN(name=self.name1)
+        node1 = LoggingNode(name=self.name1)
         node1.save()
         uni = node1.__unicode__()
         self.assertIn('created', json.loads(uni))
@@ -133,13 +133,13 @@ class LNSerializerTests(SimpleTestCase):
     name3 = "test_node_789"
 
     def setUp(self):
-        for obj in LN.objects.iterator():
+        for obj in LoggingNode.objects.iterator():
             obj.delete()
 
     def test_serializer(self):
-        node1 = LN(name=self.name1)
+        node1 = LoggingNode(name=self.name1)
         node1.save()
-        ser = LNSerializer(node1)
+        ser = LoggingNodeSerializer(node1)
         j = JSONRenderer().render(ser.data)
         logger.debug('[test_serializer] node1 json = %s', j)
         self.assertNotIn('id', ser.data)
@@ -158,14 +158,14 @@ class LNViewTests(APISimpleTestCase):
     name4 = "test_node_987"
 
     def setUp(self):
-        for obj in LN.objects.iterator():
+        for obj in LoggingNode.objects.iterator():
             obj.delete()
 
     def test_get_list(self):
-        node1 = LN(name=self.name1)
-        node2 = LN(name=self.name2, disabled=True)
-        node3 = LN(name=self.name3, disabled=True)
-        node4 = LN(name=self.name4)
+        node1 = LoggingNode(name=self.name1)
+        node2 = LoggingNode(name=self.name2, disabled=True)
+        node3 = LoggingNode(name=self.name3, disabled=True)
+        node4 = LoggingNode(name=self.name4)
         node1.save()
         node2.save()
         node3.save()
@@ -175,10 +175,10 @@ class LNViewTests(APISimpleTestCase):
         self.assertEqual(len(response.data), 4)
 
     def test_get_enabled(self):
-        node1 = LN(name=self.name1)
-        node2 = LN(name=self.name2, disabled=True)
-        node3 = LN(name=self.name3, disabled=True)
-        node4 = LN(name=self.name4)
+        node1 = LoggingNode(name=self.name1)
+        node2 = LoggingNode(name=self.name2, disabled=True)
+        node3 = LoggingNode(name=self.name3, disabled=True)
+        node4 = LoggingNode(name=self.name4)
         node1.save()
         node2.save()
         node3.save()
@@ -190,10 +190,10 @@ class LNViewTests(APISimpleTestCase):
         self.assertFalse(response.data[1]['disabled'])
 
     def test_get_disabled(self):
-        node1 = LN(name=self.name1)
-        node2 = LN(name=self.name2, disabled=True)
-        node3 = LN(name=self.name3, disabled=True)
-        node4 = LN(name=self.name4)
+        node1 = LoggingNode(name=self.name1)
+        node2 = LoggingNode(name=self.name2, disabled=True)
+        node3 = LoggingNode(name=self.name3, disabled=True)
+        node4 = LoggingNode(name=self.name4)
         node1.save()
         node2.save()
         node3.save()
@@ -205,7 +205,7 @@ class LNViewTests(APISimpleTestCase):
         self.assertTrue(response.data[1]['disabled'])
 
     def test_patch_disable(self):
-        node1 = LN(name=self.name1)
+        node1 = LoggingNode(name=self.name1)
         node1.save()
         response = self.client.get('/logging/nodes?disabled=False')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -221,7 +221,7 @@ class LNViewTests(APISimpleTestCase):
         self.assertTrue(response.data['disabled'])
 
     def test_patch_enable(self):
-        node1 = LN(name=self.name1, disabled=True)
+        node1 = LoggingNode(name=self.name1, disabled=True)
         node1.save()
         response = self.client.get('/logging/nodes?disabled=True')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -237,7 +237,7 @@ class LNViewTests(APISimpleTestCase):
         self.assertFalse(response.data['disabled'])
 
     def test_delete_fail(self):
-        node1 = LN(name=self.name1)
+        node1 = LoggingNode(name=self.name1)
         node1.save()
         response = self.client.get('/logging/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -251,7 +251,7 @@ class LNViewTests(APISimpleTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_succeed(self):
-        node1 = LN(name=self.name1, disabled=True)
+        node1 = LoggingNode(name=self.name1, disabled=True)
         node1.save()
         response = self.client.get('/logging/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -270,7 +270,7 @@ class LNViewTests(APISimpleTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_put_fail(self):
-        node1 = LN(name=self.name1, disabled=True)
+        node1 = LoggingNode(name=self.name1, disabled=True)
         node1.save()
         response = self.client.get('/logging/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -18,5 +18,5 @@ from .views import *
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter(trailing_slash=False)
-router.register(r'nodes', LNViewSet, base_name='node')
+router.register(r'nodes', LoggingNodeViewSet, base_name='node')
 urlpatterns = router.urls
