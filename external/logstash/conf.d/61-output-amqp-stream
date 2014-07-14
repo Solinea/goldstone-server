@@ -1,0 +1,11 @@
+output {
+    if [type] == "ampq_stream" {
+        celery_redis_task {
+	        redis_host => ["127.0.0.1"]
+	        key => "amqp_stream"
+	        celery_task => "goldstone.apps.logging.tasks.process_amqp_stream"
+	        celery_routing_key => "amqp_stream.#"
+	        celery_task_args => ["@timestamp", "host", "message"]
+        }
+    }
+}
