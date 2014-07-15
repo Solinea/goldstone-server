@@ -14,11 +14,9 @@
 
 __author__ = 'John Stanford'
 
-from django.conf.urls import patterns, url
 from .views import *
+from rest_framework.routers import DefaultRouter
 
-urlpatterns = patterns(
-    '',
-    url(r'^report/host_availability[/]?$', HostAvailView.as_view(),
-        name='logging-host-avail-view'),
-)
+router = DefaultRouter(trailing_slash=False)
+router.register(r'nodes', LoggingNodeViewSet, base_name='node')
+urlpatterns = router.urls

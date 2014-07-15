@@ -11,234 +11,273 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from time import sleep
 from django.http import HttpResponse
+from rest_framework import status
+from rest_framework.renderers import JSONRenderer
+from rest_framework.test import APISimpleTestCase
 
 __author__ = 'John Stanford'
 
 from django.test import SimpleTestCase
 import logging
-import uuid
-import redis
-from time import sleep
-from goldstone.apps.logging.tasks import *
-from goldstone.apps.logging.models import *
-from celery.result import AsyncResult
-from mock import patch, PropertyMock, MagicMock, Mock
+from datetime import timedelta
+from .tasks import *
+from .models import *
+from .serializers import *
+from mock import patch
 
 logger = logging.getLogger(__name__)
 
 
 class TaskTests(SimpleTestCase):
+    name1 = "test_node_123"
+    name2 = "test_node_456"
+    name3 = "test_node_789"
+    ts1 = '2015-07-04T01:06:27.750046+00:00'
+    ts2 = '2015-07-04T01:06:27.750046+00:00'
+    ts3 = '2013-07-04T01:06:27.750046+00:00'
 
-    @patch.object(HostAvailData, 'set')
-    def test_process_host_stream(self, set):
+    def setUp(self):
+        for obj in LoggingNode.objects.iterator():
+            obj.delete()
 
-        # test when host exists in blacklist
-        set.return_value = None
-        result = process_host_stream('test123',
-                                     '2014-07-04T01:06:27.750046+00:00')
-        self.assertTrue(set.called)
-        self.assertEqual(result, set.return_value)
-        # test when host is not in blacklist
-        set.return_value = 'host_stream.whitelist.test123'
-        result = process_host_stream('test123',
-                                     '2014-07-04T01:06:27.750046+00:00')
-        self.assertEqual(set.call_count, 2)
-        self.assertEqual(result, set.return_value)
+    def test_process_host_stream(self):
+        # administratively enabled
+        node1 = LoggingNode(name=self.name1, disabled=False)
+        node1.save()
+        # get the object to get consistent date resolution
+        node1 = LoggingNode.objects.get(uuid=node1.uuid)
+        sleep(1)
+        process_host_stream(self.name1, self.ts1)
+        updated_node1 = LoggingNode.objects.get(uuid=node1.uuid)
+        self.assertGreater(updated_node1.updated, node1.updated)
 
-    @patch.object(redis.StrictRedis, 'mget')
-    @patch.object(redis.StrictRedis, 'keys')
-    def test_check_host_avail(self, keys, mget):
-        keys.return_value = ['host_stream.whitelist.test123',
-                             'host_stream.whitelist.test456',
-                             'host_stream.whitelist.test789']
+        # administratively disabled
+        node2 = LoggingNode(name=self.name2, disabled=True)
+        node2.save()
+        node2 = LoggingNode.objects.get(uuid=node2.uuid)
+        sleep(1)
+        process_host_stream(self.name2, self.ts2)
+        updated_node2 = LoggingNode.objects.get(uuid=node2.uuid)
+        self.assertEqual(updated_node2.updated, node2.updated)
+
+    def test_check_host_avail(self):
         now = datetime.now(tz=pytz.utc)
         last_year = now - timedelta(days=365)
+        node1 = LoggingNode(name=self.name1)
+        node2 = LoggingNode(name=self.name2, disabled=True)
+        node3 = LoggingNode(name=self.name3)
+        node3.save()
+        node2.save()
+        sleep(2)
+        node1.save()
+        result = check_host_avail(offset=timedelta(seconds=2))
+        self.assertNotIn(node1, result)
+        self.assertNotIn(node2, result)
+        self.assertIn(node3, result)
 
-        mget.return_value = [now.isoformat(),
-                             now.isoformat(),
-                             last_year.isoformat()]
-
-        result = check_host_avail()
-        self.assertTrue(keys.called)
-        self.assertTrue(mget.called)
-        self.assertNotIn('test123', result)
-        self.assertNotIn('test456', result)
-        self.assertIn('test789', result)
-
-
-    # TODO this should be part of the integration test suite
-    # def test_publish_host_stream_message(self):
-    #     """
-    #     Should be able to publish a message to redis and have the task receive
-    #     it.
-    #     """
-    #     host1_name = str(uuid.uuid4())
-    #     host1_time = datetime.now(tz=pytz.utc).isoformat()
-    #     task_id = str(uuid.uuid1())
-    #     body = {
-    #         "body": json.dumps({
-    #             'task': 'goldstone.apps.logging.tasks.process_host_stream',
-    #             'id': task_id,
-    #             'args': [host1_name, host1_time]
-    #         }),
-    #         "content-type": "application/json",
-    #         "properties": {
-    #             "delivery_info": {
-    #                 "priority": 0,
-    #                 "routing_key": "host_stream.#",
-    #                 "exchange": "default"
-    #             },
-    #             "delivery_mode": 2,
-    #             "delivery_tag": str(uuid.uuid4())
-    #         },
-    #         "content-encoding": "utf-8"
-    #     }
-    #     body = json.dumps(body)
-    #     r = redis.StrictRedis(host='localhost', port=6379, db=0)
-    #     r.lpush("host_stream", body)
-    #
-    #     # this should wait for the task to complete (making it synchronous)
-    #     # task returns the key
-    #     key = 'host_stream.whitelist.' + host1_name
-    #     result = AsyncResult(task_id).get(timeout=6)
-    #     self.assertEqual(result, key)
-    #
-    #     # the records should be stored in redis with keys of
-    #     # host_stream.whitelist.hostname and values of their respective
-    #     # timestamps
-    #
-    #     host1_redis_time = r.get(key)
-    #     try:
-    #         self.assertEqual(host1_time, host1_redis_time)
-    #         r.delete(key)
-    #     except Exception:
-    #         r.delete(key)
-    #         raise
+    @patch.object(subprocess, 'call')
+    def test_ping(self, call):
+        now = datetime.now(tz=pytz.utc)
+        last_year = now - timedelta(days=365)
+        node1 = LoggingNode(name=self.name1)
+        node1.save()
+        node2 = LoggingNode(name=self.name2)
+        node2.save()
+        call.return_value = 0
+        result = ping(node1)
+        self.assertTrue(result)
+        call.return_value = 1
+        result = ping(node2)
+        self.assertFalse(result)
 
 
-    # TODO this should be part of the integration test suite
-    # def test_check_host_avail(self):
-    #     r = redis.StrictRedis(host='localhost', port=6379, db=0)
-    #     timestamp1 = (
-    #         datetime.now(tz=pytz.utc) -
-    #         settings.HOST_AVAILABLE_PING_THRESHOLD -
-    #         timedelta(hours=1)
-    #     ).strftime("%Y-%m-%dT%H:%M:%S.000Z")
-    #     timestamp2 = (
-    #         datetime.now(tz=pytz.utc) -
-    #         settings.HOST_AVAILABLE_PING_THRESHOLD +
-    #         timedelta(hours=1)
-    #     ).strftime("%Y-%m-%dT%H:%M:%S.000Z")
-    #     r.set('host_stream.whitelist.test', timestamp1)
-    #     r.set('host_stream.whitelist.test2', timestamp2)
-    #     sleep(1)
-    #     l = check_host_avail()
-    #     try:
-    #         self.assertIn('test', l)
-    #         self.assertNotIn('test2', l)
-    #         r.delete('host_stream.whitelist.test')
-    #         r.delete('host_stream.whitelist.test2')
-    #     except:
-    #         r.delete('host_stream.whitelist.test')
-    #         r.delete('host_stream.whitelist.test2')
-    #         raise
+class LNModelTests(SimpleTestCase):
+    name1 = "test_node_123"
+    name2 = "test_node_456"
+    name3 = "test_node_789"
+
+    def setUp(self):
+        for obj in LoggingNode.objects.iterator():
+            obj.delete()
+
+    def test(self):
+        node1 = LoggingNode(name=self.name1)
+        node1.save()
+        node2 = LoggingNode(name=self.name2)
+        node2.save()
+        self.assertNotEqual(node1.id, node2.id)
+        self.assertNotEqual(node1.uuid, node2.uuid)
+        node1.method = 'host_stream'
+        node1.disabled = True
+        node1.save()
+        self.assertNotEqual(node1.created, node1.updated)
+        self.assertEqual(node1.method, 'host_stream')
+        self.assertTrue(node1.disabled)
+
+    def test_unicode(self):
+        node1 = LoggingNode(name=self.name1)
+        node1.save()
+        uni = node1.__unicode__()
+        self.assertIn('created', json.loads(uni))
+        self.assertIn('updated', json.loads(uni))
+        self.assertIn('name', json.loads(uni))
+        self.assertIn('disabled', json.loads(uni))
+        self.assertIn('method', json.loads(uni))
 
 
-class HostAvailModelTests(SimpleTestCase):
+class LNSerializerTests(SimpleTestCase):
+    name1 = "test_node_123"
+    name2 = "test_node_456"
+    name3 = "test_node_789"
 
-    def test_get_datalist_empty(self):
-        had = HostAvailData()
-        mock_conn = Mock()
-        config = {'keys.return_value': []}
-        mock_conn.configure_mock(**config)
-        had.conn = mock_conn
-        result = had._get_datalist('''host_stream.whitelist.''')
-        self.assertEqual(had.conn.keys.called, True)
-        self.assertListEqual(result, [])
+    def setUp(self):
+        for obj in LoggingNode.objects.iterator():
+            obj.delete()
 
-    def test_get_datalist_whitelist(self):
-        had = HostAvailData()
-        mock_conn = Mock()
-        config = {'keys.return_value': ['host_stream.whitelist.test123'],
-                  'mget.return_value': ['2014-07-04T01:06:27.750046+00:00']}
-        mock_conn.configure_mock(**config)
-        had.conn = mock_conn
-        result = had._get_datalist('''host_stream.whitelist.''')
-        self.assertEqual(had.conn.keys.called, True)
-        self.assertEqual(had.conn.mget.called, True)
-        self.assertListEqual(result,
-                             [{'test123': '2014-07-04T01:06:27.750046+00:00'}])
-
-    def test_get_datalist_blacklist(self):
-        had = HostAvailData()
-        mock_conn = Mock()
-        config = {'keys.return_value': ['host_stream.blacklist.test123',
-                                        'host_stream.blacklist.test456'],
-                  'mget.return_value': ['2014-07-04T01:06:27.750046+00:00',
-                                        '2015-07-04T01:06:27.750046+00:00']}
-        mock_conn.configure_mock(**config)
-        had.conn = mock_conn
-        result = had._get_datalist('''host_stream.blacklist.''')
-        self.assertEqual(had.conn.keys.called, True)
-        self.assertEqual(had.conn.mget.called, True)
-        self.assertListEqual(result,
-                             [{'test123': '2014-07-04T01:06:27.750046+00:00'},
-                              {'test456': '2015-07-04T01:06:27.750046+00:00'}])
-
-    def test_get_all(self):
-        rv = [{'test123': '2014-07-04T01:06:27.750046+00:00'},
-              {'test456': '2015-07-04T01:06:27.750046+00:00'}]
-        had = HostAvailData()
-        mock_get_datalist = Mock(return_value=rv)
-        had._get_datalist = mock_get_datalist
-        result = had.get_all()
-        self.assertEqual(had._get_datalist.call_count, 2)
-        self.assertDictEqual(result, {'whitelist': rv, 'blacklist': rv})
-
-    def test_set(self):
-        had = HostAvailData()
-        mock_conn = Mock()
-        # already exists in the blacklist
-        config = {'exists.return_value': True,
-                  'set.return_value': 'do not care'}
-        mock_conn.configure_mock(**config)
-        had.conn = mock_conn
-        result = had.set('test123', datetime.now(tz=pytz.utc).isoformat())
-        self.assertTrue(had.conn.exists.called)
-        self.assertFalse(had.conn.set.called)
-        self.assertEqual(result, None)
-
-        mock_conn = Mock()
-        # not in the blacklist
-        config = {'exists.return_value': False,
-                  'set.return_value': 'do not care'}
-        mock_conn.configure_mock(**config)
-        had.conn = mock_conn
-        result = had.set('test123', datetime.now(tz=pytz.utc).isoformat())
-        self.assertTrue(had.conn.set.called)
-        self.assertEqual(result, 'host_stream.whitelist.test123')
+    def test_serializer(self):
+        node1 = LoggingNode(name=self.name1)
+        node1.save()
+        ser = LoggingNodeSerializer(node1)
+        j = JSONRenderer().render(ser.data)
+        logger.debug('[test_serializer] node1 json = %s', j)
+        self.assertNotIn('id', ser.data)
+        self.assertIn('name', ser.data)
+        self.assertIn('created', ser.data)
+        self.assertIn('updated', ser.data)
+        self.assertIn('disabled', ser.data)
+        self.assertIn('method', ser.data)
+        self.assertIn('uuid', ser.data)
 
 
-class ViewTests(SimpleTestCase):
+class LNViewTests(APISimpleTestCase):
+    name1 = "test_node_123"
+    name2 = "test_node_456"
+    name3 = "test_node_789"
+    name4 = "test_node_987"
 
-    @patch.object(HostAvailData, 'get_all')
-    def test_get_agents(self, get_all):
-        rv = [
-            {'test123': '2014-07-04T01:06:27.750046+00:00'},
-            {'test456': '2015-07-04T01:06:27.750046+00:00'}
-        ]
-        get_all.return_value = {'whitelist': rv, 'blacklist': rv}
-        response = self.client.get("/logging/report/host_availability")
-        self.assertTrue(get_all.called)
-        self.assertIsInstance(response, HttpResponse)
-        self.assertNotEqual(response.content, None)
-        try:
-            j = json.loads(response.content)
-        except:
-            self.fail("Could not convert content to JSON")
-        else:
-            self.assertIsInstance(j, dict)
-            self.assertTrue('status' in j)
-            self.assertTrue('data' in j)
-            self.assertDictEqual(j['data'], get_all.return_value)
+    def setUp(self):
+        for obj in LoggingNode.objects.iterator():
+            obj.delete()
+
+    def test_get_list(self):
+        node1 = LoggingNode(name=self.name1)
+        node2 = LoggingNode(name=self.name2, disabled=True)
+        node3 = LoggingNode(name=self.name3, disabled=True)
+        node4 = LoggingNode(name=self.name4)
+        node1.save()
+        node2.save()
+        node3.save()
+        node4.save()
+        response = self.client.get('/logging/nodes')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 4)
+
+    def test_get_enabled(self):
+        node1 = LoggingNode(name=self.name1)
+        node2 = LoggingNode(name=self.name2, disabled=True)
+        node3 = LoggingNode(name=self.name3, disabled=True)
+        node4 = LoggingNode(name=self.name4)
+        node1.save()
+        node2.save()
+        node3.save()
+        node4.save()
+        response = self.client.get('/logging/nodes?disabled=False')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        self.assertFalse(response.data[0]['disabled'])
+        self.assertFalse(response.data[1]['disabled'])
+
+    def test_get_disabled(self):
+        node1 = LoggingNode(name=self.name1)
+        node2 = LoggingNode(name=self.name2, disabled=True)
+        node3 = LoggingNode(name=self.name3, disabled=True)
+        node4 = LoggingNode(name=self.name4)
+        node1.save()
+        node2.save()
+        node3.save()
+        node4.save()
+        response = self.client.get('/logging/nodes?disabled=True')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        self.assertTrue(response.data[0]['disabled'])
+        self.assertTrue(response.data[1]['disabled'])
+
+    def test_patch_disable(self):
+        node1 = LoggingNode(name=self.name1)
+        node1.save()
+        response = self.client.get('/logging/nodes?disabled=False')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['name'], self.name1)
+        self.assertFalse(response.data[0]['disabled'])
+        uuid = response.data[0]['uuid']
+        response = self.client.patch('/logging/nodes/' + uuid + '/disable')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get('/logging/nodes/' + uuid)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], self.name1)
+        self.assertTrue(response.data['disabled'])
+
+    def test_patch_enable(self):
+        node1 = LoggingNode(name=self.name1, disabled=True)
+        node1.save()
+        response = self.client.get('/logging/nodes?disabled=True')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['name'], self.name1)
+        self.assertTrue(response.data[0]['disabled'])
+        uuid = response.data[0]['uuid']
+        response = self.client.patch('/logging/nodes/' + uuid + '/enable')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get('/logging/nodes/' + uuid)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], self.name1)
+        self.assertFalse(response.data['disabled'])
+
+    def test_delete_fail(self):
+        node1 = LoggingNode(name=self.name1)
+        node1.save()
+        response = self.client.get('/logging/nodes')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['name'], self.name1)
+        self.assertFalse(response.data[0]['disabled'])
+        uuid = response.data[0]['uuid']
+        response = self.client.delete('/logging/nodes/' + uuid)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = self.client.get('/logging/nodes/' + uuid)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_delete_succeed(self):
+        node1 = LoggingNode(name=self.name1, disabled=True)
+        node1.save()
+        response = self.client.get('/logging/nodes')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['name'], self.name1)
+        self.assertTrue(response.data[0]['disabled'])
+        uuid = response.data[0]['uuid']
+        response = self.client.delete('/logging/nodes/' + uuid)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get('/logging/nodes/' + uuid)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_post_fail(self):
+        data = {'name': 'test123'}
+        response = self.client.post('/logging/nodes', data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_put_fail(self):
+        node1 = LoggingNode(name=self.name1, disabled=True)
+        node1.save()
+        response = self.client.get('/logging/nodes')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['name'], self.name1)
+        uuid = response.data[0]['uuid']
+
+        data = {'name': 'test123'}
+        response = self.client.put('/logging/nodes/' + uuid, data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

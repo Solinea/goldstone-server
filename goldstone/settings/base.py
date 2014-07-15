@@ -72,6 +72,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
+    'rest_framework',
     'south',
     'crispy_forms',
     'djangojs',
@@ -179,6 +181,7 @@ RESOURCE_QUERY_INTERVAL = crontab(minute='*/2')
 API_PERF_QUERY_INTERVAL = crontab(minute='*/2')
 API_PERF_QUERY_TIMEOUT = 30
 HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
+HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/2')
 
 CELERYBEAT_SCHEDULE = {
     'create-daily-index': {
@@ -225,6 +228,29 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.apps.nova.tasks.discover_nova_topology',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
+    'logging_node_avail_test': {
+        'task': 'goldstone.apps.logging.tasks.check_host_avail',
+        'schedule': HOST_AVAILABLE_PING_INTERVAL
+    },
+}
+
+REST_FRAMEWORK = {
+    # Use hyperlinked styles by default.
+    # Only used if the `serializer_class` attribute is not set on a view.
+    'DEFAULT_MODEL_SERIALIZER_CLASS':
+    'rest_framework.serializers.HyperlinkedModelSerializer',
+
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        #'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+        'rest_framework.permissions.AllowAny'
+    ],
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ),
+    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
 }
 
 # Goldstone config settings
