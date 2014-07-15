@@ -28,6 +28,7 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
 def process_host_stream(self, host, timestamp):
     """
