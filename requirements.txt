@@ -23,6 +23,7 @@ South==0.8.4
 wsgiref==0.1.2
 django-admin-bootstrapped==1.6.4
 MySQL-python==1.2.5
+django-extensions==1.2.5
 django-crispy-forms==1.4.0
 django.js==0.8.1
 pbr==0.8.0
@@ -37,3 +38,6 @@ python-neutronclient==2.3.4
 python-glanceclient==0.12.0
 urllib3==1.8
 lockfile>=0.8
+djangorestframework
+markdown
+django-filter

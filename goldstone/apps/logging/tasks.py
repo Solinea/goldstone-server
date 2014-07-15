@@ -14,18 +14,16 @@ from __future__ import absolute_import
 # limitations under the License.
 
 import pytz
+import subprocess
+from rest_framework.renderers import JSONRenderer
 
 __author__ = 'John Stanford'
 
 from django.conf import settings
 from goldstone.celery import app as celery_app
 import logging
-import redis
-import json
-import re
-from datetime import datetime, timedelta
-import pytz
-from goldstone.apps.logging.models import HostAvailData
+from goldstone.apps.logging.models import *
+from datetime import datetime
 
 
 logger = logging.getLogger(__name__)
@@ -40,31 +38,50 @@ def process_host_stream(self, host, timestamp):
     the result to ES periodically.
     :return: None
     """
-
-    had = HostAvailData()
-    return had.set(host, timestamp)
+    node, created = LoggingNode.objects.get_or_create(name=host)
+    if not node.disabled:
+        node.save()
 
 
 @celery_app.task(bind=True)
-def check_host_avail(self):
+def ping(self, node):
+    response = subprocess.call("ping -c 5 %s" % node.name,
+                               shell=True,
+                               stdout=open('/dev/null', 'w'),
+                               stderr=subprocess.STDOUT)
+    if response == 0:
+        logger.debug("%s is alive", node.uuid)
+        node.save()
+        return True
+    else:
+        logger.debug("%s did not respond", node.uuid)
+        return False
+
+
+@celery_app.task(bind=True)
+def check_host_avail(self, offset=settings.HOST_AVAILABLE_PING_THRESHOLD):
     """
-    Inspect the hosts in the whitelist store, and initiate a ping task for
+    Inspect the hosts in the store, and initiate a ping task for
     ones that have not been seen within the configured window.
     :return: None
     """
-    # connect to redis
-    # TODO make these config params
-    # TODO use a connection pool
     cutoff = (
-        datetime.now(tz=pytz.utc) - settings.HOST_AVAILABLE_PING_THRESHOLD
-    ).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        datetime.now(tz=pytz.utc) - offset
+    )
     logger.debug("[check_host_avail] cutoff = %s", cutoff)
-    r = redis.StrictRedis(host='localhost', port=6379, db=0)
-    keys = r.keys("host_stream.whitelist.*")
-    values = r.mget(keys)
-    kv_list = zip(keys, values)
-    logger.debug("[check_host_avail] kv_list = %s", json.dumps(kv_list))
-    to_ping = [re.sub('^host_stream\.whitelist\.', '', k)
-               for k, v in kv_list if v < cutoff]
-    logger.debug("hosts to ping = %s", json.dumps(to_ping))
+    to_ping = LoggingNode.objects.filter(updated__lte=cutoff, disabled=False)
+    logger.debug("hosts to ping = %s", to_ping)
+    for node in to_ping.iterator():
+        ping(node)
+
     return to_ping
+
+
+@celery_app.task(bind=True)
+def create_event(self, event):
+    """
+    send an event to
+    :param event:
+    :return:
+    """
+    pass

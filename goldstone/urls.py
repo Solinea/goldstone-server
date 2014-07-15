@@ -22,6 +22,7 @@ from django.conf import settings
 from django.views.generic import RedirectView
 from djangojs.views import QUnitView
 import logging
+import rest_framework
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,8 @@ urlpatterns = patterns(
     url(r'^api_perf/', include('goldstone.apps.api_perf.urls')),
     url(r'^$', RedirectView.as_view(url='/discover'), name='home'),
     url(r'^admin/', include(admin.site.urls)),
-
+    url(r'^api-auth/', include('rest_framework.urls',
+                               namespace='rest_framework')),
 )
 
 if settings.QUNIT_ENABLED:
