@@ -47,7 +47,6 @@ class LoggingNodeViewSet(ModelViewSet):
         return Response(status=status.HTTP_400_BAD_REQUEST,
                         data="Direct partial update not supported.")
 
-
     @action(methods=['PATCH'])
     def enable(self, request, uuid=None, format=None):
         node = self.get_object()
