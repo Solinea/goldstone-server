@@ -166,11 +166,14 @@ CELERY_DEFAULT_QUEUE = 'default'
 CELERY_QUEUES = (
     Queue('default', Exchange('default'), routing_key='default'),
     Queue('host_stream', Exchange('default'), routing_key='host_stream.#'),
+    Queue('amqp_stream', Exchange('default'), routing_key='amqp_stream.#'),
 )
 
 CELERY_ROUTES = {
     'goldstone.apps.logging.tasks.process_host_stream': {
-        'queue': 'host_stream'}
+        'queue': 'host_stream'},
+    'goldstone.apps.logging.tasks.process_amqp_stream': {
+        'queue': 'amqp_stream'},
 }
 
 from celery.schedules import crontab

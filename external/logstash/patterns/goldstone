@@ -64,7 +64,7 @@ NOVA_SPAWN_FAIL %{NOVA_INSTANCE} (?:Setting instance to ERROR state.)
 
 NOVA_API_CALL %{IP:ip} "(?:GET|PUT|POST|DELETE) %{URIPATH:uri} %{NOTSPACE:protocol}" status: %{NUMBER:response_status:int} len: %{NUMBER:response_length:int} time: %{NUMBER:response_time:float}
 
-OPENSTACK_AMQP_FAIL (?:Unable to connect to AMQP server)%{GREEDYDATA}
+OPENSTACK_AMQP_FAIL (?:Unable to connect to AMQP server)%{GREEDYDATA}|(?:AMQP server on %{IP}:%{POSINT} is unreachable)%{GREEDYDATA}
 OPENSTACK_AMQP_OK (?:Connected to AMQP server)%{GREEDYDATA}
 OPENSTACK_AMQP_MESSAGE %{OPENSTACK_AMQP_FAIL}|%{OPENSTACK_AMQP_OK}
 #
