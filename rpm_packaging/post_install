@@ -64,6 +64,7 @@ chkconfig celeryd-default on
 service celeryd-default restart
 
 ln -s /etc/init.d/celeryd-default /etc/init.d/celeryd-host-stream
+ln -s /etc/init.d/celeryd-default /etc/init.d/celeryd-amqp-stream
 
 chkconfig --add celeryd-host-stream
 chkconfig celeryd-host-stream on
