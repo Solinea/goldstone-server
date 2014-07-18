@@ -16,16 +16,18 @@
 
 filter {
 
-    if ([type] == "openstack_syslog") {
+    if ("openstack_syslog" in [tags]) {
     	grok {
             patterns_dir => "/opt/logstash/patterns"
             match => { "message" => "%{OPENSTACK_AMQP_MESSAGE}" }
-            add_tag => ["filter_39"]
         }
         if ("_grokparsefailure" not in [tags]) {
             clone {
-                clones => ["ampq_stream"]
-                    remove_field => ["@message", "@tags", "@fields"]
+                clones => ["amqp_stream"]
+            }
+            mutate {
+                add_tag => ["filter_39"]
             }
         }
+    }
 }

@@ -18,12 +18,10 @@ class LogStash::Outputs::Redis < LogStash::Outputs::Base
   include Stud::Buffer
 
   config_name "celery_redis_task"
-  milestone 1
+  milestone 2
 
   # Name is used for logging in case there are multiple instances.
-  # TODO: delete
-  # config :name, :validate => :string, :default => 'default',
-  #  :deprecated => true
+  config :name, :validate => :string, :default => 'default'
 
   # The hostname(s) of your Redis server(s). Ports may be specified on any
   # hostname, which will override the global port config.
@@ -59,7 +57,7 @@ class LogStash::Outputs::Redis < LogStash::Outputs::Base
   config :celery_task, :validate => :string, :required => true
 
   # The routing key that the celery worker listens on
-  config :celery_routing_key :validate => :string, :default => "default"
+  config :celery_routing_key, :validate => :string, :default => "default"
 
   # The event fields to include as task arguments.
   config :celery_task_args, :validate => :array, :default => []
@@ -103,6 +101,9 @@ class LogStash::Outputs::Redis < LogStash::Outputs::Base
     return unless output?(event)
 
     key = event.sprintf(@key)
+    #raise RuntimeError.new(
+    #    @celery_task_args
+    #)
     args = @celery_task_args.map{|event_key| event[event_key]}
 
     begin
