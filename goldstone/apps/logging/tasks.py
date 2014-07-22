@@ -40,6 +40,7 @@ def process_host_stream(self, host, timestamp):
     """
     node, created = LoggingNode.objects.get_or_create(name=host)
     if not node.disabled:
+        node.method = 'log_stream'
         node.save()
 
 
@@ -64,6 +65,7 @@ def ping(self, node):
                                stderr=subprocess.STDOUT)
     if response == 0:
         logger.debug("%s is alive", node.uuid)
+        node.method = 'ping'
         node.save()
         return True
     else:
