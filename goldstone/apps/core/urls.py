@@ -12,18 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from rest_framework import serializers
-from .models import LoggingNode
+__author__ = 'John Stanford'
 
+from .views import *
+from rest_framework.routers import DefaultRouter
 
-class LoggingNodeSerializer(serializers.ModelSerializer):
-    uuid = serializers.CharField(read_only=True)
-    name = serializers.CharField(read_only=True)
-    created = serializers.DateTimeField(read_only=True)
-    updated = serializers.DateTimeField(read_only=True)
-    method = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = LoggingNode
-        lookup_field = 'uuid'
-        exclude = ['id']
+router = DefaultRouter(trailing_slash=False)
+router.register(r'nodes', NodeViewSet, base_name='node')
+urlpatterns = router.urls

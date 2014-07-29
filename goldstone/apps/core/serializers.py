@@ -12,11 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__author__ = 'John Stanford'
+from rest_framework import serializers
+from .models import Node
 
-from .views import *
-from rest_framework.routers import DefaultRouter
 
-router = DefaultRouter(trailing_slash=False)
-router.register(r'nodes', LoggingNodeViewSet, base_name='node')
-urlpatterns = router.urls
+class NodeSerializer(serializers.ModelSerializer):
+    uuid = serializers.CharField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    created = serializers.DateTimeField(read_only=True)
+    updated = serializers.DateTimeField(read_only=True)
+    last_seen = serializers.CharField(read_only=True)
+    last_seen_method = serializers.CharField(read_only=True)
+    admin_disabled = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Node
+        lookup_field = 'uuid'
+        exclude = ['id']
