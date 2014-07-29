@@ -37,7 +37,7 @@ class LoggingNode(models.Model):
 
     method = models.CharField(
         max_length=20,
-        default='ping',
+        default='log_stream',
         validators=[lambda m: m.lower == 'ping' or m.lower == 'log_stream'])
 
     disabled = models.BooleanField(

@@ -21,7 +21,7 @@ Vagrant.configure("2") do |config|
     goldstone.vm.network :forwarded_port, guest: 9200,    host: 9201
     goldstone.vm.network "private_network", ip: "192.168.1.2", virtualbox__intnet: "private"
     # install prerequesites (EPEL already enabled)
-    goldstone.vm.provision :shell, :inline => "yum install -y yum install -y gcc gcc-c++ mysql-server mysql-devel"
+    goldstone.vm.provision :shell, :inline => "yum install -y yum install -y gcc gcc-c++ mysql-server mysql-devel java-1.7.0-openjdk"
     # install goldstone
     goldstone.vm.provision :shell, :inline => "yum install -y http://repo.solinea.com/repo/goldstone_repos-1.1-1.noarch.rpm"
     # Mount RPM folder to install new RPM

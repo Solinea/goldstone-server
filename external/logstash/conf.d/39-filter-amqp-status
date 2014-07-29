@@ -14,15 +14,20 @@
 #
 # Author: John Stanford
 
-output {
-    if [type] == "host_stream" {
-        celery_redis_task {
-                name => "host_stream"
-	        redis_host => ["127.0.0.1"]
-	        key => "host_stream"
-	        celery_task => "goldstone.apps.logging.tasks.process_host_stream"
-	        celery_routing_key => "host_stream.#"
-	        celery_task_args => ["host", "@timstamp"]
+filter {
+
+    if ("openstack_syslog" in [tags]) {
+    	grok {
+            patterns_dir => "/opt/logstash/patterns"
+            match => { "message" => "%{OPENSTACK_AMQP_MESSAGE}" }
+        }
+        if ("_grokparsefailure" not in [tags]) {
+            clone {
+                clones => ["amqp_stream"]
+            }
+            mutate {
+                add_tag => ["filter_39"]
+            }
         }
     }
 }

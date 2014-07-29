@@ -15,14 +15,14 @@
 # Author: John Stanford
 
 output {
-    if [type] == "host_stream" {
+    if [type] == "amqp_stream" {
         celery_redis_task {
-                name => "host_stream"
+                name => "amqp_stream"
 	        redis_host => ["127.0.0.1"]
-	        key => "host_stream"
-	        celery_task => "goldstone.apps.logging.tasks.process_host_stream"
-	        celery_routing_key => "host_stream.#"
-	        celery_task_args => ["host", "@timstamp"]
+	        key => "amqp_stream"
+	        celery_task => "goldstone.apps.logging.tasks.process_amqp_stream"
+	        celery_routing_key => "amqp_stream.#"
+	        celery_task_args => ["@timestamp", "host", "message"]
         }
     }
 }

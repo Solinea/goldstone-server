@@ -40,7 +40,21 @@ def process_host_stream(self, host, timestamp):
     """
     node, created = LoggingNode.objects.get_or_create(name=host)
     if not node.disabled:
+        node.method = 'log_stream'
         node.save()
+
+
+@celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
+def process_amqp_stream(self, timestamp, host, message):
+    """
+    This task handles AMQP status events coming from the log stream.
+    :return: None
+    """
+    logger.info("[process_amqp_stream] got an event with timestamp=%s, "
+                "host=%s, message=%s", timestamp, host, message)
+    #node, created = LoggingNode.objects.get_or_create(name=host)
+    #if not node.disabled:
+    #    node.save()
 
 
 @celery_app.task(bind=True)
@@ -51,6 +65,7 @@ def ping(self, node):
                                stderr=subprocess.STDOUT)
     if response == 0:
         logger.debug("%s is alive", node.uuid)
+        node.method = 'ping'
         node.save()
         return True
     else:
