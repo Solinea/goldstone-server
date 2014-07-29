@@ -85,8 +85,9 @@ class Project(Entity):
     version = CharField(max_length=64)
 
     def __unicode__(self):
-        return super(Project, self).__unicode__() + json.dumps(
-            {"version": self.version})
+        entity = json.loads(super(Project, self).__unicode__())
+        entity = dict(entity.items() + {"version": self.version}.items())
+        return json.dumps(entity)
 
 
 class Service(Entity):
@@ -107,10 +108,14 @@ class Resource(Entity):
     admin_disabled = BooleanField(default=False)
 
     def __unicode__(self):
-        entity = super(Entity).__unicode__()
-        return entity + json.dumps({"last_seen": self.last_seen.isoformat(),
-                                    "last_seen_method": self.last_seen_method,
-                                    "admin_disabled": self.admin_disabled})
+        entity = json.loads(super(Resource, self).__unicode__())
+        entity = dict(entity.items() + {
+            "last_seen": self.last_seen.isoformat() if
+            self.last_seen is not None else "",
+            "last_seen_method": self.last_seen_method,
+            "admin_disabled": self.admin_disabled}.items())
+
+        return json.dumps(entity)
 
 
 class Node(Resource):
