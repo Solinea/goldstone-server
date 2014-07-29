@@ -77,6 +77,8 @@ INSTALLED_APPS = (
     'south',
     'crispy_forms',
     'djangojs',
+    'polymorphic',
+    'django.contrib.contenttypes',
     'goldstone.apps.core',
     'goldstone.apps.intelligence',
     'goldstone.apps.nova',
