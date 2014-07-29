@@ -40,7 +40,7 @@ urlpatterns = patterns(
     url(r'^cinder/', include('goldstone.apps.cinder.urls')),
     url(r'^neutron/', include('goldstone.apps.neutron.urls')),
     url(r'^glance/', include('goldstone.apps.glance.urls')),
-    url(r'^logging/', include('goldstone.apps.logging.urls')),
+    url(r'^core/', include('goldstone.apps.core.urls')),
     url(r'^api_perf/', include('goldstone.apps.api_perf.urls')),
     url(r'^$', RedirectView.as_view(url='/discover'), name='home'),
     url(r'^admin/', include(admin.site.urls)),

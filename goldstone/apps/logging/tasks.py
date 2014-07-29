@@ -22,7 +22,7 @@ __author__ = 'John Stanford'
 from django.conf import settings
 from goldstone.celery import app as celery_app
 import logging
-from goldstone.apps.logging.models import *
+from goldstone.apps.core.models import *
 from datetime import datetime
 
 
@@ -38,9 +38,10 @@ def process_host_stream(self, host, timestamp):
     the result to ES periodically.
     :return: None
     """
-    node, created = LoggingNode.objects.get_or_create(name=host)
-    if not node.disabled:
-        node.method = 'log_stream'
+    node, created = Node.objects.get_or_create(name=host)
+    if not node.admin_disabled:
+        node.last_seen_method = 'LOGS'
+        node.last_seen = datetime.now(tz=pytz.utc)
         node.save()
 
 
@@ -84,7 +85,7 @@ def check_host_avail(self, offset=settings.HOST_AVAILABLE_PING_THRESHOLD):
         datetime.now(tz=pytz.utc) - offset
     )
     logger.debug("[check_host_avail] cutoff = %s", cutoff)
-    to_ping = LoggingNode.objects.filter(updated__lte=cutoff, disabled=False)
+    to_ping = Node.objects.filter(updated__lte=cutoff, admin_disabled=False)
     logger.debug("hosts to ping = %s", to_ping)
     for node in to_ping.iterator():
         ping(node)
