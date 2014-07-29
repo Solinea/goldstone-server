@@ -63,6 +63,10 @@ NOVA_SPAWN_ABORT %{NOVA_INSTANCE} (?:aborted: Instance was deleted during spawn.
 NOVA_SPAWN_FAIL %{NOVA_INSTANCE} (?:Setting instance to ERROR state.)
 
 NOVA_API_CALL %{IP:ip} "(?:GET|PUT|POST|DELETE) %{URIPATH:uri} %{NOTSPACE:protocol}" status: %{NUMBER:response_status:int} len: %{NUMBER:response_length:int} time: %{NUMBER:response_time:float}
+
+OPENSTACK_AMQP_FAIL (?:Unable to connect to AMQP server)%{GREEDYDATA}|(?:AMQP server on %{IP}:%{POSINT} is unreachable)%{GREEDYDATA}
+OPENSTACK_AMQP_OK (?:Connected to AMQP server)%{GREEDYDATA}
+OPENSTACK_AMQP_MESSAGE %{OPENSTACK_AMQP_FAIL}|%{OPENSTACK_AMQP_OK}
 #
 # setting the field names to match the openstack log until I can figure out a better way of doing
 # the search table

@@ -17,13 +17,11 @@ class LogStash::Outputs::Redis < LogStash::Outputs::Base
 
   include Stud::Buffer
 
-  config_name "host_stream"
+  config_name "celery_redis_task"
   milestone 2
 
   # Name is used for logging in case there are multiple instances.
-  # TODO: delete
-  config :name, :validate => :string, :default => 'default',
-    :deprecated => true
+  config :name, :validate => :string, :default => 'default'
 
   # The hostname(s) of your Redis server(s). Ports may be specified on any
   # hostname, which will override the global port config.
@@ -52,7 +50,17 @@ class LogStash::Outputs::Redis < LogStash::Outputs::Base
 
   # The name of a Redis list or channel. Dynamic names are
   # valid here, for example "logstash-%{type}".
-  config :key, :validate => :string, :required => true, :default => "host_stream"
+  config :key, :validate => :string, :required => true
+
+  # The name of the celery task to call.  For example:
+  # goldstone.apps.logging.tasks.process_host_stream
+  config :celery_task, :validate => :string, :required => true
+
+  # The routing key that the celery worker listens on
+  config :celery_routing_key, :validate => :string, :default => "default"
+
+  # The event fields to include as task arguments.
+  config :celery_task_args, :validate => :array, :default => []
 
   # Interval for reconnecting to failed Redis connections
   config :reconnect_interval, :validate => :number, :default => 1
@@ -93,18 +101,22 @@ class LogStash::Outputs::Redis < LogStash::Outputs::Base
     return unless output?(event)
 
     key = event.sprintf(@key)
+    #raise RuntimeError.new(
+    #    @celery_task_args
+    #)
+    args = @celery_task_args.map{|event_key| event[event_key]}
 
     begin
       payload = {
           :body => {
-             :task => "goldstone.apps.logging.tasks.process_host_stream",
+             :task => @celery_task,
              :id => SecureRandom.uuid,
-             :args => [event["host"], event["@timestamp"]] 
+             :args => args
           }.to_json,
           :properties => {
               :delivery_info => {
                   :priority => 0,
-                  :routing_key => "host_stream.#",
+                  :routing_key => @celery_routing_key,
                   :exchange => "default"
               },
               :delivery_mode => 2,
