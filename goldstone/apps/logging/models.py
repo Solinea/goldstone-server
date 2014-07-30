@@ -15,7 +15,20 @@
 
 from django.db import models
 import logging
+from goldstone.apps.core.models import Node
 
 __author__ = 'stanford'
 
 logger = logging.getLogger(__name__)
+
+
+class LoggingNode(Node):
+    """
+    This is an class that uses a core Node as the basis, then
+    augments it with log related data such as counts by level for a time
+    period.
+    """
+
+    class Meta:
+        proxy = True
+
