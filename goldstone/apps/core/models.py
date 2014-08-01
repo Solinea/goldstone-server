@@ -27,7 +27,7 @@ __author__ = 'stanford'
 
 class Entity(PolymorphicModel):
     uuid = UUIDField(unique=True)
-    name = CharField(max_length=255)
+    name = CharField(max_length=255, unique=True)
     created = CreationDateTimeField()
     updated = ModificationDateTimeField()
     relationships = ManyToManyField('self', through='Relationship',
