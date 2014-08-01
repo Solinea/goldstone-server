@@ -258,6 +258,10 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
 }
 
+# controls the time examined for the log volume stats included in the
+# LoggingNode object.
+LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES = 30
+
 # Goldstone config settings
 DEFAULT_LOOKBACK_DAYS = 30
 DEFAULT_CHART_BUCKETS = 80
