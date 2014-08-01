@@ -15,6 +15,7 @@
 
 from django.db import models
 import logging
+from django.db.models import IntegerField
 from polymorphic import PolymorphicManager, PolymorphicQuerySet
 from polymorphic.query import Polymorphic_QuerySet_objects_per_request
 from goldstone.apps.core.models import Node
@@ -100,8 +101,12 @@ class LoggingNode(Node):
     augments it with log related data such as counts by level for a time
     period.
     """
+    error_count = 0
+    warning_count = 0
+    info_count = 0
+    audit_count = 0
+    debug_count = 0
     objects = LoggingNodeManager()
 
     class Meta:
         proxy = True
-
