@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from goldstone.models import ESData, GSConnection
+from goldstone.models import GSConnection
 from django.conf import settings
 from datetime import datetime, timedelta
 import pytz
-import pyes
+from pyes import RangeQuery, BoolQuery, ESRangeOp, TermQuery
 import logging
 
 __author__ = 'stanford'
@@ -38,12 +38,12 @@ class LoggingNodeStats():
 
     def __init__(self, node_name):
         self.node_name = node_name
-        _query_value = pyes.BoolQuery(must=[
-            pyes.RangeQuery(qrange=pyes.ESRangeOp(
+        _query_value = BoolQuery(must=[
+            RangeQuery(qrange=ESRangeOp(
                 "@timestamp",
                 "gte", self.start_time.isoformat(),
                 "lte", self.end_time.isoformat())),
-            pyes.TermQuery("host.raw", node_name)
+            TermQuery("host.raw", node_name)
         ]).serialize()
 
         _aggs_value = {
