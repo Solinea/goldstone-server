@@ -14,7 +14,7 @@
 
 from rest_framework import serializers
 from goldstone.apps.core.serializers import NodeSerializer
-from .models import Node, LoggingNode
+from .models import LoggingNode
 
 
 class LoggingNodeSerializer(NodeSerializer):
