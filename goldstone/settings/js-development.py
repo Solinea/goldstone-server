@@ -23,7 +23,7 @@ QUNIT_ENABLED = True
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'goldstone_js_dev',
+        'NAME': 'goldstone',
         'USER': 'goldstone',
         'PASSWORD': 'goldstone',
         'HOST': '10.10.11.122',   # Or an IP Address that your DB is hosted on
