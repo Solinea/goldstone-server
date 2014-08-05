@@ -24,7 +24,6 @@ class LoggingNodeSerializer(NodeSerializer):
     audit_count = serializers.IntegerField(read_only=True)
     debug_count = serializers.IntegerField(read_only=True)
 
-
     class Meta:
         model = LoggingNode
         lookup_field = 'uuid'

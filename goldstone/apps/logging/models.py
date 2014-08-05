@@ -15,12 +15,10 @@
 
 from django.db import models
 import logging
-from django.db.models import IntegerField
 from polymorphic import PolymorphicManager, PolymorphicQuerySet
 from polymorphic.query import Polymorphic_QuerySet_objects_per_request
 from goldstone.apps.core.models import Node
 from goldstone.apps.logging.es_models import LoggingNodeStats
-
 
 
 __author__ = 'stanford'
@@ -39,9 +37,9 @@ class BlingedPolymorphicQuerySet(PolymorphicQuerySet):
 
         Here we do the same as:
 
-            base_result_objects=list(super(PolymorphicQuerySet, self).iterator())
-            real_results=self._get_real_instances(base_result_objects)
-            for o in real_results: yield o
+        base_result_objects=list(super(PolymorphicQuerySet, self).iterator())
+        real_results=self._get_real_instances(base_result_objects)
+        for o in real_results: yield o
 
         but it requests the objects in chunks from the database,
         with Polymorphic_QuerySet_objects_per_request per chunk
