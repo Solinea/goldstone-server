@@ -16,7 +16,6 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from goldstone.apps.core.views import NodeViewSet
 
 __author__ = 'John Stanford'
 
@@ -27,9 +26,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class LoggingNodeViewSet(NodeViewSet):
-    queryset = LoggingNode.objects.all()
-    serializer_class = LoggingNodeSerializer
+class NodeViewSet(ModelViewSet):
+    queryset = Node.objects.all()
+    serializer_class = NodeSerializer
+    filter_fields = ('uuid',
+                     'name',
+                     'last_seen',
+                     'last_seen_method',
+                     'admin_disabled')
     lookup_field = 'uuid'
     lookup_url_kwarg = 'uuid'
     ordering_fields = '__all__'
@@ -47,6 +51,33 @@ class LoggingNodeViewSet(NodeViewSet):
         return Response(status=status.HTTP_400_BAD_REQUEST,
                         data="Direct partial update not supported.")
 
+    @action(methods=['PATCH'])
+    def enable(self, request, uuid=None, format=None):
+        node = self.get_object()
+        if node is not None:
+            node.admin_disabled = False
+            node.save()
+            serializer = NodeSerializer(node)
+            return Response(serializer.data)
+        else:
+            raise Http404
+
+    @action(methods=['PATCH'])
+    def disable(self, request, uuid=None, format=None):
+        node = self.get_object()
+        if node is not None:
+            node.admin_disabled = True
+            node.save()
+            serializer = NodeSerializer(node)
+            return Response(serializer.data)
+        else:
+            raise Http404
+
     def destroy(self, request, uuid=None, format=None):
-        return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data="Destruction only supported for core nodes.")
+        node = self.get_object()
+        if node.admin_disabled:
+            node.delete()
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST,
+                            data="Must disable before deleting")
+        return Response(status=status.HTTP_204_NO_CONTENT)

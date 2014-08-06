@@ -13,18 +13,19 @@
 # limitations under the License.
 
 from rest_framework import serializers
-from goldstone.apps.core.serializers import NodeSerializer
-from .models import LoggingNode
+from .models import Node
 
 
-class LoggingNodeSerializer(NodeSerializer):
-    error_count = serializers.IntegerField(read_only=True)
-    warning_count = serializers.IntegerField(read_only=True)
-    info_count = serializers.IntegerField(read_only=True)
-    audit_count = serializers.IntegerField(read_only=True)
-    debug_count = serializers.IntegerField(read_only=True)
+class NodeSerializer(serializers.ModelSerializer):
+    uuid = serializers.CharField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    created = serializers.DateTimeField(read_only=True)
+    updated = serializers.DateTimeField(read_only=True)
+    last_seen = serializers.CharField(read_only=True)
+    last_seen_method = serializers.CharField(read_only=True)
+    admin_disabled = serializers.CharField(read_only=True)
 
     class Meta:
-        model = LoggingNode
+        model = Node
         lookup_field = 'uuid'
         exclude = ['id']
