@@ -12,19 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from rest_framework import serializers
-from goldstone.apps.core.serializers import NodeSerializer
-from .models import LoggingNode
+__author__ = 'John Stanford'
 
+from .views import *
+from rest_framework.routers import DefaultRouter
 
-class LoggingNodeSerializer(NodeSerializer):
-    error_count = serializers.IntegerField(read_only=True)
-    warning_count = serializers.IntegerField(read_only=True)
-    info_count = serializers.IntegerField(read_only=True)
-    audit_count = serializers.IntegerField(read_only=True)
-    debug_count = serializers.IntegerField(read_only=True)
-
-    class Meta:
-        model = LoggingNode
-        lookup_field = 'uuid'
-        exclude = ['id']
+router = DefaultRouter(trailing_slash=False)
+router.register(r'nodes', NodeViewSet, base_name='node')
+urlpatterns = router.urls
