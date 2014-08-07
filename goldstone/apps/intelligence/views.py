@@ -117,9 +117,9 @@ def log_search_data(request):
             else:
                 level_filters[k] = True
 
-    sort_index = int(request.GET.get('iSortCol_0'))
+    sort_index = int(request.GET.get('order[0][column]'))
     sort_col = keylist[sort_index] if sort_index else keylist[0]
-    sort_dir_in = request.GET.get('sSortDir_0')
+    sort_dir_in = request.GET.get('order[0][dir]=asc')
     sort_dir = sort_dir_in if sort_dir_in else "desc"
 
     ld = LogData()
@@ -127,10 +127,10 @@ def log_search_data(request):
         conn,
         datetime.fromtimestamp(start_ts, tz=pytz.utc),
         datetime.fromtimestamp(end_ts, tz=pytz.utc),
-        int(request.GET.get('iDisplayStart')),
-        int(request.GET.get('iDisplayLength')),
+        int(request.GET.get('start')),
+        int(request.GET.get('length')),
         level_filters,
-        search_text=request.GET.get('sSearch', None),
+        search_text=request.GET.get('search[value]', None),
         sort=["".join([sort_col, ":", sort_dir])],
     )
 
@@ -151,12 +151,12 @@ def log_search_data(request):
             kv['received_at'] if 'received_at' in kv else ""])
 
     response = {
-        "sEcho": int(request.GET.get('sEcho')),
+        "draw": int(request.GET.get('draw')),
         # This should be the result count without filtering, but no obvious
         # way to get that without doing the query twice.
-        "iTotalRecords": rs['hits']['total'],
-        "iTotalDisplayRecords": rs['hits']['total'],
-        "aaData": aa_data
+        "recordsTotal": rs['hits']['total'],
+        "recordsFiltered": rs['hits']['total'],
+        "data": aa_data
     }
 
     return HttpResponse(json.dumps(response),
