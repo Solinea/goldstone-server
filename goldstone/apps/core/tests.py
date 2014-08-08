@@ -25,6 +25,17 @@ __author__ = 'stanford'
 logger = logging.getLogger(__name__)
 
 
+class TaskTests(SimpleTestCase):
+    def test_delete_indices(self):
+        pass
+
+    def test_create_daily_index(self):
+        pass
+
+    def test_manage_es_indices(self):
+        pass
+
+
 class ModelTests(SimpleTestCase):
 
     def setUp(self):
