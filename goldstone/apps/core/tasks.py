@@ -21,13 +21,9 @@ import os
 import json
 from datetime import date, timedelta
 import logging
+from subprocess import check_call
 
 logger = logging.getLogger(__name__)
-
-
-def _call_curator(arglist):
-    from subprocess import call
-    call(arglist)
 
 
 def _delete_indices(prefix, cutoff,
@@ -36,7 +32,7 @@ def _delete_indices(prefix, cutoff,
                     ):
     cmd = "curator --host %s --port %s delete --prefix '%s' --older-than %d" %\
           (es_host, es_port, prefix, cutoff)
-    _call_curator(arglist=cmd.split())
+    return check_call(cmd.split())
 
 
 def _create_daily_index(server=settings.ES_SERVER, basename='goldstone'):
@@ -75,14 +71,16 @@ def manage_es_indices(self,
 
     try:
         if settings.ES_GOLDSTONE_RETENTION is not None:
-            _delete_indices(es_host, es_port, "goldstone-",
-                            settings.ES_GOLDSTONE_RETENTION)
+            _delete_indices("goldstone-",
+                            settings.ES_GOLDSTONE_RETENTION,
+                            es_host, es_port)
     except:
         logger.exception("exception deleting old goldstone indices")
 
     try:
         if settings.ES_LOGSTASH_RETENTION is not None:
-            _delete_indices(es_host, es_port, "logstash-",
-                            settings.ES_LOGSTASH_RETENTION)
+            _delete_indices("logstash-",
+                            settings.ES_LOGSTASH_RETENTION,
+                            es_host, es_port)
     except:
         logger.exception("exception deleting old logstash indices")
