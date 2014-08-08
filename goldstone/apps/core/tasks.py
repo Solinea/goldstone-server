@@ -25,17 +25,27 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True)
-def create_daily_index(self, server=settings.ES_SERVER, basename='goldstone'):
+def _call_curator(arglist):
+    from subprocess import call
+    call(arglist)
+
+
+def _delete_indices(prefix, cutoff,
+                    es_host=settings.ES_HOST,
+                    es_port=settings.ES_PORT
+                    ):
+    cmd = "curator --host %s --port %s delete --prefix '%s' --older-than %d" %\
+          (es_host, es_port, prefix, cutoff)
+    _call_curator(arglist=cmd.split())
+
+
+def _create_daily_index(server=settings.ES_SERVER, basename='goldstone'):
     """
     Create a new index in ElasticSearch and set up
     an alias for goldstone to point to the latest index.
     """
     now = date.today()
-    yesterday = date.today() - timedelta(days=1)
-
     index_name = basename + "-" + now.strftime("%Y.%m.%d")
-    prev_index_name = basename + "-" + yesterday.strftime("%Y.%m.%d")
     conn = Elasticsearch(server, bulk_size=500)
     template_f = open(os.path.join(os.path.dirname(__file__),
                                    "goldstone_es_template.json"), 'rb')
@@ -52,3 +62,27 @@ def create_daily_index(self, server=settings.ES_SERVER, basename='goldstone'):
         })
     else:
         conn.indices.put_alias(basename, index_name)
+
+
+@celery_app.task(bind=True)
+def manage_es_indices(self,
+                      es_host=settings.ES_HOST,
+                      es_port=settings.ES_PORT):
+    try:
+        _create_daily_index(basename='goldstone')
+    except:
+        logger.exception("exception creating daily goldstone index")
+
+    try:
+        if settings.ES_GOLDSTONE_RETENTION is not None:
+            _delete_indices(es_host, es_port, "goldstone-",
+                            settings.ES_GOLDSTONE_RETENTION)
+    except:
+        logger.exception("exception deleting old goldstone indices")
+
+    try:
+        if settings.ES_LOGSTASH_RETENTION is not None:
+            _delete_indices(es_host, es_port, "logstash-",
+                            settings.ES_LOGSTASH_RETENTION)
+    except:
+        logger.exception("exception deleting old logstash indices")
