@@ -26,18 +26,22 @@ logger = logging.getLogger(__name__)
 
 class LoggingNodeStats():
     _conn = GSConnection().conn
-    node_name = None
-    end_time = datetime.now(tz=pytz.utc)
-    start_time = end_time - timedelta(
-        minutes=settings.LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES)
     error = 0
     warning = 0
     info = 0
     audit = 0
     debug = 0
 
-    def __init__(self, node_name):
+    def __init__(self, node_name, start_time=None, end_time=None):
+        self.end_time = datetime.now(tz=pytz.utc) if \
+            end_time is None else end_time
+
+        self.start_time = self.end_time - timedelta(
+            minutes=settings.LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES) if \
+            start_time is None else start_time
+
         self.node_name = node_name
+
         _query_value = BoolQuery(must=[
             RangeQuery(qrange=ESRangeOp(
                 "@timestamp",
