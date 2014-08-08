@@ -180,7 +180,9 @@ CELERY_ROUTES = {
 
 from celery.schedules import crontab
 from datetime import timedelta
-DAILY_INDEX_CREATE_INTERVAL = crontab(minute='0', hour='0', day_of_week='*')
+DAILY_INDEX_CURATION_SCHEDULE = crontab(minute='0', hour='0', day_of_week='*')
+ES_GOLDSTONE_RETENTION = 30
+ES_LOGSTASH_RETENTION = 30
 TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/2')
 RESOURCE_QUERY_INTERVAL = crontab(minute='*/2')
 API_PERF_QUERY_INTERVAL = crontab(minute='*/2')
@@ -189,9 +191,9 @@ HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
 HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/2')
 
 CELERYBEAT_SCHEDULE = {
-    'create-daily-index': {
-        'task': 'goldstone.apps.core.tasks.create_daily_index',
-        'schedule': DAILY_INDEX_CREATE_INTERVAL,
+    'manage-es-indices': {
+        'task': 'goldstone.apps.core.tasks.manage-es-indices',
+        'schedule': DAILY_INDEX_CURATION_SCHEDULE,
     },
     'nova-hypervisors-stats': {
         'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
