@@ -986,7 +986,8 @@ goldstone.charts.topologyTree = {
             })
             .attr("transform", "scale(0.0000001)")
 
-		var icons = d3.map({
+		// Map of icons to the classes in which they'll be used
+		d3.map({
 			icon_backup: ['backups-leaf', 'snapshots-leaf',],
 			icon_cloud: ['cloud', 'region',],
 			icon_endpoint: ['endpoints-leaf',],
@@ -1002,26 +1003,17 @@ goldstone.charts.topologyTree = {
 			icon_vol_transfer: ['agents-leaf', 'transfers-leaf',],
 			icon_zone: ['zone', 'aggregates-leaf', 'cloudpipes-leaf',
 				'flavors-leaf', 'floating-ip-pools-leaf', 'networks-leaf',],
-		});
-
-
-		// Attach svg icons to the appropriate classes from the above map
-		icons.forEach(function(icon, classes) {
+		}).forEach(function(icon, classes) {
+			// Attach the icons to the classes
 			var imgpath = "/static/images/" + icon + ".svg";
 
 			classes.forEach(function(c) {
         		d3.xml(imgpath, "image/svg+xml", function (img) {
-					var classname = ".icon.main." + c + "-icon";
-        			ns.chart.selectAll(classname)
-            		.each(function () {
-                    	d3.select(this)
-							.node()
-							.appendChild(
-								img
-								.getElementsByTagName("svg")[0]
-								.cloneNode(true)
-							);
-            		})
+					ns.chart.selectAll(".icon.main." + c + "-icon")
+						.each(function () {
+							d3.select(this).node().appendChild(
+								img.getElementsByTagName("svg")[0].cloneNode(true))
+						})
 				});
 			});
 		});
