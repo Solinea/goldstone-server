@@ -988,35 +988,37 @@ goldstone.charts.topologyTree = {
 
 		// Map of icons to the classes in which they'll be used
 		d3.map({
-			icon_backup: ['backups-leaf', 'snapshots-leaf',],
-			icon_cloud: ['cloud', 'region',],
-			icon_endpoint: ['endpoints-leaf',],
-			icon_host: ['host', 'hosts-leaf', 'hypervisors-leaf', 'servers-leaf',],
-			icon_image: ['images-leaf',],
-			icon_module: ['module', 'secgroups-leaf',],
-			icon_role: ['roles-leaf',],
-			icon_service: ['service', 'services-leaf'],
-			icon_tenant: ['tenants-leaf',],
-			icon_types: ['volume-types-leaf',],
-			icon_user: ['users-leaf',],
-			icon_volume: ['volume', 'volumes-leaf',],
-			icon_vol_transfer: ['agents-leaf', 'transfers-leaf',],
-			icon_zone: ['zone', 'aggregates-leaf', 'cloudpipes-leaf',
-				'flavors-leaf', 'floating-ip-pools-leaf', 'networks-leaf',],
+			icon_backup      : ['backups-leaf', 'snapshots-leaf'],
+			icon_cloud       : ['cloud', 'region'],
+			icon_endpoint    : ['endpoints-leaf'],
+			icon_host        : ['host', 'hosts-leaf', 'hypervisors-leaf',
+				'servers-leaf'],
+			icon_image       : ['images-leaf'],
+			icon_module      : ['module', 'secgroups-leaf'],
+			icon_role        : ['roles-leaf'],
+			icon_service     : ['service', 'services-leaf'],
+			icon_tenant      : ['tenants-leaf'],
+			icon_types       : ['volume-types-leaf'],
+			icon_user        : ['users-leaf'],
+			icon_volume      : ['volume', 'volumes-leaf'],
+			icon_vol_transfer: ['agents-leaf', 'transfers-leaf'],
+			icon_zone        : ['zone', 'aggregates-leaf', 'cloudpipes-leaf',
+				'flavors-leaf', 'floating-ip-pools-leaf', 'networks-leaf'],
+
 		}).forEach(function(icon, classes) {
-			// Attach the icons to the classes
+			// Acutally attach the icons to the classes
 			var imgpath = "/static/images/" + icon + ".svg";
 
-			classes.forEach(function(c) {
-        		d3.xml(imgpath, "image/svg+xml", function (img) {
+			d3.xml(imgpath, "image/svg+xml", function (img) {
+				classes.forEach(function(c) {
 					ns.chart.selectAll(".icon.main." + c + "-icon")
 						.each(function () {
 							d3.select(this).node().appendChild(
 								img.getElementsByTagName("svg")[0].cloneNode(true))
 						})
 				});
-			});
-		});
+			}); // d3.xml()
+		}); // forEach
 
         // Transition nodes to their new position.
         var nodeUpdate = node
