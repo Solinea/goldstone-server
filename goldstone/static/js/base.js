@@ -1007,9 +1007,7 @@ goldstone.charts.topologyTree = {
 
 		}).forEach(function(icon, classes) {
 			// Acutally attach the icons to the classes
-			var imgpath = "/static/images/" + icon + ".svg";
-
-			d3.xml(imgpath, "image/svg+xml", function (img) {
+			d3.xml(imgFile(icon), "image/svg+xml", function (img) {
 				classes.forEach(function(c) {
 					ns.chart.selectAll(".icon.main." + c + "-icon")
 						.each(function () {
@@ -1019,6 +1017,10 @@ goldstone.charts.topologyTree = {
 				});
 			}); // d3.xml()
 		}); // forEach
+
+		function imgFile(icon) {
+			return "/static/images/" + icon + ".svg";
+		}
 
         // Transition nodes to their new position.
         var nodeUpdate = node
