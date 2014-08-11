@@ -47,40 +47,59 @@ def _create_daily_index(server=settings.ES_SERVER, basename='goldstone'):
                                    "goldstone_es_template.json"), 'rb')
     template = json.load(template_f)
 
-    conn.indices.create(index_name, body=template)
-    if conn.indices.exists_alias(basename):
-        conn.indices.get_alias(name=basename)
-        conn.indices.update_aliases({
-            "actions": [
-                {"remove": {"index": "_all", "alias": basename}},
-                {"add": {"index": index_name, "alias": basename}}
-            ]
-        })
+    try:
+        conn.indices.create(index_name, body=template)
+    except:
+        logger.exception("got an exception creating daily index")
+        raise
     else:
-        conn.indices.put_alias(basename, index_name)
+        if conn.indices.exists_alias(basename):
+            return conn.indices.update_aliases({
+                "actions": [
+                    {"remove": {"index": "_all", "alias": basename}},
+                    {"add": {"index": index_name, "alias": basename}}
+                ]
+            })
+        else:
+            return conn.indices.put_alias(basename, index_name)
 
 
 @celery_app.task(bind=True)
 def manage_es_indices(self,
                       es_host=settings.ES_HOST,
                       es_port=settings.ES_PORT):
+    """
+    Create a daily goldstone index, cull old goldstone and logstash indices
+    :param es_host:
+    :param es_port:
+    :return: (Boolean, Boolean, Boolean)
+    """
+    result = []
     try:
         _create_daily_index(basename='goldstone')
+        result.append(True)
     except:
         logger.exception("exception creating daily goldstone index")
+        result.append(False)
 
     try:
         if settings.ES_GOLDSTONE_RETENTION is not None:
             _delete_indices("goldstone-",
                             settings.ES_GOLDSTONE_RETENTION,
                             es_host, es_port)
+            result.append(True)
     except:
         logger.exception("exception deleting old goldstone indices")
+        result.append(False)
 
     try:
         if settings.ES_LOGSTASH_RETENTION is not None:
             _delete_indices("logstash-",
                             settings.ES_LOGSTASH_RETENTION,
                             es_host, es_port)
+            result.append(True)
     except:
         logger.exception("exception deleting old logstash indices")
+        result.append(False)
+
+    return tuple(result)

@@ -11,17 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from uuid import uuid4
 from django.test import SimpleTestCase
+from elasticsearch import Elasticsearch
+from elasticsearch.client import IndicesClient
 from mock import patch, PropertyMock, MagicMock, Mock
+import mock
 import pytz
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 from rest_framework.test import APISimpleTestCase
-from goldstone.apps.core.tasks import _create_daily_index, _delete_indices
+from goldstone.apps.core import tasks
+from goldstone.apps.core.views import NodeViewSet
 from models import *
 from serializers import *
 from datetime import datetime
 import logging
+import subprocess
 
 __author__ = 'stanford'
 
@@ -30,31 +36,44 @@ logger = logging.getLogger(__name__)
 
 class TaskTests(SimpleTestCase):
 
-
     def test_delete_indices(self):
-        pass
+        # tests that delete indices returns result of check_call
+        tasks.check_call = mock.Mock(return_value='mocked')
+        self.assertEqual(tasks._delete_indices('abc',10), 'mocked')
 
-    def test_create_daily_index(self):
-        pass
+    @patch.object(IndicesClient, 'create')
+    @patch.object(IndicesClient, 'exists_alias')
+    @patch.object(IndicesClient, 'update_aliases')
+    @patch.object(IndicesClient, 'put_alias')
+    def test_create_daily_index(self, put_alias, update_aliases, exists_alias,
+                                create):
+        # test returns false if an exception creating index
+        create.side_effect = KeyError("this is expected")
+        self.assertRaises(KeyError, tasks._create_daily_index, 'abc', 'abc')
 
+        create.side_effect = None
+        exists_alias.return_value = True
+        update_aliases.return_value = "mocked True"
+        self.assertEqual(tasks._create_daily_index('abc', 'abc'),
+                         "mocked True")
 
-    @patch('goldstone.apps.core.tasks._create_daily_index')
-    @patch('goldstone.apps.core.tasks._delete_indices')
-    def test_manage_es_indices(self, delete_indices, create_daily_index):
-        create_daily_index.side_effect = KeyError
-        self.assertRaises(KeyError,
-                          _create_daily_index, server='abc', basename='abc')
-        # create_daily_index.side_effect = RuntimeWarning
-        # self.assertRaises(RuntimeWarning,
-        #                   _create_daily_index, server='abc', basename='abc')
-        #
-        # delete_indices.side_effect = RuntimeError
-        # self.assertRaises(RuntimeError,
-        #                   _delete_indices, 'abc', 0)
-        # delete_indices.side_effect = RuntimeWarning
-        # self.assertRaises(RuntimeWarning,
-        #                   _delete_indices, 'abc', 0)
+        exists_alias.return_value = False
+        put_alias.return_value = "mocked False"
+        self.assertEqual(tasks._create_daily_index('abc', 'abc'),
+                         "mocked False")
 
+    def test_manage_es_indices(self):
+        tasks._create_daily_index = mock.Mock(
+            side_effect=KeyError("This is expected"))
+        tasks._delete_indices = mock.Mock(
+            side_effect=KeyError("This is expected"))
+        self.assertEqual(tasks.manage_es_indices(), (False, False, False))
+
+        tasks._create_daily_index = mock.Mock(return_value=None,
+                                              side_effect=None)
+        tasks._delete_indices = mock.Mock(return_value=None,
+                                          side_effect=None)
+        self.assertEqual(tasks.manage_es_indices(), (True, True, True))
 
 
 class ModelTests(SimpleTestCase):
@@ -262,6 +281,16 @@ class NodeViewTests(APISimpleTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 4)
         uuid = response.data['results'][0]['uuid']
-        data = {'name': 'test123'}
+        data = response.data['results'][0]
+        data['name'] = 'test123'
         response = self.client.put('/core/nodes/' + uuid, data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_partial_update_fail(self):
+        response = self.client.get('/core/nodes')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 4)
+        uuid = response.data['results'][0]['uuid']
+        data = {'name': 'test123'}
+        response = self.client.patch('/core/nodes/' + uuid, data=data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
