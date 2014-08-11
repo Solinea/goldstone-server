@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.test import SimpleTestCase
+from mock import patch, PropertyMock, MagicMock, Mock
+import pytz
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 from rest_framework.test import APISimpleTestCase
+from goldstone.apps.core.tasks import _create_daily_index, _delete_indices
 from models import *
 from serializers import *
 from datetime import datetime
@@ -26,30 +29,59 @@ logger = logging.getLogger(__name__)
 
 
 class TaskTests(SimpleTestCase):
+
+
     def test_delete_indices(self):
         pass
 
     def test_create_daily_index(self):
         pass
 
-    def test_manage_es_indices(self):
-        pass
+
+    @patch('goldstone.apps.core.tasks._create_daily_index')
+    @patch('goldstone.apps.core.tasks._delete_indices')
+    def test_manage_es_indices(self, delete_indices, create_daily_index):
+        create_daily_index.side_effect = KeyError
+        self.assertRaises(KeyError,
+                          _create_daily_index, server='abc', basename='abc')
+        # create_daily_index.side_effect = RuntimeWarning
+        # self.assertRaises(RuntimeWarning,
+        #                   _create_daily_index, server='abc', basename='abc')
+        #
+        # delete_indices.side_effect = RuntimeError
+        # self.assertRaises(RuntimeError,
+        #                   _delete_indices, 'abc', 0)
+        # delete_indices.side_effect = RuntimeWarning
+        # self.assertRaises(RuntimeWarning,
+        #                   _delete_indices, 'abc', 0)
+
 
 
 class ModelTests(SimpleTestCase):
 
     def setUp(self):
+
         Entity.objects.get_or_create(name="entity 1")
         Entity.objects.get_or_create(name="entity 2")
+
         Project.objects.get_or_create(name="project 1")
         Project.objects.get_or_create(name="project 2")
+
         Resource.objects.get_or_create(name="resource 1")
         Resource.objects.get_or_create(name="resource 2",
-                                       last_seen=datetime.now())
+                                       last_seen=datetime.now(tz=pytz.utc))
+
         Node.objects.get_or_create(name="node 1")
         Node.objects.get_or_create(name="node 2")
         Service.objects.get_or_create(name="service 1")
         Service.objects.get_or_create(name="service 2")
+
+    def tearDown(self):
+        Entity.objects.all().delete()
+        Project.objects.all().delete()
+        Resource.objects.all().delete()
+        Node.objects.all().delete()
+        Service.objects.all().delete()
 
     def test_entity_relation(self):
         e1 = Entity.objects.get(name="entity 1")
@@ -113,15 +145,17 @@ class NodeSerializerTests(SimpleTestCase):
     name1 = "test_node_123"
     name2 = "test_node_456"
     name3 = "test_node_789"
+    node1 = Node(name=name1)
 
     def setUp(self):
-        for obj in Node.objects.iterator():
-            obj.delete()
+
+        self.node1.save()
+
+    def tearDown(self):
+        Node.objects.all().delete()
 
     def test_serializer(self):
-        node1 = Node(name=self.name1)
-        node1.save()
-        ser = NodeSerializer(node1)
+        ser = NodeSerializer(self.node1)
         j = JSONRenderer().render(ser.data)
         logger.debug('[test_serializer] node1 json = %s', j)
         self.assertNotIn('id', ser.data)
@@ -139,109 +173,80 @@ class NodeViewTests(APISimpleTestCase):
     name2 = "test_node_456"
     name3 = "test_node_789"
     name4 = "test_node_987"
+    node1 = Node(name=name1)
+    node2 = Node(name=name2, admin_disabled=True)
+    node3 = Node(name=name3, admin_disabled=True)
+    node4 = Node(name=name4)
 
     def setUp(self):
-        for obj in Node.objects.iterator():
-            obj.delete()
+        self.node1.save()
+        self.node2.save()
+        self.node3.save()
+        self.node4.save()
+
+    def tearDown(self):
+        Node.objects.all().delete()
 
     def test_get_list(self):
-        node1 = Node(name=self.name1)
-        node2 = Node(name=self.name2, admin_disabled=True)
-        node3 = Node(name=self.name3, admin_disabled=True)
-        node4 = Node(name=self.name4)
-        node1.save()
-        node2.save()
-        node3.save()
-        node4.save()
         response = self.client.get('/core/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 4)
+        self.assertEqual(len(response.data['results']), 4)
 
     def test_get_enabled(self):
-        node1 = Node(name=self.name1)
-        node2 = Node(name=self.name2, admin_disabled=True)
-        node3 = Node(name=self.name3, admin_disabled=True)
-        node4 = Node(name=self.name4)
-        node1.save()
-        node2.save()
-        node3.save()
-        node4.save()
         response = self.client.get('/core/nodes?admin_disabled=False')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
-        self.assertFalse(response.data[0]['admin_disabled'])
-        self.assertFalse(response.data[1]['admin_disabled'])
+        self.assertEqual(len(response.data['results']), 2)
+        self.assertFalse(response.data['results'][0]['admin_disabled'])
+        self.assertFalse(response.data['results'][1]['admin_disabled'])
 
     def test_get_disabled(self):
-        node1 = Node(name=self.name1)
-        node2 = Node(name=self.name2, admin_disabled=True)
-        node3 = Node(name=self.name3, admin_disabled=True)
-        node4 = Node(name=self.name4)
-        node1.save()
-        node2.save()
-        node3.save()
-        node4.save()
         response = self.client.get('/core/nodes?admin_disabled=True')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
-        self.assertTrue(response.data[0]['admin_disabled'])
-        self.assertTrue(response.data[1]['admin_disabled'])
+        self.assertEqual(len(response.data['results']), 2)
+        self.assertTrue(response.data['results'][0]['admin_disabled'])
+        self.assertTrue(response.data['results'][1]['admin_disabled'])
 
     def test_patch_disable(self):
-        node1 = Node(name=self.name1)
-        node1.save()
         response = self.client.get('/core/nodes?admin_disabled=False')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['name'], self.name1)
-        self.assertFalse(response.data[0]['admin_disabled'])
-        uuid = response.data[0]['uuid']
+        self.assertEqual(len(response.data['results']), 2)
+        self.assertFalse(response.data['results'][0]['admin_disabled'])
+        uuid = response.data['results'][0]['uuid']
         response = self.client.patch('/core/nodes/' + uuid + '/disable')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.get('/core/nodes/' + uuid)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['name'], self.name1)
         self.assertTrue(response.data['admin_disabled'])
 
     def test_patch_enable(self):
-        node1 = Node(name=self.name1, admin_disabled=True)
-        node1.save()
         response = self.client.get('/core/nodes?admin_disabled=True')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['name'], self.name1)
-        self.assertTrue(response.data[0]['admin_disabled'])
-        uuid = response.data[0]['uuid']
+        self.assertEqual(len(response.data['results']), 2)
+        self.assertTrue(response.data['results'][0]['admin_disabled'])
+        uuid = response.data['results'][0]['uuid']
         response = self.client.patch('/core/nodes/' + uuid + '/enable')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.get('/core/nodes/' + uuid)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['name'], self.name1)
         self.assertFalse(response.data['admin_disabled'])
 
     def test_delete_fail(self):
-        node1 = Node(name=self.name1)
-        node1.save()
-        response = self.client.get('/core/nodes')
+        response = self.client.get('/core/nodes?admin_disabled=False')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['name'], self.name1)
-        self.assertFalse(response.data[0]['admin_disabled'])
-        uuid = response.data[0]['uuid']
+        self.assertEqual(len(response.data['results']), 2)
+        self.assertFalse(response.data['results'][0]['admin_disabled'])
+        uuid = response.data['results'][0]['uuid']
         response = self.client.delete('/core/nodes/' + uuid)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = self.client.get('/core/nodes/' + uuid)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_succeed(self):
-        node1 = Node(name=self.name1, admin_disabled=True)
-        node1.save()
-        response = self.client.get('/core/nodes')
+        response = self.client.get('/core/nodes?admin_disabled=True')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['name'], self.name1)
-        self.assertTrue(response.data[0]['admin_disabled'])
-        uuid = response.data[0]['uuid']
+        self.assertEqual(len(response.data['results']), 2)
+        self.assertTrue(response.data['results'][0]['admin_disabled'])
+        uuid = response.data['results'][0]['uuid']
         response = self.client.delete('/core/nodes/' + uuid)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.get('/core/nodes/' + uuid)
@@ -253,14 +258,10 @@ class NodeViewTests(APISimpleTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_put_fail(self):
-        node1 = Node(name=self.name1, admin_disabled=True)
-        node1.save()
         response = self.client.get('/core/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['name'], self.name1)
-        uuid = response.data[0]['uuid']
-
+        self.assertEqual(len(response.data), 4)
+        uuid = response.data['results'][0]['uuid']
         data = {'name': 'test123'}
         response = self.client.put('/core/nodes/' + uuid, data=data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
