@@ -78,9 +78,6 @@ class TaskTests(SimpleTestCase):
 
 class ModelTests(SimpleTestCase):
 
-# All of the direct entity stuff is commented out.  We have a strange situation
-# where the tests pass locally, but fail on the jenkins server.  See
-# https://solinea.atlassian.net/browse/GOLD-433 for details.
     def setUp(self):
 
         Entity.objects.get_or_create(name="entity 1")
@@ -100,14 +97,10 @@ class ModelTests(SimpleTestCase):
         Service.objects.get_or_create(name="service 2")
 
     def tearDown(self):
-        logger.info("in teardown, entity count = %d",
-        Entity.objects.all().count())
-        for e in Entity.objects.all():
-            if hasattr(e, 'entity_ptr'):
-                logger.info("entity %s has entity_ptr", e.name)
-            else:
-                logger.info("entity %s does not have entity_ptr", e.name)
-
+        # When using Entity.objects.all().delete(), we have a strange situation
+        # where the tests pass locally, but fail on the jenkins server.  See
+        # https://solinea.atlassian.net/browse/GOLD-433 for details, and use
+        # this form for deleting.
         for obj in Entity.objects.iterator():
             obj.delete()
         for obj in Project.objects.iterator():
@@ -188,7 +181,8 @@ class NodeSerializerTests(SimpleTestCase):
         self.node1.save()
 
     def tearDown(self):
-        Node.objects.all().delete()
+        for obj in Node.objects.iterator():
+            obj.delete()
 
     def test_serializer(self):
         ser = NodeSerializer(self.node1)
@@ -221,7 +215,8 @@ class NodeViewTests(APISimpleTestCase):
         self.node4.save()
 
     def tearDown(self):
-        Node.objects.all().delete()
+        for obj in Node.objects.iterator():
+            obj.delete()
 
     def test_get_list(self):
         response = self.client.get('/core/nodes')
