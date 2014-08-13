@@ -92,15 +92,27 @@ class ModelTests(SimpleTestCase):
 
         Node.objects.get_or_create(name="node 1")
         Node.objects.get_or_create(name="node 2")
+
         Service.objects.get_or_create(name="service 1")
         Service.objects.get_or_create(name="service 2")
 
     def tearDown(self):
-        Entity.objects.all().delete()
-        Project.objects.all().delete()
-        Resource.objects.all().delete()
-        Node.objects.all().delete()
-        Service.objects.all().delete()
+        logger.info("in teardown, entity count = %d", Entity.objects.all().count())
+        for e in Entity.objects.all():
+            if hasattr(e, 'entity_ptr'):
+                logger.info("entity %s has entity_ptr", e.name)
+            else:
+                logger.info("entity %s does not have entity_ptr", e.name)
+
+        try:
+            Entity.objects.all().delete()
+            Project.objects.all().delete()
+            Resource.objects.all().delete()
+            Node.objects.all().delete()
+            Service.objects.all().delete()
+        except:
+            raise
+
 
     def test_entity_relation(self):
         e1 = Entity.objects.get(name="entity 1")
