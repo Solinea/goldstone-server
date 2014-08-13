@@ -52,6 +52,20 @@ chown -R apache:apache /opt/goldstone
 chown -R apache:apache /usr/lib/python2.6/site-packages/goldstone
 chmod 755 /opt/goldstone/goldstone/settings/
 python manage.py collectstatic --settings=goldstone.settings.production --noinput
+
+# brute force approach to syncing DB.  Will need a better
+# solution for beyond 1.0.
+
+export PYTHON_SETTINGS_MODULE=goldstone.settings.production
+python manage.py reset_db <<EOF
+yes
+EOF
+python manage.py syncdb <<EOF
+no
+EOF
+python manage.py migrate
+
+
 chkconfig httpd on
 service httpd restart
 
