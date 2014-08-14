@@ -56,6 +56,7 @@ python manage.py collectstatic --settings=goldstone.settings.production --noinpu
 # brute force approach to syncing DB.  Will need a better
 # solution for beyond 1.0.
 
+(
 export PYTHON_SETTINGS_MODULE=goldstone.settings.production
 python manage.py reset_db <<EOF
 yes
@@ -64,6 +65,7 @@ python manage.py syncdb <<EOF
 no
 EOF
 python manage.py migrate
+)
 
 
 chkconfig httpd on
