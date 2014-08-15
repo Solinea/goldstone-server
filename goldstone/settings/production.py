@@ -94,12 +94,3 @@ LOGGING = {
     },
 }
 
-
-OS_USERNAME = 'admin'
-OS_PASSWORD = '3dcdf1ad1ac442d5'
-OS_TENANT_NAME = 'admin'
-OS_AUTH_URL = 'http://192.168.1.3:5000/v2.0'
-
-ES_HOST = "127.0.0.1"
-ES_PORT = "9200"
-ES_SERVER = ES_HOST + ":" + ES_PORT

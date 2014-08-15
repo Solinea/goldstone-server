@@ -56,7 +56,7 @@ Finally, install the goldstone application: ::
 
 This package installation may take up to 2 hours to run, as it needs to compile a number of libraries.
 
-Once the goldstone rpm is installed, edit the ``/opt/goldstone/goldstone/settings/production.py`` file to add your OpenStack admin credentials. These are located at the bottom of the file: ::
+Once the goldstone rpm is installed, copy the ``/opt/goldstone/goldstone/settings/local_example.py`` to ``/opt/goldstone/goldstone/settings/local.py`` and edit the new file to add your OpenStack admin credentials: ::
 
     OS_USERNAME = 'admin'
     OS_PASSWORD = 'fe6ac09d85041ae384c66a83e362f565'
