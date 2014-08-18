@@ -341,7 +341,7 @@ function badEventMultiLine(location, start, end) {
     d3.json(uri, function (error, events) {
         if (events.data.length > 0) {
             events.data.forEach(function (d) {
-                d.time = new Date(d.time)
+                d.time = moment(d.time)
                 d.total = 0
                 events.levels.forEach(function (level) {
                     d[level] = +d[level] || 0
@@ -425,7 +425,7 @@ function badEventMultiLine(location, start, end) {
                 //.ordinalColors(["#553657", "#334d5c", "#45b29d","#efc94c","#df5a49"])
                 .title(function (d) {
                     var eventKey = Object.keys(d.value)[0]
-                    return d.key
+                    return d.key.format()
                         + "\n" + d.value[eventKey] + " " + eventKey + " events"
                 })
                 .yAxisLabel("Log Events")
@@ -641,34 +641,36 @@ function drawSearchTable(location, start, end) {
         oTable.ajax.reload()
     } else {
         var oTableParams = {
-            "bProcessing": true,
-            "bServerSide": true,
-            "sAjaxSource": uri,
-            "bPaginate": true,
-            "bFilter": true,
-            "bSort": true,
-            "bInfo": false,
-            "bAutoWidth": true,
-            "bLengthChange": true,
-            "aoColumnDefs": [
-                { "bVisible": false, "aTargets": [ 5, 6, 7, 8, 9, 10 ] },
-                { "sName": "timestamp", "aTargets": [ 0 ] },
-                { "sType": "date", "aTargets": [0] },
-                { "sName": "loglevel", "aTargets": [ 1 ] },
-                { "sName": "component", "aTargets": [ 2 ] },
-                { "sName": "host", "aTargets": [ 3 ] },
-                { "sName": "message", "aTargets": [ 4 ] },
-                { "sName": "location", "aTargets": [ 5 ] },
-                { "sName": "pid", "aTargets": [ 6 ] },
-                { "sName": "source", "aTargets": [ 7 ] },
-                { "sName": "request_id", "aTargets": [ 8 ] },
-                { "sName": "type", "aTargets": [ 9 ] },
-                { "sName": "received", "aTargets": [ 10 ] },
-                { "sType": "date", "aTargets": [10] }
-            ],
+            "info": false,
+            "autoWidth": true,
+            "processing": true,
+            "lengthChange": true,
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "serverSide": true,
+            "ajax": uri,
+            "columnDefs": [
+                { "visible": false, "targets": [ 5, 6, 7, 8, 9, 10 ] },
+                { "name": "timestamp", "type": "date", "targets": 0,
+                  "render": function (data, type, full, meta) {
+                                return moment(data).format()
+                            }
+                },
+                { "name": "loglevel", "targets": 1 },
+                { "name": "component", "targets": 2 },
+                { "name": "host", "targets": 3 },
+                { "name": "message", "targets": 4 },
+                { "name": "location", "targets": 5 },
+                { "name": "pid", "targets": 6 },
+                { "name": "source", "targets": 7 },
+                { "name": "request_id", "targets": 8 },
+                { "name": "type", "targets": 9 },
+                { "name": "received", "type": "date", "targets": 10 }
+            ]
         }
 
-        oTable = $(location).dataTable(oTableParams)
+        oTable = $(location).DataTable(oTableParams)
 
 
         $(window).bind('resize', function () {

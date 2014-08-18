@@ -380,8 +380,8 @@ goldstone.charts.bivariateWithAverage = {
     info: function () {
         "use strict";
         var html = function () {
-                var start = dateFormat(goldstone.time.fromPyTs(this.ns.start)),
-                    end = dateFormat(goldstone.time.fromPyTs(this.ns.end)),
+                var start = moment(goldstone.time.fromPyTs(this.ns.start)).format(),
+                    end = moment(goldstone.time.fromPyTs(this.ns.end)).format(),
                     custom = _.map(this.ns.infoCustom, function (e) {
                             return e.key + ": " + e.value + "<br>"
                     }),
@@ -476,7 +476,7 @@ goldstone.charts.bivariateWithAverage = {
             } else {
                 (function (json, ns) {
                     json.forEach(function (d) {
-                        d.time = new Date(Number(d.key))
+                        d.time = moment(Number(d.key))
                     })
 
                     // define our x and y scaling functions
@@ -519,7 +519,7 @@ goldstone.charts.bivariateWithAverage = {
                         tip = d3.tip()
                             .attr('class', 'd3-tip')
                             .html(function (d) {
-                                return "<p>" + dateFormat(d.time)  + "<br>Max: " + d.max.toFixed(2) +
+                                return "<p>" + d.time.format()  + "<br>Max: " + d.max.toFixed(2) +
                                     "<br>Avg: " + d.avg.toFixed(2) + "<br>Min: " + d.min.toFixed(2) + "<p>"
                             })
 
@@ -612,7 +612,7 @@ goldstone.charts.bivariateWithAverage = {
                     hiddenBar.append("rect")
                         .attr("class", "verticalGuideLine")
                         .attr("id", function (d, i) { return "verticalGuideLine" + i})
-                        .attr("x", Math.round(hiddenBarWidth / 2))
+                        .attr("x", 0)
                         .attr("height", ns.mh)
                         .attr("width", 1)
                         .style("opacity", 0)
@@ -625,9 +625,9 @@ goldstone.charts.bivariateWithAverage = {
                         .on('mouseenter', function (d, i) {
                             var rectId = ns.location + " #verticalRect" + i,
                                 guideId = ns.location + " #verticalGuideLine" + i,
-                                targ = d3.select(rectId).pop().pop()
+                                targ = d3.select(guideId).pop().pop()
                             d3.select(guideId).style("opacity", 0.8)
-                            tip.show(d, targ)
+                            tip.offset([50, 0]).show(d, targ)
                         })
                         .on('mouseleave', function (d, i) {
                             var id = ns.location + " #verticalGuideLine" + i
