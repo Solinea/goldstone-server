@@ -1,0 +1,3 @@
+[submodule "solinea_settings"]
+	path = solinea_settings
+	url = git@bitbucket.org:solinea/goldstone-dev-configs.git
