@@ -49,13 +49,28 @@ def _fake_date(earliest=datetime.now(tz=pytz.utc) - timedelta(minutes=30),
     )
 
 
-def _fake_log_increment(max=100):
-    return random.randint(0, max)
+def _fake_log_increment(prob, max=100):
+
+    if random.randint(prob - 100, prob) > 0:
+        return random.randint(0, max)
+    else:
+        return 0
 
 
-def _fake_last_seen_method():
+def _fake_last_seen_method(current_method=None):
     methods = ['LOGS', 'PING']
-    return methods[random.randint(0, 1)]
+
+    if current_method is 'PING':
+        if random.randint(-5, 95) > 0:
+            return 'PING'
+        else:
+            return 'LOGS'
+    else:
+        if random.randint(-5, 95) > 0:
+            return 'LOGS'
+        else:
+            return 'PING'
+
 
 def _fake_admin_disabled(last_seen, currently_disabled):
     if last_seen > datetime.now(tz=pytz.utc) - timedelta(minutes=2):
@@ -81,13 +96,17 @@ def _gen_node(current_node=None):
         node.uuid = str(uuid.uuid4())
         node.created = datetime.now(tz=pytz.utc)
         node.updated = node.created
-        node.last_seen = _fake_date(
-            earliest=datetime.now(tz=pytz.utc) - timedelta(minutes=5))
-        node.error_count = _fake_log_increment(max=1000)
-        node.warning_count = _fake_log_increment(max=1000)
-        node.info_count = _fake_log_increment(max=1000)
-        node.audit_count = _fake_log_increment(max=1000)
-        node.debug_count = _fake_log_increment(max=1000)
+        if random.randint(-10, 90) > 0:
+            node.last_seen = datetime.now(tz=pytz.utc)
+        else:
+            node.last_seen = _fake_date(
+                earliest=datetime.now(tz=pytz.utc) - timedelta(minutes=2))
+        node.last_seen_method = _fake_last_seen_method()
+        node.error_count = _fake_log_increment(10, max=1000)
+        node.warning_count = _fake_log_increment(10, max=1000)
+        node.info_count = _fake_log_increment(75, max=1000)
+        node.audit_count = _fake_log_increment(95, max=1000)
+        node.debug_count = _fake_log_increment(5, max=1000)
 
     else:
         node.updated = datetime.now(tz=pytz.utc)
@@ -111,13 +130,13 @@ def _gen_node(current_node=None):
                     earliest=node.last_seen - timedelta(minutes=5),
                     latest=node.last_seen)
 
-        node.error_count += _fake_log_increment()
-        node.warning_count += _fake_log_increment()
-        node.info_count += _fake_log_increment()
-        node.audit_count += _fake_log_increment()
-        node.debug_count += _fake_log_increment()
+        node.error_count += _fake_log_increment(10, max=100)
+        node.warning_count += _fake_log_increment(10, max=100)
+        node.info_count += _fake_log_increment(75, max=100)
+        node.audit_count += _fake_log_increment(95, max=100)
+        node.debug_count += _fake_log_increment(5, max=100)
+        node.last_seen_method = _fake_last_seen_method(node.last_seen_method)
 
-    node.last_seen_method = _fake_last_seen_method()
     node.admin_disabled = _fake_admin_disabled(node.last_seen,
                                                node.admin_disabled)
 
@@ -152,13 +171,19 @@ def _gen_model_data(current=None):
 
 def generate(dataset_count):
     nodes = None
+
     for i in xrange(1, dataset_count + 1):
         nodes = _gen_model_data(nodes)
 
-        with open(os.path.join(os.path.dirname(__file__),
-                               "..", "..", "..", "test_data",
-                               "logging_nodes." + str(i) + ".json"),
-                  'w') as outfile:
+        fn = "logging_nodes." + str(i) + ".json"
+        try:
+            fn = os.path.join(os.path.dirname(__file__),
+                              "..", "..", "..", "test_data",
+                              "logging_nodes." + str(i) + ".json")
+        except NameError:
+            pass
+
+        with open(fn, 'w') as outfile:
             json.dump(_serialize_nodes(nodes), outfile,
                       sort_keys=True, indent=4, ensure_ascii=False)
 
