@@ -17,6 +17,7 @@
  */
 
 goldstone.namespace('goldstone.topology')
+goldstone.namespace('goldstone.hostAvail')
 
 goldstone.goldstone.topology.url = function (render) {
     "use strict";
@@ -25,6 +26,12 @@ goldstone.goldstone.topology.url = function (render) {
     if (typeof render !== 'undefined') {
         url += "?render=" + render
     }
+    return url
+}
+
+goldstone.goldstone.hostAvail.url = function () {
+    "use strict";
+    var url = "/logging/nodes"
     return url
 }
 
