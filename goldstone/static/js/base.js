@@ -634,25 +634,25 @@ goldstone.charts.hostAvail = {
                         return d.swimlane !== "logs" ? d.swimlane : d.level;
                     })
                     .on("mouseover", function (d) {
-                        goldstone.goldstone.hostAvail.tooltip.html(d.name + "<br/>" +
-                            "(" + d.uuid + ")" + "<br/>" +
-                            "Level: " + d.level + "<br/>" +
-                            "Swimlane: " + d.swimlane + "<br/>" +
-                            "Errors: " + d.error_count + "<br/>" +
-                            "Warnings: " + d.warning_count + "<br/>" +
-                            "Info: " + d.info_count + "<br/>" +
-                            "Audit: " + d.audit_count + "<br/>" +
-                            "Debug: " + d.debug_count + "<br/>" +
-                            "x: " + d3.select(this).attr("cx") +
-                            "y: " + d3.select(this).attr("cy"));
+                        goldstone.goldstone.hostAvail.tooltip
+							.html(d.name + "<br/>" +
+                            	"(" + d.uuid + ")" + "<br/>" +
+                            	"Errors: " + d.error_count + "<br/>" +
+                            	"Warnings: " + d.warning_count + "<br/>" +
+                            	"Info: " + d.info_count + "<br/>" +
+                            	"Audit: " + d.audit_count + "<br/>" +
+                            	"Debug: " + d.debug_count + "<br/>"
+							);
 
-                        goldstone.goldstone.hostAvail.tooltip.transition().duration(200)
+                        goldstone.goldstone.hostAvail.tooltip
+						  .transition().duration(200)
                             .style("opacity", 0.9)
                             .style("left", (d3.event.pageX + 14) + "px")
                             .style("top", (d3.event.pageY - 28) + "px");
                     })
                     .on("mouseout", function (d) {
-                        goldstone.goldstone.hostAvail.tooltip.transition().duration(500)
+                        goldstone.goldstone.hostAvail.tooltip
+						  .transition().duration(500)
                             .style("opacity", 1e-6);
                     });
 
@@ -660,7 +660,6 @@ goldstone.charts.hostAvail = {
 
                 circle.exit()
                     .attr("class", function (d) {
-                        console.log(d);
                         return "older";
                     });
 
