@@ -420,16 +420,16 @@ goldstone.charts.hostAvail = {
 
         // The log-level buttons toggle the specific log level into the total count
         d3.select("#filterer").selectAll("input")
-            .data(d3.keys(filter), function (d) {return d; })
+            .data(d3.keys(this.ns.filter), function (d) {return d; })
             .enter().append("div")
             .attr("class", "btn-group")
             .append("label")
             .text(function (d) { return d; })
             .attr("class", function (d) { return "btn btn-log-" + d; })
-            .classed("active", function (d) { return filter[d]; })
+            .classed("active", function (d) { return goldstone.goldstone.hostAvail.filter[d]; })
             .attr("id", function (d) { return d; })
             .on("click", function (d) {
-                goldstone.goldstone.hostAvail.filter[d] = !goldstone.goldstone.hostAvail.filter[d]);
+                goldstone.goldstone.hostAvail.filter[d] = !goldstone.goldstone.hostAvail.filter[d];
                 goldstone.goldstone.hostAvail.redraw();
             })
             .append("input")
