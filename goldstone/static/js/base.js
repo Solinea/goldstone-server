@@ -406,32 +406,30 @@ goldstone.charts.hostAvail = {
         this.ns.yPing = d3.scale.linear().range([0, this.ns.margin.top])
         this.ns.yUnadmin = d3.scale.linear().range([this.ns.h.main, this.ns.h.main - this.ns.margin.bottom ]);
 
-        this.ns.animation = { pause: false, delay: 10, index: 1 }
+        this.ns.animation = { pause: false, delay: 10, index: 1 };
         /*
          * The filter buttons
          */
-        this.ns.filter = d3.map({
+        this.ns.filter = {
             debug:   false,
             audit:   false,
             info:    true,
             warning: true,
             error:   true
-        })
-
-        this.ns.filterer = d3.select("#filterer")
+        };
 
         // The log-level buttons toggle the specific log level into the total count
-        this.ns.filterer.selectAll("input")
-            .data(this.ns.filter.entries(), function (d) {return d.key; })
+        d3.select("#filterer").selectAll("input")
+            .data(d3.keys(filter), function (d) {return d; })
             .enter().append("div")
             .attr("class", "btn-group")
             .append("label")
-            .text(function (d) { return d.key; })
-            .attr("class", function (d) { return "btn btn-log-" + d.key; })
-            .classed("active", function (d) { return d.value; })
-            .attr("id", function (d) { return d.key; })
+            .text(function (d) { return d; })
+            .attr("class", function (d) { return "btn btn-log-" + d; })
+            .classed("active", function (d) { return filter[d]; })
+            .attr("id", function (d) { return d; })
             .on("click", function (d) {
-                goldstone.goldstone.hostAvail.filter.set(d.key, !goldstone.goldstone.hostAvail.get(d.key));
+                goldstone.goldstone.hostAvail.filter[d] = !goldstone.goldstone.hostAvail.filter[d]);
                 goldstone.goldstone.hostAvail.redraw();
             })
             .append("input")
@@ -519,7 +517,7 @@ goldstone.charts.hostAvail = {
             })
             .style("opacity", function (d) {
                 if (d.swimlane === "logs") {
-                    return goldstone.goldstone.hostAvail.filter.get(d.level) ? 0.5 : 1e-6;
+                    return goldstone.goldstone.hostAvail.filter[d.level] ? 0.5 : 1e-6;
                 }
                 return 0.5;
             });
@@ -528,7 +526,7 @@ goldstone.charts.hostAvail = {
     sums: function (datum) {
         // Return the sums for the filters that are on
         return d3.sum(goldstone.goldstone.hostAvail.loglevel.domain().map(function (k) {
-            return goldstone.goldstone.hostAvail.filter.get(k) ? datum[k + "_count"] : 0;
+            return goldstone.goldstone.hostAvail.filter[k] ? datum[k + "_count"] : 0;
         }));
     }, // sums()
 
