@@ -12,13 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__author__ = 'Ken Pepple'
+__author__ = 'John Stanford'
 
-from .base import *
+#
+# Use this file for settings that will not be overwritten by
+# product upgrades.
+#
 
+# Select one of the appropriate foundational settings from production,
+# test, or development.  In most cases, production is appropriate.
+
+# from .development import *
+# from .test import *
+from .production import *
+
+#
+# configure OpenStack access information
+#
 OS_USERNAME = 'admin'
-OS_PASSWORD = 'fe67c09d85041ae383c66a83e362f566'
+OS_PASSWORD = '3dcdf1ad1ac442d5'
 OS_TENANT_NAME = 'admin'
-OS_AUTH_URL = 'http://10.10.11.230:5000/v2.0'
-
-ES_SERVER = "10.10.11.122:9200"
+OS_AUTH_URL = 'http://192.168.1.3:5000/v2.0'

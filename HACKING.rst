@@ -46,7 +46,7 @@ Create the virtual environment (this will also install virtualenv)::
     cd ~/devel/goldstone
 
     export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
-    export DJANGO_SETTINGS_MODULE=goldstone.settings.development    
+    export DJANGO_SETTINGS_MODULE=goldstone.settings.local_dev    
 
     mysql.server start
     redis-server > /dev/null 2>&1 &
@@ -81,9 +81,16 @@ Now, install pip prerequesites into your shiny new virtualenv. This will let you
     $ pip install -r requirements.txt
     $ pip install -r test_requirements.txt
 
+
+Get the local settings and put them in place::
+
+    $ git submodule init
+    $ git submodule update
+    $ cp solinea_settings/* goldstone/settings
+
 Make sure your default settings are exported::
 
-    $ export DJANGO_SETTINGS_MODULE=goldstone.settings.development
+    $ export DJANGO_SETTINGS_MODULE=goldstone.settings.local_dev
 
 Sync and migrate the databases::
 
@@ -110,7 +117,7 @@ Goldstone strives for 100% code coverage. Code coverage reports can be created t
     $ tox -e cover
     GLOB sdist-make: /Users/kpepple/Documents/dev/Solinea/goldstone-ui/setup.py
     cover inst-nodeps: /Users/kpepple/Documents/dev/Solinea/goldstone-ui/.tox/dist/goldstone-ui-2014.1.dev56.g0558e73.zip
-    cover runtests: commands[0] | coverage run --source=./goldstone manage.py test goldstone --settings=goldstone.settings.test
+    cover runtests: commands[0] | coverage run --source=./goldstone manage.py test goldstone --settings=goldstone.settings.local_test
     Creating test database for alias 'default'...
     .........
     ----------------------------------------------------------------------
