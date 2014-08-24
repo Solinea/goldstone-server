@@ -500,9 +500,9 @@ goldstone.charts.hostAvail = {
             .attr("cx", function (d) { return goldstone.goldstone.hostAvail.xScale(d.last_seen); })
             .attr("cy", function (d) {
                     return {
-                        "unadmin": d3.mean(goldstone.goldstone.hostAvail.yUnadmin.range());
-                        "ping": d3.mean(goldstone.goldstone.hostAvail.yPing.range());
-                        "logs": goldstone.goldstone.hostAvail.yLogs(goldstone.charts.hostAvail.sums(d));
+                        "unadmin": d3.mean(goldstone.goldstone.hostAvail.yUnadmin.range()),
+                        "ping": d3.mean(goldstone.goldstone.hostAvail.yPing.range()),
+                        "logs": goldstone.goldstone.hostAvail.yLogs(goldstone.charts.hostAvail.sums(d))
                     }[d.swimlane];
                 })
             .attr("r", function (d) {
@@ -669,7 +669,7 @@ goldstone.charts.hostAvail = {
                 d3.timer(goldstone.charts.hostAvail.update, goldstone.goldstone.hostAvail.animation.delay * 1000);
                 return true;
             });
-    }, // update()
+    } // update()
 
 }
 
