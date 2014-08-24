@@ -399,7 +399,7 @@ goldstone.charts.hostAvail = {
 
         this.ns.xAxis = d3.svg.axis().orient("bottom").ticks(5).tickFormat(d3.time.format("%H:%M:%S"))
         this.ns.xScale = d3.time.scale()
-			.range([this.ns.margin.left, this.ns.w - this.ns.margin.right])
+			.range([this.ns.margin.left, this.ns.mw - this.ns.margin.right])
 			.nice()
         this.ns.yAxis = d3.svg.axis().orient("left")
         this.ns.yLogs = d3.scale.linear().range([this.ns.h.main - this.ns.margin.bottom * 2, this.ns.margin.top * 2])
@@ -430,7 +430,7 @@ goldstone.charts.hostAvail = {
             .attr("id", function (d) { return d; })
             .on("click", function (d) {
                 goldstone.goldstone.hostAvail.filter[d] = !goldstone.goldstone.hostAvail.filter[d];
-                goldstone.goldstone.hostAvail.redraw();
+                goldstone.charts.hostAvail.redraw();
             })
             .append("input")
             .attr("type", "checkbox");
