@@ -79,12 +79,3 @@ DEBUG = True
 TEMPLATE_DEBUG = True
 
 QUNIT_ENABLED = True
-
-# Intel app config
-ES_SERVER = "127.0.0.1:9200"
-# testing should use mocks to stay on system.
-OS_AUTH_URL = 'http://192.168.168.168:35357/v2.0'
-
-OS_USERNAME = 'admin'
-OS_PASSWORD = 'fe67c09d85041ae383c66a83e362f566'
-OS_TENANT_NAME = 'admin'

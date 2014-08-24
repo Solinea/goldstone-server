@@ -180,7 +180,9 @@ CELERY_ROUTES = {
 
 from celery.schedules import crontab
 from datetime import timedelta
-DAILY_INDEX_CREATE_INTERVAL = crontab(minute='0', hour='0', day_of_week='*')
+DAILY_INDEX_CURATION_SCHEDULE = crontab(minute='0', hour='0', day_of_week='*')
+ES_GOLDSTONE_RETENTION = 30
+ES_LOGSTASH_RETENTION = 30
 TOPOLOGY_QUERY_INTERVAL = crontab(minute='*/2')
 RESOURCE_QUERY_INTERVAL = crontab(minute='*/2')
 API_PERF_QUERY_INTERVAL = crontab(minute='*/2')
@@ -189,9 +191,9 @@ HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
 HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/2')
 
 CELERYBEAT_SCHEDULE = {
-    'create-daily-index': {
-        'task': 'goldstone.apps.core.tasks.create_daily_index',
-        'schedule': DAILY_INDEX_CREATE_INTERVAL,
+    'manage-es-indices': {
+        'task': 'goldstone.apps.core.tasks.manage-es-indices',
+        'schedule': DAILY_INDEX_CURATION_SCHEDULE,
     },
     'nova-hypervisors-stats': {
         'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
@@ -255,7 +257,10 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
-    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
+    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
+    'PAGINATE_BY': 10,
+    'PAGINATE_BY_PARAM': 'page_size',
+    'MAX_PAGINATE_BY': 100
 }
 
 # controls the time examined for the log volume stats included in the
@@ -266,3 +271,12 @@ LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES = 30
 DEFAULT_LOOKBACK_DAYS = 30
 DEFAULT_CHART_BUCKETS = 80
 DEFAULT_PRESENCE_LOOKBACK_HOURS = 1
+
+OS_USERNAME = 'admin'
+OS_PASSWORD = ''
+OS_TENANT_NAME = 'admin'
+OS_AUTH_URL = ''
+
+ES_HOST = "127.0.0.1"
+ES_PORT = "9200"
+ES_SERVER = ES_HOST + ":" + ES_PORT

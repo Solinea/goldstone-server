@@ -12,15 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from goldstone.apps.core.tasks import create_daily_index
-from goldstone.apps.keystone.tasks import discover_keystone_topology
-
 __author__ = 'John Stanford'
 
 from keystoneclient.exceptions import ClientException
 from django.test import TestCase, SimpleTestCase
 from django.conf import settings
 from goldstone.models import GSConnection, ESData
+from goldstone.apps.core.tasks import _create_daily_index
+from goldstone.apps.keystone.tasks import discover_keystone_topology
 from elasticsearch import *
 import gzip
 import os
@@ -65,7 +64,7 @@ class PrimeData(TestCase):
 
     conn.indices.refresh([LOGSTASH_INDEX_NAME])
 
-    create_daily_index()
+    _create_daily_index()
 
     GOLDSTONE_INDEX_NAME = ESData()._get_latest_index('goldstone')
     data_f = gzip.open(os.path.join(os.path.dirname(__file__), "apps", "..",
