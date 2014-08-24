@@ -28,7 +28,7 @@ django-crispy-forms==1.4.0
 django.js==0.8.1
 pbr==0.8.0
 elasticsearch==1.0.0
--e git+git://github.com/aparo/pyes.git@0e6e8ea08e9579160fc09cb8c4e07790380afb35#egg=pyes
+pyes==0.99.4
 pytz==2014.2
 pandas==0.13.1
 celery[redis]==3.1.10
@@ -38,8 +38,8 @@ python-cinderclient==1.0.9
 python-neutronclient==2.3.4
 python-glanceclient==0.12.0
 urllib3==1.8
-lockfile>=0.8
-djangorestframework
-markdown
-django-filter
-django-polymorphic
+lockfile==0.9.1
+djangorestframework==2.3.14
+django-filter==0.7
+django-polymorphic==0.5.6
+elasticsearch-curator==1.2.2

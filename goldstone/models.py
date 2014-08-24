@@ -11,10 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.db.models import CharField, DateTimeField, ForeignKey, BooleanField
-from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
-    ModificationDateTimeField
-from goldstone.apps.core.tasks import create_daily_index
 
 __author__ = 'John Stanford'
 
@@ -27,7 +23,7 @@ from types import StringType
 import json
 import logging
 import pandas as pd
-from polymorphic import PolymorphicModel
+from goldstone.apps.core.tasks import _create_daily_index
 from goldstone.utils import NoDailyIndex
 
 logger = logging.getLogger(__name__)
@@ -82,7 +78,7 @@ class ESData(object):
         except IndexError:
             # if we can't find a goldstone index, let's just create one
             if prefix == 'goldstone':
-                create_daily_index()
+                _create_daily_index()
                 candidates = [k for k in
                               self._conn.indices.status()['indices'].keys() if
                               k.startswith(prefix + "-")]
