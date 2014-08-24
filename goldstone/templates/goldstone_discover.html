@@ -51,27 +51,27 @@
         </div>
         <div id="goldstone-discover-r2" class="row">
         <div id="goldstone-discover-r2-c1" class="col-md-12">
-            <div id="filterer" class="btn-group" data-toggle="buttons">
-			</div><!--.btn-group-->
-			<div id="player" class="pull-right">
-				<div class="btn-group">
-					<button type="button" class="btn btn-info" id="pause">
-						<i class="fa fa-stop"></i>
-					</button>
-					<button type="button" class="btn btn-info" id="play">
-						<i class="fa fa-play"></i>
-					</button>
-				</div><!--.btn-group-->
-				<label>Delay (seconds):&nbsp;
-					<input type="number" min="0" max="300" step="30" value="10">
-				</label>
-			</div>
             <div id = "goldstone-nodeavail-panel" class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-tasks"></i> Node Availability
                             <i class="pull-right fa fa-info-circle panel-info"  id="goldstone-nodeavail-info"
                                style="opacity: 0.0"></i>
                     </h3>
+                </div>
+                <div id="filterer" class="btn-group" data-toggle="buttons">
+			    </div><!--.btn-group-->
+                <div id="player" class="pull-right">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-info" id="pause">
+                            <i class="fa fa-stop"></i>
+                        </button>
+                        <button type="button" class="btn btn-info" id="play">
+                            <i class="fa fa-play"></i>
+                        </button>
+                    </div><!--.btn-group-->
+                    <label>Delay (seconds):&nbsp;
+                        <input type="number" min="0" max="300" step="30" value="10">
+                    </label>
                 </div>
                 <div class="panel-body" style="height:600px">
                     <div id="goldstone-nodeavail-chart">
@@ -111,7 +111,7 @@ $(document).ready(function () {
     ns.topologyTree.init()
 
     hans.hostAvailChart = goldstone.charts.hostAvail._getInstance(hans)
-    hans.h = {"main": 600, "swim": 50}
+    hans.h = {"main": 500, "swim": 50}
     hans.location = '#goldstone-nodeavail-chart'
     hans.spinner = '#goldstone-nodeavail-spinner'
     $(hans.spinner).hide()
