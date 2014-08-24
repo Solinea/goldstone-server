@@ -22,3 +22,4 @@ selenium==2.40.0
 sphinx
 mock==1.0.1
 -e git+git://github.com/kmmbvnr/django-jenkins.git@0.15.0#egg=django-jenkins
+fake-factory
