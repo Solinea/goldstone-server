@@ -371,7 +371,35 @@ goldstone.charts.hostAvail = {
         return o
     },
 
+    isRefreshSelected: function () {
+        return $(".autoRefresh").prop("checked")
+    },
+
+    refreshInterval: function () {
+        return $("select#autoRefreshInterval").val()
+    },
+
+    initSettingsForm: function () {
+        $("#settingsUpdateButton").click(function () {
+            if (goldstone.charts.hostAvail.isRefreshSelected()) {
+                goldstone.goldstone.hostAvail.animation = {
+                    pause: false,
+                    delay: goldstone.charts.hostAvail.refreshInterval(),
+                    index: 1
+                };
+                d3.timer(goldstone.charts.hostAvail.update);
+            } else {
+                goldstone.goldstone.hostAvail.animation = {
+                    pause: true,
+                    delay: goldstone.charts.hostAvail.refreshInterval(),
+                    index: 1
+                };
+            }
+        });
+    },
+
     init: function () {
+        this.initSettingsForm()
         this.initSvg()
         this.update()
     },
@@ -406,7 +434,7 @@ goldstone.charts.hostAvail = {
         this.ns.yPing = d3.scale.linear().range([0, this.ns.margin.top])
         this.ns.yUnadmin = d3.scale.linear().range([this.ns.h.main, this.ns.h.main - this.ns.margin.bottom ]);
 
-        this.ns.animation = { pause: false, delay: 10, index: 1 };
+        this.ns.animation = { pause: false, delay: 5, index: 1 };
         /*
          * The filter buttons
          */
@@ -436,6 +464,7 @@ goldstone.charts.hostAvail = {
             .attr("type", "checkbox");
 
         // Connect the player buttons
+        /*
         d3.select("#pause")
             .on("click", function () {
                 goldstone.goldstone.hostAvail.animation.pause = true;
@@ -452,7 +481,7 @@ goldstone.charts.hostAvail = {
                     .attr("value", goldstone.goldstone.hostAvail.animation.delay);
                 d3.timer(goldstone.charts.hostAvail.update);
             });
-
+        */
 
         /*
          * The graph and axes

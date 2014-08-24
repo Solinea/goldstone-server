@@ -54,25 +54,14 @@
             <div id = "goldstone-nodeavail-panel" class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-tasks"></i> Node Availability
-                            <i class="pull-right fa fa-info-circle panel-info"  id="goldstone-nodeavail-info"
+                        <i class="fa fa-cog pull-right" data-toggle="modal"
+                           data-target="#nodeAvailSettingsModal"></i>
+                        <i class="pull-right fa fa-info-circle panel-info"  id="goldstone-nodeavail-info"
                                style="opacity: 0.0"></i>
                     </h3>
                 </div>
                 <div id="filterer" class="btn-group" data-toggle="buttons">
 			    </div><!--.btn-group-->
-                <div id="player" class="pull-right">
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-info" id="pause">
-                            <i class="fa fa-stop"></i>
-                        </button>
-                        <button type="button" class="btn btn-info" id="play">
-                            <i class="fa fa-play"></i>
-                        </button>
-                    </div><!--.btn-group-->
-                    <label>Delay (seconds):&nbsp;
-                        <input type="number" min="0" max="300" step="30" value="10">
-                    </label>
-                </div>
                 <div class="panel-body" style="height:600px">
                     <div id="goldstone-nodeavail-chart">
                         <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
@@ -84,6 +73,57 @@
             </div>
         </div>
     </div>
+    <!-- log settings modal -->
+    <div class="modal fade" id="nodeAvailSettingsModal" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Chart Settings</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal" role="form">
+                        <div class="form-group">
+                            <label for="autoRefresh"
+                                   class="col-sm-3 control-label">Refresh: </label>
+
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                        <span class="input-group-addon">
+                                            <input type="checkbox"
+                                                   class="autoRefresh" checked>
+                                        </span>
+                                    <select class="form-control"
+                                            id="autoRefreshInterval">
+                                        <option value="5" selected>5 seconds
+                                        </option>
+                                        <option value="15">15 seconds
+                                        </option>
+                                        <option value="30">30
+                                            seconds
+                                        </option>
+                                        <option value="60">1 minute</option>
+                                        <option value="300">5 minutes
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <div class="form-group">
+                        <button type="button" id="settingsUpdateButton"
+                                class="btn btn-primary"
+                                data-dismiss="modal">Update
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 {% endblock %}
