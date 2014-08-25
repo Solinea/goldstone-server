@@ -1309,199 +1309,41 @@ goldstone.charts.topologyTree = {
             })
             .attr("transform", "scale(0.0000001)")
 
-        // TODO need a function to abstract the class/icon path relationship
-        ns.chart.selectAll(".icon.main.cloud-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_cloud.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
+		// Map of icons to the classes in which they'll be used
+		d3.map({
+			icon_backup      : ['backups-leaf', 'snapshots-leaf'],
+			icon_cloud       : ['cloud', 'region'],
+			icon_endpoint    : ['endpoints-leaf'],
+			icon_host        : ['host', 'hosts-leaf', 'hypervisors-leaf',
+				'servers-leaf'],
+			icon_image       : ['images-leaf'],
+			icon_module      : ['module', 'secgroups-leaf'],
+			icon_role        : ['roles-leaf'],
+			icon_service     : ['service', 'services-leaf'],
+			icon_tenant      : ['tenants-leaf'],
+			icon_types       : ['volume-types-leaf'],
+			icon_user        : ['users-leaf'],
+			icon_volume      : ['volume', 'volumes-leaf'],
+			icon_vol_transfer: ['agents-leaf', 'transfers-leaf'],
+			icon_zone        : ['zone', 'aggregates-leaf', 'cloudpipes-leaf',
+				'flavors-leaf', 'floating-ip-pools-leaf', 'networks-leaf'],
 
-        ns.chart.selectAll(".icon.main.region-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_cloud.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
+		}).forEach(function(icon, classes) {
+			// Acutally attach the icons to the classes
+			d3.xml(imgFile(icon), "image/svg+xml", function (img) {
+				classes.forEach(function(c) {
+					ns.chart.selectAll(".icon.main." + c + "-icon")
+						.each(function () {
+							d3.select(this).node().appendChild(
+								img.getElementsByTagName("svg")[0].cloneNode(true))
+						})
+				});
+			}); // d3.xml()
+		}); // forEach
 
-        ns.chart.selectAll(".icon.main.zone-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_zone.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.host-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_host.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.service-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_service.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-        ns.chart.selectAll(".icon.main.endpoints-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_endpoint.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.roles-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_role.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.tenants-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_tenant.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.users-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_user.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.volume-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_volume.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.agents-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_vol_transfer.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.aggregates-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_zone.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.cloudpipes-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_zone.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.flavors-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_zone.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.floating-ip-pools-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_zone.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.hosts-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_host.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.hypervisors-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_host.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.networks-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_zone.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.secgroups-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_module.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.servers-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_host.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.transfers-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_vol_transfer.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.volume-types-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_types.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.volumes-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_volume.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-        ns.chart.selectAll(".icon.main.services-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_service.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-        ns.chart.selectAll(".icon.main.backups-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_backup.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-        ns.chart.selectAll(".icon.main.snapshots-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_backup.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-
-        ns.chart.selectAll(".icon.main.images-leaf-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_image.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
-
-        ns.chart.selectAll(".icon.main.module-icon")
-            .call(function (d) {
-                $.get("/static/images/icon_module.svg", function (data) {
-                    d.html($(data).find('g').removeAttr('xmlns:a').html())
-                })
-            })
+		function imgFile(icon) {
+			return "/static/images/" + icon + ".svg";
+		}
 
         // Transition nodes to their new position.
         var nodeUpdate = node
