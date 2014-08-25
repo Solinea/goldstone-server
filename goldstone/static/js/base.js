@@ -463,26 +463,6 @@ goldstone.charts.hostAvail = {
             .append("input")
             .attr("type", "checkbox");
 
-        // Connect the player buttons
-        /*
-        d3.select("#pause")
-            .on("click", function () {
-                goldstone.goldstone.hostAvail.animation.pause = true;
-                d3.select("#player").select("input")
-                    .property("disabled", true)
-                    .attr("value", 0);
-            });
-
-        d3.select("#play")
-            .on("click", function () {
-                goldstone.goldstone.hostAvail.animation.pause = false;
-                d3.select("#player").select("input")
-                    .property("disabled", null)
-                    .attr("value", goldstone.goldstone.hostAvail.animation.delay);
-                d3.timer(goldstone.charts.hostAvail.update);
-            });
-        */
-
         /*
          * The graph and axes
          */
