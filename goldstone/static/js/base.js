@@ -483,8 +483,8 @@ goldstone.charts.hostAvail = {
             .attr("class", "y axis")
             .attr("transform", "translate(" + (this.ns.margin.left / 2) + ",0)");
 
-        this.ns.tooltip = d3.select("#viz").append("div")
-            .attr("class", "tooltip")
+        this.ns.tooltip = d3.select(this.ns.location).append("div")
+			.attr("class", "tooltip")
             .style("opacity", 0);
 
         this.ns.dataset = null;
@@ -643,7 +643,7 @@ goldstone.charts.hostAvail = {
                         return d.swimlane !== "logs" ? d.swimlane : d.level;
                     })
                     .on("mouseover", function (d) {
-                        goldstone.goldstone.hostAvail.tooltip
+						goldstone.goldstone.hostAvail.tooltip
 							.html(d.name + "<br/>" +
                             	"(" + d.uuid + ")" + "<br/>" +
                             	"Errors: " + d.error_count + "<br/>" +
@@ -653,14 +653,14 @@ goldstone.charts.hostAvail = {
                             	"Debug: " + d.debug_count + "<br/>"
 							);
 
-                        goldstone.goldstone.hostAvail.tooltip
+						goldstone.goldstone.hostAvail.tooltip
 						  .transition().duration(200)
                             .style("opacity", 0.9)
-                            .style("left", (d3.event.pageX + 14) + "px")
-                            .style("top", (d3.event.pageY - 28) + "px");
+                            .style("left", d3.select(this).attr("cx") + 20 + "px")
+                            .style("top", d3.select(this).attr("cy") + 20 + "px")
                     })
                     .on("mouseout", function (d) {
-                        goldstone.goldstone.hostAvail.tooltip
+						goldstone.goldstone.hostAvail.tooltip
 						  .transition().duration(500)
                             .style("opacity", 1e-6);
                     });
