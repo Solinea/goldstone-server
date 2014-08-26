@@ -578,7 +578,6 @@ goldstone.charts.hostAvail = {
     }, // sums()
 
     update: function () {
-            console.log("in update", goldstone.goldstone.hostAvail.animation);
             // If we are paused or beyond the available jsons, exit
             if (goldstone.goldstone.hostAvail.animation.pause) {
                 return true;
