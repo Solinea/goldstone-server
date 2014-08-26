@@ -338,11 +338,12 @@ margin-left: 50px;
 div.tooltip {
     position: absolute;
     text-align: left;
-    padding: 10px;
+	line-height: 1;
+    padding: 12px;
     font: 12px sans-serif;
-    background: #ffb;
-    border: 0px;
-    border-radius: 8px;
+    background: rgba(0,0,0,0.4);
+	color: #fff;
+    border-radius: 10px;
     pointer-events: none;
 }
 
