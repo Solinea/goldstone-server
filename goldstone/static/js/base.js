@@ -434,10 +434,10 @@ goldstone.charts.hostAvail = {
             .nice()
         this.ns.yAxis = d3.svg.axis().orient("left")
         this.ns.yLogs = d3.scale.linear()
-			.range([this.ns.h.main - this.ns.margin.bottom * 2, this.ns.margin.top * 2])
+            .range([this.ns.h.main - this.ns.margin.bottom * 2, this.ns.margin.top * 2])
         this.ns.yPing = d3.scale.linear().range([0, this.ns.margin.top])
         this.ns.yUnadmin = d3.scale.linear()
-			.range([this.ns.h.main, this.ns.h.main - this.ns.margin.bottom ]);
+            .range([this.ns.h.main, this.ns.h.main - this.ns.margin.bottom ]);
 
         this.ns.animation = { pause: false, delay: 5, index: 1 };
         /*
@@ -460,8 +460,8 @@ goldstone.charts.hostAvail = {
             .text(function (d) { return d; })
             .attr("class", function (d) { return "btn btn-log-" + d; })
             .classed("active", function (d) {
-				return goldstone.goldstone.hostAvail.filter[d];
-			})
+                return goldstone.goldstone.hostAvail.filter[d];
+            })
             .attr("id", function (d) { return d; })
             .on("click", function (d) {
                 goldstone.goldstone.hostAvail.filter[d] = !goldstone.goldstone.hostAvail.filter[d];
@@ -482,47 +482,47 @@ goldstone.charts.hostAvail = {
 
         this.ns.graph = this.ns.svg.append("g").attr("id", "graph");
 
-		// Visual swim lanes
-		this.ns.graph.append("g")
-			.attr("id", "ping")
-			.attr("class", "swimlane")
-		  .append("rect")
-			.attr("x", goldstone.goldstone.hostAvail.xScale.range()[0])
-			.attr("y", goldstone.goldstone.hostAvail.yPing.range()[0])
-			.attr("width", goldstone.goldstone.hostAvail.xScale.range()[1] + this.ns.margin.right)
-			.attr("height", goldstone.goldstone.hostAvail.yPing.range()[1]);
+        // Visual swim lanes
+        this.ns.graph.append("g")
+            .attr("id", "ping")
+            .attr("class", "swimlane")
+          .append("rect")
+            .attr("x", goldstone.goldstone.hostAvail.xScale.range()[0])
+            .attr("y", goldstone.goldstone.hostAvail.yPing.range()[0])
+            .attr("width", goldstone.goldstone.hostAvail.xScale.range()[1] + this.ns.margin.right)
+            .attr("height", goldstone.goldstone.hostAvail.yPing.range()[1]);
 
-		this.ns.graph.append("g")
-			.attr("id", "unadmin")
-			.attr("class", "swimlane")
-			.attr("transform", "translate(0," + (this.ns.h.main - this.ns.margin.bottom) + ")")
-		  .append("rect")
-		    .attr("x", goldstone.goldstone.hostAvail.xScale.range()[0])
-			.attr("y", 0)
-			.attr("width", goldstone.goldstone.hostAvail.xScale.range()[1] + this.ns.margin.right)
-			.attr("height", Math.abs(goldstone.goldstone.hostAvail.yUnadmin.range()[1] - goldstone.goldstone.hostAvail.yUnadmin.range()[0]));
+        this.ns.graph.append("g")
+            .attr("id", "unadmin")
+            .attr("class", "swimlane")
+            .attr("transform", "translate(0," + (this.ns.h.main - this.ns.margin.bottom) + ")")
+          .append("rect")
+            .attr("x", goldstone.goldstone.hostAvail.xScale.range()[0])
+            .attr("y", 0)
+            .attr("width", goldstone.goldstone.hostAvail.xScale.range()[1] + this.ns.margin.right)
+            .attr("height", Math.abs(goldstone.goldstone.hostAvail.yUnadmin.range()[1] - goldstone.goldstone.hostAvail.yUnadmin.range()[0]));
 
-		this.ns.graph.select("#ping")
-		  .append("text")
-			.attr("x", goldstone.goldstone.hostAvail.xScale.range()[1])
-			.selectAll("tspan")
-			.data("Ping only".split('/'), function(d) { return d; })
-		  .enter().append("tspan")
-			.attr("x", goldstone.goldstone.hostAvail.xScale.range()[1] + this.ns.margin.left / 2)
-			.attr("dy", "1.2em")
-			.attr("text-anchor", "start")
-			.text(function(d) { return d; });
+        this.ns.graph.select("#ping")
+          .append("text")
+            .attr("x", goldstone.goldstone.hostAvail.xScale.range()[1])
+            .selectAll("tspan")
+            .data("Ping only".split('/'), function(d) { return d; })
+          .enter().append("tspan")
+            .attr("x", goldstone.goldstone.hostAvail.xScale.range()[1] + this.ns.margin.left / 2)
+            .attr("dy", "1.2em")
+            .attr("text-anchor", "start")
+            .text(function(d) { return d; });
 
-		this.ns.graph.select("#unadmin")
-		  .append("text")
-			.attr("x", goldstone.goldstone.hostAvail.xScale.range()[1])
-			.selectAll("tspan")
-			.data("Disabled".split('/'), function(d) { return d; })
-		  .enter().append("tspan")
-		    .attr("x", goldstone.goldstone.hostAvail.xScale.range()[1] + this.ns.margin.left / 2)
-			.attr("dy", "1.2em")
-			.attr("text-anchor", "start")
-			.text(function(d) { return d; });
+        this.ns.graph.select("#unadmin")
+          .append("text")
+            .attr("x", goldstone.goldstone.hostAvail.xScale.range()[1])
+            .selectAll("tspan")
+            .data("Disabled".split('/'), function(d) { return d; })
+          .enter().append("tspan")
+            .attr("x", goldstone.goldstone.hostAvail.xScale.range()[1] + this.ns.margin.left / 2)
+            .attr("dy", "1.2em")
+            .attr("text-anchor", "start")
+            .text(function(d) { return d; });
 
 
         this.ns.graph.append("g")
@@ -555,8 +555,8 @@ goldstone.charts.hostAvail = {
           .transition().duration(500)
             .attr("class", function (d) { return d.level; })
             .attr("cx", function (d) {
-				return goldstone.goldstone.hostAvail.xScale(d.last_seen);
-			})
+                return goldstone.goldstone.hostAvail.xScale(d.last_seen);
+            })
             .attr("cy", function (d) {
                 return {
                     "unadmin": d3.mean(goldstone.goldstone.hostAvail.yUnadmin.range()),
