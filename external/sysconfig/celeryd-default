@@ -37,4 +37,4 @@ CELERYD_GROUP="goldstone"
 # and owned by the userid/group configured.
 CELERY_CREATE_DIRS=1
 
-export DJANGO_SETTINGS_MODULE=goldstone.settings.production
+export DJANGO_SETTINGS_MODULE=goldstone.settings.local
