@@ -63,12 +63,18 @@ Activating and deactivating the environment can be done with the following comma
 
 Install mysql and create development and test databases. Create a user goldstone with the role goldstone (or edit your development.py settings file)::
 
+    $ brew install elasticsearch 
+    $ brew install redis 
+    $ brew install phantomjs
     $ brew install mysql  # for the mac, assuming you have brew installed
     $ mysqladmin  -u root -p create goldstone_dev
     $ mysqladmin  -u root -p create goldstone_test
     $ mysqladmin  -u root -p create goldstone
-    $ brew install elasticsearch 
-    $ brew install redis 
+    $ mysql -u root
+        > connect goldstone_test
+        > CREATE USER 'goldstone'@'localhost' IDENTIFIED BY 'goldstone';
+        > GRANT ALL PRIVILEGES ON * . * TO 'goldstone'@'localhost';
+        > FLUSH PRIVILEGES;
 
 Clone Goldstone from the bitbucket repo::
 
