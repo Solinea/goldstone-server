@@ -1,0 +1,11 @@
+#ping rect {
+	fill: darkgray;
+}
+
+#unadmin rect {
+	fill: goldenrod;
+}
+
+.swimlane {
+	fill-opacity: 0.4;
+}
