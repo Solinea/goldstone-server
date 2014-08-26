@@ -427,8 +427,8 @@ goldstone.charts.hostAvail = {
 
         this.ns.xAxis = d3.svg.axis().orient("bottom").ticks(5).tickFormat(d3.time.format("%H:%M:%S"))
         this.ns.xScale = d3.time.scale()
-			.range([this.ns.margin.left, this.ns.mw - this.ns.margin.right])
-			.nice()
+      .range([this.ns.margin.left, this.ns.mw - this.ns.margin.right])
+      .nice()
         this.ns.yAxis = d3.svg.axis().orient("left")
         this.ns.yLogs = d3.scale.linear().range([this.ns.h.main - this.ns.margin.bottom * 2, this.ns.margin.top * 2])
         this.ns.yPing = d3.scale.linear().range([0, this.ns.margin.top])
@@ -484,7 +484,7 @@ goldstone.charts.hostAvail = {
             .attr("transform", "translate(" + (this.ns.margin.left / 2) + ",0)");
 
         this.ns.tooltip = d3.select(this.ns.location).append("div")
-			.attr("class", "tooltip")
+      .attr("class", "tooltip")
             .style("opacity", 0);
 
         this.ns.dataset = null;
@@ -494,7 +494,7 @@ goldstone.charts.hostAvail = {
     redraw: function () {
         goldstone.goldstone.hostAvail.yLogs.domain([0, d3.max(goldstone.goldstone.hostAvail.dataset.map(function (d) {
             return goldstone.charts.hostAvail.sums(d);
-		}))]);
+    }))]);
 
         d3.select(".y.axis")
             .transition()
@@ -515,10 +515,10 @@ goldstone.charts.hostAvail = {
                     }[d.swimlane];
                 })
             .attr("r", function (d) {
-				// Fixed radii for now.
+        // Fixed radii for now.
                 return d.swimlane === "logs"
-					? goldstone.goldstone.hostAvail.r(64)
-					: goldstone.goldstone.hostAvail.r(20);
+          ? goldstone.goldstone.hostAvail.r(64)
+          : goldstone.goldstone.hostAvail.r(20);
             })
             .style("opacity", function (d) {
                 if (d.swimlane === "logs") {
@@ -544,8 +544,8 @@ goldstone.charts.hostAvail = {
             // Set the animation to not step over itself
             goldstone.goldstone.hostAvail.animation.pause = true;
             var uri = "/static/data/logging_nodes." +
-					goldstone.goldstone.hostAvail.animation.index +
-					".json";
+          goldstone.goldstone.hostAvail.animation.index +
+          ".json";
             d3.json(uri, function (error, allthelogs) {
                 /*
                  * Shape the dataset
@@ -559,24 +559,24 @@ goldstone.charts.hostAvail = {
                         d.updated = parsify(d.updated)
                         d.last_seen = parsify(d.last_seen)
 
-						/*
-						 * Figure out which kind of messages are reported most
-						 * by the node.  That will determine its color later.
-						 */
+            /*
+             * Figure out which kind of messages are reported most
+             * by the node.  That will determine its color later.
+             */
                         d.level = goldstone.goldstone.hostAvail.loglevel.domain()
-							.map(function (l) { return [l, d[l + "_count"]]; })
-							.sort(function(a, b) {
-									return d3.descending(a[1], b[1]);
-								})
-							[0][0];
+              .map(function (l) { return [l, d[l + "_count"]]; })
+              .sort(function(a, b) {
+                  return d3.descending(a[1], b[1]);
+                })
+              [0][0];
 
-						/*
-						 * Figure out which bucket (logs, ping, or admin disabled)
-						 * each node belongs to.
-						 */
+            /*
+             * Figure out which bucket (logs, ping, or admin disabled)
+             * each node belongs to.
+             */
                         d.swimlane = d.admin_disabled
-							? "unadmin"
-							: d.last_seen_method.toLowerCase();
+              ? "unadmin"
+              : d.last_seen_method.toLowerCase();
                         return d;
                     })
                     .sort(function (a, b) {
@@ -643,25 +643,25 @@ goldstone.charts.hostAvail = {
                         return d.swimlane !== "logs" ? d.swimlane : d.level;
                     })
                     .on("mouseover", function (d) {
-						goldstone.goldstone.hostAvail.tooltip
-							.html(d.name + "<br/>" +
-                            	"(" + d.uuid + ")" + "<br/>" +
-                            	"Errors: " + d.error_count + "<br/>" +
-                            	"Warnings: " + d.warning_count + "<br/>" +
-                            	"Info: " + d.info_count + "<br/>" +
-                            	"Audit: " + d.audit_count + "<br/>" +
-                            	"Debug: " + d.debug_count + "<br/>"
-							);
+            goldstone.goldstone.hostAvail.tooltip
+              .html(d.name + "<br/>" +
+                              "(" + d.uuid + ")" + "<br/>" +
+                              "Errors: " + d.error_count + "<br/>" +
+                              "Warnings: " + d.warning_count + "<br/>" +
+                              "Info: " + d.info_count + "<br/>" +
+                              "Audit: " + d.audit_count + "<br/>" +
+                              "Debug: " + d.debug_count + "<br/>"
+              );
 
-						goldstone.goldstone.hostAvail.tooltip
-						  .transition().duration(200)
+            goldstone.goldstone.hostAvail.tooltip
+              .transition().duration(200)
                             .style("opacity", 0.9)
                             .style("left", d3.select(this).attr("cx") + 20 + "px")
                             .style("top", d3.select(this).attr("cy") + 20 + "px")
                     })
                     .on("mouseout", function (d) {
-						goldstone.goldstone.hostAvail.tooltip
-						  .transition().duration(500)
+            goldstone.goldstone.hostAvail.tooltip
+              .transition().duration(500)
                             .style("opacity", 1e-6);
                     });
 
@@ -1309,41 +1309,41 @@ goldstone.charts.topologyTree = {
             })
             .attr("transform", "scale(0.0000001)")
 
-		// Map of icons to the classes in which they'll be used
-		d3.map({
-			icon_backup      : ['backups-leaf', 'snapshots-leaf'],
-			icon_cloud       : ['cloud', 'region'],
-			icon_endpoint    : ['endpoints-leaf'],
-			icon_host        : ['host', 'hosts-leaf', 'hypervisors-leaf',
-				'servers-leaf'],
-			icon_image       : ['images-leaf'],
-			icon_module      : ['module', 'secgroups-leaf'],
-			icon_role        : ['roles-leaf'],
-			icon_service     : ['service', 'services-leaf'],
-			icon_tenant      : ['tenants-leaf'],
-			icon_types       : ['volume-types-leaf'],
-			icon_user        : ['users-leaf'],
-			icon_volume      : ['volume', 'volumes-leaf'],
-			icon_vol_transfer: ['agents-leaf', 'transfers-leaf'],
-			icon_zone        : ['zone', 'aggregates-leaf', 'cloudpipes-leaf',
-				'flavors-leaf', 'floating-ip-pools-leaf', 'networks-leaf'],
+    // Map of icons to the classes in which they'll be used
+    d3.map({
+      icon_backup      : ['backups-leaf', 'snapshots-leaf'],
+      icon_cloud       : ['cloud', 'region'],
+      icon_endpoint    : ['endpoints-leaf'],
+      icon_host        : ['host', 'hosts-leaf', 'hypervisors-leaf',
+        'servers-leaf'],
+      icon_image       : ['images-leaf'],
+      icon_module      : ['module', 'secgroups-leaf'],
+      icon_role        : ['roles-leaf'],
+      icon_service     : ['service', 'services-leaf'],
+      icon_tenant      : ['tenants-leaf'],
+      icon_types       : ['volume-types-leaf'],
+      icon_user        : ['users-leaf'],
+      icon_volume      : ['volume', 'volumes-leaf'],
+      icon_vol_transfer: ['agents-leaf', 'transfers-leaf'],
+      icon_zone        : ['zone', 'aggregates-leaf', 'cloudpipes-leaf',
+        'flavors-leaf', 'floating-ip-pools-leaf', 'networks-leaf'],
 
-		}).forEach(function(icon, classes) {
-			// Acutally attach the icons to the classes
-			d3.xml(imgFile(icon), "image/svg+xml", function (img) {
-				classes.forEach(function(c) {
-					ns.chart.selectAll(".icon.main." + c + "-icon")
-						.each(function () {
-							d3.select(this).node().appendChild(
-								img.getElementsByTagName("svg")[0].cloneNode(true))
-						})
-				});
-			}); // d3.xml()
-		}); // forEach
+    }).forEach(function(icon, classes) {
+      // Acutally attach the icons to the classes
+      d3.xml(imgFile(icon), "image/svg+xml", function (img) {
+        classes.forEach(function(c) {
+          ns.chart.selectAll(".icon.main." + c + "-icon")
+            .each(function () {
+              d3.select(this).node().appendChild(
+                img.getElementsByTagName("svg")[0].cloneNode(true))
+            })
+        });
+      }); // d3.xml()
+    }); // forEach
 
-		function imgFile(icon) {
-			return "/static/images/" + icon + ".svg";
-		}
+    function imgFile(icon) {
+      return "/static/images/" + icon + ".svg";
+    }
 
         // Transition nodes to their new position.
         var nodeUpdate = node
