@@ -381,19 +381,11 @@ goldstone.charts.hostAvail = {
 
     initSettingsForm: function () {
         $("#settingsUpdateButton").click(function () {
-            if (goldstone.charts.hostAvail.isRefreshSelected()) {
-                goldstone.goldstone.hostAvail.animation = {
-                    pause: false,
-                    delay: goldstone.charts.hostAvail.refreshInterval(),
-                    index: 1
-                };
-                d3.timer(goldstone.charts.hostAvail.update);
-            } else {
-                goldstone.goldstone.hostAvail.animation = {
-                    pause: true,
-                    delay: goldstone.charts.hostAvail.refreshInterval(),
-                    index: 1
-                };
+            goldstone.goldstone.hostAvail.animation.delay = goldstone.charts.hostAvail.refreshInterval();
+            goldstone.goldstone.hostAvail.animation.pause = !goldstone.charts.hostAvail.isRefreshSelected()
+
+            if(!goldstone.goldstone.hostAvail.animation.pause) {
+                d3.timer(goldstone.charts.hostAvail.update, goldstone.goldstone.hostAvail.animation.delay * 1000);
             }
         });
     },
@@ -586,8 +578,9 @@ goldstone.charts.hostAvail = {
     }, // sums()
 
     update: function () {
+            console.log("in update", goldstone.goldstone.hostAvail.animation);
             // If we are paused or beyond the available jsons, exit
-            if (goldstone.goldstone.hostAvail.animation.pause || goldstone.goldstone.hostAvail.animation.index > 10) {
+            if (goldstone.goldstone.hostAvail.animation.pause) {
                 return true;
             }
 
@@ -597,6 +590,15 @@ goldstone.charts.hostAvail = {
           goldstone.goldstone.hostAvail.animation.index +
           ".json";
             d3.json(uri, function (error, allthelogs) {
+                // If we didn't receive any valid files, abort and pause
+                // there may need to be a user notification added here at
+                // some point.  We'll see.
+                if(typeof allthelogs === "undefined") {
+                    goldstone.goldstone.hostAvail.animation.pause = true;
+                    return;
+                }
+
+
                 /*
                  * Shape the dataset
                  *   - Convert datetimes to integer
