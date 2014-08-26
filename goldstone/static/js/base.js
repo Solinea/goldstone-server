@@ -412,7 +412,7 @@ goldstone.charts.hostAvail = {
     },
 
     initSvg: function () {
-        this.ns.margin = { top: 30, bottom: 60, right: 30, left: 60 }
+        this.ns.margin = { top: 25, bottom: 25, right: 60, left: 40 }
         this.ns.w = $(this.ns.location).width()
         this.ns.mw = this.ns.w - this.ns.margin.left - this.ns.margin.right
         this.ns.mh = this.ns.h.main - this.ns.margin.top - this.ns.margin.bottom
@@ -425,14 +425,19 @@ goldstone.charts.hostAvail = {
             .domain(["debug", "audit", "info", "warning", "error"])
             .range(["#6a51a3", "#2171b5", "#238b45", "#d94801", "#cb181d"])
 
-        this.ns.xAxis = d3.svg.axis().orient("bottom").ticks(5).tickFormat(d3.time.format("%H:%M:%S"))
+        this.ns.xAxis = d3.svg.axis()
+            .orient("bottom")
+            .ticks(5)
+            .tickFormat(d3.time.format("%H:%M:%S"))
         this.ns.xScale = d3.time.scale()
-      .range([this.ns.margin.left, this.ns.mw - this.ns.margin.right])
-      .nice()
+            .range([this.ns.margin.left, this.ns.mw - this.ns.margin.right])
+            .nice()
         this.ns.yAxis = d3.svg.axis().orient("left")
-        this.ns.yLogs = d3.scale.linear().range([this.ns.h.main - this.ns.margin.bottom * 2, this.ns.margin.top * 2])
+        this.ns.yLogs = d3.scale.linear()
+			.range([this.ns.h.main - this.ns.margin.bottom * 2, this.ns.margin.top * 2])
         this.ns.yPing = d3.scale.linear().range([0, this.ns.margin.top])
-        this.ns.yUnadmin = d3.scale.linear().range([this.ns.h.main, this.ns.h.main - this.ns.margin.bottom ]);
+        this.ns.yUnadmin = d3.scale.linear()
+			.range([this.ns.h.main, this.ns.h.main - this.ns.margin.bottom ]);
 
         this.ns.animation = { pause: false, delay: 5, index: 1 };
         /*
@@ -454,7 +459,9 @@ goldstone.charts.hostAvail = {
             .append("label")
             .text(function (d) { return d; })
             .attr("class", function (d) { return "btn btn-log-" + d; })
-            .classed("active", function (d) { return goldstone.goldstone.hostAvail.filter[d]; })
+            .classed("active", function (d) {
+				return goldstone.goldstone.hostAvail.filter[d];
+			})
             .attr("id", function (d) { return d; })
             .on("click", function (d) {
                 goldstone.goldstone.hostAvail.filter[d] = !goldstone.goldstone.hostAvail.filter[d];
@@ -474,6 +481,49 @@ goldstone.charts.hostAvail = {
             .attr("transform", "translate(" + this.ns.margin.left + "," + this.ns.margin.top + ")");
 
         this.ns.graph = this.ns.svg.append("g").attr("id", "graph");
+
+		// Visual swim lanes
+		this.ns.graph.append("g")
+			.attr("id", "ping")
+			.attr("class", "swimlane")
+		  .append("rect")
+			.attr("x", goldstone.goldstone.hostAvail.xScale.range()[0])
+			.attr("y", goldstone.goldstone.hostAvail.yPing.range()[0])
+			.attr("width", goldstone.goldstone.hostAvail.xScale.range()[1] + this.ns.margin.right)
+			.attr("height", goldstone.goldstone.hostAvail.yPing.range()[1]);
+
+		this.ns.graph.append("g")
+			.attr("id", "unadmin")
+			.attr("class", "swimlane")
+			.attr("transform", "translate(0," + (this.ns.h.main - this.ns.margin.bottom) + ")")
+		  .append("rect")
+		    .attr("x", goldstone.goldstone.hostAvail.xScale.range()[0])
+			.attr("y", 0)
+			.attr("width", goldstone.goldstone.hostAvail.xScale.range()[1] + this.ns.margin.right)
+			.attr("height", Math.abs(goldstone.goldstone.hostAvail.yUnadmin.range()[1] - goldstone.goldstone.hostAvail.yUnadmin.range()[0]));
+
+		this.ns.graph.select("#ping")
+		  .append("text")
+			.attr("x", goldstone.goldstone.hostAvail.xScale.range()[1])
+			.selectAll("tspan")
+			.data("Ping only".split('/'), function(d) { return d; })
+		  .enter().append("tspan")
+			.attr("x", goldstone.goldstone.hostAvail.xScale.range()[1] + this.ns.margin.left / 2)
+			.attr("dy", "1.2em")
+			.attr("text-anchor", "start")
+			.text(function(d) { return d; });
+
+		this.ns.graph.select("#unadmin")
+		  .append("text")
+			.attr("x", goldstone.goldstone.hostAvail.xScale.range()[1])
+			.selectAll("tspan")
+			.data("Disabled".split('/'), function(d) { return d; })
+		  .enter().append("tspan")
+		    .attr("x", goldstone.goldstone.hostAvail.xScale.range()[1] + this.ns.margin.left / 2)
+			.attr("dy", "1.2em")
+			.attr("text-anchor", "start")
+			.text(function(d) { return d; });
+
 
         this.ns.graph.append("g")
             .attr("class", "x axis")
@@ -503,17 +553,17 @@ goldstone.charts.hostAvail = {
 
         goldstone.goldstone.hostAvail.graph.selectAll("circle")
           .transition().duration(500)
-            .attr("class", function (d) {
-                return d.swimlane !== "logs" ? d.swimlane : d.level;
-            })
-            .attr("cx", function (d) { return goldstone.goldstone.hostAvail.xScale(d.last_seen); })
+            .attr("class", function (d) { return d.level; })
+            .attr("cx", function (d) {
+				return goldstone.goldstone.hostAvail.xScale(d.last_seen);
+			})
             .attr("cy", function (d) {
-                    return {
-                        "unadmin": d3.mean(goldstone.goldstone.hostAvail.yUnadmin.range()),
-                        "ping": d3.mean(goldstone.goldstone.hostAvail.yPing.range()),
-                        "logs": goldstone.goldstone.hostAvail.yLogs(goldstone.charts.hostAvail.sums(d))
-                    }[d.swimlane];
-                })
+                return {
+                    "unadmin": d3.mean(goldstone.goldstone.hostAvail.yUnadmin.range()),
+                    "ping": d3.mean(goldstone.goldstone.hostAvail.yPing.range()),
+                    "logs": goldstone.goldstone.hostAvail.yLogs(goldstone.charts.hostAvail.sums(d))
+                }[d.swimlane];
+            })
             .attr("r", function (d) {
         // Fixed radii for now.
                 return d.swimlane === "logs"
@@ -639,9 +689,7 @@ goldstone.charts.hostAvail = {
                         return goldstone.goldstone.hostAvail.yLogs(goldstone.charts.hostAvail.sums(d));
                     })
                     .attr("r", goldstone.goldstone.hostAvail.r(0))
-                    .attr("class", function (d) {
-                        return d.swimlane !== "logs" ? d.swimlane : d.level;
-                    })
+                    .attr("class", function (d) { return d.level; })
                     .on("mouseover", function (d) {
             goldstone.goldstone.hostAvail.tooltip
               .html(d.name + "<br/>" +
@@ -668,9 +716,7 @@ goldstone.charts.hostAvail = {
                 goldstone.charts.hostAvail.redraw();
 
                 circle.exit()
-                    .attr("class", function (d) {
-                        return "older";
-                    });
+                    .attr("class", function (d) { return "older"; });
 
                 goldstone.goldstone.hostAvail.animation.index += 1;
 
