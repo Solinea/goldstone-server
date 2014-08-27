@@ -528,21 +528,7 @@ goldstone.charts.hostAvail = {
 
         this.ns.dataset = null;
 
-    },
-
-    redraw: function () {
-        goldstone.goldstone.hostAvail.yLogs.domain([
-            0,
-            d3.max(goldstone.goldstone.hostAvail.dataset.map(function (d) {
-                return goldstone.charts.hostAvail.sums(d);
-            }))
-        ]);
-
-        d3.select(".y.axis")
-            .transition()
-            .duration(500)
-            .call(goldstone.goldstone.hostAvail.yAxis.scale(goldstone.goldstone.hostAvail.yLogs));
-
+        // Swim Lane labels on the left
         d3.select(".swim.axis")
             .call(goldstone.goldstone.hostAvail.swimAxis.scale(goldstone.goldstone.hostAvail.ySwimLane))
             .selectAll("text")
@@ -566,13 +552,33 @@ goldstone.charts.hostAvail = {
             })
             .style("font", "12px sans-serif");
 
-        // Add "logs" area label
+        // Add "logs" area label on the left
         goldstone.goldstone.hostAvail.graph.append("text")
             .attr("transform", "translate(0" + "," + goldstone.goldstone.hostAvail.mh / 2 + ") rotate(-90)")
             .text("Logs")
             .attr("text-anchor", "middle")
             .style("font", "12px sans-serif");
 
+
+    },
+
+    redraw: function () {
+        goldstone.goldstone.hostAvail.yLogs.domain([
+            0,
+            d3.max(goldstone.goldstone.hostAvail.dataset.map(function (d) {
+                return goldstone.charts.hostAvail.sums(d);
+            }))
+        ]);
+
+        d3.select(".swim.axis")
+            .transition()
+            .duration(500)
+            .call(goldstone.goldstone.hostAvail.swimAxis.scale(goldstone.goldstone.hostAvail.ySwimLane));
+
+        d3.select(".y.axis")
+            .transition()
+            .duration(500)
+            .call(goldstone.goldstone.hostAvail.yAxis.scale(goldstone.goldstone.hostAvail.yLogs));
 
         goldstone.goldstone.hostAvail.graph.selectAll("circle")
           .transition().duration(500)
