@@ -412,12 +412,16 @@ goldstone.charts.hostAvail = {
         this.ns.parser2 = d3.time.format.utc("%Y-%m-%dT%H:%M:%S.%LZ")
         this.ns.parser = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ")
 
-        this.ns.r = d3.scale.sqrt()
+        this.ns.r = d3.scale.sqrt();
         this.ns.loglevel = d3.scale.ordinal()
             .domain(["debug", "audit", "info", "warning", "error"])
-            .range(["#6a51a3", "#2171b5", "#238b45", "#d94801", "#cb181d"])
+            .range(["#6a51a3", "#2171b5", "#238b45", "#d94801", "#cb181d"]);
 
-        this.ns.xAxis = d3.svg.axis()
+        this.ns.pingAxis = d3.svg.axis()
+            .orient("top")
+            .ticks(5)
+            .tickFormat(d3.time.format("%H:%M:%S"))
+        this.ns.unadminAxis = d3.svg.axis()
             .orient("bottom")
             .ticks(5)
             .tickFormat(d3.time.format("%H:%M:%S"))
@@ -427,7 +431,7 @@ goldstone.charts.hostAvail = {
         this.ns.yAxis = d3.svg.axis().orient("right")
         this.ns.swimAxis = d3.svg.axis().orient("left")
         this.ns.ySwimLane = d3.scale.ordinal()
-            .domain(["unadmin"].concat(this.ns.loglevel.domain().concat(["ping"])))
+            .domain(["unadmin", "padding1"].concat(this.ns.loglevel.domain().concat(["padding2", "ping"])))
             .rangeRoundBands([this.ns.h.main, 0], 0.1);
         this.ns.yLogs = d3.scale.linear()
             .range([
@@ -497,10 +501,13 @@ goldstone.charts.hostAvail = {
                     + ")";
             });
 
+        this.ns.graph.append("g")
+            .attr("class", "xping axis")
+            .attr("transform", "translate(0," + (this.ns.ySwimLane.rangeBand()) + ")");
 
         this.ns.graph.append("g")
-            .attr("class", "x axis invisible-axis")
-            .attr("transform", "translate(0," + this.ns.h.main + ")");
+            .attr("class", "xunadmin axis")
+            .attr("transform", "translate(0," + (this.ns.h.main - this.ns.ySwimLane.rangeBand())+ ")");
 
         this.ns.graph.append("g")
             .attr("class", "y axis invisible-axis")
@@ -544,7 +551,7 @@ goldstone.charts.hostAvail = {
 
         // Add "logs" area label
         goldstone.goldstone.hostAvail.svg.append("text")
-            .attr("transform", "translate(0, " + goldstone.goldstone.hostAvail.mh / 2 + ") rotate(-90)")
+            .attr("transform", "translate(-" + goldstone.goldstone.hostAvail.margin.left / 2 + "," + goldstone.goldstone.hostAvail.mh / 2 + ") rotate(-90)")
             .text("Logs")
             .attr("text-anchor", "middle");
 
@@ -558,9 +565,11 @@ goldstone.charts.hostAvail = {
                 return goldstone.goldstone.hostAvail.xScale(d.last_seen);
             })
             .attr("cy", function (d) {
-                return d.swimlane === "logs"
-                    ? goldstone.goldstone.hostAvail.yLogs(goldstone.charts.hostAvail.sums(d))
-                    : goldstone.goldstone.hostAvail.ySwimLane(d.swimlane);
+                return {
+                    logs: goldstone.goldstone.hostAvail.yLogs(goldstone.charts.hostAvail.sums(d)),
+                    ping: goldstone.goldstone.hostAvail.ySwimLane(d.swimlane),
+                    unadmin: goldstone.goldstone.hostAvail.ySwimLane(d.swimlane) + goldstone.goldstone.hostAvail.ySwimLane.rangeBand()
+                }[d.swimlane];
             })
             .attr("r", function (d) {
         // Fixed radii for now.
@@ -656,12 +665,14 @@ goldstone.charts.hostAvail = {
                 goldstone.goldstone.hostAvail.xScale.domain(d3.extent(goldstone.goldstone.hostAvail.dataset.map(function (d) {
                     return d.last_seen;
                 })));
-                goldstone.goldstone.hostAvail.xAxis.scale(goldstone.goldstone.hostAvail.xScale);
-                goldstone.goldstone.hostAvail.svg.select(".x.axis")
-                    .transition()
-                    .duration(500)
-                    .call(goldstone.goldstone.hostAvail.xAxis);
+                goldstone.goldstone.hostAvail.pingAxis.scale(goldstone.goldstone.hostAvail.xScale);
+                goldstone.goldstone.hostAvail.unadminAxis.scale(goldstone.goldstone.hostAvail.xScale);
 
+                goldstone.goldstone.hostAvail.svg.select(".xping.axis")
+                    .call(goldstone.goldstone.hostAvail.pingAxis);
+
+                goldstone.goldstone.hostAvail.svg.select(".xunadmin.axis")
+                    .call(goldstone.goldstone.hostAvail.unadminAxis);
 
                 goldstone.goldstone.hostAvail.yLogs.domain([0, d3.max(goldstone.goldstone.hostAvail.dataset.map(function (d) {
                     // add up all the *_counts
