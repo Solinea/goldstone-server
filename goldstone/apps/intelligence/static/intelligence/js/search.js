@@ -16,14 +16,14 @@
  * Author: John Stanford
  */
 
-var autoRefreshInterval
+var autoRefreshInterval;
 
 function updateLogSearch() {
     var dates = _getSearchFormDates(),
         start = dates[0],
-        end = dates[1]
-    badEventMultiLine('#bad-event-multiline', start, end)
-    drawSearchTable('#log-search-table', start, end)
+        end = dates[1];
+    badEventMultiLine('#bad-event-multiline', start, end);
+    drawSearchTable('#log-search-table', start, end);
 }
 
 function refreshLogSearch() {
@@ -31,22 +31,22 @@ function refreshLogSearch() {
     var dates = _getSearchFormDates(),
         start = new Date(dates[0]),
         end = dates[1],
-        refreshInterval = $('#autoRefreshInterval').val()
+        refreshInterval = $('#autoRefreshInterval').val();
 
-    start.addSeconds(refreshInterval / 1000)
-    populateSettingsFields(start, end)
-    updateLogSearch()
+    start.addSeconds(refreshInterval / 1000);
+    populateSettingsFields(start, end);
+    updateLogSearch();
 }
 
 $("#settingsUpdateButton").click(function () {
     "use strict";
-    updateLogSearch()
+    updateLogSearch();
     if (isRefreshing()) {
-        window.clearInterval(autoRefreshInterval)
-        startLogSearchRefresh()
+        window.clearInterval(autoRefreshInterval);
+        startLogSearchRefresh();
     } else {
         if (typeof autoRefreshInterval !== 'undefined') {
-            window.clearInterval(autoRefreshInterval)
+            window.clearInterval(autoRefreshInterval);
         }
     }
 
@@ -54,5 +54,5 @@ $("#settingsUpdateButton").click(function () {
 
 function startLogSearchRefresh() {
     "use strict";
-    autoRefreshInterval = window.setInterval(refreshLogSearch, getRefreshInterval())
+    autoRefreshInterval = window.setInterval(refreshLogSearch, getRefreshInterval());
 }
