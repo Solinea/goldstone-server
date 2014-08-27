@@ -9,3 +9,8 @@
 .swimlane {
 	fill-opacity: 0.4;
 }
+
+.swim.axis.invisible-axis .tick line {
+	fill: none;
+	stroke: none;
+}
