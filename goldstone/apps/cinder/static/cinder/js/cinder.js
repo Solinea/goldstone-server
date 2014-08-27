@@ -16,37 +16,37 @@
  * Author: John Stanford
  */
 
-goldstone.namespace('cinder.report')
-goldstone.namespace('cinder.apiPerf')
-goldstone.namespace('cinder.topology')
+goldstone.namespace('cinder.report');
+goldstone.namespace('cinder.apiPerf');
+goldstone.namespace('cinder.topology');
 
 goldstone.cinder.apiPerf.url = function (start, end, interval, render) {
     "use strict";
-    var ns = goldstone.cinder.apiPerf,
-        gt = goldstone.time,
-        path = "/cinder/api_perf",
-        url
+    var ns = goldstone.cinder.apiPerf;
+    var gt = goldstone.time;
+    var path = "/cinder/api_perf";
+    var url;
 
-    start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start)
-    end = end ? gt.toPyTs(end) : gt.toPyTs(ns.end)
-    interval = interval ? interval : ns.interval
+    start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start);
+    end = end ? gt.toPyTs(end) : gt.toPyTs(ns.end);
+    interval = interval ? interval : ns.interval;
 
     url = path +
         "?start=" + start +
         "&end=" + end +
-        "&interval=" + interval
+        "&interval=" + interval;
     if (typeof render !== 'undefined') {
-        url += "&render=" + render
+        url += "&render=" + render;
     }
-    return url
-}
+    return url;
+};
 
 goldstone.cinder.topology.url = function (render) {
     "use strict";
-    var url = "/cinder/topology"
+    var url = "/cinder/topology";
 
     if (typeof render !== 'undefined') {
-        url += "?render=" + render
+        url += "?render=" + render;
     }
-    return url
-}
+    return url;
+};
