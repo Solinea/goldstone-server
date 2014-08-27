@@ -623,14 +623,17 @@ goldstone.charts.hostAvail = {
 
             // Set the animation to not step over itself
             goldstone.goldstone.hostAvail.animation.pause = true;
-            var uri = "/static/data/logging_nodes." +
-          goldstone.goldstone.hostAvail.animation.index +
-          ".json";
+            //var uri = "/static/data/logging_nodes." +
+            //  goldstone.goldstone.hostAvail.animation.index +
+            //  ".json";
+            var uri = "/logging/nodes"
             d3.json(uri, function (error, allthelogs) {
                 // If we didn't receive any valid files, abort and pause
                 // there may need to be a user notification added here at
                 // some point.  We'll see.
-                if(typeof allthelogs === "undefined") {
+
+                // TODO should paint the empty chart anyway, then start refreshing
+                if(typeof allthelogs.results === "undefined") {
                     goldstone.goldstone.hostAvail.animation.pause = true;
                     return;
                 }
@@ -641,9 +644,9 @@ goldstone.charts.hostAvail = {
                  *   - Convert datetimes to integer
                  *   - Sort by last seen (from most to least recent)
                  */
-                goldstone.goldstone.hostAvail.dataset = allthelogs
+                goldstone.goldstone.hostAvail.dataset = allthelogs.results
                     .map(function (d) {
-                        d = JSON.parse(d); // weird artifact of django's response?
+                        //d = JSON.parse(d); // weird artifact of django's response?
                         d.created = parsify(d.created)
                         d.updated = parsify(d.updated)
                         d.last_seen = parsify(d.last_seen)
