@@ -16,38 +16,37 @@
  * Author: John Stanford
  */
 
-goldstone.namespace('glance.report')
-goldstone.namespace('glance.apiPerf')
-goldstone.namespace('glance.topology')
+goldstone.namespace('glance.report');
+goldstone.namespace('glance.apiPerf');
+goldstone.namespace('glance.topology');
 
 goldstone.glance.apiPerf.url = function (start, end, interval, render) {
     "use strict";
-    var ns = goldstone.glance.apiPerf,
-        gt = goldstone.time,
-        path = "/glance/api_perf",
-        url
+    var ns = goldstone.glance.apiPerf;
+    var gt = goldstone.time;
+    var path = "/glance/api_perf";
+    var url;
 
-    start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start)
-    end = end ? gt.toPyTs(end) : gt.toPyTs(ns.end)
-    interval = interval ? interval : ns.interval
+    start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start);
+    end = end ? gt.toPyTs(end) : gt.toPyTs(ns.end);
+    interval = interval ? interval : ns.interval;
 
     url = path +
         "?start=" + start +
         "&end=" + end +
-        "&interval=" + interval
+        "&interval=" + interval;
     if (typeof render !== 'undefined') {
-        url += "&render=" + render
+        url += "&render=" + render;
     }
-    return url
-}
+    return url;
+};
 
 goldstone.glance.topology.url = function (render) {
     "use strict";
-    var url = "/glance/topology"
+    var url = "/glance/topology";
 
     if (typeof render !== 'undefined') {
-        url += "?render=" + render
+        url += "?render=" + render;
     }
-    return url
-}
-
+    return url;
+};

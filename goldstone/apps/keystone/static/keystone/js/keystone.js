@@ -16,37 +16,37 @@
  * Author: John Stanford
  */
 
-goldstone.namespace('keystone.report')
-goldstone.namespace('keystone.apiPerf')
-goldstone.namespace('keystone.topology')
+goldstone.namespace('keystone.report');
+goldstone.namespace('keystone.apiPerf');
+goldstone.namespace('keystone.topology');
 
 goldstone.keystone.apiPerf.url = function (start, end, interval, render) {
     "use strict";
-     var ns = goldstone.keystone.apiPerf,
-        gt = goldstone.time,
-        path = "/keystone/api_perf",
-        url
+    var ns = goldstone.keystone.apiPerf;
+    var gt = goldstone.time;
+    var path = "/keystone/api_perf";
+    var url;
 
-    start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start)
-    end = end ? gt.toPyTs(end) : gt.toPyTs(ns.end)
-    interval = interval ? interval : ns.interval
+    start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start);
+    end = end ? gt.toPyTs(end) : gt.toPyTs(ns.end);
+    interval = interval ? interval : ns.interval;
 
     url = path +
         "?start=" + start +
         "&end=" + end +
-        "&interval=" + interval
+        "&interval=" + interval;
     if (typeof render !== 'undefined') {
-        url += "&render=" + render
+        url += "&render=" + render;
     }
-    return url
-}
+    return url;
+};
 
 goldstone.keystone.topology.url = function (render) {
     "use strict";
-    var url = "/keystone/topology"
+    var url = "/keystone/topology";
 
     if (typeof render !== 'undefined') {
-        url += "?render=" + render
+        url += "?render=" + render;
     }
-    return url
-}
+    return url;
+};
