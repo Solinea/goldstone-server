@@ -130,6 +130,8 @@ goldstone/settings/local_prod.py
 goldstone/settings/local_test.py
 celerybeat-schedule.db
 dump.rdb
+bower_components/
+node_modules/
 
 # vagrant related
 .vagrant/*
