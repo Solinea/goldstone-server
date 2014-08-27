@@ -16,30 +16,30 @@
  * Author: John Stanford
  */
 
-goldstone.namespace('neutron.report')
-goldstone.namespace('neutron.apiPerf')
-goldstone.namespace('neutron.timeRange')
+goldstone.namespace('neutron.report');
+goldstone.namespace('neutron.apiPerf');
+goldstone.namespace('neutron.timeRange');
 
 goldstone.neutron.timeRange._url = function (ns, start, end, interval, render, path) {
     "use strict";
-    var gt = goldstone.time
-    start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start)
-    end = end ? gt.toPyTs(end) : gt.toPyTs(ns.end)
-    interval = interval ? interval : ns.interval
+    var gt = goldstone.time;
+    start = start ? gt.toPyTs(start) : gt.toPyTs(ns.start);
+    end = end ? gt.toPyTs(end) : gt.toPyTs(ns.end);
+    interval = interval ? interval : ns.interval;
 
     var url = path +
         "?start=" + start +
         "&end=" + end +
-        "&interval=" + interval
+        "&interval=" + interval;
     if (typeof render !== 'undefined') {
-        url += "&render=" + render
+        url += "&render=" + render;
     }
-    return url
-}
+    return url;
+};
 
 goldstone.neutron.apiPerf.url = function (start, end, interval, render) {
     "use strict";
     var ns = goldstone.neutron.apiPerf,
-        path = "/neutron/api_perf"
-    return goldstone.neutron.timeRange._url(ns, start, end, interval, render, path)
-}
+        path = "/neutron/api_perf";
+    return goldstone.neutron.timeRange._url(ns, start, end, interval, render, path);
+};
