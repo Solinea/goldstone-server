@@ -431,7 +431,7 @@ goldstone.charts.hostAvail = {
         this.ns.yAxis = d3.svg.axis().orient("right")
         this.ns.swimAxis = d3.svg.axis().orient("left")
         this.ns.ySwimLane = d3.scale.ordinal()
-            .domain(["unadmin", "padding1"].concat(this.ns.loglevel.domain().concat(["padding2", "ping"])))
+            .domain(["unadmin"].concat(this.ns.loglevel.domain().concat(["padding1", "padding2", "ping"])))
             .rangeRoundBands([this.ns.h.main, 0], 0.1);
         this.ns.yLogs = d3.scale.linear()
             .range([
@@ -540,7 +540,16 @@ goldstone.charts.hostAvail = {
         d3.select(".swim.axis")
             .call(goldstone.goldstone.hostAvail.swimAxis.scale(goldstone.goldstone.hostAvail.ySwimLane))
             .selectAll("text")
-            .attr("y", -goldstone.goldstone.hostAvail.ySwimLane.rangeBand() / 2)
+            .attr("transform", function(d) {
+                return "translate(0," + (
+                    (d === "ping" || d === "unadmin")
+                        ? {
+                            ping: goldstone.goldstone.hostAvail.ySwimLane.rangeBand()/2 * -1,
+                            unadmin: goldstone.goldstone.hostAvail.ySwimLane.rangeBand()/2,
+                            }[d]
+                        : 0
+                  ) + ")"
+            })
             .attr("dy", "0.71em")
             .text(function(d) {
                 return goldstone.goldstone.hostAvail.swimlanes[d] || d;
