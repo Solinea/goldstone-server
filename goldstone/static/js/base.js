@@ -429,7 +429,7 @@ goldstone.charts.hostAvail = {
             .range([this.ns.margin.left, this.ns.mw - this.ns.margin.right])
             .nice()
         this.ns.yAxis = d3.svg.axis().orient("right")
-        this.ns.swimAxis = d3.svg.axis().orient("right")
+        this.ns.swimAxis = d3.svg.axis().orient("left")
         this.ns.ySwimLane = d3.scale.ordinal()
             .domain(["unadmin"].concat(this.ns.loglevel.domain().concat(["padding1", "padding2", "ping"])))
             .rangeRoundBands([this.ns.h.main, 0], 0.1);
@@ -540,8 +540,11 @@ goldstone.charts.hostAvail = {
         d3.select(".swim.axis")
             .call(goldstone.goldstone.hostAvail.swimAxis.scale(goldstone.goldstone.hostAvail.ySwimLane))
             .selectAll("text")
+            .text(function(d) {
+                return goldstone.goldstone.hostAvail.swimlanes[d] || "";
+            })
             .attr("transform", function(d) {
-                return "translate(0," + (
+                return "translate(10," + (
                     (d === "ping" || d === "unadmin")
                         ? {
                             ping: goldstone.goldstone.hostAvail.ySwimLane.rangeBand()/2 * -1,
@@ -550,19 +553,19 @@ goldstone.charts.hostAvail = {
                         : 0
                   ) + ")"
             })
+			.attr("text-anchor", "start")
             .attr("dy", "0.71em")
-            .text(function(d) {
-                return goldstone.goldstone.hostAvail.swimlanes[d] || d;
-            })
             .style("display", function(d) {
                 return goldstone.goldstone.hostAvail.swimlanes[d] ? null : "none";
-            });
+            })
+			.style("font", "12px sans-serif");
 
         // Add "logs" area label
-        goldstone.goldstone.hostAvail.svg.append("text")
-            .attr("transform", "translate(0" + /*goldstone.goldstone.hostAvail.margin.left / 2 + */"," + goldstone.goldstone.hostAvail.mh / 2 + ") rotate(-90)")
+        goldstone.goldstone.hostAvail.graph.append("text")
+            .attr("transform", "translate(0" + "," + goldstone.goldstone.hostAvail.mh / 2 + ") rotate(-90)")
             .text("Logs")
-            .attr("text-anchor", "middle");
+            .attr("text-anchor", "middle")
+			.style("font", "12px sans-serif");
 
 
         goldstone.goldstone.hostAvail.graph.selectAll("circle")
