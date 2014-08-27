@@ -452,23 +452,23 @@ goldstone.charts.hostAvail = {
         };
 
         // The log-level buttons toggle the specific log level into the total count
-        d3.select("#filterer").selectAll("input")
-            .data(d3.keys(this.ns.filter), function (d) {return d; })
-          .enter().append("div")
+        d3.select("#filterer")
+          .append("div")
             .attr("class", "btn-group")
-          .append("label")
-            .text(function (d) { return d; })
+            .selectAll("button")
+            .data(d3.keys(this.ns.filter), function (d) {return d; })
+          .enter().append("button")
+            .attr("id", function (d) { return d; })
             .attr("class", function (d) { return "btn btn-log-" + d; })
-            .classed("active", function (d) {
+            .classed("active", function(d) {
                 return goldstone.goldstone.hostAvail.filter[d];
             })
-            .attr("id", function (d) { return d; })
+            .attr("type", "button")
+            .text(function (d) { return d; })
             .on("click", function (d) {
                 goldstone.goldstone.hostAvail.filter[d] = !goldstone.goldstone.hostAvail.filter[d];
                 goldstone.charts.hostAvail.redraw();
-            })
-          .append("input")
-            .attr("type", "checkbox");
+            });
 
         /*
          * The graph and axes
@@ -484,8 +484,14 @@ goldstone.charts.hostAvail = {
 
         // Visual swim lanes
         this.ns.swimlanes = {
-            ping: "Ping Only",
-            unadmin: "Disabled",
+            ping: {
+                label: "Ping Only",
+                offset: goldstone.goldstone.hostAvail.ySwimLane.rangeBand()/2 * -1,
+            },
+            unadmin: {
+                label: "Disabled",
+                offset: goldstone.goldstone.hostAvail.ySwimLane.rangeBand()/2,
+            }
         };
 
         this.ns.graph.selectAll(".swimlane")
@@ -541,31 +547,31 @@ goldstone.charts.hostAvail = {
             .call(goldstone.goldstone.hostAvail.swimAxis.scale(goldstone.goldstone.hostAvail.ySwimLane))
             .selectAll("text")
             .text(function(d) {
-                return goldstone.goldstone.hostAvail.swimlanes[d] || "";
+                return goldstone.goldstone.hostAvail.swimlanes[d]
+                    ? goldstone.goldstone.hostAvail.swimlanes[d].label
+                    : "";
             })
             .attr("transform", function(d) {
-                return "translate(10," + (
-                    (d === "ping" || d === "unadmin")
-                        ? {
-                            ping: goldstone.goldstone.hostAvail.ySwimLane.rangeBand()/2 * -1,
-                            unadmin: goldstone.goldstone.hostAvail.ySwimLane.rangeBand()/2,
-                            }[d]
+                return "translate(10,"
+                    + (goldstone.goldstone.hostAvail.swimlanes[d]
+                        ? goldstone.goldstone.hostAvail.swimlanes[d].offset
                         : 0
-                  ) + ")"
+                        )
+                      + ")"
             })
-			.attr("text-anchor", "start")
+            .attr("text-anchor", "start")
             .attr("dy", "0.71em")
             .style("display", function(d) {
                 return goldstone.goldstone.hostAvail.swimlanes[d] ? null : "none";
             })
-			.style("font", "12px sans-serif");
+            .style("font", "12px sans-serif");
 
         // Add "logs" area label
         goldstone.goldstone.hostAvail.graph.append("text")
             .attr("transform", "translate(0" + "," + goldstone.goldstone.hostAvail.mh / 2 + ") rotate(-90)")
             .text("Logs")
             .attr("text-anchor", "middle")
-			.style("font", "12px sans-serif");
+            .style("font", "12px sans-serif");
 
 
         goldstone.goldstone.hostAvail.graph.selectAll("circle")
