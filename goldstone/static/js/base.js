@@ -426,18 +426,13 @@ goldstone.charts.hostAvail = {
             .nice()
         this.ns.yAxis = d3.svg.axis().orient("right")
         this.ns.swimAxis = d3.svg.axis().orient("left")
-        this.ns.SwimLanes = {
-            y: d3.scale.ordinal()
-                .domain(["unadmin"].concat(this.ns.loglevel.domain().concat(["ping"])))
-                .rangeRoundBands([this.ns.h.main, 0], 0.1),
-            x: d3.scale.linear()
-                .domain([0,100])
-                .range([0, this.ns.w])
-        };
+        this.ns.ySwimLane = d3.scale.ordinal()
+            .domain(["unadmin"].concat(this.ns.loglevel.domain().concat(["ping"])))
+            .rangeRoundBands([this.ns.h.main, 0], 0.1);
         this.ns.yLogs = d3.scale.linear()
             .range([
-                this.ns.SwimLanes.y("unadmin") - this.ns.SwimLanes.y.rangeBand()
-                , this.ns.SwimLanes.y("ping") + this.ns.SwimLanes.y.rangeBand()
+                this.ns.ySwimLane("unadmin") - this.ns.ySwimLane.rangeBand()
+                , this.ns.ySwimLane("ping") + this.ns.ySwimLane.rangeBand()
             ]);
 
         this.ns.animation = { pause: false, delay: 5, index: 1 }
@@ -498,7 +493,7 @@ goldstone.charts.hostAvail = {
             .attr("id", function(d) { return d; })
             .attr("transform", function(d) {
                 return "translate(0,"
-                    + goldstone.goldstone.hostAvail.SwimLanes.y(d)
+                    + goldstone.goldstone.hostAvail.ySwimLane(d)
                     + ")";
             });
 
@@ -536,9 +531,9 @@ goldstone.charts.hostAvail = {
             .call(goldstone.goldstone.hostAvail.yAxis.scale(goldstone.goldstone.hostAvail.yLogs));
 
         d3.select(".swim.axis")
-            .call(goldstone.goldstone.hostAvail.swimAxis.scale(goldstone.goldstone.hostAvail.SwimLanes.y))
+            .call(goldstone.goldstone.hostAvail.swimAxis.scale(goldstone.goldstone.hostAvail.ySwimLane))
             .selectAll("text")
-            .attr("y", -goldstone.goldstone.hostAvail.SwimLanes.y.rangeBand() / 2)
+            .attr("y", -goldstone.goldstone.hostAvail.ySwimLane.rangeBand() / 2)
             .attr("dy", "0.71em")
             .text(function(d) {
                 return goldstone.goldstone.hostAvail.swimlanes[d] || d;
@@ -565,7 +560,7 @@ goldstone.charts.hostAvail = {
             .attr("cy", function (d) {
                 return d.swimlane === "logs"
                     ? goldstone.goldstone.hostAvail.yLogs(goldstone.charts.hostAvail.sums(d))
-                    : goldstone.goldstone.hostAvail.SwimLanes.y(d.swimlane);
+                    : goldstone.goldstone.hostAvail.ySwimLane(d.swimlane);
             })
             .attr("r", function (d) {
         // Fixed radii for now.
