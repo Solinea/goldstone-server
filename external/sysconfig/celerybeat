@@ -16,4 +16,4 @@ CELERYBEAT_GROUP="goldstone"
 
 CELERYBEAT_OPTS="--app="goldstone" --schedule=/var/run/celery/celerybeat-schedule"
 
-export DJANGO_SETTINGS_MODULE=goldstone.settings.production
+export DJANGO_SETTINGS_MODULE=goldstone.settings.local
