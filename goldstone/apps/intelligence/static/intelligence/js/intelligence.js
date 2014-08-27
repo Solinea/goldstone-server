@@ -351,7 +351,7 @@ function badEventMultiLine(location, start, end) {
 
 
             var xf = crossfilter(events.data);
-            var vartimeDim = xf.dimension(function (d) {
+            var timeDim = xf.dimension(function (d) {
                 return d.time;
             });
             var minDate = timeDim.bottom(1)[0].time;
