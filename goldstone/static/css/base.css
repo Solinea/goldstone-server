@@ -331,10 +331,6 @@ margin-left: 50px;
     fill: darkgray;
 }
 
-.ping {
-    fill: darkgoldenrod;
-}
-
 div.tooltip {
     position: absolute;
     text-align: left;
