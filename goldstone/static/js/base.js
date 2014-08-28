@@ -361,6 +361,417 @@ goldstone.charts.lineChartBase = function (location, margins, renderlet) {
     return chart
 }
 
+// Host availability chart (front page)
+goldstone.charts.hostAvail = {
+    ns: null,
+
+    _getInstance: function (ns) {
+        var o = Object.create(this)
+        o.ns = ns
+        return o
+    },
+
+    isRefreshSelected: function () {
+        return $(".autoRefresh").prop("checked")
+    },
+
+    refreshInterval: function () {
+        return $("select#autoRefreshInterval").val()
+    },
+
+    initSettingsForm: function () {
+        $("#settingsUpdateButton").click(function () {
+            goldstone.goldstone.hostAvail.animation.delay = goldstone.charts.hostAvail.refreshInterval();
+            goldstone.goldstone.hostAvail.animation.pause = !goldstone.charts.hostAvail.isRefreshSelected()
+
+            if(!goldstone.goldstone.hostAvail.animation.pause) {
+                d3.timer(goldstone.charts.hostAvail.update, goldstone.goldstone.hostAvail.animation.delay * 1000);
+            }
+        });
+    },
+
+    init: function () {
+        this.initSettingsForm()
+        this.initSvg()
+        this.update()
+    },
+
+    loadUrl: function (location) {
+        d3.json(this.ns.url(), function (error, data) {
+            goldstone.goldstone.hostAvail.data = data
+            goldstone.goldstone.hostAvail.update()()
+        })
+    },
+
+    initSvg: function () {
+        this.ns.margin = { top: 25, bottom: 25, right: 40, left: 60 }
+        this.ns.w = $(this.ns.location).width()
+        this.ns.mw = this.ns.w - this.ns.margin.left - this.ns.margin.right
+        this.ns.mh = this.ns.h.main - this.ns.margin.top - this.ns.margin.bottom
+
+        this.ns.parser2 = d3.time.format.utc("%Y-%m-%dT%H:%M:%S.%LZ")
+        this.ns.parser = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ")
+
+        this.ns.r = d3.scale.sqrt();
+        this.ns.loglevel = d3.scale.ordinal()
+            .domain(["debug", "audit", "info", "warning", "error"])
+            .range(["#6a51a3", "#2171b5", "#238b45", "#d94801", "#cb181d"]);
+
+        this.ns.pingAxis = d3.svg.axis()
+            .orient("top")
+            .ticks(5)
+            .tickFormat(d3.time.format("%H:%M:%S"))
+        this.ns.unadminAxis = d3.svg.axis()
+            .orient("bottom")
+            .ticks(5)
+            .tickFormat(d3.time.format("%H:%M:%S"))
+        this.ns.xScale = d3.time.scale()
+            .range([this.ns.margin.left, this.ns.mw - this.ns.margin.right])
+            .nice()
+        this.ns.yAxis = d3.svg.axis().orient("right")
+        this.ns.swimAxis = d3.svg.axis().orient("left")
+        this.ns.ySwimLane = d3.scale.ordinal()
+            .domain(["unadmin"].concat(this.ns.loglevel.domain().concat(["padding1", "padding2", "ping"])))
+            .rangeRoundBands([this.ns.h.main, 0], 0.1);
+        this.ns.yLogs = d3.scale.linear()
+            .range([
+                this.ns.ySwimLane("unadmin") - this.ns.ySwimLane.rangeBand()
+                , this.ns.ySwimLane("ping") + this.ns.ySwimLane.rangeBand()
+            ]);
+
+        this.ns.animation = { pause: false, delay: 5, index: 1 }
+        /*
+         * The filter buttons
+         */
+        this.ns.filter = {
+            debug:   false,
+            audit:   false,
+            info:    true,
+            warning: true,
+            error:   true
+        };
+
+        // The log-level buttons toggle the specific log level into the total count
+        d3.select("#filterer")
+          .append("div")
+            .attr("class", "btn-group")
+            .selectAll("button")
+            .data(d3.keys(this.ns.filter), function (d) {return d; })
+          .enter().append("button")
+            .attr("id", function (d) { return d; })
+            .attr("class", function (d) { return "btn btn-log-" + d; })
+            .classed("active", function(d) {
+                return goldstone.goldstone.hostAvail.filter[d];
+            })
+            .attr("type", "button")
+            .text(function (d) { return d; })
+            .on("click", function (d) {
+                goldstone.goldstone.hostAvail.filter[d] = !goldstone.goldstone.hostAvail.filter[d];
+                goldstone.charts.hostAvail.redraw();
+            });
+
+        /*
+         * The graph and axes
+         */
+
+        this.ns.svg = d3.select(this.ns.location).append("svg")
+            .attr("width", this.ns.w)
+            .attr("height", this.ns.h.main + (this.ns.h.swim * 2) + this.ns.margin.top + this.ns.margin.bottom)
+          .append("g")
+            .attr("transform", "translate(" + this.ns.margin.left + "," + this.ns.margin.top + ")");
+
+        this.ns.graph = this.ns.svg.append("g").attr("id", "graph");
+
+        // Visual swim lanes
+        this.ns.swimlanes = {
+            ping: {
+                label: "Ping Only",
+                offset: goldstone.goldstone.hostAvail.ySwimLane.rangeBand()/2 * -1,
+            },
+            unadmin: {
+                label: "Disabled",
+                offset: goldstone.goldstone.hostAvail.ySwimLane.rangeBand()/2,
+            }
+        };
+
+        this.ns.graph.selectAll(".swimlane")
+            .data(d3.keys(goldstone.goldstone.hostAvail.swimlanes), function(d) {
+                return d;
+            })
+          .enter().append("g")
+            .attr("class", "swimlane")
+            .attr("id", function(d) { return d; })
+            .attr("transform", function(d) {
+                return "translate(0,"
+                    + goldstone.goldstone.hostAvail.ySwimLane(d)
+                    + ")";
+            });
+
+        this.ns.graph.append("g")
+            .attr("class", "xping axis")
+            .attr("transform", "translate(0," + (this.ns.ySwimLane.rangeBand()) + ")");
+
+        this.ns.graph.append("g")
+            .attr("class", "xunadmin axis")
+            .attr("transform", "translate(0," + (this.ns.h.main - this.ns.ySwimLane.rangeBand())+ ")");
+
+        this.ns.graph.append("g")
+            .attr("class", "y axis invisible-axis")
+            .attr("transform", "translate(" + this.ns.mw + ",0)");
+
+        this.ns.graph.append("g")
+            .attr("class", "swim axis invisible-axis");
+
+        this.ns.tooltip = d3.select(this.ns.location).append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+        this.ns.dataset = null;
+
+        // Swim Lane labels on the left
+        d3.select(".swim.axis")
+            .call(goldstone.goldstone.hostAvail.swimAxis.scale(goldstone.goldstone.hostAvail.ySwimLane))
+            .selectAll("text")
+            .text(function(d) {
+                return goldstone.goldstone.hostAvail.swimlanes[d]
+                    ? goldstone.goldstone.hostAvail.swimlanes[d].label
+                    : "";
+            })
+            .attr("transform", function(d) {
+                return "translate(10,"
+                    + (goldstone.goldstone.hostAvail.swimlanes[d]
+                        ? goldstone.goldstone.hostAvail.swimlanes[d].offset
+                        : 0
+                        )
+                      + ")"
+            })
+            .attr("text-anchor", "start")
+            .attr("dy", "0.71em")
+            .style("display", function(d) {
+                return goldstone.goldstone.hostAvail.swimlanes[d] ? null : "none";
+            })
+            .style("font", "12px sans-serif");
+
+        // Add "logs" area label on the left
+        goldstone.goldstone.hostAvail.graph.append("text")
+            .attr("transform", "translate(0" + "," + goldstone.goldstone.hostAvail.mh / 2 + ") rotate(-90)")
+            .text("Logs")
+            .attr("text-anchor", "middle")
+            .style("font", "12px sans-serif");
+
+
+    },
+
+    redraw: function () {
+        goldstone.goldstone.hostAvail.yLogs.domain([
+            0,
+            d3.max(goldstone.goldstone.hostAvail.dataset.map(function (d) {
+                return goldstone.charts.hostAvail.sums(d);
+            }))
+        ]);
+
+        d3.select(".swim.axis")
+            .transition()
+            .duration(500)
+            .call(goldstone.goldstone.hostAvail.swimAxis.scale(goldstone.goldstone.hostAvail.ySwimLane));
+
+        d3.select(".y.axis")
+            .transition()
+            .duration(500)
+            .call(goldstone.goldstone.hostAvail.yAxis.scale(goldstone.goldstone.hostAvail.yLogs));
+
+        goldstone.goldstone.hostAvail.graph.selectAll("circle")
+          .transition().duration(500)
+            .attr("class", function (d) {
+                return d.swimlane === "unadmin" ? d.swimlane : d.level;
+            })
+            .attr("cx", function (d) {
+                return goldstone.goldstone.hostAvail.xScale(d.last_seen);
+            })
+            .attr("cy", function (d) {
+                return {
+                    logs: goldstone.goldstone.hostAvail.yLogs(goldstone.charts.hostAvail.sums(d)),
+                    ping: goldstone.goldstone.hostAvail.ySwimLane(d.swimlane),
+                    unadmin: goldstone.goldstone.hostAvail.ySwimLane(d.swimlane) + goldstone.goldstone.hostAvail.ySwimLane.rangeBand()
+                }[d.swimlane];
+            })
+            .attr("r", function (d) {
+        // Fixed radii for now.
+                return d.swimlane === "logs"
+          ? goldstone.goldstone.hostAvail.r(64)
+          : goldstone.goldstone.hostAvail.r(20);
+            })
+            .style("opacity", function (d) {
+                return d.swimlane === "unadmin"
+                ? 0.8
+                : goldstone.goldstone.hostAvail.filter[d.level] ? 0.5 : 1e-6;
+            });
+    }, // redraw()
+
+    sums: function (datum) {
+        // Return the sums for the filters that are on
+        return d3.sum(goldstone.goldstone.hostAvail.loglevel.domain().map(function (k) {
+            return goldstone.goldstone.hostAvail.filter[k] ? datum[k + "_count"] : 0;
+        }));
+    }, // sums()
+
+    update: function () {
+            // If we are paused or beyond the available jsons, exit
+            if (goldstone.goldstone.hostAvail.animation.pause) {
+                return true;
+            }
+
+            // Set the animation to not step over itself
+            goldstone.goldstone.hostAvail.animation.pause = true;
+            var uri = "/static/data/logging_nodes." +
+          goldstone.goldstone.hostAvail.animation.index +
+          ".json";
+            d3.json(uri, function (error, allthelogs) {
+                // If we didn't receive any valid files, abort and pause
+                // there may need to be a user notification added here at
+                // some point.  We'll see.
+                if(typeof allthelogs === "undefined") {
+                    goldstone.goldstone.hostAvail.animation.pause = true;
+                    return;
+                }
+
+
+                /*
+                 * Shape the dataset
+                 *   - Convert datetimes to integer
+                 *   - Sort by last seen (from most to least recent)
+                 */
+                goldstone.goldstone.hostAvail.dataset = allthelogs
+                    .map(function (d) {
+                        d = JSON.parse(d); // weird artifact of django's response?
+                        d.created = parsify(d.created)
+                        d.updated = parsify(d.updated)
+                        d.last_seen = parsify(d.last_seen)
+
+            /*
+             * Figure out which kind of messages are reported most
+             * by the node.  That will determine its color later.
+             */
+                        d.level = goldstone.goldstone.hostAvail.loglevel.domain()
+              .map(function (l) { return [l, d[l + "_count"]]; })
+              .sort(function(a, b) {
+                  return d3.descending(a[1], b[1]);
+                })
+              [0][0];
+
+            /*
+             * Figure out which bucket (logs, ping, or admin disabled)
+             * each node belongs to.
+             */
+            d.swimlane = d.admin_disabled
+              ? "unadmin"
+              : d.last_seen_method.toLowerCase();
+                        return d;
+                    })
+                    .sort(function (a, b) {
+                        return a.last_seen - b.last_seen;
+                    });
+
+                function parsify(indate) {
+                    var tmp = goldstone.goldstone.hostAvail.parser.parse(indate);
+                    if (tmp === null) {
+                        tmp = goldstone.goldstone.hostAvail.parser2.parse(indate);
+                    }
+                    return tmp;
+                }
+
+            /*
+             * Axes
+             *   - calculate the new domain.
+             *   - adjust each axis to its new scale.
+             */
+
+            goldstone.goldstone.hostAvail.xScale.domain(d3.extent(goldstone.goldstone.hostAvail.dataset.map(function (d) {
+                return d.last_seen;
+            })));
+            goldstone.goldstone.hostAvail.pingAxis.scale(goldstone.goldstone.hostAvail.xScale);
+            goldstone.goldstone.hostAvail.unadminAxis.scale(goldstone.goldstone.hostAvail.xScale);
+
+            goldstone.goldstone.hostAvail.svg.select(".xping.axis")
+                .call(goldstone.goldstone.hostAvail.pingAxis);
+
+            goldstone.goldstone.hostAvail.svg.select(".xunadmin.axis")
+                .call(goldstone.goldstone.hostAvail.unadminAxis);
+
+            goldstone.goldstone.hostAvail.yLogs.domain([0, d3.max(goldstone.goldstone.hostAvail.dataset.map(function (d) {
+                // add up all the *_counts
+                return d3.sum(goldstone.goldstone.hostAvail.loglevel.domain().map(function (e) {
+                    return +d[e + "_count"];
+                }));
+            }))])
+            goldstone.goldstone.hostAvail.yAxis.scale(goldstone.goldstone.hostAvail.yLogs);
+            goldstone.goldstone.hostAvail.svg.select(".y.axis")
+                .transition()
+                .duration(500)
+                .call(goldstone.goldstone.hostAvail.yAxis);
+
+
+            /*
+             * New circles appear at the far right hand side of the graph.
+             */
+            var circle = goldstone.goldstone.hostAvail.graph.selectAll("circle")
+                .data(goldstone.goldstone.hostAvail.dataset, function (d) {
+                    return d.uuid;
+                });
+
+            circle.enter()
+                .append("circle")
+                .attr("cx", function (d) {
+                    return goldstone.goldstone.hostAvail.xScale.range()[1];
+                })
+                .attr("cy", function (d) {
+                    return goldstone.goldstone.hostAvail.yLogs(goldstone.charts.hostAvail.sums(d));
+                })
+                .attr("r", goldstone.goldstone.hostAvail.r(0))
+                .attr("class", function (d) { return d.level; })
+                .on("mouseover", function (d) {
+                    goldstone.goldstone.hostAvail.tooltip
+                        .html(d.name + "<br/>" +
+                          "(" + d.uuid + ")" + "<br/>" +
+                          "Errors: " + d.error_count + "<br/>" +
+                          "Warnings: " + d.warning_count + "<br/>" +
+                          "Info: " + d.info_count + "<br/>" +
+                          "Audit: " + d.audit_count + "<br/>" +
+                          "Debug: " + d.debug_count + "<br/>"
+                          );
+
+                    goldstone.goldstone.hostAvail.tooltip
+                          .transition().duration(200)
+                        .style("opacity", 0.9)
+                        .style("left", d3.select(this).attr("cx"))
+                        .style("top", d3.select(this).attr("cy"));
+                })
+                .on("mouseout", function (d) {
+                    goldstone.goldstone.hostAvail.tooltip
+                        .transition().duration(500)
+                    .style("opacity", 1e-6);
+                });
+
+            goldstone.charts.hostAvail.redraw();
+
+            // This behaviour is not yet fully understood
+            circle.exit()
+                .attr("class", function (d) { return "older"; });
+
+            // Increment the index
+            // This will probably go away for production data
+            goldstone.goldstone.hostAvail.animation.index += 1;
+
+            // Unpause the animation and rerun this function for the next frame
+            goldstone.goldstone.hostAvail.animation.pause = false;
+            d3.timer(goldstone.charts.hostAvail.update, goldstone.goldstone.hostAvail.animation.delay * 1000);
+            return true;
+        });
+    } // update()
+
+}
+
+
 goldstone.charts.bivariateWithAverage = {
     ns: null,
     /**
@@ -467,6 +878,7 @@ goldstone.charts.bivariateWithAverage = {
             .attr('class', 'chart')
             .attr("transform", "translate(" + this.ns.margin.left + "," + this.ns.margin.top + ")")
     },
+
     update: function () {
         "use strict";
         if (this.ns.data !== 'undefined') {
@@ -986,41 +1398,41 @@ goldstone.charts.topologyTree = {
             })
             .attr("transform", "scale(0.0000001)")
 
-		// Map of icons to the classes in which they'll be used
-		d3.map({
-			icon_backup      : ['backups-leaf', 'snapshots-leaf'],
-			icon_cloud       : ['cloud', 'region'],
-			icon_endpoint    : ['endpoints-leaf'],
-			icon_host        : ['host', 'hosts-leaf', 'hypervisors-leaf',
-				'servers-leaf'],
-			icon_image       : ['images-leaf'],
-			icon_module      : ['module', 'secgroups-leaf'],
-			icon_role        : ['roles-leaf'],
-			icon_service     : ['service', 'services-leaf'],
-			icon_tenant      : ['tenants-leaf'],
-			icon_types       : ['volume-types-leaf'],
-			icon_user        : ['users-leaf'],
-			icon_volume      : ['volume', 'volumes-leaf'],
-			icon_vol_transfer: ['agents-leaf', 'transfers-leaf'],
-			icon_zone        : ['zone', 'aggregates-leaf', 'cloudpipes-leaf',
-				'flavors-leaf', 'floating-ip-pools-leaf', 'networks-leaf'],
+    // Map of icons to the classes in which they'll be used
+    d3.map({
+      icon_backup      : ['backups-leaf', 'snapshots-leaf'],
+      icon_cloud       : ['cloud', 'region'],
+      icon_endpoint    : ['endpoints-leaf'],
+      icon_host        : ['host', 'hosts-leaf', 'hypervisors-leaf',
+        'servers-leaf'],
+      icon_image       : ['images-leaf'],
+      icon_module      : ['module', 'secgroups-leaf'],
+      icon_role        : ['roles-leaf'],
+      icon_service     : ['service', 'services-leaf'],
+      icon_tenant      : ['tenants-leaf'],
+      icon_types       : ['volume-types-leaf'],
+      icon_user        : ['users-leaf'],
+      icon_volume      : ['volume', 'volumes-leaf'],
+      icon_vol_transfer: ['agents-leaf', 'transfers-leaf'],
+      icon_zone        : ['zone', 'aggregates-leaf', 'cloudpipes-leaf',
+        'flavors-leaf', 'floating-ip-pools-leaf', 'networks-leaf'],
 
-		}).forEach(function(icon, classes) {
-			// Acutally attach the icons to the classes
-			d3.xml(imgFile(icon), "image/svg+xml", function (img) {
-				classes.forEach(function(c) {
-					ns.chart.selectAll(".icon.main." + c + "-icon")
-						.each(function () {
-							d3.select(this).node().appendChild(
-								img.getElementsByTagName("svg")[0].cloneNode(true))
-						})
-				});
-			}); // d3.xml()
-		}); // forEach
+    }).forEach(function(icon, classes) {
+      // Acutally attach the icons to the classes
+      d3.xml(imgFile(icon), "image/svg+xml", function (img) {
+        classes.forEach(function(c) {
+          ns.chart.selectAll(".icon.main." + c + "-icon")
+            .each(function () {
+              d3.select(this).node().appendChild(
+                img.getElementsByTagName("svg")[0].cloneNode(true))
+            })
+        });
+      }); // d3.xml()
+    }); // forEach
 
-		function imgFile(icon) {
-			return "/static/images/" + icon + ".svg";
-		}
+    function imgFile(icon) {
+      return "/static/images/" + icon + ".svg";
+    }
 
         // Transition nodes to their new position.
         var nodeUpdate = node
