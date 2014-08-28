@@ -435,6 +435,7 @@ goldstone.charts.hostAvail = {
          * The filter buttons
          */
         this.ns.filter = {
+            none:    true,
             debug:   true,
             audit:   true,
             info:    true,
@@ -554,6 +555,10 @@ goldstone.charts.hostAvail = {
             }))
         ]);
 
+        d3.select(".swim.axis")
+            .transition()
+            .duration(500)
+
         d3.select(".y.axis")
             .transition()
             .duration(500)
@@ -576,14 +581,12 @@ goldstone.charts.hostAvail = {
             })
             .attr("r", function (d) {
         // Fixed radii for now.
-                return d.swimlane === "logs"
-          ? goldstone.goldstone.hostAvail.r(64)
-          : goldstone.goldstone.hostAvail.r(20);
+                return d.swimlane === "logs" ?
+                    goldstone.goldstone.hostAvail.r(64) : goldstone.goldstone.hostAvail.r(20);
             })
             .style("opacity", function (d) {
-                return d.swimlane === "unadmin"
-                ? 0.8
-                : goldstone.goldstone.hostAvail.filter[d.level] ? 0.5 : 1e-6;
+                return d.swimlane === "unadmin" ?
+                    0.8 : goldstone.goldstone.hostAvail.filter[d.level] ? 0.5 : 1e-6;
             });
     }, // redraw()
 
@@ -610,8 +613,6 @@ goldstone.charts.hostAvail = {
                 var allthelogs = JSON.parse(response.responseText)
                 var xStart = moment(response.getResponseHeader('LogCountStart'))
                 var xEnd = moment(response.getResponseHeader('LogCountEnd'))
-                console.log("xStart = " + xStart)
-                console.log("xEnd = " + xEnd)
 
                 goldstone.goldstone.hostAvail.xScale = goldstone.goldstone.hostAvail.xScale.domain([xStart, xEnd])
 
@@ -652,9 +653,8 @@ goldstone.charts.hostAvail = {
              * Figure out which bucket (logs, ping, or admin disabled)
              * each node belongs to.
              */
-            d.swimlane = d.admin_disabled
-              ? "unadmin"
-              : d.last_seen_method.toLowerCase();
+            d.swimlane = d.admin_disabled ?
+                "unadmin" : d.last_seen_method.toLowerCase();
                         return d;
                     })
                     .sort(function (a, b) {
