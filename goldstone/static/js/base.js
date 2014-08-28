@@ -627,13 +627,21 @@ goldstone.charts.hostAvail = {
             //  goldstone.goldstone.hostAvail.animation.index +
             //  ".json";
             var uri = "/logging/nodes"
-            d3.json(uri, function (error, allthelogs) {
+            d3.xhr(uri, function(error, response) {
+                var allthelogs = JSON.parse(response.responseText)
+                var xStart = moment(response.getResponseHeader('LogCountStart'))
+                var xEnd = moment(response.getResponseHeader('LogCountEnd'))
+                console.log("xStart = " + xStart)
+                console.log("xEnd = " + xEnd)
+
+                goldstone.goldstone.hostAvail.xScale = goldstone.goldstone.hostAvail.xScale.domain([xStart, xEnd])
+
                 // If we didn't receive any valid files, abort and pause
                 // there may need to be a user notification added here at
                 // some point.  We'll see.
 
                 // TODO should paint the empty chart anyway, then start refreshing
-                if(typeof allthelogs.results === "undefined") {
+                if (typeof allthelogs.results === "undefined") {
                     goldstone.goldstone.hostAvail.animation.pause = true;
                     return;
                 }
