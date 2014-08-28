@@ -33,15 +33,15 @@
     <script src="{% static 'js/lib/backbone/backbone.js' %}"></script>
     <script>
 $(document).ready(function () {
-    var nsReport = goldstone.apiPerf.report
-    var nsNovaApiPerf = goldstone.nova.apiPerf
-    var nsNeutronApiPerf = goldstone.neutron.apiPerf
-    var nsKeystoneApiPerf = goldstone.keystone.apiPerf
-    var nsGlanceApiPerf = goldstone.glance.apiPerf
-    var nsCinderApiPerf = goldstone.cinder.apiPerf
+    var nsReport = goldstone.apiPerf.report;
+    var nsNovaApiPerf = goldstone.nova.apiPerf;
+    var nsNeutronApiPerf = goldstone.neutron.apiPerf;
+    var nsKeystoneApiPerf = goldstone.keystone.apiPerf;
+    var nsGlanceApiPerf = goldstone.glance.apiPerf;
+    var nsCinderApiPerf = goldstone.cinder.apiPerf;
 
-    nsReport.start = goldstone.time.fromPyTs({{ start_ts|to_js }})
-    nsReport.end = goldstone.time.fromPyTs({{ end_ts|to_js }})
+    nsReport.start = goldstone.time.fromPyTs({{ start_ts|to_js }});
+    nsReport.end = goldstone.time.fromPyTs({{ end_ts|to_js }});
     nsReport.interval = {{ interval|to_js }}
 
     nsNovaApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsNovaApiPerf)
