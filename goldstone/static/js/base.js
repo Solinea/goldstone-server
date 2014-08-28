@@ -396,13 +396,6 @@ goldstone.charts.hostAvail = {
         this.update()
     },
 
-    loadUrl: function (location) {
-        d3.json(this.ns.url(), function (error, data) {
-            goldstone.goldstone.hostAvail.data = data
-            goldstone.goldstone.hostAvail.update()()
-        })
-    },
-
     initSvg: function () {
         this.ns.margin = { top: 25, bottom: 25, right: 40, left: 60 }
         this.ns.w = $(this.ns.location).width()
@@ -428,6 +421,7 @@ goldstone.charts.hostAvail = {
         this.ns.xScale = d3.time.scale()
             .range([this.ns.margin.left, this.ns.mw - this.ns.margin.right])
             .nice()
+            .clamp(true)
         this.ns.yAxis = d3.svg.axis().orient("right")
         this.ns.swimAxis = d3.svg.axis().orient("left")
         this.ns.ySwimLane = d3.scale.ordinal()
@@ -435,8 +429,8 @@ goldstone.charts.hostAvail = {
             .rangeRoundBands([this.ns.h.main, 0], 0.1);
         this.ns.yLogs = d3.scale.linear()
             .range([
-                this.ns.ySwimLane("unadmin") - this.ns.ySwimLane.rangeBand()
-                , this.ns.ySwimLane("ping") + this.ns.ySwimLane.rangeBand()
+                this.ns.ySwimLane("unadmin") - this.ns.ySwimLane.rangeBand(),
+                this.ns.ySwimLane("ping") + this.ns.ySwimLane.rangeBand()
             ]);
 
         this.ns.animation = { pause: false, delay: 5, index: 1 }
@@ -460,7 +454,7 @@ goldstone.charts.hostAvail = {
           .enter().append("button")
             .attr("id", function (d) { return d; })
             .attr("class", function (d) { return "btn btn-log-" + d; })
-            .classed("active", function(d) {
+            .classed("active", function (d) {
                 return goldstone.goldstone.hostAvail.filter[d];
             })
             .attr("type", "button")
@@ -513,7 +507,7 @@ goldstone.charts.hostAvail = {
 
         this.ns.graph.append("g")
             .attr("class", "xunadmin axis")
-            .attr("transform", "translate(0," + (this.ns.h.main - this.ns.ySwimLane.rangeBand())+ ")");
+            .attr("transform", "translate(0," + (this.ns.h.main - this.ns.ySwimLane.rangeBand()) + ")");
 
         this.ns.graph.append("g")
             .attr("class", "y axis invisible-axis")
@@ -532,34 +526,27 @@ goldstone.charts.hostAvail = {
         d3.select(".swim.axis")
             .call(goldstone.goldstone.hostAvail.swimAxis.scale(goldstone.goldstone.hostAvail.ySwimLane))
             .selectAll("text")
-            .text(function(d) {
-                return goldstone.goldstone.hostAvail.swimlanes[d]
-                    ? goldstone.goldstone.hostAvail.swimlanes[d].label
-                    : "";
+            .text(function (d) {
+                return goldstone.goldstone.hostAvail.swimlanes[d] ?
+                    goldstone.goldstone.hostAvail.swimlanes[d].label : "";
             })
-            .attr("transform", function(d) {
-                return "translate(10,"
-                    + (goldstone.goldstone.hostAvail.swimlanes[d]
-                        ? goldstone.goldstone.hostAvail.swimlanes[d].offset
-                        : 0
-                        )
-                      + ")"
+            .attr("transform", function (d) {
+                return "translate(10," + (goldstone.goldstone.hostAvail.swimlanes[d] ?
+                    goldstone.goldstone.hostAvail.swimlanes[d].offset : 0) + ")"
             })
             .attr("text-anchor", "start")
             .attr("dy", "0.71em")
-            .style("display", function(d) {
+            .style("display", function (d) {
                 return goldstone.goldstone.hostAvail.swimlanes[d] ? null : "none";
             })
             .style("font", "12px sans-serif");
 
         // Add "logs" area label on the left
         goldstone.goldstone.hostAvail.graph.append("text")
-            .attr("transform", "translate(0" + "," + goldstone.goldstone.hostAvail.mh / 2 + ") rotate(-90)")
+            .attr("transform", "translate(0" + "," + goldstone.goldstone.hostAvail.mh / 2 + ")")
             .text("Logs")
-            .attr("text-anchor", "middle")
+            .attr("text-anchor", "end")
             .style("font", "12px sans-serif");
-
-
     },
 
     redraw: function () {
@@ -627,7 +614,7 @@ goldstone.charts.hostAvail = {
             //  goldstone.goldstone.hostAvail.animation.index +
             //  ".json";
             var uri = "/logging/nodes"
-            d3.xhr(uri, function(error, response) {
+            d3.xhr(uri, function (error, response) {
                 var allthelogs = JSON.parse(response.responseText)
                 var xStart = moment(response.getResponseHeader('LogCountStart'))
                 var xEnd = moment(response.getResponseHeader('LogCountEnd'))
@@ -654,10 +641,9 @@ goldstone.charts.hostAvail = {
                  */
                 goldstone.goldstone.hostAvail.dataset = allthelogs.results
                     .map(function (d) {
-                        //d = JSON.parse(d); // weird artifact of django's response?
-                        d.created = parsify(d.created)
-                        d.updated = parsify(d.updated)
-                        d.last_seen = parsify(d.last_seen)
+                        d.created = moment(d.created)
+                        d.updated = moment(d.updated)
+                        d.last_seen = moment(d.last_seen)
 
             /*
              * Figure out which kind of messages are reported most
@@ -665,10 +651,9 @@ goldstone.charts.hostAvail = {
              */
                         d.level = goldstone.goldstone.hostAvail.loglevel.domain()
               .map(function (l) { return [l, d[l + "_count"]]; })
-              .sort(function(a, b) {
-                  return d3.descending(a[1], b[1]);
-                })
-              [0][0];
+              .sort(function (a, b) {
+                                return d3.descending(a[1], b[1]);
+                            })[0][0];
 
             /*
              * Figure out which bucket (logs, ping, or admin disabled)
@@ -683,23 +668,12 @@ goldstone.charts.hostAvail = {
                         return a.last_seen - b.last_seen;
                     });
 
-                function parsify(indate) {
-                    var tmp = goldstone.goldstone.hostAvail.parser.parse(indate);
-                    if (tmp === null) {
-                        tmp = goldstone.goldstone.hostAvail.parser2.parse(indate);
-                    }
-                    return tmp;
-                }
-
             /*
              * Axes
              *   - calculate the new domain.
              *   - adjust each axis to its new scale.
              */
 
-            goldstone.goldstone.hostAvail.xScale.domain(d3.extent(goldstone.goldstone.hostAvail.dataset.map(function (d) {
-                return d.last_seen;
-            })));
             goldstone.goldstone.hostAvail.pingAxis.scale(goldstone.goldstone.hostAvail.xScale);
             goldstone.goldstone.hostAvail.unadminAxis.scale(goldstone.goldstone.hostAvail.xScale);
 
