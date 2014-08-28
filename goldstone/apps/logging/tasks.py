@@ -51,7 +51,7 @@ def process_amqp_stream(self, timestamp, host, message):
     This task handles AMQP status events coming from the log stream.
     :return: None
     """
-    logger.info("[process_amqp_stream] got an event with timestamp=%s, "
+    logger.debug("[process_amqp_stream] got an event with timestamp=%s, "
                 "host=%s, message=%s", timestamp, host, message)
     #node, created = LoggingNode.objects.get_or_create(name=host)
     #if not node.disabled:
@@ -65,13 +65,13 @@ def ping(self, node):
                                stdout=open('/dev/null', 'w'),
                                stderr=subprocess.STDOUT)
     if response == 0:
-        logger.info("%s is alive", node.uuid)
+        logger.debug("%s is alive", node.uuid)
         node.last_seen = datetime.now(tz=pytz.utc)
         node.last_seen_method = 'PING'
         node.save()
         return True
     else:
-        logger.info("%s did not respond", node.uuid)
+        logger.debug("%s did not respond", node.uuid)
         return False
 
 
