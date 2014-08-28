@@ -65,23 +65,18 @@ $(document).ready(function () {
         var demoChartView = new ChartBaseView({model: demoChart});
 
         var rnd = function(){
-            var rndArray = [Math.floor(Math.random()* -3200000) + 1406660453, 1409252453];
-            var result = '/glance/api_perf?start=' + rndArray[0] + '&end=' + rndArray[1] + '&interval=32400s&render=false';
-            return result;
+            return Math.floor(Math.random()*400 + 200);
         };
+
         setInterval(function(){
 
+        var result = [];
+        for(var i = 0; i < 60; i++){
+            result.push({max: rnd()})
+        }
+        demoChart.set({data: result});
 
-            var updateUrl = rnd();
-
-            $.get(updateUrl,
-                function(datas){
-                    var newData = JSON.parse(datas);
-                    demoChart.set({data: newData});
-                });
-
-        }, 3500);
-
+        }, 2000);
 
     });
 
