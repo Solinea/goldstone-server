@@ -448,7 +448,8 @@ goldstone.charts.hostAvail = {
           .append("div")
             .attr("class", "btn-group")
             .selectAll("button")
-            .data(d3.keys(this.ns.filter), function (d) {return d; })
+            .data(d3.keys(this.ns.filter).filter(function (k) {return k !== 'none'}),
+                function (d) {return d; })
           .enter().append("button")
             .attr("id", function (d) { return d; })
             .attr("class", function (d) { return "btn btn-log-" + d; })
