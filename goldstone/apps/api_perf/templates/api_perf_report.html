@@ -43,23 +43,50 @@ $(document).ready(function () {
     nsReport.end = goldstone.time.fromPyTs({{ end_ts|to_js }});
     nsReport.interval = {{ interval|to_js }}
 
-    nsNovaApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsNovaApiPerf)
-    nsNeutronApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsNeutronApiPerf)
-    nsKeystoneApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsKeystoneApiPerf)
-    nsGlanceApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsGlanceApiPerf)
-    nsCinderApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsCinderApiPerf)
+    nsNovaApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsNovaApiPerf);
+    nsNeutronApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsNeutronApiPerf);
+    nsKeystoneApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsKeystoneApiPerf);
+    nsGlanceApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsGlanceApiPerf);
+    nsCinderApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsCinderApiPerf);
 
     nsNovaApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#api-perf-report-r1-c1')
+            true, '#api-perf-report-r1-c1');
     nsNeutronApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#api-perf-report-r1-c2')
+            true, '#api-perf-report-r1-c2');
     nsKeystoneApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#api-perf-report-r2-c1')
+            true, '#api-perf-report-r2-c1');
     nsGlanceApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#api-perf-report-r2-c2')
+            true, '#api-perf-report-r2-c2');
     nsCinderApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#api-perf-report-r3-c1')
-})
+            true, '#api-perf-report-r3-c1');
+
+    var dataget = $.get('/glance/api_perf?start=1406660453&end=1409252453&interval=32400s&render=false', function(data){
+        var demoChart = new ChartBase({data: JSON.parse(data)});
+        var demoChartView = new ChartBaseView({model: demoChart});
+
+        var rnd = function(){
+            var rndArray = [Math.floor(Math.random()* -3200000) + 1406660453, 1409252453];
+            var result = '/glance/api_perf?start=' + rndArray[0] + '&end=' + rndArray[1] + '&interval=32400s&render=false';
+            return result;
+        };
+        setInterval(function(){
+
+
+            var updateUrl = rnd();
+
+            $.get(updateUrl,
+                function(datas){
+                    var newData = JSON.parse(datas);
+                    demoChart.set({data: newData});
+                });
+
+        }, 3500);
+
+
+    });
+
+
+});
 
     </script>
 
