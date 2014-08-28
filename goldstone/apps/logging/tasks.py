@@ -65,12 +65,13 @@ def ping(self, node):
                                stdout=open('/dev/null', 'w'),
                                stderr=subprocess.STDOUT)
     if response == 0:
-        logger.debug("%s is alive", node.uuid)
-        node.method = 'ping'
+        logger.info("%s is alive", node.uuid)
+        node.last_seen = datetime.now(tz=pytz.utc)
+        node.last_seen_method = 'PING'
         node.save()
         return True
     else:
-        logger.debug("%s did not respond", node.uuid)
+        logger.info("%s did not respond", node.uuid)
         return False
 
 
@@ -81,9 +82,7 @@ def check_host_avail(self, offset=settings.HOST_AVAILABLE_PING_THRESHOLD):
     ones that have not been seen within the configured window.
     :return: None
     """
-    cutoff = (
-        datetime.now(tz=pytz.utc) - offset
-    )
+    cutoff = (datetime.now(tz=pytz.utc) - offset)
     logger.debug("[check_host_avail] cutoff = %s", cutoff)
     to_ping = Node.objects.filter(updated__lte=cutoff, admin_disabled=False)
     logger.debug("hosts to ping = %s", to_ping)
