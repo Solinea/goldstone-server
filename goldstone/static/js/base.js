@@ -402,9 +402,6 @@ goldstone.charts.hostAvail = {
         this.ns.mw = this.ns.w - this.ns.margin.left - this.ns.margin.right
         this.ns.mh = this.ns.h.main - this.ns.margin.top - this.ns.margin.bottom
 
-        this.ns.parser2 = d3.time.format.utc("%Y-%m-%dT%H:%M:%S.%LZ")
-        this.ns.parser = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ")
-
         this.ns.r = d3.scale.sqrt();
         this.ns.loglevel = d3.scale.ordinal()
             .domain(["debug", "audit", "info", "warning", "error"])
@@ -438,8 +435,8 @@ goldstone.charts.hostAvail = {
          * The filter buttons
          */
         this.ns.filter = {
-            debug:   false,
-            audit:   false,
+            debug:   true,
+            audit:   true,
             info:    true,
             warning: true,
             error:   true
@@ -557,10 +554,25 @@ goldstone.charts.hostAvail = {
             }))
         ]);
 
-        d3.select(".swim.axis")
-            .transition()
-            .duration(500)
-            .call(goldstone.goldstone.hostAvail.swimAxis.scale(goldstone.goldstone.hostAvail.ySwimLane));
+        //d3.select(".swim.axis")
+            //.transition()
+            //.duration(500)
+            //.call(goldstone.goldstone.hostAvail.swimAxis.scale(goldstone.goldstone.hostAvail.ySwimLane))
+            //.selectAll("text")
+            //.text(function (d) {
+            //    return goldstone.goldstone.hostAvail.swimlanes[d] ?
+            //        goldstone.goldstone.hostAvail.swimlanes[d].label : "";
+            //})
+            //.attr("transform", function (d) {
+            //    return "translate(10," + (goldstone.goldstone.hostAvail.swimlanes[d] ?
+            //        goldstone.goldstone.hostAvail.swimlanes[d].offset : 0) + ")"
+            //})
+            //.attr("text-anchor", "start")
+            //.attr("dy", "0.71em")
+            //.style("display", function (d) {
+            //   return goldstone.goldstone.hostAvail.swimlanes[d] ? null : "none";
+            //})
+            //.style("font", "12px sans-serif");
 
         d3.select(".y.axis")
             .transition()
@@ -718,6 +730,7 @@ goldstone.charts.hostAvail = {
                     goldstone.goldstone.hostAvail.tooltip
                         .html(d.name + "<br/>" +
                           "(" + d.uuid + ")" + "<br/>" +
+                          "Last Seen:" + d.last_seen.toString() + "<br/>" +
                           "Errors: " + d.error_count + "<br/>" +
                           "Warnings: " + d.warning_count + "<br/>" +
                           "Info: " + d.info_count + "<br/>" +
