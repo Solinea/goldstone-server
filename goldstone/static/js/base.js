@@ -554,26 +554,6 @@ goldstone.charts.hostAvail = {
             }))
         ]);
 
-        //d3.select(".swim.axis")
-            //.transition()
-            //.duration(500)
-            //.call(goldstone.goldstone.hostAvail.swimAxis.scale(goldstone.goldstone.hostAvail.ySwimLane))
-            //.selectAll("text")
-            //.text(function (d) {
-            //    return goldstone.goldstone.hostAvail.swimlanes[d] ?
-            //        goldstone.goldstone.hostAvail.swimlanes[d].label : "";
-            //})
-            //.attr("transform", function (d) {
-            //    return "translate(10," + (goldstone.goldstone.hostAvail.swimlanes[d] ?
-            //        goldstone.goldstone.hostAvail.swimlanes[d].offset : 0) + ")"
-            //})
-            //.attr("text-anchor", "start")
-            //.attr("dy", "0.71em")
-            //.style("display", function (d) {
-            //   return goldstone.goldstone.hostAvail.swimlanes[d] ? null : "none";
-            //})
-            //.style("font", "12px sans-serif");
-
         d3.select(".y.axis")
             .transition()
             .duration(500)
@@ -657,15 +637,16 @@ goldstone.charts.hostAvail = {
                         d.updated = moment(d.updated)
                         d.last_seen = moment(d.last_seen)
 
-            /*
-             * Figure out which kind of messages are reported most
-             * by the node.  That will determine its color later.
-             */
-                        d.level = goldstone.goldstone.hostAvail.loglevel.domain()
-              .map(function (l) { return [l, d[l + "_count"]]; })
-              .sort(function (a, b) {
-                                return d3.descending(a[1], b[1]);
-                            })[0][0];
+                        /*
+                         * Figure out the higest priority level.
+                         * That will determine its color later.
+                         */
+                        var nonzero_levels = goldstone.goldstone.hostAvail.loglevel.domain()
+                            .map(function (l) { return [l, d[l + "_count"]]; })
+                            .filter(function (l) {return (l[1] > 0)})
+                            .reverse()
+                        d.level = typeof(nonzero_levels[0]) === 'undefined' ? "none":nonzero_levels[0][0];
+
 
             /*
              * Figure out which bucket (logs, ping, or admin disabled)
