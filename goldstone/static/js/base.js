@@ -428,7 +428,9 @@ goldstone.charts.hostAvail = {
         ns.yAxis = d3.svg.axis().orient("right")
         ns.swimAxis = d3.svg.axis().orient("left")
         ns.ySwimLane = d3.scale.ordinal()
-            .domain(["unadmin"].concat(ns.loglevel.domain().concat(["padding1", "padding2", "ping"])))
+            .domain(["unadmin"].concat(ns.loglevel
+                .domain()
+                .concat(["padding1", "padding2", "ping"])))
             .rangeRoundBands([ns.h.main, 0], 0.1);
         ns.yLogs = d3.scale.linear()
             .range([
@@ -598,14 +600,17 @@ goldstone.charts.hostAvail = {
     }, // redraw()
 
     sums: function (datum) {
+        var self = this.ns.self;
+        var ns = this.ns;
         // Return the sums for the filters that are on
-        return d3.sum(goldstone.goldstone.hostAvail.loglevel.domain().map(function (k) {
-            return goldstone.goldstone.hostAvail.filter[k] ? datum[k + "_count"] : 0;
+        return d3.sum(ns.loglevel.domain().map(function (k) {
+            return ns.filter[k] ? datum[k + "_count"] : 0;
         }));
     }, // sums()
 
     update: function (ns) {
         var self = ns.self;
+        var uri = "/logging/nodes"
 
         // If we are paused or beyond the available jsons, exit
         if (ns.animation.pause) {
@@ -614,10 +619,7 @@ goldstone.charts.hostAvail = {
 
         // Set the animation to not step over itself
         ns.animation.pause = true;
-        //var uri = "/static/data/logging_nodes." +
-        //  goldstone.goldstone.hostAvail.animation.index +
-        //  ".json";
-        var uri = "/logging/nodes"
+
         d3.xhr(uri, function (error, response) {
             var allthelogs = JSON.parse(response.responseText)
             var xStart = moment(response.getResponseHeader('LogCountStart'))
