@@ -20,6 +20,21 @@ goldstone.namespace('apiPerf.report');
 
 // backbone test start
 
+    var ApiPerfModel = Backbone.Model.extend({
+        idAttribute: "key"
+    });
+
+    var CollectionTest = Backbone.Collection.extend({
+
+        parse: function(data){
+            return JSON.parse(data);
+        },
+
+        model: ApiPerfModel,
+
+        url: "/nova/api_perf?render=false"
+    });
+
     var ChartBase = Backbone.Model.extend({});
 
     var ChartBaseView = Backbone.View.extend({
@@ -27,27 +42,21 @@ goldstone.namespace('apiPerf.report');
         defaults: {
             margin: {top: 20, right: 20, bottom: 30, left: 40},
             width: 525,
-            height: 200
+            height: 200,
+            svg: null
         },
 
         initialize: function(){
 
-            this.model.on('change:data', this.render, this);
             var height = this.defaults.height;
 
-            var svg = d3.select("#api-perf-report-r3-c2").append("svg")
+            this.defaults.svg = d3.select("#api-perf-report-r3-c2").append("svg")
                 .attr("width", this.defaults.width + this.defaults.margin.left + this.defaults.margin.right)
                 .attr("height", this.defaults.height + this.defaults.margin.top + this.defaults.margin.bottom)
                 .append("g")
                 .attr("transform", "translate(" + this.defaults.margin.left + "," + this.defaults.margin.top + ")");
 
-            svg.selectAll("rect")
-                .data(this.model.attributes.data)
-                .enter().append("rect")
-                .attr("width", function(d) { return 4; })
-                .attr("height", function(d) { return 4; })
-                .attr("x", function(d, i) { return i*3; })
-                .attr("y", function(d, i) { return (height - d.max/10); });
+            this.model.on('change:data', this.render, this);
         },
 
         render: function(){
@@ -56,14 +65,27 @@ goldstone.namespace('apiPerf.report');
 
             console.log('model changed');
 
-            var svg = d3.select("#api-perf-report-r3-c2");
-            svg.selectAll("rect")
-            .data(this.model.attributes.data)
-            .attr("width", function(d) { return 4; })
-            .attr("height", function(d) { return 4; })
-            .attr("x", function(d, i) { return i*3; })
-            .attr("y", function(d, i) { return (height - d.max/10); })
-            .exit().remove();
+            var svg = this.defaults.svg;
+
+            var rectangles = svg.selectAll("rect")
+                .data(this.model.attributes.data);
+
+            rectangles
+                .attr("width", function(d) { return 8; })
+                .attr("height", function(d) { return 8; })
+                .attr("x", function(d, i) { return i*3; })
+                .attr("y", function(d, i) { return (height - d.max/10); });
+
+            rectangles
+                .enter().append("rect")
+                .attr("width", function(d) { return 4; })
+                .attr("height", function(d) { return 4; })
+                .attr("x", function(d, i) { return i*3; })
+                .attr("y", function(d, i) { return (height - d.max/10); });
+
+            rectangles
+                .exit().transition().delay(750).remove();
+
         }
 
     });
