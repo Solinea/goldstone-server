@@ -24,7 +24,7 @@ goldstone.namespace('apiPerf.report');
         idAttribute: "key"
     });
 
-    var CollectionTest = Backbone.Collection.extend({
+    var ApiPerfCollection = Backbone.Collection.extend({
 
         parse: function(data){
             return JSON.parse(data);
@@ -35,9 +35,7 @@ goldstone.namespace('apiPerf.report');
         url: "/nova/api_perf?render=false"
     });
 
-    var ChartBase = Backbone.Model.extend({});
-
-    var ChartBaseView = Backbone.View.extend({
+    var ApiPerfView = Backbone.View.extend({
 
         defaults: {
             margin: {top: 20, right: 20, bottom: 30, left: 40},
@@ -56,35 +54,35 @@ goldstone.namespace('apiPerf.report');
                 .append("g")
                 .attr("transform", "translate(" + this.defaults.margin.left + "," + this.defaults.margin.top + ")");
 
-            this.model.on('change:data', this.render, this);
+            this.model.on('sync', this.render, this);
         },
 
         render: function(){
 
             var height = this.defaults.height;
 
-            console.log('model changed');
+            console.log('render called');
 
             var svg = this.defaults.svg;
 
             var rectangles = svg.selectAll("rect")
-                .data(this.model.attributes.data);
+                .data(this.model.toJSON());
 
             rectangles
-                .attr("width", function(d) { return 8; })
-                .attr("height", function(d) { return 8; })
+                .attr("width", function(d) { return 4; })
+                .attr("height", function(d) { return 4; })
                 .attr("x", function(d, i) { return i*3; })
-                .attr("y", function(d, i) { return (height - d.max/10); });
+                .attr("y", function(d) { return (height - d.max/10); });
 
             rectangles
                 .enter().append("rect")
                 .attr("width", function(d) { return 4; })
                 .attr("height", function(d) { return 4; })
                 .attr("x", function(d, i) { return i*3; })
-                .attr("y", function(d, i) { return (height - d.max/10); });
+                .attr("y", function(d) { return (height - d.max/10); });
 
             rectangles
-                .exit().transition().delay(750).remove();
+                .exit().remove();
 
         }
 
