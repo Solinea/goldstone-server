@@ -425,7 +425,7 @@ goldstone.charts.hostAvail = {
             .range([ns.margin.left, ns.mw - ns.margin.right])
             .nice()
             .clamp(true)
-        ns.yAxis = d3.svg.axis().orient("right")
+        ns.yAxis = d3.svg.axis().orient("left")
         ns.swimAxis = d3.svg.axis().orient("left")
         ns.ySwimLane = d3.scale.ordinal()
             .domain(["unadmin"].concat(ns.loglevel
