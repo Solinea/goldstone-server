@@ -62,35 +62,55 @@ $(document).ready(function () {
             true, '#api-perf-report-r3-c1');
 
 
+    //------------------------------
     // begin backbone refactor test:
-    var demoChart = new ChartBase({data: null});
-    var demoChartView = new ChartBaseView({model: demoChart});
 
-    var rnd = function(){
-        return Math.floor(Math.random()*400 + 200);
+    var demoChart = new ApiPerfCollection({});
+    var demoChartView = new ApiPerfView({model: demoChart});
+    demoChart.fetch();
+
+
+    // function to create urls that advance at adjustable rates
+    var timeMock = function(){
+        // enter unix time/1000 of start moment
+        var urlNumBase = 1407206880;
+        // sets the end time to about 75 minutes to the start time
+        var urlNumBase2 = urlNumBase + 4592;
+
+        return function(){
+            // advances 4 minutes per invocation
+            var advanceRate = 240;
+            urlNumBase += advanceRate;
+            urlNumBase2 += advanceRate;
+
+            // returns new url to query for data payload
+            var result = "/nova/api_perf?start=" + urlNumBase + "&end=" + urlNumBase2 + "&interval=120s&render=false";
+            return result;
+        };
     };
+    var timeAdvancer = timeMock();
 
 
-    setInterval(function(){
+    var graphUpdater = setInterval(function(){
 
-        var result = [];
-        for(var i = 0; i < Math.floor(Math.random()*60); i++){
-            result.push({max: rnd()});
-        }
-        demoChart.set({data: result});
+        // call timeAdvancer which stores the urlNumBase in a closure scope
+        var newTime = timeAdvancer();
+        demoChart.url = newTime;
 
+        console.log('fetching again', demoChart.url);
+
+        demoChart.fetch({success:function(data){
+            console.log(data);
+        }});
     }, 2000);
 
-    var collectionTest = new CollectionTest({});
-    collectionTest.fetch();
-
-    // check to see if fetch returned useful data
     setTimeout(function(){
-        console.log(collectionTest);
-    }, 3000);
-
+        console.log('auto update interval cleared');
+        clearInterval(graphUpdater);
+    },300000);
 
     // end backbone refactor test
+    //---------------------------
 
 });
 
@@ -115,9 +135,3 @@ $(document).ready(function () {
     </div>
 
 {% endblock %}
-
-
-
-
-
-
