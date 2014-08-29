@@ -31,7 +31,7 @@
 
 {% block content %}
     <div id="goldstone-discover-r1" class="row">
-        <div id="goldstone-discover-r1-c1" class="col-md-12">
+        <div id="goldstone-discover-r1-c1" class="col-md-6">
             <div id = "goldstone-topology-panel" class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-tasks"></i> Cloud Topology
@@ -49,9 +49,7 @@
                 </div>
             </div>
         </div>
-        </div>
-        <div id="goldstone-discover-r2" class="row">
-        <div id="goldstone-discover-r2-c1" class="col-md-12">
+        <div id="goldstone-discover-r1-c2" class="col-md-6">
             <div id = "goldstone-nodeavail-panel" class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-tasks"></i> Node Availability
@@ -61,9 +59,11 @@
                                style="opacity: 0.0"></i>
                     </h3>
                 </div>
-                <div id="filterer" class="btn-group" data-toggle="buttons">
+                <div class="panel-body" style="height:50px">
+                    <div id="filterer" class="btn-group pull-right" data-toggle="buttons" align="center">
+                </div>
 			    </div><!--.btn-group-->
-                <div class="panel-body" style="height:600px">
+                <div class="panel-body" style="height:550px">
                     <div id="goldstone-nodeavail-chart">
                         <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                              id="goldstone-nodeavail-spinner"
@@ -73,6 +73,9 @@
                 </div>
             </div>
         </div>
+    </div>
+    <div id="goldstone-discover-r2" class="row">
+
     </div>
     <!-- log settings modal -->
     <div class="modal fade" id="nodeAvailSettingsModal" tabindex="-1" role="dialog"
