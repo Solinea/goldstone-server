@@ -307,6 +307,10 @@ margin-left: 50px;
 }
 
 /* Solinea color pallete for log levels. */
+.none {
+    fill: goldenrod;
+}
+
 .debug {
     fill: #6a51a3;
 }
