@@ -32,7 +32,7 @@ goldstone.namespace('apiPerf.report');
 
         model: ApiPerfModel,
 
-        url: "/nova/api_perf?render=false"
+        url: "/nova/api_perf?start=1409006640&end=1409011712&interval=120s&render=false"
     });
 
     var ApiPerfView = Backbone.View.extend({
