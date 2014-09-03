@@ -16,5 +16,4 @@
  * Author: John Stanford
  */
 
-goldstone.namespace('apiPerf.report')
-
+goldstone.namespace('apiPerf.report');
