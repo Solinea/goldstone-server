@@ -52,7 +52,7 @@ def process_amqp_stream(self, timestamp, host, message):
     :return: None
     """
     logger.debug("[process_amqp_stream] got an event with timestamp=%s, "
-                "host=%s, message=%s", timestamp, host, message)
+                 "host=%s, message=%s", timestamp, host, message)
     #node, created = LoggingNode.objects.get_or_create(name=host)
     #if not node.disabled:
     #    node.save()
