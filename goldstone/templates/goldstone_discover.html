@@ -22,6 +22,8 @@
 
 
 {% block localcss %}
+    <link rel="stylesheet" href="/static/css/loglevel_buttons.css">
+	<link rel="stylesheet" href="/static/css/hostavail.css">
 {% endblock %}
 
 
@@ -29,7 +31,7 @@
 
 {% block content %}
     <div id="goldstone-discover-r1" class="row">
-        <div id="goldstone-discover-r1-c1" class="col-md-12">
+        <div id="goldstone-discover-r1-c1" class="col-md-6">
             <div id = "goldstone-topology-panel" class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-tasks"></i> Cloud Topology
@@ -47,6 +49,85 @@
                 </div>
             </div>
         </div>
+        <div id="goldstone-discover-r1-c2" class="col-md-6">
+            <div id = "goldstone-nodeavail-panel" class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-tasks"></i> Node Availability
+                        <i class="fa fa-cog pull-right" data-toggle="modal"
+                           data-target="#nodeAvailSettingsModal"></i>
+                        <i class="pull-right fa fa-info-circle panel-info"  id="goldstone-nodeavail-info"
+                               style="opacity: 0.0"></i>
+                    </h3>
+                </div>
+                <div class="panel-body" style="height:50px">
+                    <div id="filterer" class="btn-group pull-right" data-toggle="buttons" align="center">
+                </div>
+			    </div><!--.btn-group-->
+                <div class="panel-body" style="height:550px">
+                    <div id="goldstone-nodeavail-chart">
+                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                             id="goldstone-nodeavail-spinner"
+                             class="ajax-loader"/>
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="goldstone-discover-r2" class="row">
+
+    </div>
+    <!-- log settings modal -->
+    <div class="modal fade" id="nodeAvailSettingsModal" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Chart Settings</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal" role="form">
+                        <div class="form-group">
+                            <label for="autoRefresh"
+                                   class="col-sm-3 control-label">Refresh: </label>
+
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                        <span class="input-group-addon">
+                                            <input type="checkbox"
+                                                   class="autoRefresh" checked>
+                                        </span>
+                                    <select class="form-control"
+                                            id="autoRefreshInterval">
+                                        <option value="5" selected>5 seconds
+                                        </option>
+                                        <option value="15">15 seconds
+                                        </option>
+                                        <option value="30">30
+                                            seconds
+                                        </option>
+                                        <option value="60">1 minute</option>
+                                        <option value="300">5 minutes
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <div class="form-group">
+                        <button type="button" id="settingsUpdateButton"
+                                class="btn btn-primary"
+                                data-dismiss="modal">Update
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 {% endblock %}
@@ -57,7 +138,8 @@
 
 $(document).ready(function () {
     var gnd = goldstone.goldstone.discover,
-        ns = goldstone.goldstone.topology
+        ns = goldstone.goldstone.topology,
+        hans = goldstone.goldstone.hostAvail
     ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns)
     ns.data = JSON.parse({{ data|to_js }})
     ns.h = 600
@@ -70,8 +152,15 @@ $(document).ready(function () {
     $(ns.spinner).hide()
     $(ns.singleRsrcSpinner).hide()
     $(ns.multiRsrcSpinner).hide()
-    //ns.infoIcon = '#glance-topology-info'
     ns.topologyTree.init()
+
+    hans.hostAvailChart = goldstone.charts.hostAvail._getInstance(hans)
+    hans.h = {"main": 450, "swim": 50}
+    hans.location = '#goldstone-nodeavail-chart'
+    hans.spinner = '#goldstone-nodeavail-spinner'
+    $(hans.spinner).hide()
+    hans.hostAvailChart.init()
+
 })
     </script>
 
