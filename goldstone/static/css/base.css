@@ -295,3 +295,55 @@ margin-left: 50px;
   stroke:black;
   opacity:0.0;
 }
+
+.invisible-axis path {
+    fill: none;
+    stroke: none;
+}
+
+#goldstone-nodeavail-chart circle {
+    opacity: 0.5;
+    stroke-width: 3;
+}
+
+/* Solinea color pallete for log levels. */
+.none {
+    fill: goldenrod;
+}
+
+.debug {
+    fill: #6a51a3;
+}
+
+.audit {
+    fill: #2171b5;
+}
+
+.info {
+    fill: #238b45;
+}
+
+.warning {
+    fill: #d94801;
+}
+
+.error {
+    fill: #cb181d;
+}
+
+.unadmin {
+    fill: darkgray;
+}
+
+div.tooltip {
+    position: absolute;
+    text-align: left;
+	line-height: 1;
+    padding: 12px;
+    font: 12px sans-serif;
+    background: rgba(0,0,0,0.4);
+	color: #fff;
+    border-radius: 10px;
+    pointer-events: none;
+}
+

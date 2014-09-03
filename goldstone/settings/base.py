@@ -189,7 +189,7 @@ RESOURCE_QUERY_INTERVAL = crontab(minute='*/2')
 API_PERF_QUERY_INTERVAL = crontab(minute='*/2')
 API_PERF_QUERY_TIMEOUT = 30
 HOST_AVAILABLE_PING_THRESHOLD = timedelta(seconds=300)
-HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/2')
+HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/1')
 
 CELERYBEAT_SCHEDULE = {
     'manage-es-indices': {
@@ -266,7 +266,7 @@ REST_FRAMEWORK = {
 
 # controls the time examined for the log volume stats included in the
 # LoggingNode object.
-LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES = 30
+LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES = 15
 
 # Goldstone config settings
 DEFAULT_LOOKBACK_DAYS = 30
