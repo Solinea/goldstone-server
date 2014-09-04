@@ -50,14 +50,14 @@ $(document).ready(function () {
     nsCinderApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsCinderApiPerf);
 
     // render charts:
-    /*nsNovaApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
+    nsNovaApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
             true, '#api-perf-report-r1-c1');
     nsNeutronApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
             true, '#api-perf-report-r1-c2');
     nsKeystoneApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
             true, '#api-perf-report-r2-c1');
     nsGlanceApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#api-perf-report-r2-c2');*/
+            true, '#api-perf-report-r2-c2');
     nsCinderApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
             true, '#api-perf-report-r3-c1');
 
@@ -67,17 +67,18 @@ $(document).ready(function () {
 
     var demoChart = new ApiPerfCollection({});
     var demoChartView = new ApiPerfView({model: demoChart});
-    demoChart.fetch();
-
 
     // function to create urls that advance at adjustable rates
     var timeMock = function(){
+
         // enter unix time/1000 of start moment
         var urlNumBase = 1409006640;
+
         // sets the end time to about 75 minutes to the start time
         var urlNumBase2 = urlNumBase + 4592;
 
         return function(){
+
             // advances 4 minutes per invocation
             var advanceRate = 240;
             urlNumBase += advanceRate;
@@ -88,26 +89,23 @@ $(document).ready(function () {
             return result;
         };
     };
-    var timeAdvancer = timeMock();
 
+    var timeAdvancer = timeMock();
 
     var graphUpdater = setInterval(function(){
 
         // call timeAdvancer which stores the urlNumBase in a closure scope
         var newTime = timeAdvancer();
         demoChart.url = newTime;
-
         console.log('fetching again', demoChart.url);
-
         demoChart.fetch({success:function(data){
-            // console.log(data);
         }});
     }, 2000);
 
     setTimeout(function(){
         console.log('auto update interval cleared');
         clearInterval(graphUpdater);
-    },300000);
+    }, 60000);
 
     // end backbone refactor test
     //---------------------------

@@ -21,149 +21,219 @@ goldstone.namespace('apiPerf.report');
 // backbone test start
 
 var ApiPerfModel = Backbone.Model.extend({
-    idAttribute: "key"
+    idAttribute: "key",
+    defaults: {
+        "avg": 1,
+        "key": 1,
+        "max": 1,
+        "min": 0
+    }
 });
 
 var ApiPerfCollection = Backbone.Collection.extend({
 
-    parse: function(data){
+    parse: function(data) {
         return JSON.parse(data);
     },
 
     model: ApiPerfModel,
+    url: "/nova/api_perf?start=1409006640&end=1409011712&interval=120s&render=false",
 
-    url: "/nova/api_perf?start=1409006640&end=1409011712&interval=120s&render=false"
+    initialize: function() {
+        this.fetch();
+    }
 });
 
 var ApiPerfView = Backbone.View.extend({
 
     defaults: {
-        margin: {top: 30, right: 30, bottom: 60, left: 60},
+        margin: {
+            top: 30, right: 30, bottom: 60, left: 60
+        },
         width: 525,
         height: 300,
         svg: null,
-        yAxisLabel: "Response Time (ms)"
+        chart: null,
+        yAxisLabel: "Response Time (ms)",
+        location: "#api-perf-report-r3-c2",
+        start: 1409006640,
+        end: 1409011712,
+        interval: 120,
+        infoCustom: [{
+            key: "API Call",
+            value: "demo chart"
+        }],
+        mw: null,
+        mh: null
+
     },
 
-    initialize: function(){
-
-        var height = this.defaults.height;
-
-        this.defaults.svg = d3.select("#api-perf-report-r3-c2").append("svg")
-            .attr("width", this.defaults.width)
-            .attr("height", this.defaults.height);
-
-        this.defaults.chart = this.defaults.svg
-            .append("g")
-            .attr("class", "chart")
-            .attr("transform", "translate(" + this.defaults.margin.left + "," + this.defaults.margin.top + ")");
+    initialize: function() {
 
         this.model.on('sync', this.render, this);
 
-        var mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
-        var mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
+        var ns = this.defaults;
+        var height = ns.height;
+        var json = this.model.toJSON();
+        ns.mw = ns.width - ns.margin.left - ns.margin.right;
+        ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
 
+        $(ns.location).append(
+            '<div id = "glance-api-perf-panel" class="panel panel-primary">' +
+            '<div class="panel-heading">' +
+            '<h3 class="panel-title"><i class="fa fa-tasks"></i> Demo API Performance' +
+            '<i class="pull-right fa fa-info-circle panel-info"  id="demo-api-perf-info"></i>' +
+            '</h3></div>');
+
+        this.defaults.svg = d3.select(ns.location).append("svg")
+            .attr("width", ns.width)
+            .attr("height", ns.height);
+
+        this.defaults.chart = ns.svg
+            .append("g")
+            .attr("class", "chart")
+            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+
+        json.forEach(function(d) {
+            d.time = moment(Number(d.key));
+        });
+
+        // chart info button popover generator
+        var htmlGen = function() {
+            var start = moment(goldstone.time.fromPyTs(ns.start)).format(),
+                end = moment(goldstone.time.fromPyTs(ns.end)).format(),
+                custom = _.map(ns.infoCustom, function(e) {
+                    return e.key + ": " + e.value + "<br>";
+                }),
+                result = '<div class="body"><br>' + custom +
+                'Start: ' + start + '<br>' +
+                'End: ' + end + '<br>' +
+                'Interval: ' + ns.interval + '<br>' +
+                '<br></div>';
+            return result;
+        };
+
+        $('#demo-api-perf-info').popover({
+            trigger: 'manual',
+            content: htmlGen.apply(this),
+            placement: 'bottom',
+            html: 'true'
+        })
+            .on("click", function(d) {
+                var targ = "#" + d.target.id;
+                $(targ).popover('toggle');
+
+                // passing an arg to setTimeout is not supported in IE < 10
+                // see https://developer.mozilla.org/en-US/docs/Web/API/Window.setTimeout#Callback_arguments
+                setTimeout(function(d) {
+                    $(d).popover('hide');
+                }, 3000, targ);
+            });
 
 
     },
 
-    render: function(){
+    render: function() {
 
-        var height = this.defaults.height;
         console.log('render called');
-        var json = this.model.toJSON();
+
         var ns = this.defaults;
-        var mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
-        var mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
+        var json = this.model.toJSON();
+        var mw = ns.mw;
+        var mh = ns.mh;
 
-        /* var rectangles = svg.selectAll("rect")
-            .data(this.model.toJSON());
-
-        rectangles
-            .attr("width", function(d) { return 4; })
-            .attr("height", function(d) { return 4; })
-            .attr("x", function(d, i) { return i*3; })
-            .attr("y", function(d) { return (height - d.max/10); });
-
-        rectangles
-            .enter().append("rect")
-            .attr("width", function(d) { return 4; })
-            .attr("height", function(d) { return 4; })
-            .attr("x", function(d, i) { return i*3; })
-            .attr("y", function(d) { return (height - d.max/10); });
-
-        rectangles
-            .exit().remove();
-        */
-
-        if(this.model.toJSON().length === 0){
-            $(this.ns.location).append("<p>Response was empty.");
-            $(this.ns.spinner).hide();
+        if (this.model.toJSON().length === 0) {
+            $(ns.location).append("<p>Response was empty.</p>");
+            $(ns.spinner).hide();
             return;
         }
 
-        json.forEach(function(d){
+        $(ns.location).find('svg').find('.chart').html('');
+        $(ns.location + '.d3-tip').detach();
+
+
+        json.forEach(function(d) {
             d.time = moment(Number(d.key));
         });
 
         var x = d3.time.scale()
-            .domain(d3.extent(json, function (d) { return d.time; }))
+            .domain(d3.extent(json, function(d) {
+                return d.time;
+            }))
             .rangeRound([0, mw]),
-        y = d3.scale.linear()
-            .domain([0, d3.max(json, function (d) { return d.max; })])
+            y = d3.scale.linear()
+            .domain([0, d3.max(json, function(d) {
+                return d.max;
+            })])
             .range([mh, 0]),
-        area = d3.svg.area()
+            area = d3.svg.area()
             .interpolate("basis")
             .tension(0.85)
-            .x(function (d) { return x(d.time); })
-            .y0(function (d) { return y(d.min); })
-            .y1(function (d) { return y(d.max); }),
-        maxLine = d3.svg.line()
+            .x(function(d) {
+                return x(d.time);
+            })
+            .y0(function(d) {
+                return y(d.min);
+            })
+            .y1(function(d) {
+                return y(d.max);
+            });
+
+        var maxLine = d3.svg.line()
             .interpolate("basis")
             .tension(0.85)
-            .x(function (d) { return x(d.time); })
-            .y(function (d) { return y(d.max); }),
-        minLine = d3.svg.line()
+            .x(function(d) {
+                return x(d.time);
+            })
+            .y(function(d) {
+                return y(d.max);
+            });
+
+        var minLine = d3.svg.line()
             .interpolate("basis")
             .tension(0.85)
-            .x(function (d) { return x(d.time); })
-            .y(function (d) { return y(d.min); }),
-        avgLine = d3.svg.line()
+            .x(function(d) {
+                return x(d.time);
+            })
+            .y(function(d) {
+                return y(d.min);
+            });
+
+        var avgLine = d3.svg.line()
             .interpolate("basis")
             .tension(0.85)
-            .x(function (d) { return x(d.time); })
-            .y(function (d) { return y(d.avg); }),
-        hiddenBar = ns.chart.selectAll(ns.location + ' .hiddenBar')
-            .data(json),
-        hiddenBarWidth = mw / json.length,
-        xAxis = d3.svg.axis()
+            .x(function(d) {
+                return x(d.time);
+            })
+            .y(function(d) {
+                return y(d.avg);
+            });
+
+        var hiddenBar = ns.chart.selectAll(ns.location + ' .hiddenBar')
+            .data(json);
+
+        var hiddenBarWidth = mw / json.length,
+            xAxis = d3.svg.axis()
             .scale(x)
             .orient("bottom"),
-        yAxis = d3.svg.axis()
+            yAxis = d3.svg.axis()
             .scale(y)
-            .orient("left"),
-        tip = d3.tip()
+            .orient("left");
+
+        var tip = d3.tip()
             .attr('class', 'd3-tip')
-            .html(function (d) {
-                return "<p>" + d.time.format()  + "<br>Max: " + d.max.toFixed(2) +
+            .attr('id', ns.location.slice(1))
+            .html(function(d) {
+                return "<p>" + d.time.format() + "<br>Max: " + d.max.toFixed(2) +
                     "<br>Avg: " + d.avg.toFixed(2) + "<br>Min: " + d.min.toFixed(2) + "<p>";
             });
 
-        // initialized the axes
-
-        ns.svg.append("text")
-            .attr("class", "axis.label")
-            .attr("transform", "rotate(-90)")
-            .attr("x", 0 - (ns.height / 2))
-            .attr("y", -5)
-            .attr("dy", "1.5em")
-            .text(ns.yAxisLabel)
-            .style("text-anchor", "middle");
-
         // Invoke the tip in the context of your visualization
+
         ns.chart.call(tip);
 
         // initialize the chart lines
+
         ns.chart.append("path")
             .datum(json)
             .attr("class", "area")
@@ -215,9 +285,10 @@ var ApiPerfView = Backbone.View.extend({
 
         // ENTER
         // Create new elements as needed.
+
         hiddenBar.enter()
             .append('g')
-            .attr("transform", function (d, i) {
+            .attr("transform", function(d, i) {
                 return "translate(" + i * hiddenBarWidth + ",0)";
             });
 
@@ -227,34 +298,47 @@ var ApiPerfView = Backbone.View.extend({
         // the enter selection will apply to both entering and updating nodes.
 
         // hidden rectangle for tooltip tethering
+
         hiddenBar.append("rect")
             .attr('class', 'partialHiddenBar')
-            .attr("id", function (d, i) { return "verticalRect" + i; })
-            .attr("y", function (d) { return y(d.max); })
-            .attr("height", function (d) { return mh - y(d.max); })
+            .attr("id", function(d, i) {
+                return "verticalRect" + i;
+            })
+            .attr("y", function(d) {
+                return y(d.max);
+            })
+            .attr("height", function(d) {
+                return mh - y(d.max);
+            })
             .attr("width", hiddenBarWidth);
+
         // narrow guideline turns on when mouse enters hidden bar
+
         hiddenBar.append("rect")
             .attr("class", "verticalGuideLine")
-            .attr("id", function (d, i) { return "verticalGuideLine" + i; })
+            .attr("id", function(d, i) {
+                return "verticalGuideLine" + i;
+            })
             .attr("x", 0)
             .attr("height", mh)
             .attr("width", 1)
             .style("opacity", 0);
+
         // wide guideline with mouse event handling to show guide and
         // tooltip.
+
         hiddenBar.append("rect")
             .attr('class', 'hiddenBar')
             .attr("height", mh)
             .attr("width", hiddenBarWidth)
-            .on('mouseenter', function (d, i) {
+            .on('mouseenter', function(d, i) {
                 var rectId = ns.location + " #verticalRect" + i,
                     guideId = ns.location + " #verticalGuideLine" + i,
                     targ = d3.select(guideId).pop().pop();
                 d3.select(guideId).style("opacity", 0.8);
                 tip.offset([50, 0]).show(d, targ);
             })
-            .on('mouseleave', function (d, i) {
+            .on('mouseleave', function(d, i) {
                 var id = ns.location + " #verticalGuideLine" + i;
                 d3.select(id).style("opacity", 0);
                 tip.hide();
@@ -264,7 +348,6 @@ var ApiPerfView = Backbone.View.extend({
         // Remove old elements as needed.
 
     }
-
 });
 
 // backbone test end
