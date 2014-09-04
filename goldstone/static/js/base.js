@@ -368,6 +368,7 @@ goldstone.charts.hostAvail = {
     _getInstance: function (ns) {
         var o = Object.create(this)
         o.ns = ns
+        o.ns.self = o
         return o
     },
 
@@ -380,72 +381,71 @@ goldstone.charts.hostAvail = {
     },
 
     initSettingsForm: function () {
-        $("#settingsUpdateButton").click(function () {
-            goldstone.goldstone.hostAvail.animation.delay = goldstone.charts.hostAvail.refreshInterval();
-            goldstone.goldstone.hostAvail.animation.pause = !goldstone.charts.hostAvail.isRefreshSelected()
+        var self = this.ns.self;
+        var ns = this.ns;
 
-            if(!goldstone.goldstone.hostAvail.animation.pause) {
-                d3.timer(goldstone.charts.hostAvail.update, goldstone.goldstone.hostAvail.animation.delay * 1000);
+        var updateSettings = function () {
+            ns.animation.delay = self.refreshInterval();
+            ns.animation.pause = !self.isRefreshSelected();
+            if (!ns.animation.pause) {
+               d3.timer(self.update.bind(this, ns), ns.animation.delay * 1000);
             }
-        });
+        }
+        $("#settingsUpdateButton").click(updateSettings);
     },
 
     init: function () {
-        this.initSettingsForm()
-        this.initSvg()
-        this.update()
-    },
-
-    loadUrl: function (location) {
-        d3.json(this.ns.url(), function (error, data) {
-            goldstone.goldstone.hostAvail.data = data
-            goldstone.goldstone.hostAvail.update()()
-        })
+        this.initSettingsForm();
+        this.initSvg();
+        this.update(this.ns);
     },
 
     initSvg: function () {
-        this.ns.margin = { top: 25, bottom: 25, right: 40, left: 60 }
-        this.ns.w = $(this.ns.location).width()
-        this.ns.mw = this.ns.w - this.ns.margin.left - this.ns.margin.right
-        this.ns.mh = this.ns.h.main - this.ns.margin.top - this.ns.margin.bottom
+        var self = this.ns.self;
+        var ns = this.ns;
+        ns.margin = { top: 25, bottom: 25, right: 40, left: 60 }
+        ns.w = $(this.ns.location).width()
+        ns.mw = this.ns.w - this.ns.margin.left - this.ns.margin.right
+        ns.mh = this.ns.h.main - this.ns.margin.top - this.ns.margin.bottom
 
-        this.ns.parser2 = d3.time.format.utc("%Y-%m-%dT%H:%M:%S.%LZ")
-        this.ns.parser = d3.time.format.utc("%Y-%m-%dT%H:%M:%SZ")
-
-        this.ns.r = d3.scale.sqrt();
-        this.ns.loglevel = d3.scale.ordinal()
+        ns.r = d3.scale.sqrt();
+        ns.loglevel = d3.scale.ordinal()
             .domain(["debug", "audit", "info", "warning", "error"])
             .range(["#6a51a3", "#2171b5", "#238b45", "#d94801", "#cb181d"]);
 
-        this.ns.pingAxis = d3.svg.axis()
+        ns.pingAxis = d3.svg.axis()
             .orient("top")
             .ticks(5)
             .tickFormat(d3.time.format("%H:%M:%S"))
-        this.ns.unadminAxis = d3.svg.axis()
+        ns.unadminAxis = d3.svg.axis()
             .orient("bottom")
             .ticks(5)
             .tickFormat(d3.time.format("%H:%M:%S"))
-        this.ns.xScale = d3.time.scale()
-            .range([this.ns.margin.left, this.ns.mw - this.ns.margin.right])
+        ns.xScale = d3.time.scale()
+            .range([ns.margin.left, ns.mw - ns.margin.right])
             .nice()
-        this.ns.yAxis = d3.svg.axis().orient("right")
-        this.ns.swimAxis = d3.svg.axis().orient("right")
-        this.ns.ySwimLane = d3.scale.ordinal()
-            .domain(["unadmin"].concat(this.ns.loglevel.domain().concat(["padding1", "padding2", "ping"])))
-            .rangeRoundBands([this.ns.h.main, 0], 0.1);
-        this.ns.yLogs = d3.scale.linear()
+            .clamp(true)
+        ns.yAxis = d3.svg.axis().orient("left")
+        ns.swimAxis = d3.svg.axis().orient("left")
+        ns.ySwimLane = d3.scale.ordinal()
+            .domain(["unadmin"].concat(ns.loglevel
+                .domain()
+                .concat(["padding1", "padding2", "ping"])))
+            .rangeRoundBands([ns.h.main, 0], 0.1);
+        ns.yLogs = d3.scale.linear()
             .range([
-                this.ns.ySwimLane("unadmin") - this.ns.ySwimLane.rangeBand()
-                , this.ns.ySwimLane("ping") + this.ns.ySwimLane.rangeBand()
+                ns.ySwimLane("unadmin") - ns.ySwimLane.rangeBand(),
+                ns.ySwimLane("ping") + ns.ySwimLane.rangeBand()
             ]);
 
-        this.ns.animation = { pause: false, delay: 5, index: 1 }
+        ns.animation = { pause: false, delay: 5, index: 1 }
         /*
          * The filter buttons
          */
-        this.ns.filter = {
-            debug:   false,
-            audit:   false,
+        ns.filter = {
+            none:    true,
+            debug:   true,
+            audit:   true,
             info:    true,
             warning: true,
             error:   true
@@ -453,291 +453,297 @@ goldstone.charts.hostAvail = {
 
         // The log-level buttons toggle the specific log level into the total count
         d3.select("#filterer").selectAll("input")
-            .data(d3.keys(this.ns.filter), function (d) {return d; })
+            .data(d3.keys(ns.filter), function (d) { return d; })
           .enter().append("div")
             .attr("class", "btn-group")
           .append("label")
-            .text(function (d) { return d; })
-            .attr("class", function (d) { return "btn btn-log-" + d; })
-            .classed("active", function (d) {
-                return goldstone.goldstone.hostAvail.filter[d];
-            })
             .attr("id", function (d) { return d; })
+            .attr("class", function (d) { return "btn btn-log-" + d; })
+            .classed("active", function(d) {
+                return ns.filter[d];
+            })
+            .attr("type", "button")
+            .text(function (d) { return d; })
             .on("click", function (d) {
-                goldstone.goldstone.hostAvail.filter[d] = !goldstone.goldstone.hostAvail.filter[d];
-                goldstone.charts.hostAvail.redraw();
+                ns.filter[d] = !ns.filter[d];
+                self.redraw();
             })
           .append("input")
             .attr("type", "checkbox");
+
 
         /*
          * The graph and axes
          */
 
-        this.ns.svg = d3.select(this.ns.location).append("svg")
-            .attr("width", this.ns.w)
-            .attr("height", this.ns.h.main + (this.ns.h.swim * 2) + this.ns.margin.top + this.ns.margin.bottom)
+        ns.svg = d3.select(ns.location).append("svg")
+            .attr("width", ns.w)
+            .attr("height", ns.h.main + (ns.h.swim * 2) + ns.margin.top + ns.margin.bottom)
           .append("g")
-            .attr("transform", "translate(" + this.ns.margin.left + "," + this.ns.margin.top + ")");
+            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
 
-        this.ns.graph = this.ns.svg.append("g").attr("id", "graph");
+        ns.graph = ns.svg.append("g").attr("id", "graph");
 
         // Visual swim lanes
-        this.ns.swimlanes = {
-            ping: "Ping Only",
-            unadmin: "Disabled",
+        ns.swimlanes = {
+            ping: {
+                label: "Ping Only",
+                offset: ns.ySwimLane.rangeBand() / 2 * -1
+            },
+            unadmin: {
+                label: "Disabled",
+                offset: ns.ySwimLane.rangeBand() / 2
+            }
         };
 
-        this.ns.graph.selectAll(".swimlane")
-            .data(d3.keys(goldstone.goldstone.hostAvail.swimlanes), function(d) {
+        ns.graph.selectAll(".swimlane")
+            .data(d3.keys(ns.swimlanes), function (d) {
                 return d;
             })
           .enter().append("g")
             .attr("class", "swimlane")
-            .attr("id", function(d) { return d; })
-            .attr("transform", function(d) {
+            .attr("id", function (d) { return d; })
+            .attr("transform", function (d) {
                 return "translate(0,"
-                    + goldstone.goldstone.hostAvail.ySwimLane(d)
+                    + ns.ySwimLane(d)
                     + ")";
             });
 
-        this.ns.graph.append("g")
+        ns.graph.append("g")
             .attr("class", "xping axis")
-            .attr("transform", "translate(0," + (this.ns.ySwimLane.rangeBand()) + ")");
+            .attr("transform", "translate(0," + (ns.ySwimLane.rangeBand()) + ")");
 
-        this.ns.graph.append("g")
+        ns.graph.append("g")
             .attr("class", "xunadmin axis")
-            .attr("transform", "translate(0," + (this.ns.h.main - this.ns.ySwimLane.rangeBand())+ ")");
+            .attr("transform", "translate(0," + (ns.h.main - ns.ySwimLane.rangeBand()) + ")");
 
-        this.ns.graph.append("g")
+        ns.graph.append("g")
             .attr("class", "y axis invisible-axis")
-            .attr("transform", "translate(" + this.ns.mw + ",0)");
+            .attr("transform", "translate(" + ns.mw + ",0)");
 
-        this.ns.graph.append("g")
+        ns.graph.append("g")
             .attr("class", "swim axis invisible-axis");
 
-        this.ns.tooltip = d3.select(this.ns.location).append("div")
-            .attr("class", "tooltip")
-            .style("opacity", 0);
+        ns.tooltip = d3.tip()
+            .attr('class', 'd3-tip')
+            .html(function (d) {
+                return d.name + "<br/>" +
+                    "(" + d.uuid + ")" + "<br/>" +
+                    "Errors: " + d.error_count + "<br/>" +
+                    "Warnings: " + d.warning_count + "<br/>" +
+                    "Info: " + d.info_count + "<br/>" +
+                    "Audit: " + d.audit_count + "<br/>" +
+                    "Debug: " + d.debug_count + "<br/>";
+            });
 
-        this.ns.dataset = null;
+        ns.graph.call(ns.tooltip);
 
-    },
+        ns.dataset = null;
+
+        // Label the swim lane ticks
+        ns.swimAxis
+            .tickFormat(function(d) {
+                // Visual swim lanes
+                var swimlanes = {
+                        ping: "Ping Only",
+                        unadmin: "Disabled",
+                    },
+                    middle = ns.ySwimLane.domain()[Math.floor(ns.ySwimLane.domain().length/2)];
+                swimlanes[middle] = "Logs";
+                return swimlanes[d] ? swimlanes[d] : "";
+            })
+
+        // Draw the axis on the screen
+        d3.select(".swim.axis")
+            .call(ns.swimAxis.scale(ns.ySwimLane)
+            );
+
+        // Transform the swim lane ticks into place
+        d3.select(".swim.axis").selectAll("text")
+            .attr("transform", function(d, i) {
+                // The "ping" label needs to be nudged upwards
+                // The "unadmin" label needs to be nudged downwards
+                // The "logs" label needs to be nudged to the left
+                var nudge = ns.ySwimLane.rangeBand()/2
+                     * (d === "unadmin" ? 1 : d === "ping" ? -1 : -0.5)
+                    , l = ns.ySwimLane.domain().length
+                    , ret = "translate(0," + nudge + ")"
+                    ;
+                // Rotate the middle label, as it covers the widest swim lane
+                return ((i > 0 && i < l-1)
+                    ? "rotate(" + (i === Math.floor(l/2) ? -90 : 0) + ") "
+                    : "") + ret;
+            });
+    }, // initSvg()
 
     redraw: function () {
-        goldstone.goldstone.hostAvail.yLogs.domain([
+        var self = this.ns.self;
+        var ns = this.ns;
+
+        ns.yLogs.domain([
             0,
-            d3.max(goldstone.goldstone.hostAvail.dataset.map(function (d) {
-                return goldstone.charts.hostAvail.sums(d);
+            d3.max(ns.dataset.map(function (d) {
+                return self.sums(d);
             }))
         ]);
+
+        d3.select(".swim.axis")
+            .transition()
+            .duration(500)
 
         d3.select(".y.axis")
             .transition()
             .duration(500)
-            .call(goldstone.goldstone.hostAvail.yAxis.scale(goldstone.goldstone.hostAvail.yLogs));
+            .call(ns.yAxis.scale(ns.yLogs));
 
-        d3.select(".swim.axis")
-            .call(goldstone.goldstone.hostAvail.swimAxis.scale(goldstone.goldstone.hostAvail.ySwimLane))
-            .selectAll("text")
-            .attr("transform", function(d) {
-                return "translate(0," + (
-                    (d === "ping" || d === "unadmin")
-                        ? {
-                            ping: goldstone.goldstone.hostAvail.ySwimLane.rangeBand()/2 * -1,
-                            unadmin: goldstone.goldstone.hostAvail.ySwimLane.rangeBand()/2,
-                            }[d]
-                        : 0
-                  ) + ")"
-            })
-            .attr("dy", "0.71em")
-            .text(function(d) {
-                return goldstone.goldstone.hostAvail.swimlanes[d] || d;
-            })
-            .style("display", function(d) {
-                return goldstone.goldstone.hostAvail.swimlanes[d] ? null : "none";
-            });
-
-        // Add "logs" area label
-        goldstone.goldstone.hostAvail.svg.append("text")
-            .attr("transform", "translate(0" + /*goldstone.goldstone.hostAvail.margin.left / 2 + */"," + goldstone.goldstone.hostAvail.mh / 2 + ") rotate(-90)")
-            .text("Logs")
-            .attr("text-anchor", "middle");
-
-
-        goldstone.goldstone.hostAvail.graph.selectAll("circle")
+        ns.graph.selectAll("circle")
           .transition().duration(500)
             .attr("class", function (d) {
                 return d.swimlane === "unadmin" ? d.swimlane : d.level;
             })
             .attr("cx", function (d) {
-                return goldstone.goldstone.hostAvail.xScale(d.last_seen);
+                return ns.xScale(d.last_seen);
             })
             .attr("cy", function (d) {
                 return {
-                    logs: goldstone.goldstone.hostAvail.yLogs(goldstone.charts.hostAvail.sums(d)),
-                    ping: goldstone.goldstone.hostAvail.ySwimLane(d.swimlane),
-                    unadmin: goldstone.goldstone.hostAvail.ySwimLane(d.swimlane) + goldstone.goldstone.hostAvail.ySwimLane.rangeBand()
+                    logs: ns.yLogs(self.sums(d)),
+                    ping: ns.ySwimLane(d.swimlane),
+                    unadmin: ns.ySwimLane(d.swimlane) + ns.ySwimLane.rangeBand()
                 }[d.swimlane];
             })
             .attr("r", function (d) {
         // Fixed radii for now.
-                return d.swimlane === "logs"
-          ? goldstone.goldstone.hostAvail.r(64)
-          : goldstone.goldstone.hostAvail.r(20);
+                return d.swimlane === "logs" ? ns.r(64) : ns.r(20);
             })
             .style("opacity", function (d) {
-                return d.swimlane === "unadmin"
-                ? 0.8
-                : goldstone.goldstone.hostAvail.filter[d.level] ? 0.5 : 1e-6;
+                return d.swimlane === "unadmin" ?
+                    0.8 : ns.filter[d.level] ? 0.5 : 1e-6;
             });
     }, // redraw()
 
     sums: function (datum) {
+        var self = this.ns.self;
+        var ns = this.ns;
         // Return the sums for the filters that are on
-        return d3.sum(goldstone.goldstone.hostAvail.loglevel.domain().map(function (k) {
-            return goldstone.goldstone.hostAvail.filter[k] ? datum[k + "_count"] : 0;
+        return d3.sum(ns.loglevel.domain().map(function (k) {
+            return ns.filter[k] ? datum[k + "_count"] : 0;
         }));
     }, // sums()
 
-    update: function () {
-            // If we are paused or beyond the available jsons, exit
-            if (goldstone.goldstone.hostAvail.animation.pause) {
-                return true;
+    update: function (ns) {
+        var self = ns.self;
+        var uri = "/logging/nodes"
+
+        // If we are paused or beyond the available jsons, exit
+        if (ns.animation.pause) {
+            return true;
+        }
+
+        // Set the animation to not step over itself
+        ns.animation.pause = true;
+
+        d3.xhr(uri, function (error, response) {
+            var allthelogs = JSON.parse(response.responseText)
+            var xStart = moment(response.getResponseHeader('LogCountStart'))
+            var xEnd = moment(response.getResponseHeader('LogCountEnd'))
+
+            ns.xScale = ns.xScale.domain([xStart, xEnd])
+
+            // If we didn't receive any valid files, abort and pause
+            // there may need to be a user notification added here at
+            // some point.  We'll see.
+
+            // TODO should paint the empty chart anyway, then start refreshing
+            if (typeof allthelogs.results === "undefined") {
+                ns.animation.pause = true;
+                return;
             }
 
-            // Set the animation to not step over itself
-            goldstone.goldstone.hostAvail.animation.pause = true;
-            var uri = "/static/data/logging_nodes." +
-          goldstone.goldstone.hostAvail.animation.index +
-          ".json";
-            d3.json(uri, function (error, allthelogs) {
-                // If we didn't receive any valid files, abort and pause
-                // there may need to be a user notification added here at
-                // some point.  We'll see.
-                if(typeof allthelogs === "undefined") {
-                    goldstone.goldstone.hostAvail.animation.pause = true;
-                    return;
-                }
-
-
-                /*
-                 * Shape the dataset
-                 *   - Convert datetimes to integer
-                 *   - Sort by last seen (from most to least recent)
-                 */
-                goldstone.goldstone.hostAvail.dataset = allthelogs
-                    .map(function (d) {
-                        d = JSON.parse(d); // weird artifact of django's response?
-                        d.created = parsify(d.created)
-                        d.updated = parsify(d.updated)
-                        d.last_seen = parsify(d.last_seen)
 
             /*
-             * Figure out which kind of messages are reported most
-             * by the node.  That will determine its color later.
+             * Shape the dataset
+             *   - Convert datetimes to integer
+             *   - Sort by last seen (from most to least recent)
              */
-                        d.level = goldstone.goldstone.hostAvail.loglevel.domain()
-              .map(function (l) { return [l, d[l + "_count"]]; })
-              .sort(function(a, b) {
-                  return d3.descending(a[1], b[1]);
+            ns.dataset = allthelogs.results
+                .map(function (d) {
+                    d.created = moment(d.created)
+                    d.updated = moment(d.updated)
+                    d.last_seen = moment(d.last_seen)
+
+                    /*
+                     * Figure out the higest priority level.
+                     * That will determine its color later.
+                     */
+                    var nonzero_levels = ns.loglevel.domain()
+                        .map(function (l) { return [l, d[l + "_count"]]; })
+                        .filter(function (l) {return (l[1] > 0)})
+                        .reverse()
+                    d.level = typeof(nonzero_levels[0]) === 'undefined' ? "none":nonzero_levels[0][0];
+
+
+        /*
+         * Figure out which bucket (logs, ping, or admin disabled)
+         * each node belongs to.
+         */
+        d.swimlane = d.admin_disabled ?
+            "unadmin" : d.last_seen_method.toLowerCase();
+                    return d;
                 })
-              [0][0];
-
-            /*
-             * Figure out which bucket (logs, ping, or admin disabled)
-             * each node belongs to.
-             */
-            d.swimlane = d.admin_disabled
-              ? "unadmin"
-              : d.last_seen_method.toLowerCase();
-                        return d;
-                    })
-                    .sort(function (a, b) {
-                        return a.last_seen - b.last_seen;
-                    });
-
-                function parsify(indate) {
-                    var tmp = goldstone.goldstone.hostAvail.parser.parse(indate);
-                    if (tmp === null) {
-                        tmp = goldstone.goldstone.hostAvail.parser2.parse(indate);
-                    }
-                    return tmp;
-                }
-
-            /*
-             * Axes
-             *   - calculate the new domain.
-             *   - adjust each axis to its new scale.
-             */
-
-            goldstone.goldstone.hostAvail.xScale.domain(d3.extent(goldstone.goldstone.hostAvail.dataset.map(function (d) {
-                return d.last_seen;
-            })));
-            goldstone.goldstone.hostAvail.pingAxis.scale(goldstone.goldstone.hostAvail.xScale);
-            goldstone.goldstone.hostAvail.unadminAxis.scale(goldstone.goldstone.hostAvail.xScale);
-
-            goldstone.goldstone.hostAvail.svg.select(".xping.axis")
-                .call(goldstone.goldstone.hostAvail.pingAxis);
-
-            goldstone.goldstone.hostAvail.svg.select(".xunadmin.axis")
-                .call(goldstone.goldstone.hostAvail.unadminAxis);
-
-            goldstone.goldstone.hostAvail.yLogs.domain([0, d3.max(goldstone.goldstone.hostAvail.dataset.map(function (d) {
-                // add up all the *_counts
-                return d3.sum(goldstone.goldstone.hostAvail.loglevel.domain().map(function (e) {
-                    return +d[e + "_count"];
-                }));
-            }))])
-            goldstone.goldstone.hostAvail.yAxis.scale(goldstone.goldstone.hostAvail.yLogs);
-            goldstone.goldstone.hostAvail.svg.select(".y.axis")
-                .transition()
-                .duration(500)
-                .call(goldstone.goldstone.hostAvail.yAxis);
-
-
-            /*
-             * New circles appear at the far right hand side of the graph.
-             */
-            var circle = goldstone.goldstone.hostAvail.graph.selectAll("circle")
-                .data(goldstone.goldstone.hostAvail.dataset, function (d) {
-                    return d.uuid;
+                .sort(function (a, b) {
+                    return a.last_seen - b.last_seen;
                 });
 
-            circle.enter()
-                .append("circle")
-                .attr("cx", function (d) {
-                    return goldstone.goldstone.hostAvail.xScale.range()[1];
-                })
-                .attr("cy", function (d) {
-                    return goldstone.goldstone.hostAvail.yLogs(goldstone.charts.hostAvail.sums(d));
-                })
-                .attr("r", goldstone.goldstone.hostAvail.r(0))
-                .attr("class", function (d) { return d.level; })
-                .on("mouseover", function (d) {
-                    goldstone.goldstone.hostAvail.tooltip
-                        .html(d.name + "<br/>" +
-                          "(" + d.uuid + ")" + "<br/>" +
-                          "Errors: " + d.error_count + "<br/>" +
-                          "Warnings: " + d.warning_count + "<br/>" +
-                          "Info: " + d.info_count + "<br/>" +
-                          "Audit: " + d.audit_count + "<br/>" +
-                          "Debug: " + d.debug_count + "<br/>"
-                          );
+        /*
+         * Axes
+         *   - calculate the new domain.
+         *   - adjust each axis to its new scale.
+         */
 
-                    goldstone.goldstone.hostAvail.tooltip
-                          .transition().duration(200)
-                        .style("opacity", 0.9)
-                        .style("left", d3.select(this).attr("cx"))
-                        .style("top", d3.select(this).attr("cy"));
-                })
-                .on("mouseout", function (d) {
-                    goldstone.goldstone.hostAvail.tooltip
-                        .transition().duration(500)
-                    .style("opacity", 1e-6);
-                });
+        ns.pingAxis.scale(ns.xScale);
+        ns.unadminAxis.scale(ns.xScale);
 
-            goldstone.charts.hostAvail.redraw();
+        ns.svg.select(".xping.axis")
+            .call(ns.pingAxis);
+
+        ns.svg.select(".xunadmin.axis")
+            .call(ns.unadminAxis);
+
+        ns.yLogs.domain([0, d3.max(ns.dataset.map(function (d) {
+            // add up all the *_counts
+            return d3.sum(ns.loglevel.domain().map(function (e) {
+                return +d[e + "_count"];
+            }));
+        }))])
+        ns.yAxis.scale(ns.yLogs);
+        ns.svg.select(".y.axis")
+            .transition()
+            .duration(500)
+            .call(ns.yAxis);
+
+
+        /*
+         * New circles appear at the far right hand side of the graph.
+         */
+        var circle = ns.graph.selectAll("circle")
+            .data(ns.dataset, function (d) {
+                return d.uuid;
+            });
+
+        circle.enter()
+            .append("circle")
+            .attr("cx", function (d) {
+                return ns.xScale.range()[1];
+            })
+            .attr("cy", function (d) {
+                return ns.yLogs(self.sums(d));
+            })
+            .attr("r", ns.r(0))
+            .attr("class", function (d) { return d.level; })
+            .on("mouseover", ns.tooltip.show )
+            .on("mouseout", ns.tooltip.hide);
+
+            self.redraw();
 
             // This behaviour is not yet fully understood
             circle.exit()
@@ -745,11 +751,11 @@ goldstone.charts.hostAvail = {
 
             // Increment the index
             // This will probably go away for production data
-            goldstone.goldstone.hostAvail.animation.index += 1;
+            ns.animation.index += 1;
 
             // Unpause the animation and rerun this function for the next frame
-            goldstone.goldstone.hostAvail.animation.pause = false;
-            d3.timer(goldstone.charts.hostAvail.update, goldstone.goldstone.hostAvail.animation.delay * 1000);
+            ns.animation.pause = false;
+            d3.timer(ns.self.update.bind(this, ns), ns.animation.delay * 1000);
             return true;
         });
     } // update()
@@ -1310,7 +1316,7 @@ goldstone.charts.topologyTree = {
         // Normalize for fixed-depth.
         nodes.forEach(function (d) {
             // TODO make the tree branch length configurable
-            d.y = d.depth * 150;
+            d.y = d.depth * 120;
         })
 
         // Update the nodes…

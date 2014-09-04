@@ -307,6 +307,10 @@ margin-left: 50px;
 }
 
 /* Solinea color pallete for log levels. */
+.none {
+    fill: goldenrod;
+}
+
 .debug {
     fill: #6a51a3;
 }
@@ -330,16 +334,3 @@ margin-left: 50px;
 .unadmin {
     fill: darkgray;
 }
-
-div.tooltip {
-    position: absolute;
-    text-align: left;
-	line-height: 1;
-    padding: 12px;
-    font: 12px sans-serif;
-    background: rgba(0,0,0,0.4);
-	color: #fff;
-    border-radius: 10px;
-    pointer-events: none;
-}
-
