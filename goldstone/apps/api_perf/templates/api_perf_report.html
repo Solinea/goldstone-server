@@ -43,21 +43,21 @@ $(document).ready(function () {
     nsReport.end = goldstone.time.fromPyTs({{ end_ts|to_js }});
     nsReport.interval = {{ interval|to_js }}
 
-    nsNovaApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsNovaApiPerf);
+    /*nsNovaApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsNovaApiPerf);
     nsNeutronApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsNeutronApiPerf);
     nsKeystoneApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsKeystoneApiPerf);
-    nsGlanceApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsGlanceApiPerf);
+    nsGlanceApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsGlanceApiPerf);*/
     nsCinderApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsCinderApiPerf);
 
     // render charts:
-    nsNovaApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
+    /*nsNovaApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
             true, '#api-perf-report-r1-c1');
     nsNeutronApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
             true, '#api-perf-report-r1-c2');
     nsKeystoneApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
             true, '#api-perf-report-r2-c1');
     nsGlanceApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#api-perf-report-r2-c2');
+            true, '#api-perf-report-r2-c2');*/
     nsCinderApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
             true, '#api-perf-report-r3-c1');
 

@@ -33,6 +33,7 @@ var ApiPerfModel = Backbone.Model.extend({
 var ApiPerfCollection = Backbone.Collection.extend({
 
     parse: function(data) {
+        console.log('data.length',data.length);
         return JSON.parse(data);
     },
 
