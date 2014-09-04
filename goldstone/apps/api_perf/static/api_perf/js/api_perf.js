@@ -161,13 +161,15 @@ var ApiPerfView = Backbone.View.extend({
             .domain(d3.extent(json, function(d) {
                 return d.time;
             }))
-            .rangeRound([0, mw]),
-            y = d3.scale.linear()
+            .rangeRound([0, mw]);
+
+        var y = d3.scale.linear()
             .domain([0, d3.max(json, function(d) {
                 return d.max;
             })])
-            .range([mh, 0]),
-            area = d3.svg.area()
+            .range([mh, 0]);
+
+        var area = d3.svg.area()
             .interpolate("basis")
             .tension(0.85)
             .x(function(d) {
@@ -216,8 +218,9 @@ var ApiPerfView = Backbone.View.extend({
         var hiddenBarWidth = mw / json.length,
             xAxis = d3.svg.axis()
             .scale(x)
-            .orient("bottom"),
-            yAxis = d3.svg.axis()
+            .orient("bottom");
+
+        var yAxis = d3.svg.axis()
             .scale(y)
             .orient("left");
 
