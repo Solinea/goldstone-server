@@ -16,22 +16,21 @@
  * Author: John Stanford
  */
 
-goldstone.namespace('goldstone.topology')
-goldstone.namespace('goldstone.hostAvail')
+goldstone.namespace('goldstone.topology');
+goldstone.namespace('goldstone.hostAvail');
 
-goldstone.goldstone.topology.url = function (render) {
+goldstone.goldstone.topology.url = function(render) {
     "use strict";
-    var url = "/topology"
+    var url = "/topology";
 
     if (typeof render !== 'undefined') {
-        url += "?render=" + render
+        url += "?render=" + render;
     }
-    return url
-}
+    return url;
+};
 
-goldstone.goldstone.hostAvail.url = function () {
+goldstone.goldstone.hostAvail.url = function() {
     "use strict";
-    var url = "/logging/nodes"
-    return url
-}
-
+    var url = "/logging/nodes";
+    return url;
+};
