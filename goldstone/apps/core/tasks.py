@@ -35,6 +35,20 @@ def _delete_indices(prefix, cutoff,
     return check_call(cmd.split())
 
 
+def _create_or_replace_alias(index_name, server=settings.ES_SERVER,
+                             alias='goldstone'):
+    conn = Elasticsearch(server, bulk_size=500)
+    if conn.indices.exists_alias(alias):
+        return conn.indices.update_aliases({
+            "actions": [
+                {"remove": {"index": "_all", "alias": alias}},
+                {"add": {"index": index_name, "alias": alias}}
+            ]
+        })
+    else:
+        return conn.indices.put_alias(alias, index_name)
+
+
 def _create_daily_index(server=settings.ES_SERVER, basename='goldstone'):
     """
     Create a new index in ElasticSearch and set up
@@ -49,19 +63,12 @@ def _create_daily_index(server=settings.ES_SERVER, basename='goldstone'):
 
     try:
         conn.indices.create(index_name, body=template)
-    except:
-        logger.exception("got an exception creating daily index")
-        raise
-    else:
-        if conn.indices.exists_alias(basename):
-            return conn.indices.update_aliases({
-                "actions": [
-                    {"remove": {"index": "_all", "alias": basename}},
-                    {"add": {"index": index_name, "alias": basename}}
-                ]
-            })
-        else:
-            return conn.indices.put_alias(basename, index_name)
+    except TransportError:
+        logger.exception("got an exception creating daily index, probably "
+                         "already exists")
+    finally:
+        _create_or_replace_alias(index_name)
+
 
 
 @celery_app.task(bind=True)
