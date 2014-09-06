@@ -47,10 +47,7 @@ class TaskTests(SimpleTestCase):
     @patch.object(IndicesClient, 'put_alias')
     def test_create_daily_index(self, put_alias, update_aliases, exists_alias,
                                 create):
-        # test returns false if an exception creating index
-        create.side_effect = KeyError("this is expected")
-        self.assertRaises(KeyError, tasks._create_daily_index, 'abc', 'abc')
-
+        
         create.side_effect = None
         exists_alias.return_value = True
         update_aliases.return_value = "mocked True"
