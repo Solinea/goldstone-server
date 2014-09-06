@@ -25,7 +25,10 @@ service logstash restart
 useradd -m goldstone
 #chown goldstone /opt/goldstone
 cd /opt/goldstone
-python -c 'from goldstone.apps.core.tasks import create_daily_index; create_daily_index()'
+python manage.py shell --settings=goldstone.settings.production <<EOF
+from goldstone.apps.core.tasks import _create_daily_index 
+_create_daily_index()
+EOF
 
 # set django production logging to /var/log/goldstone
 # set ownership to apache:apache
