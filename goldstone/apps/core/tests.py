@@ -47,7 +47,7 @@ class TaskTests(SimpleTestCase):
     @patch.object(IndicesClient, 'put_alias')
     def test_create_daily_index(self, put_alias, update_aliases, exists_alias,
                                 create):
-        
+
         create.side_effect = None
         exists_alias.return_value = True
         update_aliases.return_value = "mocked True"
