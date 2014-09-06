@@ -63,12 +63,12 @@ def _create_daily_index(server=settings.ES_SERVER, basename='goldstone'):
 
     try:
         conn.indices.create(index_name, body=template)
+        return _create_or_replace_alias(index_name)
     except TransportError:
         logger.exception("got an exception creating daily index, probably "
                          "already exists")
     finally:
-        _create_or_replace_alias(index_name)
-
+        return _create_or_replace_alias(index_name)
 
 
 @celery_app.task(bind=True)
