@@ -38,7 +38,7 @@ var ApiPerfCollection = Backbone.Collection.extend({
     },
 
     model: ApiPerfModel,
-    url: "/nova/api_perf?start=1409006640&end=1409011712&interval=120s&render=false",
+    url: "/nova/api_perf?start=1407617849&end=1409011712&interval=120s&render=false",
 
     initialize: function() {
         this.fetch();
@@ -71,11 +71,11 @@ var ApiPerfView = Backbone.View.extend({
 
     initialize: function() {
 
-        this.model.on('sync', this.render, this);
+        this.collection.on('sync', this.render, this);
 
         var ns = this.defaults;
         var height = ns.height;
-        var json = this.model.toJSON();
+        var json = this.collection.toJSON();
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
 
@@ -139,11 +139,11 @@ var ApiPerfView = Backbone.View.extend({
         console.log('render called');
 
         var ns = this.defaults;
-        var json = this.model.toJSON();
+        var json = this.collection.toJSON();
         var mw = ns.mw;
         var mh = ns.mh;
 
-        if (this.model.toJSON().length === 0) {
+        if (this.collection.toJSON().length === 0) {
             $(ns.location).append("<p>Response was empty.</p>");
             $(ns.spinner).hide();
             return;
