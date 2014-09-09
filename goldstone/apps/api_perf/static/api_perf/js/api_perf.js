@@ -35,9 +35,9 @@ var ApiPerfCollection = Backbone.Collection.extend({
 
     initialize: function(options) {
         this.url = options.url;
-        this.start = options.nsReport.start;
-        this.end = options.nsReport.end;
-        this.interval = options.nsReport.interval;
+        this.start = options.startStopInterval.start;
+        this.end = options.startStopInterval.end;
+        this.interval = options.startStopInterval.interval;
         this.location = options.location;
         this.width = options.width;
         this.height = options.height;
