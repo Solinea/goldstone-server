@@ -27,15 +27,20 @@ var ApiPerfModel = Backbone.Model.extend({
 var ApiPerfCollection = Backbone.Collection.extend({
 
     parse: function(data) {
-        console.log('data.length',data.length);
+        console.log('data.length', data.length);
         return JSON.parse(data);
     },
 
     model: ApiPerfModel,
-    url: "/nova/api_perf?start=1407617849&end=1409011712&interval=120s&render=false",
 
     initialize: function(options) {
         this.url = options.url;
+        this.start = options.nsReport.start;
+        this.end = options.nsReport.end;
+        this.interval = options.nsReport.interval;
+        this.location = options.location;
+        this.width = options.width;
+        this.height = options.height;
         this.fetch();
     }
 });
@@ -44,17 +49,20 @@ var ApiPerfView = Backbone.View.extend({
 
     defaults: {
         margin: {
-            top: 30, right: 30, bottom: 60, left: 60
+            top: goldstone.settings.charts.margins.top,
+            right: goldstone.settings.charts.margins.right,
+            bottom: goldstone.settings.charts.margins.bottom,
+            left: goldstone.settings.charts.margins.left
         },
-        width: 525,
-        height: 300,
         svg: null,
         chart: null,
         yAxisLabel: "Response Time (ms)",
-        location: "#api-perf-report-r3-c2",
-        start: 1409006640,
-        end: 1409011712,
-        interval: 120,
+        location: null,
+        width: null,
+        height: null,
+        start: null,
+        end: null,
+        interval: null,
         infoCustom: [{
             key: "API Call",
             value: "demo chart"
@@ -66,10 +74,18 @@ var ApiPerfView = Backbone.View.extend({
 
     initialize: function() {
 
+        this.defaults.location = this.collection.location;
+        this.defaults.width = this.collection.width;
+        this.defaults.height = this.collection.height;
+        this.defaults.start = this.collection.start;
+        this.defaults.end = this.collection.end;
+        this.defaults.interval = this.collection.interval;
+
+        console.log(this.defaults);
+
         this.collection.on('sync', this.render, this);
 
         var ns = this.defaults;
-        var height = ns.height;
         var json = this.collection.toJSON();
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
@@ -96,8 +112,8 @@ var ApiPerfView = Backbone.View.extend({
 
         // chart info button popover generator
         var htmlGen = function() {
-            var start = moment(goldstone.time.fromPyTs(ns.start)).format(),
-                end = moment(goldstone.time.fromPyTs(ns.end)).format(),
+            var start = moment(goldstone.time.fromPyTs(ns.start / 1000)).format(),
+                end = moment(goldstone.time.fromPyTs(ns.end / 1000)).format(),
                 custom = _.map(ns.infoCustom, function(e) {
                     return e.key + ": " + e.value + "<br>";
                 }),

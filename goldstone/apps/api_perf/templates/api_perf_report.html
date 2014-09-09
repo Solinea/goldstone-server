@@ -66,10 +66,16 @@ $(document).ready(function () {
     // begin backbone refactor test:
 
     var demoChart = new ApiPerfCollection({
-        url: goldstone.cinder.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false)
+        url: goldstone.cinder.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
+        nsReport: nsReport,
+        location: '#api-perf-report-r3-c2',
+        width: $('#api-perf-report-r3-c2').width(),
+        height: 300
     });
 
-    var demoChartView = new ApiPerfView({collection: demoChart});
+    var demoChartView = new ApiPerfView({collection: demoChart
+
+    });
 
     // function to create urls that advance at adjustable rates
     var timeMock = function(){
