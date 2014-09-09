@@ -65,7 +65,10 @@ $(document).ready(function () {
     //------------------------------
     // begin backbone refactor test:
 
-    var demoChart = new ApiPerfCollection({});
+    var demoChart = new ApiPerfCollection({
+        url: goldstone.cinder.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false)
+    });
+
     var demoChartView = new ApiPerfView({collection: demoChart});
 
     // function to create urls that advance at adjustable rates
@@ -92,7 +95,7 @@ $(document).ready(function () {
 
     var timeAdvancer = timeMock();
 
-    var graphUpdater = setInterval(function(){
+/*    var graphUpdater = setInterval(function(){
 
         // call timeAdvancer which stores the urlNumBase in a closure scope
         var newTime = timeAdvancer();
@@ -105,7 +108,7 @@ $(document).ready(function () {
     setTimeout(function(){
         console.log('auto update interval cleared');
         clearInterval(graphUpdater);
-    }, 60000);
+    }, 60000);*/
 
     // end backbone refactor test
     //---------------------------

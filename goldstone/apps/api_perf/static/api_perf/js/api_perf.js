@@ -21,13 +21,7 @@ goldstone.namespace('apiPerf.report');
 // backbone test start
 
 var ApiPerfModel = Backbone.Model.extend({
-    idAttribute: "key",
-    defaults: {
-        "avg": 1,
-        "key": 1,
-        "max": 1,
-        "min": 0
-    }
+    idAttribute: "key"
 });
 
 var ApiPerfCollection = Backbone.Collection.extend({
@@ -40,7 +34,8 @@ var ApiPerfCollection = Backbone.Collection.extend({
     model: ApiPerfModel,
     url: "/nova/api_perf?start=1407617849&end=1409011712&interval=120s&render=false",
 
-    initialize: function() {
+    initialize: function(options) {
+        this.url = options.url;
         this.fetch();
     }
 });
