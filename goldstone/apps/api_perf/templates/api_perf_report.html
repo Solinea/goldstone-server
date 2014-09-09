@@ -60,7 +60,7 @@ Author: John Stanford
     // begin backbone refactor test:
     var novaApiPerfChart = new ApiPerfCollection({
     url: goldstone.nova.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
-    nsReport: nsReport,
+    startStopInterval: nsReport,
     location: '#api-perf-report-r1-c1',
     width: $('#api-perf-report-r1-c1').width(),
     height: 300,
@@ -71,7 +71,7 @@ Author: John Stanford
 
     var neutronApiPerfChart = new ApiPerfCollection({
     url: goldstone.neutron.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
-    nsReport: nsReport,
+    startStopInterval: nsReport,
     location: '#api-perf-report-r1-c2',
     width: $('#api-perf-report-r1-c2').width(),
     height: 300,
@@ -82,7 +82,7 @@ Author: John Stanford
 
     var keystoneApiPerfChart = new ApiPerfCollection({
     url: goldstone.keystone.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
-    nsReport: nsReport,
+    startStopInterval: nsReport,
     location: '#api-perf-report-r2-c1',
     width: $('#api-perf-report-r2-c1').width(),
     height: 300,
@@ -93,7 +93,7 @@ Author: John Stanford
 
     var glanceApiPerfChart = new ApiPerfCollection({
     url: goldstone.glance.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
-    nsReport: nsReport,
+    startStopInterval: nsReport,
     location: '#api-perf-report-r2-c2',
     width: $('#api-perf-report-r2-c2').width(),
     height: 300,
@@ -104,7 +104,7 @@ Author: John Stanford
 
     var cinderApiPerfChart = new ApiPerfCollection({
     url: goldstone.cinder.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
-    nsReport: nsReport,
+    startStopInterval: nsReport,
     location: '#api-perf-report-r3-c1',
     width: $('#api-perf-report-r3-c1').width(),
     height: 300,
