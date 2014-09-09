@@ -41,6 +41,7 @@ var ApiPerfCollection = Backbone.Collection.extend({
         this.location = options.location;
         this.width = options.width;
         this.height = options.height;
+        this.chartTitle = options.chartTitle;
         this.fetch();
     }
 });
@@ -68,11 +69,14 @@ var ApiPerfView = Backbone.View.extend({
             value: "demo chart"
         }],
         mw: null,
-        mh: null
+        mh: null,
+        chartTitle: null
 
     },
 
     initialize: function() {
+
+        this.defaults = _.clone(this.defaults);
 
         this.defaults.location = this.collection.location;
         this.defaults.width = this.collection.width;
@@ -80,8 +84,7 @@ var ApiPerfView = Backbone.View.extend({
         this.defaults.start = this.collection.start;
         this.defaults.end = this.collection.end;
         this.defaults.interval = this.collection.interval;
-
-        console.log(this.defaults);
+        this.defaults.chartTitle = this.collection.chartTitle;
 
         this.collection.on('sync', this.render, this);
 
@@ -93,7 +96,7 @@ var ApiPerfView = Backbone.View.extend({
         $(ns.location).append(
             '<div id = "glance-api-perf-panel" class="panel panel-primary">' +
             '<div class="panel-heading">' +
-            '<h3 class="panel-title"><i class="fa fa-tasks"></i> Demo API Performance' +
+            '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' + ns.chartTitle +
             '<i class="pull-right fa fa-info-circle panel-info"  id="demo-api-perf-info"></i>' +
             '</h3></div>');
 
@@ -109,6 +112,17 @@ var ApiPerfView = Backbone.View.extend({
         json.forEach(function(d) {
             d.time = moment(Number(d.key));
         });
+
+        // initialized the axes
+
+        ns.svg.append("text")
+            .attr("class", "axis.label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", 0 - (ns.height / 2))
+            .attr("y", -10)
+            .attr("dy", "1.5em")
+            .text(ns.yAxisLabel)
+            .style("text-anchor", "middle");
 
         // chart info button popover generator
         var htmlGen = function() {

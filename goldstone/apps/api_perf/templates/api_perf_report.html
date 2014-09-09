@@ -1,28 +1,21 @@
 <!--
- Copyright 2014 Solinea, Inc.
-
- Licensed under the Solinea Software License Agreement (goldstone),
- Version 1.0 (the "License"); you may not use this file except in compliance
- with the License. You may obtain a copy of the License at:
-
-     http://www.solinea.com/goldstone/LICENSE.pdf
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
-
- Author: John Stanford
- -->
-
+Copyright 2014 Solinea, Inc.
+Licensed under the Solinea Software License Agreement (goldstone),
+Version 1.0 (the "License"); you may not use this file except in compliance
+with the License. You may obtain a copy of the License at:
+http://www.solinea.com/goldstone/LICENSE.pdf
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+Author: John Stanford
+-->
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load custom_filters %}
-
 {% block localcss %}
 {% endblock %}
-
 {% block localjs %}
     <script src="{% static 'nova/js/nova.js' %}"></script>
     <script src="{% static 'neutron/js/neutron.js' %}"></script>
@@ -31,13 +24,14 @@
     <script src="{% static 'cinder/js/cinder.js' %}"></script>
     <script src="{% static 'api_perf/js/api_perf.js' %}"></script>
     <script>
-$(document).ready(function () {
+    $(document).ready(function () {
     var nsReport = goldstone.apiPerf.report;
-    var nsNovaApiPerf = goldstone.nova.apiPerf;
+
+    /*var nsNovaApiPerf = goldstone.nova.apiPerf;
     var nsNeutronApiPerf = goldstone.neutron.apiPerf;
     var nsKeystoneApiPerf = goldstone.keystone.apiPerf;
     var nsGlanceApiPerf = goldstone.glance.apiPerf;
-    var nsCinderApiPerf = goldstone.cinder.apiPerf;
+    var nsCinderApiPerf = goldstone.cinder.apiPerf;*/
 
     nsReport.start = goldstone.time.fromPyTs({{ start_ts|to_js }});
     nsReport.end = goldstone.time.fromPyTs({{ end_ts|to_js }});
@@ -46,88 +40,121 @@ $(document).ready(function () {
     /*nsNovaApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsNovaApiPerf);
     nsNeutronApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsNeutronApiPerf);
     nsKeystoneApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsKeystoneApiPerf);
-    nsGlanceApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsGlanceApiPerf);*/
-    nsCinderApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsCinderApiPerf);
+    nsGlanceApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsGlanceApiPerf);
+    nsCinderApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsCinderApiPerf);*/
 
     // render charts:
-    /*nsNovaApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#api-perf-report-r1-c1');
+    /*    nsNovaApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
+    true, '#api-perf-report-r1-c1');
     nsNeutronApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#api-perf-report-r1-c2');
+    true, '#api-perf-report-r1-c2');
     nsKeystoneApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#api-perf-report-r2-c1');
+    true, '#api-perf-report-r2-c1');
     nsGlanceApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#api-perf-report-r2-c2');*/
+    true, '#api-perf-report-r2-c2');
     nsCinderApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#api-perf-report-r3-c1');
+    true, '#api-perf-report-r3-c1');*/
 
 
     //------------------------------
     // begin backbone refactor test:
-
-    var demoChart = new ApiPerfCollection({
-        url: goldstone.cinder.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
-        nsReport: nsReport,
-        location: '#api-perf-report-r3-c2',
-        width: $('#api-perf-report-r3-c2').width(),
-        height: 300
+    var novaApiPerfChart = new ApiPerfCollection({
+    url: goldstone.nova.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
+    nsReport: nsReport,
+    location: '#api-perf-report-r1-c1',
+    width: $('#api-perf-report-r1-c1').width(),
+    height: 300,
+    chartTitle: "Nova API Performance"
+    });
+    var novaApiPerfChartView = new ApiPerfView({collection: novaApiPerfChart
     });
 
-    var demoChartView = new ApiPerfView({collection: demoChart
-
+    var neutronApiPerfChart = new ApiPerfCollection({
+    url: goldstone.neutron.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
+    nsReport: nsReport,
+    location: '#api-perf-report-r1-c2',
+    width: $('#api-perf-report-r1-c2').width(),
+    height: 300,
+    chartTitle: "Neutron API Performance"
     });
+    var neutronApiPerfChartView = new ApiPerfView({collection: neutronApiPerfChart
+    });
+
+    var keystoneApiPerfChart = new ApiPerfCollection({
+    url: goldstone.keystone.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
+    nsReport: nsReport,
+    location: '#api-perf-report-r2-c1',
+    width: $('#api-perf-report-r2-c1').width(),
+    height: 300,
+    chartTitle: "Keystone API Performance"
+    });
+    var keystoneApiPerfChartView = new ApiPerfView({collection: keystoneApiPerfChart
+    });
+
+    var glanceApiPerfChart = new ApiPerfCollection({
+    url: goldstone.glance.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
+    nsReport: nsReport,
+    location: '#api-perf-report-r2-c2',
+    width: $('#api-perf-report-r2-c2').width(),
+    height: 300,
+    chartTitle: "Glance API Performance"
+    });
+    var glanceApiPerfChartView = new ApiPerfView({collection: glanceApiPerfChart
+    });
+
+    var cinderApiPerfChart = new ApiPerfCollection({
+    url: goldstone.cinder.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
+    nsReport: nsReport,
+    location: '#api-perf-report-r3-c1',
+    width: $('#api-perf-report-r3-c1').width(),
+    height: 300,
+    chartTitle: "Cinder API Performance"
+    });
+    var cinderApiPerfChartView = new ApiPerfView({
+    defaults:{},
+    collection: cinderApiPerfChart
+    });
+
 
     // function to create urls that advance at adjustable rates
     var timeMock = function(){
-
-        // enter unix time/1000 of start moment
-        var urlNumBase = 1407617849;
-
-        // sets the end time to about 75 minutes to the start time
-        var urlNumBase2 = urlNumBase + 4592;
-
-        return function(){
-
-            // advances 4 minutes per invocation
-            var advanceRate = 240;
-            urlNumBase += advanceRate;
-            urlNumBase2 += advanceRate;
-
-            // returns new url to query for data payload
-            var result = "/cinder/api_perf?start=" + urlNumBase + "&end=" + urlNumBase2 + "&interval=120s&render=false";
-            return result;
-        };
+    // enter unix time/1000 of start moment
+    var urlNumBase = 1407617849;
+    // sets the end time to about 75 minutes to the start time
+    var urlNumBase2 = urlNumBase + 4592;
+    return function(){
+    // advances 4 minutes per invocation
+    var advanceRate = 240;
+    urlNumBase += advanceRate;
+    urlNumBase2 += advanceRate;
+    // returns new url to query for data payload
+    var result = "/cinder/api_perf?start=" + urlNumBase + "&end=" + urlNumBase2 + "&interval=120s&render=false";
+    return result;
     };
-
+    };
     var timeAdvancer = timeMock();
 
-/*    var graphUpdater = setInterval(function(){
 
-        // call timeAdvancer which stores the urlNumBase in a closure scope
-        var newTime = timeAdvancer();
-        demoChart.url = newTime;
-        console.log('fetching again', demoChart.url);
-        demoChart.fetch({success:function(data){
-        }});
+    /*    var graphUpdater = setInterval(function(){
+    // call timeAdvancer which stores the urlNumBase in a closure scope
+    var newTime = timeAdvancer();
+    demoChart.url = newTime;
+    console.log('fetching again', demoChart.url);
+    demoChart.fetch({success:function(data){
+    }});
     }, 2000);
-
     setTimeout(function(){
-        console.log('auto update interval cleared');
-        clearInterval(graphUpdater);
+    console.log('auto update interval cleared');
+    clearInterval(graphUpdater);
     }, 60000);*/
-
     // end backbone refactor test
     //---------------------------
 
-});
 
+    });
     </script>
-
 {% endblock %}
-
-
 {% block content %}
-
     <div id="api-perf-report-r1" class="row">
         <div id="api-perf-report-r1-c1" class="col-md-6"></div>
         <div id="api-perf-report-r1-c2" class="col-md-6"></div>
@@ -140,5 +167,4 @@ $(document).ready(function () {
         <div id="api-perf-report-r3-c1" class="col-md-6"></div>
         <div id="api-perf-report-r3-c2" class="col-md-6"></div>
     </div>
-
 {% endblock %}
