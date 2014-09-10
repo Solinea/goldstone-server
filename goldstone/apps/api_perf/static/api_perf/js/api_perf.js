@@ -110,7 +110,7 @@ var ApiPerfView = Backbone.View.extend({
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
-                'top': -(ns.height / 2)
+                'margin-top': -(ns.height / 2)
             });
         });
 
