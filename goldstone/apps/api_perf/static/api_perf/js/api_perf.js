@@ -64,10 +64,11 @@ var ApiPerfView = Backbone.View.extend({
 
     defaults: {
         margin: {
+            // defaults: {top: 30, bottom: 60, right: 30, left: 50}
             top: goldstone.settings.charts.margins.top,
             right: goldstone.settings.charts.margins.right,
             bottom: goldstone.settings.charts.margins.bottom,
-            left: goldstone.settings.charts.margins.left
+            left: goldstone.settings.charts.margins.left + 20
         },
         svg: null,
         chart: null,
