@@ -88,6 +88,7 @@ var ApiPerfView = Backbone.View.extend({
     initialize: function() {
 
         this.defaults = _.clone(this.defaults);
+        this.collection.on('sync', this.render, this);
 
         this.defaults.location = this.collection.location;
         this.defaults.width = this.collection.width;
@@ -97,10 +98,12 @@ var ApiPerfView = Backbone.View.extend({
         this.defaults.interval = this.collection.interval;
         this.defaults.chartTitle = this.collection.chartTitle;
         this.defaults.infoCustom = this.collection.infoCustom;
-
-        this.collection.on('sync', this.render, this);
+        var json = this.collection.toJSON();
 
         var ns = this.defaults;
+        ns.mw = ns.width - ns.margin.left - ns.margin.right;
+        ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
+
 
         var appendSpinnerLocation = ns.location;
         $('<img id="spinner" src="http://localhost:8000/static/images/ajax-loader-solinea-blue.gif">').load(function() {
@@ -112,13 +115,8 @@ var ApiPerfView = Backbone.View.extend({
         });
 
 
-        var json = this.collection.toJSON();
-        ns.mw = ns.width - ns.margin.left - ns.margin.right;
-        ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
-
-
         $(ns.location).append(
-            '<div id = "api-perf-panel-header" class="panel panel-primary">' +
+            '<div id="api-perf-panel-header" class="panel panel-primary">' +
             '<div class="panel-heading">' +
             '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' + ns.chartTitle +
             '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
@@ -133,17 +131,13 @@ var ApiPerfView = Backbone.View.extend({
             .attr("class", "chart")
             .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
 
-        json.forEach(function(d) {
-            d.time = moment(Number(d.key));
-        });
-
         // initialized the axes
 
         ns.svg.append("text")
             .attr("class", "axis.label")
             .attr("transform", "rotate(-90)")
             .attr("x", 0 - (ns.height / 2))
-            .attr("y", -10)
+            .attr("y", -5)
             .attr("dy", "1.5em")
             .text(ns.yAxisLabel)
             .style("text-anchor", "middle");
@@ -198,7 +192,6 @@ var ApiPerfView = Backbone.View.extend({
 
         $(ns.location).find('svg').find('.chart').html('');
         $(ns.location + '.d3-tip').detach();
-
 
         json.forEach(function(d) {
             d.time = moment(Number(d.key));
