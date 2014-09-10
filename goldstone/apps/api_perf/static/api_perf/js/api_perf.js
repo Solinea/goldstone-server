@@ -18,11 +18,21 @@
 
 goldstone.namespace('apiPerf.report');
 
+//-----------------------------
 // backbone test start
+
+
+
+//-----------------------------
+// define model
 
 var ApiPerfModel = Backbone.Model.extend({
     idAttribute: "key"
 });
+
+
+//-----------------------------
+// define collection and link to model
 
 var ApiPerfCollection = Backbone.Collection.extend({
 
@@ -42,9 +52,15 @@ var ApiPerfCollection = Backbone.Collection.extend({
         this.width = options.width;
         this.height = options.height;
         this.chartTitle = options.chartTitle;
+        this.infoCustom = options.infoCustom;
+        console.log('fetching from: ', this.url);
         this.fetch();
     }
 });
+
+//-----------------------------
+// define view
+// view is linked to collection when instantiated in api_perf_report.html
 
 var ApiPerfView = Backbone.View.extend({
 
@@ -64,10 +80,7 @@ var ApiPerfView = Backbone.View.extend({
         start: null,
         end: null,
         interval: null,
-        infoCustom: [{
-            key: "API Call",
-            value: "demo chart"
-        }],
+        infoCustom: null,
         mw: null,
         mh: null,
         chartTitle: null
@@ -85,10 +98,23 @@ var ApiPerfView = Backbone.View.extend({
         this.defaults.end = this.collection.end;
         this.defaults.interval = this.collection.interval;
         this.defaults.chartTitle = this.collection.chartTitle;
+        this.defaults.infoCustom = this.collection.infoCustom;
 
         this.collection.on('sync', this.render, this);
 
         var ns = this.defaults;
+
+        var appendSpinnerLocation = ns.location;
+        $('<img id="spinner" src="http://localhost:8000/static/images/ajax-loader-solinea-blue.gif">').load(function() {
+            console.log(appendSpinnerLocation);
+            $(this).appendTo(appendSpinnerLocation).css({
+                'position': 'relative',
+                'margin-left': (ns.width / 2),
+                'top': -(ns.height / 2)
+            });
+        });
+
+
         var json = this.collection.toJSON();
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
@@ -375,6 +401,8 @@ var ApiPerfView = Backbone.View.extend({
 
         // EXIT
         // Remove old elements as needed.
+
+        $(ns.location).find('#spinner').hide();
 
     }
 });
