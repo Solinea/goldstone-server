@@ -37,7 +37,6 @@ var ApiPerfModel = Backbone.Model.extend({
 var ApiPerfCollection = Backbone.Collection.extend({
 
     parse: function(data) {
-        console.log('data.length', data.length);
         return JSON.parse(data);
     },
 
@@ -53,7 +52,6 @@ var ApiPerfCollection = Backbone.Collection.extend({
         this.height = options.height;
         this.chartTitle = options.chartTitle;
         this.infoCustom = options.infoCustom;
-        console.log('fetching from: ', this.url);
         this.fetch();
     }
 });
@@ -106,7 +104,6 @@ var ApiPerfView = Backbone.View.extend({
 
         var appendSpinnerLocation = ns.location;
         $('<img id="spinner" src="http://localhost:8000/static/images/ajax-loader-solinea-blue.gif">').load(function() {
-            console.log(appendSpinnerLocation);
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
@@ -119,11 +116,12 @@ var ApiPerfView = Backbone.View.extend({
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
 
+
         $(ns.location).append(
-            '<div id = "glance-api-perf-panel" class="panel panel-primary">' +
+            '<div id = "api-perf-panel-header" class="panel panel-primary">' +
             '<div class="panel-heading">' +
             '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' + ns.chartTitle +
-            '<i class="pull-right fa fa-info-circle panel-info"  id="demo-api-perf-info"></i>' +
+            '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
             '</h3></div>');
 
         this.defaults.svg = d3.select(ns.location).append("svg")
@@ -165,7 +163,7 @@ var ApiPerfView = Backbone.View.extend({
             return result;
         };
 
-        $('#demo-api-perf-info').popover({
+        $(ns.location).find('#api-perf-info').popover({
             trigger: 'manual',
             content: htmlGen.apply(this),
             placement: 'bottom',
@@ -173,12 +171,12 @@ var ApiPerfView = Backbone.View.extend({
         })
             .on("click", function(d) {
                 var targ = "#" + d.target.id;
-                $(targ).popover('toggle');
+                $(ns.location).find(targ).popover('toggle');
 
                 // passing an arg to setTimeout is not supported in IE < 10
                 // see https://developer.mozilla.org/en-US/docs/Web/API/Window.setTimeout#Callback_arguments
                 setTimeout(function(d) {
-                    $(d).popover('hide');
+                    $(ns.location).find(targ).popover('hide');
                 }, 3000, targ);
             });
 
@@ -186,8 +184,6 @@ var ApiPerfView = Backbone.View.extend({
     },
 
     render: function() {
-
-        console.log('render called');
 
         var ns = this.defaults;
         var json = this.collection.toJSON();
