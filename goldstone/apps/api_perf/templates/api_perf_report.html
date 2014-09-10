@@ -58,16 +58,26 @@ Author: John Stanford
 
     //------------------------------
     // begin backbone refactor test:
+
+
+    //---------------------------
+    // instantiate nova api chart
+
     var novaApiPerfChart = new ApiPerfCollection({
     url: goldstone.nova.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
     startStopInterval: nsReport,
     location: '#api-perf-report-r1-c1',
     width: $('#api-perf-report-r1-c1').width(),
     height: 300,
-    chartTitle: "Nova API Performance"
+    chartTitle: "Nova API Performance",
+    infoCustom: [{key: "API Call", value: "hypervisor show"}]
     });
     var novaApiPerfChartView = new ApiPerfView({collection: novaApiPerfChart
     });
+
+
+    //------------------------------
+    // instantiate neutron api chart
 
     var neutronApiPerfChart = new ApiPerfCollection({
     url: goldstone.neutron.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
@@ -75,10 +85,14 @@ Author: John Stanford
     location: '#api-perf-report-r1-c2',
     width: $('#api-perf-report-r1-c2').width(),
     height: 300,
-    chartTitle: "Neutron API Performance"
+    chartTitle: "Neutron API Performance",
+    infoCustom: [{key: "API Call", value: "agent list"}]
     });
     var neutronApiPerfChartView = new ApiPerfView({collection: neutronApiPerfChart
     });
+
+    //-------------------------------
+    // instantiate keystone api chart
 
     var keystoneApiPerfChart = new ApiPerfCollection({
     url: goldstone.keystone.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
@@ -86,10 +100,14 @@ Author: John Stanford
     location: '#api-perf-report-r2-c1',
     width: $('#api-perf-report-r2-c1').width(),
     height: 300,
-    chartTitle: "Keystone API Performance"
+    chartTitle: "Keystone API Performance",
+    infoCustom: [{key: "API Call", value: "authenticate"}]
     });
     var keystoneApiPerfChartView = new ApiPerfView({collection: keystoneApiPerfChart
     });
+
+    //-----------------------------
+    // instantiate glance api chart
 
     var glanceApiPerfChart = new ApiPerfCollection({
     url: goldstone.glance.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
@@ -97,10 +115,14 @@ Author: John Stanford
     location: '#api-perf-report-r2-c2',
     width: $('#api-perf-report-r2-c2').width(),
     height: 300,
-    chartTitle: "Glance API Performance"
+    chartTitle: "Glance API Performance",
+    infoCustom: [{key: "API Call", value: "image show"}]
     });
     var glanceApiPerfChartView = new ApiPerfView({collection: glanceApiPerfChart
     });
+
+    //-----------------------------
+    // instantiate cinder api chart
 
     var cinderApiPerfChart = new ApiPerfCollection({
     url: goldstone.cinder.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false),
@@ -108,7 +130,8 @@ Author: John Stanford
     location: '#api-perf-report-r3-c1',
     width: $('#api-perf-report-r3-c1').width(),
     height: 300,
-    chartTitle: "Cinder API Performance"
+    chartTitle: "Cinder API Performance",
+    infoCustom: [{key: "API Call", value: "service list"}]
     });
     var cinderApiPerfChartView = new ApiPerfView({
     defaults:{},
@@ -116,7 +139,15 @@ Author: John Stanford
     });
 
 
-    // function to create urls that advance at adjustable rates
+    // end backbone refactor test
+    //---------------------------
+
+
+    //---------------------------
+    // begin time mock graph update tester
+
+
+    /*// function to create urls that advance at adjustable rates
     var timeMock = function(){
     // enter unix time/1000 of start moment
     var urlNumBase = 1407617849;
@@ -135,20 +166,31 @@ Author: John Stanford
     var timeAdvancer = timeMock();
 
 
-    /*    var graphUpdater = setInterval(function(){
+        var graphUpdater = setInterval(function(){
     // call timeAdvancer which stores the urlNumBase in a closure scope
     var newTime = timeAdvancer();
-    demoChart.url = newTime;
-    console.log('fetching again', demoChart.url);
-    demoChart.fetch({success:function(data){
+
+    glanceApiPerfChart.url = newTime;
+    console.log('fetching again', glanceApiPerfChart.url);
+    glanceApiPerfChart.fetch({success:function(data){
     }});
+
+    keystoneApiPerfChart.url = newTime;
+    console.log('fetching again', keystoneApiPerfChart.url);
+    keystoneApiPerfChart.fetch({success:function(data){
+    }});
+
     }, 2000);
     setTimeout(function(){
     console.log('auto update interval cleared');
     clearInterval(graphUpdater);
-    }, 60000);*/
-    // end backbone refactor test
+    }, 60000);
+*/
+
+    // end time mock graph update tester
     //---------------------------
+
+
 
 
     });
