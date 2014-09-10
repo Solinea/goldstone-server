@@ -186,7 +186,7 @@ var ApiPerfView = Backbone.View.extend({
 
         if (this.collection.toJSON().length === 0) {
             $(ns.location).append("<p>Response was empty.</p>");
-            $(ns.spinner).hide();
+            $(ns.location).find('#spinner').hide();
             return;
         }
 
