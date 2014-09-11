@@ -44,14 +44,6 @@ var ApiPerfCollection = Backbone.Collection.extend({
 
     initialize: function(options) {
         this.url = options.url;
-        this.start = options.startStopInterval.start;
-        this.end = options.startStopInterval.end;
-        this.interval = options.startStopInterval.interval;
-        this.location = options.location;
-        this.width = options.width;
-        this.height = options.height;
-        this.chartTitle = options.chartTitle;
-        this.infoCustom = options.infoCustom;
         this.fetch();
     }
 });
@@ -63,43 +55,44 @@ var ApiPerfCollection = Backbone.Collection.extend({
 var ApiPerfView = Backbone.View.extend({
 
     defaults: {
+        chart: null,
+        chartTitle: null,
+        end: null,
+        height: null,
+        infoCustom: null,
+        interval: null,
+        location: null,
         margin: {
-            // defaults: {top: 30, bottom: 60, right: 30, left: 50}
+            // charts.margins: {top: 30, bottom: 60, right: 30, left: 50}
             top: goldstone.settings.charts.margins.top,
             right: goldstone.settings.charts.margins.right,
             bottom: goldstone.settings.charts.margins.bottom,
             left: goldstone.settings.charts.margins.left + 20
         },
-        svg: null,
-        chart: null,
-        yAxisLabel: "Response Time (ms)",
-        location: null,
-        width: null,
-        height: null,
-        start: null,
-        end: null,
-        interval: null,
-        infoCustom: null,
-        mw: null,
         mh: null,
-        chartTitle: null
-
+        mw: null,
+        start: null,
+        svg: null,
+        width: null,
+        yAxisLabel: "Response Time (ms)"
     },
 
-    initialize: function() {
+    initialize: function(options) {
+
+        this.options = options || {};
 
         this.defaults = _.clone(this.defaults);
-        this.collection.on('sync', this.render, this);
 
-        this.defaults.location = this.collection.location;
-        this.defaults.width = this.collection.width;
-        this.defaults.height = this.collection.height;
-        this.defaults.start = this.collection.start;
-        this.defaults.end = this.collection.end;
-        this.defaults.interval = this.collection.interval;
-        this.defaults.chartTitle = this.collection.chartTitle;
-        this.defaults.infoCustom = this.collection.infoCustom;
-        var json = this.collection.toJSON();
+        this.defaults.location = this.options.location;
+        this.defaults.width = this.options.width;
+        this.defaults.height = this.options.height;
+        this.defaults.start = this.options.startStopInterval.start;
+        this.defaults.end = this.options.startStopInterval.end;
+        this.defaults.interval = this.options.startStopInterval.interval;
+        this.defaults.chartTitle = this.options.chartTitle;
+        this.defaults.infoCustom = this.options.infoCustom;
+
+        this.collection.on('sync', this.render, this);
 
         var ns = this.defaults;
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
@@ -114,7 +107,6 @@ var ApiPerfView = Backbone.View.extend({
                 'margin-top': -(ns.height / 2)
             });
         });
-
 
         $(ns.location).append(
             '<div id="api-perf-panel-header" class="panel panel-primary">' +
