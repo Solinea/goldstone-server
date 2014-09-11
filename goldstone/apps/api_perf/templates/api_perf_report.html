@@ -24,40 +24,25 @@ Author: John Stanford
     <script src="{% static 'cinder/js/cinder.js' %}"></script>
     <script src="{% static 'api_perf/js/api_perf.js' %}"></script>
     <script>
+
+    // assign "ajax-loader-solinea-blue" spinner gif
+    var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
+
     $(document).ready(function () {
+
+
+    // goldstone.apiPerf.report is empty object, namespaced in api_perf.js
     var nsReport = goldstone.apiPerf.report;
 
-    /*var nsNovaApiPerf = goldstone.nova.apiPerf;
-    var nsNeutronApiPerf = goldstone.neutron.apiPerf;
-    var nsKeystoneApiPerf = goldstone.keystone.apiPerf;
-    var nsGlanceApiPerf = goldstone.glance.apiPerf;
-    var nsCinderApiPerf = goldstone.cinder.apiPerf;*/
-
+    // set start / end / interval of chart data request to server
     nsReport.start = goldstone.time.fromPyTs({{ start_ts|to_js }});
     nsReport.end = goldstone.time.fromPyTs({{ end_ts|to_js }});
     nsReport.interval = {{ interval|to_js }}
 
-    /*nsNovaApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsNovaApiPerf);
-    nsNeutronApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsNeutronApiPerf);
-    nsKeystoneApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsKeystoneApiPerf);
-    nsGlanceApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsGlanceApiPerf);
-    nsCinderApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsCinderApiPerf);*/
 
-    // render charts:
-    /*    nsNovaApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-    true, '#api-perf-report-r1-c1');
-    nsNeutronApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-    true, '#api-perf-report-r1-c2');
-    nsKeystoneApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-    true, '#api-perf-report-r2-c1');
-    nsGlanceApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-    true, '#api-perf-report-r2-c2');
-    nsCinderApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-    true, '#api-perf-report-r3-c1');*/
-
-
-    //------------------------------
-    // begin backbone refactor test:
+    //----------------------------
+    // instantiate charts via
+    // backbone collection / views
 
 
     //---------------------------
@@ -146,12 +131,12 @@ Author: John Stanford
         width: $('#api-perf-report-r3-c1').width()
     });
 
-    // end backbone refactor test
-    //---------------------------
-
 
     //---------------------------
     // begin time mock graph update tester
+    // keeping this commented code here for now, as it provides
+    // a convenient way to test backbone re-rendering of
+    // charts which is triggered by chart data update
 
 /*
     // function to create urls that advance at adjustable rates
@@ -191,13 +176,11 @@ Author: John Stanford
     setTimeout(function(){
     console.log('auto update interval cleared');
     clearInterval(graphUpdater);
-    }, 60000);
+    }, 30000);
 
-*/
     // end time mock graph update tester
     //---------------------------
-
-
+*/
 
 
     });
