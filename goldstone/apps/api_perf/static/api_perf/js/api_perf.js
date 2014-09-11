@@ -18,9 +18,8 @@
 
 goldstone.namespace('apiPerf.report');
 
-//-----------------------------
-// backbone test start
-
+//------------------------------------------------------
+// backbone model / collection / view definitions start:
 
 
 //-----------------------------
@@ -54,26 +53,21 @@ var ApiPerfCollection = Backbone.Collection.extend({
 
 var ApiPerfView = Backbone.View.extend({
 
+    // adapted from
+    // goldstone.charts.bivariateWithAverage
+
     defaults: {
-        chart: null,
-        chartTitle: null,
-        end: null,
-        height: null,
-        infoCustom: null,
-        interval: null,
-        location: null,
         margin: {
-            // charts.margins: {top: 30, bottom: 60, right: 30, left: 50}
+
+            // goldstone.settings.charts.margins:
+            // {top: 30, bottom: 60, right: 30, left: 50}
             top: goldstone.settings.charts.margins.top,
             right: goldstone.settings.charts.margins.right,
             bottom: goldstone.settings.charts.margins.bottom,
+
+            // creates breathing room between y-axis-label and chart
             left: goldstone.settings.charts.margins.left + 20
         },
-        mh: null,
-        mw: null,
-        start: null,
-        svg: null,
-        width: null,
         yAxisLabel: "Response Time (ms)"
     },
 
@@ -81,26 +75,34 @@ var ApiPerfView = Backbone.View.extend({
 
         this.options = options || {};
 
+        // essential for unique chart objects,
+        // as objects/arrays are pass by reference
         this.defaults = _.clone(this.defaults);
 
-        this.defaults.location = this.options.location;
-        this.defaults.width = this.options.width;
-        this.defaults.height = this.options.height;
-        this.defaults.start = this.options.startStopInterval.start;
-        this.defaults.end = this.options.startStopInterval.end;
-        this.defaults.interval = this.options.startStopInterval.interval;
         this.defaults.chartTitle = this.options.chartTitle;
+        this.defaults.end = this.options.startStopInterval.end;
+        this.defaults.height = this.options.height;
         this.defaults.infoCustom = this.options.infoCustom;
+        this.defaults.interval = this.options.startStopInterval.interval;
+        this.defaults.location = this.options.location;
+        this.defaults.start = this.options.startStopInterval.start;
+        this.defaults.width = this.options.width;
 
+        // easy to pass in a unique yAxisLabel. This pattern can be
+        // expanded to any variable to allow overriding the default.
+        if(this.options.yAxisLabel){
+            this.defaults.yAxisLabel = this.options.yAxisLabel;
+        }
+
+        // registers 'sync' event so view 'watches' collection for data update
         this.collection.on('sync', this.render, this);
 
         var ns = this.defaults;
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
 
-
         var appendSpinnerLocation = ns.location;
-        $('<img id="spinner" src="http://localhost:8000/static/images/ajax-loader-solinea-blue.gif">').load(function() {
+        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
@@ -396,4 +398,5 @@ var ApiPerfView = Backbone.View.extend({
     }
 });
 
-// backbone test end
+// backbone model / collection / view definitions end:::
+//------------------------------------------------------
