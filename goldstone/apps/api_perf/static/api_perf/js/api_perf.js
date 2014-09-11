@@ -166,8 +166,6 @@ var ApiPerfView = Backbone.View.extend({
                     $(ns.location).find(targ).popover('hide');
                 }, 3000, targ);
             });
-
-
     },
 
     render: function() {
@@ -178,7 +176,16 @@ var ApiPerfView = Backbone.View.extend({
         var mh = ns.mh;
 
         if (this.collection.toJSON().length === 0) {
-            $(ns.location).append("<p>Response was empty.</p>");
+
+            // in case of no data returned from server
+            var message = ns.svg;
+            message.append("text")
+                .attr("x", (ns.width / 2) - ns.margin.left)
+                .attr("y", ns.height / 2)
+                .attr("dy", "1.55em")
+                .text(function() {
+                    return 'Response was empty';
+                });
             $(ns.location).find('#spinner').hide();
             return;
         }
