@@ -88,12 +88,12 @@ var ApiPerfView = Backbone.View.extend({
 
         // chart info button popover generator
         var htmlGen = function() {
-            var start = moment(goldstone.time.fromPyTs(ns.start / 1000)).format(),
-                end = moment(goldstone.time.fromPyTs(ns.end / 1000)).format(),
-                custom = _.map(ns.infoCustom, function(e) {
-                    return e.key + ": " + e.value + "<br>";
-                }),
-                result = '<div class="body"><br>' + custom +
+            var start = moment(goldstone.time.fromPyTs(ns.start / 1000)).format();
+            var end = moment(goldstone.time.fromPyTs(ns.end / 1000)).format();
+            var custom = _.map(ns.infoCustom, function(e) {
+                return e.key + ": " + e.value + "<br>";
+            });
+            var result = '<div class="body"><br>' + custom +
                 'Start: ' + start + '<br>' +
                 'End: ' + end + '<br>' +
                 'Interval: ' + ns.interval + '<br>' +
@@ -206,8 +206,9 @@ var ApiPerfView = Backbone.View.extend({
         var hiddenBar = ns.chart.selectAll(ns.location + ' .hiddenBar')
             .data(json);
 
-        var hiddenBarWidth = mw / json.length,
-            xAxis = d3.svg.axis()
+        var hiddenBarWidth = mw / json.length;
+
+        var xAxis = d3.svg.axis()
             .scale(x)
             .ticks(5)
             .orient("bottom");
@@ -267,6 +268,7 @@ var ApiPerfView = Backbone.View.extend({
             .attr('class', 'x axis')
             .attr('transform', 'translate(0, ' + mh + ')')
             .call(xAxis);
+
         ns.chart.append('g')
             .attr('class', 'y axis')
             .call(yAxis);
