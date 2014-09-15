@@ -209,6 +209,7 @@ var ApiPerfView = Backbone.View.extend({
         var hiddenBarWidth = mw / json.length,
             xAxis = d3.svg.axis()
             .scale(x)
+            .ticks(5)
             .orient("bottom");
 
         var yAxis = d3.svg.axis()
