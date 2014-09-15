@@ -11,26 +11,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 Author: John Stanford
 -->
+
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load custom_filters %}
 {% block localcss %}
 {% endblock %}
 {% block localjs %}
-    <script src="{% static 'nova/js/nova.js' %}"></script>
-    <script src="{% static 'neutron/js/neutron.js' %}"></script>
-    <script src="{% static 'keystone/js/keystone.js' %}"></script>
-    <script src="{% static 'glance/js/glance.js' %}"></script>
-    <script src="{% static 'cinder/js/cinder.js' %}"></script>
-    <script src="{% static 'api_perf/js/api_perf.js' %}"></script>
-    <script>
 
+<script src="{% static 'nova/js/nova.js' %}"></script>
+<script src="{% static 'neutron/js/neutron.js' %}"></script>
+<script src="{% static 'keystone/js/keystone.js' %}"></script>
+<script src="{% static 'glance/js/glance.js' %}"></script>
+<script src="{% static 'cinder/js/cinder.js' %}"></script>
+<script src="{% static 'api_perf/js/api_perf.js' %}"></script>
+<script>
 
+// assign "ajax-loader-solinea-blue" spinner gif
+var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
-    // assign "ajax-loader-solinea-blue" spinner gif
-    var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
-
-    $(document).ready(function () {
+$(document).ready(function () {
 
 
     // set start / end / interval of chart data request to server
@@ -136,20 +136,24 @@ Author: John Stanford
     });
 
 
-    });
-    </script>
+// end of $(document).ready block
+});
+
+</script>
+
 {% endblock %}
 {% block content %}
-    <div id="api-perf-report-r1" class="row">
-        <div id="api-perf-report-r1-c1" class="col-md-6"></div>
-        <div id="api-perf-report-r1-c2" class="col-md-6"></div>
-    </div>
-    <div id="api-perf-report-r2" class="row">
-        <div id="api-perf-report-r2-c1" class="col-md-6"></div>
-        <div id="api-perf-report-r2-c2" class="col-md-6"></div>
-    </div>
-    <div id="api-perf-report-r3" class="row">
-        <div id="api-perf-report-r3-c1" class="col-md-6"></div>
-        <div id="api-perf-report-r3-c2" class="col-md-6"></div>
-    </div>
+
+<div id="api-perf-report-r1" class="row">
+    <div id="api-perf-report-r1-c1" class="col-md-6"></div>
+    <div id="api-perf-report-r1-c2" class="col-md-6"></div>
+</div>
+<div id="api-perf-report-r2" class="row">
+    <div id="api-perf-report-r2-c1" class="col-md-6"></div>
+    <div id="api-perf-report-r2-c2" class="col-md-6"></div>
+</div>
+<div id="api-perf-report-r3" class="row">
+    <div id="api-perf-report-r3-c1" class="col-md-6"></div>
+    <div id="api-perf-report-r3-c2" class="col-md-6"></div>
+</div>
 {% endblock %}
