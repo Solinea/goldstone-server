@@ -16,7 +16,6 @@
  * Author: John Stanford
  */
 
-goldstone.namespace('apiPerf.report');
 
 //------------------------------------------------------
 // backbone model / collection / view definitions start:
