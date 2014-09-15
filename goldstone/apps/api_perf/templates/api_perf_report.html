@@ -25,19 +25,23 @@ Author: John Stanford
     <script src="{% static 'api_perf/js/api_perf.js' %}"></script>
     <script>
 
+
+
     // assign "ajax-loader-solinea-blue" spinner gif
     var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
     $(document).ready(function () {
 
 
-    // goldstone.apiPerf.report is empty object, namespaced in api_perf.js
-    var nsReport = goldstone.apiPerf.report;
-
     // set start / end / interval of chart data request to server
-    nsReport.start = goldstone.time.fromPyTs({{ start_ts|to_js }});
-    nsReport.end = goldstone.time.fromPyTs({{ end_ts|to_js }});
-    nsReport.interval = {{ interval|to_js }}
+    var nsReport = {
+
+        start: goldstone.time.fromPyTs({{ start_ts|to_js }}),
+        end: goldstone.time.fromPyTs({{ end_ts|to_js }}),
+        interval: {{ interval|to_js }}
+
+    };
+
 
 
     //----------------------------
