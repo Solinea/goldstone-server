@@ -139,6 +139,11 @@ code {
   font-size: 14px;
 }
 
+.infoButton {
+  width: 17em;
+  margin-left: 1em;
+}
+
 #multi-rsrc-table_wrapper > .dataTables_scroll {
     min-height: 500px;
 }

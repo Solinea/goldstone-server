@@ -93,7 +93,7 @@ var ApiPerfView = Backbone.View.extend({
             var custom = _.map(ns.infoCustom, function(e) {
                 return e.key + ": " + e.value + "<br>";
             });
-            var result = '<div class="body"><br>' + custom +
+            var result = '<div class="infoButton"><br>' + custom +
                 'Start: ' + start + '<br>' +
                 'End: ' + end + '<br>' +
                 'Interval: ' + ns.interval + '<br>' +
