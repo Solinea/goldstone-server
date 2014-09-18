@@ -1,3 +1,3 @@
 module.exports = [
-    'test/unit/goldstone-test.js'
+    'test/unit/unitTests.js'
 ];
