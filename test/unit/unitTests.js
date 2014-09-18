@@ -37,6 +37,8 @@ describe('The Goldstone namespace', function() {
         it('should contain namespaced objects', function() {
             goldstone.namespace('captain.beefheart');
             expect(goldstone.captain.beefheart).to.be.an('object');
+            expect(goldstone).to.have.property('captain');
+            expect(goldstone.captain).to.have.property('beefheart');
             delete goldstone.captain;
         });
         it('should create unique uuids', function() {
