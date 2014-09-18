@@ -14,6 +14,7 @@ module.exports = function(grunt) {
 
     // in what order should the files be concatenated
     var clientIncludeOrder = require('./test/include.conf.js');
+    var testInclude = require('./test/tests.conf.js');
 
     // grunt setup
     grunt.initConfig({
@@ -22,8 +23,9 @@ module.exports = function(grunt) {
         // what files should be linted
         jshint: {
             gruntfile: 'Gruntfile.js',
+            karmaConfig: 'karma.conf.js',
             client: clientIncludeOrder,
-            unit: 'test/unit/*',
+            test: testInclude,
             options: {
                 globals: {
                     eqeqeq: true
@@ -61,8 +63,8 @@ module.exports = function(grunt) {
                 tasks: 'test'
             },
             gruntfile: {
-                files: 'Gruntfile.js',
-                tasks: 'jshint:gruntfile'
+                files: ['Gruntfile.js', 'karma.conf.js'],
+                tasks: ['jshint:gruntfile', 'jshint:karmaConfig']
             },
             unitTests: {
                 files: ['test/unit/*.js'],
@@ -70,20 +72,18 @@ module.exports = function(grunt) {
             },
             integrationTests: {
                 files: ['test/integration/*.js'],
-                tasks: ['test']
+                tasks: 'test'
             },
             e2eTests: {
                 files: ['test/e2e/*.js'],
-                tasks: ['casperjs']
+                tasks: ['lint','casperjs']
             },
-
-
         }
 
     });
 
     // Start watching and run tests when files change
-    grunt.registerTask('default', ['lint', 'test', 'watch']);
+    grunt.registerTask('default', ['test', 'watch']);
     grunt.registerTask('lint', ['jshint']);
     grunt.registerTask('test', ['lint', 'karma:single']);
 
