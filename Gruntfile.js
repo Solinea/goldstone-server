@@ -25,7 +25,7 @@ module.exports = function(grunt) {
             gruntfile: 'Gruntfile.js',
             karmaConfig: 'karma.conf.js',
             client: clientIncludeOrder,
-            test: testInclude,
+            test: [testInclude, 'test/e2e/e2eTests.js'],
             options: {
                 globals: {
                     eqeqeq: true
@@ -60,31 +60,32 @@ module.exports = function(grunt) {
         watch: {
             client: {
                 files: clientIncludeOrder,
-                tasks: 'test'
+                tasks: ['lintAndTest']
             },
             gruntfile: {
                 files: ['Gruntfile.js', 'karma.conf.js'],
-                tasks: ['jshint:gruntfile', 'jshint:karmaConfig']
+                tasks: ['jshint:gruntfile', 'jshint:karmaConfig', 'lintAndTest']
             },
             unitTests: {
                 files: ['test/unit/*.js'],
-                tasks: 'test'
+                tasks: 'lintAndTest'
             },
             integrationTests: {
                 files: ['test/integration/*.js'],
-                tasks: 'test'
+                tasks: 'lintAndTest'
             },
             e2eTests: {
                 files: ['test/e2e/*.js'],
-                tasks: ['lint','casperjs']
+                tasks: 'lintAndTest'
             },
         }
 
     });
 
     // Start watching and run tests when files change
-    grunt.registerTask('default', ['test', 'watch']);
+    grunt.registerTask('default', ['lint', 'test', 'watch']);
     grunt.registerTask('lint', ['jshint']);
-    grunt.registerTask('test', ['lint', 'karma:single']);
+    grunt.registerTask('test', ['karma:single', 'casperjs']);
+    grunt.registerTask('lintAndTest', ['lint', 'test']);
 
 };
