@@ -1,54 +1,36 @@
+var clientIncludes = require('./test/include.conf.js');
+var testFiles = require('./test/tests.conf.js');
+
 module.exports = function(config) {
     config.set({
 
         //base path used to resolve files and excludes
-        basePath: './goldstone',
+        basePath: './',
 
         frameworks: ['mocha', 'chai', 'sinon'],
 
         //preload .js files
         files: [
             //from base.html
-            'client/js/lib/jquery.min.js',
-            'static/js/bootstrap.min.js',
-            'static/dataTables/jquery.dataTables.js',
-            'static/dataTables/dataTables.bootstrap.js',
-            'static/js/plugins/datetimepicker/jquery.datetimepicker.js',
-            'static/js/colorbrewer.js',
-            'static/js/d3.js',
-            'static/js/d3-tip.js',
-            'static/js/d3-legend.js',
-            'static/js/crossfilter.js',
-            'static/js/dc.js',
-            'client/js/lib/underscore-min.js',
-            'client/js/lib/backbone.js',
-            'static/js/moment-with-locales.js',
-            'static/js/moment-timezone-with-data-2010-2020.js',
-
-            'static/js/base.js',
-            'static/js/goldstone.js',
-
-            //from api_perf_report.html
-            'apps/nova/static/nova/js/nova.js',
-            'apps/neutron/static/neutron/js/neutron.js',
-            'apps/keystone/static/keystone/js/keystone.js',
-            'apps/glance/static/glance/js/glance.js',
-            'apps/cinder/static/cinder/js/cinder.js',
-            'apps/api_perf/static/api_perf/js/api_perf.js',
-
-            //backbone modules
-            'client/js/models/apiPerfModel.js',
-            'client/js/collections/apiPerfCollection.js',
-            'client/js/views/apiPerfView.js',
-
-            //tests
-            '../test/apiPerfCollectionTest.js'
-
-
-        ],
+            'goldstone/client/js/lib/jquery.min.js',
+            'goldstone/static/js/bootstrap.min.js',
+            'goldstone/static/dataTables/jquery.dataTables.js',
+            'goldstone/static/dataTables/dataTables.bootstrap.js',
+            'goldstone/static/js/plugins/datetimepicker/jquery.datetimepicker.js',
+            'goldstone/static/js/colorbrewer.js',
+            'goldstone/static/js/d3.js',
+            'goldstone/static/js/d3-tip.js',
+            'goldstone/static/js/d3-legend.js',
+            'goldstone/static/js/crossfilter.js',
+            'goldstone/static/js/dc.js',
+            'goldstone/client/js/lib/underscore-min.js',
+            'goldstone/client/js/lib/backbone.js',
+            'goldstone/static/js/moment-with-locales.js',
+            'goldstone/static/js/moment-timezone-with-data-2010-2020.js'
+        ].concat(clientIncludes, testFiles),
 
         exclude: [
-            '../karma.conf.js'
+            'karma.conf.js'
         ],
 
         // progress reporter: lists each test run and whether they pass/fail
@@ -76,24 +58,24 @@ module.exports = function(config) {
         // These files will be instrumented by Istanbul
         preprocessors: {
 
-            'apps/nova/static/nova/js/nova.js': ['coverage'],
-            'apps/neutron/static/neutron/js/neutron.js': ['coverage'],
-            'apps/keystone/static/keystone/js/keystone.js': ['coverage'],
-            'apps/glance/static/glance/js/glance.js': ['coverage'],
-            'apps/cinder/static/cinder/js/cinder.js': ['coverage'],
-            'apps/api_perf/static/api_perf/js/api_perf.js': ['coverage'],
-            'client/js/models/apiPerfModel.js': ['coverage'],
-            'client/js/collections/apiPerfCollection.js': ['coverage'],
-            'client/js/views/apiPerfView.js': ['coverage'],
-            'static/js/base.js': ['coverage'],
-            'static/js/goldstone.js': ['coverage']
+            'goldstone/apps/nova/static/nova/js/nova.js': ['coverage'],
+            'goldstone/apps/neutron/static/neutron/js/neutron.js': ['coverage'],
+            'goldstone/apps/keystone/static/keystone/js/keystone.js': ['coverage'],
+            'goldstone/apps/glance/static/glance/js/glance.js': ['coverage'],
+            'goldstone/apps/cinder/static/cinder/js/cinder.js': ['coverage'],
+            'goldstone/apps/api_perf/static/api_perf/js/api_perf.js': ['coverage'],
+            'goldstone/client/js/models/apiPerfModel.js': ['coverage'],
+            'goldstone/client/js/collections/apiPerfCollection.js': ['coverage'],
+            'goldstone/client/js/views/apiPerfView.js': ['coverage'],
+            'goldstone/static/js/base.js': ['coverage'],
+            'goldstone/static/js/goldstone.js': ['coverage']
 
         },
 
         // coverage config
         coverageReporter: {
             type: 'html',
-            dir: '../test/results/coverage'
+            dir: 'test/results/coverage'
         },
 
         // If browser does not capture in given timeout [ms], kill it
