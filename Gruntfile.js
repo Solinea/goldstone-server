@@ -48,7 +48,7 @@ module.exports = function(grunt) {
             options: {},
             e2e: {
                 files: {
-                    'results/casper': 'test/e2e/**/*.js'
+                    'results/casper': 'test/e2e/*.js'
                 }
             }
         },
@@ -56,28 +56,26 @@ module.exports = function(grunt) {
         // create a watch task for tracking
         // any changes to the following files
         watch: {
+            client: {
+                files: clientIncludeOrder,
+                tasks: 'test'
+            },
             gruntfile: {
                 files: 'Gruntfile.js',
                 tasks: 'jshint:gruntfile'
             },
             unitTests: {
                 files: ['test/unit/*.js'],
-                tasks: ['jshint:unit', 'karma:single']
-            }
-
-            // ,
-            // integrationTests: {
-            //     files: ['test/integration/**/*.js'],
-            //     tasks: ['karma:watch:run']
-            // },
-            // e2eTests: {
-            //     files: ['test/e2e/**/*.js'],
-            //     tasks: ['casperjs']
-            // },
-            // client: {
-            //     files: clientIncludeOrder,
-            //     tasks: ['lint', 'test']
-            // }
+                tasks: 'test'
+            },
+            integrationTests: {
+                files: ['test/integration/*.js'],
+                tasks: ['test']
+            },
+            e2eTests: {
+                files: ['test/e2e/*.js'],
+                tasks: ['casperjs']
+            },
 
 
         }
@@ -88,6 +86,5 @@ module.exports = function(grunt) {
     grunt.registerTask('default', ['lint', 'test', 'watch']);
     grunt.registerTask('lint', ['jshint']);
     grunt.registerTask('test', ['lint', 'karma:single']);
-    grunt.registerTask('look', ['watch']);
 
 };
