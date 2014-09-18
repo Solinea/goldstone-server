@@ -1,0 +1,117 @@
+module.exports = function(config) {
+    config.set({
+
+        //base path used to resolve files and excludes
+        basePath: './goldstone',
+
+        frameworks: ['mocha', 'chai', 'sinon'],
+
+        //preload .js files
+        files: [
+            //from base.html
+            'client/js/lib/jquery.min.js',
+            'static/js/bootstrap.min.js',
+            'static/dataTables/jquery.dataTables.js',
+            'static/dataTables/dataTables.bootstrap.js',
+            'static/js/plugins/datetimepicker/jquery.datetimepicker.js',
+            'static/js/colorbrewer.js',
+            'static/js/d3.js',
+            'static/js/d3-tip.js',
+            'static/js/d3-legend.js',
+            'static/js/crossfilter.js',
+            'static/js/dc.js',
+            'client/js/lib/underscore-min.js',
+            'client/js/lib/backbone.js',
+            'static/js/moment-with-locales.js',
+            'static/js/moment-timezone-with-data-2010-2020.js',
+
+            'static/js/base.js',
+            'static/js/goldstone.js',
+
+            //from api_perf_report.html
+            'apps/nova/static/nova/js/nova.js',
+            'apps/neutron/static/neutron/js/neutron.js',
+            'apps/keystone/static/keystone/js/keystone.js',
+            'apps/glance/static/glance/js/glance.js',
+            'apps/cinder/static/cinder/js/cinder.js',
+            'apps/api_perf/static/api_perf/js/api_perf.js',
+
+            //backbone modules
+            'client/js/models/apiPerfModel.js',
+            'client/js/collections/apiPerfCollection.js',
+            'client/js/views/apiPerfView.js',
+
+            //tests
+            '../test/apiPerfCollectionTest.js'
+
+
+        ],
+
+        exclude: [
+            '../karma.conf.js'
+        ],
+
+        // progress reporter: lists each test run and whether they pass/fail
+        // coverage reporter: creates coverage reports for every tested browser
+        reporters: ['progress', 'coverage'],
+
+        // web server port
+        port: 9876,
+
+        // enable / disable colors in the output (reporters and logs)
+        colors: true,
+
+        // level of logging
+        // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
+        logLevel: config.LOG_INFO,
+
+        // enable / disable watching file and executing tests whenever any file changes
+        autoWatch: false,
+
+        // test with:
+        browsers: ['Chrome'],
+
+        // Source files you want to generate coverage reports for
+        // This should not include tests or libraries
+        // These files will be instrumented by Istanbul
+        preprocessors: {
+
+            'apps/nova/static/nova/js/nova.js': ['coverage'],
+            'apps/neutron/static/neutron/js/neutron.js': ['coverage'],
+            'apps/keystone/static/keystone/js/keystone.js': ['coverage'],
+            'apps/glance/static/glance/js/glance.js': ['coverage'],
+            'apps/cinder/static/cinder/js/cinder.js': ['coverage'],
+            'apps/api_perf/static/api_perf/js/api_perf.js': ['coverage'],
+            'client/js/models/apiPerfModel.js': ['coverage'],
+            'client/js/collections/apiPerfCollection.js': ['coverage'],
+            'client/js/views/apiPerfView.js': ['coverage'],
+            'static/js/base.js': ['coverage'],
+            'static/js/goldstone.js': ['coverage']
+
+        },
+
+        // coverage config
+        coverageReporter: {
+            type: 'html',
+            dir: '../test/results/coverage'
+        },
+
+        // If browser does not capture in given timeout [ms], kill it
+        captureTimeout: 10000,
+
+        // Auto run tests on start (when browsers are captured) and exit
+        singleRun: false,
+
+        // report which specs fall below this ms count:
+        reportSlowerThan: 500,
+
+        // additional plugins needed for testing
+        plugins: [
+            'karma-coverage',
+            'karma-mocha',
+            'karma-chai',
+            'karma-sinon',
+            'karma-chrome-launcher'
+        ]
+    });
+};
