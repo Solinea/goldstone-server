@@ -1,4 +1,4 @@
-/*casper.test.begin('Homepage is loading properly', 12, function suite(test) {
+casper.test.begin('Homepage is loading properly', 12, function suite(test) {
     casper.start('http://localhost:8000/', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -28,7 +28,7 @@
     });
 });
 
-casper.test.begin('API Perf Page is loading properly', 18, function suite(test) {
+casper.test.begin('API Perf Page is loading properly', 21, function suite(test) {
     casper.start('http://localhost:8000/api_perf/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -72,7 +72,7 @@ casper.test.begin('API Perf Page is loading properly', 18, function suite(test) 
         test.done();
     });
 });
-*/
+
 
 casper.test.begin('Logging page is loading properly', 13, function suite(test) {
     casper.start('http://localhost:8000/intelligence/search', function() {
