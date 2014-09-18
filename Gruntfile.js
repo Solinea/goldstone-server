@@ -23,6 +23,7 @@ module.exports = function(grunt) {
         jshint: {
             gruntfile: 'Gruntfile.js',
             client: clientIncludeOrder,
+            unit: 'test/unit/*',
             options: {
                 globals: {
                     eqeqeq: true
@@ -61,7 +62,7 @@ module.exports = function(grunt) {
             },
             unitTests: {
                 files: ['test/unit/*.js'],
-                tasks: ['karma:single']
+                tasks: ['jshint:unit', 'karma:single']
             }
 
             // ,
