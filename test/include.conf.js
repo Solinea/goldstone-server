@@ -3,8 +3,8 @@
 
 module.exports = [
 
-    'goldstone/static/js/base.js',
-    'goldstone/static/js/goldstone.js',
+    'goldstone/client/js/lib/base.js',
+    'goldstone/client/js/lib/goldstone.js',
 
     'goldstone/apps/nova/static/nova/js/nova.js',
     'goldstone/apps/neutron/static/neutron/js/neutron.js',
