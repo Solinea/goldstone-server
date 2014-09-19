@@ -1,0 +1,18 @@
+{
+  "name": "goldstone",
+  "version": "0.0.0",
+  "description": "Init file for local dev package management. Packages will be .gitignored",
+  "main": " ",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "test": " "
+  },
+  "repository": {
+    "type": "git",
+    "url": " "
+  },
+  "author": "",
+  "license": ""
+}
