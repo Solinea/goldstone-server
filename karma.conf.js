@@ -13,20 +13,20 @@ module.exports = function(config) {
         files: [
             //from base.html
             'goldstone/client/js/lib/jquery.min.js',
-            'goldstone/static/js/bootstrap.min.js',
-            'goldstone/static/dataTables/jquery.dataTables.js',
-            'goldstone/static/dataTables/dataTables.bootstrap.js',
-            'goldstone/static/js/plugins/datetimepicker/jquery.datetimepicker.js',
-            'goldstone/static/js/colorbrewer.js',
-            'goldstone/static/js/d3.js',
-            'goldstone/static/js/d3-tip.js',
-            'goldstone/static/js/d3-legend.js',
-            'goldstone/static/js/crossfilter.js',
-            'goldstone/static/js/dc.js',
+            'goldstone/client/js/lib/bootstrap.min.js',
+            'goldstone/client/js/lib/jquery.dataTables.js',
+            'goldstone/client/js/lib/dataTables.bootstrap.js',
+            'goldstone/client/js/lib/jquery.datetimepicker.js',
+            'goldstone/client/js/lib/colorbrewer.js',
+            'goldstone/client/js/lib/d3.js',
+            'goldstone/client/js/lib/d3-tip.js',
+            'goldstone/client/js/lib/d3-legend.js',
+            'goldstone/client/js/lib/crossfilter.js',
+            'goldstone/client/js/lib/dc.js',
             'goldstone/client/js/lib/underscore-min.js',
             'goldstone/client/js/lib/backbone.js',
-            'goldstone/static/js/moment-with-locales.js',
-            'goldstone/static/js/moment-timezone-with-data-2010-2020.js'
+            'goldstone/client/js/lib/moment-with-locales.js',
+            'goldstone/client/js/lib/moment-timezone-with-data-2010-2020.js'
         ].concat(clientIncludes, testFiles),
 
         exclude: [
