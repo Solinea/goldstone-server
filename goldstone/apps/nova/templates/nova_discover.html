@@ -29,10 +29,10 @@
     <script>
 
 $(document).ready(function () {
-    var gnd = goldstone.nova.discover,
-        ns = goldstone.nova.topology
-    ns.data = JSON.parse({{ data|to_js }})
-    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns)
+    var gnd = goldstone.nova.discover;
+    var ns = goldstone.nova.topology;
+    ns.data = JSON.parse({{ data|to_js }});
+    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns);
     ns.leafDataUrls = {
         "agents-leaf": "/nova/agents",
         "aggregates-leaf": "/nova/aggregates",
@@ -46,82 +46,82 @@ $(document).ready(function () {
         "secgroups-leaf": "/nova/security_groups",
         "servers-leaf": "/nova/servers",
         "services-leaf": "/nova/services"
-    }
-    ns.h = 400
-    ns.location = '#nova-topology-tree'
-    ns.singleRsrcLocation = '#single-rsrc-table'
-    ns.spinner = '#nova-topology-spinner'
-    ns.singleRsrcSpinner = '#single-rsrc-loading-indicator'
-    ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator'
-    $(ns.spinner).hide()
-    $(ns.singleRsrcSpinner).hide()
-    $(ns.multiRsrcSpinner).hide()
+    };
+    ns.h = 400;
+    ns.location = '#nova-topology-tree';
+    ns.singleRsrcLocation = '#single-rsrc-table';
+    ns.spinner = '#nova-topology-spinner';
+    ns.singleRsrcSpinner = '#single-rsrc-loading-indicator';
+    ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator';
+    $(ns.spinner).hide();
+    $(ns.singleRsrcSpinner).hide();
+    $(ns.multiRsrcSpinner).hide();
     //ns.infoIcon = '#nova-topology-info'
 
     // override the default filter for the multi resource table
     ns.topologyTree.filterMultiRsrcData = function (data) {
         "use strict";
-        var newData = jQuery.extend(true, {}, data)
+        var newData = jQuery.extend(true, {}, data);
         newData = _.map(newData, function(d) {
-            delete d['@timestamp']
-            delete d['metadata']
-            delete d['region']
-            delete d['links']
-            delete d['swap']
-            delete d['rxtx_factor']
-            delete d['OS-FLV-EXT-DATA:ephemeral']
-            delete d['service']
-            delete d['cpu_info']
-            delete d['hypervisor_version']
-            delete d['bridge']
-            delete d['bridge_interface']
-            delete d['broadcast']
-            delete d['cidr_v6']
-            delete d['deleted']
-            delete d['deleted_at']
-            delete d['dhcp_start']
-            delete d['dns1']
-            delete d['dns2']
-            delete d['gateway_v6']
-            delete d['host']
-            delete d['injected']
-            delete d['multi_host']
-            delete d['netmask_v6']
-            delete d['priority']
-            delete d['region']
-            delete d['rxtx_base']
-            delete d['vpn_private_address']
-            delete d['vpn_public_address']
-            delete d['vpn_public_port']
-            delete d['accessIPv4']
-            delete d['accessIPv6']
-            delete d['addresses']
-            delete d['config_drive']
-            delete d['flavor']
-            delete d['hostId']
-            delete d['image']
-            delete d['key_name']
-            delete d['links']
-            delete d['metadata']
-            delete d['OS-DCF:diskConfig']
-            delete d['OS-EXT-AZ:availability_zone']
-            delete d['OS-EXT-SRV-ATTR:hypervisor_hostname']
-            delete d['OS-EXT-STS:power_state']
-            delete d['OS-EXT-STS:task_state']
-            delete d['OS-EXT-STS:vm_state']
-            delete d['os-extended-volumes:volumes_attached']
-            delete d['OS-SRV-USG:launched_at']
-            delete d['OS-SRV-USG:terminated_at']
-            delete d['progress']
-            delete d['region']
-            delete d['security_groups']
-            delete d['rules']
-            return d
-        })
-        return newData
-    }
-    ns.topologyTree.init()
-})
+            delete d['@timestamp'];
+            delete d['metadata'];
+            delete d['region'];
+            delete d['links'];
+            delete d['swap'];
+            delete d['rxtx_factor'];
+            delete d['OS-FLV-EXT-DATA:ephemeral'];
+            delete d['service'];
+            delete d['cpu_info'];
+            delete d['hypervisor_version'];
+            delete d['bridge'];
+            delete d['bridge_interface'];
+            delete d['broadcast'];
+            delete d['cidr_v6'];
+            delete d['deleted'];
+            delete d['deleted_at'];
+            delete d['dhcp_start'];
+            delete d['dns1'];
+            delete d['dns2'];
+            delete d['gateway_v6'];
+            delete d['host'];
+            delete d['injected'];
+            delete d['multi_host'];
+            delete d['netmask_v6'];
+            delete d['priority'];
+            delete d['region'];
+            delete d['rxtx_base'];
+            delete d['vpn_private_address'];
+            delete d['vpn_public_address'];
+            delete d['vpn_public_port'];
+            delete d['accessIPv4'];
+            delete d['accessIPv6'];
+            delete d['addresses'];
+            delete d['config_drive'];
+            delete d['flavor'];
+            delete d['hostId'];
+            delete d['image'];
+            delete d['key_name'];
+            delete d['links'];
+            delete d['metadata'];
+            delete d['OS-DCF:diskConfig'];
+            delete d['OS-EXT-AZ:availability_zone'];
+            delete d['OS-EXT-SRV-ATTR:hypervisor_hostname'];
+            delete d['OS-EXT-STS:power_state'];
+            delete d['OS-EXT-STS:task_state'];
+            delete d['OS-EXT-STS:vm_state'];
+            delete d['os-extended-volumes:volumes_attached'];
+            delete d['OS-SRV-USG:launched_at'];
+            delete d['OS-SRV-USG:terminated_at'];
+            delete d['progress'];
+            delete d['region'];
+            delete d['security_groups'];
+            delete d['rules'];
+            return d;
+        });
+        return newData;
+    };
+    ns.topologyTree.init();
+});
     </script>
 
 {% endblock %}

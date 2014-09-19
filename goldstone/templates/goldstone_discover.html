@@ -139,29 +139,29 @@
 $(document).ready(function () {
     var gnd = goldstone.goldstone.discover,
         ns = goldstone.goldstone.topology,
-        hans = goldstone.goldstone.hostAvail
-    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns)
-    ns.data = JSON.parse({{ data|to_js }})
-    ns.h = 600
-    ns.location = '#goldstone-topology-tree'
-    ns.singleRsrcLocation = '#single-rsrc-table'
-    ns.multiRsrcLocation = '#multi-rsrc-table'
-    ns.spinner = '#goldstone-topology-spinner'
-    ns.singleRsrcSpinner = '#single-rsrc-loading-indicator'
-    ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator'
-    $(ns.spinner).hide()
-    $(ns.singleRsrcSpinner).hide()
-    $(ns.multiRsrcSpinner).hide()
-    ns.topologyTree.init()
+        hans = goldstone.goldstone.hostAvail;
+    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns);
+    ns.data = JSON.parse({{ data|to_js }});
+    ns.h = 600;
+    ns.location = '#goldstone-topology-tree';
+    ns.singleRsrcLocation = '#single-rsrc-table';
+    ns.multiRsrcLocation = '#multi-rsrc-table';
+    ns.spinner = '#goldstone-topology-spinner';
+    ns.singleRsrcSpinner = '#single-rsrc-loading-indicator';
+    ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator';
+    $(ns.spinner).hide();
+    $(ns.singleRsrcSpinner).hide();
+    $(ns.multiRsrcSpinner).hide();
+    ns.topologyTree.init();
 
-    hans.hostAvailChart = goldstone.charts.hostAvail._getInstance(hans)
-    hans.h = {"main": 450, "swim": 50}
-    hans.location = '#goldstone-nodeavail-chart'
-    hans.spinner = '#goldstone-nodeavail-spinner'
-    $(hans.spinner).hide()
-    hans.hostAvailChart.init()
+    hans.hostAvailChart = goldstone.charts.hostAvail._getInstance(hans);
+    hans.h = {"main": 450, "swim": 50};
+    hans.location = '#goldstone-nodeavail-chart';
+    hans.spinner = '#goldstone-nodeavail-spinner';
+    $(hans.spinner).hide();
+    hans.hostAvailChart.init();
 
-})
+});
     </script>
 
 {% endblock %}

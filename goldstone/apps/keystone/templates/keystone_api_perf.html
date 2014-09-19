@@ -27,18 +27,18 @@
     <div class="panel-body" style="height:300px">
         <div id="keystone-api-perf-chart">
             <script>
-var ns = goldstone.keystone.apiPerf
-ns.data = JSON.parse(JSON.parse({{ data|to_js }}))
-ns.h = 300
-ns.location = '#keystone-api-perf-chart'
-ns.spinner = '#keystone-api-perf-spinner'
-ns.start = {{ start|to_js }}
-ns.end = {{ end|to_js }}
-ns.interval = {{ interval|to_js }}
-ns.yAxisLabel = "Response Time (ms)"
-ns.infoIcon = '#keystone-api-perf-info'
-ns.infoCustom = [{key: "API Call", value: "authenticate"}]
-ns.bivariate.init()
+var ns = goldstone.keystone.apiPerf;
+ns.data = JSON.parse(JSON.parse({{ data|to_js }}));
+ns.h = 300;
+ns.location = '#keystone-api-perf-chart';
+ns.spinner = '#keystone-api-perf-spinner';
+ns.start = {{ start|to_js }};
+ns.end = {{ end|to_js }};
+ns.interval = {{ interval|to_js }};
+ns.yAxisLabel = "Response Time (ms)";
+ns.infoIcon = '#keystone-api-perf-info';
+ns.infoCustom = [{key: "API Call", value: "authenticate"}];
+ns.bivariate.init();
             </script>
             <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                  id="keystone-api-perf-spinner"
