@@ -16,4 +16,113 @@
  * Author: John Stanford
  */
 
-goldstone.namespace('apiPerf.report');
+var renderApiPerfCharts = function() {
+
+
+    //----------------------------
+    // instantiate charts via
+    // backbone collection / views
+
+
+    //---------------------------
+    // instantiate nova api chart
+
+    var novaApiPerfChart = new ApiPerfCollection({
+        url: goldstone.nova.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false)
+    });
+
+    var novaApiPerfChartView = new ApiPerfView({
+        chartTitle: "Nova API Performance",
+        collection: novaApiPerfChart,
+        height: 300,
+        infoCustom: [{
+            key: "API Call",
+            value: "Hypervisor Show"
+        }],
+        location: '#api-perf-report-r1-c1',
+        startStopInterval: nsReport,
+        width: $('#api-perf-report-r1-c1').width()
+    });
+
+
+    //------------------------------
+    // instantiate neutron api chart
+
+    var neutronApiPerfChart = new ApiPerfCollection({
+        url: goldstone.neutron.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false)
+    });
+
+    var neutronApiPerfChartView = new ApiPerfView({
+        chartTitle: "Neutron API Performance",
+        collection: neutronApiPerfChart,
+        height: 300,
+        infoCustom: [{
+            key: "API Call",
+            value: "Agent List"
+        }],
+        location: '#api-perf-report-r1-c2',
+        startStopInterval: nsReport,
+        width: $('#api-perf-report-r1-c2').width()
+    });
+
+    //-------------------------------
+    // instantiate keystone api chart
+
+    var keystoneApiPerfChart = new ApiPerfCollection({
+        url: goldstone.keystone.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false)
+    });
+
+    var keystoneApiPerfChartView = new ApiPerfView({
+        chartTitle: "Keystone API Performance",
+        collection: keystoneApiPerfChart,
+        height: 300,
+        infoCustom: [{
+            key: "API Call",
+            value: "Authenticate"
+        }],
+        location: '#api-perf-report-r2-c1',
+        startStopInterval: nsReport,
+        width: $('#api-perf-report-r2-c1').width()
+    });
+
+    //-----------------------------
+    // instantiate glance api chart
+
+    var glanceApiPerfChart = new ApiPerfCollection({
+        url: goldstone.glance.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false)
+    });
+
+    var glanceApiPerfChartView = new ApiPerfView({
+        chartTitle: "Glance API Performance",
+        collection: glanceApiPerfChart,
+        height: 300,
+        infoCustom: [{
+            key: "API Call",
+            value: "Image Show"
+        }],
+        location: '#api-perf-report-r2-c2',
+        startStopInterval: nsReport,
+        width: $('#api-perf-report-r2-c2').width()
+    });
+
+    //-----------------------------
+    // instantiate cinder api chart
+
+    var cinderApiPerfChart = new ApiPerfCollection({
+        url: goldstone.cinder.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false)
+    });
+
+    var cinderApiPerfChartView = new ApiPerfView({
+        chartTitle: "Cinder API Performance",
+        collection: cinderApiPerfChart,
+        height: 300,
+        infoCustom: [{
+            key: "API Call",
+            value: "Service List"
+        }],
+        location: '#api-perf-report-r3-c1',
+        startStopInterval: nsReport,
+        width: $('#api-perf-report-r3-c1').width()
+    });
+
+};
