@@ -29,43 +29,43 @@
     <script>
 
 $(document).ready(function () {
-    var gnd = goldstone.glance.discover,
-        ns = goldstone.glance.topology
-    ns.data = JSON.parse({{ data|to_js }})
-    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns)
+    var gnd = goldstone.glance.discover;
+    var ns = goldstone.glance.topology;
+    ns.data = JSON.parse({{ data|to_js }});
+    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns);
     ns.leafDataUrls = {
         "images-leaf": "/glance/images"
-    }
-    ns.h = 400
-    ns.location = '#glance-topology-tree'
-    ns.singleRsrcLocation = '#single-rsrc-table'
-    ns.spinner = '#glance-topology-spinner'
-    ns.singleRsrcSpinner = '#single-rsrc-loading-indicator'
-    ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator'
-    $(ns.spinner).hide()
-    $(ns.singleRsrcSpinner).hide()
-    $(ns.multiRsrcSpinner).hide()
+    };
+    ns.h = 400;
+    ns.location = '#glance-topology-tree';
+    ns.singleRsrcLocation = '#single-rsrc-table';
+    ns.spinner = '#glance-topology-spinner';
+    ns.singleRsrcSpinner = '#single-rsrc-loading-indicator';
+    ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator';
+    $(ns.spinner).hide();
+    $(ns.singleRsrcSpinner).hide();
+    $(ns.multiRsrcSpinner).hide();
     //ns.infoIcon = '#cinder-topology-info'
 
     // override the default filter for the multi resource table
     ns.topologyTree.filterMultiRsrcData = function (data) {
         "use strict";
-        var newData = jQuery.extend(true, {}, data)
+        var newData = jQuery.extend(true, {}, data);
         newData = _.map(newData, function(d) {
-            delete d['@timestamp']
-            delete d['metadata']
-            delete d['region']
-            delete d['tags']
-            delete d['checksum']
-            delete d['owner']
-            delete d['schema']
-            delete d['file']
-            return d
-        })
-        return newData
-    }
-    ns.topologyTree.init()
-})
+            delete d['@timestamp'];
+            delete d['metadata'];
+            delete d['region'];
+            delete d['tags'];
+            delete d['checksum'];
+            delete d['owner'];
+            delete d['schema'];
+            delete d['file'];
+            return d;
+        });
+        return newData;
+    };
+    ns.topologyTree.init();
+});
     </script>
 
 {% endblock %}
