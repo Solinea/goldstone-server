@@ -1,10 +1,6 @@
 /*global todo, chai, describe, it*/
 //unit tests
 
-var assert = chai.assert;
-var should = chai.should();
-var expect = chai.expect;
-
 describe('the Backbone Objects', function() {
     describe('the Backbone object', function() {
         it('should exist', function() {
@@ -27,7 +23,6 @@ describe('the Backbone Objects', function() {
         });
     });
 });
-
 
 describe('The Goldstone namespace', function() {
     describe('The main object', function() {
@@ -81,7 +76,6 @@ describe('The Goldstone namespace', function() {
         });
 
     });
-
 
     describe('The topology and hostAvail objects', function() {
         it('should exist', function() {

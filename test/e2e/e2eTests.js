@@ -1,3 +1,5 @@
+// e2e tests
+
 casper.test.begin('Homepage is loading properly', 12, function suite(test) {
     casper.start('http://localhost:8000/', function() {
         //title
