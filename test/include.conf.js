@@ -6,12 +6,12 @@ module.exports = [
     'goldstone/client/js/lib/base.js',
     'goldstone/client/js/lib/goldstone.js',
 
-    'goldstone/apps/nova/static/nova/js/nova.js',
-    'goldstone/apps/neutron/static/neutron/js/neutron.js',
-    'goldstone/apps/keystone/static/keystone/js/keystone.js',
-    'goldstone/apps/glance/static/glance/js/glance.js',
-    'goldstone/apps/cinder/static/cinder/js/cinder.js',
-    'goldstone/apps/api_perf/static/api_perf/js/api_perf.js',
+    'goldstone/client/js/lib/nova.js',
+    'goldstone/client/js/lib/neutron.js',
+    'goldstone/client/js/lib/keystone.js',
+    'goldstone/client/js/lib/glance.js',
+    'goldstone/client/js/lib/cinder.js',
+    'goldstone/client/js/lib/api_perf.js',
 
     'goldstone/client/js/models/apiPerfModel.js',
     'goldstone/client/js/collections/apiPerfCollection.js',
