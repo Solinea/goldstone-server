@@ -58,17 +58,17 @@ module.exports = function(config) {
         // These files will be instrumented by Istanbul
         preprocessors: {
 
-            'goldstone/apps/nova/static/nova/js/nova.js': ['coverage'],
-            'goldstone/apps/neutron/static/neutron/js/neutron.js': ['coverage'],
-            'goldstone/apps/keystone/static/keystone/js/keystone.js': ['coverage'],
-            'goldstone/apps/glance/static/glance/js/glance.js': ['coverage'],
-            'goldstone/apps/cinder/static/cinder/js/cinder.js': ['coverage'],
-            'goldstone/apps/api_perf/static/api_perf/js/api_perf.js': ['coverage'],
-            'goldstone/client/js/models/apiPerfModel.js': ['coverage'],
-            'goldstone/client/js/collections/apiPerfCollection.js': ['coverage'],
-            'goldstone/client/js/views/apiPerfView.js': ['coverage'],
-            'goldstone/static/js/base.js': ['coverage'],
-            'goldstone/static/js/goldstone.js': ['coverage']
+            'goldstone/client/js/lib/nova.js': ['coverage'],
+            'goldstone/client/js/lib/neutron.js': ['coverage'],
+            'goldstone/client/js/lib/keystone.js': ['coverage'],
+            'goldstone/client/js/lib/glance.js': ['coverage'],
+            'goldstone/client/js/lib/cinder.js': ['coverage'],
+            'goldstone/client/js/lib/api_perf.js': ['coverage'],
+            'goldstone/client/js/lib/base.js': ['coverage'],
+            'goldstone/client/js/lib/goldstone.js': ['coverage'],
+            'goldstone/client/js/models/*.js': ['coverage'],
+            'goldstone/client/js/collections/*.js': ['coverage'],
+            'goldstone/client/js/views/*.js': ['coverage']
 
         },
 
