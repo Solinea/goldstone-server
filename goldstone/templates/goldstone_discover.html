@@ -137,9 +137,9 @@
     <script>
 
 $(document).ready(function () {
-    var gnd = goldstone.goldstone.discover,
-        ns = goldstone.goldstone.topology,
-        hans = goldstone.goldstone.hostAvail;
+    var gnd = goldstone.goldstone.discover;
+    var ns = goldstone.goldstone.topology;
+    var hans = goldstone.goldstone.hostAvail;
     ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns);
     ns.data = JSON.parse({{ data|to_js }});
     ns.h = 600;
