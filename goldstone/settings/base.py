@@ -175,8 +175,8 @@ CELERY_QUEUES = (
 CELERY_ROUTES = {
     'goldstone.apps.logging.tasks.process_host_stream': {
         'queue': 'host_stream'},
-    'goldstone.apps.logging.tasks.process_amqp_stream': {
-        'queue': 'amqp_stream'},
+    'goldstone.apps.logging.tasks.process_event_stream': {
+        'queue': 'event_stream'},
 }
 
 from celery.schedules import crontab
