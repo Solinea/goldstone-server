@@ -25,13 +25,13 @@
     <div class="panel-body" style="height:300px">
         <div id="nova-disk-chart" class="resource-chart">
             <script>
-var ns = goldstone.nova.disk
-ns.data = JSON.parse({{ data|to_js }})
-ns.height = 300
-ns.location = '#nova-disk-chart'
-ns.spinner = '#nova-disk-spinner'
-ns.resourceLabel = 'GB'
-ns.drawChart()
+var ns = goldstone.nova.disk;
+ns.data = JSON.parse({{ data|to_js }});
+ns.height = 300;
+ns.location = '#nova-disk-chart';
+ns.spinner = '#nova-disk-spinner';
+ns.resourceLabel = 'GB';
+ns.drawChart();
             </script>
             <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                  id="nova-disk-spinner"
