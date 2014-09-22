@@ -32,10 +32,8 @@ logger = logging.getLogger(__name__)
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
 def process_host_stream(self, host, timestamp):
     """
-    This task reads a list of host names  out of the incoming message on the
-    host_stream queue, gets the current state stored in redis, updates the
-    information updates redis with the new result.  It also facilitates getting
-    the result to ES periodically.
+    This task reads a list of host names out of the incoming message on the
+    host_stream queue, and creates or updates an associated node in the model.
     :return: None
     """
     node, created = Node.objects.get_or_create(name=host)
@@ -46,16 +44,18 @@ def process_host_stream(self, host, timestamp):
 
 
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
-def process_amqp_stream(self, timestamp, host, message):
+def process_event_stream(self, timestamp, host, event_type, message):
     """
-    This task handles AMQP status events coming from the log stream.
+    This task handles events coming from the log stream.  Specific handling
+    can be implemented based on the event type.  Currently know event types
+    are "AMQPDownError" and "GenericError".
     :return: None
     """
-    logger.debug("[process_amqp_stream] got an event with timestamp=%s, "
-                 "host=%s, message=%s", timestamp, host, message)
-    #node, created = LoggingNode.objects.get_or_create(name=host)
-    #if not node.disabled:
-    #    node.save()
+    logger.debug("[process_event_stream] got an event with timestamp=%s, "
+                 "host=%s, event_type=%s, message=%s",
+                 timestamp, host, event_type, message)
+
+
 
 
 @celery_app.task(bind=True)
