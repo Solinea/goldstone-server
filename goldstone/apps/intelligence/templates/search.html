@@ -25,8 +25,8 @@
 {% endblock %}
 
 {% block localjs %}
-    <script src="{% static 'intelligence/js/intelligence.js' %}"></script>
-    <script src="{% static 'intelligence/js/search.js' %}"></script>
+    <script src="{% static 'js/lib/intelligence.js' %}"></script>
+    <script src="{% static 'js/lib/search.js' %}"></script>
     <script type="text/javascript">
         // this code needs to stay here because it uses django template markup
         $(document).ready(function () {
@@ -37,10 +37,10 @@
             {{ end_ts }} *
             1000
 
-            badEventMultiLine('#bad-event-multiline', start, end)
-            drawSearchTable('#log-search-table', start, end)
-            populateSettingsFields(start, end)
-        })
+            badEventMultiLine('#bad-event-multiline', start, end);
+            drawSearchTable('#log-search-table', start, end);
+            populateSettingsFields(start, end);
+        });
     </script>
 
 {% endblock %}

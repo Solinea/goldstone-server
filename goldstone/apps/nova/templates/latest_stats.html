@@ -26,12 +26,12 @@
     <div class="panel-body" style="height:300px">
         <div id="nova-stats-text" class="stats-text">
             <script>
-var ns = goldstone.nova.latestStats
-ns.data = JSON.parse({{ data|to_js }})
-ns.height = 300
-ns.location = '#nova-stats-text'
-ns.spinner = '#nova-stats-spinner'
-ns.drawText()
+var ns = goldstone.nova.latestStats;
+ns.data = JSON.parse({{ data|to_js }});
+ns.height = 300;
+ns.location = '#nova-stats-text';
+ns.spinner = '#nova-stats-spinner';
+ns.drawText();
             </script>
             <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                  id="nova-stats-spinner"
