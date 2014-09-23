@@ -61,6 +61,7 @@ module.exports = function(config) {
             'goldstone/client/js/lib/api_perf.js': ['coverage'],
             'goldstone/client/js/lib/base.js': ['coverage'],
             'goldstone/client/js/lib/cinder.js': ['coverage'],
+            'goldstone/client/js/lib/discover.js': ['coverage'],
             'goldstone/client/js/lib/glance.js': ['coverage'],
             'goldstone/client/js/lib/goldstone.js': ['coverage'],
             'goldstone/client/js/lib/intelligence.js': ['coverage'],
