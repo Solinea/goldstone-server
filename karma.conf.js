@@ -58,14 +58,16 @@ module.exports = function(config) {
         // These files will be instrumented by Istanbul
         preprocessors: {
 
-            'goldstone/client/js/lib/nova.js': ['coverage'],
-            'goldstone/client/js/lib/neutron.js': ['coverage'],
-            'goldstone/client/js/lib/keystone.js': ['coverage'],
-            'goldstone/client/js/lib/glance.js': ['coverage'],
-            'goldstone/client/js/lib/cinder.js': ['coverage'],
             'goldstone/client/js/lib/api_perf.js': ['coverage'],
             'goldstone/client/js/lib/base.js': ['coverage'],
+            'goldstone/client/js/lib/cinder.js': ['coverage'],
+            'goldstone/client/js/lib/glance.js': ['coverage'],
             'goldstone/client/js/lib/goldstone.js': ['coverage'],
+            'goldstone/client/js/lib/intelligence.js': ['coverage'],
+            'goldstone/client/js/lib/keystone.js': ['coverage'],
+            'goldstone/client/js/lib/neutron.js': ['coverage'],
+            'goldstone/client/js/lib/nova.js': ['coverage'],
+            'goldstone/client/js/lib/search.js': ['coverage'],
             'goldstone/client/js/models/*.js': ['coverage'],
             'goldstone/client/js/collections/*.js': ['coverage'],
             'goldstone/client/js/views/*.js': ['coverage']
