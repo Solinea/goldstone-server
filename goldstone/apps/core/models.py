@@ -13,7 +13,7 @@
 # limitations under the License.
 import json
 from django.db.models import CharField, ForeignKey, BooleanField, Model, \
-    ManyToManyField, DateTimeField
+    ManyToManyField, DateTimeField, TextField
 from django_extensions.db.fields import UUIDField, ModificationDateTimeField, \
     CreationDateTimeField
 from polymorphic import PolymorphicModel
@@ -27,7 +27,7 @@ __author__ = 'stanford'
 
 class Entity(PolymorphicModel):
     uuid = UUIDField(unique=True)
-    name = CharField(max_length=255, unique=True)
+    name = CharField(max_length=255)
     created = CreationDateTimeField()
     updated = ModificationDateTimeField()
     relationships = ManyToManyField('self', through='Relationship',
@@ -129,3 +129,8 @@ class Node(Resource):
         ('LOGS', 'Log Stream Activity'),
         ('API', 'Application API Call'),
     )
+
+
+class Event(Entity):
+    message = TextField(max_length=1024)
+

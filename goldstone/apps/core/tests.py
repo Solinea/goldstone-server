@@ -93,6 +93,9 @@ class ModelTests(SimpleTestCase):
         Service.objects.get_or_create(name="service 1")
         Service.objects.get_or_create(name="service 2")
 
+        Event.objects.get_or_create(name="generic event 1")
+        Event.objects.get_or_create(name="generic event 2")
+
     def tearDown(self):
         # When using Entity.objects.all().delete(), we have a strange situation
         # where the tests pass locally, but fail on the jenkins server.  See
@@ -107,6 +110,8 @@ class ModelTests(SimpleTestCase):
         for obj in Node.objects.iterator():
             obj.delete()
         for obj in Service.objects.iterator():
+            obj.delete()
+        for obj in Event.objects.iterator():
             obj.delete()
 
     def test_entity_relation(self):
@@ -129,7 +134,7 @@ class ModelTests(SimpleTestCase):
 
     def test_polymorphism(self):
         entities = Entity.objects.all()
-        self.assertEqual(entities.count(), 10)
+        self.assertEqual(entities.count(), 12)
 
         projects = Project.objects.all()
         self.assertEqual(projects.count(), 2)
@@ -142,6 +147,9 @@ class ModelTests(SimpleTestCase):
 
         nodes = Node.objects.all()
         self.assertEqual(nodes.count(), 2)
+
+        events = Event.objects.all()
+        self.assertEqual(events.count(), 2)
 
     def test_unicode(self):
         e1 = Entity.objects.get(name="entity 1")

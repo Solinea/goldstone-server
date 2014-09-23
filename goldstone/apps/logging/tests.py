@@ -24,6 +24,7 @@ from django.test import SimpleTestCase
 import logging
 from datetime import timedelta
 from .tasks import *
+from .tasks import _create_event
 from goldstone.apps.core.models import Node
 from mock import patch
 
@@ -38,8 +39,10 @@ class TaskTests(SimpleTestCase):
     ts2 = '2015-07-04T01:06:27.750046+00:00'
     ts3 = '2013-07-04T01:06:27.750046+00:00'
 
-    def setUp(self):
+    def tearDown(self):
         for obj in Node.objects.iterator():
+            obj.delete()
+        for obj in Event.objects.iterator():
             obj.delete()
 
     def test_process_host_stream(self):
@@ -61,6 +64,8 @@ class TaskTests(SimpleTestCase):
         process_host_stream(self.name2, self.ts2)
         updated_node2 = Node.objects.get(uuid=node2.uuid)
         self.assertEqual(updated_node2.updated, node2.updated)
+        Node.objects.get(uuid=node1.uuid).delete()
+        Node.objects.get(uuid=node2.uuid).delete()
 
     def test_check_host_avail(self):
         now = datetime.now(tz=pytz.utc)
@@ -76,6 +81,36 @@ class TaskTests(SimpleTestCase):
         self.assertNotIn(node1, result)
         self.assertNotIn(node2, result)
         self.assertIn(node3, result)
+        Node.objects.get(uuid=node1.uuid).delete()
+        Node.objects.get(uuid=node2.uuid).delete()
+        Node.objects.get(uuid=node3.uuid).delete()
+
+    def test_create_event(self):
+        timestamp = arrow.utcnow().__str__()
+        event1 = _create_event(timestamp, 'not_found_node', 'test message',
+                               "Syslog Error")
+        self.assertEqual(event1.created, arrow.get(timestamp).datetime)
+        self.assertEqual(event1.message, "test message")
+        self.assertEqual(event1.name, "Syslog Error")
+        self.assertEqual(len(event1.get_relationships("source")), 0)
+        self.assertEqual(len(event1.get_relationships("affects")), 0)
+
+        # create a logging node to relate
+        node = LoggingNode(name="fake_node")
+        node.save()
+        event2 = _create_event(timestamp, 'fake_node', 'test message 2',
+                               "Syslog Error")
+        self.assertEqual(event2.created, arrow.get(timestamp).datetime)
+        self.assertEqual(event2.message, "test message 2")
+        self.assertEqual(event2.name, "Syslog Error")
+        self.assertEqual(len(event2.get_relationships("source")), 1)
+        self.assertEqual(len(event2.get_relationships("affects")), 1)
+        saved_event = LoggingEvent.objects.get(message="test message 2")
+        self.assertEqual(len(saved_event.get_relationships("source")), 1)
+        self.assertEqual(len(saved_event.get_relationships("affects")), 1)
+
+
+
 
     @patch.object(subprocess, 'call')
     def test_ping(self, call):
