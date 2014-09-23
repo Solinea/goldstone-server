@@ -48,14 +48,32 @@ def process_event_stream(self, timestamp, host, event_type, message):
     """
     This task handles events coming from the log stream.  Specific handling
     can be implemented based on the event type.  Currently know event types
-    are "AMQPDownError" and "GenericError".
+    are "AMQPDownError" and "GenericSyslogError".
     :return: None
     """
     logger.debug("[process_event_stream] got an event with timestamp=%s, "
                  "host=%s, event_type=%s, message=%s",
                  timestamp, host, event_type, message)
 
+    if event_type == "GenericSyslogError":
+        process_log_error_event(timestamp, host, message)
+    elif event_type == "AMQPDownError":
+        process_amqp_down_event(timestamp, host, message)
+    else:
+        logger.warning("[process_event_stream] don't know how to handle event"
+                       "of type %s", event_type)
 
+
+def process_log_error_event(timestamp, host, message):
+    logger.debug("[process_log_error_event] got a log error event with "
+                 "timestamp=%s, host=%s, event_type=%s, message=%s",
+                 timestamp, host, message)
+
+
+def process_amqp_down_event(timestamp, host, message):
+    logger.debug("[process_amqp_down_event] got an AMQP down event with "
+                 "timestamp=%s, host=%s, event_type=%s, message=%s",
+                 timestamp, host, message)
 
 
 @celery_app.task(bind=True)

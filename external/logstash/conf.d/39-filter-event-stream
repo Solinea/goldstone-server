@@ -23,11 +23,18 @@ filter {
         }
         if ("_grokparsefailure" not in [tags]) {
             clone {
-                add_field => { "event_type" => "AMQPDownError" }
                 clones => ["event_stream"]
-            }
-            mutate {
                 add_tag => ["filter_39"]
+                add_field => { "event_type" => "AMQPDownError" }
+            }
+        } else {
+            grep {
+                match => { "syslog_severity" => "ERROR" }
+            }
+            clone {
+                clones => ["event_stream"]
+                add_tag => ["filter_39"]
+                add_field => { "event_type" => "GenericSyslogError" }
             }
         }
     }
