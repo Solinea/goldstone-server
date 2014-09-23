@@ -25,12 +25,12 @@
     <div class="panel-body" style="height:300px">
         <div id="nova-spawns-chart">
             <script>
-var ns = goldstone.nova.spawns
-ns.data = JSON.parse({{ data|to_js }})
-ns.height = 300
-ns.location = '#nova-spawns-chart'
-ns.spinner = '#nova-spawns-spinner'
-ns.drawChart()
+var ns = goldstone.nova.spawns;
+ns.data = JSON.parse({{ data|to_js }});
+ns.height = 300;
+ns.location = '#nova-spawns-chart';
+ns.spinner = '#nova-spawns-spinner';
+ns.drawChart();
             </script>
             <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                  id="nova-spawns-spinner"

@@ -1,18 +1,37 @@
 {
-  "name": "goldstone",
-  "version": "0.0.0",
-  "description": "Init file for local dev package management. Packages will be .gitignored",
-  "main": " ",
-  "directories": {
-    "doc": "doc"
-  },
-  "scripts": {
-    "test": " "
-  },
-  "repository": {
-    "type": "git",
-    "url": " "
-  },
-  "author": "",
-  "license": ""
+
+    "name": "Goldstone_test_environment",
+    "version": "0.1.0",
+    "description": "Installs grunt and test frameworks.",
+    "author": "Solinea, Inc.",
+    "license": "http://www.solinea.com/goldstone/LICENSE.pdf",
+    "private": true,
+    "dependencies": {
+        "casper": "0.1.1",
+        "casperjs": "1.1.0-beta3",
+        "chai": "1.9.1",
+        "express": "4.9.1",
+        "grunt": "0.4.5",
+        "grunt-casperjs": "2.0.1",
+        "grunt-contrib-clean": "0.6.0",
+        "grunt-contrib-concat": "0.5.0",
+        "grunt-contrib-copy": "0.5.0",
+        "grunt-contrib-jshint": "0.10.0",
+        "grunt-contrib-uglify": "0.5.1",
+        "grunt-contrib-watch": "0.6.1",
+        "grunt-express-server": "0.4.19",
+        "grunt-growl": "0.1.5",
+        "grunt-karma": "0.9.0",
+        "grunt-mocha": "0.4.11",
+        "grunt-notify": "0.3.1",
+        "karma": "0.12.23",
+        "karma-chai": "0.1.0",
+        "karma-chrome-launcher": "0.1.4",
+        "karma-coverage": "0.2.6",
+        "karma-mocha": "0.1.9",
+        "karma-sinon": "1.0.3",
+        "mocha": "1.21.4",
+        "sinon": "1.10.3"
+    }
+
 }

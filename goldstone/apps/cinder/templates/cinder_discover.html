@@ -25,14 +25,14 @@
 {% endblock %}
 
 {% block localjs %}
-    <script src="{% static 'cinder/js/cinder.js' %}"></script>
+    <script src="{% static 'js/lib/cinder.js' %}"></script>
     <script>
 
 $(document).ready(function () {
-    var gnd = goldstone.cinder.discover,
-        ns = goldstone.cinder.topology
-    ns.data = JSON.parse({{ data|to_js }})
-    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns)
+    var gnd = goldstone.cinder.discover;
+    var ns = goldstone.cinder.topology;
+    ns.data = JSON.parse({{ data|to_js }});
+    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns);
     ns.leafDataUrls = {
         "services-leaf": "/cinder/services",
         "volumes-leaf": "/cinder/volumes",
@@ -40,42 +40,42 @@ $(document).ready(function () {
         "snapshots-leaf": "/cinder/snapshots",
         "transfers-leaf": "/cinder/transfers",
         "volume-types-leaf": "/cinder/volume_types"
-    }
-    ns.h = 400
-    ns.location = '#cinder-topology-tree'
-    ns.singleRsrcLocation = '#single-rsrc-table'
-    ns.spinner = '#cinder-topology-spinner'
-    ns.singleRsrcSpinner = '#single-rsrc-loading-indicator'
-    ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator'
-    $(ns.spinner).hide()
-    $(ns.singleRsrcSpinner).hide()
-    $(ns.multiRsrcSpinner).hide()
+    };
+    ns.h = 400;
+    ns.location = '#cinder-topology-tree';
+    ns.singleRsrcLocation = '#single-rsrc-table';
+    ns.spinner = '#cinder-topology-spinner';
+    ns.singleRsrcSpinner = '#single-rsrc-loading-indicator';
+    ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator';
+    $(ns.spinner).hide();
+    $(ns.singleRsrcSpinner).hide();
+    $(ns.multiRsrcSpinner).hide();
     //ns.infoIcon = '#cinder-topology-info'
 
     // override the default filter for the multi resource table
     ns.topologyTree.filterMultiRsrcData = function (data) {
         "use strict";
-        var newData = jQuery.extend(true, {}, data)
+        var newData = jQuery.extend(true, {}, data);
         newData = _.map(newData, function(d) {
-            delete d['@timestamp']
-            delete d['metadata']
-            delete d['region']
-            delete d['extra_specs']
-            delete d['display_description']
-            delete d['os-extended-snapshot-attributes:progress']
-            delete d['links']
-            delete d['attachments']
-            delete d['availability_zone']
-            delete d['os-vol-mig-status-attr:migstat']
-            delete d['os-vol-mig-status-attr:name_id']
-            delete d['snapshot_id']
-            delete d['source_volid']
-            return d
-        })
-        return newData
-    }
-    ns.topologyTree.init()
-})
+            delete d['@timestamp'];
+            delete d['metadata'];
+            delete d['region'];
+            delete d['extra_specs'];
+            delete d['display_description'];
+            delete d['os-extended-snapshot-attributes:progress'];
+            delete d['links'];
+            delete d['attachments'];
+            delete d['availability_zone'];
+            delete d['os-vol-mig-status-attr:migstat'];
+            delete d['os-vol-mig-status-attr:name_id'];
+            delete d['snapshot_id'];
+            delete d['source_volid'];
+            return d;
+        });
+        return newData;
+    };
+    ns.topologyTree.init();
+});
     </script>
 
 {% endblock %}
@@ -145,9 +145,3 @@ $(document).ready(function () {
     </div>
 
 {% endblock %}
-
-
-
-
-
-
