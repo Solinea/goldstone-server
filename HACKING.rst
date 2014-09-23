@@ -42,11 +42,11 @@ Create the virtual environment (this will also install virtualenv)::
 
 **OPTIONAL**: Customize your virtualenv postactive script to make it yours. I use the following commands in my virtualenv::
 
-    #!/bin/bash    
+    #!/bin/bash
     cd ~/devel/goldstone
 
     export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
-    export DJANGO_SETTINGS_MODULE=goldstone.settings.local_dev    
+    export DJANGO_SETTINGS_MODULE=goldstone.settings.local_dev
 
     mysql.server start
     redis-server > /dev/null 2>&1 &
@@ -63,8 +63,8 @@ Activating and deactivating the environment can be done with the following comma
 
 Install mysql and create development and test databases. Create a user goldstone with the role goldstone (or edit your development.py settings file)::
 
-    $ brew install elasticsearch 
-    $ brew install redis 
+    $ brew install elasticsearch
+    $ brew install redis
     $ brew install phantomjs
     $ brew install mysql  # for the mac, assuming you have brew installed
     $ mysqladmin  -u root -p create goldstone_dev
@@ -165,6 +165,28 @@ Goldstone strives for 100% code coverage. Code coverage reports can be created t
 
 
 
+
+Front-end testing
+*****************
+
+This information assumes you already have node/npm installed.
+It also assumes you already have phantomjs installed via previous steps in the HACKING.rst file. If not, install it via homebrew. At the time of this documentation, the testing environment was compatible with phantomjs 1.9.7
+
+$ npm install -g grunt-cli
+$ npm install
+$ grunt
+This will kick off the preliminary lint/test/watch routine.
+
+In order for the e2e tests to run, you MUST have the server running and access to live data.
+
+At the time of this documentation, the Gruntfile.js is configured with the following combo tasks:
+grunt (default task): lint / test / watch.
+grunt lint: lint only (no watch).
+grunt test: test only (no watch).
+grunt lintAndTest: lint and test only (no watch).
+
+
+
 Documentation
 =============
 
@@ -196,7 +218,7 @@ Major Design Decisions
 * Goldstone is current based on the 1.6 version of `Django`_.
 * For database and model migrations, Goldstone uses `South`_.
 * Goldstone has chosen Postgresql as its main database, however MySQL will also be tested against.
-* The PBR library (created by the OpenStack project) is used for sane and simple setup.py, versioning and setup.cfg values. 
+* The PBR library (created by the OpenStack project) is used for sane and simple setup.py, versioning and setup.cfg values.
 * `Celery`_ and django-celery is used for asyncronous tasks.
 * Goldstone has additional developer tasks augemented by the django_extensions library.
 * The `Twitter Bootstrap 3`_ framework is used for UX. This also means that `jQuery`_ and `jQuery-UI`_ are used in the UX. `Font Awesome`_ has been used for icons instead of the standard icons.
@@ -215,6 +237,6 @@ Major Design Decisions
 GoldStone Style Commandments
 ****************************
 
-In general, we follow the `OpenStack style conventions`_ where they are possible and applicable. 
+In general, we follow the `OpenStack style conventions`_ where they are possible and applicable.
 
 .. _OpenStack style conventions: http://docs.openstack.org/developer/hacking/
