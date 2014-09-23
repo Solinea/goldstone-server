@@ -49,10 +49,34 @@ describe('Testing the base.js file', function() {
                 expect(testUuid2).to.be.length(36);
                 expect(testUuid1).to.not.equal(testUuid2);
             });
+            it('should contain the following methods or properties', function(){
+                expect(goldstone).to.have.property('raiseError');
+                expect(goldstone).to.have.property('raiseDanger');
+                expect(goldstone).to.have.property('raiseWarning');
+                expect(goldstone).to.have.property('raiseSuccess');
+                expect(goldstone).to.have.property('raiseInfo');
+                expect(goldstone).to.have.property('raiseAlert');
+                expect(goldstone).to.have.property('uuid');
+                expect(goldstone).to.have.property('populateSettingsFields');
+                expect(goldstone).to.have.property('isRefreshing');
+                expect(goldstone).to.have.property('getRefreshInterval');
+                expect(goldstone.time).to.have.property('fromPyTs');
+                expect(goldstone.time).to.have.property('toPyTs');
+                expect(goldstone.time).to.have.property('paramToDate');
+                expect(goldstone.time).to.have.property('getDateRange');
+                expect(goldstone.time).to.have.property('autoSizeInterval');
+                expect(goldstone.time).to.have.property('processTimeBasedChartParams');
+                expect(goldstone.charts).to.have.property('barChartBase');
+                expect(goldstone.charts).to.have.property('lineChartBase');
+                expect(goldstone.charts).to.have.property('bivariateWithAverage');
+                expect(goldstone.charts).to.have.property('topologyTree');
+                expect(goldstone).to.have.property('jsIncluded');
+
+            });
         });
 
-        describe('The time namespace', function() {
 
+        describe('The time namespace', function() {
             it('should return dates with the correct formatting and order of magnitude', function() {
                 var time1 = goldstone.time.fromPyTs(42);
                 var time2 = goldstone.time.fromPyTs('42');
@@ -83,7 +107,7 @@ describe('Testing the base.js file', function() {
     });
 });
 
-describe('Testing the goldstone.js file', function(){
+describe('Testing the goldstone.js file', function() {
     describe('The topology and hostAvail objects', function() {
         it('should exist', function() {
             expect(goldstone.goldstone.topology.url).to.be.a('function');
@@ -101,4 +125,3 @@ describe('Testing the goldstone.js file', function(){
         });
     });
 });
-

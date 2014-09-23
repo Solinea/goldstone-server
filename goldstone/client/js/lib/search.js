@@ -34,7 +34,7 @@ function refreshLogSearch() {
         refreshInterval = $('#autoRefreshInterval').val();
 
     start.addSeconds(refreshInterval / 1000);
-    populateSettingsFields(start, end);
+    goldstone.populateSettingsFields(start, end);
     updateLogSearch();
 }
 
