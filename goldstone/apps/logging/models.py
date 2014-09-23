@@ -17,7 +17,7 @@ from django.db import models
 import logging
 from polymorphic import PolymorphicManager, PolymorphicQuerySet
 from polymorphic.query import Polymorphic_QuerySet_objects_per_request
-from goldstone.apps.core.models import Node
+from goldstone.apps.core.models import Node, Event
 from goldstone.apps.logging.es_models import LoggingNodeStats
 
 
@@ -95,7 +95,7 @@ class LoggingNodeManager(PolymorphicManager):
 
 class LoggingNode(Node):
     """
-    This is an class that uses a core Node as the basis, then
+    This is a class that uses a core Node as the basis, then
     augments it with log related data such as counts by level for a time
     period.
     """
@@ -108,3 +108,10 @@ class LoggingNode(Node):
 
     class Meta:
         proxy = True
+
+
+class LoggingEvent(Event):
+    """
+    Represents an event harvested from the log event stream.
+    """
+    pass

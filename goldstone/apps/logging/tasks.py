@@ -16,6 +16,7 @@ from __future__ import absolute_import
 import pytz
 import subprocess
 from rest_framework.renderers import JSONRenderer
+from goldstone.apps.logging.models import LoggingEvent, LoggingNode
 
 __author__ = 'John Stanford'
 
@@ -24,6 +25,7 @@ from goldstone.celery import app as celery_app
 import logging
 from goldstone.apps.core.models import *
 from datetime import datetime
+import arrow
 
 
 logger = logging.getLogger(__name__)
@@ -64,16 +66,42 @@ def process_event_stream(self, timestamp, host, event_type, message):
                        "of type %s", event_type)
 
 
+def _create_event(timestamp, host, message, event_type):
+    logger.debug("[_create_event] got a log error event with "
+                 "timestamp=%s, host=%s message=%s, event_type=%s",
+                 timestamp, host, message, event_type)
+
+    dt = arrow.get(timestamp).datetime
+    event = LoggingEvent(name=event_type, created=dt, message=message)
+    event.save()
+    try:
+        node = LoggingNode.objects.get(name=host)
+        event.add_relationship(node, "source")
+        event.add_relationship(node, "affects")
+        return event
+    except LoggingNode.DoesNotExist:
+        logger.warning("[process_log_error_event] could not find logging node "
+                       "with name=%s.  event will have not relations.", host)
+        return event
+    except:
+        raise
+
+
 def process_log_error_event(timestamp, host, message):
     logger.debug("[process_log_error_event] got a log error event with "
-                 "timestamp=%s, host=%s, event_type=%s, message=%s",
+                 "host=%s message=%s",
                  timestamp, host, message)
+
+    return _create_event(timestamp, host, message, "Syslog Error")
 
 
 def process_amqp_down_event(timestamp, host, message):
     logger.debug("[process_amqp_down_event] got an AMQP down event with "
                  "timestamp=%s, host=%s, event_type=%s, message=%s",
                  timestamp, host, message)
+
+    return _create_event(timestamp, host, message, "AMQP Down")
+
 
 
 @celery_app.task(bind=True)
@@ -109,12 +137,3 @@ def check_host_avail(self, offset=settings.HOST_AVAILABLE_PING_THRESHOLD):
 
     return to_ping
 
-
-@celery_app.task(bind=True)
-def create_event(self, event):
-    """
-    send an event to
-    :param event:
-    :return:
-    """
-    pass
