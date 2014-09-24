@@ -18,9 +18,11 @@
 # push processed events to elasticsearch
 # 
 output {
-    elasticsearch { 
-        host => localhost
-        port => 9200 
-        protocol => http
+    if [type] not in ["event_stream", "host_stream"] {
+        elasticsearch {
+            host => localhost
+            port => 9200
+            protocol => http
+        }
     }
 }
