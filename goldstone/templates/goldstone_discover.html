@@ -31,7 +31,8 @@
 
 {% block content %}
     <div id="goldstone-discover-r1" class="row">
-        <div id="goldstone-discover-r1-c1" class="col-md-6"></div>
+        <div id="goldstone-discover-r1-c1" class="col-md-12">
+        </div>
     </div>
 
     <div id="goldstone-discover-r2" class="row">
@@ -133,7 +134,7 @@
     </div>
 
     <!-- event settings modal -->
-    <div class="modal fade" id="eventTimelineSettingsModal" tabindex="-1" role="dialog"
+    <div class="modal fade" id="eventTimelineSettingsModal" tabindex="-2" role="dialog"
          aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -145,17 +146,17 @@
                 <div class="modal-body">
                     <form class="form-horizontal" role="form">
                         <div class="form-group">
-                            <label for="autoRefresh"
+                            <label for="eventAutoRefresh"
                                    class="col-sm-3 control-label">Refresh: </label>
 
                             <div class="col-sm-9">
                                 <div class="input-group">
                                         <span class="input-group-addon">
                                             <input type="checkbox"
-                                                   class="autoRefresh" checked>
+                                                   class="eventAutoRefresh" checked>
                                         </span>
                                     <select class="form-control"
-                                            id="autoRefreshInterval">
+                                            id="eventAutoRefreshInterval">
                                         <option value="5" selected>5 seconds
                                         </option>
                                         <option value="15">15 seconds
@@ -175,7 +176,7 @@
                 </div>
                 <div class="modal-footer">
                     <div class="form-group">
-                        <button type="button" id="settingsUpdateButton"
+                        <button type="button" id="eventSettingsUpdateButton"
                                 class="btn btn-primary"
                                 data-dismiss="modal">Update
                         </button>
@@ -217,7 +218,6 @@
 
     $(document).ready(function () {
 
-        renderEventTimelineCharts();
         $(ns.spinner).hide();
         $(ns.singleRsrcSpinner).hide();
         $(ns.multiRsrcSpinner).hide();
@@ -225,6 +225,8 @@
 
         $(hans.spinner).hide();
         hans.hostAvailChart.init();
+
+        renderEventTimelineCharts();
 
     });
 
