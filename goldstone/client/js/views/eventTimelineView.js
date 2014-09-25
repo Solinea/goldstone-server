@@ -55,8 +55,7 @@ var EventTimelineView = Backbone.View.extend({
         console.log('in event initialize');
 
         this.options = options || {};
-        this.defaults = _.clone(this.defaults);
- 
+        this.defaults = _.clone(this.defaults); 
         this.defaults.url = this.collection.url;
         this.defaults.location = options.location;
         this.defaults.width = options.width;
@@ -71,7 +70,8 @@ var EventTimelineView = Backbone.View.extend({
             index: 1
         };
 
-        /*var appendSpinnerLocation = ns.location;
+        /*
+        var appendSpinnerLocation = ns.location;
 
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(appendSpinnerLocation).css({
@@ -79,7 +79,8 @@ var EventTimelineView = Backbone.View.extend({
                 'margin-left': (ns.width / 2),
                 'margin-top': -(ns.height / 2)
             });
-        });*/
+        });
+        */
 
         this.initSettingsForm();
 
@@ -162,6 +163,7 @@ var EventTimelineView = Backbone.View.extend({
 
 
         // The log-level buttons toggle the specific log level into the total count
+
         d3.select("#event-filterer").selectAll("input")
             .data(d3.keys(ns.filter).filter(function(k) {
                 return k !== 'none';
@@ -320,13 +322,13 @@ var EventTimelineView = Backbone.View.extend({
             if (!ns.animation.pause) {
                 // d3.timer(self.update.bind(this, ns), ns.animation.delay * 1000);
 
-                setTimeout(function(){
+                setTimeout(function() {
                     self.update();
-                }, ns.animation.delay*1000);
+                }, ns.animation.delay * 1000);
 
             }
         };
-        $("#settingsUpdateButton").click(updateSettings);
+        $("#eventSettingsUpdateButton").click(updateSettings);
     },
 
 
@@ -531,9 +533,9 @@ var EventTimelineView = Backbone.View.extend({
             ns.animation.pause = false;
             // d3.timer(ns.self.update.bind(this, ns), ns.animation.delay * 1000);
 
-            setTimeout(function(){
-                    self.update();
-                }, ns.animation.delay*1000);
+            setTimeout(function() {
+                self.update();
+            }, ns.animation.delay * 1000);
 
             return true;
         });
