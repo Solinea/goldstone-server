@@ -103,7 +103,6 @@ def process_amqp_down_event(timestamp, host, message):
     return _create_event(timestamp, host, message, "AMQP Down")
 
 
-
 @celery_app.task(bind=True)
 def ping(self, node):
     response = subprocess.call("ping -c 5 %s" % node.name,
@@ -136,4 +135,3 @@ def check_host_avail(self, offset=settings.HOST_AVAILABLE_PING_THRESHOLD):
         ping(node)
 
     return to_ping
-

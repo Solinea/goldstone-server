@@ -9,6 +9,7 @@ setsebool -P httpd_can_network_connect 1
 iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 80 -m comment --comment "httpd incoming" -j ACCEPT
 iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 9200 -m comment --comment "elastcisearch incoming" -j ACCEPT
 iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 5514 -m comment --comment "goldstone rsyslog incoming" -j ACCEPT
+iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 5515 -m comment --comment "goldstone event resubmission" -j ACCEPT
 service iptables save
 
 chkconfig --add redis
