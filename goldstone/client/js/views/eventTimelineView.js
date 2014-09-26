@@ -10,6 +10,7 @@ var EventTimelineView = Backbone.View.extend({
         this.defaults = _.clone(this.defaults); 
         this.defaults.url = this.collection.url;
         this.defaults.location = options.location;
+        this.defaults.chartTitle = options.chartTitle;
         this.defaults.width = options.width;
         this.defaults.h = options.h;
 
@@ -93,7 +94,7 @@ var EventTimelineView = Backbone.View.extend({
 
         // The log-level buttons toggle the specific log level into the total count
 
-        d3.select("#event-filterer").selectAll("input")
+        d3.select(ns.location).select("#event-filterer").selectAll("input")
             .data(d3.keys(ns.filter).filter(function(k) {
                 return k !== 'none';
             }), function(d) {
@@ -205,11 +206,11 @@ var EventTimelineView = Backbone.View.extend({
             });
 
         // Draw the axis on the screen
-        d3.select(".swim.axis")
+        d3.select(ns.location).select(".swim.axis")
             .call(ns.swimAxis.scale(ns.ySwimLane));
 
         // Transform the swim lane ticks into place
-        d3.select(".swim.axis").selectAll("text")
+        d3.select(ns.location).select(".swim.axis").selectAll("text")
             .attr("transform", function(d, i) {
                 // The "ping" label needs to be nudged upwards
                 // The "unadmin" label needs to be nudged downwards
@@ -257,7 +258,6 @@ var EventTimelineView = Backbone.View.extend({
         };
 
         $("#eventSettingsUpdateButton").click(updateSettings);
-        console.log('initsettingsform', $("#eventSettingsUpdateButton"));
     },
 
 
@@ -274,11 +274,11 @@ var EventTimelineView = Backbone.View.extend({
             }))
         ]);
 
-        d3.select(".swim.axis")
+        d3.select(ns.location).select(".swim.axis")
             .transition()
             .duration(500);
 
-        d3.select(".y.axis")
+        d3.select(ns.location).select(".y.axis")
             .transition()
             .duration(500)
             .call(ns.yAxis.scale(ns.yLogs));
@@ -511,9 +511,9 @@ var EventTimelineView = Backbone.View.extend({
             '<div id = "goldstone-event-panel" class="panel panel-primary">' +
             '<div class="panel-heading">' +
             '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' +
-            'Event Timeline' +
+            ns.chartTitle +
             '<i class="fa fa-cog pull-right" data-toggle="modal"' +
-            'data-target="#eventTimelineSettingsModal"></i>' +
+            'data-target="#modal' + ns.location.slice(1) + '"></i>' +
             '<i class="pull-right fa fa-info-circle panel-info"  id="goldstone-event-info"' +
             'style="opacity: 0.0"></i>' +
             '</h3>' +
@@ -521,7 +521,7 @@ var EventTimelineView = Backbone.View.extend({
             '<div class="panel-body" style="height:50px">' +
             '<div id="event-filterer" class="btn-group pull-right" data-toggle="buttons" align="center">' +
             '</div>' +
-            '</div><!--.btn-group-->' +
+            '</div>' +
             '<div class="panel-body" style="height:550px">' +
             '<div id="goldstone-event-chart">' +
             '<div class="clearfix"></div>' +
@@ -533,7 +533,7 @@ var EventTimelineView = Backbone.View.extend({
         $('#modal-container').append(
 
             // event settings modal
-            '<div class="modal fade" id="eventTimelineSettingsModal" tabindex="-2" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+            '<div class="modal fade" id="modal'+ ns.location.slice(1) +'" tabindex="-2" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header">' +

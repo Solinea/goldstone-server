@@ -32,9 +32,25 @@ var renderEventTimelineCharts = function() {
 
     var eventTimelineChartView = new EventTimelineView({
         collection: eventTimelineChart,
+        h: {"main": 450, "swim": 50},
         location: '#goldstone-discover-r1-c1',
-        width: $('#goldstone-discover-r1-c1').width(),
-        h: {"main": 450, "swim": 50}
+        chartTitle: 'Event Timeline',
+        width: $('#goldstone-discover-r1-c1').width()
     });
+
+
+    var nodeAvailChart = new EventTimelineCollection({
+        url: "/logging/nodes"
+    });
+
+    var nodeAvailChartView = new EventTimelineView({
+        collection: nodeAvailChart,
+        h: {"main": 450, "swim": 50},
+        location: '#goldstone-discover-r2-c2',
+        chartTitle: 'Node Availability',
+        width: $('#goldstone-discover-r2-c2').width()
+    });
+
+
 
 };
