@@ -5,6 +5,8 @@ module.exports = [
 
     'goldstone/client/js/lib/base.js',
     'goldstone/client/js/lib/goldstone.js',
+    'goldstone/client/js/lib/intelligence.js',
+    'goldstone/client/js/lib/search.js',
 
     'goldstone/client/js/lib/nova.js',
     'goldstone/client/js/lib/neutron.js',
