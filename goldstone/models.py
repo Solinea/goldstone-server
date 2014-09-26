@@ -51,6 +51,13 @@ class ESData(object):
 
     _conn = GSConnection().conn
 
+    def get_index_names(self, prefix=None):
+        all_indices = self._conn.indices.status()['indices'].keys()
+        if prefix is not None:
+            return [i for i in all_indices if i.startswith(prefix)]
+        else:
+            return all_indices
+
     def _get_latest_index(self, prefix):
         """
         Get an index based on a prefix filter and simple list sort.  assumes

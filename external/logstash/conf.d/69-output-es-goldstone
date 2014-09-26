@@ -19,12 +19,12 @@
 # 
 output {
     if [type] in ["nova_claims", "nova_spawns", "api_stats", "goldstone_nodeinfo"] {
-        stdout { codec => "rubydebug" }
+        # stdout { codec => "rubydebug" }
         elasticsearch {
             host => localhost
             port => 9200
             protocol => http
-	    index => goldstone
+            index => "goldstone-%{+YYYY.MM.dd}"
         }
     }
 }
