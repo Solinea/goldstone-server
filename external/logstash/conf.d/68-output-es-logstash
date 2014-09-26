@@ -14,11 +14,9 @@
 #
 # Author: John Stanford
 
-#
-# push processed events to elasticsearch
-# 
 output {
-    if [type] not in ["event_stream", "host_stream"] {
+    if [type] == "syslog" {
+        # stdout { codec => rubydebug }
         elasticsearch {
             host => localhost
             port => 9200

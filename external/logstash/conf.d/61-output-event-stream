@@ -16,6 +16,7 @@
 
 output {
     if [type] == "event_stream" {
+    	# stdout { codec => rubydebug }
         celery_redis_task {
                 name => "event_stream"
 	        redis_host => ["127.0.0.1"]

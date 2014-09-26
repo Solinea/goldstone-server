@@ -15,27 +15,26 @@
 # Author: John Stanford
 
 filter {
-
-    if ("openstack_syslog" in [tags]) {
-    	grok {
+    if [type] == "api_stats_resub" {
+        mutate {
+            gsub => ["openstack_message", '\"', '"']
+	}
+        grok { 
             patterns_dir => "/opt/logstash/patterns"
-            match => { "message" => "%{OPENSTACK_AMQP_MESSAGE}" }
+            match => { "openstack_message" => "%{NOVA_API_CALL}" }
         }
-        if ("_grokparsefailure" not in [tags]) {
-            clone {
-                clones => ["event_stream"]
-                add_tag => ["filter_39"]
-                add_field => { "event_type" => "AMQPDownError" }
-            }
-        } else {
-            grep {
-                match => { "syslog_severity" => "ERROR" }
-            }
-            clone {
-                clones => ["event_stream"]
-                add_tag => ["filter_39"]
-                add_field => { "event_type" => "GenericSyslogError" }
-            }
+
+        if ("_grokparsefailure" in [tags]) {
+	        drop { }
+	} else {
+	    mutate {
+                replace => [ "type", "api_stats" ]
+		remove_field => [ syslog5424_pri, syslog_ts, log_message, pid, loglevel,
+		                  syslog_severity_code, syslog_facility_code,
+				  syslog_severity, syslog_facility, program,
+				  openstack_message, request_id, instance_id, timestamp,
+				  request_id_list, message, tags ]	
+	   }
         }
     }
 }

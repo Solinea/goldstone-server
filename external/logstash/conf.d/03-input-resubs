@@ -14,16 +14,12 @@
 #
 # Author: John Stanford
 
-output {
-    if [type] == "host_stream" {
-    	# stdout { codec => rubydebug }
-        celery_redis_task {
-                name => "host_stream"
-	        redis_host => ["127.0.0.1"]
-	        key => "host_stream"
-	        celery_task => "goldstone.apps.logging.tasks.process_host_stream"
-	        celery_routing_key => "host_stream.#"
-	        celery_task_args => ["host", "@timstamp"]
-        }
+#
+# accepts TCP from an alternate syslog port
+#
+input {
+    tcp {
+	codec => json_lines
+        port => 5515
     }
 }

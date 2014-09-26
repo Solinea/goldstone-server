@@ -1,0 +1,10 @@
+output {
+    if [type] in ["nova_claims_resub", "nova_spawns_resub", "api_stats_resub"] {
+	stdout { codec => json }
+        tcp {
+	    codec => json_lines
+            host => localhost
+            port => 5515
+        }
+    }
+}

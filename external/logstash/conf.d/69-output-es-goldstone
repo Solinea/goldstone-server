@@ -14,16 +14,17 @@
 #
 # Author: John Stanford
 
+#
+# push processed events to elasticsearch
+# 
 output {
-    if [type] == "host_stream" {
-    	# stdout { codec => rubydebug }
-        celery_redis_task {
-                name => "host_stream"
-	        redis_host => ["127.0.0.1"]
-	        key => "host_stream"
-	        celery_task => "goldstone.apps.logging.tasks.process_host_stream"
-	        celery_routing_key => "host_stream.#"
-	        celery_task_args => ["host", "@timstamp"]
+    if [type] in ["nova_claims", "nova_spawns", "api_stats", "goldstone_nodeinfo"] {
+        stdout { codec => "rubydebug" }
+        elasticsearch {
+            host => localhost
+            port => 9200
+            protocol => http
+	    index => goldstone
         }
     }
 }
