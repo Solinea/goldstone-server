@@ -32,32 +32,12 @@ var EventTimelineView = Backbone.View.extend({
             });
         });
 
-        this.initSettingsForm();
         this.collection.on('sync', this.update, this);
 
 
-        $(ns.location).append(
-            '<div id = "goldstone-event-panel" class="panel panel-primary">' +
-            '<div class="panel-heading">' +
-            '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' +
-            'Event Timeline' +
-            '<i class="fa fa-cog pull-right" data-toggle="modal"' +
-            'data-target="#eventTimelineSettingsModal"></i>' +
-            '<i class="pull-right fa fa-info-circle panel-info"  id="goldstone-event-info"' +
-            'style="opacity: 0.0"></i>' +
-            '</h3>' +
-            '</div>' +
-            '<div class="panel-body" style="height:50px">' +
-            '<div id="event-filterer" class="btn-group pull-right" data-toggle="buttons" align="center">' +
-            '</div>' +
-            '</div><!--.btn-group-->' +
-            '<div class="panel-body" style="height:550px">' +
-            '<div id="goldstone-event-chart">' +
-            '<div class="clearfix"></div>' +
-            '</div>' +
-            '</div>' +
-            '</div>'
-        );
+        this.appendHTML();
+
+        this.initSettingsForm();
 
         ns.margin = {
             top: 25,
@@ -77,11 +57,11 @@ var EventTimelineView = Backbone.View.extend({
 
         ns.pingAxis = d3.svg.axis()
             .orient("top")
-            .ticks(7)
+            .ticks(5)
             .tickFormat(d3.time.format("%H:%M:%S"));
         ns.unadminAxis = d3.svg.axis()
             .orient("bottom")
-            .ticks(7)
+            .ticks(5)
             .tickFormat(d3.time.format("%H:%M:%S"));
         ns.xScale = d3.time.scale()
             .range([ns.margin.left, ns.mw - ns.margin.right])
@@ -277,6 +257,7 @@ var EventTimelineView = Backbone.View.extend({
         };
 
         $("#eventSettingsUpdateButton").click(updateSettings);
+        console.log('initsettingsform', $("#eventSettingsUpdateButton"));
     },
 
 
@@ -370,8 +351,7 @@ var EventTimelineView = Backbone.View.extend({
         // var xStart = moment(response.getResponseHeader('LogCountStart'));
         var xStart = moment(this.collection.thisXhr.getResponseHeader('LogCountStart'));
         var xEnd = moment(this.collection.thisXhr.getResponseHeader('LogCountEnd'));
-        window.xs = xStart;
-        window.xe = xEnd;
+
         ns.xScale = ns.xScale.domain([xStart, xEnd]);
 
         // If we didn't receive any valid files, abort and pause
@@ -520,6 +500,77 @@ var EventTimelineView = Backbone.View.extend({
         ns.scheduleTimeout = setTimeout(function() {
             self.collection.setXhr();
         }, ns.animation.delay * 1000);
+
+    },
+
+    appendHTML: function() {
+
+        var ns = this.defaults;
+
+        $(ns.location).append(
+            '<div id = "goldstone-event-panel" class="panel panel-primary">' +
+            '<div class="panel-heading">' +
+            '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' +
+            'Event Timeline' +
+            '<i class="fa fa-cog pull-right" data-toggle="modal"' +
+            'data-target="#eventTimelineSettingsModal"></i>' +
+            '<i class="pull-right fa fa-info-circle panel-info"  id="goldstone-event-info"' +
+            'style="opacity: 0.0"></i>' +
+            '</h3>' +
+            '</div>' +
+            '<div class="panel-body" style="height:50px">' +
+            '<div id="event-filterer" class="btn-group pull-right" data-toggle="buttons" align="center">' +
+            '</div>' +
+            '</div><!--.btn-group-->' +
+            '<div class="panel-body" style="height:550px">' +
+            '<div id="goldstone-event-chart">' +
+            '<div class="clearfix"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>'
+        );
+
+        $('#modal-container').append(
+
+            // event settings modal
+            '<div class="modal fade" id="eventTimelineSettingsModal" tabindex="-2" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+            '<div class="modal-dialog">' +
+            '<div class="modal-content">' +
+            '<div class="modal-header">' +
+            '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+            '<h4 class="modal-title" id="myModalLabel">Chart Settings</h4>' +
+            '</div>' +
+            '<div class="modal-body">' +
+            '<form class="form-horizontal" role="form">' +
+            '<div class="form-group">' +
+            '<label for="eventAutoRefresh" class="col-sm-3 control-label">Refresh: </label>' +
+            '<div class="col-sm-9">' +
+            '<div class="input-group">' +
+            '<span class="input-group-addon">' +
+            '<input type="checkbox" class="eventAutoRefresh" checked>' +
+            '</span>' +
+            '<select class="form-control" id="eventAutoRefreshInterval">' +
+            '<option value="5" selected>5 seconds</option>' +
+            '<option value="15">15 seconds</option>' +
+            '<option value="30">30 seconds</option>' +
+            '<option value="60">1 minute</option>' +
+            '<option value="300">5 minutes</option>' +
+            '</select>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</form>' +
+            '</div>' +
+            '<div class="modal-footer">' +
+            '<div class="form-group">' +
+            '<button type="button" id="eventSettingsUpdateButton" class="btn btn-primary" data-dismiss="modal">Update</button>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>'
+
+        );
 
     }
 
