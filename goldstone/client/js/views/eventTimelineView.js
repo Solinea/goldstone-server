@@ -267,10 +267,12 @@ var EventTimelineView = Backbone.View.extend({
             if (!ns.animation.pause) {
                 // d3.timer(self.update.bind(this, ns), ns.animation.delay * 1000);
 
-                setTimeout(function() {
-                    self.collection.setXhr();
-                }, ns.animation.delay * 1000);
+                // setTimeout(function() {
+                //     self.collection.setXhr();
+                // }, ns.animation.delay * 1000);
 
+
+                self.scheduleFetch();
             }
         };
 
@@ -350,6 +352,12 @@ var EventTimelineView = Backbone.View.extend({
         }
 
 
+        // prevent updating when fetch is in process
+        if (!this.collection.thisXhr.getResponseHeader('LogCountStart') || this.collection.thisXhr.getResponseHeader('LogCountEnd') === null) {
+            return true;
+        }
+
+
         // Set the animation to not step over itself
         ns.animation.pause = true;
 
@@ -362,7 +370,8 @@ var EventTimelineView = Backbone.View.extend({
         // var xStart = moment(response.getResponseHeader('LogCountStart'));
         var xStart = moment(this.collection.thisXhr.getResponseHeader('LogCountStart'));
         var xEnd = moment(this.collection.thisXhr.getResponseHeader('LogCountEnd'));
-
+        window.xs = xStart;
+        window.xe = xEnd;
         ns.xScale = ns.xScale.domain([xStart, xEnd]);
 
         // If we didn't receive any valid files, abort and pause
@@ -371,10 +380,9 @@ var EventTimelineView = Backbone.View.extend({
 
         // TODO should paint the empty chart anyway, then start refreshing
 
-
         if (allthelogs.length === 0) {
             ns.animation.pause = true;
-            // return;
+            return;
         }
 
 
@@ -409,7 +417,7 @@ var EventTimelineView = Backbone.View.extend({
                  * each node belongs to.
                  */
 
-                d.last_seen_method = d.last_seen_method || '';
+                // d.last_seen_method = d.last_seen_method || '';
 
 
                 d.swimlane = d.admin_disabled ?
@@ -487,12 +495,32 @@ var EventTimelineView = Backbone.View.extend({
         ns.animation.pause = false;
         // d3.timer(ns.self.update.bind(this, ns), ns.animation.delay * 1000);
 
-        setTimeout(function() {
-            self.collection.setXhr();
-        }, ns.animation.delay * 1000);
+
+        this.scheduleFetch();
+        // setTimeout(function() {
+        //     self.collection.setXhr();
+        // }, ns.animation.delay * 1000);
 
         return true;
         // });
+    },
+
+    scheduleFetch: function() {
+
+        var ns = this.defaults;
+        var self = this;
+
+        // double safety to prevent a pile up of setTimeouts
+        // in addition to the check for undefined xhr data
+
+        if (ns.scheduleTimeout !== undefined) {
+            clearTimeout(ns.scheduleTimeout);
+        }
+
+        ns.scheduleTimeout = setTimeout(function() {
+            self.collection.setXhr();
+        }, ns.animation.delay * 1000);
+
     }
 
 });
