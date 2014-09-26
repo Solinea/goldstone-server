@@ -18,16 +18,6 @@
 
 var secondaryCockpitCharts = {};
 
-function populateSettingsFields(start, end) {
-    var s = new Date(start).toString();
-    var e = new Date(end).toString();
-    var sStr = s.substr(s.indexOf(" ") + 1);
-    var eStr = e.substr(e.indexOf(" ") + 1);
-
-    $('#settingsStartTime').val(sStr);
-    $('#settingsEndTime').val(eStr);
-}
-
 function _toPyTs(t) {
     "use strict";
     if (typeof t === 'number') {
