@@ -94,7 +94,8 @@ def log_search_data(request):
 
     conn = LogData.get_connection(settings.ES_SERVER)
 
-    keylist = ['@timestamp', 'loglevel', 'component', 'host', 'message',
+    keylist = ['@timestamp', 'loglevel', 'component', 'host',
+               'openstack_message',
                'path', 'pid', 'program', 'request_id_list', 'type',
                'received_at']
 
@@ -142,7 +143,7 @@ def log_search_data(request):
             kv['loglevel'] if 'loglevel' in kv else "",
             kv['component'] if 'component' in kv else "",
             kv['host'] if 'host' in kv else "",
-            kv['message'] if 'message' in kv else "",
+            kv['openstack_message'] if 'openstack_message' in kv else "",
             kv['path'] if 'path' in kv else "",
             kv['pid'] if 'pid' in kv else "",
             kv['program'] if 'program' in kv else "",

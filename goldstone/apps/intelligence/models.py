@@ -143,7 +143,7 @@ class LogData(object):
                         },
                         {
                             "terms": {
-                                "type": ["syslog", "openstack_log"]
+                                "type": ["syslog"]
                             }
                         }
                     ]
