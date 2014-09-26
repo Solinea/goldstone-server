@@ -2,57 +2,9 @@
 
 var EventTimelineView = Backbone.View.extend({
 
-    defaults: {
-        dataset: [{
-            "uuid": "15de9364-a220-4adf-af05-fd817c2bf2dc",
-            "name": "controller-01",
-            "created": "2014-09-22T17:53:23Z",
-            "updated": "2014-09-24T21:21:43Z",
-            "last_seen": "2014-09-24T21:21:43Z",
-            "last_seen_method": "LOGS",
-            "admin_disabled": false,
-            "error_count": 0,
-            "warning_count": 15,
-            "info_count": 2454,
-            "audit_count": 144,
-            "debug_count": 0,
-            "polymorphic_ctype": 13,
-            "relationships": []
-        }, {
-            "uuid": "5ddb70a0-ef3a-44ed-98ac-953ebb31bcee",
-            "name": "compute-01",
-            "created": "2014-09-22T17:53:24Z",
-            "updated": "2014-09-24T21:18:04Z",
-            "last_seen": "2014-09-24T21:18:04Z",
-            "last_seen_method": "PING",
-            "admin_disabled": false,
-            "error_count": 0,
-            "warning_count": 0,
-            "info_count": 0,
-            "audit_count": 0,
-            "debug_count": 0,
-            "polymorphic_ctype": 13,
-            "relationships": []
-        }, {
-            "uuid": "c40e11d1-9207-402e-8ac6-11c505c844c9",
-            "name": "compute-02",
-            "created": "2014-09-22T17:53:21Z",
-            "updated": "2014-09-24T21:21:04Z",
-            "last_seen": "2014-09-24T21:21:04Z",
-            "last_seen_method": "PING",
-            "admin_disabled": false,
-            "error_count": 0,
-            "warning_count": 4,
-            "info_count": 30,
-            "audit_count": 39,
-            "debug_count": 0,
-            "polymorphic_ctype": 13,
-            "relationships": []
-        }]
-    },
+    defaults: {},
 
     initialize: function(options) {
-        console.log('in event initialize');
 
         this.options = options || {};
         this.defaults = _.clone(this.defaults); 
@@ -70,19 +22,18 @@ var EventTimelineView = Backbone.View.extend({
             index: 1
         };
 
-        /*
         var appendSpinnerLocation = ns.location;
 
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
-                'margin-top': -(ns.height / 2)
+                'margin-top': -(ns.h.main * 0.7)
             });
         });
-        */
 
         this.initSettingsForm();
+        this.collection.on('sync', this.update, this);
 
 
         $(ns.location).append(
@@ -148,8 +99,6 @@ var EventTimelineView = Backbone.View.extend({
                 ns.ySwimLane("unadmin") - ns.ySwimLane.rangeBand(),
                 ns.ySwimLane("ping") + ns.ySwimLane.rangeBand()
             ]);
-
-
 
 
         ns.filter = {
@@ -292,19 +241,16 @@ var EventTimelineView = Backbone.View.extend({
                 return ((i > 0 && i < l - 1) ? "rotate(" + (i === Math.floor(l / 2) ? -90 : 0) + ") " : "") + ret;
             });
 
-        // this.initSvg();
-        this.update(this.ns);
+        // this.update();
 
     },
 
     isRefreshSelected: function() {
-        console.log('in event isRefreshSelected');
 
         return $(".eventAutoRefresh").prop("checked");
     },
 
     refreshInterval: function() {
-        console.log('in event refreshInterval');
 
         return $("select#eventAutoRefreshInterval").val();
     },
@@ -314,7 +260,6 @@ var EventTimelineView = Backbone.View.extend({
         var self = this;
         var ns = this.defaults;
 
-        console.log('in event initSettingsForm');
 
         var updateSettings = function() {
             ns.animation.delay = self.refreshInterval();
@@ -323,17 +268,17 @@ var EventTimelineView = Backbone.View.extend({
                 // d3.timer(self.update.bind(this, ns), ns.animation.delay * 1000);
 
                 setTimeout(function() {
-                    self.update();
+                    self.collection.setXhr();
                 }, ns.animation.delay * 1000);
 
             }
         };
+
         $("#eventSettingsUpdateButton").click(updateSettings);
     },
 
 
     redraw: function() {
-        console.log('in event redraw');
 
         var ns = this.defaults;
         var self = this;
@@ -383,7 +328,6 @@ var EventTimelineView = Backbone.View.extend({
 
 
     sums: function(datum) {
-        console.log('in event sums');
         var ns = this.defaults;
         // Return the sums for the filters that are on
         return d3.sum(ns.loglevel.domain().map(function(k) {
@@ -392,153 +336,163 @@ var EventTimelineView = Backbone.View.extend({
     }, // sums()
 
     update: function() {
-        console.log('in event update');
 
         var ns = this.defaults;
         var self = this;
         var uri = ns.url;
 
+        $(ns.location).find('#spinner').hide();
+
         // If we are paused or beyond the available jsons, exit
 
         if (ns.animation.pause) {
-            console.log('in pause - not updating');
             return true;
         }
 
-        console.log('updating');
 
         // Set the animation to not step over itself
         ns.animation.pause = true;
 
-        d3.xhr(uri, function(error, response) {
-            var allthelogs = JSON.parse(response.responseText);
-            var xStart = moment(response.getResponseHeader('LogCountStart'));
-            var xEnd = moment(response.getResponseHeader('LogCountEnd'));
-
-            ns.xScale = ns.xScale.domain([xStart, xEnd]);
-
-            // If we didn't receive any valid files, abort and pause
-            // there may need to be a user notification added here at
-            // some point.  We'll see.
-
-            // TODO should paint the empty chart anyway, then start refreshing
-            if (typeof allthelogs.results === "undefined") {
-                ns.animation.pause = true;
-                return;
-            }
+        // d3.xhr(uri, function(error, response) {
 
 
-            /*
-             * Shape the dataset
-             *   - Convert datetimes to integer
-             *   - Sort by last seen (from most to least recent)
-             */
-            ns.dataset = allthelogs.results
-                .map(function(d) {
-                    d.created = moment(d.created);
-                    d.updated = moment(d.updated);
-                    d.last_seen = moment(d.last_seen);
 
-                    /*
-                     * Figure out the higest priority level.
-                     * That will determine its color later.
-                     */
-                    var nonzero_levels = ns.loglevel.domain()
-                        .map(function(l) {
-                            return [l, d[l + "_count"]];
-                        })
-                        .filter(function(l) {
-                            return (l[1] > 0);
-                        })
-                        .reverse();
-                    d.level = typeof(nonzero_levels[0]) === 'undefined' ? "none" : nonzero_levels[0][0];
+        // var allthelogs = JSON.parse(response.responseText);
+        var allthelogs = (this.collection.toJSON());
+        // var xStart = moment(response.getResponseHeader('LogCountStart'));
+        var xStart = moment(this.collection.thisXhr.getResponseHeader('LogCountStart'));
+        var xEnd = moment(this.collection.thisXhr.getResponseHeader('LogCountEnd'));
+
+        ns.xScale = ns.xScale.domain([xStart, xEnd]);
+
+        // If we didn't receive any valid files, abort and pause
+        // there may need to be a user notification added here at
+        // some point.  We'll see.
+
+        // TODO should paint the empty chart anyway, then start refreshing
 
 
-                    /*
-                     * Figure out which bucket (logs, ping, or admin disabled)
-                     * each node belongs to.
-                     */
-                    d.swimlane = d.admin_disabled ?
-                        "unadmin" : d.last_seen_method.toLowerCase();
-                    return d;
-                })
-                .sort(function(a, b) {
-                    return a.last_seen - b.last_seen;
-                });
-
-            /*
-             * Axes
-             *   - calculate the new domain.
-             *   - adjust each axis to its new scale.
-             */
-
-            ns.pingAxis.scale(ns.xScale);
-            ns.unadminAxis.scale(ns.xScale);
-
-            ns.svg.select(".xping.axis")
-                .call(ns.pingAxis);
-
-            ns.svg.select(".xunadmin.axis")
-                .call(ns.unadminAxis);
-
-            ns.yLogs.domain([0, d3.max(ns.dataset.map(function(d) {
-                // add up all the *_counts
-                return d3.sum(ns.loglevel.domain().map(function(e) {
-                    return +d[e + "_count"];
-                }));
-            }))]);
-            ns.yAxis.scale(ns.yLogs);
-            ns.svg.select(".y.axis")
-                .transition()
-                .duration(500)
-                .call(ns.yAxis);
+        if (allthelogs.length === 0) {
+            ns.animation.pause = true;
+            // return;
+        }
 
 
-            /*
-             * New circles appear at the far right hand side of the graph.
-             */
-            var circle = ns.graph.selectAll("circle")
-                .data(ns.dataset, function(d) {
-                    return d.uuid;
-                });
+        /*
+         * Shape the dataset
+         *   - Convert datetimes to integer
+         *   - Sort by last seen (from most to least recent)
+         */
+        ns.dataset = allthelogs
+            .map(function(d) {
+                d.created = moment(d.created);
+                d.updated = moment(d.updated);
+                d.last_seen = moment(d.last_seen);
 
-            circle.enter()
-                .append("circle")
-                .attr("cx", function(d) {
-                    return ns.xScale.range()[1];
-                })
-                .attr("cy", function(d) {
-                    return ns.yLogs(self.sums(d));
-                })
-                .attr("r", ns.r(0))
-                .attr("class", function(d) {
-                    return d.level;
-                })
-                .on("mouseover", ns.tooltip.show)
-                .on("mouseout", ns.tooltip.hide);
+                /*
+                 * Figure out the higest priority level.
+                 * That will determine its color later.
+                 */
+                var nonzero_levels = ns.loglevel.domain()
+                    .map(function(l) {
+                        return [l, d[l + "_count"]];
+                    })
+                    .filter(function(l) {
+                        return (l[1] > 0);
+                    })
+                    .reverse();
+                d.level = typeof(nonzero_levels[0]) === 'undefined' ? "none" : nonzero_levels[0][0];
 
-            self.redraw();
 
-            // This behaviour is not yet fully understood
-            circle.exit()
-                .attr("class", function(d) {
-                    return "older";
-                });
+                /*
+                 * Figure out which bucket (logs, ping, or admin disabled)
+                 * each node belongs to.
+                 */
 
-            // Increment the index
-            // This will probably go away for production data
-            ns.animation.index += 1;
+                d.last_seen_method = d.last_seen_method || '';
 
-            // Unpause the animation and rerun this function for the next frame
-            ns.animation.pause = false;
-            // d3.timer(ns.self.update.bind(this, ns), ns.animation.delay * 1000);
 
-            setTimeout(function() {
-                self.update();
-            }, ns.animation.delay * 1000);
+                d.swimlane = d.admin_disabled ?
+                    "unadmin" : d.last_seen_method.toLowerCase();
+                return d;
+            })
+            .sort(function(a, b) {
+                return a.last_seen - b.last_seen;
+            });
 
-            return true;
-        });
+        /*
+         * Axes
+         *   - calculate the new domain.
+         *   - adjust each axis to its new scale.
+         */
+
+        ns.pingAxis.scale(ns.xScale);
+        ns.unadminAxis.scale(ns.xScale);
+
+        ns.svg.select(".xping.axis")
+            .call(ns.pingAxis);
+
+        ns.svg.select(".xunadmin.axis")
+            .call(ns.unadminAxis);
+
+        ns.yLogs.domain([0, d3.max(ns.dataset.map(function(d) {
+            // add up all the *_counts
+            return d3.sum(ns.loglevel.domain().map(function(e) {
+                return +d[e + "_count"];
+            }));
+        }))]);
+        ns.yAxis.scale(ns.yLogs);
+        ns.svg.select(".y.axis")
+            .transition()
+            .duration(500)
+            .call(ns.yAxis);
+
+
+        /*
+         * New circles appear at the far right hand side of the graph.
+         */
+        var circle = ns.graph.selectAll("circle")
+            .data(ns.dataset, function(d) {
+                return d.uuid;
+            });
+
+        circle.enter()
+            .append("circle")
+            .attr("cx", function(d) {
+                return ns.xScale.range()[1];
+            })
+            .attr("cy", function(d) {
+                return ns.yLogs(self.sums(d));
+            })
+            .attr("r", ns.r(0))
+            .attr("class", function(d) {
+                return d.level;
+            })
+            .on("mouseover", ns.tooltip.show)
+            .on("mouseout", ns.tooltip.hide);
+
+        this.redraw();
+
+        // This behaviour is not yet fully understood
+        circle.exit()
+            .attr("class", function(d) {
+                return "older";
+            });
+
+        // Increment the index
+        // This will probably go away for production data
+        ns.animation.index += 1;
+
+        // Unpause the animation and rerun this function for the next frame
+        ns.animation.pause = false;
+        // d3.timer(ns.self.update.bind(this, ns), ns.animation.delay * 1000);
+
+        setTimeout(function() {
+            self.collection.setXhr();
+        }, ns.animation.delay * 1000);
+
+        return true;
+        // });
     }
 
 });

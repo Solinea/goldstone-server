@@ -27,8 +27,6 @@ var renderEventTimelineCharts = function() {
     // instantiate event timeline chart
 
     var eventTimelineChart = new EventTimelineCollection({
-        //TODO: GET NEW DATA ENDPOINT
-        // url: "/cinder/api_perf?start=1408924756&end=1411516756&interval=32400s&render=false"
         url: "/logging/nodes"
     });
 
