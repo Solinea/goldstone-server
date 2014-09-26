@@ -109,9 +109,6 @@ class TaskTests(SimpleTestCase):
         self.assertEqual(len(saved_event.get_relationships("source")), 1)
         self.assertEqual(len(saved_event.get_relationships("affects")), 1)
 
-
-
-
     @patch.object(subprocess, 'call')
     def test_ping(self, call):
         now = datetime.now(tz=pytz.utc)

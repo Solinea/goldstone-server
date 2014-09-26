@@ -133,4 +133,3 @@ class Node(Resource):
 
 class Event(Entity):
     message = TextField(max_length=1024)
-
