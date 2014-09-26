@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from pyes import BoolQuery, RangeQuery, ESRangeOp, TermQuery
 
 __author__ = 'John Stanford'
 
@@ -133,8 +134,7 @@ class HypervisorStatsData(NovaClientData):
 
 
 class SpawnData(ESData):
-    _START_DOC_TYPE = 'nova_spawn_start'
-    _FINISH_DOC_TYPE = 'nova_spawn_finish'
+    _DOC_TYPE = 'nova_spawns'
 
     def __init__(self, start, end, interval):
         self.start = start
@@ -142,37 +142,56 @@ class SpawnData(ESData):
         self.interval = interval
 
     def _spawn_start_query(self, agg_name="events_by_date"):
-        q = ESData._query_base()
-        q['query'] = ESData._range_clause('@timestamp',
-                                          self.start.isoformat(),
-                                          self.end.isoformat())
-        q['aggs'] = ESData._agg_date_hist(self.interval, name=agg_name)
-        return q
+
+        _query_value = BoolQuery(must=[
+            RangeQuery(qrange=ESRangeOp(
+                "@timestamp",
+                "gte", self.start.isoformat(),
+                "lte", self.end.isoformat())),
+            TermQuery("event", "start")
+        ]).serialize()
+
+        query = {
+            "query": _query_value,
+            "aggs": ESData._agg_date_hist(self.interval, name=agg_name)
+        }
+        return query
 
     def _spawn_finish_query(self, success):
         filter_name = "success_filter"
         agg_name = "events_by_date"
-        q = ESData._query_base()
-        q['query'] = ESData._range_clause('@timestamp',
-                                          self.start.isoformat(),
-                                          self.end.isoformat())
-        q['aggs'] = ESData._agg_filter_term("success",
+
+        _query_value = BoolQuery(must=[
+            RangeQuery(qrange=ESRangeOp(
+                "@timestamp",
+                "gte", self.start.isoformat(),
+                "lte", self.end.isoformat())),
+            TermQuery("event", "finish")
+        ]).serialize()
+
+        query = {
+            "query": _query_value,
+            "aggs": ESData._agg_filter_term("success",
                                             str(success).lower(),
                                             filter_name)
-        q['aggs'][filter_name]['aggs'] = ESData._agg_date_hist(self.interval,
-                                                               name=agg_name)
-        return q
+        }
+        query['aggs'][filter_name]['aggs'] = ESData._agg_date_hist(
+            self.interval, name=agg_name)
+
+        return query
 
     def get_spawn_start(self):
         """Return a pandas dataframe with the results of a query for nova spawn
         start events"""
         agg_name = "events_by_date"
         q = self._spawn_start_query(agg_name)
-        logger.debug("[get_spawn_start] query = %s", json.dumps(q))
-        response = self._conn.search(index="_all",
-                                     doc_type=self._START_DOC_TYPE,
-                                     body=q, size=0)
-        logger.debug("[get_spawn_start] response = %s", json.dumps(response))
+        logger.info("[get_spawn_start] query = %s", json.dumps(q))
+        index = ",".join(self.get_index_names('goldstone-'))
+        logger.info("[get_spawn_start] calling query with index=%s, "
+                    "doc_type=%s", index, self._DOC_TYPE)
+        response = self._conn.search(
+            index=index, doc_type=self._DOC_TYPE, body=q, size=0)
+        logger.info("[get_spawn_start] response = %s", json.dumps(response))
         return pd.read_json(json.dumps(
             response['aggregations'][agg_name]['buckets'])
         )
@@ -182,9 +201,10 @@ class SpawnData(ESData):
         aname = "events_by_date"
         q = self._spawn_finish_query(success)
         logger.debug("[get_spawn_finish] query = %s", json.dumps(q))
-        response = self._conn.search(index="_all",
-                                     doc_type=self._FINISH_DOC_TYPE,
-                                     body=q, size=0)
+        response = self._conn.search(
+            index=",".join(self.get_index_names('goldstone-')),
+            doc_type=self._DOC_TYPE,
+            body=q, size=0)
         logger.debug("[get_spawn_finish] response = %s", json.dumps(response))
         data = pd.read_json(json.dumps(
             response['aggregations'][fname][aname]['buckets']),

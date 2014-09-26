@@ -372,7 +372,7 @@ goldstone.nova.spawns.drawChart = function () {
             // this gets us a basic chart
             ns.chart = goldstone.charts.lineChartBase(ns.location, null, ns.renderlets.clickDrill);
             var events = _.map(ns.data, function (v, k) {
-                return [new Date(Number(k)), v[0], v[1]];
+                return [new Date(Number(k)), v[0], v[2]];
             });
             var xf = crossfilter(events),
                 timeDim = xf.dimension(function (d) {
@@ -381,10 +381,10 @@ goldstone.nova.spawns.drawChart = function () {
                 minDate = timeDim.bottom(1)[0][0],
                 maxDate = timeDim.top(1)[0][0],
                 successGroup = timeDim.group().reduceSum(function (d) {
-                    return d[1];
+                    return d[2];
                 }),
                 failureGroup = timeDim.group().reduceSum(function (d) {
-                    return d[2];
+                    return d[1];
                 });
 
             ns.chart
