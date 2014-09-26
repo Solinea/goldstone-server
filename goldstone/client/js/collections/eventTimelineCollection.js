@@ -14,6 +14,7 @@ var EventTimelineCollection = Backbone.Collection.extend({
     thisXhr: null,
 
     setXhr: function() {
+        console.log('fetching');
         this.thisXhr = this.fetch();
     },
 
