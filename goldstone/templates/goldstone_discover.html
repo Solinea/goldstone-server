@@ -54,7 +54,12 @@
                 </div>
             </div>
         </div>
+
+
         <div id="goldstone-discover-r2-c2" class="col-md-6">
+        </div>
+
+        <!-- <div id="goldstone-discover-r2-c2" class="col-md-6">
             <div id = "goldstone-nodeavail-panel" class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-tasks"></i> Node Availability
@@ -67,7 +72,8 @@
                 <div class="panel-body" style="height:50px">
                     <div id="filterer" class="btn-group pull-right" data-toggle="buttons" align="center">
                 </div>
-			    </div><!--.btn-group-->
+			    </div>
+
                 <div class="panel-body" style="height:550px">
                     <div id="goldstone-nodeavail-chart">
                         <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
@@ -77,11 +83,11 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
     </div>
 
     <!-- log settings modal -->
-    <div class="modal fade" id="nodeAvailSettingsModal" tabindex="-1" role="dialog"
+    <!-- <div class="modal fade" id="nodeAvailSettingsModal" tabindex="-1" role="dialog"
          aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -132,7 +138,7 @@
             </div>
         </div>
     </div>
-
+ -->
 
 
     <div id="modal-container"></div>
@@ -161,11 +167,11 @@
     ns.singleRsrcSpinner = '#single-rsrc-loading-indicator';
     ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator';
 
-    var hans = goldstone.goldstone.hostAvail;
-    hans.hostAvailChart = goldstone.charts.hostAvail._getInstance(hans);
-    hans.h = {"main": 450, "swim": 50};
-    hans.location = '#goldstone-nodeavail-chart';
-    hans.spinner = '#goldstone-nodeavail-spinner';
+    // var hans = goldstone.goldstone.hostAvail;
+    // hans.hostAvailChart = goldstone.charts.hostAvail._getInstance(hans);
+    // hans.h = {"main": 450, "swim": 50};
+    // hans.location = '#goldstone-nodeavail-chart';
+    // hans.spinner = '#goldstone-nodeavail-spinner';
 
     $(document).ready(function () {
 
@@ -174,8 +180,8 @@
         $(ns.multiRsrcSpinner).hide();
         ns.topologyTree.init();
 
-        $(hans.spinner).hide();
-        hans.hostAvailChart.init();
+        // $(hans.spinner).hide();
+        // hans.hostAvailChart.init();
 
         renderEventTimelineCharts();
 
