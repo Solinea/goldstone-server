@@ -16,7 +16,7 @@
  * Author: John Stanford
  */
 
-var renderEventTimelineCharts = function() {
+var renderCharts = function() {
 
     //----------------------------
     // instantiate charts via
@@ -38,12 +38,11 @@ var renderEventTimelineCharts = function() {
         width: $('#goldstone-discover-r1-c1').width()
     });
 
-
-    var nodeAvailChart = new EventTimelineCollection({
+    var nodeAvailChart = new NodeAvailCollection({
         url: "/logging/nodes"
     });
 
-    var nodeAvailChartView = new EventTimelineView({
+    var nodeAvailChartView = new NodeAvailView({
         collection: nodeAvailChart,
         h: {"main": 450, "swim": 50},
         location: '#goldstone-discover-r2-c2',

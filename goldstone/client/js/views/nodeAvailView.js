@@ -1,6 +1,6 @@
-// view is linked to collection when instantiated in api_perf_report.html
+// view is linked to collection when instantiated
 
-var EventTimelineView = Backbone.View.extend({
+var NodeAvailView = Backbone.View.extend({
 
     defaults: {},
 
