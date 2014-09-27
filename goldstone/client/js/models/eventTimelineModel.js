@@ -1,3 +1,1 @@
-var EventTimelineModel = Backbone.Model.extend({
-    // idAttribute: "key"
-});
+var EventTimelineModel = Backbone.Model.extend({});

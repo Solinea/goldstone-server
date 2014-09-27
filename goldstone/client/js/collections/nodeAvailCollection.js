@@ -1,12 +1,12 @@
 // define collection and link to model
 
-var EventTimelineCollection = Backbone.Collection.extend({
+var NodeAvailCollection = Backbone.Collection.extend({
 
     parse: function(data) {
         return data.results;
     },
 
-    model: EventTimelineModel,
+    model: NodeAvailModel,
 
     thisXhr: null,
 
