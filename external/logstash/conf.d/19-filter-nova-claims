@@ -20,7 +20,7 @@ filter {
             grok {
                 patterns_dir => "/opt/logstash/patterns"
                 match => { "openstack_message" => "%{NOVA_CLAIMS_SUMMARY_PHYS}" }
-                add_tag => ["nova_phys_claim"]
+                add_field => ["state", "physical"]
             }
             mutate {
                 remove_tag => ["_grokparsefailure"]
@@ -29,6 +29,7 @@ filter {
                 patterns_dir => "/opt/logstash/patterns"
                 match => { "openstack_message" => "%{NOVA_CLAIMS_SUMMARY_VIRT}" }
                 add_tag => ["nova_virt_claim"]
+                add_field => ["state", "virtual"]
             }
             mutate {
                 remove_tag => ["_grokparsefailure"]
