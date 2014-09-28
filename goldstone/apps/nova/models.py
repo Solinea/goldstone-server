@@ -340,11 +340,11 @@ class ResourceData(ESData):
         return result
 
     def get_phys_cpu(self):
-        result = self._get_resource('physical', 'cpus', 'used')
+        result = self._get_resource('physical', 'CPUs', 'used')
         return result
 
     def get_virt_cpu(self):
-        result = self._get_resource('virtual', 'cpus', 'free')
+        result = self._get_resource('virtual', 'CPUs', 'free')
         return result
 
     def get_phys_mem(self):
