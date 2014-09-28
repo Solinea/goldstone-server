@@ -20,62 +20,66 @@
 #
 filter {
     if [type] == "nova_spawns_resub" {
-    if [program] in ["nova.compute.manager", "nova.virt.libvirt.driver", "nova.scheduler.driver"] {
-        grok { 
-            patterns_dir => "/opt/logstash/patterns"
-            match => { "message" => "%{NOVA_SPAWN_START}" }
-	    add_field => ["event", "start"]
-	    add_tag => ["nova_spawn_start"]
-        }
-	mutate {
-            remove_tag => ["_grokparsefailure"]
-        }
-        grok {
-            patterns_dir => "/opt/logstash/patterns"
-            match => { "message" => "%{NOVA_SPAWN_SUCCESS}" }
-	    add_field => ["event", "finish"]
-            add_field => ["success", true] 
-	    add_tag => ["nova_spawn_finish"]
-        }
-	mutate {
-            remove_tag => ["_grokparsefailure"]
-        }
-        grok {
-            patterns_dir => "/opt/logstash/patterns"
-            match => { "message" => "%{NOVA_SPAWN_ABORT}" }
-	    add_field => ["event", "finish"]
-            add_field => ["success", false] 
-            add_field => ["failure_mode", "ABORTED"]
-	    add_tag => ["nova_spawn_finish"]
-        }
-	mutate {
-            remove_tag => ["_grokparsefailure"]
-        }
-        grok {
-            patterns_dir => "/opt/logstash/patterns"
-            match => { "message" => "%{NOVA_SPAWN_FAIL}" }
-	    add_field => ["event", "finish"]
-            add_field => ["success", false] 
-            add_field => ["failure_mode", "ERROR"]
-	    add_tag => ["nova_spawn_finish"]
-        }
-	mutate {
-            remove_tag => ["_grokparsefailure"]
-        }
-	if ("nova_spawn_start" not in [tags] and "nova_spawn_finish" not in [tags]) {
-	        drop { }
-	} else {
-	    mutate {
-		    replace => [ "type", "nova_spawns" ]
-		    remove_field => [ syslog5424_pri, syslog_ts, log_message, pid, loglevel,
-				      syslog_severity_code, syslog_facility_code,
-				      syslog_severity, syslog_facility, program, component,
-				      openstack_message, request_id, instance_id, timestamp,
-				      request_id_list, message, tags ]	
-	   }
-        }
+        if [program] in ["nova.compute.manager", "nova.virt.libvirt.driver", "nova.scheduler.driver"] {
+            mutate {
+                    remove_tag => ["_grokparsefailure"]
+            }
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "message" => "%{NOVA_SPAWN_START}" }
+                add_field => ["event", "start"]
+                add_tag => ["nova_spawn_start"]
+            }
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "message" => "%{NOVA_SPAWN_SUCCESS}" }
+                add_field => ["event", "finish"]
+                add_field => ["success", true]
+                add_tag => ["nova_spawn_finish"]
+            }
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "message" => "%{NOVA_SPAWN_ABORT}" }
+                add_field => ["event", "finish"]
+                add_field => ["success", false]
+                add_field => ["failure_mode", "ABORTED"]
+                add_tag => ["nova_spawn_finish"]
+            }
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "message" => "%{NOVA_SPAWN_FAIL}" }
+                add_field => ["event", "finish"]
+                add_field => ["success", false]
+                add_field => ["failure_mode", "ERROR"]
+                add_tag => ["nova_spawn_finish"]
+            }
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
+            if ("nova_spawn_start" not in [tags] and "nova_spawn_finish" not in [tags]) {
+                drop { }
+            } else {
+                mutate {
+                    replace => [ "type", "nova_spawns" ]
+                    remove_field => [
+                          syslog5424_pri, syslog_ts, log_message, pid, loglevel,
+                          syslog_severity_code, syslog_facility_code,
+                          syslog_severity, syslog_facility, program, component,
+                          openstack_message, request_id, instance_id, timestamp,
+                          request_id_list, message, tags ]
+                }
+            }
         } else {
-	    drop { }
+            drop { }
         }
     }
 }

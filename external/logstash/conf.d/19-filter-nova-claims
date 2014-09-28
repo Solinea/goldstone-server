@@ -17,6 +17,9 @@
 filter {
     if [type] == "nova_claims_resub" {
         if [program] == "nova.compute.claims" {
+            mutate {
+                remove_tag => ["_grokparsefailure"]
+            }
             grok {
                 patterns_dir => "/opt/logstash/patterns"
                 match => { "openstack_message" => "%{NOVA_CLAIMS_SUMMARY_PHYS}" }

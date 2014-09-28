@@ -18,7 +18,7 @@ output {
     if [type] == "event_stream" {
     	# stdout { codec => rubydebug }
         celery_redis_task {
-                name => "event_stream"
+            name => "event_stream"
 	        redis_host => ["127.0.0.1"]
 	        key => "event_stream"
 	        celery_task => "goldstone.apps.logging.tasks.process_event_stream"
