@@ -263,7 +263,6 @@ class ResourceData(ESData):
         # min of the bucket rather than the max.
         max_or_min_aggs_clause = None
 
-
         _query_value = BoolQuery(must=[
             RangeQuery(qrange=ESRangeOp(
                 "@timestamp",
