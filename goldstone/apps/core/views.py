@@ -81,3 +81,12 @@ class NodeViewSet(ModelViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST,
                             data="Must disable before deleting")
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class EventViewSet(ModelViewSet):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+    lookup_field = 'uuid'
+    lookup_url_kwarg = 'uuid'
+    ordering_fields = '__all__'
+    ordering = 'created'

@@ -34,7 +34,7 @@ filter {
             }
             # set the event_stream type for the highest severities.  Can
             # be overriden in future rules occuring before the clone.
-            if syslog_severity in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"] {
+            if [syslog_severity] in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"] {
                 mutate {
                     add_field => ["event_type", "GenericSyslogError"]
                 }
