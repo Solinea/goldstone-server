@@ -17,7 +17,7 @@
 filter {
 
     if ([type] == "goldstone_nodeinfo") {
-    	grok {
+        grok {
             patterns_dir => "/opt/logstash/patterns"
             overwrite => ["message", "host"]
             match => { "message" => "%{MYSYSLOG5424LINE}" }

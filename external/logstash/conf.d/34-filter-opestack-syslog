@@ -41,19 +41,19 @@ filter {
                 add_tag => ["openstack_syslog", "filter_34_pass"]
             }
 
-	        # the unrelated cloning is to work around https://logstash.jira.com/browse/LOGSTASH-2018
-	        # if it happened earlier, this filter would end up processing each of the clones regardless
-	        # of their type.
+            # the unrelated cloning is to work around https://logstash.jira.com/browse/LOGSTASH-2018
+            # if it happened earlier, this filter would end up processing each of the clones regardless
+            # of their type.
             clone {
                 clones => ["host_stream", "event_stream", "nova_claims_resub", "nova_spawns_resub", "api_stats_resub"]
             }
         } else {
-	        mutate {
+            mutate {
                 add_tag => ["filter_34_fail"]
             }
-	        # the unrelated cloning is to work around https://logstash.jira.com/browse/LOGSTASH-2018
-	        # if it happened earlier, this filter would end up processing each of the clones regardless
-	        # of their type.
+            # the unrelated cloning is to work around https://logstash.jira.com/browse/LOGSTASH-2018
+            # if it happened earlier, this filter would end up processing each of the clones regardless
+            # of their type.
             clone {
                 clones => ["host_stream", "event_stream"]
             }

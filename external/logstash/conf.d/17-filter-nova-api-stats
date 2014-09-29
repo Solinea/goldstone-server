@@ -18,22 +18,22 @@ filter {
     if [type] == "api_stats_resub" {
         mutate {
             gsub => ["openstack_message", '\"', '"']
-	    }
+        }
         grok { 
             patterns_dir => "/opt/logstash/patterns"
             match => { "openstack_message" => "%{NOVA_API_CALL}" }
         }
         if ("_grokparsefailure" in [tags]) {
-	        drop { }
-	    } else {
-	        mutate {
+            drop { }
+        } else {
+            mutate {
                 replace => [ "type", "api_stats" ]
-		        remove_field => [ syslog5424_pri, syslog_ts, log_message, pid, loglevel,
-		                          syslog_severity_code, syslog_facility_code,
-				                  syslog_severity, syslog_facility, program,
-				                  openstack_message, request_id, instance_id, timestamp,
-				                  request_id_list, message, tags ]
-	        }
+                remove_field => [ syslog5424_pri, syslog_ts, log_message, pid, loglevel,
+                                  syslog_severity_code, syslog_facility_code,
+                                  syslog_severity, syslog_facility, program,
+                                  openstack_message, request_id, instance_id, timestamp,
+                                  request_id_list, message, tags ]
+            }
         }
     }
 }
