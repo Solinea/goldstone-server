@@ -23,33 +23,33 @@ __author__ = 'stanford'
 #
 # polymorphic model abstractions
 #
-
-
 class Entity(PolymorphicModel):
     uuid = UUIDField(unique=True)
-    name = CharField(max_length=255)
+    name = CharField(max_length=255, unique=True)
     created = CreationDateTimeField()
     updated = ModificationDateTimeField()
-    relationships = ManyToManyField('self', through='Relationship',
-                                    related_name='related_to',
-                                    symmetrical=False)
+    entity_rels = ManyToManyField('self',
+                                  through='Entity2EntityRelationship',
+                                  related_name='related_to',
+                                  symmetrical=False)
 
     def add_relationship(self, e, relation_name):
-        relationship, created = Relationship.objects.get_or_create(
-            from_entity=self,
-            to_entity=e,
-            relation=relation_name)
+        relationship, created = Entity2EntityRelationship.\
+            objects.get_or_create(
+                from_entity=self,
+                to_entity=e,
+                relation=relation_name)
         return relationship
 
     def remove_relationship(self, e, relation_name):
-        Relationship.objects.filter(
+        Entity2EntityRelationship.objects.filter(
             from_entity=self,
             to_entity=e,
             relation=relation_name).delete()
         return
 
     def get_relationships(self, relation_name):
-        return self.relationships.filter(
+        return self.entity_rels.filter(
             to_entity__relation=relation_name,
             to_entity__from_entity=self)
 
@@ -67,13 +67,119 @@ class Entity(PolymorphicModel):
         })
 
 
-class Relationship(Model):
+class Entity2EntityRelationship(Model):
     # TODO enumerate the known relation types?
     from_entity = ForeignKey(Entity, to_field='uuid',
                              related_name='from_entity')
     to_entity = ForeignKey(Entity, to_field='uuid',
                            related_name='to_entity')
     relation = CharField(max_length=32)
+
+
+class Event(PolymorphicModel):
+    uuid = UUIDField(unique=True)
+    event_type = CharField(max_length=255)
+    created = CreationDateTimeField()
+    updated = ModificationDateTimeField()
+    message = TextField(max_length=1024)
+    entity_rels = ManyToManyField('self',
+                                  through='Event2EntityRelationship',
+                                  related_name='related_entities',
+                                  symmetrical=False)
+    event_rels = ManyToManyField('self',
+                                 through='Event2EventRelationship',
+                                 related_name='related_events',
+                                 symmetrical=False)
+
+    def add_entity_rel(self, e, relation_name):
+        relationship, created = Event2EntityRelationship.objects.get_or_create(
+            from_event=self,
+            to_entity=e,
+            relation=relation_name)
+        return relationship
+
+    def remove_entity_rel(self, e, relation_name):
+        Event2EntityRelationship.objects.filter(
+            from_event=self,
+            to_entity=e,
+            relation=relation_name).delete()
+        return
+
+    def get_entity_rels(self, relation_name):
+        return self.event_rels.filter(
+            to_entity__relation=relation_name,
+            to_entity__from_event=self)
+
+    def get_related_entities(self, relation_name):
+        return self.related_entities.filter(
+            from_event__relation=relation_name,
+            from_event__to_entity=self)
+
+    def add_event_rel(self, e, relation_name):
+        relationship, created = Event2EventRelationship.objects.get_or_create(
+            from_event=self,
+            to_event=e,
+            relation=relation_name)
+        return relationship
+
+    def remove_event_rel(self, e, relation_name):
+        Event2EventRelationship.objects.filter(
+            from_event=self,
+            to_event=e,
+            relation=relation_name).delete()
+        return
+
+    def get_event_rels(self, relation_name):
+        return self.event_rels.filter(
+            to_event__relation=relation_name,
+            to_event__from_event=self)
+
+    def get_related_events(self, relation_name):
+        return self.related_events.filter(
+            from_event__relation=relation_name,
+            from_event__to_vent=self)
+
+    def __unicode__(self):
+        return json.dumps({
+            "uuid": "" if self.uuid is None else self.uuid,
+            "event_type": self.event_type,
+            "created": self.created.isoformat(),
+            "updated": self.updated.isoformat()
+        })
+
+
+class EventRelationship(Model):
+    from_event = ForeignKey(Event, to_field='uuid',
+                            related_name='from_event')
+    relation = CharField(max_length=64)
+
+
+class Event2EntityRelationship(Model):
+    to_entity = ForeignKey(Entity, to_field='uuid',
+                           related_name='to_entity')
+
+    def __unicode__(self):
+        return json.dumps({
+            "from_event": str(self.from_event),
+            "event_type": str(self.event_type),
+            "to_entity": str(self.from_event),
+            "created": self.created.isoformat(),
+            "updated": self.updated.isoformat()
+        })
+
+
+class Event2EventRelationship(Model):
+    to_event = ForeignKey(Event, to_field='uuid',
+                          related_name='to_event')
+
+    def __unicode__(self):
+        return json.dumps({
+            "from_event": str(self.from_event),
+            "event_type": str(self.event_type),
+            "to_event": str(self.from_event),
+            "created": self.created.isoformat(),
+            "updated": self.updated.isoformat()
+        })
 
 
 class Project(Entity):
@@ -130,6 +236,3 @@ class Node(Resource):
         ('API', 'Application API Call'),
     )
 
-
-class Event(Entity):
-    message = TextField(max_length=1024)

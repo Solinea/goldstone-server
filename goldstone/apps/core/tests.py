@@ -73,7 +73,7 @@ class TaskTests(SimpleTestCase):
         self.assertEqual(tasks.manage_es_indices(), (True, True, True))
 
 
-class ModelTests(SimpleTestCase):
+class EntityTests(SimpleTestCase):
 
     def setUp(self):
 
@@ -174,6 +174,53 @@ class ModelTests(SimpleTestCase):
         self.assertIn('last_seen', json.loads(u))
         self.assertNotEqual(u'', json.loads(u)['last_seen'])
 
+
+class EventTests(SimpleTestCase):
+
+    def setUp(self):
+
+        Entity.objects.get_or_create(name="entity 1")
+        Node.objects.get_or_create(name="node 1")
+
+        Event.objects.get_or_create(event_type="type 1", message="message 1")
+        Event.objects.get_or_create(event_type="type 2", message="message 2")
+
+    def tearDown(self):
+
+        for obj in Entity.objects.iterator():
+            obj.delete()
+
+        for obj in Node.objects.iterator():
+            obj.delete()
+
+        for obj in Event.objects.iterator():
+            obj.delete()
+
+    def test_entity_relation(self):
+        event1 = Event.objects.get(event_type="type 1")
+        event2 = Event.objects.get(event_type="type 1")
+        entity1 = Entity.objects.get(name="entity 1")
+        node1 = Node.objects.get(name="node 1")
+        event1.add_relationship(entity1, "source")
+        event1.add_relationship(node1, "source")
+        event2.add_relationship(event1, "related event")
+
+        event1_rels = event1.get_rels("source")
+        self.assertEqual(event1_rels.count(), 2)
+        self.assertIn(entity1, event1_rels)
+        self.assertIn(node1, event1_rels)
+        event2_rels = event2.get_rels("related event")
+        self.assertEqual(event2_rels.count(), 1)
+        self.assertIn(event1, event2_rels)
+
+        entity1_rel_tos = entity1.get_related_to("source")
+        self.assertEqual(entity1_rel_tos.count(), 0)
+
+        e2_rel_tos = e2.get_related_to("has")
+        self.assertEqual(e2_rel_tos.count(), 1)
+        self.assertEqual(e2_rel_tos[0], e1)
+
+        e1.remove_relationship(e2, "has")
 
 class NodeSerializerTests(SimpleTestCase):
     name1 = "test_node_123"
