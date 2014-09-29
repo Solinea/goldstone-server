@@ -19,7 +19,7 @@
 #
 input {
     tcp {
-	    codec => json_lines
+        codec => json_lines
         port => 5515
     }
 }

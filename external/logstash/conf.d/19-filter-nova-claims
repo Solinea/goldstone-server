@@ -38,7 +38,7 @@ filter {
             mutate {
                 remove_tag => ["_grokparsefailure"]
             }
-	    grok {
+            grok {
                 patterns_dir => "/opt/logstash/patterns"
                 match => { "openstack_message" => "%{NOVA_INSTANCE_REQUEST}" }
                 add_tag => ["nova_claim_request"]
@@ -47,17 +47,18 @@ filter {
                 remove_tag => ["_grokparsefailure"]
             }
             if ("nova_phys_claim" not in [tags] and "nova_virt_claim" not in [tags] and "nova_claim_request" not in [tags]) {
-	        drop { }
-	    } else {
-	        mutate {
-		    replace => [ "type", "nova_claims" ]
-		    remove_field => [ syslog5424_pri, syslog_ts, log_message, pid, loglevel,
-				      syslog_severity_code, syslog_facility_code,
-				      syslog_severity, syslog_facility, program, component,
-				      openstack_message, request_id, instance_id, timestamp,
-				      request_id_list, message, tags ]
-	       }
-	   }
+                drop { }
+            } else {
+                mutate {
+                    replace => [ "type", "nova_claims" ]
+                    remove_field => [
+                        syslog5424_pri, syslog_ts, log_message, pid, loglevel,
+                        syslog_severity_code, syslog_facility_code,
+                        syslog_severity, syslog_facility, program, component,
+                        openstack_message, request_id, instance_id, timestamp,
+                        request_id_list, message, tags ]
+                }
+            }
         } else {
             drop { } 
         }
