@@ -76,8 +76,8 @@ def _create_event(timestamp, host, message, event_type):
     event.save()
     try:
         node = LoggingNode.objects.get(name=host)
-        event.add_relationship(node, "source")
-        event.add_relationship(node, "affects")
+        node.add_event_rel(event, "source")
+        node.add_event_rel(event, "affects")
         return event
     except LoggingNode.DoesNotExist:
         logger.warning("[process_log_error_event] could not find logging node "
