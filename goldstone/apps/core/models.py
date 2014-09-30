@@ -43,9 +43,9 @@ class Entity2EntityRel(Model):
 # entities can be related to events
 class Entity2EventRel(Model):
     from_entity = ForeignKey('Entity', to_field='uuid',
-                             related_name="from_entity_ev")
+                             related_name="from_entity")
     to_event = ForeignKey('Event', to_field='uuid',
-                          related_name="to_event_en")
+                          related_name="to_event")
     relation = CharField(max_length=64)
 
     def __unicode__(self):
@@ -135,8 +135,8 @@ class Entity(PolymorphicModel):
     # return events related to me
     def get_event_rels(self, relation_name):
         return self.event_rels.filter(
-            to_event_en__relation=relation_name,
-            to_event_en__from_entity=self)
+            to_event__relation=relation_name,
+            to_event__from_entity=self)
 
     def __unicode__(self):
         return json.dumps({
@@ -158,11 +158,11 @@ class Event(PolymorphicModel):
         through='Event2EventRel',
         related_name="related_event2event_set",
         symmetrical=False)
-    # entity_rels = ManyToManyField(
-    #     'Entity',
-    #     through='Entity2EventRel',
-    #     related_name="+",
-    #     symmetrical=False)
+    entity_rels = ManyToManyField(
+        'Entity',
+        through='Entity2EventRel',
+        related_name="+",
+        symmetrical=False)
 
     def add_event_rel(self, e, relation_name):
         relationship, created = Event2EventRel.objects.get_or_create(
@@ -189,10 +189,10 @@ class Event(PolymorphicModel):
             from_event__to_event=self)
 
     # return events related to me
-    # def get_entity_rels(self, relation_name):
-    #     return self.entity_rels.filter(
-    #         to_entity_ev__relation=relation_name,
-    #         to_entity_ev__from_event=self)
+    def get_entity_rels(self, relation_name):
+        return self.entity_rels.filter(
+            to_entity__relation=relation_name,
+            to_entity__from_event=self)
 
     def __unicode__(self):
         return json.dumps({
