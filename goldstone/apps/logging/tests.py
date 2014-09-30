@@ -91,9 +91,9 @@ class TaskTests(SimpleTestCase):
                                "Syslog Error")
         self.assertEqual(event1.created, arrow.get(timestamp).datetime)
         self.assertEqual(event1.message, "test message")
-        self.assertEqual(event1.name, "Syslog Error")
-        self.assertEqual(len(event1.get_relationships("source")), 0)
-        self.assertEqual(len(event1.get_relationships("affects")), 0)
+        self.assertEqual(event1.event_type, "Syslog Error")
+        self.assertEqual(len(event1.get_entity_rels("source")), 0)
+        self.assertEqual(len(event1.get_entity_rels("affects")), 0)
 
         # create a logging node to relate
         node = LoggingNode(name="fake_node")
@@ -102,12 +102,12 @@ class TaskTests(SimpleTestCase):
                                "Syslog Error")
         self.assertEqual(event2.created, arrow.get(timestamp).datetime)
         self.assertEqual(event2.message, "test message 2")
-        self.assertEqual(event2.name, "Syslog Error")
-        self.assertEqual(len(event2.get_relationships("source")), 1)
-        self.assertEqual(len(event2.get_relationships("affects")), 1)
+        self.assertEqual(event2.event_type, "Syslog Error")
+        self.assertEqual(len(event2.get_entity_rels("source")), 1)
+        self.assertEqual(len(event2.get_entity_rels("affects")), 1)
         saved_event = LoggingEvent.objects.get(message="test message 2")
-        self.assertEqual(len(saved_event.get_relationships("source")), 1)
-        self.assertEqual(len(saved_event.get_relationships("affects")), 1)
+        self.assertEqual(len(saved_event.get_entity_rels("source")), 1)
+        self.assertEqual(len(saved_event.get_entity_rels("affects")), 1)
 
     @patch.object(subprocess, 'call')
     def test_ping(self, call):
