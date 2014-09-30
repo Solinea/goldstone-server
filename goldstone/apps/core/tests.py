@@ -302,7 +302,7 @@ class EventTests(SimpleTestCase):
         self.assertIn(event3, event2_related_events)
 
         # get event 2 entity relationships
-        event1_event_rels = event1.get_event_rels("saw")
+        event1_event_rels = event1.get_entity_rels("saw")
         self.assertIn(entity1, event1_event_rels)
         self.assertIn(entity2, event1_event_rels)
 
