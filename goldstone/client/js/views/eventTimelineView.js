@@ -48,8 +48,9 @@ var EventTimelineView = Backbone.View.extend({
 
         ns.r = d3.scale.sqrt();
         ns.loglevel = d3.scale.ordinal()
-            .domain(["debug", "audit", "info", "warning", "error"])
-            .range(["#6a51a3", "#2171b5", "#238b45", "#d94801", "#cb181d"]);
+            .domain(["log", "aggregate", "other"])
+            .range(["#6a51a3", "#2171b5", "#238b45"]);
+        /* removed: "#d94801", "#cb181d"*/
 
         ns.pingAxis = d3.svg.axis()
             .orient("top")
@@ -77,20 +78,24 @@ var EventTimelineView = Backbone.View.extend({
             ]);
 
         ns.filter = {
-            none: true,
-            debug: true,
-            audit: true,
-            info: true,
-            warning: true,
-            error: true
+            "log event": {
+                active: true,
+                id: "info"
+            },
+            "aggregate event": {
+                active: true,
+                id: "warning"
+            },
+            other: {
+                active: true,
+                id: "error"
+            }
         };
 
         // The log-level buttons toggle the specific log level into the total count
 
         d3.select(ns.location).select("#event-filterer").selectAll("input")
-            .data(d3.keys(ns.filter).filter(function(k) {
-                return k !== 'none';
-            }), function(d) {
+            .data(d3.keys(ns.filter), function(d) {
                 return d;
             })
             .enter().append("div")
@@ -100,10 +105,10 @@ var EventTimelineView = Backbone.View.extend({
                 return d;
             })
             .attr("class", function(d) {
-                return "btn btn-log-" + d;
+                return "btn btn-log-" + ns.filter[d].id;
             })
             .classed("active", function(d) {
-                return ns.filter[d];
+                return ns.filter[d].active;
             })
             .attr("type", "button")
             .text(function(d) {
@@ -184,6 +189,7 @@ var EventTimelineView = Backbone.View.extend({
         ns.graph.call(ns.tooltip);
 
         // Label the swim lane ticks
+
         ns.swimAxis
             .tickFormat(function(d) {
                 // Visual swim lanes
@@ -192,7 +198,7 @@ var EventTimelineView = Backbone.View.extend({
                         unadmin: "Disabled",
                     },
                     middle = ns.ySwimLane.domain()[Math.floor(ns.ySwimLane.domain().length / 2)];
-                swimlanes[middle] = "Logs";
+                swimlanes[middle] = "";
                 return swimlanes[d] ? swimlanes[d] : "";
             });
 
@@ -458,10 +464,11 @@ var EventTimelineView = Backbone.View.extend({
             '</h3>' +
             '</div>' +
             '<div class="panel-body" style="height:50px">' +
-            '<div id="event-filterer" class="btn-group pull-right" data-toggle="buttons" align="center">' +
+            '<div id="event-filterer" class="btn-group pull-left" data-toggle="buttons" align="center">' +
             '</div>' +
+            '<div class="pull-right">Search:&nbsp; <input class="pull-right" id="goldstone-event-search"></input></div>' +
             '</div>' +
-            '<div class="panel-body" style="height:550px">' +
+            '<div class="panel-body" style="height:200px">' +
             '<div id="goldstone-event-chart">' +
             '<div class="clearfix"></div>' +
             '</div>' +

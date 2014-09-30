@@ -27,12 +27,12 @@ var renderCharts = function() {
     // instantiate event timeline chart
 
     var eventTimelineChart = new EventTimelineCollection({
-        url: "/logging/nodes"
+        url: "/logging/events"
     });
 
     var eventTimelineChartView = new EventTimelineView({
         collection: eventTimelineChart,
-        h: {"main": 450, "swim": 50},
+        h: {"main": 200, "swim": 50},
         location: '#goldstone-discover-r1-c1',
         chartTitle: 'Event Timeline',
         width: $('#goldstone-discover-r1-c1').width()

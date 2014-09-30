@@ -15,6 +15,7 @@ var NodeAvailView = Backbone.View.extend({
         this.defaults.h = options.h;
 
         var ns = this.defaults;
+        // bind to the backbone object, for calls within functions that would return their own context at the time of invocation
         var self = this;
 
         ns.animation = {
@@ -22,6 +23,7 @@ var NodeAvailView = Backbone.View.extend({
             delay: 5
         };
 
+        // start blue spinner
         var appendSpinnerLocation = ns.location;
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(appendSpinnerLocation).css({
@@ -31,8 +33,13 @@ var NodeAvailView = Backbone.View.extend({
             });
         });
 
+        // bind to backbone collection, when 'fetch' is complete
         this.collection.on('sync', this.update, this);
+
+        // appends display and modal html elements to ns.location
         this.appendHTML();
+
+        // bind modal 'submit' button to updating animation variables
         this.initSettingsForm();
 
         ns.margin = {
@@ -46,23 +53,33 @@ var NodeAvailView = Backbone.View.extend({
         ns.mw = ns.w - ns.margin.left - ns.margin.right;
         ns.mh = ns.h.main - ns.margin.top - ns.margin.bottom;
 
+        // scale that returns range that is square root of input domain
         ns.r = d3.scale.sqrt();
+
+        // maps between input label domain and output color range for circles
         ns.loglevel = d3.scale.ordinal()
             .domain(["debug", "audit", "info", "warning", "error"])
             .range(["#6a51a3", "#2171b5", "#238b45", "#d94801", "#cb181d"]);
 
+        // for 'ping only' axis
         ns.pingAxis = d3.svg.axis()
             .orient("top")
             .ticks(5)
             .tickFormat(d3.time.format("%H:%M:%S"));
+
+        // for 'disabled' axis
         ns.unadminAxis = d3.svg.axis()
             .orient("bottom")
             .ticks(5)
             .tickFormat(d3.time.format("%H:%M:%S"));
+
         ns.xScale = d3.time.scale()
             .range([ns.margin.left, ns.mw - ns.margin.right])
+            // rounding
             .nice()
+            // values above or below domain will be constrained to range
             .clamp(true);
+
         ns.yAxis = d3.svg.axis().orient("left");
         ns.swimAxis = d3.svg.axis().orient("left");
         ns.ySwimLane = d3.scale.ordinal()
@@ -70,12 +87,14 @@ var NodeAvailView = Backbone.View.extend({
                 .domain()
                 .concat(["padding1", "padding2", "ping"])))
             .rangeRoundBands([ns.h.main, 0], 0.1);
+
         ns.yLogs = d3.scale.linear()
             .range([
                 ns.ySwimLane("unadmin") - ns.ySwimLane.rangeBand(),
                 ns.ySwimLane("ping") + ns.ySwimLane.rangeBand()
             ]);
 
+        // can we just remove 'none'?
         ns.filter = {
             none: true,
             debug: true,
@@ -86,8 +105,9 @@ var NodeAvailView = Backbone.View.extend({
         };
 
         // The log-level buttons toggle the specific log level into the total count
-
+        // if removing 'none' above, then remove the filter to remove 'none' below:
         d3.select(ns.location).select("#event-filterer").selectAll("input")
+            // keys works like Object.keys. Returns button titles defined in ns.filter
             .data(d3.keys(ns.filter).filter(function(k) {
                 return k !== 'none';
             }), function(d) {
@@ -113,9 +133,9 @@ var NodeAvailView = Backbone.View.extend({
                 ns.filter[d] = !ns.filter[d];
                 self.redraw();
             })
+            // is this needed for any reason? if not, it could remove the need for the css fix to remove the input checkbox
             .append("input")
             .attr("type", "checkbox");
-
 
         /*
          * The graph and axes
@@ -203,10 +223,11 @@ var NodeAvailView = Backbone.View.extend({
         // Transform the swim lane ticks into place
         d3.select(ns.location).select(".swim.axis").selectAll("text")
             .attr("transform", function(d, i) {
-                // The "ping" label needs to be nudged upwards
                 // The "unadmin" label needs to be nudged downwards
                 // The "logs" label needs to be nudged to the left
+                // The "ping" label needs to be nudged upwards
                 var nudge = ns.ySwimLane.rangeBand() / 2 * (d === "unadmin" ? 1 : d === "ping" ? -1 : -0.5);
+                // to remove rotation, remove the following 3 lines:
                 var l = ns.ySwimLane.domain().length;
                 var ret = "translate(0," + nudge + ")";
                 // Rotate the middle label, as it covers the widest swim lane
