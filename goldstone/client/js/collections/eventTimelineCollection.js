@@ -3,6 +3,7 @@
 var EventTimelineCollection = Backbone.Collection.extend({
 
     parse: function(data) {
+        console.log(data);
         return data.results;
     },
 
