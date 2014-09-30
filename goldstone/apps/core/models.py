@@ -43,9 +43,9 @@ class Entity2EntityRel(Model):
 # entities can be related to events
 class Entity2EventRel(Model):
     from_entity = ForeignKey('Entity', to_field='uuid',
-                             related_name="from_entity")
+                             related_name="from_entity_ev")
     to_event = ForeignKey('Event', to_field='uuid',
-                          related_name="to_event")
+                          related_name="to_event_en")
     relation = CharField(max_length=64)
 
     def __unicode__(self):
@@ -135,8 +135,8 @@ class Entity(PolymorphicModel):
     # return events related to me
     def get_event_rels(self, relation_name):
         return self.event_rels.filter(
-            to_event__relation=relation_name,
-            to_event__from_entity=self)
+            to_event_en__relation=relation_name,
+            to_event_en__from_entity=self)
 
     def __unicode__(self):
         return json.dumps({
@@ -191,8 +191,8 @@ class Event(PolymorphicModel):
     # return events related to me
     def get_entity_rels(self, relation_name):
         return self.entity_rels.filter(
-            to_entity__relation=relation_name,
-            to_entity__from_event=self)
+            from_entity_ev__relation=relation_name,
+            from_entity_ev__to_event=self)
 
     def __unicode__(self):
         return json.dumps({
