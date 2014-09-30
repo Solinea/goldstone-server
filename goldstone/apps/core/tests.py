@@ -249,6 +249,7 @@ class EventTests(SimpleTestCase):
     def setUp(self):
 
         Entity.objects.get_or_create(name="entity 1")
+        Entity.objects.get_or_create(name="entity 2")
         Node.objects.get_or_create(name="node 1")
 
         Event.objects.get_or_create(event_type="type 1", message="message 1")
@@ -271,6 +272,7 @@ class EventTests(SimpleTestCase):
         event2 = Event.objects.get(event_type="type 2")
         event3 = Event.objects.get(event_type="type 3")
         entity1 = Entity.objects.get(name="entity 1")
+        entity2 = Entity.objects.get(name="entity 2")
         node1 = Node.objects.get(name="node 1")
 
         # create event to event relation
@@ -280,6 +282,12 @@ class EventTests(SimpleTestCase):
         self.assertIsInstance(r1, Event2EventRel)
         self.assertIsInstance(r2, Event2EventRel)
         self.assertIsInstance(r3, Event2EventRel)
+
+        # created entity to event relation
+        r1 = entity1.add_event_rel(event1, "saw")
+        r2 = entity2.add_event_rel(event1, "saw")
+        self.assertIsInstance(r1, Entity2EventRel)
+        self.assertIsInstance(r2, Entity2EventRel)
 
         # get forward event 2 event relationships
         event1_event_rels = event1.get_event_rels("related_event")
@@ -292,6 +300,11 @@ class EventTests(SimpleTestCase):
         event2_related_events = event2.get_related_events("related_event")
         self.assertIn(event1, event2_related_events)
         self.assertIn(event3, event2_related_events)
+
+        # get event 2 entity relationships
+        event1_event_rels = event1.get_event_rels("saw")
+        self.assertIn(entity1, event1_event_rels)
+        self.assertIn(entity2, event1_event_rels)
 
         # delete a related object and make sure relation is cleaned up
         event3.remove_event_rel(event2, "related_event")
