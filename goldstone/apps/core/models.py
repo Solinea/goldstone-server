@@ -24,6 +24,7 @@ __author__ = 'stanford'
 # Many to Many relationships
 #
 
+
 # entites can be related to other entities
 class Entity2EntityRel(Model):
     from_entity = ForeignKey('Entity', to_field='uuid',
@@ -256,4 +257,3 @@ class Node(Resource):
         ('LOGS', 'Log Stream Activity'),
         ('API', 'Application API Call'),
     )
-
