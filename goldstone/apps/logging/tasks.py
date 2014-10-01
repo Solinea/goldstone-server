@@ -72,7 +72,8 @@ def _create_event(timestamp, host, message, event_type):
                  timestamp, host, message, event_type)
 
     dt = arrow.get(timestamp).datetime
-    event = LoggingEvent(event_type=event_type, created=dt, message=message)
+    event = LoggingEvent(event_type=event_type, created=dt, updated=dt,
+                         message=message)
     event.save()
     try:
         node = LoggingNode.objects.get(name=host)
