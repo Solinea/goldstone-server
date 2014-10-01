@@ -170,11 +170,11 @@ var EventTimelineView = Backbone.View.extend({
         //     });
 
         ns.graph.append("g")
-            .attr("class", "xping axis")
+            .attr("class", "xUpper axis")
             .attr("transform", "translate(0," + ns.h.swim + ")");
 
         ns.graph.append("g")
-            .attr("class", "xunadmin axis")
+            .attr("class", "xLower axis")
             .attr("transform", "translate(0," + ns.h.main + ")");
 
         // ns.graph.append("g")
@@ -261,6 +261,7 @@ var EventTimelineView = Backbone.View.extend({
     },
 
     redraw: function() {
+        console.log('redrawing');
         var ns = this.defaults;
         var self = this;
 
@@ -294,7 +295,23 @@ var EventTimelineView = Backbone.View.extend({
             //**patch
 
             // return ns.xScale(d.last_seen);
-        });
+        })
+            .style("opacity", function(d) {
+                for (var flt in ns.filter) {
+                    if (ns.filter[flt].eventName === d.event_type && !ns.filter[flt].active) {
+                        return 0;
+                    }
+                }
+                return 0.8;
+            })
+            .style("visibility", function(d) {
+                for (var flt in ns.filter) {
+                    if (ns.filter[flt].eventName === d.event_type && !ns.filter[flt].active) {
+                        return "hidden";
+                    }
+                }
+                return "visible";
+            });
         // .attr("y", ns.h.swim
         /*function(d) {
                 // return {
@@ -402,10 +419,10 @@ var EventTimelineView = Backbone.View.extend({
         ns.topAxis.scale(ns.xScale);
         ns.bottomAxis.scale(ns.xScale);
 
-        ns.svg.select(".xping.axis")
+        ns.svg.select(".xUpper.axis")
             .call(ns.topAxis);
 
-        ns.svg.select(".xunadmin.axis")
+        ns.svg.select(".xLower.axis")
             .call(ns.bottomAxis);
 
         // ns.yLogs.domain([0, d3.max(ns.dataset.map(function(d) {
@@ -432,7 +449,7 @@ var EventTimelineView = Backbone.View.extend({
         rectangle.enter()
             .append("rect")
             .attr("x", function(d) {
-                return ns.xScale(d.created);
+                return ns.xScale(d.updated);
                 // return (ns.xScale.range()[1]) - ns.margin.right * 3;
             })
             .attr("y", ns.h.swim
@@ -440,7 +457,7 @@ var EventTimelineView = Backbone.View.extend({
                 return ns.yLogs(self.sums(d));
             }*/
         )
-            .attr("width", 10)
+            .attr("width", 8)
             .attr("height", ns.h.main - ns.h.swim)
             .attr("class", function(d) {
 
@@ -454,7 +471,22 @@ var EventTimelineView = Backbone.View.extend({
             })
             .style("opacity", 0.8)
             .on("mouseover", ns.tooltip.show)
-            .on("mouseout", ns.tooltip.hide);
+            .on("click", function() {
+                if(ns.tooltip.pause === undefined){
+                    ns.tooltip.pause = true;
+                } else {
+                    ns.tooltip.pause = !ns.tooltip.pause;
+                }
+                if(ns.tooltip.pause === false){
+                    ns.tooltip.hide();
+                }
+            })
+            .on("mouseout", function() {
+                if(ns.tooltip.pause){
+                    return;
+                }
+                ns.tooltip.hide();
+            });
 
         // this.redraw();
 
