@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from pyes import BoolQuery, RangeQuery, ESRangeOp, TermQuery
 
 __author__ = 'John Stanford'
 
@@ -133,8 +134,7 @@ class HypervisorStatsData(NovaClientData):
 
 
 class SpawnData(ESData):
-    _START_DOC_TYPE = 'nova_spawn_start'
-    _FINISH_DOC_TYPE = 'nova_spawn_finish'
+    _DOC_TYPE = 'nova_spawns'
 
     def __init__(self, start, end, interval):
         self.start = start
@@ -142,37 +142,56 @@ class SpawnData(ESData):
         self.interval = interval
 
     def _spawn_start_query(self, agg_name="events_by_date"):
-        q = ESData._query_base()
-        q['query'] = ESData._range_clause('@timestamp',
-                                          self.start.isoformat(),
-                                          self.end.isoformat())
-        q['aggs'] = ESData._agg_date_hist(self.interval, name=agg_name)
-        return q
+
+        _query_value = BoolQuery(must=[
+            RangeQuery(qrange=ESRangeOp(
+                "@timestamp",
+                "gte", self.start.isoformat(),
+                "lte", self.end.isoformat())),
+            TermQuery("event", "start")
+        ]).serialize()
+
+        query = {
+            "query": _query_value,
+            "aggs": ESData._agg_date_hist(self.interval, name=agg_name)
+        }
+        return query
 
     def _spawn_finish_query(self, success):
         filter_name = "success_filter"
         agg_name = "events_by_date"
-        q = ESData._query_base()
-        q['query'] = ESData._range_clause('@timestamp',
-                                          self.start.isoformat(),
-                                          self.end.isoformat())
-        q['aggs'] = ESData._agg_filter_term("success",
+
+        _query_value = BoolQuery(must=[
+            RangeQuery(qrange=ESRangeOp(
+                "@timestamp",
+                "gte", self.start.isoformat(),
+                "lte", self.end.isoformat())),
+            TermQuery("event", "finish")
+        ]).serialize()
+
+        query = {
+            "query": _query_value,
+            "aggs": ESData._agg_filter_term("success",
                                             str(success).lower(),
                                             filter_name)
-        q['aggs'][filter_name]['aggs'] = ESData._agg_date_hist(self.interval,
-                                                               name=agg_name)
-        return q
+        }
+        query['aggs'][filter_name]['aggs'] = ESData._agg_date_hist(
+            self.interval, name=agg_name)
+
+        return query
 
     def get_spawn_start(self):
         """Return a pandas dataframe with the results of a query for nova spawn
         start events"""
         agg_name = "events_by_date"
         q = self._spawn_start_query(agg_name)
-        logger.debug("[get_spawn_start] query = %s", json.dumps(q))
-        response = self._conn.search(index="_all",
-                                     doc_type=self._START_DOC_TYPE,
-                                     body=q, size=0)
-        logger.debug("[get_spawn_start] response = %s", json.dumps(response))
+        logger.info("[get_spawn_start] query = %s", json.dumps(q))
+        index = ",".join(self.get_index_names('goldstone-'))
+        logger.info("[get_spawn_start] calling query with index=%s, "
+                    "doc_type=%s", index, self._DOC_TYPE)
+        response = self._conn.search(
+            index=index, doc_type=self._DOC_TYPE, body=q, size=0)
+        logger.info("[get_spawn_start] response = %s", json.dumps(response))
         return pd.read_json(json.dumps(
             response['aggregations'][agg_name]['buckets'])
         )
@@ -182,9 +201,10 @@ class SpawnData(ESData):
         aname = "events_by_date"
         q = self._spawn_finish_query(success)
         logger.debug("[get_spawn_finish] query = %s", json.dumps(q))
-        response = self._conn.search(index="_all",
-                                     doc_type=self._FINISH_DOC_TYPE,
-                                     body=q, size=0)
+        response = self._conn.search(
+            index=",".join(self.get_index_names('goldstone-')),
+            doc_type=self._DOC_TYPE,
+            body=q, size=0)
         logger.debug("[get_spawn_finish] response = %s", json.dumps(response))
         data = pd.read_json(json.dumps(
             response['aggregations'][fname][aname]['buckets']),
@@ -205,8 +225,7 @@ class SpawnData(ESData):
 
 
 class ResourceData(ESData):
-    _PHYS_DOC_TYPE = 'nova_claims_summary_phys'
-    _VIRT_DOC_TYPE = 'nova_claims_summary_virt'
+    _DOC_TYPE = 'nova_claims'
     _TYPE_FIELDS = {
         'physical': ['total', 'used'],
         'virtual': ['limit', 'free']
@@ -243,6 +262,16 @@ class ResourceData(ESData):
         # virtual resource report free instead of used.  We need to find the
         # min of the bucket rather than the max.
         max_or_min_aggs_clause = None
+
+        _query_value = BoolQuery(must=[
+            RangeQuery(qrange=ESRangeOp(
+                "@timestamp",
+                "gte", self.start.isoformat(),
+                "lte", self.end.isoformat())),
+            TermQuery("resource", resource),
+            TermQuery("state", resource_type)
+        ]).serialize()
+
         if used_or_free_agg == 'free':
             max_or_min_aggs_clause = self._min_aggs_clause(
                 used_or_free_agg, self._TYPE_FIELDS[resource_type][1])
@@ -250,31 +279,32 @@ class ResourceData(ESData):
             max_or_min_aggs_clause = self._max_aggs_clause(
                 used_or_free_agg, self._TYPE_FIELDS[resource_type][1])
 
-        range_filter = self._range_clause('@timestamp', self.start.isoformat(),
-                                          self.end.isoformat())
-        term_filter = self._term_clause('resource', resource)
-        q = self._filtered_query_base(self._bool_clause(
-            [range_filter, term_filter]), {'match_all': {}})
-
         tl_aggs_clause = self._agg_date_hist(self.interval, name=date_agg_name)
         host_aggs_clause = self._agg_clause(host_agg_name,
-                                            self._terms_clause("host.raw"))
+                                            self._terms_clause("host"))
         stats_aggs_clause = dict(
             self._max_aggs_clause(max_total_agg,
                                   self._TYPE_FIELDS[resource_type][0]).
             items() + max_or_min_aggs_clause.items())
         host_aggs_clause[host_agg_name]['aggs'] = stats_aggs_clause
         tl_aggs_clause[date_agg_name]['aggs'] = host_aggs_clause
-        q['aggs'] = tl_aggs_clause
-        return q
+
+        query = {
+            "query": _query_value,
+            "aggs": tl_aggs_clause
+        }
+
+        logger.info("[_claims_resource_query] query = %s", json.dumps(query))
+
+        return query
 
     def _get_resource(self, resource_type, resource, custom_field):
         q = self._claims_resource_query(resource_type, resource)
         logger.debug('query = %s', json.dumps(q))
-        doc_type = self._PHYS_DOC_TYPE
-        if resource_type == 'virtual':
-            doc_type = self._VIRT_DOC_TYPE
-        r = self._conn.search(index="_all", body=q, size=0, doc_type=doc_type)
+
+        index = ",".join(self.get_index_names('goldstone-'))
+        r = self._conn.search(index=index, body=q, size=0,
+                              doc_type=self._DOC_TYPE)
 
         logger.debug('[_get_resource] search response = = %s', json.dumps(r))
         items = []
@@ -309,11 +339,11 @@ class ResourceData(ESData):
         return result
 
     def get_phys_cpu(self):
-        result = self._get_resource('physical', 'cpus', 'used')
+        result = self._get_resource('physical', 'CPUs', 'used')
         return result
 
     def get_virt_cpu(self):
-        result = self._get_resource('virtual', 'cpus', 'free')
+        result = self._get_resource('virtual', 'CPUs', 'free')
         return result
 
     def get_phys_mem(self):

@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from rest_framework import serializers
-from goldstone.apps.core.serializers import NodeSerializer
-from .models import LoggingNode
+from goldstone.apps.core.serializers import NodeSerializer, EventSerializer
+from .models import LoggingNode, LoggingEvent
 
 
 class LoggingNodeSerializer(NodeSerializer):
@@ -26,5 +26,13 @@ class LoggingNodeSerializer(NodeSerializer):
 
     class Meta:
         model = LoggingNode
+        lookup_field = 'uuid'
+        exclude = ['id']
+
+
+class LoggingEventSerializer(EventSerializer):
+
+    class Meta:
+        model = LoggingEvent
         lookup_field = 'uuid'
         exclude = ['id']

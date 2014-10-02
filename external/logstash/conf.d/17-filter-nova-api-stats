@@ -14,31 +14,26 @@
 #
 # Author: John Stanford
 
-#
-# minimally try to get the host as known to syslog and replace
-# the logstash host value with it.
-#
 filter {
-    if ([type] == "syslog" and "processed" not in [tags]) {
-        grok { 
-            remove_tag => "_grokparsefailure"
-            patterns_dir => "/opt/logstash/patterns"
-            match => { "message" => "%{GENERIC_SYSLOGLINE}" }
-            add_field => { "received_at" => "%{@timestamp}" }
+    if [type] == "api_stats_resub" {
+        mutate {
+            gsub => ["openstack_message", '\"', '"']
         }
-        if ("_grokparsefailure" not in [tags]) {
-            syslog_pri {
-                syslog_pri_field_name => "syslog5424_pri"
-            }
+        grok { 
+            patterns_dir => "/opt/logstash/patterns"
+            match => { "openstack_message" => "%{NOVA_API_CALL}" }
+        }
+        if ("_grokparsefailure" in [tags]) {
+            drop { }
+        } else {
             mutate {
-                rename => [ "msg", "message" ]
-                rename => [ "syslog5424_host", "host" ]
-                remove_field => "syslog_ts"
-                remove_field => "syslog5424_pri"
-                remove_field => "msg"
-                add_tag => ["filter_50", "syslog_generic"]
+                replace => [ "type", "api_stats" ]
+                remove_field => [ syslog5424_pri, syslog_ts, log_message, pid, loglevel,
+                                  syslog_severity_code, syslog_facility_code,
+                                  syslog_severity, syslog_facility, program,
+                                  openstack_message, request_id, instance_id, timestamp,
+                                  request_id_list, message, tags ]
             }
         }
     }
 }
-
