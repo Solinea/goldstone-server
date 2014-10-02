@@ -27,7 +27,7 @@ var renderCharts = function() {
     // instantiate event timeline chart
 
     var eventTimelineChart = new EventTimelineCollection({
-        url: "/logging/events"
+        url: "/logging/events?page_count=100&page=last"
     });
 
     var eventTimelineChartView = new EventTimelineView({
@@ -37,17 +37,17 @@ var renderCharts = function() {
         width: $('#goldstone-discover-r1-c1').width()
     });
 
-    // var nodeAvailChart = new NodeAvailCollection({
-    //     url: "/logging/nodes"
-    // });
+    var nodeAvailChart = new NodeAvailCollection({
+        url: "/logging/nodes"
+    });
 
-    // var nodeAvailChartView = new NodeAvailView({
-    //     collection: nodeAvailChart,
-    //     h: {"main": 450, "swim": 50},
-    //     location: '#goldstone-discover-r2-c2',
-    //     chartTitle: 'Node Availability',
-    //     width: $('#goldstone-discover-r2-c2').width()
-    // });
+    var nodeAvailChartView = new NodeAvailView({
+        collection: nodeAvailChart,
+        h: {"main": 450, "swim": 50},
+        location: '#goldstone-discover-r2-c2',
+        chartTitle: 'Node Availability',
+        width: $('#goldstone-discover-r2-c2').width()
+    });
 
 
 

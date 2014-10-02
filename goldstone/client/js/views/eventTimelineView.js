@@ -1,11 +1,11 @@
-// view is linked to collection when instantiated in api_perf_report.html
+// view is linked to collection when instantiated in goldstone_discover.html
 
 var EventTimelineView = Backbone.View.extend({
-
     defaults: {
         h: {
             "main": 150,
-            "swim": 50
+            "padding": 50,
+            "tooltipPadding": 40
         }
     },
 
@@ -31,19 +31,35 @@ var EventTimelineView = Backbone.View.extend({
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
-                'margin-top': -(ns.h.main / 2 + ns.h.swim)
+                'margin-top': -(ns.h.main / 2 + ns.h.padding)
             });
         });
 
-        // this.collection.on('sync', this.update, this);
+        this.collection.on('sync', this.update, this);
         this.appendHTML();
         this.initSettingsForm();
+
+        ns.filter = {
+
+            // "Filter Label":{
+            // active: [true/false]
+            // id: "(css id for loglevel_buttons.css)"
+            // eventName: "(matches event type)"
+            // }
+
+            "Error": {
+                active: true,
+                id: "error",
+                eventName: "Syslog Error"
+
+            }
+        };
 
         ns.margin = {
             top: 25,
             bottom: 25,
-            right: 40,
-            left: 60
+            right: 20,
+            left: 40
         };
 
         ns.w = ns.width;
@@ -62,45 +78,13 @@ var EventTimelineView = Backbone.View.extend({
             .tickFormat(d3.time.format("%a %b %e %Y"));
         ns.bottomAxis = d3.svg.axis()
             .orient("bottom")
-            .ticks(7)
+            .ticks(8)
             .tickFormat(d3.time.format("%H:%M:%S"));
         ns.xScale = d3.time.scale()
-            .range([ns.margin.left, ns.mw - ns.margin.right])
-            .nice();
+            .range([ns.margin.left, ns.w - ns.margin.right - 10]);
+        // .nice();
         // .clamp(true);
 
-        // ns.yAxis = d3.svg.axis().orient("left");
-        // ns.swimAxis = d3.svg.axis().orient("left");
-        // ns.ySwimLane = d3.scale.ordinal()
-        //     .domain(["unadmin"].concat(ns.loglevel
-        //         .domain()
-        //         .concat(["padding1", "padding2", "ping"])))
-        //     .rangeRoundBands([ns.h.main, 0], 0.1);
-        // ns.yLogs = d3.scale.linear()
-        //     .range([
-        //         ns.ySwimLane("unadmin") - ns.ySwimLane.rangeBand(),
-        //         ns.ySwimLane("ping") + ns.ySwimLane.rangeBand()
-        //     ]);
-
-        ns.filter = {
-            "log event": {
-                active: true,
-                id: "info",
-                eventName: "Syslog Event"
-            },
-            "aggregate event": {
-                active: true,
-                id: "warning",
-                eventName: "Syslog Warning"
-
-            },
-            "other": {
-                active: true,
-                id: "error",
-                eventName: "Syslog Error"
-
-            }
-        };
 
         // The log-level buttons toggle the specific log level into the total count
 
@@ -137,208 +121,111 @@ var EventTimelineView = Backbone.View.extend({
          */
 
         ns.svg = d3.select(ns.location).select(".panel-body").append("svg")
-            .attr("width", ns.w - ns.margin.right)
-            .attr("height", ns.h.main + (ns.h.swim * 2) /*+ ns.margin.top + ns.margin.bottom*/ )
-            .append("g");
-        // .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+            .attr("width", ns.w + ns.margin.right)
+            .attr("height", ns.h.main + (ns.h.padding + ns.h.tooltipPadding));
 
-        ns.graph = ns.svg.append("g").attr("id", "graph");
-
-        // Visual swim lanes
-        // ns.swimlanes = {
-        //     ping: {
-        //         label: "Ping Only",
-        //         offset: ns.ySwimLane.rangeBand() / 2 * -1
-        //     },
-        //     unadmin: {
-        //         label: "Disabled",
-        //         offset: ns.ySwimLane.rangeBand() / 2
-        //     }
-        // };
-
-        // ns.graph.selectAll(".swimlane")
-        //     .data(d3.keys(ns.swimlanes), function(d) {
-        //         return d;
-        //     })
-        //     .enter().append("g")
-        //     .attr("class", "swimlane")
-        //     .attr("id", function(d) {
-        //         return d;
-        //     })
-        //     .attr("transform", function(d) {
-        //         return "translate(0," + ns.ySwimLane(d) + ")";
-        //     });
+        // tooltipPadding adds room for tooltip popovers
+        ns.graph = ns.svg.append("g").attr("id", "graph")
+            .attr("transform", "translate(0," + ns.h.tooltipPadding + ")");
 
         ns.graph.append("g")
             .attr("class", "xUpper axis")
-            .attr("transform", "translate(0," + ns.h.swim + ")");
+            .attr("transform", "translate(0," + ns.h.padding + ")");
 
         ns.graph.append("g")
             .attr("class", "xLower axis")
             .attr("transform", "translate(0," + ns.h.main + ")");
 
-        // ns.graph.append("g")
-        //     .attr("class", "y axis invisible-axis")
-        //     .attr("transform", "translate(" + ns.mw + ",0)");
-
-        // ns.graph.append("g")
-        //     .attr("class", "swim axis invisible-axis");
-
         ns.tooltip = d3.tip()
             .attr('class', 'd3-tip')
             .html(function(d) {
-                return d.event_type + "<br>" +
-                    "(" + d.uuid + ")" + "<br>" +
-                    "Created: " + d.created + "<br>" +
-                    "Updated: " + d.updated + "<br>" +
+
+                d.uuid = d.uuid || 'No uuid logged';
+                d.message = d.message || 'No message logged';
+                d.event_type = d.event_type || 'No event type logged';
+                d.created = d.created || 'No date logged';
+
+                return d.event_type + " (click event line to persist popup info)<br>" +
+                    "uuid: " + d.uuid + "<br>" +
+                    "Created: " + moment(d.created).fromNow() + "<br>" +
                     "Message: " + d.message.substr(0, 64) + "<br>";
             });
 
         ns.graph.call(ns.tooltip);
 
-        // Label the swim lane ticks
-
-        // ns.swimAxis
-        //     .tickFormat(function(d) {
-        //         // Visual swim lanes
-        //         var swimlanes = {
-        //                 ping: "Ping Only",
-        //                 unadmin: "Disabled",
-        //             },
-        //             middle = ns.ySwimLane.domain()[Math.floor(ns.ySwimLane.domain().length / 2)];
-        //         swimlanes[middle] = "";
-        //         return swimlanes[d] ? swimlanes[d] : "";
-        //     });
-
-        // Draw the axis on the screen
-        // d3.select(ns.location).select(".swim.axis")
-        //     .call(ns.swimAxis.scale(ns.ySwimLane));
-
-        // Transform the swim lane ticks into place
-        // d3.select(ns.location).select(".swim.axis").selectAll("text")
-        //     .attr("transform", function(d, i) {
-        //         // The "ping" label needs to be nudged upwards
-        //         // The "unadmin" label needs to be nudged downwards
-        //         // The "logs" label needs to be nudged to the left
-        //         var nudge = ns.ySwimLane.rangeBand() / 2 * (d === "unadmin" ? 1 : d === "ping" ? -1 : -0.5);
-        //         var l = ns.ySwimLane.domain().length;
-        //         var ret = "translate(0," + nudge + ")";
-        //         // Rotate the middle label, as it covers the widest swim lane
-        //         return ((i > 0 && i < l - 1) ? "rotate(" + (i === Math.floor(l / 2) ? -90 : 0) + ") " : "") + ret;
-        //     });
-
-        // ***** start patch
-        //remove this when live data
-        setTimeout(function() {
-            self.update();
-        }, 500);
-        // ***** end patch
-
     },
 
+    // keeping in place in case
+    // refresh functionality is implemented
     isRefreshSelected: function() {
         var ns = this.defaults;
         return $(ns.location).find(".eventAutoRefresh").prop("checked");
     },
 
+    // keeping in place in case
+    // refresh functionality is implemented
     refreshInterval: function() {
         var ns = this.defaults;
         return $(ns.location).find("select#eventAutoRefreshInterval").val();
     },
 
-
+    // keeping in place in case
+    // refresh functionality is implemented
     initSettingsForm: function() {
         var self = this;
         var ns = this.defaults;
         var updateSettings = function() {
             ns.animation.delay = self.refreshInterval();
             ns.animation.pause = !self.isRefreshSelected();
-            if (!ns.animation.pause) {
-                self.scheduleFetch();
-            }
+            // leaving in place in case timer functionality is implemented
+            // if (!ns.animation.pause) {
+            //     self.scheduleFetch();
+            // }
         };
         $("#eventSettingsUpdateButton-" + ns.location.slice(1)).click(updateSettings);
     },
 
+    opacityByFilter: function(d) {
+        var ns = this.defaults;
+        for (var filterType in ns.filter) {
+            if (ns.filter[filterType].eventName === d.event_type && !ns.filter[filterType].active) {
+                return 0;
+            }
+        }
+        return 0.8;
+    },
+
+    visibilityByFilter: function(d) {
+        var ns = this.defaults;
+        for (var filterType in ns.filter) {
+            if (ns.filter[filterType].eventName === d.event_type && !ns.filter[filterType].active) {
+                return "hidden";
+            }
+        }
+        return "visible";
+    },
+
     redraw: function() {
-        console.log('redrawing');
         var ns = this.defaults;
         var self = this;
 
-        // ns.yLogs.domain([
-        //     0,
-        //     d3.max(ns.dataset.map(function(d) {
-        //         //**patch
-        //         return 60;
-        //         //**patch
-        //         // return self.sums(d);
-        //     }))
-        // ]);
-
-        // d3.select(ns.location).select(".swim.axis")
-        //     .transition()
-        //     .duration(500);
-
-        // d3.select(ns.location).select(".y.axis")
-        //     .transition()
-        //     .duration(500)
-        //     .call(ns.yAxis.scale(ns.yLogs));
-
         ns.graph.selectAll("rect")
             .transition().duration(500)
-        // .attr("class", function(d) {
-        //     return d.swimlane === "unadmin" ? d.swimlane : d.level;
-        // })
-        .attr("x", function(d) {
-            //**patch
-            return ns.xScale(d.updated);
-            //**patch
-
-            // return ns.xScale(d.last_seen);
-        })
+            .attr("x", function(d) {
+                return ns.xScale(d.created);
+            })
             .style("opacity", function(d) {
-                for (var flt in ns.filter) {
-                    if (ns.filter[flt].eventName === d.event_type && !ns.filter[flt].active) {
-                        return 0;
-                    }
-                }
-                return 0.8;
+                return self.opacityByFilter(d);
             })
             .style("visibility", function(d) {
-                for (var flt in ns.filter) {
-                    if (ns.filter[flt].eventName === d.event_type && !ns.filter[flt].active) {
-                        return "hidden";
-                    }
-                }
-                return "visible";
+                // to avoid showing popovers for hidden lines
+                return self.visibilityByFilter(d);
             });
-        // .attr("y", ns.h.swim
-        /*function(d) {
-                // return {
-                //     logs: ns.yLogs(self.sums(d)),
-                //     ping: ns.ySwimLane(d.swimlane),
-                //     unadmin: ns.ySwimLane(d.swimlane) + ns.ySwimLane.rangeBand()
-                // }[d.swimlane];
-            }*/
-        // )
-        // .attr("height", ns.h.main - ns.h.swim)
-        // .attr("width", 10);
-
-    },
-
-    // probably removing this:
-    sums: function(datum) {
-        var ns = this.defaults;
-        // Return the sums for the filters that are on
-        return d3.sum(ns.loglevel.domain().map(function(k) {
-            return ns.filter[k] ? datum[k + "_count"] : 0;
-        }));
     },
 
     update: function() {
         var ns = this.defaults;
         var self = this;
-        var uri = ns.url;
         $(ns.location).find('#spinner').hide();
 
         // If we are paused or beyond the available jsons, exit
@@ -346,24 +233,19 @@ var EventTimelineView = Backbone.View.extend({
             return true;
         }
 
-        // prevent updating when fetch is in process
-        if (!this.collection.thisXhr.getResponseHeader('LogCountStart') || this.collection.thisXhr.getResponseHeader('LogCountEnd') === null) {
-            return true;
-        }
-
         // Set the animation to not step over itself
         ns.animation.pause = true;
+        var allthelogs = (this.collection.toJSON());
 
-        // var allthelogs = JSON.parse(response.responseText);
+        var xEnd = moment(d3.min(_.map(allthelogs, function(evt) {
+            return evt.created;
+        })));
 
-        // var allthelogs = (this.collection.toJSON());
-        var allthelogs = (this.collection.sampleData.results);
+        var xStart = moment(d3.max(_.map(allthelogs, function(evt) {
+            return evt.created;
+        })));
 
-        // var xStart = moment(response.getResponseHeader('LogCountStart'));
-        var xStart = moment(this.collection.thisXhr.getResponseHeader('LogCountStart'));
-        var xEnd = moment(this.collection.thisXhr.getResponseHeader('LogCountEnd'));
-
-        ns.xScale = ns.xScale.domain([xStart, xEnd]);
+        ns.xScale = ns.xScale.domain([xStart._d, xEnd._d]);
 
         // If we didn't receive any valid files, abort and pause
         if (allthelogs.length === 0) {
@@ -378,37 +260,9 @@ var EventTimelineView = Backbone.View.extend({
          */
         ns.dataset = allthelogs
             .map(function(d) {
-                d.created = moment(d.created);
-                d.updated = moment(d.updated);
-                // d.eventType = d.event_type;
-                // d.last_seen = moment(d.last_seen);
-
-                /*
-                 * Figure out the higest priority level.
-                 * That will determine its color later.
-                 */
-                // var nonzero_levels = ns.loglevel.domain()
-                //     .map(function(l) {
-                //         return [l, d[l + "_count"]];
-                //     })
-                //     .filter(function(l) {
-                //         return (l[1] > 0);
-                //     })
-                //     .reverse();
-                // d.level = typeof(nonzero_levels[0]) === 'undefined' ? "none" : nonzero_levels[0][0];
-
-
-                /*
-                 * Figure out which bucket (logs, ping, or admin disabled)
-                 * each node belongs to.
-                 */
-                // d.swimlane = d.admin_disabled ?
-                //     "unadmin" : d.last_seen_method.toLowerCase();
+                d.created = moment(d.created)._d;
                 return d;
             });
-        // .sort(function(a, b) {
-        //     return a.last_seen - b.last_seen;
-        // });
 
         /*
          * Axes
@@ -420,23 +274,12 @@ var EventTimelineView = Backbone.View.extend({
         ns.bottomAxis.scale(ns.xScale);
 
         ns.svg.select(".xUpper.axis")
+            .transition()
             .call(ns.topAxis);
 
         ns.svg.select(".xLower.axis")
+            .transition()
             .call(ns.bottomAxis);
-
-        // ns.yLogs.domain([0, d3.max(ns.dataset.map(function(d) {
-        //     // add up all the *_counts
-        //     return d3.sum(ns.loglevel.domain().map(function(e) {
-        //         return +d[e + "_count"];
-        //     }));
-        // }))]);
-
-        // ns.yAxis.scale(ns.yLogs);
-        // ns.svg.select(".y.axis")
-        //     .transition()
-        //     .duration(500)
-        //     .call(ns.yAxis);
 
         /*
          * New rectangles appear at the far right hand side of the graph.
@@ -446,80 +289,79 @@ var EventTimelineView = Backbone.View.extend({
                 return d.uuid;
             });
 
+        // enters at wider width and transitions to lesser width for a
+        // dynamic resizing effect
         rectangle.enter()
             .append("rect")
-            .attr("x", function(d) {
-                return ns.xScale(d.updated);
-                // return (ns.xScale.range()[1]) - ns.margin.right * 3;
-            })
-            .attr("y", ns.h.swim
-                /*function(d) {
-                return ns.yLogs(self.sums(d));
-            }*/
-        )
-            .attr("width", 8)
-            .attr("height", ns.h.main - ns.h.swim)
+            .attr("x", ns.width)
+            .attr("y", ns.h.padding + 1)
+            .attr("width", 5)
+            .attr("height", ns.h.main - ns.h.padding - 2)
             .attr("class", function(d) {
-
                 for (var evt in ns.filter) {
                     if (ns.filter[evt].eventName === d.event_type) {
                         return ns.filter[evt].id;
                     }
                 }
-
-                return 'other';
+                return 'none';
             })
-            .style("opacity", 0.8)
+            .style("opacity", function(d) {
+                return self.opacityByFilter(d);
+            })
+            .style("visibility", function(d) {
+                // to avoid showing popovers for hidden lines
+                return self.visibilityByFilter(d);
+            })
             .on("mouseover", ns.tooltip.show)
             .on("click", function() {
-                if(ns.tooltip.pause === undefined){
+                if (ns.tooltip.pause === undefined) {
                     ns.tooltip.pause = true;
                 } else {
                     ns.tooltip.pause = !ns.tooltip.pause;
                 }
-                if(ns.tooltip.pause === false){
+                if (ns.tooltip.pause === false) {
                     ns.tooltip.hide();
                 }
             })
             .on("mouseout", function() {
-                if(ns.tooltip.pause){
+                if (ns.tooltip.pause) {
                     return;
                 }
                 ns.tooltip.hide();
             });
 
-        // this.redraw();
-
-        // This behaviour is not yet fully understood
-        rectangle.exit().remove()
-            .attr("class", function(d) {
-                return "older";
+        rectangle
+            .transition()
+            .attr("width", 2)
+            .attr("x", function(d) {
+                return ns.xScale(d.created);
             });
+
+        rectangle.exit().remove();
 
         // Unpause the animation and rerun this function for the next frame
         ns.animation.pause = false;
-        this.scheduleFetch();
+        // uncomment if timer functionality is desired.
+        // this.scheduleFetch();
         return true;
     },
 
+    // leaving in place for now in case
+    // timer functionality is desired
     scheduleFetch: function() {
         var ns = this.defaults;
         var self = this;
 
-        // double safety to prevent a pile up of setTimeouts
-        // in addition to the check for undefined xhr data
+        // to prevent a pile up of setTimeouts
         if (ns.scheduleTimeout !== undefined) {
             clearTimeout(ns.scheduleTimeout);
         }
 
         ns.scheduleTimeout = setTimeout(function() {
-            // self.collection.setXhr();
 
-            // ***** start patch
-
-            console.log('would be fetching');
-            self.update();
-            // ***** end patch
+            self.collection.fetch({
+                remove: false
+            });
 
         }, ns.animation.delay * 1000);
 
@@ -540,7 +382,7 @@ var EventTimelineView = Backbone.View.extend({
             'style="opacity: 0.0"></i>' +
             '</h3>' +
             '</div>' +
-            '<div class="panel-body" style="height:' + (ns.h.swim * 2) + 'px">' +
+            '<div class="panel-body" style="height:' + (ns.h.padding * 2) + 'px">' +
             '<div id="event-filterer" class="btn-group pull-left" data-toggle="buttons" align="center">' +
             '</div>' +
             '<div class="pull-right">Search:&nbsp; <input class="pull-right" id="goldstone-event-search"></input></div>' +
@@ -575,13 +417,13 @@ var EventTimelineView = Backbone.View.extend({
             '<div class="col-sm-9">' +
             '<div class="input-group">' +
             '<span class="input-group-addon">' +
-            '<input type="checkbox" class="eventAutoRefresh" checked>' +
+            '<input type="checkbox" class="eventAutoRefresh" unchecked>' +
             '</span>' +
             '<select class="form-control" id="eventAutoRefreshInterval">' +
-            '<option value="5" selected>5 seconds</option>' +
+            '<option value="5">5 seconds</option>' +
             '<option value="15">15 seconds</option>' +
             '<option value="30">30 seconds</option>' +
-            '<option value="60">1 minute</option>' +
+            '<option value="60" selected>1 minute</option>' +
             '<option value="300">5 minutes</option>' +
             '</select>' +
             '</div>' +
