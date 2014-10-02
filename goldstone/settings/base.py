@@ -173,8 +173,8 @@ CELERY_QUEUES = (
 CELERY_ROUTES = {
     'goldstone.apps.logging.tasks.process_host_stream': {
         'queue': 'host_stream'},
-    'goldstone.apps.logging.tasks.process_amqp_stream': {
-        'queue': 'amqp_stream'},
+    'goldstone.apps.logging.tasks.process_event_stream': {
+        'queue': 'event_stream'},
 }
 
 from celery.schedules import crontab
@@ -267,9 +267,8 @@ REST_FRAMEWORK = {
 LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES = 15
 
 # Goldstone config settings
-DEFAULT_LOOKBACK_DAYS = 30
-DEFAULT_CHART_BUCKETS = 80
-DEFAULT_PRESENCE_LOOKBACK_HOURS = 1
+DEFAULT_LOOKBACK_DAYS = 7
+DEFAULT_CHART_BUCKETS = 7*24
 
 OS_USERNAME = 'admin'
 OS_PASSWORD = ''

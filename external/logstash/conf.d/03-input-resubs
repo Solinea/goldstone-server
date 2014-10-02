@@ -14,20 +14,12 @@
 #
 # Author: John Stanford
 
-filter {
-
-    if ("openstack_syslog" in [tags]) {
-    	grok {
-            patterns_dir => "/opt/logstash/patterns"
-            match => { "message" => "%{OPENSTACK_AMQP_MESSAGE}" }
-        }
-        if ("_grokparsefailure" not in [tags]) {
-            clone {
-                clones => ["amqp_stream"]
-            }
-            mutate {
-                add_tag => ["filter_39"]
-            }
-        }
+#
+# accepts TCP from an alternate syslog port
+#
+input {
+    tcp {
+        codec => json_lines
+        port => 5515
     }
 }

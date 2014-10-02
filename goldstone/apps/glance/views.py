@@ -18,7 +18,7 @@ from goldstone.utils import _get_region_for_glance_client, _get_client, \
 __author__ = 'John Stanford'
 
 from goldstone.views import *
-from .models import ApiPerfData, ImagesData, HostData
+from .models import ApiPerfData, ImagesData
 import logging
 
 logger = logging.getLogger(__name__)

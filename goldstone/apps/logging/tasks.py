@@ -16,6 +16,7 @@ from __future__ import absolute_import
 import pytz
 import subprocess
 from rest_framework.renderers import JSONRenderer
+from goldstone.apps.logging.models import LoggingEvent, LoggingNode
 
 __author__ = 'John Stanford'
 
@@ -24,6 +25,7 @@ from goldstone.celery import app as celery_app
 import logging
 from goldstone.apps.core.models import *
 from datetime import datetime
+import arrow
 
 
 logger = logging.getLogger(__name__)
@@ -32,10 +34,8 @@ logger = logging.getLogger(__name__)
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
 def process_host_stream(self, host, timestamp):
     """
-    This task reads a list of host names  out of the incoming message on the
-    host_stream queue, gets the current state stored in redis, updates the
-    information updates redis with the new result.  It also facilitates getting
-    the result to ES periodically.
+    This task reads a list of host names out of the incoming message on the
+    host_stream queue, and creates or updates an associated node in the model.
     :return: None
     """
     node, created = Node.objects.get_or_create(name=host)
@@ -46,16 +46,61 @@ def process_host_stream(self, host, timestamp):
 
 
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
-def process_amqp_stream(self, timestamp, host, message):
+def process_event_stream(self, timestamp, host, event_type, message):
     """
-    This task handles AMQP status events coming from the log stream.
+    This task handles events coming from the log stream.  Specific handling
+    can be implemented based on the event type.  Currently know event types
+    are "AMQPDownError" and "GenericSyslogError".
     :return: None
     """
-    logger.debug("[process_amqp_stream] got an event with timestamp=%s, "
-                 "host=%s, message=%s", timestamp, host, message)
-    #node, created = LoggingNode.objects.get_or_create(name=host)
-    #if not node.disabled:
-    #    node.save()
+    logger.debug("[process_event_stream] got an event with timestamp=%s, "
+                 "host=%s, event_type=%s, message=%s",
+                 timestamp, host, event_type, message)
+
+    if event_type == "GenericSyslogError":
+        process_log_error_event(timestamp, host, message)
+    elif event_type == "AMQPDownError":
+        process_amqp_down_event(timestamp, host, message)
+    else:
+        logger.warning("[process_event_stream] don't know how to handle event"
+                       "of type %s", event_type)
+
+
+def _create_event(timestamp, host, message, event_type):
+    logger.debug("[_create_event] got a log error event with "
+                 "timestamp=%s, host=%s message=%s, event_type=%s",
+                 timestamp, host, message, event_type)
+
+    dt = arrow.get(timestamp).datetime
+    event = LoggingEvent(event_type=event_type, created=dt, message=message)
+    event.save()
+    try:
+        node = LoggingNode.objects.get(name=host)
+        node.add_event_rel(event, "source")
+        node.add_event_rel(event, "affects")
+        return event
+    except LoggingNode.DoesNotExist:
+        logger.warning("[process_log_error_event] could not find logging node "
+                       "with name=%s.  event will have not relations.", host)
+        return event
+    except:
+        raise
+
+
+def process_log_error_event(timestamp, host, message):
+    logger.debug("[process_log_error_event] got a log error event with "
+                 "host=%s message=%s",
+                 timestamp, host, message)
+
+    return _create_event(timestamp, host, message, "Syslog Error")
+
+
+def process_amqp_down_event(timestamp, host, message):
+    logger.debug("[process_amqp_down_event] got an AMQP down event with "
+                 "timestamp=%s, host=%s, event_type=%s, message=%s",
+                 timestamp, host, message)
+
+    return _create_event(timestamp, host, message, "AMQP Down")
 
 
 @celery_app.task(bind=True)
@@ -90,13 +135,3 @@ def check_host_avail(self, offset=settings.HOST_AVAILABLE_PING_THRESHOLD):
         ping(node)
 
     return to_ping
-
-
-@celery_app.task(bind=True)
-def create_event(self, event):
-    """
-    send an event to
-    :param event:
-    :return:
-    """
-    pass

@@ -9,6 +9,7 @@ setsebool -P httpd_can_network_connect 1
 iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 80 -m comment --comment "httpd incoming" -j ACCEPT
 iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 9200 -m comment --comment "elastcisearch incoming" -j ACCEPT
 iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 5514 -m comment --comment "goldstone rsyslog incoming" -j ACCEPT
+iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 5515 -m comment --comment "goldstone event resubmission" -j ACCEPT
 service iptables save
 
 chkconfig --add redis
@@ -26,7 +27,8 @@ useradd -m goldstone
 #chown goldstone /opt/goldstone
 cd /opt/goldstone
 python manage.py shell --settings=goldstone.settings.production <<EOF
-from goldstone.apps.core.tasks import _create_daily_index 
+from goldstone.apps.core.tasks import _create_daily_index, _put_goldstone_template
+_put_goldstone_template()
 _create_daily_index()
 EOF
 
@@ -81,12 +83,12 @@ chkconfig celeryd-default on
 service celeryd-default restart
 
 ln -s /etc/init.d/celeryd-default /etc/init.d/celeryd-host-stream
-ln -s /etc/init.d/celeryd-default /etc/init.d/celeryd-amqp-stream
+ln -s /etc/init.d/celeryd-default /etc/init.d/celeryd-event-stream
 
 chkconfig --add celeryd-host-stream
 chkconfig celeryd-host-stream on
 service celeryd-host-stream restart
 
-chkconfig --add celeryd-amqp-stream
-chkconfig celeryd-amqp-stream on
-service celeryd-amqp-stream restart
+chkconfig --add celeryd-event-stream
+chkconfig celeryd-event-stream on
+service celeryd-event-stream restart
