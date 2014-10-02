@@ -48,7 +48,7 @@ First, enable the CentOS EPEL repositories and install some dependencies: ::
 
 After that, enable the goldstone repository: ::
 
-    # yum install -y http://repo.solinea.com/repo/goldstone_repos-1.1-1.noarch.rpm
+    # yum install -y http://repo.solinea.com/repo/goldstone_repos-1.2-1.noarch.rpm
 
 Finally, install the goldstone application: ::
 
