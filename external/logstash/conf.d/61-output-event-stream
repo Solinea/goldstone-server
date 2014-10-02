@@ -11,13 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# Author: John Stanford
 
-__author__ = 'John Stanford'
-
-from .views import *
-from rest_framework.routers import DefaultRouter
-
-router = DefaultRouter(trailing_slash=False)
-router.register(r'nodes', NodeViewSet, base_name='node')
-router.register(r'events', EventViewSet, base_name='event')
-urlpatterns = router.urls
+output {
+    if [type] == "event_stream" {
+        # stdout { codec => rubydebug }
+        celery_redis_task {
+            name => "event_stream"
+            redis_host => ["127.0.0.1"]
+            key => "event_stream"
+            celery_task => "goldstone.apps.logging.tasks.process_event_stream"
+            celery_routing_key => "event_stream.#"
+            celery_task_args => ["@timestamp", "host", "event_type", "log_message"]
+        }
+    }
+}

@@ -26,7 +26,7 @@ OPENSTACK_PID ( %{POSINT:pid:int})?
 
 OPENSTACK_LOGLEVEL ([D|d]ebug|DEBUG|[N|n]otice|NOTICE|[I|i]nfo|INFO|[W|w]arn?(?:ing)?|WARN?(?:ING)?|[E|e]rr?(?:or)?|ERR?(?:OR)?|[C|c]rit?(?:ical)?|CRIT?(?:ICAL)?|[F|f]atal|FATAL|[S|s]evere|SEVERE|[A|a]udit|AUDIT)
 
-OPENSTACK_NORMAL %{TIMESTAMP_ISO8601:timestamp}%{OPENSTACK_PID} %{OPENSTACK_LOGLEVEL:loglevel} %{OPENSTACK_SOURCE:program} %{OPENSTACK_REQ_LIST:request_id_list} %{GREEDYDATA:msg}
+OPENSTACK_NORMAL %{TIMESTAMP_ISO8601:timestamp}%{OPENSTACK_PID} %{OPENSTACK_LOGLEVEL:loglevel} %{OPENSTACK_SOURCE:program} %{OPENSTACK_REQ_LIST:request_id_list} %{GREEDYDATA:openstack_message}
 
 
 RAW_TRACE (?:^[^0-9].*$|^$)
@@ -47,7 +47,7 @@ SYSLOG5424PRINUM (?:\<%{NONNEGINT:syslog5424_pri}\>)
 MY_SYSLOG_TIMESTAMP %{SYSLOGTIMESTAMP}|%{TIMESTAMP_ISO8601}
 
 OPENSTACK_SYSLOGLINE %{SYSLOG5424PRINUM}%{MY_SYSLOG_TIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} %{OPENSTACK_MESSAGE:os_message}
-GENERIC_SYSLOGLINE %{SYSLOG5424PRINUM}%{MY_SYSLOG_TIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} %{GREEDYDATA:msg}
+GENERIC_SYSLOGLINE %{SYSLOG5424PRINUM}%{MY_SYSLOG_TIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} %{GREEDYDATA:log_message}
 
 NOVA_INSTANCE (?:\[instance: %{UUID:instance_id}\])
 CLAIM_RSRC_PHYS (?:Total %{WORD:resource}: %{NUMBER:total:float} %{WORD}, used: %{NUMBER:used:float} %{WORD})
@@ -60,9 +60,9 @@ NOVA_CLAIMS_SUMMARY_VIRT %{NOVA_INSTANCE} %{CLAIM_RSRC_VIRT}
 NOVA_SPAWN_START %{NOVA_INSTANCE} (?:Creating image)
 NOVA_SPAWN_SUCCESS %{NOVA_INSTANCE} (?:Instance spawned successfully.)
 NOVA_SPAWN_ABORT %{NOVA_INSTANCE} (?:aborted: Instance was deleted during spawn.)
-NOVA_SPAWN_FAIL %{NOVA_INSTANCE} (?:Setting instance to ERROR state.)
+NOVA_SPAWN_FAIL %{NOVA_INSTANCE} (?:Setting instance to ERROR state.|Instance failed to spawn)
 
-NOVA_API_CALL %{IP:ip} "(?:GET|PUT|POST|DELETE) %{URIPATH:uri} %{NOTSPACE:protocol}" status: %{NUMBER:response_status:int} len: %{NUMBER:response_length:int} time: %{NUMBER:response_time:float}
+NOVA_API_CALL %{URIHOST:ip} [\\]?"GET %{URIPATHPARAM:uri} HTTP/%{NOTSPACE:protocol}[\\]?" status: %{NUMBER:response_status:int} len: %{NUMBER:response_length:int} time: %{NUMBER:response_time:float}
 
 OPENSTACK_AMQP_FAIL (?:Unable to connect to AMQP server)%{GREEDYDATA}|(?:AMQP server on %{IP}:%{POSINT} is unreachable)%{GREEDYDATA}
 OPENSTACK_AMQP_OK (?:Connected to AMQP server)%{GREEDYDATA}

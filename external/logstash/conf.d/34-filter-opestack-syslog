@@ -15,33 +15,13 @@
 # Author: John Stanford
 #
 
-#
-# categorize openstack syslog messages
-# the openstack specific fields will be in os_message
-# for further processing.  
-#
 filter {
-    if ([type] == "syslog" or [type] == "debug") {
+    if ([type] == "syslog") {
         grok { 
             patterns_dir => "/opt/logstash/patterns"
-            match => { "message" => "%{OPENSTACK_SYSLOGLINE}" }
-            add_field => { "received_at" => "%{@timestamp}" }
-            add_field => { "_message" => "%{syslog5424_host} %{message}" }
+            match => { "log_message" => "%{OPENSTACK_MESSAGE}" }
         }
         if ("_grokparsefailure" not in [tags]) {
-            clone {
-                clones => ["host_stream"]
-                    remove_field => ["@message", "@tags", "@fields"]
-            }
-            syslog_pri {
-                severity_labels => ["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"]
-                syslog_pri_field_name => "syslog5424_pri"
-            }
-            date {
-                match => [ "timestamp", "yyyy-MM-dd HH:mm:ss.SSS" ]
-                remove_field => "timestamp"
-                timezone => "Etc/UTC"
-            }
             translate {
                 field => "syslog_facility"
                 dictionary => [ 
@@ -57,14 +37,26 @@ filter {
                 destination => "component"
             }
             mutate {
-                rename => [ "msg", "message" ]
                 rename => [ "syslog5424_host", "host" ]
-                remove_field => "syslog_ts"
-                remove_field => "syslog5424_pri"
-                remove_field => "os_message"
-                add_tag => ["processed", "openstack_syslog", "filter_34"]
+                add_tag => ["openstack_syslog", "filter_34_pass"]
+            }
+
+            # the unrelated cloning is to work around https://logstash.jira.com/browse/LOGSTASH-2018
+            # if it happened earlier, this filter would end up processing each of the clones regardless
+            # of their type.
+            clone {
+                clones => ["host_stream", "event_stream", "nova_claims_resub", "nova_spawns_resub", "api_stats_resub"]
+            }
+        } else {
+            mutate {
+                add_tag => ["filter_34_fail"]
+            }
+            # the unrelated cloning is to work around https://logstash.jira.com/browse/LOGSTASH-2018
+            # if it happened earlier, this filter would end up processing each of the clones regardless
+            # of their type.
+            clone {
+                clones => ["host_stream", "event_stream"]
             }
         }
     }
 }
-

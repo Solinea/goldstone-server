@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from rest_framework import serializers
-from .models import Node
+from .models import Node, Event
 
 
 class NodeSerializer(serializers.ModelSerializer):
@@ -27,5 +27,13 @@ class NodeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Node
+        lookup_field = 'uuid'
+        exclude = ['id']
+
+
+class EventSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Event
         lookup_field = 'uuid'
         exclude = ['id']
