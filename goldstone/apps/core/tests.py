@@ -73,12 +73,13 @@ class TaskTests(SimpleTestCase):
         self.assertEqual(tasks.manage_es_indices(), (True, True, True))
 
 
-class ModelTests(SimpleTestCase):
+class EntityTests(SimpleTestCase):
 
     def setUp(self):
 
         Entity.objects.get_or_create(name="entity 1")
         Entity.objects.get_or_create(name="entity 2")
+        Entity.objects.get_or_create(name="entity 3")
 
         Project.objects.get_or_create(name="project 1")
         Project.objects.get_or_create(name="project 2")
@@ -92,6 +93,10 @@ class ModelTests(SimpleTestCase):
 
         Service.objects.get_or_create(name="service 1")
         Service.objects.get_or_create(name="service 2")
+
+        Event.objects.get_or_create(event_type="type 1")
+        Event.objects.get_or_create(event_type="type 2")
+        Event.objects.get_or_create(event_type="type 3")
 
     def tearDown(self):
         # When using Entity.objects.all().delete(), we have a strange situation
@@ -108,28 +113,97 @@ class ModelTests(SimpleTestCase):
             obj.delete()
         for obj in Service.objects.iterator():
             obj.delete()
+        for obj in Event.objects.iterator():
+            obj.delete()
 
     def test_entity_relation(self):
-        e1 = Entity.objects.get(name="entity 1")
-        e2 = Entity.objects.get(name="entity 2")
-        e1.add_relationship(e2, "has")
+        entity1 = Entity.objects.get(name="entity 1")
+        entity2 = Entity.objects.get(name="entity 2")
+        entity3 = Entity.objects.get(name="entity 3")
+        event1 = Event.objects.get(event_type="type 1")
+        event2 = Event.objects.get(event_type="type 2")
 
-        e1_rels = e1.get_relationships("has")
-        self.assertEqual(e1_rels.count(), 1)
-        self.assertEqual(e1_rels[0], e2)
+        # add relationships to entity and event
+        result = entity1.add_entity_rel(entity2, "has")
+        self.assertIsInstance(result, Entity2EntityRel)
+        result = entity1.add_entity_rel(entity3, "has")
+        self.assertIsInstance(result, Entity2EntityRel)
+        result = entity1.add_event_rel(event1, "saw")
+        self.assertIsInstance(result, Entity2EventRel)
+        result = entity1.add_event_rel(event2, "saw")
+        self.assertIsInstance(result, Entity2EventRel)
 
-        e1_rel_tos = e1.get_related_to("has")
-        self.assertEqual(e1_rel_tos.count(), 0)
+        # get forward relationships
+        entity_rels = entity1.get_entity_rels("has")
+        self.assertEqual(entity_rels.count(), 2)
+        self.assertIsInstance(entity_rels[0], Entity)
+        self.assertIsInstance(entity_rels[1], Entity)
+        self.assertIn(entity2, entity_rels)
+        self.assertIn(entity3, entity_rels)
 
-        e2_rel_tos = e2.get_related_to("has")
-        self.assertEqual(e2_rel_tos.count(), 1)
-        self.assertEqual(e2_rel_tos[0], e1)
+        # get backward relationships
+        related_entities = entity2.get_related_entities("has")
+        self.assertEqual(related_entities.count(), 1)
+        self.assertIn(entity1, related_entities)
+        entity3.add_entity_rel(entity2, "has")
+        related_entities = entity2.get_related_entities("has")
+        self.assertEqual(related_entities.count(), 2)
+        self.assertIn(entity1, related_entities)
+        self.assertIn(entity3, related_entities)
 
-        e1.remove_relationship(e2, "has")
+        # get forward event relationships
+        event_rels = entity1.get_event_rels("saw")
+        self.assertEqual(event_rels.count(), 2)
+        self.assertIsInstance(event_rels[0], Event)
+        self.assertIsInstance(event_rels[1], Event)
+        self.assertIn(event1, event_rels)
+        self.assertIn(event2, event_rels)
+
+        # get backward event relationships
+        # related_entities = event1.get_related_events("saw")
+        # self.asssertEqual("", related_entities)
+        # self.assertEqual(related_entities.count(), 2)
+        # self.assertIn(event1, related_entities)
+        # self.assertIn(event2, related_entities)
+
+        # delete a related object and make sure relation is cleaned up
+        entity3.remove_entity_rel(entity2, "has")
+        entity1_rels = entity1.get_entity_rels("has")
+        self.assertIn(entity2, entity1_rels)
+
+        entity2.add_entity_rel(entity3, "has")
+        entity3_related = entity3.get_related_entities("has")
+        self.assertIn(entity2, entity3_related)
+
+        Entity.objects.get(uuid=entity2.uuid).delete()
+        entity1_rels = entity1.get_entity_rels("has")
+        self.assertNotIn(entity2, entity1_rels)
+
+        entity3_related = entity3.get_related_entities("has")
+        self.assertNotIn(entity2, entity3_related)
+
+        entity1_event_rels = entity1.get_event_rels("saw")
+        self.assertIn(event1, entity1_event_rels)
+        Event.objects.get(uuid=event1.uuid).delete()
+        entity1_event_rels = entity1.get_event_rels("saw")
+        self.assertNotIn(event1, entity1_event_rels)
+
+        # delete relationships
+        entity1_rels = entity1.get_entity_rels("has")
+        self.assertIn(entity3, entity1_rels)
+        entity1.remove_entity_rel(entity3, "has")
+        entity1_rels = entity1.get_entity_rels("has")
+        self.assertNotIn(entity3, entity1_rels)
+
+        entity1_event_rels = entity1.get_event_rels("saw")
+        self.assertIn(event2, entity1_event_rels)
+        entity1.remove_event_rel(event2, "saw")
+        entity1_event_rels = entity1.get_event_rels("saw")
+        self.assertNotIn(event2, entity1_event_rels)
 
     def test_polymorphism(self):
         entities = Entity.objects.all()
-        self.assertEqual(entities.count(), 10)
+        self.assertEqual(entities.count(), 11)
 
         projects = Project.objects.all()
         self.assertEqual(projects.count(), 2)
@@ -142,6 +216,9 @@ class ModelTests(SimpleTestCase):
 
         nodes = Node.objects.all()
         self.assertEqual(nodes.count(), 2)
+
+        events = Event.objects.all()
+        self.assertEqual(events.count(), 3)
 
     def test_unicode(self):
         e1 = Entity.objects.get(name="entity 1")
@@ -165,6 +242,85 @@ class ModelTests(SimpleTestCase):
         u = r2.__unicode__()
         self.assertIn('last_seen', json.loads(u))
         self.assertNotEqual(u'', json.loads(u)['last_seen'])
+
+
+class EventTests(SimpleTestCase):
+
+    def setUp(self):
+
+        Entity.objects.get_or_create(name="entity 1")
+        Entity.objects.get_or_create(name="entity 2")
+        Node.objects.get_or_create(name="node 1")
+
+        Event.objects.get_or_create(event_type="type 1", message="message 1")
+        Event.objects.get_or_create(event_type="type 2", message="message 2")
+        Event.objects.get_or_create(event_type="type 3", message="message 3")
+
+    def tearDown(self):
+
+        for obj in Entity.objects.iterator():
+            obj.delete()
+
+        for obj in Node.objects.iterator():
+            obj.delete()
+
+        for obj in Event.objects.iterator():
+            obj.delete()
+
+    def test_entity_relation(self):
+        event1 = Event.objects.get(event_type="type 1")
+        event2 = Event.objects.get(event_type="type 2")
+        event3 = Event.objects.get(event_type="type 3")
+        entity1 = Entity.objects.get(name="entity 1")
+        entity2 = Entity.objects.get(name="entity 2")
+        node1 = Node.objects.get(name="node 1")
+
+        # create event to event relation
+        r1 = event1.add_event_rel(event2, "related_event")
+        r2 = event1.add_event_rel(event3, "related_event")
+        r3 = event3.add_event_rel(event2, "related_event")
+        self.assertIsInstance(r1, Event2EventRel)
+        self.assertIsInstance(r2, Event2EventRel)
+        self.assertIsInstance(r3, Event2EventRel)
+
+        # created entity to event relation
+        r1 = entity1.add_event_rel(event1, "saw")
+        r2 = entity2.add_event_rel(event1, "saw")
+        self.assertIsInstance(r1, Entity2EventRel)
+        self.assertIsInstance(r2, Entity2EventRel)
+
+        # get forward event 2 event relationships
+        event1_event_rels = event1.get_event_rels("related_event")
+        self.assertIn(event2, event1_event_rels)
+        self.assertIn(event3, event1_event_rels)
+        event3_event_rels = event3.get_event_rels("related_event")
+        self.assertIn(event2, event3_event_rels)
+
+        # get backward event 2 event relationships
+        event2_related_events = event2.get_related_events("related_event")
+        self.assertIn(event1, event2_related_events)
+        self.assertIn(event3, event2_related_events)
+
+        # get event 2 entity relationships
+        event1_event_rels = event1.get_entity_rels("saw")
+        self.assertIn(entity1, event1_event_rels)
+        self.assertIn(entity2, event1_event_rels)
+
+        # delete a related object and make sure relation is cleaned up
+        event3.remove_event_rel(event2, "related_event")
+        event1_event_rels = event1.get_event_rels("related_event")
+        self.assertIn(event2, event1_event_rels)
+
+        event2.add_event_rel(event3, "related_event")
+        event3_related_events = event3.get_related_events("related_event")
+        self.assertIn(event2, event3_related_events)
+
+        Event.objects.get(uuid=event2.uuid).delete()
+        event1_event_rels = event1.get_event_rels("related_event")
+        self.assertNotIn(event2, event1_event_rels)
+
+        event3_related_events = event3.get_related_events("related_event")
+        self.assertNotIn(event2, event3_related_events)
 
 
 class NodeSerializerTests(SimpleTestCase):
