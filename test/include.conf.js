@@ -14,8 +14,9 @@ module.exports = [
     'goldstone/client/js/lib/glance.js',
     'goldstone/client/js/lib/cinder.js',
     'goldstone/client/js/lib/api_perf.js',
+    'goldstone/client/js/lib/discover.js',
 
-    'goldstone/client/js/models/apiPerfModel.js',
-    'goldstone/client/js/collections/apiPerfCollection.js',
-    'goldstone/client/js/views/apiPerfView.js'
+    'goldstone/client/js/models/*.js',
+    'goldstone/client/js/collections/*.js',
+    'goldstone/client/js/views/*.js'
 ];

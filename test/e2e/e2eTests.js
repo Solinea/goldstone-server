@@ -1,6 +1,6 @@
 // e2e tests
 
-casper.test.begin('Homepage is loading properly', 12, function suite(test) {
+casper.test.begin('Homepage is loading properly', 15, function suite(test) {
     casper.start('http://localhost:8000/', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -11,15 +11,20 @@ casper.test.begin('Homepage is loading properly', 12, function suite(test) {
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
 
+        // Event timeline graph loads
+        test.assertExists('div#goldstone-discover-r1-c1', 'Event Timeline Section should load');
+        test.assertExists('div#goldstone-discover-r1-c1 svg', 'Event Timeline Section svg chart should load');
+        test.assertSelectorHasText('div #goldstone-discover-r1-c1', 'Event Timeline');
+
         // Cloud Topology graph loads
-        test.assertExists('div#goldstone-discover-r1-c1', 'Cloud Topology Section should load');
-        test.assertExists('div#goldstone-discover-r1-c1 svg', 'Cloud Topology Section svg chart should load');
-        test.assertSelectorHasText('div #goldstone-discover-r1-c1', 'Cloud Topology');
+        test.assertExists('div#goldstone-discover-r2-c1', 'Cloud Topology Section should load');
+        test.assertExists('div#goldstone-discover-r2-c1 svg', 'Cloud Topology Section svg chart should load');
+        test.assertSelectorHasText('div #goldstone-discover-r2-c1', 'Cloud Topology');
 
         // Node Availability graph loads
-        test.assertExists('div#goldstone-discover-r1-c2', 'Node Availability Section should load');
-        test.assertExists('div#goldstone-discover-r1-c2 svg', 'Node Availability svg chart should load');
-        test.assertSelectorHasText('div #goldstone-discover-r1-c2', 'Node Availability');
+        test.assertExists('div#goldstone-discover-r2-c2', 'Node Availability Section should load');
+        test.assertExists('div#goldstone-discover-r2-c2 svg', 'Node Availability svg chart should load');
+        test.assertSelectorHasText('div #goldstone-discover-r2-c2', 'Node Availability');
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
