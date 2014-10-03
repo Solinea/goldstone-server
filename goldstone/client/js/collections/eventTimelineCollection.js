@@ -3,19 +3,6 @@
 var EventTimelineCollection = Backbone.Collection.extend({
 
     parse: function(data) {
-
-        if (data.previous !== null) {
-
-            this.url = data.previous.slice(data.previous.indexOf('/logging')).trim();
-
-            // {remove:false} will aggregate
-            // successive calls instead of
-            // resetting the models each time
-            this.fetch({
-                remove: false
-            });
-        }
-
         return data.results;
     },
 
