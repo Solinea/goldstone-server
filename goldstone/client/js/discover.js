@@ -27,7 +27,7 @@ var renderCharts = function() {
     // instantiate event timeline chart
 
     var eventTimelineChart = new EventTimelineCollection({
-        url: "/logging/events?page_count=100&page=last"
+        url: "/core/events?page=last&page_size=20"
     });
 
     var eventTimelineChartView = new EventTimelineView({
