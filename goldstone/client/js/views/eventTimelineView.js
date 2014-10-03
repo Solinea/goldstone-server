@@ -177,10 +177,10 @@ var EventTimelineView = Backbone.View.extend({
         var updateSettings = function() {
             ns.animation.delay = self.refreshInterval();
             ns.animation.pause = !self.isRefreshSelected();
-            // leaving in place in case timer functionality is implemented
-            // if (!ns.animation.pause) {
-            //     self.scheduleFetch();
-            // }
+
+            if (!ns.animation.pause) {
+                self.scheduleFetch();
+            }
         };
         $("#eventSettingsUpdateButton-" + ns.location.slice(1)).click(updateSettings);
     },
@@ -341,13 +341,11 @@ var EventTimelineView = Backbone.View.extend({
 
         // Unpause the animation and rerun this function for the next frame
         ns.animation.pause = false;
-        // uncomment if timer functionality is desired.
-        // this.scheduleFetch();
+
+        this.scheduleFetch();
         return true;
     },
 
-    // leaving in place for now in case
-    // timer functionality is desired
     scheduleFetch: function() {
         var ns = this.defaults;
         var self = this;
@@ -385,7 +383,7 @@ var EventTimelineView = Backbone.View.extend({
             '<div class="panel-body" style="height:' + (ns.h.padding * 2) + 'px">' +
             '<div id="event-filterer" class="btn-group pull-left" data-toggle="buttons" align="center">' +
             '</div>' +
-            '<div class="pull-right">Search:&nbsp; <input class="pull-right" id="goldstone-event-search"></input></div>' +
+            // '<div class="pull-right">Search:&nbsp; <input class="pull-right" id="goldstone-event-search"></input></div>' +
             '</div>' +
             '<div class="panel-body" style="height:' + ns.h.main + 'px">' +
             '<div id="goldstone-event-chart">' +
@@ -417,13 +415,13 @@ var EventTimelineView = Backbone.View.extend({
             '<div class="col-sm-9">' +
             '<div class="input-group">' +
             '<span class="input-group-addon">' +
-            '<input type="checkbox" class="eventAutoRefresh" unchecked>' +
+            '<input type="checkbox" class="eventAutoRefresh" checked>' +
             '</span>' +
             '<select class="form-control" id="eventAutoRefreshInterval">' +
             '<option value="5">5 seconds</option>' +
             '<option value="15">15 seconds</option>' +
-            '<option value="30">30 seconds</option>' +
-            '<option value="60" selected>1 minute</option>' +
+            '<option value="30" selected>30 seconds</option>' +
+            '<option value="60">1 minute</option>' +
             '<option value="300">5 minutes</option>' +
             '</select>' +
             '</div>' +
