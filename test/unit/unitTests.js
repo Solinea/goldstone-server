@@ -9,20 +9,23 @@ describe('Testing ApiPerf Objects', function() {
                 expect(Backbone).to.be.an('object');
             });
         });
-        describe('the Model object', function() {
-            it('should exist', function() {
-                expect(ApiPerfModel).to.be.a('function');
-            });
+    });
+    describe('the Model objects', function() {
+        it('should exist', function() {
+            expect(ApiPerfModel).to.be.a('function');
+            expect(EventTimelineModel).to.be.a('function');
         });
-        describe('the Collection object', function() {
-            it('should exist', function() {
-                expect(ApiPerfCollection).to.be.a('function');
-            });
+    });
+    describe('the Collection objects', function() {
+        it('should exist', function() {
+            expect(ApiPerfCollection).to.be.a('function');
+            expect(EventTimelineCollection).to.be.a('function');
         });
-        describe('the View object', function() {
-            it('should exist', function() {
-                expect(ApiPerfView).to.be.a('function');
-            });
+    });
+    describe('the View objects', function() {
+        it('should exist', function() {
+            expect(ApiPerfView).to.be.a('function');
+            expect(EventTimelineView).to.be.a('function');
         });
     });
 
