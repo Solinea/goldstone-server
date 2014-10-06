@@ -233,7 +233,7 @@ var EventTimelineView = Backbone.View.extend({
             return evt.created;
         })));
 
-        ns.xScale = ns.xScale.domain([xStart._d, xEnd._d]);
+        ns.xScale = ns.xScale.domain([xEnd._d, xStart._d]);
 
         // If we didn't receive any valid files, abort and pause
         if (allthelogs.length === 0) {
