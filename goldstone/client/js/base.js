@@ -274,24 +274,34 @@ goldstone.time.autoSizeInterval = function(start, end, maxPoints) {
 goldstone.time.processTimeBasedChartParams = function(end, start, maxPoints) {
     "use strict";
 
-    var endDate = typeof end !== 'undefined' ?
-        goldstone.time.paramToDate(end) :
-        new Date();
-    var startDate = typeof start !== 'undefined' ?
-        goldstone.time.paramToDate(start) :
-        (function() {
-            var s = new Date(endDate);
-            // TODO devise a better way to handle the default start.  Should probably be a setting.
-            s.addWeeks(-1);
-            return s;
-        })();
+    var endDate;
+    var startDate;
+
+    if (end !== undefined) {
+        endDate = goldstone.time.paramToDate(end);
+    } else {
+        endDate = new Date();
+    }
+
+    if (start !== undefined){
+        startDate = goldstone.time.paramToDate(start);
+    } else {
+
+        var weekSubtractor = function(date){
+            var origTime = +new Date(date);
+            return new Date(origTime - 604800000);
+        };
+
+        startDate = weekSubtractor(endDate);
+    }
+
     var result = {
         'start': startDate,
         'end': endDate
     };
 
     if (typeof maxPoints !== 'undefined') {
-        result.interval = String(goldstone.time.autoSizeInterval(startDate, endDate, maxPoints)) + "s";
+        result.interval = (goldstone.time.autoSizeInterval(startDate, endDate, maxPoints));
     }
 
     return result;
