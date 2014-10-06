@@ -141,7 +141,7 @@ var EventTimelineView = Backbone.View.extend({
 
                 return d.event_type + " (click event line to persist popup info)<br>" +
                     "uuid: " + d.uuid + "<br>" +
-                    "Created: " + moment(d.created).fromNow() + "<br>" +
+                    "Created: " + d.created + "<br>" +
                     "Message: " + d.message.substr(0, 64) + "<br>";
             });
 
