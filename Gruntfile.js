@@ -77,10 +77,6 @@ module.exports = function(grunt) {
             e2eTests: {
                 files: ['test/e2e/*.js'],
                 tasks: 'lintAndTest'
-            },
-            simple: {
-                files: [clientIncludeOrder, 'test/unit/*.js', 'test/integration/*.js'],
-                tasks: 'simple'
             }
         }
 
@@ -91,6 +87,5 @@ module.exports = function(grunt) {
     grunt.registerTask('lint', ['jshint']);
     grunt.registerTask('test', ['karma:single', 'casperjs']);
     grunt.registerTask('lintAndTest', ['lint', 'test']);
-    grunt.registerTask('simple', ['jshint', 'karma', 'watch:simple']);
 
 };
