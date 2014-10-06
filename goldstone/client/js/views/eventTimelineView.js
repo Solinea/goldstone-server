@@ -82,9 +82,6 @@ var EventTimelineView = Backbone.View.extend({
             .tickFormat(d3.time.format("%H:%M:%S"));
         ns.xScale = d3.time.scale()
             .range([ns.margin.left, ns.w - ns.margin.right - 10]);
-        // .nice();
-        // .clamp(true);
-
 
         // The log-level buttons toggle the specific log level into the total count
 
@@ -111,10 +108,7 @@ var EventTimelineView = Backbone.View.extend({
             .on("click", function(d) {
                 ns.filter[d].active = !ns.filter[d].active;
                 self.redraw();
-            })
-            .append("input");
-        // .attr("type", "checkbox");
-
+            });
 
         /*
          * The graph and axes
@@ -147,7 +141,7 @@ var EventTimelineView = Backbone.View.extend({
 
                 return d.event_type + " (click event line to persist popup info)<br>" +
                     "uuid: " + d.uuid + "<br>" +
-                    "Created: " + moment(d.created).fromNow() + "<br>" +
+                    "Created: " + d.created + "<br>" +
                     "Message: " + d.message.substr(0, 64) + "<br>";
             });
 
@@ -155,22 +149,16 @@ var EventTimelineView = Backbone.View.extend({
 
     },
 
-    // keeping in place in case
-    // refresh functionality is implemented
     isRefreshSelected: function() {
         var ns = this.defaults;
         return $(ns.location).find(".eventAutoRefresh").prop("checked");
     },
 
-    // keeping in place in case
-    // refresh functionality is implemented
     refreshInterval: function() {
         var ns = this.defaults;
         return $(ns.location).find("select#eventAutoRefreshInterval").val();
     },
 
-    // keeping in place in case
-    // refresh functionality is implemented
     initSettingsForm: function() {
         var self = this;
         var ns = this.defaults;
@@ -245,7 +233,7 @@ var EventTimelineView = Backbone.View.extend({
             return evt.created;
         })));
 
-        ns.xScale = ns.xScale.domain([xStart._d, xEnd._d]);
+        ns.xScale = ns.xScale.domain([xEnd._d, xStart._d]);
 
         // If we didn't receive any valid files, abort and pause
         if (allthelogs.length === 0) {

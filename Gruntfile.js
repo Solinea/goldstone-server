@@ -77,7 +77,7 @@ module.exports = function(grunt) {
             e2eTests: {
                 files: ['test/e2e/*.js'],
                 tasks: 'lintAndTest'
-            },
+            }
         }
 
     });
