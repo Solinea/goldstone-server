@@ -108,8 +108,7 @@ var EventTimelineView = Backbone.View.extend({
             .on("click", function(d) {
                 ns.filter[d].active = !ns.filter[d].active;
                 self.redraw();
-            })
-            .append("input");
+            });
 
         /*
          * The graph and axes

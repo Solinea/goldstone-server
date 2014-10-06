@@ -132,10 +132,7 @@ var NodeAvailView = Backbone.View.extend({
             .on("click", function(d) {
                 ns.filter[d] = !ns.filter[d];
                 self.redraw();
-            })
-            // is this needed for any reason? if not, it could remove the need for the css fix to remove the input checkbox
-            .append("input")
-            .attr("type", "checkbox");
+            });
 
         /*
          * The graph and axes
