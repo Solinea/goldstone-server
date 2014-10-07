@@ -94,7 +94,6 @@ var NodeAvailView = Backbone.View.extend({
                 ns.ySwimLane("ping") + ns.ySwimLane.rangeBand()
             ]);
 
-        // can we just remove 'none'?
         ns.filter = {
             none: true,
             debug: true,
@@ -105,7 +104,6 @@ var NodeAvailView = Backbone.View.extend({
         };
 
         // The log-level buttons toggle the specific log level into the total count
-        // if removing 'none' above, then remove the filter to remove 'none' below:
         d3.select(ns.location).select("#event-filterer").selectAll("input")
         // keys works like Object.keys. Returns button titles defined in ns.filter
         .data(d3.keys(ns.filter).filter(function(k) {
@@ -150,7 +148,7 @@ var NodeAvailView = Backbone.View.extend({
         ns.swimlanes = {
             ping: {
                 label: "Ping Only",
-                offset: ns.ySwimLane.rangeBand() / 2 * -1
+                offset: -(ns.ySwimLane.rangeBand() / 2)
             },
             unadmin: {
                 label: "Disabled",
@@ -183,8 +181,10 @@ var NodeAvailView = Backbone.View.extend({
             .attr("class", "y axis invisible-axis")
             .attr("transform", "translate(" + ns.mw + ",0)");
 
+        // nudges visible y-axis to the right
         ns.graph.append("g")
-            .attr("class", "swim axis invisible-axis");
+            .attr("class", "swim axis invisible-axis")
+            .attr("transform", "translate(20,0)");
 
         ns.tooltip = d3.tip()
             .attr('class', 'd3-tip')
@@ -226,12 +226,16 @@ var NodeAvailView = Backbone.View.extend({
             .tickFormat(function(d) {
                 // Visual swim lanes
                 var swimlanes = {
-                        ping: "Ping Only",
-                        unadmin: "Disabled",
-                    },
-                    middle = ns.ySwimLane.domain()[Math.floor(ns.ySwimLane.domain().length / 2)];
+                    ping: "Ping Only",
+                    unadmin: "Disabled",
+                };
+                var middle = ns.ySwimLane.domain()[Math.floor(ns.ySwimLane.domain().length / 2)];
                 swimlanes[middle] = "Logs";
-                return swimlanes[d] ? swimlanes[d] : "";
+                if (swimlanes[d]) {
+                    return swimlanes[d];
+                } else {
+                    return "";
+                }
             });
 
         // Draw the axis on the screen
@@ -239,19 +243,10 @@ var NodeAvailView = Backbone.View.extend({
             .call(ns.swimAxis.scale(ns.ySwimLane));
 
         // Transform the swim lane ticks into place
+        // increases size of labels via font-size
         d3.select(ns.location).select(".swim.axis").selectAll("text")
-            .attr("transform", function(d, i) {
-                // The "unadmin" label needs to be nudged downwards
-                // The "logs" label needs to be nudged to the left
-                // The "ping" label needs to be nudged upwards
-                var nudge = ns.ySwimLane.rangeBand() / 2 * (d === "unadmin" ? 1 : d === "ping" ? -1 : -0.5);
-                // to remove rotation, remove the following 3 lines:
-                var l = ns.ySwimLane.domain().length;
-                var ret = "translate(0," + nudge + ")";
-                // Rotate the middle label, as it covers the widest swim lane
-                return ((i > 0 && i < l - 1) ? "rotate(" + (i === Math.floor(l / 2) ? -90 : 0) + ") " : "") + ret;
-            });
-
+            .style('font-size', '15px')
+            .style('font-weight', 'bold');
     },
 
     isRefreshSelected: function() {
@@ -300,7 +295,11 @@ var NodeAvailView = Backbone.View.extend({
         ns.graph.selectAll("circle")
             .transition().duration(500)
             .attr("class", function(d) {
-                return d.swimlane === "unadmin" ? d.swimlane : d.level;
+                if (d.swimlane === "unadmin") {
+                    return d.swimlane;
+                } else {
+                    return d.level;
+                }
             })
             .attr("cx", function(d) {
                 return ns.xScale(d.last_seen);
@@ -313,12 +312,26 @@ var NodeAvailView = Backbone.View.extend({
                 }[d.swimlane];
             })
             .attr("r", function(d) {
-                // Fixed radii for now.
-                return d.swimlane === "logs" ? ns.r(64) : ns.r(20);
+                // radii at fixed size for now.
+
+                if (d.swimlane === "logs") {
+                    return ns.r(64);
+                } else {
+                    return ns.r(20);
+                }
+
             })
             .style("opacity", function(d) {
-                return d.swimlane === "unadmin" ?
-                    0.8 : ns.filter[d.level] ? 0.5 : 1e-6;
+
+                if (d.swimlane === "unadmin") {
+                    return 0.8;
+                }
+                if (ns.filter[d.level]) {
+                    return 0.5;
+                } else {
+                    return 1e-6;
+                }
+
             });
 
     },
@@ -327,7 +340,13 @@ var NodeAvailView = Backbone.View.extend({
         var ns = this.defaults;
         // Return the sums for the filters that are on
         return d3.sum(ns.loglevel.domain().map(function(k) {
-            return ns.filter[k] ? datum[k + "_count"] : 0;
+
+            if (ns.filter[k]) {
+                return datum[k + "_count"];
+            } else {
+                return 0;
+            }
+
         }));
     },
 
@@ -387,15 +406,24 @@ var NodeAvailView = Backbone.View.extend({
                         return (l[1] > 0);
                     })
                     .reverse();
-                d.level = typeof(nonzero_levels[0]) === 'undefined' ? "none" : nonzero_levels[0][0];
 
+                if (nonzero_levels[0] === undefined) {
+                    d.level = "none";
+                } else {
+                    d.level = nonzero_levels[0][0];
+                }
 
                 /*
                  * Figure out which bucket (logs, ping, or admin disabled)
                  * each node belongs to.
                  */
-                d.swimlane = d.admin_disabled ?
-                    "unadmin" : d.last_seen_method.toLowerCase();
+
+                if (d.admin_disabled) {
+                    d.swimlane = "unadmin";
+                } else {
+                    d.swimlane = d.last_seen_method.toLowerCase();
+                }
+
                 return d;
             })
             .sort(function(a, b) {
