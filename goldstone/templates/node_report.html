@@ -26,16 +26,91 @@
 {% endblock %}
 
 {% block content %}
+
     <div id="node-report-r1" class="row">
         <div id="node-report-r1-c1" class="col-md-12">
             <h1>{{ node_uuid }}</h1>
         </div>
     </div>
+
+    <div id="node-report-r2" class="row">
+        <div id="node-report-r2-c1" class="col-md-12">
+
+            <div id="node-report-panel" class="panel panel-primary">
+
+                <div class="btn-group" style="margin-bottom: 5px;">
+                    <button type="button" class="btn btn-default btn-med">Services</button>
+                    <button type="button" class="btn btn-default btn-med">Configuration</button>
+                    <button type="button" class="btn btn-default btn-med">Events</button>
+                </div>
+
+
+                <div class="well">
+
+                    <div>
+
+                        <div id="agent-name">nova-compute</div>
+                        <div id="agent-name">ovs-agent</div>
+                        <div id="agent-name">neutron-agent</div>
+                        <div id="agent-name">nova-compute</div>
+                        <div id="agent-name">ovs-agent</div>
+                        <div id="agent-name">neutron-agent</div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="node-report-r3" class="row">
+        <div id="node-report-r3-c1" class="col-md-12">
+            <h1>Utilization</h1>
+        </div>
+
+        <div id="node-report-panel" class="panel panel-primary">
+            <div class="well col-md-4">
+            CPU Usage
+            </div>
+            <div class="well col-md-4">
+            Memory Usage
+            </div>
+            <div class="well col-md-4">
+            Network Usage
+            </div>
+        </div>
+
+    </div>
+
+    <div id="node-report-r4" class="row">
+        <div id="node-report-r4-c1" class="col-md-12">
+            <h1>Hypervisor</h1>
+        </div>
+
+        <div id="node-report-panel" class="panel panel-primary">
+            <div class="well col-md-2">
+            Cores
+            </div>
+            <div class="well col-md-2">
+            Memory
+            </div>
+            <div class="well col-md-8">
+            Per VM CPU Usage
+            </div>
+        </div>
+
+
+    </div>
+
+
+
+
+
 {% endblock %}
 
 {% block localjs %}
 <script>
-var node_uuid = "{{ node_uuid | escapejs }}"
-console.log("node_uuid = " + node_uuid)
+    var node_uuid = "{{ node_uuid | escapejs }}";
+    console.log("node_uuid = " + node_uuid);
 </script>
+
 {% endblock %}
