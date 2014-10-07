@@ -75,10 +75,10 @@ var NodeAvailView = Backbone.View.extend({
 
         ns.xScale = d3.time.scale()
             .range([ns.margin.left, ns.mw - ns.margin.right])
-            // rounding
-            .nice()
-            // values above or below domain will be constrained to range
-            .clamp(true);
+        // rounding
+        .nice()
+        // values above or below domain will be constrained to range
+        .clamp(true);
 
         ns.yAxis = d3.svg.axis().orient("left");
         ns.swimAxis = d3.svg.axis().orient("left");
@@ -107,12 +107,12 @@ var NodeAvailView = Backbone.View.extend({
         // The log-level buttons toggle the specific log level into the total count
         // if removing 'none' above, then remove the filter to remove 'none' below:
         d3.select(ns.location).select("#event-filterer").selectAll("input")
-            // keys works like Object.keys. Returns button titles defined in ns.filter
-            .data(d3.keys(ns.filter).filter(function(k) {
-                return k !== 'none';
-            }), function(d) {
-                return d;
-            })
+        // keys works like Object.keys. Returns button titles defined in ns.filter
+        .data(d3.keys(ns.filter).filter(function(k) {
+            return k !== 'none';
+        }), function(d) {
+            return d;
+        })
             .enter().append("div")
             .attr("class", "btn-group")
             .append("label")
@@ -150,7 +150,7 @@ var NodeAvailView = Backbone.View.extend({
         ns.swimlanes = {
             ping: {
                 label: "Ping Only",
-                offset: ns.ySwimLane.rangeBand() / 2 * -1
+                offset: -(ns.ySwimLane.rangeBand() / 2)
             },
             unadmin: {
                 label: "Disabled",
@@ -183,8 +183,10 @@ var NodeAvailView = Backbone.View.extend({
             .attr("class", "y axis invisible-axis")
             .attr("transform", "translate(" + ns.mw + ",0)");
 
+        // nudges visible y-axis to the right
         ns.graph.append("g")
-            .attr("class", "swim axis invisible-axis");
+            .attr("class", "swim axis invisible-axis")
+            .attr("transform", "translate(15,0)");
 
         ns.tooltip = d3.tip()
             .attr('class', 'd3-tip')
@@ -205,12 +207,16 @@ var NodeAvailView = Backbone.View.extend({
             .tickFormat(function(d) {
                 // Visual swim lanes
                 var swimlanes = {
-                        ping: "Ping Only",
-                        unadmin: "Disabled",
-                    },
-                    middle = ns.ySwimLane.domain()[Math.floor(ns.ySwimLane.domain().length / 2)];
+                    ping: "Ping Only",
+                    unadmin: "Disabled",
+                };
+                var middle = ns.ySwimLane.domain()[Math.floor(ns.ySwimLane.domain().length / 2)];
                 swimlanes[middle] = "Logs";
-                return swimlanes[d] ? swimlanes[d] : "";
+                if (swimlanes[d]) {
+                    return swimlanes[d];
+                } else {
+                    return "";
+                }
             });
 
         // Draw the axis on the screen
@@ -219,16 +225,18 @@ var NodeAvailView = Backbone.View.extend({
 
         // Transform the swim lane ticks into place
         d3.select(ns.location).select(".swim.axis").selectAll("text")
+            .style('font-size', '15px')
+            .style('align', 'right')
             .attr("transform", function(d, i) {
                 // The "unadmin" label needs to be nudged downwards
                 // The "logs" label needs to be nudged to the left
                 // The "ping" label needs to be nudged upwards
                 var nudge = ns.ySwimLane.rangeBand() / 2 * (d === "unadmin" ? 1 : d === "ping" ? -1 : -0.5);
-                // to remove rotation, remove the following 3 lines:
-                var l = ns.ySwimLane.domain().length;
+                /*// to remove rotation, remove the following 3 lines:
+                var len = ns.ySwimLane.domain().length;
                 var ret = "translate(0," + nudge + ")";
                 // Rotate the middle label, as it covers the widest swim lane
-                return ((i > 0 && i < l - 1) ? "rotate(" + (i === Math.floor(l / 2) ? -90 : 0) + ") " : "") + ret;
+                return ((i > 0 && i < len - 1) ? "rotate(" + (i === Math.floor(len / 2) ? -90 : 0) + ") " : "") + ret;*/
             });
 
     },
