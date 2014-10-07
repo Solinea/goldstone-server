@@ -75,10 +75,10 @@ var NodeAvailView = Backbone.View.extend({
 
         ns.xScale = d3.time.scale()
             .range([ns.margin.left, ns.mw - ns.margin.right])
-            // rounding
-            .nice()
-            // values above or below domain will be constrained to range
-            .clamp(true);
+        // rounding
+        .nice()
+        // values above or below domain will be constrained to range
+        .clamp(true);
 
         ns.yAxis = d3.svg.axis().orient("left");
         ns.swimAxis = d3.svg.axis().orient("left");
@@ -107,12 +107,12 @@ var NodeAvailView = Backbone.View.extend({
         // The log-level buttons toggle the specific log level into the total count
         // if removing 'none' above, then remove the filter to remove 'none' below:
         d3.select(ns.location).select("#event-filterer").selectAll("input")
-            // keys works like Object.keys. Returns button titles defined in ns.filter
-            .data(d3.keys(ns.filter).filter(function(k) {
-                return k !== 'none';
-            }), function(d) {
-                return d;
-            })
+        // keys works like Object.keys. Returns button titles defined in ns.filter
+        .data(d3.keys(ns.filter).filter(function(k) {
+            return k !== 'none';
+        }), function(d) {
+            return d;
+        })
             .enter().append("div")
             .attr("class", "btn-group")
             .append("label")
@@ -188,7 +188,31 @@ var NodeAvailView = Backbone.View.extend({
 
         ns.tooltip = d3.tip()
             .attr('class', 'd3-tip')
+            .direction(function(e) {
+                console.log('lsm',e.last_seen_method);
+                if (e.last_seen_method === 'PING') {
+                    return 's';
+                } else {
+                    return 'n';
+                }
+            })
+            .offset(function(){
+                var leftOffset;
+                // [top-offset, left-offset]
+                var halfToolWidth = 150;
+                var halfToolHeight = 65;
+                if (this.getBBox().x < halfToolWidth) {
+                    leftOffset = halfToolWidth - this.getBBox().x;
+                } else if (this.getBBox().x > ns.width - halfToolWidth) {
+                    leftOffset = -(halfToolWidth - (ns.width - this.getBBox().x));
+                } else {
+                    leftOffset = 0;
+                }
+                return [0, leftOffset];
+            })
             .html(function(d) {
+                console.log(ns.width, ns.h);
+                console.log(this.getBBox());
                 return d.name + "<br/>" +
                     "(" + d.uuid + ")" + "<br/>" +
                     "Errors: " + d.error_count + "<br/>" +
