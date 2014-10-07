@@ -191,6 +191,9 @@ var NodeAvailView = Backbone.View.extend({
             .direction(function(e) {
                 if (e.last_seen_method === 'PING') {
                     return 's';
+                }
+                if(this.getBBox().y < 130){
+                    return 's';
                 } else {
                     return 'n';
                 }
@@ -198,12 +201,12 @@ var NodeAvailView = Backbone.View.extend({
             .offset(function(){
                 var leftOffset;
                 // [top-offset, left-offset]
-                var halfToolWidth = 150;
+                var toolTipWidth = 292;
                 var halfToolHeight = 65;
-                if (this.getBBox().x < halfToolWidth) {
-                    leftOffset = halfToolWidth - this.getBBox().x;
-                } else if (this.getBBox().x > ns.width - halfToolWidth) {
-                    leftOffset = -(halfToolWidth - (ns.width - this.getBBox().x));
+                if (this.getBBox().x < toolTipWidth) {
+                    leftOffset = toolTipWidth - this.getBBox().x;
+                } else if (this.getBBox().x > ns.width - toolTipWidth) {
+                    leftOffset = -(toolTipWidth - (ns.width - this.getBBox().x));
                 } else {
                     leftOffset = 0;
                 }
