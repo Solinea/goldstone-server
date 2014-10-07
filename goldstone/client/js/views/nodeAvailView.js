@@ -189,7 +189,6 @@ var NodeAvailView = Backbone.View.extend({
         ns.tooltip = d3.tip()
             .attr('class', 'd3-tip')
             .direction(function(e) {
-                console.log('lsm',e.last_seen_method);
                 if (e.last_seen_method === 'PING') {
                     return 's';
                 } else {
@@ -211,8 +210,6 @@ var NodeAvailView = Backbone.View.extend({
                 return [0, leftOffset];
             })
             .html(function(d) {
-                console.log(ns.width, ns.h);
-                console.log(this.getBBox());
                 return d.name + "<br/>" +
                     "(" + d.uuid + ")" + "<br/>" +
                     "Errors: " + d.error_count + "<br/>" +
