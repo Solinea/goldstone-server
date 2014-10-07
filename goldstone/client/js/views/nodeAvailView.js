@@ -224,6 +224,7 @@ var NodeAvailView = Backbone.View.extend({
             .call(ns.swimAxis.scale(ns.ySwimLane));
 
         // Transform the swim lane ticks into place
+        // increases size of labels via font-size
         d3.select(ns.location).select(".swim.axis").selectAll("text")
             .style('font-size', '15px')
             .style('align', 'right')
@@ -232,11 +233,6 @@ var NodeAvailView = Backbone.View.extend({
                 // The "logs" label needs to be nudged to the left
                 // The "ping" label needs to be nudged upwards
                 var nudge = ns.ySwimLane.rangeBand() / 2 * (d === "unadmin" ? 1 : d === "ping" ? -1 : -0.5);
-                /*// to remove rotation, remove the following 3 lines:
-                var len = ns.ySwimLane.domain().length;
-                var ret = "translate(0," + nudge + ")";
-                // Rotate the middle label, as it covers the widest swim lane
-                return ((i > 0 && i < len - 1) ? "rotate(" + (i === Math.floor(len / 2) ? -90 : 0) + ") " : "") + ret;*/
             });
 
     },
