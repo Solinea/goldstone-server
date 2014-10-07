@@ -184,7 +184,7 @@ var NodeAvailView = Backbone.View.extend({
         // nudges visible y-axis to the right
         ns.graph.append("g")
             .attr("class", "swim axis invisible-axis")
-            .attr("transform", "translate(15,0)");
+            .attr("transform", "translate(20,0)");
 
         ns.tooltip = d3.tip()
             .attr('class', 'd3-tip')
@@ -224,7 +224,8 @@ var NodeAvailView = Backbone.View.extend({
         // Transform the swim lane ticks into place
         // increases size of labels via font-size
         d3.select(ns.location).select(".swim.axis").selectAll("text")
-            .style('font-size', '15px');
+            .style('font-size', '15px')
+            .style('font-weight', 'bold');
     },
 
     isRefreshSelected: function() {
