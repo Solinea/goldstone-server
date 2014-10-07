@@ -39,15 +39,16 @@
             <div id="node-report-panel" class="panel panel-primary">
 
                 <div class="btn-group" style="margin-bottom: 5px;">
-                    <button type="button" class="btn btn-default btn-med">Services</button>
+                    <button type="button" class="btn btn-default btn-med active">Services</button>
                     <button type="button" class="btn btn-default btn-med">Configuration</button>
                     <button type="button" class="btn btn-default btn-med">Events</button>
+
                 </div>
 
 
                 <div class="well">
 
-                    <div>
+                    <div id="servicesChart">
 
                         <div id="agent-name">nova-compute</div>
                         <div id="agent-name">ovs-agent</div>
@@ -68,13 +69,13 @@
         </div>
 
         <div id="node-report-panel" class="panel panel-primary">
-            <div class="well col-md-4">
+            <div class="well col-md-4" id="cpu-usage">
             CPU Usage
             </div>
-            <div class="well col-md-4">
+            <div class="well col-md-4" id="memory-usage">
             Memory Usage
             </div>
-            <div class="well col-md-4">
+            <div class="well col-md-4" id="network-usage">
             Network Usage
             </div>
         </div>
@@ -87,13 +88,13 @@
         </div>
 
         <div id="node-report-panel" class="panel panel-primary">
-            <div class="well col-md-2">
+            <div class="well col-md-2" id="cores-usage">
             Cores
             </div>
-            <div class="well col-md-2">
+            <div class="well col-md-2" id="memory-usage">
             Memory
             </div>
-            <div class="well col-md-8">
+            <div class="well col-md-8" id="vm-cpu-usage">
             Per VM CPU Usage
             </div>
         </div>
@@ -108,9 +109,52 @@
 {% endblock %}
 
 {% block localjs %}
+<script src="{% static 'js/goldstone.js' %}"></script>
+
+<script src="{% static 'js/models/serviceStatusModel.js' %}"></script>
+<script src="{% static 'js/collections/serviceStatusCollection.js' %}"></script>
+<script src="{% static 'js/views/serviceStatusView.js' %}"></script>
+
+<script src="{% static 'js/models/cpuUsageModel.js' %}"></script>
+<script src="{% static 'js/collections/cpuUsageCollection.js' %}"></script>
+<script src="{% static 'js/views/cpuUsageView.js' %}"></script>
+
+<script src="{% static 'js/models/memoryUsageModel.js' %}"></script>
+<script src="{% static 'js/collections/memoryUsageCollection.js' %}"></script>
+<script src="{% static 'js/views/memoryUsageView.js' %}"></script>
+
+<script src="{% static 'js/models/networkUsageModel.js' %}"></script>
+<script src="{% static 'js/collections/networkUsageCollection.js' %}"></script>
+<script src="{% static 'js/views/networkUsageView.js' %}"></script>
+
+<script src="{% static 'js/models/hypervisorCoreModel.js' %}"></script>
+<script src="{% static 'js/collections/hypervisorCoreCollection.js' %}"></script>
+<script src="{% static 'js/views/hypervisorCoreView.js' %}"></script>
+
+<script src="{% static 'js/models/hypervisorMemoryModel.js' %}"></script>
+<script src="{% static 'js/collections/hypervisorMemoryCollection.js' %}"></script>
+<script src="{% static 'js/views/hypervisorMemoryView.js' %}"></script>
+
+<script src="{% static 'js/models/hypervisorVmCpuModel.js' %}"></script>
+<script src="{% static 'js/collections/hypervisorVmCpuCollection.js' %}"></script>
+<script src="{% static 'js/views/hypervisorVmCpuView.js' %}"></script>
+
+<script src="{% static 'js/nodeReport.js' %}"></script>
+
 <script>
     var node_uuid = "{{ node_uuid | escapejs }}";
     console.log("node_uuid = " + node_uuid);
+
+    $(function(){
+        $("button").click(function(){
+            $("button.active").toggleClass("active");
+            $(this).toggleClass("active");
+        });
+    });
+
+    renderCharts();
+
+
 </script>
 
 {% endblock %}
