@@ -132,6 +132,19 @@ var EventTimelineView = Backbone.View.extend({
 
         ns.tooltip = d3.tip()
             .attr('class', 'd3-tip')
+            .offset(function() {
+                var leftOffset;
+                // [top-offset, left-offset]
+                var halfToolWidth = 250;
+                if (this.getBBox().x < halfToolWidth) {
+                    leftOffset = 250 - this.getBBox().x;
+                } else if (this.getBBox().x > ns.width - halfToolWidth) {
+                    leftOffset = -(ns.width - this.getBBox().x);
+                } else {
+                    leftOffset = 0;
+                }
+                return [-(ns.h.tooltipPadding / 2), leftOffset];
+            })
             .html(function(d) {
 
                 d.uuid = d.uuid || 'No uuid logged';
