@@ -135,11 +135,11 @@ var EventTimelineView = Backbone.View.extend({
             .offset(function() {
                 var leftOffset;
                 // [top-offset, left-offset]
-                var halfToolWidth = 250;
+                var halfToolWidth = 260;
                 if (this.getBBox().x < halfToolWidth) {
-                    leftOffset = 250 - this.getBBox().x;
+                    leftOffset = halfToolWidth - this.getBBox().x;
                 } else if (this.getBBox().x > ns.width - halfToolWidth) {
-                    leftOffset = -(ns.width - this.getBBox().x);
+                    leftOffset = -(halfToolWidth - (ns.width - this.getBBox().x));
                 } else {
                     leftOffset = 0;
                 }
