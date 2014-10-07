@@ -188,6 +188,30 @@ var NodeAvailView = Backbone.View.extend({
 
         ns.tooltip = d3.tip()
             .attr('class', 'd3-tip')
+            .direction(function(e) {
+                if (e.last_seen_method === 'PING') {
+                    return 's';
+                }
+                if(this.getBBox().y < 130){
+                    return 's';
+                } else {
+                    return 'n';
+                }
+            })
+            .offset(function(){
+                var leftOffset;
+                // [top-offset, left-offset]
+                var toolTipWidth = 292;
+                var halfToolHeight = 65;
+                if (this.getBBox().x < toolTipWidth) {
+                    leftOffset = toolTipWidth - this.getBBox().x;
+                } else if (this.getBBox().x > ns.width - toolTipWidth) {
+                    leftOffset = -(toolTipWidth - (ns.width - this.getBBox().x));
+                } else {
+                    leftOffset = 0;
+                }
+                return [0, leftOffset];
+            })
             .html(function(d) {
                 return d.name + "<br/>" +
                     "(" + d.uuid + ")" + "<br/>" +
