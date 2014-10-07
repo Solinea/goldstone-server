@@ -106,7 +106,9 @@ var NodeAvailView = Backbone.View.extend({
         // The log-level buttons toggle the specific log level into the total count
         d3.select(ns.location).select("#event-filterer").selectAll("input")
         // keys works like Object.keys. Returns button titles defined in ns.filter
-        .data(d3.keys(ns.filter), function(d) {
+        .data(d3.keys(ns.filter).filter(function(k) {
+            return k !== 'none';
+        }), function(d) {
             return d;
         })
             .enter().append("div")
@@ -222,8 +224,7 @@ var NodeAvailView = Backbone.View.extend({
         // Transform the swim lane ticks into place
         // increases size of labels via font-size
         d3.select(ns.location).select(".swim.axis").selectAll("text")
-            .style('font-size', '15px')
-            .style('align', 'right');
+            .style('font-size', '15px');
     },
 
     isRefreshSelected: function() {
