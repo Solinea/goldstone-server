@@ -25,6 +25,7 @@ output {
             port => 9200
             protocol => http
             index => "goldstone-%{+YYYY.MM.dd}"
+            workers => 4
         }
     }
 }
