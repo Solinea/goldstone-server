@@ -533,3 +533,7 @@ class JSONView(ContextMixin, View):
 
 class HelpView(TemplateView):
     template_name = 'help.html'
+
+
+class NodeReportView(TemplateView):
+    template_name = 'node_report.html'

@@ -14,7 +14,7 @@
 
 __author__ = 'John Stanford'
 
-from goldstone.views import DiscoverView, HelpView
+from goldstone.views import DiscoverView, HelpView, NodeReportView
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
@@ -33,6 +33,8 @@ urlpatterns = patterns(
     # TODO create the main discover page and remove redirect
     url(r'^discover[/]?$', DiscoverView.as_view(),
         name='goldstone-discover-view'),
+    url(r'^report/node/(?P<node_uuid>[^/]+)[/]?$', NodeReportView.as_view(),
+        name='goldstone-node-report-view'),
     url(r'^help[/]?$', HelpView.as_view()),
     url(r'^intelligence/', include('goldstone.apps.intelligence.urls')),
     url(r'^nova/', include('goldstone.apps.nova.urls')),
