@@ -5,7 +5,7 @@ output {
             codec => json_lines
             host => localhost
             port => 5515
-            workers => 4
+            workers => 8
         }
     }
 }
