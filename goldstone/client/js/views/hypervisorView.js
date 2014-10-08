@@ -1,4 +1,4 @@
-var CpuUsageView = Backbone.View.extend({
+var HypervisorView = Backbone.View.extend({
 
     defaults: {},
 

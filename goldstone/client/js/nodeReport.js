@@ -16,17 +16,6 @@
  * Author: John Stanford
  */
 
-/*
-data sets:
-CPU stats
-Mem stats
-Net stats
-Service status
-libvirt core/vm
-libvirt mem/vm
-libvirt top 10 CPU consumer VMs
-*/
-
 var renderCharts = function() {
 
     //----------------------------
@@ -36,7 +25,6 @@ var renderCharts = function() {
     //---------------------------
     // instantiate Service status chart
     var serviceStatusChart = new ServiceStatusCollection({
-        // url: "/report/node/test123"
         url: "/core/events?page_size=1"
     });
 
@@ -48,12 +36,11 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate CPU Usage chart
-    var cpuUsageChart = new CpuUsageCollection({
-        // url: "/report/node/test123"
+    var cpuUsageChart = new UtilizationCollection({
         url: "/core/events?page_size=1"
     });
 
-    var cpuUsageView = new CpuUsageView({
+    var cpuUsageView = new UtilizationView({
         collection: cpuUsageChart,
         location: '#node-report-r3 #node-report-panel #cpu-usage',
         width: $('#node-report-r3 #node-report-panel #cpu-usage').width()
@@ -61,14 +48,11 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate Memory Usage chart
-    var memoryUsageChart = new CpuUsageCollection({
-    // var memoryUsageChart = new MemoryUsageCollection({
-        // url: "/report/node/test123"
+    var memoryUsageChart = new UtilizationCollection({
         url: "/core/events?page_size=1"
     });
 
-    var memoryUsageView = new CpuUsageView({
-    // var memoryUsageView = new MemoryUsageView({
+    var memoryUsageView = new UtilizationView({
         collection: memoryUsageChart,
         location: '#node-report-r3 #node-report-panel #memory-usage',
         width: $('#node-report-r3 #node-report-panel #memory-usage').width()
@@ -76,14 +60,11 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate Network Usage chart
-    var networkUsageChart = new CpuUsageCollection({
-    // var networkUsageChart = new NetworkUsageCollection({
-        // url: "/report/node/test123"
+    var networkUsageChart = new UtilizationCollection({
         url: "/core/events?page_size=1"
     });
 
-    var networkUsageView = new CpuUsageView({
-    // var networkUsageView = new NetworkUsageView({
+    var networkUsageView = new UtilizationView({
         collection: networkUsageChart,
         location: '#node-report-r3 #node-report-panel #network-usage',
         width: $('#node-report-r3 #node-report-panel #network-usage').width()
@@ -91,12 +72,11 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate Libvirt core/vm chart
-    var hypervisorCoreChart = new HypervisorCoreCollection({
-        // url: "/report/node/test123"
+    var hypervisorCoreChart = new HypervisorCollection({
         url: "/core/events?page_size=1"
     });
 
-    var hypervisorCoreView = new HypervisorCoreView({
+    var hypervisorCoreView = new HypervisorView({
         collection: hypervisorCoreChart,
         location: '#node-report-r4 #node-report-panel #cores-usage',
         width: $('#node-report-r4 #node-report-panel #cores-usage').width()
@@ -104,13 +84,11 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate Libvirt mem/vm  chart
-    var hypervisorMemoryChart = new HypervisorCoreCollection({
-    // var hypervisorMemoryChart = new HypervisorMemoryCollection({
-        // url: "/report/node/test123"
+    var hypervisorMemoryChart = new HypervisorCollection({
         url: "/core/events?page_size=1"
     });
 
-    var hypervisorMemoryView = new HypervisorCoreView({
+    var hypervisorMemoryView = new HypervisorView({
         collection: hypervisorMemoryChart,
         location: '#node-report-r4 #node-report-panel #memory-usage',
         width: $('#node-report-r4 #node-report-panel #memory-usage').width()
@@ -119,7 +97,6 @@ var renderCharts = function() {
     //---------------------------
     // instantiate Libvirt top 10 CPU consumer VMs chart
     var hypervisorVmCpuChart = new HypervisorVmCpuCollection({
-        // url: "/report/node/test123"
         url: "/core/events?page_size=1"
     });
 

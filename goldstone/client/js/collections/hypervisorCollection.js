@@ -1,10 +1,10 @@
-var HypervisorCoreCollection = Backbone.Collection.extend({
+var HypervisorCollection = Backbone.Collection.extend({
 
     parse: function(data) {
         return this.dummy.results;
     },
 
-    model: HypervisorCoreModel,
+    model: HypervisorModel,
 
     initialize: function(options) {
         this.url = options.url;
