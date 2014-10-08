@@ -1,10 +1,10 @@
-var CpuUsageCollection = Backbone.Collection.extend({
+var UtilizationCollection = Backbone.Collection.extend({
 
     parse: function(data) {
         return this.dummy.results;
     },
 
-    model: CpuUsageModel,
+    model: UtilizationModel,
 
     initialize: function(options) {
         this.url = options.url;

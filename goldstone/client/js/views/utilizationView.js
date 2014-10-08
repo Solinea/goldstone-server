@@ -1,4 +1,4 @@
-var HypervisorCoreView = Backbone.View.extend({
+var UtilizationView = Backbone.View.extend({
 
     defaults: {},
 
