@@ -61,25 +61,29 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate Memory Usage chart
-    var memoryUsageChart = new MemoryUsageCollection({
+    var memoryUsageChart = new CpuUsageCollection({
+    // var memoryUsageChart = new MemoryUsageCollection({
         // url: "/report/node/test123"
         url: "/core/events?page_size=1"
     });
 
-    var memoryUsageView = new MemoryUsageView({
-        collection: cpuUsageChart,
+    var memoryUsageView = new CpuUsageView({
+    // var memoryUsageView = new MemoryUsageView({
+        collection: memoryUsageChart,
         location: '#node-report-r3 #node-report-panel #memory-usage',
         width: $('#node-report-r3 #node-report-panel #memory-usage').width()
     });
 
     //---------------------------
     // instantiate Network Usage chart
-    var networkUsageChart = new NetworkUsageCollection({
+    var networkUsageChart = new CpuUsageCollection({
+    // var networkUsageChart = new NetworkUsageCollection({
         // url: "/report/node/test123"
         url: "/core/events?page_size=1"
     });
 
-    var networkUsageView = new NetworkUsageView({
+    var networkUsageView = new CpuUsageView({
+    // var networkUsageView = new NetworkUsageView({
         collection: networkUsageChart,
         location: '#node-report-r3 #node-report-panel #network-usage',
         width: $('#node-report-r3 #node-report-panel #network-usage').width()
@@ -100,12 +104,13 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate Libvirt mem/vm  chart
-    var hypervisorMemoryChart = new HypervisorMemoryCollection({
+    var hypervisorMemoryChart = new HypervisorCoreCollection({
+    // var hypervisorMemoryChart = new HypervisorMemoryCollection({
         // url: "/report/node/test123"
         url: "/core/events?page_size=1"
     });
 
-    var hypervisorMemoryView = new HypervisorMemoryView({
+    var hypervisorMemoryView = new HypervisorCoreView({
         collection: hypervisorMemoryChart,
         location: '#node-report-r4 #node-report-panel #memory-usage',
         width: $('#node-report-r4 #node-report-panel #memory-usage').width()

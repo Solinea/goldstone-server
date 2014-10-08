@@ -9,6 +9,7 @@ var HypervisorMemoryCollection = Backbone.Collection.extend({
 
     initialize: function(options) {
         this.url = options.url;
-        this.fetch();
+        // this.fetch();
+        this.parse('hello, world!');
     }
 });
