@@ -123,8 +123,6 @@
 <script src="{% static 'js/nodeReport.js' %}"></script>
 
 <script>
-    var node_uuid = "{{ node_uuid | escapejs }}";
-    console.log("node_uuid = " + node_uuid);
 
     $(function(){
         $("button").click(function(){
