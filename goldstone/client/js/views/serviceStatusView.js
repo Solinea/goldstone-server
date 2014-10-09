@@ -16,7 +16,7 @@
  * Author: Alex Jacobs
  */
 
- var ServiceStatusView = Backbone.View.extend({
+var ServiceStatusView = Backbone.View.extend({
 
     defaults: {},
 
@@ -27,23 +27,49 @@
         this.defaults.location = options.location;
         this.defaults.width = options.width;
 
+        var ns = this.defaults;
+        var self = this;
+
+        // required in case spinner loading takes
+        // longer than chart loading
+        ns.spinnerDisplay = 'inline';
+
+        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
+            $(this).appendTo(ns.location).css({
+                'position': 'relative',
+                'margin-left': (ns.width / 2),
+                'display': ns.spinnerDisplay
+            });
+        });
+
         this.collection.on('sync', this.update, this);
     },
 
     update: function() {
+
+        var ns = this.defaults;
+        var self = this;
+
+        // sets css for spinner to hidden in case
+        // spinner callback resolves
+        // after chart data callback
+        ns.spinnerDisplay = 'none';
+        $(ns.location).find('#spinner').hide();
+
         var payload = this.collection.toJSON();
 
-        var classSelector = function(item){
-            if(item[0]){
+        var classSelector = function(item) {
+            if (item[0]) {
                 return 'alert alert-success';
             }
             return 'alert alert-danger';
         };
 
         _.each(payload, function(item, i) {
-            $(this.defaults.location).append( '<div class="col-xs-2 ' + classSelector(_.values(payload[i])) + '">'  + _.keys(payload[i]) + '</div>');
+            $(this.defaults.location).append('<div class="col-xs-2 ' + classSelector(_.values(payload[i])) + '">' + _.keys(payload[i]) + '</div>');
         }, this);
         $(this.defaults.location).append('&nbsp;');
+
     }
 
 

@@ -16,7 +16,7 @@
  * Author: Alex Jacobs
  */
 
- var UtilizationView = Backbone.View.extend({
+var UtilizationView = Backbone.View.extend({
 
     defaults: {
         margin: {
@@ -85,13 +85,17 @@
             .append("g")
             .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
 
-
+        // required in case spinner loading takes
+        // longer than chart loading
+        ns.spinnerDisplay = 'inline';
 
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(ns.location).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
-                'margin-top': -(ns.width / 2)
+                'margin-top': -(ns.width / 2),
+                'display': ns.spinnerDisplay
+
             });
         });
 
@@ -101,6 +105,11 @@
 
         var ns = this.defaults;
         var self = this;
+
+        // sets css for spinner to hidden in case
+        // spinner callback resolves
+        // after chart data callback
+        ns.spinnerDisplay = 'none';
         $(ns.location).find('#spinner').hide();
 
         var allTheLogs = this.collection.toJSON();
