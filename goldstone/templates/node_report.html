@@ -123,10 +123,9 @@
 <script src="{% static 'js/nodeReport.js' %}"></script>
 
 <script>
-    var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
     var node_uuid = "{{ node_uuid | escapejs }}";
-    console.log("node_uuid = " + node_uuid);
+    var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
     $(function(){
         $("button").click(function(){
