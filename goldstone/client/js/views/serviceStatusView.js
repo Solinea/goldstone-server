@@ -56,17 +56,22 @@ var ServiceStatusView = Backbone.View.extend({
         ns.spinnerDisplay = 'none';
         $(ns.location).find('#spinner').hide();
 
-        var payload = this.collection.toJSON();
+        var allTheLogs = this.collection.toJSON();
+
+        if (allTheLogs.length === 0) {
+            console.log('no data returned');
+            return;
+        }
 
         var classSelector = function(item) {
-            if (item[0]) {
+            if (item[0] === true) {
                 return 'alert alert-success';
             }
             return 'alert alert-danger';
         };
 
-        _.each(payload, function(item, i) {
-            $(this.defaults.location).append('<div class="col-xs-2 ' + classSelector(_.values(payload[i])) + '">' + _.keys(payload[i]) + '</div>');
+        _.each(allTheLogs, function(item, i) {
+            $(this.defaults.location).append('<div class="col-xs-2 ' + classSelector(_.values(allTheLogs[i])) + '">' + _.keys(allTheLogs[i]) + '</div>');
         }, this);
         $(this.defaults.location).append('&nbsp;');
 

@@ -42,7 +42,6 @@ var UtilizationView = Backbone.View.extend({
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.width - ns.margin.top - ns.margin.bottom;
 
-        ns.parseDate = d3.time.format("%y-%b-%d").parse;
         ns.formatPercent = d3.format(".0%");
 
         ns.x = d3.time.scale()
@@ -56,7 +55,7 @@ var UtilizationView = Backbone.View.extend({
         ns.xAxis = d3.svg.axis()
             .scale(ns.x)
             .orient("bottom")
-            .ticks(5);
+            .ticks(4);
 
         ns.yAxis = d3.svg.axis()
             .scale(ns.y)
@@ -124,10 +123,6 @@ var UtilizationView = Backbone.View.extend({
         ns.color.domain(d3.keys(data[0]).filter(function(key) {
             return key !== "date";
         }));
-
-        // data.forEach(function(d) {
-        //     d.date = ns.parseDate(d.date);
-        // });
 
         var browsers = ns.stack(ns.color.domain().map(function(name) {
             return {
