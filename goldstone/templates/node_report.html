@@ -124,6 +124,8 @@
 
 <script>
 
+    var node_uuid = "{{ node_uuid | escapejs }}";
+
     $(function(){
         $("button").click(function(){
             $("button.active").toggleClass("active");
