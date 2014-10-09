@@ -63,13 +63,13 @@
 
         <div id="node-report-panel" class="panel panel-primary">
             <div class="well col-md-4" id="cpu-usage">
-            CPU Usage
+            <h4 class="text-center">CPU Usage</h4>
             </div>
             <div class="well col-md-4" id="memory-usage">
-            Memory Usage
+            <h4 class="text-center">Memory Usage</h4>
             </div>
             <div class="well col-md-4" id="network-usage">
-            Network Usage
+            <h4 class="text-center">Network Usage</h4>
             </div>
         </div>
 
@@ -125,6 +125,7 @@
 <script>
 
     var node_uuid = "{{ node_uuid | escapejs }}";
+    var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
     $(function(){
         $("button").click(function(){
