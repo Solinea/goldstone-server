@@ -26,36 +26,67 @@
 
     initialize: function(options) {
         this.url = options.url;
+        this.dummy = _.clone(this.dummy);
+        this.dummyGen();
         this.fetch();
     },
 
+    dummyGen: function() {
+        this.dummy = {
+            results: []
+        };
+
+
+        var day = +new Date();
+        day -= (1000 * 60 * 5);
+
+            var vm1 = (Math.floor(Math.random()*1500) + 1000) / 100;
+            var vm2 = (Math.floor(Math.random()*1500) + 1000) / 100;
+            var vm3 = (Math.floor(Math.random()*1500) + 1000) / 100;
+            var vm4 = (Math.floor(Math.random()*1500) + 1000) / 100;
+
+            var result = {
+                "date": day,
+                "VM1": vm1,
+                "VM2": vm2,
+                "VM3": vm3,
+                "VM4": vm4,
+                "VM5": (100 - vm1 - vm2 - vm3 - vm4)
+            };
+
+            this.dummy.results.push(result);
+
+
+    },
+
+
     dummy: {
-        "name": "os.cpu.system",
-        "units": "percent",
         results: [{
-            "timestamp": 1000000000,
-            "value": 25
-        }, {
-            "timestamp": 1000360000,
-            "value": 20
-        }, {
-            "timestamp": 1000720000,
-            "value": 23
-        }, {
-            "timestamp": 1001080000,
-            "value": 35
-        }, {
-            "timestamp": 1001440000,
-            "value": 30
-        }, {
-            "timestamp": 1001800000,
-            "value": 15
-        }, {
-            "timestamp": 1002160000,
-            "value": 15
-        }, {
-            "timestamp": 1002540000,
-            "value": 20
-        }]
+                "date": 1412815619263,
+                "VM1": 41.62,
+                "VM2": 22.36,
+                "VM3": 25.58,
+                "VM4": 9.13,
+            }, {
+                "date": 1412818619263,
+                "VM1": 41.62,
+                "VM2": 22.36,
+                "VM3": 25.58,
+                "VM4": 9.13,
+            }, {
+                "date": 1412823619263,
+                "VM1": 41.62,
+                "VM2": 22.36,
+                "VM3": 25.58,
+                "VM4": 9.13,
+            }, {
+                "date": 1412828619263,
+                "VM1": 41.62,
+                "VM2": 22.36,
+                "VM3": 25.58,
+                "VM4": 9.13,
+            },
+
+        ]
     }
 });
