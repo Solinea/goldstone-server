@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Author: John Stanford
+ * Author: Alex Jacobs
  */
 
  var HypervisorVmCpuCollection = Backbone.Collection.extend({
