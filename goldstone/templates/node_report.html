@@ -26,16 +26,116 @@
 {% endblock %}
 
 {% block content %}
+
     <div id="node-report-r1" class="row">
         <div id="node-report-r1-c1" class="col-md-12">
             <h1>{{ node_uuid }}</h1>
         </div>
     </div>
+
+    <div id="node-report-r2" class="row">
+        <div id="node-report-r2-c1" class="col-md-12">
+
+            <div id="node-report-panel" class="panel panel-primary">
+
+                <div class="btn-group" style="margin-bottom: 5px;">
+                    <button type="button" class="btn btn-default btn-med active">Services</button>
+                    <button type="button" class="btn btn-default btn-med">Configuration</button>
+                    <button type="button" class="btn btn-default btn-med">Events</button>
+
+                </div>
+
+
+                <div class="well">
+
+                    <div id="servicesChart">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="node-report-r3" class="row">
+        <div id="node-report-r3-c1" class="col-md-12">
+            <h1>Utilization</h1>
+        </div>
+
+        <div id="node-report-panel" class="panel panel-primary">
+            <div class="well col-md-4" id="cpu-usage">
+            CPU Usage
+            </div>
+            <div class="well col-md-4" id="memory-usage">
+            Memory Usage
+            </div>
+            <div class="well col-md-4" id="network-usage">
+            Network Usage
+            </div>
+        </div>
+
+    </div>
+
+    <div id="node-report-r4" class="row">
+        <div id="node-report-r4-c1" class="col-md-12">
+            <h1>Hypervisor</h1>
+        </div>
+
+        <div id="node-report-panel" class="panel panel-primary">
+            <div class="well col-md-2" id="cores-usage">
+            Cores
+            </div>
+            <div class="well col-md-2" id="memory-usage">
+            Memory
+            </div>
+            <div class="well col-md-8" id="vm-cpu-usage">
+            Per VM CPU Usage
+            </div>
+        </div>
+
+
+    </div>
+
+
+
+
+
 {% endblock %}
 
 {% block localjs %}
+<script src="{% static 'js/goldstone.js' %}"></script>
+
+<script src="{% static 'js/models/serviceStatusModel.js' %}"></script>
+<script src="{% static 'js/collections/serviceStatusCollection.js' %}"></script>
+<script src="{% static 'js/views/serviceStatusView.js' %}"></script>
+
+<script src="{% static 'js/models/utilizationModel.js' %}"></script>
+<script src="{% static 'js/collections/utilizationCollection.js' %}"></script>
+<script src="{% static 'js/views/utilizationView.js' %}"></script>
+
+<script src="{% static 'js/models/hypervisorModel.js' %}"></script>
+<script src="{% static 'js/collections/hypervisorCollection.js' %}"></script>
+<script src="{% static 'js/views/hypervisorView.js' %}"></script>
+
+<script src="{% static 'js/models/hypervisorVmCpuModel.js' %}"></script>
+<script src="{% static 'js/collections/hypervisorVmCpuCollection.js' %}"></script>
+<script src="{% static 'js/views/hypervisorVmCpuView.js' %}"></script>
+
+<script src="{% static 'js/nodeReport.js' %}"></script>
+
 <script>
-var node_uuid = "{{ node_uuid | escapejs }}"
-console.log("node_uuid = " + node_uuid)
+
+    var node_uuid = "{{ node_uuid | escapejs }}";
+
+    $(function(){
+        $("button").click(function(){
+            $("button.active").toggleClass("active");
+            $(this).toggleClass("active");
+        });
+    });
+
+    renderCharts();
+
+
 </script>
+
 {% endblock %}
