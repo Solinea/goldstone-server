@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Author: John Stanford
+ * Author: Alex Jacobs
  */
 
 // view is linked to collection when instantiated in api_perf_report.html
