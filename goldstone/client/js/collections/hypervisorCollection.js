@@ -19,6 +19,7 @@
  var HypervisorCollection = Backbone.Collection.extend({
 
     parse: function(data) {
+        this.dummyGen();
         return this.dummy.results;
     },
 
@@ -27,7 +28,6 @@
     initialize: function(options) {
         this.url = options.url;
         this.dummy = _.clone(this.dummy);
-        this.dummyGen();
         this.fetch();
     },
 
@@ -36,14 +36,13 @@
             results: []
         };
 
-
         var day = +new Date();
-        day -= (1000 * 60 * 5);
 
-            var vm1 = (Math.floor(Math.random()*1500) + 1000) / 100;
-            var vm2 = (Math.floor(Math.random()*1500) + 1000) / 100;
-            var vm3 = (Math.floor(Math.random()*1500) + 1000) / 100;
-            var vm4 = (Math.floor(Math.random()*1500) + 1000) / 100;
+            var vm1 = 2<<(Math.floor(Math.random()*3) );
+            var vm2 = 2<<(Math.floor(Math.random()*3) );
+            var vm3 = 2<<(Math.floor(Math.random()*3) );
+            var vm4 = 2<<(Math.floor(Math.random()*3) );
+            var vm5 = 2<<(Math.floor(Math.random()*3) );
 
             var result = {
                 "date": day,
@@ -51,12 +50,11 @@
                 "VM2": vm2,
                 "VM3": vm3,
                 "VM4": vm4,
-                "VM5": (100 - vm1 - vm2 - vm3 - vm4)
+                "VM5": vm5,
+                "available": (192 - vm1 - vm2 - vm3 - vm4 - vm5)
             };
 
             this.dummy.results.push(result);
-
-
     },
 
 

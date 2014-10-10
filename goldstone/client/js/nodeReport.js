@@ -79,7 +79,8 @@ var renderCharts = function() {
     var hypervisorCoreView = new HypervisorView({
         collection: hypervisorCoreChart,
         location: '#node-report-r4 #node-report-panel #cores-usage',
-        width: $('#node-report-r4 #node-report-panel #cores-usage').width()
+        width: $('#node-report-r4 #node-report-panel #cores-usage').width(),
+        axisLabel: "Cores"
     });
 
     //---------------------------
@@ -91,7 +92,8 @@ var renderCharts = function() {
     var hypervisorMemoryView = new HypervisorView({
         collection: hypervisorMemoryChart,
         location: '#node-report-r4 #node-report-panel #memory-usage',
-        width: $('#node-report-r4 #node-report-panel #memory-usage').width()
+        width: $('#node-report-r4 #node-report-panel #memory-usage').width(),
+        axisLabel: "GB"
     });
 
     //---------------------------
