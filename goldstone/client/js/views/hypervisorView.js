@@ -33,6 +33,7 @@ var HypervisorView = Backbone.View.extend({
         this.defaults.url = this.collection.url;
         this.defaults.location = options.location;
         this.defaults.width = options.width;
+        this.defaults.axisLabel = options.axisLabel;
 
         var ns = this.defaults;
         var self = this;
@@ -52,14 +53,28 @@ var HypervisorView = Backbone.View.extend({
 
         ns.yAxis = d3.svg.axis()
             .scale(ns.y)
-            .orient("left")
-            .tickFormat(d3.format(".1s"));
+            .orient("left");
 
         ns.svg = d3.select(ns.location).append("svg")
             .attr("width", ns.mw + ns.margin.left + ns.margin.right)
             .attr("height", ns.mh + ns.margin.top + ns.margin.bottom)
             .append("g")
             .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+
+        // tooltip:
+        // [top-offset, left-offset]
+        ns.tooltip = d3.tip()
+            .attr('class', 'd3-tip')
+            .offset([-5, 0])
+            .html(function(d) {
+                d.name = d.name || 'No name reported';
+                d.cores = d.y1-d.y0 || 'No core count reported';
+
+                return "vm: " + d.name + "<br>" +
+                d.cores + " " + ns.axisLabel;
+            });
+
+        ns.svg.call(ns.tooltip);
 
         // required in case spinner loading takes
         // longer than chart loading
@@ -128,11 +143,12 @@ var HypervisorView = Backbone.View.extend({
             .attr("class", "y axis")
             .call(ns.yAxis)
             .append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("y", 6)
+            .attr("transform", "rotate(0)")
+            .attr("x", 4)
+            .attr("y", 0)
             .attr("dy", ".71em")
-            .style("text-anchor", "end")
-            .text("Popluation");
+            .style("text-anchor", "beginning")
+            .text("Total "+ ns.axisLabel +": " + ns.y.domain()[1]);
 
         var vmCore = ns.svg.selectAll(".vmCore")
             .data(data)
@@ -152,17 +168,24 @@ var HypervisorView = Backbone.View.extend({
                 return ns.y(d.y0) - ns.y(d.y1);
             })
             .style("fill", function(d) {
+                if (d.name === "available") {
+                    return 'none';
+                }
                 return ns.color(d.name);
+            })
+            .on("mouseover", ns.tooltip.show)
+            .on("mouseout", function() {
+                ns.tooltip.hide();
             });
 
-        data[0].cores.forEach(function(d) {
+        // data[0].cores.forEach(function(d) {
 
-            vmCore.append("text")
-                .text(d.name + ": " + (Math.round((d.y1 - d.y0) * 100)) / 100 + "%")
-                .attr("x", ns.mw / 2)
-                .attr("y", ns.y.range()[1] + ns.y(d.y1) + 15)
-                .attr("text-anchor", "middle");
-        });
+        //     vmCore.append("text")
+        //         .text(d.name + ": " + (d.y1 - d.y0))
+        //         .attr("x", ns.mw / 2)
+        //         .attr("y", ns.y.range()[1] + ns.y(d.y0) - 5)
+        //         .attr("text-anchor", "middle");
+        // });
 
         var legend = ns.svg.selectAll(".legend")
             .data(data)
