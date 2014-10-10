@@ -46,11 +46,11 @@
 
             var result = {
                 "date": day,
-                "VM1": vm1,
-                "VM2": vm2,
-                "VM3": vm3,
-                "VM4": vm4,
-                "VM5": vm5,
+                "instance-000001213114": vm1,
+                "instance-000004532966": vm2,
+                "instance-000005459871": vm3,
+                "instance-000003345987": vm4,
+                "instance-000002534534": vm5,
                 "available": (192 - vm1 - vm2 - vm3 - vm4 - vm5)
             };
 

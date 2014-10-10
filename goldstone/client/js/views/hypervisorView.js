@@ -68,10 +68,10 @@ var HypervisorView = Backbone.View.extend({
             .offset([-5, 0])
             .html(function(d) {
                 d.name = d.name || 'No name reported';
-                d.cores = d.y1-d.y0 || 'No core count reported';
+                d.cores = d.y1 - d.y0 || 'No core count reported';
 
                 return "vm: " + d.name + "<br>" +
-                d.cores + " " + ns.axisLabel;
+                    d.cores + " " + ns.axisLabel;
             });
 
         ns.svg.call(ns.tooltip);
@@ -140,7 +140,7 @@ var HypervisorView = Backbone.View.extend({
         })]);
 
         ns.svg.selectAll('rect')
-        .remove();
+            .remove();
 
         ns.svg.append("g")
             .attr("class", "y axis")
@@ -151,7 +151,7 @@ var HypervisorView = Backbone.View.extend({
             .attr("y", 0)
             .attr("dy", ".71em")
             .style("text-anchor", "beginning")
-            .text("Total "+ ns.axisLabel +": " + ns.y.domain()[1]);
+            .text("Total " + ns.axisLabel + ": " + ns.y.domain()[1]);
 
         var vmCore = ns.svg.selectAll(".vmCore")
             .data(data)
@@ -163,7 +163,7 @@ var HypervisorView = Backbone.View.extend({
                 return d.cores;
             })
             .enter().append("rect")
-            .style("fill", "rgb(150, 150, 150)")
+            .style("fill", "#f5f5f5")
             .attr("width", ns.mw)
             .attr("y", function(d) {
                 return ns.y(d.y1);
@@ -193,9 +193,13 @@ var HypervisorView = Backbone.View.extend({
         // });
 
         var legend = ns.svg.selectAll(".legend")
-            .data(data)
+            .data(data);
+
+        legend
             .enter().append("g")
             .attr("class", "legend");
+
+        legend.text('');
 
         legend.append("text")
             .attr("x", ns.mw / 2)
@@ -205,11 +209,12 @@ var HypervisorView = Backbone.View.extend({
             .attr("text-anchor", "middle")
             .text(function(d) {
                 return moment(d.date).calendar();
+
             });
 
-        setTimeout(function(){
+        setTimeout(function() {
             self.collection.fetch();
-        }, 20000);
+        }, 5000);
 
     }
 
