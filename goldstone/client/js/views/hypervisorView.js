@@ -139,6 +139,9 @@ var HypervisorView = Backbone.View.extend({
             return d.total;
         })]);
 
+        ns.svg.selectAll('rect')
+        .remove();
+
         ns.svg.append("g")
             .attr("class", "y axis")
             .call(ns.yAxis)
@@ -160,6 +163,7 @@ var HypervisorView = Backbone.View.extend({
                 return d.cores;
             })
             .enter().append("rect")
+            .style("fill", "rgb(150, 150, 150)")
             .attr("width", ns.mw)
             .attr("y", function(d) {
                 return ns.y(d.y1);
@@ -167,15 +171,16 @@ var HypervisorView = Backbone.View.extend({
             .attr("height", function(d) {
                 return ns.y(d.y0) - ns.y(d.y1);
             })
+            .on("mouseover", ns.tooltip.show)
+            .on("mouseout", function() {
+                ns.tooltip.hide();
+            })
+            .transition()
             .style("fill", function(d) {
                 if (d.name === "available") {
                     return 'none';
                 }
                 return ns.color(d.name);
-            })
-            .on("mouseover", ns.tooltip.show)
-            .on("mouseout", function() {
-                ns.tooltip.hide();
             });
 
         // data[0].cores.forEach(function(d) {
@@ -201,6 +206,10 @@ var HypervisorView = Backbone.View.extend({
             .text(function(d) {
                 return moment(d.date).calendar();
             });
+
+        setTimeout(function(){
+            self.collection.fetch();
+        }, 20000);
 
     }
 
