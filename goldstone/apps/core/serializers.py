@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from rest_framework import serializers
+from rest_framework import serializers, pagination
 from .models import Node, Event
 
 
@@ -31,9 +31,18 @@ class NodeSerializer(serializers.ModelSerializer):
         exclude = ['id']
 
 
-class EventSerializer(serializers.ModelSerializer):
+class EventSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    event_type = serializers.CharField(read_only=True)
+    source_id = serializers.CharField(read_only=True)
+    message = serializers.CharField(max_length=1024, read_only=True)
+    created = serializers.CharField(read_only=True)
+    updated = serializers.CharField(read_only=True)
 
+
+class PaginatedEventSerializer(pagination.PaginationSerializer):
+    """
+    Serializes page objects of user querysets.
+    """
     class Meta:
-        model = Event
-        lookup_field = 'uuid'
-        exclude = ['id']
+        object_serializer_class = EventSerializer

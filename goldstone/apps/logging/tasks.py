@@ -15,7 +15,6 @@ from __future__ import absolute_import
 
 import pytz
 import subprocess
-from rest_framework.renderers import JSONRenderer
 from goldstone.apps.logging.models import LoggingEvent, LoggingNode
 
 __author__ = 'John Stanford'
@@ -41,6 +40,7 @@ def process_host_stream(self, host, timestamp):
     node, created = Node.objects.get_or_create(name=host)
     if not node.admin_disabled:
         node.last_seen_method = 'LOGS'
+        # todo change date to arrow
         node.last_seen = datetime.now(tz=pytz.utc)
         node.save()
 
@@ -72,20 +72,19 @@ def _create_event(timestamp, host, message, event_type):
                  timestamp, host, message, event_type)
 
     dt = arrow.get(timestamp).datetime
-    event = LoggingEvent(event_type=event_type, created=dt, updated=dt,
-                         message=message)
-    event.save()
-    try:
-        node = LoggingNode.objects.get(name=host)
-        node.add_event_rel(event, "source")
-        node.add_event_rel(event, "affects")
-        return event
-    except LoggingNode.DoesNotExist:
-        logger.warning("[process_log_error_event] could not find logging node "
-                       "with name=%s.  event will have not relations.", host)
-        return event
-    except:
-        raise
+    # event = Event(uuid=uuid4(), event_type=event_type, created=dt, updated=dt,
+    #               message=message)
+    event = Event(uuid=uuid4())
+    EventMappingType.index(event, id_=event.uuid)
+    # try:
+    #     node = LoggingNode.objects.get(name=host)
+    #     return event
+    # except LoggingNode.DoesNotExist:
+    #     logger.warning("[process_log_error_event] could not find logging node "
+    #                    "with name=%s.  event will have not relations.", host)
+    #     return event
+    # except:
+    #     raise
 
 
 def process_log_error_event(timestamp, host, message):
