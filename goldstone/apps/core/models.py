@@ -12,132 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
+from uuid import uuid4
+import arrow
 from django.db.models import CharField, ForeignKey, BooleanField, Model, \
     ManyToManyField, DateTimeField, TextField
 from django_extensions.db.fields import UUIDField, ModificationDateTimeField, \
     CreationDateTimeField
 from polymorphic import PolymorphicModel
+from elasticutils import Indexable, MappingType, S
+from django.conf import settings
+import logging
 
 __author__ = 'stanford'
 
-#
-# Many to Many relationships
-#
-
-
-# entites can be related to other entities
-class Entity2EntityRel(Model):
-    from_entity = ForeignKey('Entity', to_field='uuid',
-                             related_name="from_entity")
-    to_entity = ForeignKey('Entity', to_field='uuid',
-                           related_name="to_entity")
-    relation = CharField(max_length=64)
-
-    def __unicode__(self):
-        return json.dumps({
-            "from_entity": str(self.from_entity),
-            "relation": str(self.relation),
-            "to_entity": str(self.to_event)
-        })
-
-
-# entities can be related to events
-class Entity2EventRel(Model):
-    from_entity = ForeignKey('Entity', to_field='uuid',
-                             related_name="from_entity_ev")
-    to_event = ForeignKey('Event', to_field='uuid',
-                          related_name="to_event_en")
-    relation = CharField(max_length=64)
-
-    def __unicode__(self):
-        return json.dumps({
-            "from_entity": str(self.from_entity),
-            "relation": str(self.relation),
-            "to_event": str(self.to_event)
-        })
-
-
-# events can be related to events
-class Event2EventRel(Model):
-    from_event = ForeignKey('Event', to_field='uuid',
-                            related_name="from_event")
-    to_event = ForeignKey('Event', to_field='uuid',
-                          related_name="to_event")
-    relation = CharField(max_length=64)
-
-    def __unicode__(self):
-        return json.dumps({
-            "from_event": str(self.from_event),
-            "relation": str(self.relation),
-            "to_event": str(self.to_event)
-        })
-
-
+logger = logging.getLogger(__name__)
 #
 # polymorphic model abstractions
 #
-
 class Entity(PolymorphicModel):
     uuid = UUIDField(unique=True)
     name = CharField(max_length=255, unique=True)
     created = CreationDateTimeField()
     updated = ModificationDateTimeField()
-    entity_rels = ManyToManyField(
-        'Entity',
-        through='Entity2EntityRel',
-        related_name="related_entity_set",
-        symmetrical=False)
-    event_rels = ManyToManyField(
-        'Event',
-        through='Entity2EventRel',
-        related_name="+",
-        symmetrical=False)
-
-    def add_entity_rel(self, entity, relation_name):
-        relationship, created = Entity2EntityRel.objects.get_or_create(
-            from_entity=self,
-            to_entity=entity,
-            relation=relation_name)
-        return relationship
-
-    def remove_entity_rel(self, entity, relation_name):
-        Entity2EntityRel.objects.filter(
-            from_entity=self,
-            to_entity=entity,
-            relation=relation_name).delete()
-        return
-
-    # return entities related to me
-    def get_entity_rels(self, relation_name):
-        return self.entity_rels.filter(
-            to_entity__relation=relation_name,
-            to_entity__from_entity=self)
-
-    # return items that have a relation to me
-    def get_related_entities(self, relation_name):
-        return self.related_entity_set.filter(
-            from_entity__relation=relation_name,
-            from_entity__to_entity=self)
-
-    def add_event_rel(self, event, relation_name):
-        relationship, created = Entity2EventRel.objects.get_or_create(
-            from_entity=self,
-            to_event=event,
-            relation=relation_name)
-        return relationship
-
-    def remove_event_rel(self, event, relation_name):
-        Entity2EventRel.objects.filter(
-            from_entity=self,
-            to_event=event,
-            relation=relation_name).delete()
-        return
-
-    # return events related to me
-    def get_event_rels(self, relation_name):
-        return self.event_rels.filter(
-            to_event_en__relation=relation_name,
-            to_event_en__from_entity=self)
 
     def __unicode__(self):
         return json.dumps({
@@ -148,81 +44,101 @@ class Entity(PolymorphicModel):
         })
 
 
-class Event(PolymorphicModel):
-    uuid = UUIDField(unique=True)
-    event_type = CharField(max_length=255)
-    created = CreationDateTimeField()
-    updated = ModificationDateTimeField()
-    message = TextField(max_length=1024)
-    event_rels = ManyToManyField(
-        'Event',
-        through='Event2EventRel',
-        related_name="related_event2event_set",
-        symmetrical=False)
-    entity_rels = ManyToManyField(
-        'Entity',
-        through='Entity2EventRel',
-        related_name="+",
-        symmetrical=False)
+class EventType(MappingType, Indexable):
 
-    def add_event_rel(self, e, relation_name):
-        relationship, created = Event2EventRel.objects.get_or_create(
-            from_event=self,
-            to_event=e,
-            relation=relation_name)
-        return relationship
+    @classmethod
+    def get_index(cls):
+        if 'event' in settings.ES_INDEXES:
+            return settings.ES_INDEXES['event']
+        else:
+            return settings.ES_INDEXES['default']
 
-    def remove_event_rel(self, e, relation_name):
-        Event2EventRel.objects.filter(
-            from_event=self,
-            to_event=e,
-            relation=relation_name).delete()
-        return
+    @classmethod
+    def get_mapping_type_name(cls):
+        return 'event_type'
 
-    def get_event_rels(self, relation_name):
-        return self.event_rels.filter(
-            to_event__relation=relation_name,
-            to_event__from_event=self)
+    @classmethod
+    def get_mapping(cls):
+        """Returns an Elasticsearch mapping for this MappingType"""
+        return {
+            'properties': {
+                # The id is a uuid
+                'id': {'type': 'string', 'index': 'not_analyzed'},
+                'event_type': {'type': 'string', 'index': 'not_analyzed'},
+                'source_id': {'type': 'string', 'index': 'not_analyzed'},
+                # The message has free-form text in it, so analyze it with
+                # snowball.
+                'message': {'type': 'string', 'analyzer': 'snowball'},
+                'created': {'type': 'date', 'index': 'not_analyzed'},
+                'updated': {'type': 'date', 'index': 'not_analyzed'}
+            }
+        }
 
-    def get_related_events(self, relation_name):
-        return self.related_event2event_set.filter(
-            from_event__relation=relation_name,
-            from_event__to_event=self)
+    def extract_document(self, obj_id, obj):
+        """Converts this instance into an Elasticsearch document"""
 
-    # return events related to me
-    def get_entity_rels(self, relation_name):
-        return self.entity_rels.filter(
-            from_entity_ev__relation=relation_name,
-            from_entity_ev__to_event=self)
+        return {
+            'id': str(obj.id),
+            'event_type': obj.event_type,
+            'source_id': str(obj.source_id),
+            'message': obj.message,
+            'created': obj.created,
+            'updated': obj.updated
+        }
 
-    def __unicode__(self):
+
+class Event(object):
+    id = str(uuid4())
+    event_type = None
+    source_id = ""
+    message = None
+    created = arrow.utcnow()
+    updated = created
+
+    _mt = EventType()
+
+    # todo integrate pagination/slicing
+    # todo return results as Events rather than EventType mappings
+    @classmethod
+    def search(cls, *args, **kwargs):
+        '''
+        This passes through to an executed search via elastic utils and returns
+        the objects.  Currently the objects are EventType mapping types.
+
+        WARNING!!! it is not sliced at this time, so your search params
+        (kwargs) should return a reasonable number of results.
+
+        '''
+        if 'id' in kwargs:
+            kwargs['_id'] = kwargs['id']
+            del kwargs['id']
+
+        logger.info("calling search with id = %s", kwargs['_id'])
+        logger.info("calling search with kwargs = %s", json.dumps(kwargs))
+        result = S(EventType).query(*args, **kwargs).execute().objects
+        logger.info("result = %s", str(result))
+        return result
+
+    def __init__(self, event_type, message, source_id=""):
+        self.event_type = event_type
+        self.message = message
+        self.source_id = str(source_id)
+
+    def __repr__(self):
         return json.dumps({
-            "uuid": "" if self.uuid is None else self.uuid,
+            "id": str(self.id),
             "event_type": self.event_type,
+            "source_id": "" if self.source_id is None else str(self.src_id),
+            "message": self.message,
             "created": self.created.isoformat(),
             "updated": self.updated.isoformat()
         })
 
+    def save(self):
+        self._mt.index(self.__dict__, id_=self.id)
 
-class Project(Entity):
-    """
-    Represents and OpenStack project such as Nova, Cinder, or Glance.  These
-    will initially be defined in configuration, but perhaps discovered in a
-    later version of goldstone.
-    """
-    version = CharField(max_length=64)
-
-    def __unicode__(self):
-        entity = json.loads(super(Project, self).__unicode__())
-        entity = dict(entity.items() + {"version": self.version}.items())
-        return json.dumps(entity)
-
-
-class Service(Entity):
-    """
-    Generic service representations.  Obvious use cases are nova service-list,
-    etc.  There will most likely be other not so obvious uses as we evolve.
-    """
+    def delete(self):
+        self._mt.unindex(self.id)
 
 
 class Resource(Entity):

@@ -19,5 +19,5 @@ from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter(trailing_slash=False)
 router.register(r'nodes', LoggingNodeViewSet, base_name='node')
-router.register(r'events', LoggingEventViewSet, base_name='event')
+# router.register(r'events', LoggingEventViewSet, base_name='event')
 urlpatterns = router.urls

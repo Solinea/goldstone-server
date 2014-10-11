@@ -11,11 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import arrow
 from django.http import Http404
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.generics import GenericAPIView, ListCreateAPIView
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ViewSet, GenericViewSet
 
 __author__ = 'John Stanford'
 
@@ -83,10 +85,47 @@ class NodeViewSet(ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class EventViewSet(ModelViewSet):
-    queryset = Event.objects.all()
-    serializer_class = EventSerializer
-    lookup_field = 'uuid'
-    lookup_url_kwarg = 'uuid'
-    ordering_fields = '__all__'
-    ordering = 'created'
+class EventListView(ListCreateAPIView):
+    def list(self, request):
+        events = []
+        for i in range(1, 25):
+            events.append({
+                'id': uuid4(),
+                'event_type': "test",
+                'source_id': uuid4(),
+                'message': "test" + str(i),
+                'created': arrow.utcnow().isoformat(),
+                'updated': arrow.utcnow().isoformat()
+            })
+
+        serializer = EventSerializer(events, many=True)
+        return Response(serializer.data)
+
+
+# works, but no pagination
+class EventViewSet(GenericViewSet):
+
+    def list(self, request):
+        events = []
+        for i in range(1, 25):
+            events.append({
+                'id': uuid4(),
+                'event_type': "test",
+                'source_id': uuid4(),
+                'message': "test" + str(i),
+                'created': arrow.utcnow().isoformat(),
+                'updated': arrow.utcnow().isoformat()
+            })
+        serializer = PaginatedEventSerializer(events, many=True)
+        return Response(serializer.data)
+
+
+
+
+# class EventViewSet(ModelViewSet):
+#     queryset = Event.objects.all()
+#     serializer_class = EventSerializer
+#     lookup_field = 'uuid'
+#     lookup_url_kwarg = 'uuid'
+#     ordering_fields = '__all__'
+#     ordering = 'created'
