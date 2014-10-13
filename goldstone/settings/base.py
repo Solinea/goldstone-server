@@ -267,6 +267,9 @@ REST_FRAMEWORK = {
 # LoggingNode object.
 LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES = 15
 
+# controls the default lookback for /core/events calls
+EVENT_LOOKBACK_MINUTES = 60
+
 # Goldstone config settings
 DEFAULT_LOOKBACK_DAYS = 7
 DEFAULT_CHART_BUCKETS = 7*24
@@ -284,4 +287,3 @@ ES_SERVER = ES_HOST + ":" + ES_PORT
 ES_URLS = ['http://' + ES_SERVER]
 ES_INDEXES = {'default': 'goldstone_model'}
 ES_TIMEOUT = 5
-
