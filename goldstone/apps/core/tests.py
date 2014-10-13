@@ -152,7 +152,6 @@ class EventModelTests(SimpleTestCase):
         e2 = Event("test_type", "test_message", source_id=sid)
         self.assertNotEqual("", e2.source_id)
 
-
     def test_single_event_index_unindex(self):
         e1 = Event("test_type", "test_message")
         id_str = str(e1.id)
@@ -301,3 +300,97 @@ class NodeViewTests(APISimpleTestCase):
         data = {'name': 'test123'}
         response = self.client.patch('/core/nodes/' + uuid, data=data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class EventSerializerTests(SimpleTestCase):
+    event1 = Event(event_type='test_serializer',
+                   message='testing serialization')
+
+    def setUp(self):
+        self.event1.save()
+        EventType.refresh_index()
+        self.event1 = Event.search(_id=self.event1.id)[0].get_object()
+
+    def tearDown(self):
+        try:
+            self.event1.delete()
+        except:
+            pass
+
+    def test_serializer(self):
+        ser = EventSerializer(self.event1)
+        j = JSONRenderer().render(ser.data)
+        logger.debug('[test_serializer] node1 json = %s', j)
+        self.assertNotIn('_id', ser.data)
+        self.assertIn('id', ser.data)
+        self.assertIn('event_type', ser.data)
+        self.assertEqual(ser.data['event_type'], 'test_serializer')
+        self.assertIn('created', ser.data)
+        self.assertIn('updated', ser.data)
+        self.assertIn('message', ser.data)
+        self.assertEqual(ser.data['message'], 'testing serialization')
+        self.assertIn('source_id', ser.data)
+
+
+class EventViewTests(APISimpleTestCase):
+
+    # create the old event within the default event lookback window
+    lookback = (settings.EVENT_LOOKBACK_MINUTES - 1) * -1
+    old_date = arrow.utcnow().replace(minutes=lookback)
+    event1 = Event(event_type='test_view',
+                   message='testing old date',
+                   created=old_date.isoformat())
+    event2 = Event(event_type='test_view',
+                   message='testing new date')
+
+    def setUp(self):
+        self.event1.save()
+        self.event2.save()
+        EventType.refresh_index()
+        self.event1 = Event.search(_id=self.event1.id)[0].get_object()
+        self.event2 = Event.search(_id=self.event2.id)[0].get_object()
+
+    def tearDown(self):
+        try:
+            self.event1.delete()
+            self.event2.delete()
+        except:
+            pass
+
+    def test_get_list(self):
+        response = self.client.get('/core/events')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        logger.info("response.data = %s", response.data)
+        self.assertEqual(len(response.data), 2)
+
+    def test_get_list_with_start(self):
+        response = self.client.get(
+            '/core/events?lookback_mins=15')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+    def test_get_list_with_start_and_end(self):
+        response = self.client.get(
+            '/core/events?lookback_mins=2' +
+            '&end_ts=' + str(self.old_date.replace(minutes=1).timestamp))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+    def test_get_succeed(self):
+        response = self.client.get('/core/events/' + self.event1.id)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_fail(self):
+        response = self.client.get('/core/events/' + str(uuid4()))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_succeed_no_exists(self):
+        response = self.client.delete('/core/events/' + str(uuid4()))
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+    def test_delete_succeed_exists(self):
+        response = self.client.delete('/core/events/' + self.event1.id)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        EventType.refresh_index()
+        response = self.client.get('/core/events/' + self.event1.id)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

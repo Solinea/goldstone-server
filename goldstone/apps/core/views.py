@@ -85,47 +85,49 @@ class NodeViewSet(ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class EventListView(ListCreateAPIView):
-    def list(self, request):
-        events = []
-        for i in range(1, 25):
-            events.append({
-                'id': uuid4(),
-                'event_type': "test",
-                'source_id': uuid4(),
-                'message': "test" + str(i),
-                'created': arrow.utcnow().isoformat(),
-                'updated': arrow.utcnow().isoformat()
-            })
-
-        serializer = EventSerializer(events, many=True)
-        return Response(serializer.data)
-
-
 # works, but no pagination
 class EventViewSet(GenericViewSet):
 
     def list(self, request):
-        events = []
-        for i in range(1, 25):
-            events.append({
-                'id': uuid4(),
-                'event_type': "test",
-                'source_id': uuid4(),
-                'message': "test" + str(i),
-                'created': arrow.utcnow().isoformat(),
-                'updated': arrow.utcnow().isoformat()
-            })
-        serializer = PaginatedEventSerializer(events, many=True)
+        '''
+        the request accepts params 'end_ts' and 'lookback_mins'.  The value of
+        'end_ts' is a unix timestamp (millisecond resolution) representing the
+        upper bounds of the created field in the record.
+
+        The lookback_mins field will be treated as an integer and subtracted
+        from the value used for the upper bounds of created (end_ts or now).
+        '''
+
+        kw = dict()
+        now = arrow.utcnow()
+        end_ts = str(now.timestamp)
+        qp = request.QUERY_PARAMS.dict()
+        end = arrow.get(qp.get('end_ts', end_ts))
+        kw['created__lte'] = end.isoformat()
+
+        lookback_mins = int(qp.get(
+            'lookback_mins', settings.EVENT_LOOKBACK_MINUTES)) * -1
+        kw['created__gte'] = end.replace(minutes=lookback_mins).isoformat()
+
+        events = Event.search(**kw)
+        serializer = EventSerializer(events, many=True)
         return Response(serializer.data)
 
+    def retrieve(self, request, pk='id'):
+        event = Event.get(_id=pk)
+        if event is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
+        serializer = EventSerializer(event, many=False)
+        return Response(serializer.data)
 
-
-# class EventViewSet(ModelViewSet):
-#     queryset = Event.objects.all()
-#     serializer_class = EventSerializer
-#     lookup_field = 'uuid'
-#     lookup_url_kwarg = 'uuid'
-#     ordering_fields = '__all__'
-#     ordering = 'created'
+    def delete(self, request, pk='id'):
+        event = Event.get(_id=pk)
+        if event is None:
+            return Response(status=status.HTTP_202_ACCEPTED)
+        else:
+            try:
+                event.get_object().delete()
+                return Response(status=status.HTTP_202_ACCEPTED)
+            except:
+                return Response(status=status.HTTP_502_BAD_GATEWAY)

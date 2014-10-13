@@ -26,6 +26,8 @@ import logging
 __author__ = 'stanford'
 
 logger = logging.getLogger(__name__)
+
+
 #
 # polymorphic model abstractions
 #
@@ -62,12 +64,9 @@ class EventType(MappingType, Indexable):
         """Returns an Elasticsearch mapping for this MappingType"""
         return {
             'properties': {
-                # The id is a uuid
                 'id': {'type': 'string', 'index': 'not_analyzed'},
                 'event_type': {'type': 'string', 'index': 'not_analyzed'},
                 'source_id': {'type': 'string', 'index': 'not_analyzed'},
-                # The message has free-form text in it, so analyze it with
-                # snowball.
                 'message': {'type': 'string', 'analyzer': 'snowball'},
                 'created': {'type': 'date', 'index': 'not_analyzed'},
                 'updated': {'type': 'date', 'index': 'not_analyzed'}
@@ -85,6 +84,16 @@ class EventType(MappingType, Indexable):
             'created': obj.created,
             'updated': obj.updated
         }
+
+    def get_object(self):
+        return Event(
+            id=self._id,
+            event_type=self._results_dict['event_type'],
+            message=self._results_dict['message'],
+            source_id=self._results_dict['source_id'],
+            created=arrow.get(self._results_dict['created']).isoformat(),
+            updated=arrow.get(self._results_dict['updated']).isoformat()
+        )
 
 
 class Event(object):
@@ -109,14 +118,35 @@ class Event(object):
             kwargs['_id'] = kwargs['id']
             del kwargs['id']
 
-        logger.info("calling search with id = %s", kwargs['_id'])
         logger.info("calling search with kwargs = %s", json.dumps(kwargs))
         result = S(EventType).query(*args, **kwargs).execute().objects
         logger.info("result = %s", str(result))
         return result
 
-    def __init__(self, event_type, message, created=None,
+    @classmethod
+    def get(cls, *args, **kwargs):
+        '''
+        This passes through to an executed search via elastic utils and returns
+        a single object.  Currently the objects are EventType mapping types.
+        '''
+        if 'id' in kwargs:
+            kwargs['_id'] = kwargs['id']
+            del kwargs['id']
+
+        logger.info("calling search with kwargs = %s", json.dumps(kwargs))
+        result = S(EventType)[:1].query(*args, **kwargs).execute().objects
+        logger.info("result = %s", str(result))
+        if len(result) > 0:
+            return result[0]
+        else:
+            return None
+
+    def __init__(self, event_type, message, id=None, created=None,
                  updated=None, source_id=""):
+        if id is None:
+            self.id = str(uuid4())
+        else:
+            self.id = id
         self.event_type = event_type
         self.message = message
         self.source_id = str(source_id)

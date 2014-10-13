@@ -38,11 +38,3 @@ class EventSerializer(serializers.Serializer):
     message = serializers.CharField(max_length=1024, read_only=True)
     created = serializers.CharField(read_only=True)
     updated = serializers.CharField(read_only=True)
-
-
-class PaginatedEventSerializer(pagination.PaginationSerializer):
-    """
-    Serializes page objects of user querysets.
-    """
-    class Meta:
-        object_serializer_class = EventSerializer
