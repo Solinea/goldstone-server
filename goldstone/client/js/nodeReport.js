@@ -24,7 +24,7 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate Service status chart
-    var serviceStatusChart = new ServiceStatusCollection({
+    /*var serviceStatusChart = new ServiceStatusCollection({
         url: "/core/events?page_size=1"
     });
 
@@ -82,7 +82,7 @@ var renderCharts = function() {
         width: $('#node-report-r4 #node-report-panel #cores-usage').width(),
         axisLabel: "Cores"
     });
-
+*/
     //---------------------------
     // instantiate Libvirt mem/vm  chart
     var hypervisorMemoryChart = new HypervisorCollection({
