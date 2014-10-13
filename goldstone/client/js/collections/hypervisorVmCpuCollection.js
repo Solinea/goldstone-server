@@ -41,24 +41,20 @@ var HypervisorVmCpuCollection = Backbone.Collection.extend({
 
         for (var i = 0; i < Math.floor(Math.random() * 20) + 10; i++) {
 
-            // var user = Math.floor(Math.random() * 3300) / 100;
-            // var system = Math.floor(Math.random() * 3300) / 100;
-            var close = Math.floor(Math.random() * 3300) / 100;
-
+            var user = Math.floor(Math.random() * 5000) / 100;
+            var system = Math.floor(Math.random() * 5000) / 100;
 
             var result = {
                 "date": day,
-                "close": close
-                // "System": system,
-                // "User": user,
-                // "Idle": (100 - user - system - wait)
+                "user": user,
+                "system": system,
+                "wait": (100 - user - system)
             };
 
             this.dummy.results.push(result);
             day += 3600000;
 
         }
-
     },
 
     dummy: {
