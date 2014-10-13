@@ -16,7 +16,7 @@
  * Author: Alex Jacobs
  */
 
- var HypervisorVmCpuCollection = Backbone.Collection.extend({
+var HypervisorVmCpuCollection = Backbone.Collection.extend({
 
     parse: function(data) {
         return this.dummy.results;
@@ -26,7 +26,39 @@
 
     initialize: function(options) {
         this.url = options.url;
+        this.dummy = _.clone(this.dummy);
+        this.dummyGen();
         this.fetch();
+    },
+
+    dummyGen: function() {
+        this.dummy = {
+            results: []
+        };
+
+
+        var day = 1412812619263;
+
+        for (var i = 0; i < Math.floor(Math.random() * 20) + 10; i++) {
+
+            // var user = Math.floor(Math.random() * 3300) / 100;
+            // var system = Math.floor(Math.random() * 3300) / 100;
+            var close = Math.floor(Math.random() * 3300) / 100;
+
+
+            var result = {
+                "date": day,
+                "close": close
+                // "System": system,
+                // "User": user,
+                // "Idle": (100 - user - system - wait)
+            };
+
+            this.dummy.results.push(result);
+            day += 3600000;
+
+        }
+
     },
 
     dummy: {
