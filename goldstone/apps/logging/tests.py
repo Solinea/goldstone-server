@@ -11,16 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+__author__ = 'John Stanford'
+
 import json
 from time import sleep
-from unittest import skip
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 from rest_framework.test import APISimpleTestCase
-
-__author__ = 'John Stanford'
-
 from django.test import SimpleTestCase
 import logging
 from datetime import timedelta

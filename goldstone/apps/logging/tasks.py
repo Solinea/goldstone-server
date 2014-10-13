@@ -15,7 +15,7 @@ from __future__ import absolute_import
 
 import pytz
 import subprocess
-from goldstone.apps.logging.models import LoggingEvent, LoggingNode
+from goldstone.apps.logging.models import LoggingNode
 
 __author__ = 'John Stanford'
 
