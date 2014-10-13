@@ -16,9 +16,16 @@
  * Author: Alex Jacobs
  */
 
- var HypervisorVmCpuView = Backbone.View.extend({
+var HypervisorVmCpuView = Backbone.View.extend({
 
-    defaults: {},
+    defaults: {
+        margin: {
+            top: 10,
+            right: 10,
+            bottom: 18,
+            left: 25
+        }
+    },
 
     initialize: function(options) {
         this.options = options || {};
@@ -27,16 +34,109 @@
         this.defaults.location = options.location;
         this.defaults.width = options.width;
 
+        var ns = this.defaults;
+        var self = this;
+
         this.collection.on('sync', this.update, this);
+
+        ns.mw = ns.width - ns.margin.left - ns.margin.right;
+        ns.mh = ns.width * 2 - ns.margin.top - ns.margin.bottom;
+
+        ns.x = d3.time.scale()
+            .range([0, ns.mw]);
+
+        ns.y = d3.scale.linear()
+            .range([ns.mh, 0]);
+
+        ns.xAxis = d3.svg.axis()
+            .scale(ns.x)
+            .orient("bottom");
+
+        ns.yAxis = d3.svg.axis()
+            .scale(ns.y)
+            .orient("left");
+
+        ns.line = d3.svg.line()
+            .x(function(d) {
+                return ns.x(d.date);
+            })
+            .y(function(d) {
+                return ns.y(d.close);
+            });
+
+        ns.svg = d3.select(ns.location).append("svg")
+            .attr("width", ns.mw + ns.margin.left + ns.margin.right)
+            .attr("height", ns.mh + ns.margin.top + ns.margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+
+
+        // required in case spinner loading takes
+        // longer than chart loading
+        ns.spinnerDisplay = 'inline';
+
+        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
+            $(this).appendTo(ns.location).css({
+                'position': 'relative',
+                'margin-top': -(ns.mh / 2),
+                'margin-left': (ns.mw / 2),
+                'display': ns.spinnerDisplay
+            });
+        });
+
     },
 
     update: function() {
-        var payload = this.collection.toJSON();
-        $(this.defaults.location).append('<br>');
 
-        _.each(payload, function(item) {
-            $(this.defaults.location).append(new Date((_.keys(item.timestamp) * 1000)) + '<br> Value: ' + item.value + '<br>');
-        }, this);
+        var ns = this.defaults;
+        var self = this;
+
+        // sets css for spinner to hidden in case
+        // spinner callback resolves
+        // after chart data callback
+        ns.spinnerDisplay = 'none';
+        $(ns.location).find('#spinner').hide();
+
+        var allTheLogs = this.collection.toJSON();
+
+        if (allTheLogs.length === 0) {
+            console.log('no data returned');
+            return;
+        }
+
+        var data = allTheLogs;
+
+        ns.x.domain(d3.extent(data, function(d){
+            return d.date;
+        }));
+        ns.y.domain([0, d3.max(data, function(d){
+                    return d.close;
+                })]);
+
+
+        ns.svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + ns.mh + ")")
+            .call(ns.xAxis);
+
+        ns.svg.append("g")
+            .attr("class", "y axis")
+            .call(ns.yAxis)
+            .append("text")
+            // .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("x", 3)
+            .attr("dy", ".71em")
+            .style("text-anchor", "left")
+            .text("figure out label");
+
+        ns.svg.append("path")
+            .datum(data)
+            .attr("class", "line")
+            .attr("fill", "none")
+            .attr("stroke", "#000")
+            .attr("d", ns.line);
+
     }
 
 });
