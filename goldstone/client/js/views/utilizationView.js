@@ -151,6 +151,9 @@ var UtilizationView = Backbone.View.extend({
                 return ns.area(d.values);
             })
             .style("fill", function(d) {
+                if(d.name === "Idle"){
+                    return "none";
+                }
                 return ns.color(d.name);
             });
 

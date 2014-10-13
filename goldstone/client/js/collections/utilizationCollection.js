@@ -43,15 +43,15 @@
 
             var user = Math.floor(Math.random()*3300) / 100;
             var system = Math.floor(Math.random()*3300) / 100;
-            var idle = Math.floor(Math.random()*3300) / 100;
+            var wait = Math.floor(Math.random()*3300) / 100;
 
 
             var result = {
                 "date": day,
-                "User": user,
+                "Wait": wait,
                 "System": system,
-                "Idle": idle,
-                "Wait": (100 - user - system - idle)
+                "User": user,
+                "Idle": (100 - user - system - wait)
             };
 
             this.dummy.results.push(result);
