@@ -92,9 +92,6 @@ class Event(object):
     event_type = None
     source_id = ""
     message = None
-    created = arrow.utcnow()
-    updated = created
-
     _mt = EventType()
 
     # todo integrate pagination/slicing
@@ -107,7 +104,6 @@ class Event(object):
 
         WARNING!!! it is not sliced at this time, so your search params
         (kwargs) should return a reasonable number of results.
-
         '''
         if 'id' in kwargs:
             kwargs['_id'] = kwargs['id']
@@ -119,16 +115,25 @@ class Event(object):
         logger.info("result = %s", str(result))
         return result
 
-    def __init__(self, event_type, message, source_id=""):
+    def __init__(self, event_type, message, created=None,
+                 updated=None, source_id=""):
         self.event_type = event_type
         self.message = message
         self.source_id = str(source_id)
+        if created is None:
+            self.created = arrow.utcnow().datetime
+        else:
+            self.created = created
+        if updated is None:
+            self.updated = self.created
+        else:
+            self.updated = updated
 
     def __repr__(self):
         return json.dumps({
             "id": str(self.id),
             "event_type": self.event_type,
-            "source_id": "" if self.source_id is None else str(self.src_id),
+            "source_id": "" if self.source_id is None else str(self.source_id),
             "message": self.message,
             "created": self.created.isoformat(),
             "updated": self.updated.isoformat()

@@ -63,7 +63,7 @@ def process_event_stream(self, timestamp, host, event_type, message):
         process_amqp_down_event(timestamp, host, message)
     else:
         logger.warning("[process_event_stream] don't know how to handle event"
-                       "of type %s", event_type)
+                       "of type %s with message=%s", event_type, message)
 
 
 def _create_event(timestamp, host, message, event_type):
@@ -72,19 +72,21 @@ def _create_event(timestamp, host, message, event_type):
                  timestamp, host, message, event_type)
 
     dt = arrow.get(timestamp).datetime
-    # event = Event(uuid=uuid4(), event_type=event_type, created=dt, updated=dt,
-    #               message=message)
-    event = Event(uuid=uuid4())
-    EventMappingType.index(event, id_=event.uuid)
-    # try:
-    #     node = LoggingNode.objects.get(name=host)
-    #     return event
-    # except LoggingNode.DoesNotExist:
-    #     logger.warning("[process_log_error_event] could not find logging node "
-    #                    "with name=%s.  event will have not relations.", host)
-    #     return event
-    # except:
-    #     raise
+
+    try:
+        node = LoggingNode.objects.get(name=host)
+    except LoggingNode.DoesNotExist:
+        logger.warning("[process_log_error_event] could not find logging node "
+                       "with name=%s.  event will have not relations.", host)
+        event = Event(event_type=event_type, created=dt,
+                      updated=dt, message=message)
+        event.save()
+        return event
+    else:
+        event = Event(event_type=event_type, created=dt,
+                      updated=dt, message=message, source_id=str(node.uuid))
+        event.save()
+        return event
 
 
 def process_log_error_event(timestamp, host, message):

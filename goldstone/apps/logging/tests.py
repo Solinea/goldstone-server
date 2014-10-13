@@ -46,7 +46,6 @@ class TaskTests(SimpleTestCase):
         # for obj in Event.objects.iterator():
         #    obj.delete()
 
-    @skip("wip")
     def test_process_host_stream(self):
         # administratively enabled
         node1 = Node(name=self.name1, admin_disabled=False)
@@ -87,7 +86,6 @@ class TaskTests(SimpleTestCase):
         Node.objects.get(uuid=node2.uuid).delete()
         Node.objects.get(uuid=node3.uuid).delete()
 
-    @skip("wip")
     def test_create_event(self):
         timestamp = arrow.utcnow().__str__()
         event1 = _create_event(timestamp, 'not_found_node', 'test message',
