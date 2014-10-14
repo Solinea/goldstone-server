@@ -118,9 +118,9 @@ class Event(object):
             kwargs['_id'] = kwargs['id']
             del kwargs['id']
 
-        logger.info("calling search with kwargs = %s", json.dumps(kwargs))
+        logger.debug("calling search with kwargs = %s", json.dumps(kwargs))
         result = S(EventType).query(*args, **kwargs).execute().objects
-        logger.info("result = %s", str(result))
+        logger.debug("result = %s", str(result))
         return result
 
     @classmethod
@@ -133,9 +133,9 @@ class Event(object):
             kwargs['_id'] = kwargs['id']
             del kwargs['id']
 
-        logger.info("calling search with kwargs = %s", json.dumps(kwargs))
+        logger.debug("calling search with kwargs = %s", json.dumps(kwargs))
         result = S(EventType)[:1].query(*args, **kwargs).execute().objects
-        logger.info("result = %s", str(result))
+        logger.debug("result = %s", str(result))
         if len(result) > 0:
             return result[0]
         else:
