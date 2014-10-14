@@ -16,7 +16,7 @@
  * Author: Alex Jacobs
  */
 
- var UtilizationView = Backbone.View.extend({
+var UtilizationView = Backbone.View.extend({
 
     defaults: {
         margin: {
@@ -42,7 +42,6 @@
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.width - ns.margin.top - ns.margin.bottom;
 
-        ns.parseDate = d3.time.format("%y-%b-%d").parse;
         ns.formatPercent = d3.format(".0%");
 
         ns.x = d3.time.scale()
@@ -56,7 +55,7 @@
         ns.xAxis = d3.svg.axis()
             .scale(ns.x)
             .orient("bottom")
-            .ticks(5);
+            .ticks(4);
 
         ns.yAxis = d3.svg.axis()
             .scale(ns.y)
@@ -85,13 +84,17 @@
             .append("g")
             .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
 
-
+        // required in case spinner loading takes
+        // longer than chart loading
+        ns.spinnerDisplay = 'inline';
 
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(ns.location).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
-                'margin-top': -(ns.width / 2)
+                'margin-top': -(ns.width / 2),
+                'display': ns.spinnerDisplay
+
             });
         });
 
@@ -101,6 +104,11 @@
 
         var ns = this.defaults;
         var self = this;
+
+        // sets css for spinner to hidden in case
+        // spinner callback resolves
+        // after chart data callback
+        ns.spinnerDisplay = 'none';
         $(ns.location).find('#spinner').hide();
 
         var allTheLogs = this.collection.toJSON();
@@ -115,10 +123,6 @@
         ns.color.domain(d3.keys(data[0]).filter(function(key) {
             return key !== "date";
         }));
-
-        // data.forEach(function(d) {
-        //     d.date = ns.parseDate(d.date);
-        // });
 
         var browsers = ns.stack(ns.color.domain().map(function(name) {
             return {
@@ -147,6 +151,9 @@
                 return ns.area(d.values);
             })
             .style("fill", function(d) {
+                if(d.name === "Idle"){
+                    return "none";
+                }
                 return ns.color(d.name);
             });
 
