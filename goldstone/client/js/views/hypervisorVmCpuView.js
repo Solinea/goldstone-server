@@ -21,7 +21,7 @@ var HypervisorVmCpuView = Backbone.View.extend({
     defaults: {
         margin: {
             top: 25,
-            right: 10,
+            right: 70,
             bottom: 18,
             left: 25
         }
@@ -48,6 +48,8 @@ var HypervisorVmCpuView = Backbone.View.extend({
         ns.y = d3.scale.linear()
             .range([ns.mh, 0]);
 
+        ns.color = d3.scale.category20();
+
         ns.xAxis = d3.svg.axis()
             .scale(ns.x)
             .orient("bottom")
@@ -58,11 +60,12 @@ var HypervisorVmCpuView = Backbone.View.extend({
             .orient("left");
 
         ns.line = d3.svg.line()
-            .x(function(d) {
-                return ns.x(d.date);
-            })
+        .interpolate("monotone")
+        .x(function(d) {
+            return ns.x(d.date);
+        })
             .y(function(d) {
-                return ns.y(d[ns.selectedButton]);
+                return ns.y(d.utilValue);
             });
 
         ns.svg = d3.select(ns.location).append("svg")
@@ -106,9 +109,25 @@ var HypervisorVmCpuView = Backbone.View.extend({
             return;
         }
 
-        ns.dataset = allTheLogs;
+        ns.data = allTheLogs;
 
-        ns.x.domain(d3.extent(ns.dataset, function(d) {
+        ns.color.domain(d3.keys(ns.data[0][ns.selectedButton][0]).filter(function(key) {
+            return key !== "date";
+        }));
+
+        ns.vms = ns.color.domain().map(function(name) {
+            return {
+                name: name,
+                values: ns.data.map(function(d) {
+                    return {
+                        date: d.date,
+                        utilValue: d[ns.selectedButton][0][name]
+                    };
+                })
+            };
+        });
+
+        ns.x.domain(d3.extent(ns.data, function(d) {
             return d.date;
         }));
 
@@ -123,20 +142,42 @@ var HypervisorVmCpuView = Backbone.View.extend({
             .attr("class", "y axis")
             .call(ns.yAxis)
             .append("text")
-            .attr("y", -10)
             .attr("x", 3)
+            .attr("y", -6)
             .attr("dy", ".71em")
-            .style("text-anchor", "left")
-            .text("percent utilization(%)");
+            .style("text-anchor", "beginning")
+            .text("percent utilization (%)");
 
-        ns.svg.append("path")
-            .datum(ns.dataset)
+        ns.vm = ns.svg.selectAll(".vm")
+            .data(ns.vms)
+            .enter().append("g")
+            .attr("class", "vm");
+
+        ns.vm.append("path")
             .attr("class", "line")
-            .attr("id", "dataPath")
-            .attr("d", ns.line)
-            .style("stroke", "#000")
-            .style("stroke-width", "3px")
-            .style("fill", "none");
+            .attr("d", function(d) {
+                return ns.line(d.values);
+            })
+            .style("stroke", function(d) {
+                return ns.color(d.name);
+            })
+            .style("stroke-width", "2px");
+
+        ns.vm.append("text")
+            .datum(function(d) {
+                return {
+                    name: d.name,
+                    value: d.values[d.values.length - 1]
+                };
+            })
+            .attr("transform", function(d) {
+                return "translate(" + ns.x(d.value.date) + "," + ns.y(d.value.utilValue) + ")";
+            })
+            .attr("x", 3)
+            .attr("dy", ".35em")
+            .text(function(d) {
+                return d.name;
+            });
 
     },
 
@@ -144,28 +185,58 @@ var HypervisorVmCpuView = Backbone.View.extend({
         var ns = this.defaults;
         var self = this;
 
-        if(ns.dataset === undefined){
+        if (ns.data === undefined) {
             return;
         }
 
-        ns.x.domain(d3.extent(ns.dataset, function(d) {
+        ns.vms = ns.color.domain().map(function(name) {
+            return {
+                name: name,
+                values: ns.data.map(function(d) {
+                    return {
+                        date: d.date,
+                        utilValue: d[ns.selectedButton][0][name]
+                    };
+                })
+            };
+        });
+
+        ns.x.domain(d3.extent(ns.data, function(d) {
             return d.date;
         }));
 
-        d3.select(ns.location).selectAll("path")
-            .transition()
-            .duration(500)
-            .attr("d", ns.line);
+        ns.vm.remove();
 
-        d3.select(ns.location).select(".y.axis")
-            .transition()
-            .duration(500)
-            .call(ns.yAxis);
+        ns.vm = ns.svg.selectAll(".vm")
+            .data(ns.vms)
+            .enter().append("g")
+            .attr("class", "vm");
 
-        d3.select(ns.location).select(".x.axis")
-            .transition()
-            .duration(500)
-            .call(ns.xAxis);
+        ns.vm.append("path")
+            .attr("class", "line")
+            .attr("d", function(d) {
+                return ns.line(d.values);
+            })
+            .style("stroke", function(d) {
+                return ns.color(d.name);
+            })
+            .style("stroke-width", "2px");
+
+        ns.vm.append("text")
+            .datum(function(d) {
+                return {
+                    name: d.name,
+                    value: d.values[d.values.length - 1]
+                };
+            })
+            .attr("transform", function(d) {
+                return "translate(" + ns.x(d.value.date) + "," + ns.y(d.value.utilValue) + ")";
+            })
+            .attr("x", 3)
+            .attr("dy", ".35em")
+            .text(function(d) {
+                return d.name;
+            });
 
     },
 
