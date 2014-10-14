@@ -112,9 +112,7 @@ var HypervisorVmCpuView = Backbone.View.extend({
             return d.date;
         }));
 
-        ns.y.domain([0, d3.max(ns.dataset, function(d) {
-            return d[ns.selectedButton];
-        })]);
+        ns.y.domain([0, 100]);
 
         ns.svg.append("g")
             .attr("class", "x axis")
@@ -135,9 +133,10 @@ var HypervisorVmCpuView = Backbone.View.extend({
             .datum(ns.dataset)
             .attr("class", "line")
             .attr("id", "dataPath")
-            .attr("fill", "none")
-            .attr("stroke", "#000")
-            .attr("d", ns.line);
+            .attr("d", ns.line)
+            .style("stroke", "#000")
+            .style("stroke-width", "3px")
+            .style("fill", "none");
 
     },
 
@@ -148,10 +147,6 @@ var HypervisorVmCpuView = Backbone.View.extend({
         if(ns.dataset === undefined){
             return;
         }
-
-        ns.y.domain([0, d3.max(ns.dataset, function(d) {
-            return d[ns.selectedButton];
-        })]);
 
         ns.x.domain(d3.extent(ns.dataset, function(d) {
             return d.date;

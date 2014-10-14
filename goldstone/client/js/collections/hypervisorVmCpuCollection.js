@@ -19,6 +19,7 @@
 var HypervisorVmCpuCollection = Backbone.Collection.extend({
 
     parse: function(data) {
+        console.log(this.dummy.results);
         return this.dummy.results;
     },
 
@@ -27,7 +28,7 @@ var HypervisorVmCpuCollection = Backbone.Collection.extend({
     initialize: function(options) {
         this.url = options.url;
         this.dummy = _.clone(this.dummy);
-        this.dummyGen();
+        // this.dummyGen();
         this.fetch();
     },
 
@@ -41,7 +42,8 @@ var HypervisorVmCpuCollection = Backbone.Collection.extend({
 
         for (var i = 0; i < Math.floor(Math.random() * 20) + 10; i++) {
 
-            var user = Math.floor(Math.random() * 5000) / 100;
+            var user = Math.floor(Math.random() * 5000) /
+                100;
             var system = Math.floor(Math.random() * 5000) / 100;
 
             var result = {
@@ -55,36 +57,74 @@ var HypervisorVmCpuCollection = Backbone.Collection.extend({
             day += 3600000;
 
         }
+        console.log(this.dummy.results);
+
     },
 
     dummy: {
-        "name": "os.cpu.system",
-        "units": "percent",
         results: [{
-            "timestamp": 1000000000,
-            "value": 25
-        }, {
-            "timestamp": 1000360000,
-            "value": 20
-        }, {
-            "timestamp": 1000720000,
-            "value": 23
-        }, {
-            "timestamp": 1001080000,
-            "value": 35
-        }, {
-            "timestamp": 1001440000,
-            "value": 30
-        }, {
-            "timestamp": 1001800000,
-            "value": 15
-        }, {
-            "timestamp": 1002160000,
-            "value": 15
-        }, {
-            "timestamp": 1002540000,
-            "value": 20
-        }]
+            date: 1412812619263,
+            vmList: [{
+                vmName: "vm1",
+                user: 3.7,
+                system: 6.7,
+                wait: 75
+            }, {
+                vmName: "vm2",
+                user: 63.7,
+                system: 26.7,
+                wait: 25
+            }, {
+                vmName: "vm3",
+                user: 3.7,
+                system: 76.7,
+                wait: 45
+            }, {
+                vmName: "vm4",
+                user: 3.7,
+                system: 16.7,
+                wait: 85
+            }, {
+                vmName: "vm5",
+                user: 3.7,
+                system: 66.7,
+                wait: 65
+            }]
+        },
+        {
+            date: 1412817619263,
+            vmList: [{
+                vmName: "vm1",
+                user: 73.7,
+                system: 36.7,
+                wait: 25
+            }, {
+                vmName: "vm2",
+                user: 53.7,
+                system: 96.7,
+                wait: 70
+            }, {
+                vmName: "vm3",
+                user: 33.7,
+                system: 86.7,
+                wait: 35
+            }, {
+                vmName: "vm4",
+                user: 77.7,
+                system: 46.7,
+                wait: 35
+            }, {
+                vmName: "vm5",
+                user: 37.7,
+                system: 36.7,
+                wait: 75
+            }]
+        }
+
+
+
+        ]
     }
+
 
 });
