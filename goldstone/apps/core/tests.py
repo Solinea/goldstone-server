@@ -22,13 +22,12 @@ from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 from rest_framework.test import APISimpleTestCase
 from goldstone.apps.core import tasks
-from goldstone.apps.core.views import NodeViewSet
 from goldstone.models import GSConnection
 from models import *
 from serializers import *
 from datetime import datetime
 import logging
-import subprocess
+import arrow
 
 __author__ = 'stanford'
 
@@ -360,7 +359,7 @@ class EventViewTests(APISimpleTestCase):
     def test_get_list(self):
         response = self.client.get('/core/events')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        logger.info("response.data = %s", response.data)
+        logger.debug("response.data = %s", response.data)
         self.assertEqual(len(response.data), 2)
 
     def test_get_list_with_start(self):
@@ -394,3 +393,69 @@ class EventViewTests(APISimpleTestCase):
         EventType.refresh_index()
         response = self.client.get('/core/events/' + self.event1.id)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_succeed_min(self):
+        data = {
+            "event_type": "external created event",
+            "message": "I am your creator"
+        }
+        response = self.client.post('/core/events', data=data, format='json')
+
+        logger.debug("[test_create_succeed] response.data = %s",
+                     response.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        EventType.refresh_index()
+        response = self.client.get('/core/events/' + response.data['id'])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.delete('/core/events/' + response.data['id'])
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+    def test_create_succeed_max(self):
+        d = arrow.utcnow()
+        data = {
+            "created": d.replace(hours=-1).isoformat(),
+            "updated": d.isoformat(),
+            "event_type": "external created event",
+            "message": "I am your creator"
+        }
+        response = self.client.post('/core/events', data=data, format='json')
+
+        logger.info("[test_create_succeed] response.data = %s",
+                    response.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        EventType.refresh_index()
+        response = self.client.get('/core/events/' + response.data['id'])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.delete('/core/events/' + response.data['id'])
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+    def test_create_fail_date_format(self):
+
+        data = {
+            "created": 'xyzabc123',
+            "event_type": "external created event",
+            "message": "I am your creator"
+        }
+        response = self.client.post('/core/events', data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_fail_date_format2(self):
+
+        data = {
+            "updated": 'xyzabc123',
+            "event_type": "external created event",
+            "message": "I am your creator"
+        }
+        response = self.client.post('/core/events', data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_fail_date_order(self):
+        d = arrow.utcnow()
+        data = {
+            "updated": d.replace(hours=-1).isoformat(),
+            "created": d.isoformat(),
+            "event_type": "external created event",
+            "message": "I am your creator"
+        }
+        response = self.client.post('/core/events', data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

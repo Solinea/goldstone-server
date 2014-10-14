@@ -11,19 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import arrow
-from django.http import Http404
-from rest_framework import status
-from rest_framework.decorators import action
-from rest_framework.generics import GenericAPIView, ListCreateAPIView
-from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, ViewSet, GenericViewSet
+
 
 __author__ = 'John Stanford'
 
 from .models import *
 from .serializers import *
 import logging
+import arrow
+from django.http import Http404
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 logger = logging.getLogger(__name__)
 
@@ -88,6 +88,8 @@ class NodeViewSet(ModelViewSet):
 # works, but no pagination
 class EventViewSet(GenericViewSet):
 
+    serializer_class = EventSerializer
+
     def list(self, request):
         '''
         the request accepts params 'end_ts' and 'lookback_mins'.  The value of
@@ -121,7 +123,7 @@ class EventViewSet(GenericViewSet):
         serializer = EventSerializer(event, many=False)
         return Response(serializer.data)
 
-    def delete(self, request, pk='id'):
+    def destroy(self, request, pk='id'):
         event = Event.get(_id=pk)
         if event is None:
             return Response(status=status.HTTP_202_ACCEPTED)
@@ -131,3 +133,10 @@ class EventViewSet(GenericViewSet):
                 return Response(status=status.HTTP_202_ACCEPTED)
             except:
                 return Response(status=status.HTTP_502_BAD_GATEWAY)
+
+    def create(self, request):
+        serializer = EventSerializer(data=request.DATA, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
