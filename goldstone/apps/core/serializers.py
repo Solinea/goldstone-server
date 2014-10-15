@@ -24,7 +24,6 @@ class NodeSerializer(serializers.ModelSerializer):
     name = serializers.CharField(read_only=True)
     created = serializers.DateTimeField(read_only=True)
     updated = serializers.DateTimeField(read_only=True)
-    last_seen = serializers.CharField(read_only=True)
     last_seen_method = serializers.CharField(read_only=True)
     admin_disabled = serializers.CharField(read_only=True)
 

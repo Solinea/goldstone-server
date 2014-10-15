@@ -15,7 +15,7 @@
 # Author: John Stanford
 
 output {
-    if [type] == "event_stream" {
+    if [type] == "event_stream" and [event_type] {
         # stdout { codec => rubydebug }
         celery_redis_task {
             name => "event_stream"

@@ -81,12 +81,9 @@ class EntityTests(SimpleTestCase):
         Entity.objects.get_or_create(name="entity 2")
         Entity.objects.get_or_create(name="entity 3")
 
-        Resource.objects.get_or_create(name="resource 1")
-        Resource.objects.get_or_create(name="resource 2",
-                                       last_seen=datetime.now(tz=pytz.utc))
-
         Node.objects.get_or_create(name="node 1")
         Node.objects.get_or_create(name="node 2")
+
 
     def tearDown(self):
         # When using Entity.objects.all().delete(), we have a strange situation
@@ -95,17 +92,12 @@ class EntityTests(SimpleTestCase):
         # this form for deleting.
         for obj in Entity.objects.iterator():
             obj.delete()
-        for obj in Resource.objects.iterator():
-            obj.delete()
         for obj in Node.objects.iterator():
             obj.delete()
 
     def test_polymorphism(self):
         entities = Entity.objects.all()
-        self.assertEqual(entities.count(), 7)
-
-        resources = Resource.objects.all()
-        self.assertEqual(resources.count(), 4)
+        self.assertEqual(entities.count(), 5)
 
         nodes = Node.objects.all()
         self.assertEqual(nodes.count(), 2)
@@ -116,17 +108,17 @@ class EntityTests(SimpleTestCase):
         self.assertDictContainsSubset({"name": "entity 1"}, json.loads(u))
         self.assertIn('uuid', json.loads(u))
 
-        r1 = Resource.objects.get(name="resource 1")
+        r1 = Node.objects.get(name="node 1")
+        r1.save()
         u = r1.__unicode__()
-        self.assertDictContainsSubset({"name": "resource 1"}, json.loads(u))
-        self.assertIn('last_seen', json.loads(u))
-        self.assertEqual(u'', json.loads(u)['last_seen'])
+        self.assertDictContainsSubset({"name": "node 1"}, json.loads(u))
         self.assertIn('last_seen_method', json.loads(u))
         self.assertIn('admin_disabled', json.loads(u))
-        r2 = Resource.objects.get(name="resource 2")
+        r2 = Node.objects.get(name="node 2")
+        r2.save()
         u = r2.__unicode__()
-        self.assertIn('last_seen', json.loads(u))
-        self.assertNotEqual(u'', json.loads(u)['last_seen'])
+        self.assertIn('updated', json.loads(u))
+        self.assertNotEqual(u'', json.loads(u)['updated'])
 
 
 class NodeSerializerTests(SimpleTestCase):
@@ -152,7 +144,6 @@ class NodeSerializerTests(SimpleTestCase):
         self.assertIn('updated', ser.data)
         self.assertIn('admin_disabled', ser.data)
         self.assertIn('last_seen_method', ser.data)
-        self.assertIn('last_seen', ser.data)
         self.assertIn('uuid', ser.data)
 
 
