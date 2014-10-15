@@ -41,17 +41,21 @@ var NodeAvailView = Backbone.View.extend({
             delay: 5
         };
 
-        // start blue spinner
-        var appendSpinnerLocation = ns.location;
+        // required in case spinner loading takes
+        // longer than chart loading
+        ns.spinnerDisplay = 'inline';
+
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(appendSpinnerLocation).css({
+            $(this).appendTo(ns.location).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
-                'margin-top': -(ns.h.main * 0.7)
+                'margin-top': -(ns.h.main * 0.7),
+                'display': ns.spinnerDisplay
             });
         });
 
-        // bind to backbone collection, when 'fetch' is complete
+        // bind to backbone collection
+        // invoke this.update(), when the collection 'fetch' is complete
         this.collection.on('sync', this.update, this);
 
         // appends display and modal html elements to ns.location
@@ -113,7 +117,9 @@ var NodeAvailView = Backbone.View.extend({
             ]);
 
         ns.filter = {
-            none: true,
+            // none must be set to false in order to not display
+            // nodes that have zero associated events.
+            none: false,
             debug: true,
             audit: true,
             info: true,
@@ -210,13 +216,13 @@ var NodeAvailView = Backbone.View.extend({
                 if (e.last_seen_method === 'PING') {
                     return 's';
                 }
-                if(this.getBBox().y < 130){
+                if (this.getBBox().y < 130) {
                     return 's';
                 } else {
                     return 'n';
                 }
             })
-            .offset(function(){
+            .offset(function() {
                 var leftOffset;
                 // [top-offset, left-offset]
                 var toolTipWidth = 292;
@@ -294,9 +300,168 @@ var NodeAvailView = Backbone.View.extend({
         $("#eventSettingsUpdateButton-" + ns.location.slice(1)).click(updateSettings);
     },
 
+    sums: function(datum) {
+        var ns = this.defaults;
+        // Return the sums for the filters that are on
+        return d3.sum(ns.loglevel.domain().map(function(k) {
+
+            if (ns.filter[k]) {
+                return datum[k + "_count"];
+            } else {
+                return 0;
+            }
+
+        }));
+    },
+
+    update: function() {
+        var ns = this.defaults;
+        var self = this;
+        var uri = ns.url;
+
+        // sets css for spinner to hidden in case
+        // spinner callback resolves
+        // after chart data callback
+        ns.spinnerDisplay = 'none';
+        $(ns.location).find('#spinner').hide();
+
+        // prevent updating when fetch is in process
+        if (!this.collection.thisXhr.getResponseHeader('LogCountStart') || this.collection.thisXhr.getResponseHeader('LogCountEnd') === null) {
+            return true;
+        }
+
+        // var allthelogs = JSON.parse(response.responseText);
+        var allthelogs = (this.collection.toJSON());
+        // var xStart = moment(response.getResponseHeader('LogCountStart'));
+        var xStart = moment(this.collection.thisXhr.getResponseHeader('LogCountStart'));
+        var xEnd = moment(this.collection.thisXhr.getResponseHeader('LogCountEnd'));
+
+        ns.xScale = ns.xScale.domain([xStart, xEnd]);
+
+        // If we didn't receive any valid files, abort and pause
+        if (allthelogs.length === 0) {
+            console.log('no data');
+            return;
+        }
+
+        /*
+         * Shape the dataset
+         *   - Convert datetimes to integer
+         *   - Sort by last seen (from most to least recent)
+         */
+
+        ns.dataset = allthelogs
+            .map(function(d) {
+                d.created = moment(d.created);
+                d.updated = moment(d.updated);
+                d.last_seen = moment(d.last_seen);
+
+                /*
+                 * Figure out which bucket (logs, ping, or admin disabled)
+                 * each node belongs to.
+                 */
+
+                if (d.admin_disabled) {
+                    d.swimlane = "unadmin";
+                } else {
+                    d.swimlane = d.last_seen_method.toLowerCase();
+                }
+
+                return d;
+            });
+
+
+        /*
+         * Axes
+         *   - calculate the new domain.
+         *   - adjust each axis to its new scale.
+         */
+
+        ns.pingAxis.scale(ns.xScale);
+        ns.unadminAxis.scale(ns.xScale);
+
+        ns.svg.select(".xping.axis")
+            .call(ns.pingAxis);
+
+        ns.svg.select(".xunadmin.axis")
+            .call(ns.unadminAxis);
+
+        ns.yAxis.scale(ns.yLogs);
+
+        ns.svg.select(".y.axis")
+            .transition()
+            .duration(500)
+            .call(ns.yAxis);
+
+
+        // binds circles to dataset
+        var circle = ns.graph.selectAll("circle")
+            .data(ns.dataset, function(d) {
+                return d.uuid;
+            });
+
+        // 'enters' circles at far right of screen.
+        // styling and location will happen in this.redraw().
+        circle.enter()
+            .append("circle")
+            .attr("cx", function(d) {
+                return ns.xScale.range()[1];
+            })
+            .attr("cy", function(d) {
+                return ns.yLogs(self.sums(d));
+            })
+            .on("mouseover", ns.tooltip.show)
+            .on("mouseout", ns.tooltip.hide);
+
+        this.redraw();
+
+        circle.exit().remove();
+
+        // reschedule next fetch at selected interval
+        this.scheduleFetch();
+        return true;
+    },
+
     redraw: function() {
         var ns = this.defaults;
         var self = this;
+
+        /*
+         * Figure out the higest non-filtered level.
+         * That will determine its color.
+         */
+
+        _.each(ns.dataset, function(nodeObject) {
+
+            // the .level paramater will determing visibility
+            // and styling of the sphere
+            var nonzero_levels = ns.loglevel.domain()
+                .map(function(level) {
+                    return [level, nodeObject[level + "_count"]];
+                })
+                .filter(function(level) {
+
+                    // only consider 'active' filter buttons
+                    return ns.filter[level[0]] && (level[1] > 0);
+                });
+
+            if (nonzero_levels[0] === undefined) {
+                nodeObject.level = "none";
+            } else {
+                var maxLevel = d3.max(nonzero_levels.map(function(d) {
+                    return d[1];
+                }));
+
+                for (var i = 0; i < nonzero_levels.length; i++) {
+                    if (nonzero_levels[i][1] === maxLevel) {
+                        nodeObject.level = nonzero_levels[i][0];
+                        break;
+                    }
+                }
+            }
+
+        });
+
         ns.yLogs.domain([
             0,
             d3.max(ns.dataset.map(function(d) {
@@ -315,6 +480,7 @@ var NodeAvailView = Backbone.View.extend({
 
         ns.graph.selectAll("circle")
             .transition().duration(500)
+            // this determines the color of the circle
             .attr("class", function(d) {
                 if (d.swimlane === "unadmin") {
                     return d.swimlane;
@@ -350,168 +516,22 @@ var NodeAvailView = Backbone.View.extend({
                 if (ns.filter[d.level]) {
                     return 0.5;
                 } else {
-                    return 1e-6;
+                    return 0;
                 }
 
-            });
+            })
+            .style("visibility", function(d) {
 
-    },
-
-    sums: function(datum) {
-        var ns = this.defaults;
-        // Return the sums for the filters that are on
-        return d3.sum(ns.loglevel.domain().map(function(k) {
-
-            if (ns.filter[k]) {
-                return datum[k + "_count"];
-            } else {
-                return 0;
-            }
-
-        }));
-    },
-
-    update: function() {
-        var ns = this.defaults;
-        var self = this;
-        var uri = ns.url;
-        $(ns.location).find('#spinner').hide();
-
-        // If we are paused or beyond the available jsons, exit
-        if (ns.animation.pause) {
-            return true;
-        }
-
-        // prevent updating when fetch is in process
-        if (!this.collection.thisXhr.getResponseHeader('LogCountStart') || this.collection.thisXhr.getResponseHeader('LogCountEnd') === null) {
-            return true;
-        }
-
-        // Set the animation to not step over itself
-        ns.animation.pause = true;
-
-        // var allthelogs = JSON.parse(response.responseText);
-        var allthelogs = (this.collection.toJSON());
-        // var xStart = moment(response.getResponseHeader('LogCountStart'));
-        var xStart = moment(this.collection.thisXhr.getResponseHeader('LogCountStart'));
-        var xEnd = moment(this.collection.thisXhr.getResponseHeader('LogCountEnd'));
-
-        ns.xScale = ns.xScale.domain([xStart, xEnd]);
-
-        // If we didn't receive any valid files, abort and pause
-        if (allthelogs.length === 0) {
-            ns.animation.pause = true;
-            return;
-        }
-
-        /*
-         * Shape the dataset
-         *   - Convert datetimes to integer
-         *   - Sort by last seen (from most to least recent)
-         */
-        ns.dataset = allthelogs
-            .map(function(d) {
-                d.created = moment(d.created);
-                d.updated = moment(d.updated);
-                d.last_seen = moment(d.last_seen);
-
-                /*
-                 * Figure out the higest priority level.
-                 * That will determine its color later.
-                 */
-                var nonzero_levels = ns.loglevel.domain()
-                    .map(function(l) {
-                        return [l, d[l + "_count"]];
-                    })
-                    .filter(function(l) {
-                        return (l[1] > 0);
-                    })
-                    .reverse();
-
-                if (nonzero_levels[0] === undefined) {
-                    d.level = "none";
+                // use visibility "hidden" to
+                // completely remove from dom to prevent
+                // tool tip hovering from still working
+                if (!ns.filter[d.level]) {
+                    return "hidden";
                 } else {
-                    d.level = nonzero_levels[0][0];
+                    return "visible";
                 }
-
-                /*
-                 * Figure out which bucket (logs, ping, or admin disabled)
-                 * each node belongs to.
-                 */
-
-                if (d.admin_disabled) {
-                    d.swimlane = "unadmin";
-                } else {
-                    d.swimlane = d.last_seen_method.toLowerCase();
-                }
-
-                return d;
-            })
-            .sort(function(a, b) {
-                return a.last_seen - b.last_seen;
             });
 
-        /*
-         * Axes
-         *   - calculate the new domain.
-         *   - adjust each axis to its new scale.
-         */
-        ns.pingAxis.scale(ns.xScale);
-        ns.unadminAxis.scale(ns.xScale);
-
-        ns.svg.select(".xping.axis")
-            .call(ns.pingAxis);
-
-        ns.svg.select(".xunadmin.axis")
-            .call(ns.unadminAxis);
-
-        ns.yLogs.domain([0, d3.max(ns.dataset.map(function(d) {
-            // add up all the *_counts
-            return d3.sum(ns.loglevel.domain().map(function(e) {
-                return +d[e + "_count"];
-            }));
-        }))]);
-        ns.yAxis.scale(ns.yLogs);
-        ns.svg.select(".y.axis")
-            .transition()
-            .duration(500)
-            .call(ns.yAxis);
-
-        /*
-         * New circles appear at the far right hand side of the graph.
-         */
-        var circle = ns.graph.selectAll("circle")
-            .data(ns.dataset, function(d) {
-                return d.uuid;
-            });
-
-        circle.enter()
-            .append("circle")
-            .attr("cx", function(d) {
-                return ns.xScale.range()[1];
-            })
-            .attr("cy", function(d) {
-                return ns.yLogs(self.sums(d));
-            })
-            .attr("r", ns.r(0))
-            .attr("class", function(d) {
-                return d.level;
-            })
-            .on("mouseover", ns.tooltip.show)
-            .on("mouseout", ns.tooltip.hide);
-
-        this.redraw();
-
-        // This behaviour is not yet fully understood
-        circle.exit()
-            .attr("class", function(d) {
-                return "older";
-            });
-
-        // Unpause the animation and rerun this function for the next frame
-        ns.animation.pause = false;
-        this.scheduleFetch();
-        return true;
     },
 
     scheduleFetch: function() {
@@ -522,6 +542,10 @@ var NodeAvailView = Backbone.View.extend({
         // in addition to the check for undefined xhr data
         if (ns.scheduleTimeout !== undefined) {
             clearTimeout(ns.scheduleTimeout);
+        }
+
+        if (ns.animation.pause){
+            return true;
         }
 
         ns.scheduleTimeout = setTimeout(function() {
