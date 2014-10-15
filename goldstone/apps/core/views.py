@@ -85,58 +85,27 @@ class NodeViewSet(ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# works, but no pagination
-class EventViewSet(GenericViewSet):
-
+class EventViewSet(ModelViewSet):
+    queryset = EventType().search().query()
     serializer_class = EventSerializer
+    lookup_field = "_id"
 
-    def list(self, request):
-        '''
-        the request accepts params 'end_ts' and 'lookback_mins'.  The value of
-        'end_ts' is a unix timestamp (millisecond resolution) representing the
-        upper bounds of the created field in the record.
+    def list(self, request, *args, **kwargs):
+        # adding support filter params
+        params = request.QUERY_PARAMS.dict()
+        if params is not None:
+            self.queryset = EventType().search().query().filter(**params)
+            return super(EventViewSet, self).list(request, *args, **kwargs)
 
-        The lookback_mins field will be treated as an integer and subtracted
-        from the value used for the upper bounds of created (end_ts or now).
-        '''
-
-        kw = dict()
-        now = arrow.utcnow()
-        end_ts = str(now.timestamp)
-        qp = request.QUERY_PARAMS.dict()
-        end = arrow.get(qp.get('end_ts', end_ts))
-        kw['created__lte'] = end.isoformat()
-
-        lookback_mins = int(qp.get(
-            'lookback_mins', settings.EVENT_LOOKBACK_MINUTES)) * -1
-        kw['created__gte'] = end.replace(minutes=lookback_mins).isoformat()
-
-        events = Event.search(**kw)
-        serializer = EventSerializer(events, many=True)
-        return Response(serializer.data)
-
-    def retrieve(self, request, pk='id'):
-        event = Event.get(_id=pk)
-        if event is None:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        serializer = EventSerializer(event, many=False)
-        return Response(serializer.data)
-
-    def destroy(self, request, pk='id'):
-        event = Event.get(_id=pk)
-        if event is None:
-            return Response(status=status.HTTP_202_ACCEPTED)
+    def get_object(self):
+        q = self.queryset
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        lookup = self.kwargs.get(lookup_url_kwarg, None)
+        if lookup is not None:
+            filter_kwargs = {self.lookup_field: lookup}
+        q_result = q.filter(**filter_kwargs)[:1].execute()
+        if q_result.count == 1:
+            obj = q_result.objects[0].get_object()
+            return obj
         else:
-            try:
-                event.get_object().delete()
-                return Response(status=status.HTTP_202_ACCEPTED)
-            except:
-                return Response(status=status.HTTP_502_BAD_GATEWAY)
-
-    def create(self, request):
-        serializer = EventSerializer(data=request.DATA, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            raise Http404

@@ -86,19 +86,19 @@ class TaskTests(SimpleTestCase):
         Node.objects.get(uuid=node3.uuid).delete()
 
     def test_create_event(self):
-        timestamp = arrow.utcnow().__str__()
-        event1 = _create_event(timestamp, 'not_found_node', 'test message',
+        time_str = arrow.utcnow().isoformat()
+        event1 = _create_event(time_str, 'not_found_node', 'test message',
                                "Syslog Error")
-        self.assertEqual(event1.created, arrow.get(timestamp).datetime)
+        self.assertEqual(event1.created, arrow.get(time_str).datetime)
         self.assertEqual(event1.message, "test message")
         self.assertEqual(event1.event_type, "Syslog Error")
 
         # create a logging node to relate
         node = LoggingNode(name="fake_node")
         node.save()
-        event2 = _create_event(timestamp, 'fake_node', 'test message 2',
+        event2 = _create_event(time_str, 'fake_node', 'test message 2',
                                "Syslog Error")
-        self.assertEqual(event2.created, arrow.get(timestamp).datetime)
+        self.assertEqual(event2.created, arrow.get(time_str).datetime)
         self.assertEqual(event2.message, "test message 2")
         self.assertEqual(event2.event_type, "Syslog Error")
 

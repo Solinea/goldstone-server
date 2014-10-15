@@ -129,41 +129,6 @@ class EntityTests(SimpleTestCase):
         self.assertNotEqual(u'', json.loads(u)['last_seen'])
 
 
-class EventModelTests(SimpleTestCase):
-
-    def setUp(self):
-        # delete the goldstone_model index, then recreate it
-        conn = GSConnection().conn
-        conn.indices.delete('goldstone_model')
-        conn.indices.create('goldstone_model')
-
-    def test_event_instantiation(self):
-        # without source id
-        e1 = Event("test_type", "test_message")
-        self.assertEqual(e1.event_type, "test_type")
-        self.assertEqual(e1.message, "test_message")
-        self.assertIsNotNone(e1.id)
-        self.assertEqual(e1.created, e1.updated)
-        self.assertEqual("", e1.source_id)
-
-        # with source id
-        sid = uuid4()
-        e2 = Event("test_type", "test_message", source_id=sid)
-        self.assertNotEqual("", e2.source_id)
-
-    def test_single_event_index_unindex(self):
-        e1 = Event("test_type", "test_message")
-        id_str = str(e1.id)
-        e1.save()
-        EventType.refresh_index(index='goldstone_model')
-        search_result = Event.search(id=id_str)
-        self.assertEqual(len(search_result), 1)
-        e1.delete()
-        EventType.refresh_index(index='goldstone_model')
-        search_result = Event.search(id=id_str)
-        self.assertEqual(len(search_result), 0)
-
-
 class NodeSerializerTests(SimpleTestCase):
     name1 = "test_node_123"
     name2 = "test_node_456"
@@ -301,161 +266,231 @@ class NodeViewTests(APISimpleTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
+class EventModelTests(SimpleTestCase):
+
+    def setUp(self):
+        es = Elasticsearch(settings.ES_SERVER)
+        if es.indices.exists('goldstone_model'):
+            es.indices.delete('goldstone_model')
+        es.indices.create('goldstone_model')
+
+    def test_create_model(self):
+        e1 = Event(event_type='test_event', message='this is a test event')
+        self.assertIsNotNone(e1.id)
+        self.assertNotEqual(e1.id, "")
+        self.assertIsNotNone(e1.created)
+
+    def test_index_model(self):
+        e1 = Event(event_type='test_event', message='this is a test event')
+        e1.save()
+        EventType.refresh_index()
+        self.assertEqual(e1._mt.search().query().count(), 1)
+        stored = e1._mt.search().query(). \
+            filter(_id=e1.id)[:1]. \
+            execute(). \
+            objects[0]. \
+            get_object()
+        self.assertEqual(stored.id, e1.id)
+        self.assertEqual(stored.event_type, e1.event_type)
+        self.assertEqual(stored.message, e1.message)
+        self.assertEqual(stored.created, e1.created)
+
+    def test_unindex_model(self):
+        e1 = Event(event_type='test_event', message='this is a test event')
+        e1.save()
+        EventType.refresh_index()
+        self.assertEqual(e1._mt.search().query().count(), 1)
+        e1.delete()
+        EventType.refresh_index()
+        self.assertEqual(EventType().search().query().count(), 0)
+
+
 class EventSerializerTests(SimpleTestCase):
+
     event1 = Event(event_type='test_serializer',
                    message='testing serialization')
 
     def setUp(self):
+        es = Elasticsearch(settings.ES_SERVER)
+        if es.indices.exists('goldstone_model'):
+            es.indices.delete('goldstone_model')
+        es.indices.create('goldstone_model')
         self.event1.save()
-        EventType.refresh_index()
-        self.event1 = Event.search(_id=self.event1.id)[0].get_object()
 
-    def tearDown(self):
-        try:
-            self.event1.delete()
-        except:
-            pass
-
-    def test_serializer(self):
+    def test_serialize(self):
         ser = EventSerializer(self.event1)
-        j = JSONRenderer().render(ser.data)
-        logger.debug('[test_serializer] node1 json = %s', j)
-        self.assertNotIn('_id', ser.data)
-        self.assertIn('id', ser.data)
-        self.assertIn('event_type', ser.data)
-        self.assertEqual(ser.data['event_type'], 'test_serializer')
-        self.assertIn('created', ser.data)
-        self.assertIn('updated', ser.data)
-        self.assertIn('message', ser.data)
-        self.assertEqual(ser.data['message'], 'testing serialization')
-        self.assertIn('source_id', ser.data)
+        extract = EventType.extract_document(self.event1.id, self.event1)
+
+        # date serialization is awkward wrt +00:00 (gets converted to Z), and
+        # resolution is a mismatch from arrow, so need to compare field by
+        # field
+        self.assertEqual(ser.data['id'], extract['id'])
+        self.assertEqual(ser.data['event_type'],
+                         extract['event_type'])
+        self.assertEqual(ser.data['message'],
+                         extract['message'])
+        self.assertEqual(ser.data['source_id'],
+                         extract['source_id'])
+        self.assertEqual(arrow.get(ser.data['created']),
+                         arrow.get(extract['created']))
+
+    def test_deserialize(self):
+        pass
 
 
 class EventViewTests(APISimpleTestCase):
 
-    # create the old event within the default event lookback window
-    lookback = (settings.EVENT_LOOKBACK_MINUTES - 1) * -1
-    old_date = arrow.utcnow().replace(minutes=lookback)
-    event1 = Event(event_type='test_view',
-                   message='testing old date',
-                   created=old_date.isoformat())
-    event2 = Event(event_type='test_view',
-                   message='testing new date')
-
     def setUp(self):
-        self.event1.save()
-        self.event2.save()
+        es = Elasticsearch(settings.ES_SERVER)
+        if es.indices.exists('goldstone_model'):
+            es.indices.delete('goldstone_model')
+        es.indices.create('goldstone_model')
+
+    def test_post(self):
+        data = {
+            'event_type': "test event",
+            'message': "test message"}
+        response = self.client.post('/core/events', data=data)
         EventType.refresh_index()
-        self.event1 = Event.search(_id=self.event1.id)[0].get_object()
-        self.event2 = Event.search(_id=self.event2.id)[0].get_object()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def tearDown(self):
-        try:
-            self.event1.delete()
-            self.event2.delete()
-        except:
-            pass
-
-    def test_get_list(self):
+    def test_list(self):
+        data1 = {
+            'event_type': "test event",
+            'message': "test message 1"}
+        data2 = {
+            'event_type': "test event",
+            'message': "test message 2"}
+        response = self.client.post('/core/events', data=data1)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.client.post('/core/events', data=data2)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        EventType.refresh_index()
         response = self.client.get('/core/events')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        logger.debug("response.data = %s", response.data)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data['count'], 2)
 
-    def test_get_list_with_start(self):
-        response = self.client.get(
-            '/core/events?lookback_mins=15')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-
-    def test_get_list_with_start_and_end(self):
-        response = self.client.get(
-            '/core/events?lookback_mins=2' +
-            '&end_ts=' + str(self.old_date.replace(minutes=1).timestamp))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-
-    def test_get_succeed(self):
-        response = self.client.get('/core/events/' + self.event1.id)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_get_fail(self):
-        response = self.client.get('/core/events/' + str(uuid4()))
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_delete_succeed_no_exists(self):
-        response = self.client.delete('/core/events/' + str(uuid4()))
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-
-    def test_delete_succeed_exists(self):
-        response = self.client.delete('/core/events/' + self.event1.id)
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        EventType.refresh_index()
-        response = self.client.get('/core/events/' + self.event1.id)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_create_succeed_min(self):
+    def test_get(self):
+        self.maxDiff = None
         data = {
-            "event_type": "external created event",
-            "message": "I am your creator"
-        }
-        response = self.client.post('/core/events', data=data, format='json')
-
-        logger.debug("[test_create_succeed] response.data = %s",
-                     response.data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            'event_type': "test event",
+            'message': "test message"}
+        response = self.client.post('/core/events', data=data)
         EventType.refresh_index()
-        response = self.client.get('/core/events/' + response.data['id'])
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.client.get('/core/events')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.delete('/core/events/' + response.data['id'])
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.data['count'], 1)
+        list_response_data = response.data['results'][0]
+        self.assertDictContainsSubset(data, list_response_data)
+        response = self.client.get('/core/events/' + list_response_data['id'])
+        d1_created = list_response_data['created']
+        d2_created = response.data['created']
+        del list_response_data['created']
+        del response.data['created']
+        self.assertDictEqual(list_response_data, response.data)
+        self.assertEqual(arrow.get(d1_created), arrow.get(d2_created))
 
-    def test_create_succeed_max(self):
-        d = arrow.utcnow()
+    def test_delete(self):
         data = {
-            "created": d.replace(hours=-1).isoformat(),
-            "updated": d.isoformat(),
-            "event_type": "external created event",
-            "message": "I am your creator"
-        }
-        response = self.client.post('/core/events', data=data, format='json')
-
-        logger.info("[test_create_succeed] response.data = %s",
-                    response.data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            'event_type': "test event",
+            'message': "test message"}
+        response = self.client.post('/core/events', data=data)
         EventType.refresh_index()
-        response = self.client.get('/core/events/' + response.data['id'])
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.delete('/core/events/' + response.data['id'])
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        list_response_data = response.data
+        self.assertDictContainsSubset(data, list_response_data)
+        response = self.client.delete(
+            '/core/events/' + list_response_data['id'])
+        EventType.refresh_index()
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get(
+            '/core/events/' + list_response_data['id'])
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_create_fail_date_format(self):
-
         data = {
             "created": 'xyzabc123',
             "event_type": "external created event",
             "message": "I am your creator"
         }
-        response = self.client.post('/core/events', data=data, format='json')
+        response = self.client.post('/core/events', data=data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_create_fail_date_format2(self):
+    def test_get_list_with_start(self):
+        start_time = arrow.utcnow().replace(minutes=-15)
+        data1 = {
+            'event_type': "test event",
+            'message': "test message"}
 
-        data = {
-            "updated": 'xyzabc123',
-            "event_type": "external created event",
-            "message": "I am your creator"
+        data2 = {
+            'event_type': "test event",
+            'message': "test message",
+            "created": start_time.replace(minutes=-2).isoformat()
         }
-        response = self.client.post('/core/events', data=data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = self.client.post('/core/events', data=data1)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data1_id = response.data['id']
+        logger.info("data1_id = %s", data1_id)
+        response = self.client.post('/core/events', data=data2)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data2_id = response.data['id']
+        logger.info("data2_id = %s", data2_id)
+        EventType.refresh_index()
+        response = self.client.get('/core/events')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
 
-    def test_create_fail_date_order(self):
-        d = arrow.utcnow()
-        data = {
-            "updated": d.replace(hours=-1).isoformat(),
-            "created": d.isoformat(),
-            "event_type": "external created event",
-            "message": "I am your creator"
+        # make sure that data2 has the proper created time
+        response = self.client.get('/core/events/' + data2_id)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        d2_created = arrow.get(response.data['created'])
+        self.assertEqual(d2_created, start_time.replace(minutes=-2))
+
+        response = self.client.get(
+            '/core/events?created__gte=' + str(start_time.timestamp * 1000))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['id'], data1_id)
+
+    def test_get_list_with_start_and_end(self):
+        end_time = arrow.utcnow().replace(minutes=-14)
+        start_time = end_time.replace(minutes=-2)
+        data1 = {
+            'event_type': "test event",
+            'message': "test message"}
+        data2 = {
+            'event_type': "test event",
+            'message': "test message",
+            "created": end_time.replace(minutes=-1).isoformat()
         }
-        response = self.client.post('/core/events', data=data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = self.client.post('/core/events', data=data1)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data1_id = response.data['id']
+        logger.info("data1_id = %s", data1_id)
+        response = self.client.post('/core/events', data=data2)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data2_id = response.data['id']
+        logger.info("data2_id = %s", data2_id)
+        EventType.refresh_index()
+        response = self.client.get('/core/events')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+        response = self.client.get(
+            '/core/events?created__gte=' + str(start_time.timestamp * 1000) +
+            '&created__lte=' + str(end_time.timestamp * 1000)
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['id'], data2_id)
+
+    def test_not_in_db(self):
+        data = {
+            'event_type': "test event",
+            'message': "test message"}
+        response = self.client.post('/core/events', data=data)
+        EventType.refresh_index()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        shapes = Event.objects.raw('SELECT * FROM core_event')
+        self.assertEqual(len(list(shapes)), 0)

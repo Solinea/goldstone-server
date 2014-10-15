@@ -14,12 +14,12 @@
 import json
 from uuid import uuid4
 import arrow
-from django.db.models import CharField, ForeignKey, BooleanField, Model, \
-    ManyToManyField, DateTimeField, TextField
+from django.db.models import CharField, BooleanField, Model, DateTimeField, \
+    TextField
 from django_extensions.db.fields import UUIDField, ModificationDateTimeField, \
     CreationDateTimeField
 from polymorphic import PolymorphicModel
-from elasticutils import Indexable, MappingType, S
+from elasticutils.contrib.django import S, MappingType, Indexable
 from django.conf import settings
 import logging
 
@@ -49,15 +49,8 @@ class Entity(PolymorphicModel):
 class EventType(MappingType, Indexable):
 
     @classmethod
-    def get_index(cls):
-        if 'event' in settings.ES_INDEXES:
-            return settings.ES_INDEXES['event']
-        else:
-            return settings.ES_INDEXES['default']
-
-    @classmethod
-    def get_mapping_type_name(cls):
-        return 'event_type'
+    def get_model(cls):
+        return Event
 
     @classmethod
     def get_mapping(cls):
@@ -68,112 +61,84 @@ class EventType(MappingType, Indexable):
                 'event_type': {'type': 'string', 'index': 'not_analyzed'},
                 'source_id': {'type': 'string', 'index': 'not_analyzed'},
                 'message': {'type': 'string', 'analyzer': 'snowball'},
-                'created': {'type': 'date', 'index': 'not_analyzed'},
-                'updated': {'type': 'date', 'index': 'not_analyzed'}
+                'created': {'type': 'date', 'index': 'not_analyzed'}
             }
         }
 
-    def extract_document(self, obj_id, obj):
+    @classmethod
+    def extract_document(cls, obj_id, obj):
         """Converts this instance into an Elasticsearch document"""
+        if obj is None:
+            # todo this will go to the model manager which would natively
+            # todo look at the SQL db.  we either need to fix this or fix the
+            # todo model manager implementation of get.
+            obj = cls.get_model().objects.get(pk=obj_id)
 
         return {
             'id': str(obj.id),
             'event_type': obj.event_type,
             'source_id': str(obj.source_id),
             'message': obj.message,
-            'created': obj.created,
-            'updated': obj.updated
+            'created': obj.created.isoformat()
         }
 
     def get_object(self):
-        return Event(
+        return Event._reconstitute(
             id=self._id,
             event_type=self._results_dict['event_type'],
             message=self._results_dict['message'],
             source_id=self._results_dict['source_id'],
-            created=arrow.get(self._results_dict['created']).isoformat(),
-            updated=arrow.get(self._results_dict['updated']).isoformat()
+            created=arrow.get(self._results_dict['created']).datetime
         )
 
 
-class Event(object):
-    id = str(uuid4())
-    event_type = None
-    source_id = ""
-    message = None
+class Event(Model):
+    id = CharField(max_length=36, primary_key=True)
+    event_type = CharField(max_length=64)
+    source_id = CharField(max_length=36, blank=True)
+    message = CharField(max_length=1024)
+    created = DateTimeField(auto_now=False)
+
     _mt = EventType()
 
-    # todo integrate pagination/slicing
-    # todo return results as Events rather than EventType mappings
-    @classmethod
-    def search(cls, *args, **kwargs):
-        '''
-        This passes through to an executed search via elastic utils and returns
-        the objects.  Currently the objects are EventType mapping types.
-
-        WARNING!!! it is not sliced at this time, so your search params
-        (kwargs) should return a reasonable number of results.
-        '''
-        if 'id' in kwargs:
-            kwargs['_id'] = kwargs['id']
-            del kwargs['id']
-
-        logger.debug("calling search with kwargs = %s", json.dumps(kwargs))
-        result = S(EventType).query(*args, **kwargs).execute().objects
-        logger.debug("result = %s", str(result))
-        return result
-
-    @classmethod
-    def get(cls, *args, **kwargs):
-        '''
-        This passes through to an executed search via elastic utils and returns
-        a single object.  Currently the objects are EventType mapping types.
-        '''
-        if 'id' in kwargs:
-            kwargs['_id'] = kwargs['id']
-            del kwargs['id']
-
-        logger.debug("calling search with kwargs = %s", json.dumps(kwargs))
-        result = S(EventType)[:1].query(*args, **kwargs).execute().objects
-        logger.debug("result = %s", str(result))
-        if len(result) > 0:
-            return result[0]
+    def __init__(self, *args, **kwargs):
+        super(Event, self).__init__(*args, **kwargs)
+        self.id = str(uuid4())
+        if 'created' in kwargs:
+            self.created = arrow.get(kwargs['created']).datetime
         else:
-            return None
-
-    def __init__(self, event_type, message, id=None, created=None,
-                 updated=None, source_id=""):
-        if id is None:
-            self.id = str(uuid4())
-        else:
-            self.id = id
-        self.event_type = event_type
-        self.message = message
-        self.source_id = str(source_id)
-        if created is None:
             self.created = arrow.utcnow().datetime
-        else:
-            self.created = created
-        if updated is None:
-            self.updated = self.created
-        else:
-            self.updated = updated
 
-    def __repr__(self):
-        return json.dumps({
-            "id": str(self.id),
-            "event_type": self.event_type,
-            "source_id": "" if self.source_id is None else str(self.source_id),
-            "message": self.message,
-            "created": self.created.isoformat(),
-            "updated": self.updated.isoformat()
-        })
 
-    def save(self):
-        self._mt.index(self.__dict__, id_=self.id)
+    @classmethod
+    def _reconstitute(cls, **kwargs):
+        """
+        provides a way for the mapping type to create an object from ES data
+        """
+        obj = cls(**kwargs)
+        obj.id = kwargs['id']
+        obj.created = arrow.get(kwargs['created']).datetime
+        return obj
 
-    def delete(self):
-        self._mt.unindex(self.id)
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        """
+        An override to save the object to ES via elasticutils
+        """
+
+        if using is not None:
+            raise ValueError("using is not implemented for this model")
+        if update_fields is not None:
+            raise ValueError("update_fields is not implemented for this model")
+
+        self._mt.index(self._mt.extract_document(self.id, self),
+                       id_=str(self.id))
+
+    def delete(self, using=None):
+        if using is not None:
+            raise ValueError("using is not implemented for this model")
+
+        self._mt.unindex(str(self.id))
 
 
 class Resource(Entity):
