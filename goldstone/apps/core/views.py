@@ -33,13 +33,12 @@ class NodeViewSet(ModelViewSet):
     serializer_class = NodeSerializer
     filter_fields = ('uuid',
                      'name',
-                     'last_seen',
                      'last_seen_method',
                      'admin_disabled')
     lookup_field = 'uuid'
     lookup_url_kwarg = 'uuid'
     ordering_fields = '__all__'
-    ordering = 'last_seen'
+    ordering = 'updated'
 
     def create(self, request, *args, **kwargs):
         return Response(status=status.HTTP_400_BAD_REQUEST,

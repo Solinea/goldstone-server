@@ -109,7 +109,6 @@ class Event(Model):
         else:
             self.created = arrow.utcnow().datetime
 
-
     @classmethod
     def _reconstitute(cls, **kwargs):
         """
@@ -141,28 +140,7 @@ class Event(Model):
         self._mt.unindex(str(self.id))
 
 
-class Resource(Entity):
-    METHOD_CHOICES = (
-        ('LOGS', 'Log Stream Activity'),
-        ('API', 'Application API Call'),
-    )
-    last_seen = DateTimeField(null=True, blank=True)
-    last_seen_method = CharField(max_length=32, choices=METHOD_CHOICES,
-                                 null=True, blank=True)
-    admin_disabled = BooleanField(default=False)
-
-    def __unicode__(self):
-        entity = json.loads(super(Resource, self).__unicode__())
-        entity = dict(entity.items() + {
-            "last_seen": self.last_seen.isoformat() if
-            self.last_seen is not None else "",
-            "last_seen_method": self.last_seen_method,
-            "admin_disabled": self.admin_disabled}.items())
-
-        return json.dumps(entity)
-
-
-class Node(Resource):
+class Node(Entity):
     """
     Generic representation of a node that has a log stream, provides services,
     etc.  The main purposes of the node is to support the availability checks,
@@ -173,3 +151,15 @@ class Node(Resource):
         ('LOGS', 'Log Stream Activity'),
         ('API', 'Application API Call'),
     )
+
+    last_seen_method = CharField(max_length=32, choices=METHOD_CHOICES,
+                                 null=True, blank=True)
+    admin_disabled = BooleanField(default=False)
+
+    def __unicode__(self):
+        entity = json.loads(super(Node, self).__unicode__())
+        entity = dict(entity.items() + {
+            "last_seen_method": self.last_seen_method,
+            "admin_disabled": self.admin_disabled}.items())
+
+        return json.dumps(entity)
