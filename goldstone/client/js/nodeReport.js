@@ -25,7 +25,7 @@ var renderCharts = function() {
     //---------------------------
     // instantiate Service status chart
     var serviceStatusChart = new ServiceStatusCollection({
-        url: "/core/events?page_size=1"
+        url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
     });
 
     var serviceStatusChartView = new ServiceStatusView({
@@ -37,7 +37,7 @@ var renderCharts = function() {
     //---------------------------
     // instantiate CPU Usage chart
     var cpuUsageChart = new UtilizationCollection({
-        url: "/core/events?page_size=1"
+        url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
     });
 
     var cpuUsageView = new UtilizationView({
@@ -49,7 +49,7 @@ var renderCharts = function() {
     //---------------------------
     // instantiate Memory Usage chart
     var memoryUsageChart = new UtilizationCollection({
-        url: "/core/events?page_size=1"
+        url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
     });
 
     var memoryUsageView = new UtilizationView({
@@ -61,7 +61,7 @@ var renderCharts = function() {
     //---------------------------
     // instantiate Network Usage chart
     var networkUsageChart = new UtilizationCollection({
-        url: "/core/events?page_size=1"
+        url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
     });
 
     var networkUsageView = new UtilizationView({
@@ -73,7 +73,7 @@ var renderCharts = function() {
     //---------------------------
     // instantiate Libvirt core/vm chart
     var hypervisorCoreChart = new HypervisorCollection({
-        url: "/core/events?page_size=1"
+        url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
     });
 
     var hypervisorCoreView = new HypervisorView({
@@ -83,12 +83,12 @@ var renderCharts = function() {
         axisLabel: "Cores"
     });
 
+
     //---------------------------
     // instantiate Libvirt mem/vm  chart
     var hypervisorMemoryChart = new HypervisorCollection({
-        url: "/core/events?page_size=1"
+        url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
     });
-
     var hypervisorMemoryView = new HypervisorView({
         collection: hypervisorMemoryChart,
         location: '#node-report-r4 #node-report-panel #memory-usage',
@@ -99,7 +99,7 @@ var renderCharts = function() {
     //---------------------------
     // instantiate Libvirt top 10 CPU consumer VMs chart
     var hypervisorVmCpuChart = new HypervisorVmCpuCollection({
-        url: "/core/events?page_size=1"
+        url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
     });
 
     var hypervisorVmCpuView = new HypervisorVmCpuView({
