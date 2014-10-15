@@ -1,6 +1,6 @@
 // e2e tests
 
-casper.test.begin('Node Report Page is loading properly', 22, function suite(test) {
+casper.test.begin('Node Report Page is loading properly', 23, function suite(test) {
     casper.start('http://localhost:8000/report/node/os-controller-01', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -16,7 +16,7 @@ casper.test.begin('Node Report Page is loading properly', 22, function suite(tes
 
         // Service Status graph loads
         test.assertExists('div#node-report-r2-c1', 'Service Status Section should load');
-        test.assertExists('div#node-report-r2-c1 .col-xs-2.alert', 'Service node statuses should load');
+        test.assertExists('div#node-report-r2-c1 .col-xs-1.alert', 'Service node statuses should load');
 
         // Utilization graphs load
         test.assertExists('div#node-report-r3', 'Usage Charts should load');
@@ -38,7 +38,7 @@ casper.test.begin('Node Report Page is loading properly', 22, function suite(tes
         test.assertExists('div#node-report-r4-c1 #memory-usage svg', 'Network Usage Section svg chart should load');
         test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage', 'Memory');
 
-        /*test.assertExists('div#node-report-r4-c1 #vm-cpu-usage svg', 'Per VM CPU Usage Section svg chart should load');*/
+        test.assertExists('div#node-report-r4-c1 #vm-cpu-usage svg', 'Per VM CPU Usage Section svg chart should load');
         test.assertSelectorHasText('div #node-report-r4-c1 #vm-cpu-usage', 'Per VM CPU Usage');
 
 

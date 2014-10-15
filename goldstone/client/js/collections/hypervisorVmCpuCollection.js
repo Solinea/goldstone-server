@@ -16,7 +16,7 @@
  * Author: Alex Jacobs
  */
 
- var HypervisorVmCpuCollection = Backbone.Collection.extend({
+var HypervisorVmCpuCollection = Backbone.Collection.extend({
 
     parse: function(data) {
         return this.dummy.results;
@@ -26,37 +26,123 @@
 
     initialize: function(options) {
         this.url = options.url;
+        this.dummy = _.clone(this.dummy);
+        this.dummyGen();
         this.fetch();
     },
 
+    dummyGen: function() {
+        this.dummy = {
+            results: []
+        };
+
+
+        var day = 1412812619263;
+
+        var randomizer = function() {
+            var result = Math.floor(Math.random() * 5000) /
+                100;
+            return result;
+        };
+
+        for (var i = 0; i < Math.floor(Math.random() * 20) + 10; i++) {
+
+            var result = {
+                date: day,
+
+                user: [{
+                    vm1: randomizer(),
+                    vm2: randomizer(),
+                    vm3: randomizer(),
+                    vm4: randomizer(),
+                    vm5: randomizer()
+                }],
+                system: [{
+                    vm1: randomizer(),
+                    vm2: randomizer(),
+                    vm3: randomizer(),
+                    vm4: randomizer(),
+                    vm5: randomizer()
+                }],
+                wait: [{
+                    vm1: randomizer(),
+                    vm2: randomizer(),
+                    vm3: randomizer(),
+                    vm4: randomizer(),
+                    vm5: randomizer()
+                }]
+
+            };
+
+            this.dummy.results.push(result);
+            day += 360000;
+
+        }
+    },
+
     dummy: {
-        "name": "os.cpu.system",
-        "units": "percent",
-        results: [{
-            "timestamp": 1000000000,
-            "value": 25
-        }, {
-            "timestamp": 1000360000,
-            "value": 20
-        }, {
-            "timestamp": 1000720000,
-            "value": 23
-        }, {
-            "timestamp": 1001080000,
-            "value": 35
-        }, {
-            "timestamp": 1001440000,
-            "value": 30
-        }, {
-            "timestamp": 1001800000,
-            "value": 15
-        }, {
-            "timestamp": 1002160000,
-            "value": 15
-        }, {
-            "timestamp": 1002540000,
-            "value": 20
-        }]
+
+        results: [
+
+            {
+                date: 1412812619263,
+
+                user: [{
+                    vm1: 50,
+                    vm2: 19,
+                    vm3: 11
+                }],
+                system: [{
+                    vm1: 10,
+                    vm2: 79,
+                    vm3: 31
+                }],
+                wait: [{
+                    vm1: 80,
+                    vm2: 39,
+                    vm3: 61
+                }]
+
+            }, {
+                date: 1412912619263,
+
+                user: [{
+                    vm1: 80,
+                    vm2: 29,
+                    vm3: 51
+                }],
+                system: [{
+                    vm1: 80,
+                    vm2: 59,
+                    vm3: 21
+                }],
+                wait: [{
+                    vm1: 70,
+                    vm2: 49,
+                    vm3: 71
+                }]
+
+            }, {
+                date: 1413012619263,
+
+                user: [{
+                    vm1: 60,
+                    vm2: 29,
+                    vm3: 51
+                }],
+                system: [{
+                    vm1: 80,
+                    vm2: 39,
+                    vm3: 81
+                }],
+                wait: [{
+                    vm1: 30,
+                    vm2: 79,
+                    vm3: 51
+                }]
+            }
+        ]
     }
+
 
 });
