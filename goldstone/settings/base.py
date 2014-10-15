@@ -284,6 +284,6 @@ ES_PORT = "9200"
 ES_SERVER = ES_HOST + ":" + ES_PORT
 
 # ElasticUtils Settings
-ES_URLS = ['http://' + ES_SERVER]
+ES_URLS = [ES_SERVER]
 ES_INDEXES = {'default': 'goldstone_model'}
 ES_TIMEOUT = 5
