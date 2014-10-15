@@ -98,7 +98,7 @@ var ServiceStatusView = Backbone.View.extend({
 
 
         _.each(nodeNames, function(item, i) {
-            $(this.defaults.location).find('.mainContainer').append('<div style="font-size:11px; margin-bottom: -4px; padding: 3px 0;" class="col-xs-1 toRemove ' + classSelector(_.values(nodeNames[i])) + '">' + _.keys(nodeNames[i]) + '</div>');
+            $(this.defaults.location).find('.mainContainer').append('<div style="width: 94px; height: 22px; font-size:11px; margin-bottom: 0; text-align:center; padding: 3px 0;" class="col-xs-1 toRemove ' + classSelector(_.values(nodeNames[i])) + '">' + _.keys(nodeNames[i]) + '</div>');
         }, this);
 
         $(this.defaults.location).append('</div>');
