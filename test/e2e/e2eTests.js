@@ -16,7 +16,7 @@ casper.test.begin('Node Report Page is loading properly', 23, function suite(tes
 
         // Service Status graph loads
         test.assertExists('div#node-report-r2-c1', 'Service Status Section should load');
-        test.assertExists('div#node-report-r2-c1 .col-xs-2.alert', 'Service node statuses should load');
+        test.assertExists('div#node-report-r2-c1 .col-xs-1.alert', 'Service node statuses should load');
 
         // Utilization graphs load
         test.assertExists('div#node-report-r3', 'Usage Charts should load');
