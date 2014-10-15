@@ -47,6 +47,8 @@ var ServiceStatusView = Backbone.View.extend({
 
     update: function() {
 
+        $(this.defaults.location).find('div.mainContainer').remove();
+
         var ns = this.defaults;
         var self = this;
 
@@ -70,10 +72,41 @@ var ServiceStatusView = Backbone.View.extend({
             return 'alert alert-danger';
         };
 
-        _.each(allTheLogs, function(item, i) {
-            $(this.defaults.location).append('<div class="col-xs-2 ' + classSelector(_.values(allTheLogs[i])) + '">' + _.keys(allTheLogs[i]) + '</div>');
+        var nodeNames = [];
+
+        _.each(allTheLogs, function(item) {
+            nodeNames.push(item);
+        });
+
+        // this isn't a perfect sort of names + numbers,
+        // but is a good start until we have actual
+        // data to work with
+
+        nodeNames.sort(function(a, b) {
+            if (Object.keys(a) < Object.keys(b)) {
+                return -1;
+            }
+
+            if (Object.keys(a) > Object.keys(b)) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+
+        $(this.defaults.location).append("<div class='mainContainer'>");
+
+
+        _.each(nodeNames, function(item, i) {
+            $(this.defaults.location).find('.mainContainer').append('<div style="width: 94px; height: 22px; font-size:11px; margin-bottom: 0; text-align:center; padding: 3px 0;" class="col-xs-1 toRemove ' + classSelector(_.values(nodeNames[i])) + '">' + _.keys(nodeNames[i]) + '</div>');
         }, this);
-        $(this.defaults.location).append('&nbsp;');
+
+        $(this.defaults.location).append('</div>');
+
+        // refreshes every 10 seconds
+        setTimeout(function() {
+            self.collection.fetch();
+        }, 10000);
 
     }
 
