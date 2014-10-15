@@ -16,15 +16,9 @@ __author__ = 'John Stanford'
 
 from .views import *
 from rest_framework.routers import DefaultRouter
-from django.conf.urls import patterns, include, url
 
 router = DefaultRouter(trailing_slash=False)
 router.register(r'nodes', NodeViewSet, base_name='node')
 router.register(r'events', EventViewSet, base_name='event')
 
 urlpatterns = router.urls
-# urlpatterns = patterns(
-#     url(r'^events[/]?$', EventListView.as_view(),
-#         name='event-list'),
-# )
-# logger.debug("")

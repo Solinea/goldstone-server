@@ -34,65 +34,12 @@ class NodeSerializer(serializers.ModelSerializer):
         exclude = ['id']
 
 
-class EventSerializer(serializers.Serializer):
+class EventSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     event_type = serializers.CharField(max_length=64)
-    source_id = serializers.CharField(max_length=36)
+    source_id = serializers.CharField(max_length=36, required=False)
     message = serializers.CharField(max_length=1024)
-    created = serializers.CharField(max_length=64)
-    updated = serializers.CharField(max_length=64)
+    created = serializers.DateTimeField(required=False)
 
-    def restore_object(self, attrs, instance=None):
-        """
-        Given a dictionary of deserialized field values, either update
-        an existing model instance, or create a new model instance.
-        """
-        if instance is not None:
-            instance.id = attrs.get(instance.id)
-            instance.event_type = attrs.get('event_type', instance.event_type)
-            instance.source_id = attrs.get('source_id', instance.source_id)
-            instance.message = attrs.get('message', instance.message)
-            instance.updated = attrs.get('updated', instance.updated)
-            return instance
-
-        return Event(**attrs)
-
-    def validate(self, attrs):
-        """
-        Stop shenanigans.
-        """
-        created = None
-        updated = None
-        if 'id' in attrs:
-            raise serializers.ValidationError("user provided id not allowed")
-        if 'updated' in attrs:
-            # must be a valid date
-            try:
-                updated = arrow.get(attrs['updated'])
-                attrs['updated'] = updated.isoformat()
-            except:
-                raise serializers.ValidationError(
-                    "updated field must be able to be transformed into a date."
-                    "try using an isoformat date or a unix timestamp")
-
-        if 'created' in attrs:
-            # must be a valid date
-            try:
-                created = arrow.get(attrs['created'])
-                attrs['created'] = created.isoformat()
-            except:
-                raise serializers.ValidationError(
-                    "created field must be able to be transformed into a date."
-                    "try using an isoformat date or a unix timestamp")
-
-        if updated is not None and created is not None:
-            if updated < created:
-                raise serializers.ValidationError(
-                    "updates must be at or after creation")
-        if 'source_id' in attrs:
-            try:
-                uuid.UUID(attrs['source_id'])
-            except ValueError:
-                raise serializers.ValidationError(
-                    'source_id must be a valid UUID')
-        return attrs
+    class Meta:
+        model = Event

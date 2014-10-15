@@ -78,13 +78,12 @@ def _create_event(timestamp, host, message, event_type):
     except LoggingNode.DoesNotExist:
         logger.warning("[process_log_error_event] could not find logging node "
                        "with name=%s.  event will have not relations.", host)
-        event = Event(event_type=event_type, created=dt,
-                      updated=dt, message=message)
+        event = Event(event_type=event_type, created=dt, message=message)
         event.save()
         return event
     else:
-        event = Event(event_type=event_type, created=dt,
-                      updated=dt, message=message, source_id=str(node.uuid))
+        event = Event(event_type=event_type, created=dt, message=message,
+                      source_id=str(node.uuid))
         event.save()
         return event
 
