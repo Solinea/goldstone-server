@@ -24,7 +24,7 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate Service status chart
-    var serviceStatusChart = new ServiceStatusCollection({
+    /*var serviceStatusChart = new ServiceStatusCollection({
         url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
     });
 
@@ -82,7 +82,7 @@ var renderCharts = function() {
         width: $('#node-report-r4 #node-report-panel #cores-usage').width(),
         axisLabel: "Cores"
     });
-
+*/
 
     //---------------------------
     // instantiate Libvirt mem/vm  chart
