@@ -85,7 +85,7 @@ class NodeViewSet(ModelViewSet):
 
 
 class EventViewSet(ModelViewSet):
-    queryset = EventType().search().query()
+    queryset = EventType().search().query().order_by('-created')
     serializer_class = EventSerializer
     lookup_field = "_id"
 
@@ -93,7 +93,8 @@ class EventViewSet(ModelViewSet):
         # adding support filter params
         params = request.QUERY_PARAMS.dict()
         if params is not None:
-            self.queryset = EventType().search().query().filter(**params)
+            self.queryset = EventType().search().query().filter(**params). \
+                order_by('-created')
             return super(EventViewSet, self).list(request, *args, **kwargs)
 
     def get_object(self):
