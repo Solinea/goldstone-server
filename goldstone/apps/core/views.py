@@ -93,6 +93,12 @@ class EventViewSet(ModelViewSet):
         # adding support filter params
         params = request.QUERY_PARAMS.dict()
         if params is not None:
+            # don't use the page related params as filters
+            if settings.REST_FRAMEWORK['PAGINATE_BY_PARAM'] in params:
+                del params[settings.REST_FRAMEWORK['PAGINATE_BY_PARAM']]
+            if 'page' in params:
+                del params['page']
+
             self.queryset = EventType().search().query().filter(**params). \
                 order_by('-created')
             return super(EventViewSet, self).list(request, *args, **kwargs)
