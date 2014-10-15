@@ -16,9 +16,10 @@
  * Author: Alex Jacobs
  */
 
- var ServiceStatusCollection = Backbone.Collection.extend({
+var ServiceStatusCollection = Backbone.Collection.extend({
 
     parse: function(data) {
+        this.dummyGen();
         return this.dummy.results;
     },
 
@@ -28,6 +29,42 @@
         this.url = options.url;
         this.fetch();
     },
+
+    dummyGen: function() {
+        this.dummy.results = [];
+
+        // simulate approx 15% of the nodes being down
+        var trueFalse = function() {
+            var pick = Math.random();
+            if (pick < 0.85) {
+                return true;
+            } else {
+                return false;
+            }
+        };
+
+        var nodeChoices = {
+            0: "nova-compute",
+            1: "ovs-agent",
+            2: "neutron-agent",
+        };
+
+        for (var i = 0; i < 48; i++) {
+
+            var result = nodeChoices[Math.floor(Math.random() * 3)];
+
+            result += Math.floor(Math.random() * 100);
+
+            resultObject = {};
+            resultObject[result] = trueFalse();
+            this.dummy.results.push(resultObject);
+
+        }
+
+    },
+
+    // for reference
+    // actual data generated randomly on each pass
 
     dummy: {
         results: [{
