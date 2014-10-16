@@ -38,19 +38,9 @@
 
             <div id="node-report-panel" class="panel panel-primary">
 
-                <div class="btn-group" style="margin-bottom: 5px;">
-                    <button type="button" class="btn btn-default btn-med active">Services</button>
-                    <button type="button" class="btn btn-default btn-med">Configuration</button>
-                    <button type="button" class="btn btn-default btn-med">Events</button>
 
-                </div>
+                <div id="servicesChart">
 
-
-                <div class="well">
-
-                    <div id="servicesChart">
-
-                    </div>
                 </div>
             </div>
         </div>
@@ -88,6 +78,10 @@
                 </div>
                 <div class="well col-md-6" id="vm-cpu-usage">
                 Per VM CPU Usage
+
+                <div id="data-filterer">
+                </div>
+
                 </div>
             </div>
 
@@ -126,13 +120,6 @@
 
     var node_uuid = "{{ node_uuid | escapejs }}";
     var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
-
-    $(function(){
-        $("button").click(function(){
-            $("button.active").toggleClass("active");
-            $(this).toggleClass("active");
-        });
-    });
 
     renderCharts();
 
