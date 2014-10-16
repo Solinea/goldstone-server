@@ -21,6 +21,15 @@
 var EventTimelineCollection = Backbone.Collection.extend({
 
     parse: function(data) {
+
+        if(data.previous !== null){
+
+            var dp = data.previous;
+            var nextUrl = dp.slice(dp.indexOf('/core'));
+            this.url = nextUrl;
+            this.fetch({remove:false});
+        }
+
         return data.results;
     },
 
@@ -29,7 +38,7 @@ var EventTimelineCollection = Backbone.Collection.extend({
     initialize: function(options) {
         this.url = options.url;
 
-        // adding {remove.false} to the initial fetch
+        // adding {remove:false} to the initial fetch
         // will introduce an artifact that will
         // render via d3
         this.fetch();
