@@ -63,6 +63,7 @@ var UtilizationView = Backbone.View.extend({
             .tickFormat(ns.formatPercent);
 
         ns.area = d3.svg.area()
+            .interpolate("monotone")
             .x(function(d) {
                 return ns.x(d.date);
             })
