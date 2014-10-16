@@ -17,17 +17,9 @@
 
 filter {
     if ([type] == "syslog") {
-        multiline {
+        grok { 
             patterns_dir => "/opt/logstash/patterns"
-            pattern => "%{OPENSTACK_TRACE}"
-            what => "previous"
-            add_tag => ["openstack_trace"]
-        }
-        if("openstack_trace" not in [tags]) {
-            grok { 
-                patterns_dir => "/opt/logstash/patterns"
-                match => { "log_message" => "%{OPENSTACK_MESSAGE}" }
-            }
+            match => { "log_message" => "%{OPENSTACK_MESSAGE}" }
         }
         if ("_grokparsefailure" not in [tags]) {
             translate {
@@ -43,6 +35,16 @@ filter {
                 ]
                 fallback => "unknown"
                 destination => "component"
+            }
+            if ([syslog_severity] == "NOTICE") {
+                mutate {
+                    add_field => {"loglevel" => "AUDIT"}
+                }
+            }
+            if [syslog_severity] in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"] {
+                mutate {
+                    replace => ["event_type", "OpenStackSyslogError"]
+                }
             }
             mutate {
                 rename => [ "syslog5424_host", "host" ]
