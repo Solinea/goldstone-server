@@ -239,8 +239,8 @@ var NodeAvailView = Backbone.View.extend({
             .html(function(d) {
                 return d.name + "<br/>" +
                     "(" + d.uuid + ")" + "<br/>" +
-                    "Errors: " + d.error_count + "<br/>" +
-                    "Warnings: " + d.warning_count + "<br/>" +
+                    "Error: " + d.error_count + "<br/>" +
+                    "Warning: " + d.warning_count + "<br/>" +
                     "Info: " + d.info_count + "<br/>" +
                     "Audit: " + d.audit_count + "<br/>" +
                     "Debug: " + d.debug_count + "<br/>";
@@ -433,8 +433,9 @@ var NodeAvailView = Backbone.View.extend({
 
         _.each(ns.dataset, function(nodeObject) {
 
-            // the .level paramater will determing visibility
-            // and styling of the sphere
+            // nonzero_levels returns an array of the node's
+            // alert severities that are not filtered out
+
             var nonzero_levels = ns.loglevel.domain()
                 .map(function(level) {
                     return [level, nodeObject[level + "_count"]];
@@ -445,19 +446,17 @@ var NodeAvailView = Backbone.View.extend({
                     return ns.filter[level[0]] && (level[1] > 0);
                 });
 
+            // the .level paramater will determing visibility
+            // and styling of the sphere
+
+            // if the array is empty:
             if (nonzero_levels[0] === undefined) {
                 nodeObject.level = "none";
             } else {
-                var maxLevel = d3.max(nonzero_levels.map(function(d) {
-                    return d[1];
-                }));
 
-                for (var i = 0; i < nonzero_levels.length; i++) {
-                    if (nonzero_levels[i][1] === maxLevel) {
-                        nodeObject.level = nonzero_levels[i][0];
-                        break;
-                    }
-                }
+                // otherwise set it to the
+                // highest alert severity
+                nodeObject.level = nonzero_levels[nonzero_levels.length - 1][0];
             }
 
         });
@@ -514,7 +513,7 @@ var NodeAvailView = Backbone.View.extend({
                     return 0.8;
                 }
                 if (ns.filter[d.level]) {
-                    return 0.5;
+                    return 0.8;
                 } else {
                     return 0;
                 }
