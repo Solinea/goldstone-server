@@ -17,9 +17,17 @@
 
 filter {
     if ([type] == "syslog") {
-        grok { 
+        multiline {
             patterns_dir => "/opt/logstash/patterns"
-            match => { "log_message" => "%{OPENSTACK_MESSAGE}" }
+            pattern => "%{OPENSTACK_TRACE}"
+            what => "previous"
+            add_tag => ["openstack_trace"]
+        }
+        if("openstack_trace" not in [tags]) {
+            grok { 
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "log_message" => "%{OPENSTACK_MESSAGE}" }
+            }
         }
         if ("_grokparsefailure" not in [tags]) {
             translate {
@@ -50,6 +58,7 @@ filter {
         } else {
             mutate {
                 add_tag => ["filter_34_fail"]
+                remove_tag => ["_grokparsefailure"]
             }
             # the unrelated cloning is to work around https://logstash.jira.com/browse/LOGSTASH-2018
             # if it happened earlier, this filter would end up processing each of the clones regardless
