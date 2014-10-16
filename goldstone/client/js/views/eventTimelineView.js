@@ -305,7 +305,7 @@ var EventTimelineView = Backbone.View.extend({
          */
         var rectangle = ns.graph.selectAll("rect")
             .data(ns.dataset, function(d) {
-                return d.uuid;
+                return d.id;
             });
 
         // enters at wider width and transitions to lesser width for a
