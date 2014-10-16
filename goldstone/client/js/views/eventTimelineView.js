@@ -165,7 +165,7 @@ var EventTimelineView = Backbone.View.extend({
             })
             .html(function(d) {
 
-                d.uuid = d.uuid || 'No uuid logged';
+                d.uuid = d.id || 'No uuid logged';
                 d.message = d.message || 'No message logged';
                 d.event_type = d.event_type || 'No event type logged';
                 d.created = d.created || 'No date logged';
@@ -393,10 +393,18 @@ var EventTimelineView = Backbone.View.extend({
             '<div class="panel-heading">' +
             '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' +
             ns.chartTitle +
-            '<i class="fa fa-cog pull-right" data-toggle="modal"' +
+
+            // filter icon
+            '<i class="fa fa-filter pull-right" data-toggle="modal"' +
             'data-target="#modal-' + ns.location.slice(1) + '"></i>' +
-            '<i class="pull-right fa fa-info-circle panel-info"  id="goldstone-event-info"' +
-            'style="opacity: 0.0"></i>' +
+
+            // cog icon
+            '<i class="fa fa-cog pull-right" data-toggle="modal"' +
+            'data-target="#modal-settings-' + ns.location.slice(1) + '" style="margin-right: 10px;"></i>' +
+
+            // info-circle icon
+            '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-event-info"' +
+            'style="margin-right: 10px;"></i>' +
             '</h3>' +
             '</div>' +
             '<div class="panel-body" style="height:' + (ns.h.padding * 2) + 'px">' +
@@ -420,7 +428,7 @@ var EventTimelineView = Backbone.View.extend({
         $('#modal-container-' + ns.location.slice(1)).append(
 
             // event settings modal
-            '<div class="modal fade" id="modal-' + ns.location.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+            '<div class="modal fade" id="modal-settings-' + ns.location.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header">' +
