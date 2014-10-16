@@ -214,7 +214,7 @@ var HypervisorView = Backbone.View.extend({
 
         setTimeout(function() {
             self.collection.fetch();
-        }, 5000);
+        }, 50000);
 
     }
 
