@@ -60,7 +60,7 @@ def process_event_stream(self, timestamp, host, event_type, message):
     _create_event(timestamp, host, event_type, message)
 
 
-def _create_event(timestamp, host, message, event_type):
+def _create_event(timestamp, host, event_type, message):
     dt = arrow.get(timestamp).datetime
 
     try:
