@@ -65,11 +65,15 @@ var EventTimelineView = Backbone.View.extend({
             // eventName: "(matches event type)"
             // }
 
-            "Error": {
+            "Openstack Syslog Error": {
                 active: true,
-                id: "error",
-                eventName: "Syslog Error"
-
+                id: "audit",
+                eventName: "OpenStackSyslogError"
+            },
+            "Generic Syslog Error": {
+                active: true,
+                id: "info",
+                eventName: "GenericSyslogError"
             }
         };
 
@@ -165,15 +169,15 @@ var EventTimelineView = Backbone.View.extend({
             })
             .html(function(d) {
 
-                d.uuid = d.id || 'No uuid logged';
+                d.id = d.id || 'No uuid logged';
                 d.message = d.message || 'No message logged';
                 d.event_type = d.event_type || 'No event type logged';
                 d.created = d.created || 'No date logged';
 
                 return d.event_type + " (click event line to persist popup info)<br>" +
-                    "uuid: " + d.uuid + "<br>" +
+                    "uuid: " + d.id + "<br>" +
                     "Created: " + d.created + "<br>" +
-                    "Message: " + d.message.substr(0, 64) + "<br>";
+                    "Message: " + d.message.substr(0, 650) + "<br>";
             });
 
         ns.graph.call(ns.tooltip);
@@ -396,7 +400,7 @@ var EventTimelineView = Backbone.View.extend({
 
             // filter icon
             '<i class="fa fa-filter pull-right" data-toggle="modal"' +
-            'data-target="#modal-' + ns.location.slice(1) + '"></i>' +
+            'data-target="#modal-filter-' + ns.location.slice(1) + '"></i>' +
 
             // cog icon
             '<i class="fa fa-cog pull-right" data-toggle="modal"' +
@@ -466,5 +470,6 @@ var EventTimelineView = Backbone.View.extend({
             '</div>'
 
         );
+
     }
 });
