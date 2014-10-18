@@ -37,8 +37,8 @@ var NodeAvailView = Backbone.View.extend({
         var self = this;
 
         ns.animation = {
-            pause: false,
-            delay: 5
+            pause: undefined,
+            delay: null
         };
 
         // required in case spinner loading takes
@@ -298,6 +298,9 @@ var NodeAvailView = Backbone.View.extend({
             }
         };
         $("#eventSettingsUpdateButton-" + ns.location.slice(1)).click(updateSettings);
+
+        // set initial values for delay and pause based on modal settings
+        updateSettings();
     },
 
     sums: function(datum) {
@@ -337,6 +340,9 @@ var NodeAvailView = Backbone.View.extend({
         var xEnd = moment(this.collection.thisXhr.getResponseHeader('LogCountEnd'));
 
         ns.xScale = ns.xScale.domain([xStart, xEnd]);
+
+        // reschedule next fetch at selected interval
+        this.scheduleFetch();
 
         // If we didn't receive any valid files, abort and pause
         if (allthelogs.length === 0) {
@@ -417,8 +423,6 @@ var NodeAvailView = Backbone.View.extend({
 
         circle.exit().remove();
 
-        // reschedule next fetch at selected interval
-        this.scheduleFetch();
         return true;
     },
 
@@ -479,14 +483,14 @@ var NodeAvailView = Backbone.View.extend({
 
         ns.graph.selectAll("circle")
             .transition().duration(500)
-            // this determines the color of the circle
-            .attr("class", function(d) {
-                if (d.swimlane === "unadmin") {
-                    return d.swimlane;
-                } else {
-                    return d.level;
-                }
-            })
+        // this determines the color of the circle
+        .attr("class", function(d) {
+            if (d.swimlane === "unadmin") {
+                return d.swimlane;
+            } else {
+                return d.level;
+            }
+        })
             .attr("cx", function(d) {
                 return ns.xScale(d.last_seen);
             })
@@ -543,10 +547,9 @@ var NodeAvailView = Backbone.View.extend({
             clearTimeout(ns.scheduleTimeout);
         }
 
-        if (ns.animation.pause){
+        if (ns.animation.pause) {
             return true;
         }
-
         ns.scheduleTimeout = setTimeout(function() {
             self.collection.setXhr();
         }, ns.animation.delay * 1000);

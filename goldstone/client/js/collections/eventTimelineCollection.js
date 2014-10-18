@@ -22,12 +22,14 @@ var EventTimelineCollection = Backbone.Collection.extend({
 
     parse: function(data) {
 
-        if(data.previous !== null){
+        if (data.previous !== null) {
 
             var dp = data.previous;
             var nextUrl = dp.slice(dp.indexOf('/core'));
             this.url = nextUrl;
-            this.fetch({remove:false});
+            this.fetch({
+                remove: false
+            });
         }
 
         return data.results;
