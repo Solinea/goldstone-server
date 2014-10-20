@@ -12,132 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from django.db.models import CharField, ForeignKey, BooleanField, Model, \
-    ManyToManyField, DateTimeField, TextField
+from uuid import uuid4
+import arrow
+from django.db.models import CharField, BooleanField, Model, DateTimeField, \
+    TextField
 from django_extensions.db.fields import UUIDField, ModificationDateTimeField, \
     CreationDateTimeField
 from polymorphic import PolymorphicModel
+from elasticutils.contrib.django import S, MappingType, Indexable
+from django.conf import settings
+import logging
 
 __author__ = 'stanford'
 
-#
-# Many to Many relationships
-#
-
-
-# entites can be related to other entities
-class Entity2EntityRel(Model):
-    from_entity = ForeignKey('Entity', to_field='uuid',
-                             related_name="from_entity")
-    to_entity = ForeignKey('Entity', to_field='uuid',
-                           related_name="to_entity")
-    relation = CharField(max_length=64)
-
-    def __unicode__(self):
-        return json.dumps({
-            "from_entity": str(self.from_entity),
-            "relation": str(self.relation),
-            "to_entity": str(self.to_event)
-        })
-
-
-# entities can be related to events
-class Entity2EventRel(Model):
-    from_entity = ForeignKey('Entity', to_field='uuid',
-                             related_name="from_entity_ev")
-    to_event = ForeignKey('Event', to_field='uuid',
-                          related_name="to_event_en")
-    relation = CharField(max_length=64)
-
-    def __unicode__(self):
-        return json.dumps({
-            "from_entity": str(self.from_entity),
-            "relation": str(self.relation),
-            "to_event": str(self.to_event)
-        })
-
-
-# events can be related to events
-class Event2EventRel(Model):
-    from_event = ForeignKey('Event', to_field='uuid',
-                            related_name="from_event")
-    to_event = ForeignKey('Event', to_field='uuid',
-                          related_name="to_event")
-    relation = CharField(max_length=64)
-
-    def __unicode__(self):
-        return json.dumps({
-            "from_event": str(self.from_event),
-            "relation": str(self.relation),
-            "to_event": str(self.to_event)
-        })
+logger = logging.getLogger(__name__)
 
 
 #
 # polymorphic model abstractions
 #
-
 class Entity(PolymorphicModel):
     uuid = UUIDField(unique=True)
     name = CharField(max_length=255, unique=True)
     created = CreationDateTimeField()
     updated = ModificationDateTimeField()
-    entity_rels = ManyToManyField(
-        'Entity',
-        through='Entity2EntityRel',
-        related_name="related_entity_set",
-        symmetrical=False)
-    event_rels = ManyToManyField(
-        'Event',
-        through='Entity2EventRel',
-        related_name="+",
-        symmetrical=False)
-
-    def add_entity_rel(self, entity, relation_name):
-        relationship, created = Entity2EntityRel.objects.get_or_create(
-            from_entity=self,
-            to_entity=entity,
-            relation=relation_name)
-        return relationship
-
-    def remove_entity_rel(self, entity, relation_name):
-        Entity2EntityRel.objects.filter(
-            from_entity=self,
-            to_entity=entity,
-            relation=relation_name).delete()
-        return
-
-    # return entities related to me
-    def get_entity_rels(self, relation_name):
-        return self.entity_rels.filter(
-            to_entity__relation=relation_name,
-            to_entity__from_entity=self)
-
-    # return items that have a relation to me
-    def get_related_entities(self, relation_name):
-        return self.related_entity_set.filter(
-            from_entity__relation=relation_name,
-            from_entity__to_entity=self)
-
-    def add_event_rel(self, event, relation_name):
-        relationship, created = Entity2EventRel.objects.get_or_create(
-            from_entity=self,
-            to_event=event,
-            relation=relation_name)
-        return relationship
-
-    def remove_event_rel(self, event, relation_name):
-        Entity2EventRel.objects.filter(
-            from_entity=self,
-            to_event=event,
-            relation=relation_name).delete()
-        return
-
-    # return events related to me
-    def get_event_rels(self, relation_name):
-        return self.event_rels.filter(
-            to_event_en__relation=relation_name,
-            to_event_en__from_entity=self)
 
     def __unicode__(self):
         return json.dumps({
@@ -148,105 +46,101 @@ class Entity(PolymorphicModel):
         })
 
 
-class Event(PolymorphicModel):
-    uuid = UUIDField(unique=True)
-    event_type = CharField(max_length=255)
-    created = CreationDateTimeField()
-    updated = ModificationDateTimeField()
-    message = TextField(max_length=1024)
-    event_rels = ManyToManyField(
-        'Event',
-        through='Event2EventRel',
-        related_name="related_event2event_set",
-        symmetrical=False)
-    entity_rels = ManyToManyField(
-        'Entity',
-        through='Entity2EventRel',
-        related_name="+",
-        symmetrical=False)
+class EventType(MappingType, Indexable):
 
-    def add_event_rel(self, e, relation_name):
-        relationship, created = Event2EventRel.objects.get_or_create(
-            from_event=self,
-            to_event=e,
-            relation=relation_name)
-        return relationship
+    @classmethod
+    def get_model(cls):
+        return Event
 
-    def remove_event_rel(self, e, relation_name):
-        Event2EventRel.objects.filter(
-            from_event=self,
-            to_event=e,
-            relation=relation_name).delete()
-        return
+    @classmethod
+    def get_mapping(cls):
+        """Returns an Elasticsearch mapping for this MappingType"""
+        return {
+            'properties': {
+                'id': {'type': 'string', 'index': 'not_analyzed'},
+                'event_type': {'type': 'string', 'index': 'not_analyzed'},
+                'source_id': {'type': 'string', 'index': 'not_analyzed'},
+                'message': {'type': 'string', 'analyzer': 'snowball'},
+                'created': {'type': 'date', 'index': 'not_analyzed'}
+            }
+        }
 
-    def get_event_rels(self, relation_name):
-        return self.event_rels.filter(
-            to_event__relation=relation_name,
-            to_event__from_event=self)
+    @classmethod
+    def extract_document(cls, obj_id, obj):
+        """Converts this instance into an Elasticsearch document"""
+        if obj is None:
+            # todo this will go to the model manager which would natively
+            # todo look at the SQL db.  we either need to fix this or fix the
+            # todo model manager implementation of get.
+            obj = cls.get_model().objects.get(pk=obj_id)
 
-    def get_related_events(self, relation_name):
-        return self.related_event2event_set.filter(
-            from_event__relation=relation_name,
-            from_event__to_event=self)
+        return {
+            'id': str(obj.id),
+            'event_type': obj.event_type,
+            'source_id': str(obj.source_id),
+            'message': obj.message,
+            'created': obj.created.isoformat()
+        }
 
-    # return events related to me
-    def get_entity_rels(self, relation_name):
-        return self.entity_rels.filter(
-            from_entity_ev__relation=relation_name,
-            from_entity_ev__to_event=self)
-
-    def __unicode__(self):
-        return json.dumps({
-            "uuid": "" if self.uuid is None else self.uuid,
-            "event_type": self.event_type,
-            "created": self.created.isoformat(),
-            "updated": self.updated.isoformat()
-        })
+    def get_object(self):
+        return Event._reconstitute(
+            id=self._id,
+            event_type=self._results_dict['event_type'],
+            message=self._results_dict['message'],
+            source_id=self._results_dict['source_id'],
+            created=arrow.get(self._results_dict['created']).datetime
+        )
 
 
-class Project(Entity):
-    """
-    Represents and OpenStack project such as Nova, Cinder, or Glance.  These
-    will initially be defined in configuration, but perhaps discovered in a
-    later version of goldstone.
-    """
-    version = CharField(max_length=64)
+class Event(Model):
+    id = CharField(max_length=36, primary_key=True)
+    event_type = CharField(max_length=64)
+    source_id = CharField(max_length=36, blank=True)
+    message = CharField(max_length=1024)
+    created = DateTimeField(auto_now=False)
 
-    def __unicode__(self):
-        entity = json.loads(super(Project, self).__unicode__())
-        entity = dict(entity.items() + {"version": self.version}.items())
-        return json.dumps(entity)
+    _mt = EventType()
+
+    def __init__(self, *args, **kwargs):
+        super(Event, self).__init__(*args, **kwargs)
+        self.id = str(uuid4())
+        if 'created' in kwargs:
+            self.created = arrow.get(kwargs['created']).datetime
+        else:
+            self.created = arrow.utcnow().datetime
+
+    @classmethod
+    def _reconstitute(cls, **kwargs):
+        """
+        provides a way for the mapping type to create an object from ES data
+        """
+        obj = cls(**kwargs)
+        obj.id = kwargs['id']
+        obj.created = arrow.get(kwargs['created']).datetime
+        return obj
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        """
+        An override to save the object to ES via elasticutils
+        """
+
+        if using is not None:
+            raise ValueError("using is not implemented for this model")
+        if update_fields is not None:
+            raise ValueError("update_fields is not implemented for this model")
+
+        self._mt.index(self._mt.extract_document(self.id, self),
+                       id_=str(self.id))
+
+    def delete(self, using=None):
+        if using is not None:
+            raise ValueError("using is not implemented for this model")
+
+        self._mt.unindex(str(self.id))
 
 
-class Service(Entity):
-    """
-    Generic service representations.  Obvious use cases are nova service-list,
-    etc.  There will most likely be other not so obvious uses as we evolve.
-    """
-
-
-class Resource(Entity):
-    METHOD_CHOICES = (
-        ('LOGS', 'Log Stream Activity'),
-        ('API', 'Application API Call'),
-    )
-    last_seen = DateTimeField(null=True, blank=True)
-    last_seen_method = CharField(max_length=32, choices=METHOD_CHOICES,
-                                 null=True, blank=True)
-    admin_disabled = BooleanField(default=False)
-
-    def __unicode__(self):
-        entity = json.loads(super(Resource, self).__unicode__())
-        entity = dict(entity.items() + {
-            "last_seen": self.last_seen.isoformat() if
-            self.last_seen is not None else "",
-            "last_seen_method": self.last_seen_method,
-            "admin_disabled": self.admin_disabled}.items())
-
-        return json.dumps(entity)
-
-
-class Node(Resource):
+class Node(Entity):
     """
     Generic representation of a node that has a log stream, provides services,
     etc.  The main purposes of the node is to support the availability checks,
@@ -257,3 +151,15 @@ class Node(Resource):
         ('LOGS', 'Log Stream Activity'),
         ('API', 'Application API Call'),
     )
+
+    last_seen_method = CharField(max_length=32, choices=METHOD_CHOICES,
+                                 null=True, blank=True)
+    admin_disabled = BooleanField(default=False)
+
+    def __unicode__(self):
+        entity = json.loads(super(Node, self).__unicode__())
+        entity = dict(entity.items() + {
+            "last_seen_method": self.last_seen_method,
+            "admin_disabled": self.admin_disabled}.items())
+
+        return json.dumps(entity)

@@ -294,7 +294,7 @@ class ResourceData(ESData):
             "aggs": tl_aggs_clause
         }
 
-        logger.info("[_claims_resource_query] query = %s", json.dumps(query))
+        logger.debug("[_claims_resource_query] query = %s", json.dumps(query))
 
         return query
 
