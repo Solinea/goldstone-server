@@ -1011,7 +1011,7 @@ goldstone.charts.topologyTree = {
         // Normalize for fixed-depth.
         nodes.forEach(function(d) {
             // TODO make the tree branch length configurable
-            d.y = d.depth * 120;
+            d.y = d.depth * 95;
         });
 
         // Update the nodes…
