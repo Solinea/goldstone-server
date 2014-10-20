@@ -225,6 +225,7 @@ code {
   color: #fff;
   border-radius: 10px;
   pointer-events: none;
+  max-width: 500px;
 }
 
 .d3-tip pre {

@@ -21,9 +21,9 @@
 var EventTimelineView = Backbone.View.extend({
     defaults: {
         h: {
-            "main": 150,
-            "padding": 50,
-            "tooltipPadding": 40
+            "main": 100,
+            "padding": 30,
+            "tooltipPadding": 50
         }
     },
 
@@ -119,7 +119,7 @@ var EventTimelineView = Backbone.View.extend({
                 } else {
                     leftOffset = 0;
                 }
-                return [-(ns.h.tooltipPadding / 2), leftOffset];
+                return [0, leftOffset];
             })
             .html(function(d) {
 
@@ -131,7 +131,7 @@ var EventTimelineView = Backbone.View.extend({
                 return d.event_type + " (click event line to persist popup info)<br>" +
                     "uuid: " + d.id + "<br>" +
                     "Created: " + d.created + "<br>" +
-                    "Message: " + d.message.substr(0, 650) + "<br>";
+                    "Message: " + d.message + "<br>";
             });
 
         ns.graph.call(ns.tooltip);
@@ -330,45 +330,6 @@ var EventTimelineView = Backbone.View.extend({
 
         });
 
-        // ns.filter = {
-        //     "OpenStackSyslogError": {
-        //         active: true,
-        //         id: "audit",
-        //         displayName: "Openstack Syslog Error"
-        //     }
-        // };
-
-
-        if ($('#event-filterer').find('.btn-group').length) {
-            $('#event-filterer').find('.btn-group').remove();
-        }
-
-        // The log-level buttons toggle the specific log level into the total count
-        d3.select(ns.location).select("#event-filterer").selectAll("input")
-            .data(d3.keys(ns.filter), function(d) {
-                return d;
-            })
-            .enter().append("div")
-            .attr("class", "btn-group")
-            .append("label")
-            .attr("id", function(d) {
-                return d;
-            })
-            .attr("class", function(d) {
-                return "btn btn-log-" + ns.filter[d].id;
-            })
-            .classed("active", function(d) {
-                return ns.filter[d].active;
-            })
-            .attr("type", "button")
-            .text(function(d) {
-                return ns.filter[d].displayName;
-            })
-            .on("click", function(d) {
-                ns.filter[d].active = !ns.filter[d].active;
-                self.redraw();
-            });
-
         /*
          * Axes
          *   - calculate the new domain.
@@ -389,6 +350,7 @@ var EventTimelineView = Backbone.View.extend({
         /*
          * New rectangles appear at the far right hand side of the graph.
          */
+
         var rectangle = ns.graph.selectAll("rect")
             .data(ns.dataset, function(d) {
                 return d.id;
