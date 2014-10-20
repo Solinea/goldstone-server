@@ -87,6 +87,15 @@ var EventTimelineView = Backbone.View.extend({
 
 
         /*
+         * colors
+         */
+
+        // you can change the value in colorArray to select
+        // a particular number of different colors
+        var colorArray = new ColorBlindPalette().get('colorArray');
+        ns.color = d3.scale.ordinal().range(colorArray[5]);
+
+        /*
          * The graph and axes
          */
 
@@ -264,16 +273,6 @@ var EventTimelineView = Backbone.View.extend({
             return item.event_type;
         }));
 
-        // choices for css labels. these are not severities,
-        // but correspond to the colors in loglevel_buttons.css
-        ns.labelCssId = ['debug', 'audit', 'info', 'warning', 'error'];
-
-        // this will become relevant if we choose to use the modal
-        // instead of the buttons to select events to show/hide.
-        // otherwise, the colors will need to be updated via the css files.
-        ns.colorBlindHex = ['#882255', '#999933', '#44AA99', '#DDCC77', '#332288'];
-
-
         // populate ns.filter based on the array of unique event types
         // add uniqueEventTypes to filter modal
         ns.filter = ns.filter || {};
@@ -292,8 +291,7 @@ var EventTimelineView = Backbone.View.extend({
 
             ns.filter[item] = ns.filter[item] || {
                 active: true,
-                id: ns.labelCssId[ns.uniqueEventTypes.indexOf(item) % ns.labelCssId.length],
-                color: ns.colorBlindHex[ns.uniqueEventTypes.indexOf(item) % ns.labelCssId.length],
+                color: ns.color(ns.uniqueEventTypes.indexOf(item) % ns.color.range().length),
                 displayName: itemSpaced
             };
 
@@ -364,20 +362,16 @@ var EventTimelineView = Backbone.View.extend({
             .attr("y", ns.h.padding + 1)
             .attr("width", 5)
             .attr("height", ns.h.main - ns.h.padding - 2)
-            .attr("class", function(d) {
-                for (var evt in ns.filter) {
-                    if (evt === d.event_type) {
-                        return ns.filter[evt].id;
-                    }
-                }
-                return 'none';
-            })
+            .attr("class", "single-event")
             .style("opacity", function(d) {
                 return self.opacityByFilter(d);
             })
             .style("visibility", function(d) {
                 // to avoid showing popovers for hidden lines
                 return self.visibilityByFilter(d);
+            })
+            .attr("fill", function(d) {
+                return ns.color(ns.uniqueEventTypes.indexOf(d.event_type) % ns.color.range().length);
             })
             .on("mouseover", ns.tooltip.show)
             .on("click", function() {
@@ -457,7 +451,6 @@ var EventTimelineView = Backbone.View.extend({
             '<div class="panel-body" style="height:' + (ns.h.padding * 2) + 'px">' +
             '<div id="event-filterer" class="btn-group pull-left" data-toggle="buttons" align="center">' +
             '</div>' +
-            // '<div class="pull-right">Search:&nbsp; <input class="pull-right" id="goldstone-event-search"></input></div>' +
             '</div>' +
             '<div class="panel-body" style="height:' + ns.h.main + 'px">' +
             '<div id="goldstone-event-chart">' +
