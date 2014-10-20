@@ -68,12 +68,6 @@ var EventTimelineView = Backbone.View.extend({
         ns.mw = ns.w - ns.margin.left - ns.margin.right;
         ns.mh = ns.h.main - ns.margin.top - ns.margin.bottom;
 
-        // ns.r = d3.scale.sqrt();
-        ns.loglevel = d3.scale.ordinal()
-            .domain(["info", "warning", "error"])
-            .range(["#d94801", "#238b45", "#2171b5"]);
-        /* removed: "#6a51a3", "#cb181d"*/
-
         ns.topAxis = d3.svg.axis()
             .orient("top")
             .ticks(5)
