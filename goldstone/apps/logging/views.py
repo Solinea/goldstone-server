@@ -23,7 +23,7 @@ from django.conf import settings
 import pytz
 from rest_framework import status
 from rest_framework.response import Response
-from goldstone.apps.core.views import NodeViewSet, EventViewSet
+from goldstone.apps.core.views import NodeViewSet
 
 logger = logging.getLogger(__name__)
 
@@ -74,10 +74,10 @@ class LoggingNodeViewSet(NodeViewSet):
                         data="Destruction only supported for core nodes.")
 
 
-class LoggingEventViewSet(EventViewSet):
-    queryset = LoggingEvent.objects.all()
-    serializer_class = LoggingEventSerializer
-    lookup_field = 'uuid'
-    lookup_url_kwarg = 'uuid'
-    ordering_fields = '__all__'
-    ordering = 'created'
+# class LoggingEventViewSet(EventViewSet):
+#     queryset = LoggingEvent.objects.all()
+#     serializer_class = LoggingEventSerializer
+#     lookup_field = 'uuid'
+#     lookup_url_kwarg = 'uuid'
+#     ordering_fields = '__all__'
+#     ordering = 'created'

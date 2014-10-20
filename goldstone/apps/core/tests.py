@@ -22,12 +22,12 @@ from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 from rest_framework.test import APISimpleTestCase
 from goldstone.apps.core import tasks
-from goldstone.apps.core.views import NodeViewSet
+from goldstone.models import GSConnection
 from models import *
 from serializers import *
 from datetime import datetime
 import logging
-import subprocess
+import arrow
 
 __author__ = 'stanford'
 
@@ -81,22 +81,9 @@ class EntityTests(SimpleTestCase):
         Entity.objects.get_or_create(name="entity 2")
         Entity.objects.get_or_create(name="entity 3")
 
-        Project.objects.get_or_create(name="project 1")
-        Project.objects.get_or_create(name="project 2")
-
-        Resource.objects.get_or_create(name="resource 1")
-        Resource.objects.get_or_create(name="resource 2",
-                                       last_seen=datetime.now(tz=pytz.utc))
-
         Node.objects.get_or_create(name="node 1")
         Node.objects.get_or_create(name="node 2")
 
-        Service.objects.get_or_create(name="service 1")
-        Service.objects.get_or_create(name="service 2")
-
-        Event.objects.get_or_create(event_type="type 1")
-        Event.objects.get_or_create(event_type="type 2")
-        Event.objects.get_or_create(event_type="type 3")
 
     def tearDown(self):
         # When using Entity.objects.all().delete(), we have a strange situation
@@ -105,120 +92,15 @@ class EntityTests(SimpleTestCase):
         # this form for deleting.
         for obj in Entity.objects.iterator():
             obj.delete()
-        for obj in Project.objects.iterator():
-            obj.delete()
-        for obj in Resource.objects.iterator():
-            obj.delete()
         for obj in Node.objects.iterator():
             obj.delete()
-        for obj in Service.objects.iterator():
-            obj.delete()
-        for obj in Event.objects.iterator():
-            obj.delete()
-
-    def test_entity_relation(self):
-        entity1 = Entity.objects.get(name="entity 1")
-        entity2 = Entity.objects.get(name="entity 2")
-        entity3 = Entity.objects.get(name="entity 3")
-        event1 = Event.objects.get(event_type="type 1")
-        event2 = Event.objects.get(event_type="type 2")
-
-        # add relationships to entity and event
-        result = entity1.add_entity_rel(entity2, "has")
-        self.assertIsInstance(result, Entity2EntityRel)
-        result = entity1.add_entity_rel(entity3, "has")
-        self.assertIsInstance(result, Entity2EntityRel)
-        result = entity1.add_event_rel(event1, "saw")
-        self.assertIsInstance(result, Entity2EventRel)
-        result = entity1.add_event_rel(event2, "saw")
-        self.assertIsInstance(result, Entity2EventRel)
-
-        # get forward relationships
-        entity_rels = entity1.get_entity_rels("has")
-        self.assertEqual(entity_rels.count(), 2)
-        self.assertIsInstance(entity_rels[0], Entity)
-        self.assertIsInstance(entity_rels[1], Entity)
-        self.assertIn(entity2, entity_rels)
-        self.assertIn(entity3, entity_rels)
-
-        # get backward relationships
-        related_entities = entity2.get_related_entities("has")
-        self.assertEqual(related_entities.count(), 1)
-        self.assertIn(entity1, related_entities)
-        entity3.add_entity_rel(entity2, "has")
-        related_entities = entity2.get_related_entities("has")
-        self.assertEqual(related_entities.count(), 2)
-        self.assertIn(entity1, related_entities)
-        self.assertIn(entity3, related_entities)
-
-        # get forward event relationships
-        event_rels = entity1.get_event_rels("saw")
-        self.assertEqual(event_rels.count(), 2)
-        self.assertIsInstance(event_rels[0], Event)
-        self.assertIsInstance(event_rels[1], Event)
-        self.assertIn(event1, event_rels)
-        self.assertIn(event2, event_rels)
-
-        # get backward event relationships
-        # related_entities = event1.get_related_events("saw")
-        # self.asssertEqual("", related_entities)
-        # self.assertEqual(related_entities.count(), 2)
-        # self.assertIn(event1, related_entities)
-        # self.assertIn(event2, related_entities)
-
-        # delete a related object and make sure relation is cleaned up
-        entity3.remove_entity_rel(entity2, "has")
-        entity1_rels = entity1.get_entity_rels("has")
-        self.assertIn(entity2, entity1_rels)
-
-        entity2.add_entity_rel(entity3, "has")
-        entity3_related = entity3.get_related_entities("has")
-        self.assertIn(entity2, entity3_related)
-
-        Entity.objects.get(uuid=entity2.uuid).delete()
-        entity1_rels = entity1.get_entity_rels("has")
-        self.assertNotIn(entity2, entity1_rels)
-
-        entity3_related = entity3.get_related_entities("has")
-        self.assertNotIn(entity2, entity3_related)
-
-        entity1_event_rels = entity1.get_event_rels("saw")
-        self.assertIn(event1, entity1_event_rels)
-        Event.objects.get(uuid=event1.uuid).delete()
-        entity1_event_rels = entity1.get_event_rels("saw")
-        self.assertNotIn(event1, entity1_event_rels)
-
-        # delete relationships
-        entity1_rels = entity1.get_entity_rels("has")
-        self.assertIn(entity3, entity1_rels)
-        entity1.remove_entity_rel(entity3, "has")
-        entity1_rels = entity1.get_entity_rels("has")
-        self.assertNotIn(entity3, entity1_rels)
-
-        entity1_event_rels = entity1.get_event_rels("saw")
-        self.assertIn(event2, entity1_event_rels)
-        entity1.remove_event_rel(event2, "saw")
-        entity1_event_rels = entity1.get_event_rels("saw")
-        self.assertNotIn(event2, entity1_event_rels)
 
     def test_polymorphism(self):
         entities = Entity.objects.all()
-        self.assertEqual(entities.count(), 11)
-
-        projects = Project.objects.all()
-        self.assertEqual(projects.count(), 2)
-
-        resources = Resource.objects.all()
-        self.assertEqual(resources.count(), 4)
-
-        services = Service.objects.all()
-        self.assertEqual(services.count(), 2)
+        self.assertEqual(entities.count(), 5)
 
         nodes = Node.objects.all()
         self.assertEqual(nodes.count(), 2)
-
-        events = Event.objects.all()
-        self.assertEqual(events.count(), 3)
 
     def test_unicode(self):
         e1 = Entity.objects.get(name="entity 1")
@@ -226,101 +108,17 @@ class EntityTests(SimpleTestCase):
         self.assertDictContainsSubset({"name": "entity 1"}, json.loads(u))
         self.assertIn('uuid', json.loads(u))
 
-        p1 = Project.objects.get(name="project 1")
-        u = p1.__unicode__()
-        self.assertDictContainsSubset({"name": "project 1"}, json.loads(u))
-        self.assertIn('version', json.loads(u))
-
-        r1 = Resource.objects.get(name="resource 1")
+        r1 = Node.objects.get(name="node 1")
+        r1.save()
         u = r1.__unicode__()
-        self.assertDictContainsSubset({"name": "resource 1"}, json.loads(u))
-        self.assertIn('last_seen', json.loads(u))
-        self.assertEqual(u'', json.loads(u)['last_seen'])
+        self.assertDictContainsSubset({"name": "node 1"}, json.loads(u))
         self.assertIn('last_seen_method', json.loads(u))
         self.assertIn('admin_disabled', json.loads(u))
-        r2 = Resource.objects.get(name="resource 2")
+        r2 = Node.objects.get(name="node 2")
+        r2.save()
         u = r2.__unicode__()
-        self.assertIn('last_seen', json.loads(u))
-        self.assertNotEqual(u'', json.loads(u)['last_seen'])
-
-
-class EventTests(SimpleTestCase):
-
-    def setUp(self):
-
-        Entity.objects.get_or_create(name="entity 1")
-        Entity.objects.get_or_create(name="entity 2")
-        Node.objects.get_or_create(name="node 1")
-
-        Event.objects.get_or_create(event_type="type 1", message="message 1")
-        Event.objects.get_or_create(event_type="type 2", message="message 2")
-        Event.objects.get_or_create(event_type="type 3", message="message 3")
-
-    def tearDown(self):
-
-        for obj in Entity.objects.iterator():
-            obj.delete()
-
-        for obj in Node.objects.iterator():
-            obj.delete()
-
-        for obj in Event.objects.iterator():
-            obj.delete()
-
-    def test_entity_relation(self):
-        event1 = Event.objects.get(event_type="type 1")
-        event2 = Event.objects.get(event_type="type 2")
-        event3 = Event.objects.get(event_type="type 3")
-        entity1 = Entity.objects.get(name="entity 1")
-        entity2 = Entity.objects.get(name="entity 2")
-        node1 = Node.objects.get(name="node 1")
-
-        # create event to event relation
-        r1 = event1.add_event_rel(event2, "related_event")
-        r2 = event1.add_event_rel(event3, "related_event")
-        r3 = event3.add_event_rel(event2, "related_event")
-        self.assertIsInstance(r1, Event2EventRel)
-        self.assertIsInstance(r2, Event2EventRel)
-        self.assertIsInstance(r3, Event2EventRel)
-
-        # created entity to event relation
-        r1 = entity1.add_event_rel(event1, "saw")
-        r2 = entity2.add_event_rel(event1, "saw")
-        self.assertIsInstance(r1, Entity2EventRel)
-        self.assertIsInstance(r2, Entity2EventRel)
-
-        # get forward event 2 event relationships
-        event1_event_rels = event1.get_event_rels("related_event")
-        self.assertIn(event2, event1_event_rels)
-        self.assertIn(event3, event1_event_rels)
-        event3_event_rels = event3.get_event_rels("related_event")
-        self.assertIn(event2, event3_event_rels)
-
-        # get backward event 2 event relationships
-        event2_related_events = event2.get_related_events("related_event")
-        self.assertIn(event1, event2_related_events)
-        self.assertIn(event3, event2_related_events)
-
-        # get event 2 entity relationships
-        event1_event_rels = event1.get_entity_rels("saw")
-        self.assertIn(entity1, event1_event_rels)
-        self.assertIn(entity2, event1_event_rels)
-
-        # delete a related object and make sure relation is cleaned up
-        event3.remove_event_rel(event2, "related_event")
-        event1_event_rels = event1.get_event_rels("related_event")
-        self.assertIn(event2, event1_event_rels)
-
-        event2.add_event_rel(event3, "related_event")
-        event3_related_events = event3.get_related_events("related_event")
-        self.assertIn(event2, event3_related_events)
-
-        Event.objects.get(uuid=event2.uuid).delete()
-        event1_event_rels = event1.get_event_rels("related_event")
-        self.assertNotIn(event2, event1_event_rels)
-
-        event3_related_events = event3.get_related_events("related_event")
-        self.assertNotIn(event2, event3_related_events)
+        self.assertIn('updated', json.loads(u))
+        self.assertNotEqual(u'', json.loads(u)['updated'])
 
 
 class NodeSerializerTests(SimpleTestCase):
@@ -330,7 +128,6 @@ class NodeSerializerTests(SimpleTestCase):
     node1 = Node(name=name1)
 
     def setUp(self):
-
         self.node1.save()
 
     def tearDown(self):
@@ -347,7 +144,6 @@ class NodeSerializerTests(SimpleTestCase):
         self.assertIn('updated', ser.data)
         self.assertIn('admin_disabled', ser.data)
         self.assertIn('last_seen_method', ser.data)
-        self.assertIn('last_seen', ser.data)
         self.assertIn('uuid', ser.data)
 
 
@@ -459,3 +255,233 @@ class NodeViewTests(APISimpleTestCase):
         data = {'name': 'test123'}
         response = self.client.patch('/core/nodes/' + uuid, data=data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class EventModelTests(SimpleTestCase):
+
+    def setUp(self):
+        es = Elasticsearch(settings.ES_SERVER)
+        if es.indices.exists('goldstone_model'):
+            es.indices.delete('goldstone_model')
+        es.indices.create('goldstone_model')
+
+    def test_create_model(self):
+        e1 = Event(event_type='test_event', message='this is a test event')
+        self.assertIsNotNone(e1.id)
+        self.assertNotEqual(e1.id, "")
+        self.assertIsNotNone(e1.created)
+
+    def test_index_model(self):
+        e1 = Event(event_type='test_event', message='this is a test event')
+        e1.save()
+        EventType.refresh_index()
+        self.assertEqual(e1._mt.search().query().count(), 1)
+        stored = e1._mt.search().query(). \
+            filter(_id=e1.id)[:1]. \
+            execute(). \
+            objects[0]. \
+            get_object()
+        self.assertEqual(stored.id, e1.id)
+        self.assertEqual(stored.event_type, e1.event_type)
+        self.assertEqual(stored.message, e1.message)
+        self.assertEqual(stored.created, e1.created)
+
+    def test_unindex_model(self):
+        e1 = Event(event_type='test_event', message='this is a test event')
+        e1.save()
+        EventType.refresh_index()
+        self.assertEqual(e1._mt.search().query().count(), 1)
+        e1.delete()
+        EventType.refresh_index()
+        self.assertEqual(EventType().search().query().count(), 0)
+
+
+class EventSerializerTests(SimpleTestCase):
+
+    event1 = Event(event_type='test_serializer',
+                   message='testing serialization')
+
+    def setUp(self):
+        es = Elasticsearch(settings.ES_SERVER)
+        if es.indices.exists('goldstone_model'):
+            es.indices.delete('goldstone_model')
+        es.indices.create('goldstone_model')
+        self.event1.save()
+
+    def test_serialize(self):
+        ser = EventSerializer(self.event1)
+        extract = EventType.extract_document(self.event1.id, self.event1)
+
+        # date serialization is awkward wrt +00:00 (gets converted to Z), and
+        # resolution is a mismatch from arrow, so need to compare field by
+        # field
+        self.assertEqual(ser.data['id'], extract['id'])
+        self.assertEqual(ser.data['event_type'],
+                         extract['event_type'])
+        self.assertEqual(ser.data['message'],
+                         extract['message'])
+        self.assertEqual(ser.data['source_id'],
+                         extract['source_id'])
+        self.assertEqual(arrow.get(ser.data['created']),
+                         arrow.get(extract['created']))
+
+    def test_deserialize(self):
+        pass
+
+
+class EventViewTests(APISimpleTestCase):
+
+    def setUp(self):
+        es = Elasticsearch(settings.ES_SERVER)
+        if es.indices.exists('goldstone_model'):
+            es.indices.delete('goldstone_model')
+        es.indices.create('goldstone_model')
+
+    def test_post(self):
+        data = {
+            'event_type': "test event",
+            'message': "test message"}
+        response = self.client.post('/core/events', data=data)
+        EventType.refresh_index()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_list(self):
+        data1 = {
+            'event_type': "test event",
+            'message': "test message 1"}
+        data2 = {
+            'event_type': "test event",
+            'message': "test message 2"}
+        response = self.client.post('/core/events', data=data1)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.client.post('/core/events', data=data2)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        EventType.refresh_index()
+        response = self.client.get('/core/events')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+    def test_get(self):
+        self.maxDiff = None
+        data = {
+            'event_type': "test event",
+            'message': "test message"}
+        response = self.client.post('/core/events', data=data)
+        EventType.refresh_index()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.client.get('/core/events')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        list_response_data = response.data['results'][0]
+        self.assertDictContainsSubset(data, list_response_data)
+        response = self.client.get('/core/events/' + list_response_data['id'])
+        d1_created = list_response_data['created']
+        d2_created = response.data['created']
+        del list_response_data['created']
+        del response.data['created']
+        self.assertDictEqual(list_response_data, response.data)
+        self.assertEqual(arrow.get(d1_created), arrow.get(d2_created))
+
+    def test_delete(self):
+        data = {
+            'event_type': "test event",
+            'message': "test message"}
+        response = self.client.post('/core/events', data=data)
+        EventType.refresh_index()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        list_response_data = response.data
+        self.assertDictContainsSubset(data, list_response_data)
+        response = self.client.delete(
+            '/core/events/' + list_response_data['id'])
+        EventType.refresh_index()
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get(
+            '/core/events/' + list_response_data['id'])
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_fail_date_format(self):
+        data = {
+            "created": 'xyzabc123',
+            "event_type": "external created event",
+            "message": "I am your creator"
+        }
+        response = self.client.post('/core/events', data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_get_list_with_start(self):
+        start_time = arrow.utcnow().replace(minutes=-15)
+        data1 = {
+            'event_type': "test event",
+            'message': "test message"}
+
+        data2 = {
+            'event_type': "test event",
+            'message': "test message",
+            "created": start_time.replace(minutes=-2).isoformat()
+        }
+        response = self.client.post('/core/events', data=data1)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data1_id = response.data['id']
+        logger.info("data1_id = %s", data1_id)
+        response = self.client.post('/core/events', data=data2)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data2_id = response.data['id']
+        logger.info("data2_id = %s", data2_id)
+        EventType.refresh_index()
+        response = self.client.get('/core/events')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+        # make sure that data2 has the proper created time
+        response = self.client.get('/core/events/' + data2_id)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        d2_created = arrow.get(response.data['created'])
+        self.assertEqual(d2_created, start_time.replace(minutes=-2))
+
+        response = self.client.get(
+            '/core/events?created__gte=' + str(start_time.timestamp * 1000))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['id'], data1_id)
+
+    def test_get_list_with_start_and_end(self):
+        end_time = arrow.utcnow().replace(minutes=-14)
+        start_time = end_time.replace(minutes=-2)
+        data1 = {
+            'event_type': "test event",
+            'message': "test message"}
+        data2 = {
+            'event_type': "test event",
+            'message': "test message",
+            "created": end_time.replace(minutes=-1).isoformat()
+        }
+        response = self.client.post('/core/events', data=data1)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data1_id = response.data['id']
+        logger.info("data1_id = %s", data1_id)
+        response = self.client.post('/core/events', data=data2)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data2_id = response.data['id']
+        logger.info("data2_id = %s", data2_id)
+        EventType.refresh_index()
+        response = self.client.get('/core/events')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+        response = self.client.get(
+            '/core/events?created__gte=' + str(start_time.timestamp * 1000) +
+            '&created__lte=' + str(end_time.timestamp * 1000)
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['id'], data2_id)
+
+    def test_not_in_db(self):
+        data = {
+            'event_type': "test event",
+            'message': "test message"}
+        response = self.client.post('/core/events', data=data)
+        EventType.refresh_index()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        shapes = Event.objects.raw('SELECT * FROM core_event')
+        self.assertEqual(len(list(shapes)), 0)

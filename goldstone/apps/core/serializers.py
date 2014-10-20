@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from rest_framework import serializers
+
+import arrow
+from rest_framework import serializers, pagination
 from .models import Node, Event
+import uuid
 
 
 class NodeSerializer(serializers.ModelSerializer):
@@ -21,7 +24,6 @@ class NodeSerializer(serializers.ModelSerializer):
     name = serializers.CharField(read_only=True)
     created = serializers.DateTimeField(read_only=True)
     updated = serializers.DateTimeField(read_only=True)
-    last_seen = serializers.CharField(read_only=True)
     last_seen_method = serializers.CharField(read_only=True)
     admin_disabled = serializers.CharField(read_only=True)
 
@@ -32,8 +34,11 @@ class NodeSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+    event_type = serializers.CharField(max_length=64)
+    source_id = serializers.CharField(max_length=36, required=False)
+    message = serializers.CharField(max_length=1024)
+    created = serializers.DateTimeField(required=False)
 
     class Meta:
         model = Event
-        lookup_field = 'uuid'
-        exclude = ['id']

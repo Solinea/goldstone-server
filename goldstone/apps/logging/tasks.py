@@ -15,8 +15,7 @@ from __future__ import absolute_import
 
 import pytz
 import subprocess
-from rest_framework.renderers import JSONRenderer
-from goldstone.apps.logging.models import LoggingEvent, LoggingNode
+from goldstone.apps.logging.models import LoggingNode
 
 __author__ = 'John Stanford'
 
@@ -41,6 +40,7 @@ def process_host_stream(self, host, timestamp):
     node, created = Node.objects.get_or_create(name=host)
     if not node.admin_disabled:
         node.last_seen_method = 'LOGS'
+        # todo change date to arrow
         node.last_seen = datetime.now(tz=pytz.utc)
         node.save()
 
@@ -63,44 +63,32 @@ def process_event_stream(self, timestamp, host, event_type, message):
         process_amqp_down_event(timestamp, host, message)
     else:
         logger.warning("[process_event_stream] don't know how to handle event"
-                       "of type %s", event_type)
+                       "of type %s with message=%s", event_type, message)
 
 
 def _create_event(timestamp, host, message, event_type):
-    logger.debug("[_create_event] got a log error event with "
-                 "timestamp=%s, host=%s message=%s, event_type=%s",
-                 timestamp, host, message, event_type)
-
     dt = arrow.get(timestamp).datetime
-    event = LoggingEvent(event_type=event_type, created=dt, updated=dt,
-                         message=message)
-    event.save()
+
     try:
-        node = LoggingNode.objects.get(name=host)
-        node.add_event_rel(event, "source")
-        node.add_event_rel(event, "affects")
-        return event
-    except LoggingNode.DoesNotExist:
+        node = Node.objects.get(name=host)
+    except Node.DoesNotExist:
         logger.warning("[process_log_error_event] could not find logging node "
                        "with name=%s.  event will have not relations.", host)
+        event = Event(event_type=event_type, created=dt, message=message)
+        event.save()
         return event
-    except:
-        raise
+    else:
+        event = Event(event_type=event_type, created=dt, message=message,
+                      source_id=str(node.uuid))
+        event.save()
+        return event
 
 
 def process_log_error_event(timestamp, host, message):
-    logger.debug("[process_log_error_event] got a log error event with "
-                 "host=%s message=%s",
-                 timestamp, host, message)
-
     return _create_event(timestamp, host, message, "Syslog Error")
 
 
 def process_amqp_down_event(timestamp, host, message):
-    logger.debug("[process_amqp_down_event] got an AMQP down event with "
-                 "timestamp=%s, host=%s, event_type=%s, message=%s",
-                 timestamp, host, message)
-
     return _create_event(timestamp, host, message, "AMQP Down")
 
 

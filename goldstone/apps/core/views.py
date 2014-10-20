@@ -11,17 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.http import Http404
-from rest_framework import status
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+
 
 __author__ = 'John Stanford'
 
 from .models import *
 from .serializers import *
 import logging
+import arrow
+from django.http import Http404
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 logger = logging.getLogger(__name__)
 
@@ -31,13 +33,12 @@ class NodeViewSet(ModelViewSet):
     serializer_class = NodeSerializer
     filter_fields = ('uuid',
                      'name',
-                     'last_seen',
                      'last_seen_method',
                      'admin_disabled')
     lookup_field = 'uuid'
     lookup_url_kwarg = 'uuid'
     ordering_fields = '__all__'
-    ordering = 'last_seen'
+    ordering = 'updated'
 
     def create(self, request, *args, **kwargs):
         return Response(status=status.HTTP_400_BAD_REQUEST,
@@ -84,9 +85,33 @@ class NodeViewSet(ModelViewSet):
 
 
 class EventViewSet(ModelViewSet):
-    queryset = Event.objects.all()
+    queryset = EventType().search().query().order_by('-created')
     serializer_class = EventSerializer
-    lookup_field = 'uuid'
-    lookup_url_kwarg = 'uuid'
-    ordering_fields = '__all__'
-    ordering = 'created'
+    lookup_field = "_id"
+
+    def list(self, request, *args, **kwargs):
+        # adding support filter params
+        params = request.QUERY_PARAMS.dict()
+        if params is not None:
+            # don't use the page related params as filters
+            if settings.REST_FRAMEWORK['PAGINATE_BY_PARAM'] in params:
+                del params[settings.REST_FRAMEWORK['PAGINATE_BY_PARAM']]
+            if 'page' in params:
+                del params['page']
+
+            self.queryset = EventType().search().query().filter(**params). \
+                order_by('-created')
+            return super(EventViewSet, self).list(request, *args, **kwargs)
+
+    def get_object(self):
+        q = self.queryset
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        lookup = self.kwargs.get(lookup_url_kwarg, None)
+        if lookup is not None:
+            filter_kwargs = {self.lookup_field: lookup}
+        q_result = q.filter(**filter_kwargs)[:1].execute()
+        if q_result.count == 1:
+            obj = q_result.objects[0].get_object()
+            return obj
+        else:
+            raise Http404

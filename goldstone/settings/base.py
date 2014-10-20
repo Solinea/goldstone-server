@@ -89,6 +89,7 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'goldstone.apps.core.startup.StartupGoldstone',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -259,12 +260,15 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
     'PAGINATE_BY': 10,
     'PAGINATE_BY_PARAM': 'page_size',
-    'MAX_PAGINATE_BY': 100
+    'MAX_PAGINATE_BY': 1000
 }
 
 # controls the time examined for the log volume stats included in the
 # LoggingNode object.
 LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES = 15
+
+# controls the default lookback for /core/events calls
+EVENT_LOOKBACK_MINUTES = 60
 
 # Goldstone config settings
 DEFAULT_LOOKBACK_DAYS = 7
@@ -278,3 +282,8 @@ OS_AUTH_URL = ''
 ES_HOST = "127.0.0.1"
 ES_PORT = "9200"
 ES_SERVER = ES_HOST + ":" + ES_PORT
+
+# ElasticUtils Settings
+ES_URLS = [ES_SERVER]
+ES_INDEXES = {'default': 'goldstone_model'}
+ES_TIMEOUT = 5
