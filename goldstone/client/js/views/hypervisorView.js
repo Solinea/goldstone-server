@@ -49,7 +49,9 @@ var HypervisorView = Backbone.View.extend({
         ns.y = d3.scale.linear()
             .range([ns.mh, 0]);
 
-        ns.color = d3.scale.category20();
+        var colorArray = new ColorBlindPalette().get('colorArray');
+        ns.color = d3.scale.ordinal().range(colorArray[5]);
+        // ns.color = d3.scale.category20();
 
         ns.yAxis = d3.svg.axis()
             .scale(ns.y)
@@ -142,6 +144,8 @@ var HypervisorView = Backbone.View.extend({
         ns.svg.selectAll('rect')
             .remove();
 
+        ns.svg.selectAll("g").remove();
+
         ns.svg.append("g")
             .attr("class", "y axis")
             .call(ns.yAxis)
@@ -183,15 +187,6 @@ var HypervisorView = Backbone.View.extend({
                 return ns.color(d.name);
             });
 
-        // data[0].cores.forEach(function(d) {
-
-        //     vmCore.append("text")
-        //         .text(d.name + ": " + (d.y1 - d.y0))
-        //         .attr("x", ns.mw / 2)
-        //         .attr("y", ns.y.range()[1] + ns.y(d.y0) - 5)
-        //         .attr("text-anchor", "middle");
-        // });
-
         var legend = ns.svg.selectAll(".legend")
             .data(data);
 
@@ -214,7 +209,7 @@ var HypervisorView = Backbone.View.extend({
 
         setTimeout(function() {
             self.collection.fetch();
-        }, 50000);
+        }, 10000);
 
     }
 
