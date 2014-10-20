@@ -169,7 +169,7 @@ var EventTimelineView = Backbone.View.extend({
     opacityByFilter: function(d) {
         var ns = this.defaults;
         for (var filterType in ns.filter) {
-            if (ns.filter[filterType].eventName === d.event_type && !ns.filter[filterType].active) {
+            if (filterType === d.event_type && !ns.filter[filterType].active) {
                 return 0;
             }
         }
@@ -179,7 +179,7 @@ var EventTimelineView = Backbone.View.extend({
     visibilityByFilter: function(d) {
         var ns = this.defaults;
         for (var filterType in ns.filter) {
-            if (ns.filter[filterType].eventName === d.event_type && !ns.filter[filterType].active) {
+            if (filterType === d.event_type && !ns.filter[filterType].active) {
                 return "hidden";
             }
         }
@@ -226,7 +226,6 @@ var EventTimelineView = Backbone.View.extend({
 
         // If we didn't receive any valid files, append "No Data Returned"
         if (allthelogs.length === 0) {
-            console.log('data.length === 0');
 
             // if 'no data returned' already exists on page, don't reapply it
             if ($(ns.location).find('#noDataReturned').length) {
@@ -269,31 +268,43 @@ var EventTimelineView = Backbone.View.extend({
         // but correspond to the colors in loglevel_buttons.css
         ns.labelCssId = ['debug', 'audit', 'info', 'warning', 'error'];
 
+        // this will become relevant if we choose to use the modal
+        // instead of the buttons to select events to show/hide.
+        // otherwise, the colors will need to be updated via the css files.
+        ns.colorBlindHex = ['#882255', '#999933', '#44AA99', '#DDCC77', '#332288'];
+
+
         // populate ns.filter based on the array of unique event types
+        // add uniqueEventTypes to filter modal
         ns.filter = ns.filter || {};
 
-        // "Filter Label":{
-        // active: [true/false]
-        // id: "(css id for loglevel_buttons.css)"
-        // eventName: "(matches event type)"
-        // }
-
-
-        // add uniqueEventTypes to filter modal
+        // clear out the modal and reapply based on the unique events
         if ($(ns.location).find('#populateEventFilters').length) {
             $(ns.location).find('#populateEventFilters').empty();
         }
 
         _.each(ns.uniqueEventTypes, function(item) {
 
+            // regEx to create separate words out of the event types
+            // GenericSyslogError --> Generic Syslog Error
             var re = /([A-Z])/g;
             itemSpaced = item.replace(re, ' $1').trim();
 
-            ns.filter[itemSpaced] = ns.filter[itemSpaced] || {
+            ns.filter[item] = ns.filter[item] || {
                 active: true,
                 id: ns.labelCssId[ns.uniqueEventTypes.indexOf(item) % ns.labelCssId.length],
-                eventName: item
+                color: ns.colorBlindHex[ns.uniqueEventTypes.indexOf(item) % ns.labelCssId.length],
+                displayName: itemSpaced
             };
+
+            var addCheckIfActive = function(item) {
+                if (ns.filter[item].active) {
+                    return 'checked';
+                } else {
+                    return '';
+                }
+            };
+            var checkMark = addCheckIfActive(item);
 
             $(ns.location).find('#populateEventFilters').
             append(
@@ -301,8 +312,8 @@ var EventTimelineView = Backbone.View.extend({
                 '<div class="row">' +
                 '<div class="col-lg-12">' +
                 '<div class="input-group">' +
-                '<span class="input-group-addon" style="background-color:red;">' +
-                '<input id="' + item + '" type="checkbox">' +
+                '<span class="input-group-addon" style="background-color:' + ns.filter[item].color + ';">' +
+                '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
                 '</span>' +
                 '<span type="text" class="form-control">' + itemSpaced + '</span>' +
                 '</div>' +
@@ -312,37 +323,18 @@ var EventTimelineView = Backbone.View.extend({
         });
 
         $(ns.location).find('#populateEventFilters :checkbox').on('click', function() {
-            console.log('click', this, this.id);
 
             var checkboxId = this.id;
+            ns.filter[this.id].active = !ns.filter[this.id].active;
+            self.redraw();
 
-            _.each(ns.filter, function(item) {
-                console.log('item inside each inside checkbox click ', item);
-                console.log('ns.filter: ', ns.filter);
-                if (item.eventName === checkboxId) {
-                    item.active = !item.active;
-                    self.redraw();
-                }
-
-
-            });
-
-
-            // ns.filter[this.id].active = !ns.filter[this.id].active;
         });
 
         // ns.filter = {
-
-
-        //     "Openstack Syslog Error": {
+        //     "OpenStackSyslogError": {
         //         active: true,
         //         id: "audit",
-        //         eventName: "OpenStackSyslogError"
-        //     },
-        //     "Generic Syslog Error": {
-        //         active: true,
-        //         id: "info",
-        //         eventName: "GenericSyslogError"
+        //         displayName: "Openstack Syslog Error"
         //     }
         // };
 
@@ -370,7 +362,7 @@ var EventTimelineView = Backbone.View.extend({
             })
             .attr("type", "button")
             .text(function(d) {
-                return d;
+                return ns.filter[d].displayName;
             })
             .on("click", function(d) {
                 ns.filter[d].active = !ns.filter[d].active;
@@ -412,7 +404,7 @@ var EventTimelineView = Backbone.View.extend({
             .attr("height", ns.h.main - ns.h.padding - 2)
             .attr("class", function(d) {
                 for (var evt in ns.filter) {
-                    if (ns.filter[evt].eventName === d.event_type) {
+                    if (evt === d.event_type) {
                         return ns.filter[evt].id;
                     }
                 }
@@ -585,7 +577,7 @@ var EventTimelineView = Backbone.View.extend({
 
             // footer
             '<div class="modal-footer">' +
-            '<button type="button" id="eventFilterUpdateButton-' + ns.location.slice(1) + '" class="btn btn-primary" data-dismiss="modal">Update</button>' +
+            '<button type="button" id="eventFilterUpdateButton-' + ns.location.slice(1) + '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
             '</div>' +
 
             '</div>' +
