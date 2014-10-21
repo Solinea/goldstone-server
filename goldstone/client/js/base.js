@@ -497,6 +497,9 @@ goldstone.charts.bivariateWithAverage = {
         this.ns.chart = this.ns.svg.append("g")
             .attr('class', 'chart')
             .attr("transform", "translate(" + this.ns.margin.left + "," + this.ns.margin.top + ")");
+
+        this.ns.colorArray = new GoldstoneColors().get('colorSets');
+
     },
 
     update: function() {
@@ -574,6 +577,7 @@ goldstone.charts.bivariateWithAverage = {
 
                     var xAxis = d3.svg.axis()
                         .scale(x)
+                        .ticks(5)
                         .orient("bottom");
 
                     var yAxis = d3.svg.axis()
@@ -607,14 +611,14 @@ goldstone.charts.bivariateWithAverage = {
                         .attr("class", "area")
                         .attr("id", "minMaxArea")
                         .attr("d", area)
-                        .attr("fill", colorbrewer.Spectral[10][4])
+                        .attr("fill", ns.colorArray.distinct[3][1])
                         .style("opacity", 0.3);
 
                     ns.chart.append('path')
                         .attr('class', 'line')
                         .attr('id', 'minLine')
                         .attr('data-legend', "Min")
-                        .style("stroke", colorbrewer.Spectral[10][8])
+                        .style("stroke", ns.colorArray.distinct[3][0])
                         .datum(json)
                         .attr('d', minLine);
 
@@ -622,7 +626,7 @@ goldstone.charts.bivariateWithAverage = {
                         .attr('class', 'line')
                         .attr('id', 'maxLine')
                         .attr('data-legend', "Max")
-                        .style("stroke", colorbrewer.Spectral[10][1])
+                        .style("stroke", ns.colorArray.distinct[3][2])
                         .datum(json)
                         .attr('d', maxLine);
 
@@ -631,7 +635,7 @@ goldstone.charts.bivariateWithAverage = {
                         .attr('id', 'avgLine')
                         .attr('data-legend', "Avg")
                         .style("stroke-dasharray", ("3, 3"))
-                        .style("stroke", colorbrewer.Greys[3][1])
+                        .style("stroke", ns.colorArray.grey[0][0])
                         .datum(json)
                         .attr('d', avgLine);
 

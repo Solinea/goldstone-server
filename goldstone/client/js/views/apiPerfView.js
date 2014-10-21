@@ -281,7 +281,7 @@ var ApiPerfView = Backbone.View.extend({
             .attr('id', 'avgLine')
             .attr('data-legend', "Avg")
             .style("stroke-dasharray", ("3, 3"))
-            .style("stroke", "#bdbdbd")
+            .style("stroke", ns.colorArray.grey[0][0])
             .datum(json)
             .attr('d', avgLine);
 
