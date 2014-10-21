@@ -304,7 +304,8 @@ var EventTimelineView = Backbone.View.extend({
                 '<div class="row">' +
                 '<div class="col-lg-12">' +
                 '<div class="input-group">' +
-                '<span class="input-group-addon" style="background-color:' + ns.filter[item].color + ';">' +
+                '<span class="input-group-addon"' +
+                'style="opacity: 0.8; background-color:' + ns.filter[item].color + ';">' +
                 '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
                 '</span>' +
                 '<span type="text" class="form-control">' + itemSpaced + '</span>' +
