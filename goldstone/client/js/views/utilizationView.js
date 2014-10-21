@@ -159,7 +159,7 @@ var UtilizationView = Backbone.View.extend({
                 }
                 return ns.color(d.name);
             })
-            .style("opacity", 0.7);
+            .style("opacity", 0.8);
 
         component.append("text")
             .datum(function(d) {

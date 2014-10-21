@@ -163,7 +163,7 @@ var HypervisorVmCpuView = Backbone.View.extend({
                 return ns.color(d.name);
             })
             .style("stroke-width", "2px")
-            .style("opacity", 0.7);
+            .style("opacity", 0.8);
 
         ns.vm.append("text")
             .datum(function(d) {

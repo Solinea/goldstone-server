@@ -357,7 +357,8 @@ var NodeAvailView = Backbone.View.extend({
                 '<div class="row">' +
                 '<div class="col-lg-12">' +
                 '<div class="input-group">' +
-                '<span class="input-group-addon" style="background-color:' + ns.loglevel([item]) + ';">' +
+                '<span class="input-group-addon"' +
+                'style="opacity: 0.8; background-color:' + ns.loglevel([item]) + ';">' +
                 '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
                 '</span>' +
                 '<span type="text" class="form-control">' + item + '</span>' +
