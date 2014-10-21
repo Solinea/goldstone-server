@@ -58,6 +58,7 @@ filter {
         } else {
             mutate {
                 add_tag => ["filter_20_fail"]
+                remove_tag => ["_grokparsefailure"]
             }
         }
     }

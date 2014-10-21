@@ -36,6 +36,16 @@ filter {
                 fallback => "unknown"
                 destination => "component"
             }
+            if ([syslog_severity] == "NOTICE") {
+                mutate {
+                    add_field => {"loglevel" => "AUDIT"}
+                }
+            }
+            if [syslog_severity] in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"] {
+                mutate {
+                    replace => ["event_type", "OpenStackSyslogError"]
+                }
+            }
             mutate {
                 rename => [ "syslog5424_host", "host" ]
                 add_tag => ["openstack_syslog", "filter_34_pass"]
@@ -50,6 +60,7 @@ filter {
         } else {
             mutate {
                 add_tag => ["filter_34_fail"]
+                remove_tag => ["_grokparsefailure"]
             }
             # the unrelated cloning is to work around https://logstash.jira.com/browse/LOGSTASH-2018
             # if it happened earlier, this filter would end up processing each of the clones regardless

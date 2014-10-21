@@ -57,16 +57,10 @@ def process_event_stream(self, timestamp, host, event_type, message):
                  "host=%s, event_type=%s, message=%s",
                  timestamp, host, event_type, message)
 
-    if event_type == "GenericSyslogError":
-        process_log_error_event(timestamp, host, message)
-    elif event_type == "AMQPDownError":
-        process_amqp_down_event(timestamp, host, message)
-    else:
-        logger.warning("[process_event_stream] don't know how to handle event"
-                       "of type %s with message=%s", event_type, message)
+    _create_event(timestamp, host, event_type, message)
 
 
-def _create_event(timestamp, host, message, event_type):
+def _create_event(timestamp, host, event_type, message):
     dt = arrow.get(timestamp).datetime
 
     try:
@@ -82,14 +76,6 @@ def _create_event(timestamp, host, message, event_type):
                       source_id=str(node.uuid))
         event.save()
         return event
-
-
-def process_log_error_event(timestamp, host, message):
-    return _create_event(timestamp, host, message, "Syslog Error")
-
-
-def process_amqp_down_event(timestamp, host, message):
-    return _create_event(timestamp, host, message, "AMQP Down")
 
 
 @celery_app.task(bind=True)

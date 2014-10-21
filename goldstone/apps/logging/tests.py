@@ -87,8 +87,8 @@ class TaskTests(SimpleTestCase):
 
     def test_create_event(self):
         time_str = arrow.utcnow().isoformat()
-        event1 = _create_event(time_str, 'not_found_node', 'test message',
-                               "Syslog Error")
+        event1 = _create_event(time_str, 'not_found_node', "Syslog Error",
+                               'test message',)
         self.assertEqual(event1.created, arrow.get(time_str).datetime)
         self.assertEqual(event1.message, "test message")
         self.assertEqual(event1.event_type, "Syslog Error")
@@ -96,8 +96,8 @@ class TaskTests(SimpleTestCase):
         # create a logging node to relate
         node = LoggingNode(name="fake_node")
         node.save()
-        event2 = _create_event(time_str, 'fake_node', 'test message 2',
-                               "Syslog Error")
+        event2 = _create_event(time_str, 'fake_node', "Syslog Error",
+                               'test message 2')
         self.assertEqual(event2.created, arrow.get(time_str).datetime)
         self.assertEqual(event2.message, "test message 2")
         self.assertEqual(event2.event_type, "Syslog Error")
