@@ -678,12 +678,12 @@ var NodeAvailView = Backbone.View.extend({
             '<div class="modal-header">' +
 
             '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-            '<h4 class="modal-title" id="myModalLabel">Event Type Filters</h4>' +
+            '<h4 class="modal-title" id="myModalLabel">Log Severity Filters</h4>' +
             '</div>' +
 
             // body
             '<div class="modal-body">' +
-            '<h5>Uncheck event-type to hide from display</h5><br>' +
+            '<h5>Uncheck log-type to hide from display</h5><br>' +
             '<div id="populateEventFilters"></div>' +
 
 
