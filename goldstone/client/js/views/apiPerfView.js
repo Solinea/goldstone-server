@@ -135,6 +135,9 @@ var ApiPerfView = Backbone.View.extend({
                     $(ns.location).find(targ).popover('hide');
                 }, 3000, targ);
             });
+
+        ns.colorArray = new ColorBlindPalette().get('colorArray');
+
     },
 
     render: function() {
@@ -254,14 +257,14 @@ var ApiPerfView = Backbone.View.extend({
             .attr("class", "area")
             .attr("id", "minMaxArea")
             .attr("d", area)
-            .attr("fill", colorbrewer.Spectral[10][4])
+            .attr("fill", ns.colorArray[3][1])
             .style("opacity", 0.3);
 
         ns.chart.append('path')
             .attr('class', 'line')
             .attr('id', 'minLine')
             .attr('data-legend', "Min")
-            .style("stroke", colorbrewer.Spectral[10][8])
+            .style("stroke", ns.colorArray[3][0])
             .datum(json)
             .attr('d', minLine);
 
@@ -269,7 +272,7 @@ var ApiPerfView = Backbone.View.extend({
             .attr('class', 'line')
             .attr('id', 'maxLine')
             .attr('data-legend', "Max")
-            .style("stroke", colorbrewer.Spectral[10][1])
+            .style("stroke", ns.colorArray[3][2])
             .datum(json)
             .attr('d', maxLine);
 
@@ -278,7 +281,7 @@ var ApiPerfView = Backbone.View.extend({
             .attr('id', 'avgLine')
             .attr('data-legend', "Avg")
             .style("stroke-dasharray", ("3, 3"))
-            .style("stroke", colorbrewer.Greys[3][1])
+            .style("stroke", "#bdbdbd")
             .datum(json)
             .attr('d', avgLine);
 
