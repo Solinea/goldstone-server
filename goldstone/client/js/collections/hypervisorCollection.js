@@ -16,7 +16,7 @@
  * Author: Alex Jacobs
  */
 
- var HypervisorCollection = Backbone.Collection.extend({
+var HypervisorCollection = Backbone.Collection.extend({
 
     parse: function(data) {
         this.dummyGen();
@@ -38,23 +38,30 @@
 
         var day = +new Date();
 
-            var vm1 = 2<<(Math.floor(Math.random()*3) );
-            var vm2 = 2<<(Math.floor(Math.random()*3) );
-            var vm3 = 2<<(Math.floor(Math.random()*3) );
-            var vm4 = 2<<(Math.floor(Math.random()*3) );
-            var vm5 = 2<<(Math.floor(Math.random()*3) );
+        var coreTotal = 0;
+        var coreGen = function() {
+            var result = 2 << (Math.floor(Math.random() * 3));
+            coreTotal += result;
+            return result;
+        };
 
-            var result = {
-                "date": day,
-                "instance-000001213114": vm1,
-                "instance-000004532966": vm2,
-                "instance-000005459871": vm3,
-                "instance-000003345987": vm4,
-                "instance-000002534534": vm5,
-                "available": (192 - vm1 - vm2 - vm3 - vm4 - vm5)
-            };
+        var instanceGen = function() {
+            var result = Math.floor(Math.random() * 100000000);
+            return result;
+        };
 
-            this.dummy.results.push(result);
+        var result = {
+            "date": day,
+        };
+
+        for (var i = 0; i < 5; i++) {
+            var instance = "00000" + instanceGen();
+            result[instance] = coreGen();
+        }
+
+        result.available = 192 - coreTotal;
+
+        this.dummy.results.push(result);
     },
 
 
