@@ -76,6 +76,14 @@ Install mysql and create development and test databases. Create a user goldstone
         > GRANT ALL PRIVILEGES ON * . * TO 'goldstone'@'localhost';
         > FLUSH PRIVILEGES;
 
+If you want to have remote access to mysql, you can do something like this:
+
+    $ mysql -uroot -pgoldstone -e "GRANT ALL PRIVILEGES ON goldstone.* \
+      TO goldstone@'%' IDENTIFIED BY 'goldstone'"
+    $ mysql -uroot -pgoldstone -e "FLUSH PRIVILEGES"
+    $ service mysqld restart
+    # don't forget to allow access to port 3306 via iptables.
+
 Clone Goldstone from the bitbucket repo::
 
     $ cd $PROJECT_HOME
