@@ -84,12 +84,12 @@ var NodeAvailView = Backbone.View.extend({
 
         // you can change the value in colorArray to select
         // a particular number of different colors
-        var colorArray = new ColorBlindPalette().get('colorArray');
+        var colorArray = new GoldstoneColors().get('colorSets');
 
         // maps between input label domain and output color range for circles
         ns.loglevel = d3.scale.ordinal()
             .domain(["debug", "audit", "info", "warning", "error"])
-            .range(colorArray[5]);
+            .range(colorArray.distinct[5]);
 
         // for 'ping only' axis
         ns.pingAxis = d3.svg.axis()

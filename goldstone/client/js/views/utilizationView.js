@@ -50,8 +50,8 @@ var UtilizationView = Backbone.View.extend({
         ns.y = d3.scale.linear()
             .range([ns.mh, 0]);
 
-        var colorArray = new ColorBlindPalette().get('colorArray');
-        ns.color = d3.scale.ordinal().range(colorArray[3]);
+        var colorArray = new GoldstoneColors().get('colorSets');
+        ns.color = d3.scale.ordinal().range(colorArray.distinct[3]);
         // ns.color = d3.scale.category20();
 
         ns.xAxis = d3.svg.axis()

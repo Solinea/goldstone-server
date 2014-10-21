@@ -86,8 +86,8 @@ var EventTimelineView = Backbone.View.extend({
 
         // you can change the value in colorArray to select
         // a particular number of different colors
-        var colorArray = new ColorBlindPalette().get('colorArray');
-        ns.color = d3.scale.ordinal().range(colorArray[5]);
+        var colorArray = new GoldstoneColors().get('colorSets');
+        ns.color = d3.scale.ordinal().range(colorArray.distinct[5]);
 
         /*
          * The graph and axes
