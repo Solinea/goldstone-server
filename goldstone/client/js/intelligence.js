@@ -17,6 +17,7 @@
  */
 
 var secondaryCockpitCharts = {};
+var colorArray = new GoldstoneColors().get('colorSets');
 
 function _toPyTs(t) {
     "use strict";
@@ -404,7 +405,11 @@ function badEventMultiLine(location, start, end) {
                 // ["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"]
                 //.ordinalColors(["#313695", "#74add1", "#e0f3f8", "#fee090", "#f46d43"])
                 // spectral blue/yellow/red
-                .ordinalColors(["#6a51a3", "#2171b5", "#238b45", "#d94801", "#cb181d"])
+                .ordinalColors(colorArray.distinct[5])
+                // the distinct colors used here are listed immediately below:
+                // .ordinalColors(["#332288", "#88CCEE", "#117733", "#DDCC77", "#CC6677"])
+                // this was the original color set below:
+                // .ordinalColors(["#6a51a3", "#2171b5", "#238b45", "#d94801", "#cb181d"])
                 // blue purple
                 //.ordinalColors(["#edf8fb", "#bfd3e6", "#9ebcda", "#8c96c6", "#8856a7", "#810f7c"])
                 // red purple
