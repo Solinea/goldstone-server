@@ -136,7 +136,7 @@ var ApiPerfView = Backbone.View.extend({
                 }, 3000, targ);
             });
 
-        ns.colorArray = new ColorBlindPalette().get('colorArray');
+        ns.colorArray = new GoldstoneColors().get('colorSets');
 
     },
 
@@ -257,14 +257,14 @@ var ApiPerfView = Backbone.View.extend({
             .attr("class", "area")
             .attr("id", "minMaxArea")
             .attr("d", area)
-            .attr("fill", ns.colorArray[3][1])
+            .attr("fill", ns.colorArray.distinct[3][1])
             .style("opacity", 0.3);
 
         ns.chart.append('path')
             .attr('class', 'line')
             .attr('id', 'minLine')
             .attr('data-legend', "Min")
-            .style("stroke", ns.colorArray[3][0])
+            .style("stroke", ns.colorArray.distinct[3][0])
             .datum(json)
             .attr('d', minLine);
 
@@ -272,7 +272,7 @@ var ApiPerfView = Backbone.View.extend({
             .attr('class', 'line')
             .attr('id', 'maxLine')
             .attr('data-legend', "Max")
-            .style("stroke", ns.colorArray[3][2])
+            .style("stroke", ns.colorArray.distinct[3][2])
             .datum(json)
             .attr('d', maxLine);
 
