@@ -65,7 +65,7 @@ var NodeAvailView = Backbone.View.extend({
         this.initSettingsForm();
 
         ns.margin = {
-            top: 25,
+            top: 5,
             bottom: 25,
             right: 40,
             left: 60
@@ -85,7 +85,6 @@ var NodeAvailView = Backbone.View.extend({
         // you can change the value in colorArray to select
         // a particular number of different colors
         var colorArray = new ColorBlindPalette().get('colorArray');
-        // ns.color = d3.scale.ordinal().range(colorArray[5]);
 
         // maps between input label domain and output color range for circles
         ns.loglevel = d3.scale.ordinal()
@@ -135,35 +134,6 @@ var NodeAvailView = Backbone.View.extend({
             warning: true,
             error: true
         };
-
-        // The log-level buttons toggle the specific log level into the total count
-        d3.select(ns.location).select("#event-filterer").selectAll("input")
-        // keys works like Object.keys. Returns button titles defined in ns.filter
-        .data(d3.keys(ns.filter).filter(function(k) {
-            return k !== 'none';
-        }), function(d) {
-            return d;
-        })
-            .enter().append("div")
-            .attr("class", "btn-group")
-            .append("label")
-            .attr("id", function(d) {
-                return d;
-            })
-            .attr("class", function(d) {
-                return "btn btn-log-" + d;
-            })
-            .classed("active", function(d) {
-                return ns.filter[d];
-            })
-            .attr("type", "button")
-            .text(function(d) {
-                return d;
-            })
-            .on("click", function(d) {
-                ns.filter[d] = !ns.filter[d];
-                self.redraw();
-            });
 
         /*
          * The graph and axes
