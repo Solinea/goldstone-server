@@ -185,7 +185,8 @@ var HypervisorView = Backbone.View.extend({
                     return 'none';
                 }
                 return ns.color(d.name);
-            });
+            })
+            .style("opacity", 0.7);
 
         var legend = ns.svg.selectAll(".legend")
             .data(data);
