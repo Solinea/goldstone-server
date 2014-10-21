@@ -126,7 +126,7 @@ var EventTimelineView = Backbone.View.extend({
             })
             .html(function(d) {
 
-                d.id = d.id || 'No uuid logged';
+                d.id = d.id || '';
                 d.message = d.message || 'No message logged';
                 d.event_type = d.event_type || 'No event type logged';
                 d.created = d.created || 'No date logged';
