@@ -40,7 +40,7 @@ var HypervisorVmCpuView = Backbone.View.extend({
         this.collection.on('sync', this.update, this);
 
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
-        ns.mh = ns.width - ns.margin.top - ns.margin.bottom;
+        ns.mh = (ns.width * 0.84) - ns.margin.top - ns.margin.bottom;
 
         ns.x = d3.time.scale()
             .range([0, ns.mw]);
@@ -48,7 +48,9 @@ var HypervisorVmCpuView = Backbone.View.extend({
         ns.y = d3.scale.linear()
             .range([ns.mh, 0]);
 
-        ns.color = d3.scale.category20();
+        var colorArray = new ColorBlindPalette().get('colorArray');
+        ns.color = d3.scale.ordinal().range(colorArray[5]);
+        // ns.color = d3.scale.category20();
 
         ns.xAxis = d3.svg.axis()
             .scale(ns.x)
