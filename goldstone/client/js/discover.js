@@ -26,7 +26,7 @@ var renderCharts = function() {
     //---------------------------
     // instantiate event timeline chart
 
-    var nowMinusHour = +new Date() - (1000 * 60 * 60);
+    var nowMinusHour = +new Date() - (1000 * 60 * 1440);
 
     var eventTimelineChart = new EventTimelineCollection({
         url: "/core/events?created__gt=" + nowMinusHour + "&page_size=1000"
