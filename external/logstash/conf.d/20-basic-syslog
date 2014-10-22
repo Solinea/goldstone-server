@@ -18,47 +18,48 @@
 
 filter {
 
-    # clone all syslog messages to be handled by the host_stream and
-    # event_stream outputs.
-
-    if [type] == "syslog" {
-        grok {
-            patterns_dir => "/opt/logstash/patterns"
-            match => { "message" => "%{GENERIC_SYSLOGLINE}" }
-            add_field => { "received_at" => "%{@timestamp}" }
-        }
-        if ("_grokparsefailure" not in [tags]) {
-            syslog_pri {
-                severity_labels => ["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"]
-                syslog_pri_field_name => "syslog5424_pri"
+    if "agent_data" not in [tags] {
+        # clone all syslog messages to be handled by the host_stream and
+        # event_stream outputs.
+        if [type] == "syslog" {
+            grok {
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "message" => "%{GENERIC_SYSLOGLINE}" }
+                add_field => { "received_at" => "%{@timestamp}" }
             }
-            # set the event_stream type for the highest severities.  Can
-            # be overridden in future rules occurring before the clone.
-            if [syslog_severity] in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"] {
-                mutate {
-                    add_field => ["event_type", "GenericSyslogError"]
+            if ("_grokparsefailure" not in [tags]) {
+                syslog_pri {
+                    severity_labels => ["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"]
+                    syslog_pri_field_name => "syslog5424_pri"
                 }
-            }
-            date {
-                match => [ "syslog_ts", "ISO8601" ]
-                add_tag => [ "ISO8601_ts" ]
-            }
-            date {
-                match => [ "syslog_ts", "MMM dd HH:mm:ss" ]
-                timezone => "UTC"
-                add_tag => ["Gregorian_MDY_ts", "imprecise_ts"]
-            }
-            date {
-                match => [ "syslog_ts", "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZ" ]
-                add_tag => ["timezone_aware_ts", "microsecond_resolution_ts"]
-            }
-            mutate {
-                add_tag => ["filter_20_pass"]
-            }
-        } else {
-            mutate {
-                add_tag => ["filter_20_fail"]
-                remove_tag => ["_grokparsefailure"]
+                # set the event_stream type for the highest severities.  Can
+                # be overridden in future rules occurring before the clone.
+                if [syslog_severity] in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"] {
+                    mutate {
+                        add_field => ["event_type", "GenericSyslogError"]
+                    }
+                }
+                date {
+                    match => [ "syslog_ts", "ISO8601" ]
+                    add_tag => [ "ISO8601_ts" ]
+                }
+                date {
+                    match => [ "syslog_ts", "MMM dd HH:mm:ss" ]
+                    timezone => "UTC"
+                    add_tag => ["Gregorian_MDY_ts", "imprecise_ts"]
+                }
+                date {
+                    match => [ "syslog_ts", "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZ" ]
+                    add_tag => ["timezone_aware_ts", "microsecond_resolution_ts"]
+                }
+                mutate {
+                    add_tag => ["filter_20_pass"]
+                }
+            } else {
+                mutate {
+                    add_tag => ["filter_20_fail"]
+                    remove_tag => ["_grokparsefailure"]
+                }
             }
         }
     }
