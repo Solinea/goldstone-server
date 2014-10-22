@@ -37,8 +37,8 @@ var NodeAvailView = Backbone.View.extend({
         var self = this;
 
         ns.animation = {
-            pause: false,
-            delay: 5
+            pause: undefined,
+            delay: null
         };
 
         // required in case spinner loading takes
@@ -65,7 +65,7 @@ var NodeAvailView = Backbone.View.extend({
         this.initSettingsForm();
 
         ns.margin = {
-            top: 25,
+            top: 5,
             bottom: 25,
             right: 40,
             left: 60
@@ -78,10 +78,18 @@ var NodeAvailView = Backbone.View.extend({
         // scale that returns range that is square root of input domain
         ns.r = d3.scale.sqrt();
 
+        /*
+         * colors
+         */
+
+        // you can change the value in colorArray to select
+        // a particular number of different colors
+        var colorArray = new ColorBlindPalette().get('colorArray');
+
         // maps between input label domain and output color range for circles
         ns.loglevel = d3.scale.ordinal()
             .domain(["debug", "audit", "info", "warning", "error"])
-            .range(["#6a51a3", "#2171b5", "#238b45", "#d94801", "#cb181d"]);
+            .range(colorArray[5]);
 
         // for 'ping only' axis
         ns.pingAxis = d3.svg.axis()
@@ -126,35 +134,6 @@ var NodeAvailView = Backbone.View.extend({
             warning: true,
             error: true
         };
-
-        // The log-level buttons toggle the specific log level into the total count
-        d3.select(ns.location).select("#event-filterer").selectAll("input")
-        // keys works like Object.keys. Returns button titles defined in ns.filter
-        .data(d3.keys(ns.filter).filter(function(k) {
-            return k !== 'none';
-        }), function(d) {
-            return d;
-        })
-            .enter().append("div")
-            .attr("class", "btn-group")
-            .append("label")
-            .attr("id", function(d) {
-                return d;
-            })
-            .attr("class", function(d) {
-                return "btn btn-log-" + d;
-            })
-            .classed("active", function(d) {
-                return ns.filter[d];
-            })
-            .attr("type", "button")
-            .text(function(d) {
-                return d;
-            })
-            .on("click", function(d) {
-                ns.filter[d] = !ns.filter[d];
-                self.redraw();
-            });
 
         /*
          * The graph and axes
@@ -298,6 +277,9 @@ var NodeAvailView = Backbone.View.extend({
             }
         };
         $("#eventSettingsUpdateButton-" + ns.location.slice(1)).click(updateSettings);
+
+        // set initial values for delay and pause based on modal settings
+        updateSettings();
     },
 
     sums: function(datum) {
@@ -338,11 +320,60 @@ var NodeAvailView = Backbone.View.extend({
 
         ns.xScale = ns.xScale.domain([xStart, xEnd]);
 
+        // reschedule next fetch at selected interval
+        this.scheduleFetch();
+
         // If we didn't receive any valid files, abort and pause
         if (allthelogs.length === 0) {
             console.log('no data');
             return;
         }
+
+        // populate the modal based on the event types.
+        // clear out the modal and reapply based on the unique events
+        if ($(ns.location).find('#populateEventFilters').length) {
+            $(ns.location).find('#populateEventFilters').empty();
+        }
+
+        _.each(_.keys(ns.filter), function(item) {
+
+            if (item === 'none') {
+                return null;
+            }
+
+            var addCheckIfActive = function(item) {
+                if (ns.filter[item]) {
+                    return 'checked';
+                } else {
+                    return '';
+                }
+            };
+
+            var checkMark = addCheckIfActive(item);
+
+            $(ns.location).find('#populateEventFilters').
+            append(
+
+                '<div class="row">' +
+                '<div class="col-lg-12">' +
+                '<div class="input-group">' +
+                '<span class="input-group-addon" style="background-color:' + ns.loglevel([item]) + ';">' +
+                '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
+                '</span>' +
+                '<span type="text" class="form-control">' + item + '</span>' +
+                '</div>' +
+                '</div>' +
+                '</div>'
+            );
+        });
+
+        $(ns.location).find('#populateEventFilters :checkbox').on('click', function() {
+            var checkboxId = this.id;
+            ns.filter[checkboxId] = !ns.filter[checkboxId];
+            self.redraw();
+
+        });
+
 
         /*
          * Shape the dataset
@@ -417,8 +448,6 @@ var NodeAvailView = Backbone.View.extend({
 
         circle.exit().remove();
 
-        // reschedule next fetch at selected interval
-        this.scheduleFetch();
         return true;
     },
 
@@ -479,13 +508,17 @@ var NodeAvailView = Backbone.View.extend({
 
         ns.graph.selectAll("circle")
             .transition().duration(500)
-            // this determines the color of the circle
-            .attr("class", function(d) {
-                if (d.swimlane === "unadmin") {
-                    return d.swimlane;
-                } else {
-                    return d.level;
-                }
+        // this determines the color of the circle
+        .attr("class", function(d) {
+            if (d.swimlane === "unadmin") {
+                return d.swimlane;
+            } else {
+                return "individualNode";
+                // return d.level;
+            }
+        })
+            .attr("fill", function(d) {
+                return ns.loglevel(d.level);
             })
             .attr("cx", function(d) {
                 return ns.xScale(d.last_seen);
@@ -543,10 +576,9 @@ var NodeAvailView = Backbone.View.extend({
             clearTimeout(ns.scheduleTimeout);
         }
 
-        if (ns.animation.pause){
+        if (ns.animation.pause) {
             return true;
         }
-
         ns.scheduleTimeout = setTimeout(function() {
             self.collection.setXhr();
         }, ns.animation.delay * 1000);
@@ -562,10 +594,18 @@ var NodeAvailView = Backbone.View.extend({
             '<div class="panel-heading">' +
             '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' +
             ns.chartTitle +
+
+            // filter icon
+            '<i class="fa fa-filter pull-right" data-toggle="modal"' +
+            'data-target="#modal-filter-' + ns.location.slice(1) + '"></i>' +
+
+            // cog icon
             '<i class="fa fa-cog pull-right" data-toggle="modal"' +
-            'data-target="#modal-' + ns.location.slice(1) + '"></i>' +
-            '<i class="pull-right fa fa-info-circle panel-info"  id="goldstone-event-info"' +
-            'style="opacity: 0.0"></i>' +
+            'data-target="#modal-settings-' + ns.location.slice(1) + '" style="margin-right: 30px;"></i>' +
+
+            // info-circle icon
+            '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-event-info"' +
+            'style="margin-right: 30px;"></i>' +
             '</h3>' +
             '</div>' +
             '<div class="panel-body" style="height:50px">' +
@@ -588,7 +628,7 @@ var NodeAvailView = Backbone.View.extend({
         $('#modal-container-' + ns.location.slice(1)).append(
 
             // event settings modal
-            '<div class="modal fade" id="modal-' + ns.location.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+            '<div class="modal fade" id="modal-settings-' + ns.location.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header">' +
@@ -621,6 +661,39 @@ var NodeAvailView = Backbone.View.extend({
             '<button type="button" id="eventSettingsUpdateButton-' + ns.location.slice(1) + '" class="btn btn-primary" data-dismiss="modal">Update</button>' +
             '</div>' +
             '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>'
+        );
+
+        // add 2nd modal here:
+        $('#modal-container-' + ns.location.slice(1)).append(
+
+            // event settings modal
+            '<div class="modal fade" id="modal-filter-' + ns.location.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+            '<div class="modal-dialog">' +
+            '<div class="modal-content">' +
+
+            // header
+            '<div class="modal-header">' +
+
+            '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
+            '<h4 class="modal-title" id="myModalLabel">Log Severity Filters</h4>' +
+            '</div>' +
+
+            // body
+            '<div class="modal-body">' +
+            '<h5>Uncheck log-type to hide from display</h5><br>' +
+            '<div id="populateEventFilters"></div>' +
+
+
+            '</div>' +
+
+            // footer
+            '<div class="modal-footer">' +
+            '<button type="button" id="eventFilterUpdateButton-' + ns.location.slice(1) + '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
+            '</div>' +
+
             '</div>' +
             '</div>' +
             '</div>'

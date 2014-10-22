@@ -21,9 +21,9 @@
 var EventTimelineView = Backbone.View.extend({
     defaults: {
         h: {
-            "main": 150,
-            "padding": 50,
-            "tooltipPadding": 40
+            "main": 100,
+            "padding": 30,
+            "tooltipPadding": 50
         }
     },
 
@@ -40,8 +40,8 @@ var EventTimelineView = Backbone.View.extend({
         var self = this;
 
         ns.animation = {
-            pause: false,
-            delay: 5
+            pause: undefined,
+            delay: null
         };
 
         var appendSpinnerLocation = ns.location;
@@ -57,22 +57,6 @@ var EventTimelineView = Backbone.View.extend({
         this.appendHTML();
         this.initSettingsForm();
 
-        ns.filter = {
-
-            // "Filter Label":{
-            // active: [true/false]
-            // id: "(css id for loglevel_buttons.css)"
-            // eventName: "(matches event type)"
-            // }
-
-            "Error": {
-                active: true,
-                id: "error",
-                eventName: "Syslog Error"
-
-            }
-        };
-
         ns.margin = {
             top: 25,
             bottom: 25,
@@ -83,12 +67,6 @@ var EventTimelineView = Backbone.View.extend({
         ns.w = ns.width;
         ns.mw = ns.w - ns.margin.left - ns.margin.right;
         ns.mh = ns.h.main - ns.margin.top - ns.margin.bottom;
-
-        // ns.r = d3.scale.sqrt();
-        ns.loglevel = d3.scale.ordinal()
-            .domain(["info", "warning", "error"])
-            .range(["#d94801", "#238b45", "#2171b5"]);
-        /* removed: "#6a51a3", "#cb181d"*/
 
         ns.topAxis = d3.svg.axis()
             .orient("top")
@@ -101,32 +79,15 @@ var EventTimelineView = Backbone.View.extend({
         ns.xScale = d3.time.scale()
             .range([ns.margin.left, ns.w - ns.margin.right - 10]);
 
-        // The log-level buttons toggle the specific log level into the total count
 
-        d3.select(ns.location).select("#event-filterer").selectAll("input")
-            .data(d3.keys(ns.filter), function(d) {
-                return d;
-            })
-            .enter().append("div")
-            .attr("class", "btn-group")
-            .append("label")
-            .attr("id", function(d) {
-                return d;
-            })
-            .attr("class", function(d) {
-                return "btn btn-log-" + ns.filter[d].id;
-            })
-            .classed("active", function(d) {
-                return ns.filter[d].active;
-            })
-            .attr("type", "button")
-            .text(function(d) {
-                return d;
-            })
-            .on("click", function(d) {
-                ns.filter[d].active = !ns.filter[d].active;
-                self.redraw();
-            });
+        /*
+         * colors
+         */
+
+        // you can change the value in colorArray to select
+        // a particular number of different colors
+        var colorArray = new ColorBlindPalette().get('colorArray');
+        ns.color = d3.scale.ordinal().range(colorArray[5]);
 
         /*
          * The graph and axes
@@ -161,19 +122,19 @@ var EventTimelineView = Backbone.View.extend({
                 } else {
                     leftOffset = 0;
                 }
-                return [-(ns.h.tooltipPadding / 2), leftOffset];
+                return [0, leftOffset];
             })
             .html(function(d) {
 
-                d.uuid = d.uuid || 'No uuid logged';
+                d.id = d.id || '';
                 d.message = d.message || 'No message logged';
                 d.event_type = d.event_type || 'No event type logged';
                 d.created = d.created || 'No date logged';
 
                 return d.event_type + " (click event line to persist popup info)<br>" +
-                    "uuid: " + d.uuid + "<br>" +
+                    "uuid: " + d.id + "<br>" +
                     "Created: " + d.created + "<br>" +
-                    "Message: " + d.message.substr(0, 64) + "<br>";
+                    "Message: " + d.message + "<br>";
             });
 
         ns.graph.call(ns.tooltip);
@@ -197,17 +158,21 @@ var EventTimelineView = Backbone.View.extend({
             ns.animation.delay = self.refreshInterval();
             ns.animation.pause = !self.isRefreshSelected();
 
-            if (!ns.animation.pause) {
+            if (ns.animation.pause === false) {
                 self.scheduleFetch();
             }
+
         };
         $("#eventSettingsUpdateButton-" + ns.location.slice(1)).click(updateSettings);
+
+        // set initial values for delay and pause based on modal settings
+        updateSettings();
     },
 
     opacityByFilter: function(d) {
         var ns = this.defaults;
         for (var filterType in ns.filter) {
-            if (ns.filter[filterType].eventName === d.event_type && !ns.filter[filterType].active) {
+            if (filterType === d.event_type && !ns.filter[filterType].active) {
                 return 0;
             }
         }
@@ -217,7 +182,7 @@ var EventTimelineView = Backbone.View.extend({
     visibilityByFilter: function(d) {
         var ns = this.defaults;
         for (var filterType in ns.filter) {
-            if (ns.filter[filterType].eventName === d.event_type && !ns.filter[filterType].active) {
+            if (filterType === d.event_type && !ns.filter[filterType].active) {
                 return "hidden";
             }
         }
@@ -247,13 +212,6 @@ var EventTimelineView = Backbone.View.extend({
         var self = this;
         $(ns.location).find('#spinner').hide();
 
-        // If we are paused or beyond the available jsons, exit
-        if (ns.animation.pause) {
-            return true;
-        }
-
-        // Set the animation to not step over itself
-        ns.animation.pause = true;
         var allthelogs = (this.collection.toJSON());
 
         var xEnd = moment(d3.min(_.map(allthelogs, function(evt) {
@@ -266,10 +224,30 @@ var EventTimelineView = Backbone.View.extend({
 
         ns.xScale = ns.xScale.domain([xEnd._d, xStart._d]);
 
-        // If we didn't receive any valid files, abort and pause
+        // reschedule next fetch at selected interval
+        this.scheduleFetch();
+
+        // If we didn't receive any valid files, append "No Data Returned"
         if (allthelogs.length === 0) {
-            ns.animation.pause = true;
+
+            // if 'no data returned' already exists on page, don't reapply it
+            if ($(ns.location).find('#noDataReturned').length) {
+                return;
+            }
+
+            $('<span id="noDataReturned">No Data Returned</span>').appendTo(ns.location)
+                .css({
+                    'position': 'relative',
+                    'margin-left': $(ns.location).width() / 2 - 14,
+                    'top': -$(ns.location).height() / 2
+                });
+
             return;
+        }
+
+        // remove No Data Returned once data starts flowing again
+        if ($(ns.location).find('#noDataReturned').length) {
+            $(ns.location).find('#noDataReturned').remove();
         }
 
         /*
@@ -282,6 +260,67 @@ var EventTimelineView = Backbone.View.extend({
                 d.created = moment(d.created)._d;
                 return d;
             });
+
+
+        // compile an array of the unique event types
+        ns.uniqueEventTypes = _.uniq(_.map(allthelogs, function(item) {
+            return item.event_type;
+        }));
+
+        // populate ns.filter based on the array of unique event types
+        // add uniqueEventTypes to filter modal
+        ns.filter = ns.filter || {};
+
+        // clear out the modal and reapply based on the unique events
+        if ($(ns.location).find('#populateEventFilters').length) {
+            $(ns.location).find('#populateEventFilters').empty();
+        }
+
+        _.each(ns.uniqueEventTypes, function(item) {
+
+            // regEx to create separate words out of the event types
+            // GenericSyslogError --> Generic Syslog Error
+            var re = /([A-Z])/g;
+            itemSpaced = item.replace(re, ' $1').trim();
+
+            ns.filter[item] = ns.filter[item] || {
+                active: true,
+                color: ns.color(ns.uniqueEventTypes.indexOf(item) % ns.color.range().length),
+                displayName: itemSpaced
+            };
+
+            var addCheckIfActive = function(item) {
+                if (ns.filter[item].active) {
+                    return 'checked';
+                } else {
+                    return '';
+                }
+            };
+            var checkMark = addCheckIfActive(item);
+
+            $(ns.location).find('#populateEventFilters').
+            append(
+
+                '<div class="row">' +
+                '<div class="col-lg-12">' +
+                '<div class="input-group">' +
+                '<span class="input-group-addon" style="background-color:' + ns.filter[item].color + ';">' +
+                '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
+                '</span>' +
+                '<span type="text" class="form-control">' + itemSpaced + '</span>' +
+                '</div>' +
+                '</div>' +
+                '</div>'
+            );
+        });
+
+        $(ns.location).find('#populateEventFilters :checkbox').on('click', function() {
+
+            var checkboxId = this.id;
+            ns.filter[this.id].active = !ns.filter[this.id].active;
+            self.redraw();
+
+        });
 
         /*
          * Axes
@@ -303,6 +342,7 @@ var EventTimelineView = Backbone.View.extend({
         /*
          * New rectangles appear at the far right hand side of the graph.
          */
+
         var rectangle = ns.graph.selectAll("rect")
             .data(ns.dataset, function(d) {
                 return d.id;
@@ -316,20 +356,16 @@ var EventTimelineView = Backbone.View.extend({
             .attr("y", ns.h.padding + 1)
             .attr("width", 5)
             .attr("height", ns.h.main - ns.h.padding - 2)
-            .attr("class", function(d) {
-                for (var evt in ns.filter) {
-                    if (ns.filter[evt].eventName === d.event_type) {
-                        return ns.filter[evt].id;
-                    }
-                }
-                return 'none';
-            })
+            .attr("class", "single-event")
             .style("opacity", function(d) {
                 return self.opacityByFilter(d);
             })
             .style("visibility", function(d) {
                 // to avoid showing popovers for hidden lines
                 return self.visibilityByFilter(d);
+            })
+            .attr("fill", function(d) {
+                return ns.color(ns.uniqueEventTypes.indexOf(d.event_type) % ns.color.range().length);
             })
             .on("mouseover", ns.tooltip.show)
             .on("click", function() {
@@ -358,10 +394,6 @@ var EventTimelineView = Backbone.View.extend({
 
         rectangle.exit().remove();
 
-        // Unpause the animation and rerun this function for the next frame
-        ns.animation.pause = false;
-
-        this.scheduleFetch();
         return true;
     },
 
@@ -374,6 +406,9 @@ var EventTimelineView = Backbone.View.extend({
             clearTimeout(ns.scheduleTimeout);
         }
 
+        if (ns.animation.pause) {
+            return true;
+        }
         ns.scheduleTimeout = setTimeout(function() {
 
             self.collection.fetch({
@@ -393,16 +428,23 @@ var EventTimelineView = Backbone.View.extend({
             '<div class="panel-heading">' +
             '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' +
             ns.chartTitle +
+
+            // filter icon
+            '<i class="fa fa-filter pull-right" data-toggle="modal"' +
+            'data-target="#modal-filter-' + ns.location.slice(1) + '"></i>' +
+
+            // cog icon
             '<i class="fa fa-cog pull-right" data-toggle="modal"' +
-            'data-target="#modal-' + ns.location.slice(1) + '"></i>' +
-            '<i class="pull-right fa fa-info-circle panel-info"  id="goldstone-event-info"' +
-            'style="opacity: 0.0"></i>' +
+            'data-target="#modal-settings-' + ns.location.slice(1) + '" style="margin-right: 30px;"></i>' +
+
+            // info-circle icon
+            '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-event-info"' +
+            'style="margin-right: 30px;"></i>' +
             '</h3>' +
             '</div>' +
             '<div class="panel-body" style="height:' + (ns.h.padding * 2) + 'px">' +
             '<div id="event-filterer" class="btn-group pull-left" data-toggle="buttons" align="center">' +
             '</div>' +
-            // '<div class="pull-right">Search:&nbsp; <input class="pull-right" id="goldstone-event-search"></input></div>' +
             '</div>' +
             '<div class="panel-body" style="height:' + ns.h.main + 'px">' +
             '<div id="goldstone-event-chart">' +
@@ -420,7 +462,7 @@ var EventTimelineView = Backbone.View.extend({
         $('#modal-container-' + ns.location.slice(1)).append(
 
             // event settings modal
-            '<div class="modal fade" id="modal-' + ns.location.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+            '<div class="modal fade" id="modal-settings-' + ns.location.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header">' +
@@ -437,9 +479,9 @@ var EventTimelineView = Backbone.View.extend({
             '<input type="checkbox" class="eventAutoRefresh" checked>' +
             '</span>' +
             '<select class="form-control" id="eventAutoRefreshInterval">' +
-            '<option value="5">5 seconds</option>' +
+            '<option value="5" selected>5 seconds</option>' +
             '<option value="15">15 seconds</option>' +
-            '<option value="30" selected>30 seconds</option>' +
+            '<option value="30">30 seconds</option>' +
             '<option value="60">1 minute</option>' +
             '<option value="300">5 minutes</option>' +
             '</select>' +
@@ -458,5 +500,42 @@ var EventTimelineView = Backbone.View.extend({
             '</div>'
 
         );
+
+        // add 2nd modal here:
+        $('#modal-container-' + ns.location.slice(1)).append(
+
+            // event settings modal
+            '<div class="modal fade" id="modal-filter-' + ns.location.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+            '<div class="modal-dialog">' +
+            '<div class="modal-content">' +
+
+            // header
+            '<div class="modal-header">' +
+
+            '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
+            '<h4 class="modal-title" id="myModalLabel">Event Type Filters</h4>' +
+            '</div>' +
+
+            // body
+            '<div class="modal-body">' +
+            '<h5>Uncheck event-type to hide from display</h5><br>' +
+            '<div id="populateEventFilters"></div>' +
+
+
+            '</div>' +
+
+            // footer
+            '<div class="modal-footer">' +
+            '<button type="button" id="eventFilterUpdateButton-' + ns.location.slice(1) + '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
+            '</div>' +
+
+            '</div>' +
+            '</div>' +
+            '</div>'
+
+        );
+
+
+
     }
 });
