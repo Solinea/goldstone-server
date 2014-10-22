@@ -1,0 +1,49 @@
+/**
+ * Copyright 2014 Solinea, Inc.
+ *
+ * Licensed under the Solinea Software License Agreement (goldstone),
+ * Version 1.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Author: Alex Jacobs
+ */
+
+/*
+to invoke:
+1. include colorBlindPalette.js in the template script tags
+2. assign the palatte as a variable: var colorArray = new ColorBlindPalette().get('colorArray');
+3. invoke via colorArray and an index corresponding to the size of the array desired
+
+colorArray[3] (3 distinct colors)
+colorArray[5] (5 distinct colors)
+etc...
+
+*/
+
+var ColorBlindPalette = Backbone.Model.extend({
+    defaults: {
+        colorArray: {
+            1: ['#4477AA'],
+            2: ['#4477AA', '#CC6677'],
+            3: ['#4477AA', '#DDCC77', '#CC6677'],
+            4: ['#4477AA', '#117733', '#DDCC77', '#CC6677'],
+            5: ['#332288', '#88CCEE' ,'#117733', '#DDCC77', '#CC6677'],
+            6: ['#332288', '#88CCEE' ,'#117733', '#DDCC77', '#CC6677', '#AA4499'],
+            7: ['#332288', '#88CCEE', '#44AA99' ,'#117733', '#DDCC77', '#CC6677', '#AA4499'],
+            8: ['#332288', '#88CCEE', '#44AA99' ,'#117733', '#999933', '#DDCC77', '#CC6677', '#AA4499'],
+            9: ['#332288', '#88CCEE', '#44AA99' ,'#117733', '#999933', '#DDCC77', '#CC6677', '#882255', '#AA4499'],
+            10: ['#332288', '#88CCEE', '#44AA99' ,'#117733', '#999933', '#DDCC77', '#661100', '#CC6677', '#882255', '#AA4499'],
+            11: ['#332288', '#6699CC', '#88CCEE', '#44AA99' ,'#117733', '#999933', '#DDCC77', '#661100', '#CC6677', '#882255', '#AA4499'],
+            12: ['#332288', '#6699CC', '#88CCEE', '#44AA99' ,'#117733', '#999933', '#DDCC77', '#661100', '#CC6677', '#AA4466', '#882255', '#AA4499'],
+            0: ['#332288', '#44AA99', '#88CCEE', '#DDCC77', '#AA4466', '#117733', '#6699CC', '#661100', '#999933', '#CC6677', '#882255', '#AA4499']
+        }
+    }
+});
