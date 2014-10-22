@@ -1,5 +1,13 @@
-testnode-01 <190>2014-09-23T18:13:06.394290+00:00 testnode-01 goldstone-agent 6000 [metric@44571 data={"version":1,"name":"os.cpu.user","value":1039,"type":"gauge","unit":"percent","timestamp":1413785947}]
+testnode-01 <190>2014-09-23T18:13:06.394290+00:00 testnode-01 goldstone-agent 6000 [metric@44571 data={"version":1,"name":"os.cpu.user","value":39,"type":"gauge","unit":"percent","timestamp":1413785947}]
+testnode-01 <190>2014-09-23T18:13:06.394290+00:00 testnode-01 goldstone-agent 6000 [metric@44571 data={"version":1,"name":"os.cpu.system","value":15,"type":"gauge","unit":"percent","timestamp":1413785947}]
+testnode-01 <190>2014-09-23T18:13:06.394290+00:00 testnode-01 goldstone-agent 6000 [metric@44571 data={"version":1,"name":"os.cpu.wait","value":3,"type":"gauge","unit":"percent","timestamp":1413785947}]
 
+testnode-01 <190>2014-09-23T18:13:06.394290+00:00 testnode-01 goldstone-agent 6000 [metric@44571 data={"version":1,"name":"os.cpu.user","value":39,"type":"gauge","unit":"percent","timestamp":1413785947}]
+testnode-01 <190>2014-09-23T18:13:06.394290+00:00 testnode-01 goldstone-agent 6000 [metric@44571 data={"version":1,"name":"os.cpu.system","value":15,"type":"gauge","unit":"percent","timestamp":1413785947}]
+testnode-01 <190>2014-09-23T18:13:06.394290+00:00 testnode-01 goldstone-agent 6000 [metric@44571 data={"version":1,"name":"os.cpu.wait","value":3,"type":"gauge","unit":"percent","timestamp":1413785947}]
+
+# trying with name as a nested JSON type
+testnode-01 <190>2014-09-23T18:13:06.394290+00:00 testnode-01 goldstone-agent 6000 [metric@44571 data={"version":1,"metric": {"os": {"cpu": {"user": {"value":1039,"type":"gauge","unit":"percent","timestamp":1413785947}}}}}]
 
 <190> hostname=localhost.localdomain timestamp=1413785947 :: goldstone-agent 6000 [metric@<pen> data={"version":1,"name":"os.mem.free","value":225525760,"type":"gauge","unit":"bytes","timestamp":1413785947}]
 <190> hostname=localhost.localdomain timestamp=1413785947 :: goldstone-agent 6000 [metric@<pen> data={"version":1,"name":"os.disk.dm-1.used","value":1725208,"type":"gauge","unit":"bytes","timestamp":1413785947}]

@@ -15,7 +15,7 @@
 # Author: John Stanford
 
 output {
-    if [type] == "syslog" and "agent_data" not in [tags] {
+    if [type] == "syslog" {
         # stdout { codec => rubydebug }
         elasticsearch {
             host => localhost

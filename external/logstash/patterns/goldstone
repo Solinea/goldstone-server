@@ -56,7 +56,7 @@ GENERIC_SYSLOGLINE %{SYSLOG5424PRINUM}%{MY_SYSLOG_TIMESTAMP:syslog_ts} %{HOSTNAM
 GOLDSTONE_AGENT_PREFIX %{SYSLOG5424PRINUM}%{MY_SYSLOG_TIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} (goldstone-agent) %{POSINT:pid}
 
 # our IANA assigned PEN (private enterprise number) is 44571
-GOLDSTONE_AGENT_DATA %{GOLDSTONE_AGENT_PREFIX} (\[(metric|report)@44571 data=%{GREEDYDATA:agent_data}\]$)
+GOLDSTONE_AGENT_DATA %{GOLDSTONE_AGENT_PREFIX} (\[(?<agent_data_type>metric|report)@44571 data=%{GREEDYDATA:agent_data}\]$)
 
 NOVA_INSTANCE (?:\[instance: %{UUID:instance_id}\])
 CLAIM_RSRC_PHYS (?:Total %{WORD:resource}: %{NUMBER:total:float} %{WORD}, used: %{NUMBER:used:float} %{WORD})
