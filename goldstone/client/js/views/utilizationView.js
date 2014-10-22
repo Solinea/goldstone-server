@@ -50,8 +50,8 @@ var UtilizationView = Backbone.View.extend({
         ns.y = d3.scale.linear()
             .range([ns.mh, 0]);
 
-        var colorArray = new ColorBlindPalette().get('colorArray');
-        ns.color = d3.scale.ordinal().range(colorArray[3]);
+        var colorArray = new GoldstoneColors().get('colorSets');
+        ns.color = d3.scale.ordinal().range(colorArray.distinct[3]);
         // ns.color = d3.scale.category20();
 
         ns.xAxis = d3.svg.axis()
@@ -127,7 +127,7 @@ var UtilizationView = Backbone.View.extend({
             return key !== "date";
         }));
 
-        var browsers = ns.stack(ns.color.domain().map(function(name) {
+        var components = ns.stack(ns.color.domain().map(function(name) {
             return {
                 name: name,
                 values: data.map(function(d) {
@@ -143,12 +143,12 @@ var UtilizationView = Backbone.View.extend({
             return d.date;
         }));
 
-        var browser = ns.svg.selectAll(".browser")
-            .data(browsers)
+        var component = ns.svg.selectAll(".component")
+            .data(components)
             .enter().append("g")
-            .attr("class", "browser");
+            .attr("class", "component");
 
-        browser.append("path")
+        component.append("path")
             .attr("class", "area")
             .attr("d", function(d) {
                 return ns.area(d.values);
@@ -158,9 +158,10 @@ var UtilizationView = Backbone.View.extend({
                     return "none";
                 }
                 return ns.color(d.name);
-            });
+            })
+            .style("opacity", 0.8);
 
-        browser.append("text")
+        component.append("text")
             .datum(function(d) {
                 return {
                     name: d.name,
