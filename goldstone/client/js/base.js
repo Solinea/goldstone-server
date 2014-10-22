@@ -283,11 +283,11 @@ goldstone.time.processTimeBasedChartParams = function(end, start, maxPoints) {
         endDate = new Date();
     }
 
-    if (start !== undefined){
+    if (start !== undefined) {
         startDate = goldstone.time.paramToDate(start);
     } else {
 
-        var weekSubtractor = function(date){
+        var weekSubtractor = function(date) {
             var origTime = +new Date(date);
             return new Date(origTime - 604800000);
         };
@@ -807,7 +807,7 @@ goldstone.charts.topologyTree = {
             top: 10,
             bottom: 10,
             right: 10,
-            left: 50
+            left: 30
         };
         this.ns.w = $(this.ns.location).width();
         this.ns.mw = this.ns.w - this.ns.margin.left - this.ns.margin.right;
@@ -819,7 +819,7 @@ goldstone.charts.topologyTree = {
         this.ns.tree = d3.layout.tree()
             .size([this.ns.mh, this.ns.mw])
             .separation(function(a, b) {
-                var sep = a.parent === b.parent ? 1 : 2;
+                var sep = a.parent === b.parent ? 3 : 2;
                 return sep;
             });
         this.ns.i = 0; // used in processTree for node id
@@ -1014,6 +1014,8 @@ goldstone.charts.topologyTree = {
 
         // Normalize for fixed-depth.
         nodes.forEach(function(d) {
+
+
             // TODO make the tree branch length configurable
             d.y = d.depth * 95;
         });
@@ -1041,6 +1043,13 @@ goldstone.charts.topologyTree = {
                 return "translate(" + json.y0 + "," + json.x0 + ")";
             })
             .on("click", function(d) {
+
+                //test
+                if (ns.frontPage && d.rsrcType.match(/-leaf$/)) {
+                    console.log('clicked on front page leaf');
+                }
+                // end test
+
                 if (d.rsrcType.match(/-leaf$/) && ns.hasOwnProperty('leafDataUrls')) {
                     var url = ns.leafDataUrls[d.rsrcType];
                     if (url !== undefined) {
@@ -1238,10 +1247,11 @@ goldstone.charts.topologyTree = {
                 (function(ns) {
                     ns.data.x0 = ns.h / 2;
                     ns.data.y0 = 0;
+                    // Don't unfold by default
                     // Initialize the display to show only the first tier of children
-                    if (ns.data.hasOwnProperty('children')) {
-                        ns.data.children.forEach(ns.topologyTree.toggleAll);
-                    }
+                    // if (ns.data.hasOwnProperty('children')) {
+                        // ns.data.children.forEach(ns.topologyTree.toggleAll);
+                    // }
                     ns.topologyTree.processTree(ns.data, ns);
                     $(ns.spinner).hide();
                 })(this.ns);
