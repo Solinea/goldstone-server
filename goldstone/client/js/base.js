@@ -998,7 +998,7 @@ goldstone.charts.topologyTree = {
                         }
                     });
                 } else {
-                    $("#multi-rsrc-table").html("<p>No data</p>");
+                    $("#multi-rsrc-body").html("<p style='margin-left: " + (ns.w / 2 - 30) + "'>No data</p>");
                 }
             }
         });
@@ -1250,7 +1250,7 @@ goldstone.charts.topologyTree = {
                     // Don't unfold by default
                     // Initialize the display to show only the first tier of children
                     // if (ns.data.hasOwnProperty('children')) {
-                        // ns.data.children.forEach(ns.topologyTree.toggleAll);
+                    // ns.data.children.forEach(ns.topologyTree.toggleAll);
                     // }
                     ns.topologyTree.processTree(ns.data, ns);
                     $(ns.spinner).hide();
