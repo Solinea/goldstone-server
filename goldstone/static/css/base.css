@@ -162,10 +162,14 @@ code {
     border-bottom-color: rgba(0,0,0,.4);
 }
 
-.node {
+.node:not(.data-leaf){
   cursor: pointer;
   stroke: #3182bd;
   stroke-width: 1.5px;
+}
+
+.data-leaf {
+  cursor: context-menu;
 }
 
 .node text {
