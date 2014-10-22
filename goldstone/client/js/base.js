@@ -1044,12 +1044,6 @@ goldstone.charts.topologyTree = {
             })
             .on("click", function(d) {
 
-                //test
-                if (ns.frontPage && d.rsrcType.match(/-leaf$/)) {
-                    console.log('clicked on front page leaf');
-                }
-                // end test
-
                 if (d.rsrcType.match(/-leaf$/) && ns.hasOwnProperty('leafDataUrls')) {
                     var url = ns.leafDataUrls[d.rsrcType];
                     if (url !== undefined) {
@@ -1064,8 +1058,43 @@ goldstone.charts.topologyTree = {
                             hasParam = true;
                             url = url + "zone=" + d.zone;
                         }
-                        ns.self.loadLeafData(url, ns);
+                        if (!ns.frontPage) {
+                            ns.self.loadLeafData(url, ns);
+                        }
+
+
+                        //test THIS IS WHAT HAPPENS
+                        // IF ON FRONT PAGE AND CLICK A LEAF
+                        if (ns.frontPage) {
+
+                            // just in case of tree rendering error
+                            if (d.rsrcType === 'region' || d.rsrcType === 'module') {
+                                return true;
+                            } else {
+                                var parentModule;
+
+                                // traverse up the tree until the
+                                // parent module is reached
+                                while (d.rsrcType !== 'module') {
+                                    d = d.parent;
+                                }
+                                parentModule = d.label;
+
+                                // clear and set resource url in localStorage
+                                localStorage.clear();
+                                url = "/" + parentModule + url;
+                                localStorage.setItem('urlForResourceList', url);
+
+                                window.location.href = parentModule + '/discover';
+                            }
+
+
+
+                        }
+                        // end test
+
                     }
+
                 } else {
                     ns.self.toggle(d);
                     ns.self.processTree(d, ns);
@@ -1255,6 +1284,13 @@ goldstone.charts.topologyTree = {
                     ns.topologyTree.processTree(ns.data, ns);
                     $(ns.spinner).hide();
                 })(this.ns);
+
+                // render resource url in localStorage, if any, and clear it out
+                if (localStorage.urlForResourceList) {
+                    this.loadLeafData(localStorage.urlForResourceList, this.ns);
+                    localStorage.clear();
+                }
+
             }
         }
     }
