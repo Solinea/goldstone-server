@@ -14,10 +14,18 @@
 #
 # Author: John Stanford
 
-filter {
-    if [type] in ["metric", "report"] and "agent_data" in [tags] {
-        mutate {
-            remove_field => ["tags"]
+#
+# push processed agent reports/metrics to elasticsearch
+# 
+output {
+    if [type] in ["metric", "report"] {
+        # stdout { codec => "rubydebug" }
+        elasticsearch {
+            host => localhost
+            port => 9200
+            protocol => http
+            index => "goldstone_agent"
+            workers => 4
         }
     }
 }
