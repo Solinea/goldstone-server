@@ -86,8 +86,8 @@ var EventTimelineView = Backbone.View.extend({
 
         // you can change the value in colorArray to select
         // a particular number of different colors
-        var colorArray = new ColorBlindPalette().get('colorArray');
-        ns.color = d3.scale.ordinal().range(colorArray[5]);
+        var colorArray = new GoldstoneColors().get('colorSets');
+        ns.color = d3.scale.ordinal().range(colorArray.distinct[5]);
 
         /*
          * The graph and axes
@@ -304,7 +304,8 @@ var EventTimelineView = Backbone.View.extend({
                 '<div class="row">' +
                 '<div class="col-lg-12">' +
                 '<div class="input-group">' +
-                '<span class="input-group-addon" style="background-color:' + ns.filter[item].color + ';">' +
+                '<span class="input-group-addon"' +
+                'style="opacity: 0.8; background-color:' + ns.filter[item].color + ';">' +
                 '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
                 '</span>' +
                 '<span type="text" class="form-control">' + itemSpaced + '</span>' +

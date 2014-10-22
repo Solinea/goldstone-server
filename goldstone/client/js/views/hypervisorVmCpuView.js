@@ -48,9 +48,8 @@ var HypervisorVmCpuView = Backbone.View.extend({
         ns.y = d3.scale.linear()
             .range([ns.mh, 0]);
 
-        var colorArray = new ColorBlindPalette().get('colorArray');
-        ns.color = d3.scale.ordinal().range(colorArray[5]);
-        // ns.color = d3.scale.category20();
+        var colorArray = new GoldstoneColors().get('colorSets');
+        ns.color = d3.scale.ordinal().range(colorArray.distinct[5]);
 
         ns.xAxis = d3.svg.axis()
             .scale(ns.x)
@@ -163,7 +162,8 @@ var HypervisorVmCpuView = Backbone.View.extend({
             .style("stroke", function(d) {
                 return ns.color(d.name);
             })
-            .style("stroke-width", "2px");
+            .style("stroke-width", "2px")
+            .style("opacity", 0.8);
 
         ns.vm.append("text")
             .datum(function(d) {
