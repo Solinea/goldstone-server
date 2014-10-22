@@ -87,15 +87,24 @@
     ns.singleRsrcSpinner = '#single-rsrc-loading-indicator';
     ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator';
 
+    // test:
+    ns.frontPage = true;
+
+    // ns.leafDataUrls = {
+    //     "services-leaf": "/keystone/services",
+    // };
+
+    // end test
+
     $(document).ready(function () {
 
-        $(ns.spinner).hide();
-        $(ns.singleRsrcSpinner).hide();
-        $(ns.multiRsrcSpinner).hide();
+        // $(ns.spinner).hide();
+        // $(ns.singleRsrcSpinner).hide();
+        // $(ns.multiRsrcSpinner).hide();
         ns.topologyTree.init();
 
         // render Event Timeline and Node Avail charts
-        renderCharts();
+        // renderCharts();
 
     });
 
