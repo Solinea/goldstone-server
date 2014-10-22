@@ -128,23 +128,26 @@ class EventViewSet(ModelViewSet):
 
 
 class MetricViewSet(ModelViewSet):
-    queryset = MetricType().search().query().order_by('-timestamp')
+    # queryset = MetricType().search().query().order_by('-timestamp')
+    queryset = MetricType().search().query()
     serializer_class = MetricSerializer
     lookup_field = "_id"
 
     def list(self, request, *args, **kwargs):
         # adding support filter params
         params = request.QUERY_PARAMS.dict()
-        if params is not None:
+        if params != {}:
             # don't use the page related params as filters
             if settings.REST_FRAMEWORK['PAGINATE_BY_PARAM'] in params:
                 del params[settings.REST_FRAMEWORK['PAGINATE_BY_PARAM']]
             if 'page' in params:
                 del params['page']
 
-            self.queryset = MetricType().search().query().filter(**params). \
-                order_by('-timestamp')
-            return super(MetricViewSet, self).list(request, *args, **kwargs)
+            #self.queryset = MetricType().search().query().filter(**params). \
+            #    order_by('-timestamp')
+            self.queryset = MetricType().search().query().filter(**params)
+
+        return super(MetricViewSet, self).list(request, *args, **kwargs)
 
     def get_object(self):
         q = self.queryset

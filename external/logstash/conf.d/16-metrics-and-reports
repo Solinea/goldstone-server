@@ -36,7 +36,8 @@ filter {
             }
             mutate {
                 add_tag => ["filter_16_pass", "agent_data"]
-                replace => ["type", "%{agent_data_type}"]
+                # need to prefix type with core_ to help ElasticUtils with mapping
+                replace => ["type", "core_%{agent_data_type}"]
                 remove_field => ["message", "agent_data", "agent_data_type", "syslog5424_pri", "syslog_ts", "pid"]
             }
         } else {
