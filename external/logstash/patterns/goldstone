@@ -53,6 +53,11 @@ MY_SYSLOG_TIMESTAMP %{SYSLOGTIMESTAMP}|%{TIMESTAMP_ISO8601}
 OPENSTACK_SYSLOGLINE %{SYSLOG5424PRINUM}%{MY_SYSLOG_TIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} %{OPENSTACK_MESSAGE:os_message}
 GENERIC_SYSLOGLINE %{SYSLOG5424PRINUM}%{MY_SYSLOG_TIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} %{GREEDYDATA:log_message}
 
+GOLDSTONE_AGENT_PREFIX %{SYSLOG5424PRINUM}%{MY_SYSLOG_TIMESTAMP:syslog_ts} %{HOSTNAME:syslog5424_host} (goldstone-agent) %{POSINT:pid}
+
+# our IANA assigned PEN (private enterprise number) is 44571
+GOLDSTONE_AGENT_DATA %{GOLDSTONE_AGENT_PREFIX} (\[(metric|report)@44571 data=%{GREEDYDATA:agent_data}\]$)
+
 NOVA_INSTANCE (?:\[instance: %{UUID:instance_id}\])
 CLAIM_RSRC_PHYS (?:Total %{WORD:resource}: %{NUMBER:total:float} %{WORD}, used: %{NUMBER:used:float} %{WORD})
 CLAIM_RSRC_VIRT (?:%{WORD:resource} limit: %{NUMBER:limit:float} %{WORD}, free: %{NUMBER:free:float} %{WORD})

@@ -16,57 +16,59 @@
 #
 
 filter {
-    if ([type] == "syslog") {
-        grok { 
-            patterns_dir => "/opt/logstash/patterns"
-            match => { "log_message" => "%{OPENSTACK_MESSAGE}" }
-        }
-        if ("_grokparsefailure" not in [tags]) {
-            translate {
-                field => "syslog_facility"
-                dictionary => [ 
-                    "local0", "nova",
-                    "local1", "glance",
-                    "local2", "neutron",
-                    "local3", "ceilometer",
-                    "local4", "swift",
-                    "local5", "cinder",
-                    "local6", "keystone"
-                ]
-                fallback => "unknown"
-                destination => "component"
+    if "agent_data" not in [tags] {
+        if [type] == "syslog" {
+            grok { 
+                patterns_dir => "/opt/logstash/patterns"
+                match => { "log_message" => "%{OPENSTACK_MESSAGE}" }
             }
-            if ([syslog_severity] == "NOTICE") {
-                mutate {
-                    add_field => {"loglevel" => "AUDIT"}
+            if ("_grokparsefailure" not in [tags]) {
+                translate {
+                    field => "syslog_facility"
+                    dictionary => [ 
+                        "local0", "nova",
+                        "local1", "glance",
+                        "local2", "neutron",
+                        "local3", "ceilometer",
+                        "local4", "swift",
+                        "local5", "cinder",
+                        "local6", "keystone"
+                    ]
+                    fallback => "unknown"
+                    destination => "component"
                 }
-            }
-            if [syslog_severity] in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"] {
-                mutate {
-                    replace => ["event_type", "OpenStackSyslogError"]
+                if ([syslog_severity] == "NOTICE") {
+                    mutate {
+                        add_field => {"loglevel" => "AUDIT"}
+                    }
                 }
-            }
-            mutate {
-                rename => [ "syslog5424_host", "host" ]
-                add_tag => ["openstack_syslog", "filter_34_pass"]
-            }
+                if [syslog_severity] in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"] {
+                    mutate {
+                        replace => ["event_type", "OpenStackSyslogError"]
+                    }
+                }
+                mutate {
+                    rename => [ "syslog5424_host", "host" ]
+                    add_tag => ["openstack_syslog", "filter_34_pass"]
+                }
 
-            # the unrelated cloning is to work around https://logstash.jira.com/browse/LOGSTASH-2018
-            # if it happened earlier, this filter would end up processing each of the clones regardless
-            # of their type.
-            clone {
-                clones => ["host_stream", "event_stream", "nova_claims_resub", "nova_spawns_resub", "api_stats_resub"]
-            }
-        } else {
-            mutate {
-                add_tag => ["filter_34_fail"]
-                remove_tag => ["_grokparsefailure"]
-            }
-            # the unrelated cloning is to work around https://logstash.jira.com/browse/LOGSTASH-2018
-            # if it happened earlier, this filter would end up processing each of the clones regardless
-            # of their type.
-            clone {
-                clones => ["host_stream", "event_stream"]
+                # the unrelated cloning is to work around https://logstash.jira.com/browse/LOGSTASH-2018
+                # if it happened earlier, this filter would end up processing each of the clones regardless
+                # of their type.
+                clone {
+                    clones => ["host_stream", "event_stream", "nova_claims_resub", "nova_spawns_resub", "api_stats_resub"]
+                }
+            } else {
+                mutate {
+                    add_tag => ["filter_34_fail"]
+                    remove_tag => ["_grokparsefailure"]
+                }
+                # the unrelated cloning is to work around https://logstash.jira.com/browse/LOGSTASH-2018
+                # if it happened earlier, this filter would end up processing each of the clones regardless
+                # of their type.
+                clone {
+                    clones => ["host_stream", "event_stream"]
+                }
             }
         }
     }
