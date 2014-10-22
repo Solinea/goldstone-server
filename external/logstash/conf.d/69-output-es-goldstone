@@ -18,7 +18,7 @@
 # push processed events to elasticsearch
 # 
 output {
-    if [type] in ["nova_claims", "nova_spawns", "api_stats", "goldstone_nodeinfo"] {
+    if [type] in ["metric", "report", "nova_claims", "nova_spawns", "api_stats", "goldstone_nodeinfo"] {
         # stdout { codec => "rubydebug" }
         elasticsearch {
             host => localhost

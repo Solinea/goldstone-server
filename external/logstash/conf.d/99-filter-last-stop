@@ -1,0 +1,7 @@
+filter {
+    if [type] in ["metric", "report"] and "agent_data" in [tags] {
+        mutate {
+            remove_field => ["tags"]
+        }
+    }
+}
