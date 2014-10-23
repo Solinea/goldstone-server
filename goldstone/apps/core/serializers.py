@@ -45,7 +45,7 @@ class EventSerializer(serializers.ModelSerializer):
 
 
 class MetricSerializer(serializers.ModelSerializer):
-    timestamp = serializers.IntegerField(read_only=True)
+    timestamp = serializers.DateTimeField(read_only=True)
     name = serializers.CharField(read_only=True)
     metric_type = serializers.CharField(read_only=True)
     value = serializers.DecimalField(read_only=True)
