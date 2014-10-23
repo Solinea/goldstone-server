@@ -51,7 +51,7 @@ def _create_or_replace_alias(index_name, server=settings.ES_SERVER,
 
 def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
     conn = Elasticsearch(server)
-    conn.indices.put_template(json.load(template_file), template_name,
+    conn.indices.put_template(template_name, json.load(template_file),
                               create=False)
 
 
