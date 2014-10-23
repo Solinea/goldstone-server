@@ -157,7 +157,7 @@ class MetricType(MappingType, Indexable):
         """Returns an Elasticsearch mapping for this MappingType"""
         return {
             'properties': {
-                'timestamp': {'type': 'long'},
+                'timestamp': {'type': 'date'},
                 'name': {'type': 'string'},
                 'metric_type': {'type': 'string'},
                 'value': {'type': 'double'},
@@ -198,7 +198,7 @@ class MetricType(MappingType, Indexable):
 
 class Metric(Model):
     id = CharField(max_length=36, primary_key=True)
-    timestamp = IntegerField()
+    timestamp = DateTimeField(auto_now=False)
     name = CharField(max_length=128)
     metric_type = CharField(max_length=36)
     value = DecimalField(max_digits=30, decimal_places=8)

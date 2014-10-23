@@ -25,14 +25,14 @@ filter {
         grok {
             patterns_dir => "/opt/logstash/patterns"
             match => { "message" => "%{GOLDSTONE_AGENT_DATA}" }
-            # add_field => { "received_at" => "%{@timestamp}" }
         }
         if ("_grokparsefailure" not in [tags]) {
             json {
                 source => "agent_data"
             }
+            the timestamps will have
             date {
-                match => [ "timestamp", "UNIX" ]
+               match => [ "timestamp", "UNIX_MS" ]
             }
             mutate {
                 add_tag => ["filter_16_pass", "agent_data"]
