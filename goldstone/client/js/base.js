@@ -1062,12 +1062,8 @@ goldstone.charts.topologyTree = {
                             ns.self.loadLeafData(url, ns);
                         }
 
-
-                        //test THIS IS WHAT HAPPENS
-                        // IF ON FRONT PAGE AND CLICK A LEAF
                         if (ns.frontPage) {
 
-                            // just in case of tree rendering error
                             if (d.rsrcType === 'region' || d.rsrcType === 'module') {
                                 return true;
                             } else {
@@ -1087,12 +1083,7 @@ goldstone.charts.topologyTree = {
 
                                 window.location.href = parentModule + '/discover';
                             }
-
-
-
                         }
-                        // end test
-
                     }
 
                 } else {
