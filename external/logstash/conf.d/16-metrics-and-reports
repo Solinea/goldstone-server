@@ -30,7 +30,6 @@ filter {
             json {
                 source => "agent_data"
             }
-            the timestamps will have
             date {
                match => [ "timestamp", "UNIX_MS" ]
             }
