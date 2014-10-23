@@ -38,6 +38,7 @@ filter {
                 add_tag => ["filter_16_pass", "agent_data"]
                 # need to prefix type with core_ to help ElasticUtils with mapping
                 replace => ["type", "core_%{agent_data_type}"]
+                rename => ["syslog5424_host", "node"]
                 remove_field => ["message", "agent_data", "agent_data_type", "syslog5424_pri", "syslog_ts", "pid"]
             }
         } else {

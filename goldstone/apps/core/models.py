@@ -161,8 +161,8 @@ class MetricType(MappingType, Indexable):
                 'name': {'type': 'string', 'analyzer': 'not_analyzed'},
                 'metric_type': {'type': 'string', 'analyzer': 'not_analyzed'},
                 'value': {'type': 'double'},
-                'units': {'type': 'string', 'analyzer': 'not_analyzed'},
-                'node': {'type': 'string', 'index': 'not_analyzed'}
+                'unit': {'type': 'string', 'analyzer': 'not_analyzed'},
+                'syslog5424_host': {'type': 'string', 'index': 'not_analyzed'}
             }
         }
 
@@ -191,8 +191,8 @@ class MetricType(MappingType, Indexable):
             name=self._results_dict['name'],
             metric_type=self._results_dict['metric_type'],
             value=self._results_dict['value'],
-            units=self._results_dict['units'],
-            node=self._results_dict['syslog5424_host']
+            unit=self._results_dict['unit'],
+            node=self._results_dict['node']
         )
 
 
@@ -202,7 +202,7 @@ class Metric(Model):
     name = CharField(max_length=128)
     metric_type = CharField(max_length=36)
     value = DecimalField(max_digits=30, decimal_places=8)
-    units = CharField(max_length=36)
+    unit = CharField(max_length=36)
     node = CharField(max_length=36)
 
     _mt = MetricType()
