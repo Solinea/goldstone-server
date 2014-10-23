@@ -35,6 +35,7 @@ var EventTimelineView = Backbone.View.extend({
         this.defaults.location = options.location;
         this.defaults.chartTitle = options.chartTitle;
         this.defaults.width = options.width;
+        this.defaults.fetchStart = options.fetchStart;
 
         var ns = this.defaults;
         var self = this;
@@ -55,6 +56,7 @@ var EventTimelineView = Backbone.View.extend({
 
         this.collection.on('sync', this.update, this);
         this.appendHTML();
+        this.populateSettingsFields(ns.fetchStart, ns.fetchEnd);
         this.initSettingsForm();
 
         ns.margin = {
@@ -148,7 +150,13 @@ var EventTimelineView = Backbone.View.extend({
 
     refreshInterval: function() {
         var ns = this.defaults;
-        return $(ns.location).find("select#eventAutoRefreshInterval").val();
+        // return $(ns.location).find("select#eventAutoRefreshInterval").val();
+        // TODO: FIND THE SELECTOR FOR THE RADIOBUTTONS
+    },
+
+    lookbackRange: function() {
+        var ns = this.defaults;
+        return $(ns.location).find("#lookbackRange").val();
     },
 
     initSettingsForm: function() {
@@ -157,6 +165,7 @@ var EventTimelineView = Backbone.View.extend({
         var updateSettings = function() {
             ns.animation.delay = self.refreshInterval();
             ns.animation.pause = !self.isRefreshSelected();
+            ns.lookbackRange = self.lookbackRange();
 
             if (ns.animation.pause === false) {
                 self.scheduleFetch();
@@ -468,9 +477,43 @@ var EventTimelineView = Backbone.View.extend({
             '<div class="modal-content">' +
             '<div class="modal-header">' +
             '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
-            '<h4 class="modal-title" id="myModalLabel">Chart Settings</h4>' +
+            '<h4 class="modal-title" id="myModalLabel">Chart Range Settings</h4>' +
             '</div>' +
             '<div class="modal-body">' +
+
+
+
+            // insert start/end form elements:
+            // '<h5>Select lookback range for events:</h5>' +
+
+            '<label for="lookbackRange" class="col-lg-3 control-label">Event Lookback Range</label>' +
+            '<div class="form-group">' +
+            '<div class="col-lg-9">' +
+            '<div class="btn-group" data-toggle="buttons">' +
+            '<label class="btn btn-default">' +
+            '<input type="radio" name="lookbackRange" id="15">15 minutes' +
+            '</label>' +
+            '<label class="btn btn-default">' +
+            '<input type="radio" name="lookbackRange" id="60">1 hour' +
+            '</label>' +
+            '<label class="btn btn-default">' +
+            '<input type="radio" name="lookbackRange" id="360">6 hours' +
+            '</label>' +
+            '<label class="btn btn-default active">' +
+            '<input checked type="radio" name="lookbackRange" id="1440" >1 day' +
+            '</label>' +
+            '<label class="btn btn-default">' +
+            '<input type="radio" name="lookbackRange" id="10080">1 week' +
+            '</label>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+
+            // end of new start/end elements
+
+
+
+
             '<form class="form-horizontal" role="form">' +
             '<div class="form-group">' +
             '<label for="eventAutoRefresh" class="col-sm-3 control-label">Refresh: </label>' +
@@ -538,5 +581,19 @@ var EventTimelineView = Backbone.View.extend({
 
 
 
+    },
+
+    populateSettingsFields: function(start, end) {
+        "use strict";
+        var ns = this.defaults;
+        var self = this;
+        var s = new Date(start).toString();
+        var e = new Date(end).toString();
+        var sStr = s.substr(s.indexOf(" ") + 1);
+        var eStr = e.substr(e.indexOf(" ") + 1);
+
+        $(ns.location).find('#settingsStartTime').val(sStr);
+        $(ns.location).find('#settingsEndTime').val(eStr);
     }
+
 });
