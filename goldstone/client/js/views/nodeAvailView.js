@@ -323,11 +323,30 @@ var NodeAvailView = Backbone.View.extend({
         // reschedule next fetch at selected interval
         this.scheduleFetch();
 
-        // If we didn't receive any valid files, abort and pause
+        // If we didn't receive any valid files
+        // append "No Data Returned" and abort
         if (allthelogs.length === 0) {
-            console.log('no data');
+
+            // if 'no data returned' already exists on page, don't reapply it
+            if ($(ns.location).find('#noDataReturned').length) {
+                return;
+            }
+
+            $('<span id="noDataReturned">No Data Returned</span>').appendTo(ns.location)
+                .css({
+                    'position': 'relative',
+                    'margin-left': $(ns.location).width() / 2 - 14,
+                    'top': -$(ns.location).height() / 2
+                });
+
             return;
         }
+
+        // remove No Data Returned once data starts flowing again
+        if ($(ns.location).find('#noDataReturned').length) {
+            $(ns.location).find('#noDataReturned').remove();
+        }
+
 
         // populate the modal based on the event types.
         // clear out the modal and reapply based on the unique events
