@@ -128,8 +128,8 @@ class EventViewSet(ModelViewSet):
 
 
 class MetricViewSet(ModelViewSet):
-    # queryset = MetricType().search().query().order_by('-timestamp')
-    queryset = MetricType().search().query()
+    queryset = MetricType().search().query().order_by('-timestamp')
+    # queryset = MetricType().search().query()
     serializer_class = MetricSerializer
     lookup_field = "_id"
 
@@ -143,9 +143,8 @@ class MetricViewSet(ModelViewSet):
             if 'page' in params:
                 del params['page']
 
-            #self.queryset = MetricType().search().query().filter(**params). \
-            #    order_by('-timestamp')
-            self.queryset = MetricType().search().query().filter(**params)
+            self.queryset = MetricType().search().query().filter(**params). \
+                order_by('-timestamp')
 
         return super(MetricViewSet, self).list(request, *args, **kwargs)
 

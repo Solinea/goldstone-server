@@ -158,11 +158,11 @@ class MetricType(MappingType, Indexable):
         return {
             'properties': {
                 'timestamp': {'type': 'long'},
-                'name': {'type': 'string', 'analyzer': 'not_analyzed'},
-                'metric_type': {'type': 'string', 'analyzer': 'not_analyzed'},
+                'name': {'type': 'string'},
+                'metric_type': {'type': 'string'},
                 'value': {'type': 'double'},
-                'unit': {'type': 'string', 'analyzer': 'not_analyzed'},
-                'syslog5424_host': {'type': 'string', 'index': 'not_analyzed'}
+                'unit': {'type': 'string'},
+                'node': {'type': 'string'}
             }
         }
 
