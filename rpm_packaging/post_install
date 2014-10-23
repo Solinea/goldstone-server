@@ -27,8 +27,8 @@ useradd -m goldstone
 #chown goldstone /opt/goldstone
 cd /opt/goldstone
 python manage.py shell --settings=goldstone.settings.production <<EOF
-from goldstone.apps.core.tasks import _create_daily_index, _create_agent_index, _put_goldstone_templates
-_put_goldstone_templates()
+from goldstone.apps.core.tasks import *
+_put_all_templates()
 _create_daily_index()
 _create_agent_index()
 EOF
