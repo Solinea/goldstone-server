@@ -34,14 +34,22 @@
     </div>
 
     <div id="node-report-r2" class="row">
+
         <div id="node-report-r2-c1" class="col-md-12">
+
+        <!-- buttons -->
+        <div class="btn-group">
+            <button type="button" id="headerBar" class="active btn btn-default">Services</button>
+            <button type="button" id="headerBar" class="btn btn-default">Configuration</button>
+            <button type="button" id="headerBar" class="btn btn-default">Events</button><br><br>
+        </div>
 
             <div id="node-report-panel" class="panel panel-primary">
 
+                <div id="servicesChart"></div>
+                <div id="configurationChart"></div>
+                <div id="eventsChart"></div>
 
-                <div id="servicesChart">
-
-                </div>
             </div>
         </div>
     </div>
@@ -120,6 +128,22 @@
 
     var node_uuid = "{{ node_uuid | escapejs }}";
     var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
+
+
+    $(function() {
+    $("button#headerBar").click(function() {
+        $("button#headerBar.active").toggleClass("active");
+        $(this).toggleClass("active");
+        var selectedButton = ($(this).context.innerHTML.toLowerCase());
+
+        _.each($("button#headerBar"), function(item) {
+            $("#node-report-panel").find('#' + item.innerHTML + 'Chart').hide();
+        });
+
+        $("#node-report-panel").find('#' + selectedButton + 'Chart').show();
+    });
+});
+
 
     renderCharts();
 
