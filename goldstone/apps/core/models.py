@@ -159,7 +159,7 @@ class MetricType(MappingType, Indexable):
             'properties': {
                 'timestamp': {'type': 'long'},
                 'name': {'type': 'string', 'analyzer': 'not_analyzed'},
-                'meter_type': {'type': 'string', 'analyzer': 'not_analyzed'},
+                'metric_type': {'type': 'string', 'analyzer': 'not_analyzed'},
                 'value': {'type': 'double'},
                 'units': {'type': 'string', 'analyzer': 'not_analyzed'},
                 'node': {'type': 'string', 'index': 'not_analyzed'}
@@ -189,7 +189,7 @@ class MetricType(MappingType, Indexable):
         return Metric._reconstitute(
             timestamp=self._results_dict['timestamp'],
             name=self._results_dict['name'],
-            meter_type=self._results_dict['meter_type'],
+            metric_type=self._results_dict['metric_type'],
             value=self._results_dict['value'],
             units=self._results_dict['units'],
             node=self._results_dict['syslog5424_host']
@@ -200,7 +200,7 @@ class Metric(Model):
     id = CharField(max_length=36, primary_key=True)
     timestamp = IntegerField()
     name = CharField(max_length=128)
-    meter_type = CharField(max_length=36)
+    metric_type = CharField(max_length=36)
     value = DecimalField(max_digits=30, decimal_places=8)
     units = CharField(max_length=36)
     node = CharField(max_length=36)
