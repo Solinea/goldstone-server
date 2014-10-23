@@ -72,7 +72,6 @@ var ConfigurationReportView = Backbone.View.extend({
         if (localStorage.getItem('reportNodeData')) {
 
             var configDataToRender = JSON.parse(localStorage.getItem('reportNodeData'));
-            console.log(configDataToRender);
 
             _.each(_.keys(configDataToRender), function(item) {
                 $(ns.location).append(item + ": " + configDataToRender[item] + "<br>");

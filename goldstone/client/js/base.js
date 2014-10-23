@@ -997,8 +997,8 @@ goldstone.charts.topologyTree = {
                             // the name, redirect to report page
                             _.each(_.keys(data[0]), function(item) {
                                 if (item.indexOf('hypervisor_hostname') !== -1) {
-                                    console.log(data[0][item]);
                                     ns.topologyTree.reportRedirect(data[0], item);
+                                    item.preventDefault();
                                 }
                             });
 
