@@ -109,6 +109,7 @@
 <script src="{% static 'js/models/serviceStatusModel.js' %}"></script>
 <script src="{% static 'js/collections/serviceStatusCollection.js' %}"></script>
 <script src="{% static 'js/views/serviceStatusView.js' %}"></script>
+<script src="{% static 'js/views/configurationReportView.js' %}"></script>
 
 <script src="{% static 'js/models/utilizationModel.js' %}"></script>
 <script src="{% static 'js/collections/utilizationCollection.js' %}"></script>
@@ -131,22 +132,26 @@
 
 
     $(function() {
+
+
+    // $("#servicesChart").hide();
+    $("#configurationChart").hide();
+    $("#eventsChart").hide();
+
     $("button#headerBar").click(function() {
         $("button#headerBar.active").toggleClass("active");
         $(this).toggleClass("active");
         var selectedButton = ($(this).context.innerHTML.toLowerCase());
 
-        _.each($("button#headerBar"), function(item) {
-            $("#node-report-panel").find('#' + item.innerHTML + 'Chart').hide();
+            _.each($("button#headerBar"), function(item) {
+                $("#node-report-panel").find('#' + item.innerHTML + 'Chart').hide();
+            });
+
+            $("#node-report-panel").find('#' + selectedButton + 'Chart').show();
         });
-
-        $("#node-report-panel").find('#' + selectedButton + 'Chart').show();
     });
-});
-
 
     renderCharts();
-
 
 </script>
 

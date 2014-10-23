@@ -107,4 +107,12 @@ var renderCharts = function() {
         location: '#node-report-r4 #node-report-panel #vm-cpu-usage',
         width: $('#node-report-r4 #node-report-panel #vm-cpu-usage').width()
     });
+
+    //---------------------------
+    // instantiate Configuration tab data
+
+    var configurationReport = new ConfigurationReportView({
+        location: '#node-report-r2-c1 #configurationChart',
+        width: $('#node-report-r2-c1 #configurationChart').width()
+    });
 };

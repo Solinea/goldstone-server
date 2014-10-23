@@ -992,6 +992,17 @@ goldstone.charts.topologyTree = {
                         var singleRsrcData = jQuery.extend(true, {}, data[0]);
                         if (singleRsrcData !== 'undefined') {
                             delete singleRsrcData.datatableRecId;
+
+                            // if hypervisor or instance with hypervisor in
+                            // the name, redirect to report page
+                            _.each(_.keys(data[0]), function(item) {
+                                if (item.indexOf('hypervisor_hostname') !== -1) {
+                                    console.log(data[0][item]);
+                                    ns.topologyTree.reportRedirect(data[0], item);
+                                }
+                            });
+
+                            // otherwise, render usual resource info popover
                             ns.topologyTree.drawSingleRsrcInfoTable(
                                 ns.singleRsrcLocation, ns.singleRsrcSpinner,
                                 ns.mh, data[0]);
@@ -1005,6 +1016,12 @@ goldstone.charts.topologyTree = {
 
 
 
+    },
+    reportRedirect: function(data, keyName) {
+        localStorage.clear();
+        var redirectNodeName = '/' + data[keyName];
+        localStorage.setItem('reportNodeData', JSON.stringify(data));
+        window.location.href = '/report/node' + redirectNodeName;
     },
     processTree: function(json, ns) {
         "use strict";
@@ -1277,7 +1294,7 @@ goldstone.charts.topologyTree = {
                 })(this.ns);
 
                 // render resource url in localStorage, if any, and clear it out
-                if (localStorage.urlForResourceList) {
+                if (localStorage.getItem('urlForResourceList') !== null) {
                     this.loadLeafData(localStorage.urlForResourceList, this.ns);
                     localStorage.clear();
                 }
