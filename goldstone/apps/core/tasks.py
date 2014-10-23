@@ -70,22 +70,46 @@ def _create_daily_index(server=settings.ES_SERVER, basename='goldstone'):
     finally:
         return _create_or_replace_alias(index_name)
 
+def _create_agent_index(server=settings.ES_SERVER):
+    """
+    Create a new index in ElasticSearch.
+    """
+    index_name = "goldstone_agent"
+    conn = Elasticsearch(server, bulk_size=500)
+    template_f = open(os.path.join(os.path.dirname(__file__),
+                                   "goldstone_agent_template.json"), 'rb')
+    template = json.load(template_f)
 
-def _put_goldstone_template(server=settings.ES_SERVER):
+    try:
+        conn.indices.create(index_name, body=template)
+    except TransportError:
+        logger.exception("got an exception creating daily index, probably "
+                         "already exists")
+    finally:
+        return None
+
+
+def _put_goldstone_templates(server=settings.ES_SERVER):
     """
     Install or update the goldstone template.  This should only be used by
     the goldstone installer
     """
     conn = Elasticsearch(server, bulk_size=500)
-    template_f = open(os.path.join(os.path.dirname(__file__),
-                                   "goldstone_es_template.json"), 'rb')
-    template = json.load(template_f)
+    template_f1 = open(os.path.join(os.path.dirname(__file__),
+                                    "goldstone_es_template.json"), 'rb')
+    template_f2 = open(os.path.join(os.path.dirname(__file__),
+                                    "goldstone_es_template.json"), 'rb')
+    template1 = json.load(template_f1)
+    template2 = json.load(template_f2)
 
     try:
-        return conn.indices.put_template("goldstone", template)
+        conn.indices.put_template("goldstone-daily", template1)
+        conn.indices.put_template("goldstone-agent", template2)
     except:
-        logger.exception("failed to create the goldstone ES template, please"
+        logger.exception("failed to create the goldstone ES template2, please"
                          "report this as a bug.")
+
+
 
 
 @celery_app.task(bind=True)
