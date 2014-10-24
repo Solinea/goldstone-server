@@ -22,9 +22,9 @@ var EventTimelineCollection = Backbone.Collection.extend({
 
     parse: function(data) {
 
-        if (data.previous !== null) {
+        if (data.next !== null) {
 
-            var dp = data.previous;
+            var dp = data.next;
             var nextUrl = dp.slice(dp.indexOf('/core'));
             this.url = nextUrl;
             this.fetch({
@@ -38,11 +38,20 @@ var EventTimelineCollection = Backbone.Collection.extend({
     model: EventTimelineModel,
 
     initialize: function(options) {
-        this.url = options.url;
+
+        // default to 1 hour lookback
+        var nowMinusHour = (+new Date() - (1000 * 60 * 60));
+        this.url = options.url || "/core/events?created__gt=" + nowMinusHour + "&page_size=1000";
 
         // adding {remove:false} to the initial fetch
         // will introduce an artifact that will
         // render via d3
         this.fetch();
+    },
+
+    urlUpdate: function(val) {
+
+        var lookback = +new Date() - (val * 60 * 1000);
+        this.url = "/core/events?created__gt=" + lookback + "&page_size=1000";
     }
 });
