@@ -15,7 +15,7 @@
 
 import arrow
 from rest_framework import serializers, pagination
-from .models import Node, Event, Metric
+from .models import Node, Event, Metric, Report
 import uuid
 
 
@@ -54,4 +54,15 @@ class MetricSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Metric
+        exclude = ['id']
+
+
+class ReportSerializer(serializers.ModelSerializer):
+    timestamp = serializers.DateTimeField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    value = serializers.DecimalField(read_only=True)
+    node = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Report
         exclude = ['id']

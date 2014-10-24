@@ -160,3 +160,38 @@ class MetricViewSet(ModelViewSet):
             return obj
         else:
             raise Http404
+
+
+class ReportViewSet(ModelViewSet):
+    queryset = ReportType().search().query().order_by('-timestamp')
+    # queryset = MetricType().search().query()
+    serializer_class = ReportSerializer
+    lookup_field = "_id"
+
+    def list(self, request, *args, **kwargs):
+        # adding support filter params
+        params = request.QUERY_PARAMS.dict()
+        if params != {}:
+            # don't use the page related params as filters
+            if settings.REST_FRAMEWORK['PAGINATE_BY_PARAM'] in params:
+                del params[settings.REST_FRAMEWORK['PAGINATE_BY_PARAM']]
+            if 'page' in params:
+                del params['page']
+
+            self.queryset = ReportType().search().query().filter(**params). \
+                order_by('-timestamp')
+
+        return super(ReportViewSet, self).list(request, *args, **kwargs)
+
+    def get_object(self):
+        q = self.queryset
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        lookup = self.kwargs.get(lookup_url_kwarg, None)
+        if lookup is not None:
+            filter_kwargs = {self.lookup_field: lookup}
+        q_result = q.filter(**filter_kwargs)[:1].execute()
+        if q_result.count == 1:
+            obj = q_result.objects[0].get_object()
+            return obj
+        else:
+            raise Http404
