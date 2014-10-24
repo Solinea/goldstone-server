@@ -1034,7 +1034,7 @@ goldstone.charts.topologyTree = {
 
 
             // TODO make the tree branch length configurable
-            d.y = d.depth * 95;
+            d.y = d.depth * 100;
         });
 
         // Update the nodes…
