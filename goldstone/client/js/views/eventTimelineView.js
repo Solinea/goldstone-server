@@ -35,7 +35,8 @@ var EventTimelineView = Backbone.View.extend({
         this.defaults.location = options.location;
         this.defaults.chartTitle = options.chartTitle;
         this.defaults.width = options.width;
-        this.defaults.fetchStart = options.fetchStart;
+        this.defaults.newUrl = false;
+        this.defaults.refreshOnClick = false;
 
         var ns = this.defaults;
         var self = this;
@@ -56,7 +57,6 @@ var EventTimelineView = Backbone.View.extend({
 
         this.collection.on('sync', this.update, this);
         this.appendHTML();
-        this.populateSettingsFields(ns.fetchStart, ns.fetchEnd);
         this.initSettingsForm();
 
         ns.margin = {
@@ -150,8 +150,7 @@ var EventTimelineView = Backbone.View.extend({
 
     refreshInterval: function() {
         var ns = this.defaults;
-        // return $(ns.location).find("select#eventAutoRefreshInterval").val();
-        // TODO: FIND THE SELECTOR FOR THE RADIOBUTTONS
+        return $(ns.location).find("select#eventAutoRefreshInterval").val();
     },
 
     lookbackRange: function() {
@@ -172,7 +171,13 @@ var EventTimelineView = Backbone.View.extend({
             }
 
         };
-        $("#eventSettingsUpdateButton-" + ns.location.slice(1)).click(updateSettings);
+        $("#eventSettingsUpdateButton-" + ns.location.slice(1)).click(function() {
+            ns.refreshOnClick = true;
+            if (self.lookbackRange() !== ns.lookbackRange) {
+                ns.newUrl = true;
+            }
+            updateSettings();
+        });
 
         // set initial values for delay and pause based on modal settings
         updateSettings();
@@ -410,6 +415,9 @@ var EventTimelineView = Backbone.View.extend({
     scheduleFetch: function() {
         var ns = this.defaults;
         var self = this;
+        var timeoutDelay;
+
+        this.collection.urlUpdate(ns.lookbackRange);
 
         // to prevent a pile up of setTimeouts
         if (ns.scheduleTimeout !== undefined) {
@@ -419,13 +427,28 @@ var EventTimelineView = Backbone.View.extend({
         if (ns.animation.pause) {
             return true;
         }
+
+        if (ns.refreshOnClick) {
+            timeoutDelay = 1;
+            ns.refreshOnClick = false;
+        } else {
+            timeoutDelay = ns.animation.delay * 1000;
+        }
+
         ns.scheduleTimeout = setTimeout(function() {
 
-            self.collection.fetch({
-                remove: false
-            });
+            if (self.defaults.newUrl) {
+                self.collection.fetch({
+                    remove: true
+                });
+                self.defaults.newUrl = false;
+            } else {
+                self.collection.fetch({
+                    remove: false
+                });
+            }
 
-        }, ns.animation.delay * 1000);
+        }, timeoutDelay);
 
     },
 
@@ -481,51 +504,40 @@ var EventTimelineView = Backbone.View.extend({
             '</div>' +
             '<div class="modal-body">' +
 
-
-
             // insert start/end form elements:
-            // '<h5>Select lookback range for events:</h5>' +
 
-            '<label for="lookbackRange" class="col-lg-3 control-label">Event Lookback Range</label>' +
+            '<form class="form-horizontal" role="form">' +
             '<div class="form-group">' +
-            '<div class="col-lg-9">' +
-            '<div class="btn-group" data-toggle="buttons">' +
-            '<label class="btn btn-default">' +
-            '<input type="radio" name="lookbackRange" id="15">15 minutes' +
-            '</label>' +
-            '<label class="btn btn-default">' +
-            '<input type="radio" name="lookbackRange" id="60">1 hour' +
-            '</label>' +
-            '<label class="btn btn-default">' +
-            '<input type="radio" name="lookbackRange" id="360">6 hours' +
-            '</label>' +
-            '<label class="btn btn-default active">' +
-            '<input checked type="radio" name="lookbackRange" id="1440" >1 day' +
-            '</label>' +
-            '<label class="btn btn-default">' +
-            '<input type="radio" name="lookbackRange" id="10080">1 week' +
-            '</label>' +
+            '<label for="lookbackRange" class="col-sm-2 control-label">Lookback: </label>' +
+            '<div class="col-sm-5">' +
+            '<div class="input-group">' +
+            '<select class="form-control" id="lookbackRange">' +
+            '<option value="15">15 minutes</option>' +
+            '<option value="60" selected>1 hour</option>' +
+            '<option value="360">6 hours</option>' +
+            '<option value="1440">1 day</option>' +
+            '</select>' +
             '</div>' +
             '</div>' +
             '</div>' +
+            '</form>' +
 
             // end of new start/end elements
 
 
 
-
             '<form class="form-horizontal" role="form">' +
             '<div class="form-group">' +
-            '<label for="eventAutoRefresh" class="col-sm-3 control-label">Refresh: </label>' +
-            '<div class="col-sm-9">' +
+            '<label for="eventAutoRefresh" class="col-sm-2 control-label">Refresh: </label>' +
+            '<div class="col-sm-5">' +
             '<div class="input-group">' +
             '<span class="input-group-addon">' +
             '<input type="checkbox" class="eventAutoRefresh" checked>' +
             '</span>' +
             '<select class="form-control" id="eventAutoRefreshInterval">' +
-            '<option value="5" selected>5 seconds</option>' +
+            '<option value="5">5 seconds</option>' +
             '<option value="15">15 seconds</option>' +
-            '<option value="30">30 seconds</option>' +
+            '<option value="30" selected>30 seconds</option>' +
             '<option value="60">1 minute</option>' +
             '<option value="300">5 minutes</option>' +
             '</select>' +
@@ -579,21 +591,6 @@ var EventTimelineView = Backbone.View.extend({
 
         );
 
-
-
-    },
-
-    populateSettingsFields: function(start, end) {
-        "use strict";
-        var ns = this.defaults;
-        var self = this;
-        var s = new Date(start).toString();
-        var e = new Date(end).toString();
-        var sStr = s.substr(s.indexOf(" ") + 1);
-        var eStr = e.substr(e.indexOf(" ") + 1);
-
-        $(ns.location).find('#settingsStartTime').val(sStr);
-        $(ns.location).find('#settingsEndTime').val(eStr);
     }
 
 });
