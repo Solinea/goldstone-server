@@ -166,25 +166,6 @@ class MetricType(MappingType, Indexable):
             }
         }
 
-    # I don't think this is required since there will be no saving.
-    #
-    # @classmethod
-    # def extract_document(cls, obj_id, obj):
-    #     """Converts this instance into an Elasticsearch document"""
-    #     if obj is None:
-    #         # todo this will go to the model manager which would natively
-    #         # todo look at the SQL db.  we either need to fix this or fix the
-    #         # todo model manager implementation of get.
-    #         obj = cls.get_model().objects.get(pk=obj_id)
-    #
-    #     return {
-    #         'id': str(obj.id),
-    #         'event_type': obj.event_type,
-    #         'source_id': str(obj.source_id),
-    #         'message': obj.message,
-    #         'created': obj.created.isoformat()
-    #     }
-
     def get_object(self):
         return Metric._reconstitute(
             timestamp=self._results_dict['timestamp'],
@@ -207,10 +188,62 @@ class Metric(Model):
 
     _mt = MetricType()
 
-    # don't think I need this since we will not be creating them without
-    # an ES query, so I'll have all the fields.
-    # def __init__(self, *args, **kwargs):
-    #    super(Metric, self).__init__(*args, **kwargs)
+    @classmethod
+    def _reconstitute(cls, **kwargs):
+        """
+        provides a way for the mapping type to create an object from ES data
+        """
+        obj = cls(**kwargs)
+        return obj
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        """
+        An override to save the object to ES via elasticutils.  This will be
+        a noop for now.  Saving occurs from the logstash processing directly
+        to ES.
+        """
+        raise NotImplementedError("save is not implemented for this model")
+
+    def delete(self, using=None):
+        raise NotImplementedError("delete is not implemented for this model")
+
+
+class ReportType(MappingType, Indexable):
+
+    @classmethod
+    def get_model(cls):
+        return Report
+
+    @classmethod
+    def get_mapping(cls):
+        """Returns an Elasticsearch mapping for this MappingType"""
+        return {
+            'properties': {
+                'timestamp': {'type': 'date'},
+                'name': {'type': 'string'},
+                'value': {'type': 'string'},
+                'node': {'type': 'string'}
+            }
+        }
+
+    def get_object(self):
+        return Report._reconstitute(
+            timestamp=self._results_dict['timestamp'],
+            name=self._results_dict['name'],
+            value=self._results_dict['value'],
+            node=self._results_dict['node']
+        )
+
+
+class Report(Model):
+    id = CharField(max_length=36, primary_key=True)
+    timestamp = DateTimeField(auto_now=False)
+    name = CharField(max_length=128)
+    value = DecimalField(max_digits=30, decimal_places=8)
+    node = CharField(max_length=36)
+
+    _mt = ReportType()
 
     @classmethod
     def _reconstitute(cls, **kwargs):
