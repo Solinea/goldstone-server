@@ -68,11 +68,11 @@ module.exports = function(grunt) {
             },
             unitTests: {
                 files: ['test/unit/*.js'],
-                tasks: 'lintAndTest'
+                tasks: ['lint', 'karma']
             },
             integrationTests: {
                 files: ['test/integration/*.js'],
-                tasks: 'lintAndTest'
+                tasks: ['lint', 'karma']
             },
             e2eTests: {
                 files: ['test/e2e/*.js'],
@@ -86,6 +86,7 @@ module.exports = function(grunt) {
     grunt.registerTask('default', ['lint', 'test', 'watch']);
     grunt.registerTask('lint', ['jshint']);
     grunt.registerTask('test', ['karma:single', 'casperjs']);
+    grunt.registerTask('lintAndTest', ['lint', 'test']);
     grunt.registerTask('lintAndTest', ['lint', 'test']);
 
 };
