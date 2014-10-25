@@ -51,7 +51,7 @@ var ApiPerfView = Backbone.View.extend({
         this.defaults.height = this.options.height;
         this.defaults.infoCustom = this.options.infoCustom;
         this.defaults.interval = this.options.startStopInterval.interval;
-        this.defaults.location = this.options.location;
+        this.el = this.options.el;
         this.defaults.start = this.options.startStopInterval.start;
         this.defaults.width = this.options.width;
 
@@ -62,13 +62,15 @@ var ApiPerfView = Backbone.View.extend({
         }
 
         // registers 'sync' event so view 'watches' collection for data update
-        this.collection.on('sync', this.render, this);
+        this.collection.on('sync', this.update, this);
 
         var ns = this.defaults;
+        var self = this;
+
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
 
-        var appendSpinnerLocation = ns.location;
+        var appendSpinnerLocation = this.el;
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
@@ -77,14 +79,9 @@ var ApiPerfView = Backbone.View.extend({
             });
         });
 
-        $(ns.location).append(
-            '<div id="api-perf-panel-header" class="panel panel-primary">' +
-            '<div class="panel-heading">' +
-            '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' + ns.chartTitle +
-            '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
-            '</h3></div>');
+        this.render();
 
-        this.defaults.svg = d3.select(ns.location).append("svg")
+        this.defaults.svg = d3.select(this.el).append("svg")
             .attr("width", ns.width)
             .attr("height", ns.height);
 
@@ -119,7 +116,7 @@ var ApiPerfView = Backbone.View.extend({
             return result;
         };
 
-        $(ns.location).find('#api-perf-info').popover({
+        $(this.el).find('#api-perf-info').popover({
             trigger: 'manual',
             content: htmlGen.apply(this),
             placement: 'bottom',
@@ -127,12 +124,12 @@ var ApiPerfView = Backbone.View.extend({
         })
             .on("click", function(d) {
                 var targ = "#" + d.target.id;
-                $(ns.location).find(targ).popover('toggle');
+                $(self.el).find(targ).popover('toggle');
 
                 // passing an arg to setTimeout is not supported in IE < 10
                 // see https://developer.mozilla.org/en-US/docs/Web/API/Window.setTimeout#Callback_arguments
                 setTimeout(function(d) {
-                    $(ns.location).find(targ).popover('hide');
+                    $(self.el).find(targ).popover('hide');
                 }, 3000, targ);
             });
 
@@ -140,9 +137,10 @@ var ApiPerfView = Backbone.View.extend({
 
     },
 
-    render: function() {
+    update: function() {
 
         var ns = this.defaults;
+        var self = this;
         var json = this.collection.toJSON();
         var mw = ns.mw;
         var mh = ns.mh;
@@ -158,12 +156,12 @@ var ApiPerfView = Backbone.View.extend({
                 .text(function() {
                     return 'Response was empty';
                 });
-            $(ns.location).find('#spinner').hide();
+            this.$el.find('#spinner').hide();
             return;
         }
 
-        $(ns.location).find('svg').find('.chart').html('');
-        $(ns.location + '.d3-tip').detach();
+        $(this.el).find('svg').find('.chart').html('');
+        $(this.el + '.d3-tip').detach();
 
         json.forEach(function(d) {
             d.time = moment(Number(d.key));
@@ -224,7 +222,7 @@ var ApiPerfView = Backbone.View.extend({
                 return y(d.avg);
             });
 
-        var hiddenBar = ns.chart.selectAll(ns.location + ' .hiddenBar')
+        var hiddenBar = ns.chart.selectAll(this.el + ' .hiddenBar')
             .data(json);
 
         var hiddenBarWidth = mw / json.length;
@@ -240,7 +238,7 @@ var ApiPerfView = Backbone.View.extend({
 
         var tip = d3.tip()
             .attr('class', 'd3-tip')
-            .attr('id', ns.location.slice(1))
+            .attr('id', this.el.slice(1))
             .html(function(d) {
                 return "<p>" + d.time.format() + "<br>Max: " + d.max.toFixed(2) +
                     "<br>Avg: " + d.avg.toFixed(2) + "<br>Min: " + d.min.toFixed(2) + "<p>";
@@ -351,14 +349,14 @@ var ApiPerfView = Backbone.View.extend({
             .attr("height", mh)
             .attr("width", hiddenBarWidth)
             .on('mouseenter', function(d, i) {
-                var rectId = ns.location + " #verticalRect" + i,
-                    guideId = ns.location + " #verticalGuideLine" + i,
+                var rectId = self.el + " #verticalRect" + i,
+                    guideId = self.el + " #verticalGuideLine" + i,
                     targ = d3.select(guideId).pop().pop();
                 d3.select(guideId).style("opacity", 0.8);
                 tip.offset([50, 0]).show(d, targ);
             })
             .on('mouseleave', function(d, i) {
-                var id = ns.location + " #verticalGuideLine" + i;
+                var id = self.el + " #verticalGuideLine" + i;
                 d3.select(id).style("opacity", 0);
                 tip.hide();
             });
@@ -366,7 +364,19 @@ var ApiPerfView = Backbone.View.extend({
         // EXIT
         // Remove old elements as needed.
 
-        $(ns.location).find('#spinner').hide();
+        $(this.el).find('#spinner').hide();
 
+    },
+
+    template: _.template(
+            '<div id="api-perf-panel-header" class="panel panel-primary">' +
+            '<div class="panel-heading">' +
+            '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
+            '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
+            '</h3></div>'),
+
+    render: function(){
+        this.$el.html(this.template());
+        return this;
     }
 });
