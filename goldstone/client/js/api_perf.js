@@ -39,7 +39,7 @@ var renderApiPerfCharts = function() {
             key: "API Call",
             value: "Hypervisor Show"
         }],
-        location: '#api-perf-report-r1-c1',
+        el: '#api-perf-report-r1-c1',
         startStopInterval: nsReport,
         width: $('#api-perf-report-r1-c1').width()
     });
@@ -60,7 +60,7 @@ var renderApiPerfCharts = function() {
             key: "API Call",
             value: "Agent List"
         }],
-        location: '#api-perf-report-r1-c2',
+        el: '#api-perf-report-r1-c2',
         startStopInterval: nsReport,
         width: $('#api-perf-report-r1-c2').width()
     });
@@ -80,7 +80,7 @@ var renderApiPerfCharts = function() {
             key: "API Call",
             value: "Authenticate"
         }],
-        location: '#api-perf-report-r2-c1',
+        el: '#api-perf-report-r2-c1',
         startStopInterval: nsReport,
         width: $('#api-perf-report-r2-c1').width()
     });
@@ -100,7 +100,7 @@ var renderApiPerfCharts = function() {
             key: "API Call",
             value: "Image Show"
         }],
-        location: '#api-perf-report-r2-c2',
+        el: '#api-perf-report-r2-c2',
         startStopInterval: nsReport,
         width: $('#api-perf-report-r2-c2').width()
     });
@@ -120,7 +120,7 @@ var renderApiPerfCharts = function() {
             key: "API Call",
             value: "Service List"
         }],
-        location: '#api-perf-report-r3-c1',
+        el: '#api-perf-report-r3-c1',
         startStopInterval: nsReport,
         width: $('#api-perf-report-r3-c1').width()
     });
