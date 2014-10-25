@@ -147,18 +147,27 @@ var ApiPerfView = Backbone.View.extend({
 
         if (this.collection.toJSON().length === 0) {
 
-            // in case of no data returned from server
-            var message = ns.svg;
-            message.append("text")
-                .attr("x", (ns.width / 2) - ns.margin.left)
-                .attr("y", ns.height / 2)
-                .attr("dy", "1.55em")
-                .text(function() {
-                    return 'Response was empty';
+            // if 'no data returned' already exists on page, don't reapply it
+            if ($(this.el).find('#noDataReturned').length) {
+                return;
+            }
+
+            $('<span id="noDataReturned">No Data Returned</span>').appendTo(this.el)
+                .css({
+                    'position': 'relative',
+                    'margin-left': $(this.el).width() / 2 - 14,
+                    'top': -$(this.el).height() / 2 - 50
                 });
+
             this.$el.find('#spinner').hide();
             return;
         }
+
+        // remove No Data Returned once data starts flowing again
+        if ($(this.el).find('#noDataReturned').length) {
+            $(this.el).find('#noDataReturned').remove();
+        }
+
 
         $(this.el).find('svg').find('.chart').html('');
         $(this.el + '.d3-tip').detach();
@@ -369,13 +378,13 @@ var ApiPerfView = Backbone.View.extend({
     },
 
     template: _.template(
-            '<div id="api-perf-panel-header" class="panel panel-primary">' +
-            '<div class="panel-heading">' +
-            '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
-            '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
-            '</h3></div>'),
+        '<div id="api-perf-panel-header" class="panel panel-primary">' +
+        '<div class="panel-heading">' +
+        '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
+        '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
+        '</h3></div>'),
 
-    render: function(){
+    render: function() {
         this.$el.html(this.template());
         return this;
     }
