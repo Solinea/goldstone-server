@@ -86,6 +86,7 @@ module.exports = function(grunt) {
     grunt.registerTask('default', ['lint', 'test', 'watch']);
     grunt.registerTask('lint', ['jshint']);
     grunt.registerTask('test', ['karma:single', 'casperjs']);
+    grunt.registerTask('testWatch', ['karma', 'watch']);
     grunt.registerTask('lintAndTest', ['lint', 'test']);
     grunt.registerTask('lintAndTest', ['lint', 'test']);
 
