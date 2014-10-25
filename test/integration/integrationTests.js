@@ -1,6 +1,80 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests
 
+describe('apiPerfView.js spec', function() {
+    beforeEach(function() {
+
+        // confirm that dom is clear of view elements before each test:
+        expect($('svg').length).to.equal(0);
+        expect($('#spinner').length).to.equal(0);
+
+        this.testCollection = new ApiPerfCollection({
+            url: '/nova/api_perf?start=1408554857&end=1411146857&interval=32400s&render=false'
+        });
+        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+
+        this.testView = new ApiPerfView({
+            chartTitle: "Tester API Performance",
+            collection: this.testCollection,
+            height: 300,
+            infoCustom: [{
+                key: "API Call",
+                value: "Hypervisor Show"
+            }],
+            el: 'body',
+            startStopInterval: {
+                start: 1413644531000,
+                end: 1414249331000,
+                interval: "3600s"
+            },
+            width: $('body').width(),
+            yAxisLabel: 'yAxisTest'
+        });
+    });
+    afterEach(function() {
+        $('body').html('');
+    });
+    describe('view is constructed', function() {
+        it('should exist', function() {
+            assert.isDefined(this.testView, 'this.testView has been defined');
+            expect(this.testView).to.be.an('object');
+            expect(this.testView.el).to.equal('body');
+        });
+        it('info button popover responds to click event', function() {
+            expect($('div.popover').length).to.equal(0);
+            $(this.testView.el).find('#api-perf-info').click();
+            expect($('div.popover').length).to.equal(1);
+        });
+        it('view update appends svg and border elements', function() {
+            expect(this.testView.update).to.be.a('function');
+            this.testView.update();
+            expect($('svg').length).to.equal(1);
+            expect($('g.legend-items').find('text').text()).to.equal('MinMaxAvg');
+            expect($('.panel-title').text().trim()).to.equal('Tester API Performance');
+            expect($('svg').text()).to.not.include('Response was empty');
+        });
+        it('can handle a null server payload and append appropriate response', function() {
+            console.log($('svg').text());
+            expect($('svg').text()).to.not.include('Response was empty');
+            console.log(this.testCollection.toJSON());
+            this.testCollection.reset();
+            console.log(this.testCollection.toJSON());
+            this.testView.update();
+            expect($('svg').text()).to.include('Response was empty');
+            console.log($('svg').text());
+            $('body').html('');
+            this.testCollection.add({url: '/nova/api_perf?start=1408554857&end=1411146857&interval=32400s&render=false'});
+            console.log(this.testCollection.toJSON());
+            this.testView.update();
+            console.log($('svg').text());
+            expect($('svg').text()).to.not.include('Response was empty');
+        });
+    });
+});
+
+
+
+
 describe("Backbone Object functionality", function() {
     beforeEach(function() {
 
