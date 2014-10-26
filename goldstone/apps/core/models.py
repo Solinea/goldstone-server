@@ -14,6 +14,7 @@
 import json
 from uuid import uuid4
 import arrow
+from django.db import models
 from django.db.models import CharField, BooleanField, Model, DateTimeField, \
     TextField, DecimalField, IntegerField
 from django_extensions.db.fields import UUIDField, ModificationDateTimeField, \
@@ -235,12 +236,11 @@ class ReportType(MappingType, Indexable):
             node=self._results_dict['node']
         )
 
-
 class Report(Model):
     id = CharField(max_length=36, primary_key=True)
     timestamp = DateTimeField(auto_now=False)
     name = CharField(max_length=128)
-    value = DecimalField(max_digits=30, decimal_places=8)
+    value = CharField(max_length=65535)
     node = CharField(max_length=36)
 
     _mt = ReportType()
@@ -250,6 +250,18 @@ class Report(Model):
         """
         provides a way for the mapping type to create an object from ES data
         """
+        # reports could be stringified JSON, so let's find out
+        if "value" in kwargs and type(kwargs["value"]) is list:
+            new_val = []
+            for item in kwargs["value"]:
+                try:
+                    new_val.append(json.loads(item))
+                except:
+                    new_val.append(item)
+            kwargs['value'] = new_val
+
+        else:
+            logger.debug("no value present in kwargs, or value not a list")
         obj = cls(**kwargs)
         return obj
 

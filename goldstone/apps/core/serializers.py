@@ -60,9 +60,22 @@ class MetricSerializer(serializers.ModelSerializer):
 class ReportSerializer(serializers.ModelSerializer):
     timestamp = serializers.DateTimeField(read_only=True)
     name = serializers.CharField(read_only=True)
-    value = serializers.DecimalField(read_only=True)
+    value = serializers.CharField(read_only=True)
     node = serializers.CharField(read_only=True)
 
     class Meta:
         model = Report
         exclude = ['id']
+
+    def transform_value(self, obj, field_value):
+        import json
+        if type(field_value) is list:
+            new_val = []
+            for item in field_value:
+                try:
+                    new_val.append(json.loads(item))
+                except:
+                    new_val.append(item)
+            return new_val
+        else:
+            return field_value
