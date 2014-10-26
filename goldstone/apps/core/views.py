@@ -84,16 +84,6 @@ class NodeViewSet(ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ESModelViewSet(ModelViewSet):
-    """
-    subclasses should set queryset and serializer class appropriately
-    """
-    order_by_field = "-created"
-    lookup_field = "_id"
-    queryset = EventType().search().query().order_by(order_by_field)
-    serializer_class = None
-
-
 class EventViewSet(ModelViewSet):
     queryset = EventType().search().query().order_by('-created')
     serializer_class = EventSerializer
@@ -129,14 +119,13 @@ class EventViewSet(ModelViewSet):
 
 class MetricViewSet(ModelViewSet):
     queryset = MetricType().search().query().order_by('-timestamp')
-    # queryset = MetricType().search().query()
     serializer_class = MetricSerializer
     lookup_field = "_id"
 
     def list(self, request, *args, **kwargs):
         # adding support filter params
         params = request.QUERY_PARAMS.dict()
-        if params != {}:
+        if params is not None:
             # don't use the page related params as filters
             if settings.REST_FRAMEWORK['PAGINATE_BY_PARAM'] in params:
                 del params[settings.REST_FRAMEWORK['PAGINATE_BY_PARAM']]
@@ -146,7 +135,7 @@ class MetricViewSet(ModelViewSet):
             self.queryset = MetricType().search().query().filter(**params). \
                 order_by('-timestamp')
 
-        return super(MetricViewSet, self).list(request, *args, **kwargs)
+            return super(MetricViewSet, self).list(request, *args, **kwargs)
 
     def get_object(self):
         q = self.queryset
@@ -164,7 +153,6 @@ class MetricViewSet(ModelViewSet):
 
 class ReportViewSet(ModelViewSet):
     queryset = ReportType().search().query().order_by('-timestamp')
-    # queryset = MetricType().search().query()
     serializer_class = ReportSerializer
     lookup_field = "_id"
 
