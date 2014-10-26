@@ -240,7 +240,7 @@ class Report(Model):
     id = CharField(max_length=36, primary_key=True)
     timestamp = DateTimeField(auto_now=False)
     name = CharField(max_length=128)
-    value = CharField(max_length=65535)
+    value = TextField(max_length=65535)
     node = CharField(max_length=36)
 
     _mt = ReportType()
