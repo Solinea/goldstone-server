@@ -283,11 +283,11 @@ goldstone.time.processTimeBasedChartParams = function(end, start, maxPoints) {
         endDate = new Date();
     }
 
-    if (start !== undefined){
+    if (start !== undefined) {
         startDate = goldstone.time.paramToDate(start);
     } else {
 
-        var weekSubtractor = function(date){
+        var weekSubtractor = function(date) {
             var origTime = +new Date(date);
             return new Date(origTime - 604800000);
         };
@@ -807,7 +807,7 @@ goldstone.charts.topologyTree = {
             top: 10,
             bottom: 10,
             right: 10,
-            left: 50
+            left: 30
         };
         this.ns.w = $(this.ns.location).width();
         this.ns.mw = this.ns.w - this.ns.margin.left - this.ns.margin.right;
@@ -819,7 +819,7 @@ goldstone.charts.topologyTree = {
         this.ns.tree = d3.layout.tree()
             .size([this.ns.mh, this.ns.mw])
             .separation(function(a, b) {
-                var sep = a.parent === b.parent ? 1 : 2;
+                var sep = a.parent === b.parent ? 3 : 2;
                 return sep;
             });
         this.ns.i = 0; // used in processTree for node id
@@ -998,7 +998,7 @@ goldstone.charts.topologyTree = {
                         }
                     });
                 } else {
-                    $("#multi-rsrc-table").html("<p>No data</p>");
+                    $("#multi-rsrc-body").html("<p style='margin-left: " + (ns.w / 2 - 30) + "'>No data</p>");
                 }
             }
         });
@@ -1014,6 +1014,8 @@ goldstone.charts.topologyTree = {
 
         // Normalize for fixed-depth.
         nodes.forEach(function(d) {
+
+
             // TODO make the tree branch length configurable
             d.y = d.depth * 95;
         });
@@ -1041,6 +1043,7 @@ goldstone.charts.topologyTree = {
                 return "translate(" + json.y0 + "," + json.x0 + ")";
             })
             .on("click", function(d) {
+
                 if (d.rsrcType.match(/-leaf$/) && ns.hasOwnProperty('leafDataUrls')) {
                     var url = ns.leafDataUrls[d.rsrcType];
                     if (url !== undefined) {
@@ -1055,8 +1058,34 @@ goldstone.charts.topologyTree = {
                             hasParam = true;
                             url = url + "zone=" + d.zone;
                         }
-                        ns.self.loadLeafData(url, ns);
+                        if (!ns.frontPage) {
+                            ns.self.loadLeafData(url, ns);
+                        }
+
+                        if (ns.frontPage) {
+
+                            if (d.rsrcType === 'region' || d.rsrcType === 'module') {
+                                return true;
+                            } else {
+                                var parentModule;
+
+                                // traverse up the tree until the
+                                // parent module is reached
+                                while (d.rsrcType !== 'module') {
+                                    d = d.parent;
+                                }
+                                parentModule = d.label;
+
+                                // clear and set resource url in localStorage
+                                localStorage.clear();
+                                url = "/" + parentModule + url;
+                                localStorage.setItem('urlForResourceList', url);
+
+                                window.location.href = parentModule + '/discover';
+                            }
+                        }
                     }
+
                 } else {
                     ns.self.toggle(d);
                     ns.self.processTree(d, ns);
@@ -1238,13 +1267,21 @@ goldstone.charts.topologyTree = {
                 (function(ns) {
                     ns.data.x0 = ns.h / 2;
                     ns.data.y0 = 0;
+                    // Don't unfold by default
                     // Initialize the display to show only the first tier of children
-                    if (ns.data.hasOwnProperty('children')) {
-                        ns.data.children.forEach(ns.topologyTree.toggleAll);
-                    }
+                    // if (ns.data.hasOwnProperty('children')) {
+                    // ns.data.children.forEach(ns.topologyTree.toggleAll);
+                    // }
                     ns.topologyTree.processTree(ns.data, ns);
                     $(ns.spinner).hide();
                 })(this.ns);
+
+                // render resource url in localStorage, if any, and clear it out
+                if (localStorage.urlForResourceList) {
+                    this.loadLeafData(localStorage.urlForResourceList, this.ns);
+                    localStorage.clear();
+                }
+
             }
         }
     }
