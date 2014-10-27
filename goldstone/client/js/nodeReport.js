@@ -30,7 +30,7 @@ var renderCharts = function() {
 
     var serviceStatusChartView = new ServiceStatusView({
         collection: serviceStatusChart,
-        location: '#node-report-r2-c1 #servicesChart',
+        el: '#node-report-r2-c1 #servicesChart',
         width: $('#node-report-r2-c1 #servicesChart').width()
     });
 
