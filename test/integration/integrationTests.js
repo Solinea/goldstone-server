@@ -1,60 +1,95 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests
 
-describe("Backbone Object functionality", function() {
+describe('apiPerfView.js spec', function() {
     beforeEach(function() {
 
-        server = sinon.fakeServer.create();
+        // to answer GET requests
+        this.server = sinon.fakeServer.create();
+        this.server.respondWith("GET", "/something/fancy", [200, {
+            "Content-Type": "application/json"
+        }, '[]']);
 
-        JSONresponse = 'chartData: [{"2xx":20.0,"3xx":0.0,"4xx":0.0,"5xx":0.0,"avg":317.4,"count":20.0,"key":1409140800000.0,"max":559.0,"min":270.0,"std_deviation":61.1027004313,"sum":6348.0,"sum_of_squares":2089526.0,"variance":3733.54},{"2xx":938.0,"3xx":0.0,"4xx":0.0,"5xx":0.0,"avg":337.2590618337,"count":938.0,"key":1409173200000.0,"max":2981.0,"min":248.0,"std_deviation":130.4775305509,"sum":316349.0,"sum_of_squares":122660441.0,"variance":17024.3859786508},{"2xx":192.0,"3xx":0.0,"4xx":0.0,"5xx":0.0,"avg":313.7135416667,"count":192.0,"key":1409205600000.0,"max":754.0,"min":261.0,"std_deviation":47.228238198,"sum":60233.0,"sum_of_squares":19324165.0,"variance":2230.5064832899}';
+        // confirm that dom is clear of view elements before each test:
+        expect($('svg').length).to.equal(0);
+        expect($('#spinner').length).to.equal(0);
 
-        server.respondWith('GET', '/*', [
-            200, {
-                'Content-Type': 'application/json'
+        this.testCollection = new ApiPerfCollection({
+            url: '/something/fancy'
+        });
+        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+
+        this.testView = new ApiPerfView({
+            chartTitle: "Tester API Performance",
+            collection: this.testCollection,
+            height: 300,
+            infoCustom: [{
+                key: "API Call",
+                value: "Hypervisor Show"
+            }],
+            el: 'body',
+            startStopInterval: {
+                start: 1413644531000,
+                end: 1414249331000,
+                interval: "3600s"
             },
-            JSON.stringify(JSONresponse)
-        ]);
-
-        this.nsReport_stub = {
-            start: new Date(1408554857000),
-            end: new Date(1411146857000),
-            interval: "32400s"
-        };
-
-
-        this.testApiChart = new ApiPerfCollection({
-            url: goldstone.nova.apiPerf.url(this.nsReport_stub.start, this.nsReport_stub.end, this.nsReport_stub.interval, false)
+            width: $('body').width(),
+            yAxisLabel: 'yAxisTest'
         });
-
-        this.fetch_stub = sinon.stub(this.testApiChart, "fetch");
-
-        this.initialize_stub = sinon.stub(this.testApiChart, "initialize");
-
-        // this.render_stub = sinon.stub(this.testApiChart, "render");
-
     });
-
     afterEach(function() {
-        // this.render_stub.restore();
-        this.fetch_stub.restore();
-        this.initialize_stub.restore();
-        server.restore();
-
+        $('body').html('');
+        this.server.restore();
     });
-
-    describe("Something about Model", function() {
-        it("something should happen", function() {
-
-            expect(this.nsReport_stub.start).to.be.a('date');
-            expect(this.nsReport_stub.end).to.be.a('date');
-            expect(this.nsReport_stub.interval).to.be.a('string');
-
-            this.testApiChart.fetch();
-            // server.respond();
-
-            // expect(this.fetch_stub).should.have.been.calledOnce();
-            sinon.assert.calledOnce(this.fetch_stub);
+    describe('collection is constructed', function() {
+        it('should exist', function() {
+            var dataTest = JSON.stringify('hello');
+            assert.isDefined(this.testCollection, 'this.testCollection has been defined');
+            expect(this.testCollection.parse).to.be.a('function');
+            this.testCollection.initialize({
+                url: 'hi'
+            });
+            expect(this.testCollection.length).to.equal(1);
+            this.testCollection.add({
+                test1: 'test1'
+            });
+            expect(this.testCollection.length).to.equal(2);
+            this.testCollection.parse(dataTest);
         });
     });
 
+    describe('view is constructed', function() {
+        it('should exist', function() {
+            assert.isDefined(this.testView, 'this.testView has been defined');
+            expect(this.testView).to.be.an('object');
+            expect(this.testView.el).to.equal('body');
+        });
+        it('info button popover responds to click event', function() {
+            expect($('div.popover').length).to.equal(0);
+            $(this.testView.el).find('#api-perf-info').click();
+            expect($('div.popover').length).to.equal(1);
+        });
+        it('view update appends svg and border elements', function() {
+            expect(this.testView.update).to.be.a('function');
+            this.testView.update();
+            expect($('svg').length).to.equal(1);
+            expect($('g.legend-items').find('text').text()).to.equal('MinMaxAvg');
+            expect($('.panel-title').text().trim()).to.equal('Tester API Performance');
+            expect($('svg').text()).to.not.include('Response was empty');
+        });
+        it('can handle a null server payload and append appropriate response', function() {
+            this.update_spy = sinon.spy(this.testView, "update");
+            expect($('#noDataReturned').text()).to.equal('');
+            this.testCollection.reset();
+            this.testView.update();
+            expect($('#noDataReturned').text()).to.equal('No Data Returned');
+            this.testCollection.add({
+                url: '/blah'
+            });
+            this.testView.update();
+            expect($('#noDataReturned').text()).to.equal('');
+            expect(this.update_spy.callCount).to.equal(2);
+            this.update_spy.restore();
+        });
+    });
 });
