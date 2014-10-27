@@ -371,7 +371,7 @@ var NodeAvailView = Backbone.View.extend({
 
             var checkMark = addCheckIfActive(item);
 
-            $(this.el).find('#populateEventFilters').
+            $(self.el).find('#populateEventFilters').
             append(
 
                 '<div class="row">' +
@@ -674,9 +674,9 @@ var NodeAvailView = Backbone.View.extend({
         '<input type="checkbox" class="eventAutoRefresh" checked>' +
         '</span>' +
         '<select class="form-control" id="eventAutoRefreshInterval">' +
-        '<option value="5" selected>5 seconds</option>' +
+        '<option value="5">5 seconds</option>' +
         '<option value="15">15 seconds</option>' +
-        '<option value="30">30 seconds</option>' +
+        '<option value="30" selected>30 seconds</option>' +
         '<option value="60">1 minute</option>' +
         '<option value="300">5 minutes</option>' +
         '</select>' +
