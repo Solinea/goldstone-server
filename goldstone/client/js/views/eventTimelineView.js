@@ -144,17 +144,14 @@ var EventTimelineView = Backbone.View.extend({
     },
 
     isRefreshSelected: function() {
-        var ns = this.defaults;
         return $(this.el).find(".eventAutoRefresh").prop("checked");
     },
 
     refreshInterval: function() {
-        var ns = this.defaults;
         return $(this.el).find("select#eventAutoRefreshInterval").val();
     },
 
     lookbackRange: function() {
-        var ns = this.defaults;
         return $(this.el).find("#lookbackRange").val();
     },
 
@@ -312,7 +309,7 @@ var EventTimelineView = Backbone.View.extend({
             };
             var checkMark = addCheckIfActive(item);
 
-            $(self.el).find('#populateEventFilters')
+            $(this.el).find('#populateEventFilters')
                 .append(
                     '<div class="row">' +
                     '<div class="col-lg-12">' +
@@ -326,7 +323,7 @@ var EventTimelineView = Backbone.View.extend({
                     '</div>' +
                     '</div>'
             );
-        });
+        }, this);
 
         $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
 
