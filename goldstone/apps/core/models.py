@@ -236,6 +236,7 @@ class ReportType(MappingType, Indexable):
             node=self._results_dict['node']
         )
 
+
 class Report(Model):
     id = CharField(max_length=36, primary_key=True)
     timestamp = DateTimeField(auto_now=False)
