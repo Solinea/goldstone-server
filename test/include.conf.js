@@ -3,8 +3,8 @@
 
 module.exports = [
 
-    'goldstone/client/js/*.js',
     'goldstone/client/js/models/*.js',
+    'goldstone/client/js/*.js',
     'goldstone/client/js/collections/*.js',
     'goldstone/client/js/views/*.js'
 ];
