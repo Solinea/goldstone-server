@@ -31,7 +31,7 @@ var renderCharts = function() {
 
     var eventTimelineChartView = new EventTimelineView({
         collection: eventTimelineChart,
-        location: '#goldstone-discover-r1-c1',
+        el: '#goldstone-discover-r1-c1',
         chartTitle: 'Event Timeline',
         width: $('#goldstone-discover-r1-c1').width()
     });
