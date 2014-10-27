@@ -27,7 +27,7 @@ var NodeAvailView = Backbone.View.extend({
         this.options = options || {};
         this.defaults = _.clone(this.defaults); 
         this.defaults.url = this.collection.url;
-        this.defaults.location = options.location;
+        this.el = options.el;
         this.defaults.chartTitle = options.chartTitle;
         this.defaults.width = options.width;
         this.defaults.h = options.h;
@@ -45,8 +45,9 @@ var NodeAvailView = Backbone.View.extend({
         // longer than chart loading
         ns.spinnerDisplay = 'inline';
 
+        var appendSpinnerLocation = this.el;
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(ns.location).css({
+            $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
                 'margin-top': -(ns.h.main * 0.7),
@@ -58,7 +59,7 @@ var NodeAvailView = Backbone.View.extend({
         // invoke this.update(), when the collection 'fetch' is complete
         this.collection.on('sync', this.update, this);
 
-        // appends display and modal html elements to ns.location
+        // appends display and modal html elements to this.el
         this.appendHTML();
 
         // bind modal 'submit' button to updating animation variables
@@ -139,7 +140,7 @@ var NodeAvailView = Backbone.View.extend({
          * The graph and axes
          */
 
-        ns.svg = d3.select(ns.location).select(".panel-body").append("svg")
+        ns.svg = d3.select(this.el).select(".panel-body").append("svg")
             .attr("width", ns.w)
             .attr("height", ns.h.main + (ns.h.swim * 2) + ns.margin.top + ns.margin.bottom)
             .append("g")
@@ -245,24 +246,24 @@ var NodeAvailView = Backbone.View.extend({
             });
 
         // Draw the axis on the screen
-        d3.select(ns.location).select(".swim.axis")
+        d3.select(this.el).select(".swim.axis")
             .call(ns.swimAxis.scale(ns.ySwimLane));
 
         // Transform the swim lane ticks into place
         // increases size of labels via font-size
-        d3.select(ns.location).select(".swim.axis").selectAll("text")
+        d3.select(this.el).select(".swim.axis").selectAll("text")
             .style('font-size', '15px')
             .style('font-weight', 'bold');
     },
 
     isRefreshSelected: function() {
         var ns = this.defaults;
-        return $(ns.location).find(".eventAutoRefresh").prop("checked");
+        return $(this.el).find(".eventAutoRefresh").prop("checked");
     },
 
     refreshInterval: function() {
         var ns = this.defaults;
-        return $(ns.location).find("select#eventAutoRefreshInterval").val();
+        return $(this.el).find("select#eventAutoRefreshInterval").val();
     },
 
 
@@ -276,7 +277,7 @@ var NodeAvailView = Backbone.View.extend({
                 self.scheduleFetch();
             }
         };
-        $("#eventSettingsUpdateButton-" + ns.location.slice(1)).click(updateSettings);
+        $("#eventSettingsUpdateButton-" + this.el.slice(1)).click(updateSettings);
 
         // set initial values for delay and pause based on modal settings
         updateSettings();
@@ -305,7 +306,7 @@ var NodeAvailView = Backbone.View.extend({
         // spinner callback resolves
         // after chart data callback
         ns.spinnerDisplay = 'none';
-        $(ns.location).find('#spinner').hide();
+        $(this.el).find('#spinner').hide();
 
         // prevent updating when fetch is in process
         if (!this.collection.thisXhr.getResponseHeader('LogCountStart') || this.collection.thisXhr.getResponseHeader('LogCountEnd') === null) {
@@ -328,30 +329,30 @@ var NodeAvailView = Backbone.View.extend({
         if (allthelogs.length === 0) {
 
             // if 'no data returned' already exists on page, don't reapply it
-            if ($(ns.location).find('#noDataReturned').length) {
+            if ($(this.el).find('#noDataReturned').length) {
                 return;
             }
 
-            $('<span id="noDataReturned">No Data Returned</span>').appendTo(ns.location)
+            $('<span id="noDataReturned">No Data Returned</span>').appendTo(this.el)
                 .css({
                     'position': 'relative',
-                    'margin-left': $(ns.location).width() / 2 - 14,
-                    'top': -$(ns.location).height() / 2
+                    'margin-left': $(this.el).width() / 2 - 14,
+                    'top': -$(this.el).height() / 2
                 });
 
             return;
         }
 
         // remove No Data Returned once data starts flowing again
-        if ($(ns.location).find('#noDataReturned').length) {
-            $(ns.location).find('#noDataReturned').remove();
+        if ($(this.el).find('#noDataReturned').length) {
+            $(this.el).find('#noDataReturned').remove();
         }
 
 
         // populate the modal based on the event types.
         // clear out the modal and reapply based on the unique events
-        if ($(ns.location).find('#populateEventFilters').length) {
-            $(ns.location).find('#populateEventFilters').empty();
+        if ($(this.el).find('#populateEventFilters').length) {
+            $(this.el).find('#populateEventFilters').empty();
         }
 
         _.each(_.keys(ns.filter), function(item) {
@@ -370,7 +371,7 @@ var NodeAvailView = Backbone.View.extend({
 
             var checkMark = addCheckIfActive(item);
 
-            $(ns.location).find('#populateEventFilters').
+            $(this.el).find('#populateEventFilters').
             append(
 
                 '<div class="row">' +
@@ -387,7 +388,7 @@ var NodeAvailView = Backbone.View.extend({
             );
         });
 
-        $(ns.location).find('#populateEventFilters :checkbox').on('click', function() {
+        $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
             var checkboxId = this.id;
             ns.filter[checkboxId] = !ns.filter[checkboxId];
             self.redraw();
@@ -517,11 +518,11 @@ var NodeAvailView = Backbone.View.extend({
             }))
         ]);
 
-        d3.select(ns.location).select(".swim.axis")
+        d3.select(this.el).select(".swim.axis")
             .transition()
             .duration(500);
 
-        d3.select(ns.location).select(".y.axis")
+        d3.select(this.el).select(".y.axis")
             .transition()
             .duration(500)
             .call(ns.yAxis.scale(ns.yLogs));
@@ -608,8 +609,9 @@ var NodeAvailView = Backbone.View.extend({
     appendHTML: function() {
 
         var ns = this.defaults;
+        console.log(this.el.slice(1), this.el);
 
-        $(ns.location).append(
+        $(this.el).append(
             '<div id = "goldstone-event-panel" class="panel panel-primary">' +
             '<div class="panel-heading">' +
             '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' +
@@ -617,11 +619,11 @@ var NodeAvailView = Backbone.View.extend({
 
             // filter icon
             '<i class="fa fa-filter pull-right" data-toggle="modal"' +
-            'data-target="#modal-filter-' + ns.location.slice(1) + '"></i>' +
+            'data-target="#modal-filter-' + this.el.slice(1) + '"></i>' +
 
             // cog icon
             '<i class="fa fa-cog pull-right" data-toggle="modal"' +
-            'data-target="#modal-settings-' + ns.location.slice(1) + '" style="margin-right: 30px;"></i>' +
+            'data-target="#modal-settings-' + this.el.slice(1) + '" style="margin-right: 30px;"></i>' +
 
             // info-circle icon
             '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-event-info"' +
@@ -640,15 +642,15 @@ var NodeAvailView = Backbone.View.extend({
             '</div>' +
             '</div>' +
 
-            '<div id="modal-container-' + ns.location.slice(1) +
+            '<div id="modal-container-' + this.el.slice(1) +
             '"></div>'
 
         );
 
-        $('#modal-container-' + ns.location.slice(1)).append(
+        $('#modal-container-' + this.el.slice(1)).append(
 
             // event settings modal
-            '<div class="modal fade" id="modal-settings-' + ns.location.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+            '<div class="modal fade" id="modal-settings-' + this.el.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header">' +
@@ -678,7 +680,7 @@ var NodeAvailView = Backbone.View.extend({
             '</div>' +
             '<div class="modal-footer">' +
             '<div class="form-group">' +
-            '<button type="button" id="eventSettingsUpdateButton-' + ns.location.slice(1) + '" class="btn btn-primary" data-dismiss="modal">Update</button>' +
+            '<button type="button" id="eventSettingsUpdateButton-' + this.el.slice(1) + '" class="btn btn-primary" data-dismiss="modal">Update</button>' +
             '</div>' +
             '</div>' +
             '</div>' +
@@ -687,10 +689,10 @@ var NodeAvailView = Backbone.View.extend({
         );
 
         // add 2nd modal here:
-        $('#modal-container-' + ns.location.slice(1)).append(
+        $('#modal-container-' + this.el.slice(1)).append(
 
             // event settings modal
-            '<div class="modal fade" id="modal-filter-' + ns.location.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+            '<div class="modal fade" id="modal-filter-' + this.el.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
 
@@ -711,7 +713,7 @@ var NodeAvailView = Backbone.View.extend({
 
             // footer
             '<div class="modal-footer">' +
-            '<button type="button" id="eventFilterUpdateButton-' + ns.location.slice(1) + '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
+            '<button type="button" id="eventFilterUpdateButton-' + this.el.slice(1) + '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
             '</div>' +
 
             '</div>' +
