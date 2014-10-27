@@ -48,7 +48,7 @@ var renderCharts = function() {
     var nodeAvailChartView = new NodeAvailView({
         collection: nodeAvailChart,
         h: {"main": 450, "swim": 50},
-        location: '#goldstone-discover-r2-c2',
+        el: '#goldstone-discover-r2-c2',
         chartTitle: 'Node Availability',
         width: $('#goldstone-discover-r2-c2').width()
     });
