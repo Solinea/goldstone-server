@@ -60,7 +60,7 @@ var NodeAvailView = Backbone.View.extend({
         this.collection.on('sync', this.update, this);
 
         // appends display and modal html elements to this.el
-        this.appendHTML();
+        this.render();
 
         // bind modal 'submit' button to updating animation variables
         this.initSettingsForm();
@@ -606,120 +606,125 @@ var NodeAvailView = Backbone.View.extend({
 
     },
 
-    appendHTML: function() {
+    render: function() {
+        this.$el.html(this.template());
+        this.$el.find('#modal-container-' + this.el.slice(1)).append(this.modal1());
+        this.$el.find('#modal-container-' + this.el.slice(1)).append(this.modal2());
+        return this;
+    },
 
-        var ns = this.defaults;
-        console.log(this.el.slice(1), this.el);
+    template: _.template(
+        '<div id = "goldstone-event-panel" class="panel panel-primary">' +
+        '<div class="panel-heading">' +
+        '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' +
+        '<%= ns.chartTitle %>' +
 
-        $(this.el).append(
-            '<div id = "goldstone-event-panel" class="panel panel-primary">' +
-            '<div class="panel-heading">' +
-            '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' +
-            ns.chartTitle +
+        // filter icon
+        '<i class="fa fa-filter pull-right" data-toggle="modal"' +
+        'data-target="#modal-filter-<%= this.el.slice(1) %>' + '"></i>' +
 
-            // filter icon
-            '<i class="fa fa-filter pull-right" data-toggle="modal"' +
-            'data-target="#modal-filter-' + this.el.slice(1) + '"></i>' +
+        // cog icon
+        '<i class="fa fa-cog pull-right" data-toggle="modal"' +
+        'data-target="#modal-settings-<%= this.el.slice(1) %>' +
+        '" style="margin-right: 30px;"></i>' +
 
-            // cog icon
-            '<i class="fa fa-cog pull-right" data-toggle="modal"' +
-            'data-target="#modal-settings-' + this.el.slice(1) + '" style="margin-right: 30px;"></i>' +
+        // info-circle icon
+        '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-event-info"' +
+        'style="margin-right: 30px;"></i>' +
+        '</h3>' +
+        '</div>' +
+        '<div class="panel-body" style="height:50px">' +
+        '<div id="event-filterer" class="btn-group pull-right" data-toggle="buttons" align="center">' +
+        '</div>' +
+        '</div>' +
+        '<div class="panel-body" style="height:550px">' +
+        '<div id="goldstone-event-chart">' +
+        '<div class="clearfix"></div>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
 
-            // info-circle icon
-            '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-event-info"' +
-            'style="margin-right: 30px;"></i>' +
-            '</h3>' +
-            '</div>' +
-            '<div class="panel-body" style="height:50px">' +
-            '<div id="event-filterer" class="btn-group pull-right" data-toggle="buttons" align="center">' +
-            '</div>' +
-            '</div>' +
-            '<div class="panel-body" style="height:550px">' +
-            '<div id="goldstone-event-chart">' +
-            '<div class="clearfix"></div>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
+        '<div id="modal-container-<%= this.el.slice(1) %>' +
+        '"></div>'
 
-            '<div id="modal-container-' + this.el.slice(1) +
-            '"></div>'
+    ),
 
-        );
+    modal1: _.template(
+        // event settings modal
+        '<div class="modal fade" id="modal-settings-<%= this.el.slice(1) %>' +
+        '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+        '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
 
-        $('#modal-container-' + this.el.slice(1)).append(
+        // header
+        '<div class="modal-header">' +
+        '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+        '<h4 class="modal-title" id="myModalLabel">Chart Settings</h4>' +
+        '</div>' +
 
-            // event settings modal
-            '<div class="modal fade" id="modal-settings-' + this.el.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
-            '<div class="modal-dialog">' +
-            '<div class="modal-content">' +
-            '<div class="modal-header">' +
-            '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
-            '<h4 class="modal-title" id="myModalLabel">Chart Settings</h4>' +
-            '</div>' +
-            '<div class="modal-body">' +
-            '<form class="form-horizontal" role="form">' +
-            '<div class="form-group">' +
-            '<label for="eventAutoRefresh" class="col-sm-3 control-label">Refresh: </label>' +
-            '<div class="col-sm-9">' +
-            '<div class="input-group">' +
-            '<span class="input-group-addon">' +
-            '<input type="checkbox" class="eventAutoRefresh" checked>' +
-            '</span>' +
-            '<select class="form-control" id="eventAutoRefreshInterval">' +
-            '<option value="5" selected>5 seconds</option>' +
-            '<option value="15">15 seconds</option>' +
-            '<option value="30">30 seconds</option>' +
-            '<option value="60">1 minute</option>' +
-            '<option value="300">5 minutes</option>' +
-            '</select>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</form>' +
-            '</div>' +
-            '<div class="modal-footer">' +
-            '<div class="form-group">' +
-            '<button type="button" id="eventSettingsUpdateButton-' + this.el.slice(1) + '" class="btn btn-primary" data-dismiss="modal">Update</button>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>'
-        );
+        // body
+        '<div class="modal-body">' +
+        '<form class="form-horizontal" role="form">' +
+        '<div class="form-group">' +
+        '<label for="eventAutoRefresh" class="col-sm-3 control-label">Refresh: </label>' +
+        '<div class="col-sm-9">' +
+        '<div class="input-group">' +
+        '<span class="input-group-addon">' +
+        '<input type="checkbox" class="eventAutoRefresh" checked>' +
+        '</span>' +
+        '<select class="form-control" id="eventAutoRefreshInterval">' +
+        '<option value="5" selected>5 seconds</option>' +
+        '<option value="15">15 seconds</option>' +
+        '<option value="30">30 seconds</option>' +
+        '<option value="60">1 minute</option>' +
+        '<option value="300">5 minutes</option>' +
+        '</select>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</form>' +
+        '</div>' +
 
-        // add 2nd modal here:
-        $('#modal-container-' + this.el.slice(1)).append(
+        // footer
+        '<div class="modal-footer">' +
+        '<div class="form-group">' +
+        '<button type="button" id="eventSettingsUpdateButton-<%= this.el.slice(1) %>' +
+        '" class="btn btn-primary" data-dismiss="modal">Update</button>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>'
+    ),
 
-            // event settings modal
-            '<div class="modal fade" id="modal-filter-' + this.el.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
-            '<div class="modal-dialog">' +
-            '<div class="modal-content">' +
+    modal2: _.template(
+        // event filter modal
+        '<div class="modal fade" id="modal-filter-<%= this.el.slice(1) %>' +
+        '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+        '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
 
-            // header
-            '<div class="modal-header">' +
+        // header
+        '<div class="modal-header">' +
+        '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
+        '<h4 class="modal-title" id="myModalLabel">Log Severity Filters</h4>' +
+        '</div>' +
 
-            '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-            '<h4 class="modal-title" id="myModalLabel">Log Severity Filters</h4>' +
-            '</div>' +
+        // body
+        '<div class="modal-body">' +
+        '<h5>Uncheck log-type to hide from display</h5><br>' +
+        '<div id="populateEventFilters"></div>' +
+        '</div>' +
 
-            // body
-            '<div class="modal-body">' +
-            '<h5>Uncheck log-type to hide from display</h5><br>' +
-            '<div id="populateEventFilters"></div>' +
+        // footer
+        '<div class="modal-footer">' +
+        '<button type="button" id="eventFilterUpdateButton-<%= this.el.slice(1) %>' +
+        '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
+        '</div>' +
 
-
-            '</div>' +
-
-            // footer
-            '<div class="modal-footer">' +
-            '<button type="button" id="eventFilterUpdateButton-' + this.el.slice(1) + '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
-            '</div>' +
-
-            '</div>' +
-            '</div>' +
-            '</div>'
-
-        );
-    }
+        '</div>' +
+        '</div>' +
+        '</div>'
+    )
 });
