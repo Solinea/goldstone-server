@@ -617,7 +617,7 @@ var NodeAvailView = Backbone.View.extend({
         '<div id = "goldstone-event-panel" class="panel panel-primary">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' +
-        '<%= ns.chartTitle %>' +
+        '<%= this.defaults.chartTitle %>' +
 
         // filter icon
         '<i class="fa fa-filter pull-right" data-toggle="modal"' +
