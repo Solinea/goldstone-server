@@ -406,7 +406,6 @@ var NodeAvailView = Backbone.View.extend({
             .map(function(d) {
                 d.created = moment(d.created);
                 d.updated = moment(d.updated);
-                d.last_seen = moment(d.last_seen);
 
                 /*
                  * Figure out which bucket (logs, ping, or admin disabled)
@@ -542,7 +541,7 @@ var NodeAvailView = Backbone.View.extend({
                 return ns.loglevel(d.level);
             })
             .attr("cx", function(d) {
-                return ns.xScale(d.last_seen);
+                return ns.xScale(d.updated);
             })
             .attr("cy", function(d) {
                 return {
