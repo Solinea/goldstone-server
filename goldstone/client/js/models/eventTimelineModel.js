@@ -16,4 +16,6 @@
  * Author: Alex Jacobs
  */
 
-var EventTimelineModel = Backbone.Model.extend({});
+var EventTimelineModel = Backbone.Model.extend({
+    idAttribute: "id"
+});
