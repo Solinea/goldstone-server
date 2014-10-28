@@ -31,7 +31,7 @@ var HypervisorVmCpuView = Backbone.View.extend({
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
         this.defaults.url = this.collection.url;
-        this.defaults.location = options.location;
+        this.el = options.el;
         this.defaults.width = options.width;
 
         var ns = this.defaults;
@@ -69,7 +69,7 @@ var HypervisorVmCpuView = Backbone.View.extend({
                 return ns.y(d.utilValue);
             });
 
-        ns.svg = d3.select(ns.location).append("svg")
+        ns.svg = d3.select(this.el).append("svg")
             .attr("width", ns.mw + ns.margin.left + ns.margin.right)
             .attr("height", ns.mh + ns.margin.top + ns.margin.bottom)
             .append("g")
@@ -81,8 +81,9 @@ var HypervisorVmCpuView = Backbone.View.extend({
         // longer than chart loading
         ns.spinnerDisplay = 'inline';
 
+        var appendSpinnerLocation = this.el;
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(ns.location).css({
+            $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
                 'margin-top': -(ns.mh / 2),
                 'margin-left': (ns.mw / 2),
@@ -101,7 +102,7 @@ var HypervisorVmCpuView = Backbone.View.extend({
         // spinner callback resolves
         // after chart data callback
         ns.spinnerDisplay = 'none';
-        $(ns.location).find('#spinner').hide();
+        $(this.el).find('#spinner').hide();
 
         var allTheLogs = this.collection.toJSON();
 
@@ -247,7 +248,7 @@ var HypervisorVmCpuView = Backbone.View.extend({
         var ns = this.defaults;
         var self = this;
 
-        $(ns.location).find("#data-filterer")
+        $(this.el).find("#data-filterer")
             .append("<div class='btn-group pull-left'>" +
                 "<div class='btn-group'>" +
                 "<button type='button' class='btn btn-default btn-sm active'>User</button>" +
@@ -257,7 +258,7 @@ var HypervisorVmCpuView = Backbone.View.extend({
         );
 
         $(function() {
-            $(ns.location).find("button").click(function() {
+            $(self.el).find("button").click(function() {
                 $("button.active").toggleClass("active");
                 $(this).toggleClass("active");
                 var buttonPressed = ($(this).context.innerText);

@@ -34,8 +34,9 @@ var ServiceStatusView = Backbone.View.extend({
         // longer than chart loading
         ns.spinnerDisplay = 'inline';
 
+        var appendSpinnerLocation = ns.location;
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(this.el).css({
+            $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
                 'display': ns.spinnerDisplay
