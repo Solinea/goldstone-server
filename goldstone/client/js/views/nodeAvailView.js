@@ -258,12 +258,12 @@ var NodeAvailView = Backbone.View.extend({
 
     isRefreshSelected: function() {
         var ns = this.defaults;
-        return $(this.el).find(".eventAutoRefresh").prop("checked");
+        return $(this.el).find(".nodeAutoRefresh").prop("checked");
     },
 
     refreshInterval: function() {
         var ns = this.defaults;
-        return $(this.el).find("select#eventAutoRefreshInterval").val();
+        return $(this.el).find("select#nodeAutoRefreshInterval").val();
     },
 
 
@@ -666,13 +666,13 @@ var NodeAvailView = Backbone.View.extend({
         '<div class="modal-body">' +
         '<form class="form-horizontal" role="form">' +
         '<div class="form-group">' +
-        '<label for="eventAutoRefresh" class="col-sm-3 control-label">Refresh: </label>' +
+        '<label for="nodeAutoRefresh" class="col-sm-3 control-label">Refresh: </label>' +
         '<div class="col-sm-9">' +
         '<div class="input-group">' +
         '<span class="input-group-addon">' +
-        '<input type="checkbox" class="eventAutoRefresh" checked>' +
+        '<input type="checkbox" class="nodeAutoRefresh" checked>' +
         '</span>' +
-        '<select class="form-control" id="eventAutoRefreshInterval">' +
+        '<select class="form-control" id="nodeAutoRefreshInterval">' +
         '<option value="5">5 seconds</option>' +
         '<option value="15">15 seconds</option>' +
         '<option value="30" selected>30 seconds</option>' +
