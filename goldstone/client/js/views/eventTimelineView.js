@@ -458,7 +458,7 @@ var EventTimelineView = Backbone.View.extend({
     template: _.template(
         '<div id = "goldstone-event-panel" class="panel panel-primary">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= ns.chartTitle %>' +
+        '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
 
         // filter icon
         '<i class="fa fa-filter pull-right" data-toggle="modal"' +
@@ -474,12 +474,12 @@ var EventTimelineView = Backbone.View.extend({
         'style="margin-right: 30px;"></i>' +
         '</h3>' +
         '</div>' +
-        '<div class="panel-body" style="height:<%= (ns.h.padding * 2) %>' +
+        '<div class="panel-body" style="height:<%= (this.defaults.h.padding * 2) %>' +
         'px">' +
         '<div id="event-filterer" class="btn-group pull-left" data-toggle="buttons" align="center">' +
         '</div>' +
         '</div>' +
-        '<div class="panel-body" style="height:<%= ns.h.main %>' + 'px">' +
+        '<div class="panel-body" style="height:<%= this.defaults.h.main %>' + 'px">' +
         '<div id="goldstone-event-chart">' +
         '<div class="clearfix"></div>' +
         '</div>' +
