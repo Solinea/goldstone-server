@@ -9,7 +9,7 @@ describe('nodeAvailView.js spec', function() {
         this.server = sinon.fakeServer.create();
         this.server.respondWith("GET", "/*", [200, {
             "Content-Type": "application/json"
-        }, '{"count": 13, "next": null, "previous": null, "results": [{"uuid": "46b24373-eedc-43d5-9543-19dea317d88f", "name": "compute-01", "created": "2014-10-27T19:27:17Z", "updated": "2014-10-28T18:33:18Z", "last_seen_method": "LOGS", "admin_disabled": false, "error_count": 10, "warning_count": 4, "info_count": 33, "audit_count": 551, "debug_count": 0, "polymorphic_ctype": 12}, {"uuid": "d0656d75-1c26-48c5-875b-9130dd8892f4", "name": "compute-02", "created": "2014-10-27T19:27:17Z", "updated": "2014-10-28T18:33:17Z", "last_seen_method": "LOGS", "admin_disabled": false, "error_count": 0, "warning_count": 0, "info_count": 0, "audit_count": 448, "debug_count": 0, "polymorphic_ctype": 12}]}']);
+        }, '{absolutely: "nothing"}']);
 
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);
@@ -48,6 +48,18 @@ describe('nodeAvailView.js spec', function() {
             expect(this.testCollection.length).to.equal(4);
             this.testCollection.pop();
             expect(this.testCollection.length).to.equal(3);
+            this.testCollection.setXhr();
+        });
+        it('should parse appropriate', function() {
+            var testData = {a: "blah", b:"wah", results:[1,2,3]};
+            var test1 = this.testCollection.parse(testData);
+            expect(test1).to.deep.equal([1,2,3]);
+            testData = {a: "blah", b:"wah", results:[1,2,3], next: null};
+            var test2 = this.testCollection.parse(testData);
+            expect(test2).to.deep.equal([1,2,3]);
+            testData = {a: "blah", b:"wah", results:[1,2,3], next: 'fantastic/loggin/urls/forever'};
+            var test3 = this.testCollection.parse(testData);
+            expect(test3).to.deep.equal([1,2,3]);
         });
     });
 
@@ -59,7 +71,6 @@ describe('nodeAvailView.js spec', function() {
         });
         it('view update appends svg and border elements', function() {
             expect(this.testView.update).to.be.a('function');
-            this.testView.update();
             expect($('svg').length).to.equal(1);
             expect($('g').find('.axis').text()).to.equal('DisabledLogsPing Only');
             expect($('.panel-title').text().trim()).to.equal('Test Chart Title');
@@ -67,23 +78,23 @@ describe('nodeAvailView.js spec', function() {
         });
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
-            // expect($('#noDataReturned').length).to.equal(0);
-            // expect($('#noDataReturned').text()).to.equal('');
-            // console.log(this.testCollection.toJSON());
+            expect($('#noDataReturned').length).to.equal(0);
+            expect($('#noDataReturned').text()).to.equal('');
             this.testCollection.reset();
-            // console.log(this.testCollection.toJSON());
-            // $('.testContainer').html('');
+            this.testView.update();
+            expect($('.testContainer').find('#noDataReturned').length).to.equal(1);
+            expect($('#noDataReturned').text()).to.equal('No Data Returned');
+            // it doesn't RE-apply 'No Data Returned' if it's already there:
+            this.testView.update();
+            expect($('.testContainer').find('#noDataReturned').length).to.equal(1);
+            expect($('#noDataReturned').text()).to.equal('No Data Returned');
+            // it REMOVES 'No Data Returned' if data starts flowing again:
+            this.testCollection.add(
+                {"uuid": "46b24373-eedc-43d5-9543-19dea317d88f", "name": "compute-01", "created": "2014-10-27T19:27:17Z", "updated": "2014-10-28T18:33:18Z", "last_seen_method": "LOGS", "admin_disabled": true, "error_count": 10, "warning_count": 4, "info_count": 33, "audit_count": 551, "debug_count": 0, "polymorphic_ctype": 12});
             this.testView.update();
             expect($('.testContainer').find('#noDataReturned').length).to.equal(0);
-            // SHOULD BE 'NO DATA RETURNED!!??'
             expect($('#noDataReturned').text()).to.equal('');
-            this.testCollection.add({
-                url: '/blah'
-            });
-            this.testView.update();
-            expect($('.testContainer').find('#noDataReturned').length).to.equal(0);
-            expect($('#noDataReturned').text()).to.equal('');
-            expect(this.update_spy.callCount).to.equal(2);
+            expect(this.update_spy.callCount).to.equal(3);
             this.update_spy.restore();
         });
         it('sets refresh rate appropriately', function() {
@@ -107,14 +118,10 @@ describe('nodeAvailView.js spec', function() {
             // defaults to 30sec
             expect($('#populateEventFilters').children().length).to.equal(0);
         });
-        it('updates appropriately', function() {
-            this.testView.update();
-        });
         it('sums appropriately based on filter and count', function() {
             var testData = {"info_count": 42};
             var test1 = this.testView.sums(testData);
             expect(test1).to.equal(42);
-
 
             this.testView.defaults.filter.info_count = false;
             testData = {"info_count": 0};
@@ -147,6 +154,24 @@ describe('nodeAvailView.js spec', function() {
             expect(this.scheduleFetch_spy.callCount).to.equal(4);
             this.scheduleFetch_spy.restore();
             expect(this.testView.defaults.scheduleTimeout).to.equal(timeoutVar + 3);
+        });
+        it('appends circles and removes based on filtes', function() {
+            expect($('svg').find('circle').length).to.equal(0);
+            this.testCollection.reset();
+            this.testCollection.add(
+                {"uuid": "46b24373-eedc-43d5-9543-19dea317d88f", "name": "compute-01", "created": "2014-10-27T19:27:17Z", "updated": "2014-10-28T18:33:18Z", "last_seen_method": "LOGS", "admin_disabled": false, "error_count": 10, "warning_count": 4, "info_count": 33, "audit_count": 551, "debug_count": 0, "polymorphic_ctype": 12});
+            this.testView.update();
+            // this.testView.redraw();
+            expect($('svg').find('circle').length).to.equal(1);
+            console.log(this.testView.defaults.filter);
+            var filt = this.testView.defaults.filter;
+            filt = { none: false, debug: false, audit: false, info: false, warning: false, error: false
+            };
+            // TODO: successfully test removal of circle based on filter
+            // this.testCollection.reset();
+            // this.testView.update();
+            // this.testView.redraw();
+            // expect($('svg').find('circle').length).to.equal(1);
         });
     });
 });
