@@ -42,7 +42,7 @@ var renderCharts = function() {
     // instantiate Node Availability chart
 
     var nodeAvailChart = new NodeAvailCollection({
-        url: "/logging/nodes"
+        url: "/logging/nodes?page_size=100"
     });
 
     var nodeAvailChartView = new NodeAvailView({
