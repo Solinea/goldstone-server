@@ -310,7 +310,8 @@ var NodeAvailView = Backbone.View.extend({
 
         // prevent updating when fetch is in process
         if (!this.collection.thisXhr.getResponseHeader('LogCountStart') || this.collection.thisXhr.getResponseHeader('LogCountEnd') === null) {
-            return true;
+            // to be removed when server supports timestamped data retrieval
+            console.log('xhrFetch in process');
         }
 
         // var allthelogs = JSON.parse(response.responseText);
