@@ -42,7 +42,7 @@ var renderCharts = function() {
 
     var cpuUsageView = new UtilizationView({
         collection: cpuUsageChart,
-        location: '#node-report-r3 #node-report-panel #cpu-usage',
+        el: '#node-report-r3 #node-report-panel #cpu-usage',
         width: $('#node-report-r3 #node-report-panel #cpu-usage').width()
     });
 
@@ -54,7 +54,7 @@ var renderCharts = function() {
 
     var memoryUsageView = new UtilizationView({
         collection: memoryUsageChart,
-        location: '#node-report-r3 #node-report-panel #memory-usage',
+        el: '#node-report-r3 #node-report-panel #memory-usage',
         width: $('#node-report-r3 #node-report-panel #memory-usage').width()
     });
 
@@ -66,7 +66,7 @@ var renderCharts = function() {
 
     var networkUsageView = new UtilizationView({
         collection: networkUsageChart,
-        location: '#node-report-r3 #node-report-panel #network-usage',
+        el: '#node-report-r3 #node-report-panel #network-usage',
         width: $('#node-report-r3 #node-report-panel #network-usage').width()
     });
 
