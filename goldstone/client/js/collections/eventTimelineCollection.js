@@ -21,17 +21,15 @@
 var EventTimelineCollection = Backbone.Collection.extend({
 
     parse: function(data) {
-
+        var nextUrl;
         if (data.next !== null) {
-
             var dp = data.next;
-            var nextUrl = dp.slice(dp.indexOf('/core'));
-            this.url = nextUrl;
+            nextUrl = dp.slice(dp.indexOf('/core'));
             this.fetch({
+                url: nextUrl,
                 remove: false
             });
         }
-
         return data.results;
     },
 
