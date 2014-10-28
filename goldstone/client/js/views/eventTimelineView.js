@@ -294,6 +294,10 @@ var EventTimelineView = Backbone.View.extend({
             var re = /([A-Z])/g;
             itemSpaced = item.replace(re, ' $1').trim();
 
+            if(item === undefined){
+                item = 'UnspecifiedErrorType';
+            }
+
             ns.filter[item] = ns.filter[item] || {
                 active: true,
                 color: ns.color(ns.uniqueEventTypes.indexOf(item) % ns.color.range().length),
