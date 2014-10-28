@@ -16,4 +16,6 @@
  * Author: Alex Jacobs
  */
 
-var NodeAvailModel = Backbone.Model.extend({});
+var NodeAvailModel = Backbone.Model.extend({
+    idAttribute: "uuid"
+});
