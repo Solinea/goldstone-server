@@ -104,7 +104,7 @@ var renderCharts = function() {
 
     var hypervisorVmCpuView = new HypervisorVmCpuView({
         collection: hypervisorVmCpuChart,
-        location: '#node-report-r4 #node-report-panel #vm-cpu-usage',
+        el: '#node-report-r4 #node-report-panel #vm-cpu-usage',
         width: $('#node-report-r4 #node-report-panel #vm-cpu-usage').width()
     });
 
