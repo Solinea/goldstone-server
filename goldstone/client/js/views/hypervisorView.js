@@ -31,7 +31,7 @@ var HypervisorView = Backbone.View.extend({
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
         this.defaults.url = this.collection.url;
-        this.defaults.location = options.location;
+        this.el = options.el;
         this.defaults.width = options.width;
         this.defaults.axisLabel = options.axisLabel;
 
@@ -56,7 +56,7 @@ var HypervisorView = Backbone.View.extend({
             .scale(ns.y)
             .orient("left");
 
-        ns.svg = d3.select(ns.location).append("svg")
+        ns.svg = d3.select(this.el).append("svg")
             .attr("width", ns.mw + ns.margin.left + ns.margin.right)
             .attr("height", ns.mh + ns.margin.top + ns.margin.bottom)
             .append("g")
@@ -82,7 +82,7 @@ var HypervisorView = Backbone.View.extend({
         ns.spinnerDisplay = 'inline';
 
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(ns.location).css({
+            $(this).appendTo(this.el).css({
                 'position': 'relative',
                 'margin-top': -(ns.mh / 2),
                 'display': ns.spinnerDisplay
@@ -101,7 +101,7 @@ var HypervisorView = Backbone.View.extend({
         // spinner callback resolves
         // after chart data callback
         ns.spinnerDisplay = 'none';
-        $(ns.location).find('#spinner').hide();
+        $(this.el).find('#spinner').hide();
 
         var allTheLogs = this.collection.toJSON();
 
@@ -204,7 +204,6 @@ var HypervisorView = Backbone.View.extend({
             .attr("text-anchor", "middle")
             .text(function(d) {
                 return moment(d.date).calendar();
-
             });
 
         setTimeout(function() {
