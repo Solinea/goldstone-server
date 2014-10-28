@@ -117,6 +117,18 @@ describe('nodeAvailView.js spec', function() {
             expect($('.panel-title').text().trim()).to.equal('Test Chart Title');
             expect($('svg').text()).to.not.include('Response was empty');
         });
+        it('can handle events without an event_type', function() {
+                this.testCollection.reset();
+                this.testCollection.add({
+                "id": "a05c6600-a9bc-4b1c-a8ad-b4d1979ef6bc",
+                "event_type": undefined,
+                "source_id": "46b24373-eedc-43d5-9543-19dea317d88f",
+                "message": "2014-10-28 22:11:10.826 2783 ERROR ... nova.compute.manager [instance: a28776ec-15e6-4913-b4db-d23c1da57b40] ",
+                "created": "2014-10-28T22:11:10.000827+00:00"
+            });
+                this.testView.update();
+                expect($('.form-control').text()).to.equal("15 minutes1 hour6 hours1 day5 seconds15 seconds30 seconds1 minute5 minutesUnspecified Error Type");
+        });
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
             expect($('#noDataReturned').length).to.equal(0);

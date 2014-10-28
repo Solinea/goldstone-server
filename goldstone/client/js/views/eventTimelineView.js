@@ -292,11 +292,10 @@ var EventTimelineView = Backbone.View.extend({
             // regEx to create separate words out of the event types
             // GenericSyslogError --> Generic Syslog Error
             var re = /([A-Z])/g;
-            itemSpaced = item.replace(re, ' $1').trim();
-
             if(item === undefined){
                 item = 'UnspecifiedErrorType';
             }
+            itemSpaced = item.replace(re, ' $1').trim();
 
             ns.filter[item] = ns.filter[item] || {
                 active: true,
