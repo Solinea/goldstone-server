@@ -15,7 +15,7 @@
 __author__ = 'John Stanford'
 
 from django.conf import settings
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, ElasticsearchException
 from elasticsearch import exceptions
 import redis
 from datetime import datetime
