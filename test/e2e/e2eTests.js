@@ -1,11 +1,12 @@
 // e2e tests
 
-casper.test.begin('Node Report Page is loading properly', 23, function suite(test) {
+casper.test.begin('Node Report Page is loading properly', 39, function suite(test) {
     casper.start('http://localhost:8000/report/node/os-controller-01', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
 
         // navbar
+        test.assertExists('.navbar-brand > img', 'Favicon should load');
         test.assertExists('div.navbar', 'Navbar should load');
         test.assertSelectorHasText('div.navbar', 'Discover');
         test.assertSelectorHasText('div.navbar', 'Report');
@@ -15,8 +16,8 @@ casper.test.begin('Node Report Page is loading properly', 23, function suite(tes
         test.assertSelectorHasText('div#node-report-r1-c1 h1', 'os-controller-01');
 
         // Service Status graph loads
-        test.assertExists('div#node-report-r2-c1', 'Service Status Section should load');
-        test.assertExists('div#node-report-r2-c1 .col-xs-1.alert', 'Service node statuses should load');
+        test.assertExists('div#node-report-r2', 'Service Status Section should load');
+        test.assertExists('div#node-report-r2 .col-xs-1.alert', 'Service node statuses should load');
 
         // Utilization graphs load
         test.assertExists('div#node-report-r3', 'Usage Charts should load');
@@ -41,7 +42,30 @@ casper.test.begin('Node Report Page is loading properly', 23, function suite(tes
         test.assertExists('div#node-report-r4-c1 #vm-cpu-usage svg', 'Per VM CPU Usage Section svg chart should load');
         test.assertSelectorHasText('div #node-report-r4-c1 #vm-cpu-usage', 'Per VM CPU Usage');
 
+        // tabs should open and close as expected
+        test.assertVisible('div#servicesReport', 'Services tab should start out visible');
+        test.assertNotVisible('div#reportsReport', 'Reports tab should start out hidden');
+        test.assertNotVisible('div#eventsReport', 'Events tab should start out hidden');
 
+        this.click('.servicesButton');
+        test.assertVisible('div#servicesReport', 'Services tab should  still be visible');
+        test.assertNotVisible('div#reportsReport', 'Reports tab should still be hidden');
+        test.assertNotVisible('div#eventsReport', 'Events tab should still be hidden');
+
+        this.click('.reportsButton');
+        test.assertNotVisible('div#servicesReport', 'Services tab should now be hidden');
+        test.assertVisible('div#reportsReport', 'Reports tab should now be visible');
+        test.assertNotVisible('div#eventsReport', 'Events tab should still be hidden');
+
+        this.click('.eventsButton');
+        test.assertNotVisible('div#servicesReport', 'Services tab should still be hidden');
+        test.assertNotVisible('div#reportsReport', 'Reports tab should now be hidden');
+        test.assertVisible('div#eventsReport', 'Events tab should now be showing');
+
+        this.click('.servicesButton');
+        test.assertVisible('div#servicesReport', 'Services tab should now be visible');
+        test.assertNotVisible('div#reportsReport', 'Reports tab should still be hidden');
+        test.assertNotVisible('div#eventsReport', 'Events tab should now be hidden');
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
