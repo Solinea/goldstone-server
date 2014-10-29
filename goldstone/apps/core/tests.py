@@ -50,14 +50,14 @@ class TaskTests(SimpleTestCase):
 
         create.side_effect = None
         exists_alias.return_value = True
-        update_aliases.return_value = "mocked True"
+        update_aliases.return_value = None
         self.assertEqual(tasks._create_daily_index('abc', 'abc'),
-                         "mocked True")
+                         None)
 
         exists_alias.return_value = False
-        put_alias.return_value = "mocked False"
+        put_alias.return_value = None
         self.assertEqual(tasks._create_daily_index('abc', 'abc'),
-                         "mocked False")
+                         None)
 
     def test_manage_es_indices(self):
         tasks._create_daily_index = mock.Mock(
