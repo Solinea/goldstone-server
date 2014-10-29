@@ -91,7 +91,7 @@ def _put_all_templates(server=settings.ES_SERVER):
 
 
 def _create_daily_index(server=settings.ES_SERVER,
-                                  basename='goldstone'):
+                        basename='goldstone'):
     """
     Create a new index in ElasticSearch and set up
     an alias for goldstone to point to the latest index.
