@@ -19,11 +19,12 @@ from .models import *
 from .serializers import *
 import logging
 import arrow
-from django.http import Http404
+from django.http import Http404, HttpResponseBadRequest, HttpResponseNotAllowed
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet, \
+    ReadOnlyModelViewSet
 
 logger = logging.getLogger(__name__)
 
@@ -137,21 +138,8 @@ class MetricViewSet(ModelViewSet):
 
             return super(MetricViewSet, self).list(request, *args, **kwargs)
 
-    def get_object(self):
-        q = self.queryset
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-        lookup = self.kwargs.get(lookup_url_kwarg, None)
-        if lookup is not None:
-            filter_kwargs = {self.lookup_field: lookup}
-        q_result = q.filter(**filter_kwargs)[:1].execute()
-        if q_result.count == 1:
-            obj = q_result.objects[0].get_object()
-            return obj
-        else:
-            raise Http404
 
-
-class ReportViewSet(ModelViewSet):
+class ReportViewSet(ReadOnlyModelViewSet):
     queryset = ReportType().search().query().order_by('-timestamp')
     serializer_class = ReportSerializer
     lookup_field = "_id"
@@ -171,15 +159,5 @@ class ReportViewSet(ModelViewSet):
 
         return super(ReportViewSet, self).list(request, *args, **kwargs)
 
-    def get_object(self):
-        q = self.queryset
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-        lookup = self.kwargs.get(lookup_url_kwarg, None)
-        if lookup is not None:
-            filter_kwargs = {self.lookup_field: lookup}
-        q_result = q.filter(**filter_kwargs)[:1].execute()
-        if q_result.count == 1:
-            obj = q_result.objects[0].get_object()
-            return obj
-        else:
-            raise Http404
+    def retrieve(self, request, *args, **kwargs):
+        return HttpResponseNotAllowed('')

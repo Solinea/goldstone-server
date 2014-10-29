@@ -123,16 +123,10 @@ class Event(Model):
         obj.created = arrow.get(kwargs['created']).datetime
         return obj
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
+    def save(self, force_insert=False, force_update=False):
         """
         An override to save the object to ES via elasticutils
         """
-
-        if using is not None:
-            raise ValueError("using is not implemented for this model")
-        if update_fields is not None:
-            raise ValueError("update_fields is not implemented for this model")
 
         self._mt.index(self._mt.extract_document(self.id, self),
                        id_=str(self.id))
@@ -197,8 +191,7 @@ class Metric(Model):
         obj = cls(**kwargs)
         return obj
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
+    def save(self, force_insert=False, force_update=False):
         """
         An override to save the object to ES via elasticutils.  This will be
         a noop for now.  Saving occurs from the logstash processing directly
