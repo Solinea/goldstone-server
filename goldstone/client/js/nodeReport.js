@@ -30,8 +30,8 @@ var renderCharts = function() {
 
     var serviceStatusChartView = new ServiceStatusView({
         collection: serviceStatusChart,
-        el: '#node-report-r2-c1 #servicesChart',
-        width: $('#node-report-r2-c1 #servicesChart').width()
+        el: '#node-report-main #node-report-r2',
+        width: $('#node-report-main #node-report-r2').width()
     });
 
     //---------------------------
@@ -109,10 +109,18 @@ var renderCharts = function() {
     });
 
     //---------------------------
-    // instantiate Configuration tab data
+    // instantiate Reports tab data
 
-    var configurationReport = new ConfigurationReportView({
-        location: '#node-report-r2-c1 #configurationChart',
-        width: $('#node-report-r2-c1 #configurationChart').width()
+    var reportsReport = new ReportsReportView({
+        location: '#node-report-panel #reportsReport',
+        width: $('#node-report-panel #reportsReport').width()
+    });
+
+    //---------------------------
+    // instantiate Events tab data
+
+    var eventsReport = new EventsReportView({
+        location: '#node-report-panel #eventsReport',
+        width: $('#node-report-panel #eventsReport').width()
     });
 };

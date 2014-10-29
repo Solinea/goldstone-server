@@ -13,18 +13,14 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 
- Author: John Stanford
+ Author: Alex Jacobs
  -->
 
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load custom_filters %}
-
-
 {% block localcss %}
-
 {% endblock %}
-
 {% block content %}
 
     <div id="node-report-r1" class="row">
@@ -33,126 +29,106 @@
         </div>
     </div>
 
-    <div id="node-report-r2" class="row">
-
-        <div id="node-report-r2-c1" class="col-md-12">
+    <div id="node-report-main" class="col-md-12">
 
         <!-- buttons -->
         <div class="btn-group">
-            <button type="button" id="headerBar" class="active btn btn-default">Services</button>
-            <button type="button" id="headerBar" class="btn btn-default">Configuration</button>
-            <button type="button" id="headerBar" class="btn btn-default">Events</button><br><br>
+            <button type="button" id="headerBar" class="servicesButton active btn btn-default">Services</button>
+            <button type="button" id="headerBar" class="reportsButton btn btn-default">Reports</button>
+            <button type="button" id="headerBar" class="eventsButton btn btn-default">Events</button><br><br>
         </div>
 
-            <div id="node-report-panel" class="panel panel-primary">
+        <div id="main-container" class="col-md-12">
+        <div id="node-report-panel" class="panel panel-primary">
+            <div id="servicesReport">
+                <div id="node-report-r2" class="row">
 
-                <div id="servicesChart"></div>
-                <div id="configurationChart"></div>
-                <div id="eventsChart"></div>
-
-            </div>
-        </div>
-    </div>
-
-    <div id="node-report-r3" class="row">
-        <div id="node-report-r3-c1" class="col-md-12">
-            <h1>Utilization</h1>
-
-            <div id="node-report-panel" class="panel panel-primary">
-                <div class="well col-md-4" id="cpu-usage">
-                <h4 class="text-center">CPU Usage</h4>
-                </div>
-                <div class="well col-md-4" id="memory-usage">
-                <h4 class="text-center">Memory Usage</h4>
-                </div>
-                <div class="well col-md-4" id="network-usage">
-                <h4 class="text-center">Network Usage</h4>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <div id="node-report-r4" class="row">
-        <div id="node-report-r4-c1" class="col-md-12">
-            <h1>Hypervisor</h1>
-
-            <div id="node-report-panel" class="panel panel-primary">
-                <div class="well col-md-3 text-center" id="cores-usage">
-                Cores
-                </div>
-                <div class="well col-md-3 text-center" id="memory-usage">
-                Memory
-                </div>
-                <div class="well col-md-6" id="vm-cpu-usage">
-                Per VM CPU Usage
-
-                <div id="data-filterer">
                 </div>
 
+                <div id="node-report-r3" class="row">
+                    <div id="node-report-r3-c1" class="col-md-12">
+                        <h1>Utilization</h1>
+                        <div id="node-report-panel" class="panel panel-primary">
+                            <div class="well col-md-4" id="cpu-usage">
+                                <h4 class="text-center">CPU Usage</h4>
+                            </div>
+                            <div class="well col-md-4" id="memory-usage">
+                                <h4 class="text-center">Memory Usage</h4>
+                            </div>
+                            <div class="well col-md-4" id="network-usage">
+                                <h4 class="text-center">Network Usage</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="node-report-r4" class="row">
+                    <div id="node-report-r4-c1" class="col-md-12">
+                        <h1>Hypervisor</h1>
+                        <div id="node-report-panel" class="panel panel-primary">
+                            <div class="well col-md-3 text-center" id="cores-usage">
+                                Cores
+                            </div>
+                            <div class="well col-md-3 text-center" id="memory-usage">
+                                Memory
+                            </div>
+                            <div class="well col-md-6" id="vm-cpu-usage">
+                                Per VM CPU Usage
+                                <div id="data-filterer">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
+            <div id="reportsReport">&nbsp;</div>
+            <div id="eventsReport">&nbsp;</div>
+
         </div>
-
+        </div>
     </div>
-
-
-
-
 
 {% endblock %}
-
 {% block localjs %}
-<script src="{% static 'js/goldstone.js' %}"></script>
 
-<script src="{% static 'js/models/serviceStatusModel.js' %}"></script>
-<script src="{% static 'js/collections/serviceStatusCollection.js' %}"></script>
-<script src="{% static 'js/views/serviceStatusView.js' %}"></script>
-<script src="{% static 'js/views/configurationReportView.js' %}"></script>
+    <script src="{% static 'js/goldstone.js' %}"></script>
+    <script src="{% static 'js/models/serviceStatusModel.js' %}"></script>
+    <script src="{% static 'js/collections/serviceStatusCollection.js' %}"></script>
+    <script src="{% static 'js/views/serviceStatusView.js' %}"></script>
+    <script src="{% static 'js/models/utilizationModel.js' %}"></script>
+    <script src="{% static 'js/collections/utilizationCollection.js' %}"></script>
+    <script src="{% static 'js/views/utilizationView.js' %}"></script>
+    <script src="{% static 'js/models/hypervisorModel.js' %}"></script>
+    <script src="{% static 'js/collections/hypervisorCollection.js' %}"></script>
+    <script src="{% static 'js/views/hypervisorView.js' %}"></script>
+    <script src="{% static 'js/models/hypervisorVmCpuModel.js' %}"></script>
+    <script src="{% static 'js/collections/hypervisorVmCpuCollection.js' %}"></script>
+    <script src="{% static 'js/views/hypervisorVmCpuView.js' %}"></script>
+    <script src="{% static 'js/nodeReport.js' %}"></script>
+    <script src="{% static 'js/views/reportsReportView.js' %}"></script>
+    <script src="{% static 'js/views/eventsReportView.js' %}"></script>
 
-<script src="{% static 'js/models/utilizationModel.js' %}"></script>
-<script src="{% static 'js/collections/utilizationCollection.js' %}"></script>
-<script src="{% static 'js/views/utilizationView.js' %}"></script>
+    <script>
+        var node_uuid = "{{ node_uuid | escapejs }}";
+        var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
-<script src="{% static 'js/models/hypervisorModel.js' %}"></script>
-<script src="{% static 'js/collections/hypervisorCollection.js' %}"></script>
-<script src="{% static 'js/views/hypervisorView.js' %}"></script>
-
-<script src="{% static 'js/models/hypervisorVmCpuModel.js' %}"></script>
-<script src="{% static 'js/collections/hypervisorVmCpuCollection.js' %}"></script>
-<script src="{% static 'js/views/hypervisorVmCpuView.js' %}"></script>
-
-<script src="{% static 'js/nodeReport.js' %}"></script>
-
-<script>
-
-    var node_uuid = "{{ node_uuid | escapejs }}";
-    var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
-
-
-    $(function() {
-
-
-    // $("#servicesChart").hide();
-    $("#configurationChart").hide();
-    $("#eventsChart").hide();
-
-    $("button#headerBar").click(function() {
-        $("button#headerBar.active").toggleClass("active");
-        $(this).toggleClass("active");
-        var selectedButton = ($(this).context.innerHTML.toLowerCase());
-
-            _.each($("button#headerBar"), function(item) {
-                $("#node-report-panel").find('#' + item.innerHTML + 'Chart').hide();
+        $(function() {
+            // $("#servicesReport").hide();
+            $("#reportsReport").hide();
+            $("#eventsReport").hide();
+            $("button#headerBar").click(function() {
+                $("button#headerBar.active").toggleClass("active");
+                $(this).toggleClass("active");
+                var selectedButton = ($(this).context.innerHTML.toLowerCase());
+                _.each($("button#headerBar"), function(item) {
+                    $("#node-report-panel").find('#' + item.innerHTML + 'Report').hide();
+                });
+                $("#node-report-panel").find('#' + selectedButton + 'Report').show();
             });
-
-            $("#node-report-panel").find('#' + selectedButton + 'Chart').show();
         });
-    });
 
-    renderCharts();
+        renderCharts();
 
-</script>
+    </script>
 
 {% endblock %}

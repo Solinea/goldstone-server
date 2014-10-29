@@ -16,7 +16,7 @@
  * Author: Alex Jacobs
  */
 
-var ConfigurationReportView = Backbone.View.extend({
+var EventsReportView = Backbone.View.extend({
 
     defaults: {},
 
@@ -46,8 +46,6 @@ var ConfigurationReportView = Backbone.View.extend({
 
     render: function() {
 
-
-
         var ns = this.defaults;
         var self = this;
 
@@ -60,7 +58,7 @@ var ConfigurationReportView = Backbone.View.extend({
 
         if (localStorage.getItem('reportNodeData') === null) {
 
-            $(ns.location).append("<div class='mainContainer'>No Configuration Data</div>")
+            $(ns.location).append("<div class='mainContainer'>No Events Data</div>")
                 .css({
                     'position': 'relative',
                     'margin-left': (ns.width / 2 - 50),
