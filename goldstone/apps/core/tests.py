@@ -84,7 +84,6 @@ class EntityTests(SimpleTestCase):
         Node.objects.get_or_create(name="node 1")
         Node.objects.get_or_create(name="node 2")
 
-
     def tearDown(self):
         # When using Entity.objects.all().delete(), we have a strange situation
         # where the tests pass locally, but fail on the jenkins server.  See
@@ -294,6 +293,7 @@ class EventModelTests(SimpleTestCase):
         e1.delete()
         EventType.refresh_index()
         self.assertEqual(EventType().search().query().count(), 0)
+
 
 class EventTypeTests(SimpleTestCase):
     def test_get_mapping(self):
