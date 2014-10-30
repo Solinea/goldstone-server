@@ -130,6 +130,11 @@ var EventTimelineView = Backbone.View.extend({
 
                 d.id = d.id || '';
                 d.message = d.message || 'No message logged';
+
+                if(d.message.length > 280) {
+                    d.message = d.message.slice(0,300) + "...";
+                }
+
                 d.event_type = d.event_type || 'No event type logged';
                 d.created = d.created || 'No date logged';
 
