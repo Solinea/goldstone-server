@@ -94,7 +94,7 @@ class EventType(MappingType, Indexable):
             event_type=self._results_dict['event_type'],
             message=self._results_dict['message'],
             source_id=self._results_dict['source_id'],
-            source_name=self._results_dict['source_id'],
+            source_name=self._results_dict['source_name'],
             created=arrow.get(self._results_dict['created']).datetime
         )
 
