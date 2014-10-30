@@ -101,7 +101,16 @@ var ServiceStatusView = Backbone.View.extend({
             nodeNames.push(item);
         });
 
-        nodeNames.sort(function(a, b) {
+        this.sorter(nodeNames);
+
+        _.each(nodeNames, function(item, i) {
+            $(self.el).find('.mainContainer').append('<div style="width: 100px; height: 22px; font-size:11px; margin-bottom: 0; text-align:center; padding: 3px 0;" class="col-xs-1 toRemove ' + this.classSelector(_.values(nodeNames[i])) + '"> ' + _.keys(nodeNames[i]) + '</div>');
+        }, this);
+    },
+
+    sorter: function(data) {
+
+        return data.sort(function(a, b) {
             if (Object.keys(a) < Object.keys(b)) {
                 return -1;
             }
@@ -112,9 +121,6 @@ var ServiceStatusView = Backbone.View.extend({
             }
         });
 
-        _.each(nodeNames, function(item, i) {
-            $(self.el).find('.mainContainer').append('<div style="width: 100px; height: 22px; font-size:11px; margin-bottom: 0; text-align:center; padding: 3px 0;" class="col-xs-1 toRemove ' + this.classSelector(_.values(nodeNames[i])) + '"> ' + _.keys(nodeNames[i]) + '</div>');
-        }, this);
     },
 
     render: function() {
