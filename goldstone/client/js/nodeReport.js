@@ -112,7 +112,7 @@ var renderCharts = function() {
     // instantiate Reports tab data
 
     var reportsReport = new ReportsReportView({
-        location: '#node-report-panel #reportsReport',
+        el: '#node-report-panel #reportsReport',
         width: $('#node-report-panel #reportsReport').width()
     });
 
@@ -120,7 +120,7 @@ var renderCharts = function() {
     // instantiate Events tab data
 
     var eventsReport = new EventsReportView({
-        location: '#node-report-panel #eventsReport',
+        el: '#node-report-panel #eventsReport',
         width: $('#node-report-panel #eventsReport').width()
     });
 };
