@@ -1,6 +1,6 @@
 // e2e tests
 
-casper.test.begin('Node Report Page is loading properly', 39, function suite(test) {
+casper.test.begin('Node Report Page is loading properly', 42, function suite(test) {
     casper.start('http://localhost:8000/report/node/os-controller-01', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -41,6 +41,7 @@ casper.test.begin('Node Report Page is loading properly', 39, function suite(tes
 
         test.assertExists('div#node-report-r4-c1 #vm-cpu-usage svg', 'Per VM CPU Usage Section svg chart should load');
         test.assertSelectorHasText('div #node-report-r4-c1 #vm-cpu-usage', 'Per VM CPU Usage');
+        test.assertElementCount('#data-filterer .btn-group button', 3, 'per vm cpu usage chart has 3 buttons');
 
         // tabs should open and close as expected
         test.assertVisible('div#servicesReport', 'Services tab should start out visible');
@@ -56,11 +57,13 @@ casper.test.begin('Node Report Page is loading properly', 39, function suite(tes
         test.assertNotVisible('div#servicesReport', 'Services tab should now be hidden');
         test.assertVisible('div#reportsReport', 'Reports tab should now be visible');
         test.assertNotVisible('div#eventsReport', 'Events tab should still be hidden');
+        test.assertSelectorHasText('#node-report-panel #reportsReport', 'No Reports Data');
 
         this.click('.eventsButton');
         test.assertNotVisible('div#servicesReport', 'Services tab should still be hidden');
         test.assertNotVisible('div#reportsReport', 'Reports tab should now be hidden');
         test.assertVisible('div#eventsReport', 'Events tab should now be showing');
+        test.assertSelectorHasText('#node-report-panel #eventsReport', 'No Events Data');
 
         this.click('.servicesButton');
         test.assertVisible('div#servicesReport', 'Services tab should now be visible');
