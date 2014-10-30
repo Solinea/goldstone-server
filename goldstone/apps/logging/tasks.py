@@ -73,7 +73,7 @@ def _create_event(timestamp, host, event_type, message):
         return event
     else:
         event = Event(event_type=event_type, created=dt, message=message,
-                      source_id=str(node.uuid))
+                      source_id=str(node.uuid), source_name=host)
         event.save()
         return event
 
