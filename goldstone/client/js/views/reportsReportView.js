@@ -23,7 +23,7 @@ var ReportsReportView = Backbone.View.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
-        this.defaults.location = options.location;
+        this.el = options.el;
         this.defaults.width = options.width;
 
         var ns = this.defaults;
@@ -34,17 +34,17 @@ var ReportsReportView = Backbone.View.extend({
         ns.spinnerDisplay = 'inline';
 
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(ns.location).css({
+            $(this).appendTo(this.el).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
                 'display': ns.spinnerDisplay
             });
         });
 
-        this.render();
+        this.update();
     },
 
-    render: function() {
+    update: function() {
 
         var ns = this.defaults;
         var self = this;
@@ -54,11 +54,11 @@ var ReportsReportView = Backbone.View.extend({
         // after chart data callback
         ns.spinnerDisplay = 'none';
 
-        $(ns.location).find('#spinner').hide();
+        $(this.el).find('#spinner').hide();
 
         if (localStorage.getItem('reportNodeData') === null) {
 
-            $(ns.location).append("<div class='mainContainer'>No Reports Data</div>")
+            $(this.el).append("No Reports Data")
                 .css({
                     'position': 'relative',
                     'margin-left': (ns.width / 2 - 50),
@@ -69,19 +69,30 @@ var ReportsReportView = Backbone.View.extend({
 
         if (localStorage.getItem('reportNodeData')) {
 
+            this.render();
+
+            // append sample data payload
+            $(this.el).find('#availableReportsResult').load('/core/nodes?page=1&format=json');
+
             var configDataToRender = JSON.parse(localStorage.getItem('reportNodeData'));
 
             _.each(_.keys(configDataToRender), function(item) {
-                $(ns.location).append(item + ": " + configDataToRender[item] + "<br>");
 
-            localStorage.clear();
-            });
+                $(this.el).find('#reportSection').append(item + ": " + configDataToRender[item] + "<br>");
 
+                // localStorage.clear();
+            }, this);
         }
+    },
 
+    render: function() {
+        $(this.el).append(this.template());
+        return this;
+    },
 
-
-    }
-
+    template: _.template('<div id="availableReports">' +
+        '<div id="reportSection"><h3>Sample Report List</h3></div>' +
+        '<h3>Sample Data Load:</h3><div id="availableReportsResult"></div></div>'
+    )
 
 });
