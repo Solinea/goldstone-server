@@ -30,8 +30,8 @@ var renderCharts = function() {
 
     var serviceStatusChartView = new ServiceStatusView({
         collection: serviceStatusChart,
-        location: '#node-report-r2-c1 #servicesChart',
-        width: $('#node-report-r2-c1 #servicesChart').width()
+        el: '#node-report-main #node-report-r2',
+        width: $('#node-report-main #node-report-r2').width()
     });
 
     //---------------------------
@@ -42,7 +42,7 @@ var renderCharts = function() {
 
     var cpuUsageView = new UtilizationView({
         collection: cpuUsageChart,
-        location: '#node-report-r3 #node-report-panel #cpu-usage',
+        el: '#node-report-r3 #node-report-panel #cpu-usage',
         width: $('#node-report-r3 #node-report-panel #cpu-usage').width()
     });
 
@@ -54,7 +54,7 @@ var renderCharts = function() {
 
     var memoryUsageView = new UtilizationView({
         collection: memoryUsageChart,
-        location: '#node-report-r3 #node-report-panel #memory-usage',
+        el: '#node-report-r3 #node-report-panel #memory-usage',
         width: $('#node-report-r3 #node-report-panel #memory-usage').width()
     });
 
@@ -66,7 +66,7 @@ var renderCharts = function() {
 
     var networkUsageView = new UtilizationView({
         collection: networkUsageChart,
-        location: '#node-report-r3 #node-report-panel #network-usage',
+        el: '#node-report-r3 #node-report-panel #network-usage',
         width: $('#node-report-r3 #node-report-panel #network-usage').width()
     });
 
@@ -78,7 +78,7 @@ var renderCharts = function() {
 
     var hypervisorCoreView = new HypervisorView({
         collection: hypervisorCoreChart,
-        location: '#node-report-r4 #node-report-panel #cores-usage',
+        el: '#node-report-r4 #node-report-panel #cores-usage',
         width: $('#node-report-r4 #node-report-panel #cores-usage').width(),
         axisLabel: "Cores"
     });
@@ -91,7 +91,7 @@ var renderCharts = function() {
     });
     var hypervisorMemoryView = new HypervisorView({
         collection: hypervisorMemoryChart,
-        location: '#node-report-r4 #node-report-panel #memory-usage',
+        el: '#node-report-r4 #node-report-panel #memory-usage',
         width: $('#node-report-r4 #node-report-panel #memory-usage').width(),
         axisLabel: "GB"
     });
@@ -104,7 +104,23 @@ var renderCharts = function() {
 
     var hypervisorVmCpuView = new HypervisorVmCpuView({
         collection: hypervisorVmCpuChart,
-        location: '#node-report-r4 #node-report-panel #vm-cpu-usage',
+        el: '#node-report-r4 #node-report-panel #vm-cpu-usage',
         width: $('#node-report-r4 #node-report-panel #vm-cpu-usage').width()
+    });
+
+    //---------------------------
+    // instantiate Reports tab data
+
+    var reportsReport = new ReportsReportView({
+        el: '#node-report-panel #reportsReport',
+        width: $('#node-report-panel #reportsReport').width()
+    });
+
+    //---------------------------
+    // instantiate Events tab data
+
+    var eventsReport = new EventsReportView({
+        el: '#node-report-panel #eventsReport',
+        width: $('#node-report-panel #eventsReport').width()
     });
 };
