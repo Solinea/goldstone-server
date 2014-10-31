@@ -1,0 +1,22 @@
+{
+    "aliases": {},
+    "order": 0,
+    "settings": {
+        "index.analysis.analyzer.default.type": "whitespace",
+        "index.refresh_interval": "5s"
+    },
+    "template": "goldstone_agent*",
+    "mappings": {
+        "_default_": {
+            "_source": {
+                "enabled": true
+            },
+            "properties": {
+                "timestamp": {
+                    "type": "date"
+                }
+            }
+        }
+    }
+}
+

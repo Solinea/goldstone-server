@@ -50,14 +50,14 @@ class TaskTests(SimpleTestCase):
 
         create.side_effect = None
         exists_alias.return_value = True
-        update_aliases.return_value = "mocked True"
+        update_aliases.return_value = None
         self.assertEqual(tasks._create_daily_index('abc', 'abc'),
-                         "mocked True")
+                         None)
 
         exists_alias.return_value = False
-        put_alias.return_value = "mocked False"
+        put_alias.return_value = None
         self.assertEqual(tasks._create_daily_index('abc', 'abc'),
-                         "mocked False")
+                         None)
 
     def test_manage_es_indices(self):
         tasks._create_daily_index = mock.Mock(
@@ -83,7 +83,6 @@ class EntityTests(SimpleTestCase):
 
         Node.objects.get_or_create(name="node 1")
         Node.objects.get_or_create(name="node 2")
-
 
     def tearDown(self):
         # When using Entity.objects.all().delete(), we have a strange situation
@@ -296,6 +295,12 @@ class EventModelTests(SimpleTestCase):
         self.assertEqual(EventType().search().query().count(), 0)
 
 
+class EventTypeTests(SimpleTestCase):
+    def test_get_mapping(self):
+        m = EventType.get_mapping()
+        self.assertIs(type(m), dict)
+
+
 class EventSerializerTests(SimpleTestCase):
 
     event1 = Event(event_type='test_serializer',
@@ -485,3 +490,192 @@ class EventViewTests(APISimpleTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         shapes = Event.objects.raw('SELECT * FROM core_event')
         self.assertEqual(len(list(shapes)), 0)
+
+
+class MetricTypeTests(SimpleTestCase):
+
+    def setUp(self):
+        self.metric1 = Metric(id=str(uuid4()),
+                              timestamp=arrow.utcnow().datetime,
+                              name="metric1",
+                              metric_type="metric_type1",
+                              value=999,
+                              unit="units",
+                              node="")
+
+    def test_get_mapping(self):
+        m = MetricType.get_mapping()
+        self.assertIs(type(m), dict)
+
+    def test_get_model(self):
+        o = MetricType.get_model()
+        self.assertEqual(o.__name__, "Metric")
+
+
+class MetricTests(SimpleTestCase):
+
+    def setUp(self):
+        self.metric1 = Metric(id=str(uuid4()),
+                              timestamp=arrow.utcnow().datetime,
+                              name="metric1",
+                              metric_type="metric_type1",
+                              value=999,
+                              unit="units",
+                              node="")
+
+    def test_save(self):
+        self.assertRaises(NotImplementedError, self.metric1.save)
+
+    def test_delete(self):
+        self.assertRaises(NotImplementedError, self.metric1.delete)
+
+    def test_reconstitute(self):
+        kwargs = self.metric1.__dict__
+        del kwargs['_state']
+        reconstituted = Metric._reconstitute(**kwargs)
+        self.assertEqual(self.metric1, reconstituted)
+
+
+class ReportTypeTest(SimpleTestCase):
+
+    def setUp(self):
+        self.metric1 = Metric(id=str(uuid4()),
+                              timestamp=arrow.utcnow().datetime,
+                              name="metric1",
+                              metric_type="metric_type1",
+                              value=999,
+                              unit="units",
+                              node="")
+
+    def test_get_mapping(self):
+        m = ReportType.get_mapping()
+        self.assertIs(type(m), dict)
+
+    def test_get_model(self):
+        o = ReportType.get_model()
+        self.assertEqual(o.__name__, "Report")
+
+
+class ReportTest(SimpleTestCase):
+
+    def setUp(self):
+        self.report1 = Report(id=str(uuid4()),
+                              timestamp=arrow.utcnow().datetime,
+                              name="report1",
+                              value="abc",
+                              node="")
+
+    def test_save(self):
+        self.assertRaises(NotImplementedError, self.report1.save)
+
+    def test_delete(self):
+        self.assertRaises(NotImplementedError, self.report1.delete)
+
+    def test_reconstitute(self):
+        kwargs = self.report1.__dict__
+        del kwargs['_state']
+        reconstituted = Report._reconstitute(**kwargs)
+        self.assertEqual(self.report1, reconstituted)
+
+
+class ReportSerializerTests(APISimpleTestCase):
+
+    def setUp(self):
+        self.report1 = Report(id=str(uuid4()),
+                              timestamp=arrow.utcnow().datetime,
+                              name="report1",
+                              value=["abc", "def", "ghi"],
+                              node="")
+
+        self.report2 = Report(id=str(uuid4()),
+                              timestamp=arrow.utcnow().datetime,
+                              name="report2",
+                              value=["{\"abc\":\"def\"}", "{\"ghi\":\"jkl\"}"],
+                              node="")
+
+        self.report3 = Report(id=str(uuid4()),
+                              timestamp=arrow.utcnow().datetime,
+                              name="report3",
+                              value="xyz",
+                              node="")
+
+    def test_serialize(self):
+        ser = ReportSerializer(self.report1)
+
+        # date serialization is awkward wrt +00:00 (gets converted to Z), and
+        # resolution is a mismatch from arrow, so need to compare field by
+        # field
+        self.assertEqual(ser.data['name'],
+                         self.report1.name)
+        self.assertEqual(ser.data['value'],
+                         ser.transform_value(self.report1, self.report1.value))
+        self.assertEqual(ser.data['node'],
+                         self.report1.node)
+        self.assertEqual(arrow.get(ser.data['timestamp']),
+                         arrow.get(self.report1.timestamp))
+
+        ser = ReportSerializer(self.report2)
+
+        # date serialization is awkward wrt +00:00 (gets converted to Z), and
+        # resolution is a mismatch from arrow, so need to compare field by
+        # field
+        self.assertEqual(ser.data['name'],
+                         self.report2.name)
+        self.assertEqual(ser.data['value'],
+                         ser.transform_value(self.report2, self.report2.value))
+        self.assertEqual(ser.data['node'],
+                         self.report2.node)
+        self.assertEqual(arrow.get(ser.data['timestamp']),
+                         arrow.get(self.report2.timestamp))
+
+        ser = ReportSerializer(self.report3)
+
+        # date serialization is awkward wrt +00:00 (gets converted to Z), and
+        # resolution is a mismatch from arrow, so need to compare field by
+        # field
+        self.assertEqual(ser.data['name'],
+                         self.report3.name)
+        self.assertEqual(ser.data['value'],
+                         ser.transform_value(self.report3, self.report3.value))
+        self.assertEqual(ser.data['node'],
+                         self.report3.node)
+        self.assertEqual(arrow.get(ser.data['timestamp']),
+                         arrow.get(self.report3.timestamp))
+
+
+class ReportViewTests(APISimpleTestCase):
+
+    def setUp(self):
+        es = Elasticsearch(settings.ES_SERVER)
+        if es.indices.exists('goldstone_agent'):
+            es.indices.delete('goldstone_agent')
+        es.indices.create('goldstone_agent')
+        es.index('goldstone_agent', 'core_report', {
+            'timestamp': arrow.utcnow().timestamp * 1000,
+            'name': 'test.test.report',
+            'value': 'test value',
+            'node': ''})
+        es.index('goldstone_agent', 'core_report', {
+            'timestamp': arrow.utcnow().timestamp * 1000,
+            'name': 'test.test.report2',
+            'value': 'test value',
+            'node': ''})
+
+    def test_post(self):
+        data = {
+            'name': "test.test.report",
+            'value': "some value"}
+        response = self.client.post('/core/reports', data=data)
+        self.assertEqual(response.status_code,
+                         status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_list(self):
+        ReportType.refresh_index()
+        response = self.client.get('/core/reports')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+    def test_retrieve(self):
+        response = self.client.get('/core/reports/abcdef')
+        self.assertEqual(response.status_code,
+                         status.HTTP_405_METHOD_NOT_ALLOWED)

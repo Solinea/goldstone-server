@@ -53,6 +53,7 @@ filter {
                     add_tag => ["timezone_aware_ts", "microsecond_resolution_ts"]
                 }
                 mutate {
+                    replace => [ "host", "%{syslog5424_host}" ]
                     add_tag => ["filter_20_pass"]
                 }
             } else {

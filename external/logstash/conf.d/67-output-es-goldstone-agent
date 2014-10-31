@@ -11,16 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# Author: John Stanford
 
-__author__ = 'John Stanford'
-
-from .views import *
-from rest_framework.routers import DefaultRouter
-
-router = DefaultRouter(trailing_slash=False)
-router.register(r'nodes', NodeViewSet, base_name='node')
-router.register(r'events', EventViewSet, base_name='event')
-router.register(r'metrics', MetricViewSet, base_name='metric')
-router.register(r'reports', ReportViewSet, base_name='report')
-
-urlpatterns = router.urls
+#
+# push processed agent reports/metrics to elasticsearch
+# 
+output {
+    if [type] in ["core_metric", "core_report"] {
+        # stdout { codec => "rubydebug" }
+        elasticsearch {
+            host => localhost
+            port => 9200
+            protocol => http
+            index => "goldstone_agent"
+            workers => 4
+        }
+    }
+}
