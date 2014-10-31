@@ -36,8 +36,9 @@ class NodeSerializer(serializers.ModelSerializer):
 class EventSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     event_type = serializers.CharField(max_length=64)
-    source_id = serializers.CharField(max_length=36, required=False)
-    source_name = serializers.CharField(max_length=64, required=False)
+    source_id = serializers.CharField(max_length=36, required=False, default="")
+    source_name = serializers.CharField(max_length=64,
+                                        required=False, default="")
     message = serializers.CharField(max_length=1024)
     created = serializers.DateTimeField(required=False)
 

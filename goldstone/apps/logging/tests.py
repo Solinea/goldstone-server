@@ -92,6 +92,8 @@ class TaskTests(SimpleTestCase):
         self.assertEqual(event1.created, arrow.get(time_str).datetime)
         self.assertEqual(event1.message, "test message")
         self.assertEqual(event1.event_type, "Syslog Error")
+        self.assertEqual(event1.source_id, "")
+        self.assertEqual(event1.source_name, "")
 
         # create a logging node to relate
         node = LoggingNode(name="fake_node")
@@ -101,6 +103,7 @@ class TaskTests(SimpleTestCase):
         self.assertEqual(event2.created, arrow.get(time_str).datetime)
         self.assertEqual(event2.message, "test message 2")
         self.assertEqual(event2.event_type, "Syslog Error")
+        self.assertEqual(event2.source_name, "fake_node")
 
     @patch.object(subprocess, 'call')
     def test_ping(self, call):
