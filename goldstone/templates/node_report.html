@@ -41,13 +41,18 @@
         <div id="main-container" class="col-md-12">
         <div id="node-report-panel" class="panel panel-primary">
             <div id="servicesReport">
+
+            <!-- placeholder for title bar and info popover -->
+            <div id="service-status-title-bar"></div>
                 <div id="node-report-r2" class="row">
 
                 </div>
 
                 <div id="node-report-r3" class="row">
                     <div id="node-report-r3-c1" class="col-md-12">
-                        <h1>Utilization</h1>
+
+                        <!-- placeholder for title bar and info popover -->
+                        <div id="utilization-title-bar"></div>
                         <div id="node-report-panel" class="panel panel-primary">
                             <div class="well col-md-4" id="cpu-usage">
                                 <h4 class="text-center">CPU Usage</h4>
@@ -63,7 +68,9 @@
                 </div>
                 <div id="node-report-r4" class="row">
                     <div id="node-report-r4-c1" class="col-md-12">
-                        <h1>Hypervisor</h1>
+
+                        <!-- placeholder for title bar and info popover -->
+                        <div id="hypervisor-title-bar"></div>
                         <div id="node-report-panel" class="panel panel-primary">
                             <div class="well col-md-3 text-center" id="cores-usage">
                                 Cores
@@ -92,6 +99,8 @@
 {% block localjs %}
 
     <script src="{% static 'js/goldstone.js' %}"></script>
+    <script src="{% static 'js/models/infoButtonText.js' %}"></script>
+    <script src="{% static 'js/views/chartHeaderView.js' %}"></script>
     <script src="{% static 'js/models/serviceStatusModel.js' %}"></script>
     <script src="{% static 'js/collections/serviceStatusCollection.js' %}"></script>
     <script src="{% static 'js/views/serviceStatusView.js' %}"></script>
@@ -125,6 +134,27 @@
                 });
                 $("#node-report-panel").find('#' + selectedButton + 'Report').show();
             });
+        });
+
+        new ChartHeaderView({
+            el: '#service-status-title-bar',
+            chartTitle: 'Service Status Report',
+            infoTextNumber: 3,
+            columns: 12
+        });
+
+        new ChartHeaderView({
+            el: '#utilization-title-bar',
+            chartTitle: 'Utilization',
+            infoTextNumber: 4,
+            columns: 12
+        });
+
+        new ChartHeaderView({
+            el: '#hypervisor-title-bar',
+            chartTitle: 'Hypervisor',
+            infoTextNumber: 5,
+            columns: 12
         });
 
         renderCharts();
