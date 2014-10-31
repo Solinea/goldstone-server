@@ -21,6 +21,14 @@
 var NodeAvailCollection = Backbone.Collection.extend({
 
     parse: function(data) {
+        if (data.next && data.next !== null) {
+            var dp = data.next;
+            var nextUrl = dp.slice(dp.indexOf('/logging'));
+            this.fetch({
+                url: nextUrl,
+                remove: false
+            });
+        }
         return data.results;
     },
 
@@ -28,12 +36,18 @@ var NodeAvailCollection = Backbone.Collection.extend({
 
     thisXhr: null,
 
-    setXhr: function() {
+    initXhr: function() {
         this.thisXhr = this.fetch();
+    },
+
+    setXhr: function() {
+        this.thisXhr = this.fetch({
+            remove: false
+        });
     },
 
     initialize: function(options) {
         this.url = options.url;
-        this.setXhr();
+        this.initXhr();
     }
 });
