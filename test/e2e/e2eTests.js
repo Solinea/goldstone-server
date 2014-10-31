@@ -1,6 +1,6 @@
 // e2e tests
 
-casper.test.begin('Node Report Page is loading properly', 42, function suite(test) {
+casper.test.begin('Node Report Page is loading properly', 45, function suite(test) {
     casper.start('http://localhost:8000/report/node/os-controller-01', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -16,10 +16,12 @@ casper.test.begin('Node Report Page is loading properly', 42, function suite(tes
         test.assertSelectorHasText('div#node-report-r1-c1 h1', 'os-controller-01');
 
         // Service Status graph loads
+        test.assertSelectorHasText('div #service-status-title-bar', 'Service Status Report');
         test.assertExists('div#node-report-r2', 'Service Status Section should load');
         test.assertExists('div#node-report-r2 .col-xs-1.alert', 'Service node statuses should load');
 
         // Utilization graphs load
+        test.assertSelectorHasText('div #utilization-title-bar', 'Utilization');
         test.assertExists('div#node-report-r3', 'Usage Charts should load');
         test.assertExists('div#node-report-r3-c1 #cpu-usage svg', 'CPU Usage Section svg chart should load');
         test.assertSelectorHasText('div #node-report-r3 #cpu-usage', 'CPU Usage');
@@ -32,6 +34,7 @@ casper.test.begin('Node Report Page is loading properly', 42, function suite(tes
 
 
         // Hypervisor graphs load
+        test.assertSelectorHasText('div #hypervisor-title-bar', 'Hypervisor');
         test.assertExists('div#node-report-r4', 'Hypervisor Charts should load');
         test.assertExists('div#node-report-r4-c1 #cores-usage svg', 'CPU Usage Section svg chart should load');
         test.assertSelectorHasText('div #node-report-r4-c1 #cores-usage', 'Cores');
@@ -79,7 +82,7 @@ casper.test.begin('Node Report Page is loading properly', 42, function suite(tes
     });
 });
 
-casper.test.begin('Homepage is loading properly', 15, function suite(test) {
+casper.test.begin('Homepage is loading properly', 18, function suite(test) {
     casper.start('http://localhost:8000/', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -99,6 +102,12 @@ casper.test.begin('Homepage is loading properly', 15, function suite(test) {
         test.assertExists('div#goldstone-discover-r2-c1', 'Cloud Topology Section should load');
         test.assertExists('div#goldstone-discover-r2-c1 svg', 'Cloud Topology Section svg chart should load');
         test.assertSelectorHasText('div #goldstone-discover-r2-c1', 'Cloud Topology');
+        // Cloud Topology info button brings up popover
+        test.assertNotVisible('#goldstone-topology-panel div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
+        this.click('#goldstone-topology-info.pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#goldstone-topology-panel div.popover.fade.bottom.in', 'cloud topology info popover should now be visible');
+        this.click('#goldstone-topology-info.pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#goldstone-topology-panel div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
 
         // Node Availability graph loads
         test.assertExists('div#goldstone-discover-r2-c2', 'Node Availability Section should load');
