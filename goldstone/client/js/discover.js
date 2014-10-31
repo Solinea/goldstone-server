@@ -24,16 +24,14 @@ var renderCharts = function() {
 
 
     //---------------------------
-    // instantiate Event Timeline chart
+    // instantiate event timeline chart
 
-    var nowMinusDay = +new Date() - (1000 * 60 * 1440);
-    var eventTimelineChart = new EventTimelineCollection({
-        url: "/core/events?created__gt=" + nowMinusDay + "&page_size=1000"
-    });
+    // fetch url is set in eventTimelineCollection
+    var eventTimelineChart = new EventTimelineCollection({});
 
     var eventTimelineChartView = new EventTimelineView({
         collection: eventTimelineChart,
-        location: '#goldstone-discover-r1-c1',
+        el: '#goldstone-discover-r1-c1',
         chartTitle: 'Event Timeline',
         width: $('#goldstone-discover-r1-c1').width()
     });

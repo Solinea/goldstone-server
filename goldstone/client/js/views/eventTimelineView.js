@@ -32,9 +32,11 @@ var EventTimelineView = Backbone.View.extend({
         this.options = options || {};
         this.defaults = _.clone(this.defaults); 
         this.defaults.url = this.collection.url;
-        this.defaults.location = options.location;
+        this.el = options.el;
         this.defaults.chartTitle = options.chartTitle;
         this.defaults.width = options.width;
+        this.defaults.newUrl = false;
+        this.defaults.refreshOnClick = false;
 
         var ns = this.defaults;
         var self = this;
@@ -44,7 +46,7 @@ var EventTimelineView = Backbone.View.extend({
             delay: null
         };
 
-        var appendSpinnerLocation = ns.location;
+        var appendSpinnerLocation = this.el;
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
@@ -54,7 +56,7 @@ var EventTimelineView = Backbone.View.extend({
         });
 
         this.collection.on('sync', this.update, this);
-        this.appendHTML();
+        this.render();
         this.initSettingsForm();
 
         ns.margin = {
@@ -93,7 +95,7 @@ var EventTimelineView = Backbone.View.extend({
          * The graph and axes
          */
 
-        ns.svg = d3.select(ns.location).select(".panel-body").append("svg")
+        ns.svg = d3.select(this.el).select(".panel-body").append("svg")
             .attr("width", ns.w + ns.margin.right)
             .attr("height", ns.h.main + (ns.h.padding + ns.h.tooltipPadding));
 
@@ -128,6 +130,11 @@ var EventTimelineView = Backbone.View.extend({
 
                 d.id = d.id || '';
                 d.message = d.message || 'No message logged';
+
+                if(d.message.length > 280) {
+                    d.message = d.message.slice(0,300) + "...";
+                }
+
                 d.event_type = d.event_type || 'No event type logged';
                 d.created = d.created || 'No date logged';
 
@@ -142,13 +149,15 @@ var EventTimelineView = Backbone.View.extend({
     },
 
     isRefreshSelected: function() {
-        var ns = this.defaults;
-        return $(ns.location).find(".eventAutoRefresh").prop("checked");
+        return $(this.el).find(".eventAutoRefresh").prop("checked");
     },
 
     refreshInterval: function() {
-        var ns = this.defaults;
-        return $(ns.location).find("select#eventAutoRefreshInterval").val();
+        return $(this.el).find("select#eventAutoRefreshInterval").val();
+    },
+
+    lookbackRange: function() {
+        return $(this.el).find("#lookbackRange").val();
     },
 
     initSettingsForm: function() {
@@ -157,13 +166,20 @@ var EventTimelineView = Backbone.View.extend({
         var updateSettings = function() {
             ns.animation.delay = self.refreshInterval();
             ns.animation.pause = !self.isRefreshSelected();
+            ns.lookbackRange = self.lookbackRange();
 
             if (ns.animation.pause === false) {
                 self.scheduleFetch();
             }
 
         };
-        $("#eventSettingsUpdateButton-" + ns.location.slice(1)).click(updateSettings);
+        $("#eventSettingsUpdateButton-" + this.el.slice(1)).click(function() {
+            ns.refreshOnClick = true;
+            if (self.lookbackRange() !== ns.lookbackRange) {
+                ns.newUrl = true;
+            }
+            updateSettings();
+        });
 
         // set initial values for delay and pause based on modal settings
         updateSettings();
@@ -210,7 +226,7 @@ var EventTimelineView = Backbone.View.extend({
     update: function() {
         var ns = this.defaults;
         var self = this;
-        $(ns.location).find('#spinner').hide();
+        $(this.el).find('#spinner').hide();
 
         var allthelogs = (this.collection.toJSON());
 
@@ -231,23 +247,23 @@ var EventTimelineView = Backbone.View.extend({
         if (allthelogs.length === 0) {
 
             // if 'no data returned' already exists on page, don't reapply it
-            if ($(ns.location).find('#noDataReturned').length) {
+            if ($(this.el).find('#noDataReturned').length) {
                 return;
             }
 
-            $('<span id="noDataReturned">No Data Returned</span>').appendTo(ns.location)
+            $('<span id="noDataReturned">No Data Returned</span>').appendTo(this.el)
                 .css({
                     'position': 'relative',
-                    'margin-left': $(ns.location).width() / 2 - 14,
-                    'top': -$(ns.location).height() / 2
+                    'margin-left': $(this.el).width() / 2 - 14,
+                    'top': -$(this.el).height() / 2
                 });
 
             return;
         }
 
         // remove No Data Returned once data starts flowing again
-        if ($(ns.location).find('#noDataReturned').length) {
-            $(ns.location).find('#noDataReturned').remove();
+        if ($(this.el).find('#noDataReturned').length) {
+            $(this.el).find('#noDataReturned').remove();
         }
 
         /*
@@ -272,8 +288,8 @@ var EventTimelineView = Backbone.View.extend({
         ns.filter = ns.filter || {};
 
         // clear out the modal and reapply based on the unique events
-        if ($(ns.location).find('#populateEventFilters').length) {
-            $(ns.location).find('#populateEventFilters').empty();
+        if ($(this.el).find('#populateEventFilters').length) {
+            $(this.el).find('#populateEventFilters').empty();
         }
 
         _.each(ns.uniqueEventTypes, function(item) {
@@ -281,6 +297,9 @@ var EventTimelineView = Backbone.View.extend({
             // regEx to create separate words out of the event types
             // GenericSyslogError --> Generic Syslog Error
             var re = /([A-Z])/g;
+            if(item === undefined){
+                item = 'UnspecifiedErrorType';
+            }
             itemSpaced = item.replace(re, ' $1').trim();
 
             ns.filter[item] = ns.filter[item] || {
@@ -298,24 +317,23 @@ var EventTimelineView = Backbone.View.extend({
             };
             var checkMark = addCheckIfActive(item);
 
-            $(ns.location).find('#populateEventFilters').
-            append(
-
-                '<div class="row">' +
-                '<div class="col-lg-12">' +
-                '<div class="input-group">' +
-                '<span class="input-group-addon"' +
-                'style="opacity: 0.8; background-color:' + ns.filter[item].color + ';">' +
-                '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
-                '</span>' +
-                '<span type="text" class="form-control">' + itemSpaced + '</span>' +
-                '</div>' +
-                '</div>' +
-                '</div>'
+            $(this.el).find('#populateEventFilters')
+                .append(
+                    '<div class="row">' +
+                    '<div class="col-lg-12">' +
+                    '<div class="input-group">' +
+                    '<span class="input-group-addon"' +
+                    'style="opacity: 0.8; background-color:' + ns.filter[item].color + ';">' +
+                    '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
+                    '</span>' +
+                    '<span type="text" class="form-control">' + itemSpaced + '</span>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>'
             );
-        });
+        }, this);
 
-        $(ns.location).find('#populateEventFilters :checkbox').on('click', function() {
+        $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
 
             var checkboxId = this.id;
             ns.filter[this.id].active = !ns.filter[this.id].active;
@@ -401,6 +419,9 @@ var EventTimelineView = Backbone.View.extend({
     scheduleFetch: function() {
         var ns = this.defaults;
         var self = this;
+        var timeoutDelay;
+
+        this.collection.urlUpdate(ns.lookbackRange);
 
         // to prevent a pile up of setTimeouts
         if (ns.scheduleTimeout !== undefined) {
@@ -410,133 +431,171 @@ var EventTimelineView = Backbone.View.extend({
         if (ns.animation.pause) {
             return true;
         }
+
+        if (ns.refreshOnClick) {
+            timeoutDelay = 1;
+            ns.refreshOnClick = false;
+        } else {
+            timeoutDelay = ns.animation.delay * 1000;
+        }
+
         ns.scheduleTimeout = setTimeout(function() {
 
-            self.collection.fetch({
-                remove: false
-            });
+            if (self.defaults.newUrl) {
+                self.collection.fetch({
+                    remove: true
+                });
+                self.defaults.newUrl = false;
+            } else {
+                self.collection.fetch({
+                    remove: false
+                });
+            }
 
-        }, ns.animation.delay * 1000);
+        }, timeoutDelay);
 
     },
 
-    appendHTML: function() {
+    render: function() {
+        this.$el.html(this.template());
+        $('#modal-container-' + this.el.slice(1)).append(this.modal1());
+        $('#modal-container-' + this.el.slice(1)).append(this.modal2());
+        return this;
+    },
 
-        var ns = this.defaults;
+    template: _.template(
+        '<div id = "goldstone-event-panel" class="panel panel-primary">' +
+        '<div class="panel-heading">' +
+        '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
 
-        $(ns.location).append(
-            '<div id = "goldstone-event-panel" class="panel panel-primary">' +
-            '<div class="panel-heading">' +
-            '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' +
-            ns.chartTitle +
+        // filter icon
+        '<i class="fa fa-filter pull-right" data-toggle="modal"' +
+        'data-target="#modal-filter-<%= this.el.slice(1) %>' + '"></i>' +
 
-            // filter icon
-            '<i class="fa fa-filter pull-right" data-toggle="modal"' +
-            'data-target="#modal-filter-' + ns.location.slice(1) + '"></i>' +
+        // cog icon
+        '<i class="fa fa-cog pull-right" data-toggle="modal"' +
+        'data-target="#modal-settings-<%= this.el.slice(1) %>' +
+        '" style="margin-right: 30px;"></i>' +
 
-            // cog icon
-            '<i class="fa fa-cog pull-right" data-toggle="modal"' +
-            'data-target="#modal-settings-' + ns.location.slice(1) + '" style="margin-right: 30px;"></i>' +
+        // info-circle icon
+        '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-event-info"' +
+        'style="margin-right: 30px;"></i>' +
+        '</h3>' +
+        '</div>' +
+        '<div class="panel-body" style="height:<%= (this.defaults.h.padding * 2) %>' +
+        'px">' +
+        '<div id="event-filterer" class="btn-group pull-left" data-toggle="buttons" align="center">' +
+        '</div>' +
+        '</div>' +
+        '<div class="panel-body" style="height:<%= this.defaults.h.main %>' + 'px">' +
+        '<div id="goldstone-event-chart">' +
+        '<div class="clearfix"></div>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
 
-            // info-circle icon
-            '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-event-info"' +
-            'style="margin-right: 30px;"></i>' +
-            '</h3>' +
-            '</div>' +
-            '<div class="panel-body" style="height:' + (ns.h.padding * 2) + 'px">' +
-            '<div id="event-filterer" class="btn-group pull-left" data-toggle="buttons" align="center">' +
-            '</div>' +
-            '</div>' +
-            '<div class="panel-body" style="height:' + ns.h.main + 'px">' +
-            '<div id="goldstone-event-chart">' +
-            '<div class="clearfix"></div>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
+        '<div id="modal-container-<%= this.el.slice(1) %>' +
+        '"></div>'
 
-            '<div id="modal-container-' + ns.location.slice(1) +
-            '"></div>'
+    ),
 
-        );
+    modal1: _.template(
+        // event settings modal
+        '<div class="modal fade" id="modal-settings-<%= this.el.slice(1) %>' +
+        '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+        '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
+        '<div class="modal-header">' +
+        '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+        '<h4 class="modal-title" id="myModalLabel">Chart Range Settings</h4>' +
+        '</div>' +
+        '<div class="modal-body">' +
 
-        $('#modal-container-' + ns.location.slice(1)).append(
+        // insert start/end form elements:
 
-            // event settings modal
-            '<div class="modal fade" id="modal-settings-' + ns.location.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
-            '<div class="modal-dialog">' +
-            '<div class="modal-content">' +
-            '<div class="modal-header">' +
-            '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
-            '<h4 class="modal-title" id="myModalLabel">Chart Settings</h4>' +
-            '</div>' +
-            '<div class="modal-body">' +
-            '<form class="form-horizontal" role="form">' +
-            '<div class="form-group">' +
-            '<label for="eventAutoRefresh" class="col-sm-3 control-label">Refresh: </label>' +
-            '<div class="col-sm-9">' +
-            '<div class="input-group">' +
-            '<span class="input-group-addon">' +
-            '<input type="checkbox" class="eventAutoRefresh" checked>' +
-            '</span>' +
-            '<select class="form-control" id="eventAutoRefreshInterval">' +
-            '<option value="5" selected>5 seconds</option>' +
-            '<option value="15">15 seconds</option>' +
-            '<option value="30">30 seconds</option>' +
-            '<option value="60">1 minute</option>' +
-            '<option value="300">5 minutes</option>' +
-            '</select>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</form>' +
-            '</div>' +
-            '<div class="modal-footer">' +
-            '<div class="form-group">' +
-            '<button type="button" id="eventSettingsUpdateButton-' + ns.location.slice(1) + '" class="btn btn-primary" data-dismiss="modal">Update</button>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>'
+        '<form class="form-horizontal" role="form">' +
+        '<div class="form-group">' +
+        '<label for="lookbackRange" class="col-sm-2 control-label">Lookback: </label>' +
+        '<div class="col-sm-5">' +
+        '<div class="input-group">' +
+        '<select class="form-control" id="lookbackRange">' +
+        '<option value="15">15 minutes</option>' +
+        '<option value="60" selected>1 hour</option>' +
+        '<option value="360">6 hours</option>' +
+        '<option value="1440">1 day</option>' +
+        '</select>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</form>' +
 
-        );
+        // end of new start/end elements
 
+
+
+        '<form class="form-horizontal" role="form">' +
+        '<div class="form-group">' +
+        '<label for="eventAutoRefresh" class="col-sm-2 control-label">Refresh: </label>' +
+        '<div class="col-sm-5">' +
+        '<div class="input-group">' +
+        '<span class="input-group-addon">' +
+        '<input type="checkbox" class="eventAutoRefresh" checked>' +
+        '</span>' +
+        '<select class="form-control" id="eventAutoRefreshInterval">' +
+        '<option value="5">5 seconds</option>' +
+        '<option value="15">15 seconds</option>' +
+        '<option value="30" selected>30 seconds</option>' +
+        '<option value="60">1 minute</option>' +
+        '<option value="300">5 minutes</option>' +
+        '</select>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</form>' +
+        '</div>' +
+        '<div class="modal-footer">' +
+        '<div class="form-group">' +
+        '<button type="button" id="eventSettingsUpdateButton-<%= this.el.slice(1) %>' +
+        '" class="btn btn-primary" data-dismiss="modal">Update</button>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>'
+    ),
+
+    modal2: _.template(
         // add 2nd modal here:
-        $('#modal-container-' + ns.location.slice(1)).append(
+        // event filter modal
+        '<div class="modal fade" id="modal-filter-<%= this.el.slice(1) %>' +
+        '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+        '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
 
-            // event settings modal
-            '<div class="modal fade" id="modal-filter-' + ns.location.slice(1) + '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
-            '<div class="modal-dialog">' +
-            '<div class="modal-content">' +
+        // header
+        '<div class="modal-header">' +
 
-            // header
-            '<div class="modal-header">' +
+        '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
+        '<h4 class="modal-title" id="myModalLabel">Event Type Filters</h4>' +
+        '</div>' +
 
-            '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-            '<h4 class="modal-title" id="myModalLabel">Event Type Filters</h4>' +
-            '</div>' +
-
-            // body
-            '<div class="modal-body">' +
-            '<h5>Uncheck event-type to hide from display</h5><br>' +
-            '<div id="populateEventFilters"></div>' +
-
-
-            '</div>' +
-
-            // footer
-            '<div class="modal-footer">' +
-            '<button type="button" id="eventFilterUpdateButton-' + ns.location.slice(1) + '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
-            '</div>' +
-
-            '</div>' +
-            '</div>' +
-            '</div>'
-
-        );
+        // body
+        '<div class="modal-body">' +
+        '<h5>Uncheck event-type to hide from display</h5><br>' +
+        '<div id="populateEventFilters"></div>' +
 
 
+        '</div>' +
 
-    }
+        // footer
+        '<div class="modal-footer">' +
+        '<button type="button" id="eventFilterUpdateButton-<%= this.el.slice(1) %>' +
+        '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
+        '</div>' +
+
+        '</div>' +
+        '</div>' +
+        '</div>'
+    )
 });
