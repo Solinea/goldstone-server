@@ -24,12 +24,11 @@ var renderCharts = function() {
 
 
     //---------------------------
-    // instantiate event timeline chart
+    // instantiate Event Timeline chart
 
-    var nowMinusHour = +new Date() - (1000 * 60 * 1440);
-
+    var nowMinusDay = +new Date() - (1000 * 60 * 1440);
     var eventTimelineChart = new EventTimelineCollection({
-        url: "/core/events?created__gt=" + nowMinusHour + "&page_size=1000"
+        url: "/core/events?created__gt=" + nowMinusDay + "&page_size=1000"
     });
 
     var eventTimelineChartView = new EventTimelineView({
@@ -39,14 +38,17 @@ var renderCharts = function() {
         width: $('#goldstone-discover-r1-c1').width()
     });
 
+    //---------------------------
+    // instantiate Node Availability chart
+
     var nodeAvailChart = new NodeAvailCollection({
-        url: "/logging/nodes"
+        url: "/logging/nodes?page_size=100"
     });
 
     var nodeAvailChartView = new NodeAvailView({
         collection: nodeAvailChart,
         h: {"main": 450, "swim": 50},
-        location: '#goldstone-discover-r2-c2',
+        el: '#goldstone-discover-r2-c2',
         chartTitle: 'Node Availability',
         width: $('#goldstone-discover-r2-c2').width()
     });
