@@ -31,7 +31,7 @@ var UtilizationView = Backbone.View.extend({
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
         this.defaults.url = this.collection.url;
-        this.defaults.location = options.location;
+        this.el = options.el;
         this.defaults.width = options.width;
 
         var ns = this.defaults;
@@ -81,7 +81,7 @@ var UtilizationView = Backbone.View.extend({
                 return d.values;
             });
 
-        ns.svg = d3.select(ns.location).append("svg")
+        ns.svg = d3.select(this.el).append("svg")
             .attr("width", ns.mw + ns.margin.left + ns.margin.right)
             .attr("height", ns.mh + ns.margin.top + ns.margin.bottom)
             .append("g")
@@ -91,8 +91,9 @@ var UtilizationView = Backbone.View.extend({
         // longer than chart loading
         ns.spinnerDisplay = 'inline';
 
+        var appendSpinnerLocation = this.el;
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(ns.location).css({
+            $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
                 'margin-top': -(ns.width / 2),
@@ -112,20 +113,39 @@ var UtilizationView = Backbone.View.extend({
         // spinner callback resolves
         // after chart data callback
         ns.spinnerDisplay = 'none';
-        $(ns.location).find('#spinner').hide();
+        $(this.el).find('#spinner').hide();
 
-        var allTheLogs = this.collection.toJSON();
+        var allthelogs = this.collection.toJSON();
 
-        if (allTheLogs.length === 0) {
-            console.log('no data returned');
+        // If we didn't receive any valid files, append "No Data Returned"
+        if (allthelogs.length === 0) {
+
+            // if 'no data returned' already exists on page, don't reapply it
+            if ($(this.el).find('#noDataReturned').length) {
+                return;
+            }
+
+            $('<span id="noDataReturned">No Data Returned</span>').appendTo(this.el)
+                .css({
+                    'position': 'relative',
+                    'margin-left': $(this.el).width() / 2 - 14,
+                    'top': -$(this.el).height() / 2
+                });
             return;
         }
 
-        var data = allTheLogs;
+        // remove No Data Returned once data starts flowing again
+        if ($(this.el).find('#noDataReturned').length) {
+            $(this.el).find('#noDataReturned').remove();
+        }
+
+        var data = allthelogs;
 
         ns.color.domain(d3.keys(data[0]).filter(function(key) {
             return key !== "date";
         }));
+
+        $(this.el).find('.axis').remove();
 
         var components = ns.stack(ns.color.domain().map(function(name) {
             return {
@@ -154,7 +174,7 @@ var UtilizationView = Backbone.View.extend({
                 return ns.area(d.values);
             })
             .style("fill", function(d) {
-                if(d.name === "Idle"){
+                if (d.name === "Idle") {
                     return "none";
                 }
                 return ns.color(d.name);

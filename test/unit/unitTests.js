@@ -119,8 +119,6 @@ describe('Testing the base.js file', function() {
             it('jsIncluded', function() {
                 var test1 = goldstone.jsIncluded("blahDeBlah");
                 assert.isFalse(test1);
-                var test2 = goldstone.jsIncluded("/base/goldstone/client/js/views/utilizationView.js?a45023231fc28b857e9d18daaad34d4c2756c3fa");
-                assert.isTrue(test2);
             });
         });
 

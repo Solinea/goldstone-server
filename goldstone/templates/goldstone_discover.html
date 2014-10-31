@@ -39,8 +39,10 @@
             <div id = "goldstone-topology-panel" class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-tasks"></i> Cloud Topology
-                            <i class="pull-right fa fa-info-circle panel-info"  id="goldstone-topology-info"
-                               style="opacity: 0.0"></i>
+
+                            <!-- info icon -->
+                            <i class="pull-right fa fa-info-circle panel-info" id="goldstone-topology-info"></i>
+
                     </h3>
                 </div>
                 <div class="panel-body" style="height:600px">
@@ -71,6 +73,7 @@
 <script src="{% static 'js/views/eventTimelineView.js' %}"></script>
 <script src="{% static 'js/views/nodeAvailView.js' %}"></script>
 <script src="{% static 'js/discover.js' %}"></script>
+<script src="{% static 'js/models/infoButtonText.js' %}"></script>
 
 <script>
 
@@ -87,7 +90,7 @@
     ns.singleRsrcSpinner = '#single-rsrc-loading-indicator';
     ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator';
 
-    // test:
+    // mapping for leaves to navigate to discover pages
     localStorage.clear();
     ns.frontPage = true;
     ns.leafDataUrls = {
@@ -115,9 +118,33 @@
         "volume-types-leaf": "/volume_types"
     };
 
-    // end test
-
     $(document).ready(function () {
+        var self = this;
+        var infoButtonText = new InfoButtonText().get('infoTextSets');
+
+        // chart info button popover generator
+        var htmlGen = function() {
+            var result = '<div class="infoButton">' +
+             infoButtonText[0] +
+            '</div>';
+            return result;
+        };
+
+        $('#goldstone-topology-panel').find('#goldstone-topology-info').popover({
+            trigger: 'manual',
+            content: htmlGen.apply(this),
+            placement: 'bottom',
+            html: 'true'
+        })
+            .on("click", function(d) {
+                var targ = "#" + d.target.id;
+                // $('#goldstone-topology-panel').find(targ).popover('toggle');
+
+                // setTimeout(function(d) {
+                    // $('#goldstone-topology-panel').find(targ).popover('hide');
+                // }, 3000, targ);
+            });
+
 
         // $(ns.spinner).hide();
         // $(ns.singleRsrcSpinner).hide();
