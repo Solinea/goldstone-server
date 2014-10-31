@@ -116,6 +116,11 @@ class Event(Model):
             self.created = arrow.get(kwargs['created']).datetime
         else:
             self.created = arrow.utcnow().datetime
+        if 'source_id' not in kwargs:
+            self.source_id = ""
+        if 'source_name' not in kwargs:
+            self.source_name = ""
+
 
     @classmethod
     def _reconstitute(cls, **kwargs):

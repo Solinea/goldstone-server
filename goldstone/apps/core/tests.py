@@ -267,6 +267,8 @@ class EventModelTests(SimpleTestCase):
     def test_create_model(self):
         e1 = Event(event_type='test_event', message='this is a test event')
         self.assertIsNotNone(e1.id)
+        self.assertEqual(e1.source_id, "")
+        self.assertEqual(e1.source_name, "")
         self.assertNotEqual(e1.id, "")
         self.assertIsNotNone(e1.created)
 
