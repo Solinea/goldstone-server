@@ -23,7 +23,7 @@ output {
             key => "event_stream"
             celery_task => "goldstone.apps.logging.tasks.process_event_stream"
             celery_routing_key => "event_stream.#"
-            celery_task_args => ["@timestamp", "host", "event_type", "log_message"]
+            celery_task_args => ["@timestamp", "syslog5424_host", "event_type", "log_message"]
         }
     }
 }

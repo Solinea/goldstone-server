@@ -23,7 +23,7 @@ output {
             key => "host_stream"
             celery_task => "goldstone.apps.logging.tasks.process_host_stream"
             celery_routing_key => "host_stream.#"
-            celery_task_args => ["host", "@timestamp"]
+            celery_task_args => ["syslog5424_host", "@timestamp"]
         }
     }
 }

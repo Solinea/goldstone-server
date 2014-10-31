@@ -108,6 +108,16 @@ def _put_agent_template(server=settings.ES_SERVER):
                      "Please report this.")
         raise
 
+def _put_model_template(server=settings.ES_SERVER):
+    try:
+        f = open(os.path.join(os.path.dirname(__file__),
+                              "goldstone_model_template.json"), 'rb')
+        _put_es_template(f, "goldstone_model", server=server)
+    except:
+        logger.error("Failed to create/update the goldstone_agent template.  "
+                     "Please report this.")
+        raise
+
 
 def _put_goldstone_daily_template(server=settings.ES_SERVER):
     try:
@@ -128,6 +138,7 @@ def _put_all_templates(server=settings.ES_SERVER):
 
     _put_goldstone_daily_template(server=server)
     _put_agent_template(server=server)
+    _put_model_template(server=server)
 
 
 def _create_daily_index(server=settings.ES_SERVER,

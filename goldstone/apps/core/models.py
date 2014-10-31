@@ -64,6 +64,7 @@ class EventType(MappingType, Indexable):
                 'id': {'type': 'string', 'index': 'not_analyzed'},
                 'event_type': {'type': 'string', 'index': 'not_analyzed'},
                 'source_id': {'type': 'string', 'index': 'not_analyzed'},
+                'source_name': {'type': 'string', 'index': 'not_analyzed'},
                 'message': {'type': 'string', 'analyzer': 'snowball'},
                 'created': {'type': 'date', 'index': 'not_analyzed'}
             }
@@ -82,6 +83,7 @@ class EventType(MappingType, Indexable):
             'id': str(obj.id),
             'event_type': obj.event_type,
             'source_id': str(obj.source_id),
+            'source_name': obj.source_name,
             'message': obj.message,
             'created': obj.created.isoformat()
         }
@@ -92,6 +94,7 @@ class EventType(MappingType, Indexable):
             event_type=self._results_dict['event_type'],
             message=self._results_dict['message'],
             source_id=self._results_dict['source_id'],
+            source_name=self._results_dict['source_name'],
             created=arrow.get(self._results_dict['created']).datetime
         )
 
@@ -100,6 +103,7 @@ class Event(Model):
     id = CharField(max_length=36, primary_key=True)
     event_type = CharField(max_length=64)
     source_id = CharField(max_length=36, blank=True)
+    source_name = CharField(max_length=64, blank=True)
     message = CharField(max_length=1024)
     created = DateTimeField(auto_now=False)
 
