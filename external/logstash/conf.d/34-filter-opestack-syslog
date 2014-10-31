@@ -48,7 +48,7 @@ filter {
                     }
                 }
                 mutate {
-                    rename => [ "syslog5424_host", "host" ]
+                    replace => [ "host", "%{syslog5424_host}" ]
                     add_tag => ["openstack_syslog", "filter_34_pass"]
                 }
 

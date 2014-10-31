@@ -14,8 +14,9 @@
 import json
 from uuid import uuid4
 import arrow
+from django.db import models
 from django.db.models import CharField, BooleanField, Model, DateTimeField, \
-    TextField
+    TextField, DecimalField, IntegerField
 from django_extensions.db.fields import UUIDField, ModificationDateTimeField, \
     CreationDateTimeField
 from polymorphic import PolymorphicModel
@@ -46,6 +47,9 @@ class Entity(PolymorphicModel):
         })
 
 
+#
+# Event Stream Events
+#
 class EventType(MappingType, Indexable):
 
     @classmethod
@@ -60,6 +64,7 @@ class EventType(MappingType, Indexable):
                 'id': {'type': 'string', 'index': 'not_analyzed'},
                 'event_type': {'type': 'string', 'index': 'not_analyzed'},
                 'source_id': {'type': 'string', 'index': 'not_analyzed'},
+                'source_name': {'type': 'string', 'index': 'not_analyzed'},
                 'message': {'type': 'string', 'analyzer': 'snowball'},
                 'created': {'type': 'date', 'index': 'not_analyzed'}
             }
@@ -78,6 +83,7 @@ class EventType(MappingType, Indexable):
             'id': str(obj.id),
             'event_type': obj.event_type,
             'source_id': str(obj.source_id),
+            'source_name': obj.source_name,
             'message': obj.message,
             'created': obj.created.isoformat()
         }
@@ -88,6 +94,7 @@ class EventType(MappingType, Indexable):
             event_type=self._results_dict['event_type'],
             message=self._results_dict['message'],
             source_id=self._results_dict['source_id'],
+            source_name=self._results_dict['source_name'],
             created=arrow.get(self._results_dict['created']).datetime
         )
 
@@ -96,6 +103,7 @@ class Event(Model):
     id = CharField(max_length=36, primary_key=True)
     event_type = CharField(max_length=64)
     source_id = CharField(max_length=36, blank=True)
+    source_name = CharField(max_length=64, blank=True)
     message = CharField(max_length=1024)
     created = DateTimeField(auto_now=False)
 
@@ -119,16 +127,10 @@ class Event(Model):
         obj.created = arrow.get(kwargs['created']).datetime
         return obj
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
+    def save(self, force_insert=False, force_update=False):
         """
         An override to save the object to ES via elasticutils
         """
-
-        if using is not None:
-            raise ValueError("using is not implemented for this model")
-        if update_fields is not None:
-            raise ValueError("update_fields is not implemented for this model")
 
         self._mt.index(self._mt.extract_document(self.id, self),
                        id_=str(self.id))
@@ -138,6 +140,140 @@ class Event(Model):
             raise ValueError("using is not implemented for this model")
 
         self._mt.unindex(str(self.id))
+
+
+#
+# Goldstone Agent Metrics and Reports
+#
+class MetricType(MappingType, Indexable):
+
+    @classmethod
+    def get_model(cls):
+        return Metric
+
+    @classmethod
+    def get_mapping(cls):
+        """Returns an Elasticsearch mapping for this MappingType"""
+        return {
+            'properties': {
+                'timestamp': {'type': 'date'},
+                'name': {'type': 'string'},
+                'metric_type': {'type': 'string'},
+                'value': {'type': 'double'},
+                'unit': {'type': 'string'},
+                'node': {'type': 'string'}
+            }
+        }
+
+    def get_object(self):
+        return Metric._reconstitute(
+            timestamp=self._results_dict['timestamp'],
+            name=self._results_dict['name'],
+            metric_type=self._results_dict['metric_type'],
+            value=self._results_dict['value'],
+            unit=self._results_dict['unit'],
+            node=self._results_dict['node']
+        )
+
+
+class Metric(Model):
+    id = CharField(max_length=36, primary_key=True)
+    timestamp = DateTimeField(auto_now=False)
+    name = CharField(max_length=128)
+    metric_type = CharField(max_length=36)
+    value = DecimalField(max_digits=30, decimal_places=8)
+    unit = CharField(max_length=36)
+    node = CharField(max_length=36)
+
+    _mt = MetricType()
+
+    @classmethod
+    def _reconstitute(cls, **kwargs):
+        """
+        provides a way for the mapping type to create an object from ES data
+        """
+        obj = cls(**kwargs)
+        return obj
+
+    def save(self, force_insert=False, force_update=False):
+        """
+        An override to save the object to ES via elasticutils.  This will be
+        a noop for now.  Saving occurs from the logstash processing directly
+        to ES.
+        """
+        raise NotImplementedError("save is not implemented for this model")
+
+    def delete(self, using=None):
+        raise NotImplementedError("delete is not implemented for this model")
+
+
+class ReportType(MappingType, Indexable):
+
+    @classmethod
+    def get_model(cls):
+        return Report
+
+    @classmethod
+    def get_mapping(cls):
+        """Returns an Elasticsearch mapping for this MappingType"""
+        return {
+            'properties': {
+                'timestamp': {'type': 'date'},
+                'name': {'type': 'string'},
+                'value': {'type': 'string'},
+                'node': {'type': 'string'}
+            }
+        }
+
+    def get_object(self):
+        return Report._reconstitute(
+            timestamp=self._results_dict['timestamp'],
+            name=self._results_dict['name'],
+            value=self._results_dict['value'],
+            node=self._results_dict['node']
+        )
+
+
+class Report(Model):
+    id = CharField(max_length=36, primary_key=True)
+    timestamp = DateTimeField(auto_now=False)
+    name = CharField(max_length=128)
+    value = TextField(max_length=65535)
+    node = CharField(max_length=36)
+
+    _mt = ReportType()
+
+    @classmethod
+    def _reconstitute(cls, **kwargs):
+        """
+        provides a way for the mapping type to create an object from ES data
+        """
+        # reports could be stringified JSON, so let's find out
+        if "value" in kwargs and type(kwargs["value"]) is list:
+            new_val = []
+            for item in kwargs["value"]:
+                try:
+                    new_val.append(json.loads(item))
+                except:
+                    new_val.append(item)
+            kwargs['value'] = new_val
+
+        else:
+            logger.debug("no value present in kwargs, or value not a list")
+        obj = cls(**kwargs)
+        return obj
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        """
+        An override to save the object to ES via elasticutils.  This will be
+        a noop for now.  Saving occurs from the logstash processing directly
+        to ES.
+        """
+        raise NotImplementedError("save is not implemented for this model")
+
+    def delete(self, using=None):
+        raise NotImplementedError("delete is not implemented for this model")
 
 
 class Node(Entity):

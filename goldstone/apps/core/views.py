@@ -19,11 +19,12 @@ from .models import *
 from .serializers import *
 import logging
 import arrow
-from django.http import Http404
+from django.http import Http404, HttpResponseBadRequest, HttpResponseNotAllowed
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet, \
+    ReadOnlyModelViewSet
 
 logger = logging.getLogger(__name__)
 
@@ -115,3 +116,48 @@ class EventViewSet(ModelViewSet):
             return obj
         else:
             raise Http404
+
+
+class MetricViewSet(ModelViewSet):
+    queryset = MetricType().search().query().order_by('-timestamp')
+    serializer_class = MetricSerializer
+    lookup_field = "_id"
+
+    def list(self, request, *args, **kwargs):
+        # adding support filter params
+        params = request.QUERY_PARAMS.dict()
+        if params is not None:
+            # don't use the page related params as filters
+            if settings.REST_FRAMEWORK['PAGINATE_BY_PARAM'] in params:
+                del params[settings.REST_FRAMEWORK['PAGINATE_BY_PARAM']]
+            if 'page' in params:
+                del params['page']
+
+            self.queryset = MetricType().search().query().filter(**params). \
+                order_by('-timestamp')
+
+            return super(MetricViewSet, self).list(request, *args, **kwargs)
+
+
+class ReportViewSet(ReadOnlyModelViewSet):
+    queryset = ReportType().search().query().order_by('-timestamp')
+    serializer_class = ReportSerializer
+    lookup_field = "_id"
+
+    def list(self, request, *args, **kwargs):
+        # adding support filter params
+        params = request.QUERY_PARAMS.dict()
+        if params != {}:
+            # don't use the page related params as filters
+            if settings.REST_FRAMEWORK['PAGINATE_BY_PARAM'] in params:
+                del params[settings.REST_FRAMEWORK['PAGINATE_BY_PARAM']]
+            if 'page' in params:
+                del params['page']
+
+            self.queryset = ReportType().search().query().filter(**params). \
+                order_by('-timestamp')
+
+        return super(ReportViewSet, self).list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        return HttpResponseNotAllowed('')

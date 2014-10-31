@@ -95,7 +95,6 @@ Now, install pip prerequesites into your shiny new virtualenv. This will let you
     $ pip install -r requirements.txt
     $ pip install -r test_requirements.txt
 
-
 Get the local settings and put them in place::
 
     $ git submodule init
@@ -110,6 +109,15 @@ Sync and migrate the databases::
 
     $ python ./manage.py syncdb  # Answer 'no' to create superuser
     $ python ./manage.py migrate
+
+Set up the elasticsearch templates::
+
+    $ python manage.py shell <<EOF
+    from goldstone.apps.core.tasks import _put_all_templates, _create_daily_index, _create_agent_index
+   _put_all_templates()
+   _create_daily_index()
+   _create_agent_index()
+   EOF
 
 Now test out the server::
 

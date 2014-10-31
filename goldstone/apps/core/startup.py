@@ -8,17 +8,22 @@ logger = logging.getLogger(__name__)
 
 
 class StartupGoldstone(object):
-    def __init__(self):
-        logger.debug("attempting to create goldstone_model ES index")
 
-        # create the goldstone_model ES index if it doesn't exist
-        index_name = "goldstone_model"
-        conn = Elasticsearch(settings.ES_SERVER)
+    def _setup_index(self, conn, index_name):
         try:
             if not conn.indices.exists(index_name):
                 conn.indices.create(index_name)
             raise MiddlewareNotUsed('Startup complete')
         except TransportError:
             logger.exception("could not contact elasticsearch on startup.")
+
+    def __init__(self):
+        logger.debug("attempting to create goldstone_model ES index")
+
+        # create the goldstone_model and goldstone_agent ES indices if
+        # they don't exist
+        conn = Elasticsearch(settings.ES_SERVER)
+        self._setup_index(conn, "goldstone_model")
+        self._setup_index(conn, "goldstone_agent")
 
         raise MiddlewareNotUsed('Startup complete')
