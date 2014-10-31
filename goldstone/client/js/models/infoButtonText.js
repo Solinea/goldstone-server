@@ -32,22 +32,22 @@ var InfoButtonText = Backbone.Model.extend({
     defaults: {
         infoTextSets: {
             // cloud topology
-            0: 'Cloud Topology sample text',
+            0: '',
 
             // event timeline
-            1: 'Event Timeline sample text',
+            1: '',
 
             // node availability
-            2: 'Node Availability sample text',
+            2: '',
 
             // service status report
-            3: 'Service Status sample text',
+            3: '',
 
             // utilization viz
-            4: 'Utilization Chart sample text',
+            4: '',
 
             // hypervisor viz
-            5: 'Hypervisor charts sample text'
+            5: ''
         }
     }
 });
