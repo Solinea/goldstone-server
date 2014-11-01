@@ -37,7 +37,20 @@ var UtilizationView = Backbone.View.extend({
         var ns = this.defaults;
         var self = this;
 
-        this.collection.on('sync', this.update, this);
+        // TODO: UNCOMMENT
+        // this.collection.on('sync', this.update, this);
+
+        this.collection.on('sync', function() {
+            if (self.collection.defaults.urlCollectionCount === 0) {
+                console.log('final len: ', self.collection.length, self.collection.toJSON());
+                self.update();
+
+                // the collection count will have to be set back to the original count when re-triggering a fetch.
+                self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
+            }
+
+        });
+
 
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.width - ns.margin.top - ns.margin.bottom;
