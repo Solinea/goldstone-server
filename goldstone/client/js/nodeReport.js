@@ -18,6 +18,22 @@
 
 var renderCharts = function() {
 
+    var hostName = 'compute-02';
+
+
+    // TO UNCOMMENT
+    /*if (localStorage.length) {
+        var passedData = JSON.parse(localStorage.getItem('reportNodeData'));
+        console.log(passedData);
+        if (passedData.hypervisor_hostname) {
+            hostName = passedData.hypervisor_hostname;
+            hostName = (hostName.slice(0, hostName.indexOf('.')));
+        }
+    } else {
+        console.log('no data');
+        return;
+    }*/
+
     //----------------------------
     // instantiate charts via
     // backbone collection / views
@@ -37,7 +53,7 @@ var renderCharts = function() {
     //---------------------------
     // instantiate CPU Usage chart
     var cpuUsageChart = new UtilizationCollection({
-        url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
+        nodeName: hostName
     });
 
     var cpuUsageView = new UtilizationView({
@@ -49,7 +65,7 @@ var renderCharts = function() {
     //---------------------------
     // instantiate Memory Usage chart
     var memoryUsageChart = new UtilizationCollection({
-        url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
+        nodeName: hostName
     });
 
     var memoryUsageView = new UtilizationView({
@@ -61,7 +77,7 @@ var renderCharts = function() {
     //---------------------------
     // instantiate Network Usage chart
     var networkUsageChart = new UtilizationCollection({
-        url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
+        nodeName: hostName
     });
 
     var networkUsageView = new UtilizationView({

@@ -16,19 +16,61 @@
  * Author: Alex Jacobs
  */
 
- var UtilizationCollection = Backbone.Collection.extend({
+var UtilizationCollection = Backbone.Collection.extend({
+
+    defaults: {
+        urlCollectionCount: null
+    },
 
     parse: function(data) {
-        return this.dummy.results;
+
+        if (data.next && data.next !== null) {
+            var dp = data.next;
+            nextUrl = dp.slice(dp.indexOf('/core'));
+            this.fetch({
+                url: nextUrl,
+                remove: false,
+            });
+        } else {
+            this.defaults.urlCollectionCount--;
+        }
+
+        return data.results;
     },
 
     model: UtilizationModel,
 
     initialize: function(options) {
-        this.url = options.url;
-        this.dummy = _.clone(this.dummy);
-        this.dummyGen();
-        this.fetch();
+
+        var dayAgo = +new Date() - (1000 * 60 * 60 * 48);
+
+        this.options = options || {};
+        this.urlPrefixes = ['sys', 'user', 'wait'];
+
+        this.defaults = _.clone(this.defaults);
+
+        this.defaults.urlCollectionCountOrig = this.urlPrefixes.length;
+        this.defaults.urlCollectionCount = this.urlPrefixes.length;
+
+        var urlsToFetch = [];
+
+        _.each(this.urlPrefixes, function(prefix) {
+            urlsToFetch.push("/core/metrics?name__prefix=os.cpu." + prefix + "&node=" +
+                options.nodeName + "&timestamp__gte=" +
+                dayAgo + "&page_size=30");
+        });
+
+        this.fetch({
+            url: urlsToFetch.pop()
+        });
+
+        _.each(urlsToFetch, function(item) {
+            this.fetch({
+                url: item,
+                remove: false
+            });
+        }, this);
+
     },
 
     dummyGen: function() {
@@ -41,9 +83,9 @@
 
         for (var i = 0; i < Math.floor(Math.random() * 20) + 2; i++) {
 
-            var user = Math.floor(Math.random()*3300) / 100;
-            var system = Math.floor(Math.random()*3300) / 100;
-            var wait = Math.floor(Math.random()*3300) / 100;
+            var user = Math.floor(Math.random() * 3300) / 100;
+            var system = Math.floor(Math.random() * 3300) / 100;
+            var wait = Math.floor(Math.random() * 3300) / 100;
 
 
             var result = {
