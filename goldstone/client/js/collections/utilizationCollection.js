@@ -18,9 +18,7 @@
 
 var UtilizationCollection = Backbone.Collection.extend({
 
-    defaults: {
-        urlCollectionCount: null
-    },
+    defaults: {},
 
     parse: function(data) {
 
@@ -40,42 +38,61 @@ var UtilizationCollection = Backbone.Collection.extend({
 
     model: UtilizationModel,
 
+    comparator: 'timestamp',
+
     initialize: function(options) {
 
         var self = this;
-        var dayAgo = +new Date() - (1000 * 60 * 60 * 24);
 
         this.options = options || {};
-        this.urlPrefixes = ['sys', 'user', 'wait'];
-
         this.defaults = _.clone(this.defaults);
+        this.defaults.fetchInProgress = false;
+        console.log('fetchInProgress: ',self.defaults.fetchInProgress);
+        this.defaults.nodeName = options.nodeName;
+        this.defaults.urlPrefixes = ['sys', 'user', 'wait'];
+        this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
+        this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
+        this.fetchMultipleUrls();
+    },
 
-        this.defaults.urlCollectionCountOrig = this.urlPrefixes.length;
-        this.defaults.urlCollectionCount = this.urlPrefixes.length;
+    fetchMultipleUrls: function() {
+        var self = this;
 
-        var urlsToFetch = [];
+        if (this.defaults.fetchInProgress) {
+            console.log('fetch in progress - quitting');
+            return null;
+        }
 
-        _.each(this.urlPrefixes, function(prefix) {
-            urlsToFetch.push("/core/metrics?name__prefix=os.cpu." + prefix + "&node=" +
-                options.nodeName + "&timestamp__gte=" +
-                dayAgo + "&page_size=100");
+        this.defaults.fetchInProgress = true;
+        console.log('fetchInProgress: ',self.defaults.fetchInProgress);
+
+        this.defaults.urlsToFetch = [];
+
+        var dayAgo = +new Date() - (1000 * 60 * 60 * 24);
+
+        _.each(self.defaults.urlPrefixes, function(prefix) {
+            self.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.cpu." + prefix + "&node=" +
+                self.defaults.nodeName + "&timestamp__gte=" +
+                dayAgo + "&page_size=1000");
         });
+
+        console.log('fetching: ', this.defaults.urlsToFetch);
 
         this.fetch({
 
             // fetch the first time without remove:false
             // to clear out the collection
-            url: urlsToFetch[0],
-            success: function(){
+            url: this.defaults.urlsToFetch[0],
+            success: function() {
 
                 // upon success: further fetches are carried out with
                 // remove: false to build the collection
-                _.each(urlsToFetch.slice(1), function(item) {
+                _.each(self.defaults.urlsToFetch.slice(1), function(item) {
                     self.fetch({
                         url: item,
                         remove: false
                     });
-                }, this);
+                });
             }
         });
     },

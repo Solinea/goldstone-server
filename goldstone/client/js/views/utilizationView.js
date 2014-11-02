@@ -49,6 +49,8 @@ var UtilizationView = Backbone.View.extend({
 
                 // the collection count will have to be set back to the original count when re-triggering a fetch.
                 self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
+                self.collection.defaults.fetchInProgress = false;
+                console.log('fetchInProgress: ',self.collection.defaults.fetchInProgress);
             }
 
         });
@@ -129,7 +131,7 @@ var UtilizationView = Backbone.View.extend({
             return item.timestamp;
         }));
 
-        console.log('uniq timestamps',dataUniqTimes.length, dataUniqTimes);
+        console.log('uniq timestamps', dataUniqTimes.length, dataUniqTimes);
 
         var newData = {};
 
@@ -170,7 +172,7 @@ var UtilizationView = Backbone.View.extend({
 
         console.log('finalData', finalData, finalData.length);
 
-        return finalData.reverse();
+        return finalData;
 
     },
 
@@ -190,6 +192,11 @@ var UtilizationView = Backbone.View.extend({
         var allthelogs = this.collectionPrep();
 
         console.log('allthelogs fromin update', allthelogs.length, allthelogs);
+
+        setTimeout(function() {
+            console.log('set timeout refreshing');
+            self.collection.fetchMultipleUrls();
+        }, 30000);
 
         // If we didn't receive any valid files, append "No Data Returned"
         if (allthelogs.length === 0) {
@@ -279,7 +286,6 @@ var UtilizationView = Backbone.View.extend({
         ns.svg.append("g")
             .attr("class", "y axis")
             .call(ns.yAxis);
-
     }
 
 });
