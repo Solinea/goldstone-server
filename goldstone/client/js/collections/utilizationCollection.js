@@ -42,7 +42,8 @@ var UtilizationCollection = Backbone.Collection.extend({
 
     initialize: function(options) {
 
-        var dayAgo = +new Date() - (1000 * 60 * 60 * 48);
+        var self = this;
+        var dayAgo = +new Date() - (1000 * 60 * 60 * 24);
 
         this.options = options || {};
         this.urlPrefixes = ['sys', 'user', 'wait'];
@@ -57,20 +58,26 @@ var UtilizationCollection = Backbone.Collection.extend({
         _.each(this.urlPrefixes, function(prefix) {
             urlsToFetch.push("/core/metrics?name__prefix=os.cpu." + prefix + "&node=" +
                 options.nodeName + "&timestamp__gte=" +
-                dayAgo + "&page_size=30");
+                dayAgo + "&page_size=100");
         });
 
         this.fetch({
-            url: urlsToFetch.pop()
+
+            // fetch the first time without remove:false
+            // to clear out the collection
+            url: urlsToFetch[0],
+            success: function(){
+
+                // upon success: further fetches are carried out with
+                // remove: false to build the collection
+                _.each(urlsToFetch.slice(1), function(item) {
+                    self.fetch({
+                        url: item,
+                        remove: false
+                    });
+                }, this);
+            }
         });
-
-        _.each(urlsToFetch, function(item) {
-            this.fetch({
-                url: item,
-                remove: false
-            });
-        }, this);
-
     },
 
     dummyGen: function() {
@@ -78,15 +85,13 @@ var UtilizationCollection = Backbone.Collection.extend({
             results: []
         };
 
-
         var day = 1412812619263;
 
         for (var i = 0; i < Math.floor(Math.random() * 20) + 2; i++) {
 
             var user = Math.floor(Math.random() * 3300) / 100;
-            var system = Math.floor(Math.random() * 3300) / 100;
+            var sys = Math.floor(Math.random() * 3300) / 100;
             var wait = Math.floor(Math.random() * 3300) / 100;
-
 
             var result = {
                 "date": day,
@@ -98,7 +103,6 @@ var UtilizationCollection = Backbone.Collection.extend({
 
             this.dummy.results.push(result);
             day += 3600000;
-
         }
     },
 
