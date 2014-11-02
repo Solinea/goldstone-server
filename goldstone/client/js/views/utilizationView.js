@@ -42,8 +42,10 @@ var UtilizationView = Backbone.View.extend({
 
         this.collection.on('sync', function() {
             if (self.collection.defaults.urlCollectionCount === 0) {
-                console.log('final len: ', self.collection.length, self.collection.toJSON());
+                console.log('final len at sync: ', self.collection.length, self.collection.toJSON());
                 self.update();
+
+                // self.collectionPrep();
 
                 // the collection count will have to be set back to the original count when re-triggering a fetch.
                 self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
@@ -117,6 +119,61 @@ var UtilizationView = Backbone.View.extend({
 
     },
 
+    collectionPrep: function() {
+        allthelogs = this.collection.toJSON();
+
+        var data = allthelogs;
+        console.log('just arriving in collectionPrep len', data.length);
+
+        var dataUniqTimes = _.uniq(_.map(data, function(item) {
+            return item.timestamp;
+        }));
+
+        console.log('uniq timestamps',dataUniqTimes.length, dataUniqTimes);
+
+        var newData = {};
+
+        _.each(dataUniqTimes, function(item) {
+            newData[item] = {
+                wait: null,
+                sys: null,
+                user: null
+            };
+        });
+
+        console.log('new data with unique times as keys', _.keys(newData).length, newData);
+
+        _.each(data, function(item) {
+
+            var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
+
+            newData[item.timestamp][metric] = item.value;
+
+        });
+
+        console.log('nnd', _.keys(newData).length, newData);
+
+        finalData = [];
+
+        _.each(newData, function(item, i) {
+
+            // temporary mult until agent is fixed
+            var multiplier = 100;
+            finalData.push({
+                wait: item.wait * multiplier,
+                sys: item.sys * multiplier,
+                user: item.user * multiplier,
+                idle: 100 - (item.user + item.wait + item.sys) * multiplier,
+                date: i
+            });
+        });
+
+        console.log('finalData', finalData, finalData.length);
+
+        return finalData.reverse();
+
+    },
+
     update: function() {
 
         var ns = this.defaults;
@@ -128,7 +185,11 @@ var UtilizationView = Backbone.View.extend({
         ns.spinnerDisplay = 'none';
         $(this.el).find('#spinner').hide();
 
-        var allthelogs = this.collection.toJSON();
+        // var allthelogs = this.collection.toJSON();
+
+        var allthelogs = this.collectionPrep();
+
+        console.log('allthelogs fromin update', allthelogs.length, allthelogs);
 
         // If we didn't receive any valid files, append "No Data Returned"
         if (allthelogs.length === 0) {
@@ -187,7 +248,7 @@ var UtilizationView = Backbone.View.extend({
                 return ns.area(d.values);
             })
             .style("fill", function(d) {
-                if (d.name === "Idle") {
+                if (d.name.toLowerCase() === "idle") {
                     return "none";
                 }
                 return ns.color(d.name);
