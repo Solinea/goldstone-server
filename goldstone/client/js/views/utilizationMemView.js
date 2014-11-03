@@ -16,7 +16,7 @@
  * Author: Alex Jacobs
  */
 
-var UtilizationView = Backbone.View.extend({
+var UtilizationMemView = Backbone.View.extend({
 
     defaults: {
         margin: {
@@ -37,15 +37,10 @@ var UtilizationView = Backbone.View.extend({
         var ns = this.defaults;
         var self = this;
 
-        // TODO: UNCOMMENT
-        // this.collection.on('sync', this.update, this);
-
         this.collection.on('sync', function() {
             if (self.collection.defaults.urlCollectionCount === 0) {
                 console.log('final len at sync: ', self.collection.length, self.collection.toJSON());
                 self.update();
-
-                // self.collectionPrep();
 
                 // the collection count will have to be set back to the original count when re-triggering a fetch.
                 self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
@@ -54,7 +49,6 @@ var UtilizationView = Backbone.View.extend({
             }
 
         });
-
 
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.width - ns.margin.top - ns.margin.bottom;
@@ -69,7 +63,6 @@ var UtilizationView = Backbone.View.extend({
 
         var colorArray = new GoldstoneColors().get('colorSets');
         ns.color = d3.scale.ordinal().range(colorArray.distinct[3]);
-        // ns.color = d3.scale.category20();
 
         ns.xAxis = d3.svg.axis()
             .scale(ns.x)
@@ -186,8 +179,6 @@ var UtilizationView = Backbone.View.extend({
         // after chart data callback
         ns.spinnerDisplay = 'none';
         $(this.el).find('#spinner').hide();
-
-        // var allthelogs = this.collection.toJSON();
 
         var allthelogs = this.collectionPrep();
 
