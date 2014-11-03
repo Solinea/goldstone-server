@@ -34,6 +34,9 @@ var UtilizationMemView = Backbone.View.extend({
         this.el = options.el;
         this.defaults.width = options.width;
 
+        // bytes -> GB is a base 2 conversion (gibi vs giga)
+        this.defaults.divisor = (1 << 30);
+
         var ns = this.defaults;
         var self = this;
 
@@ -45,15 +48,13 @@ var UtilizationMemView = Backbone.View.extend({
                 // the collection count will have to be set back to the original count when re-triggering a fetch.
                 self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
                 self.collection.defaults.fetchInProgress = false;
-                console.log('fetchInProgress: ',self.collection.defaults.fetchInProgress);
+                console.log('fetchInProgress: ', self.collection.defaults.fetchInProgress);
             }
 
         });
 
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.width - ns.margin.top - ns.margin.bottom;
-
-        ns.formatPercent = d3.format(".0%");
 
         ns.x = d3.time.scale()
             .range([0, ns.mw]);
@@ -71,8 +72,7 @@ var UtilizationMemView = Backbone.View.extend({
 
         ns.yAxis = d3.svg.axis()
             .scale(ns.y)
-            .orient("left")
-            .tickFormat(ns.formatPercent);
+            .orient("left");
 
         ns.area = d3.svg.area()
             .interpolate("monotone")
@@ -115,14 +115,27 @@ var UtilizationMemView = Backbone.View.extend({
     },
 
     collectionPrep: function() {
+        var ns = this.defaults;
+        var self = this;
+
         allthelogs = this.collection.toJSON();
 
         var data = allthelogs;
-        console.log('just arriving in collectionPrep len', data.length);
+        console.log('just arriving in collectionPrep; len=', data.length);
 
-        var dataUniqTimes = _.uniq(_.map(data, function(item) {
+        for (var i = data.length - 1; i >= 0; i--) {
+            if (data[i].name === 'os.mem.total') {
+                ns.memTotal = data[i];
+                var splicedOut = data.splice(i, 1);
+                break;
+            }
+        }
+
+        console.log('got the total:', ns.memTotal, 'len of collection now=', data.length);
+
+        var dataUniqTimes = _.map(data, function(item) {
             return item.timestamp;
-        }));
+        });
 
         console.log('uniq timestamps', dataUniqTimes.length, dataUniqTimes);
 
@@ -130,9 +143,7 @@ var UtilizationMemView = Backbone.View.extend({
 
         _.each(dataUniqTimes, function(item) {
             newData[item] = {
-                wait: null,
-                sys: null,
-                user: null
+                free: null
             };
         });
 
@@ -152,13 +163,12 @@ var UtilizationMemView = Backbone.View.extend({
 
         _.each(newData, function(item, i) {
 
-            // temporary mult until agent is fixed
-            var multiplier = 100;
             finalData.push({
-                wait: item.wait * multiplier,
-                sys: item.sys * multiplier,
-                user: item.user * multiplier,
-                idle: 100 - (item.user + item.wait + item.sys) * multiplier,
+                used: (ns.memTotal.value - item.free) / self.defaults.divisor,
+                free: item.free / self.defaults.divisor,
+                // total renders a thin line at the top of the area stack
+                // the actual value comes from ns.memTotal.value
+                total: 0.1,
                 date: i
             });
         });
@@ -184,6 +194,7 @@ var UtilizationMemView = Backbone.View.extend({
 
         console.log('allthelogs fromin update', allthelogs.length, allthelogs);
 
+        // default 30 second refresh interval
         setTimeout(function() {
             console.log('set timeout refreshing');
             self.collection.fetchMultipleUrls();
@@ -225,7 +236,7 @@ var UtilizationMemView = Backbone.View.extend({
                 values: data.map(function(d) {
                     return {
                         date: d.date,
-                        y: d[name] / 100
+                        y: d[name]
                     };
                 })
             };
@@ -234,6 +245,9 @@ var UtilizationMemView = Backbone.View.extend({
         ns.x.domain(d3.extent(data, function(d) {
             return d.date;
         }));
+
+        ns.y.domain([0, ns.memTotal.value / ns.divisor]);
+        console.log('y.domain', ns.y.domain());
 
         var component = ns.svg.selectAll(".component")
             .data(components)
@@ -246,7 +260,7 @@ var UtilizationMemView = Backbone.View.extend({
                 return ns.area(d.values);
             })
             .style("fill", function(d) {
-                if (d.name.toLowerCase() === "idle") {
+                if (d.name.toLowerCase() === "free") {
                     return "none";
                 }
                 return ns.color(d.name);
@@ -263,10 +277,27 @@ var UtilizationMemView = Backbone.View.extend({
             .attr("transform", function(d) {
                 return "translate(" + ns.x(d.value.date) + "," + ns.y(d.value.y0 + d.value.y / 2) + ")";
             })
-            .attr("x", 1)
+            .attr("y", function(d) {
+                if (d.name === 'total') {
+                    return -3;
+                }
+            })
+            .attr("x", function(d) {
+                return 1;
+            })
+            .style("text-anchor", function(d) {
+                if (d.name === 'total') {
+                    return 'end';
+                }
+            })
             .style("font-size", ".8em")
             .text(function(d) {
-                return d.name;
+                if (d.name === 'total') {
+                    return 'Total: ' + ((Math.round(ns.memTotal.value / ns.divisor * 100)) / 100) + 'GB';
+                }
+                if (d.name !== 'free') {
+                    return d.name;
+                }
             });
 
         ns.svg.append("g")

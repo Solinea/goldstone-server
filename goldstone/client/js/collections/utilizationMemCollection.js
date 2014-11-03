@@ -21,8 +21,9 @@ var UtilizationMemCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
+        console.log(data);
 
-        if (data.next && data.next !== null) {
+        if (data.next && data.next !== null && data.next.indexOf('os.mem.total') === -1) {
             var dp = data.next;
             nextUrl = dp.slice(dp.indexOf('/core'));
             this.fetch({
@@ -49,7 +50,7 @@ var UtilizationMemCollection = Backbone.Collection.extend({
         this.defaults.fetchInProgress = false;
         console.log('fetchInProgress: ',self.defaults.fetchInProgress);
         this.defaults.nodeName = options.nodeName;
-        this.defaults.urlPrefixes = ['sys', 'user', 'wait'];
+        this.defaults.urlPrefixes = ['total', 'free'];
         this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
         this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
         this.fetchMultipleUrls();
@@ -70,11 +71,13 @@ var UtilizationMemCollection = Backbone.Collection.extend({
 
         var dayAgo = +new Date() - (1000 * 60 * 60 * 24);
 
-        _.each(self.defaults.urlPrefixes, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.cpu." + prefix + "&node=" +
-                self.defaults.nodeName + "&timestamp__gte=" +
+        this.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.mem." + this.defaults.urlPrefixes[0] + "&node=" +
+                this.defaults.nodeName + "&timestamp__gte=" +
+                dayAgo + "&page_size=1");
+
+        this.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.mem." + this.defaults.urlPrefixes[1] + "&node=" +
+                this.defaults.nodeName + "&timestamp__gte=" +
                 dayAgo + "&page_size=1000");
-        });
 
         console.log('fetching: ', this.defaults.urlsToFetch);
 
@@ -87,7 +90,9 @@ var UtilizationMemCollection = Backbone.Collection.extend({
 
                 // upon success: further fetches are carried out with
                 // remove: false to build the collection
+                console.log('success', self.defaults.urlsToFetch[0]);
                 _.each(self.defaults.urlsToFetch.slice(1), function(item) {
+                    console.log('now fetching: ',item);
                     self.fetch({
                         url: item,
                         remove: false
