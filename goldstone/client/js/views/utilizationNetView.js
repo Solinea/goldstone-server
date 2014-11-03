@@ -142,7 +142,19 @@ var UtilizationNetView = Backbone.View.extend({
 
         _.each(data, function(item) {
 
-            var metric = item.name.slice(item.name.lastIndexOf('.') - 2, item.name.lastIndexOf('.'));
+            var metric;
+
+            var serviceName = item.name.slice(0, item.name.lastIndexOf('.'));
+
+            if(serviceName.indexOf('rx') >= 0){
+                metric = 'rx';
+            } else {
+                if(serviceName.indexOf('tx') >= 0){
+                    metric = 'tx';
+                } else {
+                    console.log('rx/tx not found!');
+                }
+            }
 
             newData[item.timestamp][metric] += item.value;
 
@@ -278,7 +290,7 @@ var UtilizationNetView = Backbone.View.extend({
             })
             .style("font-size", ".8em")
             .text(function(d) {
-                return d.name;
+                return d.name+" (kB)";
             });
 
         ns.svg.append("g")
