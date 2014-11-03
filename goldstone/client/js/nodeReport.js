@@ -52,11 +52,11 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate CPU Usage chart
-    var cpuUsageChart = new UtilizationCollection({
+    var cpuUsageChart = new UtilizationCpuCollection({
         nodeName: hostName
     });
 
-    var cpuUsageView = new UtilizationView({
+    var cpuUsageView = new UtilizationCpuView({
         collection: cpuUsageChart,
         el: '#node-report-r3 #node-report-panel #cpu-usage',
         width: $('#node-report-r3 #node-report-panel #cpu-usage').width()
@@ -64,11 +64,11 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate Memory Usage chart
-    var memoryUsageChart = new UtilizationCollection({
+    var memoryUsageChart = new UtilizationMemCollection({
         nodeName: hostName
     });
 
-    var memoryUsageView = new UtilizationView({
+    var memoryUsageView = new UtilizationMemView({
         collection: memoryUsageChart,
         el: '#node-report-r3 #node-report-panel #memory-usage',
         width: $('#node-report-r3 #node-report-panel #memory-usage').width()
@@ -76,15 +76,17 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate Network Usage chart
-    var networkUsageChart = new UtilizationCollection({
+    /*
+    // TODO: DIFFERENTIATE NETWORK BACKBONE OBJECTS
+    var networkUsageChart = new UtilizationNetCollection({
         nodeName: hostName
     });
 
-    var networkUsageView = new UtilizationView({
+    var networkUsageView = new UtilizationNetView({
         collection: networkUsageChart,
         el: '#node-report-r3 #node-report-panel #network-usage',
         width: $('#node-report-r3 #node-report-panel #network-usage').width()
-    });
+    });*/
 
     //---------------------------
     // instantiate Libvirt core/vm chart

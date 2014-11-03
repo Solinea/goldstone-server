@@ -16,7 +16,7 @@
  * Author: Alex Jacobs
  */
 
-var UtilizationCollection = Backbone.Collection.extend({
+var UtilizationCpuCollection = Backbone.Collection.extend({
 
     defaults: {},
 
