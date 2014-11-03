@@ -76,8 +76,7 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate Network Usage chart
-    /*
-    // TODO: DIFFERENTIATE NETWORK BACKBONE OBJECTS
+
     var networkUsageChart = new UtilizationNetCollection({
         nodeName: hostName
     });
@@ -86,7 +85,7 @@ var renderCharts = function() {
         collection: networkUsageChart,
         el: '#node-report-r3 #node-report-panel #network-usage',
         width: $('#node-report-r3 #node-report-panel #network-usage').width()
-    });*/
+    });
 
     //---------------------------
     // instantiate Libvirt core/vm chart
