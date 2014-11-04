@@ -43,14 +43,75 @@ var ServiceStatusView = Backbone.View.extend({
             });
         });
 
-        this.collection.on('sync', this.update, this);
+        this.collection.on('sync', function() {
+            if (self.collection.defaults.setAchieved) {
+                console.log('final set at sync: ', self.collection.length, self.collection.toJSON());
+
+                self.update();
+
+                self.collection.defaults.fetchInProgress = false;
+                console.log('fetchInProgress?', self.collection.defaults.fetchInProgress);
+                self.collection.defaults.setAchieved = false;
+            }
+        });
     },
 
     classSelector: function(item) {
-        if (item[0] === true) {
+        if (item === "running") {
             return 'alert alert-success';
         }
         return 'alert alert-danger fa fa-exclamation-circle';
+    },
+
+    collectionPrep: function() {
+        var ns = this.defaults;
+        var self = this;
+
+        allthelogs = this.collection.toJSON();
+
+        var data = allthelogs;
+        console.log('just arriving in collectionPrep; len=', data.length);
+
+        /*
+        iterate through 'data, find the index at which point a duplicate appears, and truncate (slice) the array at that point.
+        massage the array to be a simple object {name:true/false} and return it
+        */
+
+        var initialSetConstruction = {};
+
+        for (var i = 0; i < data.length; i++) {
+
+            var service = data[i].name;
+
+            if (initialSetConstruction[service]) {
+                console.log('dupe found at', i, data.length);
+                data = data.slice(0, i);
+                break;
+            }
+
+            initialSetConstruction[service] = true;
+        }
+
+        console.log('data.len before removing dupes = ', data.length);
+
+
+        var finalData = [];
+
+
+        /*
+        figure out here how to push the object name as
+        */
+        _.each(data, function(item) {
+            var resultObject = {};
+            var resultName = item.name.slice(item.name.lastIndexOf('.') + 1);
+            // console.log(resultName);
+            resultObject[resultName] = item.value;
+            finalData.push(resultObject);
+        });
+        console.log('final data.len after removing dupes = ', finalData.length);
+
+        return finalData;
+
     },
 
     update: function() {
@@ -66,12 +127,14 @@ var ServiceStatusView = Backbone.View.extend({
 
         this.render();
 
-        // refreshes every 10 seconds
-        setTimeout(function() {
-            self.collection.fetch();
-        }, 5000);
+        var allthelogs = this.collectionPrep();
 
-        var allthelogs = this.collection.toJSON();
+        console.log('allthelogs from in update', allthelogs.length, allthelogs);
+
+        // refreshes every 30 seconds
+        setTimeout(function() {
+            self.collection.retrieveData();
+        }, 30000);
 
         // If we didn't receive any valid files, append "No Data Returned"
         if (allthelogs.length === 0) {
@@ -104,7 +167,15 @@ var ServiceStatusView = Backbone.View.extend({
         this.sorter(nodeNames);
 
         _.each(nodeNames, function(item, i) {
-            $(self.el).find('.mainContainer').append('<div style="width: 100px; height: 22px; font-size:11px; margin-bottom: 0; text-align:center; padding: 3px 0;" class="col-xs-1 toRemove ' + this.classSelector(_.values(nodeNames[i])) + '"> ' + _.keys(nodeNames[i]) + '</div>');
+
+            var itemValue = _.values(nodeNames[i])[0];
+            var itemKey = _.keys(nodeNames[i])[0];
+            if (itemKey.length > 27) {
+                itemKey = itemKey.slice(0, 27) + '...';
+            }
+            console.log(itemKey, itemValue);
+
+            $(self.el).find('.mainContainer').append('<div style="width: 170px; height: 22px; font-size:11px; margin-bottom: 0; text-align:center; padding: 3px 0;" class="col-xs-1 toRemove ' + this.classSelector(itemValue) + '"> ' + itemKey + '</div>');
         }, this);
     },
 

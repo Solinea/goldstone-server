@@ -41,7 +41,7 @@ var renderCharts = function() {
     //---------------------------
     // instantiate Service status chart
     var serviceStatusChart = new ServiceStatusCollection({
-        url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
+        nodeName: hostName
     });
 
     var serviceStatusChartView = new ServiceStatusView({
