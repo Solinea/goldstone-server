@@ -168,15 +168,26 @@ var ServiceStatusView = Backbone.View.extend({
 
         _.each(nodeNames, function(item, i) {
 
+            var itemKeyFull = '';
             var itemValue = _.values(nodeNames[i])[0];
             var itemKey = _.keys(nodeNames[i])[0];
             if (itemKey.length > 27) {
+                itemKeyFull = _.keys(nodeNames[i])[0];
                 itemKey = itemKey.slice(0, 27) + '...';
             }
             console.log(itemKey, itemValue);
 
-            $(self.el).find('.mainContainer').append('<div style="width: 170px; height: 22px; font-size:11px; margin-bottom: 0; text-align:center; padding: 3px 0;" class="col-xs-1 toRemove ' + this.classSelector(itemValue) + '"> ' + itemKey + '</div>');
+            $(self.el).find('.mainContainer').append('<div style="width: 170px;' +
+                'height: 22px; font-size:11px; margin-bottom: 0; ' +
+                ' text-align:center; padding: 3px 0;" data-toggle="tooltip" ' +
+                'data-placement="top" title="' + itemKeyFull +
+                '" class="col-xs-1 toRemove ' + this.classSelector(itemValue) +
+                '"> ' + itemKey + '</div>');
         }, this);
+
+        $(this.el).find('.mainContainer .toRemove').on('mouseover', function() {
+            $(this).tooltip('show');
+        });
     },
 
     sorter: function(data) {
