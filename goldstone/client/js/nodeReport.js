@@ -18,21 +18,11 @@
 
 var renderCharts = function() {
 
-    var hostName = 'compute-02';
-
-
-    // TO UNCOMMENT
-    /*if (localStorage.length) {
-        var passedData = JSON.parse(localStorage.getItem('reportNodeData'));
-        console.log(passedData);
-        if (passedData.hypervisor_hostname) {
-            hostName = passedData.hypervisor_hostname;
-            hostName = (hostName.slice(0, hostName.indexOf('.')));
-        }
-    } else {
-        console.log('no data');
-        return;
-    }*/
+    // construct api calls from url component
+    // between the last '/' and the following '.'
+    var loc = location.pathname;
+    locEnd = loc.slice(loc.lastIndexOf('/') + 1);
+    var hostName = locEnd.slice(0, locEnd.indexOf('.'));
 
     //----------------------------
     // instantiate charts via
@@ -130,7 +120,8 @@ var renderCharts = function() {
 
     var reportsReport = new ReportsReportView({
         el: '#node-report-panel #reportsReport',
-        width: $('#node-report-panel #reportsReport').width()
+        width: $('#node-report-panel #reportsReport').width(),
+        nodeName: hostName
     });
 
     //---------------------------
@@ -138,6 +129,7 @@ var renderCharts = function() {
 
     var eventsReport = new EventsReportView({
         el: '#node-report-panel #eventsReport',
-        width: $('#node-report-panel #eventsReport').width()
+        width: $('#node-report-panel #eventsReport').width(),
+        nodeName: hostName
     });
 };
