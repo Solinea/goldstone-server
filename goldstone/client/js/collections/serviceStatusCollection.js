@@ -18,16 +18,85 @@
 
 var ServiceStatusCollection = Backbone.Collection.extend({
 
+    defaults: {},
+
     parse: function(data) {
-        this.dummyGen();
-        return this.dummy.results;
+        console.log('servStatusCollection data: ', data.results);
+
+        if (data.next && data.next !== null) {
+            var dp = data.next;
+            this.defaults.nextUrl = dp.slice(dp.indexOf('/core'));
+        }
+
+        return data.results;
+
+    },
+
+    checkForSet: function() {
+        var self = this;
+        console.log('checkForSet models:', this.models);
+
+        var set = {};
+
+        _.each(this.models, function(item) {
+            var serviceName = item.attributes.name;
+            if (set [serviceName]) {
+                console.log('it\'s already in there', item.attributes.name);
+                self.defaults.setAchieved = true;
+            }
+            set [serviceName] = true;
+        });
+
+        console.log('setAchieved?', this.defaults.setAchieved);
+
+        if (!this.defaults.setAchieved) {
+            this.fetch({
+                url: this.defaults.nextUrl,
+                remove: false,
+                success: function(){
+                    self.checkForSet();
+                }
+            });
+        }
+
+        return true;
     },
 
     model: ServiceStatusModel,
 
     initialize: function(options) {
-        this.url = options.url;
-        this.fetch();
+        var self = this;
+
+        this.options = options || {};
+        this.defaults = _.clone(this.defaults);
+        this.defaults.nodeName = options.nodeName;
+        this.defaults.nextUrl = null;
+        this.defaults.setAchieved = false;
+        this.defaults.fetchInProgress = false;
+        this.retrieveData();
+    },
+
+    retrieveData: function() {
+        var self = this;
+
+        if (this.defaults.fetchInProgress) {
+            console.log('fetchInProgress - quitting');
+            return null;
+        }
+
+        this.defaults.fetchInProgress = true;
+        console.log('fetchInProgress: ', self.defaults.fetchInProgress);
+
+        this.url = ("/core/reports?name__prefix=os.service&node__prefix=" + this.defaults.nodeName + "&page_size=100");
+
+        console.log('fetching: ', this.url);
+
+        this.fetch({
+            success: function() {
+                self.checkForSet();
+            }
+        });
+
     },
 
     dummyGen: function() {
