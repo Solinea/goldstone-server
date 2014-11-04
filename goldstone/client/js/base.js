@@ -1018,9 +1018,7 @@ goldstone.charts.topologyTree = {
 
     },
     reportRedirect: function(data, keyName) {
-        localStorage.clear();
         var redirectNodeName = '/' + data[keyName];
-        localStorage.setItem('reportNodeData', JSON.stringify(data));
         window.location.href = '/report/node' + redirectNodeName;
     },
     processTree: function(json, ns) {
