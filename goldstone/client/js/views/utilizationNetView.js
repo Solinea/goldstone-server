@@ -42,13 +42,11 @@ var UtilizationNetView = Backbone.View.extend({
 
         this.collection.on('sync', function() {
             if (self.collection.defaults.urlCollectionCount === 0) {
-                console.log('final len at sync: ', self.collection.length, self.collection.toJSON());
                 self.update();
 
                 // the collection count will have to be set back to the original count when re-triggering a fetch.
                 self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
                 self.collection.defaults.fetchInProgress = false;
-                console.log('fetchInProgress: ', self.collection.defaults.fetchInProgress);
             }
 
         });
@@ -121,13 +119,11 @@ var UtilizationNetView = Backbone.View.extend({
         allthelogs = this.collection.toJSON();
 
         var data = allthelogs;
-        console.log('just arriving in collectionPrep; len=', data.length);
 
         var dataUniqTimes = _.uniq(_.map(data, function(item) {
             return item.timestamp;
         }));
 
-        console.log('uniq timestamps', dataUniqTimes.length, dataUniqTimes);
 
         var newData = {};
 
@@ -138,7 +134,6 @@ var UtilizationNetView = Backbone.View.extend({
             };
         });
 
-        console.log('new data with unique times as keys', _.keys(newData).length, newData);
 
         _.each(data, function(item) {
 
@@ -152,7 +147,6 @@ var UtilizationNetView = Backbone.View.extend({
                 if (serviceName.indexOf('tx') >= 0) {
                     metric = 'tx';
                 } else {
-                    console.log('rx/tx not found!');
                 }
             }
 
@@ -160,7 +154,6 @@ var UtilizationNetView = Backbone.View.extend({
 
         });
 
-        console.log('nnd', _.keys(newData).length, newData);
 
         finalData = [];
 
@@ -173,7 +166,6 @@ var UtilizationNetView = Backbone.View.extend({
             });
         });
 
-        console.log('finalData', finalData, finalData.length);
 
         return finalData;
 
@@ -192,11 +184,9 @@ var UtilizationNetView = Backbone.View.extend({
 
         var allthelogs = this.collectionPrep();
 
-        console.log('allthelogs fromin update', allthelogs.length, allthelogs);
 
         // default 120 second refresh interval
         setTimeout(function() {
-            console.log('set timeout refreshing');
             self.collection.fetchMultipleUrls();
         }, 120000);
 
@@ -250,7 +240,6 @@ var UtilizationNetView = Backbone.View.extend({
         ns.y.domain([0, d3.max(allthelogs, function(d) {
             return d.rx + d.tx;
         })]);
-        console.log('y.domain', ns.y.domain());
 
         var component = ns.svg.selectAll(".component")
             .data(components)

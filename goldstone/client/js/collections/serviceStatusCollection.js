@@ -21,7 +21,6 @@ var ServiceStatusCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        console.log('servStatusCollection data: ', data.results);
 
         if (data.next && data.next !== null) {
             var dp = data.next;
@@ -34,20 +33,17 @@ var ServiceStatusCollection = Backbone.Collection.extend({
 
     checkForSet: function() {
         var self = this;
-        console.log('checkForSet models:', this.models);
 
         var set = {};
 
         _.each(this.models, function(item) {
             var serviceName = item.attributes.name;
             if (set [serviceName]) {
-                console.log('it\'s already in there', item.attributes.name);
                 self.defaults.setAchieved = true;
             }
             set [serviceName] = true;
         });
 
-        console.log('setAchieved?', this.defaults.setAchieved);
 
         if (!this.defaults.setAchieved) {
             this.fetch({
@@ -80,16 +76,13 @@ var ServiceStatusCollection = Backbone.Collection.extend({
         var self = this;
 
         if (this.defaults.fetchInProgress) {
-            console.log('fetchInProgress - quitting');
             return null;
         }
 
         this.defaults.fetchInProgress = true;
-        console.log('fetchInProgress: ', self.defaults.fetchInProgress);
 
         this.url = ("/core/reports?name__prefix=os.service&node__prefix=" + this.defaults.nodeName + "&page_size=100");
 
-        console.log('fetching: ', this.url);
 
         this.fetch({
             success: function() {

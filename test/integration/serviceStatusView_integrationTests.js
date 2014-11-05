@@ -73,7 +73,6 @@ describe('serviceStatusView.js spec', function() {
             this.testCollection.reset();
             this.testCollection.add([{name: 'bingBap3'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap3'}]);
             this.testCollection.checkForSet();
-            console.log('setAchievedexists?', this.testCollection.defaults.setAchieved);
             expect(this.testCollection.defaults.setAchieved).to.equal(true);
             expect(this.protoFetchSpy.callCount).to.equal(2);
         });

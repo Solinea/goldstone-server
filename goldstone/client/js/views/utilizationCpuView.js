@@ -39,13 +39,11 @@ var UtilizationCpuView = Backbone.View.extend({
 
         this.collection.on('sync', function() {
             if (self.collection.defaults.urlCollectionCount === 0) {
-                console.log('final len at sync: ', self.collection.length, self.collection.toJSON());
                 self.update();
 
                 // the collection count will have to be set back to the original count when re-triggering a fetch.
                 self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
                 self.collection.defaults.fetchInProgress = false;
-                console.log('fetchInProgress: ', self.collection.defaults.fetchInProgress);
             }
 
         });
@@ -119,13 +117,11 @@ var UtilizationCpuView = Backbone.View.extend({
         allthelogs = this.collection.toJSON();
 
         var data = allthelogs;
-        console.log('just arriving in collectionPrep len', data.length);
 
         var dataUniqTimes = _.uniq(_.map(data, function(item) {
             return item.timestamp;
         }));
 
-        console.log('uniq timestamps', dataUniqTimes.length, dataUniqTimes);
 
         var newData = {};
 
@@ -137,7 +133,6 @@ var UtilizationCpuView = Backbone.View.extend({
             };
         });
 
-        console.log('new data with unique times as keys', _.keys(newData).length, newData);
 
         _.each(data, function(item) {
 
@@ -147,7 +142,6 @@ var UtilizationCpuView = Backbone.View.extend({
 
         });
 
-        console.log('nnd', _.keys(newData).length, newData);
 
         finalData = [];
 
@@ -164,7 +158,6 @@ var UtilizationCpuView = Backbone.View.extend({
             });
         });
 
-        console.log('finalData', finalData, finalData.length);
 
         return finalData;
 
@@ -183,10 +176,8 @@ var UtilizationCpuView = Backbone.View.extend({
 
         var allthelogs = this.collectionPrep();
 
-        console.log('allthelogs fromin update', allthelogs.length, allthelogs);
 
         setTimeout(function() {
-            console.log('set timeout refreshing');
             self.collection.fetchMultipleUrls();
         }, 30000);
 
