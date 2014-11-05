@@ -97,13 +97,14 @@ var ServiceStatusView = Backbone.View.extend({
 
         var finalData = [];
 
-
-        /*
-        figure out here how to push the object name as
-        */
         _.each(data, function(item) {
+            var resultName;
             var resultObject = {};
-            var resultName = item.name.slice(item.name.lastIndexOf('.') + 1);
+            if(item.name && item.name.indexOf('.') !== -1){
+                resultName = item.name.slice(item.name.lastIndexOf('.') + 1);
+            } else {
+                resultName = item.name;
+            }
             // console.log(resultName);
             resultObject[resultName] = item.value;
             finalData.push(resultObject);
@@ -211,6 +212,8 @@ var ServiceStatusView = Backbone.View.extend({
             this.$el.append(this.template());
             return this;
         } else {
+            // remove hover listeners from service status nodes
+            $(this.el).find('.mainContainer .toRemove').off();
             $(this.el).find('.mainContainer').empty();
         }
 
