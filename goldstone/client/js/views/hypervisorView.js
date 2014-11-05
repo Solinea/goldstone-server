@@ -105,7 +105,6 @@ var HypervisorView = Backbone.View.extend({
 
         // default 10 second refresh interval
         setTimeout(function() {
-            console.log('set timeout refreshing');
             self.collection.fetch();
         }, 10000);
 

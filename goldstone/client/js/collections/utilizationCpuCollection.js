@@ -47,7 +47,6 @@ var UtilizationCpuCollection = Backbone.Collection.extend({
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
         this.defaults.fetchInProgress = false;
-        console.log('fetchInProgress: ',self.defaults.fetchInProgress);
         this.defaults.nodeName = options.nodeName;
         this.defaults.urlPrefixes = ['sys', 'user', 'wait'];
         this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
@@ -59,12 +58,10 @@ var UtilizationCpuCollection = Backbone.Collection.extend({
         var self = this;
 
         if (this.defaults.fetchInProgress) {
-            console.log('fetch in progress - quitting');
             return null;
         }
 
         this.defaults.fetchInProgress = true;
-        console.log('fetchInProgress: ',self.defaults.fetchInProgress);
 
         this.defaults.urlsToFetch = [];
 
@@ -76,7 +73,6 @@ var UtilizationCpuCollection = Backbone.Collection.extend({
                 dayAgo + "&page_size=1000");
         });
 
-        console.log('fetching: ', this.defaults.urlsToFetch);
 
         this.fetch({
 

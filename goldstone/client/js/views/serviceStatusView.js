@@ -45,12 +45,8 @@ var ServiceStatusView = Backbone.View.extend({
 
         this.collection.on('sync', function() {
             if (self.collection.defaults.setAchieved) {
-                console.log('final set at sync: ', self.collection.length, self.collection.toJSON());
-
                 self.update();
-
                 self.collection.defaults.fetchInProgress = false;
-                console.log('fetchInProgress?', self.collection.defaults.fetchInProgress);
                 self.collection.defaults.setAchieved = false;
             }
         });
@@ -70,7 +66,6 @@ var ServiceStatusView = Backbone.View.extend({
         allthelogs = this.collection.toJSON();
 
         var data = allthelogs;
-        console.log('just arriving in collectionPrep; len=', data.length);
 
         /*
         iterate through 'data, find the index at which point a duplicate appears, and truncate (slice) the array at that point.
@@ -84,7 +79,6 @@ var ServiceStatusView = Backbone.View.extend({
             var service = data[i].name;
 
             if (initialSetConstruction[service]) {
-                console.log('dupe found at', i, data.length);
                 data = data.slice(0, i);
                 break;
             }
@@ -92,7 +86,6 @@ var ServiceStatusView = Backbone.View.extend({
             initialSetConstruction[service] = true;
         }
 
-        console.log('data.len before removing dupes = ', data.length);
 
 
         var finalData = [];
@@ -105,11 +98,9 @@ var ServiceStatusView = Backbone.View.extend({
             } else {
                 resultName = item.name;
             }
-            // console.log(resultName);
             resultObject[resultName] = item.value;
             finalData.push(resultObject);
         });
-        console.log('final data.len after removing dupes = ', finalData.length);
 
         return finalData;
 
@@ -130,7 +121,6 @@ var ServiceStatusView = Backbone.View.extend({
 
         var allthelogs = this.collectionPrep();
 
-        console.log('allthelogs from in update', allthelogs.length, allthelogs);
 
         // refreshes every 30 seconds
         setTimeout(function() {
@@ -176,7 +166,6 @@ var ServiceStatusView = Backbone.View.extend({
                 itemKeyFull = _.keys(nodeNames[i])[0];
                 itemKey = itemKey.slice(0, 27) + '...';
             }
-            console.log(itemKey, itemValue);
 
             $(self.el).find('.mainContainer').append('<div style="width: 170px;' +
                 'height: 22px; font-size:11px; margin-bottom: 0; ' +

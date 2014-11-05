@@ -42,13 +42,11 @@ var UtilizationMemView = Backbone.View.extend({
 
         this.collection.on('sync', function() {
             if (self.collection.defaults.urlCollectionCount === 0) {
-                console.log('final len at sync: ', self.collection.length, self.collection.toJSON());
                 self.update();
 
                 // the collection count will have to be set back to the original count when re-triggering a fetch.
                 self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
                 self.collection.defaults.fetchInProgress = false;
-                console.log('fetchInProgress: ', self.collection.defaults.fetchInProgress);
             }
 
         });
@@ -121,7 +119,6 @@ var UtilizationMemView = Backbone.View.extend({
         allthelogs = this.collection.toJSON();
 
         var data = allthelogs;
-        console.log('just arriving in collectionPrep; len=', data.length);
 
         for (var i = data.length - 1; i >= 0; i--) {
             if (data[i].name === 'os.mem.total') {
@@ -131,13 +128,11 @@ var UtilizationMemView = Backbone.View.extend({
             }
         }
 
-        console.log('got the total:', ns.memTotal, 'len of collection now=', data.length);
 
         var dataUniqTimes = _.map(data, function(item) {
             return item.timestamp;
         });
 
-        console.log('uniq timestamps', dataUniqTimes.length, dataUniqTimes);
 
         var newData = {};
 
@@ -147,7 +142,6 @@ var UtilizationMemView = Backbone.View.extend({
             };
         });
 
-        console.log('new data with unique times as keys', _.keys(newData).length, newData);
 
         _.each(data, function(item) {
 
@@ -157,7 +151,6 @@ var UtilizationMemView = Backbone.View.extend({
 
         });
 
-        console.log('nnd', _.keys(newData).length, newData);
 
         finalData = [];
 
@@ -173,7 +166,6 @@ var UtilizationMemView = Backbone.View.extend({
             });
         });
 
-        console.log('finalData', finalData, finalData.length);
 
         return finalData;
 
@@ -192,11 +184,9 @@ var UtilizationMemView = Backbone.View.extend({
 
         var allthelogs = this.collectionPrep();
 
-        console.log('allthelogs fromin update', allthelogs.length, allthelogs);
 
         // default 30 second refresh interval
         setTimeout(function() {
-            console.log('set timeout refreshing');
             self.collection.fetchMultipleUrls();
         }, 30000);
 
@@ -247,7 +237,6 @@ var UtilizationMemView = Backbone.View.extend({
         }));
 
         ns.y.domain([0, ns.memTotal.value / ns.divisor]);
-        console.log('y.domain', ns.y.domain());
 
         var component = ns.svg.selectAll(".component")
             .data(components)
