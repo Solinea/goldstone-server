@@ -69,7 +69,7 @@ var UtilizationNetCollection = Backbone.Collection.extend({
 
         this.defaults.urlsToFetch = [];
 
-        var dayAgo = +new Date() - (1000 * 60 * 60 * 2);
+        var dayAgo = +new Date() - (1000 * 60 * 60 * 24);
 
         _.each(self.defaults.urlPrefixes, function(prefix) {
             self.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.net." + prefix + "&node=" +
@@ -116,9 +116,9 @@ var UtilizationNetCollection = Backbone.Collection.extend({
             var result = {
                 "date": day,
                 "Wait": wait,
-                "System": system,
+                "System": sys,
                 "User": user,
-                "Idle": (100 - user - system - wait)
+                "Idle": (100 - user - sys - wait)
             };
 
             this.dummy.results.push(result);

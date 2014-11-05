@@ -118,9 +118,9 @@ var UtilizationMemCollection = Backbone.Collection.extend({
             var result = {
                 "date": day,
                 "Wait": wait,
-                "System": system,
+                "System": sys,
                 "User": user,
-                "Idle": (100 - user - system - wait)
+                "Idle": (100 - user - sys - wait)
             };
 
             this.dummy.results.push(result);

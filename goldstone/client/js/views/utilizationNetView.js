@@ -146,10 +146,10 @@ var UtilizationNetView = Backbone.View.extend({
 
             var serviceName = item.name.slice(0, item.name.lastIndexOf('.'));
 
-            if(serviceName.indexOf('rx') >= 0){
+            if (serviceName.indexOf('rx') >= 0) {
                 metric = 'rx';
             } else {
-                if(serviceName.indexOf('tx') >= 0){
+                if (serviceName.indexOf('tx') >= 0) {
                     metric = 'tx';
                 } else {
                     console.log('rx/tx not found!');
@@ -280,17 +280,13 @@ var UtilizationNetView = Backbone.View.extend({
             .attr("x", function(d) {
                 return 1;
             })
-            .attr("y", function(d) {
-                // make space between labels
-                console.log('namey',d);
-                if (d.name === "tx") {
-                    return -15;
-                    // return -ns.y(ns.y.domain()[1] / 2);
-                }
+            .attr("y", function(d, i) {
+                // make space between the labels
+                return -i * 8;
             })
             .style("font-size", ".8em")
             .text(function(d) {
-                return d.name+" (kB)";
+                return d.name + " (kB)";
             });
 
         ns.svg.append("g")

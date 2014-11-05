@@ -39,6 +39,8 @@ var HypervisorVmCpuView = Backbone.View.extend({
 
         this.collection.on('sync', this.update, this);
 
+        this.render();
+
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = (ns.width * 0.84) - ns.margin.top - ns.margin.bottom;
 
@@ -61,10 +63,10 @@ var HypervisorVmCpuView = Backbone.View.extend({
             .orient("left");
 
         ns.line = d3.svg.line()
-        .interpolate("monotone")
-        .x(function(d) {
-            return ns.x(d.date);
-        })
+            .interpolate("monotone")
+            .x(function(d) {
+                return ns.x(d.date);
+            })
             .y(function(d) {
                 return ns.y(d.utilValue);
             });
@@ -74,8 +76,6 @@ var HypervisorVmCpuView = Backbone.View.extend({
             .attr("height", ns.mh + ns.margin.top + ns.margin.bottom)
             .append("g")
             .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
-
-        this.appendButtons();
 
         // required in case spinner loading takes
         // longer than chart loading
@@ -104,14 +104,31 @@ var HypervisorVmCpuView = Backbone.View.extend({
         ns.spinnerDisplay = 'none';
         $(this.el).find('#spinner').hide();
 
-        var allTheLogs = this.collection.toJSON();
+        var allthelogs = this.collection.toJSON();
 
-        if (allTheLogs.length === 0) {
-            console.log('no data returned');
+        // If we didn't receive any valid files, append "No Data Returned"
+        if (allthelogs.length === 0) {
+
+            // if 'no data returned' already exists on page, don't reapply it
+            if ($(this.el).find('#noDataReturned').length) {
+                return;
+            }
+
+            $('<span id="noDataReturned"><br>No<br>Data<br>Returned</span>').appendTo(this.el)
+                .css({
+                    'position': 'relative',
+                    'margin-left': $(this.el).width() / 2 - 14,
+                    'top': -$(this.el).height() / 2
+                });
             return;
         }
 
-        ns.data = allTheLogs;
+        // remove No Data Returned once data starts flowing again
+        if ($(this.el).find('#noDataReturned').length) {
+            $(this.el).find('#noDataReturned').remove();
+        }
+
+        ns.data = allthelogs;
 
         ns.color.domain(d3.keys(ns.data[0][ns.selectedButton][0]).filter(function(key) {
             return key !== "date";
@@ -257,18 +274,23 @@ var HypervisorVmCpuView = Backbone.View.extend({
                 "</div></div>"
         );
 
-        $(function() {
-            $(self.el).find("button").click(function() {
-                $("button.active").toggleClass("active");
-                $(this).toggleClass("active");
-                var buttonPressed = ($(this).context.innerText);
-                self.defaults.selectedButton = buttonPressed.toLowerCase();
-                self.refresh();
-            });
+        $(self.el).find("button").click(function() {
+            $("button.active").toggleClass("active");
+            $(this).toggleClass("active");
+            var buttonPressed = ($(this).context.innerText);
+            self.defaults.selectedButton = buttonPressed.toLowerCase();
+            self.refresh();
         });
 
         ns.selectedButton = 'user';
 
-    }
+    },
 
+    template: _.template('<div id="data-filterer"></div>'),
+
+    render: function(){
+        $(this.el).append(this.template());
+        this.appendButtons();
+        return this;
+    }
 });
