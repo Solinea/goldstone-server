@@ -45,7 +45,7 @@ var UtilizationCpuView = Backbone.View.extend({
                 // the collection count will have to be set back to the original count when re-triggering a fetch.
                 self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
                 self.collection.defaults.fetchInProgress = false;
-                console.log('fetchInProgress: ',self.collection.defaults.fetchInProgress);
+                console.log('fetchInProgress: ', self.collection.defaults.fetchInProgress);
             }
 
         });
@@ -153,7 +153,7 @@ var UtilizationCpuView = Backbone.View.extend({
 
         _.each(newData, function(item, i) {
 
-            // temporary mult until agent is fixed
+            // this will need to be set to 1 when usage increases
             var multiplier = 100;
             finalData.push({
                 wait: item.wait * multiplier,
@@ -265,6 +265,9 @@ var UtilizationCpuView = Backbone.View.extend({
                 return "translate(" + ns.x(d.value.date) + "," + ns.y(d.value.y0 + d.value.y / 2) + ")";
             })
             .attr("x", 1)
+            .attr("y", function(d, i) {
+                return -i * 8;
+            })
             .style("font-size", ".8em")
             .text(function(d) {
                 return d.name;

@@ -186,7 +186,6 @@ describe('nodeAvailView.js spec', function() {
                 var timeoutVar = (this.testView.defaults.scheduleTimeout);
                 this.scheduleFetch_spy = sinon.spy(this.testView, "scheduleFetch");
                 this.testView.scheduleFetch();
-                expect(this.testView.defaults.scheduleTimeout).to.equal(timeoutVar + 1);
                 // returns in the case of being paused
                 this.testView.defaults.animation.pause = true;
                 this.testView.scheduleFetch();
@@ -195,8 +194,6 @@ describe('nodeAvailView.js spec', function() {
                 $('#eventSettingsUpdateButton-testContainer').click();
                 expect(this.scheduleFetch_spy.callCount).to.equal(4);
                 this.scheduleFetch_spy.restore();
-                expect(this.testView.defaults.scheduleTimeout).to.equal(timeoutVar + 3);
-
             });
 
             it('appends rectangles and removes based on filtes', function() {
