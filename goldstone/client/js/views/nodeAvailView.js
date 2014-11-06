@@ -614,7 +614,7 @@ var NodeAvailView = Backbone.View.extend({
     },
 
     template: _.template(
-        '<div id = "goldstone-event-panel" class="panel panel-primary">' +
+        '<div id = "goldstone-node-panel" class="panel panel-primary">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' +
         '<%= this.defaults.chartTitle %>' +
