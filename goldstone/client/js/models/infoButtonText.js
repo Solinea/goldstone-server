@@ -33,23 +33,39 @@ etc...
 var InfoButtonText = Backbone.Model.extend({
     defaults: {
         infoText: {
-            // cloud topology
+
+            // populate info-button-text here.
+            // accepts html markup such as <br>
+
             discoverCloudTopology: 'discoverCloudTopology test',
 
-            // event timeline
             eventTimeline: 'eventTimeline test',
 
-            // node availability
             nodeAvailability: 'nodeAvailability test',
 
-            // service status report
             serviceStatus: 'serviceStatus test',
 
-            // utilization viz
             utilization: 'utilization test',
 
-            // hypervisor viz
-            hypervisor: 'hypervisor test'
+            hypervisor: 'hypervisor test',
+
+            novaTopologyDiscover: 'novaTopologyDiscover test',
+
+            cinderTopologyDiscover: 'cinderTopologyDiscover test',
+
+            glanceTopologyDiscover: 'glanceTopologyDiscover test',
+
+            keystoneTopologyDiscover: 'keystoneTopologyDiscover test',
+
+            novaSpawns: 'novaSpawns test',
+
+            novaCpuResources: 'novaCpuResources test',
+
+            novaMemResources: 'novaMemResources test',
+
+            novaDiskResources: 'novaDiskResources test',
+
+            searchLogAnalysis: 'searchLogAnalysis test'
         }
     }
 });
