@@ -41,6 +41,32 @@
             drawSearchTable('#log-search-table', start, end);
             goldstone.populateSettingsFields(start, end);
         });
+
+        // chart info button popover generator
+        var infoButtonText = new InfoButtonText().get('infoText');
+
+        var htmlGen = function() {
+            var result = '<div class="infoButton">' +
+             infoButtonText.searchLogAnalysis +
+            '</div>';
+            return result;
+        };
+
+        $('#goldstone-log-info').popover({
+            trigger: 'manual',
+            content: htmlGen.apply(this),
+            placement: 'bottom',
+            html: 'true'
+        })
+            .on("click", function(d) {
+                var targ = "#" + d.target.id;
+                $(targ).popover('toggle');
+
+                setTimeout(function(d) {
+                    $(targ).popover('hide');
+                }, 3000, targ);
+            });
+
     </script>
 
 {% endblock %}
@@ -56,8 +82,12 @@
                             href="/intelligence/search"> Log Analysis</a>
                         <i class="fa fa-cog pull-right" data-toggle="modal"
                            data-target="#logSettingsModal"></i>
-                    </h3>
 
+                        <!-- info-circle icon -->
+                        <i class="fa fa-info-circle panel-info pull-right "  id="goldstone-log-info" style="margin-right: 30px;">
+                        </i>
+
+                    </h3>
                 </div>
                 <div class="panel-body" style="height:400px">
                     <div id="bad-event-multiline">
