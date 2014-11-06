@@ -1,7 +1,7 @@
 // e2e tests
 // TODO: replace cpu resources/ memory resources/ disk resources svg test when charts are back online
 
-casper.test.begin('Node Report Page is loading properly', 45, function suite(test) {
+casper.test.begin('Node Report Page is loading properly', 54, function suite(test) {
     casper.start('http://localhost:8000/report/node/compute-02.lab.solinea.com', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -32,7 +32,6 @@ casper.test.begin('Node Report Page is loading properly', 45, function suite(tes
 
         test.assertExists('div#node-report-r3-c1 #network-usage svg', 'Network Usage Section svg chart should load');
         test.assertSelectorHasText('div #node-report-r3 #cpu-usage', 'CPU Usage');
-
 
         // Hypervisor graphs load
         test.assertSelectorHasText('div #hypervisor-title-bar', 'Hypervisor');
@@ -73,6 +72,27 @@ casper.test.begin('Node Report Page is loading properly', 45, function suite(tes
         test.assertVisible('div#servicesReport', 'Services tab should now be visible');
         test.assertNotVisible('div#reportsReport', 'Reports tab should still be hidden');
         test.assertNotVisible('div#eventsReport', 'Events tab should now be hidden');
+
+        // Service Status info button brings up popover
+        test.assertNotVisible('#service-status-title-bar div.popover.fade.bottom.in', 'service status info popover should not be visible');
+        this.click('#service-status-title-bar .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#service-status-title-bar div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.click('#service-status-title-bar .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#service-status-title-bar div.popover.fade.bottom.in', 'service status info popover should not be visible');
+
+        // Utilization info button brings up popover
+        test.assertNotVisible('#utilization-title-bar div.popover.fade.bottom.in', 'utilization info popover should not be visible');
+        this.click('#utilization-title-bar .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#utilization-title-bar div.popover.fade.bottom.in', 'utilization info popover should now be visible');
+        this.click('#utilization-title-bar .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#utilization-title-bar div.popover.fade.bottom.in', 'utilization info popover should not be visible');
+
+        // Hypervisor info button brings up popover
+        test.assertNotVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'hypervisor info popover should not be visible');
+        this.click('#Hypervisor-title-bar .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'hypervisor info popover should now be visible');
+        this.click('#Hypervisor-title-bar .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'hypervisor info popover should not be visible');
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
@@ -139,7 +159,7 @@ casper.test.begin('Homepage is loading properly', 24, function suite(test) {
     });
 });
 
-casper.test.begin('Nova Topology Page is loading properly', 9, function suite(test) {
+casper.test.begin('Nova Topology Page is loading properly', 12, function suite(test) {
     casper.start('http://localhost:8000/nova/discover', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -155,6 +175,13 @@ casper.test.begin('Nova Topology Page is loading properly', 9, function suite(te
         test.assertExists('div#nova-discover-r1-c1 svg', 'Nova Topology svg should load');
         test.assertSelectorHasText('div#nova-discover-r1-c1', 'Nova Topology');
 
+        // Nova Topology info button brings up popover
+        test.assertNotVisible('#nova-discover-chart-title div.popover.fade.bottom.in', 'nova topology info popover should not be visible');
+        this.click('#nova-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#nova-discover-chart-title div.popover.fade.bottom.in', 'nova topology info popover should now be visible');
+        this.click('#nova-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#nova-discover-chart-title div.popover.fade.bottom.in', 'nova topology info popover should not be visible');
+
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
     });
@@ -164,7 +191,7 @@ casper.test.begin('Nova Topology Page is loading properly', 9, function suite(te
     });
 });
 
-casper.test.begin('Cinder Topology Page is loading properly', 9, function suite(test) {
+casper.test.begin('Cinder Topology Page is loading properly', 12, function suite(test) {
     casper.start('http://localhost:8000/cinder/discover', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -182,6 +209,13 @@ casper.test.begin('Cinder Topology Page is loading properly', 9, function suite(
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
+
+        // Cinder Topology info button brings up popover
+        test.assertNotVisible('#cinder-discover-chart-title div.popover.fade.bottom.in', 'cinder topology info popover should not be visible');
+        this.click('#cinder-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#cinder-discover-chart-title div.popover.fade.bottom.in', 'cinder topology info popover should now be visible');
+        this.click('#cinder-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#cinder-discover-chart-title div.popover.fade.bottom.in', 'cinder topology info popover should not be visible');
     });
 
     casper.run(function() {
@@ -189,7 +223,7 @@ casper.test.begin('Cinder Topology Page is loading properly', 9, function suite(
     });
 });
 
-casper.test.begin('Glance Topology Page is loading properly', 9, function suite(test) {
+casper.test.begin('Glance Topology Page is loading properly', 12, function suite(test) {
     casper.start('http://localhost:8000/glance/discover', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -205,6 +239,13 @@ casper.test.begin('Glance Topology Page is loading properly', 9, function suite(
         test.assertExists('div#glance-discover-r1-c1 svg', 'Glance Topology svg should load');
         test.assertSelectorHasText('div#glance-discover-r1-c1', 'Glance Topology');
 
+        // Glance Topology info button brings up popover
+        test.assertNotVisible('#glance-discover-chart-title div.popover.fade.bottom.in', 'glance topology info popover should not be visible');
+        this.click('#glance-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#glance-discover-chart-title div.popover.fade.bottom.in', 'glance topology info popover should now be visible');
+        this.click('#glance-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#glance-discover-chart-title div.popover.fade.bottom.in', 'glance topology info popover should not be visible');
+
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
     });
@@ -214,7 +255,7 @@ casper.test.begin('Glance Topology Page is loading properly', 9, function suite(
     });
 });
 
-casper.test.begin('Keystone Topology Page is loading properly', 9, function suite(test) {
+casper.test.begin('Keystone Topology Page is loading properly', 12, function suite(test) {
     casper.start('http://localhost:8000/keystone/discover', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -230,6 +271,13 @@ casper.test.begin('Keystone Topology Page is loading properly', 9, function suit
         test.assertExists('div#keystone-discover-r1-c1 svg', 'Keystone Topology svg should load');
         test.assertSelectorHasText('div#keystone-discover-r1-c1', 'Keystone Topology');
 
+        // Keystone Topology info button brings up popover
+        test.assertNotVisible('#keystone-discover-chart-title div.popover.fade.bottom.in', 'keystone topology info popover should not be visible');
+        this.click('#keystone-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#keystone-discover-chart-title div.popover.fade.bottom.in', 'keystone topology info popover should now be visible');
+        this.click('#keystone-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#keystone-discover-chart-title div.popover.fade.bottom.in', 'keystone topology info popover should not be visible');
+
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
     });
@@ -239,7 +287,7 @@ casper.test.begin('Keystone Topology Page is loading properly', 9, function suit
     });
 });
 
-casper.test.begin('API Perf Page is loading properly', 21, function suite(test) {
+casper.test.begin('API Perf Page is loading properly', 36, function suite(test) {
     casper.start('http://localhost:8000/api_perf/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -255,25 +303,60 @@ casper.test.begin('API Perf Page is loading properly', 21, function suite(test) 
         test.assertExists('div#api-perf-report-r1-c1 svg', 'Nova svg chart should load');
         test.assertSelectorHasText('div#api-perf-report-r1-c1', 'Nova API Performance');
 
+        // Nova API info button brings up popover
+        test.assertNotVisible('#api-perf-report-r1-c1 div.popover.fade.bottom.in', 'nova api info popover should not be visible');
+        this.click('#api-perf-report-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#api-perf-report-r1-c1 div.popover.fade.bottom.in', 'nova api info popover should now be visible');
+        this.click('#api-perf-report-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#api-perf-report-r1-c1 div.popover.fade.bottom.in', 'nova api info popover should not be visible');
+
         // Neutron API Perf graph loads
         test.assertExists('div#api-perf-report-r1-c2', 'Neutron API Perf Section should load');
         test.assertExists('div#api-perf-report-r1-c2 svg', 'Neutron svg chart should load');
         test.assertSelectorHasText('div#api-perf-report-r1-c2', 'Neutron API Performance');
+
+        // Neutron API info button brings up popover
+        test.assertNotVisible('#api-perf-report-r1-c2 div.popover.fade.bottom.in', 'neutron api info popover should not be visible');
+        this.click('#api-perf-report-r1-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#api-perf-report-r1-c2 div.popover.fade.bottom.in', 'neutron api info popover should now be visible');
+        this.click('#api-perf-report-r1-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#api-perf-report-r1-c2 div.popover.fade.bottom.in', 'neutron api info popover should not be visible');
 
         // Keystone API Perf graph loads
         test.assertExists('div#api-perf-report-r2-c1', 'Keystone API Perf Section should load');
         test.assertExists('div#api-perf-report-r2-c1 svg', 'Keystone svg chart should load');
         test.assertSelectorHasText('div#api-perf-report-r2-c1', 'Keystone API Performance');
 
+        // Keystone API info button brings up popover
+        test.assertNotVisible('#api-perf-report-r2-c1 div.popover.fade.bottom.in', 'keystone api info popover should not be visible');
+        this.click('#api-perf-report-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#api-perf-report-r2-c1 div.popover.fade.bottom.in', 'keystone api info popover should now be visible');
+        this.click('#api-perf-report-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#api-perf-report-r2-c1 div.popover.fade.bottom.in', 'keystone api info popover should not be visible');
+
         // Glance API Perf graph loads
         test.assertExists('div#api-perf-report-r2-c2', 'Glance API Perf Section should load');
         test.assertExists('div#api-perf-report-r2-c2 svg', 'Glance svg chart should load');
         test.assertSelectorHasText('div#api-perf-report-r2-c2', 'Glance API Performance');
 
+        // Glance API info button brings up popover
+        test.assertNotVisible('#api-perf-report-r2-c2 div.popover.fade.bottom.in', 'glance api info popover should not be visible');
+        this.click('#api-perf-report-r2-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#api-perf-report-r2-c2 div.popover.fade.bottom.in', 'glance api info popover should now be visible');
+        this.click('#api-perf-report-r2-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#api-perf-report-r2-c2 div.popover.fade.bottom.in', 'glance api info popover should not be visible');
+
         // Cinder API Perf graph loads
         test.assertExists('div#api-perf-report-r3-c1', 'Cinder API Perf Section should load');
         test.assertExists('div#api-perf-report-r3-c1 svg', 'Cinder svg chart should load');
         test.assertSelectorHasText('div#api-perf-report-r3-c1', 'Cinder API Performance');
+
+        // Cinder API info button brings up popover
+        test.assertNotVisible('#api-perf-report-r3-c1 div.popover.fade.bottom.in', 'cinder api info popover should not be visible');
+        this.click('#api-perf-report-r3-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#api-perf-report-r3-c1 div.popover.fade.bottom.in', 'cinder api info popover should now be visible');
+        this.click('#api-perf-report-r3-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#api-perf-report-r3-c1 div.popover.fade.bottom.in', 'cinder api info popover should not be visible');
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
@@ -284,7 +367,7 @@ casper.test.begin('API Perf Page is loading properly', 21, function suite(test) 
     });
 });
 
-casper.test.begin('Nova (compute) Page is loading properly', 18, function suite(test) {
+casper.test.begin('Nova (compute) Page is loading properly', 33, function suite(test) {
     casper.start('http://localhost:8000/nova/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -300,25 +383,61 @@ casper.test.begin('Nova (compute) Page is loading properly', 18, function suite(
         test.assertExists('div#nova-report-r1-c1 svg', 'Nova svg should load');
         test.assertSelectorHasText('div#nova-report-r1-c1', 'Nova API Performance');
 
-        // Neutron API Perf graph loads
+        // Nova API info button brings up popover
+        test.assertNotVisible('#nova-api-perf-panel div.popover.fade.bottom.in', 'nova api info popover should not be visible');
+        this.click('#nova-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#nova-api-perf-panel div.popover.fade.bottom.in', 'nova api info popover should now be visible');
+        this.click('#nova-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#nova-api-perf-panel div.popover.fade.bottom.in', 'nova api info popover should not be visible');
+
+        // VM Spawns graph loads
         test.assertExists('div#nova-report-r1-c2', 'VM Spawns chart section should load');
         test.assertExists('div#nova-report-r1-c2 svg', 'VM Spawns chart should load');
         test.assertSelectorHasText('div#nova-report-r1-c2', 'VM Spawns');
 
-        // Keystone API Perf graph loads
+        // VM Spawns info button brings up popover
+        test.assertNotVisible('#nova-spawns-chart-title div.popover.fade.bottom.in', 'VM Spawns info popover should not be visible');
+        this.click('#nova-spawns-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#nova-spawns-chart-title div.popover.fade.bottom.in', 'VM Spawns info popover should now be visible');
+        this.click('#nova-spawns-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#nova-spawns-chart-title div.popover.fade.bottom.in', 'VM Spawns info popover should not be visible');
+
+        // CPU Resources graph loads
         test.assertExists('div#nova-report-r2-c1', 'CPU Resources chart section should load');
         // test.assertExists('div#nova-report-r2-c1 svg', 'CPU Resources svg should load');
         test.assertSelectorHasText('div#nova-report-r2-c1', 'CPU Resources');
 
-        // Glance API Perf graph loads
+        // CPU Resources info button brings up popover
+        test.assertNotVisible('#nova-cpu-chart-title div.popover.fade.bottom.in', 'CPU Resources info popover should not be visible');
+        this.click('#nova-cpu-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#nova-cpu-chart-title div.popover.fade.bottom.in', 'CPU Resources info popover should now be visible');
+        this.click('#nova-cpu-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#nova-cpu-chart-title div.popover.fade.bottom.in', 'CPU Resources info popover should not be visible');
+
+        // Memory Resources graph loads
         test.assertExists('div#nova-report-r2-c2', 'Memory Resources chart section should load');
         // test.assertExists('div#nova-report-r2-c2 svg', 'Memory Resources svg should load');
         test.assertSelectorHasText('div#nova-report-r2-c2', 'Memory Resources');
 
-        // Cinder API Perf graph loads
+        // Memory Resources info button brings up popover
+        test.assertNotVisible('#nova-mem-chart-title div.popover.fade.bottom.in', 'Memory Resources info popover should not be visible');
+        this.click('#nova-mem-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#nova-mem-chart-title div.popover.fade.bottom.in', 'Memory Resources info popover should now be visible');
+        this.click('#nova-mem-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#nova-mem-chart-title div.popover.fade.bottom.in', 'Memory Resources info popover should not be visible');
+
+        // Disk Resources graph loads
         test.assertExists('div#nova-report-r3-c1', 'Disk Resources section should load');
         // test.assertExists('div#nova-report-r3-c1 svg', 'Disk Resources svg should load');
         test.assertSelectorHasText('div#nova-report-r3-c1', 'Disk Resources');
+
+        // Disk Resources info button brings up popover
+        test.assertNotVisible('#nova-disk-chart-title div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('#nova-disk-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#nova-disk-chart-title div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
+        this.click('#nova-disk-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#nova-disk-chart-title div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
