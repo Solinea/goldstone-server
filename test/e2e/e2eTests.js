@@ -1,4 +1,5 @@
 // e2e tests
+// TODO: replace cpu resources/ memory resources/ disk resources svg test when charts are back online
 
 casper.test.begin('Node Report Page is loading properly', 45, function suite(test) {
     casper.start('http://localhost:8000/report/node/compute-02.lab.solinea.com', function() {
@@ -106,7 +107,7 @@ casper.test.begin('Homepage is loading properly', 18, function suite(test) {
         test.assertNotVisible('#goldstone-topology-panel div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
         this.click('#goldstone-topology-info.pull-right.fa.fa-info-circle.panel-info');
         // this will re-appear after filling in info button text
-        test.assertNotVisible('#goldstone-topology-panel div.popover.fade.bottom.in', 'cloud topology info popover should now be visible');
+        test.assertVisible('#goldstone-topology-panel div.popover.fade.bottom.in', 'cloud topology info popover should now be visible');
         this.click('#goldstone-topology-info.pull-right.fa.fa-info-circle.panel-info');
         test.assertNotVisible('#goldstone-topology-panel div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
 
@@ -269,7 +270,7 @@ casper.test.begin('API Perf Page is loading properly', 21, function suite(test) 
     });
 });
 
-casper.test.begin('Nova (compute) Page is loading properly', 21, function suite(test) {
+casper.test.begin('Nova (compute) Page is loading properly', 18, function suite(test) {
     casper.start('http://localhost:8000/nova/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -292,17 +293,17 @@ casper.test.begin('Nova (compute) Page is loading properly', 21, function suite(
 
         // Keystone API Perf graph loads
         test.assertExists('div#nova-report-r2-c1', 'CPU Resources chart section should load');
-        test.assertExists('div#nova-report-r2-c1 svg', 'CPU Resources svg should load');
+        // test.assertExists('div#nova-report-r2-c1 svg', 'CPU Resources svg should load');
         test.assertSelectorHasText('div#nova-report-r2-c1', 'CPU Resources');
 
         // Glance API Perf graph loads
         test.assertExists('div#nova-report-r2-c2', 'Memory Resources chart section should load');
-        test.assertExists('div#nova-report-r2-c2 svg', 'Memory Resources svg should load');
+        // test.assertExists('div#nova-report-r2-c2 svg', 'Memory Resources svg should load');
         test.assertSelectorHasText('div#nova-report-r2-c2', 'Memory Resources');
 
         // Cinder API Perf graph loads
         test.assertExists('div#nova-report-r3-c1', 'Disk Resources section should load');
-        test.assertExists('div#nova-report-r3-c1 svg', 'Disk Resources svg should load');
+        // test.assertExists('div#nova-report-r3-c1 svg', 'Disk Resources svg should load');
         test.assertSelectorHasText('div#nova-report-r3-c1', 'Disk Resources');
 
         //footer loads and is visible

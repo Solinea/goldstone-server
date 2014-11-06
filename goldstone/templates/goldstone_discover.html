@@ -120,31 +120,7 @@
 
     $(document).ready(function () {
         var self = this;
-        var infoButtonText = new InfoButtonText().get('infoTextSets');
-
-        // chart info button popover generator
-        var htmlGen = function() {
-            var result = '<div class="infoButton">' +
-             infoButtonText[0] +
-            '</div>';
-            return result;
-        };
-
-        $('#goldstone-topology-panel').find('#goldstone-topology-info').popover({
-            trigger: 'manual',
-            content: htmlGen.apply(this),
-            placement: 'bottom',
-            html: 'true'
-        })
-            .on("click", function(d) {
-                var targ = "#" + d.target.id;
-                // $('#goldstone-topology-panel').find(targ).popover('toggle');
-
-                // setTimeout(function(d) {
-                    // $('#goldstone-topology-panel').find(targ).popover('hide');
-                // }, 3000, targ);
-            });
-
+        var infoButtonText = new InfoButtonText().get('infoText');
 
         // $(ns.spinner).hide();
         // $(ns.singleRsrcSpinner).hide();
@@ -154,6 +130,58 @@
         // render Event Timeline and Node Avail charts
         renderCharts();
 
+        // chart info button popover generator
+        var htmlGen = function(infoSet) {
+            var result = '<div class="infoButton">' +
+             infoButtonText[infoSet] +
+            '</div>';
+            return result;
+        };
+
+        $('#goldstone-topology-info').popover({
+            trigger: 'manual',
+            content: htmlGen.apply(this, ['discoverCloudTopology']),
+            placement: 'bottom',
+            html: 'true'
+        })
+            .on("click", function(d) {
+                var targ = "#" + d.target.id;
+                $(targ).popover('toggle');
+
+                setTimeout(function(d) {
+                    $(targ).popover('hide');
+                }, 3000, targ);
+            });
+
+        $('#goldstone-event-info').popover({
+            trigger: 'manual',
+            content: htmlGen.apply(this, ['eventTimeline']),
+            placement: 'bottom',
+            html: 'true'
+        })
+            .on("click", function(d) {
+                var targ = "#" + d.target.id;
+                $(targ).popover('toggle');
+
+                setTimeout(function(d) {
+                    $(targ).popover('hide');
+                }, 3000, targ);
+            });
+
+        $('#goldstone-node-info').popover({
+            trigger: 'manual',
+            content: htmlGen.apply(this, ['nodeAvailability']),
+            placement: 'bottom',
+            html: 'true'
+        })
+            .on("click", function(d) {
+                var targ = "#" + d.target.id;
+                $(targ).popover('toggle');
+
+                setTimeout(function(d) {
+                    $(targ).popover('hide');
+                }, 3000, targ);
+            });
     });
 
 </script>

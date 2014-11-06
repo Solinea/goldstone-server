@@ -629,7 +629,7 @@ var NodeAvailView = Backbone.View.extend({
         '" style="margin-right: 30px;"></i>' +
 
         // info-circle icon
-        '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-event-info"' +
+        '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-node-info"' +
         'style="margin-right: 30px;"></i>' +
         '</h3>' +
         '</div>' +

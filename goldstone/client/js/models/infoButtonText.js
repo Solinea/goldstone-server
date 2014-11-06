@@ -19,35 +19,37 @@
 /*
 to invoke:
 1. include infoButonText.js in the template script tags
-2. instantiate the model as a variable: var infoButtonText = new InfoButtonText().get('infoTextSets');
+2. instantiate the model as a variable: var infoButtonText = new InfoButtonText().get('infoText');
 3. invoke via infoButtonText, and an index corresponding to the particular text desired.
 
-infoButtonText[0] (Front Page Cloud Topology)
-infoButtonText[1] (Front Page Event Timeline)
+2 styles:
+---------
+1. infoButtonText.discoverCloudTopology (Front Page Cloud Topology)
+2. infoButtonText['eventTimeline'] (Front Page Event Timeline)
 etc...
 
 */
 
 var InfoButtonText = Backbone.Model.extend({
     defaults: {
-        infoTextSets: {
+        infoText: {
             // cloud topology
-            0: '',
+            discoverCloudTopology: 'discoverCloudTopology test',
 
             // event timeline
-            1: '',
+            eventTimeline: 'eventTimeline test',
 
             // node availability
-            2: '',
+            nodeAvailability: 'nodeAvailability test',
 
             // service status report
-            3: '',
+            serviceStatus: 'serviceStatus test',
 
             // utilization viz
-            4: '',
+            utilization: 'utilization test',
 
             // hypervisor viz
-            5: ''
+            hypervisor: 'hypervisor test'
         }
     }
 });
