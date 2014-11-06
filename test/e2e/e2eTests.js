@@ -83,7 +83,7 @@ casper.test.begin('Node Report Page is loading properly', 45, function suite(tes
     });
 });
 
-casper.test.begin('Homepage is loading properly', 18, function suite(test) {
+casper.test.begin('Homepage is loading properly', 24, function suite(test) {
     casper.start('http://localhost:8000/', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -103,13 +103,27 @@ casper.test.begin('Homepage is loading properly', 18, function suite(test) {
         test.assertExists('div#goldstone-discover-r2-c1', 'Cloud Topology Section should load');
         test.assertExists('div#goldstone-discover-r2-c1 svg', 'Cloud Topology Section svg chart should load');
         test.assertSelectorHasText('div #goldstone-discover-r2-c1', 'Cloud Topology');
+
+        // Event Timeline info button brings up popover
+        test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should not be visible');
+        this.click('#goldstone-event-info.pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should now be visible');
+        this.click('#goldstone-event-info.pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should not be visible');
+
         // Cloud Topology info button brings up popover
         test.assertNotVisible('#goldstone-topology-panel div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
         this.click('#goldstone-topology-info.pull-right.fa.fa-info-circle.panel-info');
-        // this will re-appear after filling in info button text
         test.assertVisible('#goldstone-topology-panel div.popover.fade.bottom.in', 'cloud topology info popover should now be visible');
         this.click('#goldstone-topology-info.pull-right.fa.fa-info-circle.panel-info');
         test.assertNotVisible('#goldstone-topology-panel div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
+
+        // Node Availability info button brings up popover
+        test.assertNotVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should not be visible');
+        this.click('#goldstone-node-info.pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should now be visible');
+        this.click('#goldstone-node-info.pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should not be visible');
 
         // Node Availability graph loads
         test.assertExists('div#goldstone-discover-r2-c2', 'Node Availability Section should load');
