@@ -468,18 +468,18 @@ var EventTimelineView = Backbone.View.extend({
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
 
-        // filter icon
-        '<i class="fa fa-filter pull-right" data-toggle="modal"' +
-        'data-target="#modal-filter-<%= this.el.slice(1) %>' + '"></i>' +
-
         // cog icon
         '<i class="fa fa-cog pull-right" data-toggle="modal"' +
         'data-target="#modal-settings-<%= this.el.slice(1) %>' +
-        '" style="margin-right: 30px;"></i>' +
+        '"></i>' +
+
+        // filter icon
+        '<i class="fa fa-filter pull-right" data-toggle="modal"' +
+        'data-target="#modal-filter-<%= this.el.slice(1) %>' + '" style="margin-right: 15px;"></i>' +
 
         // info-circle icon
         '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-event-info"' +
-        'style="margin-right: 30px;"></i>' +
+        'style="margin-right: 15px;"></i>' +
         '</h3>' +
         '</div>' +
         '<div class="panel-body" style="height:<%= (this.defaults.h.padding * 2) %>' +
