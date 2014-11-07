@@ -449,7 +449,7 @@ casper.test.begin('Nova (compute) Page is loading properly', 33, function suite(
 });
 
 
-casper.test.begin('Neutron (network) Page is loading properly', 9, function suite(test) {
+casper.test.begin('Neutron (network) Page is loading properly', 12, function suite(test) {
     casper.start('http://localhost:8000/neutron/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -465,6 +465,13 @@ casper.test.begin('Neutron (network) Page is loading properly', 9, function suit
         test.assertExists('div#neutron-report-r1-c1 svg', 'Neutron svg should load');
         test.assertSelectorHasText('div#neutron-report-r1-c1', 'Neutron API Performance');
 
+        // Neutron API info button brings up popover
+        test.assertNotVisible('#neutron-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('#neutron-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#neutron-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
+        this.click('#neutron-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#neutron-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
     });
@@ -474,7 +481,7 @@ casper.test.begin('Neutron (network) Page is loading properly', 9, function suit
     });
 });
 
-casper.test.begin('Block Storage (cinder) Page is loading properly', 9, function suite(test) {
+casper.test.begin('Block Storage (cinder) Page is loading properly', 12, function suite(test) {
     casper.start('http://localhost:8000/cinder/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -490,6 +497,13 @@ casper.test.begin('Block Storage (cinder) Page is loading properly', 9, function
         test.assertExists('div#cinder-report-r1-c1 svg', 'Cinder svg should load');
         test.assertSelectorHasText('div#cinder-report-r1-c1', 'Cinder API Performance');
 
+        // Cinder API info button brings up popover
+        test.assertNotVisible('#cinder-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('#cinder-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#cinder-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
+        this.click('#cinder-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#cinder-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
     });
@@ -499,7 +513,7 @@ casper.test.begin('Block Storage (cinder) Page is loading properly', 9, function
     });
 });
 
-casper.test.begin('Image (glance) Page is loading properly', 9, function suite(test) {
+casper.test.begin('Image (glance) Page is loading properly', 12, function suite(test) {
     casper.start('http://localhost:8000/glance/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -515,6 +529,13 @@ casper.test.begin('Image (glance) Page is loading properly', 9, function suite(t
         test.assertExists('div#glance-report-r1-c1 svg', 'Glance svg should load');
         test.assertSelectorHasText('div#glance-report-r1-c1', 'Glance API Performance');
 
+        // Glance API info button brings up popover
+        test.assertNotVisible('#glance-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('#glance-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#glance-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
+        this.click('#glance-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#glance-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
     });
@@ -524,7 +545,7 @@ casper.test.begin('Image (glance) Page is loading properly', 9, function suite(t
     });
 });
 
-casper.test.begin('Identity (keystone) Page is loading properly', 9, function suite(test) {
+casper.test.begin('Identity (keystone) Page is loading properly', 12, function suite(test) {
     casper.start('http://localhost:8000/keystone/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -540,6 +561,13 @@ casper.test.begin('Identity (keystone) Page is loading properly', 9, function su
         test.assertExists('div#keystone-report-r1-c1 svg', 'Keystone svg should load');
         test.assertSelectorHasText('div#keystone-report-r1-c1', 'Keystone API Performance');
 
+        // Keystone API info button brings up popover
+        test.assertNotVisible('#keystone-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('#keystone-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#keystone-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
+        this.click('#keystone-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#keystone-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
     });
@@ -549,7 +577,7 @@ casper.test.begin('Identity (keystone) Page is loading properly', 9, function su
     });
 });
 
-casper.test.begin('Logging page is loading properly', 13, function suite(test) {
+casper.test.begin('Logging page is loading properly', 16, function suite(test) {
     casper.start('http://localhost:8000/intelligence/search', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -572,6 +600,13 @@ casper.test.begin('Logging page is loading properly', 13, function suite(test) {
         test.assertEval(function() {
             return __utils__.findAll('td.sorting_1').length === 10;
         }, "Search Resuts defaults 10 results");
+
+        // Log Analysis info button brings up popover
+        test.assertNotVisible('.panel-heading div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('.panel-heading .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('.panel-heading div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
+        this.click('.panel-heading .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('.panel-heading div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
 
         // footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
