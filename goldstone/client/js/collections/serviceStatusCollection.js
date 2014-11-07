@@ -33,7 +33,6 @@ var ServiceStatusCollection = Backbone.Collection.extend({
 
     checkForSet: function() {
         var self = this;
-
         var set = {};
 
         _.each(this.models, function(item) {
@@ -44,12 +43,11 @@ var ServiceStatusCollection = Backbone.Collection.extend({
             set [serviceName] = true;
         });
 
-
         if (!this.defaults.setAchieved) {
             this.fetch({
                 url: this.defaults.nextUrl,
                 remove: false,
-                success: function(){
+                success: function() {
                     self.checkForSet();
                 }
             });
@@ -61,8 +59,6 @@ var ServiceStatusCollection = Backbone.Collection.extend({
     model: ServiceStatusModel,
 
     initialize: function(options) {
-        var self = this;
-
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
         this.defaults.nodeName = options.nodeName;
@@ -83,88 +79,10 @@ var ServiceStatusCollection = Backbone.Collection.extend({
 
         this.url = ("/core/reports?name__prefix=os.service&node__prefix=" + this.defaults.nodeName + "&page_size=100");
 
-
         this.fetch({
             success: function() {
                 self.checkForSet();
             }
         });
-
-    },
-
-    dummyGen: function() {
-        this.dummy.results = [];
-
-        // simulate approx 15% of the nodes being down
-        var trueFalse = function() {
-            var pick = Math.random();
-            if (pick < 0.85) {
-                return true;
-            } else {
-                return false;
-            }
-        };
-
-        var nodeChoices = {
-            0: "nova-compute",
-            1: "ovs-agent",
-            2: "neutron-agent",
-        };
-
-        for (var i = 0; i < 48; i++) {
-
-            var result = nodeChoices[Math.floor(Math.random() * 3)];
-
-            result += Math.floor(Math.random() * 100);
-
-            resultObject = {};
-            resultObject[result] = trueFalse();
-            this.dummy.results.push(resultObject);
-
-        }
-
-    },
-
-    // for reference
-    // actual data generated randomly on each pass
-
-    dummy: {
-        results: [{
-            "nova-compute1": true
-        }, {
-            "ovs-agent1": false,
-        }, {
-            "neutron-agent1": true
-        }, {
-            "nova-compute2": false
-        }, {
-            "ovs-agent2": true,
-        }, {
-            "neutron-agent2": true
-        }, {
-            "nova-compute3": true
-        }, {
-            "ovs-agent3": true,
-        }, {
-            "neutron-agent3": false
-        }, {
-            "nova-compute1": true
-        }, {
-            "ovs-agent1": false,
-        }, {
-            "neutron-agent1": true
-        }, {
-            "nova-compute2": false
-        }, {
-            "ovs-agent2": true,
-        }, {
-            "neutron-agent2": true
-        }, {
-            "nova-compute3": true
-        }, {
-            "ovs-agent3": true,
-        }, {
-            "neutron-agent3": false
-        }]
     }
 });
