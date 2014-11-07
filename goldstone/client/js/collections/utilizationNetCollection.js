@@ -38,12 +38,11 @@ var UtilizationNetCollection = Backbone.Collection.extend({
 
     model: UtilizationModel,
 
+    // will impose an order based on 'timestamp' for
+    // the models as they are put into the collection
     comparator: 'timestamp',
 
     initialize: function(options) {
-
-        var self = this;
-
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
         this.defaults.fetchInProgress = false;
@@ -91,62 +90,5 @@ var UtilizationNetCollection = Backbone.Collection.extend({
                 });
             }
         });
-    },
-
-    dummyGen: function() {
-        this.dummy = {
-            results: []
-        };
-
-        var day = 1412812619263;
-
-        for (var i = 0; i < Math.floor(Math.random() * 20) + 2; i++) {
-
-            var user = Math.floor(Math.random() * 3300) / 100;
-            var sys = Math.floor(Math.random() * 3300) / 100;
-            var wait = Math.floor(Math.random() * 3300) / 100;
-
-            var result = {
-                "date": day,
-                "Wait": wait,
-                "System": sys,
-                "User": user,
-                "Idle": (100 - user - sys - wait)
-            };
-
-            this.dummy.results.push(result);
-            day += 3600000;
-        }
-    },
-
-
-    dummy: {
-        results: [{
-                "date": "11-Oct-13",
-                "User": 41.62,
-                "System": 22.36,
-                "Idle": 25.58,
-                "Wait": 9.13,
-            }, {
-                "date": "12-Oct-13",
-                "User": 41.95,
-                "System": 22.15,
-                "Idle": 25.78,
-                "Wait": 8.79,
-            }, {
-                "date": "13-Oct-13",
-                "User": 37.64,
-                "System": 24.77,
-                "Idle": 25.96,
-                "Wait": 10.16,
-            }, {
-                "date": "14-Oct-13",
-                "User": 37.27,
-                "System": 24.65,
-                "Idle": 25.98,
-                "Wait": 10.59,
-            },
-
-        ]
     }
 });
