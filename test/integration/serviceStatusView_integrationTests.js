@@ -69,15 +69,101 @@ describe('serviceStatusView.js spec', function() {
             this.testCollection.checkForSet();
             expect(this.testCollection.defaults.setAchieved).to.equal(false);
             expect(this.protoFetchSpy.callCount).to.equal(2);
-            // now with a duplicate
+            // now with insufficient duplicates
             this.testCollection.reset();
             this.testCollection.add([{name: 'bingBap3'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap3'}]);
             this.testCollection.checkForSet();
+            expect(this.testCollection.defaults.setAchieved).to.equal(false);
+            expect(this.protoFetchSpy.callCount).to.equal(3);
+            // still not enough duplicates
+            this.testCollection.reset();
+            this.testCollection.add([{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'}]);
+            this.testCollection.checkForSet();
+            expect(this.testCollection.defaults.setAchieved).to.equal(false);
+            expect(this.protoFetchSpy.callCount).to.equal(4);
+            // even still not enough duplicates
+            this.testCollection.reset();
+            this.testCollection.add([{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'}]);
+            this.testCollection.checkForSet();
+            expect(this.testCollection.defaults.setAchieved).to.equal(false);
+            expect(this.protoFetchSpy.callCount).to.equal(5);
+            // finally enough duplicates
+            this.testCollection.reset();
+            this.testCollection.add([{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},]);
+            this.testCollection.checkForSet();
             expect(this.testCollection.defaults.setAchieved).to.equal(true);
+            expect(this.protoFetchSpy.callCount).to.equal(5);
+        });
+        it('should not be confused by the order of the items when checking for a set', function() {
+            // enough duplicates
+            this.testCollection.reset();
+            this.testCollection.add([{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap3'},{name: 'bingBap2'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'}]);
+            this.testCollection.checkForSet();
+            expect(this.testCollection.defaults.setAchieved).to.equal(false);
             expect(this.protoFetchSpy.callCount).to.equal(2);
         });
-    });
+        it('should not be confused by varying number of appearances of the set when making the final unique set', function() {
+            // enough duplicates
+            this.testCollection.reset();
+            this.testCollection.add([{value: 'running', name: 'bingBap1'},{value: 'running', name: 'bingBap2'},{value: 'running', name: 'bingBap3'},{value: 'running', name: 'bingBap3'},{value: 'running', name: 'bingBap2'},{value: 'running', name: 'bingBap1'},{value: 'running', name: 'bingBap2'},{value: 'running', name: 'bingBap3'},{value: 'running', name: 'bingBap1'},{value: 'running', name: 'bingBap2'},{value: 'running', name: 'bingBap3'},{value: 'running', name: 'bingBap1'},{value: 'running', name: 'bingBap2'}]);
+            this.testCollection.checkForSet();
+            expect(this.testCollection.defaults.setAchieved).to.equal(true);
+            expect(this.protoFetchSpy.callCount).to.equal(1);
 
+            var test1 = this.testView.collectionPrep();
+            expect(test1).to.deep.equal([{'bingBap1':'running'},{'bingBap2':'running'},{'bingBap3':'running'}]);
+        });
+        it('should not be confused by statuses that occur after the intial encounter of the unique service status', function() {
+            // enough duplicates
+            this.testCollection.reset();
+            this.testCollection.add([
+                {name: 'bingBap1', value: 'running'},
+                {name: 'bingBap2', value: 'running'},
+                {name: 'bingBap3', value: 'running'},
+                {name: 'bingBap3', value: 'stopped'},
+                {name: 'bingBap2', value: 'stopped'},
+                {name: 'bingBap1', value: 'stopped'},
+                {name: 'bingBap2', value: 'stopped'},
+                {name: 'bingBap3', value: 'stopped'},
+                {name: 'bingBap1', value: 'stopped'},
+                {name: 'bingBap2', value: 'stopped'},
+                {name: 'bingBap3', value: 'stopped'},
+                {name: 'bingBap1', value: 'stopped'},
+                {name: 'bingBap2', value: 'stopped'}
+                ]);
+            this.testCollection.checkForSet();
+            expect(this.testCollection.defaults.setAchieved).to.equal(true);
+            expect(this.protoFetchSpy.callCount).to.equal(1);
+
+            var test1 = this.testView.collectionPrep();
+            expect(test1).to.deep.equal([{'bingBap1':'running'},{'bingBap2':'running'},{'bingBap3':'running'}]);
+        });
+        it('should not be confused by statuses that occur after the intial encounter of the unique service status in an interleaved fashion', function() {
+            // enough duplicates
+            this.testCollection.reset();
+            this.testCollection.add([
+                {name: 'bingBap1', value: 'running'},
+                {name: 'bingBap1', value: 'stopped'},
+                {name: 'bingBap1', value: 'stopped'},
+                {name: 'bingBap1', value: 'stopped'},
+                {name: 'bingBap2', value: 'running'},
+                {name: 'bingBap2', value: 'stopped'},
+                {name: 'bingBap2', value: 'stopped'},
+                {name: 'bingBap2', value: 'stopped'},
+                {name: 'bingBap2', value: 'stopped'},
+                {name: 'bingBap3', value: 'running'},
+                {name: 'bingBap3', value: 'stopped'},
+                {name: 'bingBap3', value: 'stopped'},
+                {name: 'bingBap3', value: 'stopped'}
+                ]);
+            this.testCollection.checkForSet();
+            expect(this.testCollection.defaults.setAchieved).to.equal(true);
+            expect(this.protoFetchSpy.callCount).to.equal(1);
+
+            var test1 = this.testView.collectionPrep();
+            expect(test1).to.deep.equal([{'bingBap1':'running'},{'bingBap2':'running'},{'bingBap3':'running'}]);
+        });
+    });
     describe('view is constructed', function() {
         it('should exist', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');

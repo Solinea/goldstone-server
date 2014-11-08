@@ -67,39 +67,60 @@ var ServiceStatusView = Backbone.View.extend({
 
         var data = allthelogs;
 
-        /*
-        iterate through 'data, find the index at which point a duplicate appears, and truncate (slice) the array at that point.
-        massage the array to be a simple object {name:true/false} and return it
-        */
+        // inside 'data', the results are stored with the
+        // timestamp property in descending order.
+        // the set can be achieved from _.uniq + data.name;
 
-        var initialSetConstruction = {};
+        var uniqServiceNames = _.uniq(_.map(data, function(item) {
+            return item.name;
+        }));
 
-        for (var i = 0; i < data.length; i++) {
+        var novelServiceBreadcrumb = {};
 
-            var service = data[i].name;
+        _.each(uniqServiceNames, function(item) {
+            novelServiceBreadcrumb[item] = true;
+        });
 
-            if (initialSetConstruction[service]) {
-                data = data.slice(0, i);
-                break;
-            }
+        // set a counter for the length of uniq(data.name);
+        var uniqSetSize = _.keys(uniqServiceNames).length;
 
-            initialSetConstruction[service] = true;
-        }
-
-
+        // iterate through data and as novel service
+        // names are located, attach the status at that
+        // moment to that service name and don't reapply
+        // it, as the next result is not the most recent.
 
         var finalData = [];
 
-        _.each(data, function(item) {
+        for (var item in data) {
+            if (novelServiceBreadcrumb[data[item].name]) {
+                finalData.push(data[item]);
+                novelServiceBreadcrumb[data[item].name] = false;
+
+                // when finding a novel name, decrement the set length counter.
+                uniqSetSize--;
+
+                // when the counter reaches 0, the set is
+                // complete and the most recent
+                // results have been assigned to each of
+                // the items in the set.
+                if (uniqSetSize === 0) {
+                    break;
+                }
+            }
+        }
+
+        // final formatting of the results as
+        // [{'serviceName': status}...]
+        _.each(finalData, function(item, i) {
             var resultName;
             var resultObject = {};
-            if(item.name && item.name.indexOf('.') !== -1){
+            if (item.name && item.name.indexOf('.') !== -1) {
                 resultName = item.name.slice(item.name.lastIndexOf('.') + 1);
             } else {
                 resultName = item.name;
             }
             resultObject[resultName] = item.value;
-            finalData.push(resultObject);
+            finalData[i] = resultObject;
         });
 
         return finalData;
@@ -139,7 +160,7 @@ var ServiceStatusView = Backbone.View.extend({
                 .css({
                     'position': 'relative',
                     'margin-left': $(this.el).width() / 2 - 14,
-                    'top': -$(this.el).height() / 2
+                    'top': -$(this.el).height() / 4
                 });
             return;
         }
