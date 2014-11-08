@@ -38,9 +38,14 @@ var ServiceStatusCollection = Backbone.Collection.extend({
         _.each(this.models, function(item) {
             var serviceName = item.attributes.name;
             if (set [serviceName]) {
-                self.defaults.setAchieved = true;
+                if (set [serviceName] >= 4) {
+                    self.defaults.setAchieved = true;
+                }
+                set [serviceName]++;
+            } else {
+                set [serviceName] = 1;
+
             }
-            set [serviceName] = true;
         });
 
         if (!this.defaults.setAchieved) {
@@ -77,7 +82,7 @@ var ServiceStatusCollection = Backbone.Collection.extend({
 
         this.defaults.fetchInProgress = true;
 
-        this.url = ("/core/reports?name__prefix=os.service&node__prefix=" + this.defaults.nodeName + "&page_size=100");
+        this.url = ("/core/reports?name__prefix=os.service&node__prefix=" + this.defaults.nodeName + "&page_size=300");
 
         this.fetch({
             success: function() {
