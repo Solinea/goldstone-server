@@ -25,9 +25,12 @@ var EventsReportView = Backbone.View.extend({
         this.defaults = _.clone(this.defaults);
         this.el = options.el;
         this.defaults.width = options.width;
+        this.defaults.hostName = options.nodeName;
 
         var ns = this.defaults;
         var self = this;
+
+        console.log('hostname:', ns.hostName);
 
         // required in case spinner loading takes
         // longer than chart loading
@@ -49,6 +52,10 @@ var EventsReportView = Backbone.View.extend({
         var ns = this.defaults;
         var self = this;
 
+        var now = +new Date();
+        var oneDayAgo = (+new Date()) - (1000 * 60 * 60 * 24);
+        var oneWeekAgo = (+new Date()) - (1000 * 60 * 60 * 24 * 7);
+
         // sets css for spinner to hidden in case
         // spinner callback resolves
         // after chart data callback
@@ -56,42 +63,122 @@ var EventsReportView = Backbone.View.extend({
 
         $(this.el).find('#spinner').hide();
 
-        if (localStorage.getItem('reportNodeData') === null) {
+        ns.urlRouteConstruction = '/core/events?source_name=' + this.defaults.hostName + '&created__lte=' + now + '&created__gte=' + oneDayAgo;
 
-            $(this.el).append("No Events Data")
-                .css({
-                    'position': 'relative',
-                    'margin-left': (ns.width / 2 - 50),
-                });
+        this.render();
 
-            return;
-        }
+        console.log('urlRouteConstruction', ns.urlRouteConstruction);
 
-        if (localStorage.getItem('reportNodeData')) {
-
-            this.render();
-
-            // append sample data payload
-            $(this.el).find('#availableReportsResult').load('/core/nodes?page=1&format=json');
-
-            var configDataToRender = JSON.parse(localStorage.getItem('reportNodeData'));
-
-            _.each(_.keys(configDataToRender), function(item) {
-
-                $(this.el).find('#reportSection').append(item + ": " + configDataToRender[item] + "<br>");
-
-                localStorage.clear();
-            }, this);
-        }
     },
+
+    drawSearchTable: function(location, start, end) {
+    // $("#log-table-loading-indicator").show();
+
+    end = typeof end !== 'undefined' ?
+        new Date(Number(end)) :
+        new Date();
+
+    if (typeof start !== 'undefined') {
+        start = new Date(Number(start));
+    } else {
+        start = new Date(Number(start));
+        start.addWeeks(-1);
+    }
+
+    var oTable;
+    var uri = '/intelligence/log/search/data'.concat(
+        "?start_time=", String(Math.round(start.getTime() / 1000)),
+        "&end_time=", String(Math.round(end.getTime() / 1000)));
+
+    console.log('uri in drawSearchTable', uri);
+
+    if ($.fn.dataTable.isDataTable(location)) {
+        oTable = $(location).DataTable();
+        oTable.ajax.url(uri);
+        oTable.ajax.reload();
+    } else {
+        var oTableParams = {
+            "info": false,
+            "autoWidth": true,
+            "processing": true,
+            "lengthChange": true,
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "serverSide": true,
+            "ajax": uri,
+            "columnDefs": [
+                { "visible": false, "targets": [ 5, 6, 7, 8, 9, 10 ] },
+                { "name": "timestamp", "type": "date", "targets": 0,
+                  "render": function (data, type, full, meta) {
+                        return moment(data).format();
+                    }
+                },
+                { "name": "loglevel", "targets": 1 },
+                { "name": "component", "targets": 2 },
+                { "name": "host", "targets": 3 },
+                { "name": "message", "targets": 4 },
+                { "name": "location", "targets": 5 },
+                { "name": "pid", "targets": 6 },
+                { "name": "source", "targets": 7 },
+                { "name": "request_id", "targets": 8 },
+                { "name": "type", "targets": 9 },
+                { "name": "received", "type": "date", "targets": 10 }
+            ]
+        };
+
+        oTable = $(location).DataTable(oTableParams);
+
+        $(window).bind('resize', function () {
+            oTable.fnAdjustColumnSizing();
+        });
+    }
+    // $("#log-table-loading-indicator").hide();
+},
 
     render: function() {
         $(this.el).append(this.template());
+
+        var end = +new Date();
+        var start = (+new Date() - (1000 * 60 * 60 * 24 * 7));
+
+        this.drawSearchTable('#log-search-table', start, end);
         return this;
     },
 
-    template: _.template('<h3>Sample Data Load:</h3><div id="availableReportsResult"></div>'
-    )
+    template: _.template(
 
+'<div class="row">' +
+'<div id="table-col" class="col-md-12">' +
+'<div class="panel panel-primary log_table_panel">' +
+'<div class="panel-heading">' +
+'<h3 class="panel-title"><i class="fa fa-dashboard"></i>Search Results' +
+'</h3>' +
+'</div>' +
+'<div id="intel-search-data-table" class="panel-body">' +
+'<table id="log-search-table" class="table table-hover">' +
 
+'<!-- table rows filled by draw_search_table -->' +
+
+'<thead>' +
+'<tr class="header">' +
+'<th>Timestampp</th>' +
+'<th>Level</th>' +
+'<th>Component</th>' +
+'<th>Host</th>' +
+'<th>Message</th>' +
+'<th>Log Location</th>' +
+'<th>Process ID</th>' +
+'<th>Source</th>' +
+'<th>Request ID</th>' +
+'<th>Log Type</th>' +
+'<th>Processed At</th>' +
+'</tr>' +
+'</thead>' +
+'</table>' +
+// '<img src="{% static "images/ajax-loader-solinea-blue.gif" %}" id="log-table-loading-indicator" class="ajax-loader"/>' +
+'</div>' +
+'</div>' +
+'</div>' +
+'</div>')
 });
