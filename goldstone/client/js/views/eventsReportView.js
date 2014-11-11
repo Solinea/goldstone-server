@@ -87,7 +87,7 @@ var EventsReportView = Backbone.View.extend({
             item.message = item.message || '';
             item.created = item.created || '';
 
-            finalResults.push([item.id, item.event_type, item.source_id, item.source_name, item.message, item.created]);
+            finalResults.push([item.created, item.event_type, item.message, item.id, item.source_id, item.source_name]);
         });
 
 
@@ -101,38 +101,41 @@ var EventsReportView = Backbone.View.extend({
         } else {
             var oTableParams = {
                 "info": false,
-                "processing": true,
+                "processing": false,
                 "lengthChange": true,
                 "paging": true,
                 "searching": true,
                 "order": [
-                    [5, 'desc']
+                    [0, 'desc']
                 ],
                 "ordering": true,
                 "serverSide": false,
                 "data": finalResults,
                 "columnDefs": [{
-                    "name": "id",
-                    "targets": 0
+                    "name": "created",
+                    "type": "date",
+                    "targets": 0,
+                    "render": function(data, type, full, meta) {
+                        return moment(data).format();
+                    }
                 }, {
                     "name": "event_type",
                     "targets": 1
                 }, {
-                    "name": "source_id",
+                    "name": "message",
                     "targets": 2
                 }, {
-                    "name": "source_name",
+                    "name": "id",
                     "targets": 3
                 }, {
-                    "name": "message",
+                    "name": "source_id",
                     "targets": 4
                 }, {
-                    "name": "created",
-                    "type": "date",
-                    "targets": 5,
-                    "render": function(data, type, full, meta) {
-                        return moment(data).format();
-                    }
+                    "name": "source_name",
+                    "targets": 5
+                }, {
+                    "visible": false,
+                    "targets": [3, 4, 5]
                 }]
             };
 
@@ -158,12 +161,12 @@ var EventsReportView = Backbone.View.extend({
         '<table id="events-report-table" class="table table-hover">' +
         '<thead>' +
         '<tr class="header">' +
-        '<th>Id</th>' +
-        '<th>Event Type</th>' +
-        '<th>Source Id</th>' +
-        '<th>Source Name</th>' +
-        '<th>Message</th>' +
         '<th>Created</th>' +
+        '<th>Event Type</th>' +
+        '<th>Message</th>' +
+        // '<th>Id</th>' +
+        // '<th>Source Id</th>' +
+        // '<th>Source Name</th>' +
         '</tr>' +
         '</thead>' +
         '</table>' +
