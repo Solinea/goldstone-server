@@ -32,8 +32,8 @@ var EventsReportView = Backbone.View.extend({
 
         // default to 24 hour lookback
         var urlRouteConstruction = '/core/events?source_name=' +
-        this.defaults.hostName + '&created__lte=' + now + '&created__gte='+
-        oneDayAgo;
+            this.defaults.hostName + '&created__lte=' + now + '&created__gte=' +
+            oneDayAgo;
 
         this.defaults.url = urlRouteConstruction;
 
@@ -105,81 +105,73 @@ var EventsReportView = Backbone.View.extend({
         $(this.el).find('#spinner').hide();
 
         var oTable;
+        var oTableParams = {
+            "info": false,
+            "processing": true,
+            "lengthChange": true,
+            "paging": true,
+            "searching": true,
+            "order": [
+                [0, 'desc']
+            ],
+            "ordering": false,
+            "serverSide": true,
+            "ajax": {
+                beforeSend: function(obj, settings) {
 
-        if ($.fn.dataTable.isDataTable(location)) {
-            oTable = $(location).DataTable();
+                    self.urlGen();
 
-            // draw(false) = keep current pagination when adding additional rows
-            oTable.rows.add(finalResults).draw(false);
-        } else {
-            var oTableParams = {
-                "info": false,
-                "processing": true,
-                "lengthChange": true,
-                "paging": true,
-                "searching": true,
-                "order": [
-                    [0, 'desc']
-                ],
-                "ordering": false,
-                "serverSide": true,
-                "ajax": {
-                    beforeSend: function(obj, settings) {
+                    var pageSize = $('select.form-control').val();
+                    var searchQuery = $('input.form-control').val();
+                    var paginationStart = settings.url.match(/start=\d{1,}&/gi);
+                    paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
+                    var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
+                    settings.url = self.defaults.url + "&page_size=" + pageSize + "&page=" + computeStartPage;
 
-                        self.urlGen();
-
-                        var pageSize = $('select.form-control').val();
-                        var searchQuery = $('input.form-control').val();
-                        var paginationStart = settings.url.match(/start=\d{1,}&/gi);
-                        paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
-                        var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
-                        settings.url = self.defaults.url + "&page_size=" + pageSize + "&page=" + computeStartPage;
-
-                        if (searchQuery) {
-                            settings.url = settings.url + "&message__prefix=" + searchQuery;
-                        }
-                    },
-                    dataFilter: function(data) {
-
-                        // runs result through this.dataPrep
-                        var result = self.dataPrep(data);
-
-                        // dataTables expects JSON encoded result
-                        return JSON.stringify(result);
-                    },
-                    // tells dataTable to look for 'result' param of result object
-                    dataSrc: "result"
-                },
-                "columnDefs": [{
-                    "name": "created",
-                    "type": "date",
-                    "targets": 0,
-                    "render": function(data, type, full, meta) {
-                        return moment(data).format();
+                    if (searchQuery) {
+                        settings.url = settings.url + "&message__prefix=" + searchQuery;
                     }
-                }, {
-                    "name": "event_type",
-                    "targets": 1
-                }, {
-                    "name": "message",
-                    "targets": 2
-                }, {
-                    "name": "id",
-                    "targets": 3
-                }, {
-                    "name": "source_id",
-                    "targets": 4
-                }, {
-                    "name": "source_name",
-                    "targets": 5
-                }, {
-                    "visible": false,
-                    "targets": [3, 4, 5]
-                }]
-            };
+                },
+                dataFilter: function(data) {
 
-            oTable = $(location).DataTable(oTableParams);
-        }
+                    // runs result through this.dataPrep
+                    var result = self.dataPrep(data);
+
+                    // dataTables expects JSON encoded result
+                    return JSON.stringify(result);
+                },
+                // tells dataTable to look for 'result' param of result object
+                dataSrc: "result"
+            },
+            "columnDefs": [{
+                "name": "created",
+                "type": "date",
+                "targets": 0,
+                "render": function(data, type, full, meta) {
+                    return moment(data).format();
+                }
+            }, {
+                "name": "event_type",
+                "targets": 1
+            }, {
+                "name": "message",
+                "targets": 2
+            }, {
+                "name": "id",
+                "targets": 3
+            }, {
+                "name": "source_id",
+                "targets": 4
+            }, {
+                "name": "source_name",
+                "targets": 5
+            }, {
+                "visible": false,
+                "targets": [3, 4, 5]
+            }]
+        };
+
+        oTable = $(location).DataTable(oTableParams);
     },
 
     render: function() {
