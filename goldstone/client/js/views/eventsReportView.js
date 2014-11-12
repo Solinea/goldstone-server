@@ -20,6 +20,19 @@ var EventsReportView = Backbone.View.extend({
 
     defaults: {},
 
+    urlGen: function() {
+        var now = +new Date();
+        var oneDayAgo = (+new Date()) - (1000 * 60 * 60 * 24);
+        var oneHourAgo = (+new Date()) - (1000 * 60 * 60);
+        var oneWeekAgo = (+new Date()) - (1000 * 60 * 60 * 24 * 7);
+
+        // default to 24 hour lookback
+        var urlRouteConstruction = '/core/events?source_name=' + this.defaults.hostName + '&created__lte=' + now + '&created__gte=' + oneDayAgo;
+
+        this.defaults.url = urlRouteConstruction;
+
+    },
+
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
@@ -33,6 +46,8 @@ var EventsReportView = Backbone.View.extend({
         // required in case spinner loading takes
         // longer than chart loading
         ns.spinnerDisplay = 'inline';
+
+        this.urlGen();
 
         var spinnerLocation = this.el;
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
@@ -70,16 +85,16 @@ var EventsReportView = Backbone.View.extend({
 
     },
 
-    dataPrep: function(data){
+    dataPrep: function(data) {
         var ns = this.defaults;
         var self = this;
 
-        var tableData = JSON.parse(data).results;
+        var tableData = JSON.parse(data);
         console.log('dataPrep parsed data', tableData);
 
         var finalResults = [];
 
-        _.each(tableData, function(item) {
+        _.each(tableData.results, function(item) {
 
             item.id = item.id || '';
             item.event_type = item.event_type || '';
@@ -92,7 +107,11 @@ var EventsReportView = Backbone.View.extend({
         });
 
         console.log('in dataPrep', finalResults);
-        return finalResults;
+        return {
+            recordsTotal: tableData.count,
+            recordsFiltered: tableData.count,
+            result: finalResults
+        };
     },
 
     drawSearchTable: function(location) {
@@ -100,6 +119,8 @@ var EventsReportView = Backbone.View.extend({
         var ns = this.defaults;
         var self = this;
 
+        ns.spinnerDisplay = 'none';
+        $(this.el).find('#spinner').hide();
 
 
         var oTable;
@@ -122,27 +143,54 @@ var EventsReportView = Backbone.View.extend({
                 "ordering": true,
                 "serverSide": true,
                 "ajax": {
-                    beforeSend: function(obj, settings){
-                        console.log('beforeSend',obj, settings.url);
+                    beforeSend: function(obj, settings) {
 
-                        var pageSize = settings.url.match(/length=\d{1,}/gi);
+                        console.log('jquery sez:',
+                            $('input.form-control').val(),
+                            $('select.form-control').val()
+                            );
 
-                        console.log('pageSize: ',pageSize[0].slice(pageSize[0].indexOf('=')+1));
+                        var pageSize = $('select.form-control').val();
+                        var searchQuery = $('input.form-control').val();
+                        // var buttonNumber =  $('li.paginate_button.active > a').html() || 1;
 
-                        pageSize = pageSize[0].slice(pageSize[0].indexOf('=')+1);
+                        // console.log('beforeSend', obj, settings.url);
+
+                        // var pageSize = settings.url.match(/length=\d{1,}/gi);
+
+                        // console.log('pageSize: ', pageSize[0].slice(pageSize[0].indexOf('=') + 1));
+
+                        // pageSize = pageSize[0].slice(pageSize[0].indexOf('=') + 1);
+
+                        // console.log('searchValueexists?:', decodeURIComponent(settings.url).match(/search\[value\]=.*&search\[regex\]/gi), settings.url.slice(-60));
+
+                        // console.log('searchValueexists?:', settings.url.match(/search%5Bvalue%5D=.*?&search%5Bregex%5D=/gi), settings.url.slice(-60));
+
+                        // var searchValue = decodeURIComponent(settings.url).match(/search\[value\]=.*?search\[regex\]/gi);
+
+                        // searchValue = searchValue[0].slice(searchValue[0].indexOf('=') + 1, searchValue[0].lastIndexOf('&'));
+                        // console.log('final searchValue:', searchValue);
+
+                        var paginationStart = settings.url.match(/start=\d{1,}&/gi);
+
+                        paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
+
+                        console.log('paginationStart', paginationStart);
+                        var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
+                        console.log('startpageshouldbe: ', computeStartPage);
 
                         // console.log('settings', settings);
-                        settings.url = self.collection.url + "&page_size=" + pageSize;
+                        settings.url = self.defaults.url + "&page_size=" + pageSize + "&page=" + computeStartPage;
                         console.log('new url', settings.url);
                         // console.log('changedurl?', settings.url);
                     },
                     // url: self.collection.url,
-                    dataFilter: function(data){
+                    dataFilter: function(data) {
                         var result = self.dataPrep(data);
                         console.log('dataFilter result', result);
                         return JSON.stringify(result);
                     },
-                    dataSrc: ""
+                    dataSrc: "result"
                     /*,
                     success: function(data){
                         console.log('success', data);
