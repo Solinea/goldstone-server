@@ -31,7 +31,9 @@ var EventsReportView = Backbone.View.extend({
         var oneWeekAgo = (+new Date()) - (1000 * 60 * 60 * 24 * 7);
 
         // default to 24 hour lookback
-        var urlRouteConstruction = '/core/events?source_name=' + this.defaults.hostName + '&created__lte=' + now + '&created__gte=' + oneDayAgo;
+        var urlRouteConstruction = '/core/events?source_name=' +
+        this.defaults.hostName + '&created__lte=' + now + '&created__gte='+
+        oneDayAgo;
 
         this.defaults.url = urlRouteConstruction;
 
@@ -63,22 +65,6 @@ var EventsReportView = Backbone.View.extend({
 
         // appends display and modal html elements to this.el
         this.render();
-    },
-
-    update: function() {
-
-        var ns = this.defaults;
-        var self = this;
-
-        // sets css for spinner to hidden in case
-        // spinner callback resolves
-        // after chart data callback
-        ns.spinnerDisplay = 'none';
-
-        $(this.el).find('#spinner').hide();
-
-        this.drawSearchTable('#events-report-table');
-
     },
 
     dataPrep: function(data) {
