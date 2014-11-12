@@ -21,6 +21,10 @@ var EventsReportView = Backbone.View.extend({
     defaults: {},
 
     urlGen: function() {
+
+        // urlGen is instantiated inside the beforeSend AJAX hook
+        // which means it is run again before every dataTables server query
+
         var now = +new Date();
         var oneDayAgo = (+new Date()) - (1000 * 60 * 60 * 24);
         var oneHourAgo = (+new Date()) - (1000 * 60 * 60);
@@ -47,8 +51,6 @@ var EventsReportView = Backbone.View.extend({
         // longer than chart loading
         ns.spinnerDisplay = 'inline';
 
-        this.urlGen();
-
         var spinnerLocation = this.el;
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(spinnerLocation).css({
@@ -61,12 +63,6 @@ var EventsReportView = Backbone.View.extend({
 
         // appends display and modal html elements to this.el
         this.render();
-
-        // bind to backbone collection
-        // invoke this.update(), when the collection 'fetch' is complete
-        this.collection.on('sync', this.update, this);
-        this.drawSearchTable('#events-report-table');
-
     },
 
     update: function() {
@@ -89,13 +85,14 @@ var EventsReportView = Backbone.View.extend({
         var ns = this.defaults;
         var self = this;
 
+        // initial result is stringified JSON
         var tableData = JSON.parse(data);
-        console.log('dataPrep parsed data', tableData);
 
         var finalResults = [];
 
         _.each(tableData.results, function(item) {
 
+            // if any field is undefined, dataTables throws an alert
             item.id = item.id || '';
             item.event_type = item.event_type || '';
             item.source_id = item.source_id || '';
@@ -106,7 +103,6 @@ var EventsReportView = Backbone.View.extend({
             finalResults.push([item.created, item.event_type, item.message, item.id, item.source_id, item.source_name]);
         });
 
-        console.log('in dataPrep', finalResults);
         return {
             recordsTotal: tableData.count,
             recordsFiltered: tableData.count,
@@ -122,13 +118,12 @@ var EventsReportView = Backbone.View.extend({
         ns.spinnerDisplay = 'none';
         $(this.el).find('#spinner').hide();
 
-
         var oTable;
 
         if ($.fn.dataTable.isDataTable(location)) {
             oTable = $(location).DataTable();
 
-            // draw(false) = keep current page when adding additional rows
+            // draw(false) = keep current pagination when adding additional rows
             oTable.rows.add(finalResults).draw(false);
         } else {
             var oTableParams = {
@@ -140,64 +135,35 @@ var EventsReportView = Backbone.View.extend({
                 "order": [
                     [0, 'desc']
                 ],
-                "ordering": true,
+                "ordering": false,
                 "serverSide": true,
                 "ajax": {
                     beforeSend: function(obj, settings) {
 
-                        console.log('jquery sez:',
-                            $('input.form-control').val(),
-                            $('select.form-control').val()
-                            );
+                        self.urlGen();
 
                         var pageSize = $('select.form-control').val();
                         var searchQuery = $('input.form-control').val();
-                        // var buttonNumber =  $('li.paginate_button.active > a').html() || 1;
-
-                        // console.log('beforeSend', obj, settings.url);
-
-                        // var pageSize = settings.url.match(/length=\d{1,}/gi);
-
-                        // console.log('pageSize: ', pageSize[0].slice(pageSize[0].indexOf('=') + 1));
-
-                        // pageSize = pageSize[0].slice(pageSize[0].indexOf('=') + 1);
-
-                        // console.log('searchValueexists?:', decodeURIComponent(settings.url).match(/search\[value\]=.*&search\[regex\]/gi), settings.url.slice(-60));
-
-                        // console.log('searchValueexists?:', settings.url.match(/search%5Bvalue%5D=.*?&search%5Bregex%5D=/gi), settings.url.slice(-60));
-
-                        // var searchValue = decodeURIComponent(settings.url).match(/search\[value\]=.*?search\[regex\]/gi);
-
-                        // searchValue = searchValue[0].slice(searchValue[0].indexOf('=') + 1, searchValue[0].lastIndexOf('&'));
-                        // console.log('final searchValue:', searchValue);
-
                         var paginationStart = settings.url.match(/start=\d{1,}&/gi);
-
                         paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
-
-                        console.log('paginationStart', paginationStart);
                         var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
-                        console.log('startpageshouldbe: ', computeStartPage);
-
-                        // console.log('settings', settings);
                         settings.url = self.defaults.url + "&page_size=" + pageSize + "&page=" + computeStartPage;
-                        console.log('new url', settings.url);
-                        // console.log('changedurl?', settings.url);
+
+                        if (searchQuery) {
+                            settings.url = settings.url + "&message__prefix=" + searchQuery;
+                        }
                     },
-                    // url: self.collection.url,
                     dataFilter: function(data) {
+
+                        // runs result through this.dataPrep
                         var result = self.dataPrep(data);
-                        console.log('dataFilter result', result);
+
+                        // dataTables expects JSON encoded result
                         return JSON.stringify(result);
                     },
+                    // tells dataTable to look for 'result' param of result object
                     dataSrc: "result"
-                    /*,
-                    success: function(data){
-                        console.log('success', data);
-                        return data;
-                    }*/
                 },
-                // "data": finalResults,
                 "columnDefs": [{
                     "name": "created",
                     "type": "date",
@@ -232,6 +198,7 @@ var EventsReportView = Backbone.View.extend({
 
     render: function() {
         $(this.el).append(this.template());
+        this.drawSearchTable('#events-report-table');
         return this;
     },
 
@@ -251,9 +218,6 @@ var EventsReportView = Backbone.View.extend({
         '<th>Created</th>' +
         '<th>Event Type</th>' +
         '<th>Message</th>' +
-        // '<th>Id</th>' +
-        // '<th>Source Id</th>' +
-        // '<th>Source Name</th>' +
         '</tr>' +
         '</thead>' +
         '</table>' +
