@@ -1,7 +1,7 @@
 // e2e tests
 
 casper.test.begin('Node Report Page is loading properly', 45, function suite(test) {
-    casper.start('http://localhost:8000/report/node/compute-02.lab.solinea.com', function() {
+    casper.start('http://localhost:8000/report/node/compute-01.lab.solinea.com', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
 
@@ -13,7 +13,7 @@ casper.test.begin('Node Report Page is loading properly', 45, function suite(tes
         test.assertSelectorHasText('div.navbar', 'Logging');
 
         // page h1
-        test.assertSelectorHasText('div#node-report-r1-c1 h1', 'compute-02.lab.solinea.com');
+        test.assertSelectorHasText('div#node-report-r1-c1 h1', 'compute-01.lab.solinea.com');
 
         // Service Status graph loads
         test.assertSelectorHasText('div #service-status-title-bar', 'Service Status Report');
@@ -66,7 +66,15 @@ casper.test.begin('Node Report Page is loading properly', 45, function suite(tes
         test.assertNotVisible('div#servicesReport', 'Services tab should still be hidden');
         test.assertNotVisible('div#reportsReport', 'Reports tab should now be hidden');
         test.assertVisible('div#eventsReport', 'Events tab should now be showing');
-        test.assertSelectorHasText('#node-report-panel #eventsReport', 'No Events Data');
+
+        test.assertElementCount('td', 30, "Event report has 30 visible data points");
+        // test.assertSelectorHasText('.sorting', 'Id');
+        // test.assertEval(function() {
+        //     return __utils__.findAll('.sorting').length === 5;
+        // }, "Event report has 5 unsorted table headers");
+        // test.assertEval(function() {
+        //     return __utils__.findAll('.sorting_desc').length === 1;
+        // }, "Event report has 1 sorted table header");
 
         this.click('.servicesButton');
         test.assertVisible('div#servicesReport', 'Services tab should now be visible');

@@ -42,7 +42,6 @@ describe('Testing The Backbone Objects', function() {
     describe('the View objects', function() {
         it('should exist', function() {
             expect(ApiPerfView).to.be.a('function');
-            expect(ApiPerfView).to.be.a('function');
             expect(ChartHeaderView).to.be.a('function');
             expect(EventsReportView).to.be.a('function');
             expect(EventTimelineView).to.be.a('function');
