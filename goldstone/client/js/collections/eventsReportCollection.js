@@ -52,14 +52,14 @@ var EventsReportCollection = Backbone.Collection.extend({
         var oneWeekAgo = (+new Date()) - (1000 * 60 * 60 * 24 * 7);
 
         // default to 24 hour lookback
-        var urlRouteConstruction = '/core/events?source_name=' + this.nodeName + '&created__lte=' + now + '&created__gte=' + oneDayAgo + '&page_size=1000';
+        var urlRouteConstruction = '/core/events?source_name=' + this.nodeName + '&created__lte=' + now + '&created__gte=' + oneDayAgo /*+ '&page_size=100'*/;
 
         this.url = urlRouteConstruction;
 
         // adding {remove:false} to the initial fetch
         // will introduce an artifact that will
         // render via d3
-        this.fetch();
+        // this.fetch();
     },
 
     urlUpdate: function(val) {

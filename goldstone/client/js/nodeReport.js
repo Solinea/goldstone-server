@@ -127,10 +127,7 @@ var renderCharts = function() {
     //---------------------------
     // instantiate Events tab data
 
-    var eventsReportCollection = new EventsReportCollection({nodeName: hostName});
-
     var eventsReport = new EventsReportView({
-        collection: eventsReportCollection,
         el: '#node-report-panel #eventsReport',
         width: $('#node-report-panel #eventsReport').width(),
         nodeName: hostName
