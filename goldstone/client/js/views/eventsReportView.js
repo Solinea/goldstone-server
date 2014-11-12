@@ -50,6 +50,7 @@ var EventsReportView = Backbone.View.extend({
         // bind to backbone collection
         // invoke this.update(), when the collection 'fetch' is complete
         this.collection.on('sync', this.update, this);
+        this.drawSearchTable('#events-report-table');
 
     },
 
@@ -69,12 +70,12 @@ var EventsReportView = Backbone.View.extend({
 
     },
 
-    drawSearchTable: function(location) {
-
+    dataPrep: function(data){
         var ns = this.defaults;
         var self = this;
 
-        var tableData = this.collection.toJSON();
+        var tableData = JSON.parse(data).results;
+        console.log('dataPrep parsed data', tableData);
 
         var finalResults = [];
 
@@ -90,6 +91,16 @@ var EventsReportView = Backbone.View.extend({
             finalResults.push([item.created, item.event_type, item.message, item.id, item.source_id, item.source_name]);
         });
 
+        console.log('in dataPrep', finalResults);
+        return finalResults;
+    },
+
+    drawSearchTable: function(location) {
+
+        var ns = this.defaults;
+        var self = this;
+
+
 
         var oTable;
 
@@ -101,7 +112,7 @@ var EventsReportView = Backbone.View.extend({
         } else {
             var oTableParams = {
                 "info": false,
-                "processing": false,
+                "processing": true,
                 "lengthChange": true,
                 "paging": true,
                 "searching": true,
@@ -109,8 +120,36 @@ var EventsReportView = Backbone.View.extend({
                     [0, 'desc']
                 ],
                 "ordering": true,
-                "serverSide": false,
-                "data": finalResults,
+                "serverSide": true,
+                "ajax": {
+                    beforeSend: function(obj, settings){
+                        console.log('beforeSend',obj, settings.url);
+
+                        var pageSize = settings.url.match(/length=\d{1,}/gi);
+
+                        console.log('pageSize: ',pageSize[0].slice(pageSize[0].indexOf('=')+1));
+
+                        pageSize = pageSize[0].slice(pageSize[0].indexOf('=')+1);
+
+                        // console.log('settings', settings);
+                        settings.url = self.collection.url + "&page_size=" + pageSize;
+                        console.log('new url', settings.url);
+                        // console.log('changedurl?', settings.url);
+                    },
+                    // url: self.collection.url,
+                    dataFilter: function(data){
+                        var result = self.dataPrep(data);
+                        console.log('dataFilter result', result);
+                        return JSON.stringify(result);
+                    },
+                    dataSrc: ""
+                    /*,
+                    success: function(data){
+                        console.log('success', data);
+                        return data;
+                    }*/
+                },
+                // "data": finalResults,
                 "columnDefs": [{
                     "name": "created",
                     "type": "date",
