@@ -61,10 +61,9 @@
             .on("click", function(d) {
                 var targ = "#" + d.target.id;
                 $(targ).popover('toggle');
-
-                setTimeout(function(d) {
-                    $(targ).popover('hide');
-                }, 3000, targ);
+            }).on("mouseout", function(d) {
+                var targ = "#" + d.target.id;
+                $(targ).popover('hide');
             });
 
     </script>

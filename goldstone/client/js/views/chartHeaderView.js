@@ -60,12 +60,10 @@ var ChartHeaderView = Backbone.View.extend({
             .on("click", function(d) {
                 var targ = "#" + d.target.id;
                 $(self.el).find(targ).popover('toggle');
-
-                setTimeout(function(d) {
-                    $(self.el).find(targ).popover('hide');
-                }, 3000);
+            }).on("mouseout", function(d) {
+                var targ = "#" + d.target.id;
+                $(self.el).find(targ).popover('hide');
             });
-
     },
 
     template: _.template('<div id="chart-panel-header" class="panel panel-primary col-md-<%= this.defaults.columns %>">' +
