@@ -51,7 +51,7 @@ var InfoButtonText = Backbone.Model.extend({
                 'in the log stream.  The top lane shows nodes that are not logging, but can be ' +
                 'pinged.',
 
-            serviceStatus: 'The service status panel shows the last known state of all OS services' +
+            serviceStatus: 'The service status panel shows the last known state of all OS services ' +
                 'on the node.',
 
             utilization: 'The utilization charts show the OS level utilization of the node.',
