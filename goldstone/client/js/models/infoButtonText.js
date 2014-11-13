@@ -37,35 +37,77 @@ var InfoButtonText = Backbone.Model.extend({
             // populate info-button-text here.
             // accepts html markup such as <br>
 
-            discoverCloudTopology: 'discoverCloudTopology test',
+            discoverCloudTopology: 'This is the OpenStack topology map.  You ' +
+                'can use leaf nodes to navigate to specific types of resources.',
 
-            eventTimeline: 'eventTimeline test',
+            eventTimeline: 'The event timeline displays key events that have occurred ' +
+                'in your cloud.  You can adjust the displayed data with the filter and ' +
+                'time settings in the menu bar.  Hovering on an event brings up the ' +
+                'event detail.',
 
-            nodeAvailability: 'nodeAvailability test',
+            nodeAvailability: 'The node presence chart keeps track of the last time each ' +
+                'node in the cloud was seen.  Nodes on the right have been seen more recently ' +
+                'than nodes on the left.  The center lane shows nodes that have been detected ' +
+                'in the log stream.  The top lane shows nodes that are not logging, but can be ' +
+                'pinged.',
 
-            serviceStatus: 'serviceStatus test',
+            serviceStatus: 'The service status panel shows the last known state of all OS services' +
+                'on the node.',
 
-            utilization: 'utilization test',
+            utilization: 'The utilization charts show the OS level utilization of the node.',
 
-            hypervisor: 'hypervisor test',
+            hypervisor: 'The hypervisor charts show the last known allocation and usage of resources ' +
+                'across all of the VMs on the node.',
 
-            novaTopologyDiscover: 'novaTopologyDiscover test',
+            novaTopologyDiscover: 'This is the OpenStack Nova topology map.  You ' +
+                'can use leaf nodes to populate the resource list on the right.  In some cases, ' +
+                'such as hypervisors, clicking a resource in the table will navigate you ' +
+                'to a resource specific view.',
 
-            cinderTopologyDiscover: 'cinderTopologyDiscover test',
+            cinderTopologyDiscover: 'This is the OpenStack Cinder topology map.  You ' +
+                'can use leaf nodes to populate the resource list on the right.  In some cases, ' +
+                'clicking a resource in the table will navigate you ' +
+                'to a resource specific view.',
 
-            glanceTopologyDiscover: 'glanceTopologyDiscover test',
+            glanceTopologyDiscover: 'This is the OpenStack Glance topology map.  You ' +
+                'can use leaf nodes to populate the resource list on the right.  In some cases, ' +
+                'clicking a resource in the table will navigate you ' +
+                'to a resource specific view.',
 
-            keystoneTopologyDiscover: 'keystoneTopologyDiscover test',
+            keystoneTopologyDiscover: 'This is the OpenStack Keystone topology map.  You ' +
+                'can use leaf nodes to populate the resource list on the right.  In some cases, ' +
+                'clicking a resource in the table will navigate you ' +
+                'to a resource specific view.',
 
-            novaSpawns: 'novaSpawns test',
+            novaSpawns: 'This chart displays VM spawn success and failure counts ' +
+                'across your cloud.  You can adjust the displayed data with the ' +
+                'time settings in the menu bar.  This data is derived from the ' +
+                'log stream, so if no logging occurs for a period of time, gaps may ' +
+                'appear in the data.',
 
-            novaCpuResources: 'novaCpuResources test',
+            novaCpuResources: 'This chart displays aggregate CPU core allocation ' +
+                'across your cloud.  You can adjust the displayed data with the ' +
+                'time settings in the menu bar.  This data is derived from the ' +
+                'log stream, so if no logging occurs for a period of time, gaps may ' +
+                'appear in the data.',
 
-            novaMemResources: 'novaMemResources test',
+            novaMemResources: 'This chart displays aggregate memory allocation ' +
+                'across your cloud.  You can adjust the displayed data with the ' +
+                'time settings in the menu bar.  This data is derived from the ' +
+                'log stream, so if no logging occurs for a period of time, gaps may ' +
+                'appear in the data.',
 
-            novaDiskResources: 'novaDiskResources test',
+            novaDiskResources: 'This chart displays aggregate disk allocation ' +
+                'across your cloud.  You can adjust the displayed data with the ' +
+                'time settings in the menu bar.  This data is derived from the ' +
+                'log stream, so if no logging occurs for a period of time, gaps may ' +
+                'appear in the data.',
 
-            searchLogAnalysis: 'searchLogAnalysis test'
+            searchLogAnalysis: 'This chart displays log stream data ' +
+                'across your cloud.  You can adjust the displayed data with the ' +
+                'time settings in the menu bar, and with the filter buttons that double ' +
+                'as a legend.  The table below contains the individual log entries for ' +
+                'the time range and filter settings.'
         }
     }
 });
