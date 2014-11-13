@@ -146,10 +146,9 @@
             .on("click", function(d) {
                 var targ = "#" + d.target.id;
                 $(targ).popover('toggle');
-
-                setTimeout(function(d) {
-                    $(targ).popover('hide');
-                }, 3000, targ);
+            }).on("mouseout", function(d) {
+                var targ = "#" + d.target.id;
+                $(targ).popover('hide');
             });
 
         $('#goldstone-event-info').popover({
@@ -161,10 +160,9 @@
             .on("click", function(d) {
                 var targ = "#" + d.target.id;
                 $(targ).popover('toggle');
-
-                setTimeout(function(d) {
-                    $(targ).popover('hide');
-                }, 3000, targ);
+            }).on("mouseout", function(d) {
+                var targ = "#" + d.target.id;
+                $(targ).popover('hide');
             });
 
         $('#goldstone-node-info').popover({
@@ -176,10 +174,9 @@
             .on("click", function(d) {
                 var targ = "#" + d.target.id;
                 $(targ).popover('toggle');
-
-                setTimeout(function(d) {
-                    $(targ).popover('hide');
-                }, 3000, targ);
+            }).on("mouseout", function(d) {
+                var targ = "#" + d.target.id;
+                $(targ).popover('hide');
             });
     });
 
