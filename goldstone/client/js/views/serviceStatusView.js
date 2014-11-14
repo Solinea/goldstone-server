@@ -49,6 +49,11 @@ var ServiceStatusView = Backbone.View.extend({
                 self.collection.defaults.fetchInProgress = false;
                 self.collection.defaults.setAchieved = false;
             }
+
+            if (self.collection.defaults.nullSet === true) {
+                self.update();
+                self.collection.defaults.fetchInProgress = false;
+            }
         });
     },
 
@@ -149,7 +154,9 @@ var ServiceStatusView = Backbone.View.extend({
         }, 30000);
 
         // If we didn't receive any valid files, append "No Data Returned"
-        if (allthelogs.length === 0) {
+        if (allthelogs.length === 0 || self.collection.defaults.nullSet === true) {
+
+            self.collection.defaults.nullSet = false;
 
             // if 'no data returned' already exists on page, don't reapply it
             if ($(this.el).find('#noDataReturned').length) {
@@ -160,7 +167,7 @@ var ServiceStatusView = Backbone.View.extend({
                 .css({
                     'position': 'relative',
                     'margin-left': $(this.el).width() / 2 - 14,
-                    'top': -$(this.el).height() / 4
+                    'top': -$(this.el).height() / 5
                 });
             return;
         }
