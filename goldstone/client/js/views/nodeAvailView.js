@@ -614,7 +614,7 @@ var NodeAvailView = Backbone.View.extend({
     },
 
     template: _.template(
-        '<div id = "goldstone-event-panel" class="panel panel-primary">' +
+        '<div id = "goldstone-node-panel" class="panel panel-primary">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa fa-tasks"></i> ' +
         '<%= this.defaults.chartTitle %>' +
@@ -629,7 +629,7 @@ var NodeAvailView = Backbone.View.extend({
         'data-target="#modal-filter-<%= this.el.slice(1) %>' + '" style="margin-right: 15px;"></i>' +
 
         // info-circle icon
-        '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-event-info"' +
+        '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-node-info"' +
         'style="margin-right: 15px;"></i>' +
         '</h3>' +
         '</div>' +

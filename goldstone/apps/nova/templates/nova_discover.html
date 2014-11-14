@@ -29,6 +29,14 @@
     <script>
 
 $(document).ready(function () {
+
+    new ChartHeaderView({
+        el: '#nova-discover-chart-title',
+        chartTitle: 'Nova Topology',
+        infoText: 'novaTopologyDiscover',
+        columns: 12
+    });
+
     var gnd = goldstone.nova.discover;
     var ns = goldstone.nova.topology;
     ns.data = JSON.parse({{ data|to_js }});
@@ -128,22 +136,23 @@ $(document).ready(function () {
 
 
 {% block content %}
-    <div id="nova-discover-r1" class="row">
+    <div id="nova-discover-r1" class="row col-md-12">
         <div id="nova-discover-r1-c1" class="col-md-6">
-            <div id = "nova-topology-panel" class="panel panel-primary">
+        <div id="nova-discover-chart-title"></div>
+            <!-- <div id = "nova-topology-panel" class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-tasks"></i> Nova Topology
                             <i class="pull-right fa fa-info-circle panel-info"  id="nova-topology-info"
                                     style="opacity: 0.0"></i>
                     </h3>
                 </div>
-                <div class="panel-body" style="height:400px">
-                    <div id="nova-topology-tree">
-                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                             id="nova-topology-spinner"
-                             class="ajax-loader"/>
-                        <div class="clearfix"></div>
-                    </div>
+            </div> -->
+            <div class="panel-body" style="height:400px">
+                <div id="nova-topology-tree">
+                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                         id="nova-topology-spinner"
+                         class="ajax-loader"/>
+                    <div class="clearfix"></div>
                 </div>
             </div>
         </div>

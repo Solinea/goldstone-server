@@ -18,24 +18,36 @@
 
 {% load staticfiles %}
 {% load custom_filters %}
-<div id = "nova-spawns-panel" class="panel panel-primary">
+<div id="nova-spawns-chart-title"></div>
+<!-- <div id = "nova-spawns-panel" class="panel panel-primary">
     <div class="panel-heading">
-        <h3 class="panel-title"><i class="fa fa-tasks"></i> VM Spawns</h3>
-    </div>
-    <div class="panel-body" style="height:300px">
-        <div id="nova-spawns-chart">
-            <script>
+    <h3 class="panel-title"><i class="fa fa-tasks"></i> VM Spawns</h3>
+    </div> -->
+<div class="panel-body" style="height:300px">
+<div id="nova-spawns-chart">
+
+<script>
 var ns = goldstone.nova.spawns;
 ns.data = JSON.parse({{ data|to_js }});
 ns.height = 300;
 ns.location = '#nova-spawns-chart';
 ns.spinner = '#nova-spawns-spinner';
 ns.drawChart();
-            </script>
-            <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                 id="nova-spawns-spinner"
-                 class="ajax-loader"/>
-            <div class="clearfix"></div>
-        </div>
-    </div>
+
+$(document).ready(function () {
+    new ChartHeaderView({
+        el: '#nova-spawns-chart-title',
+        chartTitle: 'VM Spawns',
+        infoText: 'novaSpawns',
+        columns: 12
+    });
+});
+</script>
+
+<img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+id="nova-spawns-spinner"
+class="ajax-loader"/>
+<div class="clearfix"></div>
+</div>
+</div>
 </div>

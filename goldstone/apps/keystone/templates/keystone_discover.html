@@ -29,6 +29,14 @@
     <script>
 
 $(document).ready(function () {
+
+    new ChartHeaderView({
+        el: '#keystone-discover-chart-title',
+        chartTitle: 'Keystone Topology',
+        infoText: 'keystoneTopologyDiscover',
+        columns: 12
+    });
+
     var gnd = goldstone.keystone.discover;
     var ns = goldstone.keystone.topology;
     ns.data = JSON.parse({{ data|to_js }});
@@ -73,20 +81,21 @@ $(document).ready(function () {
 {% block content %}
     <div id="keystone-discover-r1" class="row">
         <div id="keystone-discover-r1-c1" class="col-md-6">
-            <div id = "keystone-topology-panel" class="panel panel-primary">
+        <div id="keystone-discover-chart-title"></div>
+            <!-- <div id = "keystone-topology-panel" class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-tasks"></i> Keystone Topology
                             <i class="pull-right fa fa-info-circle panel-info"  id="keystone-topology-info"
                                     style="opacity: 0.0"></i>
                     </h3>
                 </div>
-                <div class="panel-body" style="height:400px">
-                    <div id="keystone-topology-tree">
-                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                             id="keystone-topology-spinner"
-                             class="ajax-loader"/>
-                        <div class="clearfix"></div>
-                    </div>
+            </div> -->
+            <div class="panel-body" style="height:400px">
+                <div id="keystone-topology-tree">
+                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                         id="keystone-topology-spinner"
+                         class="ajax-loader"/>
+                    <div class="clearfix"></div>
                 </div>
             </div>
         </div>

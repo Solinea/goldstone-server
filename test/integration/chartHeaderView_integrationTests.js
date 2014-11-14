@@ -16,22 +16,22 @@ describe('UtilizationNet.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        this.testView = new ChartHeaderView({
-            el: '.testContainer',
-            chartTitle: 'Test Chart',
-            infoTextNumber: 0,
-            columns: 12
-        });
 
         this.InfoButtonText = Backbone.Model.extend({
             defaults: {
-                infoTextSets: {
+                infoText: {
                     // test
-                    0: 'All your bases are belong to Marvin Martian'
+                    testText: 'All your bases are belong to Marvin Martian'
                 }
             }
         });
 
+        this.testView = new ChartHeaderView({
+            el: '.testContainer',
+            chartTitle: 'Test Chart',
+            infoText: 'testText',
+            columns: 12
+        });
 
 
 
@@ -50,12 +50,12 @@ describe('UtilizationNet.js spec', function() {
             this.testView = new ChartHeaderView({
                 el: '.testContainer',
                 chartTitle: 'Test Chart',
-                infoTextNumber: 3
+                infoText: 'testText'
             });
         });
         it('provides an info popup', function() {
-            var infoButtonTest1 = new this.InfoButtonText().get('infoTextSets');
-            expect(infoButtonTest1[0]).to.equal('All your bases are belong to Marvin Martian');
+            var infoButtonTest1 = new this.InfoButtonText().get('infoText');
+            expect(infoButtonTest1.testText).to.equal('All your bases are belong to Marvin Martian');
             expect($('.popover').length).to.equal(0);
             expect($('#info-button').length).to.equal(1);
         });
