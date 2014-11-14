@@ -226,6 +226,51 @@ describe('serviceStatusView.js spec', function() {
             expect(this.update_spy.callCount).to.equal(3);
             this.update_spy.restore();
         });
+        it('will still render no data if an incomplete set is passed forward', function() {
+            this.update_spy = sinon.spy(this.testView, "update");
+            expect($('#noDataReturned').length).to.equal(0);
+            expect($('#noDataReturned').text()).to.equal('');
+            this.testCollection.reset();
+            this.testCollection.add({
+                name: 'fee'
+            }, {
+                name: 'fi'
+            }, {
+                name: 'fo'
+            });
+            this.testCollection.checkForSet();
+            this.testCollection.trigger('sync');
+            expect($('.testContainer').find('#noDataReturned').length).to.equal(1);
+            expect($('#noDataReturned').text()).to.equal('No Data Returned');
+            expect(this.update_spy.callCount).to.equal(1);
+
+            // and then upon enough data being supplied, 'no data returned' is
+            // no longer the case
+
+            this.testCollection.reset();
+            this.testCollection.add([{
+                name: 'bingBap1',
+                value: 'running'}, {name: 'bingBap1',
+                value: 'stopped'}, {name: 'bingBap1',
+                value: 'stopped'}, {name: 'bingBap1',
+                value: 'stopped'}, {name: 'bingBap2',
+                value: 'running'}, {name: 'bingBap2',
+                value: 'stopped'}, {name: 'bingBap2',
+                value: 'stopped'}, {name: 'bingBap2',
+                value: 'stopped'}, {name: 'bingBap2',
+                value: 'stopped'}, {name: 'bingBap3',
+                value: 'running'}, {name: 'bingBap3',
+                value: 'stopped'}, {name: 'bingBap3',
+                value: 'stopped'}, {name: 'bingBap3',
+                value: 'stopped'}]);
+            this.testCollection.checkForSet();
+            this.testCollection.trigger('sync');
+            expect($('.testContainer').find('#noDataReturned').length).to.equal(0);
+            expect($('#noDataReturned').text()).to.equal('');
+            expect(this.update_spy.callCount).to.equal(2);
+
+            this.update_spy.restore();
+        });
         it('sorts appropriately', function() {
             assert.isDefined(this.testView.sorter, 'this.testView.sorter has been defined');
             var testData = [{
