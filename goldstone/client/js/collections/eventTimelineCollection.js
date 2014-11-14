@@ -53,7 +53,6 @@ var EventTimelineCollection = Backbone.Collection.extend({
         this.defaults = _.clone(this.defaults); 
 
         this.url = options.url || "/core/events?created__gt=" + this.computeLookback() + "&page_size=1000";
-        console.log(this.url);
 
         // don't add {remove:false} to the initial fetch
         // as it will introduce an artifact that will
