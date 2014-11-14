@@ -18,6 +18,12 @@
 
 var renderCharts = function() {
 
+    // construct api calls from url component
+    // between the last '/' and the following '.'
+    var loc = location.pathname;
+    locEnd = loc.slice(loc.lastIndexOf('/') + 1);
+    var hostName = locEnd.slice(0, locEnd.indexOf('.'));
+
     //----------------------------
     // instantiate charts via
     // backbone collection / views
@@ -25,7 +31,7 @@ var renderCharts = function() {
     //---------------------------
     // instantiate Service status chart
     var serviceStatusChart = new ServiceStatusCollection({
-        url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
+        nodeName: hostName
     });
 
     var serviceStatusChartView = new ServiceStatusView({
@@ -36,11 +42,11 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate CPU Usage chart
-    var cpuUsageChart = new UtilizationCollection({
-        url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
+    var cpuUsageChart = new UtilizationCpuCollection({
+        nodeName: hostName
     });
 
-    var cpuUsageView = new UtilizationView({
+    var cpuUsageView = new UtilizationCpuView({
         collection: cpuUsageChart,
         el: '#node-report-r3 #node-report-panel #cpu-usage',
         width: $('#node-report-r3 #node-report-panel #cpu-usage').width()
@@ -48,11 +54,11 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate Memory Usage chart
-    var memoryUsageChart = new UtilizationCollection({
-        url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
+    var memoryUsageChart = new UtilizationMemCollection({
+        nodeName: hostName
     });
 
-    var memoryUsageView = new UtilizationView({
+    var memoryUsageView = new UtilizationMemView({
         collection: memoryUsageChart,
         el: '#node-report-r3 #node-report-panel #memory-usage',
         width: $('#node-report-r3 #node-report-panel #memory-usage').width()
@@ -60,11 +66,12 @@ var renderCharts = function() {
 
     //---------------------------
     // instantiate Network Usage chart
-    var networkUsageChart = new UtilizationCollection({
-        url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false"
+
+    var networkUsageChart = new UtilizationNetCollection({
+        nodeName: hostName
     });
 
-    var networkUsageView = new UtilizationView({
+    var networkUsageView = new UtilizationNetView({
         collection: networkUsageChart,
         el: '#node-report-r3 #node-report-panel #network-usage',
         width: $('#node-report-r3 #node-report-panel #network-usage').width()
@@ -113,7 +120,8 @@ var renderCharts = function() {
 
     var reportsReport = new ReportsReportView({
         el: '#node-report-panel #reportsReport',
-        width: $('#node-report-panel #reportsReport').width()
+        width: $('#node-report-panel #reportsReport').width(),
+        nodeName: hostName
     });
 
     //---------------------------
@@ -121,6 +129,7 @@ var renderCharts = function() {
 
     var eventsReport = new EventsReportView({
         el: '#node-report-panel #eventsReport',
-        width: $('#node-report-panel #eventsReport').width()
+        width: $('#node-report-panel #eventsReport').width(),
+        nodeName: hostName
     });
 };

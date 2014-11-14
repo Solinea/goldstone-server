@@ -103,14 +103,36 @@ var HypervisorView = Backbone.View.extend({
         ns.spinnerDisplay = 'none';
         $(this.el).find('#spinner').hide();
 
-        var allTheLogs = this.collection.toJSON();
+        // default 10 second refresh interval
+        setTimeout(function() {
+            self.collection.fetch();
+        }, 10000);
 
-        if (allTheLogs.length === 0) {
-            console.log('no data returned');
+        var allthelogs = this.collection.toJSON();
+
+        // If we didn't receive any valid files, append "No Data Returned"
+        if (allthelogs.length === 0) {
+
+            // if 'no data returned' already exists on page, don't reapply it
+            if ($(this.el).find('#noDataReturned').length) {
+                return;
+            }
+
+            $('<span id="noDataReturned"><br>No<br>Data<br>Returned</span>').appendTo(this.el)
+                .css({
+                    'position': 'relative',
+                    'margin-left': $(this.el).width() / 2 - 14,
+                    'top': -$(this.el).height() / 2
+                });
             return;
         }
 
-        var data = allTheLogs;
+        // remove No Data Returned once data starts flowing again
+        if ($(this.el).find('#noDataReturned').length) {
+            $(this.el).find('#noDataReturned').remove();
+        }
+
+        var data = allthelogs;
 
         ns.color.domain(d3.keys(data[0]).filter(function(key) {
             return key !== "date";
@@ -205,10 +227,6 @@ var HypervisorView = Backbone.View.extend({
             .text(function(d) {
                 return moment(d.date).calendar();
             });
-
-        setTimeout(function() {
-            self.collection.fetch();
-        }, 10000);
 
     }
 

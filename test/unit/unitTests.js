@@ -20,6 +20,7 @@ describe('Testing The Backbone Objects', function() {
             expect(GoldstoneColors).to.be.a('function');
             expect(HypervisorModel).to.be.a('function');
             expect(HypervisorVmCpuModel).to.be.a('function');
+            expect(InfoButtonText).to.be.a('function');
             expect(NodeAvailModel).to.be.a('function');
             expect(ServiceStatusModel).to.be.a('function');
             expect(UtilizationModel).to.be.a('function');
@@ -33,18 +34,25 @@ describe('Testing The Backbone Objects', function() {
             expect(HypervisorVmCpuCollection).to.be.a('function');
             expect(NodeAvailCollection).to.be.a('function');
             expect(ServiceStatusCollection).to.be.a('function');
-            expect(UtilizationCollection).to.be.a('function');
+            expect(UtilizationCpuCollection).to.be.a('function');
+            expect(UtilizationMemCollection).to.be.a('function');
+            expect(UtilizationNetCollection).to.be.a('function');
         });
     });
     describe('the View objects', function() {
         it('should exist', function() {
             expect(ApiPerfView).to.be.a('function');
+            expect(ChartHeaderView).to.be.a('function');
+            expect(EventsReportView).to.be.a('function');
             expect(EventTimelineView).to.be.a('function');
             expect(HypervisorView).to.be.a('function');
             expect(HypervisorVmCpuView).to.be.a('function');
             expect(NodeAvailView).to.be.a('function');
+            expect(ReportsReportView).to.be.a('function');
             expect(ServiceStatusView).to.be.a('function');
-            expect(UtilizationView).to.be.a('function');
+            expect(UtilizationCpuView).to.be.a('function');
+            expect(UtilizationMemView).to.be.a('function');
+            expect(UtilizationNetView).to.be.a('function');
         });
     });
 
