@@ -22,6 +22,10 @@ var ServiceStatusCollection = Backbone.Collection.extend({
 
     parse: function(data) {
 
+        if (data.results.length === 0){
+            this.defaults.nullSet = true;
+        }
+
         if (data.next && data.next !== null) {
             var dp = data.next;
             this.defaults.nextUrl = dp.slice(dp.indexOf('/core'));
@@ -58,6 +62,10 @@ var ServiceStatusCollection = Backbone.Collection.extend({
             });
         }
 
+        if (!this.defaults.setAchieved && this.defaults.nextUrl === null) {
+            this.defaults.nullSet = true;
+        }
+
         return true;
     },
 
@@ -70,6 +78,7 @@ var ServiceStatusCollection = Backbone.Collection.extend({
         this.defaults.nextUrl = null;
         this.defaults.setAchieved = false;
         this.defaults.fetchInProgress = false;
+        this.defaults.nullSet = false;
         this.retrieveData();
     },
 
@@ -82,7 +91,12 @@ var ServiceStatusCollection = Backbone.Collection.extend({
 
         this.defaults.fetchInProgress = true;
 
-        this.url = ("/core/reports?name__prefix=os.service&node__prefix=" + this.defaults.nodeName + "&page_size=300");
+        var twentyAgo = (+new Date() - (1000 * 60 * 20));
+
+        this.url = "/core/reports?name__prefix=os.service&node__prefix=" +
+        this.defaults.nodeName + "&page_size=300" +
+        "&timestamp__gte=" + twentyAgo;
+
 
         this.fetch({
             success: function() {
