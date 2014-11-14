@@ -18,91 +18,71 @@
 
 var ServiceStatusCollection = Backbone.Collection.extend({
 
+    defaults: {},
+
     parse: function(data) {
-        this.dummyGen();
-        return this.dummy.results;
+
+        if (data.next && data.next !== null) {
+            var dp = data.next;
+            this.defaults.nextUrl = dp.slice(dp.indexOf('/core'));
+        }
+
+        return data.results;
+
+    },
+
+    checkForSet: function() {
+        var self = this;
+        var set = {};
+
+        _.each(this.models, function(item) {
+            var serviceName = item.attributes.name;
+            if (set [serviceName]) {
+                self.defaults.setAchieved = true;
+            }
+            set [serviceName] = true;
+        });
+
+        if (!this.defaults.setAchieved) {
+            this.fetch({
+                url: this.defaults.nextUrl,
+                remove: false,
+                success: function() {
+                    self.checkForSet();
+                }
+            });
+        }
+
+        return true;
     },
 
     model: ServiceStatusModel,
 
     initialize: function(options) {
-        this.url = options.url;
-        this.fetch();
+        this.options = options || {};
+        this.defaults = _.clone(this.defaults);
+        this.defaults.nodeName = options.nodeName;
+        this.defaults.nextUrl = null;
+        this.defaults.setAchieved = false;
+        this.defaults.fetchInProgress = false;
+        this.retrieveData();
     },
 
-    dummyGen: function() {
-        this.dummy.results = [];
+    retrieveData: function() {
+        var self = this;
 
-        // simulate approx 15% of the nodes being down
-        var trueFalse = function() {
-            var pick = Math.random();
-            if (pick < 0.85) {
-                return true;
-            } else {
-                return false;
-            }
-        };
-
-        var nodeChoices = {
-            0: "nova-compute",
-            1: "ovs-agent",
-            2: "neutron-agent",
-        };
-
-        for (var i = 0; i < 48; i++) {
-
-            var result = nodeChoices[Math.floor(Math.random() * 3)];
-
-            result += Math.floor(Math.random() * 100);
-
-            resultObject = {};
-            resultObject[result] = trueFalse();
-            this.dummy.results.push(resultObject);
-
+        if (this.defaults.fetchInProgress) {
+            return null;
         }
 
-    },
+        this.defaults.fetchInProgress = true;
 
-    // for reference
-    // actual data generated randomly on each pass
+        this.url = ("/core/reports?name__prefix=os.service&node__prefix=" + this.defaults.nodeName + "&page_size=100");
 
-    dummy: {
-        results: [{
-            "nova-compute1": true
-        }, {
-            "ovs-agent1": false,
-        }, {
-            "neutron-agent1": true
-        }, {
-            "nova-compute2": false
-        }, {
-            "ovs-agent2": true,
-        }, {
-            "neutron-agent2": true
-        }, {
-            "nova-compute3": true
-        }, {
-            "ovs-agent3": true,
-        }, {
-            "neutron-agent3": false
-        }, {
-            "nova-compute1": true
-        }, {
-            "ovs-agent1": false,
-        }, {
-            "neutron-agent1": true
-        }, {
-            "nova-compute2": false
-        }, {
-            "ovs-agent2": true,
-        }, {
-            "neutron-agent2": true
-        }, {
-            "nova-compute3": true
-        }, {
-            "ovs-agent3": true,
-        }, {
-            "neutron-agent3": false
-        }]
+        this.fetch({
+            success: function() {
+                self.checkForSet();
+            }
+        });
     }
 });

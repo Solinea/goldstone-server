@@ -56,33 +56,11 @@ var ReportsReportView = Backbone.View.extend({
 
         $(this.el).find('#spinner').hide();
 
-        if (localStorage.getItem('reportNodeData') === null) {
-
-            $(this.el).append("No Reports Data")
-                .css({
-                    'position': 'relative',
-                    'margin-left': (ns.width / 2 - 50),
-                });
-
-            return;
-        }
-
-        if (localStorage.getItem('reportNodeData')) {
-
-            this.render();
-
-            // append sample data payload
-            $(this.el).find('#availableReportsResult').load('/core/nodes?page=1&format=json');
-
-            var configDataToRender = JSON.parse(localStorage.getItem('reportNodeData'));
-
-            _.each(_.keys(configDataToRender), function(item) {
-
-                $(this.el).find('#reportSection').append(item + ": " + configDataToRender[item] + "<br>");
-
-                // localStorage.clear();
-            }, this);
-        }
+        $(this.el).append("No Reports Data")
+            .css({
+                'position': 'relative',
+                'margin-left': (ns.width / 2 - 50),
+            });
     },
 
     render: function() {

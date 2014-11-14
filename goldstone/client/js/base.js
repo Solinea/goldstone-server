@@ -427,11 +427,9 @@ goldstone.charts.bivariateWithAverage = {
         }).on("click", function(d) {
             var targ = "#" + d.target.id;
             $(targ).popover('toggle');
-            // passing an arg to setTimeout is not supported in IE < 10
-            // see https://developer.mozilla.org/en-US/docs/Web/API/Window.setTimeout#Callback_arguments
-            setTimeout(function(d) {
-                $(d).popover('hide');
-            }, 3000, targ);
+        }).on("mouseout", function(d) {
+            var targ = "#" + d.target.id;
+            $(targ).popover('hide');
         });
 
     },
@@ -1018,9 +1016,7 @@ goldstone.charts.topologyTree = {
 
     },
     reportRedirect: function(data, keyName) {
-        localStorage.clear();
         var redirectNodeName = '/' + data[keyName];
-        localStorage.setItem('reportNodeData', JSON.stringify(data));
         window.location.href = '/report/node' + redirectNodeName;
     },
     processTree: function(json, ns) {

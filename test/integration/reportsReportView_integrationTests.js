@@ -33,23 +33,6 @@ describe('reportsReportView.js spec', function() {
             expect(this.testView.el).to.equal('.testContainer');
             expect($(this.testView.el).text()).to.equal('No Reports Data');
         });
-        it('responds appropritely based on localStorage variables', function() {
-            this.update_spy = sinon.spy(this.testView, "update");
-            expect($('#availableReportResul').length).to.equal(0);
-            expect($('#noDataReturned').text()).to.equal('');
-            this.testView.update();
-
-            var testLocalStorageData = JSON.stringify({a:1, b:2, c:3});
-
-            localStorage.setItem('reportNodeData', testLocalStorageData);
-            $(this.testView.el).empty();
-            this.testView.update();
-            expect($(this.testView.el).text()).to.equal('Sample Report Lista: 1b: 2c: 3Sample Data Load:');
-            expect(this.update_spy.callCount).to.equal(2);
-            this.update_spy.restore();
-
-            localStorage.clear();
-        });
     });
 
 });

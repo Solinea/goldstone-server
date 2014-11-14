@@ -26,7 +26,7 @@ var ChartHeaderView = Backbone.View.extend({
         this.el = options.el;
         this.defaults.columns = options.columns || 12;
         this.defaults.chartTitle = options.chartTitle;
-        this.defaults.infoTextNumber = options.infoTextNumber;
+        this.defaults.infoText = options.infoText;
 
         var ns = this.defaults;
         var self = this;
@@ -45,9 +45,9 @@ var ChartHeaderView = Backbone.View.extend({
         var ns = this.defaults;
         var self = this;
         // chart info button popover generator
-        var infoButtonText = new InfoButtonText().get('infoTextSets');
+        var infoButtonText = new InfoButtonText().get('infoText');
         var htmlGen = function() {
-            var result = infoButtonText[ns.infoTextNumber];
+            var result = infoButtonText[ns.infoText];
             return result;
         };
 
@@ -60,12 +60,10 @@ var ChartHeaderView = Backbone.View.extend({
             .on("click", function(d) {
                 var targ = "#" + d.target.id;
                 $(self.el).find(targ).popover('toggle');
-
-                setTimeout(function(d) {
-                    $(self.el).find(targ).popover('hide');
-                }, 3000);
+            }).on("mouseout", function(d) {
+                var targ = "#" + d.target.id;
+                $(self.el).find(targ).popover('hide');
             });
-
     },
 
     template: _.template('<div id="chart-panel-header" class="panel panel-primary col-md-<%= this.defaults.columns %>">' +

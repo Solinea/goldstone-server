@@ -16,7 +16,7 @@
  * Author: Alex Jacobs
  */
 
-var UtilizationView = Backbone.View.extend({
+var UtilizationNetView = Backbone.View.extend({
 
     defaults: {
         margin: {
@@ -34,15 +34,25 @@ var UtilizationView = Backbone.View.extend({
         this.el = options.el;
         this.defaults.width = options.width;
 
+        // bytes -> GB is a base 2 conversion (gibi vs giga)
+        this.defaults.divisor = (1 << 30);
+
         var ns = this.defaults;
         var self = this;
 
-        this.collection.on('sync', this.update, this);
+        this.collection.on('sync', function() {
+            if (self.collection.defaults.urlCollectionCount === 0) {
+                self.update();
+
+                // the collection count will have to be set back to the original count when re-triggering a fetch.
+                self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
+                self.collection.defaults.fetchInProgress = false;
+            }
+
+        });
 
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.width - ns.margin.top - ns.margin.bottom;
-
-        ns.formatPercent = d3.format(".0%");
 
         ns.x = d3.time.scale()
             .range([0, ns.mw]);
@@ -52,7 +62,6 @@ var UtilizationView = Backbone.View.extend({
 
         var colorArray = new GoldstoneColors().get('colorSets');
         ns.color = d3.scale.ordinal().range(colorArray.distinct[3]);
-        // ns.color = d3.scale.category20();
 
         ns.xAxis = d3.svg.axis()
             .scale(ns.x)
@@ -61,8 +70,7 @@ var UtilizationView = Backbone.View.extend({
 
         ns.yAxis = d3.svg.axis()
             .scale(ns.y)
-            .orient("left")
-            .tickFormat(ns.formatPercent);
+            .orient("left");
 
         ns.area = d3.svg.area()
             .interpolate("monotone")
@@ -104,6 +112,65 @@ var UtilizationView = Backbone.View.extend({
 
     },
 
+    collectionPrep: function() {
+        var ns = this.defaults;
+        var self = this;
+
+        allthelogs = this.collection.toJSON();
+
+        var data = allthelogs;
+
+        var dataUniqTimes = _.uniq(_.map(data, function(item) {
+            return item.timestamp;
+        }));
+
+
+        var newData = {};
+
+        _.each(dataUniqTimes, function(item) {
+            newData[item] = {
+                rx: null,
+                tx: null
+            };
+        });
+
+
+        _.each(data, function(item) {
+
+            var metric;
+
+            var serviceName = item.name.slice(0, item.name.lastIndexOf('.'));
+
+            if (serviceName.indexOf('rx') >= 0) {
+                metric = 'rx';
+            } else {
+                if (serviceName.indexOf('tx') >= 0) {
+                    metric = 'tx';
+                } else {
+                }
+            }
+
+            newData[item.timestamp][metric] += item.value;
+
+        });
+
+
+        finalData = [];
+
+        _.each(newData, function(item, i) {
+
+            finalData.push({
+                rx: item.rx,
+                tx: item.tx,
+                date: i
+            });
+        });
+
+
+        return finalData;
+
+    },
+
     update: function() {
 
         var ns = this.defaults;
@@ -115,7 +182,13 @@ var UtilizationView = Backbone.View.extend({
         ns.spinnerDisplay = 'none';
         $(this.el).find('#spinner').hide();
 
-        var allthelogs = this.collection.toJSON();
+        var allthelogs = this.collectionPrep();
+
+
+        // default 120 second refresh interval
+        setTimeout(function() {
+            self.collection.fetchMultipleUrls();
+        }, 120000);
 
         // If we didn't receive any valid files, append "No Data Returned"
         if (allthelogs.length === 0) {
@@ -153,7 +226,7 @@ var UtilizationView = Backbone.View.extend({
                 values: data.map(function(d) {
                     return {
                         date: d.date,
-                        y: d[name] / 100
+                        y: d[name]
                     };
                 })
             };
@@ -162,6 +235,11 @@ var UtilizationView = Backbone.View.extend({
         ns.x.domain(d3.extent(data, function(d) {
             return d.date;
         }));
+
+        //TODO: dynamic y.domain
+        ns.y.domain([0, d3.max(allthelogs, function(d) {
+            return d.rx + d.tx;
+        })]);
 
         var component = ns.svg.selectAll(".component")
             .data(components)
@@ -174,9 +252,6 @@ var UtilizationView = Backbone.View.extend({
                 return ns.area(d.values);
             })
             .style("fill", function(d) {
-                if (d.name === "Idle") {
-                    return "none";
-                }
                 return ns.color(d.name);
             })
             .style("opacity", 0.8);
@@ -191,10 +266,16 @@ var UtilizationView = Backbone.View.extend({
             .attr("transform", function(d) {
                 return "translate(" + ns.x(d.value.date) + "," + ns.y(d.value.y0 + d.value.y / 2) + ")";
             })
-            .attr("x", 1)
+            .attr("x", function(d) {
+                return 1;
+            })
+            .attr("y", function(d, i) {
+                // make space between the labels
+                return -i * 8;
+            })
             .style("font-size", ".8em")
             .text(function(d) {
-                return d.name;
+                return d.name + " (kB)";
             });
 
         ns.svg.append("g")
@@ -205,7 +286,6 @@ var UtilizationView = Backbone.View.extend({
         ns.svg.append("g")
             .attr("class", "y axis")
             .call(ns.yAxis);
-
     }
 
 });
