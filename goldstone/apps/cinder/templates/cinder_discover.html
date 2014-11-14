@@ -29,6 +29,14 @@
     <script>
 
 $(document).ready(function () {
+
+    new ChartHeaderView({
+        el: '#cinder-discover-chart-title',
+        chartTitle: 'Cinder Topology',
+        infoText: 'cinderTopologyDiscover',
+        columns: 12
+    });
+
     var gnd = goldstone.cinder.discover;
     var ns = goldstone.cinder.topology;
     ns.data = JSON.parse({{ data|to_js }});
@@ -50,7 +58,6 @@ $(document).ready(function () {
     $(ns.spinner).hide();
     $(ns.singleRsrcSpinner).hide();
     $(ns.multiRsrcSpinner).hide();
-    //ns.infoIcon = '#cinder-topology-info'
 
     // override the default filter for the multi resource table
     ns.topologyTree.filterMultiRsrcData = function (data) {
@@ -84,20 +91,21 @@ $(document).ready(function () {
 {% block content %}
     <div id="cinder-discover-r1" class="row">
         <div id="cinder-discover-r1-c1" class="col-md-6">
-            <div id = "cinder-topology-panel" class="panel panel-primary">
+        <div id="cinder-discover-chart-title"></div>
+            <!-- <div id = "cinder-topology-panel" class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-tasks"></i> Cinder Topology
                             <i class="pull-right fa fa-info-circle panel-info"  id="cinder-topology-info"
                                     style="opacity: 0.0"></i>
                     </h3>
                 </div>
-                <div class="panel-body" style="height:400px">
-                    <div id="cinder-topology-tree">
-                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                             id="cinder-topology-spinner"
-                             class="ajax-loader"/>
-                        <div class="clearfix"></div>
-                    </div>
+            </div> -->
+            <div class="panel-body" style="height:400px">
+                <div id="cinder-topology-tree">
+                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
+                         id="cinder-topology-spinner"
+                         class="ajax-loader"/>
+                    <div class="clearfix"></div>
                 </div>
             </div>
         </div>
