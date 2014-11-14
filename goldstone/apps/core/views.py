@@ -29,6 +29,76 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet, \
 logger = logging.getLogger(__name__)
 
 
+class ElasticViewSet(ModelViewSet):
+    QUERY_OPS = ["match", "fuzzy", "wildcard", "match_phrase", "query_string"]
+    FILTER_OPS = ["in", "prefix", "gte", "lte", "gt", "lt"]
+    MODIFIERS = ["should", "must", "must_not"]
+    ordering = None
+
+    def _process_params(self, params):
+        result = {
+            "query_kwargs": {},
+            "filter_kwargs": {},
+            "modifier": {"must": True}
+        }
+
+        try:
+            if self.ordering is not None:
+                result['order_by'] = self.ordering
+
+            for k, v in params.items():
+                if len(k.split("__")) > 1 and \
+                        k.split("__")[1] in self.QUERY_OPS:
+                    result['query_kwargs'][k] = v
+                elif len(k.split("__")) > 1 and \
+                        k.split("__")[1] in self.FILTER_OPS:
+                    result['filter_kwargs'][k] = v
+                elif k in self.MODIFIERS and v.lower == "true":
+                    result['modifier'][k] = v
+                elif k == "ordering":
+                    result['order_by'] = v
+                elif k not in ['page', 'page_size']:
+                    result['filter_kwargs'][k] = v
+
+            if len(result["query_kwargs"]) > 0:
+                result["query_kwargs"] = dict(result["query_kwargs"].items() +
+                                              result["modifier"].items())
+                del result['modifier']
+            return result
+        except:
+            logger.exception("Problem processing query params")
+            return None
+
+    def get_queryset(self):
+        params = self._process_params(self.request.QUERY_PARAMS.dict())
+        if self.model is not None:
+            qs = self.model().search(). \
+                query(**params['query_kwargs']). \
+                filter(**params['filter_kwargs'])
+            if 'order_by' in params:
+                qs = qs.order_by(params['order_by'])
+            return qs
+        else:
+            logger.error("No model set in ViewSet class")
+            return None
+
+    def get_object(self, queryset=None):
+        q = self.get_queryset()
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        lookup = self.kwargs.get(lookup_url_kwarg, None)
+        if lookup is not None:
+            filter_kwargs = {self.lookup_field: lookup}
+        q_result = q.filter(**filter_kwargs)[:1].execute()
+        if q_result.count > 1:
+            logger.warning("multiple objects with %s = %s, only returning "
+                           "first one.", lookup_url_kwarg, lookup)
+        if q_result.count > 0:
+            obj = q_result.objects[0].get_object()
+            return obj
+        else:
+            raise Http404
+
+
 class NodeViewSet(ModelViewSet):
     queryset = Node.objects.all()
     serializer_class = NodeSerializer
@@ -85,37 +155,36 @@ class NodeViewSet(ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class EventViewSet(ModelViewSet):
-    queryset = EventType().search().query().order_by('-created')
+class EventViewSet(ElasticViewSet):
+    model = EventType
+    serializer_class = EventSerializer
+    # filter_fields = ('uuid',
+    #                  'name',
+    #                  'last_seen_method',
+    #                  'admin_disabled')
+    lookup_field = '_id'
+    lookup_url_kwarg = '_id'
+    ordering = '-created'
+
+
+class OldEventViewSet(ModelViewSet):
+    model = EventType
     serializer_class = EventSerializer
     lookup_field = "_id"
 
-    def list(self, request, *args, **kwargs):
-        # adding support filter params
-        params = request.QUERY_PARAMS.dict()
-        if params is not None:
-            # don't use the page related params as filters
-            if settings.REST_FRAMEWORK['PAGINATE_BY_PARAM'] in params:
-                del params[settings.REST_FRAMEWORK['PAGINATE_BY_PARAM']]
-            if 'page' in params:
-                del params['page']
 
-            self.queryset = EventType().search().query().filter(**params). \
-                order_by('-created')
-            return super(EventViewSet, self).list(request, *args, **kwargs)
-
-    def get_object(self):
-        q = self.queryset
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-        lookup = self.kwargs.get(lookup_url_kwarg, None)
-        if lookup is not None:
-            filter_kwargs = {self.lookup_field: lookup}
-        q_result = q.filter(**filter_kwargs)[:1].execute()
-        if q_result.count == 1:
-            obj = q_result.objects[0].get_object()
-            return obj
-        else:
-            raise Http404
+    # def get_object(self):
+    #     q = self.queryset
+    #     lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+    #     lookup = self.kwargs.get(lookup_url_kwarg, None)
+    #     if lookup is not None:
+    #         filter_kwargs = {self.lookup_field: lookup}
+    #     q_result = q.filter(**filter_kwargs)[:1].execute()
+    #     if q_result.count == 1:
+    #         obj = q_result.objects[0].get_object()
+    #         return obj
+    #     else:
+    #         raise Http404
 
 
 class MetricViewSet(ModelViewSet):
