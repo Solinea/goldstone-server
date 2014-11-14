@@ -131,8 +131,8 @@ var EventTimelineView = Backbone.View.extend({
                 d.id = d.id || '';
                 d.message = d.message || 'No message logged';
 
-                if(d.message.length > 280) {
-                    d.message = d.message.slice(0,300) + "...";
+                if (d.message.length > 280) {
+                    d.message = d.message.slice(0, 300) + "...";
                 }
 
                 d.event_type = d.event_type || 'No event type logged';
@@ -149,15 +149,47 @@ var EventTimelineView = Backbone.View.extend({
     },
 
     isRefreshSelected: function() {
-        return $(this.el).find(".eventAutoRefresh").prop("checked");
+        if ($('.global-refresh-selector .form-control').length) {
+            // global refresh is available:
+            return $('.global-refresh-selector .form-control').val() >= 0;
+        } else {
+            return $(this.el).find(".eventAutoRefresh").prop("checked");
+        }
     },
 
     refreshInterval: function() {
-        return $(this.el).find("select#eventAutoRefreshInterval").val();
+        if ($('.global-refresh-selector .form-control').length) {
+            // global refresh is available:
+            refreshSeconds = $('.global-refresh-selector .form-control').val();
+        } else {
+            // otherwise, use modal
+            refreshSeconds = $(this.el).find("select#eventAutoRefreshInterval").val();
+        }
+
+        // if 'refresh off' is selected, refreshSeconds === -1;
+        if (refreshSeconds < 0) {
+            // this will be disregarded, as pause will be enabled, but as a failsafe,
+            // set this to a number that will unlikely be reached during a session
+            return 10e7;
+        }
+
+        // refreshSeconds will be a string
+        return parseInt(refreshSeconds, 10);
+
+        // return $(this.el).find("select#eventAutoRefreshInterval").val();
     },
 
     lookbackRange: function() {
-        return $(this.el).find("#lookbackRange").val();
+        var lookbackMinutes;
+        if ($('.global-lookback-selector .form-control').length) {
+            // global lookback is available:
+            lookbackMinutes = $('.global-lookback-selector .form-control').val();
+        } else {
+            // otherwise, refer to modal:
+            lookbackMinutes = $(this.el).find("#lookbackRange").val();
+
+        }
+        return parseInt(lookbackMinutes, 10);
     },
 
     initSettingsForm: function() {
@@ -181,8 +213,69 @@ var EventTimelineView = Backbone.View.extend({
             updateSettings();
         });
 
-        // set initial values for delay and pause based on modal settings
+        $('.global-lookback-selector .form-control').on('change', function() {
+            console.log('something changed', $('#global-lookback-range :selected')[0].innerHTML);
+            ns.refreshOnClick = true;
+            if (self.lookbackRange() !== ns.lookbackRange) {
+                ns.newUrl = true;
+            }
+            updateSettings();
+
+        });
+        $('.global-refresh-selector .form-control').on('change', function() {
+            console.log('something changed', $('#global-refresh-range :selected')[0].innerHTML);
+            ns.refreshOnClick = true;
+            if (self.lookbackRange() !== ns.lookbackRange) {
+                ns.newUrl = true;
+            }
+            updateSettings();
+
+        });
+
+
+        // set initial values for delay and pause
+        // based on global selectors or modal settings
         updateSettings();
+    },
+
+    scheduleFetch: function() {
+        var ns = this.defaults;
+        var self = this;
+        var timeoutDelay;
+
+        this.collection.urlUpdate(ns.lookbackRange);
+
+        // to prevent a pile up of setTimeouts
+        if (ns.scheduleTimeout !== undefined) {
+            clearTimeout(ns.scheduleTimeout);
+        }
+
+        if (ns.animation.pause) {
+            return true;
+        }
+
+        if (ns.refreshOnClick) {
+            timeoutDelay = 1;
+            ns.refreshOnClick = false;
+        } else {
+            timeoutDelay = ns.animation.delay * 1000;
+        }
+
+        ns.scheduleTimeout = setTimeout(function() {
+
+            if (self.defaults.newUrl) {
+                self.collection.fetch({
+                    remove: true
+                });
+                self.defaults.newUrl = false;
+            } else {
+                self.collection.fetch({
+                    remove: false
+                });
+            }
+
+        }, timeoutDelay);
+
     },
 
     opacityByFilter: function(d) {
@@ -297,7 +390,7 @@ var EventTimelineView = Backbone.View.extend({
             // regEx to create separate words out of the event types
             // GenericSyslogError --> Generic Syslog Error
             var re = /([A-Z])/g;
-            if(item === undefined){
+            if (item === undefined) {
                 item = 'UnspecifiedErrorType';
             }
             itemSpaced = item.replace(re, ' $1').trim();
@@ -414,46 +507,6 @@ var EventTimelineView = Backbone.View.extend({
         rectangle.exit().remove();
 
         return true;
-    },
-
-    scheduleFetch: function() {
-        var ns = this.defaults;
-        var self = this;
-        var timeoutDelay;
-
-        this.collection.urlUpdate(ns.lookbackRange);
-
-        // to prevent a pile up of setTimeouts
-        if (ns.scheduleTimeout !== undefined) {
-            clearTimeout(ns.scheduleTimeout);
-        }
-
-        if (ns.animation.pause) {
-            return true;
-        }
-
-        if (ns.refreshOnClick) {
-            timeoutDelay = 1;
-            ns.refreshOnClick = false;
-        } else {
-            timeoutDelay = ns.animation.delay * 1000;
-        }
-
-        ns.scheduleTimeout = setTimeout(function() {
-
-            if (self.defaults.newUrl) {
-                self.collection.fetch({
-                    remove: true
-                });
-                self.defaults.newUrl = false;
-            } else {
-                self.collection.fetch({
-                    remove: false
-                });
-            }
-
-        }, timeoutDelay);
-
     },
 
     render: function() {
