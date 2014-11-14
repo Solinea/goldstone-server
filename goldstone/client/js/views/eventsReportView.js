@@ -121,8 +121,8 @@ var EventsReportView = Backbone.View.extend({
 
                     self.urlGen();
 
-                    var pageSize = $('select.form-control').val();
-                    var searchQuery = $('input.form-control').val();
+                    var pageSize = $(self.el).find('select.form-control').val();
+                    var searchQuery = $(self.el).find('input.form-control').val();
                     var paginationStart = settings.url.match(/start=\d{1,}&/gi);
                     paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
                     var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
