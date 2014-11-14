@@ -145,15 +145,16 @@
                 <div style="width:10%;" class="col-xl-1 pull-right">&nbsp;
                 </div>
                 <div class="col-xl-2 pull-right">
-                    <form class="form-test" role="form">
-                        <div class="global-refresh-selector">
+                    <form class="global-refresh-selector" role="form">
+                        <div class="form-group">
                             <div class="col-xl-1">
                                 <div class="input-group">
-                                    <select class="form-control" id="lookbackRange">
+                                    <select class="form-control" id="global-refresh-range">
                                         <option value="15">refresh 15s</option>
                                         <option value="30" selected>refresh 30s</option>
                                         <option value="60">refresh 1m</option>
                                         <option value="300">refresh 5m</option>
+                                        <option value="-1">refresh off</option>
                                     </select>
                                 </div>
                             </div>
@@ -165,7 +166,7 @@
                         <div class="form-group">
                             <div class="col-xl-1">
                                 <div class="input-group">
-                                    <select class="form-control" id="lookbackRange">
+                                    <select class="form-control" id="global-lookback-range">
                                         <option value="15">lookback 15m</option>
                                         <option value="60" selected>lookback 1h</option>
                                         <option value="360">lookback 6h</option>
