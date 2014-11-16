@@ -145,37 +145,18 @@ var EventTimelineView = Backbone.View.extend({
     },
 
     isRefreshSelected: function() {
-        if ($('.global-refresh-selector .form-control').length) {
-            // global refresh is available:
-            return $('.global-refresh-selector .form-control').val() >= 0;
-        } else {
-            return $(this.el).find(".eventAutoRefresh").prop("checked");
-        }
+        return $('.global-refresh-selector .form-control').val() >= 0;
     },
 
     refreshInterval: function() {
-        if ($('.global-refresh-selector .form-control').length) {
-            // global refresh is available:
-            refreshSeconds = $('.global-refresh-selector .form-control').val();
-        } else {
-            // otherwise, use modal
-            refreshSeconds = $(this.el).find("select#eventAutoRefreshInterval").val();
-        }
-
+        refreshSeconds = $('.global-refresh-selector .form-control').val();
         // refreshSeconds will be a string
         return parseInt(refreshSeconds, 10);
-
     },
 
     lookbackRange: function() {
         var lookbackMinutes;
-        if ($('.global-lookback-selector .form-control').length) {
-            // global lookback is available:
-            lookbackMinutes = $('.global-lookback-selector .form-control').val();
-        } else {
-            // otherwise, refer to modal:
-            lookbackMinutes = $(this.el).find("#lookbackRange").val();
-        }
+        lookbackMinutes = $('.global-lookback-selector .form-control').val();
         return parseInt(lookbackMinutes, 10);
     },
 
@@ -232,7 +213,7 @@ var EventTimelineView = Backbone.View.extend({
         this.clearScheduledFetch();
         var timeoutDelay = ns.delay * 1000;
 
-        if(timeoutDelay < 0){
+        if (timeoutDelay < 0) {
             return true;
         }
 
