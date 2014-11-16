@@ -35,7 +35,6 @@ var EventTimelineView = Backbone.View.extend({
         this.el = options.el;
         this.defaults.chartTitle = options.chartTitle;
         this.defaults.width = options.width;
-        this.defaults.pause = undefined;
         this.defaults.delay = null;
 
         var ns = this.defaults;
@@ -53,7 +52,7 @@ var EventTimelineView = Backbone.View.extend({
         this.collection.on('sync', this.update, this);
         this.render();
         this.setGlobalLookbackListeners();
-        self.updateSettings();
+        this.updateSettings();
 
         ns.margin = {
             top: 25,
@@ -163,7 +162,6 @@ var EventTimelineView = Backbone.View.extend({
     updateSettings: function() {
         var ns = this.defaults;
         ns.delay = this.refreshInterval();
-        ns.pause = !this.isRefreshSelected();
         ns.lookbackRange = this.lookbackRange();
     },
 
