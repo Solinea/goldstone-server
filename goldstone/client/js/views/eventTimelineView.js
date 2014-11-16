@@ -35,16 +35,11 @@ var EventTimelineView = Backbone.View.extend({
         this.el = options.el;
         this.defaults.chartTitle = options.chartTitle;
         this.defaults.width = options.width;
-        this.defaults.newUrl = false;
-        this.defaults.refreshOnClick = false;
+        this.defaults.pause = undefined;
+        this.defaults.delay = null;
 
         var ns = this.defaults;
         var self = this;
-
-        ns.animation = {
-            pause: undefined,
-            delay: null
-        };
 
         var appendSpinnerLocation = this.el;
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
@@ -57,7 +52,8 @@ var EventTimelineView = Backbone.View.extend({
 
         this.collection.on('sync', this.update, this);
         this.render();
-        this.initSettingsForm();
+        this.setGlobalLookbackListeners();
+        self.updateSettings();
 
         ns.margin = {
             top: 25,
@@ -166,17 +162,9 @@ var EventTimelineView = Backbone.View.extend({
             refreshSeconds = $(this.el).find("select#eventAutoRefreshInterval").val();
         }
 
-        // if 'refresh off' is selected, refreshSeconds === -1;
-        if (refreshSeconds < 0) {
-            // this will be disregarded, as pause will be enabled, but as a failsafe,
-            // set this to a number that will unlikely be reached during a session
-            return 10e7;
-        }
-
         // refreshSeconds will be a string
         return parseInt(refreshSeconds, 10);
 
-        // return $(this.el).find("select#eventAutoRefreshInterval").val();
     },
 
     lookbackRange: function() {
@@ -187,95 +175,70 @@ var EventTimelineView = Backbone.View.extend({
         } else {
             // otherwise, refer to modal:
             lookbackMinutes = $(this.el).find("#lookbackRange").val();
-
         }
         return parseInt(lookbackMinutes, 10);
     },
 
-    initSettingsForm: function() {
+    updateSettings: function() {
+        var ns = this.defaults;
+        ns.delay = this.refreshInterval();
+        ns.pause = !this.isRefreshSelected();
+        ns.lookbackRange = this.lookbackRange();
+    },
+
+    setGlobalLookbackListeners: function() {
         var self = this;
         var ns = this.defaults;
-        var updateSettings = function() {
-            ns.animation.delay = self.refreshInterval();
-            ns.animation.pause = !self.isRefreshSelected();
-            ns.lookbackRange = self.lookbackRange();
-
-            if (ns.animation.pause === false) {
-                self.scheduleFetch();
-            }
-
-        };
-        $("#eventSettingsUpdateButton-" + this.el.slice(1)).click(function() {
-            ns.refreshOnClick = true;
-            if (self.lookbackRange() !== ns.lookbackRange) {
-                ns.newUrl = true;
-            }
-            updateSettings();
-        });
 
         $('.global-lookback-selector .form-control').on('change', function() {
-            console.log('something changed', $('#global-lookback-range :selected')[0].innerHTML);
-            ns.refreshOnClick = true;
-            if (self.lookbackRange() !== ns.lookbackRange) {
-                ns.newUrl = true;
-            }
-            updateSettings();
+            self.clearScheduledFetch();
+            self.updateSettings();
+            self.fetchNowWithReset();
 
         });
         $('.global-refresh-selector .form-control').on('change', function() {
-            console.log('something changed', $('#global-refresh-range :selected')[0].innerHTML);
-            ns.refreshOnClick = true;
-            if (self.lookbackRange() !== ns.lookbackRange) {
-                ns.newUrl = true;
-            }
-            updateSettings();
+            self.clearScheduledFetch();
+            self.updateSettings();
+            self.scheduleFetch();
 
         });
+    },
 
+    fetchNowWithReset: function() {
+        var ns = this.defaults;
+        this.collection.urlUpdate(ns.lookbackRange);
+        this.collection.fetch({
+            remove: true
+        });
+    },
 
-        // set initial values for delay and pause
-        // based on global selectors or modal settings
-        updateSettings();
+    fetchNowNoReset: function() {
+        var ns = this.defaults;
+        this.collection.urlUpdate(ns.lookbackRange);
+        this.collection.fetch({
+            remove: false
+        });
+    },
+
+    clearScheduledFetch: function() {
+        var ns = this.defaults;
+        clearTimeout(ns.scheduleTimeout);
     },
 
     scheduleFetch: function() {
         var ns = this.defaults;
         var self = this;
-        var timeoutDelay;
 
-        this.collection.urlUpdate(ns.lookbackRange);
+        this.clearScheduledFetch();
+        var timeoutDelay = ns.delay * 1000;
 
-        // to prevent a pile up of setTimeouts
-        if (ns.scheduleTimeout !== undefined) {
-            clearTimeout(ns.scheduleTimeout);
-        }
-
-        if (ns.animation.pause) {
+        if(timeoutDelay < 0){
             return true;
         }
 
-        if (ns.refreshOnClick) {
-            timeoutDelay = 1;
-            ns.refreshOnClick = false;
-        } else {
-            timeoutDelay = ns.animation.delay * 1000;
-        }
-
         ns.scheduleTimeout = setTimeout(function() {
-
-            if (self.defaults.newUrl) {
-                self.collection.fetch({
-                    remove: true
-                });
-                self.defaults.newUrl = false;
-            } else {
-                self.collection.fetch({
-                    remove: false
-                });
-            }
-
+            self.fetchNowNoReset();
         }, timeoutDelay);
-
     },
 
     opacityByFilter: function(d) {
@@ -296,24 +259,6 @@ var EventTimelineView = Backbone.View.extend({
             }
         }
         return "visible";
-    },
-
-    redraw: function() {
-        var ns = this.defaults;
-        var self = this;
-
-        ns.graph.selectAll("rect")
-            .transition().duration(500)
-            .attr("x", function(d) {
-                return ns.xScale(d.created);
-            })
-            .style("opacity", function(d) {
-                return self.opacityByFilter(d);
-            })
-            .style("visibility", function(d) {
-                // to avoid showing popovers for hidden lines
-                return self.visibilityByFilter(d);
-            });
     },
 
     update: function() {
@@ -509,9 +454,27 @@ var EventTimelineView = Backbone.View.extend({
         return true;
     },
 
+    redraw: function() {
+        var ns = this.defaults;
+        var self = this;
+
+        ns.graph.selectAll("rect")
+            .transition().duration(500)
+            .attr("x", function(d) {
+                return ns.xScale(d.created);
+            })
+            .style("opacity", function(d) {
+                return self.opacityByFilter(d);
+            })
+            .style("visibility", function(d) {
+                // to avoid showing popovers for hidden lines
+                return self.visibilityByFilter(d);
+            });
+    },
+
     render: function() {
         this.$el.html(this.template());
-        $('#modal-container-' + this.el.slice(1)).append(this.modal1());
+        // $('#modal-container-' + this.el.slice(1)).append(this.modal1());
         $('#modal-container-' + this.el.slice(1)).append(this.modal2());
         return this;
     },
@@ -522,9 +485,9 @@ var EventTimelineView = Backbone.View.extend({
         '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
 
         // cog icon
-        '<i class="fa fa-cog pull-right" data-toggle="modal"' +
-        'data-target="#modal-settings-<%= this.el.slice(1) %>' +
-        '"></i>' +
+        // '<i class="fa fa-cog pull-right" data-toggle="modal"' +
+        // 'data-target="#modal-settings-<%= this.el.slice(1) %>' +
+        // '"></i>' +
 
         // filter icon
         '<i class="fa fa-filter pull-right" data-toggle="modal"' +
@@ -553,8 +516,42 @@ var EventTimelineView = Backbone.View.extend({
 
     ),
 
+    modal2: _.template(
+        // event filter modal
+        '<div class="modal fade" id="modal-filter-<%= this.el.slice(1) %>' +
+        '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+        '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
+
+        // header
+        '<div class="modal-header">' +
+
+        '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
+        '<h4 class="modal-title" id="myModalLabel">Event Type Filters</h4>' +
+        '</div>' +
+
+        // body
+        '<div class="modal-body">' +
+        '<h5>Uncheck event-type to hide from display</h5><br>' +
+        '<div id="populateEventFilters"></div>' +
+
+
+        '</div>' +
+
+        // footer
+        '<div class="modal-footer">' +
+        '<button type="button" id="eventFilterUpdateButton-<%= this.el.slice(1) %>' +
+        '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
+        '</div>' +
+
+        '</div>' +
+        '</div>' +
+        '</div>'
+    ),
+
     modal1: _.template(
         // event settings modal
+        // don't render if using global refresh/lookback
         '<div class="modal fade" id="modal-settings-<%= this.el.slice(1) %>' +
         '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
         '<div class="modal-dialog">' +
@@ -585,8 +582,6 @@ var EventTimelineView = Backbone.View.extend({
 
         // end of new start/end elements
 
-
-
         '<form class="form-horizontal" role="form">' +
         '<div class="form-group">' +
         '<label for="eventAutoRefresh" class="col-sm-2 control-label">Refresh: </label>' +
@@ -613,40 +608,6 @@ var EventTimelineView = Backbone.View.extend({
         '" class="btn btn-primary" data-dismiss="modal">Update</button>' +
         '</div>' +
         '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>'
-    ),
-
-    modal2: _.template(
-        // add 2nd modal here:
-        // event filter modal
-        '<div class="modal fade" id="modal-filter-<%= this.el.slice(1) %>' +
-        '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
-        '<div class="modal-dialog">' +
-        '<div class="modal-content">' +
-
-        // header
-        '<div class="modal-header">' +
-
-        '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-        '<h4 class="modal-title" id="myModalLabel">Event Type Filters</h4>' +
-        '</div>' +
-
-        // body
-        '<div class="modal-body">' +
-        '<h5>Uncheck event-type to hide from display</h5><br>' +
-        '<div id="populateEventFilters"></div>' +
-
-
-        '</div>' +
-
-        // footer
-        '<div class="modal-footer">' +
-        '<button type="button" id="eventFilterUpdateButton-<%= this.el.slice(1) %>' +
-        '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
-        '</div>' +
-
         '</div>' +
         '</div>' +
         '</div>'
