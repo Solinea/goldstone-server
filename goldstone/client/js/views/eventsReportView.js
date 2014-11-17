@@ -120,24 +120,20 @@ var EventsReportView = Backbone.View.extend({
                 beforeSend: function(obj, settings) {
 
                     // warning: as dataTable features are enabled/
-                    // disabled ,the structure of settings.url changes
-                    // significantly. Be sure to reference the correct
-                    // array indices when comparing, or scraping data
+                    // disabled , check if the structure of settings.
+                    // url changes significantly. Be sure to
+                    // reference the correct array indices when
+                    // comparing, or scraping data
 
                     self.urlGen();
+
+                    console.log(decodeURIComponent(settings.url));
 
                     var pageSize = $('select.form-control').val();
                     var searchQuery = $('input.form-control').val();
                     var paginationStart = settings.url.match(/start=\d{1,}&/gi);
-                    console.log('paginationStart', paginationStart);
-                    paginationStart = paginationStart[1].slice(paginationStart[1].indexOf('=') + 1, paginationStart[1].lastIndexOf('&'));
+                    paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
                     var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
-
-                    // check for ordering params settings.url outputs
-                    // the default ordering and also the current ordering
-
-                    // set a variable equal to the regex array that captures
-                    // both of the ordering params
 
                     var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
 
@@ -146,15 +142,19 @@ var EventsReportView = Backbone.View.extend({
 
                     var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
 
+                    console.log(urlColumnOrdering, urlOrderingDirection);
+
                     settings.url = self.defaults.url + "&page_size=" + pageSize + "&page=" + computeStartPage;
 
                     if (searchQuery) {
                         settings.url = settings.url + "&message__prefix=" + searchQuery;
                     }
 
-                    // urlColumnOrdering[0] is default and [1] is current
                     // if no interesting sort, ignore it
-                    if (urlColumnOrdering[0] !== urlColumnOrdering[1] || urlOrderingDirection[0] !== urlOrderingDirection[1]) {
+
+                    console.log('interesting sort?', urlColumnOrdering[0], urlOrderingDirection[0]);
+
+                    if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
                         // or, if something is different, capture the
                         // column to sort by, and the sort direction
 
@@ -164,9 +164,9 @@ var EventsReportView = Backbone.View.extend({
                             2: 'message'
                         };
 
-                        var orderByColumn = urlColumnOrdering[1].slice(urlColumnOrdering[1].indexOf('=') + 1);
+                        var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
 
-                        var orderByDirection = urlOrderingDirection[1].slice(urlOrderingDirection[1].indexOf('=') + 1);
+                        var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
 
                         var ascDec;
                         if (orderByDirection === 'desc') {
