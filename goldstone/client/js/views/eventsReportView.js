@@ -127,23 +127,17 @@ var EventsReportView = Backbone.View.extend({
 
                     self.urlGen();
 
-                    console.log(decodeURIComponent(settings.url));
-
                     var pageSize = $('select.form-control').val();
                     var searchQuery = $('input.form-control').val();
                     var paginationStart = settings.url.match(/start=\d{1,}&/gi);
                     paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
                     var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
-
                     var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
 
                     // capture which column was clicked
                     // and which direction the sort is called for
 
                     var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
-
-                    console.log(urlColumnOrdering, urlOrderingDirection);
-
                     settings.url = self.defaults.url + "&page_size=" + pageSize + "&page=" + computeStartPage;
 
                     if (searchQuery) {
@@ -151,11 +145,8 @@ var EventsReportView = Backbone.View.extend({
                     }
 
                     // if no interesting sort, ignore it
-
-                    console.log('interesting sort?', urlColumnOrdering[0], urlOrderingDirection[0]);
-
                     if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
-                        // or, if something is different, capture the
+                        // or, if something has changed, capture the
                         // column to sort by, and the sort direction
 
                         var columnLabelHash = {
@@ -179,7 +170,6 @@ var EventsReportView = Backbone.View.extend({
                             ascDec + columnLabelHash[orderByColumn];
                     }
 
-                    console.log('final url: ', settings.url);
 
                 },
                 dataFilter: function(data) {
