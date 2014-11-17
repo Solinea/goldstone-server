@@ -58,15 +58,19 @@ class EventType(MappingType, Indexable):
 
     @classmethod
     def get_mapping(cls):
-        """Returns an Elasticsearch mapping for this MappingType"""
+        """Returns an Elasticsearch mapping for this MappingType.  These are
+        a bit contrived since the template dynamically creates the mapping
+        type.  It is helpful to support the ordering requests in the view.
+        The view will look at the type of a field and if it is a string, will
+        use the associated .raw field for ordering."""
         return {
             'properties': {
-                'id': {'type': 'string', 'index': 'not_analyzed'},
-                'event_type': {'type': 'string', 'index': 'not_analyzed'},
-                'source_id': {'type': 'string', 'index': 'not_analyzed'},
-                'source_name': {'type': 'string', 'index': 'not_analyzed'},
-                'message': {'type': 'string', 'analyzer': 'snowball'},
-                'created': {'type': 'date', 'index': 'not_analyzed'}
+                'id': {'type': 'string'},
+                'event_type': {'type': 'string'},
+                'source_id': {'type': 'string'},
+                'source_name': {'type': 'string'},
+                'message': {'type': 'string'},
+                'created': {'type': 'date'}
             }
         }
 
