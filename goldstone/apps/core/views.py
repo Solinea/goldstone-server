@@ -56,9 +56,13 @@ class ElasticViewSetMixin(object):
                 elif k in self.MODIFIERS and v.lower == "true":
                     result['modifier'][k] = v
                 elif k == "ordering":
+                    field = v
                     mapping = self.model.get_mapping()
-                    if v in mapping['properties'] and \
-                            mapping['properties'][v]['type'] == 'string':
+                    # handle descending specificaiton
+                    if v.startswith("-"):
+                        field = v[1:]
+                    if field in mapping['properties'] and \
+                            mapping['properties'][field]['type'] == 'string':
                         result['order_by'] = v + ".raw"
                     else:
                         result['order_by'] = v
