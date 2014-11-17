@@ -72,6 +72,7 @@
 <script src="{% static 'js/collections/nodeAvailCollection.js' %}"></script>
 <script src="{% static 'js/views/eventTimelineView.js' %}"></script>
 <script src="{% static 'js/views/nodeAvailView.js' %}"></script>
+<script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
 <script src="{% static 'js/discover.js' %}"></script>
 
 <script>
@@ -118,6 +119,11 @@
     };
 
     $(document).ready(function () {
+
+        new GlobalLookbackRefreshButtonsView({
+            el: ".global-range-refresh-container"
+        });
+
         var self = this;
         var infoButtonText = new InfoButtonText().get('infoText');
 
