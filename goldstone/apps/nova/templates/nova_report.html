@@ -25,8 +25,15 @@
 
 {% block localjs %}
     <script src="{% static 'js/nova.js' %}"></script>
+    <script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
+
     <script>
 $(document).ready(function () {
+
+    new GlobalLookbackRefreshButtonsView({
+        el: ".global-range-refresh-container"
+    });
+
     var nsReport = goldstone.nova.report;
     var nsApiPerf = goldstone.nova.apiPerf;
     var gnspawns = goldstone.nova.spawns;

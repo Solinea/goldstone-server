@@ -25,8 +25,15 @@
 
 {% block localjs %}
     <script src="{% static 'js/glance.js' %}"></script>
+    <script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
+
     <script>
 $(document).ready(function () {
+
+    new GlobalLookbackRefreshButtonsView({
+        el: ".global-range-refresh-container"
+    });
+
     var nsReport = goldstone.glance.report;
     var nsApiPerf = goldstone.glance.apiPerf;
     nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf);
