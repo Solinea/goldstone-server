@@ -27,6 +27,7 @@ Author: John Stanford
 <script src="{% static 'js/models/apiPerfModel.js' %}"></script>
 <script src="{% static 'js/collections/apiPerfCollection.js' %}"></script>
 <script src="{% static 'js/views/apiPerfView.js' %}"></script>
+<script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
 <script src="{% static 'js/api_perf.js' %}"></script>
 <script>
 
@@ -42,6 +43,10 @@ var nsReport = {
 };
 
 $(document).ready(function () {
+    new GlobalLookbackRefreshButtonsView({
+        el: ".global-range-refresh-container"
+    });
+
     renderApiPerfCharts();
 });
 
