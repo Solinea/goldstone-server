@@ -114,23 +114,73 @@ var EventsReportView = Backbone.View.extend({
             "order": [
                 [0, 'desc']
             ],
-            "ordering": false,
+            "ordering": true,
             "serverSide": true,
             "ajax": {
                 beforeSend: function(obj, settings) {
+
+                    // warning: as dataTable features are enabled/
+                    // disabled ,the structure of settings.url changes
+                    // significantly. Be sure to reference the correct
+                    // array indices when comparing, or scraping data
 
                     self.urlGen();
 
                     var pageSize = $('select.form-control').val();
                     var searchQuery = $('input.form-control').val();
                     var paginationStart = settings.url.match(/start=\d{1,}&/gi);
-                    paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
+                    console.log('paginationStart', paginationStart);
+                    paginationStart = paginationStart[1].slice(paginationStart[1].indexOf('=') + 1, paginationStart[1].lastIndexOf('&'));
                     var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
+
+                    // check for ordering params settings.url outputs
+                    // the default ordering and also the current ordering
+
+                    // set a variable equal to the regex array that captures
+                    // both of the ordering params
+
+                    var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
+
+                    // capture which column was clicked
+                    // and which direction the sort is called for
+
+                    var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
+
                     settings.url = self.defaults.url + "&page_size=" + pageSize + "&page=" + computeStartPage;
 
                     if (searchQuery) {
                         settings.url = settings.url + "&message__prefix=" + searchQuery;
                     }
+
+                    // urlColumnOrdering[0] is default and [1] is current
+                    // if no interesting sort, ignore it
+                    if (urlColumnOrdering[0] !== urlColumnOrdering[1] || urlOrderingDirection[0] !== urlOrderingDirection[1]) {
+                        // or, if something is different, capture the
+                        // column to sort by, and the sort direction
+
+                        var columnLabelHash = {
+                            0: 'created',
+                            1: 'event_type',
+                            2: 'message'
+                        };
+
+                        var orderByColumn = urlColumnOrdering[1].slice(urlColumnOrdering[1].indexOf('=') + 1);
+
+                        var orderByDirection = urlOrderingDirection[1].slice(urlOrderingDirection[1].indexOf('=') + 1);
+
+                        var ascDec;
+                        if (orderByDirection === 'desc') {
+                            ascDec = '';
+                        } else {
+                            ascDec = '-';
+                        }
+
+                        settings.url = settings.url + "&ordering=" +
+                            ascDec + columnLabelHash[orderByColumn];
+                    }
+
+                    console.log('final url: ', settings.url);
+
                 },
                 dataFilter: function(data) {
 
