@@ -56,7 +56,12 @@ class ElasticViewSetMixin(object):
                 elif k in self.MODIFIERS and v.lower == "true":
                     result['modifier'][k] = v
                 elif k == "ordering":
-                    result['order_by'] = v
+                    mapping = self.model.get_mapping()
+                    if v in mapping['properties'] and \
+                            mapping['properties'][v]['type'] == 'string':
+                        result['order_by'] = v + ".raw"
+                    else:
+                        result['order_by'] = v
                 elif k not in ['page', 'page_size']:
                     result['filter_kwargs'][k] = v
 
