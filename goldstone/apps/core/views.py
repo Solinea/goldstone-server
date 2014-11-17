@@ -29,7 +29,7 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet, \
 logger = logging.getLogger(__name__)
 
 
-class ElasticViewSet(ModelViewSet):
+class ElasticViewSetMixin(object):
     QUERY_OPS = ["match", "fuzzy", "wildcard", "match_phrase", "query_string"]
     FILTER_OPS = ["in", "prefix", "gte", "lte", "gt", "lt"]
     MODIFIERS = ["should", "must", "must_not"]
@@ -56,7 +56,12 @@ class ElasticViewSet(ModelViewSet):
                 elif k in self.MODIFIERS and v.lower == "true":
                     result['modifier'][k] = v
                 elif k == "ordering":
-                    result['order_by'] = v
+                    mapping = self.model.get_mapping()
+                    if v in mapping['properties'] and \
+                            mapping['properties'][v]['type'] == 'string':
+                        result['order_by'] = v + ".raw"
+                    else:
+                        result['order_by'] = v
                 elif k not in ['page', 'page_size']:
                     result['filter_kwargs'][k] = v
 
@@ -97,6 +102,14 @@ class ElasticViewSet(ModelViewSet):
             return obj
         else:
             raise Http404
+
+
+class ElasticViewSet(ElasticViewSetMixin, ModelViewSet):
+    pass
+
+
+class ReadOnlyElasticViewSet(ElasticViewSetMixin, ReadOnlyModelViewSet):
+    pass
 
 
 class NodeViewSet(ModelViewSet):
@@ -167,8 +180,7 @@ class EventViewSet(ElasticViewSet):
     ordering = '-created'
 
 
-# TODO should this be a read only viewset?
-class MetricViewSet(ElasticViewSet):
+class MetricViewSet(ReadOnlyElasticViewSet):
     model = MetricType
     serializer_class = MetricSerializer
     lookup_field = '_id'
@@ -179,8 +191,7 @@ class MetricViewSet(ElasticViewSet):
         return HttpResponseNotAllowed('')
 
 
-# TODO should this be a read only viewset?
-class ReportViewSet(ElasticViewSet):
+class ReportViewSet(ReadOnlyElasticViewSet):
     model = ReportType
     serializer_class = ReportSerializer
     lookup_field = "_id"
