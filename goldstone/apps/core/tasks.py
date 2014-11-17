@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from elasticutils import get_es
 
 __author__ = 'stanford'
 
@@ -28,7 +29,9 @@ logger = logging.getLogger(__name__)
 
 def get_es_connection(server=settings.ES_SERVER):
     try:
-        return Elasticsearch(server, sniff_on_start=True)
+        es = get_es(urls=[server], timeout=10,
+                    max_retries=3)
+        return es
     except exceptions.TransportError:
         logger.error("Could not connect to ElasticSearch.")
         raise
