@@ -25,8 +25,15 @@
 
 {% block localjs %}
     <script src="{% static 'js/cinder.js' %}"></script>
+    <script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
+
     <script>
 $(document).ready(function () {
+
+    new GlobalLookbackRefreshButtonsView({
+        el: ".global-range-refresh-container"
+    });
+
     var nsReport = goldstone.cinder.report;
     var nsApiPerf = goldstone.cinder.apiPerf;
     nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf);
