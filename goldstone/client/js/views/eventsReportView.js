@@ -169,7 +169,7 @@ var EventsReportView = Backbone.View.extend({
                         var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
 
                         var ascDec;
-                        if (orderByDirection === 'desc') {
+                        if (orderByDirection === 'asc') {
                             ascDec = '';
                         } else {
                             ascDec = '-';
