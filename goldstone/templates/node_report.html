@@ -108,10 +108,17 @@
     <script src="{% static 'js/nodeReport.js' %}"></script>
     <script src="{% static 'js/views/reportsReportView.js' %}"></script>
     <script src="{% static 'js/views/eventsReportView.js' %}"></script>
+    <script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
+
     <script>
     var node_uuid = "{{ node_uuid | escapejs }}";
     var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
     $(function() {
+
+        new GlobalLookbackRefreshButtonsView({
+            el: ".global-range-refresh-container"
+        });
+
         $("#reportsReport").hide();
         $("#eventsReport").hide();
         $("button#headerBar").click(function() {
