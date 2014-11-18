@@ -184,12 +184,6 @@ var UtilizationNetView = Backbone.View.extend({
 
         var allthelogs = this.collectionPrep();
 
-
-        // default 120 second refresh interval
-        setTimeout(function() {
-            self.collection.fetchMultipleUrls();
-        }, 120000);
-
         // If we didn't receive any valid files, append "No Data Returned"
         if (allthelogs.length === 0) {
 
