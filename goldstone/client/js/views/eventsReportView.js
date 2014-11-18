@@ -26,15 +26,9 @@ var EventsReportView = Backbone.View.extend({
         // which means it is run again before every dataTables server query
 
         var now = +new Date();
-        var oneDayAgo = (+new Date()) - (1000 * 60 * 60 * 24);
-        var oneHourAgo = (+new Date()) - (1000 * 60 * 60);
-        var oneWeekAgo = (+new Date()) - (1000 * 60 * 60 * 24 * 7);
-
-        // default to 24 hour lookback
+        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
         var urlRouteConstruction = '/core/events?source_name=' +
-            this.defaults.hostName + '&created__lte=' + now + '&created__gte=' +
-            oneDayAgo;
-
+            this.defaults.hostName + '&created__lte=' + now + '&created__gte=' + lookback;
         this.defaults.url = urlRouteConstruction;
 
     },
@@ -45,6 +39,7 @@ var EventsReportView = Backbone.View.extend({
         this.el = options.el;
         this.defaults.width = options.width;
         this.defaults.hostName = options.nodeName;
+        this.defaults.globalLookback = options.globalLookback;
 
         var ns = this.defaults;
         var self = this;
