@@ -33,7 +33,6 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
     },
 
     render: function() {
-        console.log('rendering');
         this.$el.html(this.template());
         return this;
     },
