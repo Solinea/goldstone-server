@@ -50,6 +50,7 @@ var UtilizationMemCollection = Backbone.Collection.extend({
         this.defaults.urlPrefixes = ['total', 'free'];
         this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
         this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
+        this.defaults.globalLookback = options.globalLookback;
         this.fetchMultipleUrls();
     },
 
@@ -62,15 +63,17 @@ var UtilizationMemCollection = Backbone.Collection.extend({
 
         this.defaults.fetchInProgress = true;
         this.defaults.urlsToFetch = [];
-        var dayAgo = +new Date() - (1000 * 60 * 60 * 24);
+
+        // grabs minutes from global selector option value
+        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
 
         this.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.mem." + this.defaults.urlPrefixes[0] + "&node=" +
             this.defaults.nodeName + "&timestamp__gte=" +
-            dayAgo + "&page_size=1");
+            lookback + "&page_size=1");
 
         this.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.mem." + this.defaults.urlPrefixes[1] + "&node=" +
             this.defaults.nodeName + "&timestamp__gte=" +
-            dayAgo + "&page_size=1000");
+            lookback + "&page_size=1000");
 
         this.fetch({
 
