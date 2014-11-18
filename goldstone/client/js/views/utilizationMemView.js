@@ -184,12 +184,6 @@ var UtilizationMemView = Backbone.View.extend({
 
         var allthelogs = this.collectionPrep();
 
-
-        // default 30 second refresh interval
-        setTimeout(function() {
-            self.collection.fetchMultipleUrls();
-        }, 30000);
-
         // If we didn't receive any valid files, append "No Data Returned"
         if (allthelogs.length === 0) {
 
