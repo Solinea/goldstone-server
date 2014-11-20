@@ -109,10 +109,16 @@ var EventsReportView = Backbone.View.extend({
             "order": [
                 [0, 'desc']
             ],
-            "ordering": false,
+            "ordering": true,
             "serverSide": true,
             "ajax": {
                 beforeSend: function(obj, settings) {
+
+                    // warning: as dataTable features are enabled/
+                    // disabled , check if the structure of settings.
+                    // url changes significantly. Be sure to
+                    // reference the correct array indices when
+                    // comparing, or scraping data
 
                     self.urlGen();
 
@@ -121,11 +127,45 @@ var EventsReportView = Backbone.View.extend({
                     var paginationStart = settings.url.match(/start=\d{1,}&/gi);
                     paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
                     var computeStartPage = Math.floor(paginationStart / pageSize) + 1;
+                    var urlColumnOrdering = decodeURIComponent(settings.url).match(/order\[0\]\[column\]=\d*/gi);
+
+                    // capture which column was clicked
+                    // and which direction the sort is called for
+
+                    var urlOrderingDirection = decodeURIComponent(settings.url).match(/order\[0\]\[dir\]=(asc|desc)/gi);
                     settings.url = self.defaults.url + "&page_size=" + pageSize + "&page=" + computeStartPage;
 
                     if (searchQuery) {
                         settings.url = settings.url + "&message__prefix=" + searchQuery;
                     }
+
+                    // if no interesting sort, ignore it
+                    if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
+                        // or, if something has changed, capture the
+                        // column to sort by, and the sort direction
+
+                        var columnLabelHash = {
+                            0: 'created',
+                            1: 'event_type',
+                            2: 'message'
+                        };
+
+                        var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
+
+                        var orderByDirection = urlOrderingDirection[0].slice(urlOrderingDirection[0].indexOf('=') + 1);
+
+                        var ascDec;
+                        if (orderByDirection === 'asc') {
+                            ascDec = '';
+                        } else {
+                            ascDec = '-';
+                        }
+
+                        settings.url = settings.url + "&ordering=" +
+                            ascDec + columnLabelHash[orderByColumn];
+                    }
+
+
                 },
                 dataFilter: function(data) {
 
