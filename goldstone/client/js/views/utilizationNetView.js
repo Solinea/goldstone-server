@@ -21,9 +21,9 @@ var UtilizationNetView = Backbone.View.extend({
     defaults: {
         margin: {
             top: 20,
-            right: 40,
+            right: 33,
             bottom: 25,
-            left: 33
+            left: 50
         }
     },
 
