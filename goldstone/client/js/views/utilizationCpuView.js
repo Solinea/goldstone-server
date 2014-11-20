@@ -228,6 +228,9 @@ var UtilizationCpuView = Backbone.View.extend({
             return d.date;
         }));
 
+        ns.svg.selectAll('.component')
+            .remove();
+
         var component = ns.svg.selectAll(".component")
             .data(components)
             .enter().append("g")

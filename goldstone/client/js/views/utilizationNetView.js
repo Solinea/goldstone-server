@@ -236,10 +236,12 @@ var UtilizationNetView = Backbone.View.extend({
             return d.date;
         }));
 
-        //TODO: dynamic y.domain
         ns.y.domain([0, d3.max(allthelogs, function(d) {
             return d.rx + d.tx;
         })]);
+
+        ns.svg.selectAll('.component')
+            .remove();
 
         var component = ns.svg.selectAll(".component")
             .data(components)
