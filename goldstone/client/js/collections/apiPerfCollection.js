@@ -20,6 +20,8 @@
 
 var ApiPerfCollection = Backbone.Collection.extend({
 
+    defaults: {},
+
     parse: function(data) {
         return JSON.parse(data);
     },
@@ -27,7 +29,21 @@ var ApiPerfCollection = Backbone.Collection.extend({
     model: ApiPerfModel,
 
     initialize: function(options) {
-        this.url = options.url;
+        this.options = options || {};
+        this.defaults = _.clone(this.defaults);
+        this.defaults.urlPrefix = this.options.urlPrefix;
+        this.defaults.reportParams = {};
+        this.defaults.globalLookback = $('#global-lookback-range').val();
+        this.urlGenerator();
         this.fetch();
+    },
+
+    urlGenerator: function() {
+        var ns = this.defaults;
+
+        ns.reportParams.end = +new Date();
+        ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
+        ns.reportParams.interval = '' + Math.round(0.357 * ns.globalLookback) + "s";
+        this.url = goldstone[this.defaults.urlPrefix].apiPerf.url(ns.reportParams.start, ns.reportParams.end, ns.reportParams.interval, false);
     }
 });
