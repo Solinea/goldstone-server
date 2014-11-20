@@ -51,6 +51,13 @@ var UtilizationNetView = Backbone.View.extend({
 
         });
 
+        // this is triggered by a listener set on nodeReportView.js
+        this.on('selectorChanged', function() {
+            this.collection.defaults.globalLookback = $('#global-lookback-range').val();
+            this.collection.fetchMultipleUrls();
+            $(this.el).find('#spinner').show();
+        });
+
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.width - ns.margin.top - ns.margin.bottom;
 
@@ -146,8 +153,7 @@ var UtilizationNetView = Backbone.View.extend({
             } else {
                 if (serviceName.indexOf('tx') >= 0) {
                     metric = 'tx';
-                } else {
-                }
+                } else {}
             }
 
             newData[item.timestamp][metric] += item.value;

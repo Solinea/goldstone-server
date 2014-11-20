@@ -25,15 +25,21 @@ var NodeReportView = Backbone.View.extend({
         this.defaults = _.clone(this.defaults);
         this.el = options.el;
         this.node_uuid = options.node_uuid;
-        this.defaults.globalLookback = options.globalLookback;
+        this.defaults.globalLookback = null;
+        this.defaults.globalRefresh = null;
 
         var ns = this.defaults;
         var self = this;
 
         this.render();
         this.initializeChartButtons();
+        this.getGlobalLookbackRefresh();
         this.renderCharts();
+    },
 
+    getGlobalLookbackRefresh: function() {
+        this.defaults.globalLookback = $('#global-lookback-range').val();
+        this.defaults.globalRefresh = $('#global-refresh-range').val();
     },
 
     initializeChartButtons: function() {
@@ -54,73 +60,6 @@ var NodeReportView = Backbone.View.extend({
         this.$el.html(this.template());
         return this;
     },
-
-    template: _.template('' +
-        '<div id="node-report-r1" class="row">' +
-        '<div id="node-report-r1-c1" class="col-md-12">' +
-        '<h1><%= node_uuid %></h1>' +
-        '</div>' +
-        '</div>' +
-        '<div id="node-report-main" class="col-md-12">' +
-
-        '<!-- buttons -->' +
-        '<div class="btn-group">' +
-        '<button type="button" id="headerBar" class="servicesButton active btn ' + 'btn-default">Services</button>' +
-        '<button type="button" id="headerBar" class="reportsButton btn btn-' + 'default">Reports</button>' +
-        '<button type="button" id="headerBar" class="eventsButton btn btn-' + 'default">Events</button><br><br>' +
-        '</div>' +
-
-        '<div id="main-container" class="col-md-12">' +
-        '<div id="node-report-panel" class="panel panel-primary">' +
-        '<div id="servicesReport">' +
-
-        '<!-- placeholder for title bar and info popover -->' +
-        '<div id="service-status-title-bar"></div>' +
-        '<div style="margin-left: 14px;" id="node-report-r2" class="row">' +
-        '</div>' +
-        '<div id="node-report-r3" class="row">' +
-        '<div id="node-report-r3-c1" class="col-md-12">' +
-
-        '<!-- placeholder for title bar and info popover -->' +
-        '<div id="utilization-title-bar"></div>' +
-        '<div id="node-report-panel" class="panel panel-primary">' +
-        '<div class="well col-md-4" id="cpu-usage">' +
-        '<h4 class="text-center">CPU Usage</h4>' +
-        '</div>' +
-        '<div class="well col-md-4" id="memory-usage">' +
-        '<h4 class="text-center">Memory Usage</h4>' +
-        '</div>' +
-        '<div class="well col-md-4" id="network-usage">' +
-        '<h4 class="text-center">Network Usage</h4>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '<div id="node-report-r4" class="row">' +
-        '<div id="node-report-r4-c1" class="col-md-12">' +
-
-        '<!-- placeholder for title bar and info popover -->' +
-        '<div id="hypervisor-title-bar"></div>' +
-        '<div id="node-report-panel" class="panel panel-primary">' +
-        '<div class="well col-md-3 text-center" id="cores-usage">' +
-        'Cores' +
-        '</div>' +
-        '<div class="well col-md-3 text-center" id="memory-usage">' +
-        'Memory' +
-        '</div>' +
-        '<div class="well col-md-6" id="vm-cpu-usage">' +
-        'Per VM CPU Usage' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '<div class="col-md-12" id="reportsReport">&nbsp;</div>' +
-        '<div class="col-md-12" id="eventsReport">&nbsp;</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>'
-    ),
 
     renderCharts: function() {
 
@@ -268,6 +207,92 @@ var NodeReportView = Backbone.View.extend({
             nodeName: hostName,
             globalLookback: ns.globalLookback
         });
-    }
+
+
+
+        //----------------------------
+        // wire up listeners between global selectors and charts
+
+        var triggerChange = function() {
+            cpuUsageView.trigger('selectorChanged');
+            memoryUsageView.trigger('selectorChanged');
+            networkUsageView.trigger('selectorChanged');
+            eventsReport.trigger('selectorChanged');
+        };
+        // change listeners for global selectors
+        $('#global-refresh-range').on('change', function() {
+            triggerChange();
+        });
+        $('#global-lookback-range').on('change', function() {
+            triggerChange();
+        });
+    },
+
+    template: _.template('' +
+        '<div id="node-report-r1" class="row">' +
+        '<div id="node-report-r1-c1" class="col-md-12">' +
+        '<h1><%= node_uuid %></h1>' +
+        '</div>' +
+        '</div>' +
+        '<div id="node-report-main" class="col-md-12">' +
+
+        '<!-- buttons -->' +
+        '<div class="btn-group">' +
+        '<button type="button" id="headerBar" class="servicesButton active btn ' + 'btn-default">Services</button>' +
+        '<button type="button" id="headerBar" class="reportsButton btn btn-' + 'default">Reports</button>' +
+        '<button type="button" id="headerBar" class="eventsButton btn btn-' + 'default">Events</button><br><br>' +
+        '</div>' +
+
+        '<div id="main-container" class="col-md-12">' +
+        '<div id="node-report-panel" class="panel panel-primary">' +
+        '<div id="servicesReport">' +
+
+        '<!-- placeholder for title bar and info popover -->' +
+        '<div id="service-status-title-bar"></div>' +
+        '<div style="margin-left: 14px;" id="node-report-r2" class="row">' +
+        '</div>' +
+        '<div id="node-report-r3" class="row">' +
+        '<div id="node-report-r3-c1" class="col-md-12">' +
+
+        '<!-- placeholder for title bar and info popover -->' +
+        '<div id="utilization-title-bar"></div>' +
+        '<div id="node-report-panel" class="panel panel-primary">' +
+        '<div class="well col-md-4" id="cpu-usage">' +
+        '<h4 class="text-center">CPU Usage</h4>' +
+        '</div>' +
+        '<div class="well col-md-4" id="memory-usage">' +
+        '<h4 class="text-center">Memory Usage</h4>' +
+        '</div>' +
+        '<div class="well col-md-4" id="network-usage">' +
+        '<h4 class="text-center">Network Usage</h4>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '<div id="node-report-r4" class="row">' +
+        '<div id="node-report-r4-c1" class="col-md-12">' +
+
+        '<!-- placeholder for title bar and info popover -->' +
+        '<div id="hypervisor-title-bar"></div>' +
+        '<div id="node-report-panel" class="panel panel-primary">' +
+        '<div class="well col-md-3 text-center" id="cores-usage">' +
+        'Cores' +
+        '</div>' +
+        '<div class="well col-md-3 text-center" id="memory-usage">' +
+        'Memory' +
+        '</div>' +
+        '<div class="well col-md-6" id="vm-cpu-usage">' +
+        'Per VM CPU Usage' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '<div class="col-md-12" id="reportsReport">&nbsp;</div>' +
+        '<div class="col-md-12" id="eventsReport">&nbsp;</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>'
+    )
 
 });
