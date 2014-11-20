@@ -46,7 +46,6 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         '<div class="col-xl-1">' +
         '<div class="input-group">' +
         '<select class="form-control" id="global-refresh-range">' +
-        '<option value="15">refresh 15s</option>' +
         '<option value="30" selected>refresh 30s</option>' +
         '<option value="60">refresh 1m</option>' +
         '<option value="300">refresh 5m</option>' +
