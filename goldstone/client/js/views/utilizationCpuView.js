@@ -257,7 +257,8 @@ var UtilizationCpuView = Backbone.View.extend({
             })
             .attr("x", 1)
             .attr("y", function(d, i) {
-                return -i * 8;
+                // make space between the labels
+                return -i * 3;
             })
             .style("font-size", ".8em")
             .text(function(d) {
