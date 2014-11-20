@@ -47,13 +47,13 @@ var ApiPerfView = Backbone.View.extend({
         this.defaults = _.clone(this.defaults);
 
         this.defaults.chartTitle = this.options.chartTitle;
-        this.defaults.end = this.options.startStopInterval.end;
         this.defaults.height = this.options.height;
         this.defaults.infoCustom = this.options.infoCustom;
-        this.defaults.interval = this.options.startStopInterval.interval;
         this.el = this.options.el;
-        this.defaults.start = this.options.startStopInterval.start;
         this.defaults.width = this.options.width;
+        this.defaults.start = this.collection.defaults.reportParams.start;
+        this.defaults.end = this.collection.defaults.reportParams.end;
+        this.defaults.interval = this.collection.defaults.reportParams.interval;
 
         // easy to pass in a unique yAxisLabel. This pattern can be
         // expanded to any variable to allow overriding the default.
@@ -61,11 +61,28 @@ var ApiPerfView = Backbone.View.extend({
             this.defaults.yAxisLabel = this.options.yAxisLabel;
         }
 
+        var ns = this.defaults;
+        var self = this;
+
         // registers 'sync' event so view 'watches' collection for data update
         this.collection.on('sync', this.update, this);
 
-        var ns = this.defaults;
-        var self = this;
+        // this is triggered by a listener set on nodeReportView.js
+        this.on('selectorChanged', function() {
+            this.collection.defaults.globalLookback = $('#global-lookback-range').val();
+            this.collection.urlGenerator();
+            this.collection.fetch();
+            this.defaults.start = this.collection.defaults.reportParams.start;
+            this.defaults.end = this.collection.defaults.reportParams.end;
+            this.defaults.interval = this.collection.defaults.reportParams.interval;
+
+            $(this.el).find('#api-perf-info').popover({
+                content: this.htmlGen.apply(this),
+            });
+
+            $(this.el).find('#spinner').show();
+        });
+
 
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
@@ -102,7 +119,7 @@ var ApiPerfView = Backbone.View.extend({
             .style("text-anchor", "middle");
 
         // chart info button popover generator
-        var htmlGen = function() {
+        this.htmlGen = function() {
             var start = moment(goldstone.time.fromPyTs(ns.start / 1000)).format();
             var end = moment(goldstone.time.fromPyTs(ns.end / 1000)).format();
             var custom = _.map(ns.infoCustom, function(e) {
@@ -118,7 +135,9 @@ var ApiPerfView = Backbone.View.extend({
 
         $(this.el).find('#api-perf-info').popover({
             trigger: 'manual',
-            content: htmlGen.apply(this),
+            content: function() {
+                return self.htmlGen.apply(this);
+            },
             placement: 'bottom',
             html: 'true'
         })
@@ -142,6 +161,7 @@ var ApiPerfView = Backbone.View.extend({
         var json = this.collection.toJSON();
         var mw = ns.mw;
         var mh = ns.mh;
+
 
         if (this.collection.toJSON().length === 0) {
 

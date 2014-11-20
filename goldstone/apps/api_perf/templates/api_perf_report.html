@@ -36,6 +36,7 @@ var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
 
 // set start / end / interval of chart data request to server
+// this is currently not being used by the ApiPerfReportView
 var nsReport = {
     start: goldstone.time.fromPyTs({{ start_ts|to_js }}),
     end: goldstone.time.fromPyTs({{ end_ts|to_js }}),
@@ -48,7 +49,6 @@ var instantiateCharts = function(){
     // in the following backbone view:
     new ApiPerfReportView({
         el: ".api-perf-report-container",
-        nsReport: nsReport
     });
 };
 

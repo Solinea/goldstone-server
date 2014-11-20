@@ -107,7 +107,7 @@ var ApiPerfReportView = Backbone.View.extend({
         // instantiate nova api chart
 
         this.novaApiPerfChart = new ApiPerfCollection({
-            url: goldstone.nova.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false)
+            urlPrefix: 'nova',
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
@@ -119,7 +119,6 @@ var ApiPerfReportView = Backbone.View.extend({
                 value: "Hypervisor Show"
             }],
             el: '#api-perf-report-r1-c1',
-            startStopInterval: nsReport,
             width: $('#api-perf-report-r1-c1').width()
         });
 
@@ -128,7 +127,7 @@ var ApiPerfReportView = Backbone.View.extend({
         // instantiate neutron api chart
 
         this.neutronApiPerfChart = new ApiPerfCollection({
-            url: goldstone.neutron.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false)
+            urlPrefix: 'neutron',
         });
 
         this.neutronApiPerfChartView = new ApiPerfView({
@@ -140,7 +139,6 @@ var ApiPerfReportView = Backbone.View.extend({
                 value: "Agent List"
             }],
             el: '#api-perf-report-r1-c2',
-            startStopInterval: nsReport,
             width: $('#api-perf-report-r1-c2').width()
         });
 
@@ -148,7 +146,7 @@ var ApiPerfReportView = Backbone.View.extend({
         // instantiate keystone api chart
 
         this.keystoneApiPerfChart = new ApiPerfCollection({
-            url: goldstone.keystone.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false)
+            urlPrefix: 'keystone',
         });
 
         this.keystoneApiPerfChartView = new ApiPerfView({
@@ -160,7 +158,6 @@ var ApiPerfReportView = Backbone.View.extend({
                 value: "Authenticate"
             }],
             el: '#api-perf-report-r2-c1',
-            startStopInterval: nsReport,
             width: $('#api-perf-report-r2-c1').width()
         });
 
@@ -168,7 +165,7 @@ var ApiPerfReportView = Backbone.View.extend({
         // instantiate glance api chart
 
         this.glanceApiPerfChart = new ApiPerfCollection({
-            url: goldstone.glance.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false)
+            urlPrefix: 'glance',
         });
 
         this.glanceApiPerfChartView = new ApiPerfView({
@@ -180,7 +177,6 @@ var ApiPerfReportView = Backbone.View.extend({
                 value: "Image Show"
             }],
             el: '#api-perf-report-r2-c2',
-            startStopInterval: nsReport,
             width: $('#api-perf-report-r2-c2').width()
         });
 
@@ -188,7 +184,7 @@ var ApiPerfReportView = Backbone.View.extend({
         // instantiate cinder api chart
 
         this.cinderApiPerfChart = new ApiPerfCollection({
-            url: goldstone.cinder.apiPerf.url(nsReport.start, nsReport.end, nsReport.interval, false)
+            urlPrefix: 'cinder',
         });
 
         this.cinderApiPerfChartView = new ApiPerfView({
@@ -200,7 +196,6 @@ var ApiPerfReportView = Backbone.View.extend({
                 value: "Service List"
             }],
             el: '#api-perf-report-r3-c1',
-            startStopInterval: nsReport,
             width: $('#api-perf-report-r3-c1').width()
         });
 
