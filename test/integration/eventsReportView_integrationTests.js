@@ -47,7 +47,7 @@ describe('eventsReportView.js spec', function() {
             expect($('#events-report-table').length).to.equal(1);
         });
         it('should have 3 headers', function() {
-            expect($('.sorting_disabled').length).to.equal(3);
+            expect($('.sorting').length).to.equal(3);
         });
         it('should have a search box', function() {
             expect($('input.form-control.input-sm').length).to.equal(1);

@@ -44,6 +44,10 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
+        lookup_field = '_id'
+
+    def transform_created(self, obj, field_value):
+        return arrow.get(field_value).isoformat()
 
 
 class MetricSerializer(serializers.ModelSerializer):
