@@ -30,7 +30,6 @@ var EventsReportView = Backbone.View.extend({
         var urlRouteConstruction = '/core/events?source_name=' +
             this.defaults.hostName + '&created__lte=' + now + '&created__gte=' + lookback;
         this.defaults.url = urlRouteConstruction;
-
     },
 
     initialize: function(options) {
@@ -60,6 +59,12 @@ var EventsReportView = Backbone.View.extend({
 
         // appends display and modal html elements to this.el
         this.render();
+
+        // this is triggered by a listener set on nodeReportView.js
+        this.on('selectorChanged', function() {
+            this.defaults.globalLookback = $('#global-lookback-range').val();
+        });
+
     },
 
     dataPrep: function(data) {

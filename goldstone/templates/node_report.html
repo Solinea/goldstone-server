@@ -62,8 +62,7 @@
         // in the following backbone view:
         new NodeReportView({
             el: ".node-report-container",
-            node_uuid: node_uuid,
-            globalLookback: $('#global-lookback-range').val()
+            node_uuid: node_uuid
         });
     };
 
@@ -75,17 +74,6 @@
         });
 
         instantiateCharts();
-
-        // click listeners for global selectors
-        $('#global-refresh-range').on('change', function(){
-            /* TODO: set up setTimeout logic to refresh charts */
-            conatinerReset();
-            instantiateCharts();
-        });
-        $('#global-lookback-range').on('change', function(){
-            conatinerReset();
-            instantiateCharts();
-        });
 
     });
     </script>
