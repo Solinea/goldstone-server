@@ -239,6 +239,9 @@ var UtilizationMemView = Backbone.View.extend({
 
         ns.y.domain([0, ns.memTotal.value / ns.divisor]);
 
+        ns.svg.selectAll('.component')
+            .remove();
+
         var component = ns.svg.selectAll(".component")
             .data(components)
             .enter().append("g")
