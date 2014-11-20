@@ -28,7 +28,7 @@ Author: John Stanford
 <script src="{% static 'js/collections/apiPerfCollection.js' %}"></script>
 <script src="{% static 'js/views/apiPerfView.js' %}"></script>
 <script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
-<script src="{% static 'js/api_perf.js' %}"></script>
+<script src="{% static 'js/views/apiPerfReportView.js' %}"></script>
 <script>
 
 // assign "ajax-loader-solinea-blue" spinner gif
@@ -42,29 +42,27 @@ var nsReport = {
     interval: {{ interval|to_js }}
 };
 
+var instantiateCharts = function(){
+
+    // this page's previous HTML and JavaScript now encapsulated
+    // in the following backbone view:
+    new ApiPerfReportView({
+        el: ".api-perf-report-container",
+        nsReport: nsReport
+    });
+};
+
 $(document).ready(function () {
     new GlobalLookbackRefreshButtonsView({
         el: ".global-range-refresh-container"
     });
 
-    renderApiPerfCharts();
+    instantiateCharts();
 });
 
 </script>
 
 {% endblock %}
 {% block content %}
-
-<div id="api-perf-report-r1" class="row">
-    <div id="api-perf-report-r1-c1" class="col-md-6"></div>
-    <div id="api-perf-report-r1-c2" class="col-md-6"></div>
-</div>
-<div id="api-perf-report-r2" class="row">
-    <div id="api-perf-report-r2-c1" class="col-md-6"></div>
-    <div id="api-perf-report-r2-c2" class="col-md-6"></div>
-</div>
-<div id="api-perf-report-r3" class="row">
-    <div id="api-perf-report-r3-c1" class="col-md-6"></div>
-    <div id="api-perf-report-r3-c2" class="col-md-6"></div>
-</div>
+<div class="api-perf-report-container"></div>
 {% endblock %}
