@@ -35,11 +35,57 @@ var NodeReportView = Backbone.View.extend({
         this.initializeChartButtons();
         this.getGlobalLookbackRefresh();
         this.renderCharts();
+        this.setGlobalLookbackRefreshTriggers();
+        this.scheduleInterval();
+    },
+
+    clearScheduledInterval: function() {
+        var ns = this.defaults;
+        clearInterval(ns.scheduleInterval);
+    },
+
+    scheduleInterval: function() {
+        var self = this;
+        var ns = this.defaults;
+
+        var intervalDelay = ns.globalRefresh * 1000;
+
+        if (intervalDelay < 0) {
+            return true;
+        }
+
+        ns.scheduleInterval = setInterval(function() {
+            self.triggerChange();
+        }, intervalDelay);
     },
 
     getGlobalLookbackRefresh: function() {
         this.defaults.globalLookback = $('#global-lookback-range').val();
         this.defaults.globalRefresh = $('#global-refresh-range').val();
+    },
+
+    triggerChange: function() {
+        this.cpuUsageView.trigger('selectorChanged');
+        this.memoryUsageView.trigger('selectorChanged');
+        this.networkUsageView.trigger('selectorChanged');
+        this.eventsReport.trigger('selectorChanged');
+    },
+
+    setGlobalLookbackRefreshTriggers: function() {
+        var self = this;
+        // wire up listeners between global selectors and charts
+        // change listeners for global selectors
+        $('#global-lookback-range').on('change', function() {
+            self.getGlobalLookbackRefresh();
+            self.triggerChange();
+            self.clearScheduledInterval();
+            self.scheduleInterval();
+        });
+        $('#global-refresh-range').on('change', function() {
+            self.getGlobalLookbackRefresh();
+            self.clearScheduledInterval();
+            self.scheduleInterval();
+        });
     },
 
     initializeChartButtons: function() {
@@ -96,12 +142,12 @@ var NodeReportView = Backbone.View.extend({
 
         //---------------------------
         // instantiate Service status chart
-        var serviceStatusChart = new ServiceStatusCollection({
+        this.serviceStatusChart = new ServiceStatusCollection({
             nodeName: hostName
         });
 
-        var serviceStatusChartView = new ServiceStatusView({
-            collection: serviceStatusChart,
+        this.serviceStatusChartView = new ServiceStatusView({
+            collection: this.serviceStatusChart,
             el: '#node-report-main #node-report-r2',
             width: $('#node-report-main #node-report-r2').width(),
             globalLookback: ns.globalLookback
@@ -109,26 +155,26 @@ var NodeReportView = Backbone.View.extend({
 
         //---------------------------
         // instantiate CPU Usage chart
-        var cpuUsageChart = new UtilizationCpuCollection({
+        this.cpuUsageChart = new UtilizationCpuCollection({
             nodeName: hostName,
             globalLookback: ns.globalLookback
         });
 
-        var cpuUsageView = new UtilizationCpuView({
-            collection: cpuUsageChart,
+        this.cpuUsageView = new UtilizationCpuView({
+            collection: this.cpuUsageChart,
             el: '#node-report-r3 #node-report-panel #cpu-usage',
             width: $('#node-report-r3 #node-report-panel #cpu-usage').width()
         });
 
         //---------------------------
         // instantiate Memory Usage chart
-        var memoryUsageChart = new UtilizationMemCollection({
+        this.memoryUsageChart = new UtilizationMemCollection({
             nodeName: hostName,
             globalLookback: ns.globalLookback
         });
 
-        var memoryUsageView = new UtilizationMemView({
-            collection: memoryUsageChart,
+        this.memoryUsageView = new UtilizationMemView({
+            collection: this.memoryUsageChart,
             el: '#node-report-r3 #node-report-panel #memory-usage',
             width: $('#node-report-r3 #node-report-panel #memory-usage').width()
         });
@@ -136,26 +182,26 @@ var NodeReportView = Backbone.View.extend({
         //---------------------------
         // instantiate Network Usage chart
 
-        var networkUsageChart = new UtilizationNetCollection({
+        this.networkUsageChart = new UtilizationNetCollection({
             nodeName: hostName,
             globalLookback: ns.globalLookback
         });
 
-        var networkUsageView = new UtilizationNetView({
-            collection: networkUsageChart,
+        this.networkUsageView = new UtilizationNetView({
+            collection: this.networkUsageChart,
             el: '#node-report-r3 #node-report-panel #network-usage',
             width: $('#node-report-r3 #node-report-panel #network-usage').width()
         });
 
         //---------------------------
         // instantiate Libvirt core/vm chart
-        var hypervisorCoreChart = new HypervisorCollection({
+        this.hypervisorCoreChart = new HypervisorCollection({
             url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false",
             globalLookback: ns.globalLookback
         });
 
-        var hypervisorCoreView = new HypervisorView({
-            collection: hypervisorCoreChart,
+        this.hypervisorCoreView = new HypervisorView({
+            collection: this.hypervisorCoreChart,
             el: '#node-report-r4 #node-report-panel #cores-usage',
             width: $('#node-report-r4 #node-report-panel #cores-usage').width(),
             axisLabel: "Cores"
@@ -164,12 +210,12 @@ var NodeReportView = Backbone.View.extend({
 
         //---------------------------
         // instantiate Libvirt mem/vm  chart
-        var hypervisorMemoryChart = new HypervisorCollection({
+        this.hypervisorMemoryChart = new HypervisorCollection({
             url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false",
             globalLookback: ns.globalLookback
         });
-        var hypervisorMemoryView = new HypervisorView({
-            collection: hypervisorMemoryChart,
+        this.hypervisorMemoryView = new HypervisorView({
+            collection: this.hypervisorMemoryChart,
             el: '#node-report-r4 #node-report-panel #memory-usage',
             width: $('#node-report-r4 #node-report-panel #memory-usage').width(),
             axisLabel: "GB"
@@ -177,13 +223,13 @@ var NodeReportView = Backbone.View.extend({
 
         //---------------------------
         // instantiate Libvirt top 10 CPU consumer VMs chart
-        var hypervisorVmCpuChart = new HypervisorVmCpuCollection({
+        this.hypervisorVmCpuChart = new HypervisorVmCpuCollection({
             url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false",
             globalLookback: ns.globalLookback
         });
 
-        var hypervisorVmCpuView = new HypervisorVmCpuView({
-            collection: hypervisorVmCpuChart,
+        this.hypervisorVmCpuView = new HypervisorVmCpuView({
+            collection: this.hypervisorVmCpuChart,
             el: '#node-report-r4 #node-report-panel #vm-cpu-usage',
             width: $('#node-report-r4 #node-report-panel #vm-cpu-usage').width()
         });
@@ -191,7 +237,7 @@ var NodeReportView = Backbone.View.extend({
         //---------------------------
         // instantiate Reports tab data
 
-        var reportsReport = new ReportsReportView({
+        this.reportsReport = new ReportsReportView({
             el: '#node-report-panel #reportsReport',
             width: $('#node-report-panel #reportsReport').width(),
             nodeName: hostName,
@@ -201,30 +247,11 @@ var NodeReportView = Backbone.View.extend({
         //---------------------------
         // instantiate Events tab data
 
-        var eventsReport = new EventsReportView({
+        this.eventsReport = new EventsReportView({
             el: '#node-report-panel #eventsReport',
             width: $('#node-report-panel #eventsReport').width(),
             nodeName: hostName,
             globalLookback: ns.globalLookback
-        });
-
-
-
-        //----------------------------
-        // wire up listeners between global selectors and charts
-
-        var triggerChange = function() {
-            cpuUsageView.trigger('selectorChanged');
-            memoryUsageView.trigger('selectorChanged');
-            networkUsageView.trigger('selectorChanged');
-            eventsReport.trigger('selectorChanged');
-        };
-        // change listeners for global selectors
-        $('#global-refresh-range').on('change', function() {
-            triggerChange();
-        });
-        $('#global-lookback-range').on('change', function() {
-            triggerChange();
         });
     },
 
