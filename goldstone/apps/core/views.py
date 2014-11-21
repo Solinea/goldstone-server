@@ -40,6 +40,7 @@ class ElasticViewSetMixin(object):
     ordering = None
 
     def _process_params(self, params):
+
         result = {
             "query_kwargs": {},
             "filter_kwargs": {},
@@ -61,15 +62,21 @@ class ElasticViewSetMixin(object):
                     result['modifier'] = {k: v}
                 elif k == "ordering":
                     field = v
-                    mapping = self.model.get_mapping()
-                    # handle descending specification
-                    if v.startswith("-"):
-                        field = v[1:]
-                    if field in mapping['properties'] and \
-                            mapping['properties'][field]['type'] == 'string':
-                        result['order_by'] = v + ".raw"
-                    else:
+                    try:
+                        mapping = self.model.get_mapping()
+                        # handle descending specification
+                        if v.startswith("-"):
+                            field = v[1:]
+                        if field in mapping['properties'] and \
+                                mapping['properties'][field]['type'] == \
+                                        'string':
+                            result['order_by'] = v + ".raw"
+                        else:
+                            result['order_by'] = v
+                    except AttributeError:
+                        # handle case where there is no model backing the view
                         result['order_by'] = v
+
                 elif k not in ['page', 'page_size']:
                     result['filter_kwargs'][k] = v
 
