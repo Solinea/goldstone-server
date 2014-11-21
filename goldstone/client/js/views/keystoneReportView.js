@@ -16,38 +16,35 @@
  * Author: Alex Jacobs
  */
 
-var NeutronReportView = ApiPerfReportView.extend({
+var KeystoneReportView = ApiPerfReportView.extend({
 
     triggerChange: function() {
         this.renderCharts();
     },
 
     renderCharts: function() {
-        var nsReport = goldstone.neutron.report;
-        var nsApiPerf = goldstone.neutron.apiPerf;
+        var nsReport = goldstone.keystone.report;
+        var nsApiPerf = goldstone.keystone.apiPerf;
         nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf);
-
         nsReport.start = (+new Date()) - (this.defaults.globalLookback * 1000 * 60);
         nsReport.end = new Date();
         nsReport.interval = '' + Math.round(0.357 * this.defaults.globalLookback) + "s";
-
         nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#neutron-report-r1-c1');
+            true, '#keystone-report-r1-c1');
     },
 
     template: _.template('' +
-        '<div id="neutron-report-r1" class="row">' +
-        '<div id="neutron-report-r1-c1" class="col-md-6"></div>' +
-        '<div id="neutron-report-r1-c2" class="col-md-6"></div>' +
+        '<div id="keystone-report-r1" class="row">' +
+        '<div id="keystone-report-r1-c1" class="col-md-6"></div>' +
+        '<div id="keystone-report-r1-c2" class="col-md-6"></div>' +
         '</div>' +
-        '<div id="neutron-report-r2" class="row">' +
-        '<div id="neutron-report-r2-c1" class="col-md-6"></div>' +
-        '<div id="neutron-report-r2-c2" class="col-md-6"></div>' +
+        '<div id="keystone-report-r2" class="row">' +
+        '<div id="keystone-report-r2-c1" class="col-md-6"></div>' +
+        '<div id="keystone-report-r2-c2" class="col-md-6"></div>' +
         '</div>' +
-        '<div id="neutron-report-r3" class="row">' +
-        '<div id="neutron-report-r3-c1" class="col-md-6"></div>' +
-        '<div id="neutron-report-r3-c2" class="col-md-6"></div>' +
+        '<div id="keystone-report-r3" class="row">' +
+        '<div id="keystone-report-r3-c1" class="col-md-6"></div>' +
+        '<div id="keystone-report-r3-c2" class="col-md-6"></div>' +
         '</div>'
     )
-
 });
