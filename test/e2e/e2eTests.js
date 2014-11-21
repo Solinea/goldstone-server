@@ -1,7 +1,7 @@
 // e2e tests
 // TODO: replace cpu resources/ memory resources/ disk resources svg test when charts are back online
 
-casper.test.begin('Node Report Page is loading properly', 60, function suite(test) {
+casper.test.begin('Node Report Page is loading properly', 63, function suite(test) {
     casper.start('http://localhost:8000/report/node/controller-01.lab.solinea.com', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -68,13 +68,13 @@ casper.test.begin('Node Report Page is loading properly', 60, function suite(tes
         test.assertVisible('div#eventsReport', 'Events tab should now be showing');
 
         test.assertElementCount('td', 30, "Event report has 30 visible data points");
-        // test.assertSelectorHasText('.sorting', 'Id');
-        // test.assertEval(function() {
-        //     return __utils__.findAll('.sorting').length === 5;
-        // }, "Event report has 5 unsorted table headers");
-        // test.assertEval(function() {
-        //     return __utils__.findAll('.sorting_desc').length === 1;
-        // }, "Event report has 1 sorted table header");
+        test.assertSelectorHasText('.sorting', 'Event TypeMessage');
+        test.assertEval(function() {
+            return __utils__.findAll('.sorting').length === 2;
+        }, "Event report has 2 unsorted table headers");
+        test.assertEval(function() {
+            return __utils__.findAll('.sorting_desc').length === 1;
+        }, "Event report has 1 sorted table header");
 
         this.click('.servicesButton');
         test.assertVisible('div#servicesReport', 'Services tab should now be visible');
