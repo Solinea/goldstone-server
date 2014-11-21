@@ -4,6 +4,43 @@
 describe('apiPerfView.js spec', function() {
     beforeEach(function() {
 
+        $('body').html('<div class="testContainer"></div>' +
+            '<div style="width:10%;" class="col-xl-1 pull-right">&nbsp;' +
+            '</div>' +
+            '<div class="col-xl-2 pull-right">' +
+            '<form class="global-refresh-selector" role="form">' +
+            '<div class="form-group">' +
+            '<div class="col-xl-1">' +
+            '<div class="input-group">' +
+            '<select class="form-control" id="global-refresh-range">' +
+            '<option value="15">refresh 15s</option>' +
+            '<option value="30" selected>refresh 30s</option>' +
+            '<option value="60">refresh 1m</option>' +
+            '<option value="300">refresh 5m</option>' +
+            '<option value="-1">refresh off</option>' +
+            '</select>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</form>' +
+            '</div>' +
+            '<div class="col-xl-1 pull-right">' +
+            '<form class="global-lookback-selector" role="form">' +
+            '<div class="form-group">' +
+            '<div class="col-xl-1">' +
+            '<div class="input-group">' +
+            '<select class="form-control" id="global-lookback-range">' +
+            '<option value="15">lookback 15m</option>' +
+            '<option value="60" selected>lookback 1h</option>' +
+            '<option value="360">lookback 6h</option>' +
+            '<option value="1440">lookback 1d</option>' +
+            '</select>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</form>' +
+            '</div>');
+
         // to answer GET requests
         this.server = sinon.fakeServer.create();
         this.server.respondWith("GET", "/something/fancy", [200, {
@@ -15,8 +52,9 @@ describe('apiPerfView.js spec', function() {
         expect($('#spinner').length).to.equal(0);
 
         this.testCollection = new ApiPerfCollection({
-            url: '/something/fancy'
+            urlPrefix: 'cinder'
         });
+
         blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new ApiPerfView({
@@ -28,11 +66,6 @@ describe('apiPerfView.js spec', function() {
                 value: "Hypervisor Show"
             }],
             el: 'body',
-            startStopInterval: {
-                start: 1413644531000,
-                end: 1414249331000,
-                interval: "3600s"
-            },
             width: $('body').width(),
             yAxisLabel: 'yAxisTest'
         });
@@ -47,7 +80,7 @@ describe('apiPerfView.js spec', function() {
             assert.isDefined(this.testCollection, 'this.testCollection has been defined');
             expect(this.testCollection.parse).to.be.a('function');
             this.testCollection.initialize({
-                url: 'hi'
+                urlPrefix: 'glance'
             });
             expect(this.testCollection.length).to.equal(1);
             this.testCollection.add({

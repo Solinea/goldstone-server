@@ -41,13 +41,20 @@ describe('Testing The Backbone Objects', function() {
     });
     describe('the View objects', function() {
         it('should exist', function() {
+            expect(ApiPerfReportView).to.be.a('function');
             expect(ApiPerfView).to.be.a('function');
             expect(ChartHeaderView).to.be.a('function');
             expect(EventsReportView).to.be.a('function');
             expect(EventTimelineView).to.be.a('function');
+            expect(GlanceReportView).to.be.a('function');
+            expect(GlobalLookbackRefreshButtonsView).to.be.a('function');
             expect(HypervisorView).to.be.a('function');
             expect(HypervisorVmCpuView).to.be.a('function');
+            expect(KeystoneReportView).to.be.a('function');
+            expect(NeutronReportView).to.be.a('function');
             expect(NodeAvailView).to.be.a('function');
+            expect(NodeReportView).to.be.a('function');
+            expect(NovaReportView).to.be.a('function');
             expect(ReportsReportView).to.be.a('function');
             expect(ServiceStatusView).to.be.a('function');
             expect(UtilizationCpuView).to.be.a('function');
@@ -224,12 +231,6 @@ describe('Testing the base.js file', function() {
 });
 
 describe('Testing the various library js files', function() {
-
-    describe('api_perf.js', function() {
-        it('renderApiPerfCharts', function() {
-            expect(renderApiPerfCharts).to.be.a('function');
-        });
-    });
 
     describe('discover.js', function() {
         it('renderCharts', function() {

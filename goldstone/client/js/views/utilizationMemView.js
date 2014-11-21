@@ -51,6 +51,13 @@ var UtilizationMemView = Backbone.View.extend({
 
         });
 
+        // this is triggered by a listener set on nodeReportView.js
+        this.on('selectorChanged', function() {
+            this.collection.defaults.globalLookback = $('#global-lookback-range').val();
+            this.collection.fetchMultipleUrls();
+            $(this.el).find('#spinner').show();
+        });
+
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.width - ns.margin.top - ns.margin.bottom;
 
@@ -184,12 +191,6 @@ var UtilizationMemView = Backbone.View.extend({
 
         var allthelogs = this.collectionPrep();
 
-
-        // default 30 second refresh interval
-        setTimeout(function() {
-            self.collection.fetchMultipleUrls();
-        }, 30000);
-
         // If we didn't receive any valid files, append "No Data Returned"
         if (allthelogs.length === 0) {
 
@@ -237,6 +238,9 @@ var UtilizationMemView = Backbone.View.extend({
         }));
 
         ns.y.domain([0, ns.memTotal.value / ns.divisor]);
+
+        ns.svg.selectAll('.component')
+            .remove();
 
         var component = ns.svg.selectAll(".component")
             .data(components)

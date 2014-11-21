@@ -26,17 +26,10 @@ var EventsReportView = Backbone.View.extend({
         // which means it is run again before every dataTables server query
 
         var now = +new Date();
-        var oneDayAgo = (+new Date()) - (1000 * 60 * 60 * 24);
-        var oneHourAgo = (+new Date()) - (1000 * 60 * 60);
-        var oneWeekAgo = (+new Date()) - (1000 * 60 * 60 * 24 * 7);
-
-        // default to 24 hour lookback
+        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
         var urlRouteConstruction = '/core/events?source_name=' +
-            this.defaults.hostName + '&created__lte=' + now + '&created__gte=' +
-            oneDayAgo;
-
+            this.defaults.hostName + '&created__lte=' + now + '&created__gte=' + lookback;
         this.defaults.url = urlRouteConstruction;
-
     },
 
     initialize: function(options) {
@@ -45,6 +38,7 @@ var EventsReportView = Backbone.View.extend({
         this.el = options.el;
         this.defaults.width = options.width;
         this.defaults.hostName = options.nodeName;
+        this.defaults.globalLookback = options.globalLookback;
 
         var ns = this.defaults;
         var self = this;
@@ -65,6 +59,12 @@ var EventsReportView = Backbone.View.extend({
 
         // appends display and modal html elements to this.el
         this.render();
+
+        // this is triggered by a listener set on nodeReportView.js
+        this.on('selectorChanged', function() {
+            this.defaults.globalLookback = $('#global-lookback-range').val();
+        });
+
     },
 
     dataPrep: function(data) {
@@ -127,8 +127,8 @@ var EventsReportView = Backbone.View.extend({
 
                     self.urlGen();
 
-                    var pageSize = $('select.form-control').val();
-                    var searchQuery = $('input.form-control').val();
+                    var pageSize = $(self.el).find('select.form-control').val();
+                    var searchQuery = $(self.el).find('input.form-control').val();
                     var paginationStart = settings.url.match(/start=\d{1,}&/gi);
                     paginationStart = paginationStart[0].slice(paginationStart[0].indexOf('=') + 1, paginationStart[0].lastIndexOf('&'));
                     var computeStartPage = Math.floor(paginationStart / pageSize) + 1;

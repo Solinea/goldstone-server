@@ -55,6 +55,7 @@ var ServiceStatusView = Backbone.View.extend({
                 self.collection.defaults.fetchInProgress = false;
             }
         });
+
     },
 
     classSelector: function(item) {

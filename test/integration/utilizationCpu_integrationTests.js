@@ -178,16 +178,16 @@ describe('UtilizationCpu.js spec', function() {
             }, ]);
             var test1 = this.testView.collectionPrep();
             expect(test1).to.deep.equal([{
-                    wait: 20,
-                    sys: 20,
-                    user: 20,
-                    idle: 39.99999999999999,
+                    wait: 0.2,
+                    sys: 0.2,
+                    user: 0.2,
+                    idle: 99.4,
                     date: '1415148790577'
                 }, {
-                    wait: 30,
-                    sys: 30,
-                    user: 30,
-                    idle: 10.000000000000014,
+                    wait: 0.3,
+                    sys: 0.3,
+                    user: 0.3,
+                    idle: 99.1,
                     date: '1415149790577'
                 }
 

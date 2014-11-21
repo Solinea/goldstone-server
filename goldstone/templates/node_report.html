@@ -22,70 +22,9 @@
 {% block localcss %}
 {% endblock %}
 {% block content %}
-    <div id="node-report-r1" class="row">
-        <div id="node-report-r1-c1" class="col-md-12">
-            <h1>{{ node_uuid }}</h1>
-        </div>
-    </div>
-    <div id="node-report-main" class="col-md-12">
 
-        <!-- buttons -->
-        <div class="btn-group">
-            <button type="button" id="headerBar" class="servicesButton active btn btn-default">Services</button>
-            <button type="button" id="headerBar" class="reportsButton btn btn-default">Reports</button>
-            <button type="button" id="headerBar" class="eventsButton btn btn-default">Events</button><br><br>
-        </div>
+    <div class="node-report-container"></div>
 
-        <div id="main-container" class="col-md-12">
-            <div id="node-report-panel" class="panel panel-primary">
-                <div id="servicesReport">
-
-                    <!-- placeholder for title bar and info popover -->
-                    <div id="service-status-title-bar"></div>
-                    <div style="margin-left: 14px;" id="node-report-r2" class="row">
-                    </div>
-                    <div id="node-report-r3" class="row">
-                        <div id="node-report-r3-c1" class="col-md-12">
-
-                            <!-- placeholder for title bar and info popover -->
-                            <div id="utilization-title-bar"></div>
-                            <div id="node-report-panel" class="panel panel-primary">
-                                <div class="well col-md-4" id="cpu-usage">
-                                    <h4 class="text-center">CPU Usage</h4>
-                                </div>
-                                <div class="well col-md-4" id="memory-usage">
-                                    <h4 class="text-center">Memory Usage</h4>
-                                </div>
-                                <div class="well col-md-4" id="network-usage">
-                                    <h4 class="text-center">Network Usage</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="node-report-r4" class="row">
-                        <div id="node-report-r4-c1" class="col-md-12">
-
-                            <!-- placeholder for title bar and info popover -->
-                            <div id="hypervisor-title-bar"></div>
-                            <div id="node-report-panel" class="panel panel-primary">
-                                <div class="well col-md-3 text-center" id="cores-usage">
-                                    Cores
-                                </div>
-                                <div class="well col-md-3 text-center" id="memory-usage">
-                                    Memory
-                                </div>
-                                <div class="well col-md-6" id="vm-cpu-usage">
-                                    Per VM CPU Usage
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-12" id="reportsReport">&nbsp;</div>
-                <div class="col-md-12" id="eventsReport">&nbsp;</div>
-            </div>
-        </div>
-    </div>
 {% endblock %}
 {% block localjs %}
     <script src="{% static 'js/goldstone.js' %}"></script>
@@ -105,44 +44,34 @@
     <script src="{% static 'js/models/hypervisorVmCpuModel.js' %}"></script>
     <script src="{% static 'js/collections/hypervisorVmCpuCollection.js' %}"></script>
     <script src="{% static 'js/views/hypervisorVmCpuView.js' %}"></script>
-    <script src="{% static 'js/nodeReport.js' %}"></script>
     <script src="{% static 'js/views/reportsReportView.js' %}"></script>
     <script src="{% static 'js/views/eventsReportView.js' %}"></script>
+    <script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
+    <script src="{% static 'js/views/nodeReportView.js' %}"></script>
+
     <script>
     var node_uuid = "{{ node_uuid | escapejs }}";
     var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
-    $(function() {
-        $("#reportsReport").hide();
-        $("#eventsReport").hide();
-        $("button#headerBar").click(function() {
-        $("button#headerBar.active").toggleClass("active");
-        $(this).toggleClass("active");
-        var selectedButton = ($(this).context.innerHTML.toLowerCase());
-        _.each($("button#headerBar"), function(item) {
-            $("#node-report-panel").find('#' + item.innerHTML + 'Report').hide();
+
+    var instantiateCharts = function(){
+
+        // this page's previous HTML and JavaScript now encapsulated
+        // in the following backbone view:
+        new NodeReportView({
+            el: ".node-report-container",
+            node_uuid: node_uuid
         });
-        $("#node-report-panel").find('#' + selectedButton + 'Report').show();
+    };
+
+    $(function() {
+
+        // appends global selectors to page
+        new GlobalLookbackRefreshButtonsView({
+            el: ".global-range-refresh-container"
         });
 
-        new ChartHeaderView({
-        el: '#service-status-title-bar',
-        chartTitle: 'Service Status Report',
-        infoText: 'serviceStatus',
-        columns: 12
-        });
-        new ChartHeaderView({
-        el: '#utilization-title-bar',
-        chartTitle: 'Utilization',
-        infoText: 'utilization',
-        columns: 12
-        });
-        new ChartHeaderView({
-        el: '#hypervisor-title-bar',
-        chartTitle: 'Hypervisor',
-        infoText: 'hypervisor',
-        columns: 12
-        });
-        renderCharts();
+        instantiateCharts();
+
     });
     </script>
 {% endblock %}

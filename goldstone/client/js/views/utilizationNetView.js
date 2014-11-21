@@ -21,9 +21,9 @@ var UtilizationNetView = Backbone.View.extend({
     defaults: {
         margin: {
             top: 20,
-            right: 40,
+            right: 33,
             bottom: 25,
-            left: 33
+            left: 50
         }
     },
 
@@ -49,6 +49,13 @@ var UtilizationNetView = Backbone.View.extend({
                 self.collection.defaults.fetchInProgress = false;
             }
 
+        });
+
+        // this is triggered by a listener set on nodeReportView.js
+        this.on('selectorChanged', function() {
+            this.collection.defaults.globalLookback = $('#global-lookback-range').val();
+            this.collection.fetchMultipleUrls();
+            $(this.el).find('#spinner').show();
         });
 
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
@@ -146,8 +153,7 @@ var UtilizationNetView = Backbone.View.extend({
             } else {
                 if (serviceName.indexOf('tx') >= 0) {
                     metric = 'tx';
-                } else {
-                }
+                } else {}
             }
 
             newData[item.timestamp][metric] += item.value;
@@ -183,12 +189,6 @@ var UtilizationNetView = Backbone.View.extend({
         $(this.el).find('#spinner').hide();
 
         var allthelogs = this.collectionPrep();
-
-
-        // default 120 second refresh interval
-        setTimeout(function() {
-            self.collection.fetchMultipleUrls();
-        }, 120000);
 
         // If we didn't receive any valid files, append "No Data Returned"
         if (allthelogs.length === 0) {
@@ -236,10 +236,12 @@ var UtilizationNetView = Backbone.View.extend({
             return d.date;
         }));
 
-        //TODO: dynamic y.domain
         ns.y.domain([0, d3.max(allthelogs, function(d) {
             return d.rx + d.tx;
         })]);
+
+        ns.svg.selectAll('.component')
+            .remove();
 
         var component = ns.svg.selectAll(".component")
             .data(components)

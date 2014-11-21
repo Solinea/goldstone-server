@@ -48,6 +48,12 @@ var UtilizationCpuView = Backbone.View.extend({
 
         });
 
+        // this is triggered by a listener set on nodeReportView.js
+        this.on('selectorChanged', function() {
+            this.collection.defaults.globalLookback = $('#global-lookback-range').val();
+            this.collection.fetchMultipleUrls();
+            $(this.el).find('#spinner').show();
+        });
 
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.width - ns.margin.top - ns.margin.bottom;
@@ -147,13 +153,11 @@ var UtilizationCpuView = Backbone.View.extend({
 
         _.each(newData, function(item, i) {
 
-            // this will need to be set to 1 when usage increases
-            var multiplier = 100;
             finalData.push({
-                wait: item.wait * multiplier,
-                sys: item.sys * multiplier,
-                user: item.user * multiplier,
-                idle: 100 - (item.user + item.wait + item.sys) * multiplier,
+                wait: item.wait,
+                sys: item.sys,
+                user: item.user,
+                idle: 100 - (item.user + item.wait + item.sys),
                 date: i
             });
         });
@@ -175,11 +179,6 @@ var UtilizationCpuView = Backbone.View.extend({
         $(this.el).find('#spinner').hide();
 
         var allthelogs = this.collectionPrep();
-
-
-        setTimeout(function() {
-            self.collection.fetchMultipleUrls();
-        }, 30000);
 
         // If we didn't receive any valid files, append "No Data Returned"
         if (allthelogs.length === 0) {
@@ -226,6 +225,9 @@ var UtilizationCpuView = Backbone.View.extend({
         ns.x.domain(d3.extent(data, function(d) {
             return d.date;
         }));
+
+        ns.svg.selectAll('.component')
+            .remove();
 
         var component = ns.svg.selectAll(".component")
             .data(components)

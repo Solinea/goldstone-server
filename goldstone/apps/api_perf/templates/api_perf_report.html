@@ -11,55 +11,40 @@ See the License for the specific language governing permissions and
 limitations under the License.
 Author: John Stanford
 -->
-
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load custom_filters %}
 {% block localcss %}
 {% endblock %}
 {% block localjs %}
-
-<script src="{% static 'js/nova.js' %}"></script>
-<script src="{% static 'js/neutron.js' %}"></script>
-<script src="{% static 'js/keystone.js' %}"></script>
-<script src="{% static 'js/glance.js' %}"></script>
-<script src="{% static 'js/cinder.js' %}"></script>
-<script src="{% static 'js/models/apiPerfModel.js' %}"></script>
-<script src="{% static 'js/collections/apiPerfCollection.js' %}"></script>
-<script src="{% static 'js/views/apiPerfView.js' %}"></script>
-<script src="{% static 'js/api_perf.js' %}"></script>
-<script>
-
-// assign "ajax-loader-solinea-blue" spinner gif
-var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
-
-
-// set start / end / interval of chart data request to server
-var nsReport = {
-    start: goldstone.time.fromPyTs({{ start_ts|to_js }}),
-    end: goldstone.time.fromPyTs({{ end_ts|to_js }}),
-    interval: {{ interval|to_js }}
-};
-
-$(document).ready(function () {
-    renderApiPerfCharts();
-});
-
-</script>
-
+    <script src="{% static 'js/nova.js' %}"></script>
+    <script src="{% static 'js/neutron.js' %}"></script>
+    <script src="{% static 'js/keystone.js' %}"></script>
+    <script src="{% static 'js/glance.js' %}"></script>
+    <script src="{% static 'js/cinder.js' %}"></script>
+    <script src="{% static 'js/models/apiPerfModel.js' %}"></script>
+    <script src="{% static 'js/collections/apiPerfCollection.js' %}"></script>
+    <script src="{% static 'js/views/apiPerfView.js' %}"></script>
+    <script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
+    <script src="{% static 'js/views/apiPerfReportView.js' %}"></script>
+    <script>
+    // assign "ajax-loader-solinea-blue" spinner gif
+    var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
+    var instantiateCharts = function(){
+        // this page's previous HTML and JavaScript now encapsulated
+        // in the following backbone view:
+        new ApiPerfReportView({
+            el: ".api-perf-report-container",
+        });
+    };
+    $(document).ready(function () {
+        new GlobalLookbackRefreshButtonsView({
+            el: ".global-range-refresh-container"
+        });
+        instantiateCharts();
+    });
+    </script>
 {% endblock %}
 {% block content %}
-
-<div id="api-perf-report-r1" class="row">
-    <div id="api-perf-report-r1-c1" class="col-md-6"></div>
-    <div id="api-perf-report-r1-c2" class="col-md-6"></div>
-</div>
-<div id="api-perf-report-r2" class="row">
-    <div id="api-perf-report-r2-c1" class="col-md-6"></div>
-    <div id="api-perf-report-r2-c2" class="col-md-6"></div>
-</div>
-<div id="api-perf-report-r3" class="row">
-    <div id="api-perf-report-r3-c1" class="col-md-6"></div>
-    <div id="api-perf-report-r3-c2" class="col-md-6"></div>
-</div>
+    <div class="api-perf-report-container"></div>
 {% endblock %}
