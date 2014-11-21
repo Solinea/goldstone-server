@@ -22,6 +22,7 @@ from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 from rest_framework.test import APISimpleTestCase
 from goldstone.apps.core import tasks
+from goldstone.apps.core.views import ElasticViewSetMixin
 from goldstone.models import GSConnection
 from models import *
 from serializers import *
@@ -681,3 +682,31 @@ class ReportViewTests(APISimpleTestCase):
         response = self.client.get('/core/reports/abcdef')
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class ElasticViewSetMixinTests(APISimpleTestCase):
+
+    def test_process_params(self):
+        params = {'name': 'test_param', 'name__fuzzy': 'xyz',
+                  'name__gte': '123', 'must_not': "True",
+                  "ordering": "-source_name"}
+        e = ElasticViewSetMixin()
+        # support the ordering lookup with a known model type
+        e.model = EventType
+        result = e._process_params(params)
+
+        self.assertEqual(result,
+                         {'query_kwargs': {'name__fuzzy': 'xyz',
+                                           'must_not': 'True'},
+                          'filter_kwargs': {
+                              'name': 'test_param', 'name__gte': '123'},
+                          'order_by': '-source_name.raw'
+                         })
+
+
+class ReportListViewTests(APISimpleTestCase):
+
+    def test_get_fail(self):
+        response = self.client.get('/core/report_list')
+        self.assertEqual(response.status_code,
+                         status.HTTP_500_INTERNAL_SERVER_ERROR)
