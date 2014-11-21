@@ -258,7 +258,7 @@ var NodeReportView = Backbone.View.extend({
     template: _.template('' +
         '<div id="node-report-r1" class="row">' +
         '<div id="node-report-r1-c1" class="col-md-12">' +
-        '<h1><%= node_uuid %></h1>' +
+        '<h1><%= this.node_uuid %></h1>' +
         '</div>' +
         '</div>' +
         '<div id="node-report-main" class="col-md-12">' +
