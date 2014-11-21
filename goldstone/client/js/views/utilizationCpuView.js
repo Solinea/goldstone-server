@@ -153,13 +153,11 @@ var UtilizationCpuView = Backbone.View.extend({
 
         _.each(newData, function(item, i) {
 
-            // this will need to be set to 1 when usage increases
-            var multiplier = 100;
             finalData.push({
-                wait: item.wait * multiplier,
-                sys: item.sys * multiplier,
-                user: item.user * multiplier,
-                idle: 100 - (item.user + item.wait + item.sys) * multiplier,
+                wait: item.wait,
+                sys: item.sys,
+                user: item.user,
+                idle: 100 - (item.user + item.wait + item.sys),
                 date: i
             });
         });
