@@ -11,9 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from rest_framework.generics import ListAPIView
+from rest_framework.views import APIView
 
 
 __author__ = 'John Stanford'
+
 
 from .models import *
 from .serializers import *
@@ -25,6 +28,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet, \
     ReadOnlyModelViewSet
+import elasticutils
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +62,7 @@ class ElasticViewSetMixin(object):
                 elif k == "ordering":
                     field = v
                     mapping = self.model.get_mapping()
-                    # handle descending specificaiton
+                    # handle descending specification
                     if v.startswith("-"):
                         field = v[1:]
                     if field in mapping['properties'] and \
@@ -204,3 +208,36 @@ class ReportViewSet(ReadOnlyElasticViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         return HttpResponseNotAllowed('')
+
+
+class ReportListView(ElasticViewSetMixin, APIView):
+
+    def get(self, request, *args, **kwargs):
+        """
+        Get the list of reports in the system.
+        """
+
+        params = self._process_params(request.QUERY_PARAMS.dict())
+        qs = elasticutils.S().es(urls=settings.ES_URLS, timeout=30)
+        qs = qs. \
+            indexes('goldstone_agent'). \
+            doctypes('core_report'). \
+            query(name__prefix='os.service', must_not=True). \
+            query(**params['query_kwargs']). \
+            filter(**params['filter_kwargs'])
+
+        if 'order_by' in params:
+            qs = qs.order_by(params['order_by'])
+
+        # add the term facet clause
+        qs = qs.facet("name", filtered=True)
+
+
+        try:
+            result = qs.execute().facets
+            result = result['name'].terms
+            return Response([entry['term'] for entry in result],
+                            status=status.HTTP_200_OK)
+        except AttributeError:
+            return Response([], status=status.HTTP_200_OK)
+
