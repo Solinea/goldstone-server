@@ -31,15 +31,12 @@ var NodeAvailView = Backbone.View.extend({
         this.defaults.chartTitle = options.chartTitle;
         this.defaults.width = options.width;
         this.defaults.h = options.h;
+        this.defaults.pause = undefined;
+        this.defaults.delay = null;
 
         var ns = this.defaults;
         // bind to the backbone object, for calls within functions that would return their own context at the time of invocation
         var self = this;
-
-        ns.animation = {
-            pause: undefined,
-            delay: null
-        };
 
         // required in case spinner loading takes
         // longer than chart loading
@@ -58,12 +55,10 @@ var NodeAvailView = Backbone.View.extend({
         // bind to backbone collection
         // invoke this.update(), when the collection 'fetch' is complete
         this.collection.on('sync', this.update, this);
-
         // appends display and modal html elements to this.el
         this.render();
-
-        // bind modal 'submit' button to updating animation variables
-        this.initSettingsForm();
+        this.setGlobalLookbackListeners();
+        this.updateSettings();
 
         ns.margin = {
             top: 5,
@@ -257,30 +252,60 @@ var NodeAvailView = Backbone.View.extend({
     },
 
     isRefreshSelected: function() {
-        var ns = this.defaults;
-        return $(this.el).find(".nodeAutoRefresh").prop("checked");
+        return $('.global-refresh-selector .form-control').val() >= 0;
     },
 
     refreshInterval: function() {
-        var ns = this.defaults;
-        return $(this.el).find("select#nodeAutoRefreshInterval").val();
+        refreshSeconds = $('.global-refresh-selector .form-control').val();
+        // refreshSeconds will be a string
+        return parseInt(refreshSeconds, 10);
     },
 
+    updateSettings: function() {
+        var ns = this.defaults;
+        ns.delay = this.refreshInterval();
+        // ns.lookbackRange = this.lookbackRange();
+    },
 
-    initSettingsForm: function() {
+    setGlobalLookbackListeners: function() {
         var self = this;
         var ns = this.defaults;
-        var updateSettings = function() {
-            ns.animation.delay = self.refreshInterval();
-            ns.animation.pause = !self.isRefreshSelected();
-            if (!ns.animation.pause) {
-                self.scheduleFetch();
-            }
-        };
-        $("#eventSettingsUpdateButton-" + this.el.slice(1)).click(updateSettings);
 
-        // set initial values for delay and pause based on modal settings
-        updateSettings();
+        // pending backend lookback variability
+        /*
+        $('.global-lookback-selector .form-control').on('change', function() {
+            self.clearScheduledFetch();
+            self.updateSettings();
+            self.fetchNowWithReset();
+        });
+        */
+
+        $('.global-refresh-selector .form-control').on('change', function() {
+            self.clearScheduledFetch();
+            self.updateSettings();
+            self.scheduleFetch();
+        });
+    },
+
+    clearScheduledFetch: function() {
+        var ns = this.defaults;
+        clearTimeout(ns.scheduleTimeout);
+    },
+
+    scheduleFetch: function() {
+        var ns = this.defaults;
+        var self = this;
+
+        this.clearScheduledFetch();
+        var timeoutDelay = ns.delay * 1000;
+
+        if (timeoutDelay < 0) {
+            return true;
+        }
+
+        ns.scheduleTimeout = setTimeout(function() {
+            self.collection.setXhr();
+        }, timeoutDelay);
     },
 
     sums: function(datum) {
@@ -311,7 +336,6 @@ var NodeAvailView = Backbone.View.extend({
         // prevent updating when fetch is in process
         if (!this.collection.thisXhr.getResponseHeader('LogCountStart') || this.collection.thisXhr.getResponseHeader('LogCountEnd') === null) {
             // to be removed when server supports timestamped data retrieval
-            console.log('xhrFetch in process');
         }
 
         // var allthelogs = JSON.parse(response.responseText);
@@ -587,28 +611,9 @@ var NodeAvailView = Backbone.View.extend({
 
     },
 
-    scheduleFetch: function() {
-        var ns = this.defaults;
-        var self = this;
-
-        // double safety to prevent a pile up of setTimeouts
-        // in addition to the check for undefined xhr data
-        if (ns.scheduleTimeout !== undefined) {
-            clearTimeout(ns.scheduleTimeout);
-        }
-
-        if (ns.animation.pause) {
-            return true;
-        }
-        ns.scheduleTimeout = setTimeout(function() {
-            self.collection.setXhr();
-        }, ns.animation.delay * 1000);
-
-    },
-
     render: function() {
         this.$el.html(this.template());
-        this.$el.find('#modal-container-' + this.el.slice(1)).append(this.modal1());
+        // this.$el.find('#modal-container-' + this.el.slice(1)).append(this.modal1());
         this.$el.find('#modal-container-' + this.el.slice(1)).append(this.modal2());
         return this;
     },
@@ -620,9 +625,9 @@ var NodeAvailView = Backbone.View.extend({
         '<%= this.defaults.chartTitle %>' +
 
         // cog icon
-        '<i class="fa fa-cog pull-right" data-toggle="modal"' +
-        'data-target="#modal-settings-<%= this.el.slice(1) %>' +
-        '"></i>' +
+        // '<i class="fa fa-cog pull-right" data-toggle="modal"' +
+        // 'data-target="#modal-settings-<%= this.el.slice(1) %>' +
+        // '"></i>' +
 
         // filter icon
         '<i class="fa fa-filter pull-right" data-toggle="modal"' +

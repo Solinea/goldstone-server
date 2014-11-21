@@ -40,6 +40,10 @@ var HypervisorView = Backbone.View.extend({
 
         this.collection.on('sync', this.update, this);
 
+        this.on('selectorChanged', function(){
+            console.log('HypervisorView heard change');
+        });
+
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.width * 2 - ns.margin.top - ns.margin.bottom;
 

@@ -35,14 +35,27 @@ var EventTimelineCollection = Backbone.Collection.extend({
 
     model: EventTimelineModel,
 
+    computeLookback: function() {
+        var lookbackMinutes;
+        if ($('.global-lookback-selector .form-control').length) {
+            // global lookback is available:
+            lookbackMinutes = parseInt($('.global-lookback-selector .form-control').val(), 10);
+        } else {
+            // otherwise, default to 1 hour:
+            lookbackMinutes = 60;
+        }
+        return (+new Date() - (1000 * 60 * lookbackMinutes));
+    },
+
+    defaults: {},
     initialize: function(options) {
 
-        // default to 1 hour lookback
-        var nowMinusHour = (+new Date() - (1000 * 60 * 60));
-        this.url = options.url || "/core/events?created__gt=" + nowMinusHour + "&page_size=1000";
+        this.defaults = _.clone(this.defaults); 
 
-        // adding {remove:false} to the initial fetch
-        // will introduce an artifact that will
+        this.url = options.url || "/core/events?created__gt=" + this.computeLookback() + "&page_size=1000";
+
+        // don't add {remove:false} to the initial fetch
+        // as it will introduce an artifact that will
         // render via d3
         this.fetch();
     },

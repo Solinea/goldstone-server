@@ -25,17 +25,28 @@
 
 {% block localjs %}
     <script src="{% static 'js/keystone.js' %}"></script>
-    <script>
-$(document).ready(function () {
-    var nsReport = goldstone.keystone.report;
-    var nsApiPerf = goldstone.keystone.apiPerf;
-    nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf);
-    nsReport.start = goldstone.time.fromPyTs({{ start_ts|to_js }});
-    nsReport.end = goldstone.time.fromPyTs({{ end_ts|to_js }});
-    nsReport.interval = {{ interval|to_js }};
-    nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#keystone-report-r1-c1');
-});
+    <script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
+    <script src="{% static 'js/models/apiPerfModel.js' %}"></script>
+    <script src="{% static 'js/collections/apiPerfCollection.js' %}"></script>
+    <script src="{% static 'js/views/apiPerfReportView.js' %}"></script>
+    <script src="{% static 'js/views/keystoneReportView.js' %}"></script>
+
+<script>
+    // assign "ajax-loader-solinea-blue" spinner gif
+    var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
+    var instantiateCharts = function(){
+        // this page's previous HTML and JavaScript now encapsulated
+        // in the following backbone view:
+        new KeystoneReportView({
+            el: ".keystone-report-container"
+        });
+    };
+    $(document).ready(function () {
+        new GlobalLookbackRefreshButtonsView({
+            el: ".global-range-refresh-container"
+        });
+        instantiateCharts();
+    });
     </script>
 
 {% endblock %}
@@ -43,18 +54,8 @@ $(document).ready(function () {
 
 {% block content %}
 
-    <div id="keystone-report-r1" class="row">
-        <div id="keystone-report-r1-c1" class="col-md-6"></div>
-        <div id="keystone-report-r1-c2" class="col-md-6"></div>
-    </div>
-    <div id="keystone-report-r2" class="row">
-        <div id="keystone-report-r2-c1" class="col-md-6"></div>
-        <div id="keystone-report-r2-c2" class="col-md-6"></div>
-    </div>
-    <div id="keystone-report-r3" class="row">
-        <div id="keystone-report-r3-c1" class="col-md-6"></div>
-        <div id="keystone-report-r3-c2" class="col-md-6"></div>
-    </div>
+    <div class="keystone-report-container"></div>
+
 
 {% endblock %}
 

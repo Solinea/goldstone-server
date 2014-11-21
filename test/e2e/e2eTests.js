@@ -1,8 +1,8 @@
 // e2e tests
 // TODO: replace cpu resources/ memory resources/ disk resources svg test when charts are back online
 
-casper.test.begin('Node Report Page is loading properly', 45, function suite(test) {
-    casper.start('http://localhost:8000/report/node/compute-01.lab.solinea.com', function() {
+casper.test.begin('Node Report Page is loading properly', 63, function suite(test) {
+    casper.start('http://localhost:8000/report/node/controller-01.lab.solinea.com', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
 
@@ -14,7 +14,7 @@ casper.test.begin('Node Report Page is loading properly', 45, function suite(tes
         test.assertSelectorHasText('div.navbar', 'Logging');
 
         // page h1
-        test.assertSelectorHasText('div#node-report-r1-c1 h1', 'compute-01.lab.solinea.com');
+        test.assertSelectorHasText('div#node-report-r1-c1 h1', 'controller-01.lab.solinea.com');
 
         // Service Status graph loads
         test.assertSelectorHasText('div #service-status-title-bar', 'Service Status Report');
@@ -68,13 +68,13 @@ casper.test.begin('Node Report Page is loading properly', 45, function suite(tes
         test.assertVisible('div#eventsReport', 'Events tab should now be showing');
 
         test.assertElementCount('td', 30, "Event report has 30 visible data points");
-        // test.assertSelectorHasText('.sorting', 'Id');
-        // test.assertEval(function() {
-        //     return __utils__.findAll('.sorting').length === 5;
-        // }, "Event report has 5 unsorted table headers");
-        // test.assertEval(function() {
-        //     return __utils__.findAll('.sorting_desc').length === 1;
-        // }, "Event report has 1 sorted table header");
+        test.assertSelectorHasText('.sorting', 'Event TypeMessage');
+        test.assertEval(function() {
+            return __utils__.findAll('.sorting').length === 2;
+        }, "Event report has 2 unsorted table headers");
+        test.assertEval(function() {
+            return __utils__.findAll('.sorting_desc').length === 1;
+        }, "Event report has 1 sorted table header");
 
         this.click('.servicesButton');
         test.assertVisible('div#servicesReport', 'Services tab should now be visible');
@@ -435,7 +435,7 @@ casper.test.begin('API Perf Page is loading properly', 46, function suite(test) 
     });
 });
 
-casper.test.begin('Nova (compute) Page is loading properly', 43, function suite(test) {
+casper.test.begin('Nova (compute) Page is loading properly', 14, function suite(test) {
     casper.start('http://localhost:8000/nova/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -462,9 +462,10 @@ casper.test.begin('Nova (compute) Page is loading properly', 43, function suite(
         this.mouseEvent('mouseout', '#nova-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
         test.assertNotVisible('#nova-api-perf-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
+        /* pending return of these charts
         // VM Spawns graph loads
         test.assertExists('div#nova-report-r1-c2', 'VM Spawns chart section should load');
-        test.assertExists('div#nova-report-r1-c2 svg', 'VM Spawns chart should load');
+        // test.assertExists('div#nova-report-r1-c2 svg', 'VM Spawns chart should load');
         test.assertSelectorHasText('div#nova-report-r1-c2', 'VM Spawns');
 
         // VM Spawns info button brings up popover
@@ -525,7 +526,7 @@ casper.test.begin('Nova (compute) Page is loading properly', 43, function suite(
         test.assertVisible('#nova-disk-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
         this.mouseEvent('mouseout', '#nova-disk-chart-title .pull-right.fa.fa-info-circle.panel-info');
         test.assertNotVisible('#nova-disk-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
-
+        */
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
