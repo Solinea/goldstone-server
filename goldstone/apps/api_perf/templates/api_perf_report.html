@@ -11,58 +11,40 @@ See the License for the specific language governing permissions and
 limitations under the License.
 Author: John Stanford
 -->
-
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load custom_filters %}
 {% block localcss %}
 {% endblock %}
 {% block localjs %}
-
-<script src="{% static 'js/nova.js' %}"></script>
-<script src="{% static 'js/neutron.js' %}"></script>
-<script src="{% static 'js/keystone.js' %}"></script>
-<script src="{% static 'js/glance.js' %}"></script>
-<script src="{% static 'js/cinder.js' %}"></script>
-<script src="{% static 'js/models/apiPerfModel.js' %}"></script>
-<script src="{% static 'js/collections/apiPerfCollection.js' %}"></script>
-<script src="{% static 'js/views/apiPerfView.js' %}"></script>
-<script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
-<script src="{% static 'js/views/apiPerfReportView.js' %}"></script>
-<script>
-
-// assign "ajax-loader-solinea-blue" spinner gif
-var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
-
-
-// set start / end / interval of chart data request to server
-// this is currently not being used by the ApiPerfReportView
-var nsReport = {
-    start: goldstone.time.fromPyTs({{ start_ts|to_js }}),
-    end: goldstone.time.fromPyTs({{ end_ts|to_js }}),
-    interval: {{ interval|to_js }}
-};
-
-var instantiateCharts = function(){
-
-    // this page's previous HTML and JavaScript now encapsulated
-    // in the following backbone view:
-    new ApiPerfReportView({
-        el: ".api-perf-report-container",
+    <script src="{% static 'js/nova.js' %}"></script>
+    <script src="{% static 'js/neutron.js' %}"></script>
+    <script src="{% static 'js/keystone.js' %}"></script>
+    <script src="{% static 'js/glance.js' %}"></script>
+    <script src="{% static 'js/cinder.js' %}"></script>
+    <script src="{% static 'js/models/apiPerfModel.js' %}"></script>
+    <script src="{% static 'js/collections/apiPerfCollection.js' %}"></script>
+    <script src="{% static 'js/views/apiPerfView.js' %}"></script>
+    <script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
+    <script src="{% static 'js/views/apiPerfReportView.js' %}"></script>
+    <script>
+    // assign "ajax-loader-solinea-blue" spinner gif
+    var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
+    var instantiateCharts = function(){
+        // this page's previous HTML and JavaScript now encapsulated
+        // in the following backbone view:
+        new ApiPerfReportView({
+            el: ".api-perf-report-container",
+        });
+    };
+    $(document).ready(function () {
+        new GlobalLookbackRefreshButtonsView({
+            el: ".global-range-refresh-container"
+        });
+        instantiateCharts();
     });
-};
-
-$(document).ready(function () {
-    new GlobalLookbackRefreshButtonsView({
-        el: ".global-range-refresh-container"
-    });
-
-    instantiateCharts();
-});
-
-</script>
-
+    </script>
 {% endblock %}
 {% block content %}
-<div class="api-perf-report-container"></div>
+    <div class="api-perf-report-container"></div>
 {% endblock %}
