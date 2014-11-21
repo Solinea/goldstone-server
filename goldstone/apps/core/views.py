@@ -57,8 +57,8 @@ class ElasticViewSetMixin(object):
                 elif len(k.split("__")) > 1 and \
                         k.split("__")[1] in self.FILTER_OPS:
                     result['filter_kwargs'][k] = v
-                elif k in self.MODIFIERS and v.lower == "true":
-                    result['modifier'][k] = v
+                elif k in self.MODIFIERS and v.lower() == "true":
+                    result['modifier'] = {k: v}
                 elif k == "ordering":
                     field = v
                     mapping = self.model.get_mapping()
@@ -240,4 +240,7 @@ class ReportListView(ElasticViewSetMixin, APIView):
                             status=status.HTTP_200_OK)
         except AttributeError:
             return Response([], status=status.HTTP_200_OK)
+        except:
+            logger.exception('failed to GET report_list')
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
