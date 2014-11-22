@@ -742,7 +742,6 @@ goldstone.charts.topologyTree = {
      */
     filterMultiRsrcData: function(data, ns) {
         "use strict";
-        console.log(ns.name);
         return data;
     },
     /**
@@ -991,19 +990,26 @@ goldstone.charts.topologyTree = {
                         if (singleRsrcData !== 'undefined') {
                             delete singleRsrcData.datatableRecId;
 
+                            var supress;
                             // if hypervisor or instance with hypervisor in
                             // the name, redirect to report page
                             _.each(_.keys(data[0]), function(item) {
                                 if (item.indexOf('hypervisor_hostname') !== -1) {
                                     ns.topologyTree.reportRedirect(data[0], item);
-                                    item.preventDefault();
+                                    supress  = true;
+                                }
+                                if (item.indexOf('host_name') !== -1) {
+                                    ns.topologyTree.reportRedirect(data[0], item);
+                                    supress  = true;
                                 }
                             });
 
-                            // otherwise, render usual resource info popover
-                            ns.topologyTree.drawSingleRsrcInfoTable(
-                                ns.singleRsrcLocation, ns.singleRsrcSpinner,
-                                ns.mh, data[0]);
+                            // otherwise, render usual resource info    popover
+                            if(!supress){
+                                ns.topologyTree.drawSingleRsrcInfoTable(
+                                    ns.singleRsrcLocation, ns.singleRsrcSpinner,
+                                    ns.mh, data[0]);
+                            }
                         }
                     });
                 } else {
