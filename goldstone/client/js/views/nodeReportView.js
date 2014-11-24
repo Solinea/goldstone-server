@@ -245,11 +245,16 @@ var NodeReportView = Backbone.View.extend({
         //---------------------------
         // instantiate Reports tab data
 
+        this.reportsReportCollection = new ReportsReportCollection({
+            globalLookback: ns.globalLookback,
+            nodeName: hostName
+        });
+
         this.reportsReport = new ReportsReportView({
+            collection: this.reportsReportCollection,
             el: '#node-report-panel #reportsReport',
             width: $('#node-report-panel #reportsReport').width(),
-            nodeName: hostName,
-            globalLookback: ns.globalLookback
+            nodeName: hostName
         });
 
         //---------------------------

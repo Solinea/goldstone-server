@@ -20,28 +20,60 @@ var ReportsReportView = Backbone.View.extend({
 
     defaults: {},
 
+    urlGen: function(report) {
+
+        var urlRouteConstruction = '/core/reports?name=' +
+            report +
+            '&page_size=1&node=' +
+            this.defaults.hostName;
+        console.log('urlGen', urlRouteConstruction);
+        return urlRouteConstruction;
+    },
+
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
         this.el = options.el;
         this.defaults.width = options.width;
+        this.defaults.hostName = options.nodeName;
+        this.defaults.globalLookback = options.globalLookback;
 
         var ns = this.defaults;
         var self = this;
+
+        // appends display and modal html elements to this.el
+        this.render();
 
         // required in case spinner loading takes
         // longer than chart loading
         ns.spinnerDisplay = 'inline';
 
+        var spinnerLocation = this.el;
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(this.el).css({
+            $(this).appendTo(spinnerLocation).css({
                 'position': 'relative',
+                'margin-top': -20,
                 'margin-left': (ns.width / 2),
                 'display': ns.spinnerDisplay
             });
         });
 
         this.update();
+
+        this.collection.on('sync', function() {
+            if (self.collection.toJSON()[0].result.length === 0) {
+                console.log('no len');
+            } else {
+                self.populateReports();
+            }
+        });
+
+        // this is triggered by a listener set on nodeReportView.js
+        this.on('selectorChanged', function() {
+            console.log('selectorChanged');
+            this.defaults.globalLookback = $('#global-lookback-range').val();
+        });
+
     },
 
     update: function() {
@@ -53,14 +85,8 @@ var ReportsReportView = Backbone.View.extend({
         // spinner callback resolves
         // after chart data callback
         ns.spinnerDisplay = 'none';
-
         $(this.el).find('#spinner').hide();
 
-        $(this.el).append("No Reports Data")
-            .css({
-                'position': 'relative',
-                'margin-left': (ns.width / 2 - 50),
-            });
     },
 
     render: function() {
@@ -68,9 +94,67 @@ var ReportsReportView = Backbone.View.extend({
         return this;
     },
 
-    template: _.template('<div id="availableReports">' +
-        '<div id="reportSection"><h3>Sample Report List</h3></div>' +
-        '<h3>Sample Data Load:</h3><div id="availableReportsResult"></div></div>'
-    )
+    populateReports: function() {
+        var ns = this.defaults;
+        var self = this;
+        console.log('in populateReports', this.collection.models[0].attributes.result);
+
+        // empty and add results to dropdown
+        $(self.el).find('.reports-available-dropdown-menu > li').remove();
+
+        _.each(self.collection.models[0].attributes.result, function(item) {
+            $(self.el).find('.reports-available-dropdown-menu').append('<li id="report-result">' + item + "</li>");
+        });
+
+        // add click listeners to dropdown entries
+        $(self.el).find('.reports-available-dropdown-menu > li').on('click', function(e) {
+            ns.spinnerDisplay = "inline";
+            $(self.el).find('#spinner').show();
+
+            console.log('clicked', e.currentTarget.innerText);
+
+            // $.get report based on
+            var reportUrl = self.urlGen(e.currentTarget.innerText);
+            $.get(reportUrl, function(data) {
+
+                // append report name to title bar:
+                $(self.el).find('.panel-header-report-title').text(': ' + e.currentTarget.innerText);
+                $(self.el).find('#spinner').hide();
+                console.log('data', data);
+                var result = data.results[0].value;
+                $(self.el).find('.reports-results-container').html('');
+                _.each(result, function(item, i) {
+                    $(self.el).find('.reports-results-container').append(_.keys(result)[i] + ' ', result[i]);
+                });
+
+            });
+
+        });
+    },
+
+    template: _.template(
+
+        // render dropdown button
+        '<div class="dropdown">' +
+        '<button id="dLabel" type="button" class="btn btn-default" data-toggle="dropdown" aria-haspopup="true" role="button" aria-expanded="false">' +
+        'Reports Available ' +
+        '<span class="caret"></span>' +
+        '</button>' +
+        '<ul class="reports-available-dropdown-menu dropdown-menu" role="menu" aria-labelledby="dLabel">' +
+        '<li>No reports available</li>' +
+        '</ul>' +
+        '</div><br>' +
+
+        // render report data title bar
+        '<div class="panel panel-primary">' +
+        '<div class="panel-heading">' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> Report Data' +
+        '<span class="panel-header-report-title"></span>' +
+        '</h3>' +
+        '</div>' +
+        '<div class="reports-results-container">' +
+        '<br>Selecting a report from the dropdown above will populate this area with the report results.' +
+        '</div>' +
+        '</div>')
 
 });
