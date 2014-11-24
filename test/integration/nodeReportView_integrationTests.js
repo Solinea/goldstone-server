@@ -102,5 +102,15 @@ describe('NodeReportView.js spec', function() {
             this.testView.scheduleInterval();
             expect(this.testView.defaults.scheduleInterval).to.not.equal(test1);
         });
+        it('should correctly parse the node from the url', function() {
+            var test1 = this.testView.constructHostName('http://localhost:8000/report/node/controller-01.lab.solinea.com');
+            var test2 = this.testView.constructHostName('http://localhost:8000/report/node/controller-01');
+            var test3 = this.testView.constructHostName('http://localhost:8000/report/node/controller-01.a.b.c.d.e.f.g.h');
+            var test4 = this.testView.constructHostName('http://localhost:8000/report/node/');
+            expect(test1).to.equal('controller-01');
+            expect(test2).to.equal('controller-01');
+            expect(test3).to.equal('controller-01');
+            expect(test4).to.equal('');
+        });
     });
 });

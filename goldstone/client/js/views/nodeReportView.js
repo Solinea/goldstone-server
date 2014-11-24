@@ -69,6 +69,7 @@ var NodeReportView = Backbone.View.extend({
         this.memoryUsageView.trigger('selectorChanged');
         this.networkUsageView.trigger('selectorChanged');
         this.eventsReport.trigger('selectorChanged');
+        this.reportsReport.trigger('selectorChanged');
     },
 
     setGlobalLookbackRefreshTriggers: function() {
@@ -107,6 +108,15 @@ var NodeReportView = Backbone.View.extend({
         return this;
     },
 
+    constructHostName: function(loc) {
+        locEnd = loc.slice(loc.lastIndexOf('/') + 1);
+        if (locEnd.indexOf('.') === -1) {
+            return locEnd;
+        } else {
+            return locEnd.slice(0, locEnd.indexOf('.'));
+        }
+    },
+
     renderCharts: function() {
 
         var ns = this.defaults;
@@ -132,9 +142,7 @@ var NodeReportView = Backbone.View.extend({
 
         // construct api calls from url component
         // between the last '/' and the following '.'
-        var loc = location.pathname;
-        locEnd = loc.slice(loc.lastIndexOf('/') + 1);
-        var hostName = locEnd.slice(0, locEnd.indexOf('.'));
+        var hostName = this.constructHostName(location.pathname);
 
         //----------------------------
         // instantiate charts via
