@@ -105,11 +105,10 @@ var ReportsReportView = Backbone.View.extend({
         console.log('data before: ', data);
         var ns = this.defaults;
         var self = this;
-
-        // initial result is stringified JSON
         var tableData = data;
-        var finalResults = [];
 
+        // initialize array that will be returned after processing
+        var finalResults = [];
 
         if (typeof(tableData[0]) === "object") {
             console.log('prepping data as an object');
@@ -122,6 +121,26 @@ var ReportsReportView = Backbone.View.extend({
             })));
             console.log('uniqueObjectKeys: ', uniqueObjectKeys);
 
+            // if there is a unique key with "name" somewhere in it,
+            // reorder the keys so that it is first
+
+            var keysWithName = [];
+            for (var i = 0; i < uniqueObjectKeys.length; i++) {
+                var item = uniqueObjectKeys[i];
+                if (item.indexOf('name') === -1) {
+                    continue;
+                } else {
+                    var spliced = uniqueObjectKeys.splice(i, 1);
+                    keysWithName.push(spliced);
+                    i--;
+                }
+            }
+            _.each(keysWithName, function(item) {
+                uniqueObjectKeys.unshift(item[0]);
+            });
+            console.log('uniqueObjectKeys after:', uniqueObjectKeys);
+
+
             // append data table headers that match the unique keys
             _.each(uniqueObjectKeys, function(item) {
                 $('.data-table-header-container').append('<th>' + item + '</th>');
@@ -129,10 +148,6 @@ var ReportsReportView = Backbone.View.extend({
 
             // iterate through tableData, and push object values to results
             // array, inserting '' where there is no existing value
-
-            /*save this
-                _.each(temp1, function(value){_.each(value, function(val, key){console.log(key, val)})})
-                */
 
             _.each(tableData, function(value) {
                 var subresult = [];
@@ -156,82 +171,53 @@ var ReportsReportView = Backbone.View.extend({
             });
         }
 
-
-
-
-
-
         console.log('data after: ', finalResults);
 
-
         return finalResults;
-        // return {
-        //     recordsTotal: tableData.count,
-        //     recordsFiltered: tableData.count,
-        //     result: finalResults
-        // };
     },
 
     drawSearchTable: function(location, data) {
 
         var ns = this.defaults;
         var self = this;
-
-        data = this.dataPrep(data);
-
         var oTable;
 
         if ($.fn.dataTable.isDataTable(location)) {
+            console.log('table already exists');
             oTable = $(location).DataTable();
-            oTable.clear().rows.add(data).draw();
-        } else {
-            var oTableParams = {
-                "info": false,
-                "processing": true,
-                "lengthChange": true,
-                "paging": true,
-                "searching": true,
-                // "order": [
-                // [0, 'desc']
-                // ],
-                "ordering": true,
-                "data": data,
-                "serverSide": false,
-                // "columnDefs": [{
-                //     "name": "created",
-                //     "type": "date",
-                //     "targets": 0,
-                //     "render": function(data, type, full, meta) {
-                //         return moment(data).format();
-                //     }
-                // },
-                // {
-                //     "name": "event_type",
-                //     "targets": 1
-                // },
-                // {
-                //     "name": "message",
-                //     "targets": 2
-                // },
-                // {
-                //     "name": "id",
-                //     "targets": 3
-                // },
-                // {
-                //     "name": "source_id",
-                //     "targets": 4
-                // },
-                // {
-                //     "name": "source_name",
-                //     "targets": 5
-                // },
-                // {
-                //     "visible": false,
-                //     "targets": [3, 4, 5]
-                // }]
-            };
-            oTable = $(location).DataTable(oTableParams);
+            oTable.destroy({
+                remove: true
+            });
+
+        $(this.el).find('.refreshed-report-container').append(
+        '<table id="reports-result-table" class="table table-hover">' +
+        '<thead>' +
+        '<tr class="header data-table-header-container">' +
+        // '<th></th>' +
+        // '<th>Event Type</th>' +
+        // '<th>Message</th>' +
+        '</tr>' +
+        '</thead>' +
+        '<tbody></tbody>' +
+        '</table>');
+
         }
+        data = this.dataPrep(data);
+        var oTableParams = {
+            "info": false,
+            "processing": true,
+            "lengthChange": true,
+            "paging": true,
+            "searching": true,
+            "order": [
+                [0, 'asc']
+            ],
+            "ordering": true,
+            "data": data,
+            "serverSide": false,
+        };
+        oTable = $(location).DataTable(oTableParams);
+
 
     },
 
@@ -264,11 +250,11 @@ var ReportsReportView = Backbone.View.extend({
                 console.log('data', data);
 
                 // appends results to report data container
-                var result = data.results[0].value;
+                /*var result = data.results[0].value;
                 $(self.el).find('.reports-results-container').html('');
                 _.each(result, function(item, i) {
                     $(self.el).find('.reports-results-container').append(_.keys(result)[i] + ' ', result[i]);
-                });
+                });*/
 
                 // also render data table:
                 self.drawSearchTable('#reports-result-table', data.results[0].value);
@@ -303,15 +289,17 @@ var ReportsReportView = Backbone.View.extend({
         '</div>' +
         '</div>' +
 
+        '<div class="refreshed-report-container"></div>' +
         // add search table in here:
         '<table id="reports-result-table" class="table table-hover">' +
         '<thead>' +
         '<tr class="header data-table-header-container">' +
-        '<th></th>' +
+        // '<th></th>' +
         // '<th>Event Type</th>' +
         // '<th>Message</th>' +
         '</tr>' +
         '</thead>' +
+        '<tbody></tbody>' +
         '</table>'
 
 
