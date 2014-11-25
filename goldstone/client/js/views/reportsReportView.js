@@ -62,7 +62,11 @@ var ReportsReportView = Backbone.View.extend({
 
         this.collection.on('sync', function() {
             if (self.collection.toJSON()[0].result.length === 0) {
-                console.log('no len');
+
+                $(self.el).find('.reports-available-dropdown-menu > li').remove();
+
+                $(self.el).find('.reports-available-dropdown-menu').append('<li id="report-result">No reports available</li>');
+
             } else {
                 self.populateReports();
             }
@@ -95,7 +99,11 @@ var ReportsReportView = Backbone.View.extend({
     },
 
     dataPrep: function(data) {
-        console.log('data before: ',data);
+
+        $('.data-table-header-container > th').remove();
+        $('.data-table-header-container').append('<th>Result</th>');
+
+        console.log('data before: ', data);
         var ns = this.defaults;
         var self = this;
 
@@ -110,7 +118,7 @@ var ReportsReportView = Backbone.View.extend({
             finalResults.push([item]);
         });
 
-        console.log('data after: ',finalResults);
+        console.log('data after: ', finalResults);
 
 
         return finalResults;
@@ -129,53 +137,58 @@ var ReportsReportView = Backbone.View.extend({
         data = this.dataPrep(data);
 
         var oTable;
-        var oTableParams = {
-            "info": false,
-            "processing": true,
-            // "lengthChange": true,
-            // "paging": true,
-            // "searching": true,
-            // "order": [
-            // [0, 'desc']
-            // ],
-            // "ordering": true,
-            "data": data,
-            "serverSide": false,
-            // "columnDefs": [{
-            //     "name": "created",
-            //     "type": "date",
-            //     "targets": 0,
-            //     "render": function(data, type, full, meta) {
-            //         return moment(data).format();
-            //     }
-            // },
-            // {
-            //     "name": "event_type",
-            //     "targets": 1
-            // },
-            // {
-            //     "name": "message",
-            //     "targets": 2
-            // },
-            // {
-            //     "name": "id",
-            //     "targets": 3
-            // },
-            // {
-            //     "name": "source_id",
-            //     "targets": 4
-            // },
-            // {
-            //     "name": "source_name",
-            //     "targets": 5
-            // },
-            // {
-            //     "visible": false,
-            //     "targets": [3, 4, 5]
-            // }]
-        };
 
-        oTable = $(location).DataTable(oTableParams);
+        if ($.fn.dataTable.isDataTable(location)) {
+            oTable = $(location).DataTable();
+            oTable.clear().rows.add(data).draw();
+        } else {
+            var oTableParams = {
+                "info": false,
+                "processing": true,
+                "lengthChange": true,
+                "paging": true,
+                "searching": true,
+                // "order": [
+                // [0, 'desc']
+                // ],
+                "ordering": true,
+                "data": data,
+                "serverSide": false,
+                // "columnDefs": [{
+                //     "name": "created",
+                //     "type": "date",
+                //     "targets": 0,
+                //     "render": function(data, type, full, meta) {
+                //         return moment(data).format();
+                //     }
+                // },
+                // {
+                //     "name": "event_type",
+                //     "targets": 1
+                // },
+                // {
+                //     "name": "message",
+                //     "targets": 2
+                // },
+                // {
+                //     "name": "id",
+                //     "targets": 3
+                // },
+                // {
+                //     "name": "source_id",
+                //     "targets": 4
+                // },
+                // {
+                //     "name": "source_name",
+                //     "targets": 5
+                // },
+                // {
+                //     "visible": false,
+                //     "targets": [3, 4, 5]
+                // }]
+            };
+            oTable = $(location).DataTable(oTableParams);
+        }
 
     },
 
@@ -231,7 +244,7 @@ var ReportsReportView = Backbone.View.extend({
         '<span class="caret"></span>' +
         '</button>' +
         '<ul class="reports-available-dropdown-menu dropdown-menu" role="menu" aria-labelledby="dLabel">' +
-        '<li>No reports available</li>' +
+        '<li>Reports list loading or not available</li>' +
         '</ul>' +
         '</div><br>' +
 
@@ -250,8 +263,8 @@ var ReportsReportView = Backbone.View.extend({
         // add search table in here:
         '<table id="reports-result-table" class="table table-hover">' +
         '<thead>' +
-        '<tr class="header">' +
-        '<th>Result</th>' +
+        '<tr class="header data-table-header-container">' +
+        '<th></th>' +
         // '<th>Event Type</th>' +
         // '<th>Message</th>' +
         '</tr>' +
