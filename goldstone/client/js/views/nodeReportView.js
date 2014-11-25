@@ -264,11 +264,11 @@ var NodeReportView = Backbone.View.extend({
         '<div id="node-report-main" class="col-md-12">' +
 
         '<!-- buttons -->' +
-        '<div class="btn-group">' +
-        '<button type="button" id="headerBar" class="servicesButton active btn ' + 'btn-default">Services</button>' +
-        '<button type="button" id="headerBar" class="reportsButton btn btn-' + 'default">Reports</button>' +
-        '<button type="button" id="headerBar" class="eventsButton btn btn-' + 'default">Events</button><br><br>' +
-        '</div>' +
+        '<div class="btn-group" role="group">' +
+        '<button type="button" id="headerBar" class="servicesButton active btn btn-default">Services</button>' +
+        '<button type="button" id="headerBar" class="reportsButton btn btn-default">Reports</button>' +
+        '<button type="button" id="headerBar" class="eventsButton btn btn-default">Events</button>' +
+        '</div><br><br>' +
 
         '<div id="main-container" class="col-md-12">' +
         '<div id="node-report-panel" class="panel panel-primary">' +
