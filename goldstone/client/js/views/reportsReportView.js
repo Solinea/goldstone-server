@@ -101,7 +101,6 @@ var ReportsReportView = Backbone.View.extend({
     dataPrep: function(data) {
 
         $('.data-table-header-container > th').remove();
-        $('.data-table-header-container').append('<th>Result</th>');
 
         console.log('data before: ', data);
         var ns = this.defaults;
@@ -109,14 +108,58 @@ var ReportsReportView = Backbone.View.extend({
 
         // initial result is stringified JSON
         var tableData = data;
-
         var finalResults = [];
 
-        _.each(tableData, function(item) {
 
-            // if any field is undefined, dataTables throws an alert
-            finalResults.push([item]);
-        });
+        if (typeof(tableData[0]) === "object") {
+            console.log('prepping data as an object');
+
+            // chained underscore function that will scan for the existing
+            // object keys, and return a list of the unique keys
+            // as not every object contains every key
+            var uniqueObjectKeys = _.uniq(_.flatten(_.map(tableData, function(item) {
+                return Object.keys(item);
+            })));
+            console.log('uniqueObjectKeys: ', uniqueObjectKeys);
+
+            // append data table headers that match the unique keys
+            _.each(uniqueObjectKeys, function(item) {
+                $('.data-table-header-container').append('<th>' + item + '</th>');
+            });
+
+            // iterate through tableData, and push object values to results
+            // array, inserting '' where there is no existing value
+
+            /*save this
+                _.each(temp1, function(value){_.each(value, function(val, key){console.log(key, val)})})
+                */
+
+            _.each(tableData, function(value) {
+                var subresult = [];
+                _.each(uniqueObjectKeys, function(item) {
+                    if (value[item] === undefined) {
+                        subresult.push('');
+                    } else {
+                        subresult.push(value[item]);
+                    }
+                });
+                finalResults.push(subresult);
+            });
+
+        } else {
+            $('.data-table-header-container').append('<th>Result</th>');
+            console.log('prepping data as an array');
+            _.each(tableData, function(item) {
+
+                // if any field is undefined, dataTables throws an alert
+                finalResults.push([item]);
+            });
+        }
+
+
+
+
+
 
         console.log('data after: ', finalResults);
 
