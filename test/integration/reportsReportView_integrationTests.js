@@ -166,6 +166,19 @@ describe('reportsReportView.js spec', function() {
                 }
             });
             expect($('.data-table-header-container > th').text()).to.equal('george_namejohngeorgeringostu');
+            $('.data-table-header-container > th').text('');
+            var test3 = this.testView.dataPrep({
+                0: {
+                    'john': 1,
+                    'george': 2,
+                    'blah_name': 3,
+                    'ringo': 4,
+                    'george_name': 5,
+                    'stu': undefined,
+                    'namename': 6,
+                }
+            });
+            expect($('.data-table-header-container > th').text()).to.equal('namenamegeorge_nameblah_namejohngeorgeringostu');
             expect(test1).to.deep.equal([
                 [8],
                 [6],
@@ -181,5 +194,4 @@ describe('reportsReportView.js spec', function() {
             ]);
         });
     });
-
 });
