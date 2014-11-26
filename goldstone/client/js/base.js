@@ -1019,8 +1019,15 @@ goldstone.charts.topologyTree = {
         var redirectNodeName = '/' + data[keyName];
         window.location.href = '/report/node' + redirectNodeName;
     },
+
+    appendLeafNameToResourceHeader: function(text, location) {
+        location = location || '.panel-header-resource-title';
+        $(location).text(': ' + text);
+    },
+
     processTree: function(json, ns) {
         "use strict";
+        var that = this;
         var duration = d3.event && d3.event.altKey ? 5000 : 500,
             // Compute the new tree layout.
             nodes = ns.tree.nodes(ns.data).reverse();
@@ -1057,6 +1064,9 @@ goldstone.charts.topologyTree = {
             })
             .on("click", function(d) {
 
+                // for appending to resource chart header
+                var origClickedLabel = d.label;
+
                 if (d.rsrcType.match(/-leaf$/) && ns.hasOwnProperty('leafDataUrls')) {
                     var url = ns.leafDataUrls[d.rsrcType];
                     if (url !== undefined) {
@@ -1073,6 +1083,7 @@ goldstone.charts.topologyTree = {
                         }
                         if (!ns.frontPage) {
                             ns.self.loadLeafData(url, ns);
+                            that.appendLeafNameToResourceHeader(origClickedLabel);
                         }
 
                         if (ns.frontPage) {
@@ -1093,7 +1104,7 @@ goldstone.charts.topologyTree = {
                                 localStorage.clear();
                                 url = "/" + parentModule + url;
                                 localStorage.setItem('urlForResourceList', url);
-
+                                localStorage.setItem('origClickedLabel', origClickedLabel);
                                 window.location.href = parentModule + '/discover';
                             }
                         }
@@ -1289,11 +1300,16 @@ goldstone.charts.topologyTree = {
                     $(ns.spinner).hide();
                 })(this.ns);
 
-                // render resource url in localStorage, if any, and clear it out
+                // render resource url in localStorage, if any
                 if (localStorage.getItem('urlForResourceList') !== null) {
-                    this.loadLeafData(localStorage.urlForResourceList, this.ns);
-                    localStorage.clear();
+                    this.loadLeafData(localStorage.getItem('urlForResourceList'), this.ns);
                 }
+                // append stored front-page leaf name to chart header
+                if (localStorage.getItem('origClickedLabel') !== null) {
+                    this.appendLeafNameToResourceHeader(localStorage.getItem('origClickedLabel'));
+                }
+
+                localStorage.clear();
 
             }
         }
