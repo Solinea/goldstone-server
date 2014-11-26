@@ -21,7 +21,9 @@ var ReportsReportCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        return {result: data};
+        return {
+            result: data
+        };
     },
 
     model: ReportsReportModel,
@@ -40,7 +42,6 @@ var ReportsReportCollection = Backbone.Collection.extend({
         this.url = "/core/report_list?node=" +
             this.defaults.nodeName +
             "&timestamp__gte=" + (+new Date() - this.defaults.globalLookback * 1000 * 60);
-        console.log(this.url);
 
         this.fetch();
     }
