@@ -22,11 +22,10 @@ var ReportsReportView = Backbone.View.extend({
 
     urlGen: function(report) {
 
+        // fetches only the latest result for a particular report
         var urlRouteConstruction = '/core/reports?name=' +
-            report +
-            '&page_size=1&node=' +
+            report + '&page_size=1&node=' +
             this.defaults.hostName;
-        console.log('urlGen', urlRouteConstruction);
         return urlRouteConstruction;
     },
 
@@ -41,18 +40,18 @@ var ReportsReportView = Backbone.View.extend({
         var ns = this.defaults;
         var self = this;
 
-        // appends display and modal html elements to this.el
+        // appends html elements and initial dataTable to this.el
         this.render();
 
         // required in case spinner loading takes
         // longer than chart loading
         ns.spinnerDisplay = 'inline';
 
-        var spinnerLocation = this.el;
+        var spinnerLocation = '.reports-spinner-container';
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(spinnerLocation).css({
                 'position': 'relative',
-                'margin-top': -20,
+                'margin-top': -32,
                 'margin-left': (ns.width / 2),
                 'display': ns.spinnerDisplay
             });
@@ -60,22 +59,31 @@ var ReportsReportView = Backbone.View.extend({
 
         this.update();
 
+        // triggered whenever this.collection finishes fetching
         this.collection.on('sync', function() {
-            if (self.collection.toJSON()[0].result.length === 0) {
 
-                $(self.el).find('.reports-available-dropdown-menu > li').remove();
+            // clears existing 'Reports Available' in dropdown
+            $(self.el).find('.reports-available-dropdown-menu > li').remove();
+
+            // if no reports available, appends 'No reports available'
+            if (self.collection.toJSON()[0].result.length === 0) {
 
                 $(self.el).find('.reports-available-dropdown-menu').append('<li id="report-result">No reports available</li>');
 
             } else {
-                self.populateReports();
+                self.populateReportsDropdown();
             }
         });
 
         // this is triggered by a listener set on nodeReportView.js
         this.on('selectorChanged', function() {
-            console.log('selectorChanged');
-            this.defaults.globalLookback = $('#global-lookback-range').val();
+
+            // reconstructs the url to fetch in this.collection
+            self.collection.defaults.globalLookback = $('#global-lookback-range').val();
+
+            // fetches reports available as far back as the global lookback period
+            self.collection.retrieveData();
+
         });
 
     },
@@ -95,23 +103,19 @@ var ReportsReportView = Backbone.View.extend({
 
     render: function() {
         $(this.el).append(this.template());
+        $(this.el).find('.refreshed-report-container').append(this.dataTableTemplate());
         return this;
     },
 
-    dataPrep: function(data) {
+    dataPrep: function(tableData) {
 
-        $('.data-table-header-container > th').remove();
-
-        console.log('data before: ', data);
         var ns = this.defaults;
         var self = this;
-        var tableData = data;
 
         // initialize array that will be returned after processing
         var finalResults = [];
 
         if (typeof(tableData[0]) === "object") {
-            console.log('prepping data as an object');
 
             // chained underscore function that will scan for the existing
             // object keys, and return a list of the unique keys
@@ -119,7 +123,6 @@ var ReportsReportView = Backbone.View.extend({
             var uniqueObjectKeys = _.uniq(_.flatten(_.map(tableData, function(item) {
                 return Object.keys(item);
             })));
-            console.log('uniqueObjectKeys: ', uniqueObjectKeys);
 
             // if there is a unique key with "name" somewhere in it,
             // reorder the keys so that it is first
@@ -138,8 +141,6 @@ var ReportsReportView = Backbone.View.extend({
             _.each(keysWithName, function(item) {
                 uniqueObjectKeys.unshift(item[0]);
             });
-            console.log('uniqueObjectKeys after:', uniqueObjectKeys);
-
 
             // append data table headers that match the unique keys
             _.each(uniqueObjectKeys, function(item) {
@@ -162,17 +163,12 @@ var ReportsReportView = Backbone.View.extend({
             });
 
         } else {
-            $('.data-table-header-container').append('<th>Result</th>');
-            console.log('prepping data as an array');
-            _.each(tableData, function(item) {
 
-                // if any field is undefined, dataTables throws an alert
+            $('.data-table-header-container').append('<th>Result</th>');
+            _.each(tableData, function(item) {
                 finalResults.push([item]);
             });
         }
-
-        console.log('data after: ', finalResults);
-
         return finalResults;
     },
 
@@ -182,30 +178,29 @@ var ReportsReportView = Backbone.View.extend({
         var self = this;
         var oTable;
 
+        // removes initial placeholder message
+        $(this.el).find('.reports-info-container').remove();
+
         if ($.fn.dataTable.isDataTable(location)) {
-            console.log('table already exists');
+
+            // if dataTable already exists:
             oTable = $(location).DataTable();
+
+            // complete remove it from memory and the dom
             oTable.destroy({
                 remove: true
             });
 
-        $(this.el).find('.refreshed-report-container').append(
-        '<table id="reports-result-table" class="table table-hover">' +
-        '<thead>' +
-        '<tr class="header data-table-header-container">' +
-        // '<th></th>' +
-        // '<th>Event Type</th>' +
-        // '<th>Message</th>' +
-        '</tr>' +
-        '</thead>' +
-        '<tbody></tbody>' +
-        '</table>');
-
+            // and re-append the table structure that will be repopulated
+            // with the new data
+            $(this.el).find('.refreshed-report-container')
+                .html(this.dataTableTemplate());
         }
+
         data = this.dataPrep(data);
         var oTableParams = {
-            "info": false,
-            "processing": true,
+            "info": true,
+            "processing": false,
             "lengthChange": true,
             "paging": true,
             "searching": true,
@@ -218,27 +213,20 @@ var ReportsReportView = Backbone.View.extend({
         };
         oTable = $(location).DataTable(oTableParams);
 
-
     },
 
-    populateReports: function() {
+    populateReportsDropdown: function() {
         var ns = this.defaults;
         var self = this;
-        console.log('in populateReports', this.collection.models[0].attributes.result);
-
-        // empty and add results to dropdown
-        $(self.el).find('.reports-available-dropdown-menu > li').remove();
 
         _.each(self.collection.models[0].attributes.result, function(item) {
-            $(self.el).find('.reports-available-dropdown-menu').append('<li id="report-result">' + item + "</li>");
+            $(self.el).find('.reports-available-dropdown-menu').append('<li style="cursor: context-menu;" id="report-result">' + item + "</li>");
         });
 
         // add click listeners to dropdown entries
         $(self.el).find('.reports-available-dropdown-menu > li').on('click', function(e) {
             ns.spinnerDisplay = "inline";
             $(self.el).find('#spinner').show();
-
-            console.log('clicked', e.currentTarget.innerText);
 
             // $.get report based on
             var reportUrl = self.urlGen(e.currentTarget.innerText);
@@ -247,20 +235,10 @@ var ReportsReportView = Backbone.View.extend({
                 // append report name to title bar:
                 $(self.el).find('.panel-header-report-title').text(': ' + e.currentTarget.innerText);
                 $(self.el).find('#spinner').hide();
-                console.log('data', data);
 
-                // appends results to report data container
-                /*var result = data.results[0].value;
-                $(self.el).find('.reports-results-container').html('');
-                _.each(result, function(item, i) {
-                    $(self.el).find('.reports-results-container').append(_.keys(result)[i] + ' ', result[i]);
-                });*/
-
-                // also render data table:
+                // render data table:
                 self.drawSearchTable('#reports-result-table', data.results[0].value);
-
             });
-
         });
     },
 
@@ -277,6 +255,9 @@ var ReportsReportView = Backbone.View.extend({
         '</ul>' +
         '</div><br>' +
 
+        // spinner container
+        '<div class="reports-spinner-container"></div>' +
+
         // render report data title bar
         '<div class="panel panel-primary">' +
         '<div class="panel-heading">' +
@@ -284,25 +265,27 @@ var ReportsReportView = Backbone.View.extend({
         '<span class="panel-header-report-title"></span>' +
         '</h3>' +
         '</div>' +
-        '<div class="reports-results-container">' +
+
+        // initially rendered message this will be overwritten by dataTable
+        '<div class="reports-info-container">' +
         '<br>Selecting a report from the dropdown above will populate this area with the report results.' +
         '</div>' +
-        '</div>' +
 
-        '<div class="refreshed-report-container"></div>' +
-        // add search table in here:
+        '</div>' +
+        '<div class="refreshed-report-container"></div>'
+    ),
+
+    dataTableTemplate: _.template(
         '<table id="reports-result-table" class="table table-hover">' +
         '<thead>' +
         '<tr class="header data-table-header-container">' +
-        // '<th></th>' +
-        // '<th>Event Type</th>' +
-        // '<th>Message</th>' +
+
+        // necessary <th> is appended here by jQuery in this.dataPrep()
         '</tr>' +
         '</thead>' +
         '<tbody></tbody>' +
         '</table>'
-
-
     )
+
 
 });
