@@ -793,4 +793,4 @@ class ReportListViewTests(APISimpleTestCase):
     def test_get_fail(self):
         response = self.client.get('/core/report_list')
         self.assertEqual(response.status_code,
-                         status.HTTP_500_INTERNAL_SERVER_ERROR)
+                         status.HTTP_200_OK)
