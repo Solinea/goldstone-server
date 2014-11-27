@@ -59,42 +59,41 @@ $(document).ready(function() {
     $(".alert-success > a").click(function() {
         $(".alert-success").alert();
     });
-});
 
-$('#settingsStartTime').datetimepicker({
-    format: 'M d Y H:i:s',
-    lang: 'en'
-});
+    $("#endTimeNow").click(function() {
+        // "use strict";
+        $("#autoRefresh").prop("disabled", false);
+        $("#autoRefresh").prop("checked", true);
+        $("#autoRefreshInterval").prop("disabled", false);
+        $("#settingsEndTime").prop("disabled", true);
+    });
 
-$('#settingsEndTime').datetimepicker({
-    format: 'M d Y H:i:s',
-    lang: 'en'
-});
+    $("#endTimeSelected").click(function() {
+        // "use strict";
+        $("#autoRefresh").prop("checked", false);
+        $("#autoRefresh").prop("disabled", true);
+        $("#autoRefreshInterval").prop("disabled", true);
+        $("#settingsEndTime").prop("disabled", false);
+    });
 
-$("#endTimeNow").click(function() {
-    "use strict";
-    $("#autoRefresh").prop("disabled", false);
-    $("#autoRefresh").prop("checked", true);
-    $("#autoRefreshInterval").prop("disabled", false);
-    $("#settingsEndTime").prop("disabled", true);
-});
+    $("#settingsEndTime").click(function() {
+        // "use strict";
+        $("#endTimeSelected").prop("checked", true);
+        $("#autoRefresh").prop("checked", false);
+        $("#autoRefresh").prop("disabled", true);
+        $("#autoRefreshInterval").prop("disabled", true);
+    });
 
-$("#endTimeSelected").click(function() {
-    "use strict";
-    $("#autoRefresh").prop("checked", false);
-    $("#autoRefresh").prop("disabled", true);
-    $("#autoRefreshInterval").prop("disabled", true);
-    $("#settingsEndTime").prop("disabled", false);
-});
+    $('#settingsStartTime').datetimepicker({
+        format: 'M d Y H:i:s',
+        lang: 'en'
+    });
 
-$("#settingsEndTime").click(function() {
-    "use strict";
-    $("#endTimeSelected").prop("checked", true);
-    $("#autoRefresh").prop("checked", false);
-    $("#autoRefresh").prop("disabled", true);
-    $("#autoRefreshInterval").prop("disabled", true);
+    $('#settingsEndTime').datetimepicker({
+        format: 'M d Y H:i:s',
+        lang: 'en'
+    });
 });
-
 
 // tools for raising alerts
 goldstone.raiseError = function(message) {
@@ -206,42 +205,39 @@ goldstone.time.paramToDate = function(param) {
 goldstone.time.getDateRange = function() {
     "use strict";
     //grab the values from the standard time settings modal/window
-    var end = (function() {
-            if (!$("#endTimeNow").prop("checked")) {
-                var e = $("input#settingsEndTime").val();
-                switch (e) {
-                    case '':
-                        return new Date();
-                    default:
-                        var d = new Date(e);
-                        if (d === 'Invalid Date') {
-                            alert("End date must be valid. Using now.");
-                            d = new Date();
-                        }
-                        return d;
-                }
-            } else {
-                return new Date();
-            }
-        })(),
-        start = (function() {
-            var s = $("input#settingsStartTime").val();
-            switch (s) {
-                case '':
-                    // TODO devise a better way to handle the default start.  Should probably be a setting.
-                    return (new Date(end)).addWeeks(-1);
-                default:
-                    var d = new Date(s);
-                    if (d === 'Invalid Date') {
-                        alert("Start date must be valid. Using 1 week " +
-                            "prior to end date.");
-                        // TODO devise a better way to handle the default start.  Should probably be a setting.
-                        d = (new Date(end)).addWeeks(-1);
-                    }
-                    return d;
-            }
-        })();
+    var end;
+    var start;
+    var d;
 
+    if ($("#endTimeNow").prop("checked") === false) {
+        var e = $("input#settingsEndTime").val();
+
+        if (e === '') {
+            end = new Date();
+        } else {
+            d = new Date(+e);
+            if (d.toString() === 'Invalid Date') {
+                alert("End date must be valid. Using now.");
+                d = new Date();
+            }
+            end = d;
+        }
+    } else {
+        end = new Date();
+    }
+
+    var s = $("input#settingsStartTime").val();
+    if (s === '') {
+        start = end.addWeeks(-1);
+    } else {
+        d = new Date(+s);
+        if (d.toString() === 'Invalid Date') {
+            alert('Start date must be valid. Using 1 week ' +
+                'prior to end date.');
+            d = end.addWeeks(-1);
+        }
+        start = d;
+    }
     return [start, end];
 };
 
