@@ -37,12 +37,17 @@ def process_host_stream(self, host, timestamp):
     host_stream queue, and creates or updates an associated node in the model.
     :return: None
     """
-    node, created = Node.objects.get_or_create(name=host)
-    if not node.admin_disabled:
-        node.last_seen_method = 'LOGS'
-        # todo change date to arrow
-        node.last_seen = datetime.now(tz=pytz.utc)
+
+    node = Node.get(name=host)
+    if node is None:
+        node = Node(name=host)
         node.save()
+    else:
+        if not node.admin_disabled:
+            node.last_seen_method = 'LOGS'
+            # todo change date to arrow
+            node.last_seen = arrow.utcnow().datetime
+            node.save()
 
 
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
@@ -64,8 +69,8 @@ def _create_event(timestamp, host, event_type, message):
     dt = arrow.get(timestamp).datetime
 
     try:
-        node = Node.objects.get(name=host)
-    except Node.DoesNotExist:
+        node = LoggingNode.get(name=host)
+    except LoggingNode.DoesNotExist:
         logger.warning("[process_log_error_event] could not find logging node "
                        "with name=%s.  event will have not relations.", host)
         event = Event(event_type=event_type, created=dt, message=message)
@@ -73,7 +78,7 @@ def _create_event(timestamp, host, event_type, message):
         return event
     else:
         event = Event(event_type=event_type, created=dt, message=message,
-                      source_id=str(node.uuid), source_name=host)
+                      source_id=str(node.id), source_name=host)
         event.save()
         return event
 
@@ -85,13 +90,13 @@ def ping(self, node):
                                stdout=open('/dev/null', 'w'),
                                stderr=subprocess.STDOUT)
     if response == 0:
-        logger.debug("%s is alive", node.uuid)
+        logger.debug("%s is alive", node.id)
         node.last_seen = datetime.now(tz=pytz.utc)
         node.last_seen_method = 'PING'
         node.save()
         return True
     else:
-        logger.debug("%s did not respond", node.uuid)
+        logger.debug("%s did not respond", node.id)
         return False
 
 
@@ -102,11 +107,11 @@ def check_host_avail(self, offset=settings.HOST_AVAILABLE_PING_THRESHOLD):
     ones that have not been seen within the configured window.
     :return: None
     """
-    cutoff = (datetime.now(tz=pytz.utc) - offset)
-    logger.debug("[check_host_avail] cutoff = %s", cutoff)
-    to_ping = Node.objects.filter(updated__lte=cutoff, admin_disabled=False)
-    logger.debug("hosts to ping = %s", to_ping)
-    for node in to_ping.iterator():
-        ping(node)
 
-    return to_ping
+    cutoff = arrow.utcnow().datetime - offset
+    logger.debug("[check_host_avail] cutoff = %s", str(cutoff))
+    to_ping = Node.es_objects.filter(updated__lte=cutoff, admin_disabled=False)
+    logger.debug("hosts to ping = %s", to_ping)
+    for mt in to_ping:
+        ping(mt.get_object())
+

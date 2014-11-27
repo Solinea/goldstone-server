@@ -40,7 +40,6 @@ class ElasticViewSetMixin(object):
     ordering = None
 
     def _process_params(self, params):
-
         result = {
             "query_kwargs": {},
             "filter_kwargs": {},
@@ -92,7 +91,7 @@ class ElasticViewSetMixin(object):
     def get_queryset(self):
         params = self._process_params(self.request.QUERY_PARAMS.dict())
         if self.model is not None:
-            qs = self.model().search(). \
+            qs = self.model.es_objects. \
                 query(**params['query_kwargs']). \
                 filter(**params['filter_kwargs'])
             if 'order_by' in params:
@@ -127,64 +126,64 @@ class ReadOnlyElasticViewSet(ElasticViewSetMixin, ReadOnlyModelViewSet):
     pass
 
 
-class NodeViewSet(ModelViewSet):
-    queryset = Node.objects.all()
-    serializer_class = NodeSerializer
-    filter_fields = ('uuid',
-                     'name',
-                     'last_seen_method',
-                     'admin_disabled')
-    lookup_field = 'uuid'
-    lookup_url_kwarg = 'uuid'
-    ordering_fields = '__all__'
-    ordering = 'updated'
-
-    def create(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data="Node creation not supported.")
-
-    def update(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data="Direct update not supported.")
-
-    def partial_update(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data="Direct partial update not supported.")
-
-    @action(methods=['PATCH'])
-    def enable(self, request, uuid=None, format=None):
-        node = self.get_object()
-        if node is not None:
-            node.admin_disabled = False
-            node.save()
-            serializer = NodeSerializer(node)
-            return Response(serializer.data)
-        else:
-            raise Http404
-
-    @action(methods=['PATCH'])
-    def disable(self, request, uuid=None, format=None):
-        node = self.get_object()
-        if node is not None:
-            node.admin_disabled = True
-            node.save()
-            serializer = NodeSerializer(node)
-            return Response(serializer.data)
-        else:
-            raise Http404
-
-    def destroy(self, request, uuid=None, format=None):
-        node = self.get_object()
-        if node.admin_disabled:
-            node.delete()
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST,
-                            data="Must disable before deleting")
-        return Response(status=status.HTTP_204_NO_CONTENT)
+# class NodeViewSet(ModelViewSet):
+#     queryset = Node.objects.all()
+#     serializer_class = NodeSerializer
+#     filter_fields = ('uuid',
+#                      'name',
+#                      'last_seen_method',
+#                      'admin_disabled')
+#     lookup_field = 'uuid'
+#     lookup_url_kwarg = 'uuid'
+#     ordering_fields = '__all__'
+#     ordering = 'updated'
+#
+#     def create(self, request, *args, **kwargs):
+#         return Response(status=status.HTTP_400_BAD_REQUEST,
+#                         data="Node creation not supported.")
+#
+#     def update(self, request, *args, **kwargs):
+#         return Response(status=status.HTTP_400_BAD_REQUEST,
+#                         data="Direct update not supported.")
+#
+#     def partial_update(self, request, *args, **kwargs):
+#         return Response(status=status.HTTP_400_BAD_REQUEST,
+#                         data="Direct partial update not supported.")
+#
+#     @action(methods=['PATCH'])
+#     def enable(self, request, uuid=None, format=None):
+#         node = self.get_object()
+#         if node is not None:
+#             node.admin_disabled = False
+#             node.save()
+#             serializer = NodeSerializer(node)
+#             return Response(serializer.data)
+#         else:
+#             raise Http404
+#
+#     @action(methods=['PATCH'])
+#     def disable(self, request, uuid=None, format=None):
+#         node = self.get_object()
+#         if node is not None:
+#             node.admin_disabled = True
+#             node.save()
+#             serializer = NodeSerializer(node)
+#             return Response(serializer.data)
+#         else:
+#             raise Http404
+#
+#     def destroy(self, request, uuid=None, format=None):
+#         node = self.get_object()
+#         if node.admin_disabled:
+#             node.delete()
+#         else:
+#             return Response(status=status.HTTP_400_BAD_REQUEST,
+#                             data="Must disable before deleting")
+#         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class EventViewSet(ElasticViewSet):
-    model = EventType
+    model = Event
     serializer_class = EventSerializer
     # filter_fields = ('uuid',
     #                  'name',
@@ -195,8 +194,38 @@ class EventViewSet(ElasticViewSet):
     ordering = '-created'
 
 
+class NodeViewSet(ReadOnlyElasticViewSet):
+    model = Node
+    serializer_class = NodeSerializer
+    lookup_field = '_id'
+    lookup_url_kwarg = '_id'
+    ordering = '-updated'
+
+    @action(methods=['PATCH'])
+    def enable(self, request, *args, **kwargs):
+        node = self.get_object()
+        if node is not None:
+            node.admin_disabled = False
+            node.save()
+            serializer = NodeSerializer(node)
+            return Response(serializer.data)
+        else:
+            raise Http404
+
+    @action(methods=['PATCH'])
+    def disable(self, request, *args, **kwargs):
+        node = self.get_object()
+        if node is not None:
+            node.admin_disabled = True
+            node.save()
+            serializer = NodeSerializer(node)
+            return Response(serializer.data)
+        else:
+            raise Http404
+
+
 class MetricViewSet(ReadOnlyElasticViewSet):
-    model = MetricType
+    model = Metric
     serializer_class = MetricSerializer
     lookup_field = '_id'
     lookup_url_kwarg = '_id'
@@ -207,7 +236,7 @@ class MetricViewSet(ReadOnlyElasticViewSet):
 
 
 class ReportViewSet(ReadOnlyElasticViewSet):
-    model = ReportType
+    model = Report
     serializer_class = ReportSerializer
     lookup_field = "_id"
     lookup_url_kwarg = '_id'
