@@ -37,46 +37,64 @@ logger = logging.getLogger(__name__)
 
 class PrimeData(TestCase):
     # this should run before all SimpleTestCase methods.
-    LOGSTASH_INDEX_NAME = 'logstash-test'
-
-    DOCUMENT_TYPE = 'logs'
     conn = Elasticsearch(settings.ES_SERVER)
-    template_f = gzip.open(os.path.join(os.path.dirname(__file__), "apps",
-                                        "..", "..", "test_data",
-                                        "template.json.gz"), 'rb')
-    template = json.load(template_f)
 
+    # clean up existing indices
     try:
         conn.indices.delete("_all")
     finally:
         {}
 
-    conn.indices.create(LOGSTASH_INDEX_NAME, body=template)
+    # load index templates before any indices are created
+    for template_name, template_f in [('logstash',
+                        gzip.open(os.path.join(os.path.dirname(__file__),
+                                              "apps", "..", "..", "test_data",
+                                              "logstash_template.json.gz"))),
+                       ('goldstone',
+                        gzip.open(os.path.join(os.path.dirname(__file__),
+                                              "apps", "..", "..", "test_data",
+                                              "goldstone_template.json.gz"))),
+                       ('goldstone_agent',
+                        gzip.open(os.path.join(os.path.dirname(__file__),
+                                               "apps", "..", "..", "test_data",
+                                               "agent_template.json.gz"))),
+                       ('goldstone_model',
+                        gzip.open(os.path.join(os.path.dirname(__file__),
+                                               "apps", "..", "..", "test_data",
+                                               "model_template.json.gz")))
+                       ]:
+        template_body = json.load(template_f)
+        conn.indices.put_template(template_name, template_body)
 
-    q = {"query": {"match_all": {}}}
-    data_f = gzip.open(os.path.join(os.path.dirname(__file__), "apps", "..",
-                                    "..", "test_data", "data.json.gz"))
-    data = json.load(data_f)
-    for dataset in data:
-        for event in dataset['hits']['hits']:
-            rv = conn.index(LOGSTASH_INDEX_NAME, event['_type'],
-                            event['_source'])
+    # create daily indices for those who use them
+    _create_daily_index(basename='logstash')
+    _create_daily_index(basename='goldstone')
+    conn.indices.create('goldstone_agent')
+    conn.indices.create('goldstone_model')
 
-    conn.indices.refresh([LOGSTASH_INDEX_NAME])
+    # index the test data to the appropriate indices
+    for index, data_f in [(ESData()._get_latest_index('logstash'),
+                    gzip.open(os.path.join(os.path.dirname(__file__),
+                                           "apps", "..", "..", "test_data",
+                                           "logstash_data.json.gz"))),
+                   (ESData()._get_latest_index('goldstone'),
+                    gzip.open(os.path.join(os.path.dirname(__file__),
+                                           "apps", "..", "..", "test_data",
+                                           "goldstone_data.json.gz"))),
+                   ('goldstone_agent',
+                    gzip.open(os.path.join(os.path.dirname(__file__),
+                                           "apps", "..", "..", "test_data",
+                                           "agent_data.json.gz"))),
+                   ('goldstone_model',
+                    gzip.open(os.path.join(os.path.dirname(__file__),
+                                           "apps", "..", "..", "test_data",
+                                           "model_data.json.gz")))]:
+        data = json.load(data_f)
+        for dataset in data:
+            for event in dataset['hits']['hits']:
+                rv = conn.index(index, event['_type'], event['_source'])
 
-    _create_daily_index()
-
-    GOLDSTONE_INDEX_NAME = ESData()._get_latest_index('goldstone')
-    data_f = gzip.open(os.path.join(os.path.dirname(__file__), "apps", "..",
-                                    "..", "test_data",
-                                    "goldstone_data.json.gz"))
-    data = json.load(data_f)
-    for dataset in data:
-        for event in dataset['hits']['hits']:
-            rv = conn.index(GOLDSTONE_INDEX_NAME, event['_type'],
-                            event['_source'])
-
-    conn.indices.refresh([GOLDSTONE_INDEX_NAME])
+        conn.indices.refresh([index])
 
 
 class GSConnectionModel(SimpleTestCase):

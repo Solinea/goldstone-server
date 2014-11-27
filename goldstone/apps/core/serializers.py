@@ -17,21 +17,9 @@ import arrow
 from rest_framework import serializers, pagination
 from .models import Node, Event, Metric, Report
 import uuid
+import logging
 
-
-class NodeSerializer(serializers.ModelSerializer):
-    uuid = serializers.CharField(read_only=True)
-    name = serializers.CharField(read_only=True)
-    created = serializers.DateTimeField(read_only=True)
-    updated = serializers.DateTimeField(read_only=True)
-    last_seen_method = serializers.CharField(read_only=True)
-    admin_disabled = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = Node
-        lookup_field = 'uuid'
-        exclude = ['id']
-
+logger = logging.getLogger(__name__)
 
 class EventSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
@@ -47,6 +35,30 @@ class EventSerializer(serializers.ModelSerializer):
         lookup_field = '_id'
 
     def transform_created(self, obj, field_value):
+        return arrow.get(field_value).isoformat()
+
+class NodeSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True)
+    name = serializers.CharField(read_only=True)
+    last_seen_method = serializers.CharField(required=False, default="UNKNOWN")
+    admin_disabled = serializers.BooleanField(required=False)
+    created = serializers.DateTimeField(read_only=True)
+    updated = serializers.DateTimeField(required=False)
+
+    class Meta:
+        model = Node
+        lookup_field = '_id'
+
+    def transform_admin_disabled(self, obj, field_value):
+        if str(field_value).lower() == 'false':
+            return False
+        else:
+            return True
+
+    def transform_created(self, obj, field_value):
+        return arrow.get(field_value).isoformat()
+
+    def transform_updated(self, obj, field_value):
         return arrow.get(field_value).isoformat()
 
 
