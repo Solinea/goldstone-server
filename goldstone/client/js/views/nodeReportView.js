@@ -264,11 +264,11 @@ var NodeReportView = Backbone.View.extend({
         '<div id="node-report-main" class="col-md-12">' +
 
         '<!-- buttons -->' +
-        '<div class="btn-group">' +
-        '<button type="button" id="headerBar" class="servicesButton active btn ' + 'btn-default">Services</button>' +
-        '<button type="button" id="headerBar" class="reportsButton btn btn-' + 'default">Reports</button>' +
-        '<button type="button" id="headerBar" class="eventsButton btn btn-' + 'default">Events</button><br><br>' +
-        '</div>' +
+        '<div class="btn-group" role="group">' +
+        '<button type="button" id="headerBar" class="servicesButton active btn btn-default">Services</button>' +
+        '<button type="button" id="headerBar" class="reportsButton btn btn-default">Reports</button>' +
+        '<button type="button" id="headerBar" class="eventsButton btn btn-default">Events</button>' +
+        '</div><br><br>' +
 
         '<div id="main-container" class="col-md-12">' +
         '<div id="node-report-panel" class="panel panel-primary">' +
@@ -276,7 +276,9 @@ var NodeReportView = Backbone.View.extend({
 
         '<!-- placeholder for title bar and info popover -->' +
         '<div id="service-status-title-bar"></div>' +
+        '<div class="well col-md-12">' +
         '<div style="margin-left: 14px;" id="node-report-r2" class="row">' +
+        '</div>' +
         '</div>' +
         '<div id="node-report-r3" class="row">' +
         '<div id="node-report-r3-c1" class="col-md-12">' +
@@ -284,14 +286,16 @@ var NodeReportView = Backbone.View.extend({
         '<!-- placeholder for title bar and info popover -->' +
         '<div id="utilization-title-bar"></div>' +
         '<div id="node-report-panel" class="panel panel-primary">' +
-        '<div class="well col-md-4" id="cpu-usage">' +
+        '<div class="well col-md-12">' +
+        '<div class="col-md-4" id="cpu-usage">' +
         '<h4 class="text-center">CPU Usage</h4>' +
         '</div>' +
-        '<div class="well col-md-4" id="memory-usage">' +
+        '<div class="col-md-4" id="memory-usage">' +
         '<h4 class="text-center">Memory Usage</h4>' +
         '</div>' +
-        '<div class="well col-md-4" id="network-usage">' +
+        '<div class="col-md-4" id="network-usage">' +
         '<h4 class="text-center">Network Usage</h4>' +
+        '</div>' +
         '</div>' +
         '</div>' +
         '</div>' +
@@ -302,14 +306,16 @@ var NodeReportView = Backbone.View.extend({
         '<!-- placeholder for title bar and info popover -->' +
         '<div id="hypervisor-title-bar"></div>' +
         '<div id="node-report-panel" class="panel panel-primary">' +
-        '<div class="well col-md-3 text-center" id="cores-usage">' +
+        '<div class="well col-md-12">' +
+        '<div class="col-md-3 text-center" id="cores-usage">' +
         'Cores' +
         '</div>' +
-        '<div class="well col-md-3 text-center" id="memory-usage">' +
+        '<div class="col-md-3 text-center" id="memory-usage">' +
         'Memory' +
         '</div>' +
-        '<div class="well col-md-6" id="vm-cpu-usage">' +
+        '<div class="col-md-6" id="vm-cpu-usage">' +
         'Per VM CPU Usage' +
+        '</div>' +
         '</div>' +
         '</div>' +
         '</div>' +
