@@ -1,7 +1,7 @@
 // e2e tests
 // TODO: replace cpu resources/ memory resources/ disk resources svg test when charts are back online
 
-casper.test.begin('Node Report Page is loading properly', 63, function suite(test) {
+casper.test.begin('Node Report Page is loading properly', 62, function suite(test) {
     casper.start('http://localhost:8000/report/node/controller-01.lab.solinea.com', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -60,7 +60,6 @@ casper.test.begin('Node Report Page is loading properly', 63, function suite(tes
         test.assertNotVisible('div#servicesReport', 'Services tab should now be hidden');
         test.assertVisible('div#reportsReport', 'Reports tab should now be visible');
         test.assertNotVisible('div#eventsReport', 'Events tab should still be hidden');
-        test.assertSelectorHasText('#node-report-panel #reportsReport', 'No Reports Data');
 
         this.click('.eventsButton');
         test.assertNotVisible('div#servicesReport', 'Services tab should still be hidden');

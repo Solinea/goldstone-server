@@ -69,7 +69,7 @@ describe('NodeReportView.js spec', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.test-container');
-            expect($(this.testView.el).text()).to.equal('power-of-greyskullServicesReportsEvents Service Status Report UtilizationCPU UsageMemory UsageNetwork Usage HypervisorCoresMemoryPer VM CPU UsageUserSystemWait No Reports Data  Events Report102550100 records per pageSearch:Processing...CreatedEvent TypeMessage');
+            expect($(this.testView.el).text()).to.equal('power-of-greyskullServicesReportsEvents Service Status Report UtilizationCPU UsageMemory UsageNetwork Usage HypervisorCoresMemoryPer VM CPU UsageUserSystemWait Reports Available Reports list loading or not available Report DataSelecting a report from the dropdown above will populate this area with the report results.  Events Report102550100 records per pageSearch:Processing...CreatedEvent TypeMessage');
         });
         it('should exist', function() {
             this.testView.render();
@@ -101,6 +101,16 @@ describe('NodeReportView.js spec', function() {
             this.testView.getGlobalLookbackRefresh();
             this.testView.scheduleInterval();
             expect(this.testView.defaults.scheduleInterval).to.not.equal(test1);
+        });
+        it('should correctly parse the node from the url', function() {
+            var test1 = this.testView.constructHostName('http://localhost:8000/report/node/controller-01.lab.solinea.com');
+            var test2 = this.testView.constructHostName('http://localhost:8000/report/node/controller-01');
+            var test3 = this.testView.constructHostName('http://localhost:8000/report/node/controller-01.a.b.c.d.e.f.g.h');
+            var test4 = this.testView.constructHostName('http://localhost:8000/report/node/');
+            expect(test1).to.equal('controller-01');
+            expect(test2).to.equal('controller-01');
+            expect(test3).to.equal('controller-01');
+            expect(test4).to.equal('');
         });
     });
 });
