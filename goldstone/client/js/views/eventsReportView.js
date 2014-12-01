@@ -106,7 +106,7 @@ var EventsReportView = Backbone.View.extend({
 
         var oTable;
         var oTableParams = {
-            "info": false,
+            "info": true,
             "processing": true,
             "lengthChange": true,
             "paging": true,
