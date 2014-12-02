@@ -144,6 +144,7 @@ class LoggingNodeType(NodeType):
             'admin_disabled': str(obj.admin_disabled)
         }
 
+
 class LoggingNode(Node):
     error_count = IntegerField(default=0)
     warning_count = IntegerField(default=0)
@@ -151,5 +152,5 @@ class LoggingNode(Node):
     audit_count = IntegerField(default=0)
     debug_count = IntegerField(default=0)
 
-    _mt = LoggingNodeType()
-    es_objects = LoggingNodeType
+    _mt = NodeType()
+    es_objects = NodeType

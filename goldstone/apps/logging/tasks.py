@@ -69,8 +69,10 @@ def _create_event(timestamp, host, event_type, message):
     dt = arrow.get(timestamp).datetime
 
     try:
-        node = LoggingNode.get(name=host)
-    except LoggingNode.DoesNotExist:
+        node = Node.get(name=host)
+        if node is None:
+            raise Node.DoesNotExist
+    except Node.DoesNotExist:
         logger.warning("[process_log_error_event] could not find logging node "
                        "with name=%s.  event will have not relations.", host)
         event = Event(event_type=event_type, created=dt, message=message)
