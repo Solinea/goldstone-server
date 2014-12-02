@@ -57,6 +57,7 @@ var NodeAvailView = Backbone.View.extend({
         this.collection.on('sync', this.update, this);
         // appends display and modal html elements to this.el
         this.render();
+        this.setInfoButtonPopover();
         this.setGlobalLookbackListeners();
         this.updateSettings();
 
@@ -616,6 +617,28 @@ var NodeAvailView = Backbone.View.extend({
         // this.$el.find('#modal-container-' + this.el.slice(1)).append(this.modal1());
         this.$el.find('#modal-container-' + this.el.slice(1)).append(this.modal2());
         return this;
+    },
+
+    setInfoButtonPopover: function() {
+
+        var infoButtonText = new InfoButtonText().get('infoText');
+
+        // attach click listeners to chart heading info button
+        $('#goldstone-node-info').popover({
+            trigger: 'manual',
+            content: '<div class="infoButton">' +
+                infoButtonText.nodeAvailability +
+                '</div>',
+            placement: 'bottom',
+            html: 'true'
+        })
+            .on("click", function(d) {
+                var targ = "#" + d.target.id;
+                $(targ).popover('toggle');
+            }).on("mouseout", function(d) {
+                var targ = "#" + d.target.id;
+                $(targ).popover('hide');
+            });
     },
 
     template: _.template(
