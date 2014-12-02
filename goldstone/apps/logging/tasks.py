@@ -42,6 +42,7 @@ def process_host_stream(self, host, timestamp):
     if node is None:
         node = Node(name=host)
         node.save()
+        NodeType.refresh_index()
     else:
         if not node.admin_disabled:
             node.last_seen_method = 'LOGS'
