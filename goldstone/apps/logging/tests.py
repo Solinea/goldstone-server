@@ -104,10 +104,11 @@ class TaskTests(SimpleTestCase):
         NodeType.refresh_index()
         event2 = _create_event(time_str, 'fake_node', "Syslog Error",
                                'test message 2')
+        EventType.refresh_index()
         self.assertEqual(event2.created, arrow.get(time_str).datetime)
         self.assertEqual(event2.message, "test message 2")
         self.assertEqual(event2.event_type, "Syslog Error")
-        logger.info("event2.source_name = %S", event2.source_name)
+        logger.info("event2.source_name = %s", event2.source_name)
         self.assertEqual(event2.source_name, "fake_node")
 
     @patch.object(subprocess, 'call')

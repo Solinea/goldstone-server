@@ -781,9 +781,10 @@ class ElasticViewSetMixinTests(APISimpleTestCase):
 
         self.assertEqual(result,
                          {'query_kwargs': {'name__fuzzy': 'xyz',
-                                           'must_not': 'True'},
+                                           'must_not': 'True',
+                                           'name__gte': '123'},
                           'filter_kwargs': {
-                              'name': 'test_param', 'name__gte': '123'},
+                              'name': 'test_param'},
                           'order_by': '-source_name.raw'
                          })
 
