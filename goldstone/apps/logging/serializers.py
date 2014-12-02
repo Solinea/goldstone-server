@@ -14,7 +14,7 @@
 
 from rest_framework import serializers
 from goldstone.apps.core.serializers import NodeSerializer, EventSerializer
-from .models import LoggingNode, LoggingEvent
+from .models import LoggingNode
 
 
 class LoggingNodeSerializer(NodeSerializer):
@@ -26,13 +26,5 @@ class LoggingNodeSerializer(NodeSerializer):
 
     class Meta:
         model = LoggingNode
-        lookup_field = 'uuid'
-        exclude = ['id']
-
-
-class LoggingEventSerializer(EventSerializer):
-
-    class Meta:
-        model = LoggingEvent
         lookup_field = 'uuid'
         exclude = ['id']

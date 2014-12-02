@@ -34,8 +34,9 @@ logger = logging.getLogger(__name__)
 
 
 class ElasticViewSetMixin(object):
-    QUERY_OPS = ["match", "fuzzy", "wildcard", "match_phrase", "query_string"]
-    FILTER_OPS = ["in", "prefix", "gte", "lte", "gt", "lt"]
+    QUERY_OPS = ["match", "fuzzy", "wildcard", "match_phrase", "query_string",
+                 "gte", "lte", "gt", "lt"]
+    FILTER_OPS = ["in", "prefix"]
     MODIFIERS = ["should", "must", "must_not"]
     ordering = None
 
@@ -126,69 +127,9 @@ class ReadOnlyElasticViewSet(ElasticViewSetMixin, ReadOnlyModelViewSet):
     pass
 
 
-# class NodeViewSet(ModelViewSet):
-#     queryset = Node.objects.all()
-#     serializer_class = NodeSerializer
-#     filter_fields = ('uuid',
-#                      'name',
-#                      'last_seen_method',
-#                      'admin_disabled')
-#     lookup_field = 'uuid'
-#     lookup_url_kwarg = 'uuid'
-#     ordering_fields = '__all__'
-#     ordering = 'updated'
-#
-#     def create(self, request, *args, **kwargs):
-#         return Response(status=status.HTTP_400_BAD_REQUEST,
-#                         data="Node creation not supported.")
-#
-#     def update(self, request, *args, **kwargs):
-#         return Response(status=status.HTTP_400_BAD_REQUEST,
-#                         data="Direct update not supported.")
-#
-#     def partial_update(self, request, *args, **kwargs):
-#         return Response(status=status.HTTP_400_BAD_REQUEST,
-#                         data="Direct partial update not supported.")
-#
-#     @action(methods=['PATCH'])
-#     def enable(self, request, uuid=None, format=None):
-#         node = self.get_object()
-#         if node is not None:
-#             node.admin_disabled = False
-#             node.save()
-#             serializer = NodeSerializer(node)
-#             return Response(serializer.data)
-#         else:
-#             raise Http404
-#
-#     @action(methods=['PATCH'])
-#     def disable(self, request, uuid=None, format=None):
-#         node = self.get_object()
-#         if node is not None:
-#             node.admin_disabled = True
-#             node.save()
-#             serializer = NodeSerializer(node)
-#             return Response(serializer.data)
-#         else:
-#             raise Http404
-#
-#     def destroy(self, request, uuid=None, format=None):
-#         node = self.get_object()
-#         if node.admin_disabled:
-#             node.delete()
-#         else:
-#             return Response(status=status.HTTP_400_BAD_REQUEST,
-#                             data="Must disable before deleting")
-#         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
 class EventViewSet(ElasticViewSet):
     model = Event
     serializer_class = EventSerializer
-    # filter_fields = ('uuid',
-    #                  'name',
-    #                  'last_seen_method',
-    #                  'admin_disabled')
     lookup_field = '_id'
     lookup_url_kwarg = '_id'
     ordering = '-created'
