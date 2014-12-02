@@ -38,15 +38,23 @@ def process_host_stream(self, host, timestamp):
     :return: None
     """
 
-    node = Node.get(name=host)
+    # TODO this cleanup should be in a slower moving lane
+    nodes = Node.es_objects.query(name=host).order_by("-updated")
+    for node in nodes[1:]:
+        node.unindex(node._id)
+
+    node = nodes[0].get_object()
+
     if node is None:
         node = Node(name=host)
         node.save()
+        # TODO this may become a performance problem at high volume.
+        # probably need some sort of locking strategy or post-creation
+        # cleanup strategy for duplicates.
         NodeType.refresh_index()
     else:
         if not node.admin_disabled:
             node.last_seen_method = 'LOGS'
-            # todo change date to arrow
             node.last_seen = arrow.utcnow().datetime
             node.save()
 
