@@ -40,23 +40,25 @@ def process_host_stream(self, host, timestamp):
 
     # TODO this cleanup should be in a slower moving lane
     nodes = Node.es_objects.query(name=host).order_by("-updated")
-    for node in nodes[1:]:
-        node.unindex(node._id)
+    try:
+        for node in nodes[1:]:
+            node.unindex(node._id)
+    except:
+        # This can occur if there are no nodes yet since the for loop will
+        # not be able to sort on an unmapped field
+        pass
 
-    node = nodes[0].get_object()
+    node = Node.get(name=host)
 
     if node is None:
         node = Node(name=host)
         node.save()
-        # TODO this may become a performance problem at high volume.
-        # probably need some sort of locking strategy or post-creation
-        # cleanup strategy for duplicates.
-        NodeType.refresh_index()
     else:
         if not node.admin_disabled:
             node.last_seen_method = 'LOGS'
             node.last_seen = arrow.utcnow().datetime
             node.save()
+
 
 
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
