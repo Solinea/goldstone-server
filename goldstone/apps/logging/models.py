@@ -90,10 +90,10 @@ class LoggingNodeStats(ESData):
 
         nodes = [x for x in self._stats if x['key'] == name]
         if len(nodes) > 0:
-            return {
-                bucket['key']: bucket['doc_count']
+            return dict(
+                (bucket['key'], bucket['doc_count'])
                 for bucket in nodes[0]['by_level']['buckets']
-            }
+            )
         else:
             return None
 
