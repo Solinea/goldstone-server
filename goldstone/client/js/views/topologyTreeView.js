@@ -27,13 +27,12 @@ var TopologyTreeView = Backbone.View.extend({
         this.options = options || {};
         this.defaults = _.clone(this.defaults); 
         this.el = options.el;
-        this.defaults.chartTitle = options.chartTitle;
         this.defaults.width = options.width;
         this.defaults.h = options.h;
         this.defaults.frontPage = options.frontPage;
         this.defaults.singleRsrcLocation = options.singleRsrcLocation;
-        this.defaults.multiRsrcLocation = options.multiRsrcLocation;
         this.defaults.spinner = options.spinner;
+        this.defaults.blueSpinnerGif = options.blueSpinnerGif;
         this.defaults.singleRsrcSpinner = options.singleRsrcSpinner;
         this.defaults.multiRsrcSpinner = options.multiRsrcSpinner;
         this.defaults.w = options.width;
@@ -52,23 +51,16 @@ var TopologyTreeView = Backbone.View.extend({
             });
         });
 
-
         this.render();
         this.initSvg();
         this.update();
-        // TODO: confirm goldstone.colors
-
-        // this.collection.on('sync', this.update, this);
-
     },
 
-    filterMultiRsrcData: function(data, ns) {
-        // "use strict";
+    filterMultiRsrcData: function(data) {
         return data;
     },
 
     initSvg: function() {
-        // "use strict";
         //TODO can we just make all these ns fields part of this?
         var self = this;
         var ns = this.defaults;
@@ -102,7 +94,6 @@ var TopologyTreeView = Backbone.View.extend({
     },
 
     loadUrl: function(render, location) {
-        // "use strict";
         var self = this;
         var ns = this.defaults;
 
@@ -121,37 +112,30 @@ var TopologyTreeView = Backbone.View.extend({
     },
 
     hasNewHiddenChildren: function(d) {
-        // "use strict";
         return d._children && _.findWhere(d._children, {
             'lifeStage': 'new'
         });
     },
     isNewChild: function(d) {
-        // "use strict";
         return d.lifeStage === 'new';
     },
     hasMissingHiddenChildren: function(d) {
-        // "use strict";
         return d._children && _.findWhere(d._children, {
             'missing': true
         });
     },
     isMissingChild: function(d) {
-        // "use strict";
         return d.missing;
     },
     hasRemovedChildren: function(d) {
-        // "use strict";
         return d._children && _.findWhere(d._children, {
             'lifeStage': 'removed'
         });
     },
     isRemovedChild: function(d) {
-        // "use strict";
         return d.lifeStage === 'removed';
     },
     toggleAll: function(d) {
-        // "use strict";
         var self = this;
         if (d.children) {
             d.children.forEach(self.toggleAll, this);
@@ -159,7 +143,6 @@ var TopologyTreeView = Backbone.View.extend({
         }
     },
     toggle: function(d) {
-        // "use strict";
         if (d.children) {
             d._children = d.children;
             d.children = null;
@@ -169,7 +152,6 @@ var TopologyTreeView = Backbone.View.extend({
         }
     },
     drawSingleRsrcInfoTable: function(location, spinner, scrollYpx, json) {
-        // "use strict";
         var oTable;
         var keys = Object.keys(json);
         var data = _.map(keys, function(k) {
@@ -195,7 +177,7 @@ var TopologyTreeView = Backbone.View.extend({
             $("#multi-rsrc-body").popover("hide");
         });
         if ($.fn.dataTable.isDataTable(location)) {
-            oTable = $(self.el).DataTable();
+            oTable = $(location).DataTable();
             oTable.clear().rows.add(data).draw();
         } else {
             var oTableParams = {
@@ -211,15 +193,17 @@ var TopologyTreeView = Backbone.View.extend({
                     "title": "Value"
                 }]
             };
-            oTable = $(self.el).dataTable(oTableParams);
+            oTable = $(location).dataTable(oTableParams);
             //$(window).bind('resize', function () {
             //    oTable.fnAdjustColumnSizing();
             //});
         }
     },
 
-    loadLeafData: function(dataUrl, ns) {
-        // "use strict";
+    loadLeafData: function(dataUrl) {
+        var self = this;
+        var ns = this.defaults;
+
         $.get(dataUrl, function(payload) {
             // the response may have multiple lists of services for different
             // timestamps.  The first one will be the most recent.
@@ -230,8 +214,6 @@ var TopologyTreeView = Backbone.View.extend({
             var columns;
             var columnDefs;
             var oTable;
-            var self = this;
-            var ns = this.defaults;
 
             // firstTsData[0] if it exists, contains key/values representative
             // of table structure.
@@ -246,7 +228,7 @@ var TopologyTreeView = Backbone.View.extend({
                     oTable.destroy(true);
                 }
 
-                filteredFirstTsData = self.filterMultiRsrcData(firstTsData, ns);
+                filteredFirstTsData = self.filterMultiRsrcData(firstTsData);
                 if (filteredFirstTsData.length > 0) {
                     keys = Object.keys(filteredFirstTsData[0]);
                     columns = _.map(keys, function(k) {
@@ -264,8 +246,6 @@ var TopologyTreeView = Backbone.View.extend({
                             };
                         }
                     });
-
-
 
                     $("#multi-rsrc-body").prepend('<table id="multi-rsrc-table" class="table table-hover"><thead></thead><tbody></tbody></table>');
                     oTable = $("#multi-rsrc-table").DataTable({
@@ -324,11 +304,10 @@ var TopologyTreeView = Backbone.View.extend({
 
     appendLeafNameToResourceHeader: function(text, location) {
         location = location || '.panel-header-resource-title';
-        $(this.el).find(location).text(': ' + text);
+        $(location).text(': ' + text);
     },
 
     processTree: function(json) {
-        // "use strict";
         var ns = this.defaults;
         var that = this;
         var duration = d3.event && d3.event.altKey ? 5000 : 500;
@@ -386,7 +365,7 @@ var TopologyTreeView = Backbone.View.extend({
                             url = url + "zone=" + d.zone;
                         }
                         if (!ns.frontPage) {
-                            that.loadLeafData(url, ns);
+                            that.loadLeafData(url);
                             that.appendLeafNameToResourceHeader(origClickedLabel);
                         }
 
@@ -416,7 +395,7 @@ var TopologyTreeView = Backbone.View.extend({
 
                 } else {
                     that.toggle(d);
-                    that.processTree(d, ns);
+                    that.processTree(d);
                 }
             });
 
@@ -585,7 +564,6 @@ var TopologyTreeView = Backbone.View.extend({
         });
     },
     update: function() {
-        // "use strict";
         var ns = this.defaults;
         var self = this;
 
@@ -602,13 +580,13 @@ var TopologyTreeView = Backbone.View.extend({
                     // if (ns.data.hasOwnProperty('children')) {
                     // ns.data.children.forEach(ns.topologyTree.toggleAll);
                     // }
-                    self.processTree(ns.data, ns);
+                    self.processTree(ns.data);
                     $(ns.spinner).hide();
                 })(ns);
 
                 // render resource url in localStorage, if any
                 if (localStorage.getItem('urlForResourceList') !== null) {
-                    this.loadLeafData(localStorage.getItem('urlForResourceList'), ns);
+                    this.loadLeafData(localStorage.getItem('urlForResourceList'));
                 }
                 // append stored front-page leaf name to chart header
                 if (localStorage.getItem('origClickedLabel') !== null) {
