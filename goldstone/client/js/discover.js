@@ -38,10 +38,6 @@ var renderCharts = function() {
         el: '#goldstone-discover-r2-c1',
         frontPage: true,
         h: 600,
-        multiRsrcSpinner: '#multi-rsrc-loading-indicator',
-        singleRsrcLocation: '#single-rsrc-table',
-        singleRsrcSpinner: '#single-rsrc-loading-indicator',
-        spinner: '#goldstone-topology-spinner',
         width: $('#goldstone-discover-r2-c1').width(),
         leafDataUrls: {
             "services-leaf": "/services",
