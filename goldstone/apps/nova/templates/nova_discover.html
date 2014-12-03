@@ -26,49 +26,50 @@
 
 {% block localjs %}
     <script src="{% static 'js/nova.js' %}"></script>
+    <script src="{% static 'js/views/topologyTreeView.js' %}"></script>
     <script>
+    var data = JSON.parse({{ data|to_js }});
 
 $(document).ready(function () {
 
     new ChartHeaderView({
-        el: '#nova-discover-chart-title',
+        el: '#nova-discover-r1-c1',
         chartTitle: 'Nova Topology',
         infoText: 'novaTopologyDiscover',
         columns: 12
     });
 
-    var gnd = goldstone.nova.discover;
-    var ns = goldstone.nova.topology;
-    ns.data = JSON.parse({{ data|to_js }});
-    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns);
-    ns.leafDataUrls = {
-        "agents-leaf": "/nova/agents",
-        "aggregates-leaf": "/nova/aggregates",
-        "availability-zones-leaf": "/nova/availability_zones",
-        "cloudpipes-leaf": "/nova/cloudpipes",
-        "flavors-leaf": "/nova/flavors",
-        "floating-ip-pools-leaf": "/nova/floating_ip_pools",
-        "hosts-leaf": "/nova/hosts",
-        "hypervisors-leaf": "/nova/hypervisors",
-        "networks-leaf": "/nova/networks",
-        "secgroups-leaf": "/nova/security_groups",
-        "servers-leaf": "/nova/servers",
-        "services-leaf": "/nova/services"
-    };
-    ns.h = 400;
-    ns.location = '#nova-topology-tree';
-    ns.singleRsrcLocation = '#single-rsrc-table';
-    ns.spinner = '#nova-topology-spinner';
-    ns.singleRsrcSpinner = '#single-rsrc-loading-indicator';
-    ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator';
-    $(ns.spinner).hide();
-    $(ns.singleRsrcSpinner).hide();
-    $(ns.multiRsrcSpinner).hide();
-    //ns.infoIcon = '#nova-topology-info'
+    var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
-    // override the default filter for the multi resource table
-    ns.topologyTree.filterMultiRsrcData = function (data) {
-        "use strict";
+    var novaTopologyTreeView = new TopologyTreeView({
+        blueSpinnerGif: blueSpinnerGif,
+        el: '#nova-discover-r1-c1',
+        h: 400,
+        width: $('#nova-discover-r1-c1').width(),
+        frontPage: false,
+        singleRsrcLocation: '#single-rsrc-table',
+        spinner: '#goldstone-topology-spinner',
+        singleRsrcSpinner: '#single-rsrc-loading-indicator',
+        multiRsrcSpinner: '#multi-rsrc-loading-indicator',
+        data: data,
+        leafDataUrls: {
+            "agents-leaf": "/nova/agents",
+            "aggregates-leaf": "/nova/aggregates",
+            "availability-zones-leaf": "/nova/availability_zones",
+            "cloudpipes-leaf": "/nova/cloudpipes",
+            "flavors-leaf": "/nova/flavors",
+            "floating-ip-pools-leaf": "/nova/floating_ip_pools",
+            "hosts-leaf": "/nova/hosts",
+            "hypervisors-leaf": "/nova/hypervisors",
+            "networks-leaf": "/nova/networks",
+            "secgroups-leaf": "/nova/security_groups",
+            "servers-leaf": "/nova/servers",
+            "services-leaf": "/nova/services"
+        }
+    });
+
+  // override the default filter for the multi resource table
+    novaTopologyTreeView.filterMultiRsrcData = function (data) {
         var newData = jQuery.extend(true, {}, data);
         newData = _.map(newData, function(d) {
             delete d['@timestamp'];
@@ -128,7 +129,7 @@ $(document).ready(function () {
         });
         return newData;
     };
-    ns.topologyTree.init();
+
 });
     </script>
 
@@ -138,7 +139,7 @@ $(document).ready(function () {
 {% block content %}
     <div id="nova-discover-r1" class="row col-md-12">
         <div id="nova-discover-r1-c1" class="col-md-6">
-        <div id="nova-discover-chart-title"></div>
+        <!-- <div id="nova-discover-chart-title"></div> -->
             <!-- <div id = "nova-topology-panel" class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title"><i class="fa fa-tasks"></i> Nova Topology
@@ -147,14 +148,14 @@ $(document).ready(function () {
                     </h3>
                 </div>
             </div> -->
-            <div class="panel-body" style="height:400px">
+            <!-- <div class="panel-body" style="height:400px">
                 <div id="nova-topology-tree">
                     <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
                          id="nova-topology-spinner"
                          class="ajax-loader"/>
                     <div class="clearfix"></div>
                 </div>
-            </div>
+            </div> -->
         </div>
         <div id="nova-discover-r1-c2" class="col-md-6">
 
@@ -165,9 +166,6 @@ $(document).ready(function () {
                     </h3>
                 </div>
                 <div id="multi-rsrc-body" class="panel-body">
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="multi-rsrc-loading-indicator" class="ajax-loader"
-                         hidden="true"/>
                 </div>
             </div>
 
