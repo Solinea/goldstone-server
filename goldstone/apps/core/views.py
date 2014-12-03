@@ -24,7 +24,7 @@ import logging
 import arrow
 from django.http import Http404, HttpResponseBadRequest, HttpResponseNotAllowed
 from rest_framework import status
-from rest_framework.decorators import action
+from rest_framework.decorators import api_view, detail_route
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet, \
     ReadOnlyModelViewSet
@@ -142,7 +142,7 @@ class NodeViewSet(ReadOnlyElasticViewSet):
     lookup_url_kwarg = '_id'
     ordering = '-updated'
 
-    @action(methods=['PATCH'])
+    @detail_route(methods=['PATCH'])
     def enable(self, request, *args, **kwargs):
         node = self.get_object()
         if node is not None:
@@ -153,7 +153,7 @@ class NodeViewSet(ReadOnlyElasticViewSet):
         else:
             raise Http404
 
-    @action(methods=['PATCH'])
+    @detail_route(methods=['PATCH'])
     def disable(self, request, *args, **kwargs):
         node = self.get_object()
         if node is not None:
