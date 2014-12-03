@@ -32,28 +32,19 @@
 
         var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
-        new ChartHeaderView({
-            el: '#glance-discover-r1-c1',
-            chartTitle: 'Glance Topology',
-            infoText: 'glanceTopologyDiscover',
-            columns: 12
-        });
-
-        new MultiRscsView({
-            el: '#glance-discover-r1-c2'
-        });
-
         var glanceTopologyTreeView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
-            el: '#glance-discover-r1-c1',
-            h: 400,
-            width: $('#glance-discover-r1-c1').width(),
-            frontPage: false,
-            singleRsrcLocation: '#single-rsrc-table',
-            spinner: '#goldstone-topology-spinner',
-            singleRsrcSpinner: '#single-rsrc-loading-indicator',
-            multiRsrcSpinner: '#multi-rsrc-loading-indicator',
+            chartHeader: ['#glance-discover-r1-c1', 'Glance Topology', 'glanceTopologyDiscover'],
             data: data,
+            el: '#glance-discover-r1-c1',
+            frontPage: false,
+            h: 400,
+            multiRsrcSpinner: '#multi-rsrc-loading-indicator',
+            multiRsrcViewEl: '#glance-discover-r1-c2',
+            singleRsrcLocation: '#single-rsrc-table',
+            singleRsrcSpinner: '#single-rsrc-loading-indicator',
+            spinner: '#goldstone-topology-spinner',
+            width: $('#glance-discover-r1-c1').width(),
             leafDataUrls: {
                 "images-leaf": "/glance/images"
             },

@@ -31,24 +31,18 @@ var renderCharts = function() {
     //---------------------------
     // instantiate goldstone topology chart
 
-    new ChartHeaderView({
-        el: '#goldstone-discover-r2-c1',
-        chartTitle: 'Cloud Topology',
-        infoText: 'discoverCloudTopology',
-        columns: 12
-    });
-
     var topologyTreeView = new TopologyTreeView({
         blueSpinnerGif: blueSpinnerGif,
-        el: '#goldstone-discover-r2-c1',
-        h: 600,
-        width: $('#goldstone-discover-r2-c1').width(),
-        frontPage: true,
-        singleRsrcLocation: '#single-rsrc-table',
-        spinner: '#goldstone-topology-spinner',
-        singleRsrcSpinner: '#single-rsrc-loading-indicator',
-        multiRsrcSpinner: '#multi-rsrc-loading-indicator',
+        chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverCloudTopology'],
         data: data,
+        el: '#goldstone-discover-r2-c1',
+        frontPage: true,
+        h: 600,
+        multiRsrcSpinner: '#multi-rsrc-loading-indicator',
+        singleRsrcLocation: '#single-rsrc-table',
+        singleRsrcSpinner: '#single-rsrc-loading-indicator',
+        spinner: '#goldstone-topology-spinner',
+        width: $('#goldstone-discover-r2-c1').width(),
         leafDataUrls: {
             "services-leaf": "/services",
             "endpoints-leaf": "/endpoints",

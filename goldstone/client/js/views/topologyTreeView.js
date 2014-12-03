@@ -27,30 +27,23 @@ var TopologyTreeView = Backbone.View.extend({
         this.options = options || {};
         this.defaults = _.clone(this.defaults); 
         this.el = options.el;
-        this.defaults.width = options.width;
+
+        this.defaults.blueSpinnerGif = options.blueSpinnerGif;
+        this.defaults.chartHeader = options.chartHeader || null;
+        this.defaults.data = options.data;
         this.defaults.h = options.h;
         this.defaults.frontPage = options.frontPage;
-        this.defaults.singleRsrcLocation = options.singleRsrcLocation;
-        this.defaults.spinner = options.spinner;
-        this.defaults.blueSpinnerGif = options.blueSpinnerGif;
-        this.defaults.singleRsrcSpinner = options.singleRsrcSpinner;
         this.defaults.multiRsrcSpinner = options.multiRsrcSpinner;
+        this.defaults.multiRsrcViewEl = options.multiRsrcViewEl || null;
+        this.defaults.singleRsrcLocation = options.singleRsrcLocation;
+        this.defaults.singleRsrcSpinner = options.singleRsrcSpinner;
+        this.defaults.spinner = options.spinner;
         this.defaults.w = options.width;
-        this.defaults.data = options.data;
         this.defaults.leafDataUrls = options.leafDataUrls;
         this.defaults.filterMultiRsrcDataOverride = options.filterMultiRsrcDataOverride || null;
 
         var ns = this.defaults;
         var self = this;
-
-        var appendSpinnerLocation = ns.spinner;
-        $('<img id="spinner" src="' + options.blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(appendSpinnerLocation).css({
-                'position': 'relative',
-                'margin-left': (ns.width / 2),
-                'margin-top': -(ns.h.main / 2 + ns.h.padding)
-            });
-        });
 
         this.render();
         this.initSvg();
@@ -74,7 +67,6 @@ var TopologyTreeView = Backbone.View.extend({
     },
 
     initSvg: function() {
-        //TODO can we just make all these ns fields part of this?
         var self = this;
         var ns = this.defaults;
 
@@ -104,41 +96,6 @@ var TopologyTreeView = Backbone.View.extend({
         ns.chart = ns.svg.append("g")
             .attr('class', 'chart')
             .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
-    },
-
-    loadUrl: function(render, location) {
-        var self = this;
-        var ns = this.defaults;
-
-        //Error.stackTraceLimit = Infinity;
-        render = typeof render !== 'undefined' ? render : false;
-        if (render) {
-            // TODO can we generalize the url function?
-            $(self.el).load(ns.url(render));
-        } else {
-            // just get the data
-            d3.json(ns.url(), function(error, data) {
-                ns.data = data;
-                self.update();
-            });
-        }
-    },
-
-    hasNewHiddenChildren: function(d) {
-        return d._children && _.findWhere(d._children, {
-            'lifeStage': 'new'
-        });
-    },
-    isNewChild: function(d) {
-        return d.lifeStage === 'new';
-    },
-    hasMissingHiddenChildren: function(d) {
-        return d._children && _.findWhere(d._children, {
-            'missing': true
-        });
-    },
-    isMissingChild: function(d) {
-        return d.missing;
     },
     hasRemovedChildren: function(d) {
         return d._children && _.findWhere(d._children, {
@@ -207,9 +164,6 @@ var TopologyTreeView = Backbone.View.extend({
                 }]
             };
             oTable = $(location).dataTable(oTableParams);
-            //$(window).bind('resize', function () {
-            //    oTable.fnAdjustColumnSizing();
-            //});
         }
     },
 
@@ -583,18 +537,11 @@ var TopologyTreeView = Backbone.View.extend({
         if (ns.data !== 'undefined') {
             if (Object.keys(ns.data).length === 0) {
                 $(self.el).find('#topology-tree').prepend("<p> Response was empty.");
-                $(ns.spinner).hide();
             } else {
                 (function(ns) {
                     ns.data.x0 = ns.h / 2;
                     ns.data.y0 = 0;
-                    // Don't unfold by default
-                    // Initialize the display to show only the first tier of children
-                    // if (ns.data.hasOwnProperty('children')) {
-                    // ns.data.children.forEach(ns.topologyTree.toggleAll);
-                    // }
                     self.processTree(ns.data);
-                    $(ns.spinner).hide();
                 })(ns);
 
                 // render resource url in localStorage, if any
@@ -613,6 +560,22 @@ var TopologyTreeView = Backbone.View.extend({
     },
 
     render: function() {
+
+        if(this.defaults.chartHeader !== null){
+            new ChartHeaderView({
+                el: this.defaults.chartHeader[0],
+                chartTitle: this.defaults.chartHeader[1],
+                infoText: this.defaults.chartHeader[2],
+                columns: 12
+            });
+        }
+
+        if(this.defaults.multiRsrcViewEl !== null){
+            new MultiRscsView({
+                el: this.defaults.multiRsrcViewEl
+            });
+        }
+
         $(this.el).append(this.template);
         return this;
     },

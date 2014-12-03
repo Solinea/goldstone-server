@@ -41,7 +41,7 @@ var MultiRscsView = Backbone.View.extend({
         '<div class="panel panel-primary multi-rsrc-panel" id="multi-rsrc-panel">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title multi-rsrc-title"><i class="fa fa-dashboard"></i>' +
-        'Resource List<span class="panel-header-resource-title"></span>' +
+        ' Resource List<span class="panel-header-resource-title"></span>' +
         '</h3>' +
         '</div>' +
         '<div id="multi-rsrc-body" class="panel-body">' +
