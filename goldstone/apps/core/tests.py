@@ -443,11 +443,11 @@ class EventViewTests(APISimpleTestCase):
 
     def test_list(self):
         data1 = {
-            'event_type': "test event",
-            'message': "test message 1"}
+            "event_type": "test event",
+            "message": "test message 1"}
         data2 = {
-            'event_type': "test event",
-            'message': "test message 2"}
+            "event_type": "test event",
+            "message": "test message 2"}
         response = self.client.post('/core/events', data=data1)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.client.post('/core/events', data=data2)
@@ -460,8 +460,8 @@ class EventViewTests(APISimpleTestCase):
     def test_get(self):
         self.maxDiff = None
         data = {
-            'event_type': "test event",
-            'message': "test message"}
+            "event_type": "test event",
+            "message": "test message"}
         response = self.client.post('/core/events', data=data)
         EventType.refresh_index()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -480,8 +480,8 @@ class EventViewTests(APISimpleTestCase):
 
     def test_delete(self):
         data = {
-            'event_type': "test event",
-            'message': "test message"}
+            "event_type": "test event",
+            "message": "test message"}
         response = self.client.post('/core/events', data=data)
         EventType.refresh_index()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -497,7 +497,7 @@ class EventViewTests(APISimpleTestCase):
 
     def test_create_fail_date_format(self):
         data = {
-            "created": 'xyzabc123',
+            "created": "xyzabc123",
             "event_type": "external created event",
             "message": "I am your creator"
         }
@@ -507,12 +507,12 @@ class EventViewTests(APISimpleTestCase):
     def test_get_list_with_start(self):
         start_time = arrow.utcnow().replace(minutes=-15)
         data1 = {
-            'event_type': "test event",
-            'message': "test message"}
+            "event_type": "test event",
+            "message": "test message"}
 
         data2 = {
-            'event_type': "test event",
-            'message': "test message",
+            "event_type": "test event",
+            "message": "test message",
             "created": start_time.replace(minutes=-2).isoformat()
         }
         response = self.client.post('/core/events', data=data1)
@@ -542,11 +542,11 @@ class EventViewTests(APISimpleTestCase):
         end_time = arrow.utcnow().replace(minutes=-14)
         start_time = end_time.replace(minutes=-2)
         data1 = {
-            'event_type': "test event",
-            'message': "test message"}
+            "event_type": "test event",
+            "message": "test message 1"}
         data2 = {
-            'event_type': "test event",
-            'message': "test message",
+            "event_type": "test event",
+            "message": "test message 2",
             "created": end_time.replace(minutes=-1).isoformat()
         }
         response = self.client.post('/core/events', data=data1)
@@ -570,8 +570,8 @@ class EventViewTests(APISimpleTestCase):
 
     def test_not_in_db(self):
         data = {
-            'event_type': "test event",
-            'message': "test message"}
+            "event_type": "test event",
+            "message": "test message"}
         response = self.client.post('/core/events', data=data)
         EventType.refresh_index()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -695,7 +695,7 @@ class ReportSerializerTests(APISimpleTestCase):
         self.assertEqual(ser.data['name'],
                          self.report1.name)
         self.assertEqual(ser.data['value'],
-                         ser.transform_value(self.report1, self.report1.value))
+                         ser._transform_value(self.report1.value))
         self.assertEqual(ser.data['node'],
                          self.report1.node)
         self.assertEqual(arrow.get(ser.data['timestamp']),
@@ -709,7 +709,7 @@ class ReportSerializerTests(APISimpleTestCase):
         self.assertEqual(ser.data['name'],
                          self.report2.name)
         self.assertEqual(ser.data['value'],
-                         ser.transform_value(self.report2, self.report2.value))
+                         ser._transform_value(self.report2.value))
         self.assertEqual(ser.data['node'],
                          self.report2.node)
         self.assertEqual(arrow.get(ser.data['timestamp']),
@@ -723,7 +723,7 @@ class ReportSerializerTests(APISimpleTestCase):
         self.assertEqual(ser.data['name'],
                          self.report3.name)
         self.assertEqual(ser.data['value'],
-                         ser.transform_value(self.report3, self.report3.value))
+                         ser._transform_value(self.report3.value))
         self.assertEqual(ser.data['node'],
                          self.report3.node)
         self.assertEqual(arrow.get(ser.data['timestamp']),
