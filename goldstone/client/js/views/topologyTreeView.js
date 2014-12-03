@@ -38,6 +38,7 @@ var TopologyTreeView = Backbone.View.extend({
         this.defaults.w = options.width;
         this.defaults.data = options.data;
         this.defaults.leafDataUrls = options.leafDataUrls;
+        this.defaults.filterMultiRsrcDataOverride = options.filterMultiRsrcDataOverride || null;
 
         var ns = this.defaults;
         var self = this;
@@ -57,7 +58,19 @@ var TopologyTreeView = Backbone.View.extend({
     },
 
     filterMultiRsrcData: function(data) {
-        return data;
+        var ns = this.defaults;
+        var self = this;
+
+        if (ns.filterMultiRsrcDataOverride === null) {
+            return data;
+        } else {
+            var newData = jQuery.extend(true, {}, data);
+            newData = _.map(newData, function(item) {
+                return _.omit(item, ns.filterMultiRsrcDataOverride);
+            });
+            return newData;
+        }
+
     },
 
     initSvg: function() {
