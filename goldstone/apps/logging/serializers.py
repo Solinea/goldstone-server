@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from rest_framework import serializers
-from goldstone.apps.core.serializers import NodeSerializer, EventSerializer
-from .models import LoggingNode
+from goldstone.apps.core.models import Node
+from goldstone.apps.core.serializers import NodeSerializer
 
 
 class LoggingNodeSerializer(NodeSerializer):
@@ -25,6 +25,12 @@ class LoggingNodeSerializer(NodeSerializer):
     debug_count = serializers.IntegerField(read_only=True)
 
     class Meta:
-        model = LoggingNode
-        lookup_field = 'uuid'
-        exclude = ['id']
+        model = Node
+        lookup_field = '_id'
+
+    def to_representation(self, obj):
+        r = super(LoggingNodeSerializer, self).to_representation(obj)
+        return {
+            'score': obj.score,
+            'player_name': obj.player_name
+        }

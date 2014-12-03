@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from django.http import Http404
 
 
 __author__ = 'John Stanford'
@@ -31,60 +32,33 @@ class LoggingNodeViewSet(NodeViewSet):
     lookup_url_kwarg = '_id'
     ordering = '-updated'
 
-    def list(self, request, *args, **kwargs):
-        """
-        For this list op, we will merge the logging stats into the Node model
-        and then user our serializer to send the response.  Any time range
-        should be done in the query statements rather than filters.  Filtered
-        queries are not honored by aggregations.
-        """
+    end_time = arrow.utcnow()
+    start_time = end_time.replace(
+        minutes=(-1 * settings.LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES))
 
-        lns = LoggingNodeStats()
+    def _add_headers(self, response):
+        response._headers['LogCountEnd'] = \
+            ('LogCountEnd', self.end_time.isoformat())
+        response._headers['LogCountStart'] = \
+            ('LogCountStart', self.start_time.isoformat())
+        return response
 
-
-    def get(self, request, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):
         """
         Get the node first, then use the node name to get the logging stats.
         Our get_object should return the converged data
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
         """
-
-        lns = LoggingNodeStats()
-
-
-# class LoggingNodeViewSet(NodeViewSet):
-#     queryset = LoggingNode.objects.all()
-#     serializer_class = LoggingNodeSerializer
-#     lookup_field = 'uuid'
-#     lookup_url_kwarg = 'uuid'
-#     ordering_fields = '__all__'
-#     ordering = 'last_seen'
-#
-#     def list(self, request, *args, **kwargs):
-#         response = super(LoggingNodeViewSet, self).list(
-#             request, *args, **kwargs)
-#         return self._add_headers(response)
-#
-#     def retrieve(self, request, *args, **kwargs):
-#         response = super(LoggingNodeViewSet, self).retrieve(
-#             request, *args, **kwargs)
-#         return self._add_headers(response)
-#
-#     def create(self, request, *args, **kwargs):
-#         return Response(status=status.HTTP_400_BAD_REQUEST,
-#                         data="Node creation not supported.")
-#
-#     def update(self, request, *args, **kwargs):
-#         return Response(status=status.HTTP_400_BAD_REQUEST,
-#                         data="Direct update not supported.")
-#
-#     def partial_update(self, request, *args, **kwargs):
-#         return Response(status=status.HTTP_400_BAD_REQUEST,
-#                         data="Direct partial update not supported.")
-#
-#     def destroy(self, request, uuid=None, format=None):
-#         return Response(status=status.HTTP_400_BAD_REQUEST,
-#                         data="Destruction only supported for core nodes.")
+        node = self.get_object()
+        if node is not None:
+            lns = LoggingNodeStats(
+                self.start_time, self.end_time).for_node(node.name)
+            logger.debug("now to sew this monster together...")
+            node.info_count = lns.get('info', 0)
+            node.audit_count = lns.get('audit', 0)
+            node.warning_count = lns.get('warning', 0)
+            node.error_count = lns.get('error', 0)
+            node.debug_count = lns.get('debug', 0)
+            serializer = LoggingNodeSerializer(node)
+            return self._add_headers(Response(serializer.data))
+        else:
+            raise Http404

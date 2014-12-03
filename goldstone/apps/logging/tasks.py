@@ -43,6 +43,7 @@ def process_host_stream(self, host, timestamp):
     try:
         for node in nodes[1:]:
             node.unindex(node._id)
+            NodeType.refresh_index()
     except:
         # This can occur if there are no nodes yet since the for loop will
         # not be able to sort on an unmapped field
