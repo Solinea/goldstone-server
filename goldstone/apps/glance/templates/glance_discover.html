@@ -19,100 +19,76 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load custom_filters %}
-
-
 {% block localcss %}
 {% endblock %}
-
 {% block localjs %}
     <script src="{% static 'js/glance.js' %}"></script>
     <script src="{% static 'js/views/topologyTreeView.js' %}"></script>
     <script>
     var data = JSON.parse({{ data|to_js }});
 
-$(document).ready(function () {
+    $(document).ready(function () {
 
-    new ChartHeaderView({
-        el: '#glance-discover-r1-c1',
-        chartTitle: 'Glance Topology',
-        infoText: 'glanceTopologyDiscover',
-        columns: 12
-    });
-
-    var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
-
-    var glanceTopologyTreeView = new TopologyTreeView({
-        blueSpinnerGif: blueSpinnerGif,
-        el: '#glance-discover-r1-c1',
-        h: 400,
-        width: $('#glance-discover-r1-c1').width(),
-        frontPage: false,
-        singleRsrcLocation: '#single-rsrc-table',
-        spinner: '#goldstone-topology-spinner',
-        singleRsrcSpinner: '#single-rsrc-loading-indicator',
-        multiRsrcSpinner: '#multi-rsrc-loading-indicator',
-        data: data,
-        leafDataUrls: {
-            "images-leaf": "/glance/images"
-        }
-    });
-
-    // override the default filter for the multi resource table
-    glanceTopologyTreeView.filterMultiRsrcData = function (data) {
-        "use strict";
-        var newData = jQuery.extend(true, {}, data);
-        newData = _.map(newData, function(d) {
-            delete d['@timestamp'];
-            delete d['metadata'];
-            delete d['region'];
-            delete d['tags'];
-            delete d['checksum'];
-            delete d['owner'];
-            delete d['schema'];
-            delete d['file'];
-            return d;
+        new ChartHeaderView({
+            el: '#glance-discover-r1-c1',
+            chartTitle: 'Glance Topology',
+            infoText: 'glanceTopologyDiscover',
+            columns: 12
         });
-        return newData;
-    };
-});
+
+        var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
+
+        var glanceTopologyTreeView = new TopologyTreeView({
+            blueSpinnerGif: blueSpinnerGif,
+            el: '#glance-discover-r1-c1',
+            h: 400,
+            width: $('#glance-discover-r1-c1').width(),
+            frontPage: false,
+            singleRsrcLocation: '#single-rsrc-table',
+            spinner: '#goldstone-topology-spinner',
+            singleRsrcSpinner: '#single-rsrc-loading-indicator',
+            multiRsrcSpinner: '#multi-rsrc-loading-indicator',
+            data: data,
+            leafDataUrls: {
+                "images-leaf": "/glance/images"
+            }
+        });
+
+        // override the default filter for the multi resource table
+        glanceTopologyTreeView.filterMultiRsrcData = function (data) {
+            "use strict";
+            var newData = jQuery.extend(true, {}, data);
+            newData = _.map(newData, function(d) {
+                delete d['@timestamp'];
+                delete d['metadata'];
+                delete d['region'];
+                delete d['tags'];
+                delete d['checksum'];
+                delete d['owner'];
+                delete d['schema'];
+                delete d['file'];
+                return d;
+            });
+            return newData;
+        };
+    });
     </script>
 
 {% endblock %}
-
-
 {% block content %}
     <div id="glance-discover-r1" class="row">
-        <div id="glance-discover-r1-c1" class="col-md-6">
-        <!-- <div id="glance-discover-chart-title"></div> -->
-            <!-- <div id = "glance-topology-panel" class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-tasks"></i> Glance Topology
-                            <i class="pull-right fa fa-info-circle panel-info"  id="glance-topology-info"
-                                    style="opacity: 0.0"></i>
-                    </h3>
-                </div>
-            </div> -->
-            <!-- <div class="panel-body" style="height:400px"> -->
-                <!-- <div id="glance-topology-tree"> -->
-                    <!-- <div class="clearfix"></div> -->
-                <!-- </div> -->
-            <!-- </div> -->
-        </div>
+        <div id="glance-discover-r1-c1" class="col-md-6"></div>
         <div id="glance-discover-r1-c2" class="col-md-6">
-
             <div class="panel panel-primary multi-rsrc-panel" id="multi-rsrc-panel">
                 <div class="panel-heading">
                     <h3 class="panel-title multi-rsrc-title"><i class="fa fa-dashboard"></i>
                         Resource List<span class="panel-header-resource-title"></span>
                     </h3>
                 </div>
-                <div id="multi-rsrc-body" class="panel-body">
-                </div>
-
+                <div id="multi-rsrc-body" class="panel-body"></div>
             </div>
         </div>
     </div>
-
 
     <div class="modal fade" id="logSettingsModal" tabindex="-1" role="dialog"
          aria-labelledby="myModalLabel" aria-hidden="false">
