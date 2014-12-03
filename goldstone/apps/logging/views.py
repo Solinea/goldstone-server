@@ -16,10 +16,8 @@ from django.http import Http404
 
 __author__ = 'John Stanford'
 
-from .models import *
 from .serializers import *
 import logging
-from rest_framework import status
 from rest_framework.response import Response
 from goldstone.apps.core.views import NodeViewSet
 
@@ -31,34 +29,40 @@ class LoggingNodeViewSet(NodeViewSet):
     lookup_field = '_id'
     lookup_url_kwarg = '_id'
     ordering = '-updated'
+    model = Node
 
-    end_time = arrow.utcnow()
-    start_time = end_time.replace(
-        minutes=(-1 * settings.LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES))
+    def _set_time_range(self, params_dict):
+        if 'end_time' in params_dict:
+            self._end_time = arrow.get(params_dict['end_time'])
+        else:
+            self._end_time = arrow.utcnow()
+
+        if 'start_time' in params_dict:
+            self._start_time = arrow.get(
+                params_dict['start_time'])
+        else:
+            self._start_time = self._end_time.replace(
+                minutes=(-1 * settings.LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES))
 
     def _add_headers(self, response):
         response._headers['LogCountEnd'] = \
-            ('LogCountEnd', self.end_time.isoformat())
+            ('LogCountEnd', self._end_time.isoformat())
         response._headers['LogCountStart'] = \
-            ('LogCountStart', self.start_time.isoformat())
+            ('LogCountStart', self._start_time.isoformat())
         return response
 
+    def list(self, request, *args, **kwargs):
+        self._set_time_range(request.QUERY_PARAMS.dict())
+        serializer = self.serializer_class(
+            self.get_queryset(),
+            context={'start_time': self._start_time,
+                     'end_time': self._end_time}, many=True)
+        return self._add_headers(Response(serializer.data))
+
     def retrieve(self, request, *args, **kwargs):
-        """
-        Get the node first, then use the node name to get the logging stats.
-        Our get_object should return the converged data
-        """
-        node = self.get_object()
-        if node is not None:
-            lns = LoggingNodeStats(
-                self.start_time, self.end_time).for_node(node.name)
-            logger.debug("now to sew this monster together...")
-            node.info_count = lns.get('info', 0)
-            node.audit_count = lns.get('audit', 0)
-            node.warning_count = lns.get('warning', 0)
-            node.error_count = lns.get('error', 0)
-            node.debug_count = lns.get('debug', 0)
-            serializer = LoggingNodeSerializer(node)
-            return self._add_headers(Response(serializer.data))
-        else:
-            raise Http404
+        self._set_time_range(request.QUERY_PARAMS.dict())
+        serializer = self.serializer_class(
+            self.get_object(),
+            context={'start_time': self._start_time,
+                     'end_time': self._end_time})
+        return self._add_headers(Response(serializer.data))
