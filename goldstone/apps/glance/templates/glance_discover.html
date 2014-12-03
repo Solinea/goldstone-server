@@ -56,26 +56,17 @@
             data: data,
             leafDataUrls: {
                 "images-leaf": "/glance/images"
-            }
+            },
+            filterMultiRsrcDataOverride: ['@timestamp',
+            'metadata',
+            'region',
+            'tags',
+            'checksum',
+            'owner',
+            'schema',
+            'file']
         });
 
-        // override the default filter for the multi resource table
-        glanceTopologyTreeView.filterMultiRsrcData = function (data) {
-            "use strict";
-            var newData = jQuery.extend(true, {}, data);
-            newData = _.map(newData, function(d) {
-                delete d['@timestamp'];
-                delete d['metadata'];
-                delete d['region'];
-                delete d['tags'];
-                delete d['checksum'];
-                delete d['owner'];
-                delete d['schema'];
-                delete d['file'];
-                return d;
-            });
-            return newData;
-        };
     });
     </script>
 

@@ -60,18 +60,10 @@
                 "roles-leaf": "/keystone/roles",
                 "users-leaf": "/keystone/users",
                 "tenants-leaf": "/keystone/tenants"
-            }
+            },
+            filterMultiRsrcDataOverride: ['@timestamp']
         });
 
-        // override the default filter for the multi resource table
-        keystoneTopologyTreeView.filterMultiRsrcData = function (data) {
-            var newData = jQuery.extend(true, {}, data);
-            newData = _.map(newData, function(d) {
-                delete d['@timestamp'];
-                return d;
-            });
-            return newData;
-        };
     });
     </script>
 

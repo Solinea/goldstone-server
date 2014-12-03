@@ -62,31 +62,23 @@
                 "snapshots-leaf": "/cinder/snapshots",
                 "transfers-leaf": "/cinder/transfers",
                 "volume-types-leaf": "/cinder/volume_types"
-            }
+            },
+            filterMultiRsrcDataOverride: ['@timestamp',
+                'metadata',
+                'region',
+                'extra_specs',
+                'display_description',
+                'os-extended-snapshot-attributes:progress',
+                'links',
+                'attachments',
+                'availability_zone',
+                'os-vol-mig-status-attr:migstat',
+                'os-vol-mig-status-attr:name_id',
+                'snapshot_id',
+                'source_volid']
         });
 
-        // override the default filter for the multi resource table
-        cinderTopologyTreeView.filterMultiRsrcData = function (data) {
-            var newData = jQuery.extend(true, {}, data);
-            newData = _.map(newData, function(d) {
-                delete d['@timestamp'];
-                delete d['metadata'];
-                delete d['region'];
-                delete d['extra_specs'];
-                delete d['display_description'];
-                delete d['os-extended-snapshot-attributes:progress'];
-                delete d['links'];
-                delete d['attachments'];
-                delete d['availability_zone'];
-                delete d['os-vol-mig-status-attr:migstat'];
-                delete d['os-vol-mig-status-attr:name_id'];
-                delete d['snapshot_id'];
-                delete d['source_volid'];
-                return d;
-            });
-            return newData;
-            };
-        });
+    });
     </script>
 
 {% endblock %}
