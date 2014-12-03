@@ -168,6 +168,8 @@ var TopologyTreeView = Backbone.View.extend({
         var self = this;
         var ns = this.defaults;
 
+        $(ns.multiRsrcViewEl).find('#spinner').show();
+
         $.get(dataUrl, function(payload) {
             // the response may have multiple lists of services for different
             // timestamps.  The first one will be the most recent.
@@ -253,6 +255,7 @@ var TopologyTreeView = Backbone.View.extend({
                 } else {
                     $("#multi-rsrc-body").html("<p style='margin-left: " + (ns.w / 2 - 30) + "'>No data</p>");
                 }
+                $(ns.multiRsrcViewEl).find('#spinner').hide();
             }
         });
 
@@ -554,19 +557,32 @@ var TopologyTreeView = Backbone.View.extend({
 
     render: function() {
 
-        if(this.defaults.chartHeader !== null){
+        var ns = this.defaults;
+
+        if (ns.chartHeader !== null) {
             new ChartHeaderView({
-                el: this.defaults.chartHeader[0],
-                chartTitle: this.defaults.chartHeader[1],
-                infoText: this.defaults.chartHeader[2],
+                el: ns.chartHeader[0],
+                chartTitle: ns.chartHeader[1],
+                infoText: ns.chartHeader[2],
                 columns: 12
             });
         }
 
-        if(this.defaults.multiRsrcViewEl !== null){
+        if (ns.multiRsrcViewEl !== null) {
             new MultiRscsView({
-                el: this.defaults.multiRsrcViewEl
+                el: ns.multiRsrcViewEl
             });
+
+            var appendSpinnerLocation = $(ns.multiRsrcViewEl).find('#spinner-container');
+            $('<img id="spinner" src="' + ns.blueSpinnerGif + '">').load(function() {
+                $(this).appendTo(appendSpinnerLocation).css({
+                    'position': 'absolute',
+                    'margin-left': (ns.w / 2),
+                    'margin-top': 5,
+                    'display': 'none'
+                });
+            });
+
         }
 
         $(this.el).append(this.template);
