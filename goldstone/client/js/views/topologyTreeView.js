@@ -33,11 +33,7 @@ var TopologyTreeView = Backbone.View.extend({
         this.defaults.data = options.data;
         this.defaults.h = options.h;
         this.defaults.frontPage = options.frontPage;
-        this.defaults.multiRsrcSpinner = options.multiRsrcSpinner;
         this.defaults.multiRsrcViewEl = options.multiRsrcViewEl || null;
-        this.defaults.singleRsrcLocation = options.singleRsrcLocation;
-        this.defaults.singleRsrcSpinner = options.singleRsrcSpinner;
-        this.defaults.spinner = options.spinner;
         this.defaults.w = options.width;
         this.defaults.leafDataUrls = options.leafDataUrls;
         this.defaults.filterMultiRsrcDataOverride = options.filterMultiRsrcDataOverride || null;
@@ -121,7 +117,8 @@ var TopologyTreeView = Backbone.View.extend({
             d._children = null;
         }
     },
-    drawSingleRsrcInfoTable: function(location, spinner, scrollYpx, json) {
+    drawSingleRsrcInfoTable: function(scrollYpx, json) {
+        var location = '#single-rsrc-table';
         var oTable;
         var keys = Object.keys(json);
         var data = _.map(keys, function(k) {
@@ -249,9 +246,7 @@ var TopologyTreeView = Backbone.View.extend({
 
                             // otherwise, render usual resource info    popover
                             if (!supress) {
-                                self.drawSingleRsrcInfoTable(
-                                    ns.singleRsrcLocation, ns.singleRsrcSpinner,
-                                    ns.mh, data[0]);
+                                self.drawSingleRsrcInfoTable(ns.mh, data[0]);
                             }
                         }
                     });
@@ -260,8 +255,6 @@ var TopologyTreeView = Backbone.View.extend({
                 }
             }
         });
-
-
 
     },
     reportRedirect: function(data, keyName) {
