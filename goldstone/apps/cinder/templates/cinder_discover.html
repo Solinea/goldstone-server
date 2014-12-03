@@ -32,29 +32,19 @@
 
         var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
-        new ChartHeaderView({
-            el: '#cinder-discover-r1-c1',
-            chartTitle: 'Cinder Topology',
-            infoText: 'cinderTopologyDiscover',
-            columns: 12
-        });
-
-        new MultiRscsView({
-            el: '#cinder-discover-r1-c2'
-        });
-
-
         var cinderTopologyTreeView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
-            el: '#cinder-discover-r1-c1',
-            h: 400,
-            width: $('#cinder-discover-r1-c1').width(),
-            frontPage: false,
-            singleRsrcLocation: '#single-rsrc-table',
-            spinner: '#goldstone-topology-spinner',
-            singleRsrcSpinner: '#single-rsrc-loading-indicator',
-            multiRsrcSpinner: '#multi-rsrc-loading-indicator',
+            chartHeader: ['#cinder-discover-r1-c1', 'Cinder Topology', 'cinderTopologyDiscover'],
             data: data,
+            el: '#cinder-discover-r1-c1',
+            frontPage: false,
+            h: 400,
+            multiRsrcSpinner: '#multi-rsrc-loading-indicator',
+            multiRsrcViewEl: '#cinder-discover-r1-c2',
+            singleRsrcLocation: '#single-rsrc-table',
+            singleRsrcSpinner: '#single-rsrc-loading-indicator',
+            spinner: '#goldstone-topology-spinner',
+            width: $('#cinder-discover-r1-c1').width(),
             leafDataUrls: {
                 "services-leaf": "/cinder/services",
                 "volumes-leaf": "/cinder/volumes",

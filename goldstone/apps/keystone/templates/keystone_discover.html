@@ -32,28 +32,19 @@
 
         var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
-        new ChartHeaderView({
-            el: '#keystone-discover-r1-c1',
-            chartTitle: 'Keystone Topology',
-            infoText: 'keystoneTopologyDiscover',
-            columns: 12
-        });
-
-        new MultiRscsView({
-            el: '#keystone-discover-r1-c2'
-        });
-
         var keystoneTopologyTreeView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
-            el: '#keystone-discover-r1-c1',
-            h: 400,
-            width: $('#keystone-discover-r1-c1').width(),
-            frontPage: false,
-            singleRsrcLocation: '#single-rsrc-table',
-            spinner: '#goldstone-topology-spinner',
-            singleRsrcSpinner: '#single-rsrc-loading-indicator',
-            multiRsrcSpinner: '#multi-rsrc-loading-indicator',
+            chartHeader: ['#keystone-discover-r1-c1', 'Keystone Topology', 'keystoneTopologyDiscover'],
             data: data,
+            el: '#keystone-discover-r1-c1',
+            frontPage: false,
+            h: 400,
+            multiRsrcSpinner: '#multi-rsrc-loading-indicator',
+            multiRsrcViewEl: '#keystone-discover-r1-c2',
+            singleRsrcLocation: '#single-rsrc-table',
+            singleRsrcSpinner: '#single-rsrc-loading-indicator',
+            spinner: '#goldstone-topology-spinner',
+            width: $('#keystone-discover-r1-c1').width(),
             leafDataUrls: {
                 "services-leaf": "/keystone/services",
                 "endpoints-leaf": "/keystone/endpoints",

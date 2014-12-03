@@ -35,28 +35,19 @@
 
         var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
-        new ChartHeaderView({
-            el: '#nova-discover-r1-c1',
-            chartTitle: 'Nova Topology',
-            infoText: 'novaTopologyDiscover',
-            columns: 12
-        });
-
-        new MultiRscsView({
-            el: '#nova-discover-r1-c2'
-        });
-
         var novaTopologyTreeView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
-            el: '#nova-discover-r1-c1',
-            h: 400,
-            width: $('#nova-discover-r1-c1').width(),
-            frontPage: false,
-            singleRsrcLocation: '#single-rsrc-table',
-            spinner: '#goldstone-topology-spinner',
-            singleRsrcSpinner: '#single-rsrc-loading-indicator',
-            multiRsrcSpinner: '#multi-rsrc-loading-indicator',
+            chartHeader: ['#nova-discover-r1-c1', 'Nova Topology', 'novaTopologyDiscover'],
             data: data,
+            el: '#nova-discover-r1-c1',
+            frontPage: false,
+            h: 400,
+            multiRsrcSpinner: '#multi-rsrc-loading-indicator',
+            multiRsrcViewEl: '#nova-discover-r1-c2',
+            singleRsrcLocation: '#single-rsrc-table',
+            singleRsrcSpinner: '#single-rsrc-loading-indicator',
+            spinner: '#goldstone-topology-spinner',
+            width: $('#nova-discover-r1-c1').width(),
             leafDataUrls: {
                 "agents-leaf": "/nova/agents",
                 "aggregates-leaf": "/nova/aggregates",
