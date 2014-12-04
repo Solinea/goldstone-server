@@ -45,7 +45,7 @@ def _delete_indices(prefix, cutoff,
                     es_host=settings.ES_HOST,
                     es_port=settings.ES_PORT
                     ):
-    cmd = "curator --host %s --port %s delete --prefix '%s' --older-than %d" %\
+    cmd = "curator --host %s --port %s delete --prefix %s --older-than %d" %\
           (es_host, es_port, prefix, cutoff)
     return check_call(cmd.split())
 
