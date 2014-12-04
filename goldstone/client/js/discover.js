@@ -96,4 +96,19 @@ var renderCharts = function() {
         chartTitle: 'Node Availability',
         width: $('#goldstone-discover-r2-c2').width()
     });
+
+    //---------------------------
+    // instantiate test zoomable partition view chart
+
+    var zoomablePartitionChart = new ZoomablePartitionCollection();
+
+    var zoomablePartitionChartView = new ZoomablePartitionView({
+        collection: zoomablePartitionChart,
+        el: '#goldstone-discover-r3-c1',
+        w: $('#goldstone-discover-r3-c1').width()
+    });
+
+
+
+
 };
