@@ -621,6 +621,7 @@ class MetricTests(SimpleTestCase):
         reconstituted = Metric._reconstitute(**kwargs)
         self.assertEqual(self.metric1, reconstituted)
 
+
 class MetricViewTests(APISimpleTestCase):
 
     def setUp(self):
