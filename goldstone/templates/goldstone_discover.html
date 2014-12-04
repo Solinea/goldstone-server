@@ -1,191 +1,53 @@
 <!--
- Copyright 2014 Solinea, Inc.
-
- Licensed under the Solinea Software License Agreement (goldstone),
- Version 1.0 (the "License"); you may not use this file except in compliance
- with the License. You may obtain a copy of the License at:
-
-     http://www.solinea.com/goldstone/LICENSE.pdf
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
-
- Author: John Stanford
- -->
-
+Copyright 2014 Solinea, Inc.
+Licensed under the Solinea Software License Agreement (goldstone),
+Version 1.0 (the "License"); you may not use this file except in compliance
+with the License. You may obtain a copy of the License at:
+http://www.solinea.com/goldstone/LICENSE.pdf
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+Author: John Stanford
+-->
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load custom_filters %}
-
-
 {% block localcss %}
     <link rel="stylesheet" href="/static/css/loglevel_buttons.css">
-	<link rel="stylesheet" href="/static/css/hostavail.css">
+    <link rel="stylesheet" href="/static/css/hostavail.css">
 {% endblock %}
-
-
-
-
 {% block content %}
     <div id="goldstone-discover-r1" class="row">
         <div id="goldstone-discover-r1-c1" class="col-md-12"></div>
     </div>
-
     <div id="goldstone-discover-r2" class="row">
-        <div id="goldstone-discover-r2-c1" class="col-md-6">
-            <div id = "goldstone-topology-panel" class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-tasks"></i> Cloud Topology
-
-                            <!-- info icon -->
-                            <i class="pull-right fa fa-info-circle panel-info" id="goldstone-topology-info"></i>
-
-                    </h3>
-                </div>
-                <div class="panel-body" style="height:600px">
-                    <div id="goldstone-topology-tree">
-                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                             id="goldstone-topology-spinner"
-                             class="ajax-loader"/>
-                        <div class="clearfix"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <div id="goldstone-discover-r2-c1" class="col-md-6"></div>
         <div id="goldstone-discover-r2-c2" class="col-md-6"></div>
-
-
     </div>
-
-
 {% endblock %}
 
 {% block localjs %}
-<script src="{% static 'js/goldstone.js' %}"></script>
-<script src="{% static 'js/models/eventTimelineModel.js' %}"></script>
-<script src="{% static 'js/models/nodeAvailModel.js' %}"></script>
-<script src="{% static 'js/collections/eventTimelineCollection.js' %}"></script>
-<script src="{% static 'js/collections/nodeAvailCollection.js' %}"></script>
-<script src="{% static 'js/views/eventTimelineView.js' %}"></script>
-<script src="{% static 'js/views/nodeAvailView.js' %}"></script>
-<script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
-<script src="{% static 'js/discover.js' %}"></script>
-
-<script>
+    <script src="{% static 'js/goldstone.js' %}"></script>
+    <script src="{% static 'js/models/eventTimelineModel.js' %}"></script>
+    <script src="{% static 'js/models/nodeAvailModel.js' %}"></script>
+    <script src="{% static 'js/collections/eventTimelineCollection.js' %}"></script>
+    <script src="{% static 'js/collections/nodeAvailCollection.js' %}"></script>
+    <script src="{% static 'js/views/eventTimelineView.js' %}"></script>
+    <script src="{% static 'js/views/nodeAvailView.js' %}"></script>
+    <script src="{% static 'js/views/topologyTreeView.js' %}"></script>
+    <script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
+    <script src="{% static 'js/discover.js' %}"></script>
+    <script>
 
     var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
-
-    var ns = goldstone.goldstone.topology;
-    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns);
-    ns.data = JSON.parse({{ data|to_js }});
-    ns.h = 600;
-    ns.location = '#goldstone-topology-tree';
-    ns.singleRsrcLocation = '#single-rsrc-table';
-    ns.multiRsrcLocation = '#multi-rsrc-table';
-    ns.spinner = '#goldstone-topology-spinner';
-    ns.singleRsrcSpinner = '#single-rsrc-loading-indicator';
-    ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator';
-
-    // mapping for leaves to navigate to discover pages
+    var data = JSON.parse({{ data|to_js }});
     localStorage.clear();
-    ns.frontPage = true;
-    ns.leafDataUrls = {
-        "services-leaf": "/services",
-        "endpoints-leaf": "/endpoints",
-        "roles-leaf": "/roles",
-        "users-leaf": "/users",
-        "tenants-leaf": "/tenants",
-        "agents-leaf": "/agents",
-        "aggregates-leaf": "/aggregates",
-        "availability-zones-leaf": "/availability_zones",
-        "cloudpipes-leaf": "/cloudpipes",
-        "flavors-leaf": "/flavors",
-        "floating-ip-pools-leaf": "/floating_ip_pools",
-        "hosts-leaf": "/hosts",
-        "hypervisors-leaf": "/hypervisors",
-        "networks-leaf": "/networks",
-        "secgroups-leaf": "/security_groups",
-        "servers-leaf": "/servers",
-        "images-leaf": "/images",
-        "volumes-leaf": "/volumes",
-        "backups-leaf": "/backups",
-        "snapshots-leaf": "/snapshots",
-        "transfers-leaf": "/transfers",
-        "volume-types-leaf": "/volume_types"
-    };
 
     $(document).ready(function () {
-
-        new GlobalLookbackRefreshButtonsView({
-            el: ".global-range-refresh-container"
-        });
-
-        var self = this;
-        var infoButtonText = new InfoButtonText().get('infoText');
-
-        // $(ns.spinner).hide();
-        // $(ns.singleRsrcSpinner).hide();
-        // $(ns.multiRsrcSpinner).hide();
-        ns.topologyTree.init();
-
         // render Event Timeline and Node Avail charts
         renderCharts();
-
-        // chart info button popover generator
-        var htmlGen = function(infoSet) {
-            var result = '<div class="infoButton">' +
-             infoButtonText[infoSet] +
-            '</div>';
-            return result;
-        };
-
-        $('#goldstone-topology-info').popover({
-            trigger: 'manual',
-            content: htmlGen.apply(this, ['discoverCloudTopology']),
-            placement: 'bottom',
-            html: 'true'
-        })
-            .on("click", function(d) {
-                var targ = "#" + d.target.id;
-                $(targ).popover('toggle');
-            }).on("mouseout", function(d) {
-                var targ = "#" + d.target.id;
-                $(targ).popover('hide');
-            });
-
-        $('#goldstone-event-info').popover({
-            trigger: 'manual',
-            content: htmlGen.apply(this, ['eventTimeline']),
-            placement: 'bottom',
-            html: 'true'
-        })
-            .on("click", function(d) {
-                var targ = "#" + d.target.id;
-                $(targ).popover('toggle');
-            }).on("mouseout", function(d) {
-                var targ = "#" + d.target.id;
-                $(targ).popover('hide');
-            });
-
-        $('#goldstone-node-info').popover({
-            trigger: 'manual',
-            content: htmlGen.apply(this, ['nodeAvailability']),
-            placement: 'bottom',
-            html: 'true'
-        })
-            .on("click", function(d) {
-                var targ = "#" + d.target.id;
-                $(targ).popover('toggle');
-            }).on("mouseout", function(d) {
-                var targ = "#" + d.target.id;
-                $(targ).popover('hide');
-            });
     });
-
-</script>
-
+    </script>
 {% endblock %}
