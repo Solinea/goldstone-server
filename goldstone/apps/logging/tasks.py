@@ -38,9 +38,12 @@ def process_host_stream(self, host, timestamp):
     """
 
     # TODO this cleanup should be in a slower moving lane
-    nodes = Node.es_objects.query(name=host).order_by("-updated")
+    nodes = Node.es_objects.query(name=host).order_by("created")
+    node = None
     try:
+        node = nodes[0]
         for node in nodes[1:]:
+            # remove duplicate nodes, keeping the oldest one
             node.unindex(node._id)
             NodeType.refresh_index()
     except:
@@ -48,16 +51,14 @@ def process_host_stream(self, host, timestamp):
         # not be able to sort on an unmapped field
         pass
 
-    node = Node.get(name=host)
-
     if node is None:
-        node = Node(name=host)
+        node = Node(name=host, last_seen_method='LOGS')
         node.save()
+        # refresh the index to avoid duplication
+        NodeType.refresh_index()
     else:
-        if not node.admin_disabled:
-            node.last_seen_method = 'LOGS'
-            node.last_seen = arrow.utcnow().datetime
-            node.save()
+        node.last_seen_method = 'LOGS'
+        node.save()
 
 
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
