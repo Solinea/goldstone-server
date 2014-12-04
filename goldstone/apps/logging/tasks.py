@@ -12,6 +12,7 @@ from __future__ import absolute_import
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from elasticsearch import ConnectionError
 
 import pytz
 import subprocess
@@ -42,23 +43,31 @@ def process_host_stream(self, host, timestamp):
     node = None
     try:
         node = nodes[0].get_object()
-        for n in nodes[1:]:
-            # remove duplicate nodes, keeping the oldest one
-            n.unindex(n._id)
-            NodeType.refresh_index()
-    except:
-        # This can occur if there are no nodes yet since the for loop will
-        # not be able to sort on an unmapped field
-        pass
-
-    if node is None:
+        node.last_seen_method = 'LOGS'
+        node.save()
+        try:
+            for n in nodes[1:]:
+                # remove duplicate nodes, keeping the oldest one
+                n.unindex(n._id)
+                NodeType.refresh_index()
+        except:
+            pass
+    except IndexError:
+        # no nodes found, we should create one
         node = Node(name=host, last_seen_method='LOGS')
         node.save()
         # refresh the index to avoid duplication
         NodeType.refresh_index()
-    else:
-        node.last_seen_method = 'LOGS'
-        node.save()
+    except ConnectionError:
+        # We couldn't reach ES, so let's move on.
+        raise
+    except Exception as e:
+        logger.exception('unidentified exception in process_host_stream', e)
+        raise
+
+
+
+
 
 
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
