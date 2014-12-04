@@ -11,17 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from django.http import Http404
 
 
 __author__ = 'John Stanford'
 
-from .models import *
 from .serializers import *
 import logging
-from datetime import datetime, timedelta
-from django.conf import settings
-import pytz
-from rest_framework import status
 from rest_framework.response import Response
 from goldstone.apps.core.views import NodeViewSet
 
@@ -29,55 +25,51 @@ logger = logging.getLogger(__name__)
 
 
 class LoggingNodeViewSet(NodeViewSet):
-    queryset = LoggingNode.objects.all()
     serializer_class = LoggingNodeSerializer
-    lookup_field = 'uuid'
-    lookup_url_kwarg = 'uuid'
-    ordering_fields = '__all__'
-    ordering = 'last_seen'
+    lookup_field = '_id'
+    lookup_url_kwarg = '_id'
+    ordering = '-updated'
+    model = Node
+
+    def _set_time_range(self, params_dict):
+        if 'end_time' in params_dict:
+            self._end_time = arrow.get(params_dict['end_time'])
+        else:
+            self._end_time = arrow.utcnow()
+
+        if 'start_time' in params_dict:
+            self._start_time = arrow.get(
+                params_dict['start_time'])
+        else:
+            self._start_time = self._end_time.replace(
+                minutes=(-1 * settings.LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES))
 
     def _add_headers(self, response):
-        end_time = datetime.now(tz=pytz.utc)
-        start_time = end_time - timedelta(
-            minutes=settings.LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES)
-
         response._headers['LogCountEnd'] = \
-            ('LogCountEnd', end_time.isoformat())
+            ('LogCountEnd', self._end_time.isoformat())
         response._headers['LogCountStart'] = \
-            ('LogCountStart', start_time.isoformat())
+            ('LogCountStart', self._start_time.isoformat())
         return response
 
     def list(self, request, *args, **kwargs):
-        response = super(LoggingNodeViewSet, self).list(
-            request, *args, **kwargs)
-        return self._add_headers(response)
+        self._set_time_range(request.QUERY_PARAMS.dict())
+        instance = self.get_queryset()
+        page = self.paginate_queryset(instance)
+        if page is not None:
+            serializer = self.get_pagination_serializer(page)
+        else:
+            serializer = self.get_serializer(instance, many=True)
+
+        serializer.context['start_time'] = self._start_time
+        serializer.context['end_time'] = self._end_time
+        serializer.many = True
+
+        return self._add_headers(Response(serializer.data))
 
     def retrieve(self, request, *args, **kwargs):
-        response = super(LoggingNodeViewSet, self).retrieve(
-            request, *args, **kwargs)
-        return self._add_headers(response)
-
-    def create(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data="Node creation not supported.")
-
-    def update(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data="Direct update not supported.")
-
-    def partial_update(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data="Direct partial update not supported.")
-
-    def destroy(self, request, uuid=None, format=None):
-        return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data="Destruction only supported for core nodes.")
-
-
-# class LoggingEventViewSet(EventViewSet):
-#     queryset = LoggingEvent.objects.all()
-#     serializer_class = LoggingEventSerializer
-#     lookup_field = 'uuid'
-#     lookup_url_kwarg = 'uuid'
-#     ordering_fields = '__all__'
-#     ordering = 'created'
+        self._set_time_range(request.QUERY_PARAMS.dict())
+        serializer = self.serializer_class(
+            self.get_object(),
+            context={'start_time': self._start_time,
+                     'end_time': self._end_time})
+        return self._add_headers(Response(serializer.data))

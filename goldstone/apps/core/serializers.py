@@ -17,28 +17,19 @@ import arrow
 from rest_framework import serializers, pagination
 from .models import Node, Event, Metric, Report
 import uuid
+import logging
 
-
-class NodeSerializer(serializers.ModelSerializer):
-    uuid = serializers.CharField(read_only=True)
-    name = serializers.CharField(read_only=True)
-    created = serializers.DateTimeField(read_only=True)
-    updated = serializers.DateTimeField(read_only=True)
-    last_seen_method = serializers.CharField(read_only=True)
-    admin_disabled = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = Node
-        lookup_field = 'uuid'
-        exclude = ['id']
+logger = logging.getLogger(__name__)
 
 
 class EventSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     event_type = serializers.CharField(max_length=64)
-    source_id = serializers.CharField(max_length=36, required=False, default="")
+    source_id = serializers.CharField(max_length=36, required=False,
+                                      default="")
     source_name = serializers.CharField(max_length=64,
-                                        required=False, default="")
+                                        required=False,
+                                        default="")
     message = serializers.CharField(max_length=1024)
     created = serializers.DateTimeField(required=False)
 
@@ -46,34 +37,87 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         lookup_field = '_id'
 
-    def transform_created(self, obj, field_value):
-        return arrow.get(field_value).isoformat()
+    def to_representation(self, instance):
+        return {
+            'id': instance.id,
+            'event_type': instance.event_type,
+            'source_id': instance.source_id,
+            'source_name': instance.source_name,
+            'message': instance.message,
+            'created': arrow.get(instance.created).isoformat()
+        }
+
+    def create(self, validated_data):
+        event = Event(**validated_data)
+        event.save()
+        return event
+
+    def update(self, instance, validated_data):
+        instance.event_type = validated_data.get('event_type',
+                                                 instance.event_type)
+        instance.message = validated_data.get('message', instance.message)
+        instance.source_id = validated_data.get('source_id',
+                                                instance.source_id)
+        instance.source_name = validated_data.get('source_name',
+                                                  instance.source_name)
+        instance.created = validated_data.get('created', instance.created)
+        instance.save()
+        return instance
+
+
+class NodeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Node
+        lookup_field = '_id'
+
+    @staticmethod
+    def _transform_admin_disabled(field_value):
+        if str(field_value).lower() == 'false':
+            return False
+        else:
+            return True
+
+    def to_representation(self, instance):
+        return {
+            'id': instance.id,
+            'name': instance.name,
+            'last_seen_method': instance.last_seen_method,
+            'admin_disabled': self._transform_admin_disabled(
+                instance.admin_disabled),
+            'created': arrow.get(instance.created).isoformat(),
+            'updated': arrow.get(instance.updated).isoformat(),
+        }
 
 
 class MetricSerializer(serializers.ModelSerializer):
-    timestamp = serializers.DateTimeField(read_only=True)
-    name = serializers.CharField(read_only=True)
-    metric_type = serializers.CharField(read_only=True)
-    value = serializers.DecimalField(read_only=True)
-    unit = serializers.CharField(read_only=True)
-    node = serializers.CharField(read_only=True)
 
     class Meta:
         model = Metric
         exclude = ['id']
 
+    def to_representation(self, instance):
+        return {
+            'timestamp': instance.timestamp,
+            'name': instance.name,
+            'node': instance.node,
+            'value': instance.value
+        }
+
 
 class ReportSerializer(serializers.ModelSerializer):
-    timestamp = serializers.DateTimeField(read_only=True)
-    name = serializers.CharField(read_only=True)
-    value = serializers.CharField(read_only=True)
-    node = serializers.CharField(read_only=True)
 
     class Meta:
         model = Report
         exclude = ['id']
 
-    def transform_value(self, obj, field_value):
+    @staticmethod
+    def _transform_value(field_value):
+        """
+        Values for reports can a list of simple types or objects.  Try to
+        load them as objects first, then fall back to dumping their values
+        into a list.
+        """
         import json
         if type(field_value) is list:
             new_val = []
@@ -85,3 +129,11 @@ class ReportSerializer(serializers.ModelSerializer):
             return new_val
         else:
             return field_value
+
+    def to_representation(self, instance):
+        return {
+            'timestamp': instance.timestamp,
+            'name': instance.name,
+            'node': instance.node,
+            'value': self._transform_value(instance.value)
+        }
