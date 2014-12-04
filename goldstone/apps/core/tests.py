@@ -621,6 +621,43 @@ class MetricTests(SimpleTestCase):
         reconstituted = Metric._reconstitute(**kwargs)
         self.assertEqual(self.metric1, reconstituted)
 
+class MetricViewTests(APISimpleTestCase):
+
+    def setUp(self):
+        es = Elasticsearch(settings.ES_SERVER)
+        if es.indices.exists('goldstone_agent'):
+            es.indices.delete('goldstone_agent')
+        es.indices.create('goldstone_agent')
+        es.index('goldstone_agent', 'core_metric', {
+            'timestamp': arrow.utcnow().timestamp * 1000,
+            'name': 'test.test.metric',
+            'value': 'test value',
+            'node': ''})
+        es.index('goldstone_agent', 'core_metric', {
+            'timestamp': arrow.utcnow().timestamp * 1000,
+            'name': 'test.test.metric2',
+            'value': 'test value',
+            'node': ''})
+
+    def test_post(self):
+        data = {
+            'name': "test.test.metric",
+            'value': "some value"}
+        response = self.client.post('/core/metrics', data=data)
+        self.assertEqual(response.status_code,
+                         status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_list(self):
+        ReportType.refresh_index()
+        response = self.client.get('/core/metrics')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+    def test_retrieve(self):
+        response = self.client.get('/core/metrics/abcdef')
+        self.assertEqual(response.status_code,
+                         status.HTTP_405_METHOD_NOT_ALLOWED)
+
 
 class ReportTypeTest(SimpleTestCase):
 
