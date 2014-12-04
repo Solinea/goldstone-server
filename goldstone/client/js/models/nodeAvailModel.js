@@ -17,5 +17,5 @@
  */
 
 var NodeAvailModel = Backbone.Model.extend({
-    idAttribute: "uuid"
+    idAttribute: "id"
 });
