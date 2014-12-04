@@ -96,6 +96,14 @@ class MetricSerializer(serializers.ModelSerializer):
         model = Metric
         exclude = ['id']
 
+    def to_representation(self, instance):
+        return {
+            'timestamp': instance.timestamp,
+            'name': instance.name,
+            'node': instance.node,
+            'value': instance.value
+        }
+
 
 class ReportSerializer(serializers.ModelSerializer):
 
