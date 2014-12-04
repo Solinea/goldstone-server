@@ -294,7 +294,6 @@ class NodeModelTests(SimpleTestCase):
                            updated.timestamp)
         self.assertEqual(n4.last_seen_method, "PING")
 
-
     def test_index_and_get_model(self):
         updated = arrow.utcnow()
         created = updated.replace(minutes=-30)
@@ -785,8 +784,7 @@ class ElasticViewSetMixinTests(APISimpleTestCase):
                                            'name__gte': '123'},
                           'filter_kwargs': {
                               'name': 'test_param'},
-                          'order_by': '-source_name.raw'
-                         })
+                          'order_by': '-source_name.raw'})
 
 
 class ReportListViewTests(APISimpleTestCase):

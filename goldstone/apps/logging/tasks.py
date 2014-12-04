@@ -60,7 +60,6 @@ def process_host_stream(self, host, timestamp):
             node.save()
 
 
-
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
 def process_event_stream(self, timestamp, host, event_type, message):
     """
@@ -127,4 +126,3 @@ def check_host_avail(self, offset=settings.HOST_AVAILABLE_PING_THRESHOLD):
     logger.debug("hosts to ping = %s", to_ping)
     for mt in to_ping:
         ping(mt.get_object())
-

@@ -28,4 +28,4 @@ router.register(r'reports', ReportViewSet, base_name='report')
 urlpatterns = router.urls
 urlpatterns += patterns('',
                         url(r'^report_list[/]?$', ReportListView.as_view(),
-                        name='report_list_view'))
+                            name='report_list_view'))

@@ -125,6 +125,7 @@ class TaskTests(SimpleTestCase):
         result = ping(node2)
         self.assertFalse(result)
 
+
 class LoggingNodeSerializerTests(SimpleTestCase):
 
     node1 = Node(name='test_node')
@@ -205,4 +206,3 @@ class LoggingNodeViewTests(APISimpleTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('name', response.data)
         self.assertEqual(node.name, response.data['name'])
-
