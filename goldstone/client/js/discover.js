@@ -100,14 +100,27 @@ var renderCharts = function() {
     //---------------------------
     // instantiate test zoomable partition view chart
 
-    var zoomablePartitionChart = new ZoomablePartitionCollection();
+    /*var zoomablePartitionChart = new ZoomablePartitionCollection();
 
     var zoomablePartitionChartView = new ZoomablePartitionView({
         collection: zoomablePartitionChart,
         el: '#goldstone-discover-r3-c1',
         w: $('#goldstone-discover-r3-c1').width()
+    });*/
+
+    //---------------------------
+    // instantiate test bullet chart view chart
+
+    var bulletChart = new BulletChartCollection();
+
+    var bulletChartView = new BulletChartView({
+        collection: bulletChart,
+        el: '#goldstone-discover-r3-c2',
+        w: $('#goldstone-discover-r3-c2').width()
     });
 
+    //---------------------------
+    // instantiate test box plot view chart
 
 
 
