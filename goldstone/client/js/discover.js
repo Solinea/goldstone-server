@@ -17,10 +17,53 @@
  */
 
 var renderCharts = function() {
+    var self = this;
+
+    new GlobalLookbackRefreshButtonsView({
+        el: ".global-range-refresh-container"
+    });
 
     //----------------------------
     // instantiate charts via
     // backbone collection / views
+
+
+    //---------------------------
+    // instantiate goldstone topology chart
+
+    var topologyTreeView = new TopologyTreeView({
+        blueSpinnerGif: blueSpinnerGif,
+        chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverCloudTopology'],
+        data: data,
+        el: '#goldstone-discover-r2-c1',
+        frontPage: true,
+        h: 600,
+        width: $('#goldstone-discover-r2-c1').width(),
+        leafDataUrls: {
+            "services-leaf": "/services",
+            "endpoints-leaf": "/endpoints",
+            "roles-leaf": "/roles",
+            "users-leaf": "/users",
+            "tenants-leaf": "/tenants",
+            "agents-leaf": "/agents",
+            "aggregates-leaf": "/aggregates",
+            "availability-zones-leaf": "/availability_zones",
+            "cloudpipes-leaf": "/cloudpipes",
+            "flavors-leaf": "/flavors",
+            "floating-ip-pools-leaf": "/floating_ip_pools",
+            "hosts-leaf": "/hosts",
+            "hypervisors-leaf": "/hypervisors",
+            "networks-leaf": "/networks",
+            "secgroups-leaf": "/security_groups",
+            "servers-leaf": "/servers",
+            "images-leaf": "/images",
+            "volumes-leaf": "/volumes",
+            "backups-leaf": "/backups",
+            "snapshots-leaf": "/snapshots",
+            "transfers-leaf": "/transfers",
+            "volume-types-leaf": "/volume_types"
+        }
+    });
 
 
     //---------------------------
@@ -45,12 +88,12 @@ var renderCharts = function() {
 
     var nodeAvailChartView = new NodeAvailView({
         collection: nodeAvailChart,
-        h: {"main": 450, "swim": 50},
+        h: {
+            "main": 450,
+            "swim": 50
+        },
         el: '#goldstone-discover-r2-c2',
         chartTitle: 'Node Availability',
         width: $('#goldstone-discover-r2-c2').width()
     });
-
-
-
 };

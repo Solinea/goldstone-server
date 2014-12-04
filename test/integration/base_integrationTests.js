@@ -1,7 +1,7 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests
 
-describe('apiPerfView.js spec', function() {
+describe('base.js spec', function() {
     beforeEach(function() {
 
         $('body').html('<div class="test-container"></div>');
