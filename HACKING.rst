@@ -110,14 +110,15 @@ Sync and migrate the databases::
     $ python ./manage.py syncdb  # Answer 'no' to create superuser
     $ python ./manage.py migrate
 
-Set up the elasticsearch templates::
+Set up the elasticsearch templates for test running (repeat with other settings as required)::
 
-    $ python manage.py shell <<EOF
-    from goldstone.apps.core.tasks import _put_all_templates, _create_daily_index, _create_agent_index
-   _put_all_templates()
-   _create_daily_index()
-   _create_agent_index()
-   EOF
+    $ cd /opt/goldstone
+    $ python manage.py shell --settings=goldstone.settings.local_test <<EOF
+    > from goldstone.apps.core.tasks import _put_all_templates, _create_daily_index, _create_agent_index
+    > _put_all_templates()
+    > _create_daily_index()
+    > _create_agent_index()
+    EOF
 
 Now test out the server::
 
