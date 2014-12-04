@@ -155,15 +155,15 @@ casper.test.begin('Homepage is loading properly', 30, function suite(test) {
         test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         // Cloud Topology info button brings up popover
-        test.assertNotVisible('#goldstone-topology-panel div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
-        this.click('#goldstone-topology-info.pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-topology-panel div.popover.fade.bottom.in', 'cloud topology info popover should now be visible');
-        this.click('#goldstone-topology-info.pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-topology-panel div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
-        this.click('#goldstone-topology-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-topology-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#goldstone-topology-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-topology-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('#goldstone-discover-r2-c1 div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
+        this.click('#goldstone-discover-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#goldstone-discover-r2-c1 div.popover.fade.bottom.in', 'cloud topology info popover should now be visible');
+        this.click('#goldstone-discover-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#goldstone-discover-r2-c1 div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
+        this.click('#goldstone-discover-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#goldstone-discover-r2-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.mouseEvent('mouseout', '#goldstone-discover-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#goldstone-discover-r2-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         // Node Availability info button brings up popover
         test.assertNotVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should not be visible');
@@ -207,15 +207,15 @@ casper.test.begin('Nova Topology Page is loading properly', 14, function suite(t
         test.assertSelectorHasText('div#nova-discover-r1-c1', 'Nova Topology');
 
         // Nova Topology info button brings up popover
-        test.assertNotVisible('#nova-discover-chart-title div.popover.fade.bottom.in', 'nova topology info popover should not be visible');
-        this.click('#nova-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#nova-discover-chart-title div.popover.fade.bottom.in', 'nova topology info popover should now be visible');
-        this.click('#nova-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#nova-discover-chart-title div.popover.fade.bottom.in', 'nova topology info popover should not be visible');
-        this.click('#nova-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#nova-discover-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#nova-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#nova-discover-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('#nova-discover-r1-c1 div.popover.fade.bottom.in', 'nova topology info popover should not be visible');
+        this.click('#nova-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#nova-discover-r1-c1 div.popover.fade.bottom.in', 'nova topology info popover should now be visible');
+        this.click('#nova-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#nova-discover-r1-c1 div.popover.fade.bottom.in', 'nova topology info popover should not be visible');
+        this.click('#nova-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#nova-discover-r1-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.mouseEvent('mouseout', '#nova-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#nova-discover-r1-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
@@ -246,15 +246,15 @@ casper.test.begin('Cinder Topology Page is loading properly', 14, function suite
         test.assertVisible('div#footer', 'Footer showing');
 
         // Cinder Topology info button brings up popover
-        test.assertNotVisible('#cinder-discover-chart-title div.popover.fade.bottom.in', 'cinder topology info popover should not be visible');
-        this.click('#cinder-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#cinder-discover-chart-title div.popover.fade.bottom.in', 'cinder topology info popover should now be visible');
-        this.click('#cinder-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#cinder-discover-chart-title div.popover.fade.bottom.in', 'cinder topology info popover should not be visible');
-        this.click('#cinder-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#cinder-discover-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#cinder-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#cinder-discover-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('#cinder-discover-r1-c1 div.popover.fade.bottom.in', 'cinder topology info popover should not be visible');
+        this.click('#cinder-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#cinder-discover-r1-c1 div.popover.fade.bottom.in', 'cinder topology info popover should now be visible');
+        this.click('#cinder-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#cinder-discover-r1-c1 div.popover.fade.bottom.in', 'cinder topology info popover should not be visible');
+        this.click('#cinder-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#cinder-discover-r1-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.mouseEvent('mouseout', '#cinder-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#cinder-discover-r1-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
     });
 
     casper.run(function() {
@@ -279,15 +279,15 @@ casper.test.begin('Glance Topology Page is loading properly', 14, function suite
         test.assertSelectorHasText('div#glance-discover-r1-c1', 'Glance Topology');
 
         // Glance Topology info button brings up popover
-        test.assertNotVisible('#glance-discover-chart-title div.popover.fade.bottom.in', 'glance topology info popover should not be visible');
-        this.click('#glance-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#glance-discover-chart-title div.popover.fade.bottom.in', 'glance topology info popover should now be visible');
-        this.click('#glance-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#glance-discover-chart-title div.popover.fade.bottom.in', 'glance topology info popover should not be visible');
-        this.click('#glance-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#glance-discover-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#glance-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#glance-discover-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('#glance-discover-r1-c1 div.popover.fade.bottom.in', 'glance topology info popover should not be visible');
+        this.click('#glance-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#glance-discover-r1-c1 div.popover.fade.bottom.in', 'glance topology info popover should now be visible');
+        this.click('#glance-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#glance-discover-r1-c1 div.popover.fade.bottom.in', 'glance topology info popover should not be visible');
+        this.click('#glance-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#glance-discover-r1-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.mouseEvent('mouseout', '#glance-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#glance-discover-r1-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
@@ -315,15 +315,15 @@ casper.test.begin('Keystone Topology Page is loading properly', 14, function sui
         test.assertSelectorHasText('div#keystone-discover-r1-c1', 'Keystone Topology');
 
         // Keystone Topology info button brings up popover
-        test.assertNotVisible('#keystone-discover-chart-title div.popover.fade.bottom.in', 'keystone topology info popover should not be visible');
-        this.click('#keystone-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#keystone-discover-chart-title div.popover.fade.bottom.in', 'keystone topology info popover should now be visible');
-        this.click('#keystone-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#keystone-discover-chart-title div.popover.fade.bottom.in', 'keystone topology info popover should not be visible');
-        this.click('#keystone-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#keystone-discover-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#keystone-discover-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#keystone-discover-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('#keystone-discover-r1-c1 div.popover.fade.bottom.in', 'keystone topology info popover should not be visible');
+        this.click('#keystone-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#keystone-discover-r1-c1 div.popover.fade.bottom.in', 'keystone topology info popover should now be visible');
+        this.click('#keystone-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#keystone-discover-r1-c1 div.popover.fade.bottom.in', 'keystone topology info popover should not be visible');
+        this.click('#keystone-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#keystone-discover-r1-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.mouseEvent('mouseout', '#keystone-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#keystone-discover-r1-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
@@ -434,7 +434,7 @@ casper.test.begin('API Perf Page is loading properly', 46, function suite(test) 
     });
 });
 
-casper.test.begin('Nova (compute) Page is loading properly', 14, function suite(test) {
+/*casper.test.begin('Nova (compute) Page is loading properly', 14, function suite(test) {
     casper.start('http://localhost:8000/nova/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -459,7 +459,7 @@ casper.test.begin('Nova (compute) Page is loading properly', 14, function suite(
         this.click('#nova-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
         test.assertVisible('#nova-api-perf-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
         this.mouseEvent('mouseout', '#nova-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#nova-api-perf-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('#nova-api-perf-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');*/
 
         /* pending return of these charts
         // VM Spawns graph loads
@@ -528,13 +528,13 @@ casper.test.begin('Nova (compute) Page is loading properly', 14, function suite(
         */
 
         //footer loads and is visible
-        test.assertVisible('div#footer', 'Footer showing');
+   /*     test.assertVisible('div#footer', 'Footer showing');
     });
 
     casper.run(function() {
         test.done();
     });
-});
+});*/
 
 
 casper.test.begin('Neutron (network) Page is loading properly', 14, function suite(test) {
