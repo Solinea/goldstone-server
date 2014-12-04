@@ -106,7 +106,6 @@ class Event(Model):
         if 'source_name' not in kwargs:
             self.source_name = ""
 
-
     @classmethod
     def _reconstitute(cls, **kwargs):
         """
@@ -421,4 +420,3 @@ class Node(Model):
             raise ValueError("using is not implemented for this model")
 
         self._mt.unindex(str(self.id))
-

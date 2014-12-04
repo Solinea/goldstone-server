@@ -83,13 +83,11 @@ class NodeSerializer(serializers.ModelSerializer):
             'id': instance.id,
             'name': instance.name,
             'last_seen_method': instance.last_seen_method,
-            'admin_disabled':
-                self._transform_admin_disabled(instance.admin_disabled),
+            'admin_disabled': self._transform_admin_disabled(
+                instance.admin_disabled),
             'created': arrow.get(instance.created).isoformat(),
             'updated': arrow.get(instance.updated).isoformat(),
         }
-
-
 
 
 class MetricSerializer(serializers.ModelSerializer):
@@ -131,4 +129,3 @@ class ReportSerializer(serializers.ModelSerializer):
             'node': instance.node,
             'value': self._transform_value(instance.value)
         }
-

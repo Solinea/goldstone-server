@@ -69,7 +69,7 @@ class ElasticViewSetMixin(object):
                             field = v[1:]
                         if field in mapping['properties'] and \
                                 mapping['properties'][field]['type'] == \
-                                        'string':
+                                'string':
                             result['order_by'] = v + ".raw"
                         else:
                             result['order_by'] = v
@@ -219,4 +219,3 @@ class ReportListView(ElasticViewSetMixin, APIView):
         except:
             logger.exception('failed to GET report_list')
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
