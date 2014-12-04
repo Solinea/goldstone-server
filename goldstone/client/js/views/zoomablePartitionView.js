@@ -110,7 +110,7 @@ var ZoomablePartitionView = Backbone.View.extend({
             .attr({'font-size': '11px'})
             .attr({'pointer-events': 'none'});
 
-        d3.select(window)
+        d3.select(self.el)
             .on("click", function() {
                 click(root);
             });
