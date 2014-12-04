@@ -20,42 +20,35 @@ from datetime import *
 import pytz
 import gzip
 
-conn = Elasticsearch("10.10.11.121:9200", bulk_size=500)
-
-start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
-end = datetime.now(tz=pytz.utc)
-
-data_f = gzip.open('data.json.gz', 'wb')
-data_f2 = gzip.open('goldstone_data.json.gz', 'wb')
-template_f = gzip.open("./template.json.gz", 'wb')
-
-template = conn.indices.get_template('logstash')
-json.dump(template['logstash'], template_f)
-template_f.close()
-
-# get some general events
-fq = {
-    "query": {
-        "range": {
-            "@timestamp": {
-                "gte": start.isoformat(),
-                "lte": end.isoformat()
-            }
-        }
-    }
-}
-
-print "query = " + json.dumps(fq)
+conn = Elasticsearch("10.10.11.123:9200", bulk_size=500)
 
 
-def _get_dataset(doc_type, sort=''):
+def _get_index_template(template_name, file_path):
+    print "dumping " + template_name + " index template..." 
+    f = gzip.open(file_path, 'wb')
+    template = conn.indices.get_template(template_name)
+    json.dump(template[template_name], f)
+    f.close()
+    print "done." 
+
+
+_get_index_template('logstash', './logstash_template.json.gz')
+_get_index_template('goldstone', './goldstone_template.json.gz')
+_get_index_template('goldstone_model', './model_template.json.gz')
+_get_index_template('goldstone_agent', './agent_template.json.gz')
+
+
+def _get_dataset(doc_type, sort='', index='_all', count='100'):
     try:
-        return conn.search(index="_all", doc_type=doc_type, sort=sort)
+        result = conn.search(index=index, doc_type=doc_type, sort=sort,
+                             size=count)
+        # clean out the unnecessary junk
+        return {'hits': {'hits': result['hits']['hits']}}
     except Exception as e:
         print "[_get_dataset] exception for " + doc_type + ": " + e.message
         return {'hits': {'hits': []}}
 
-result1 = [
+logstash_docs = [
     _get_dataset('syslog'),
     _get_dataset('nova_claims_summary_phys', '@timestamp:desc'),
     _get_dataset('nova_claims_summary_virt', '@timestamp:desc'),
@@ -65,7 +58,7 @@ result1 = [
     _get_dataset('openstack_api_stats', '@timestamp:desc'),
 ]
 
-result2 = [
+goldstone_docs = [
     _get_dataset('keystone_service_list', '@timestamp:desc'),
     _get_dataset('keystone_endpoint_list', '@timestamp:desc'),
     _get_dataset('keystone_tenant_list', '@timestamp:desc'),
@@ -92,12 +85,26 @@ result2 = [
     _get_dataset('nova_services_list', '@timestamp:desc'),
 ]
 
-print "exporting " + str(len(result1)) + " logstash sets"
-print "exporting " + str(len(result2)) + " goldstone sets"
+agent_docs = [
+    _get_dataset('core_report', 'timestamp:desc', 'goldstone_agent'),
+    _get_dataset('core_metric', 'timestamp:desc', 'goldstone_agent'),
+]
 
+model_docs = [
+    _get_dataset('core_event', 'created:desc', 'goldstone_model'),
+    _get_dataset('core_node', 'created:desc', 'goldstone_model'),
+]
 
-json.dump(result1, data_f)
-json.dump(result2, data_f2)
+def dump_data(data, file_path):
+    print "exporting " + str(len(data)) + " doc sets to " + file_path + " ..."
+    f = gzip.open(file_path, 'wb')
+    json.dump(data, f)
+    f.close()
+    print "done."
 
-data_f.close()
-data_f2.close()
+dump_data(logstash_docs, 'logstash_data.json.gz')
+dump_data(goldstone_docs, 'goldstone_data.json.gz')
+dump_data(agent_docs, 'agent_data.json.gz')
+dump_data(model_docs, 'model_data.json.gz')
+
+print "all done!"

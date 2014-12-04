@@ -14,39 +14,17 @@
 import json
 from uuid import uuid4
 import arrow
-from django.db import models
 from django.db.models import CharField, BooleanField, Model, DateTimeField, \
-    TextField, DecimalField, IntegerField
-from django_extensions.db.fields import UUIDField, ModificationDateTimeField, \
-    CreationDateTimeField
-from polymorphic import PolymorphicModel
-from elasticutils.contrib.django import S, MappingType, Indexable
-from django.conf import settings
+    TextField, DecimalField, Manager
+from elasticutils.contrib.django import MappingType, Indexable
 import logging
 from pyes import BoolQuery, TermQuery, PrefixQuery
 from goldstone.models import ESData
+from django.conf import settings
 
 __author__ = 'stanford'
 
 logger = logging.getLogger(__name__)
-
-
-#
-# polymorphic model abstractions
-#
-class Entity(PolymorphicModel):
-    uuid = UUIDField(unique=True)
-    name = CharField(max_length=255, unique=True)
-    created = CreationDateTimeField()
-    updated = ModificationDateTimeField()
-
-    def __unicode__(self):
-        return json.dumps({
-            "uuid": "" if self.uuid is None else self.uuid,
-            "name": self.name,
-            "created": self.created.isoformat(),
-            "updated": self.updated.isoformat()
-        })
 
 
 #
@@ -114,6 +92,7 @@ class Event(Model):
     created = DateTimeField(auto_now=False)
 
     _mt = EventType()
+    es_objects = EventType.search()
 
     def __init__(self, *args, **kwargs):
         super(Event, self).__init__(*args, **kwargs)
@@ -127,7 +106,6 @@ class Event(Model):
         if 'source_name' not in kwargs:
             self.source_name = ""
 
-
     @classmethod
     def _reconstitute(cls, **kwargs):
         """
@@ -137,6 +115,14 @@ class Event(Model):
         obj.id = kwargs['id']
         obj.created = arrow.get(kwargs['created']).datetime
         return obj
+
+    @classmethod
+    def get(cls, **kwargs):
+        try:
+            return cls.es_objects. \
+                filter(**kwargs)[0].get_object()
+        except:
+            return None
 
     def save(self, force_insert=False, force_update=False):
         """
@@ -197,6 +183,7 @@ class Metric(Model):
     node = CharField(max_length=36)
 
     _mt = MetricType()
+    es_objects = MetricType.search()
 
     @classmethod
     def _reconstitute(cls, **kwargs):
@@ -205,6 +192,14 @@ class Metric(Model):
         """
         obj = cls(**kwargs)
         return obj
+
+    @classmethod
+    def get(cls, **kwargs):
+        try:
+            return cls.es_objects. \
+                filter(**kwargs)[0].get_object()
+        except:
+            return None
 
     def save(self, force_insert=False, force_update=False):
         """
@@ -253,6 +248,7 @@ class Report(Model):
     node = CharField(max_length=36)
 
     _mt = ReportType()
+    es_objects = ReportType.search()
 
     @classmethod
     def _reconstitute(cls, **kwargs):
@@ -274,6 +270,14 @@ class Report(Model):
         obj = cls(**kwargs)
         return obj
 
+    @classmethod
+    def get(cls, **kwargs):
+        try:
+            return cls.es_objects. \
+                filter(**kwargs)[0].get_object()
+        except:
+            return None
+
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         """
@@ -287,27 +291,132 @@ class Report(Model):
         raise NotImplementedError("delete is not implemented for this model")
 
 
-class Node(Entity):
-    """
-    Generic representation of a node that has a log stream, provides services,
-    etc.  The main purposes of the node is to support the availability checks,
-    and to provide a relational view of the entities in the cloud.
-    """
+class NodeType(MappingType, Indexable):
+
+    @classmethod
+    def get_model(cls):
+        return Node
+
+    @classmethod
+    def get_mapping(cls):
+        """Returns an Elasticsearch mapping for this MappingType.  These are
+        a bit contrived since the template dynamically creates the mapping
+        type.  It is helpful to support the ordering requests in the view.
+        The view will look at the type of a field and if it is a string, will
+        use the associated .raw field for ordering."""
+        return {
+            'properties': {
+                'id': {'type': 'string'},
+                'name': {'type': 'string'},
+                'created': {'type': 'date'},
+                'updated': {'type': 'date'},
+                'last_seen_method': {'type': 'string'},
+                'admin_disabled': {'type': 'boolean'}
+            }
+        }
+
+    @classmethod
+    def extract_document(cls, obj_id, obj):
+        """Converts this instance into an Elasticsearch document"""
+        if obj is None:
+            # todo this will go to the model manager which would natively
+            # todo look at the SQL db.  we either need to fix this or fix the
+            # todo model manager implementation of get.
+            obj = cls.get_model().get(id=obj_id)
+
+        return {
+            'id': str(obj.id),
+            'name': obj.name,
+            'created': obj.created.isoformat(),
+            'updated': arrow.utcnow().isoformat(),
+            'last_seen_method': obj.last_seen_method,
+            'admin_disabled': str(obj.admin_disabled)
+        }
+
+    def _to_bool(self, str):
+        if str == 'True':
+            return True
+        else:
+            return False
+
+    def get_object(self):
+
+        return self.get_model()._reconstitute(
+            id=self._id,
+            name=self._results_dict['name'],
+            created=arrow.get(self._results_dict['created']).datetime,
+            updated=arrow.get(self._results_dict['updated']).datetime,
+            last_seen_method=self._results_dict['last_seen_method'],
+            admin_disabled=self._to_bool(self._results_dict['admin_disabled']))
+
+
+class Node(Model):
     METHOD_CHOICES = (
         ('PING', 'Successful Host Ping'),
         ('LOGS', 'Log Stream Activity'),
         ('API', 'Application API Call'),
+        ('AGENT', 'Application Agent'),
+        ('UNKNOWN', 'Not Provided'),
     )
 
+    id = CharField(max_length=36, primary_key=True)
+    name = CharField(max_length=64, unique=True)
+    created = DateTimeField(auto_now=False)
+    updated = DateTimeField(auto_now=False)
     last_seen_method = CharField(max_length=32, choices=METHOD_CHOICES,
                                  null=True, blank=True)
     admin_disabled = BooleanField(default=False)
 
-    def __unicode__(self):
-        entity = json.loads(super(Node, self).__unicode__())
-        entity = dict(entity.items() + {
-            "last_seen_method": self.last_seen_method,
-            "admin_disabled": self.admin_disabled}.items())
+    _mt = NodeType()
+    es_objects = NodeType.search()
 
-        return json.dumps(entity)
+    def __init__(self, *args, **kwargs):
+        super(Node, self).__init__(*args, **kwargs)
+        self.id = str(uuid4())
+        now = arrow.utcnow().datetime
+        if 'created' in kwargs:
+            self.created = arrow.get(kwargs['created']).datetime
+        else:
+            self.created = now
 
+        self.updated = now
+
+        if 'name' not in kwargs:
+            self.name = ""
+        if 'last_seen_method' not in kwargs:
+            self.last_seen_method = "UNKNOWN"
+        if 'admin_disabled' not in kwargs:
+            self.admin_disabled = False
+
+    @classmethod
+    def get(cls, **kwargs):
+        try:
+            return cls.es_objects. \
+                filter(**kwargs)[0].get_object()
+        except:
+            return None
+
+    @classmethod
+    def _reconstitute(cls, **kwargs):
+        """
+        provides a way for the mapping type to create an object from ES data
+        """
+        obj = cls(**kwargs)
+        obj.id = kwargs['id']
+        obj.created = arrow.get(kwargs['created']).datetime
+        obj.updated = arrow.get(kwargs['updated']).datetime
+        return obj
+
+    def save(self, force_insert=False, force_update=False):
+        """
+        An override to save the object to ES via elasticutils
+        """
+
+        self._mt.index(self._mt.extract_document(self.id, self),
+                       id_=str(self.id))
+
+    def delete(self, using=None):
+        if using is not None:
+            raise ValueError("using is not implemented for this model")
+
+        self._mt.unindex(str(self.id))
