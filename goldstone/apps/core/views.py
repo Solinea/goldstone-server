@@ -207,8 +207,7 @@ class ReportListView(ElasticViewSetMixin, APIView):
             qs = qs.order_by(params['order_by'])
 
         # add the term facet clause
-        qs = qs.facet("name", filtered=True)
-
+        qs = qs.facet("name", filtered=True, size=100)
 
         try:
             result = qs.execute().facets

@@ -85,7 +85,6 @@ class LoggingNodeStats(ESData):
             body=query, size=0)
 
         self._stats = rs["aggregations"]["by_host"]["buckets"]
-        logger.debug("xyz")
 
     def for_node(self, name):
 
@@ -96,7 +95,7 @@ class LoggingNodeStats(ESData):
                 for bucket in nodes[0]['by_level']['buckets']
             )
         else:
-            return None
+            return {}
 
 
 # class LoggingNodeType(NodeType):
