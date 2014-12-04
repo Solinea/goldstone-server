@@ -42,7 +42,7 @@ var NodeAvailCollection = Backbone.Collection.extend({
 
     setXhr: function() {
         this.thisXhr = this.fetch({
-            remove: false
+            remove: true
         });
     },
 

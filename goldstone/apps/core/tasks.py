@@ -111,6 +111,7 @@ def _put_agent_template(server=settings.ES_SERVER):
                      "Please report this.")
         raise
 
+
 def _put_model_template(server=settings.ES_SERVER):
     try:
         f = open(os.path.join(os.path.dirname(__file__),

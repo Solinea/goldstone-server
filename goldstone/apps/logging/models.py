@@ -12,13 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from datetime import datetime
+import json
+import arrow
+from django.conf import settings
 
 from django.db import models
 import logging
+from django.db.models import IntegerField
 from polymorphic import PolymorphicManager, PolymorphicQuerySet
 from polymorphic.query import Polymorphic_QuerySet_objects_per_request
-from goldstone.apps.core.models import Node, Event
+from pyes import BoolQuery, RangeQuery, ESRangeOp
+from goldstone.apps.core.models import Node, Event, NodeType
 from goldstone.apps.logging.es_models import LoggingNodeStats
+from goldstone.models import ESData
 
 
 __author__ = 'stanford'
@@ -26,92 +32,125 @@ __author__ = 'stanford'
 logger = logging.getLogger(__name__)
 
 
-class BlingedPolymorphicQuerySet(PolymorphicQuerySet):
+class LoggingNodeStats(ESData):
 
-    def iterator(self):
+    _stats = None
+
+    def __init__(self, start_time=None, end_time=None):
         """
-        This function is used by Django for all object retrieval.
-        By overriding it, we modify the objects that this queryset returns
-        when it is evaluated (or its get method or other object-returning
-        methods are called).
-
-        Here we do the same as:
-
-        base_result_objects=list(super(PolymorphicQuerySet, self).iterator())
-        real_results=self._get_real_instances(base_result_objects)
-        for o in real_results: yield o
-
-        but it requests the objects in chunks from the database,
-        with Polymorphic_QuerySet_objects_per_request per chunk
+        Prime the statistics for all known nodes in the time range
+        :param start_time: arrow time
+        :param end_time: arrow time
+        :return:
         """
-        base_iter = super(PolymorphicQuerySet, self).iterator()
+        self.end_time = arrow.utcnow() if \
+            end_time is None else end_time
 
-        # disabled => work just like a normal queryset
-        if self.polymorphic_disabled:
-            for o in base_iter:
-                node_stats = LoggingNodeStats(o.name)
-                o.error_count = node_stats.error
-                o.warning_count = node_stats.warning
-                o.info_count = node_stats.info
-                o.audit_count = node_stats.audit
-                o.debug_count = node_stats.debug
+        self.start_time = self.end_time.replace(
+            minutes=(-1 * settings.LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES)) \
+            if start_time is None else start_time
 
-                yield o
-            raise StopIteration
+        _query_value = BoolQuery(must=[
+            RangeQuery(qrange=ESRangeOp(
+                "@timestamp",
+                "gte", self.start_time.isoformat(),
+                "lte", self.end_time.isoformat())),
+        ]).serialize()
 
-        while True:
-            base_result_objects = []
-            reached_end = False
+        _aggs_value = {
+            "by_host": {
+                "terms": {
+                    "field": "host.raw"
+                },
+                "aggregations": {
+                    "by_level": {
+                        "terms": {
+                            "field": "loglevel",
+                            "min_doc_count": 0
+                        }
+                    }
+                }
+            }
+        }
 
-            for i in range(Polymorphic_QuerySet_objects_per_request):
-                try:
-                    o = next(base_iter)
-                    base_result_objects.append(o)
-                except StopIteration:
-                    reached_end = True
-                    break
+        query = {
+            "query": _query_value,
+            "aggs": _aggs_value
+        }
 
-            real_results = self._get_real_instances(base_result_objects)
+        logger.debug("query = %s", json.dumps(query))
 
-            for o in real_results:
-                node_stats = LoggingNodeStats(o.name)
-                o.error_count = node_stats.error
-                o.warning_count = node_stats.warning
-                o.info_count = node_stats.info
-                o.audit_count = node_stats.audit
-                o.debug_count = node_stats.debug
-                yield o
+        rs = self._conn.search(
+            index=self.get_index_names('logstash-'), doc_type="syslog",
+            body=query, size=0)
 
-            if reached_end:
-                raise StopIteration
+        self._stats = rs["aggregations"]["by_host"]["buckets"]
 
+    def for_node(self, name):
 
-class LoggingNodeManager(PolymorphicManager):
-    """
-    A custom manager that merges in ES log data for a node.
-    """
-    queryset_class = BlingedPolymorphicQuerySet
-
-
-class LoggingNode(Node):
-    """
-    This is a class that uses a core Node as the basis, then
-    augments it with log related data such as counts by level for a time
-    period.
-    """
-    error_count = 0
-    warning_count = 0
-    info_count = 0
-    audit_count = 0
-    debug_count = 0
-    objects = LoggingNodeManager()
-
-    class Meta:
-        proxy = True
+        nodes = [x for x in self._stats if x['key'] == name]
+        if len(nodes) > 0:
+            return dict(
+                (bucket['key'], bucket['doc_count'])
+                for bucket in nodes[0]['by_level']['buckets']
+            )
+        else:
+            return {}
 
 
-class LoggingEvent(Event):
-    """
-    Represents an event harvested from the log event stream.
-    """
-    pass
+# class LoggingNodeType(NodeType):
+#     @classmethod
+#     def get_model(cls):
+#         return LoggingNode
+#
+#     @classmethod
+#     def get_mapping(cls):
+#         """Returns an Elasticsearch mapping for this MappingType.  These are
+#         a bit contrived since the template dynamically creates the mapping
+#         type.  It is helpful to support the ordering requests in the view.
+#         The view will look at the type of a field and if it is a string, will
+#         use the associated .raw field for ordering."""
+#
+#         result = super(LoggingNodeType, cls).get_mapping()
+#         result['properties']['error_count'] = {'type': 'integer'}
+#         result['properties']['warning_count'] = {'type': 'integer'}
+#         result['properties']['info_count'] = {'type': 'integer'}
+#         result['properties']['audit_count'] = {'type': 'integer'}
+#         result['properties']['debug_count'] = {'type': 'integer'}
+#         return result
+#
+#     @classmethod
+#     def extract_document(cls, obj_id, obj):
+#         """Converts this instance into an Elasticsearch document"""
+#         if obj is None:
+#             # todo this will go to the model manager which would natively
+#             # todo look at the SQL db.  we either need to fix this or fix the
+#             # todo model manager implementation of get.
+#             obj = cls.get_model().get(id=obj_id)
+#
+#         result = super(LoggingNodeType, cls).extract_document(obj_id, obj)
+#
+#         # TODO need the log
+#         result['error_count'] = obj.error_count
+#         result['warning_count'] = obj.warning_count
+#         result['']
+#
+#         return {
+#             'id': str(obj.id),
+#             'name': obj.name,
+#             'created': obj.created.isoformat(),
+#             'updated': arrow.utcnow().isoformat(),
+#             'last_seen_method': obj.last_seen_method,
+#             'admin_disabled': str(obj.admin_disabled)
+#         }
+#
+#
+# class LoggingNode(Node):
+#     error_count = IntegerField(default=0)
+#     warning_count = IntegerField(default=0)
+#     info_count = IntegerField(default=0)
+#     audit_count = IntegerField(default=0)
+#     debug_count = IntegerField(default=0)
+#
+#     _mt = NodeType()
+#     es_objects = NodeType
