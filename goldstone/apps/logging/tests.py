@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from elasticsearch import TransportError, Elasticsearch
+from goldstone.apps.logging.serializers import LoggingNodeSerializer
 
 __author__ = 'John Stanford'
 
@@ -108,7 +109,7 @@ class TaskTests(SimpleTestCase):
         self.assertEqual(event2.created, arrow.get(time_str).datetime)
         self.assertEqual(event2.message, "test message 2")
         self.assertEqual(event2.event_type, "Syslog Error")
-        logger.info("event2.source_name = %s", event2.source_name)
+        logger.debug("event2.source_name = %s", event2.source_name)
         self.assertEqual(event2.source_name, "fake_node")
 
     @patch.object(subprocess, 'call')
@@ -123,3 +124,85 @@ class TaskTests(SimpleTestCase):
         call.return_value = 1
         result = ping(node2)
         self.assertFalse(result)
+
+class LoggingNodeSerializerTests(SimpleTestCase):
+
+    node1 = Node(name='test_node')
+
+    def setUp(self):
+        es = Elasticsearch(settings.ES_SERVER)
+        if es.indices.exists('goldstone_model'):
+            es.indices.delete('goldstone_model')
+        es.indices.create('goldstone_model')
+        self.node1.save()
+
+    def test_serialize(self):
+        ser = LoggingNodeSerializer(
+            self.node1, context={'start_time': arrow.utcnow(),
+                                 'end_time': arrow.utcnow()})
+
+        self.assertEqual(ser.data['id'], self.node1.id)
+        self.assertEqual(ser.data['name'],
+                         self.node1.name)
+        self.assertIn('error_count', ser.data)
+        self.assertIn('warning_count', ser.data)
+        self.assertIn('info_count', ser.data)
+        self.assertIn('audit_count', ser.data)
+        self.assertIn('debug_count', ser.data)
+
+
+class LoggingNodeViewTests(APISimpleTestCase):
+
+    def setUp(self):
+        es = Elasticsearch(settings.ES_SERVER)
+        if es.indices.exists('goldstone_model'):
+            es.indices.delete('goldstone_model')
+        es.indices.create('goldstone_model')
+
+    def test_post(self):
+        data = {'name': "test logging node"}
+        response = self.client.post('/logging/nodes', data=data)
+        self.assertEqual(response.status_code,
+                         status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_put(self):
+        data = {'name': "test logging node"}
+        response = self.client.put('/logging/nodes', data=data)
+        self.assertEqual(response.status_code,
+                         status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_patch(self):
+        data = {'name': "test logging node"}
+        response = self.client.patch('/logging/nodes', data=data)
+        self.assertEqual(response.status_code,
+                         status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_delete(self):
+        response = self.client.put('/logging/nodes/12345-67890')
+        self.assertEqual(response.status_code,
+                         status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_list(self):
+
+        for i in range(0, 20):
+            node = Node(name="node"+str(i))
+            node.save()
+
+        NodeType.refresh_index()
+
+        self.assertEqual(20, node.es_objects.all().count())
+        response = self.client.get('/logging/nodes')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 20)
+        self.assertEqual(len(response.data['results']),
+                         settings.REST_FRAMEWORK['PAGINATE_BY'])
+
+    def test_get(self):
+        node = Node(name="node1")
+        node.save()
+        NodeType.refresh_index()
+        response = self.client.get('/logging/nodes/' + node.id)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('name', response.data)
+        self.assertEqual(node.name, response.data['name'])
+

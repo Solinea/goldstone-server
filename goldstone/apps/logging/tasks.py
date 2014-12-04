@@ -84,7 +84,7 @@ def _create_event(timestamp, host, event_type, message):
         if node is None:
             raise Node.DoesNotExist
     except Node.DoesNotExist:
-        logger.warning("[process_log_error_event] could not find logging node "
+        logger.warning("[process_log_error_event] could not find node "
                        "with name=%s.  event will have not relations.", host)
         event = Event(event_type=event_type, created=dt, message=message)
         event.save()
