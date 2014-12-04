@@ -19,127 +19,46 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load custom_filters %}
-
-
 {% block localcss %}
 {% endblock %}
-
 {% block localjs %}
     <script src="{% static 'js/keystone.js' %}"></script>
+    <script src="{% static 'js/views/topologyTreeView.js' %}"></script>
+    <script src="{% static 'js/views/multiRscsView.js' %}"></script>
     <script>
+    var data = JSON.parse({{ data|to_js }});
 
-$(document).ready(function () {
+    $(document).ready(function () {
 
-    new ChartHeaderView({
-        el: '#keystone-discover-chart-title',
-        chartTitle: 'Keystone Topology',
-        infoText: 'keystoneTopologyDiscover',
-        columns: 12
-    });
+        var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
-    var gnd = goldstone.keystone.discover;
-    var ns = goldstone.keystone.topology;
-    ns.data = JSON.parse({{ data|to_js }});
-    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns);
-    ns.leafDataUrls = {
-        "services-leaf": "/keystone/services",
-        "endpoints-leaf": "/keystone/endpoints",
-        "roles-leaf": "/keystone/roles",
-        "users-leaf": "/keystone/users",
-        "tenants-leaf": "/keystone/tenants"
-    };
-    ns.h = 400;
-    ns.location = '#keystone-topology-tree';
-    ns.singleRsrcLocation = '#single-rsrc-table';
-    ns.spinner = '#keystone-topology-spinner';
-    ns.singleRsrcSpinner = '#single-rsrc-loading-indicator';
-    ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator';
-    $(ns.spinner).hide();
-    $(ns.singleRsrcSpinner).hide();
-    $(ns.multiRsrcSpinner).hide();
-    //ns.infoIcon = '#keystone-topology-info'
-
-    // override the default filter for the multi resource table
-    ns.topologyTree.filterMultiRsrcData = function (data) {
-        "use strict";
-        var newData = jQuery.extend(true, {}, data);
-        newData = _.map(newData, function(d) {
-            delete d['@timestamp'];
-            // delete d['metadata'];
-            // delete d['region'];
-            return d;
+        var keystoneTopologyTreeView = new TopologyTreeView({
+            blueSpinnerGif: blueSpinnerGif,
+            chartHeader: ['#keystone-discover-r1-c1', 'Keystone Topology', 'keystoneTopologyDiscover'],
+            data: data,
+            el: '#keystone-discover-r1-c1',
+            frontPage: false,
+            h: 400,
+            multiRsrcViewEl: '#keystone-discover-r1-c2',
+            width: $('#keystone-discover-r1-c1').width(),
+            leafDataUrls: {
+                "services-leaf": "/keystone/services",
+                "endpoints-leaf": "/keystone/endpoints",
+                "roles-leaf": "/keystone/roles",
+                "users-leaf": "/keystone/users",
+                "tenants-leaf": "/keystone/tenants"
+            },
+            filterMultiRsrcDataOverride: ['@timestamp']
         });
-        return newData;
-    };
-    ns.topologyTree.init();
-});
+
+    });
     </script>
 
 {% endblock %}
-
-
 {% block content %}
     <div id="keystone-discover-r1" class="row">
-        <div id="keystone-discover-r1-c1" class="col-md-6">
-        <div id="keystone-discover-chart-title"></div>
-            <!-- <div id = "keystone-topology-panel" class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-tasks"></i> Keystone Topology
-                            <i class="pull-right fa fa-info-circle panel-info"  id="keystone-topology-info"
-                                    style="opacity: 0.0"></i>
-                    </h3>
-                </div>
-            </div> -->
-            <div class="panel-body" style="height:400px">
-                <div id="keystone-topology-tree">
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="keystone-topology-spinner"
-                         class="ajax-loader"/>
-                    <div class="clearfix"></div>
-                </div>
-            </div>
-        </div>
-        <div id="keystone-discover-r1-c2" class="col-md-6">
-
-            <div class="panel panel-primary multi-rsrc-panel" id="multi-rsrc-panel">
-                <div class="panel-heading">
-                    <h3 class="panel-title multi-rsrc-title"><i class="fa fa-dashboard"></i>
-                        Resource List<span class="panel-header-resource-title"></span>
-                    </h3>
-                </div>
-                <div id="multi-rsrc-body" class="panel-body">
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="multi-rsrc-loading-indicator" class="ajax-loader"
-                         hidden="true"/>
-                </div>
-            </div>
-
-
-        </div>
-    </div>
-
-
-    <div class="modal fade" id="logSettingsModal" tabindex="-1" role="dialog"
-         aria-labelledby="myModalLabel" aria-hidden="false">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"
-                            aria-hidden="true">&times;</button>
-                    <h4 class="modal-title single-rsrc-title" id="myModalLabel">Resource Info</h4>
-                </div>
-                <div class="modal-body single-rsrc-panel">
-                    <div id="single-rsrc-body" class="panel-body">
-                        <table id="single-rsrc-table" class="table table-hover">
-                        </table>
-                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                             id="single-rsrc-loading-indicator" class="ajax-loader"
-                             hidden="true"/>
-                    </div>
-                </div>
-                <div class="modal-footer"></div>
-            </div>
-        </div>
+        <div id="keystone-discover-r1-c1" class="col-md-6"></div>
+        <div id="keystone-discover-r1-c2" class="col-md-6"></div>
     </div>
 
 {% endblock %}

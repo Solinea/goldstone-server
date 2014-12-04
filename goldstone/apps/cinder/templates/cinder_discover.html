@@ -19,137 +19,58 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load custom_filters %}
-
-
 {% block localcss %}
 {% endblock %}
-
 {% block localjs %}
     <script src="{% static 'js/cinder.js' %}"></script>
+    <script src="{% static 'js/views/topologyTreeView.js' %}"></script>
+    <script src="{% static 'js/views/multiRscsView.js' %}"></script>
     <script>
+    var data = JSON.parse({{ data|to_js }});
 
-$(document).ready(function () {
+    $(document).ready(function () {
 
-    new ChartHeaderView({
-        el: '#cinder-discover-chart-title',
-        chartTitle: 'Cinder Topology',
-        infoText: 'cinderTopologyDiscover',
-        columns: 12
-    });
+        var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
-    var gnd = goldstone.cinder.discover;
-    var ns = goldstone.cinder.topology;
-    ns.data = JSON.parse({{ data|to_js }});
-    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns);
-    ns.leafDataUrls = {
-        "services-leaf": "/cinder/services",
-        "volumes-leaf": "/cinder/volumes",
-        "backups-leaf": "/cinder/backups",
-        "snapshots-leaf": "/cinder/snapshots",
-        "transfers-leaf": "/cinder/transfers",
-        "volume-types-leaf": "/cinder/volume_types"
-    };
-    ns.h = 400;
-    ns.location = '#cinder-topology-tree';
-    ns.singleRsrcLocation = '#single-rsrc-table';
-    ns.spinner = '#cinder-topology-spinner';
-    ns.singleRsrcSpinner = '#single-rsrc-loading-indicator';
-    ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator';
-    $(ns.spinner).hide();
-    $(ns.singleRsrcSpinner).hide();
-    $(ns.multiRsrcSpinner).hide();
-
-    // override the default filter for the multi resource table
-    ns.topologyTree.filterMultiRsrcData = function (data) {
-        "use strict";
-        var newData = jQuery.extend(true, {}, data);
-        newData = _.map(newData, function(d) {
-            delete d['@timestamp'];
-            delete d['metadata'];
-            delete d['region'];
-            delete d['extra_specs'];
-            delete d['display_description'];
-            delete d['os-extended-snapshot-attributes:progress'];
-            delete d['links'];
-            delete d['attachments'];
-            delete d['availability_zone'];
-            delete d['os-vol-mig-status-attr:migstat'];
-            delete d['os-vol-mig-status-attr:name_id'];
-            delete d['snapshot_id'];
-            delete d['source_volid'];
-            return d;
+        var cinderTopologyTreeView = new TopologyTreeView({
+            blueSpinnerGif: blueSpinnerGif,
+            chartHeader: ['#cinder-discover-r1-c1', 'Cinder Topology', 'cinderTopologyDiscover'],
+            data: data,
+            el: '#cinder-discover-r1-c1',
+            frontPage: false,
+            h: 400,
+            multiRsrcViewEl: '#cinder-discover-r1-c2',
+            width: $('#cinder-discover-r1-c1').width(),
+            leafDataUrls: {
+                "services-leaf": "/cinder/services",
+                "volumes-leaf": "/cinder/volumes",
+                "backups-leaf": "/cinder/backups",
+                "snapshots-leaf": "/cinder/snapshots",
+                "transfers-leaf": "/cinder/transfers",
+                "volume-types-leaf": "/cinder/volume_types"
+            },
+            filterMultiRsrcDataOverride: ['@timestamp',
+                'metadata',
+                'region',
+                'extra_specs',
+                'display_description',
+                'os-extended-snapshot-attributes:progress',
+                'links',
+                'attachments',
+                'availability_zone',
+                'os-vol-mig-status-attr:migstat',
+                'os-vol-mig-status-attr:name_id',
+                'snapshot_id',
+                'source_volid']
         });
-        return newData;
-    };
-    ns.topologyTree.init();
-});
+
+    });
     </script>
 
 {% endblock %}
-
-
 {% block content %}
     <div id="cinder-discover-r1" class="row">
-        <div id="cinder-discover-r1-c1" class="col-md-6">
-        <div id="cinder-discover-chart-title"></div>
-            <!-- <div id = "cinder-topology-panel" class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-tasks"></i> Cinder Topology
-                            <i class="pull-right fa fa-info-circle panel-info"  id="cinder-topology-info"
-                                    style="opacity: 0.0"></i>
-                    </h3>
-                </div>
-            </div> -->
-            <div class="panel-body" style="height:400px">
-                <div id="cinder-topology-tree">
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="cinder-topology-spinner"
-                         class="ajax-loader"/>
-                    <div class="clearfix"></div>
-                </div>
-            </div>
-        </div>
-        <div id="cinder-discover-r1-c2" class="col-md-6">
-
-            <div class="panel panel-primary multi-rsrc-panel" id="multi-rsrc-panel">
-                <div class="panel-heading">
-                    <h3 class="panel-title multi-rsrc-title"><i class="fa fa-dashboard"></i>
-                        Resource List<span class="panel-header-resource-title"></span>
-                    </h3>
-                </div>
-                <div id="multi-rsrc-body" class="panel-body">
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="multi-rsrc-loading-indicator" class="ajax-loader"
-                         hidden="true"/>
-                </div>
-            </div>
-
-
-        </div>
+        <div id="cinder-discover-r1-c1" class="col-md-6"></div>
+        <div id="cinder-discover-r1-c2" class="col-md-6"></div>
     </div>
-
-
-    <div class="modal fade" id="logSettingsModal" tabindex="-1" role="dialog"
-         aria-labelledby="myModalLabel" aria-hidden="false">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"
-                            aria-hidden="true">&times;</button>
-                    <h4 class="modal-title single-rsrc-title" id="myModalLabel">Resource Info</h4>
-                </div>
-                <div class="modal-body single-rsrc-panel">
-                    <div id="single-rsrc-body" class="panel-body">
-                        <table id="single-rsrc-table" class="table table-hover">
-                        </table>
-                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                             id="single-rsrc-loading-indicator" class="ajax-loader"
-                             hidden="true"/>
-                    </div>
-                </div>
-                <div class="modal-footer"></div>
-            </div>
-        </div>
-    </div>
-
 {% endblock %}

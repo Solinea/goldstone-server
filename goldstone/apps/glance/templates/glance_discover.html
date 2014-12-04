@@ -19,128 +19,49 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load custom_filters %}
-
-
 {% block localcss %}
 {% endblock %}
-
 {% block localjs %}
     <script src="{% static 'js/glance.js' %}"></script>
+    <script src="{% static 'js/views/topologyTreeView.js' %}"></script>
+    <script src="{% static 'js/views/multiRscsView.js' %}"></script>
     <script>
+    var data = JSON.parse({{ data|to_js }});
 
-$(document).ready(function () {
+    $(document).ready(function () {
 
-    new ChartHeaderView({
-        el: '#glance-discover-chart-title',
-        chartTitle: 'Glance Topology',
-        infoText: 'glanceTopologyDiscover',
-        columns: 12
-    });
+        var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
-    var gnd = goldstone.glance.discover;
-    var ns = goldstone.glance.topology;
-    ns.data = JSON.parse({{ data|to_js }});
-    ns.topologyTree = goldstone.charts.topologyTree._getInstance(ns);
-    ns.leafDataUrls = {
-        "images-leaf": "/glance/images"
-    };
-    ns.h = 400;
-    ns.location = '#glance-topology-tree';
-    ns.singleRsrcLocation = '#single-rsrc-table';
-    ns.spinner = '#glance-topology-spinner';
-    ns.singleRsrcSpinner = '#single-rsrc-loading-indicator';
-    ns.multiRsrcSpinner = '#multi-rsrc-loading-indicator';
-    $(ns.spinner).hide();
-    $(ns.singleRsrcSpinner).hide();
-    $(ns.multiRsrcSpinner).hide();
-    //ns.infoIcon = '#cinder-topology-info'
-
-    // override the default filter for the multi resource table
-    ns.topologyTree.filterMultiRsrcData = function (data) {
-        "use strict";
-        var newData = jQuery.extend(true, {}, data);
-        newData = _.map(newData, function(d) {
-            delete d['@timestamp'];
-            delete d['metadata'];
-            delete d['region'];
-            delete d['tags'];
-            delete d['checksum'];
-            delete d['owner'];
-            delete d['schema'];
-            delete d['file'];
-            return d;
+        var glanceTopologyTreeView = new TopologyTreeView({
+            blueSpinnerGif: blueSpinnerGif,
+            chartHeader: ['#glance-discover-r1-c1', 'Glance Topology', 'glanceTopologyDiscover'],
+            data: data,
+            el: '#glance-discover-r1-c1',
+            frontPage: false,
+            h: 400,
+            multiRsrcViewEl: '#glance-discover-r1-c2',
+            width: $('#glance-discover-r1-c1').width(),
+            leafDataUrls: {
+                "images-leaf": "/glance/images"
+            },
+            filterMultiRsrcDataOverride: ['@timestamp',
+            'metadata',
+            'region',
+            'tags',
+            'checksum',
+            'owner',
+            'schema',
+            'file']
         });
-        return newData;
-    };
-    ns.topologyTree.init();
-});
+
+    });
     </script>
 
 {% endblock %}
-
-
 {% block content %}
     <div id="glance-discover-r1" class="row">
-        <div id="glance-discover-r1-c1" class="col-md-6">
-        <div id="glance-discover-chart-title"></div>
-            <!-- <div id = "glance-topology-panel" class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><i class="fa fa-tasks"></i> Glance Topology
-                            <i class="pull-right fa fa-info-circle panel-info"  id="glance-topology-info"
-                                    style="opacity: 0.0"></i>
-                    </h3>
-                </div>
-            </div> -->
-            <div class="panel-body" style="height:400px">
-                <div id="glance-topology-tree">
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="glance-topology-spinner"
-                         class="ajax-loader"/>
-                    <div class="clearfix"></div>
-                </div>
-            </div>
-        </div>
-        <div id="glance-discover-r1-c2" class="col-md-6">
-
-            <div class="panel panel-primary multi-rsrc-panel" id="multi-rsrc-panel">
-                <div class="panel-heading">
-                    <h3 class="panel-title multi-rsrc-title"><i class="fa fa-dashboard"></i>
-                        Resource List<span class="panel-header-resource-title"></span>
-                    </h3>
-                </div>
-                <div id="multi-rsrc-body" class="panel-body">
-                    <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                         id="multi-rsrc-loading-indicator" class="ajax-loader"
-                         hidden="true"/>
-                </div>
-            </div>
-
-
-        </div>
-    </div>
-
-
-    <div class="modal fade" id="logSettingsModal" tabindex="-1" role="dialog"
-         aria-labelledby="myModalLabel" aria-hidden="false">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"
-                            aria-hidden="true">&times;</button>
-                    <h4 class="modal-title single-rsrc-title" id="myModalLabel">Resource Info</h4>
-                </div>
-                <div class="modal-body single-rsrc-panel">
-                    <div id="single-rsrc-body" class="panel-body">
-                        <table id="single-rsrc-table" class="table table-hover">
-                        </table>
-                        <img src="{% static 'images/ajax-loader-solinea-blue.gif' %}"
-                             id="single-rsrc-loading-indicator" class="ajax-loader"
-                             hidden="true"/>
-                    </div>
-                </div>
-                <div class="modal-footer"></div>
-            </div>
-        </div>
+        <div id="glance-discover-r1-c1" class="col-md-6"></div>
+        <div id="glance-discover-r1-c2" class="col-md-6"></div>
     </div>
 
 {% endblock %}

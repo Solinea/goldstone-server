@@ -107,7 +107,6 @@ describe('Testing the base.js file', function() {
                 expect(goldstone.charts).to.have.property('barChartBase');
                 expect(goldstone.charts).to.have.property('lineChartBase');
                 expect(goldstone.charts).to.have.property('bivariateWithAverage');
-                expect(goldstone.charts).to.have.property('topologyTree');
                 expect(goldstone).to.have.property('jsIncluded');
                 expect(goldstone.settings.charts.margins).to.have.property('top');
                 expect(goldstone.settings.charts.margins).to.have.property('bottom');
