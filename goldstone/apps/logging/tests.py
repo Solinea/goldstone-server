@@ -71,7 +71,8 @@ class TaskTests(SimpleTestCase):
         process_host_stream(self.name2, self.ts2)
         NodeType.refresh_index()
         updated_node2 = Node.get(id=node2.id)
-        self.assertEqual(updated_node2.updated, node2.updated)
+        self.assertGreater(updated_node2.updated, node2.updated)
+        self.assertTrue(updated_node2.admin_disabled)
         Node.get(id=node1.id).delete()
         Node.get(id=node2.id).delete()
 

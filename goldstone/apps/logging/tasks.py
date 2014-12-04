@@ -41,10 +41,10 @@ def process_host_stream(self, host, timestamp):
     nodes = Node.es_objects.query(name=host).order_by("created")
     node = None
     try:
-        node = nodes[0]
-        for node in nodes[1:]:
+        node = nodes[0].get_object()
+        for n in nodes[1:]:
             # remove duplicate nodes, keeping the oldest one
-            node.unindex(node._id)
+            n.unindex(n._id)
             NodeType.refresh_index()
     except:
         # This can occur if there are no nodes yet since the for loop will
