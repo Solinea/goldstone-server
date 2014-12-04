@@ -213,7 +213,7 @@ var NodeAvailView = Backbone.View.extend({
             })
             .html(function(d) {
                 return d.name + "<br/>" +
-                    "(" + d.uuid + ")" + "<br/>" +
+                    "(" + d.id + ")" + "<br/>" +
                     "Error: " + d.error_count + "<br/>" +
                     "Warning: " + d.warning_count + "<br/>" +
                     "Info: " + d.info_count + "<br/>" +
@@ -473,7 +473,9 @@ var NodeAvailView = Backbone.View.extend({
         // binds circles to dataset
         var circle = ns.graph.selectAll("circle")
             .data(ns.dataset, function(d) {
-                return d.uuid;
+                // if changing this, also must
+                // change idAttribute in backbone model
+                return d.id;
             });
 
         // 'enters' circles at far right of screen.
