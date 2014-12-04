@@ -66,10 +66,6 @@ def process_host_stream(self, host, timestamp):
         raise
 
 
-
-
-
-
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
 def process_event_stream(self, timestamp, host, event_type, message):
     """
