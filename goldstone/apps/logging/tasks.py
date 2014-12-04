@@ -12,10 +12,10 @@ from __future__ import absolute_import
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from elasticsearch import ConnectionError
 
 import pytz
 import subprocess
-from goldstone.apps.logging.models import LoggingNode
 
 __author__ = 'John Stanford'
 
@@ -37,12 +37,33 @@ def process_host_stream(self, host, timestamp):
     host_stream queue, and creates or updates an associated node in the model.
     :return: None
     """
-    node, created = Node.objects.get_or_create(name=host)
-    if not node.admin_disabled:
+
+    # TODO this cleanup should be in a slower moving lane
+    nodes = Node.es_objects.query(name=host).order_by("created")
+    node = None
+    try:
+        node = nodes[0].get_object()
         node.last_seen_method = 'LOGS'
-        # todo change date to arrow
-        node.last_seen = datetime.now(tz=pytz.utc)
         node.save()
+        try:
+            for n in nodes[1:]:
+                # remove duplicate nodes, keeping the oldest one
+                n.unindex(n._id)
+                NodeType.refresh_index()
+        except:
+            pass
+    except IndexError:
+        # no nodes found, we should create one
+        node = Node(name=host, last_seen_method='LOGS')
+        node.save()
+        # refresh the index to avoid duplication
+        NodeType.refresh_index()
+    except ConnectionError:
+        # We couldn't reach ES, so let's move on.
+        raise
+    except Exception as e:
+        logger.exception('unidentified exception in process_host_stream', e)
+        raise
 
 
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
@@ -64,16 +85,18 @@ def _create_event(timestamp, host, event_type, message):
     dt = arrow.get(timestamp).datetime
 
     try:
-        node = Node.objects.get(name=host)
+        node = Node.get(name=host)
+        if node is None:
+            raise Node.DoesNotExist
     except Node.DoesNotExist:
-        logger.warning("[process_log_error_event] could not find logging node "
+        logger.warning("[process_log_error_event] could not find node "
                        "with name=%s.  event will have not relations.", host)
         event = Event(event_type=event_type, created=dt, message=message)
         event.save()
         return event
     else:
         event = Event(event_type=event_type, created=dt, message=message,
-                      source_id=str(node.uuid), source_name=host)
+                      source_id=str(node.id), source_name=host)
         event.save()
         return event
 
@@ -85,13 +108,13 @@ def ping(self, node):
                                stdout=open('/dev/null', 'w'),
                                stderr=subprocess.STDOUT)
     if response == 0:
-        logger.debug("%s is alive", node.uuid)
+        logger.debug("%s is alive", node.id)
         node.last_seen = datetime.now(tz=pytz.utc)
         node.last_seen_method = 'PING'
         node.save()
         return True
     else:
-        logger.debug("%s did not respond", node.uuid)
+        logger.debug("%s did not respond", node.id)
         return False
 
 
@@ -102,11 +125,10 @@ def check_host_avail(self, offset=settings.HOST_AVAILABLE_PING_THRESHOLD):
     ones that have not been seen within the configured window.
     :return: None
     """
-    cutoff = (datetime.now(tz=pytz.utc) - offset)
-    logger.debug("[check_host_avail] cutoff = %s", cutoff)
-    to_ping = Node.objects.filter(updated__lte=cutoff, admin_disabled=False)
-    logger.debug("hosts to ping = %s", to_ping)
-    for node in to_ping.iterator():
-        ping(node)
 
-    return to_ping
+    cutoff = arrow.utcnow().datetime - offset
+    logger.debug("[check_host_avail] cutoff = %s", str(cutoff))
+    to_ping = Node.es_objects.filter(updated__lte=cutoff, admin_disabled=False)
+    logger.debug("hosts to ping = %s", to_ping)
+    for mt in to_ping:
+        ping(mt.get_object())

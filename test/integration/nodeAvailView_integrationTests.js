@@ -55,7 +55,7 @@ describe('nodeAvailView.js spec', function() {
         });
         this.testCollection.reset();
         this.testCollection.add([{
-            "uuid": "46b24373-eedc-43d5-9543-19dea317d88f",
+            "id": "46b24373-eedc-43d5-9543-19dea317d88f",
             "name": "compute-01",
             "created": "2014-10-27T19:26:17Z",
             "updated": "2014-10-28T18:32:18Z",
@@ -68,7 +68,7 @@ describe('nodeAvailView.js spec', function() {
             "debug_count": 4,
             "polymorphic_ctype": 12
         }, {
-            "uuid": "d0656d75-1c26-48c5-875b-9130dd8892f4",
+            "id": "d0656d75-1c26-48c5-875b-9130dd8892f4",
             "name": "compute-02",
             "created": "2014-10-27T19:27:17Z",
             "updated": "2014-10-28T18:33:17Z",
@@ -81,7 +81,7 @@ describe('nodeAvailView.js spec', function() {
             "debug_count": 5,
             "polymorphic_ctype": 12
         }, {
-            "uuid": "46b24373-eedc-43d5-9543-19dea317d88f",
+            "id": "46b24373-eedc-43d5-9543-19dea317d88f",
             "name": "controller-01",
             "created": "2014-10-27T19:29:17Z",
             "updated": "2014-10-28T18:38:18Z",
@@ -179,7 +179,7 @@ describe('nodeAvailView.js spec', function() {
             expect($('#noDataReturned').text()).to.equal('No Data Returned');
             // it REMOVES 'No Data Returned' if data starts flowing again:
             this.testCollection.add({
-                "uuid": "46b24373-eedc-43d5-9543-19dea317d88f",
+                "id": "46b24373-eedc-43d5-9543-19dea317d88f",
                 "name": "compute-01",
                 "created": "2014-10-27T19:27:17Z",
                 "updated": "2014-10-28T18:33:18Z",

@@ -24,7 +24,7 @@ import logging
 import arrow
 from django.http import Http404, HttpResponseBadRequest, HttpResponseNotAllowed
 from rest_framework import status
-from rest_framework.decorators import action
+from rest_framework.decorators import api_view, detail_route
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet, \
     ReadOnlyModelViewSet
@@ -34,13 +34,13 @@ logger = logging.getLogger(__name__)
 
 
 class ElasticViewSetMixin(object):
-    QUERY_OPS = ["match", "fuzzy", "wildcard", "match_phrase", "query_string"]
-    FILTER_OPS = ["in", "prefix", "gte", "lte", "gt", "lt"]
+    QUERY_OPS = ["match", "fuzzy", "wildcard", "match_phrase", "query_string",
+                 "gte", "lte", "gt", "lt"]
+    FILTER_OPS = ["in", "prefix"]
     MODIFIERS = ["should", "must", "must_not"]
     ordering = None
 
     def _process_params(self, params):
-
         result = {
             "query_kwargs": {},
             "filter_kwargs": {},
@@ -69,7 +69,7 @@ class ElasticViewSetMixin(object):
                             field = v[1:]
                         if field in mapping['properties'] and \
                                 mapping['properties'][field]['type'] == \
-                                        'string':
+                                'string':
                             result['order_by'] = v + ".raw"
                         else:
                             result['order_by'] = v
@@ -92,7 +92,7 @@ class ElasticViewSetMixin(object):
     def get_queryset(self):
         params = self._process_params(self.request.QUERY_PARAMS.dict())
         if self.model is not None:
-            qs = self.model().search(). \
+            qs = self.model.es_objects. \
                 query(**params['query_kwargs']). \
                 filter(**params['filter_kwargs'])
             if 'order_by' in params:
@@ -127,32 +127,23 @@ class ReadOnlyElasticViewSet(ElasticViewSetMixin, ReadOnlyModelViewSet):
     pass
 
 
-class NodeViewSet(ModelViewSet):
-    queryset = Node.objects.all()
+class EventViewSet(ElasticViewSet):
+    model = Event
+    serializer_class = EventSerializer
+    lookup_field = '_id'
+    lookup_url_kwarg = '_id'
+    ordering = '-created'
+
+
+class NodeViewSet(ReadOnlyElasticViewSet):
+    model = Node
     serializer_class = NodeSerializer
-    filter_fields = ('uuid',
-                     'name',
-                     'last_seen_method',
-                     'admin_disabled')
-    lookup_field = 'uuid'
-    lookup_url_kwarg = 'uuid'
-    ordering_fields = '__all__'
-    ordering = 'updated'
+    lookup_field = '_id'
+    lookup_url_kwarg = '_id'
+    ordering = '-updated'
 
-    def create(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data="Node creation not supported.")
-
-    def update(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data="Direct update not supported.")
-
-    def partial_update(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_400_BAD_REQUEST,
-                        data="Direct partial update not supported.")
-
-    @action(methods=['PATCH'])
-    def enable(self, request, uuid=None, format=None):
+    @detail_route(methods=['PATCH'])
+    def enable(self, request, *args, **kwargs):
         node = self.get_object()
         if node is not None:
             node.admin_disabled = False
@@ -162,8 +153,8 @@ class NodeViewSet(ModelViewSet):
         else:
             raise Http404
 
-    @action(methods=['PATCH'])
-    def disable(self, request, uuid=None, format=None):
+    @detail_route(methods=['PATCH'])
+    def disable(self, request, *args, **kwargs):
         node = self.get_object()
         if node is not None:
             node.admin_disabled = True
@@ -173,30 +164,9 @@ class NodeViewSet(ModelViewSet):
         else:
             raise Http404
 
-    def destroy(self, request, uuid=None, format=None):
-        node = self.get_object()
-        if node.admin_disabled:
-            node.delete()
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST,
-                            data="Must disable before deleting")
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class EventViewSet(ElasticViewSet):
-    model = EventType
-    serializer_class = EventSerializer
-    # filter_fields = ('uuid',
-    #                  'name',
-    #                  'last_seen_method',
-    #                  'admin_disabled')
-    lookup_field = '_id'
-    lookup_url_kwarg = '_id'
-    ordering = '-created'
-
 
 class MetricViewSet(ReadOnlyElasticViewSet):
-    model = MetricType
+    model = Metric
     serializer_class = MetricSerializer
     lookup_field = '_id'
     lookup_url_kwarg = '_id'
@@ -207,7 +177,7 @@ class MetricViewSet(ReadOnlyElasticViewSet):
 
 
 class ReportViewSet(ReadOnlyElasticViewSet):
-    model = ReportType
+    model = Report
     serializer_class = ReportSerializer
     lookup_field = "_id"
     lookup_url_kwarg = '_id'
@@ -237,8 +207,7 @@ class ReportListView(ElasticViewSetMixin, APIView):
             qs = qs.order_by(params['order_by'])
 
         # add the term facet clause
-        qs = qs.facet("name", filtered=True)
-
+        qs = qs.facet("name", filtered=True, size=100)
 
         try:
             result = qs.execute().facets
@@ -250,4 +219,3 @@ class ReportListView(ElasticViewSetMixin, APIView):
         except:
             logger.exception('failed to GET report_list')
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
