@@ -112,7 +112,7 @@ Sync and migrate the databases::
 
 Set up the elasticsearch templates for test running (repeat with other settings as required)::
 
-    $ cd /opt/goldstone
+    $ cd /opt/goldstone     # or wherever your goldstone root folder is
     $ python manage.py shell --settings=goldstone.settings.local_test <<EOF
     > from goldstone.apps.core.tasks import _put_all_templates, _create_daily_index, _create_agent_index
     > _put_all_templates()
