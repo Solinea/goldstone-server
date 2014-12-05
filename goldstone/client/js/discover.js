@@ -82,7 +82,7 @@ var renderCharts = function() {
     //---------------------------
     // instantiate Node Availability chart
 
-    var nodeAvailChart = new NodeAvailCollection({
+    /*    var nodeAvailChart = new NodeAvailCollection({
         url: "/logging/nodes?page_size=100"
     });
 
@@ -92,13 +92,20 @@ var renderCharts = function() {
             "main": 450,
             "swim": 50
         },
-        el: '#goldstone-discover-r2-c2',
+        el: '#goldstone-discover-r3-c1',
         chartTitle: 'Node Availability',
-        width: $('#goldstone-discover-r2-c2').width()
+        width: $('#goldstone-discover-r3-c1').width()
     });
-
+*/
     //---------------------------
     // instantiate test zoomable partition view chart
+
+    new ChartHeaderView({
+        el: '#goldstone-discover-r2-c2',
+        chartTitle: 'Cloud Topology',
+        infoText: 'discoverCloudTopology',
+        columns: 12
+    });
 
     var zoomablePartitionChart = new ZoomablePartitionCollection({
         data: data
@@ -106,14 +113,14 @@ var renderCharts = function() {
 
     var zoomablePartitionChartView = new ZoomablePartitionView({
         collection: zoomablePartitionChart,
-        el: '#goldstone-discover-r3-c1',
-        w: $('#goldstone-discover-r3-c1').width()
+        el: '#goldstone-discover-r2-c2',
+        w: $('#goldstone-discover-r2-c2').width()
     });
 
     //---------------------------
     // instantiate test bullet chart view chart
 
-/*    var bulletChart = new BulletChartCollection();
+    /*    var bulletChart = new BulletChartCollection();
 
     var bulletChartView = new BulletChartView({
         collection: bulletChart,

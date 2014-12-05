@@ -111,7 +111,7 @@ var ZoomablePartitionView = Backbone.View.extend({
                 // changed to d.label to fit dataset
                 return d.label;
             })
-            .attr({'font-size': '11px'})
+            .attr({'font-size': '12px'})
             .attr({'pointer-events': 'none'});
 
         d3.select(self.el)
