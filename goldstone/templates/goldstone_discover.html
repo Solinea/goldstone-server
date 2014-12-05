@@ -17,6 +17,31 @@ Author: John Stanford
 {% block localcss %}
     <link rel="stylesheet" href="/static/css/loglevel_buttons.css">
     <link rel="stylesheet" href="/static/css/hostavail.css">
+    <style>
+
+    .box {
+      font: 10px sans-serif;
+    }
+
+    .box line,
+    .box rect,
+    .box circle {
+      fill: #fff;
+      stroke: #000;
+      stroke-width: 1.5px;
+    }
+
+    .box .center {
+      stroke-dasharray: 3,3;
+    }
+
+    .box .outlier {
+      fill: none;
+      stroke: #ccc;
+    }
+
+
+    </style>
 {% endblock %}
 {% block content %}
     <div id="goldstone-discover-r1" class="row">
@@ -30,6 +55,9 @@ Author: John Stanford
     <div id="goldstone-discover-r3" class="row">
         <div id="goldstone-discover-r3-c1" class="col-md-12"></div>
     </div>
+    <div id="goldstone-discover-r4" class="row">
+        <div id="goldstone-discover-r4-c1" class="col-md-12"></div>
+    </div>
 {% endblock %}
 
 {% block localjs %}
@@ -38,15 +66,18 @@ Author: John Stanford
     <script src="{% static 'js/models/nodeAvailModel.js' %}"></script>
     <script src="{% static 'js/models/zoomablePartitionModel.js' %}"></script>
     <script src="{% static 'js/models/bulletChartModel.js' %}"></script>
+    <script src="{% static 'js/models/boxPlotModel.js' %}"></script>
     <script src="{% static 'js/collections/eventTimelineCollection.js' %}"></script>
     <script src="{% static 'js/collections/nodeAvailCollection.js' %}"></script>
     <script src="{% static 'js/collections/zoomablePartitionCollection.js' %}"></script>
     <script src="{% static 'js/collections/bulletChartCollection.js' %}"></script>
+    <script src="{% static 'js/collections/boxPlotCollection.js' %}"></script>
     <script src="{% static 'js/views/eventTimelineView.js' %}"></script>
     <script src="{% static 'js/views/nodeAvailView.js' %}"></script>
     <script src="{% static 'js/views/topologyTreeView.js' %}"></script>
     <script src="{% static 'js/views/zoomablePartitionView.js' %}"></script>
     <script src="{% static 'js/views/bulletChartView.js' %}"></script>
+    <script src="{% static 'js/views/boxPlotView.js' %}"></script>
     <script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
     <script src="{% static 'js/discover.js' %}"></script>
     <script>
