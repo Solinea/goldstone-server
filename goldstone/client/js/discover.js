@@ -120,13 +120,20 @@ var renderCharts = function() {
     //---------------------------
     // instantiate test bullet chart view chart
 
-    /*    var bulletChart = new BulletChartCollection();
+    new ChartHeaderView({
+        el: '#goldstone-discover-r3-c1',
+        chartTitle: 'Bullet Chart',
+        infoText: undefined,
+        columns: 12
+    });
+
+    var bulletChart = new BulletChartCollection();
 
     var bulletChartView = new BulletChartView({
         collection: bulletChart,
-        el: '#goldstone-discover-r3-c2',
+        el: '#goldstone-discover-r3-c1',
         w: $('#goldstone-discover-r3-c2').width()
-    });*/
+    });
 
     //---------------------------
     // instantiate test box plot view chart
