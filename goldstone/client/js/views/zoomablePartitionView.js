@@ -57,7 +57,9 @@ var ZoomablePartitionView = Backbone.View.extend({
 
         ns.partition = d3.layout.partition()
             .value(function(d) {
-                return d.size;
+                // set to constant for even sizing of nodes
+                // this was originally set to d.size
+                return 1;
             });
 
     },
@@ -105,7 +107,9 @@ var ZoomablePartitionView = Backbone.View.extend({
                 return d.dx * ky > 12 ? 1 : 0;
             })
             .text(function(d) {
-                return d.name;
+                // this was originally d.name
+                // changed to d.label to fit dataset
+                return d.label;
             })
             .attr({'font-size': '11px'})
             .attr({'pointer-events': 'none'});

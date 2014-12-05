@@ -23,7 +23,8 @@ var ZoomablePartitionCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        return this.dummyData;
+        return this.defaults.data;
+        // return this.dummyData;
     },
 
     model: ZoomablePartitionModel,
@@ -31,6 +32,7 @@ var ZoomablePartitionCollection = Backbone.Collection.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
+        this.defaults.data = options.data;
         this.url = "/glance/api_perf?start=111&end=112&interval=3600s&render=false";
         this.fetch();
     },
