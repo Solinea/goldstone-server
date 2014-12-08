@@ -69,7 +69,6 @@ var ZoomablePartitionView = Backbone.View.extend({
         var self = this;
 
         var root = this.collection.toJSON()[0];
-        console.log(root);
 
         var g = ns.vis.selectAll("g")
             .data(ns.partition.nodes(root))

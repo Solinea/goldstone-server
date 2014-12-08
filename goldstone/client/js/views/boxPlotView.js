@@ -412,7 +412,6 @@ var BoxPlotView = Backbone.View.extend({
         var data = [];
 
         csv.forEach(function(x) {
-            console.log(x);
             var e = Math.floor(x.expt - 1),
                 r = Math.floor(x.run - 1),
                 s = Math.floor(x.speed),
