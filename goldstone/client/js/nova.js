@@ -364,7 +364,7 @@ goldstone.nova.spawns.drawChart = function () {
     // now we can customize it to handle our data.  Data structure looks like:
         // {'timestamp'(String): [successes(Number), failures(Number)], ...}
     var ns = goldstone.nova.spawns;
-    if (ns.data !== 'undefined') {
+    if (ns && ns.data !== undefined) {
         if (Object.keys(ns.data).length === 0) {
             $(ns.location).append("<p> Response was empty.");
             $(ns.spinner).hide();
