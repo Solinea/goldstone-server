@@ -15,6 +15,7 @@ from __future__ import unicode_literals
 
 import copy
 from django.shortcuts import render
+from goldstone.apps.core.models import Node
 from goldstone.utils import GoldstoneAuthError
 
 __author__ = 'John Stanford'
@@ -22,7 +23,7 @@ __author__ = 'John Stanford'
 
 import calendar
 from abc import ABCMeta, abstractmethod, abstractproperty
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, Http404
 from django.views.generic.base import ContextMixin
 from django.views.generic import TemplateView, View
 from django.conf import settings
@@ -537,3 +538,12 @@ class HelpView(TemplateView):
 
 class NodeReportView(TemplateView):
     template_name = 'node_report.html'
+
+    def get(self, request, node_uuid):
+        # TODO query should look for node id rather than name.
+        n = Node.get(name=node_uuid)
+        if n is None:
+            raise Http404
+        else:
+            return super(NodeReportView, self).get(request,
+                                                   node_uuid=node_uuid)

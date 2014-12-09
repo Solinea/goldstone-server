@@ -25,12 +25,10 @@ QUNIT_ENABLED = False
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'goldstone',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3.prod'),
         'USER': 'goldstone',
         'PASSWORD': 'goldstone',
-        'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
-        'PORT': '3306',
     }
 }
 
