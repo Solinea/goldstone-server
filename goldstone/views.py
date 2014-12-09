@@ -545,4 +545,5 @@ class NodeReportView(TemplateView):
         if n is None:
             raise Http404
         else:
-            return super(NodeReportView, self).get(request, node_uuid)
+            return super(NodeReportView, self).get(request,
+                                                   node_uuid=node_uuid)

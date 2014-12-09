@@ -261,8 +261,11 @@ var TopologyTreeView = Backbone.View.extend({
 
     },
     reportRedirect: function(data, keyName) {
-        var redirectNodeName = '/' + data[keyName];
-        window.location.href = '/report/node' + redirectNodeName;
+        var redirectNodeName = data[keyName];
+        if (redirectNodeName.indexOf('.') !== -1) {
+            redirectNodeName = redirectNodeName.slice(0, redirectNodeName.indexOf('.'));
+        }
+        window.location.href = '/report/node/' + redirectNodeName;
     },
 
     appendLeafNameToResourceHeader: function(text, location) {
