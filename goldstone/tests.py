@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from goldstone.apps.core.models import NodeType, Node
 
 __author__ = 'John Stanford'
 
@@ -216,3 +217,47 @@ class UtilsTests(SimpleTestCase):
                          int(reply.headers['content-length']))
         self.assertIn('component', rec)
         self.assertEqual(rec['component'], component)
+
+
+class ReportTemplateViewTest(SimpleTestCase):
+    node1 = Node(name="test_node_123")
+
+    def setUp(self):
+        es = Elasticsearch(settings.ES_SERVER)
+        if es.indices.exists('goldstone_model'):
+            es.indices.delete('goldstone_model')
+        es.indices.create('goldstone_model')
+
+    def tearDown(self):
+        es = Elasticsearch(settings.ES_SERVER)
+        if es.indices.exists('goldstone_model'):
+            es.indices.delete('goldstone_model')
+        es.indices.create('goldstone_model')
+
+    def test_good_request(self):
+        self.node1.save()
+        NodeType.refresh_index()
+        url = '/report/node/' + self.node1.name
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'node_report.html')
+
+    def test_bad_get_request(self):
+        url = '/report/node/missing_node'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_post_request(self):
+        url = '/report/node/missing_node'
+        response = self.client.post(url, data={})
+        self.assertEqual(response.status_code, 405)
+
+    def test_put_request(self):
+        url = '/report/node/missing_node'
+        response = self.client.put(url, data={})
+        self.assertEqual(response.status_code, 405)
+
+    def test_delete_request(self):
+        url = '/report/node/missing_node'
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 405)

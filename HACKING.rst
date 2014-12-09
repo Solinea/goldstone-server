@@ -48,7 +48,6 @@ Create the virtual environment (this will also install virtualenv)::
     export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
     export DJANGO_SETTINGS_MODULE=goldstone.settings.local_dev
 
-    mysql.server start
     redis-server > /dev/null 2>&1 &
     elasticsearch > /dev/null 2>&1 &
     celery worker --app=goldstone --loglevel=info --beat > /dev/null 2>&1 &
@@ -66,23 +65,6 @@ Install mysql and create development and test databases. Create a user goldstone
     $ brew install elasticsearch
     $ brew install redis
     $ brew install phantomjs
-    $ brew install mysql  # for the mac, assuming you have brew installed
-    $ mysqladmin  -u root -p create goldstone_dev
-    $ mysqladmin  -u root -p create goldstone_test
-    $ mysqladmin  -u root -p create goldstone
-    $ mysql -u root
-        > connect goldstone_test
-        > CREATE USER 'goldstone'@'localhost' IDENTIFIED BY 'goldstone';
-        > GRANT ALL PRIVILEGES ON * . * TO 'goldstone'@'localhost';
-        > FLUSH PRIVILEGES;
-
-If you want to have remote access to mysql, you can do something like this:
-
-    $ mysql -uroot -pgoldstone -e "GRANT ALL PRIVILEGES ON goldstone.* \
-      TO goldstone@'%' IDENTIFIED BY 'goldstone'"
-    $ mysql -uroot -pgoldstone -e "FLUSH PRIVILEGES"
-    $ service mysqld restart
-    # don't forget to allow access to port 3306 via iptables.
 
 Clone Goldstone from the bitbucket repo::
 
