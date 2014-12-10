@@ -43,7 +43,7 @@ describe('eventsReportView.js spec', function() {
         it('makes a zones', function() {
             var test1 = goldstone.nova.zones.url();
             expect(test1).to.equal('/nova/zones?start=undefined&end=undefined&interval=undefined');
-            var test2 = goldstone.nova.zones.url(121341234,3145135,50,'true');
+            var test2 = goldstone.nova.zones.url(121341234, 3145135, 50, 'true');
             expect(test2).to.equal('/nova/zones?start=121341&end=3145&interval=50&render=true');
         });
         it('triggers loadUrl', function() {
@@ -54,6 +54,9 @@ describe('eventsReportView.js spec', function() {
         });
         it('triggers drawChart', function() {
             var test1 = goldstone.nova.spawns.drawChart();
+        });
+        it('triggers rsrcChartFunctions', function() {
+            var test1 = goldstone.nova.util.rsrcChartFunctions(false);
         });
     });
 });
