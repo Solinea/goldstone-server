@@ -82,7 +82,7 @@ var renderCharts = function() {
     //---------------------------
     // instantiate Node Availability chart
 
-        var nodeAvailChart = new NodeAvailCollection({
+    var nodeAvailChart = new NodeAvailCollection({
         url: "/logging/nodes?page_size=100"
     });
 
@@ -96,61 +96,4 @@ var renderCharts = function() {
         chartTitle: 'Node Availability',
         width: $('#goldstone-discover-r2-c2').width()
     });
-
-    //---------------------------
-    // instantiate test zoomable partition view chart
-
-    new ChartHeaderView({
-        el: '#goldstone-discover-r3-c1',
-        chartTitle: 'Zoomable Cloud Topology',
-        infoText: 'discoverCloudTopology',
-        columns: 12
-    });
-
-    var zoomablePartitionChart = new ZoomablePartitionCollection({
-        data: data
-    });
-
-    var zoomablePartitionChartView = new ZoomablePartitionView({
-        collection: zoomablePartitionChart,
-        el: '#goldstone-discover-r3-c1',
-        w: $('#goldstone-discover-r3-c1').width()
-    });
-
-    //---------------------------
-    // instantiate test bullet chart view chart
-
-    new ChartHeaderView({
-        el: '#goldstone-discover-r4-c1',
-        chartTitle: 'Bullet Chart',
-        infoText: undefined,
-        columns: 12
-    });
-
-    var bulletChart = new BulletChartCollection();
-
-    var bulletChartView = new BulletChartView({
-        collection: bulletChart,
-        el: '#goldstone-discover-r4-c1',
-        w: $('#goldstone-discover-r4-c1').width()
-    });
-
-    //---------------------------
-    // instantiate test box plot view chart
-
-    new ChartHeaderView({
-        el: '#goldstone-discover-r5-c1',
-        chartTitle: 'Box Plots',
-        infoText: undefined,
-        columns: 12
-    });
-
-    var boxPlotChart = new BoxPlotCollection();
-
-    var boxPlotView = new BoxPlotView({
-        collection: boxPlotChart,
-        el: '#goldstone-discover-r5-c1',
-        w: $('#goldstone-discover-r5-c1').width()
-    });
-
 };
