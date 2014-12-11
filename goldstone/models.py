@@ -33,7 +33,12 @@ class GSConnection(object):
     conn = None
 
     def __init__(self, server=settings.ES_SERVER):
-        self.conn = Elasticsearch(server)
+        self.conn = Elasticsearch(server, max_retries=1, sniff_on_start=False,
+                                  # sniffer_timeout=5,
+                                  # sniff_on_connection_fail=True,
+                                  # sniff_timeout=1,
+                                  )
+        self.conn.cluster.health(wait_for_status='yellow', request_timeout=2)
 
 
 class RedisConnection(object):

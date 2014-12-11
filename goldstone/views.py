@@ -413,10 +413,14 @@ class DiscoverView(TopologyView):
         from .apps.cinder.views import DiscoverView as CinderTopoView
         from .apps.nova.views import DiscoverView as NovaTopoView
 
-        keystone_topo = KeystoneTopoView()
-        glance_topo = GlanceTopoView()
-        cinder_topo = CinderTopoView()
-        nova_topo = NovaTopoView()
+        try:
+            keystone_topo = KeystoneTopoView()
+            glance_topo = GlanceTopoView()
+            cinder_topo = CinderTopoView()
+            nova_topo = NovaTopoView()
+        except Exception as e:
+            logger.exception("Exception in DiscoverView", e)
+            raise e
 
         topo_list = [nova_topo, keystone_topo, glance_topo, cinder_topo]
 

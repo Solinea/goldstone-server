@@ -294,6 +294,13 @@ class Report(Model):
 class NodeType(MappingType, Indexable):
 
     @classmethod
+    def search(cls):
+        s = super(NodeType, cls).search().es(
+            urls=settings.ES_URLS, timeout=2, max_retries=1,
+            sniff_on_start=False)
+        return s
+
+    @classmethod
     def get_model(cls):
         return Node
 
