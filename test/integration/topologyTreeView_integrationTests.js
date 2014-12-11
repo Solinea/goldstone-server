@@ -136,8 +136,10 @@ describe('eventsReportView.js spec', function() {
         it('appends leaf name to resource header', function() {
             expect(this.testView.appendLeafNameToResourceHeader).to.be.a('function');
             expect($('.panel-header-resource-title').text()).to.equal('');
+            expect($('.additional-info-notice').text()).to.equal('');
             var test1 = this.testView.appendLeafNameToResourceHeader('abc');
             expect($('.panel-header-resource-title').text()).to.equal(': abc');
+            expect($('.additional-info-notice').text()).to.equal('Click row for additional Resource Info');
         });
         it('properly toggles d.children', function() {
             var test = {
