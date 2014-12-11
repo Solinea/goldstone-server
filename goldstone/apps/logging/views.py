@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.http import Http404
+from elasticsearch import ConnectionError
+from rest_framework import status
 
 
 __author__ = 'John Stanford'
@@ -52,19 +54,24 @@ class LoggingNodeViewSet(NodeViewSet):
         return response
 
     def list(self, request, *args, **kwargs):
-        self._set_time_range(request.QUERY_PARAMS.dict())
-        instance = self.get_queryset()
-        page = self.paginate_queryset(instance)
-        if page is not None:
-            serializer = self.get_pagination_serializer(page)
-        else:
-            serializer = self.get_serializer(instance, many=True)
+        try:
+            self._set_time_range(request.QUERY_PARAMS.dict())
+            instance = self.get_queryset()
+            page = self.paginate_queryset(instance)
+            if page is not None:
+                serializer = self.get_pagination_serializer(page)
+            else:
+                serializer = self.get_serializer(instance, many=True)
 
-        serializer.context['start_time'] = self._start_time
-        serializer.context['end_time'] = self._end_time
-        serializer.many = True
+            serializer.context['start_time'] = self._start_time
+            serializer.context['end_time'] = self._end_time
+            serializer.many = True
+            return self._add_headers(Response(serializer.data))
+        except ConnectionError as e:
+            return Response(data="Could not connect to the ElasticSearch"
+                                 " backend",
+                            status=status.HTTP_504_GATEWAY_TIMEOUT)
 
-        return self._add_headers(Response(serializer.data))
 
     def retrieve(self, request, *args, **kwargs):
         self._set_time_range(request.QUERY_PARAMS.dict())
