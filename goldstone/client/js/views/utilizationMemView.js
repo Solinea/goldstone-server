@@ -16,16 +16,8 @@
  * Author: Alex Jacobs
  */
 
-var UtilizationMemView = Backbone.View.extend({
-
-    defaults: {
-        margin: {
-            top: 20,
-            right: 40,
-            bottom: 25,
-            left: 33
-        }
-    },
+// extends UtilizationCpuView
+var UtilizationMemView = UtilizationCpuView.extend({
 
     initialize: function(options) {
         this.options = options || {};
