@@ -16,7 +16,8 @@
  * Author: Alex Jacobs
  */
 
-var UtilizationNetView = Backbone.View.extend({
+// extends UtilizationCpuView
+var UtilizationNetView = UtilizationCpuView.extend({
 
     defaults: {
         margin: {
