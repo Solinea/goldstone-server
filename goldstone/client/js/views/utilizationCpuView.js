@@ -16,6 +16,12 @@
  * Author: Alex Jacobs
  */
 
+ /*
+ NOTE: This Backbone View is a "superClass" that is extended to at least 2 other chart-types at the time of this documentation.
+
+The method of individuating charts that have particular individual requirements is to instantiate them with the 'featureSet' property within the options hash.
+ */
+
 var UtilizationCpuView = Backbone.View.extend({
 
     defaults: {
@@ -33,9 +39,14 @@ var UtilizationCpuView = Backbone.View.extend({
         this.defaults.url = this.collection.url;
         this.el = options.el;
         this.defaults.width = options.width;
+        this.defaults.featureSet = options.featureSet || null;
 
         var ns = this.defaults;
         var self = this;
+
+        if(ns.featureSet === 'memUsage'){
+            ns.divisor = (1 << 30);
+        }
 
         this.collection.on('sync', function() {
             if (self.collection.defaults.urlCollectionCount === 0) {
@@ -74,10 +85,14 @@ var UtilizationCpuView = Backbone.View.extend({
             .orient("bottom")
             .ticks(4);
 
-        ns.yAxis = d3.svg.axis()
-            .scale(ns.y)
-            .orient("left")
+            ns.yAxis = d3.svg.axis()
+                .scale(ns.y)
+                .orient("left");
+
+        if(ns.featureSet === "cpuUsage"){
+            ns.yAxis
             .tickFormat(ns.formatPercent);
+        }
 
         ns.area = d3.svg.area()
             .interpolate("monotone")
@@ -216,7 +231,7 @@ var UtilizationCpuView = Backbone.View.extend({
                 values: data.map(function(d) {
                     return {
                         date: d.date,
-                        y: d[name] / 100
+                        y: self.defaults.featureSet === 'cpuUsage' ? d[name] / 100 : d[name]
                     };
                 })
             };
@@ -225,6 +240,16 @@ var UtilizationCpuView = Backbone.View.extend({
         ns.x.domain(d3.extent(data, function(d) {
             return d.date;
         }));
+
+        if (ns.featureSet === 'memUsage') {
+            ns.y.domain([0, ns.memTotal.value / ns.divisor]);
+        }
+
+        if (ns.featureSet === 'netUsage') {
+            ns.y.domain([0, d3.max(allthelogs, function(d) {
+                return d.rx + d.tx;
+            })]);
+        }
 
         ns.svg.selectAll('.component')
             .remove();
@@ -240,10 +265,27 @@ var UtilizationCpuView = Backbone.View.extend({
                 return ns.area(d.values);
             })
             .style("fill", function(d) {
-                if (d.name.toLowerCase() === "idle") {
-                    return "none";
+
+                if (ns.featureSet === "cpuUsage") {
+                    if (d.name.toLowerCase() === "idle") {
+                        return "none";
+                    }
+                    return ns.color(d.name);
                 }
-                return ns.color(d.name);
+
+                if (ns.featureSet === "memUsage") {
+                    if (d.name.toLowerCase() === "free") {
+                        return "none";
+                    }
+                    return ns.color(d.name);
+                }
+
+                if (ns.featureSet === "netUsage") {
+                    return ns.color(d.name);
+                }
+
+                console.log('define featureSet in utilizationCpuView.js');
+
             })
             .style("opacity", 0.8);
 
@@ -260,11 +302,59 @@ var UtilizationCpuView = Backbone.View.extend({
             .attr("x", 1)
             .attr("y", function(d, i) {
                 // make space between the labels
-                return -i * 3;
+
+                if (ns.featureSet === 'memUsage') {
+                    if (d.name === 'total') {
+                        return -3;
+                    } else {
+                        return 0;
+                    }
+                }
+
+                if (ns.featureSet === 'cpuUsage') {
+                    return -i * 3;
+                }
+
+                if (ns.featureSet === 'netUsage') {
+                    return -i * 8;
+                }
+
+                console.log('define feature set in utilizationCpuView.js');
+                return;
+
+            })
+            .attr("text-anchor", function(d){
+                if(ns.featureSet === 'memUsage'){
+                    if(d.name === 'total'){
+                        return 'end';
+                    }
+                }
             })
             .style("font-size", ".8em")
             .text(function(d) {
-                return d.name;
+
+                if (ns.featureSet === 'cpuUsage') {
+                    return d.name;
+                }
+
+                if (ns.featureSet === 'memUsage') {
+                    if (d.name === 'total') {
+                        return 'Total: ' + ((Math.round(ns.memTotal.value / ns.divisor * 100)) / 100) + 'GB';
+                    }
+                    if (d.name === 'free') {
+                        return '';
+                    } else {
+                        return d.name;
+                    }
+                }
+
+                if (ns.featureSet === 'netUsage') {
+                    return d.name + " (kB)";
+                }
+
+                console.log('define feature set in utilizationCpuView.js');
+                return 'feature set undefined';
+
             });
 
         ns.svg.append("g")
