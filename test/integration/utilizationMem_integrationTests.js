@@ -28,6 +28,7 @@ describe('UtilizationMem.js spec', function() {
             collection: this.testCollection,
             el: '.testContainer',
             width: $('.testContainer').width(),
+            featureSet: 'memUsage'
         });
 
         this.testCollection.reset();
