@@ -16,7 +16,7 @@
  * Author: Alex Jacobs
  */
 
- /*
+/*
  NOTE: This Backbone View is a "superClass" that is extended to at least 2 other chart-types at the time of this documentation.
 
 The method of individuating charts that have particular individual requirements is to instantiate them with the 'featureSet' property within the options hash.
@@ -44,7 +44,7 @@ var UtilizationCpuView = Backbone.View.extend({
         var ns = this.defaults;
         var self = this;
 
-        if(ns.featureSet === 'memUsage'){
+        if (ns.featureSet === 'memUsage') {
             ns.divisor = (1 << 30);
         }
 
@@ -85,13 +85,13 @@ var UtilizationCpuView = Backbone.View.extend({
             .orient("bottom")
             .ticks(4);
 
-            ns.yAxis = d3.svg.axis()
-                .scale(ns.y)
-                .orient("left");
+        ns.yAxis = d3.svg.axis()
+            .scale(ns.y)
+            .orient("left");
 
-        if(ns.featureSet === "cpuUsage"){
+        if (ns.featureSet === "cpuUsage") {
             ns.yAxis
-            .tickFormat(ns.formatPercent);
+                .tickFormat(ns.formatPercent);
         }
 
         ns.area = d3.svg.area()
@@ -167,11 +167,10 @@ var UtilizationCpuView = Backbone.View.extend({
         finalData = [];
 
         _.each(newData, function(item, i) {
-            // TODO: REMOVE 100
             finalData.push({
-                wait: 100 * item.wait,
-                sys: 100 * item.sys,
-                user: 100 * item.user,
+                wait: item.wait,
+                sys: item.sys,
+                user: item.user,
                 idle: 100 - (item.user + item.wait + item.sys),
                 date: i
             });
@@ -323,9 +322,9 @@ var UtilizationCpuView = Backbone.View.extend({
                 return;
 
             })
-            .attr("text-anchor", function(d){
-                if(ns.featureSet === 'memUsage'){
-                    if(d.name === 'total'){
+            .attr("text-anchor", function(d) {
+                if (ns.featureSet === 'memUsage') {
+                    if (d.name === 'total') {
                         return 'end';
                     }
                 }
