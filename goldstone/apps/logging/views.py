@@ -82,6 +82,7 @@ class LoggingNodeViewSet(NodeViewSet):
             return self._add_headers(Response(serializer.data))
 
         except ElasticsearchException as e:
-            return Response(data="Could not connect to the ElasticSearch"
+            return Response(content="Could not connect to the ElasticSearch"
                                  " backend",
-                            status=status.HTTP_504_GATEWAY_TIMEOUT)
+                            status=status.HTTP_504_GATEWAY_TIMEOUT,
+                            content_type='application/json')
