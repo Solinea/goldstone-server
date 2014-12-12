@@ -17,7 +17,7 @@ import arrow
 from django.conf import settings
 
 import logging
-from elasticsearch import ConnectionError
+from elasticsearch import ElasticsearchException
 from pyes import BoolQuery, RangeQuery, ESRangeOp
 from goldstone.models import ESData
 
@@ -82,7 +82,7 @@ class LoggingNodeStats(ESData):
 
             self._stats = rs["aggregations"]["by_host"]["buckets"]
 
-        except ConnectionError as e:
+        except ElasticsearchException as e:
             logger.exception("error connecting to ES", e)
             raise
 

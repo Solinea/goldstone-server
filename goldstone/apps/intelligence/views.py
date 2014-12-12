@@ -67,11 +67,9 @@ def log_event_histogram(request):
         fromtimestamp(int(start_time), tz=pytz.utc) \
         if start_time else end_dt - timedelta(weeks=1)
 
-    conn = LogData.get_connection(settings.ES_SERVER)
-
     ld = LogData()
     logger.debug("[log_event_histogram] interval = %s", interval)
-    raw_data = ld.get_loglevel_histogram_data(conn, start_dt, end_dt, interval)
+    raw_data = ld.get_loglevel_histogram_data(start_dt, end_dt, interval)
 
     result = []
     for time_bucket in raw_data['events_by_time']['buckets']:
@@ -91,8 +89,6 @@ def log_event_histogram(request):
 
 
 def log_search_data(request):
-
-    conn = LogData.get_connection(settings.ES_SERVER)
 
     keylist = ['@timestamp', 'loglevel', 'component', 'host',
                'openstack_message', 'log_message'
@@ -125,7 +121,6 @@ def log_search_data(request):
 
     ld = LogData()
     rs = ld.get_log_data(
-        conn,
         datetime.fromtimestamp(start_ts, tz=pytz.utc),
         datetime.fromtimestamp(end_ts, tz=pytz.utc),
         int(request.GET.get('start')),

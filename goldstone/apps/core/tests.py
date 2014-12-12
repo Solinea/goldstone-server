@@ -485,6 +485,7 @@ class EventViewTests(APISimpleTestCase):
         EventType.refresh_index()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         list_response_data = response.data
+        logger.info('[test_delete] list_response_data = %s', response.data)
         self.assertDictContainsSubset(data, list_response_data)
         response = self.client.delete(
             '/core/events/' + list_response_data['id'])
