@@ -33,6 +33,13 @@ logger = logging.getLogger(__name__)
 class EventType(MappingType, Indexable):
 
     @classmethod
+    def search(cls):
+        s = super(EventType, cls).search().es(
+            urls=settings.ES_URLS, timeout=2, max_retries=1,
+            sniff_on_start=False)
+        return s
+
+    @classmethod
     def get_model(cls):
         return Event
 
@@ -145,6 +152,13 @@ class Event(Model):
 class MetricType(MappingType, Indexable):
 
     @classmethod
+    def search(cls):
+        s = super(MetricType, cls).search().es(
+            urls=settings.ES_URLS, timeout=2, max_retries=1,
+            sniff_on_start=False)
+        return s
+
+    @classmethod
     def get_model(cls):
         return Metric
 
@@ -214,6 +228,13 @@ class Metric(Model):
 
 
 class ReportType(MappingType, Indexable):
+
+    @classmethod
+    def search(cls):
+        s = super(ReportType, cls).search().es(
+            urls=settings.ES_URLS, timeout=2, max_retries=1,
+            sniff_on_start=False)
+        return s
 
     @classmethod
     def get_model(cls):

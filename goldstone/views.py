@@ -15,6 +15,9 @@ from __future__ import unicode_literals
 
 import copy
 from django.shortcuts import render
+from elasticsearch import ElasticsearchException
+from rest_framework import status
+from rest_framework.response import Response
 from goldstone.apps.core.models import Node
 from goldstone.utils import GoldstoneAuthError
 
@@ -370,6 +373,10 @@ class TopologyView(TemplateView):
                 return HttpResponse(status=401)
             else:
                 return render(self.request, '401.html', status=401)
+        except ElasticsearchException as e:
+            return HttpResponse(content="Could not connect to the "
+                                        "ElasticSearch backend",
+                                status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
 class DiscoverView(TopologyView):

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.http import Http404
-from elasticsearch import ConnectionError
+from elasticsearch import ElasticsearchException
 from rest_framework import status
 
 
@@ -67,16 +67,22 @@ class LoggingNodeViewSet(NodeViewSet):
             serializer.context['end_time'] = self._end_time
             serializer.many = True
             return self._add_headers(Response(serializer.data))
-        except ConnectionError as e:
+        except ElasticsearchException as e:
             return Response(data="Could not connect to the ElasticSearch"
                                  " backend",
                             status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
     def retrieve(self, request, *args, **kwargs):
-        self._set_time_range(request.QUERY_PARAMS.dict())
-        serializer = self.serializer_class(
-            self.get_object(),
-            context={'start_time': self._start_time,
-                     'end_time': self._end_time})
-        return self._add_headers(Response(serializer.data))
+        try:
+            self._set_time_range(request.QUERY_PARAMS.dict())
+            serializer = self.serializer_class(
+                self.get_object(),
+                context={'start_time': self._start_time,
+                         'end_time': self._end_time})
+            return self._add_headers(Response(serializer.data))
+
+        except ElasticsearchException as e:
+            return Response(data="Could not connect to the ElasticSearch"
+                                 " backend",
+                            status=status.HTTP_504_GATEWAY_TIMEOUT)

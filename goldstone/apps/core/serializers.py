@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import json
 
 import arrow
 from rest_framework import serializers, pagination
@@ -31,13 +31,15 @@ class EventSerializer(serializers.ModelSerializer):
                                         required=False,
                                         default="")
     message = serializers.CharField(max_length=1024)
-    created = serializers.DateTimeField(required=False)
+    created = serializers.CharField(required=False)
 
     class Meta:
         model = Event
         lookup_field = '_id'
 
     def to_representation(self, instance):
+        if 'id' not in instance.__dict__:
+            logger.info('instance has no id, type = %s', type(instance))
         return {
             'id': instance.id,
             'event_type': instance.event_type,
