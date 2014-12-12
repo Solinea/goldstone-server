@@ -21,4 +21,3 @@ from .celery import app as celery_app
 from goldstone.apps.core.startup import StartupGoldstone
 
 StartupGoldstone()
-

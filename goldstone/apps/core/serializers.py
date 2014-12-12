@@ -31,15 +31,13 @@ class EventSerializer(serializers.ModelSerializer):
                                         required=False,
                                         default="")
     message = serializers.CharField(max_length=1024)
-    created = serializers.CharField(required=False)
+    created = serializers.DateTimeField(required=False)
 
     class Meta:
         model = Event
         lookup_field = '_id'
 
     def to_representation(self, instance):
-        if 'id' not in instance.__dict__:
-            logger.info('instance has no id, type = %s', type(instance))
         return {
             'id': instance.id,
             'event_type': instance.event_type,
