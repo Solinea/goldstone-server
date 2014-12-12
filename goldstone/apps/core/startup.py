@@ -28,4 +28,3 @@ class StartupGoldstone(object):
         conn = GSConnection().conn
         self._setup_index(conn, "goldstone_model")
         self._setup_index(conn, "goldstone_agent")
-

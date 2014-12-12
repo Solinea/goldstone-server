@@ -72,7 +72,6 @@ class LoggingNodeViewSet(NodeViewSet):
                                  " backend",
                             status=status.HTTP_504_GATEWAY_TIMEOUT)
 
-
     def retrieve(self, request, *args, **kwargs):
         try:
             self._set_time_range(request.QUERY_PARAMS.dict())

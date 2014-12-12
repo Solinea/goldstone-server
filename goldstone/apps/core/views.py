@@ -23,12 +23,11 @@ from .models import *
 from .serializers import *
 import logging
 import arrow
-from django.http import Http404, HttpResponseBadRequest, HttpResponseNotAllowed
+from django.http import Http404, HttpResponseNotAllowed
 from rest_framework import status
-from rest_framework.decorators import api_view, detail_route
+from rest_framework.decorators import detail_route
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, GenericViewSet, \
-    ReadOnlyModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 import elasticutils
 
 logger = logging.getLogger(__name__)
@@ -92,42 +91,32 @@ class ElasticViewSetMixin(object):
 
     def get_queryset(self):
         params = self._process_params(self.request.QUERY_PARAMS.dict())
-        try:
-            if self.model is not None:
-                qs = self.model.es_objects. \
-                    query(**params['query_kwargs']). \
-                    filter(**params['filter_kwargs'])
-                if 'order_by' in params:
-                    qs = qs.order_by(params['order_by'])
-                return qs
-            else:
-                logger.error("No model set in ViewSet class")
-                return None
-        except:
-            return Response(data="Could not connect to the ElasticSearch"
-                                 " backend",
-                            status=status.HTTP_504_GATEWAY_TIMEOUT)
+        if self.model is not None:
+            qs = self.model.es_objects. \
+                query(**params['query_kwargs']). \
+                filter(**params['filter_kwargs'])
+            if 'order_by' in params:
+                qs = qs.order_by(params['order_by'])
+            return qs
+        else:
+            logger.error("No model set in ViewSet class")
+            return None
 
     def get_object(self, queryset=None):
-        try:
-            q = self.get_queryset()
-            lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-            lookup = self.kwargs.get(lookup_url_kwarg, None)
-            if lookup is not None:
-                filter_kwargs = {self.lookup_field: lookup}
-            q_result = q.filter(**filter_kwargs)[:1].execute()
-            if q_result.count > 1:
-                logger.warning("multiple objects with %s = %s, only returning "
-                               "first one.", lookup_url_kwarg, lookup)
-            if q_result.count > 0:
-                obj = q_result.objects[0].get_object()
-                return obj
-            else:
-                raise Http404
-        except:
-            return Response(data="Could not connect to the ElasticSearch"
-                                 " backend",
-                            status=status.HTTP_504_GATEWAY_TIMEOUT)
+        q = self.get_queryset()
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        lookup = self.kwargs.get(lookup_url_kwarg, None)
+        if lookup is not None:
+            filter_kwargs = {self.lookup_field: lookup}
+        q_result = q.filter(**filter_kwargs)[:1].execute()
+        if q_result.count > 1:
+            logger.warning("multiple objects with %s = %s, only returning "
+                           "first one.", lookup_url_kwarg, lookup)
+        if q_result.count > 0:
+            obj = q_result.objects[0].get_object()
+            return obj
+        else:
+            raise Http404
 
 
 class ElasticViewSet(ElasticViewSetMixin, ModelViewSet):
@@ -138,15 +127,23 @@ class ElasticViewSet(ElasticViewSetMixin, ModelViewSet):
             return Response(data="Could not connect to the ElasticSearch"
                                  " backend",
                             status=status.HTTP_504_GATEWAY_TIMEOUT)
+        except Exception as e:
+            logger.exception(e)
+            raise
 
     def retrieve(self, request, *args, **kwargs):
         try:
             return super(ElasticViewSet, self).retrieve(request, *args,
                                                         **kwargs)
+        except Http404:
+            return Response(status=status.HTTP_404_NOT_FOUND)
         except ElasticsearchException as e:
             return Response(data="Could not connect to the ElasticSearch"
                                  " backend",
                             status=status.HTTP_504_GATEWAY_TIMEOUT)
+        except Exception as e:
+            logger.exception(e)
+            raise
 
 
 class ReadOnlyElasticViewSet(ElasticViewSetMixin, ReadOnlyModelViewSet):
@@ -159,16 +156,24 @@ class ReadOnlyElasticViewSet(ElasticViewSetMixin, ReadOnlyModelViewSet):
             return Response(data="Could not connect to the ElasticSearch"
                                  " backend",
                             status=status.HTTP_504_GATEWAY_TIMEOUT)
+        except Exception as e:
+            logger.exception(e)
+            raise
 
     def retrieve(self, request, *args, **kwargs):
         try:
             return super(ReadOnlyElasticViewSet, self).retrieve(request,
                                                                 *args,
                                                                 **kwargs)
+        except Http404:
+            return Response(status=status.HTTP_404_NOT_FOUND)
         except ElasticsearchException as e:
             return Response(data="Could not connect to the ElasticSearch"
                                  " backend",
                             status=status.HTTP_504_GATEWAY_TIMEOUT)
+        except Exception as e:
+            logger.exception(e)
+            raise
 
 
 class EventViewSet(ElasticViewSet):
