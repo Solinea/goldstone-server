@@ -270,7 +270,10 @@ var TopologyTreeView = Backbone.View.extend({
 
     appendLeafNameToResourceHeader: function(text, location) {
         location = location || '.panel-header-resource-title';
+        // appends the name of the resource list currently being displayed
         $(location).text(': ' + text);
+        // appends the call to action to prompt clicking on a row for more info
+        $('.additional-info-notice').text('Click row for additional Resource Info');
     },
 
     processTree: function(json) {

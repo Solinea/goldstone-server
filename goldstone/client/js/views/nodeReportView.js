@@ -171,7 +171,8 @@ var NodeReportView = Backbone.View.extend({
         this.cpuUsageView = new UtilizationCpuView({
             collection: this.cpuUsageChart,
             el: '#node-report-r3 #node-report-panel #cpu-usage',
-            width: $('#node-report-r3 #node-report-panel #cpu-usage').width()
+            width: $('#node-report-r3 #node-report-panel #cpu-usage').width(),
+            featureSet: 'cpuUsage'
         });
 
         //---------------------------
@@ -184,7 +185,8 @@ var NodeReportView = Backbone.View.extend({
         this.memoryUsageView = new UtilizationMemView({
             collection: this.memoryUsageChart,
             el: '#node-report-r3 #node-report-panel #memory-usage',
-            width: $('#node-report-r3 #node-report-panel #memory-usage').width()
+            width: $('#node-report-r3 #node-report-panel #memory-usage').width(),
+            featureSet: 'memUsage'
         });
 
         //---------------------------
@@ -198,7 +200,8 @@ var NodeReportView = Backbone.View.extend({
         this.networkUsageView = new UtilizationNetView({
             collection: this.networkUsageChart,
             el: '#node-report-r3 #node-report-panel #network-usage',
-            width: $('#node-report-r3 #node-report-panel #network-usage').width()
+            width: $('#node-report-r3 #node-report-panel #network-usage').width(),
+            featureSet: 'netUsage'
         });
 
         //---------------------------
