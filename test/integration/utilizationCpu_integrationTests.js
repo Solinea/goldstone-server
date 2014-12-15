@@ -28,6 +28,7 @@ describe('UtilizationCpu.js spec', function() {
             collection: this.testCollection,
             el: '.testContainer',
             width: $('.testContainer').width(),
+            featureSet: 'cpuUsage'
         });
 
         this.testCollection.reset();
