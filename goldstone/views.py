@@ -549,7 +549,8 @@ class JSONView(ContextMixin, View):
         try:
             context = self.get_context_data(**kwargs)
             content = json.dumps(self._get_data(context))
-            return HttpResponse(content=content, content_type='application/json')
+            return HttpResponse(content=content,
+                                content_type='application/json')
         except ElasticsearchException as e:
             return HttpResponse(content="Could not connect to the "
                                         "ElasticSearch backend",
