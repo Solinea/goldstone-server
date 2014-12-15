@@ -55,6 +55,7 @@ var ServiceStatusView = Backbone.View.extend({
                 self.collection.defaults.fetchInProgress = false;
             }
         });
+        this.collection.on('error', this.dataErrorMessage, this);
 
     },
 
@@ -133,6 +134,51 @@ var ServiceStatusView = Backbone.View.extend({
 
     },
 
+    clearDataErrorMessage: function() {
+        // if error message already exists on page,
+        // remove it in case it has changed
+        if ($(this.el).find('#noDataReturned').length) {
+
+            if ($(this.el).find('#noDataReturned').length) {
+                $(this.el).find('#noDataReturned').remove();
+            }
+
+        }
+    },
+
+    dataErrorMessage: function(message, errorMessage) {
+
+        var self = this;
+
+        // 2nd parameter will be supplied in the case of an
+        // 'error' event such as 504 error. Othewise,
+        // function will append message supplied such as 'no data'.
+
+        this.clearDataErrorMessage();
+
+        if (errorMessage !== undefined) {
+            message = errorMessage.responseText;
+            message = message.slice(1, -1);
+            message = '' + errorMessage.status + ' error: ' + message;
+        }
+
+        $('<span id="noDataReturned">' + message + '</span>').appendTo(this.el)
+            .css({
+                'position': 'relative',
+                'margin-left': 35,
+                'top': 6
+            });
+
+        setTimeout(function() {
+            self.collection.retrieveData();
+        }, 30000);
+
+        self.collection.defaults.nullSet = false;
+        self.collection.defaults.fetchInProgress = false;
+        self.collection.defaults.setAchieved = false;
+
+    },
+
     update: function() {
 
         var ns = this.defaults;
@@ -159,24 +205,12 @@ var ServiceStatusView = Backbone.View.extend({
 
             self.collection.defaults.nullSet = false;
 
-            // if 'no data returned' already exists on page, don't reapply it
-            if ($(this.el).find('#noDataReturned').length) {
-                return;
-            }
-
-            $('<span id="noDataReturned">No Data Returned</span>').appendTo(this.el)
-                .css({
-                    'position': 'relative',
-                    'margin-left': $(this.el).width() / 2 - 14,
-                    'top': -$(this.el).height() / 5
-                });
+            this.dataErrorMessage('No Data Returned');
             return;
         }
 
         // remove No Data Returned once data starts flowing again
-        if ($(this.el).find('#noDataReturned').length) {
-            $(this.el).find('#noDataReturned').remove();
-        }
+        this.clearDataErrorMessage();
 
         var nodeNames = [];
 
