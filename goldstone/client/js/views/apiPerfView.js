@@ -66,6 +66,7 @@ var ApiPerfView = Backbone.View.extend({
 
         // registers 'sync' event so view 'watches' collection for data update
         this.collection.on('sync', this.update, this);
+        this.collection.on('error', this.dataErrorMessage, this);
 
         // this is triggered by a listener set on nodeReportView.js
         this.on('selectorChanged', function() {
@@ -154,6 +155,41 @@ var ApiPerfView = Backbone.View.extend({
 
     },
 
+    clearDataErrorMessage: function() {
+        // if error message already exists on page,
+        // remove it in case it has changed
+        if ($(this.el).find('#noDataReturned').length) {
+
+            if ($(this.el).find('#noDataReturned').length) {
+                $(this.el).find('#noDataReturned').remove();
+            }
+
+        }
+    },
+
+    dataErrorMessage: function(message, errorMessage) {
+
+        // 2nd parameter will be supplied in the case of an
+        // 'error' event such as 504 error. Othewise,
+        // function will append message supplied such as 'no data'.
+
+        this.clearDataErrorMessage();
+
+        if (errorMessage !== undefined) {
+            message = errorMessage.responseText;
+            // message = message.slice(1, -1);
+            message = '' + errorMessage.status + ' error: ' + message;
+        }
+
+        $('<span id="noDataReturned">' + message + '</span>').appendTo(this.el)
+            .css({
+                'position': 'relative',
+                'margin-left': -200,
+                'top': -$(this.el).height() / 2 - 50
+            });
+
+    },
+
     update: function() {
 
         var ns = this.defaults;
@@ -165,27 +201,11 @@ var ApiPerfView = Backbone.View.extend({
 
         if (this.collection.toJSON().length === 0) {
 
-            // if 'no data returned' already exists on page, don't reapply it
-            if ($(this.el).find('#noDataReturned').length) {
-                return;
-            }
-
-            $('<span id="noDataReturned">No Data Returned</span>').appendTo(this.el)
-                .css({
-                    'position': 'relative',
-                    'margin-left': $(this.el).width() / 2 - 14,
-                    'top': -$(this.el).height() / 2 - 50
-                });
-
-            this.$el.find('#spinner').hide();
+            this.dataErrorMessage('No Data Returned');
             return;
         }
 
-        // remove No Data Returned once data starts flowing again
-        if ($(this.el).find('#noDataReturned').length) {
-            $(this.el).find('#noDataReturned').remove();
-        }
-
+        this.clearDataErrorMessage();
 
         $(this.el).find('svg').find('.chart').html('');
         $(this.el + '.d3-tip').detach();
