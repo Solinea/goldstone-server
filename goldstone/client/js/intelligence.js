@@ -57,8 +57,8 @@ function _getSearchFormDates() {
                     case '':
                         return new Date();
                     default:
-                        var d = new Date(e);
-                        if (d === 'Invalid Date') {
+                        var d = new Date(+e);
+                        if ( d.toString() === 'Invalid Date') {
                             alert("End date must be valid. Using now.");
                             d = new Date();
                         }
@@ -74,11 +74,11 @@ function _getSearchFormDates() {
                 case '':
                     return (new Date(end)).addWeeks(-1);
                 default:
-                    var d = new Date(s);
-                    if (d === 'Invalid Date') {
-                        alert("Start date must be valid. Using 1 week1 " +
+                    var d = new Date(+s);
+                    if (d.toString() === 'Invalid Date') {
+                        alert("Start date must be valid. Using 1 week " +
                             "prior to end date.");
-                        d = (new Date(end)).addWeeks(-1);
+                        d = (new Date()).addWeeks(-1);
                     }
                     return d;
             }

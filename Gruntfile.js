@@ -1,5 +1,6 @@
 module.exports = function(grunt) {
     // load up all of the necessary grunt plugins
+    grunt.loadNpmTasks('grunt-casperjs');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-concat');
@@ -7,8 +8,8 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-express-server');
+    grunt.loadNpmTasks('grunt-focus');
     grunt.loadNpmTasks('grunt-karma');
-    grunt.loadNpmTasks('grunt-casperjs');
     grunt.loadNpmTasks('grunt-mocha');
     grunt.loadNpmTasks('grunt-notify');
 
@@ -78,6 +79,12 @@ module.exports = function(grunt) {
                 files: ['test/e2e/*.js'],
                 tasks: 'lintAndTest'
             }
+        },
+
+        focus: {
+            dev: {
+                include: ['unitTests', 'integrationTests']
+            }
         }
 
     });
@@ -85,9 +92,8 @@ module.exports = function(grunt) {
     // Start watching and run tests when files change
     grunt.registerTask('default', ['lint', 'test', 'watch']);
     grunt.registerTask('lint', ['jshint']);
-    grunt.registerTask('test', ['karma:single', 'casperjs']);
-    grunt.registerTask('testWatch', ['karma', 'watch']);
+    grunt.registerTask('test', ['karma', 'casperjs']);
     grunt.registerTask('lintAndTest', ['lint', 'test']);
-    grunt.registerTask('lintAndTest', ['lint', 'test']);
+    grunt.registerTask('testDev', ['lint', 'karma', 'focus:dev']);
 
 };

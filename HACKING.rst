@@ -180,9 +180,11 @@ In order for the e2e tests to run, you MUST have the server running and access t
 
 At the time of this documentation, the Gruntfile.js is configured with the following combo tasks:
 grunt (default task): lint / test / watch.
+grunt watch: watch for changes that will trigger unit/integration/e2e tests
 grunt lint: lint only (no watch).
-grunt test: test only (no watch).
+grunt test: unit/integration/e2e test only (no watch).
 grunt lintAndTest: lint and test only (no watch).
+grunt testDev: lint, followed by unit/integration test (no e2e) and watch that only triggers further unit/integration tests, no e2e tests.
 
 
 

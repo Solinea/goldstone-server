@@ -102,6 +102,24 @@ describe('base.js spec', function() {
             expect(Date.parse(test6[0])).to.be.closeTo(+startCheck, 2000);
             expect(test6[1]).to.deep.equal(e);
         });
+        it('triggers barChartBase', function() {
+            goldstone.charts.barChartBase();
+            goldstone.charts.barChartBase('test-container', {
+                top: 10,
+                bottom: 10,
+                left: 10,
+                right: 10
+            }, 'bobo');
+        });
+        it('triggers lineChartBase', function() {
+            goldstone.charts.lineChartBase();
+            goldstone.charts.lineChartBase('test-container', {
+                top: 10,
+                bottom: 10,
+                left: 10,
+                right: 10
+            }, 'bobo');
+        });
     });
     describe('alerts are raised', function() {
         it('properly cascades alerts', function() {
@@ -171,5 +189,32 @@ describe('base.js spec', function() {
             this.raiseInfo_spy.restore();
             this.raiseAlert_spy.restore();
         });
+    });
+    describe('bivariate with average', function() {
+        it('creates object', function() {
+            var test1 = goldstone.charts.bivariateWithAverage;
+            expect(test1).to.be.an('object');
+            var chartIsArray = Array.isArray(test1);
+            expect(chartIsArray).to.equal(false);
+
+            var nsReport = goldstone.glance.report;
+            var nsApiPerf = goldstone.glance.apiPerf;
+            nsApiPerf.infoCustom = {
+                key: 'hoo',
+                value: 'haw'
+            };
+            nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf);
+            nsReport.start = (+new Date()) - 10000;
+            nsReport.end = new Date();
+            nsReport.interval = '' + Math.round(0.357 * 10000) + "s";
+            nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
+                true, '.test-container');
+            nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
+                false, '.test-container');
+            nsApiPerf.data = [];
+            nsApiPerf.bivariate.init();
+            nsApiPerf.bivariate.update();
+        });
+
     });
 });
