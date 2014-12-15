@@ -57,7 +57,19 @@ var EventTimelineCollection = Backbone.Collection.extend({
         // don't add {remove:false} to the initial fetch
         // as it will introduce an artifact that will
         // render via d3
-        this.fetch();
+        this.fetchWithReset();
+    },
+
+    fetchWithReset: function() {
+        this.fetch({
+            remove: true
+        });
+    },
+
+    fetchNoReset: function() {
+        this.fetch({
+            remove: false
+        });
     },
 
     urlUpdate: function(val) {
