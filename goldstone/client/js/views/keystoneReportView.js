@@ -25,12 +25,25 @@ var KeystoneReportView = ApiPerfReportView.extend({
     renderCharts: function() {
         var nsReport = goldstone.keystone.report;
         var nsApiPerf = goldstone.keystone.apiPerf;
-        nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf);
         nsReport.start = (+new Date()) - (this.defaults.globalLookback * 1000 * 60);
         nsReport.end = new Date();
         nsReport.interval = '' + Math.round(0.357 * this.defaults.globalLookback) + "s";
-        nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#keystone-report-r1-c1');
+
+        this.keystoneApiPerfChart = new ApiPerfCollection({
+            urlPrefix: 'keystone',
+        });
+
+        this.keystoneApiPerfChartView = new ApiPerfView({
+            chartTitle: "Keystone API Performance",
+            collection: this.keystoneApiPerfChart,
+            height: 300,
+            infoCustom: [{
+                key: "API Call",
+                value: "Authenticate"
+            }],
+            el: '#keystone-report-r1-c1',
+            width: $('#keystone-report-r1-c1').width()
+        });
     },
 
     template: _.template('' +

@@ -25,12 +25,25 @@ var GlanceReportView = ApiPerfReportView.extend({
     renderCharts: function() {
         var nsReport = goldstone.glance.report;
         var nsApiPerf = goldstone.glance.apiPerf;
-        nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf);
         nsReport.start = (+new Date()) - (this.defaults.globalLookback * 1000 * 60);
         nsReport.end = new Date();
         nsReport.interval = '' + Math.round(0.357 * this.defaults.globalLookback) + "s";
-        nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#glance-report-r1-c1');
+
+        this.glanceApiPerfChart = new ApiPerfCollection({
+            urlPrefix: 'glance',
+        });
+
+        this.glanceApiPerfChartView = new ApiPerfView({
+            chartTitle: "Glance API Performance",
+            collection: this.glanceApiPerfChart,
+            height: 300,
+            infoCustom: [{
+                key: "API Call",
+                value: "Image Show"
+            }],
+            el: '#glance-report-r1-c1',
+            width: $('#glance-report-r1-c1').width()
+        });
     },
 
     template: _.template('' +
