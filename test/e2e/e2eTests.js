@@ -554,15 +554,15 @@ casper.test.begin('Neutron (network) Page is loading properly', 14, function sui
         test.assertSelectorHasText('div#neutron-report-r1-c1', 'Neutron API Performance');
 
         // Neutron API info button brings up popover
-        test.assertNotVisible('#neutron-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
-        this.click('#neutron-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#neutron-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
-        this.click('#neutron-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#neutron-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
-        this.click('#neutron-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#neutron-api-perf-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#neutron-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#neutron-api-perf-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
+        this.click('#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.mouseEvent('mouseout', '#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
@@ -590,15 +590,15 @@ casper.test.begin('Block Storage (cinder) Page is loading properly', 14, functio
         test.assertSelectorHasText('div#cinder-report-r1-c1', 'Cinder API Performance');
 
         // Cinder API info button brings up popover
-        test.assertNotVisible('#cinder-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
-        this.click('#cinder-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#cinder-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
-        this.click('#cinder-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#cinder-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
-        this.click('#cinder-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#cinder-api-perf-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#cinder-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#cinder-api-perf-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
+        this.click('#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.mouseEvent('mouseout', '#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
@@ -626,15 +626,15 @@ casper.test.begin('Image (glance) Page is loading properly', 14, function suite(
         test.assertSelectorHasText('div#glance-report-r1-c1', 'Glance API Performance');
 
         // Glance API info button brings up popover
-        test.assertNotVisible('#glance-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
-        this.click('#glance-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#glance-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
-        this.click('#glance-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#glance-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
-        this.click('#glance-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#glance-api-perf-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#glance-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#glance-api-perf-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
+        this.click('#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.mouseEvent('mouseout', '#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
@@ -662,15 +662,15 @@ casper.test.begin('Identity (keystone) Page is loading properly', 14, function s
         test.assertSelectorHasText('div#keystone-report-r1-c1', 'Keystone API Performance');
 
         // Keystone API info button brings up popover
-        test.assertNotVisible('#keystone-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
-        this.click('#keystone-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#keystone-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
-        this.click('#keystone-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#keystone-api-perf-panel div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
-        this.click('#keystone-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#keystone-api-perf-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#keystone-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#keystone-api-perf-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
+        this.click('#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.mouseEvent('mouseout', '#api-perf-panel-header .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
