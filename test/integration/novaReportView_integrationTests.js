@@ -33,7 +33,7 @@ describe('NovaReportView.js spec', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.test-container');
-            expect($(this.testView.el).text()).to.equal('');
+            expect($(this.testView.el).text()).to.equal(' Nova API PerformanceResponse Time (ms)');
         });
     });
 
