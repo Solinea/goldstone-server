@@ -38,9 +38,23 @@ var NovaReportView = ApiPerfReportView.extend({
         gncpu.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r2-c1', true);
         gnmem.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r2-c2', true);
         gndisk.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r3-c1', true);
-        nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf);
-        nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#nova-report-r1-c1');
+
+        this.novaApiPerfChart = new ApiPerfCollection({
+            urlPrefix: 'nova',
+        });
+
+        this.novaApiPerfChartView = new ApiPerfView({
+            chartTitle: "Nova API Performance",
+            collection: this.novaApiPerfChart,
+            height: 300,
+            infoCustom: [{
+                key: "API Call",
+                value: "Hypervisor Show"
+            }],
+            el: '#nova-report-r1-c1',
+            width: $('#nova-report-r1-c1').width()
+        });
+
     },
 
     template: _.template('' +

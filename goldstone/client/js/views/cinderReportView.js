@@ -25,12 +25,25 @@ var CinderReportView = ApiPerfReportView.extend({
     renderCharts: function() {
         var nsReport = goldstone.cinder.report;
         var nsApiPerf = goldstone.cinder.apiPerf;
-        nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf);
         nsReport.start = (+new Date()) - (this.defaults.globalLookback * 1000 * 60);
         nsReport.end = new Date();
         nsReport.interval = '' + Math.round(0.357 * this.defaults.globalLookback) + "s";
-        nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#cinder-report-r1-c1');
+
+        this.cinderApiPerfChart = new ApiPerfCollection({
+            urlPrefix: 'cinder',
+        });
+
+        this.cinderApiPerfChartView = new ApiPerfView({
+            chartTitle: "Cinder API Performance",
+            collection: this.cinderApiPerfChart,
+            height: 300,
+            infoCustom: [{
+                key: "API Call",
+                value: "Service List"
+            }],
+            el: '#cinder-report-r1-c1',
+            width: $('#cinder-report-r1-c1').width()
+        });
     },
 
     template: _.template('' +
