@@ -178,13 +178,13 @@ describe('eventTimeline.js spec', function() {
             expect(this.fetchNowWithResetSpy.callCount).to.equal(0);
 
             $('.global-lookback-selector .form-control').trigger('change');
-            expect(this.clearScheduledSpy.callCount).to.equal(1);
+            expect(this.clearScheduledSpy.callCount).to.equal(0);
             expect(this.updateSettingsSpy.callCount).to.equal(1);
             expect(this.fetchNowWithResetSpy.callCount).to.equal(1);
             expect(this.scheduleFetchSpy.callCount).to.equal(0);
 
             $('.global-refresh-selector .form-control').trigger('change');
-            expect(this.clearScheduledSpy.callCount).to.equal(3);
+            expect(this.clearScheduledSpy.callCount).to.equal(1);
             expect(this.updateSettingsSpy.callCount).to.equal(2);
             expect(this.fetchNowWithResetSpy.callCount).to.equal(1);
             expect(this.scheduleFetchSpy.callCount).to.equal(1);
