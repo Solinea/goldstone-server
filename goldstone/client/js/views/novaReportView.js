@@ -86,11 +86,12 @@ var NovaReportView = ApiPerfReportView.extend({
             collection: this.vmSpawnChart,
             height: 300,
             infoCustom: [{
-                key: "foo",
-                value: "bar"
+                key: "API Call",
+                value: "Spawn Events"
             }],
             el: '#nova-report-r1-c2',
-            width: $('#nova-report-r1-c2').width()
+            width: $('#nova-report-r1-c2').width(),
+            yAxisLabel: 'Spawn Events'
         });
     },
 

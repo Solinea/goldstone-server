@@ -25,12 +25,15 @@ var StackedBarChartView = Backbone.View.extend({
 
     defaults: {
         margin: {
-            top: 20,
-            bottom: 30,
-            right: 20,
-            left: 40
-        },
-        yAxisLabel: "Response Time (ms)"
+            // top: 20,
+            // bottom: 30,
+            // right: 20,
+            // left: 40
+            top: goldstone.settings.charts.margins.top,
+            right: goldstone.settings.charts.margins.right,
+            bottom: goldstone.settings.charts.margins.bottom,
+            left: goldstone.settings.charts.margins.left + 20
+        }
     },
 
     initialize: function(options) {
@@ -125,8 +128,8 @@ var StackedBarChartView = Backbone.View.extend({
 
         ns.colorArray = new GoldstoneColors().get('colorSets');
 
-        ns.x = d3.scale.ordinal()
-            .rangeRoundBands([0, ns.width], 0.1);
+        ns.x = d3.time.scale()
+            .range([0, ns.width]);
 
         ns.y = d3.scale.linear()
             .rangeRound([ns.height, 0]);
@@ -136,18 +139,28 @@ var StackedBarChartView = Backbone.View.extend({
 
         ns.xAxis = d3.svg.axis()
             .scale(ns.x)
+            .ticks(5)
             .orient("bottom");
 
         ns.yAxis = d3.svg.axis()
             .scale(ns.y)
             .orient("left")
-            .tickFormat(d3.format("0.2s"));
+            .tickFormat(d3.format("01d"));
 
         ns.svg = d3.select(this.el).append("svg")
             .attr("width", ns.width + ns.margin.left + ns.margin.right)
             .attr("height", ns.height + ns.margin.top + ns.margin.bottom)
             .append("g")
             .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+
+        ns.svg.append("text")
+            .attr("class", "axis.label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", 0 - (ns.height / 2))
+            .attr("y", -ns.margin.left)
+            .attr("dy", "1.5em")
+            .text(ns.yAxisLabel)
+            .style("text-anchor", "middle");
 
     },
 
@@ -179,7 +192,6 @@ var StackedBarChartView = Backbone.View.extend({
                 'margin-left': -200,
                 'top': -$(this.el).height() / 2 - 50
             });
-
     },
 
     dataPrep: function(data) {
@@ -187,7 +199,7 @@ var StackedBarChartView = Backbone.View.extend({
 
         _.each(data[0], function(item, i) {
             result.push({
-                "State": "" + i,
+                "eventTime": "" + i,
                 "Failure": item[0],
                 "Success": item[2]
             });
@@ -213,30 +225,27 @@ var StackedBarChartView = Backbone.View.extend({
         this.clearDataErrorMessage();
 
         $(this.el).find('svg').find('rect').remove();
-
+        $(this.el).find('svg').find('.axis').remove();
+        $(this.el).find('svg').find('.legend').remove();
 
         ns.color.domain(d3.keys(data[0]).filter(function(key) {
-            return key !== "State";
+            return key !== "eventTime";
         }));
 
         data.forEach(function(d) {
             var y0 = 0;
-            d.ages = ns.color.domain().map(function(name) {
+            d.successOrFail = ns.color.domain().map(function(name) {
                 return {
                     name: name,
                     y0: y0,
                     y1: y0 += +d[name]
                 };
             });
-            d.total = d.ages[d.ages.length - 1].y1;
+            d.total = d.successOrFail[d.successOrFail.length - 1].y1;
         });
 
-        // data.sort(function(a, b) {
-        //     return b.total - a.total;
-        // });
-
-        ns.x.domain(data.map(function(d) {
-            return d.State;
+        ns.x.domain(d3.extent(data, function(d) {
+            return d.eventTime;
         }));
 
         ns.y.domain([0, d3.max(data, function(d) {
@@ -255,24 +264,25 @@ var StackedBarChartView = Backbone.View.extend({
             .attr("transform", "rotate(-90)")
             .attr("y", 6)
             .attr("dy", ".71em")
-            .style("text-anchor", "end")
-            .text("Spawn Events");
+            .style("text-anchor", "end");
 
-        ns.state = ns.svg.selectAll(".state")
+        ns.event = ns.svg.selectAll(".event")
             .data(data)
             .enter()
             .append("g")
             .attr("class", "g")
             .attr("transform", function(d) {
-                return "translate(" + ns.x(d.State) + ",0)";
+                return "translate(" + ns.x(d.eventTime) + ",0)";
             });
 
-        ns.state.selectAll("rect")
+        ns.event.selectAll("rect")
             .data(function(d) {
-                return d.ages;
+                return d.successOrFail;
             })
             .enter().append("rect")
-            .attr("width", ns.x.rangeBand())
+            .attr("width", function(d) {
+                return (ns.width / data.length);
+            })
             .attr("y", function(d) {
                 return ns.y(d.y1);
             })
@@ -283,38 +293,25 @@ var StackedBarChartView = Backbone.View.extend({
                 return ns.color(d.name);
             });
 
-        /*
-        var legend = ns.svg.selectAll(".legend")
-            .data(ns.color.domain().slice().reverse())
-            .enter().append("g")
+        ns.svg.append('path')
+            .attr('class', 'line')
+            .attr('id', 'success')
+            .attr('data-legend', "Success")
+            .style("stroke", ns.colorArray.distinct[2][1])
+            .datum(data);
+
+        ns.svg.append('path')
+            .attr('class', 'line')
+            .attr('id', 'fail')
+            .attr('data-legend', "Fail")
+            .style("stroke", ns.colorArray.distinct[2][0])
+            .datum(data);
+
+        var legend = ns.svg.append("g")
             .attr("class", "legend")
-            .attr("transform", function(d, i) {
-                return "translate(-50," + i * 20 + ")";
-            });
+            .attr("transform", "translate(20,0)")
+            .call(d3.legend);
 
-        legend.append("rect")
-            .attr("x", ns.width - 68)
-            .attr("y", function(d, i) {
-                console.log(i);
-                return i * 10;
-            })
-            .attr("width", 18)
-            .attr("height", 18)
-            .style("fill", function(d) {
-                console.log(ns.color(d));
-                return ns.color(d);
-            });
-
-        legend.append("text")
-            .attr("x", ns.width - 24)
-            .attr("y", 9)
-            .attr("dy", ".35em")
-            .style("text-anchor", "end")
-            .style("font-size", "10px")
-            .text(function(d) {
-                return d;
-            });
-        */
 
         $(this.el).find('#spinner').hide();
 
