@@ -64,7 +64,6 @@ class SpawnsView(TemplateView):
             self.template_name = 'spawns.html'
         else:
             self.template_name = None
-            TemplateView.content_type = 'application/json'
 
         return context
 
@@ -155,7 +154,6 @@ class ResourceView(TemplateView):
             self.template_name = self.my_template_name
         else:
             self.template_name = None
-            TemplateView.content_type = 'application/json'
 
         return context
 
