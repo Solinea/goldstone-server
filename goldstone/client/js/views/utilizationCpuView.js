@@ -186,11 +186,7 @@ var UtilizationCpuView = Backbone.View.extend({
         // if error message already exists on page,
         // remove it in case it has changed
         if ($(this.el).find('#noDataReturned').length) {
-
-            if ($(this.el).find('#noDataReturned').length) {
-                $(this.el).find('#noDataReturned').remove();
-            }
-
+            $(this.el).find('#noDataReturned').remove();
         }
     },
 

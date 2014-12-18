@@ -328,17 +328,13 @@ var NodeAvailView = Backbone.View.extend({
         // if error message already exists on page,
         // remove it in case it has changed
         if ($(this.el).find('#noDataReturned').length) {
-
-            if ($(this.el).find('#noDataReturned').length) {
-                $(this.el).find('#noDataReturned').remove();
-            }
-
+            $(this.el).find('#noDataReturned').remove();
         }
     },
 
     dataErrorMessage: function(message, errorMessage) {
 
-                // 2nd parameter will be supplied in the case of an
+        // 2nd parameter will be supplied in the case of an
         // 'error' event such as 504 error. Othewise,
         // function will append message supplied such as 'no data'.
 
