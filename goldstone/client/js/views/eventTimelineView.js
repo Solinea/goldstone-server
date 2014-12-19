@@ -239,8 +239,8 @@ var EventTimelineView = Backbone.View.extend({
     clearDataErrorMessage: function() {
         // if error message already exists on page,
         // remove it in case it has changed
-        if ($(this.el).find('#noDataReturned').length) {
-            $(this.el).find('#noDataReturned').remove();
+        if ($(this.el).find('.popup-message').length) {
+            $(this.el).find('.popup-message').fadeOut("slow");
         }
     },
 
@@ -250,20 +250,14 @@ var EventTimelineView = Backbone.View.extend({
         // 'error' event such as 504 error. Othewise,
         // function will append message supplied such as 'no data'.
 
-        this.clearDataErrorMessage();
-
         if (errorMessage !== undefined) {
             message = errorMessage.responseText;
             message = message.slice(1, -1);
             message = '' + errorMessage.status + ' error: ' + message;
         }
 
-        $('<span id="noDataReturned">' + message + '</span>').appendTo(this.el)
-            .css({
-                'position': 'relative',
-                'margin-left': ($(this.el).width() / 5) * 2,
-                'top': -$(this.el).height() / 2
-            });
+        // calling raiseAlert with the 3rd param will supress auto-hiding
+        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
 
         // reschedule next fetch at selected interval
         this.scheduleFetch();
@@ -513,8 +507,8 @@ var EventTimelineView = Backbone.View.extend({
         // info-circle icon
         '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-event-info"' +
         'style="margin-right: 15px;"></i>' +
-        '</h3>' +
-        '</div>' +
+        '</h3></div>' +
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div class="panel-body" style="height:<%= (this.defaults.h.padding * 2) %>' +
         'px">' +
         '<div id="event-filterer" class="btn-group pull-left" data-toggle="buttons" align="center">' +
