@@ -54,7 +54,7 @@ var StackedBarChartCollection = Backbone.Collection.extend({
 
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        ns.reportParams.interval = '' + Math.round(0.357 * ns.globalLookback) + "s";
+        ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
 
         this.url = goldstone.nova.apiPerf.timeRange._url(null, ns.reportParams.start, ns.reportParams.end, ns.reportParams.interval, ns.render, ns.urlPrefix);
         // console.log('this.url would be:', this.url);
