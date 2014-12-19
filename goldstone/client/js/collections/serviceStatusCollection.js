@@ -21,52 +21,16 @@ var ServiceStatusCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-
-        if (data.results.length === 0){
-            this.defaults.nullSet = true;
-        }
-
-        if (data.next && data.next !== null) {
+        var nextUrl;
+        if (data.next !== null) {
             var dp = data.next;
-            this.defaults.nextUrl = dp.slice(dp.indexOf('/core'));
-        }
-
-        return data.results;
-
-    },
-
-    checkForSet: function() {
-        var self = this;
-        var set = {};
-
-        _.each(this.models, function(item) {
-            var serviceName = item.attributes.name;
-            if (set [serviceName]) {
-                if (set [serviceName] >= 4) {
-                    self.defaults.setAchieved = true;
-                }
-                set [serviceName]++;
-            } else {
-                set [serviceName] = 1;
-
-            }
-        });
-
-        if (!this.defaults.setAchieved) {
+            nextUrl = dp.slice(dp.indexOf('/core'));
             this.fetch({
-                url: this.defaults.nextUrl,
-                remove: false,
-                success: function() {
-                    self.checkForSet();
-                }
+                url: nextUrl,
+                remove: false
             });
         }
-
-        if (!this.defaults.setAchieved && this.defaults.nextUrl === null) {
-            this.defaults.nullSet = true;
-        }
-
-        return true;
+        return data.results;
     },
 
     model: ServiceStatusModel,
@@ -75,33 +39,18 @@ var ServiceStatusCollection = Backbone.Collection.extend({
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
         this.defaults.nodeName = options.nodeName;
-        this.defaults.nextUrl = null;
-        this.defaults.setAchieved = false;
-        this.defaults.fetchInProgress = false;
-        this.defaults.nullSet = false;
         this.retrieveData();
     },
 
     retrieveData: function() {
         var self = this;
 
-        if (this.defaults.fetchInProgress) {
-            return null;
-        }
-
-        this.defaults.fetchInProgress = true;
-
         var twentyAgo = (+new Date() - (1000 * 60 * 20));
 
         this.url = "/core/reports?name__prefix=os.service&node__prefix=" +
-        this.defaults.nodeName + "&page_size=300" +
-        "&timestamp__gte=" + twentyAgo;
+            this.defaults.nodeName + "&page_size=300" +
+            "&timestamp__gte=" + twentyAgo;
 
-
-        this.fetch({
-            success: function() {
-                self.checkForSet();
-            }
-        });
+        this.fetch();
     }
 });
