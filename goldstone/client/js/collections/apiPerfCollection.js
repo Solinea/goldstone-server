@@ -43,7 +43,7 @@ var ApiPerfCollection = Backbone.Collection.extend({
 
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        ns.reportParams.interval = '' + Math.round(0.357 * ns.globalLookback) + "s";
+        ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
         this.url = goldstone[this.defaults.urlPrefix].apiPerf.url(ns.reportParams.start, ns.reportParams.end, ns.reportParams.interval, false);
     }
 });
