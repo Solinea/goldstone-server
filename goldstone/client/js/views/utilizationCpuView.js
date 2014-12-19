@@ -59,6 +59,7 @@ var UtilizationCpuView = Backbone.View.extend({
 
         });
         this.collection.on('error', this.dataErrorMessage, this);
+        this.render();
 
         // this is triggered by a listener set on nodeReportView.js
         this.on('selectorChanged', function() {
@@ -185,8 +186,8 @@ var UtilizationCpuView = Backbone.View.extend({
     clearDataErrorMessage: function() {
         // if error message already exists on page,
         // remove it in case it has changed
-        if ($(this.el).find('#noDataReturned').length) {
-            $(this.el).find('#noDataReturned').remove();
+        if ($(this.el).find('.popup-message').length) {
+            $(this.el).find('.popup-message').fadeOut("slow");
         }
     },
 
@@ -198,19 +199,13 @@ var UtilizationCpuView = Backbone.View.extend({
         // 'error' event such as 504 error. Othewise,
         // function will append message supplied such as 'no data'.
 
-        this.clearDataErrorMessage();
-
         if (errorMessage !== undefined) {
             message = errorMessage.responseText;
-            message = message.slice(1, -1);
+            message = '' + errorMessage.status + ' error: ' + message.slice(1, -1);
         }
 
-        $('<span id="noDataReturned">' + message + '</span>').appendTo(this.el)
-            .css({
-                'position': 'relative',
-                'margin-left': -140,
-                'top': -$(this.el).height() / 2
-            });
+        // calling raiseAlert with the 3rd param will supress auto-hiding
+        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
 
         // the collection count will have to be set back to the original count when re-triggering a fetch.
         self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
@@ -387,6 +382,14 @@ var UtilizationCpuView = Backbone.View.extend({
         ns.svg.append("g")
             .attr("class", "y axis")
             .call(ns.yAxis);
+    },
+
+    template: _.template(
+        '<div class="alert alert-danger popup-message" hidden="true"></div>'),
+
+    render: function() {
+        this.$el.html(this.template());
+        return this;
     }
 
 });
