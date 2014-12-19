@@ -158,8 +158,8 @@ var ApiPerfView = Backbone.View.extend({
     clearDataErrorMessage: function() {
         // if error message already exists on page,
         // remove it in case it has changed
-        if ($(this.el).find('#noDataReturned').length) {
-            $(this.el).find('#noDataReturned').remove();
+        if ($(this.el).find('.popup-message').length) {
+            $(this.el).find('.popup-message').fadeOut("slow");
         }
     },
 
@@ -169,21 +169,13 @@ var ApiPerfView = Backbone.View.extend({
         // 'error' event such as 504 error. Othewise,
         // function will append message supplied such as 'no data'.
 
-        this.clearDataErrorMessage();
-
         if (errorMessage !== undefined) {
             message = errorMessage.responseText;
-            // message = message.slice(1, -1);
             message = '' + errorMessage.status + ' error: ' + message;
         }
 
-        $('<span id="noDataReturned">' + message + '</span>').appendTo(this.el)
-            .css({
-                'position': 'relative',
-                'margin-left': -200,
-                'top': -$(this.el).height() / 2 - 50
-            });
-
+        // calling raiseAlert with the 3rd param will supress auto-hiding
+        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
     },
 
     update: function() {
@@ -337,7 +329,7 @@ var ApiPerfView = Backbone.View.extend({
 
         var legend = ns.chart.append("g")
             .attr("class", "legend")
-            .attr("transform", "translate(20,0)")
+            .attr("transform", "translate(20,-20)")
             .call(d3.legend);
 
         // UPDATE
@@ -416,7 +408,7 @@ var ApiPerfView = Backbone.View.extend({
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
         '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
-        '</h3></div>'),
+        '</h3></div><div class="alert alert-danger popup-message" hidden="true"></div>'),
 
     render: function() {
         this.$el.html(this.template());
