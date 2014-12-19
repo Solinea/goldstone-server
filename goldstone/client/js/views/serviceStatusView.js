@@ -43,18 +43,7 @@ var ServiceStatusView = Backbone.View.extend({
             });
         });
 
-        this.collection.on('sync', function() {
-            if (self.collection.defaults.setAchieved) {
-                self.update();
-                self.collection.defaults.fetchInProgress = false;
-                self.collection.defaults.setAchieved = false;
-            }
-
-            if (self.collection.defaults.nullSet === true) {
-                self.update();
-                self.collection.defaults.fetchInProgress = false;
-            }
-        });
+        this.collection.on('sync', this.update, this);
         this.collection.on('error', this.dataErrorMessage, this);
 
     },
@@ -73,7 +62,6 @@ var ServiceStatusView = Backbone.View.extend({
         allthelogs = this.collection.toJSON();
 
         var data = allthelogs;
-
         // inside 'data', the results are stored with the
         // timestamp property in descending order.
         // the set can be achieved from _.uniq + data.name;
@@ -82,14 +70,17 @@ var ServiceStatusView = Backbone.View.extend({
             return item.name;
         }));
 
+
         var novelServiceBreadcrumb = {};
 
         _.each(uniqServiceNames, function(item) {
             novelServiceBreadcrumb[item] = true;
         });
 
+
         // set a counter for the length of uniq(data.name);
         var uniqSetSize = _.keys(uniqServiceNames).length;
+
 
         // iterate through data and as novel service
         // names are located, attach the status at that
@@ -163,10 +154,6 @@ var ServiceStatusView = Backbone.View.extend({
             self.collection.retrieveData();
         }, 30000);
 
-        self.collection.defaults.nullSet = false;
-        self.collection.defaults.fetchInProgress = false;
-        self.collection.defaults.setAchieved = false;
-
     },
 
     update: function() {
@@ -191,9 +178,7 @@ var ServiceStatusView = Backbone.View.extend({
         }, 30000);
 
         // If we didn't receive any valid files, append "No Data Returned"
-        if (allthelogs.length === 0 || self.collection.defaults.nullSet === true) {
-
-            self.collection.defaults.nullSet = false;
+        if (allthelogs.length === 0) {
 
             this.dataErrorMessage('No Data Returned');
             return;
