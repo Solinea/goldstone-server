@@ -281,7 +281,7 @@ var StackedBarChartView = Backbone.View.extend({
             })
             .enter().append("rect")
             .attr("width", function(d) {
-                return (ns.width / data.length);
+                return (ns.width / data.length) - 0.2;
             })
             .attr("y", function(d) {
                 return ns.y(d.y1);
@@ -289,31 +289,33 @@ var StackedBarChartView = Backbone.View.extend({
             .attr("height", function(d) {
                 return ns.y(d.y0) - ns.y(d.y1);
             })
+            .attr("rx", 0.8)
+            .attr("opacity", 0.7)
+            .attr("stroke", function(d) {
+                return ns.color(d.name);
+            })
+            .attr("stroke-width", 2)
             .style("fill", function(d) {
                 return ns.color(d.name);
             });
 
         ns.svg.append('path')
             .attr('class', 'line')
-            .attr('id', 'success')
-            .attr('data-legend', "Success")
-            .style("stroke", ns.colorArray.distinct[2][1])
-            .datum(data);
+            .attr('id', 'fail')
+            .attr('data-legend', "Fail")
+            .attr("data-legend-color", ns.colorArray.distinct[2][1]);
 
         ns.svg.append('path')
             .attr('class', 'line')
-            .attr('id', 'fail')
-            .attr('data-legend', "Fail")
-            .style("stroke", ns.colorArray.distinct[2][0])
-            .datum(data);
+            .attr('id', 'success')
+            .attr('data-legend', "Success")
+            .attr("data-legend-color", ns.colorArray.distinct[2][0]);
 
         var legend = ns.svg.append("g")
             .attr("class", "legend")
-            .attr("transform", "translate(20,0)")
+            .attr("transform", "translate(20,-20)")
+            .attr("opacity", 0.8)
             .call(d3.legend);
-
-
-        $(this.el).find('#spinner').hide();
 
     },
 
