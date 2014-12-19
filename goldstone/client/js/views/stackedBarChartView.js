@@ -177,11 +177,8 @@ var StackedBarChartView = Backbone.View.extend({
         // 'error' event such as 504 error. Othewise,
         // function will append message supplied such as 'no data'.
 
-        // this.clearDataErrorMessage();
-
         if (errorMessage !== undefined) {
             message = errorMessage.responseText;
-            // message = message.slice(1, -1);
             message = '' + errorMessage.status + ' error: ' + message;
         }
 
@@ -195,8 +192,8 @@ var StackedBarChartView = Backbone.View.extend({
         _.each(data[0], function(item, i) {
             result.push({
                 "eventTime": "" + i,
-                "Failure": item[0],
-                "Success": item[2]
+                "Success": item[2],
+                "Failure": item[0]
             });
         });
 
