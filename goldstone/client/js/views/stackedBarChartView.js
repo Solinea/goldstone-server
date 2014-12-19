@@ -68,7 +68,6 @@ var StackedBarChartView = Backbone.View.extend({
 
         // this is triggered by a listener set on novaReportView.js
         this.on('selectorChanged', function() {
-            console.log('selectorChangedHeard in ResourceChartView');
             this.collection.defaults.globalLookback = $('#global-lookback-range').val();
             this.collection.urlGenerator();
             this.collection.fetch();
@@ -201,7 +200,6 @@ var StackedBarChartView = Backbone.View.extend({
             });
         });
 
-        console.log('result: ', result);
         return result;
     },
 
@@ -210,7 +208,6 @@ var StackedBarChartView = Backbone.View.extend({
         var ns = this.defaults;
         var self = this;
         var data = this.collection.toJSON();
-        console.log('orig data', data);
         data = this.dataPrep(data);
 
         $(this.el).find('#spinner').hide();

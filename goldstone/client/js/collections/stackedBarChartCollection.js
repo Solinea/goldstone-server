@@ -23,7 +23,6 @@ var StackedBarChartCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        // return this.dummyData;
         return data;
     },
 
@@ -38,14 +37,7 @@ var StackedBarChartCollection = Backbone.Collection.extend({
         this.defaults.urlPrefix = options.urlPrefix;
         this.defaults.globalLookback = $('#global-lookback-range').val();
         this.urlGenerator();
-        this.fetch({
-            success: function(data, response, options) {
-                console.log('success', options.xhr.getAllResponseHeaders());
-            },
-            error: function() {
-                console.log('error');
-            }
-        });
+        this.fetch();
     },
 
     urlGenerator: function() {
@@ -57,9 +49,6 @@ var StackedBarChartCollection = Backbone.Collection.extend({
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
 
         this.url = goldstone.nova.apiPerf.timeRange._url(null, ns.reportParams.start, ns.reportParams.end, ns.reportParams.interval, ns.render, ns.urlPrefix);
-        // console.log('this.url would be:', this.url);
-        // this.url = "/glance/api_perf?start=111&end=112&interval=3600s&render=false";
-        console.log('but this.url is currently:', this.url);
     }
 
 });
