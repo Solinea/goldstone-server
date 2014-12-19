@@ -121,13 +121,23 @@ goldstone.raiseInfo = function(message) {
     goldstone.raiseAlert(".alert-info", message);
 };
 
-goldstone.raiseAlert = function(selector, message) {
+goldstone.raiseAlert = function(selector, message, persist) {
     "use strict";
-    $(selector).html(message + '<a href="#" class="close" data-dismiss="alert">&times;</a>');
+
+    if(persist){
+        $(selector).html(message);
+    } else {
+        $(selector).html(message + '<a href="#" class="close" data-dismiss="alert">&times;</a>');
+    }
+
     $(selector).fadeIn("slow");
-    window.setTimeout(function() {
-        $(selector).fadeOut("slow");
-    }, 4000);
+
+    if(!persist){
+        window.setTimeout(function() {
+            $(selector).fadeOut("slow");
+        }, 4000);
+    }
+
 };
 
 goldstone.uuid = function() {
