@@ -388,7 +388,7 @@ var UtilizationCpuView = Backbone.View.extend({
         '<div class="alert alert-danger popup-message" hidden="true"></div>'),
 
     render: function() {
-        this.$el.html(this.template());
+        this.$el.append(this.template());
         return this;
     }
 
