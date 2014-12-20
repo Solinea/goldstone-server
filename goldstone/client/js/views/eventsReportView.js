@@ -67,6 +67,29 @@ var EventsReportView = Backbone.View.extend({
 
     },
 
+    clearDataErrorMessage: function() {
+        // if error message already exists on page,
+        // remove it in case it has changed
+        if ($(this.el).find('.popup-message').length) {
+            $(this.el).find('.popup-message').fadeOut("slow");
+        }
+    },
+
+    dataErrorMessage: function(message, errorMessage) {
+
+        // 2nd parameter will be supplied in the case of an
+        // 'error' event such as 504 error. Othewise,
+        // function will append message supplied such as 'no data'.
+
+        if (errorMessage !== undefined) {
+            message = errorMessage.responseText;
+            message = '' + errorMessage.status + ' error: ' + message;
+        }
+
+        // calling raiseAlert with the 3rd param will supress auto-hiding
+        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
+    },
+
     dataPrep: function(data) {
         var ns = this.defaults;
         var self = this;
@@ -174,11 +197,22 @@ var EventsReportView = Backbone.View.extend({
                 },
                 dataFilter: function(data) {
 
+                    /* dataFilter is analagous to the purpose of 'success',
+                    but you can't also use 'success' as then dataFilter
+                    will not be triggered */
+
+                    // clear error messages when data begins to flow again
+                    self.clearDataErrorMessage();
+
                     // runs result through this.dataPrep
                     var result = self.dataPrep(data);
 
                     // dataTables expects JSON encoded result
                     return JSON.stringify(result);
+                },
+                error: function(data) {
+                    // append error message to '.popup-message'
+                    self.dataErrorMessage(null, data);
                 },
                 // tells dataTable to look for 'result' param of result object
                 dataSrc: "result"
@@ -229,6 +263,7 @@ var EventsReportView = Backbone.View.extend({
         '<h3 class="panel-title"><i class="fa fa-dashboard"></i> Events Report' +
         '</h3>' +
         '</div>' +
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div id="node-event-data-table" class="panel-body">' +
         '<table id="events-report-table" class="table table-hover">' +
         '<thead>' +
