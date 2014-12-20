@@ -73,7 +73,11 @@ var ReportsReportView = Backbone.View.extend({
             } else {
                 self.populateReportsDropdown();
             }
+
+            self.clearDataErrorMessage();
         });
+
+        this.collection.on('error', this.dataErrorMessage, this);
 
         // this is triggered by a listener set on nodeReportView.js
         this.on('selectorChanged', function() {
@@ -86,6 +90,29 @@ var ReportsReportView = Backbone.View.extend({
 
         });
 
+    },
+
+    clearDataErrorMessage: function() {
+        // if error message already exists on page,
+        // remove it in case it has changed
+        if ($(this.el).find('.popup-message').length) {
+            $(this.el).find('.popup-message').fadeOut("slow");
+        }
+    },
+
+    dataErrorMessage: function(message, errorMessage) {
+
+        // 2nd parameter will be supplied in the case of an
+        // 'error' event such as 504 error. Othewise,
+        // function will append message supplied such as 'no data'.
+
+        if (errorMessage !== undefined) {
+            message = errorMessage.responseText;
+            message = '' + errorMessage.status + ' error: ' + message;
+        }
+
+        // calling raiseAlert with the 3rd param will supress auto-hiding
+        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
     },
 
     update: function() {
@@ -230,15 +257,22 @@ var ReportsReportView = Backbone.View.extend({
 
             // $.get report based on
             var reportUrl = self.urlGen(e.currentTarget.innerText);
-            $.get(reportUrl, function(data) {
 
-                // append report name to title bar:
-                $(self.el).find('.panel-header-report-title').text(': ' + e.currentTarget.innerText);
-                $(self.el).find('#spinner').hide();
+            $.ajax({
+                url: reportUrl,
+                success: function(data) {
+                    $(self.el).find('.panel-header-report-title').text(': ' + e.currentTarget.innerText);
+                    $(self.el).find('#spinner').hide();
 
-                // render data table:
-                self.drawSearchTable('#reports-result-table', data.results[0].value);
+                    // render data table:
+                    self.drawSearchTable('#reports-result-table', data.results[0].value);
+                    self.clearDataErrorMessage();
+                },
+                error: function(data) {
+                    self.dataErrorMessage(null, data);
+                }
             });
+
         });
     },
 
@@ -267,6 +301,7 @@ var ReportsReportView = Backbone.View.extend({
         '</div>' +
 
         // initially rendered message this will be overwritten by dataTable
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div class="reports-info-container">' +
         '<br>Selecting a report from the dropdown above will populate this area with the report results.' +
         '</div>' +
