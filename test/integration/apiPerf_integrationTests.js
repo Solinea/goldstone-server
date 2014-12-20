@@ -115,7 +115,7 @@ describe('apiPerfView.js spec', function() {
             expect($('#noDataReturned').text()).to.equal('');
             this.testCollection.reset();
             this.testView.update();
-            expect($('#noDataReturned').text()).to.equal('No Data Returned');
+            expect($('.popup-message').text()).to.equal('No Data Returned');
             this.testCollection.add({
                 url: '/blah'
             });

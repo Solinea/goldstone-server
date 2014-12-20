@@ -1709,11 +1709,11 @@ describe('UtilizationNet.js spec', function() {
         });
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
-            expect($('#noDataReturned').text()).to.equal('');
+            expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testView.update();
             this.testView.update();
-            expect($('#noDataReturned').text()).to.equal('No Data Returned');
+            expect($('#noDataReturned').text()).to.equal('');
             this.testCollection.add([
             {
             "timestamp": 1415199176978,
