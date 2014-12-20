@@ -124,6 +124,10 @@ goldstone.raiseInfo = function(message) {
 goldstone.raiseAlert = function(selector, message, persist) {
     "use strict";
 
+    if(message && message.length > 200){
+        message = message.slice(0,200) + '...';
+    }
+
     if(persist){
         $(selector).html(message);
     } else {
