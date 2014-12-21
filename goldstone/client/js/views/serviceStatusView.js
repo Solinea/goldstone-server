@@ -82,10 +82,12 @@ var ServiceStatusView = Backbone.View.extend({
         var uniqSetSize = _.keys(uniqServiceNames).length;
 
 
-        // iterate through data and as novel service
-        // names are located, attach the status at that
-        // moment to that service name and don't reapply
-        // it, as the next result is not the most recent.
+        /*
+        iterate through data and as novel service
+        names are located, attach the status at that
+        moment to that service name and don't reapply
+        it, as the next result is not the most recent.
+        */
 
         var finalData = [];
 
