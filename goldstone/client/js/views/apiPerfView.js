@@ -186,6 +186,8 @@ var ApiPerfView = Backbone.View.extend({
         var mw = ns.mw;
         var mh = ns.mh;
 
+        $(this.el).find('#spinner').hide();
+
 
         if (this.collection.toJSON().length === 0) {
 
@@ -398,8 +400,6 @@ var ApiPerfView = Backbone.View.extend({
 
         // EXIT
         // Remove old elements as needed.
-
-        $(this.el).find('#spinner').hide();
 
     },
 
