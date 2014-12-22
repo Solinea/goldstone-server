@@ -55,6 +55,7 @@ var NodeAvailView = Backbone.View.extend({
         // bind to backbone collection
         // invoke this.update(), when the collection 'fetch' is complete
         this.collection.on('sync', this.update, this);
+        this.collection.on('error', this.dataErrorMessage, this);
         // appends display and modal html elements to this.el
         this.render();
         this.setInfoButtonPopover();
@@ -323,6 +324,33 @@ var NodeAvailView = Backbone.View.extend({
         }));
     },
 
+    clearDataErrorMessage: function() {
+        // if error message already exists on page,
+        // remove it in case it has changed
+        if ($(this.el).find('.popup-message').length) {
+            $(this.el).find('.popup-message').fadeOut("slow");
+        }
+    },
+
+    dataErrorMessage: function(message, errorMessage) {
+
+        // 2nd parameter will be supplied in the case of an
+        // 'error' event such as 504 error. Othewise,
+        // function will append message supplied such as 'no data'.
+
+        if (errorMessage !== undefined) {
+            message = errorMessage.responseText;
+            message = message.slice(1, -1);
+            message = '' + errorMessage.status + ' error: ' + message;
+        }
+
+        // calling raiseAlert with the 3rd param will supress auto-hiding
+        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
+
+        // reschedule next fetch at selected interval
+        this.scheduleFetch();
+    },
+
     update: function() {
         var ns = this.defaults;
         var self = this;
@@ -353,27 +381,12 @@ var NodeAvailView = Backbone.View.extend({
         // If we didn't receive any valid files
         // append "No Data Returned" and abort
         if (allthelogs.length === 0) {
-
-            // if 'no data returned' already exists on page, don't reapply it
-            if ($(this.el).find('#noDataReturned').length) {
-                return;
-            }
-
-            $('<span id="noDataReturned">No Data Returned</span>').appendTo(this.el)
-                .css({
-                    'position': 'relative',
-                    'margin-left': $(this.el).width() / 2 - 14,
-                    'top': -$(this.el).height() / 2
-                });
-
+            this.dataErrorMessage('No Data Returned');
             return;
         }
 
         // remove No Data Returned once data starts flowing again
-        if ($(this.el).find('#noDataReturned').length) {
-            $(this.el).find('#noDataReturned').remove();
-        }
-
+        this.clearDataErrorMessage();
 
         // populate the modal based on the event types.
         // clear out the modal and reapply based on the unique events
@@ -661,8 +674,8 @@ var NodeAvailView = Backbone.View.extend({
         // info-circle icon
         '<i class="fa fa-info-circle panel-info pull-right "  id="goldstone-node-info"' +
         'style="margin-right: 15px;"></i>' +
-        '</h3>' +
-        '</div>' +
+        '</h3></div>' +
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<div class="panel-body" style="height:50px">' +
         '<div id="event-filterer" class="btn-group pull-right" data-toggle="buttons" align="center">' +
         '</div>' +

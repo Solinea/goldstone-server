@@ -33,7 +33,12 @@ class GSConnection(object):
     conn = None
 
     def __init__(self, server=settings.ES_SERVER):
-        self.conn = Elasticsearch(server)
+        self.conn = Elasticsearch(server, max_retries=1, sniff_on_start=False,
+                                  # sniffer_timeout=5,
+                                  # sniff_on_connection_fail=True,
+                                  # sniff_timeout=1,
+                                  )
+        self.conn.cluster.health(wait_for_status='yellow', request_timeout=2)
 
 
 class RedisConnection(object):
@@ -430,7 +435,7 @@ class TopologyData(ESData):
                          '{"query": {"match_all": {}}}, "doc_type": %s, '
                          '"size": %d, "sort": %s"', self._DOC_TYPE, count,
                          sort_str)
-            r = self._conn.search(index="_all",
+            r = self._conn.search(index=self.get_index_names("goldstone-"),
                                   body='{"query": {"match_all": {}}}',
                                   doc_type=self._DOC_TYPE, size=count,
                                   sort=sort_str)
@@ -438,4 +443,4 @@ class TopologyData(ESData):
             return r['hits']['hits']
         except ElasticsearchException as e:
             logger.debug("get from ES failed, exception was %s", e.message)
-            return None
+            raise e

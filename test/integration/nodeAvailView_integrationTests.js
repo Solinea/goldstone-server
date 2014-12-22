@@ -167,16 +167,16 @@ describe('nodeAvailView.js spec', function() {
         });
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
-            expect($('#noDataReturned').length).to.equal(0);
-            expect($('#noDataReturned').text()).to.equal('');
+            expect($('.popup-message').length).to.equal(1);
+            expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testView.update();
-            expect($('.testContainer').find('#noDataReturned').length).to.equal(1);
-            expect($('#noDataReturned').text()).to.equal('No Data Returned');
+            expect($('.testContainer').find('.popup-message').length).to.equal(1);
+            expect($('.popup-message').text()).to.equal('No Data Returned');
             // it doesn't RE-apply 'No Data Returned' if it's already there:
             this.testView.update();
-            expect($('.testContainer').find('#noDataReturned').length).to.equal(1);
-            expect($('#noDataReturned').text()).to.equal('No Data Returned');
+            expect($('.testContainer').find('.popup-message').length).to.equal(1);
+            expect($('.popup-message').text()).to.equal('No Data Returned');
             // it REMOVES 'No Data Returned' if data starts flowing again:
             this.testCollection.add({
                 "id": "46b24373-eedc-43d5-9543-19dea317d88f",
@@ -193,8 +193,8 @@ describe('nodeAvailView.js spec', function() {
                 "polymorphic_ctype": 12
             });
             this.testView.update();
-            expect($('.testContainer').find('#noDataReturned').length).to.equal(0);
-            expect($('#noDataReturned').text()).to.equal('');
+            expect($('.testContainer').find('.popup-message').length).to.equal(1);
+            expect($('.popup-message').text()).to.equal('No Data Returned');
             expect(this.update_spy.callCount).to.equal(3);
             this.update_spy.restore();
         });

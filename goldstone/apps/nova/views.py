@@ -64,7 +64,6 @@ class SpawnsView(TemplateView):
             self.template_name = 'spawns.html'
         else:
             self.template_name = None
-            TemplateView.content_type = 'application/json'
 
         return context
 
@@ -116,16 +115,22 @@ class SpawnsView(TemplateView):
         Overriding to handle case of data only request (render=False).  In
         that case an application/json data payload is returned.
         """
-        response = self._handle_request(context)
-        if isinstance(response, HttpResponseBadRequest):
-            return response
+        try:
+            response = self._handle_request(context)
+            if isinstance(response, HttpResponseBadRequest):
+                return response
 
-        if self.template_name is None:
-            return HttpResponse(json.dumps(response),
-                                content_type="application/json")
+            if self.template_name is None:
+                return HttpResponse(json.dumps(response),
+                                    content_type="application/json")
 
-        return TemplateView.render_to_response(
-            self, {'data': json.dumps(response)})
+            return TemplateView.render_to_response(
+                self, {'data': json.dumps(response)})
+
+        except ElasticsearchException:
+            return HttpResponse(
+                content="Could not connect to the ElasticSearch backend",
+                status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
 class ResourceView(TemplateView):
@@ -149,7 +154,6 @@ class ResourceView(TemplateView):
             self.template_name = self.my_template_name
         else:
             self.template_name = None
-            TemplateView.content_type = 'application/json'
 
         return context
 
@@ -197,16 +201,22 @@ class ResourceView(TemplateView):
         Overriding to handle case of data only request (render=False).  In
         that case an application/json data payload is returned.
         """
-        response = self._handle_request(context)
-        if isinstance(response, HttpResponseBadRequest):
-            return response
+        try:
+            response = self._handle_request(context)
+            if isinstance(response, HttpResponseBadRequest):
+                return response
 
-        if self.template_name is None:
-            return HttpResponse(json.dumps(response),
-                                content_type="application/json")
+            if self.template_name is None:
+                return HttpResponse(json.dumps(response),
+                                    content_type="application/json")
 
-        return TemplateView.render_to_response(
-            self, {'data': json.dumps(response)})
+            return TemplateView.render_to_response(
+                self, {'data': json.dumps(response)})
+
+        except ElasticsearchException:
+            return HttpResponse(
+                content="Could not connect to the ElasticSearch backend",
+                status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
 class CpuView(ResourceView):
@@ -252,6 +262,7 @@ class DiskView(ResourceView):
         if isinstance(context, HttpResponseBadRequest):
             # validation error
             return context
+
         rd = ResourceData(context['start_dt'], context['end_dt'],
                           context['interval'])
         self.data = rd.get_phys_disk()
@@ -286,15 +297,20 @@ class LatestStatsView(TemplateView):
 
     def render_to_response(self, context, **response_kwargs):
 
-        model = HypervisorStatsData()
-        response = model.get(1)
+        try:
+            model = HypervisorStatsData()
+            response = model.get(1)
 
-        if self.template_name:
-            return TemplateView.render_to_response(
-                self, {'data': json.dumps(response)})
-        else:
-            return HttpResponse(json.dumps({'data': response}),
-                                content_type='application/json')
+            if self.template_name:
+                return TemplateView.render_to_response(
+                    self, {'data': json.dumps(response)})
+            else:
+                return HttpResponse(json.dumps({'data': response}),
+                                    content_type='application/json')
+        except ElasticsearchException:
+            return HttpResponse(
+                content="Could not connect to the ElasticSearch backend",
+                status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
 class DiscoverView(TopologyView):
@@ -437,76 +453,64 @@ class DiscoverView(TopologyView):
 
 
 class AgentsDataView(JSONView):
-    def __init__(self):
-        self.data = AgentsData().get()
-        self.key = 'agents'
+    model = AgentsData
+    key = 'agents'
 
 
 class AggregatesDataView(JSONView):
-    def __init__(self):
-        self.data = AggregatesData().get()
-        self.key = 'aggregates'
-        self.zone_key = 'availability_zone'
+    model = AggregatesData
+    key = 'aggregates'
+    zone_key = 'availability_zone'
 
 
 class AvailZonesDataView(JSONView):
-    def __init__(self):
-        self.data = AvailZonesData().get()
-        self.key = 'availability_zones'
+    model = AvailZonesData
+    key = 'availability_zones'
 
 
 class CloudpipesDataView(JSONView):
-    def __init__(self):
-        self.data = CloudpipesData().get()
-        self.key = 'cloudpipes'
+    model = CloudpipesData
+    key = 'cloudpipes'
 
 
 class FlavorsDataView(JSONView):
-    def __init__(self):
-        self.data = FlavorsData().get()
-        self.key = 'flavors'
+    model = FlavorsData
+    key = 'flavors'
 
 
 class FloatingIpPoolsDataView(JSONView):
-    def __init__(self):
-        self.data = FloatingIpPoolsData().get()
-        self.key = 'floating_ip_pools'
+    model = FloatingIpPoolsData
+    key = 'floating_ip_pools'
 
 
 class HostsDataView(JSONView):
-    def __init__(self):
-        self.data = HostsData().get()
-        self.key = 'hosts'
-        self.zone_key = 'zone'
+    model = HostsData
+    key = 'hosts'
+    zone_key = 'zone'
 
 
 class HypervisorsDataView(JSONView):
-    def __init__(self):
-        self.data = HypervisorsData().get()
-        self.key = 'hypervisors'
+    model = HypervisorsData
+    key = 'hypervisors'
 
 
 class NetworksDataView(JSONView):
-    def __init__(self):
-        self.data = NetworksData().get()
-        self.key = 'networks'
+    model = NetworksData
+    key = 'networks'
 
 
 class SecGroupsDataView(JSONView):
-    def __init__(self):
-        self.data = SecGroupsData().get()
-        self.key = 'secgroups'
+    model = SecGroupsData
+    key = 'secgroups'
 
 
 class ServersDataView(JSONView):
-    def __init__(self):
-        self.data = ServersData().get()
-        self.key = 'servers'
-        self.zone_key = 'OS-EXT-AZ:availability_zone'
+    model = ServersData
+    key = 'servers'
+    zone_key = 'OS-EXT-AZ:availability_zone'
 
 
 class ServicesDataView(JSONView):
-    def __init__(self):
-        self.data = ServicesData().get()
-        self.key = 'services'
-        self.zone_key = 'zone'
+    model = ServicesData
+    key = 'services'
+    zone_key = 'zone'

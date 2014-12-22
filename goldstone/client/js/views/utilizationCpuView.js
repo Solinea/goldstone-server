@@ -58,6 +58,8 @@ var UtilizationCpuView = Backbone.View.extend({
             }
 
         });
+        this.collection.on('error', this.dataErrorMessage, this);
+        this.render();
 
         // this is triggered by a listener set on nodeReportView.js
         this.on('selectorChanged', function() {
@@ -181,6 +183,35 @@ var UtilizationCpuView = Backbone.View.extend({
 
     },
 
+    clearDataErrorMessage: function() {
+        // if error message already exists on page,
+        // remove it in case it has changed
+        if ($(this.el).find('.popup-message').length) {
+            $(this.el).find('.popup-message').fadeOut("slow");
+        }
+    },
+
+    dataErrorMessage: function(message, errorMessage) {
+
+        var self = this;
+
+        // 2nd parameter will be supplied in the case of an
+        // 'error' event such as 504 error. Othewise,
+        // function will append message supplied such as 'no data'.
+
+        if (errorMessage !== undefined) {
+            message = errorMessage.responseText;
+            message = '' + errorMessage.status + ' error: ' + message.slice(1, -1);
+        }
+
+        // calling raiseAlert with the 3rd param will supress auto-hiding
+        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
+
+        // the collection count will have to be set back to the original count when re-triggering a fetch.
+        self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
+        self.collection.defaults.fetchInProgress = false;
+    },
+
     update: function() {
 
         var ns = this.defaults;
@@ -196,25 +227,12 @@ var UtilizationCpuView = Backbone.View.extend({
 
         // If we didn't receive any valid files, append "No Data Returned"
         if (allthelogs.length === 0) {
-
-            // if 'no data returned' already exists on page, don't reapply it
-            if ($(this.el).find('#noDataReturned').length) {
-                return;
-            }
-
-            $('<span id="noDataReturned">No Data Returned</span>').appendTo(this.el)
-                .css({
-                    'position': 'relative',
-                    'margin-left': $(this.el).width() / 2 - 14,
-                    'top': -$(this.el).height() / 2
-                });
+            this.dataErrorMessage('No Data Returned');
             return;
         }
 
         // remove No Data Returned once data starts flowing again
-        if ($(this.el).find('#noDataReturned').length) {
-            $(this.el).find('#noDataReturned').remove();
-        }
+        this.clearDataErrorMessage();
 
         var data = allthelogs;
 
@@ -364,6 +382,14 @@ var UtilizationCpuView = Backbone.View.extend({
         ns.svg.append("g")
             .attr("class", "y axis")
             .call(ns.yAxis);
+    },
+
+    template: _.template(
+        '<div class="alert alert-danger popup-message" hidden="true"></div>'),
+
+    render: function() {
+        this.$el.append(this.template());
+        return this;
     }
 
 });

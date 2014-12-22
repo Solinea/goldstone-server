@@ -12,7 +12,7 @@ from __future__ import absolute_import
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from elasticsearch import ConnectionError
+from elasticsearch import ElasticsearchException
 
 import pytz
 import subprocess
@@ -58,7 +58,7 @@ def process_host_stream(self, host, timestamp):
         node.save()
         # refresh the index to avoid duplication
         NodeType.refresh_index()
-    except ConnectionError:
+    except ElasticsearchException:
         # We couldn't reach ES, so let's move on.
         raise
     except Exception as e:

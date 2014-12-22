@@ -15,6 +15,9 @@ from __future__ import unicode_literals
 
 import copy
 from django.shortcuts import render
+from elasticsearch import ElasticsearchException
+from rest_framework import status
+from rest_framework.response import Response
 from goldstone.apps.core.models import Node
 from goldstone.utils import GoldstoneAuthError
 
@@ -157,17 +160,22 @@ class InnerTimeRangeView(TemplateView):
         Overriding to handle case of data only request (render=False).  In
         that case an application/json data payload is returned.
         """
-        response = self._handle_request(context)
-        if isinstance(response, HttpResponseBadRequest):
-            return response
+        try:
+            response = self._handle_request(context)
+            if isinstance(response, HttpResponseBadRequest):
+                return response
 
-        if self.template_name is None:
-            return HttpResponse(json.dumps(response),
-                                content_type="application/json")
+            if self.template_name is None:
+                return HttpResponse(json.dumps(response),
+                                    content_type="application/json")
 
-        return TemplateView.render_to_response(
-            self, {'data': json.dumps(response), 'start': context['start'],
-                   'end': context['end'], 'interval': context['interval']})
+            return TemplateView.render_to_response(
+                self, {'data': json.dumps(response), 'start': context['start'],
+                       'end': context['end'], 'interval': context['interval']})
+        except ElasticsearchException as e:
+            return HttpResponse(content="Could not connect to the "
+                                        "ElasticSearch backend",
+                                status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
 class ApiPerfView(InnerTimeRangeView):
@@ -186,22 +194,22 @@ class ApiPerfView(InnerTimeRangeView):
         if isinstance(context, HttpResponseBadRequest):
             # validation error
             return context
-
         logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
         self.data = self._get_data(context)
         logger.debug("[_handle_request] data = %s", self.data)
 
-        # good policy, but don't think it is required for this specific dataset
+        # good policy, but don't think it is required for this specific
+        # dataset
         if not self.data.empty:
             self.data = self.data.fillna(0)
 
         # record output may be a bit bulkier, but easier to process by D3.
-        # keys appear to be in alphabetical order, so could use orient=values
-        # to trim it down, or pass it in a binary format if things get really
-        # messy.
+        # keys appear to be in alphabetical order, so could use
+        # orient=values to trim it down, or pass it in a binary format
+        # if things get really messy.
         response = self.data.to_json(orient='records')
-        # response = self.data.transpose().to_dict(outtype='list')
-        logger.debug('[_handle_request] response = %s', json.dumps(response))
+        logger.debug('[_handle_request] response = %s',
+                     json.dumps(response))
         return response
 
 
@@ -370,6 +378,10 @@ class TopologyView(TemplateView):
                 return HttpResponse(status=401)
             else:
                 return render(self.request, '401.html', status=401)
+        except ElasticsearchException as e:
+            return HttpResponse(content="Could not connect to the "
+                                        "ElasticSearch backend",
+                                status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
 class DiscoverView(TopologyView):
@@ -413,10 +425,14 @@ class DiscoverView(TopologyView):
         from .apps.cinder.views import DiscoverView as CinderTopoView
         from .apps.nova.views import DiscoverView as NovaTopoView
 
-        keystone_topo = KeystoneTopoView()
-        glance_topo = GlanceTopoView()
-        cinder_topo = CinderTopoView()
-        nova_topo = NovaTopoView()
+        try:
+            keystone_topo = KeystoneTopoView()
+            glance_topo = GlanceTopoView()
+            cinder_topo = CinderTopoView()
+            nova_topo = NovaTopoView()
+        except Exception as e:
+            logger.exception("Exception in DiscoverView", e)
+            raise e
 
         topo_list = [nova_topo, keystone_topo, glance_topo, cinder_topo]
 
@@ -495,6 +511,8 @@ class JSONView(ContextMixin, View):
     """
 
     zone_key = None
+    key = None       # override in subclass
+    model = None     # override in subclass
 
     def get_context_data(self, **kwargs):
         context = ContextMixin.get_context_data(self, **kwargs)
@@ -522,14 +540,21 @@ class JSONView(ContextMixin, View):
 
     def _get_data(self, context):
         try:
+            self.data = self.model().get()
             return self._get_data_for_json_view(context, self.data, self.key)
         except TypeError:
             return [[]]
 
     def get(self, request, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
-        content = json.dumps(self._get_data(context))
-        return HttpResponse(content=content, content_type='application/json')
+        try:
+            context = self.get_context_data(**kwargs)
+            content = json.dumps(self._get_data(context))
+            return HttpResponse(content=content,
+                                content_type='application/json')
+        except ElasticsearchException as e:
+            return HttpResponse(content="Could not connect to the "
+                                        "ElasticSearch backend",
+                                status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
 class HelpView(TemplateView):

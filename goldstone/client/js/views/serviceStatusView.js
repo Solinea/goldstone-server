@@ -43,18 +43,8 @@ var ServiceStatusView = Backbone.View.extend({
             });
         });
 
-        this.collection.on('sync', function() {
-            if (self.collection.defaults.setAchieved) {
-                self.update();
-                self.collection.defaults.fetchInProgress = false;
-                self.collection.defaults.setAchieved = false;
-            }
-
-            if (self.collection.defaults.nullSet === true) {
-                self.update();
-                self.collection.defaults.fetchInProgress = false;
-            }
-        });
+        this.collection.on('sync', this.update, this);
+        this.collection.on('error', this.dataErrorMessage, this);
 
     },
 
@@ -72,7 +62,6 @@ var ServiceStatusView = Backbone.View.extend({
         allthelogs = this.collection.toJSON();
 
         var data = allthelogs;
-
         // inside 'data', the results are stored with the
         // timestamp property in descending order.
         // the set can be achieved from _.uniq + data.name;
@@ -81,19 +70,24 @@ var ServiceStatusView = Backbone.View.extend({
             return item.name;
         }));
 
+
         var novelServiceBreadcrumb = {};
 
         _.each(uniqServiceNames, function(item) {
             novelServiceBreadcrumb[item] = true;
         });
 
+
         // set a counter for the length of uniq(data.name);
         var uniqSetSize = _.keys(uniqServiceNames).length;
 
-        // iterate through data and as novel service
-        // names are located, attach the status at that
-        // moment to that service name and don't reapply
-        // it, as the next result is not the most recent.
+
+        /*
+        iterate through data and as novel service
+        names are located, attach the status at that
+        moment to that service name and don't reapply
+        it, as the next result is not the most recent.
+        */
 
         var finalData = [];
 
@@ -133,6 +127,37 @@ var ServiceStatusView = Backbone.View.extend({
 
     },
 
+    clearDataErrorMessage: function() {
+        // if error message already exists on page,
+        // remove it in case it has changed
+        if ($(this.el).find('.popup-message').length) {
+            $(this.el).find('.popup-message').fadeOut("slow");
+        }
+    },
+
+    dataErrorMessage: function(message, errorMessage) {
+
+        var self = this;
+
+        // 2nd parameter will be supplied in the case of an
+        // 'error' event such as 504 error. Othewise,
+        // function will append message supplied such as 'no data'.
+
+        if (errorMessage !== undefined) {
+            message = errorMessage.responseText;
+            message = message.slice(1, -1);
+            message = '' + errorMessage.status + ' error: ' + message;
+        }
+
+        // calling raiseAlert with the 3rd param will supress auto-hiding
+        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
+
+        setTimeout(function() {
+            self.collection.retrieveData();
+        }, 30000);
+
+    },
+
     update: function() {
 
         var ns = this.defaults;
@@ -155,28 +180,14 @@ var ServiceStatusView = Backbone.View.extend({
         }, 30000);
 
         // If we didn't receive any valid files, append "No Data Returned"
-        if (allthelogs.length === 0 || self.collection.defaults.nullSet === true) {
+        if (allthelogs.length === 0) {
 
-            self.collection.defaults.nullSet = false;
-
-            // if 'no data returned' already exists on page, don't reapply it
-            if ($(this.el).find('#noDataReturned').length) {
-                return;
-            }
-
-            $('<span id="noDataReturned">No Data Returned</span>').appendTo(this.el)
-                .css({
-                    'position': 'relative',
-                    'margin-left': $(this.el).width() / 2 - 14,
-                    'top': -$(this.el).height() / 5
-                });
+            this.dataErrorMessage('No Data Returned');
             return;
         }
 
         // remove No Data Returned once data starts flowing again
-        if ($(this.el).find('#noDataReturned').length) {
-            $(this.el).find('#noDataReturned').remove();
-        }
+        this.clearDataErrorMessage();
 
         var nodeNames = [];
 
@@ -237,6 +248,7 @@ var ServiceStatusView = Backbone.View.extend({
 
     },
 
-    template: _.template("<div class='mainContainer'></div>")
+    template: _.template('<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<div class="mainContainer"></div>')
 
 });

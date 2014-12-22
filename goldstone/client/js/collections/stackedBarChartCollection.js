@@ -18,32 +18,37 @@
 
 // define collection and link to model
 
-var ApiPerfCollection = Backbone.Collection.extend({
+var StackedBarChartCollection = Backbone.Collection.extend({
 
     defaults: {},
 
     parse: function(data) {
-        return JSON.parse(data);
+        return data;
     },
 
-    model: ApiPerfModel,
+    model: StackedBarChartModel,
 
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
         this.defaults.urlPrefix = this.options.urlPrefix;
         this.defaults.reportParams = {};
+        this.defaults.render = options.render;
+        this.defaults.urlPrefix = options.urlPrefix;
         this.defaults.globalLookback = $('#global-lookback-range').val();
         this.urlGenerator();
         this.fetch();
     },
 
     urlGenerator: function() {
+
         var ns = this.defaults;
 
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
-        this.url = goldstone[this.defaults.urlPrefix].apiPerf.url(ns.reportParams.start, ns.reportParams.end, ns.reportParams.interval, false);
+
+        this.url = goldstone.nova.apiPerf.timeRange._url(null, ns.reportParams.start, ns.reportParams.end, ns.reportParams.interval, ns.render, ns.urlPrefix);
     }
+
 });

@@ -66,6 +66,7 @@ var ApiPerfView = Backbone.View.extend({
 
         // registers 'sync' event so view 'watches' collection for data update
         this.collection.on('sync', this.update, this);
+        this.collection.on('error', this.dataErrorMessage, this);
 
         // this is triggered by a listener set on nodeReportView.js
         this.on('selectorChanged', function() {
@@ -154,6 +155,29 @@ var ApiPerfView = Backbone.View.extend({
 
     },
 
+    clearDataErrorMessage: function() {
+        // if error message already exists on page,
+        // remove it in case it has changed
+        if ($(this.el).find('.popup-message').length) {
+            $(this.el).find('.popup-message').fadeOut("slow");
+        }
+    },
+
+    dataErrorMessage: function(message, errorMessage) {
+
+        // 2nd parameter will be supplied in the case of an
+        // 'error' event such as 504 error. Othewise,
+        // function will append message supplied such as 'no data'.
+
+        if (errorMessage !== undefined) {
+            message = errorMessage.responseText;
+            message = '' + errorMessage.status + ' error: ' + message;
+        }
+
+        // calling raiseAlert with the 3rd param will supress auto-hiding
+        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
+    },
+
     update: function() {
 
         var ns = this.defaults;
@@ -162,30 +186,16 @@ var ApiPerfView = Backbone.View.extend({
         var mw = ns.mw;
         var mh = ns.mh;
 
+        $(this.el).find('#spinner').hide();
+
 
         if (this.collection.toJSON().length === 0) {
 
-            // if 'no data returned' already exists on page, don't reapply it
-            if ($(this.el).find('#noDataReturned').length) {
-                return;
-            }
-
-            $('<span id="noDataReturned">No Data Returned</span>').appendTo(this.el)
-                .css({
-                    'position': 'relative',
-                    'margin-left': $(this.el).width() / 2 - 14,
-                    'top': -$(this.el).height() / 2 - 50
-                });
-
-            this.$el.find('#spinner').hide();
+            this.dataErrorMessage('No Data Returned');
             return;
         }
 
-        // remove No Data Returned once data starts flowing again
-        if ($(this.el).find('#noDataReturned').length) {
-            $(this.el).find('#noDataReturned').remove();
-        }
-
+        this.clearDataErrorMessage();
 
         $(this.el).find('svg').find('.chart').html('');
         $(this.el + '.d3-tip').detach();
@@ -321,7 +331,7 @@ var ApiPerfView = Backbone.View.extend({
 
         var legend = ns.chart.append("g")
             .attr("class", "legend")
-            .attr("transform", "translate(20,0)")
+            .attr("transform", "translate(20,-20)")
             .call(d3.legend);
 
         // UPDATE
@@ -391,8 +401,6 @@ var ApiPerfView = Backbone.View.extend({
         // EXIT
         // Remove old elements as needed.
 
-        $(this.el).find('#spinner').hide();
-
     },
 
     template: _.template(
@@ -400,7 +408,7 @@ var ApiPerfView = Backbone.View.extend({
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
         '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
-        '</h3></div>'),
+        '</h3></div><div class="alert alert-danger popup-message" hidden="true"></div>'),
 
     render: function() {
         this.$el.html(this.template());

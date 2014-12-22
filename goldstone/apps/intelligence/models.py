@@ -24,15 +24,15 @@ import calendar
 import logging
 import json
 import pandas as pd
-from goldstone.models import ESData
+from goldstone.models import ESData, GSConnection
 
 logger = logging.getLogger(__name__)
 
 
-class LogData(object):
+class LogData(ESData):
+
     @staticmethod
     def _subtract_months(sourcedate, months):
-
         month = sourcedate.month - 1 - months
         year = sourcedate.year + month / 12
         month = month % 12 + 1
@@ -42,7 +42,6 @@ class LogData(object):
                         sourcedate.microsecond, sourcedate.tzinfo)
 
     def _calc_start(self, end, unit):
-
         if unit == "hour":
             t = end - timedelta(hours=1)
         elif unit == "day":
@@ -107,7 +106,7 @@ class LogData(object):
 
         return result
 
-    def _get_term_facet_terms(self, conn, facet_field):
+    def _get_term_facet_terms(self, facet_field):
         fac = self._term_facet(facet_field, facet_field, order='term')
         q = dict(query={
             'match_all': {}
@@ -116,14 +115,10 @@ class LogData(object):
         q['facets'] = {}
         q['facets'][fac.keys()[0]] = fac[fac.keys()[0]]
         logger.debug("[_get_term_facet_terms] query = %s", q)
-        rs = conn.search(index="_all", body=q)
+        rs = self._conn.search(index=self.get_index_names('logstash-'), body=q)
         return [d['term'] for d in rs['facets'][facet_field]['terms']]
 
-    @staticmethod
-    def get_connection(server):
-        return Elasticsearch(server)
-
-    def _loglevel_by_time_agg(self, conn, start, end, interval,
+    def _loglevel_by_time_agg(self, start, end, interval,
                               query_filter=None):
         logger.debug("[_loglevel_by_time_agg] ENTERING>>")
         logger.debug("[_loglevel_by_time_agg] interval = %s", interval)
@@ -167,21 +162,20 @@ class LogData(object):
             }
         }
         logger.debug("[_loglevel_by_time_agg] query = %s", json.dumps(q))
-        result = conn.search(index="_all", body=q)
+        result = self._conn.search(
+            index=self.get_index_names('logstash-'), body=q)
         logger.debug("[_loglevel_by_time_agg] result = %s", json.dumps(result))
         return result
 
-    def get_components(self, conn):
-        return self._get_term_facet_terms(conn, "component")
+    def get_components(self):
+        return self._get_term_facet_terms("component")
 
-    def get_loglevels(self, conn):
-        return self._get_term_facet_terms(conn, "loglevel")
+    def get_loglevels(self):
+        return self._get_term_facet_terms("loglevel")
 
-    def get_loglevel_histogram_data(self, conn, start, end, interval):
-
-        result = self._loglevel_by_time_agg(conn, start, end,
-                                            interval)['aggregations']
-
+    def get_loglevel_histogram_data(self, start, end, interval):
+        result = self._loglevel_by_time_agg(
+            start, end, interval)['aggregations']
         return result
 
     def _escape(self, str):
@@ -197,7 +191,7 @@ class LogData(object):
                     s[i] = "\\" + c
         return str[:0].join(s)
 
-    def get_log_data(self, conn, start_t, end_t, first, size,
+    def get_log_data(self, start_t, end_t, first, size,
                      level_filters=dict(), sort='', search_text=None):
 
         q = {
@@ -243,10 +237,10 @@ class LogData(object):
             }
 
         logger.debug("[get_log_data] query = %s", json.dumps(q))
-        return conn.search(index="_all", body=q, from_=first, size=size,
-                           sort=sort)
+        return self._conn.search(index=self.get_index_names('logstash-'),
+                                 body=q, from_=first, size=size, sort=sort)
 
-    def get_hypervisor_stats(self, conn, start, end, interval, first=0,
+    def get_hypervisor_stats(self, start, end, interval, first=0,
                              size=10, sort=''):
 
         q = {
@@ -309,7 +303,7 @@ class LogData(object):
             }
         }
 
-        result = conn.search(index="_all", body=q, from_=first, size=size,
-                             sort=sort)
+        result = self._conn.search(index=self.get_index_names('logstash-'),
+                                   body=q, from_=first, size=size, sort=sort)
         logger.debug('result = ' + json.dumps(result))
         return result

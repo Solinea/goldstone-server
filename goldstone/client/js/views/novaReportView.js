@@ -19,7 +19,10 @@
 var NovaReportView = ApiPerfReportView.extend({
 
     triggerChange: function() {
-        this.renderCharts();
+        console.log('triggeredChange');
+        // this.renderCharts();
+        this.novaApiPerfChartView.trigger('selectorChanged');
+        this.vmSpawnChartView.trigger('selectorChanged');
     },
 
     renderCharts: function() {
@@ -31,16 +34,65 @@ var NovaReportView = ApiPerfReportView.extend({
         var gndisk = goldstone.nova.disk;
         var gnapi = goldstone.nova.apiPerf;
         nsReport.start = (+new Date()) - (this.defaults.globalLookback * 1000 * 60);
-        nsReport.end = new Date();
+        nsReport.end = +new Date();
         nsReport.interval = '' + Math.round(0.357 * this.defaults.globalLookback) + "s";
 
-        gnspawns.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r1-c2', true);
+        // gnspawns.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r1-c2', true);
         gncpu.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r2-c1', true);
         gnmem.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r2-c2', true);
         gndisk.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r3-c1', true);
-        nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf);
-        nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#nova-report-r1-c1');
+
+
+        /*
+        Nova Api Perf Report
+        */
+
+        this.novaApiPerfChart = new ApiPerfCollection({
+            urlPrefix: 'nova',
+        });
+
+        this.novaApiPerfChartView = new ApiPerfView({
+            chartTitle: "Nova API Performance",
+            collection: this.novaApiPerfChart,
+            height: 300,
+            infoCustom: [{
+                key: "API Call",
+                value: "Hypervisor Show"
+            }],
+            el: '#nova-report-r1-c1',
+            width: $('#nova-report-r1-c1').width()
+        });
+
+
+        /*
+        VM Spawns Chart
+        */
+
+        $('#nova-report-r1-c2').empty();
+        new ChartHeaderView({
+            el: '#nova-report-r1-c2',
+            chartTitle: 'VM Spawns',
+            infoText: 'novaSpawns',
+            columns: 12
+        });
+
+        this.vmSpawnChart = new StackedBarChartCollection({
+            urlPrefix: '/nova/hypervisor/spawns',
+            render: false
+        });
+
+        this.vmSpawnChartView = new StackedBarChartView({
+            chartTitle: "VM Spawns",
+            collection: this.vmSpawnChart,
+            height: 300,
+            infoCustom: [{
+                key: "API Call",
+                value: "Spawn Events"
+            }],
+            el: '#nova-report-r1-c2',
+            width: $('#nova-report-r1-c2').width(),
+            yAxisLabel: 'Spawn Events'
+        });
     },
 
     template: _.template('' +

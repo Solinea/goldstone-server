@@ -212,11 +212,11 @@ describe('UtilizationCpu.js spec', function() {
         });
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
-            expect($('#noDataReturned').text()).to.equal('');
+            expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testView.update();
             this.testView.update();
-            expect($('#noDataReturned').text()).to.equal('No Data Returned');
+            expect($('.popup-message').text()).to.equal('No Data Returned');
             this.testCollection.add({
                 "timestamp": 1415148790577,
                 "name": "os.cpu.sys",
@@ -226,7 +226,7 @@ describe('UtilizationCpu.js spec', function() {
                 "node": "compute-02"
             });
             this.testView.update();
-            expect($('#noDataReturned').text()).to.equal('');
+            expect($('.popup-message').text()).to.equal('No Data Returned');
             expect(this.update_spy.callCount).to.equal(3);
             expect($('g').find('text').text()).to.equal('waitsysuseridle.5770%10%20%30%40%50%60%70%80%90%100%');
             this.update_spy.restore();
