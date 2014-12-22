@@ -25,14 +25,27 @@ var NeutronReportView = ApiPerfReportView.extend({
     renderCharts: function() {
         var nsReport = goldstone.neutron.report;
         var nsApiPerf = goldstone.neutron.apiPerf;
-        nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf);
 
         nsReport.start = (+new Date()) - (this.defaults.globalLookback * 1000 * 60);
         nsReport.end = new Date();
         nsReport.interval = '' + Math.round(0.357 * this.defaults.globalLookback) + "s";
 
-        nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-            true, '#neutron-report-r1-c1');
+        this.neutronApiPerfChart = new ApiPerfCollection({
+            urlPrefix: 'neutron',
+        });
+
+        this.neutronApiPerfChartView = new ApiPerfView({
+            chartTitle: "Neutron API Performance",
+            collection: this.neutronApiPerfChart,
+            height: 300,
+            infoCustom: [{
+                key: "API Call",
+                value: "Agent List"
+            }],
+            el: '#neutron-report-r1-c1',
+            width: $('#neutron-report-r1-c1').width()
+        });
+
     },
 
     template: _.template('' +

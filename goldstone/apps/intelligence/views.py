@@ -12,6 +12,8 @@ from __future__ import unicode_literals
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from elasticsearch import ElasticsearchException
+from rest_framework import status
 
 __author__ = 'John Stanford'
 
@@ -67,32 +69,33 @@ def log_event_histogram(request):
         fromtimestamp(int(start_time), tz=pytz.utc) \
         if start_time else end_dt - timedelta(weeks=1)
 
-    conn = LogData.get_connection(settings.ES_SERVER)
+    try:
+        ld = LogData()
+        logger.debug("[log_event_histogram] interval = %s", interval)
+        raw_data = ld.get_loglevel_histogram_data(start_dt, end_dt, interval)
 
-    ld = LogData()
-    logger.debug("[log_event_histogram] interval = %s", interval)
-    raw_data = ld.get_loglevel_histogram_data(conn, start_dt, end_dt, interval)
+        result = []
+        for time_bucket in raw_data['events_by_time']['buckets']:
+            entry = {}
+            for level_bucket in time_bucket['events_by_loglevel']['buckets']:
+                vals = level_bucket.values()
+                lev = vals[0]
+                entry[lev] = vals[1]
 
-    result = []
-    for time_bucket in raw_data['events_by_time']['buckets']:
-        entry = {}
-        for level_bucket in time_bucket['events_by_loglevel']['buckets']:
-            vals = level_bucket.values()
-            lev = vals[0]
-            entry[lev] = vals[1]
+            entry['time'] = time_bucket['key']
+            result.append(entry)
 
-        entry['time'] = time_bucket['key']
-        result.append(entry)
-
-    data = {'data': result,
-            'levels': ['error', 'warning', 'audit', 'info', 'debug']}
-    logger.debug("[log_event_histogram]: data = %s", json.dumps(data))
-    return HttpResponse(json.dumps(data), content_type="application/json")
+        data = {'data': result,
+                'levels': ['error', 'warning', 'audit', 'info', 'debug']}
+        logger.debug("[log_event_histogram]: data = %s", json.dumps(data))
+        return HttpResponse(json.dumps(data), content_type="application/json")
+    except ElasticsearchException as e:
+            return HttpResponse(content="Could not connect to the "
+                                        "ElasticSearch backend",
+                                status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
 def log_search_data(request):
-
-    conn = LogData.get_connection(settings.ES_SERVER)
 
     keylist = ['@timestamp', 'loglevel', 'component', 'host',
                'openstack_message', 'log_message'
@@ -123,46 +126,50 @@ def log_search_data(request):
     sort_dir_in = request.GET.get('order[0][dir]=asc')
     sort_dir = sort_dir_in if sort_dir_in else "desc"
 
-    ld = LogData()
-    rs = ld.get_log_data(
-        conn,
-        datetime.fromtimestamp(start_ts, tz=pytz.utc),
-        datetime.fromtimestamp(end_ts, tz=pytz.utc),
-        int(request.GET.get('start')),
-        int(request.GET.get('length')),
-        level_filters,
-        search_text=request.GET.get('search[value]', None),
-        sort=["".join([sort_col, ":", sort_dir])],
-    )
+    try:
+        ld = LogData()
+        rs = ld.get_log_data(
+            datetime.fromtimestamp(start_ts, tz=pytz.utc),
+            datetime.fromtimestamp(end_ts, tz=pytz.utc),
+            int(request.GET.get('start')),
+            int(request.GET.get('length')),
+            level_filters,
+            search_text=request.GET.get('search[value]', None),
+            sort=["".join([sort_col, ":", sort_dir])],
+        )
 
-    aa_data = []
-    for rec in rs['hits']['hits']:
-        kv = rec['_source']
-        aa_data.append([
-            kv['@timestamp'] if '@timestamp' in kv else "",
-            kv['loglevel'] if 'loglevel' in kv else "",
-            kv['component'] if 'component' in kv else "",
-            kv['host'] if 'host' in kv else "",
-            kv['openstack_message'] if 'openstack_message' in kv else kv[
-                'log_message'],
-            kv['path'] if 'path' in kv else "",
-            kv['pid'] if 'pid' in kv else "",
-            kv['program'] if 'program' in kv else "",
-            kv['request_id_list'] if 'request_id_list' in kv else "",
-            kv['type'] if 'type' in kv else "",
-            kv['received_at'] if 'received_at' in kv else ""])
+        aa_data = []
+        for rec in rs['hits']['hits']:
+            kv = rec['_source']
+            aa_data.append([
+                kv['@timestamp'] if '@timestamp' in kv else "",
+                kv['loglevel'] if 'loglevel' in kv else "",
+                kv['component'] if 'component' in kv else "",
+                kv['host'] if 'host' in kv else "",
+                kv['openstack_message'] if 'openstack_message' in kv else kv[
+                    'log_message'],
+                kv['path'] if 'path' in kv else "",
+                kv['pid'] if 'pid' in kv else "",
+                kv['program'] if 'program' in kv else "",
+                kv['request_id_list'] if 'request_id_list' in kv else "",
+                kv['type'] if 'type' in kv else "",
+                kv['received_at'] if 'received_at' in kv else ""])
 
-    response = {
-        "draw": int(request.GET.get('draw')),
-        # This should be the result count without filtering, but no obvious
-        # way to get that without doing the query twice.
-        "recordsTotal": rs['hits']['total'],
-        "recordsFiltered": rs['hits']['total'],
-        "data": aa_data
-    }
+        response = {
+            "draw": int(request.GET.get('draw')),
+            # This should be the result count without filtering, but no obvious
+            # way to get that without doing the query twice.
+            "recordsTotal": rs['hits']['total'],
+            "recordsFiltered": rs['hits']['total'],
+            "data": aa_data
+        }
 
-    return HttpResponse(json.dumps(response),
-                        content_type="application/json")
+        return HttpResponse(json.dumps(response),
+                            content_type="application/json")
+    except ElasticsearchException as e:
+            return HttpResponse(content="Could not connect to the "
+                                        "ElasticSearch backend",
+                                status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
 def _calc_start(interval, end):

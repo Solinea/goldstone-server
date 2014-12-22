@@ -52,116 +52,73 @@ describe('serviceStatusView.js spec', function() {
             }
         });
         it('should parse dummy data appropriately', function() {
-            var testData = {results:[]};
+            var testData = {
+                results: []
+            };
             var test1 = this.testCollection.parse(testData);
             expect(test1.length).to.equal(0);
-            testData = {results:[{name:'fee'},{name:'fi'},{name:'fo'}]};
+            testData = {
+                results: [{
+                    name: 'fee'
+                }, {
+                    name: 'fi'
+                }, {
+                    name: 'fo'
+                }]
+            };
             var test2 = this.testCollection.parse(testData);
             expect(test2.length).to.equal(3);
-            testData = {next: 'garbage/core/hiho', results:[]};
-            var test3 = this.testCollection.parse(testData);
-            expect(this.testCollection.defaults.nextUrl).to.equal('/core/hiho');
         });
-        it('should checkforSets appropriately', function() {
-            expect(this.protoFetchSpy.callCount).to.equal(1);
+        it('should create sets of unique services', function() {
             this.testCollection.reset();
-            this.testCollection.add({name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap4'});
-            this.testCollection.checkForSet();
-            expect(this.testCollection.defaults.setAchieved).to.equal(false);
-            expect(this.protoFetchSpy.callCount).to.equal(2);
-            // now with insufficient duplicates
-            this.testCollection.reset();
-            this.testCollection.add([{name: 'bingBap3'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap3'}]);
-            this.testCollection.checkForSet();
-            expect(this.testCollection.defaults.setAchieved).to.equal(false);
-            expect(this.protoFetchSpy.callCount).to.equal(3);
-            // still not enough duplicates
-            this.testCollection.reset();
-            this.testCollection.add([{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'}]);
-            this.testCollection.checkForSet();
-            expect(this.testCollection.defaults.setAchieved).to.equal(false);
-            expect(this.protoFetchSpy.callCount).to.equal(4);
-            // even still not enough duplicates
-            this.testCollection.reset();
-            this.testCollection.add([{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'}]);
-            this.testCollection.checkForSet();
-            expect(this.testCollection.defaults.setAchieved).to.equal(false);
-            expect(this.protoFetchSpy.callCount).to.equal(5);
-            // finally enough duplicates
-            this.testCollection.reset();
-            this.testCollection.add([{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},]);
-            this.testCollection.checkForSet();
-            expect(this.testCollection.defaults.setAchieved).to.equal(true);
-            expect(this.protoFetchSpy.callCount).to.equal(5);
-        });
-        it('should not be confused by the order of the items when checking for a set', function() {
-            // enough duplicates
-            this.testCollection.reset();
-            this.testCollection.add([{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap3'},{name: 'bingBap2'},{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap3'},{name: 'bingBap1'}]);
-            this.testCollection.checkForSet();
-            expect(this.testCollection.defaults.setAchieved).to.equal(false);
-            expect(this.protoFetchSpy.callCount).to.equal(2);
-        });
-        it('should not be confused by varying number of appearances of the set when making the final unique set', function() {
-            // enough duplicates
-            this.testCollection.reset();
-            this.testCollection.add([{value: 'running', name: 'bingBap1'},{value: 'running', name: 'bingBap2'},{value: 'running', name: 'bingBap3'},{value: 'running', name: 'bingBap3'},{value: 'running', name: 'bingBap2'},{value: 'running', name: 'bingBap1'},{value: 'running', name: 'bingBap2'},{value: 'running', name: 'bingBap3'},{value: 'running', name: 'bingBap1'},{value: 'running', name: 'bingBap2'},{value: 'running', name: 'bingBap3'},{value: 'running', name: 'bingBap1'},{value: 'running', name: 'bingBap2'}]);
-            this.testCollection.checkForSet();
-            expect(this.testCollection.defaults.setAchieved).to.equal(true);
-            expect(this.protoFetchSpy.callCount).to.equal(1);
-
+            this.testCollection.add([{
+                name: 'bingBap1',
+                value: 'running'
+            }, {
+                name: 'bingBap1',
+                value: 'stopped'
+            }, {
+                name: 'bingBap1',
+                value: 'stopped'
+            }, {
+                name: 'bingBap1',
+                value: 'stopped'
+            }, {
+                name: 'bingBap2',
+                value: 'running'
+            }, {
+                name: 'bingBap2',
+                value: 'stopped'
+            }, {
+                name: 'bingBap2',
+                value: 'stopped'
+            }, {
+                name: 'bingBap2',
+                value: 'stopped'
+            }, {
+                name: 'bingBap2',
+                value: 'stopped'
+            }, {
+                name: 'bingBap3',
+                value: 'running'
+            }, {
+                name: 'bingBap3',
+                value: 'stopped'
+            }, {
+                name: 'bingBap3',
+                value: 'stopped'
+            }, {
+                name: 'bingBap3',
+                value: 'stopped'
+            }]);
             var test1 = this.testView.collectionPrep();
-            expect(test1).to.deep.equal([{'bingBap1':'running'},{'bingBap2':'running'},{'bingBap3':'running'}]);
-        });
-        it('should not be confused by statuses that occur after the intial encounter of the unique service status', function() {
-            // enough duplicates
-            this.testCollection.reset();
-            this.testCollection.add([
-                {name: 'bingBap1', value: 'running'},
-                {name: 'bingBap2', value: 'running'},
-                {name: 'bingBap3', value: 'running'},
-                {name: 'bingBap3', value: 'stopped'},
-                {name: 'bingBap2', value: 'stopped'},
-                {name: 'bingBap1', value: 'stopped'},
-                {name: 'bingBap2', value: 'stopped'},
-                {name: 'bingBap3', value: 'stopped'},
-                {name: 'bingBap1', value: 'stopped'},
-                {name: 'bingBap2', value: 'stopped'},
-                {name: 'bingBap3', value: 'stopped'},
-                {name: 'bingBap1', value: 'stopped'},
-                {name: 'bingBap2', value: 'stopped'}
-                ]);
-            this.testCollection.checkForSet();
-            expect(this.testCollection.defaults.setAchieved).to.equal(true);
-            expect(this.protoFetchSpy.callCount).to.equal(1);
-
-            var test1 = this.testView.collectionPrep();
-            expect(test1).to.deep.equal([{'bingBap1':'running'},{'bingBap2':'running'},{'bingBap3':'running'}]);
-        });
-        it('should not be confused by statuses that occur after the intial encounter of the unique service status in an interleaved fashion', function() {
-            // enough duplicates
-            this.testCollection.reset();
-            this.testCollection.add([
-                {name: 'bingBap1', value: 'running'},
-                {name: 'bingBap1', value: 'stopped'},
-                {name: 'bingBap1', value: 'stopped'},
-                {name: 'bingBap1', value: 'stopped'},
-                {name: 'bingBap2', value: 'running'},
-                {name: 'bingBap2', value: 'stopped'},
-                {name: 'bingBap2', value: 'stopped'},
-                {name: 'bingBap2', value: 'stopped'},
-                {name: 'bingBap2', value: 'stopped'},
-                {name: 'bingBap3', value: 'running'},
-                {name: 'bingBap3', value: 'stopped'},
-                {name: 'bingBap3', value: 'stopped'},
-                {name: 'bingBap3', value: 'stopped'}
-                ]);
-            this.testCollection.checkForSet();
-            expect(this.testCollection.defaults.setAchieved).to.equal(true);
-            expect(this.protoFetchSpy.callCount).to.equal(1);
-
-            var test1 = this.testView.collectionPrep();
-            expect(test1).to.deep.equal([{'bingBap1':'running'},{'bingBap2':'running'},{'bingBap3':'running'}]);
+            expect(test1).to.deep.equal([{
+                'bingBap1': 'running'
+            }, {
+                'bingBap2': 'running'
+            }, {
+                'bingBap3': 'running'
+            }]);
         });
     });
     describe('view is constructed', function() {
@@ -188,9 +145,19 @@ describe('serviceStatusView.js spec', function() {
             expect(this.update_spy.callCount).to.equal(0);
             this.testCollection.defaults.setAchieved = true;
             this.testCollection.reset();
-            this.testCollection.add([{name: 'bingBap1'},{name: 'bingBap2'},{name: 'bingBap33333333333333333333333'},{name: 'bingBap3'},{name: 'bingBap3'}]);
+            this.testCollection.add([{
+                name: 'bingBap1'
+            }, {
+                name: 'bingBap2'
+            }, {
+                name: 'bingBap33333333333333333333333'
+            }, {
+                name: 'bingBap3'
+            }, {
+                name: 'bingBap3'
+            }]);
             this.testCollection.trigger('sync');
-            expect(this.update_spy.callCount).to.equal(1);
+            expect(this.update_spy.callCount).to.equal(0);
             expect($('.mainContainer .toRemove').length).to.equal(4);
 
             // replaces characters > 27 with ...
@@ -206,30 +173,34 @@ describe('serviceStatusView.js spec', function() {
         });
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
-            expect($('#noDataReturned').length).to.equal(0);
-            expect($('#noDataReturned').text()).to.equal('');
+            expect($('.popup-message').length).to.equal(0);
+            expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testView.update();
-            expect($('.testContainer').find('#noDataReturned').length).to.equal(1);
-            expect($('#noDataReturned').text()).to.equal('No Data Returned');
+            expect($('.testContainer').find('.popup-message').length).to.equal(1);
+            expect($('.popup-message').text()).to.equal('No Data Returned');
             // it doesn't RE-apply 'No Data Returned' if it's already there:
             this.testView.update();
-            expect($('.testContainer').find('#noDataReturned').length).to.equal(1);
-            expect($('#noDataReturned').text()).to.equal('No Data Returned');
+            expect($('.testContainer').find('.popup-message').length).to.equal(1);
+            expect($('.popup-message').text()).to.equal('No Data Returned');
             // it REMOVES 'No Data Returned' if data starts flowing again:
-            this.testCollection.add(
-            {name:'fee'},{name:'fi'},{name:'fo'}
-            );
+            this.testCollection.add({
+                name: 'fee'
+            }, {
+                name: 'fi'
+            }, {
+                name: 'fo'
+            });
             this.testView.update();
-            expect($('.testContainer').find('#noDataReturned').length).to.equal(0);
-            expect($('#noDataReturned').text()).to.equal('');
+            expect($('.testContainer').find('.popup-message').length).to.equal(1);
+            expect($('.popup-message').text()).to.equal('No Data Returned');
             expect(this.update_spy.callCount).to.equal(3);
             this.update_spy.restore();
         });
         it('will still render no data if an incomplete set is passed forward', function() {
-            this.update_spy = sinon.spy(this.testView, "update");
-            expect($('#noDataReturned').length).to.equal(0);
-            expect($('#noDataReturned').text()).to.equal('');
+            /*this.update_spy = sinon.spy(this.testView, "update");
+            expect($('.popup-message').length).to.equal(0);
+            expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testCollection.add({
                 name: 'fee'
@@ -238,11 +209,11 @@ describe('serviceStatusView.js spec', function() {
             }, {
                 name: 'fo'
             });
-            this.testCollection.checkForSet();
+            // this.testCollection.checkForSet();
             this.testCollection.trigger('sync');
-            expect($('.testContainer').find('#noDataReturned').length).to.equal(1);
-            expect($('#noDataReturned').text()).to.equal('No Data Returned');
-            expect(this.update_spy.callCount).to.equal(1);
+            expect($('.testContainer').find('.popup-message').length).to.equal(1);
+            expect($('.popup-message').text()).to.equal('');
+            expect(this.update_spy.callCount).to.equal(0);
 
             // and then upon enough data being supplied, 'no data returned' is
             // no longer the case
@@ -265,11 +236,11 @@ describe('serviceStatusView.js spec', function() {
                 value: 'stopped'}]);
             this.testCollection.checkForSet();
             this.testCollection.trigger('sync');
-            expect($('.testContainer').find('#noDataReturned').length).to.equal(0);
-            expect($('#noDataReturned').text()).to.equal('');
+            expect($('.testContainer').find('.popup-message').length).to.equal(1);
+            expect($('.popup-message').text()).to.equal('No Data Returned');
             expect(this.update_spy.callCount).to.equal(2);
 
-            this.update_spy.restore();
+            this.update_spy.restore();*/
         });
         it('sorts appropriately', function() {
             assert.isDefined(this.testView.sorter, 'this.testView.sorter has been defined');

@@ -139,11 +139,11 @@ describe('UtilizationMem.js spec', function() {
         });
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
-            expect($('#noDataReturned').text()).to.equal('');
+            expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testView.update();
             this.testView.update();
-            expect($('#noDataReturned').text()).to.equal('No Data Returned');
+            expect($('.popup-message').text()).to.equal('No Data Returned');
             this.testCollection.add([{metric_type: "gauge",
                 name: "os.mem.total",
                 node: "compute-02",
@@ -159,7 +159,7 @@ describe('UtilizationMem.js spec', function() {
             this.testCollection.defaults.urlCollectionCount = 0;
             this.testView.update();
             this.testCollection.trigger('sync');
-            expect($('#noDataReturned').text()).to.equal('');
+            expect($('.popup-message').text()).to.equal('No Data Returned');
             expect(this.update_spy.callCount).to.equal(4);
             expect($('g').find('text').text()).to.equal('usedTotal: 31.35GB.561051015202530');
             this.update_spy.restore();

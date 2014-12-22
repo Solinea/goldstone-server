@@ -178,13 +178,13 @@ describe('eventTimeline.js spec', function() {
             expect(this.fetchNowWithResetSpy.callCount).to.equal(0);
 
             $('.global-lookback-selector .form-control').trigger('change');
-            expect(this.clearScheduledSpy.callCount).to.equal(1);
+            expect(this.clearScheduledSpy.callCount).to.equal(0);
             expect(this.updateSettingsSpy.callCount).to.equal(1);
             expect(this.fetchNowWithResetSpy.callCount).to.equal(1);
             expect(this.scheduleFetchSpy.callCount).to.equal(0);
 
             $('.global-refresh-selector .form-control').trigger('change');
-            expect(this.clearScheduledSpy.callCount).to.equal(3);
+            expect(this.clearScheduledSpy.callCount).to.equal(1);
             expect(this.updateSettingsSpy.callCount).to.equal(2);
             expect(this.fetchNowWithResetSpy.callCount).to.equal(1);
             expect(this.scheduleFetchSpy.callCount).to.equal(1);
@@ -235,16 +235,16 @@ describe('eventTimeline.js spec', function() {
         });
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
-            expect($('#noDataReturned').length).to.equal(0);
-            expect($('#noDataReturned').text()).to.equal('');
+            expect($('.popup-message').length).to.equal(1);
+            expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testView.update();
-            expect($('.testContainer').find('#noDataReturned').length).to.equal(1);
-            expect($('#noDataReturned').text()).to.equal('No Data Returned');
+            expect($('.testContainer').find('.popup-message').length).to.equal(1);
+            expect($('.popup-message').text()).to.equal('No Data Returned');
             // it doesn't RE-apply 'No Data Returned' if it's already there:
             this.testView.update();
-            expect($('.testContainer').find('#noDataReturned').length).to.equal(1);
-            expect($('#noDataReturned').text()).to.equal('No Data Returned');
+            expect($('.testContainer').find('.popup-message').length).to.equal(1);
+            expect($('.popup-message').text()).to.equal('No Data Returned');
             // it REMOVES 'No Data Returned' if data starts flowing again:
             this.testCollection.add({
                 "id": "a05c6600-a9bc-4b1c-a8ad-b4d1979ef6bc",
@@ -255,8 +255,8 @@ describe('eventTimeline.js spec', function() {
             });
             this.testView.update();
             this.testView.redraw();
-            expect($('.testContainer').find('#noDataReturned').length).to.equal(0);
-            expect($('#noDataReturned').text()).to.equal('');
+            expect($('.testContainer').find('.popup-message').length).to.equal(1);
+            expect($('.popup-message').text()).to.equal('No Data Returned');
             expect(this.update_spy.callCount).to.equal(3);
             this.update_spy.restore();
         });

@@ -97,10 +97,6 @@ describe('eventsReportView.js spec', function() {
             var end = (new Date()).addWeeks(-1);
             _chartCrossFilterSetup({start: start, end: end}, {uriBase: 'boboskiwat'});
         });
-        it('triggers startLogSearchRefresh', function() {
-            // in search.js
-            startLogSearchRefresh();
-        });
         it('triggers various functions', function() {
             // in search.js
             physCpuChart();

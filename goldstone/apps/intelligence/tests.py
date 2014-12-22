@@ -34,19 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 class LogDataModel(SimpleTestCase):
-    conn = Elasticsearch(settings.ES_SERVER)
-
-    def test_get_connection(self):
-        q = dict(query={"match": {"type": "syslog"}})
-        test_conn = LogData.get_connection("localhost")
-        rs = test_conn.search(index="_all", body=q)
-        self.assertIsNotNone(rs)
-        test_conn = LogData.get_connection("localhost:9200")
-        rs = test_conn.search(index="_all", body=q)
-        self.assertIsNotNone(rs)
-        test_conn = LogData.get_connection(["localhost"])
-        rs = test_conn.search(index="_all", body=q)
-        self.assertIsNotNone(rs)
+    conn = GSConnection().conn
 
     def test_get_components(self):
         test_q = {
@@ -66,7 +54,7 @@ class LogDataModel(SimpleTestCase):
         control = [d['term'] for d in
                    test_response['facets']['components']['terms']]
 
-        comps = LogData().get_components(self.conn)
+        comps = LogData().get_components()
         self.assertEqual(sorted(comps), sorted(control))
 
     def test_get_loglevels(self):
@@ -87,7 +75,7 @@ class LogDataModel(SimpleTestCase):
         control = [d['term'] for d in
                    test_response['facets']['loglevels']['terms']]
 
-        comps = LogData().get_loglevels(self.conn)
+        comps = LogData().get_loglevels()
         self.assertEqual(sorted(comps), sorted(control))
 
     def test_subtract_months(self):
@@ -151,7 +139,7 @@ class LogDataModel(SimpleTestCase):
         }
         control = self.conn.search(index="_all", body=test_q)
         result = LogData()._loglevel_by_time_agg(
-            self.conn, start, end, interval, query_filter=None)
+            start, end, interval, query_filter=None)
         self.assertEqual(result['aggregations'], control['aggregations'])
 
     def test_get_err_and_warn_hists(self):
@@ -196,7 +184,7 @@ class LogDataModel(SimpleTestCase):
             }
             control = self.conn.search(
                 index="_all", body=test_q)
-            result = LogData().get_loglevel_histogram_data(self.conn, start,
+            result = LogData().get_loglevel_histogram_data(start,
                                                            end, interval)
             self.assertEqual(result, control['aggregations'])
 
@@ -253,7 +241,7 @@ class LogDataModel(SimpleTestCase):
                 }
 
             control = self.conn.search(index="_all", body=test_q, sort=sort)
-            result = LogData().get_log_data(self.conn, start, end,
+            result = LogData().get_log_data(start, end,
                                             0, 10, sort=sort,
                                             search_text=search_text)
             self.assertEqual(result['hits'], control['hits'])
@@ -339,7 +327,7 @@ class LogDataModel(SimpleTestCase):
         }
 
         control = self.conn.search(index="_all", body=test_q, sort='')
-        result = LogData().get_hypervisor_stats(self.conn, start, end,
+        result = LogData().get_hypervisor_stats(start, end,
                                                 interval)
         self.assertEqual(result['aggregations'], control['aggregations'])
 

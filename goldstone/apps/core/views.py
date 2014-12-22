@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from elasticsearch import ElasticsearchException
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 
@@ -22,12 +23,11 @@ from .models import *
 from .serializers import *
 import logging
 import arrow
-from django.http import Http404, HttpResponseBadRequest, HttpResponseNotAllowed
+from django.http import Http404, HttpResponseNotAllowed
 from rest_framework import status
-from rest_framework.decorators import api_view, detail_route
+from rest_framework.decorators import detail_route
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, GenericViewSet, \
-    ReadOnlyModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 import elasticutils
 
 logger = logging.getLogger(__name__)
@@ -120,11 +120,60 @@ class ElasticViewSetMixin(object):
 
 
 class ElasticViewSet(ElasticViewSetMixin, ModelViewSet):
-    pass
+    def list(self, request, *args, **kwargs):
+        try:
+            return super(ElasticViewSet, self).list(request, *args, **kwargs)
+        except ElasticsearchException as e:
+            return Response(data="Could not connect to the ElasticSearch"
+                                 " backend",
+                            status=status.HTTP_504_GATEWAY_TIMEOUT)
+        except Exception as e:
+            logger.exception(e)
+            raise
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            return super(ElasticViewSet, self).retrieve(request, *args,
+                                                        **kwargs)
+        except Http404:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        except ElasticsearchException as e:
+            return Response(data="Could not connect to the ElasticSearch"
+                                 " backend",
+                            status=status.HTTP_504_GATEWAY_TIMEOUT)
+        except Exception as e:
+            logger.exception(e)
+            raise
 
 
 class ReadOnlyElasticViewSet(ElasticViewSetMixin, ReadOnlyModelViewSet):
-    pass
+
+    def list(self, request, *args, **kwargs):
+        try:
+            return super(ReadOnlyElasticViewSet, self).list(request, *args,
+                                                            **kwargs)
+        except ElasticsearchException as e:
+            return Response(data="Could not connect to the ElasticSearch"
+                                 " backend",
+                            status=status.HTTP_504_GATEWAY_TIMEOUT)
+        except Exception as e:
+            logger.exception(e)
+            raise
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            return super(ReadOnlyElasticViewSet, self).retrieve(request,
+                                                                *args,
+                                                                **kwargs)
+        except Http404:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        except ElasticsearchException as e:
+            return Response(data="Could not connect to the ElasticSearch"
+                                 " backend",
+                            status=status.HTTP_504_GATEWAY_TIMEOUT)
+        except Exception as e:
+            logger.exception(e)
+            raise
 
 
 class EventViewSet(ElasticViewSet):
@@ -144,25 +193,35 @@ class NodeViewSet(ReadOnlyElasticViewSet):
 
     @detail_route(methods=['PATCH'])
     def enable(self, request, *args, **kwargs):
-        node = self.get_object()
-        if node is not None:
-            node.admin_disabled = False
-            node.save()
-            serializer = NodeSerializer(node)
-            return Response(serializer.data)
-        else:
-            raise Http404
+        try:
+            node = self.get_object()
+            if node is not None:
+                node.admin_disabled = False
+                node.save()
+                serializer = NodeSerializer(node)
+                return Response(serializer.data)
+            else:
+                raise Http404
+        except ElasticsearchException as e:
+            return Response(data="Could not connect to the ElasticSearch"
+                                 " backend",
+                            status=status.HTTP_504_GATEWAY_TIMEOUT)
 
     @detail_route(methods=['PATCH'])
     def disable(self, request, *args, **kwargs):
-        node = self.get_object()
-        if node is not None:
-            node.admin_disabled = True
-            node.save()
-            serializer = NodeSerializer(node)
-            return Response(serializer.data)
-        else:
-            raise Http404
+        try:
+            node = self.get_object()
+            if node is not None:
+                node.admin_disabled = True
+                node.save()
+                serializer = NodeSerializer(node)
+                return Response(serializer.data)
+            else:
+                raise Http404
+        except ElasticsearchException as e:
+            return Response(data="Could not connect to the ElasticSearch"
+                                 " backend",
+                            status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
 class MetricViewSet(ReadOnlyElasticViewSet):
@@ -193,29 +252,28 @@ class ReportListView(ElasticViewSetMixin, APIView):
         """
         Get the list of reports in the system.
         """
-
-        params = self._process_params(request.QUERY_PARAMS.dict())
-        qs = elasticutils.S().es(urls=settings.ES_URLS, timeout=30)
-        qs = qs. \
-            indexes('goldstone_agent'). \
-            doctypes('core_report'). \
-            query(name__prefix='os.service', must_not=True). \
-            query(**params['query_kwargs']). \
-            filter(**params['filter_kwargs'])
-
-        if 'order_by' in params:
-            qs = qs.order_by(params['order_by'])
-
-        # add the term facet clause
-        qs = qs.facet("name", filtered=True, size=100)
-
         try:
+            params = self._process_params(request.QUERY_PARAMS.dict())
+            qs = elasticutils.S().es(
+                urls=settings.ES_URLS, timeout=2, max_retries=1,
+                sniff_on_start=False)
+            qs = qs. \
+                indexes('goldstone_agent'). \
+                doctypes('core_report'). \
+                query(name__prefix='os.service', must_not=True). \
+                query(**params['query_kwargs']). \
+                filter(**params['filter_kwargs'])
+            if 'order_by' in params:
+                qs = qs.order_by(params['order_by'])
+            # add the term facet clause
+            qs = qs.facet("name", filtered=True, size=100)
             result = qs.execute().facets
             result = result['name'].terms
             return Response([entry['term'] for entry in result],
                             status=status.HTTP_200_OK)
         except AttributeError:
             return Response([], status=status.HTTP_200_OK)
-        except:
-            logger.exception('failed to GET report_list')
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except ElasticsearchException:
+            return Response(data="Could not connect to the ElasticSearch"
+                                 " backend",
+                            status=status.HTTP_504_GATEWAY_TIMEOUT)

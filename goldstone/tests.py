@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from goldstone import StartupGoldstone
 from goldstone.apps.core.models import NodeType, Node
 
 __author__ = 'John Stanford'
@@ -99,6 +100,28 @@ class PrimeData(TestCase):
                 rv = conn.index(index, event['_type'], event['_source'])
 
         conn.indices.refresh([index])
+
+
+class StartupGoldstoneTest(SimpleTestCase):
+
+    @patch.object(GSConnection, '__init__')
+    def test_es_unavailable(self, conn):
+        """
+        goldstone should raise any excpetions encountered, and fail to start
+        if ES is unavailable.
+        """
+        conn.side_effect = ConnectionError()
+        self.assertRaises(ConnectionError, StartupGoldstone)
+        conn.side_effect = TransportError()
+        self.assertRaises(TransportError, StartupGoldstone)
+
+    @patch.object(StartupGoldstone, '_setup_index')
+    def test_es_available(self, _setup_index):
+        """
+        goldstone should attempt to create the two indices by calling the
+        """
+        StartupGoldstone()
+        self.assertTrue(_setup_index.call_count, 2)
 
 
 class GSConnectionModel(SimpleTestCase):
