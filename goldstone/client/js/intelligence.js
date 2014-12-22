@@ -348,7 +348,13 @@ function badEventMultiLine(location, start, end) {
     $(loadingIndicator).show();
 
     d3.json(uri, function(error, events) {
+        if(error){
+            console.log('in error', error);
+            dataErrorMessage(null, error, '.log-popup-message');
+            return;
+        }
         if (events.data.length > 0) {
+            clearDataErrorMessage('.log-popup-message');
             events.data.forEach(function(d) {
                 d.time = moment(d.time);
                 d.total = 0;
@@ -609,15 +615,15 @@ function physDiskChart(location, start, end) {
 
 }
 
-function clearDataErrorMessage() {
+function clearDataErrorMessage(location) {
     // if error message already exists on page,
     // remove it in case it has changed
-    if ($('.search-popup-message').length) {
-        $('.search-popup-message').fadeOut("slow");
+    if ($(location).length) {
+        $(location).fadeOut("slow");
     }
 }
 
-function dataErrorMessage(message, errorMessage) {
+function dataErrorMessage(message, errorMessage, location) {
 
     // 2nd parameter will be supplied in the case of an
     // 'error' event such as 504 error. Othewise,
@@ -629,7 +635,7 @@ function dataErrorMessage(message, errorMessage) {
     }
 
     // calling raiseAlert with the 3rd param will supress auto-hiding
-    goldstone.raiseAlert($('.search-popup-message'), message, true);
+    goldstone.raiseAlert($(location), message, true);
 }
 
 function drawSearchTable(location, start, end) {
@@ -668,7 +674,7 @@ function drawSearchTable(location, start, end) {
             "ajax": {
                 url: uri,
                 error: function(data) {
-                    dataErrorMessage(null, data);
+                    dataErrorMessage(null, data, '.search-popup-message');
                 }
             },
             "columnDefs": [{
@@ -679,7 +685,7 @@ function drawSearchTable(location, start, end) {
                 "type": "date",
                 "targets": 0,
                 "render": function(data, type, full, meta) {
-                    clearDataErrorMessage();
+                    clearDataErrorMessage('.search-popup-message');
                     return moment(data).format();
                 }
             }, {
