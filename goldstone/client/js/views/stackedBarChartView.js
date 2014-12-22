@@ -86,8 +86,8 @@ var StackedBarChartView = Backbone.View.extend({
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
-                'margin-left': (ns.width / 2),
-                'margin-top': -(ns.height / 2)
+                'margin-left': ((ns.width + ns.margin.left + ns.margin.right) / 2),
+                'margin-top': -((ns.height + ns.margin.top + ns.margin.bottom) / 2)
             });
         });
 
