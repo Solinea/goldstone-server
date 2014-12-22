@@ -42,7 +42,7 @@ function refocusCockpitSecondaryCharts(filter) {
     "use strict";
     var keys = Object.keys(secondaryCockpitCharts);
 
-    keys.forEach(function (key) {
+    keys.forEach(function(key) {
         secondaryCockpitCharts[key].focus(filter);
     });
 }
@@ -50,15 +50,15 @@ function refocusCockpitSecondaryCharts(filter) {
 function _getSearchFormDates() {
     "use strict";
     //grab the values from the form elements
-    var end = (function () {
-            if (! $("#endTimeNow").prop("checked")) {
+    var end = (function() {
+            if (!$("#endTimeNow").prop("checked")) {
                 var e = $("input#settingsEndTime").val();
                 switch (e) {
                     case '':
                         return new Date();
                     default:
                         var d = new Date(+e);
-                        if ( d.toString() === 'Invalid Date') {
+                        if (d.toString() === 'Invalid Date') {
                             alert("End date must be valid. Using now.");
                             d = new Date();
                         }
@@ -68,7 +68,7 @@ function _getSearchFormDates() {
                 return new Date();
             }
         })(),
-        start = (function () {
+        start = (function() {
             var s = $("input#settingsStartTime").val();
             switch (s) {
                 case '':
@@ -129,17 +129,17 @@ function _processTimeBasedChartParams(end, start, maxPoints) {
     var endDate = typeof end !== 'undefined' ?
         _paramToDate(end) :
         new Date(),
-    startDate = typeof start !== 'undefined' ?
+        startDate = typeof start !== 'undefined' ?
         _paramToDate(start) :
-        (function () {
+        (function() {
             var s = new Date(endDate);
             s.addWeeks(-1);
             return s;
         })(),
-    result = {
-        'start': startDate,
-        'end': endDate
-    };
+        result = {
+            'start': startDate,
+            'end': endDate
+        };
 
     if (typeof maxPoints !== 'undefined') {
         result.interval = String(_autoSizeTimeInterval(startDate, endDate, maxPoints)) + "s";
@@ -162,7 +162,12 @@ function _barChartBase(location, margins, renderlet) {
     var chart = dc.barChart(location);
 
     margins = typeof margins !== 'undefined' ?
-        margins : { top: 50, bottom: 60, right: 30, left: 40 };
+        margins : {
+            top: 50,
+            bottom: 60,
+            right: 30,
+            left: 40
+    };
 
     chart
         .width(panelWidth)
@@ -193,7 +198,12 @@ function _lineChartBase(location, margins, renderlet) {
     var chart = dc.lineChart(location);
 
     margins = typeof margins !== 'undefined' ?
-        margins : { top: 30, bottom: 60, right: 30, left: 50 };
+        margins : {
+            top: 30,
+            bottom: 60,
+            right: 30,
+            left: 50
+    };
 
     chart
         .renderArea(true)
@@ -223,8 +233,8 @@ function refreshSearchTable(start, end, levels) {
         startTs = _toPyTs(start),
         endTs = _toPyTs(end),
         uri = '/intelligence/log/search/data'.concat(
-        "?start_time=", startTs,
-        "&end_time=", endTs);
+            "?start_time=", startTs,
+            "&end_time=", endTs);
 
     levels = levels || {};
     for (var k in levels) {
@@ -248,21 +258,21 @@ function refreshSearchTable(start, end, levels) {
  */
 function badEventMultiLine(location, start, end) {
 
-    var eventGroup = function (dim, level, supressed) {
+    var eventGroup = function(dim, level, supressed) {
         return dim.group().reduce(
-            function (p, v) {
-                if (! supressed) {
+            function(p, v) {
+                if (!supressed) {
                     p[level] += v[level];
                 }
                 return p;
             },
-            function (p, v) {
-                if (! supressed) {
+            function(p, v) {
+                if (!supressed) {
                     p[level] -= v[level];
                 }
                 return p;
             },
-            function () {
+            function() {
                 var p = {};
                 p[level] = 0;
                 return p;
@@ -272,28 +282,28 @@ function badEventMultiLine(location, start, end) {
 
     var rangeWidth = $(location).width(),
         maxPoints = rangeWidth / 10,
-        clickRenderlet = function (_chart) {
+        clickRenderlet = function(_chart) {
             _chart.selectAll("circle.dot")
-                .on("click", function (d) {
+                .on("click", function(d) {
                     // load the log search page with chart and table set
                     // to this range.  Params is being accessed through closure
                     var interval = Number(params.interval.slice(0, -1));
                     var start = (new Date(d.data.key)).addSeconds(-1 * interval),
                         end = (new Date(d.data.key)).addSeconds(interval),
                         uri = '/intelligence/search?start_time='
-                            .concat(String(Math.round(start.getTime() / 1000)),
-                                "&end_time=", String(Math.round(end.getTime() / 1000)));
+                        .concat(String(Math.round(start.getTime() / 1000)),
+                            "&end_time=", String(Math.round(end.getTime() / 1000)));
 
                     window.location.assign(uri);
 
                 });
         },
-        levelHidingRenderlet = function (_chart) {
+        levelHidingRenderlet = function(_chart) {
             // if the search table is present in the page, look up the hidden
             // status of all levels and redraw the page
             if ($('#log-search-table').length > 0) {
                 _chart.selectAll("g.dc-legend-item *")
-                    .on("click", function (d) {
+                    .on("click", function(d) {
                         var levelFilter = {};
                         // looks like we take the opposite value of hidden for
                         // the element that was clicked, and the current value
@@ -304,7 +314,7 @@ function badEventMultiLine(location, start, end) {
                         if (rects.length > 0) {
                             // we have an array of elements in [0]
                             rects = rects[0];
-                            rects.forEach(function (r) {
+                            rects.forEach(function(r) {
                                 if (r.__data__.name !== d.name) {
                                     levelFilter[r.__data__.name.toLowerCase()] = !r.__data__.hidden;
                                 }
@@ -314,27 +324,35 @@ function badEventMultiLine(location, start, end) {
                     });
             }
         },
-        chart = _lineChartBase(location,
-            { top: 30, bottom: 30, right: 30, left: 50 },
+        chart = _lineChartBase(location, {
+                top: 30,
+                bottom: 30,
+                right: 30,
+                left: 50
+            },
             clickRenderlet
         ),
-        rangeChart = _lineChartBase("#bad-event-range",
-            { top: 0, bottom: 30, right: 30, left: 50 }),
+        rangeChart = _lineChartBase("#bad-event-range", {
+            top: 0,
+            bottom: 30,
+            right: 30,
+            left: 50
+        }),
         loadingIndicator = "#log-multiline-loading-indicator",
         params = _processTimeBasedChartParams(end, start, maxPoints),
         uri = "/intelligence/log/cockpit/data?start_time="
-            .concat(String(Math.round(params.start.getTime() / 1000)),
-                "&end_time=", String(Math.round(params.end.getTime() / 1000)),
-                "&interval=", params.interval);
+        .concat(String(Math.round(params.start.getTime() / 1000)),
+            "&end_time=", String(Math.round(params.end.getTime() / 1000)),
+            "&interval=", params.interval);
 
     $(loadingIndicator).show();
 
-    d3.json(uri, function (error, events) {
+    d3.json(uri, function(error, events) {
         if (events.data.length > 0) {
-            events.data.forEach(function (d) {
+            events.data.forEach(function(d) {
                 d.time = moment(d.time);
                 d.total = 0;
-                events.levels.forEach(function (level) {
+                events.levels.forEach(function(level) {
                     d[level] = +d[level] || 0;
                     d.total += d[level];
                 });
@@ -342,7 +360,7 @@ function badEventMultiLine(location, start, end) {
 
 
             var xf = crossfilter(events.data);
-            var timeDim = xf.dimension(function (d) {
+            var timeDim = xf.dimension(function(d) {
                 return d.time;
             });
             var minDate = timeDim.bottom(1)[0].time;
@@ -359,14 +377,14 @@ function badEventMultiLine(location, start, end) {
                 .height(100)
                 .dimension(timeDim)
                 .group(totalGroup)
-                .valueAccessor(function (d) {
+                .valueAccessor(function(d) {
                     return d.value.total;
                 })
                 .mouseZoomable(true)
                 .brushOn(true)
                 .x(d3.time.scale().domain([minDate, maxDate]))
                 .ordinalColors(["#d9d9d9"])
-                .title(function (d) {
+                .title(function(d) {
                     return d.key + "\n" + d.value.total + " total events";
                 })
                 .yAxisLabel("Range")
@@ -385,49 +403,33 @@ function badEventMultiLine(location, start, end) {
                 .mouseZoomable(true)
                 .hidableStacks(true)
                 .dimension(timeDim)
-                .group(debugGroup, "Debug").valueAccessor(function (d) {
+                .group(debugGroup, "Debug").valueAccessor(function(d) {
                     return d.value.debug;
                 })
-                .stack(auditGroup, "Audit", function (d) {
+                .stack(auditGroup, "Audit", function(d) {
                     return d.value.audit;
                 })
-                .stack(infoGroup, "Info", function (d) {
+                .stack(infoGroup, "Info", function(d) {
                     return d.value.info;
                 })
-                .stack(warnGroup, "Warning", function (d) {
+                .stack(warnGroup, "Warning", function(d) {
                     return d.value.warning;
                 })
-                .stack(errorGroup, "Error", function (d) {
+                .stack(errorGroup, "Error", function(d) {
                     return d.value.error;
                 })
                 .x(d3.time.scale().domain([minDate, maxDate]))
-                // spectral blue/red
-                // ["#a50026","#d73027","#f46d43","#fdae61","#fee090","#ffffbf","#e0f3f8","#abd9e9","#74add1","#4575b4","#313695"]
-                //.ordinalColors(["#313695", "#74add1", "#e0f3f8", "#fee090", "#f46d43"])
-                // spectral blue/yellow/red
                 .ordinalColors(colorArray.distinct[5])
-                // the distinct colors used here are listed immediately below:
-                // .ordinalColors(["#332288", "#88CCEE", "#117733", "#DDCC77", "#CC6677"])
-                // this was the original color set below:
-                // .ordinalColors(["#6a51a3", "#2171b5", "#238b45", "#d94801", "#cb181d"])
-                // blue purple
-                //.ordinalColors(["#edf8fb", "#bfd3e6", "#9ebcda", "#8c96c6", "#8856a7", "#810f7c"])
-                // red purple
-                //.ordinalColors(["#f1eef6","#d4b9da","#c994c7","#df65b0","#dd1c77","#980043"])
-                // flat
-                //.ordinalColors(["#334d5c", "#45b29d","#efc94c","#e27a3f","#df5a49"])
-                //flat2
-                //.ordinalColors(["#553657", "#334d5c", "#45b29d","#efc94c","#df5a49"])
-                .title(function (d) {
+                .title(function(d) {
                     var eventKey = Object.keys(d.value)[0];
                     return d.key.format() + "\n" +
-                    d.value[eventKey] + " " + eventKey + " events";
+                        d.value[eventKey] + " " + eventKey + " events";
                 })
                 .yAxisLabel("Log Events")
                 .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5).horizontal(true))
-                .renderlet(function (_chart) {
+                .renderlet(function(_chart) {
                     // smooth the rendering through event throttling
-                    dc.events.trigger(function () {
+                    dc.events.trigger(function() {
                         // focus some other chart to the range selected by user on this chart
                         if (_chart.filter() !== null) {
                             refocusCockpitSecondaryCharts(_chart.filter());
@@ -458,28 +460,28 @@ function _chartCrossFilterSetup(params, chartConstants) {
         params.interval
     );
 
-    var jsonProcessingFunction = function (d) {
+    var jsonProcessingFunction = function(d) {
         d.time = new Date(d.time);
         d[chartConstants.totalPhysField] = +d[chartConstants.totalPhysField];
         d[chartConstants.totalVirtField] = +d[chartConstants.totalVirtField];
         d[chartConstants.usedField] = +d[chartConstants.usedField];
     };
 
-    var reduceEnterFunction = function (p, v) {
+    var reduceEnterFunction = function(p, v) {
         p[chartConstants.totalPhysField] += v[chartConstants.totalPhysField];
         p[chartConstants.totalVirtField] += v[chartConstants.totalVirtField];
         p[chartConstants.usedField] += v[chartConstants.usedField];
         return p;
     };
 
-    reduceExitFunction = function (p, v) {
+    reduceExitFunction = function(p, v) {
         p[chartConstants.totalPhysField] -= v[chartConstants.totalPhysField];
         p[chartConstants.totalVirtField] -= v[chartConstants.totalVirtField];
         p[chartConstants.usedField] -= v[chartConstants.usedField];
         return p;
     };
 
-    reduceInitFunction = function () {
+    reduceInitFunction = function() {
         var obj = {};
         obj[chartConstants.totalPhysField] = 0;
         obj[chartConstants.totalVirtField] = 0;
@@ -498,7 +500,7 @@ function _chartCrossFilterSetup(params, chartConstants) {
 
 function _customizeChart(_chart, xf, cfSetup, chartConstants, xUnitsInterval) {
 
-    var timeDim = xf.dimension(function (d) {
+    var timeDim = xf.dimension(function(d) {
         return d.time;
     });
     var minDate = timeDim.bottom(1)[0].time;
@@ -512,19 +514,19 @@ function _customizeChart(_chart, xf, cfSetup, chartConstants, xUnitsInterval) {
     _chart
         .dimension(timeDim)
         .group(eventsByTime, "Used")
-        .valueAccessor(function (d) {
+        .valueAccessor(function(d) {
             return d.value[chartConstants.usedField];
         })
-        .stack(eventsByTime, "Physical", function (d) {
+        .stack(eventsByTime, "Physical", function(d) {
             return (d.value[chartConstants.totalPhysField] - d.value[chartConstants.usedField]);
         })
         .x(d3.time.scale().domain([minDate, maxDate]))
         .ordinalColors(["#6a51a3", "#2171b5", "#d94801"])
         .legend(dc.legend().x(45).y(0).itemHeight(15).gap(5).horizontal(true))
-        .title(function (d) {
+        .title(function(d) {
             return d.key +
-            "\n\n" + d.value[chartConstants.totalPhysField] + " Total Physical" +
-            "\n\n" + d.value[chartConstants.usedField] + " Used";
+                "\n\n" + d.value[chartConstants.totalPhysField] + " Total Physical" +
+                "\n\n" + d.value[chartConstants.usedField] + " Used";
         })
         .yAxisLabel(chartConstants.resourceLabel)
         .xAxis().ticks(5);
@@ -532,14 +534,14 @@ function _customizeChart(_chart, xf, cfSetup, chartConstants, xUnitsInterval) {
     // the disk chart does not have a virtual field
     if (typeof chartConstants.totalVirtField !== 'undefined') {
         _chart
-            .stack(eventsByTime, "Virtual", function (d) {
+            .stack(eventsByTime, "Virtual", function(d) {
                 return (d.value[chartConstants.totalVirtField] - d.value[chartConstants.totalPhysField]);
             })
-            .title(function (d) {
+            .title(function(d) {
                 return d.key +
-                "\n\n" + d.value[chartConstants.totalPhysField] + " Total Physical" +
-                "\n\n" + d.value[chartConstants.totalVirtField] + " Total Virtual" +
-                "\n\n" + d.value[chartConstants.usedField] + " Used";
+                    "\n\n" + d.value[chartConstants.totalPhysField] + " Total Physical" +
+                    "\n\n" + d.value[chartConstants.totalVirtField] + " Total Virtual" +
+                    "\n\n" + d.value[chartConstants.usedField] + " Used";
             });
     }
 
@@ -554,7 +556,7 @@ function _renderResourceChart(location, start, end, chartConstants) {
     var chart = _lineChartBase(location);
     var cfSetup = _chartCrossFilterSetup(params, chartConstants);
 
-    d3.json(cfSetup.uri, function (error, events) {
+    d3.json(cfSetup.uri, function(error, events) {
         events.forEach(cfSetup.jsonFunction);
         var xf = crossfilter(events);
         chart = _customizeChart(chart, xf, cfSetup, chartConstants, params.interval);
@@ -568,9 +570,9 @@ function physCpuChart(location, start, end) {
 
     var chartConstants = {
         uriBase: "/intelligence/compute/cpu_stats",
-        totalPhysField : "phys_cpu_avg_total",
-        totalVirtField : "virt_cpu_avg_total",
-        usedField : "virt_cpu_max_used",
+        totalPhysField: "phys_cpu_avg_total",
+        totalVirtField: "virt_cpu_avg_total",
+        usedField: "virt_cpu_max_used",
         resourceLabel: "Cores",
         loadingIndicator: "#phys-cpu-loading-indicator"
     };
@@ -581,13 +583,13 @@ function physCpuChart(location, start, end) {
 function physMemChart(location, start, end) {
 
     var chartConstants = {
-            uriBase: "/intelligence/compute/mem_stats",
-            totalPhysField: "phys_mem_avg_total",
-            totalVirtField: "virt_mem_avg_total",
-            usedField: "virt_mem_max_used",
-            resourceLabel: "GB",
-            loadingIndicator: "#phys-mem-loading-indicator"
-        };
+        uriBase: "/intelligence/compute/mem_stats",
+        totalPhysField: "phys_mem_avg_total",
+        totalVirtField: "virt_mem_avg_total",
+        usedField: "virt_mem_max_used",
+        resourceLabel: "GB",
+        loadingIndicator: "#phys-mem-loading-indicator"
+    };
 
     _renderResourceChart(location, start, end, chartConstants);
 
@@ -607,6 +609,29 @@ function physDiskChart(location, start, end) {
 
 }
 
+function clearDataErrorMessage() {
+    // if error message already exists on page,
+    // remove it in case it has changed
+    if ($('.search-popup-message').length) {
+        $('.search-popup-message').fadeOut("slow");
+    }
+}
+
+function dataErrorMessage(message, errorMessage) {
+
+    // 2nd parameter will be supplied in the case of an
+    // 'error' event such as 504 error. Othewise,
+    // function will append message supplied such as 'no data'.
+
+    if (errorMessage !== undefined) {
+        message = errorMessage.responseText;
+        message = '' + errorMessage.status + ' error: ' + message;
+    }
+
+    // calling raiseAlert with the 3rd param will supress auto-hiding
+    goldstone.raiseAlert($('.search-popup-message'), message, true);
+}
+
 function drawSearchTable(location, start, end) {
     $("#log-table-loading-indicator").show();
 
@@ -623,8 +648,8 @@ function drawSearchTable(location, start, end) {
 
     var oTable,
         uri = '/intelligence/log/search/data'.concat(
-        "?start_time=", String(Math.round(start.getTime() / 1000)),
-        "&end_time=", String(Math.round(end.getTime() / 1000)));
+            "?start_time=", String(Math.round(start.getTime() / 1000)),
+            "&end_time=", String(Math.round(end.getTime() / 1000)));
 
     if ($.fn.dataTable.isDataTable(location)) {
         oTable = $(location).DataTable();
@@ -640,30 +665,60 @@ function drawSearchTable(location, start, end) {
             "searching": true,
             "ordering": true,
             "serverSide": true,
-            "ajax": uri,
-            "columnDefs": [
-                { "visible": false, "targets": [ 5, 6, 7, 8, 9, 10 ] },
-                { "name": "timestamp", "type": "date", "targets": 0,
-                  "render": function (data, type, full, meta) {
-                        return moment(data).format();
-                    }
-                },
-                { "name": "loglevel", "targets": 1 },
-                { "name": "component", "targets": 2 },
-                { "name": "host", "targets": 3 },
-                { "name": "message", "targets": 4 },
-                { "name": "location", "targets": 5 },
-                { "name": "pid", "targets": 6 },
-                { "name": "source", "targets": 7 },
-                { "name": "request_id", "targets": 8 },
-                { "name": "type", "targets": 9 },
-                { "name": "received", "type": "date", "targets": 10 }
-            ]
+            "ajax": {
+                url: uri,
+                error: function(data) {
+                    dataErrorMessage(null, data);
+                }
+            },
+            "columnDefs": [{
+                "visible": false,
+                "targets": [5, 6, 7, 8, 9, 10]
+            }, {
+                "name": "timestamp",
+                "type": "date",
+                "targets": 0,
+                "render": function(data, type, full, meta) {
+                    clearDataErrorMessage();
+                    return moment(data).format();
+                }
+            }, {
+                "name": "loglevel",
+                "targets": 1
+            }, {
+                "name": "component",
+                "targets": 2
+            }, {
+                "name": "host",
+                "targets": 3
+            }, {
+                "name": "message",
+                "targets": 4
+            }, {
+                "name": "location",
+                "targets": 5
+            }, {
+                "name": "pid",
+                "targets": 6
+            }, {
+                "name": "source",
+                "targets": 7
+            }, {
+                "name": "request_id",
+                "targets": 8
+            }, {
+                "name": "type",
+                "targets": 9
+            }, {
+                "name": "received",
+                "type": "date",
+                "targets": 10
+            }]
         };
 
         oTable = $(location).DataTable(oTableParams);
 
-        $(window).bind('resize', function () {
+        $(window).bind('resize', function() {
             oTable.fnAdjustColumnSizing();
         });
     }
