@@ -156,7 +156,7 @@ var StackedBarChartView = Backbone.View.extend({
             .attr("class", "axis.label")
             .attr("transform", "rotate(-90)")
             .attr("x", 0 - (ns.height / 2))
-            .attr("y", -ns.margin.left)
+            .attr("y", -ns.margin.left + 5)
             .attr("dy", "1.5em")
             .text(ns.yAxisLabel)
             .style("text-anchor", "middle");
@@ -312,14 +312,18 @@ var StackedBarChartView = Backbone.View.extend({
     },
 
     template: _.template(
-        '<div id="api-perf-panel-header" class="panel panel-primary">' +
-        '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
-        '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
-        '</h3></div><div class="alert alert-danger popup-message" hidden="true"></div>'),
+        '<div class="alert alert-danger popup-message" hidden="true"></div>'),
 
     render: function() {
-        this.$el.html(this.template());
+
+        new ChartHeaderView({
+            el: this.el,
+            columns: 12,
+            chartTitle: this.defaults.chartTitle,
+            infoText: this.defaults.infoCustom
+        });
+
+        $(this.el).find('.mainContainer').append(this.template());
         return this;
     }
 

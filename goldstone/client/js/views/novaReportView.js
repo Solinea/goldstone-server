@@ -19,8 +19,6 @@
 var NovaReportView = ApiPerfReportView.extend({
 
     triggerChange: function() {
-        console.log('triggeredChange');
-        // this.renderCharts();
         this.novaApiPerfChartView.trigger('selectorChanged');
         this.vmSpawnChartView.trigger('selectorChanged');
     },
@@ -37,7 +35,6 @@ var NovaReportView = ApiPerfReportView.extend({
         nsReport.end = +new Date();
         nsReport.interval = '' + Math.round(0.357 * this.defaults.globalLookback) + "s";
 
-        // gnspawns.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r1-c2', true);
         gncpu.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r2-c1', true);
         gnmem.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r2-c2', true);
         gndisk.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r3-c1', true);
@@ -68,14 +65,6 @@ var NovaReportView = ApiPerfReportView.extend({
         VM Spawns Chart
         */
 
-        $('#nova-report-r1-c2').empty();
-        new ChartHeaderView({
-            el: '#nova-report-r1-c2',
-            chartTitle: 'VM Spawns',
-            infoText: 'novaSpawns',
-            columns: 12
-        });
-
         this.vmSpawnChart = new StackedBarChartCollection({
             urlPrefix: '/nova/hypervisor/spawns',
             render: false
@@ -85,10 +74,7 @@ var NovaReportView = ApiPerfReportView.extend({
             chartTitle: "VM Spawns",
             collection: this.vmSpawnChart,
             height: 300,
-            infoCustom: [{
-                key: "API Call",
-                value: "Spawn Events"
-            }],
+            infoCustom: 'novaSpawns',
             el: '#nova-report-r1-c2',
             width: $('#nova-report-r1-c2').width(),
             yAxisLabel: 'Spawn Events'
