@@ -24,7 +24,6 @@ wsgiref==0.1.2
 django-admin-bootstrapped==1.6.4
 django-extensions==1.2.5
 django-crispy-forms==1.4.0
-django.js==0.8.1
 pbr==0.8.0
 elasticsearch==1.2.0
 pyes==0.99.5
@@ -40,7 +39,6 @@ urllib3==1.8
 lockfile==0.9.1
 djangorestframework==3.0.0
 django-filter==0.9.1
-django-polymorphic==0.5.6
 elasticsearch-curator==2.0.0
 arrow==0.4.4
 django-rest-params==1.0.0
