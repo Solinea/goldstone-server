@@ -664,6 +664,7 @@ function drawSearchTable(location, start, end) {
     } else {
         var oTableParams = {
             "info": false,
+            "bAutoWidth": false,
             "autoWidth": true,
             "processing": true,
             "lengthChange": true,
@@ -721,40 +722,7 @@ function drawSearchTable(location, start, end) {
                 "targets": 10
             }]
         };
-
         oTable = $(location).DataTable(oTableParams);
-
-        $(window).bind('resize', function() {
-            oTable.fnAdjustColumnSizing();
-        });
     }
     $("#log-table-loading-indicator").hide();
 }
-
-/*
- function updateWindow(){
-
- var panelWidth = $("#row3-full").width();
- var panelHeight = 300;
- var margin = {top: 30, right: 30, bottom: 30, left: 80},
- width = panelWidth - margin.left - margin.right,
- height = panelHeight - margin.top - margin.bottom;
-
-
- x = d3.time.scale().range([0, width]);
- x.domain(d3.extent(data, function(d) { return d.date; }));
- xAxis = d3.svg.axis().scale(x)
- .orient("bottom").ticks(5);
-
- svg.attr("width", panelWidth)
- .attr("height", panelHeight);
- svg.select(".x.axis")
- .call(xAxis);
- svg.select(".line")
- .attr("d", valueLine(data));
-
- }
-
- window.onresize = updateWindow;
-
- */
