@@ -129,30 +129,25 @@ class DiscoverView(TopologyView):
 
 
 class EndpointsDataView(JSONView):
-    def __init__(self):
-        self.data = EndpointsData().get()
-        self.key = 'endpoints'
+    model = EndpointsData
+    key = 'endpoints'
 
 
 class RolesDataView(JSONView):
-    def __init__(self):
-        self.data = RolesData().get()
-        self.key = 'roles'
+    model = RolesData
+    key = 'roles'
 
 
 class ServicesDataView(JSONView):
-    def __init__(self):
-        self.data = ServicesData().get()
-        self.key = 'services'
+    model = ServicesData
+    key = 'services'
 
 
 class TenantsDataView(JSONView):
-    def __init__(self):
-        self.data = TenantsData().get()
-        self.key = 'tenants'
+    model = TenantsData
+    key = 'tenants'
 
 
 class UsersDataView(JSONView):
-    def __init__(self):
-        self.data = UsersData().get()
-        self.key = 'users'
+    model = UsersData
+    key = 'users'
