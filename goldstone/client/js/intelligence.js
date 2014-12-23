@@ -446,7 +446,7 @@ function badEventMultiLine(location, start, end) {
 
             chart.render();
         } else {
-            goldstone.raiseInfo("no data found");
+            dataErrorMessage("no data found", undefined, '.log-popup-message');
         }
         $(loadingIndicator).hide();
 
