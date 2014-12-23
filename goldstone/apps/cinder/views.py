@@ -187,39 +187,33 @@ class DiscoverView(TopologyView):
 
 
 class VolumesDataView(JSONView):
-    def __init__(self):
-        self.data = VolumesData().get()
-        self.key = 'volumes'
-        self.zone_key = 'availability_zone'
+    model = VolumesData
+    key = 'volumes'
+    zone_key = 'availability_zone'
 
 
 class BackupsDataView(JSONView):
-    def __init__(self):
-        self.data = BackupsData().get()
-        self.key = 'backups'
-        self.zone_key = 'availability_zone'
+    model = BackupsData
+    key = 'backups'
+    zone_key = 'availability_zone'
 
 
 class SnapshotsDataView(JSONView):
-    def __init__(self):
-        self.data = SnapshotsData().get()
-        self.key = 'snapshots'
+    model = SnapshotsData
+    key = 'snapshots'
 
 
 class ServicesDataView(JSONView):
-    def __init__(self):
-        self.data = ServicesData().get()
-        self.key = 'services'
-        self.zone_key = 'zone'
+    model = ServicesData
+    key = 'services'
+    zone_key = 'zone'
 
 
 class VolumeTypesDataView(JSONView):
-    def __init__(self):
-        self.data = VolTypesData().get()
-        self.key = 'volume_types'
+    model = VolTypesData
+    key = 'volume_types'
 
 
 class TransfersDataView(JSONView):
-    def __init__(self):
-        self.data = TransfersData().get()
-        self.key = 'transfers'
+    model = TransfersData
+    key = 'transfers'
