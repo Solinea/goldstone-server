@@ -20,7 +20,6 @@ from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf import settings
 from django.views.generic import RedirectView
-from djangojs.views import QUnitView
 import logging
 import rest_framework
 
@@ -50,15 +49,5 @@ urlpatterns = patterns(
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
 )
-
-if settings.QUNIT_ENABLED:
-    urlpatterns += patterns(
-        '',
-        url(r'^djangojs/', include('djangojs.urls')),
-        url(r'^qunit/base$', QUnitView.as_view(
-            template_name='qunit_base_tests.html',
-            js_files='js/tests/base_tests.js', django_js=True),
-            name='goldstone_base_qunit_view')
-    )
 
 urlpatterns += staticfiles_urlpatterns()

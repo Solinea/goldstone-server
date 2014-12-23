@@ -125,7 +125,6 @@ class DataViewTests(SimpleTestCase):
             self.assertGreaterEqual(len(j), 1)
             self.assertIsInstance(j[0], list)
 
-    @skip("FIXME, not sure what's wrong here, but works in the wild...")
     def test_get_endpoints(self):
         self._evaluate(self.client.get("/keystone/endpoints"))
 
