@@ -93,6 +93,5 @@ class DiscoverView(TopologyView):
 
 
 class ImagesDataView(JSONView):
-    def __init__(self):
-        self.data = ImagesData().get()
-        self.key = 'images'
+    model = ImagesData
+    key = 'images'
