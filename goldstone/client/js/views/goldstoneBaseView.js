@@ -38,14 +38,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         yAxisLabel: "Response Time (ms)"
     },
 
-    initialize: function(options) {
-
-        this.options = options || {};
-
-        // essential for unique chart objects,
-        // as objects/arrays are pass by reference
-        this.defaults = _.clone(this.defaults);
-
+    processOptions: function() {
         this.defaults.chartTitle = this.options.chartTitle || null;
         this.defaults.height = this.options.height || null;
         this.defaults.infoCustom = this.options.infoCustom || null;
@@ -60,10 +53,9 @@ var GoldstoneBaseView = Backbone.View.extend({
         if (this.options.yAxisLabel) {
             this.defaults.yAxisLabel = this.options.yAxisLabel;
         }
+    },
 
-        var ns = this.defaults;
-        var self = this;
-
+    processListeners: function() {
         // registers 'sync' event so view 'watches' collection for data update
         this.collection.on('sync', this.update, this);
         this.collection.on('error', this.dataErrorMessage, this);
@@ -77,16 +69,25 @@ var GoldstoneBaseView = Backbone.View.extend({
             this.defaults.end = this.collection.defaults.reportParams.end;
             this.defaults.interval = this.collection.defaults.reportParams.interval;
 
-            $(this.el).find('#api-perf-info').popover({
-                content: this.htmlGen.apply(this),
-            });
+            if ($(this.el).find('#api-perf-info').length) {
+                $(this.el).find('#api-perf-info').popover({
+                    content: this.htmlGen.apply(this),
+                });
+            }
 
             $(this.el).find('#spinner').show();
         });
 
+    },
 
-        ns.mw = ns.width - ns.margin.left - ns.margin.right;
-        ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
+    processMargins: function() {
+        this.defaults.mw = this.defaults.width - this.defaults.margin.left - this.defaults.margin.right;
+        this.defaults.mh = this.defaults.height - this.defaults.margin.top - this.defaults.margin.bottom;
+    },
+
+    showSpinner: function() {
+        var ns = this.defaults;
+        var self = this;
 
         var appendSpinnerLocation = this.el;
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
@@ -97,19 +98,26 @@ var GoldstoneBaseView = Backbone.View.extend({
             });
         });
 
-        this.render();
+    },
 
-        this.defaults.svg = d3.select(this.el).append("svg")
+    hideSpinner: function() {
+        $(this.el).find('#spinner').hide();
+    },
+
+    standardInit: function() {
+        var ns = this.defaults;
+        var self = this;
+
+        ns.svg = d3.select(this.el).append("svg")
             .attr("width", ns.width)
             .attr("height", ns.height);
 
-        this.defaults.chart = ns.svg
+        ns.chart = ns.svg
             .append("g")
             .attr("class", "chart")
             .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
 
         // initialized the axes
-
         ns.svg.append("text")
             .attr("class", "axis.label")
             .attr("transform", "rotate(-90)")
@@ -119,40 +127,42 @@ var GoldstoneBaseView = Backbone.View.extend({
             .text(ns.yAxisLabel)
             .style("text-anchor", "middle");
 
-        // chart info button popover generator
-        this.htmlGen = function() {
-            var start = moment(goldstone.time.fromPyTs(ns.start / 1000)).format();
-            var end = moment(goldstone.time.fromPyTs(ns.end / 1000)).format();
-            var custom = _.map(ns.infoCustom, function(e) {
-                return e.key + ": " + e.value + "<br>";
-            });
-            var result = '<div class="infoButton"><br>' + custom +
-                'Start: ' + start + '<br>' +
-                'End: ' + end + '<br>' +
-                'Interval: ' + ns.interval + '<br>' +
-                '<br></div>';
-            return result;
-        };
+        ns.x = d3.time.scale()
+            .rangeRound([0, ns.mw]);
 
-        $(this.el).find('#api-perf-info').popover({
-            trigger: 'manual',
-            content: function() {
-                return self.htmlGen.apply(this);
-            },
-            placement: 'bottom',
-            html: 'true'
-        })
-            .on("click", function(d) {
-                var targ = "#" + d.target.id;
-                $(self.el).find(targ).popover('toggle');
-            })
-            .on("mouseout", function(d) {
-                var targ = "#" + d.target.id;
-                $(self.el).find(targ).popover('hide');
-            });
+        ns.y = d3.scale.linear()
+            .range([ns.mh, 0]);
+
+        ns.xAxis = d3.svg.axis()
+            .scale(ns.x)
+            .ticks(5)
+            .orient("bottom");
+
+        ns.yAxis = d3.svg.axis()
+            .scale(ns.y)
+            .orient("left");
 
         ns.colorArray = new GoldstoneColors().get('colorSets');
+    },
 
+    specialInit: function() {},
+
+    initialize: function(options) {
+
+        this.options = options || {};
+
+        // essential for unique chart objects,
+        // as objects/arrays are pass by reference
+        this.defaults = _.clone(this.defaults);
+
+        // breaks down init into discrete steps
+        this.processOptions();
+        this.processListeners();
+        this.processMargins();
+        this.render();
+        this.standardInit();
+        this.showSpinner();
+        this.specialInit();
     },
 
     clearDataErrorMessage: function() {
@@ -178,230 +188,21 @@ var GoldstoneBaseView = Backbone.View.extend({
         goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
     },
 
-    update: function() {
-
-        var ns = this.defaults;
-        var self = this;
-        var json = this.collection.toJSON();
-        var mw = ns.mw;
-        var mh = ns.mh;
-
-        $(this.el).find('#spinner').hide();
-
-
-        if (this.collection.toJSON().length === 0) {
-
-            this.dataErrorMessage('No Data Returned');
-            return;
-        }
-
-        this.clearDataErrorMessage();
-
-        $(this.el).find('svg').find('.chart').html('');
-        $(this.el + '.d3-tip').detach();
-
-        json.forEach(function(d) {
-            d.time = moment(Number(d.key));
-        });
-
-        var x = d3.time.scale()
-            .domain(d3.extent(json, function(d) {
-                return d.time;
-            }))
-            .rangeRound([0, mw]);
-
-        var y = d3.scale.linear()
-            .domain([0, d3.max(json, function(d) {
-                return d.max;
-            })])
-            .range([mh, 0]);
-
-        var area = d3.svg.area()
-            .interpolate("basis")
-            .tension(0.85)
-            .x(function(d) {
-                return x(d.time);
-            })
-            .y0(function(d) {
-                return y(d.min);
-            })
-            .y1(function(d) {
-                return y(d.max);
-            });
-
-        var maxLine = d3.svg.line()
-            .interpolate("basis")
-            .tension(0.85)
-            .x(function(d) {
-                return x(d.time);
-            })
-            .y(function(d) {
-                return y(d.max);
-            });
-
-        var minLine = d3.svg.line()
-            .interpolate("basis")
-            .tension(0.85)
-            .x(function(d) {
-                return x(d.time);
-            })
-            .y(function(d) {
-                return y(d.min);
-            });
-
-        var avgLine = d3.svg.line()
-            .interpolate("basis")
-            .tension(0.85)
-            .x(function(d) {
-                return x(d.time);
-            })
-            .y(function(d) {
-                return y(d.avg);
-            });
-
-        var hiddenBar = ns.chart.selectAll(this.el + ' .hiddenBar')
-            .data(json);
-
-        var hiddenBarWidth = mw / json.length;
-
-        var xAxis = d3.svg.axis()
-            .scale(x)
-            .ticks(5)
-            .orient("bottom");
-
-        var yAxis = d3.svg.axis()
-            .scale(y)
-            .orient("left");
-
-        var tip = d3.tip()
-            .attr('class', 'd3-tip')
-            .attr('id', this.el.slice(1))
-            .html(function(d) {
-                return "<p>" + d.time.format() + "<br>Max: " + d.max.toFixed(2) +
-                    "<br>Avg: " + d.avg.toFixed(2) + "<br>Min: " + d.min.toFixed(2) + "<p>";
-            });
-
-        // Invoke the tip in the context of your visualization
-
-        ns.chart.call(tip);
-
-        // initialize the chart lines
-
-        ns.chart.append("path")
-            .datum(json)
-            .attr("class", "area")
-            .attr("id", "minMaxArea")
-            .attr("d", area)
-            .attr("fill", ns.colorArray.distinct[3][1])
-            .style("opacity", 0.3);
-
-        ns.chart.append('path')
-            .attr('class', 'line')
-            .attr('id', 'minLine')
-            .attr('data-legend', "Min")
-            .style("stroke", ns.colorArray.distinct[3][0])
-            .datum(json)
-            .attr('d', minLine);
-
-        ns.chart.append('path')
-            .attr('class', 'line')
-            .attr('id', 'maxLine')
-            .attr('data-legend', "Max")
-            .style("stroke", ns.colorArray.distinct[3][2])
-            .datum(json)
-            .attr('d', maxLine);
-
-        ns.chart.append('path')
-            .attr('class', 'line')
-            .attr('id', 'avgLine')
-            .attr('data-legend', "Avg")
-            .style("stroke-dasharray", ("3, 3"))
-            .style("stroke", ns.colorArray.grey[0][0])
-            .datum(json)
-            .attr('d', avgLine);
-
-        ns.chart.append('g')
-            .attr('class', 'x axis')
-            .attr('transform', 'translate(0, ' + mh + ')')
-            .call(xAxis);
-
-        ns.chart.append('g')
-            .attr('class', 'y axis')
-            .call(yAxis);
-
-        var legend = ns.chart.append("g")
-            .attr("class", "legend")
-            .attr("transform", "translate(20,-20)")
-            .call(d3.legend);
-
-        // UPDATE
-        // Update old elements as needed.
-
-        // ENTER
-        // Create new elements as needed.
-
-        hiddenBar.enter()
-            .append('g')
-            .attr("transform", function(d, i) {
-                return "translate(" + i * hiddenBarWidth + ",0)";
-            });
-
-        // ENTER + UPDATE
-        // Appending to the enter selection expands the update selection to include
-        // entering elements; so, operations on the update selection after appending to
-        // the enter selection will apply to both entering and updating nodes.
-
-        // hidden rectangle for tooltip tethering
-
-        hiddenBar.append("rect")
-            .attr('class', 'partialHiddenBar')
-            .attr("id", function(d, i) {
-                return "verticalRect" + i;
-            })
-            .attr("y", function(d) {
-                return y(d.max);
-            })
-            .attr("height", function(d) {
-                return mh - y(d.max);
-            })
-            .attr("width", hiddenBarWidth);
-
-        // narrow guideline turns on when mouse enters hidden bar
-
-        hiddenBar.append("rect")
-            .attr("class", "verticalGuideLine")
-            .attr("id", function(d, i) {
-                return "verticalGuideLine" + i;
-            })
-            .attr("x", 0)
-            .attr("height", mh)
-            .attr("width", 1)
-            .style("opacity", 0);
-
-        // wide guideline with mouse event handling to show guide and
-        // tooltip.
-
-        hiddenBar.append("rect")
-            .attr('class', 'hiddenBar')
-            .attr("height", mh)
-            .attr("width", hiddenBarWidth)
-            .on('mouseenter', function(d, i) {
-                var rectId = self.el + " #verticalRect" + i,
-                    guideId = self.el + " #verticalGuideLine" + i,
-                    targ = d3.select(guideId).pop().pop();
-                d3.select(guideId).style("opacity", 0.8);
-                tip.offset([50, 0]).show(d, targ);
-            })
-            .on('mouseleave', function(d, i) {
-                var id = self.el + " #verticalGuideLine" + i;
-                d3.select(id).style("opacity", 0);
-                tip.hide();
-            });
-
-        // EXIT
-        // Remove old elements as needed.
-
+    dataPrep: function(data) {
+        var result = data;
+        return result;
     },
+
+    checkReturnedDataSet: function(data) {
+        if(data.length === 0){
+            this.dataErrorMessage('No Data Returned');
+            return false;
+        } else {
+            this.clearDataErrorMessage();
+        }
+    },
+
+    update: function() {},
 
     template: _.template(
         '<div id="api-perf-panel-header" class="panel panel-primary">' +
