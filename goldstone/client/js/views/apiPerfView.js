@@ -18,106 +18,11 @@
 
 // view is linked to collection when instantiated in api_perf_report.html
 
-var ApiPerfView = Backbone.View.extend({
+var ApiPerfView = GoldstoneBaseView.extend({
 
-    // adapted from
-    // goldstone.charts.bivariateWithAverage
-
-    defaults: {
-        margin: {
-
-            // goldstone.settings.charts.margins:
-            // {top: 30, bottom: 60, right: 30, left: 50}
-            top: goldstone.settings.charts.margins.top,
-            right: goldstone.settings.charts.margins.right,
-            bottom: goldstone.settings.charts.margins.bottom,
-
-            // creates breathing room between y-axis-label and chart
-            left: goldstone.settings.charts.margins.left + 20
-        },
-        yAxisLabel: "Response Time (ms)"
-    },
-
-    initialize: function(options) {
-
-        this.options = options || {};
-
-        // essential for unique chart objects,
-        // as objects/arrays are pass by reference
-        this.defaults = _.clone(this.defaults);
-
-        this.defaults.chartTitle = this.options.chartTitle;
-        this.defaults.height = this.options.height;
-        this.defaults.infoCustom = this.options.infoCustom;
-        this.el = this.options.el;
-        this.defaults.width = this.options.width;
-        this.defaults.start = this.collection.defaults.reportParams.start;
-        this.defaults.end = this.collection.defaults.reportParams.end;
-        this.defaults.interval = this.collection.defaults.reportParams.interval;
-
-        // easy to pass in a unique yAxisLabel. This pattern can be
-        // expanded to any variable to allow overriding the default.
-        if (this.options.yAxisLabel) {
-            this.defaults.yAxisLabel = this.options.yAxisLabel;
-        }
-
+    specialInit: function() {
         var ns = this.defaults;
         var self = this;
-
-        // registers 'sync' event so view 'watches' collection for data update
-        this.collection.on('sync', this.update, this);
-        this.collection.on('error', this.dataErrorMessage, this);
-
-        // this is triggered by a listener set on nodeReportView.js
-        this.on('selectorChanged', function() {
-            this.collection.defaults.globalLookback = $('#global-lookback-range').val();
-            this.collection.urlGenerator();
-            this.collection.fetch();
-            this.defaults.start = this.collection.defaults.reportParams.start;
-            this.defaults.end = this.collection.defaults.reportParams.end;
-            this.defaults.interval = this.collection.defaults.reportParams.interval;
-
-            $(this.el).find('#api-perf-info').popover({
-                content: this.htmlGen.apply(this),
-            });
-
-            $(this.el).find('#spinner').show();
-        });
-
-
-        ns.mw = ns.width - ns.margin.left - ns.margin.right;
-        ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
-
-        var appendSpinnerLocation = this.el;
-        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(appendSpinnerLocation).css({
-                'position': 'relative',
-                'margin-left': (ns.width / 2),
-                'margin-top': -(ns.height / 2)
-            });
-        });
-
-        this.render();
-
-        this.defaults.svg = d3.select(this.el).append("svg")
-            .attr("width", ns.width)
-            .attr("height", ns.height);
-
-        this.defaults.chart = ns.svg
-            .append("g")
-            .attr("class", "chart")
-            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
-
-        // initialized the axes
-
-        ns.svg.append("text")
-            .attr("class", "axis.label")
-            .attr("transform", "rotate(-90)")
-            .attr("x", 0 - (ns.height / 2))
-            .attr("y", -5)
-            .attr("dy", "1.5em")
-            .text(ns.yAxisLabel)
-            .style("text-anchor", "middle");
 
         // chart info button popover generator
         this.htmlGen = function() {
@@ -151,51 +56,21 @@ var ApiPerfView = Backbone.View.extend({
                 $(self.el).find(targ).popover('hide');
             });
 
-        ns.colorArray = new GoldstoneColors().get('colorSets');
-
-    },
-
-    clearDataErrorMessage: function() {
-        // if error message already exists on page,
-        // remove it in case it has changed
-        if ($(this.el).find('.popup-message').length) {
-            $(this.el).find('.popup-message').fadeOut("slow");
-        }
-    },
-
-    dataErrorMessage: function(message, errorMessage) {
-
-        // 2nd parameter will be supplied in the case of an
-        // 'error' event such as 504 error. Othewise,
-        // function will append message supplied such as 'no data'.
-
-        if (errorMessage !== undefined) {
-            message = errorMessage.responseText;
-            message = '' + errorMessage.status + ' error: ' + message;
-        }
-
-        // calling raiseAlert with the 3rd param will supress auto-hiding
-        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
     },
 
     update: function() {
-
         var ns = this.defaults;
         var self = this;
         var json = this.collection.toJSON();
+        json = this.dataPrep(json);
         var mw = ns.mw;
         var mh = ns.mh;
 
-        $(this.el).find('#spinner').hide();
+        this.hideSpinner();
 
-
-        if (this.collection.toJSON().length === 0) {
-
-            this.dataErrorMessage('No Data Returned');
+        if(this.checkReturnedDataSet(json) === false){
             return;
         }
-
-        this.clearDataErrorMessage();
 
         $(this.el).find('svg').find('.chart').html('');
         $(this.el + '.d3-tip').detach();
@@ -204,74 +79,61 @@ var ApiPerfView = Backbone.View.extend({
             d.time = moment(Number(d.key));
         });
 
-        var x = d3.time.scale()
-            .domain(d3.extent(json, function(d) {
-                return d.time;
-            }))
-            .rangeRound([0, mw]);
+        ns.x.domain(d3.extent(json, function(d) {
+            return d.time;
+        }));
 
-        var y = d3.scale.linear()
-            .domain([0, d3.max(json, function(d) {
-                return d.max;
-            })])
-            .range([mh, 0]);
+        ns.y.domain([0, d3.max(json, function(d) {
+            return d.max;
+        })]);
 
         var area = d3.svg.area()
             .interpolate("basis")
             .tension(0.85)
             .x(function(d) {
-                return x(d.time);
+                return ns.x(d.time);
             })
             .y0(function(d) {
-                return y(d.min);
+                return ns.y(d.min);
             })
             .y1(function(d) {
-                return y(d.max);
+                return ns.y(d.max);
             });
 
         var maxLine = d3.svg.line()
             .interpolate("basis")
             .tension(0.85)
             .x(function(d) {
-                return x(d.time);
+                return ns.x(d.time);
             })
             .y(function(d) {
-                return y(d.max);
+                return ns.y(d.max);
             });
 
         var minLine = d3.svg.line()
             .interpolate("basis")
             .tension(0.85)
             .x(function(d) {
-                return x(d.time);
+                return ns.x(d.time);
             })
             .y(function(d) {
-                return y(d.min);
+                return ns.y(d.min);
             });
 
         var avgLine = d3.svg.line()
             .interpolate("basis")
             .tension(0.85)
             .x(function(d) {
-                return x(d.time);
+                return ns.x(d.time);
             })
             .y(function(d) {
-                return y(d.avg);
+                return ns.y(d.avg);
             });
 
         var hiddenBar = ns.chart.selectAll(this.el + ' .hiddenBar')
             .data(json);
 
         var hiddenBarWidth = mw / json.length;
-
-        var xAxis = d3.svg.axis()
-            .scale(x)
-            .ticks(5)
-            .orient("bottom");
-
-        var yAxis = d3.svg.axis()
-            .scale(y)
-            .orient("left");
 
         var tip = d3.tip()
             .attr('class', 'd3-tip')
@@ -323,11 +185,11 @@ var ApiPerfView = Backbone.View.extend({
         ns.chart.append('g')
             .attr('class', 'x axis')
             .attr('transform', 'translate(0, ' + mh + ')')
-            .call(xAxis);
+            .call(ns.xAxis);
 
         ns.chart.append('g')
             .attr('class', 'y axis')
-            .call(yAxis);
+            .call(ns.yAxis);
 
         var legend = ns.chart.append("g")
             .attr("class", "legend")
@@ -359,10 +221,10 @@ var ApiPerfView = Backbone.View.extend({
                 return "verticalRect" + i;
             })
             .attr("y", function(d) {
-                return y(d.max);
+                return ns.y(d.max);
             })
             .attr("height", function(d) {
-                return mh - y(d.max);
+                return mh - ns.y(d.max);
             })
             .attr("width", hiddenBarWidth);
 
@@ -400,18 +262,6 @@ var ApiPerfView = Backbone.View.extend({
 
         // EXIT
         // Remove old elements as needed.
-
-    },
-
-    template: _.template(
-        '<div id="api-perf-panel-header" class="panel panel-primary">' +
-        '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
-        '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
-        '</h3></div><div class="alert alert-danger popup-message" hidden="true"></div>'),
-
-    render: function() {
-        this.$el.html(this.template());
-        return this;
     }
+
 });
