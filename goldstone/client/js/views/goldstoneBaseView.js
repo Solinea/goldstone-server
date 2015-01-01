@@ -20,22 +20,36 @@
 
 var GoldstoneBaseView = Backbone.View.extend({
 
-    // adapted from
-    // goldstone.charts.bivariateWithAverage
+    initialize: function(options) {
+
+        this.options = options || {};
+
+        // essential for unique chart objects,
+        // as objects/arrays are pass by reference
+        this.defaults = _.clone(this.defaults);
+
+        // breaks down init into discrete steps
+        this.processOptions();
+        this.processListeners();
+        this.processMargins();
+        this.render();
+        this.standardInit();
+        this.showSpinner();
+        this.specialInit();
+    },
 
     defaults: {
         margin: {
 
             // goldstone.settings.charts.margins:
-            // {top: 30, bottom: 60, right: 30, left: 50}
+            // top: 30, bottom: 60, right: 30, left: 50
             top: goldstone.settings.charts.margins.top,
             right: goldstone.settings.charts.margins.right,
             bottom: goldstone.settings.charts.margins.bottom,
 
             // creates breathing room between y-axis-label and chart
             left: goldstone.settings.charts.margins.left + 20
-        },
-        yAxisLabel: "Response Time (ms)"
+        }
     },
 
     processOptions: function() {
@@ -44,14 +58,13 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.defaults.infoCustom = this.options.infoCustom || null;
         this.el = this.options.el;
         this.defaults.width = this.options.width || null;
-        this.defaults.start = this.collection.defaults.reportParams.start || null;
-        this.defaults.end = this.collection.defaults.reportParams.end || null;
-        this.defaults.interval = this.collection.defaults.reportParams.interval || null;
 
         // easy to pass in a unique yAxisLabel. This pattern can be
         // expanded to any variable to allow overriding the default.
         if (this.options.yAxisLabel) {
             this.defaults.yAxisLabel = this.options.yAxisLabel;
+        } else {
+            this.defaults.yAxisLabel = "Response Time (ms)";
         }
     },
 
@@ -75,6 +88,7 @@ var GoldstoneBaseView = Backbone.View.extend({
                 });
             }
 
+            this.defaults.spinnerDisplay = 'inline';
             $(this.el).find('#spinner').show();
         });
 
@@ -89,18 +103,28 @@ var GoldstoneBaseView = Backbone.View.extend({
         var ns = this.defaults;
         var self = this;
 
-        var appendSpinnerLocation = this.el;
+        ns.spinnerDisplay = 'inline';
+
+        var appendSpinnerLocation;
+        if(ns.spinnerPlace){
+            appendSpinnerLocation = $(this.el).find(ns.spinnerPlace);
+        } else {
+            appendSpinnerLocation = this.el;
+        }
+
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
-                'margin-top': -(ns.height / 2)
+                'margin-top': -(ns.height / 2),
+                'display': ns.spinnerDisplay
             });
         });
 
     },
 
     hideSpinner: function() {
+        this.defaults.spinnerDisplay = 'none';
         $(this.el).find('#spinner').hide();
     },
 
@@ -147,24 +171,6 @@ var GoldstoneBaseView = Backbone.View.extend({
 
     specialInit: function() {},
 
-    initialize: function(options) {
-
-        this.options = options || {};
-
-        // essential for unique chart objects,
-        // as objects/arrays are pass by reference
-        this.defaults = _.clone(this.defaults);
-
-        // breaks down init into discrete steps
-        this.processOptions();
-        this.processListeners();
-        this.processMargins();
-        this.render();
-        this.standardInit();
-        this.showSpinner();
-        this.specialInit();
-    },
-
     clearDataErrorMessage: function() {
         // if error message already exists on page,
         // remove it in case it has changed
@@ -180,11 +186,25 @@ var GoldstoneBaseView = Backbone.View.extend({
         // function will append message supplied such as 'no data'.
 
         if (errorMessage !== undefined) {
-            message = errorMessage.responseText;
-            message = '' + errorMessage.status + ' error: ' + message;
+
+            message = '';
+
+            if (errorMessage.status) {
+                message = errorMessage.status + ' error: ' + message;
+            }
+
+            if (errorMessage.statusText) {
+                message += ' ' + errorMessage.statusText + '. ';
+            }
+
+            if (errorMessage.responseText) {
+                message += ' ' + errorMessage.responseText + '.';
+            }
+
         }
 
         // calling raiseAlert with the 3rd param will supress auto-hiding
+        console.log('this.el: ', this.el);
         goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
     },
 
@@ -194,7 +214,7 @@ var GoldstoneBaseView = Backbone.View.extend({
     },
 
     checkReturnedDataSet: function(data) {
-        if(data.length === 0){
+        if (data.length === 0) {
             this.dataErrorMessage('No Data Returned');
             return false;
         } else {

@@ -173,7 +173,7 @@ describe('serviceStatusView.js spec', function() {
         });
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
-            expect($('.popup-message').length).to.equal(0);
+            expect($('.popup-message').length).to.equal(1);
             expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testView.update();
