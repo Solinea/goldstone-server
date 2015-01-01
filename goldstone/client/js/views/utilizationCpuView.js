@@ -22,7 +22,7 @@
 The method of individuating charts that have particular individual requirements is to instantiate them with the 'featureSet' property within the options hash.
  */
 
-var UtilizationCpuView = Backbone.View.extend({
+var UtilizationCpuView = GoldstoneBaseView.extend({
 
     defaults: {
         margin: {
@@ -33,54 +33,79 @@ var UtilizationCpuView = Backbone.View.extend({
         }
     },
 
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
+    processOptions: function() {
+        UtilizationCpuView.__super__.processOptions.apply(this, arguments);
         this.defaults.url = this.collection.url;
-        this.el = options.el;
-        this.defaults.width = options.width;
-        this.defaults.featureSet = options.featureSet || null;
-
+        this.defaults.featureSet = this.options.featureSet || null;
         var ns = this.defaults;
-        var self = this;
-
         if (ns.featureSet === 'memUsage') {
             ns.divisor = (1 << 30);
         }
+        ns.formatPercent = d3.format(".0%");
+        ns.yAxisLabel = '';
+    },
+
+    processListeners: function() {
+        var ns = this.defaults;
+        var self = this;
 
         this.collection.on('sync', function() {
             if (self.collection.defaults.urlCollectionCount === 0) {
                 self.update();
-
                 // the collection count will have to be set back to the original count when re-triggering a fetch.
                 self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
                 self.collection.defaults.fetchInProgress = false;
             }
-
         });
-        this.collection.on('error', this.dataErrorMessage, this);
-        this.render();
 
-        // this is triggered by a listener set on nodeReportView.js
+        this.collection.on('error', this.dataErrorMessage, this);
+
         this.on('selectorChanged', function() {
             this.collection.defaults.globalLookback = $('#global-lookback-range').val();
             this.collection.fetchMultipleUrls();
             $(this.el).find('#spinner').show();
         });
+    },
 
+    processMargins: function() {
+        var ns = this.defaults;
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.width - ns.margin.top - ns.margin.bottom;
+    },
 
-        ns.formatPercent = d3.format(".0%");
+    standardInit: function() {
+        var ns = this.defaults;
+        var self = this;
+
+        /*
+        set up svg so that this can inherit from goldstoneBaseView
+        without the variance in how width and height are defined...
+        */
+
+        ns.svg = d3.select(this.el).append("svg")
+            .attr("width", ns.mw + ns.margin.left + ns.margin.right)
+            .attr("height", ns.mh + ns.margin.top + ns.margin.bottom);
+
+        ns.chart = ns.svg
+            .append("g")
+            .attr("class", "chart")
+            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+
+        // initialized the axes
+        ns.svg.append("text")
+            .attr("class", "axis.label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", 0 - (ns.height / 2))
+            .attr("y", -5)
+            .attr("dy", "1.5em")
+            .text(ns.yAxisLabel)
+            .style("text-anchor", "middle");
 
         ns.x = d3.time.scale()
-            .range([0, ns.mw]);
+            .rangeRound([0, ns.mw]);
 
         ns.y = d3.scale.linear()
             .range([ns.mh, 0]);
-
-        var colorArray = new GoldstoneColors().get('colorSets');
-        ns.color = d3.scale.ordinal().range(colorArray.distinct[3]);
 
         ns.xAxis = d3.svg.axis()
             .scale(ns.x)
@@ -95,6 +120,10 @@ var UtilizationCpuView = Backbone.View.extend({
             ns.yAxis
                 .tickFormat(ns.formatPercent);
         }
+
+        ns.colorArray = new GoldstoneColors().get('colorSets');
+
+        ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
 
         ns.area = d3.svg.area()
             .interpolate("monotone")
@@ -113,26 +142,6 @@ var UtilizationCpuView = Backbone.View.extend({
                 return d.values;
             });
 
-        ns.svg = d3.select(this.el).append("svg")
-            .attr("width", ns.mw + ns.margin.left + ns.margin.right)
-            .attr("height", ns.mh + ns.margin.top + ns.margin.bottom)
-            .append("g")
-            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
-
-        // required in case spinner loading takes
-        // longer than chart loading
-        ns.spinnerDisplay = 'inline';
-
-        var appendSpinnerLocation = this.el;
-        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(appendSpinnerLocation).css({
-                'position': 'relative',
-                'margin-left': (ns.width / 2),
-                'margin-top': -(ns.width / 2),
-                'display': ns.spinnerDisplay
-
-            });
-        });
 
     },
 
@@ -268,10 +277,10 @@ var UtilizationCpuView = Backbone.View.extend({
             })]);
         }
 
-        ns.svg.selectAll('.component')
+        ns.chart.selectAll('.component')
             .remove();
 
-        var component = ns.svg.selectAll(".component")
+        var component = ns.chart.selectAll(".component")
             .data(components)
             .enter().append("g")
             .attr("class", "component");
@@ -374,12 +383,12 @@ var UtilizationCpuView = Backbone.View.extend({
 
             });
 
-        ns.svg.append("g")
+        ns.chart.append("g")
             .attr("class", "x axis")
             .attr("transform", "translate(0," + ns.mh + ")")
             .call(ns.xAxis);
 
-        ns.svg.append("g")
+        ns.chart.append("g")
             .attr("class", "y axis")
             .call(ns.yAxis);
     },
