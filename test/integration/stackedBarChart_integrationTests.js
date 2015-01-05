@@ -128,12 +128,12 @@ describe('apiPerfView.js spec', function() {
         status: '999',
         responseText: 'naughty - coal for you!'
       });
-      expect($('.popup-message').text()).to.equal('999 error: naughty - coal for you!');
+      expect($('.popup-message').text()).to.equal('999 error: naughty - coal for you!.');
       this.testView.dataErrorMessage(null, {
         status: '123',
         responseText: 'nice - bourbon for you!'
       });
-      expect($('.popup-message').text()).to.equal('123 error: nice - bourbon for you!');
+      expect($('.popup-message').text()).to.equal('123 error: nice - bourbon for you!.');
       this.testView.dataErrorMessage('butterfly - spread your wings again');
       expect($('.popup-message').text()).to.equal('butterfly - spread your wings again');
       this.testCollection.add({
