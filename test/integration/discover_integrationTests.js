@@ -22,6 +22,8 @@ describe('discover.js spec', function() {
             $('body').append('<div id="goldstone-discover-r1-c1" style="width:500px;"></div>');
             $('body').append('<div id="goldstone-discover-r2-c1" style="width:500px;"></div>');
             $('body').append('<div id="goldstone-discover-r2-c2" style="width:500px;"></div>');
+            $('body').append('<div id="goldstone-discover-r3-c1" style="width:500px;"></div>');
+            $('body').append('<div id="goldstone-discover-r3-c2" style="width:500px;"></div>');
             data = [];
             renderCharts();
         });
