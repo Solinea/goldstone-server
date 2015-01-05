@@ -147,7 +147,6 @@ var ZoomablePartitionView = Backbone.View.extend({
         g.append("svg:image")
             .attr('x', 2)
             .attr('y', function(d) {
-                console.log('d.dx', d.dx);
                 return (d.dx * ky / 2) - 10;
             })
             .attr('width', 20)
@@ -202,7 +201,6 @@ var ZoomablePartitionView = Backbone.View.extend({
                 })
                 .attr('x', 2)
                 .attr('y', function(d) {
-                    console.log('d.dx', d.dx);
                     return (d.dx * ky / 2) - 10;
                 });
 
