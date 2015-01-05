@@ -190,7 +190,7 @@ var GoldstoneBaseView = Backbone.View.extend({
             message = '';
 
             if (errorMessage.status) {
-                message = errorMessage.status + ' error: ' + message;
+                message = errorMessage.status + ' error:' + message;
             }
 
             if (errorMessage.statusText) {
