@@ -18,8 +18,15 @@
 
 // view is linked to collection when instantiated in goldstone_discover.html
 
-var EventTimelineView = Backbone.View.extend({
+var EventTimelineView = GoldstoneBaseView.extend({
     defaults: {
+        margin: {
+            top: 25,
+            bottom: 25,
+            right: 20,
+            left: 40
+        },
+
         h: {
             "main": 100,
             "padding": 30,
@@ -27,44 +34,53 @@ var EventTimelineView = Backbone.View.extend({
         }
     },
 
-    initialize: function(options) {
+    processOptions: function() {
 
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults); 
+        this.defaults.colorArray = new GoldstoneColors().get('colorSets');
         this.defaults.url = this.collection.url;
-        this.el = options.el;
-        this.defaults.chartTitle = options.chartTitle;
-        this.defaults.width = options.width;
+        this.el = this.options.el;
+        this.defaults.chartTitle = this.options.chartTitle;
+        this.defaults.width = this.options.width;
         this.defaults.delay = null;
 
+    },
+
+    processListeners: function() {
+        this.collection.on('sync', this.update, this);
+        this.collection.on('error', this.dataErrorMessage, this);
+    },
+
+    showSpinner: function() {
         var ns = this.defaults;
         var self = this;
+
+        ns.spinnerDisplay = 'inline';
 
         var appendSpinnerLocation = this.el;
         $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
-                'margin-top': -(ns.h.main / 2 + ns.h.padding)
+                'margin-top': -(ns.h.main / 2 + ns.h.padding),
+                'display': ns.spinnerDisplay
             });
         });
+    },
 
-        this.collection.on('sync', this.update, this);
-        this.collection.on('error', this.dataErrorMessage, this);
-        this.render();
+    initialize: function(options) {
+
+        EventTimelineView.__super__.initialize.apply(this, arguments);
+
         this.setInfoButtonPopover();
         this.setGlobalLookbackListeners();
         this.updateSettings();
+    },
 
-        ns.margin = {
-            top: 25,
-            bottom: 25,
-            right: 20,
-            left: 40
-        };
+    standardInit: function() {
+        var ns = this.defaults;
+        var self = this;
 
-        ns.w = ns.width;
-        ns.mw = ns.w - ns.margin.left - ns.margin.right;
+        ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.h.main - ns.margin.top - ns.margin.bottom;
 
         ns.topAxis = d3.svg.axis()
@@ -76,7 +92,7 @@ var EventTimelineView = Backbone.View.extend({
             .ticks(8)
             .tickFormat(d3.time.format("%H:%M:%S"));
         ns.xScale = d3.time.scale()
-            .range([ns.margin.left, ns.w - ns.margin.right - 10]);
+            .range([ns.margin.left, ns.width - ns.margin.right - 10]);
 
 
         /*
@@ -93,7 +109,7 @@ var EventTimelineView = Backbone.View.extend({
          */
 
         ns.svg = d3.select(this.el).select(".panel-body").append("svg")
-            .attr("width", ns.w + ns.margin.right)
+            .attr("width", ns.width + ns.margin.right)
             .attr("height", ns.h.main + (ns.h.padding + ns.h.tooltipPadding));
 
         // tooltipPadding adds room for tooltip popovers
@@ -236,28 +252,9 @@ var EventTimelineView = Backbone.View.extend({
         return "visible";
     },
 
-    clearDataErrorMessage: function() {
-        // if error message already exists on page,
-        // remove it in case it has changed
-        if ($(this.el).find('.popup-message').length) {
-            $(this.el).find('.popup-message').fadeOut("slow");
-        }
-    },
-
     dataErrorMessage: function(message, errorMessage) {
 
-        // 2nd parameter will be supplied in the case of an
-        // 'error' event such as 504 error. Othewise,
-        // function will append message supplied such as 'no data'.
-
-        if (errorMessage !== undefined) {
-            message = errorMessage.responseText;
-            message = message.slice(1, -1);
-            message = '' + errorMessage.status + ' error: ' + message;
-        }
-
-        // calling raiseAlert with the 3rd param will supress auto-hiding
-        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
+        EventTimelineView.__super__.dataErrorMessage.apply(this, arguments);
 
         // reschedule next fetch at selected interval
         this.scheduleFetch();
@@ -266,7 +263,8 @@ var EventTimelineView = Backbone.View.extend({
     update: function() {
         var ns = this.defaults;
         var self = this;
-        $(this.el).find('#spinner').hide();
+
+        this.hideSpinner();
 
         var allthelogs = (this.collection.toJSON());
 
@@ -280,18 +278,13 @@ var EventTimelineView = Backbone.View.extend({
 
         ns.xScale = ns.xScale.domain([xEnd._d, xStart._d]);
 
-
-        // If we didn't receive any valid files, append "No Data Returned"
-        if (allthelogs.length === 0) {
-            this.dataErrorMessage('No Data Returned');
-            return;
-        }
-
-        // remove No Data Returned once data starts flowing again
-        this.clearDataErrorMessage();
-
         // reschedule next fetch at selected interval
         this.scheduleFetch();
+
+        // If we didn't receive any valid files, append "No Data Returned"
+        if (this.checkReturnedDataSet(allthelogs) === false) {
+            return;
+        }
 
         /*
          * Shape the dataset

@@ -13,8 +13,6 @@ module.exports = function(config) {
         files: [
             //from base.html
             'goldstone/client/js/lib/jquery.js',
-            'goldstone/client/js/lib/underscore.js',
-            'goldstone/client/js/lib/backbone.js',
             'goldstone/client/js/lib/bootstrap.js',
             'goldstone/client/js/lib/jquery.dataTables.js',
             'goldstone/client/js/lib/dataTables.bootstrap.js',
@@ -25,8 +23,16 @@ module.exports = function(config) {
             'goldstone/client/js/lib/d3-legend.js',
             'goldstone/client/js/lib/crossfilter.js',
             'goldstone/client/js/lib/dc.js',
+            'goldstone/client/js/lib/underscore.js',
+            'goldstone/client/js/lib/backbone.js',
             'goldstone/client/js/lib/moment-with-locales.js',
-            'goldstone/client/js/lib/moment-timezone-with-data-2010-2020.js'
+            'goldstone/client/js/lib/moment-timezone-with-data-2010-2020.js',
+            'goldstone/client/js/models/goldstoneColors.js',
+            'goldstone/client/js/models/infoButtonText.js',
+            'goldstone/client/js/views/chartHeaderView.js',
+            'goldstone/client/js/base.js',
+            'goldstone/client/js/views/goldstoneBaseView.js'
+
         ].concat(clientIncludes, testFiles),
 
         exclude: [

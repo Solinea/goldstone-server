@@ -18,28 +18,59 @@
 
 // view is linked to collection when instantiated
 
-var NodeAvailView = Backbone.View.extend({
+var NodeAvailView = GoldstoneBaseView.extend({
 
-    defaults: {},
+    defaults: {
+        margin: {
+            top: 5,
+            bottom: 25,
+            right: 40,
+            left: 60
+        },
+
+        filter: {
+            // none must be set to false in order to not display
+            // nodes that have zero associated events.
+            none: false,
+            debug: true,
+            audit: true,
+            info: true,
+            warning: true,
+            error: true
+        }
+    },
+
+    processOptions: function() {
+        this.defaults.url = this.collection.url;
+        this.el = this.options.el;
+        this.defaults.chartTitle = this.options.chartTitle;
+        this.defaults.width = this.options.width;
+        this.defaults.height = this.options.h;
+        this.defaults.pause = undefined;
+        this.defaults.delay = null;
+        this.defaults.r = d3.scale.sqrt();
+        this.defaults.colorArray = new GoldstoneColors().get('colorSets');
+
+    },
+
+    processListeners: function() {
+        this.collection.on('sync', this.update, this);
+        this.collection.on('error', this.dataErrorMessage, this);
+    },
 
     initialize: function(options) {
 
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults); 
-        this.defaults.url = this.collection.url;
-        this.el = options.el;
-        this.defaults.chartTitle = options.chartTitle;
-        this.defaults.width = options.width;
-        this.defaults.h = options.h;
-        this.defaults.pause = undefined;
-        this.defaults.delay = null;
+        NodeAvailView.__super__.initialize.apply(this, arguments);
 
+        this.setInfoButtonPopover();
+        this.setGlobalLookbackListeners();
+        this.updateSettings();
+    },
+
+    showSpinner: function() {
         var ns = this.defaults;
-        // bind to the backbone object, for calls within functions that would return their own context at the time of invocation
         var self = this;
 
-        // required in case spinner loading takes
-        // longer than chart loading
         ns.spinnerDisplay = 'inline';
 
         var appendSpinnerLocation = this.el;
@@ -47,47 +78,20 @@ var NodeAvailView = Backbone.View.extend({
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
-                'margin-top': -(ns.h.main * 0.7),
+                'margin-top': -(ns.height.main * 0.7),
                 'display': ns.spinnerDisplay
             });
         });
+    },
 
-        // bind to backbone collection
-        // invoke this.update(), when the collection 'fetch' is complete
-        this.collection.on('sync', this.update, this);
-        this.collection.on('error', this.dataErrorMessage, this);
-        // appends display and modal html elements to this.el
-        this.render();
-        this.setInfoButtonPopover();
-        this.setGlobalLookbackListeners();
-        this.updateSettings();
-
-        ns.margin = {
-            top: 5,
-            bottom: 25,
-            right: 40,
-            left: 60
-        };
-
-        ns.w = ns.width;
-        ns.mw = ns.w - ns.margin.left - ns.margin.right;
-        ns.mh = ns.h.main - ns.margin.top - ns.margin.bottom;
-
-        // scale that returns range that is square root of input domain
-        ns.r = d3.scale.sqrt();
-
-        /*
-         * colors
-         */
-
-        // you can change the value in colorArray to select
-        // a particular number of different colors
-        var colorArray = new GoldstoneColors().get('colorSets');
+    standardInit: function() {
+        var ns = this.defaults;
+        var self = this;
 
         // maps between input label domain and output color range for circles
         ns.loglevel = d3.scale.ordinal()
             .domain(["debug", "audit", "info", "warning", "error"])
-            .range(colorArray.distinct[5]);
+            .range(ns.colorArray.distinct[5]);
 
         // for 'ping only' axis
         ns.pingAxis = d3.svg.axis()
@@ -114,7 +118,7 @@ var NodeAvailView = Backbone.View.extend({
             .domain(["unadmin"].concat(ns.loglevel
                 .domain()
                 .concat(["padding1", "padding2", "ping"])))
-            .rangeRoundBands([ns.h.main, 0], 0.1);
+            .rangeRoundBands([ns.height.main, 0], 0.1);
 
         ns.yLogs = d3.scale.linear()
             .range([
@@ -122,24 +126,14 @@ var NodeAvailView = Backbone.View.extend({
                 ns.ySwimLane("ping") + ns.ySwimLane.rangeBand()
             ]);
 
-        ns.filter = {
-            // none must be set to false in order to not display
-            // nodes that have zero associated events.
-            none: false,
-            debug: true,
-            audit: true,
-            info: true,
-            warning: true,
-            error: true
-        };
 
         /*
          * The graph and axes
          */
 
         ns.svg = d3.select(this.el).select(".panel-body").append("svg")
-            .attr("width", ns.w)
-            .attr("height", ns.h.main + (ns.h.swim * 2) + ns.margin.top + ns.margin.bottom)
+            .attr("width", ns.width)
+            .attr("height", ns.height.main + (ns.height.swim * 2) + ns.margin.top + ns.margin.bottom)
             .append("g")
             .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
 
@@ -176,7 +170,7 @@ var NodeAvailView = Backbone.View.extend({
 
         ns.graph.append("g")
             .attr("class", "xunadmin axis")
-            .attr("transform", "translate(0," + (ns.h.main - ns.ySwimLane.rangeBand()) + ")");
+            .attr("transform", "translate(0," + (ns.height.main - ns.ySwimLane.rangeBand()) + ")");
 
         ns.graph.append("g")
             .attr("class", "y axis invisible-axis")
@@ -324,28 +318,9 @@ var NodeAvailView = Backbone.View.extend({
         }));
     },
 
-    clearDataErrorMessage: function() {
-        // if error message already exists on page,
-        // remove it in case it has changed
-        if ($(this.el).find('.popup-message').length) {
-            $(this.el).find('.popup-message').fadeOut("slow");
-        }
-    },
-
     dataErrorMessage: function(message, errorMessage) {
 
-        // 2nd parameter will be supplied in the case of an
-        // 'error' event such as 504 error. Othewise,
-        // function will append message supplied such as 'no data'.
-
-        if (errorMessage !== undefined) {
-            message = errorMessage.responseText;
-            message = message.slice(1, -1);
-            message = '' + errorMessage.status + ' error: ' + message;
-        }
-
-        // calling raiseAlert with the 3rd param will supress auto-hiding
-        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
+        NodeAvailView.__super__.dataErrorMessage.apply(this, arguments);
 
         // reschedule next fetch at selected interval
         this.scheduleFetch();
@@ -356,11 +331,7 @@ var NodeAvailView = Backbone.View.extend({
         var self = this;
         var uri = ns.url;
 
-        // sets css for spinner to hidden in case
-        // spinner callback resolves
-        // after chart data callback
-        ns.spinnerDisplay = 'none';
-        $(this.el).find('#spinner').hide();
+        this.hideSpinner();
 
         // prevent updating when fetch is in process
         if (!this.collection.thisXhr.getResponseHeader('LogCountStart') || this.collection.thisXhr.getResponseHeader('LogCountEnd') === null) {
@@ -378,15 +349,10 @@ var NodeAvailView = Backbone.View.extend({
         // reschedule next fetch at selected interval
         this.scheduleFetch();
 
-        // If we didn't receive any valid files
-        // append "No Data Returned" and abort
-        if (allthelogs.length === 0) {
-            this.dataErrorMessage('No Data Returned');
+        // If we didn't receive any valid files, append "No Data Returned"
+        if (this.checkReturnedDataSet(allthelogs) === false) {
             return;
         }
-
-        // remove No Data Returned once data starts flowing again
-        this.clearDataErrorMessage();
 
         // populate the modal based on the event types.
         // clear out the modal and reapply based on the unique events
