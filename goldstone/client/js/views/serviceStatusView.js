@@ -16,36 +16,26 @@
  * Author: Alex Jacobs
  */
 
-var ServiceStatusView = Backbone.View.extend({
+var ServiceStatusView = GoldstoneBaseView.extend({
 
-    defaults: {},
+    processOptions: function() {
+        ServiceStatusView.__super__.processOptions.call(this);
 
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.url = this.collection.url;
-        this.el = options.el;
-        this.defaults.width = options.width;
+        this.defaults.spinnerPlace = '.spinnerPlace';
+    },
 
-        var ns = this.defaults;
-        var self = this;
-
-        // required in case spinner loading takes
-        // longer than chart loading
-        ns.spinnerDisplay = 'inline';
-
-        var appendSpinnerLocation = ns.location;
-        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(appendSpinnerLocation).css({
-                'position': 'relative',
-                'margin-left': (ns.width / 2),
-                'display': ns.spinnerDisplay
-            });
-        });
-
+    processListeners: function() {
         this.collection.on('sync', this.update, this);
         this.collection.on('error', this.dataErrorMessage, this);
+    },
 
+    standardInit: function() {},
+
+    specialInit: function() {},
+
+    dataErrorMessage: function(message, errorMessage) {
+        ServiceStatusView.__super__.dataErrorMessage.apply(this, arguments);
+        this.setNextDataRetrieval();
     },
 
     classSelector: function(item) {
@@ -80,7 +70,6 @@ var ServiceStatusView = Backbone.View.extend({
 
         // set a counter for the length of uniq(data.name);
         var uniqSetSize = _.keys(uniqServiceNames).length;
-
 
         /*
         iterate through data and as novel service
@@ -127,35 +116,20 @@ var ServiceStatusView = Backbone.View.extend({
 
     },
 
-    clearDataErrorMessage: function() {
-        // if error message already exists on page,
-        // remove it in case it has changed
-        if ($(this.el).find('.popup-message').length) {
-            $(this.el).find('.popup-message').fadeOut("slow");
-        }
-    },
-
-    dataErrorMessage: function(message, errorMessage) {
-
+    setNextDataRetrieval: function() {
         var self = this;
+        var ns = this.defaults;
 
-        // 2nd parameter will be supplied in the case of an
-        // 'error' event such as 504 error. Othewise,
-        // function will append message supplied such as 'no data'.
-
-        if (errorMessage !== undefined) {
-            message = errorMessage.responseText;
-            message = message.slice(1, -1);
-            message = '' + errorMessage.status + ' error: ' + message;
+        // refreshes every 30 seconds
+        if (typeof ns.nextTimeout === "number") {
+            clearTimeout(ns.nextTimeout);
+            delete ns.nextTimeout;
         }
-
-        // calling raiseAlert with the 3rd param will supress auto-hiding
-        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
-
-        setTimeout(function() {
+        ns.nextTimeout = setTimeout(function() {
+            self.defaults.spinnerDisplay = 'inline';
+            $(self.el).find('#spinner').show();
             self.collection.retrieveData();
         }, 30000);
-
     },
 
     update: function() {
@@ -163,31 +137,18 @@ var ServiceStatusView = Backbone.View.extend({
         var ns = this.defaults;
         var self = this;
 
-        // sets css for spinner to hidden in case
-        // spinner callback resolves
-        // after chart data callback
-        ns.spinnerDisplay = 'none';
-        $(this.el).find('#spinner').hide();
-
-        this.render();
+        this.hideSpinner();
 
         var allthelogs = this.collectionPrep();
 
-
-        // refreshes every 30 seconds
-        setTimeout(function() {
-            self.collection.retrieveData();
-        }, 30000);
-
-        // If we didn't receive any valid files, append "No Data Returned"
-        if (allthelogs.length === 0) {
-
-            this.dataErrorMessage('No Data Returned');
+        if (this.checkReturnedDataSet(allthelogs) === false) {
             return;
         }
 
-        // remove No Data Returned once data starts flowing again
-        this.clearDataErrorMessage();
+        $(this.el).find('.mainContainer .toRemove').off();
+        $(this.el).find('.mainContainer').empty();
+
+        this.setNextDataRetrieval();
 
         var nodeNames = [];
 
@@ -236,19 +197,12 @@ var ServiceStatusView = Backbone.View.extend({
     },
 
     render: function() {
-
-        if ($(this.el).find('.mainContainer').length === 0) {
-            this.$el.append(this.template());
-            return this;
-        } else {
-            // remove hover listeners from service status nodes
-            $(this.el).find('.mainContainer .toRemove').off();
-            $(this.el).find('.mainContainer').empty();
-        }
-
+        $(this.el).append(this.template());
+        return this;
     },
 
     template: _.template('<div class="alert alert-danger popup-message" hidden="true"></div>' +
+        '<div class="spinnerPlace"></div>' +
         '<div class="mainContainer"></div>')
 
 });
