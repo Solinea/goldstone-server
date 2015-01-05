@@ -92,8 +92,22 @@ var renderCharts = function() {
             "main": 450,
             "swim": 50
         },
-        el: '#goldstone-discover-r2-c2',
+        el: '#goldstone-discover-r3-c1',
         chartTitle: 'Node Availability',
-        width: $('#goldstone-discover-r2-c2').width()
+        width: $('#goldstone-discover-r3-c1').width()
     });
+
+    //---------------------------
+    // instantiate Zoomable Tree chart
+
+    var zoomableTree = new ZoomablePartitionCollection({
+        data: data
+    });
+
+    var zoomableTreeView = new ZoomablePartitionView({
+        collection: zoomableTree,
+        el: '#goldstone-discover-r2-c2',
+        w: $('#goldstone-discover-r2-c2').width()
+    });
+
 };

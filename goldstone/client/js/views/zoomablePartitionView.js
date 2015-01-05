@@ -87,17 +87,21 @@ var ZoomablePartitionView = Backbone.View.extend({
                 return d.dx * ky;
             })
             .attr("class", function(d) {
-                return d.children ? "parent" : "child";
+                return d.children ? "parent " + (d.rsrcType || "cloud") + "-icon" : "child" + (d.rsrcType || "cloud") + "-icon";
             })
-            .attr("fill", function(d){
-                return d.children ? "steelblue" : "#aaa";
+            .attr("fill", function(d) {
+                // return d.children ? "#eee" : "#ddd";
+                return "#eee";
             })
-            .attr("cursor", function(d){
+            .attr("cursor", function(d) {
                 return d.children ? "pointer" : "default";
             })
-            .attr({"stroke": '#eee'})
-            .attr({"fill-opacity": 0.8})
-            ;
+            .attr({
+                "stroke": '#777'
+            })
+            .attr({
+                "fill-opacity": 0.8
+            });
 
         g.append("svg:text")
             .attr("transform", transform)
@@ -106,12 +110,60 @@ var ZoomablePartitionView = Backbone.View.extend({
                 return d.dx * ky > 12 ? 1 : 0;
             })
             .text(function(d) {
-                // this was originally d.name
-                // changed to d.label to fit dataset
                 return d.label;
             })
-            .attr({'font-size': '12px'})
-            .attr({'pointer-events': 'none'});
+            .attr({
+                'font-size': '12px'
+            })
+            .attr({
+                'pointer-events': 'none'
+            });
+
+        function imgFile(icon) {
+            return "/static/images/" + icon + ".svg";
+        }
+
+        var iconMap = {
+            icon_backup: ['backups-leaf', 'snapshots-leaf'],
+            icon_cloud: ['cloud', 'region'],
+            icon_endpoint: ['endpoints-leaf'],
+            icon_host: ['host', 'hosts-leaf', 'hypervisors-leaf',
+                'servers-leaf'
+            ],
+            icon_image: ['images-leaf'],
+            icon_module: ['module', 'secgroups-leaf'],
+            icon_role: ['roles-leaf'],
+            icon_service: ['service', 'services-leaf'],
+            icon_tenant: ['tenants-leaf'],
+            icon_types: ['volume-types-leaf'],
+            icon_user: ['users-leaf'],
+            icon_volume: ['volume', 'volumes-leaf'],
+            icon_vol_transfer: ['agents-leaf', 'transfers-leaf'],
+            icon_zone: ['zone', 'aggregates-leaf', 'cloudpipes-leaf',
+                'flavors-leaf', 'floating-ip-pools-leaf', 'networks-leaf'
+            ]
+        };
+
+        g.append("svg:image")
+            .attr('x', 2)
+            .attr('y', function(d) {
+                console.log('d.dx', d.dx);
+                return (d.dx * ky / 2) - 10;
+            })
+            .attr('width', 20)
+            .attr('height', 20)
+            .style("opacity", function(d) {
+                return d.dx * ky > 12 ? 1 : 0;
+            })
+            .attr('xlink:href', function(d) {
+                var finalIcon;
+                _.each(iconMap, function(classes, icon) {
+                    if (classes.indexOf(d.rsrcType) !== -1) {
+                        finalIcon = icon;
+                    }
+                });
+                return imgFile(finalIcon);
+            });
 
         d3.select(self.el)
             .on("click", function() {
@@ -144,11 +196,21 @@ var ZoomablePartitionView = Backbone.View.extend({
                     return d.dx * ky > 12 ? 1 : 0;
                 });
 
+            t.select("image")
+                .style("opacity", function(d) {
+                    return d.dx * ky > 12 ? 1 : 0;
+                })
+                .attr('x', 2)
+                .attr('y', function(d) {
+                    console.log('d.dx', d.dx);
+                    return (d.dx * ky / 2) - 10;
+                });
+
             d3.event.stopPropagation();
         }
 
         function transform(d) {
-            return "translate(8," + d.dx * ky / 2 + ")";
+            return "translate(22," + d.dx * ky / 2 + ")";
         }
 
     },
