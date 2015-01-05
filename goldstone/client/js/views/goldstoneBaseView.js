@@ -204,7 +204,6 @@ var GoldstoneBaseView = Backbone.View.extend({
         }
 
         // calling raiseAlert with the 3rd param will supress auto-hiding
-        console.log('this.el: ', this.el);
         goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
     },
 

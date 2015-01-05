@@ -205,8 +205,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         var allthelogs = this.collectionPrep();
 
         // If we didn't receive any valid files, append "No Data Returned"
-        if (allthelogs.length === 0) {
-            this.dataErrorMessage('No Data Returned');
+        if (this.checkReturnedDataSet(allthelogs) === false) {
             return;
         }
 
