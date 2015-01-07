@@ -65,11 +65,21 @@ var NodeReportView = Backbone.View.extend({
     },
 
     triggerChange: function() {
-        this.cpuUsageView.trigger('selectorChanged');
-        this.memoryUsageView.trigger('selectorChanged');
-        this.networkUsageView.trigger('selectorChanged');
-        this.eventsReport.trigger('selectorChanged');
-        this.reportsReport.trigger('selectorChanged');
+        if (this.visiblePanel.Services) {
+            this.serviceStatusChartView.trigger('selectorChanged');
+            this.cpuUsageView.trigger('selectorChanged');
+            this.memoryUsageView.trigger('selectorChanged');
+            this.networkUsageView.trigger('selectorChanged');
+            this.hypervisorCoreView.trigger('selectorChanged');
+        }
+
+        if (this.visiblePanel.Reports) {
+            this.reportsReport.trigger('selectorChanged');
+        }
+
+        if (this.visiblePanel.Events) {
+            this.eventsReport.trigger('selectorChanged');
+        }
     },
 
     setGlobalLookbackRefreshTriggers: function() {
@@ -89,10 +99,39 @@ var NodeReportView = Backbone.View.extend({
         });
     },
 
+    // record of active tab
+    visiblePanel: {
+        Services: true,
+        Reports: false,
+        Events: false
+    },
+
+    // function to toggle key in visiblePanel
+    // to currently active tab
+    flipVisiblePanel: function(selected) {
+        var self = this;
+        _.each(_.keys(self.visiblePanel), function(item) {
+            if (item === selected) {
+                self.visiblePanel[item] = true;
+            } else {
+                self.visiblePanel[item] = false;
+            }
+        });
+    },
+
     initializeChartButtons: function() {
+        var self = this;
         $("#reportsReport").hide();
         $("#eventsReport").hide();
         $("button#headerBar").click(function() {
+
+            // sets key corresponding to active tab to 'true'
+            // on this.visiblePanel
+            self.flipVisiblePanel($(this).context.innerHTML);
+
+            // and triggers change
+            self.triggerChange();
+
             $("button#headerBar.active").toggleClass("active");
             $(this).toggleClass("active");
             var selectedButton = ($(this).context.innerHTML.toLowerCase());
