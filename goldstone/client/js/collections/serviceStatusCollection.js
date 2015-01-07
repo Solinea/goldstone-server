@@ -43,8 +43,6 @@ var ServiceStatusCollection = Backbone.Collection.extend({
     },
 
     retrieveData: function() {
-        var self = this;
-
         var twentyAgo = (+new Date() - (1000 * 60 * 20));
 
         this.url = "/core/reports?name__prefix=os.service&node__prefix=" +

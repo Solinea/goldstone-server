@@ -66,6 +66,7 @@ var NodeReportView = Backbone.View.extend({
 
     triggerChange: function() {
         if (this.visiblePanel.Services) {
+            this.serviceStatusChartView.trigger('selectorChanged');
             this.cpuUsageView.trigger('selectorChanged');
             this.memoryUsageView.trigger('selectorChanged');
             this.networkUsageView.trigger('selectorChanged');
