@@ -27,6 +27,11 @@ var ServiceStatusView = GoldstoneBaseView.extend({
     processListeners: function() {
         this.collection.on('sync', this.update, this);
         this.collection.on('error', this.dataErrorMessage, this);
+        this.on('selectorChanged', function() {
+            this.defaults.spinnerDisplay = 'inline';
+            $(this.el).find('#spinner').show();
+            this.collection.retrieveData();
+        });
     },
 
     standardInit: function() {},
@@ -35,7 +40,6 @@ var ServiceStatusView = GoldstoneBaseView.extend({
 
     dataErrorMessage: function(message, errorMessage) {
         ServiceStatusView.__super__.dataErrorMessage.apply(this, arguments);
-        this.setNextDataRetrieval();
     },
 
     classSelector: function(item) {
@@ -116,22 +120,6 @@ var ServiceStatusView = GoldstoneBaseView.extend({
 
     },
 
-    setNextDataRetrieval: function() {
-        var self = this;
-        var ns = this.defaults;
-
-        // refreshes every 30 seconds
-        if (typeof ns.nextTimeout === "number") {
-            clearTimeout(ns.nextTimeout);
-            delete ns.nextTimeout;
-        }
-        ns.nextTimeout = setTimeout(function() {
-            self.defaults.spinnerDisplay = 'inline';
-            $(self.el).find('#spinner').show();
-            self.collection.retrieveData();
-        }, 30000);
-    },
-
     update: function() {
 
         var ns = this.defaults;
@@ -147,8 +135,6 @@ var ServiceStatusView = GoldstoneBaseView.extend({
 
         $(this.el).find('.mainContainer .toRemove').off();
         $(this.el).find('.mainContainer').empty();
-
-        this.setNextDataRetrieval();
 
         var nodeNames = [];
 
