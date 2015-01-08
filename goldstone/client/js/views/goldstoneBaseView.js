@@ -185,12 +185,9 @@ var GoldstoneBaseView = Backbone.View.extend({
         // 'error' event such as 504 error. Othewise,
         // function will append message supplied such as 'no data'.
 
-        console.log('errorMessage:', errorMessage);
-
         if (errorMessage !== undefined) {
 
             if (errorMessage.responseJSON) {
-                console.log('in responseJSON land');
                 message = '';
                 if (errorMessage.responseJSON.status_code) {
                     message += errorMessage.responseJSON.status_code + ' error: ';
@@ -200,10 +197,9 @@ var GoldstoneBaseView = Backbone.View.extend({
                 }
 
             } else {
-                console.log('in errorMessage land');
                 message = '';
                 if (errorMessage.status) {
-                    message += errorMessage.status + ' error: ';
+                    message += errorMessage.status + ' error:';
                 }
                 if (errorMessage.statusText) {
                     message += ' ' + errorMessage.statusText + '.';
