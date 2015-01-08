@@ -102,6 +102,7 @@ describe('eventsReportView.js spec', function() {
             physCpuChart();
             physDiskChart();
             physMemChart();
+            drawSearchTable('#testMultiRsrcView', 1419895319848, 1419896319848);
         });
     });
 });
