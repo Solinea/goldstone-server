@@ -100,7 +100,6 @@ var LogSearchView = Backbone.View.extend({
         var ns = this.defaults;
         badEventMultiLine('#bad-event-multiline', ns.start, ns.end);
         drawSearchTable('#log-search-table', ns.start, ns.end);
-        goldstone.populateSettingsFields(ns.start, ns.end);
     },
 
     template: _.template('' +
@@ -108,15 +107,12 @@ var LogSearchView = Backbone.View.extend({
         '<div class="col-md-12">' +
         '<div class="panel panel-primary intel_panel">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"></i>'+
-        '<a href="/intelligence/search"> Log Analysis</a>' +
-        '<i class="fa fa-cog pull-right" data-toggle="modal" ' +
-        'data-target="#logSettingsModal"></i>' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"> </i>'+
+        '<a href="/intelligence/search">Log Analysis</a>' +
 
         '<!-- info-circle icon -->' +
         '<i class="fa fa-info-circle panel-info pull-right" ' +
-        'id="goldstone-log-info" style="margin-right: 30px;">' +
-        '</i>' +
+        'id="goldstone-log-info"></i>' +
 
         '</h3>' +
         '</div>' +
@@ -166,97 +162,6 @@ var LogSearchView = Backbone.View.extend({
         '</table>' +
         '<img src="<%=blueSpinnerGif%>" ' +
         'id="log-table-loading-indicator" class="ajax-loader"/>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-
-        '<!-- log settings modal -->' +
-        '<div class="modal fade" id="logSettingsModal" tabindex="-1" role="dialog"' +
-        'aria-labelledby="myModalLabel" aria-hidden="true">' +
-        '<div class="modal-dialog">' +
-        '<div class="modal-content">' +
-        '<div class="modal-header">' +
-        '<button type="button" class="close" data-dismiss="modal" ' +
-        'aria-hidden="true">&times;</button>' +
-        '<h4 class="modal-title" id="myModalLabel">Chart Range ' +
-        'Settings</h4>' +
-        '</div>' +
-        '<div class="modal-body">' +
-        '<form class="form-horizontal" role="form">' +
-        '<div class="form-group">' +
-        '<label for="settingsStartTime" ' +
-        'class="col-sm-3 control-label">Start:</label>' +
-
-        '<div class="col-sm-9">' +
-        '<input id="settingsStartTime" ' +
-        'class="form-control" type="text" ' +
-        'placeholder="1 weeks ago">' +
-        '</div>' +
-        '</div>' +
-        '<div class="form-group">' +
-
-        '<label for="settingsEndTime" ' +
-        'class="col-sm-3 control-label">End:</label>' +
-
-        '<div class="col-sm-9">' +
-
-        '<div class="input-group">' +
-        '<span class="input-group-addon">' +
-        '<input type="radio" ' +
-        'name="optionsEndTime" ' +
-        'value="option1" ' +
-        'id="endTimeNow" checked>' +
-        '</span>' +
-        '<input class="form-control form-control-static" ' +
-        'type="text" ' +
-        'placeholder="use current time" ' +
-        'disabled>' +
-        '</div>' +
-
-        '<div class="input-group">' +
-        '<span class="input-group-addon">' +
-        '<input type="radio" ' +
-        'name="optionsEndTime" ' +
-        'value="option2" ' +
-        'id="endTimeSelected">' +
-        '</span>' +
-        '<input id="settingsEndTime" ' +
-        'class="form-control" type="text" ' +
-        'placeholder="select time">' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '<div class="form-group">' +
-        '<label for="autoRefresh" ' +
-        'class="col-sm-3 control-label">Refresh:</label>' +
-
-        '<div class="col-sm-9">' +
-        '<div class="input-group">' +
-        '<span class="input-group-addon">' +
-        '<input type="checkbox" ' +
-        'id="autoRefresh">' +
-        '</span>' +
-        '<select class="form-control" ' +
-        'id="autoRefreshInterval">' +
-        '<option value="15000">15 seconds</option>' +
-        '<option value="30000" selected>30 seconds</option>' +
-        '<option value="60000">1 minute</option>' +
-        '<option value="300000">5 minutes</option>' +
-        '</select>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-
-        '</form>' +
-        '</div>' +
-        '<div class="modal-footer">' +
-        '<div class="form-group">' +
-        '<button type="button" id="settingsUpdateButton" ' +
-        'class="btn btn-primary" ' +
-        'data-dismiss="modal">Update' +
-        '</button>' +
-        '</div>' +
         '</div>' +
         '</div>' +
         '</div>' +
