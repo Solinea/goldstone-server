@@ -174,7 +174,7 @@ class InnerTimeRangeView(TemplateView):
                        'end': context['end'], 'interval': context['interval']})
         except ElasticsearchException as e:
             return HttpResponse(content="Could not connect to the "
-                                        "ElasticSearch backend",
+                                        "search backend",
                                 status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
@@ -380,7 +380,7 @@ class TopologyView(TemplateView):
                 return render(self.request, '401.html', status=401)
         except ElasticsearchException as e:
             return HttpResponse(content="Could not connect to the "
-                                        "ElasticSearch backend",
+                                        "search backend",
                                 status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
@@ -553,7 +553,7 @@ class JSONView(ContextMixin, View):
                                 content_type='application/json')
         except ElasticsearchException as e:
             return HttpResponse(content="Could not connect to the "
-                                        "ElasticSearch backend",
+                                        "search backend",
                                 status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 

@@ -162,29 +162,11 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
 
     },
 
-    clearDataErrorMessage: function() {
-        // if error message already exists on page,
-        // remove it in case it has changed
-        if ($(this.el).find('.popup-message').length) {
-            $(this.el).find('.popup-message').fadeOut("slow");
-        }
-    },
-
     dataErrorMessage: function(message, errorMessage) {
 
+        UtilizationCpuView.__super__.dataErrorMessage.apply(this, arguments);
+
         var self = this;
-
-        // 2nd parameter will be supplied in the case of an
-        // 'error' event such as 504 error. Othewise,
-        // function will append message supplied such as 'no data'.
-
-        if (errorMessage !== undefined) {
-            message = errorMessage.responseText;
-            message = '' + errorMessage.status + ' error: ' + message.slice(1, -1);
-        }
-
-        // calling raiseAlert with the 3rd param will supress auto-hiding
-        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
 
         // the collection count will have to be set back to the original count when re-triggering a fetch.
         self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
