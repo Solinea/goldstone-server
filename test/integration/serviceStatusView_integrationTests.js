@@ -53,7 +53,8 @@ describe('serviceStatusView.js spec', function() {
         });
         it('should parse dummy data appropriately', function() {
             var testData = {
-                results: []
+                results: [],
+                next: 'notNull'
             };
             var test1 = this.testCollection.parse(testData);
             expect(test1.length).to.equal(0);
@@ -64,7 +65,8 @@ describe('serviceStatusView.js spec', function() {
                     name: 'fi'
                 }, {
                     name: 'fo'
-                }]
+                }],
+                next: null
             };
             var test2 = this.testCollection.parse(testData);
             expect(test2.length).to.equal(3);
@@ -173,7 +175,7 @@ describe('serviceStatusView.js spec', function() {
         });
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
-            expect($('.popup-message').length).to.equal(0);
+            expect($('.popup-message').length).to.equal(1);
             expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testView.update();
@@ -196,51 +198,6 @@ describe('serviceStatusView.js spec', function() {
             expect($('.popup-message').text()).to.equal('No Data Returned');
             expect(this.update_spy.callCount).to.equal(3);
             this.update_spy.restore();
-        });
-        it('will still render no data if an incomplete set is passed forward', function() {
-            /*this.update_spy = sinon.spy(this.testView, "update");
-            expect($('.popup-message').length).to.equal(0);
-            expect($('.popup-message').text()).to.equal('');
-            this.testCollection.reset();
-            this.testCollection.add({
-                name: 'fee'
-            }, {
-                name: 'fi'
-            }, {
-                name: 'fo'
-            });
-            // this.testCollection.checkForSet();
-            this.testCollection.trigger('sync');
-            expect($('.testContainer').find('.popup-message').length).to.equal(1);
-            expect($('.popup-message').text()).to.equal('');
-            expect(this.update_spy.callCount).to.equal(0);
-
-            // and then upon enough data being supplied, 'no data returned' is
-            // no longer the case
-
-            this.testCollection.reset();
-            this.testCollection.add([{
-                name: 'bingBap1',
-                value: 'running'}, {name: 'bingBap1',
-                value: 'stopped'}, {name: 'bingBap1',
-                value: 'stopped'}, {name: 'bingBap1',
-                value: 'stopped'}, {name: 'bingBap2',
-                value: 'running'}, {name: 'bingBap2',
-                value: 'stopped'}, {name: 'bingBap2',
-                value: 'stopped'}, {name: 'bingBap2',
-                value: 'stopped'}, {name: 'bingBap2',
-                value: 'stopped'}, {name: 'bingBap3',
-                value: 'running'}, {name: 'bingBap3',
-                value: 'stopped'}, {name: 'bingBap3',
-                value: 'stopped'}, {name: 'bingBap3',
-                value: 'stopped'}]);
-            this.testCollection.checkForSet();
-            this.testCollection.trigger('sync');
-            expect($('.testContainer').find('.popup-message').length).to.equal(1);
-            expect($('.popup-message').text()).to.equal('No Data Returned');
-            expect(this.update_spy.callCount).to.equal(2);
-
-            this.update_spy.restore();*/
         });
         it('sorts appropriately', function() {
             assert.isDefined(this.testView.sorter, 'this.testView.sorter has been defined');
@@ -287,5 +244,24 @@ describe('serviceStatusView.js spec', function() {
                 }]);
         });
     });
-
+    it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
+        this.dataErrorMessage_spy = sinon.spy(this.testView, "dataErrorMessage");
+        expect($('.popup-message').text()).to.equal('');
+        this.testView.dataErrorMessage(null, {
+            status: '999',
+            responseText: 'naughty - coal for you!'
+        });
+        expect($('.popup-message').text()).to.equal('999 error: naughty - coal for you!.');
+        this.testView.dataErrorMessage(null, {
+            status: '123',
+            responseText: 'nice - bourbon for you!'
+        });
+        expect($('.popup-message').text()).to.equal('123 error: nice - bourbon for you!.');
+        this.testView.dataErrorMessage('butterfly - spread your wings again');
+        expect($('.popup-message').text()).to.equal('butterfly - spread your wings again');
+        this.testView.clearDataErrorMessage();
+        expect($('#noDataReturned').text()).to.equal('');
+        expect(this.dataErrorMessage_spy.callCount).to.equal(3);
+        this.dataErrorMessage_spy.restore();
+    });
 });
