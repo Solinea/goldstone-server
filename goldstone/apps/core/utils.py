@@ -36,8 +36,8 @@ def custom_exception_handler(exc):
             data = {'gateway': 'search',
                     'gateway_status': exc.status_code,
                     'exception_type': exc.__class__.__name__,
-                    'message': "Received " + exc.__class__.__name__ + "from " +
-                               " the search engine."}
+                    'message': "Received " + exc.__class__.__name__ +
+                               " from the search engine."}
         # 502 Exceptions
         if isinstance(exc, elasticsearch.exceptions.ConflictError) or \
                 isinstance(exc, elasticsearch.exceptions.NotFoundError) or \
