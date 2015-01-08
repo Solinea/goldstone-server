@@ -106,7 +106,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         ns.spinnerDisplay = 'inline';
 
         var appendSpinnerLocation;
-        if(ns.spinnerPlace){
+        if (ns.spinnerPlace) {
             appendSpinnerLocation = $(this.el).find(ns.spinnerPlace);
         } else {
             appendSpinnerLocation = this.el;
@@ -185,22 +185,33 @@ var GoldstoneBaseView = Backbone.View.extend({
         // 'error' event such as 504 error. Othewise,
         // function will append message supplied such as 'no data'.
 
+        console.log('errorMessage:', errorMessage);
+
         if (errorMessage !== undefined) {
 
-            message = '';
+            if (errorMessage.responseJSON) {
+                console.log('in responseJSON land');
+                message = '';
+                if (errorMessage.responseJSON.status_code) {
+                    message += errorMessage.responseJSON.status_code + ' error: ';
+                }
+                if (errorMessage.responseJSON.message) {
+                    message += errorMessage.responseJSON.message;
+                }
 
-            if (errorMessage.status) {
-                message = errorMessage.status + ' error:' + message;
+            } else {
+                console.log('in errorMessage land');
+                message = '';
+                if (errorMessage.status) {
+                    message += errorMessage.status + ' error: ';
+                }
+                if (errorMessage.statusText) {
+                    message += ' ' + errorMessage.statusText + '.';
+                }
+                if (errorMessage.responseText) {
+                    message += ' ' + errorMessage.responseText + '.';
+                }
             }
-
-            if (errorMessage.statusText) {
-                message += ' ' + errorMessage.statusText + '. ';
-            }
-
-            if (errorMessage.responseText) {
-                message += ' ' + errorMessage.responseText + '.';
-            }
-
         }
 
         // calling raiseAlert with the 3rd param will supress auto-hiding
