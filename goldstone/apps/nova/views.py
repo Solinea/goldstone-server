@@ -129,7 +129,7 @@ class SpawnsView(TemplateView):
 
         except ElasticsearchException:
             return HttpResponse(
-                content="Could not connect to the ElasticSearch backend",
+                content="Could not connect to the search backend",
                 status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
@@ -215,7 +215,7 @@ class ResourceView(TemplateView):
 
         except ElasticsearchException:
             return HttpResponse(
-                content="Could not connect to the ElasticSearch backend",
+                content="Could not connect to the search backend",
                 status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
@@ -309,7 +309,7 @@ class LatestStatsView(TemplateView):
                                     content_type='application/json')
         except ElasticsearchException:
             return HttpResponse(
-                content="Could not connect to the ElasticSearch backend",
+                content="Could not connect to the search backend",
                 status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 

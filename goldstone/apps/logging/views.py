@@ -54,35 +54,23 @@ class LoggingNodeViewSet(NodeViewSet):
         return response
 
     def list(self, request, *args, **kwargs):
-        try:
-            self._set_time_range(request.QUERY_PARAMS.dict())
-            instance = self.get_queryset()
-            page = self.paginate_queryset(instance)
-            if page is not None:
-                serializer = self.get_pagination_serializer(page)
-            else:
-                serializer = self.get_serializer(instance, many=True)
+        self._set_time_range(request.QUERY_PARAMS.dict())
+        instance = self.get_queryset()
+        page = self.paginate_queryset(instance)
+        if page is not None:
+            serializer = self.get_pagination_serializer(page)
+        else:
+            serializer = self.get_serializer(instance, many=True)
 
-            serializer.context['start_time'] = self._start_time
-            serializer.context['end_time'] = self._end_time
-            serializer.many = True
-            return self._add_headers(Response(serializer.data))
-        except ElasticsearchException as e:
-            return Response(data="Could not connect to the ElasticSearch"
-                                 " backend",
-                            status=status.HTTP_504_GATEWAY_TIMEOUT)
+        serializer.context['start_time'] = self._start_time
+        serializer.context['end_time'] = self._end_time
+        serializer.many = True
+        return self._add_headers(Response(serializer.data))
 
     def retrieve(self, request, *args, **kwargs):
-        try:
-            self._set_time_range(request.QUERY_PARAMS.dict())
-            serializer = self.serializer_class(
-                self.get_object(),
-                context={'start_time': self._start_time,
-                         'end_time': self._end_time})
-            return self._add_headers(Response(serializer.data))
-
-        except ElasticsearchException as e:
-            return Response(
-                content="Could not connect to the ElasticSearch backend",
-                status=status.HTTP_504_GATEWAY_TIMEOUT,
-                content_type='application/json')
+        self._set_time_range(request.QUERY_PARAMS.dict())
+        serializer = self.serializer_class(
+            self.get_object(),
+            context={'start_time': self._start_time,
+                     'end_time': self._end_time})
+        return self._add_headers(Response(serializer.data))
