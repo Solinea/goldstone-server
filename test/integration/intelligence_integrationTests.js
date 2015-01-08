@@ -36,6 +36,7 @@ describe('eventsReportView.js spec', function() {
             });
         });
         it('tests the combos of _getSearchFormDates', function() {
+
             $('body').html('<input type="checkbox" id="endTimeNow"></input><input id="settingsEndTime" value=""></input>');
             var test4 = _getSearchFormDates();
             var d = new Date();
@@ -45,11 +46,6 @@ describe('eventsReportView.js spec', function() {
             var test5 = _getSearchFormDates();
             d = new Date();
             expect(test5[1]).to.be.closeTo(d, 1000);
-
-            $('body').html('<input type="checkbox" id="endTimeNow"></input><input id="settingsEndTime" value="1418068592865"></input>');
-            var test6 = _getSearchFormDates();
-            d = new Date(1418068592865);
-            expect(test6[1]).to.deep.equal(d);
 
             $('body').html('<input type="checkbox" id="endTimeNow"></input><input id="settingsEndTime" value="boboskiwat"></input>');
             var test7 = _getSearchFormDates();
@@ -63,12 +59,6 @@ describe('eventsReportView.js spec', function() {
             d = new Date();
             d.addWeeks(-1);
             expect(test8[0]).to.be.closeTo(d, 1000);
-
-
-            $('body').html('<input type="checkbox" id="endTimeNow"></input><input id="settingsStartTime" value="1418068492865"></input>');
-            var test9 = _getSearchFormDates();
-            d = new Date(1418068492865);
-            expect(test9[0]).to.deep.equal(d);
 
             $('body').html('<input type="checkbox" id="endTimeNow"></input><input id="settingsStartTime" value="boboskiwat"></input>');
             var test10 = _getSearchFormDates();

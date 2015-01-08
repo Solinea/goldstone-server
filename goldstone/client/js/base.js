@@ -124,11 +124,11 @@ goldstone.raiseInfo = function(message) {
 goldstone.raiseAlert = function(selector, message, persist) {
     "use strict";
 
-    if(message && message.length > 200){
-        message = message.slice(0,200) + '...';
+    if (message && message.length > 200) {
+        message = message.slice(0, 200) + '...';
     }
 
-    if(persist){
+    if (persist) {
         $(selector).html(message);
     } else {
         $(selector).html(message + '<a href="#" class="close" data-dismiss="alert">&times;</a>');
@@ -136,7 +136,7 @@ goldstone.raiseAlert = function(selector, message, persist) {
 
     $(selector).fadeIn("slow");
 
-    if(!persist){
+    if (!persist) {
         window.setTimeout(function() {
             $(selector).fadeOut("slow");
         }, 4000);
@@ -221,20 +221,20 @@ goldstone.time.getDateRange = function() {
     //grab the values from the standard time settings modal/window
     var end;
     var start;
+    var temp;
     var d;
 
     if ($("#endTimeNow").prop("checked") === false) {
         var e = $("input#settingsEndTime").val();
-
         if (e === '') {
             end = new Date();
         } else {
-            d = new Date(+e);
-            if (d.toString() === 'Invalid Date') {
+            if (e.toString() === 'Invalid Date') {
                 alert("End date must be valid. Using now.");
-                d = new Date();
+                end = new Date();
+            } else {
+                end = new Date(e);
             }
-            end = d;
         }
     } else {
         end = new Date();
@@ -242,15 +242,19 @@ goldstone.time.getDateRange = function() {
 
     var s = $("input#settingsStartTime").val();
     if (s === '') {
-        start = end.addWeeks(-1);
+        temp = Date.parse(end);
+        temp = new Date(temp);
+        start = temp.addWeeks(-1);
     } else {
-        d = new Date(+s);
-        if (d.toString() === 'Invalid Date') {
+        if (s.toString() === 'Invalid Date') {
             alert('Start date must be valid. Using 1 week ' +
                 'prior to end date.');
-            d = end.addWeeks(-1);
+            temp = Date.parse(end);
+            temp = new Date(temp);
+            start = temp.addWeeks(-1);
+        } else {
+            start = new Date(s);
         }
-        start = d;
     }
     return [start, end];
 };

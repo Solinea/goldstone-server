@@ -49,6 +49,7 @@ function refocusCockpitSecondaryCharts(filter) {
 
 function _getSearchFormDates() {
     "use strict";
+    var temp;
     //grab the values from the form elements
     var end = (function() {
             if (!$("#endTimeNow").prop("checked")) {
@@ -57,7 +58,7 @@ function _getSearchFormDates() {
                     case '':
                         return new Date();
                     default:
-                        var d = new Date(+e);
+                        var d = new Date(e);
                         if (d.toString() === 'Invalid Date') {
                             alert("End date must be valid. Using now.");
                             d = new Date();
@@ -72,13 +73,18 @@ function _getSearchFormDates() {
             var s = $("input#settingsStartTime").val();
             switch (s) {
                 case '':
-                    return (new Date(end)).addWeeks(-1);
+                    temp = Date.parse(end);
+                    temp = new Date(temp);
+                    return temp.addWeeks(-1);
                 default:
-                    var d = new Date(+s);
+                    var d = new Date(s);
                     if (d.toString() === 'Invalid Date') {
                         alert("Start date must be valid. Using 1 week " +
                             "prior to end date.");
-                        d = (new Date()).addWeeks(-1);
+
+                        temp = Date.parse(end);
+                        temp = new Date(temp);
+                        return temp.addWeeks(-1);
                     }
                     return d;
             }
@@ -348,8 +354,7 @@ function badEventMultiLine(location, start, end) {
     $(loadingIndicator).show();
 
     d3.json(uri, function(error, events) {
-        if(error){
-            console.log('in error', error);
+        if (error) {
             dataErrorMessage(null, error, '.log-popup-message');
             return;
         }
