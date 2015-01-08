@@ -57,7 +57,42 @@ describe('eventsReportView.js spec', function() {
         });
         it('should know what to do with received data', function() {
             expect(this.testView.dataPrep(this.dummyData)).to.be.an('object');
-            expect(this.testView.dataPrep(this.dummyData)).to.deep.equal({recordsTotal: 30, recordsFiltered: 30, result: [['2014-11-11T19:15:23.000135+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled rdmsr: 0x345', '2aa3b533-094d-4f82-8543-8add8bad6552', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'], ['2014-11-11T19:15:23.000140+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c3 data 0', 'e982a3bf-4c33-4fde-b2b3-93d6d64d0654', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'], ['2014-11-11T19:15:23.000140+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x684 data 0', 'f54ae0ed-a446-47a6-a021-cfdb6cd357ad', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'], ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x681 data 0', '3bdba2e2-af0c-4be0-b90b-63fb5df89d57', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'], ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c0 data 0', '3b6759e2-f273-4d1e-be88-91aaa0456474', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'], ['2014-11-11T19:15:23.000140+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x683 data 0', '95f78aaa-a90f-4538-9b4e-455cd15e4bdd', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'], ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c2 data 0', '79ff4e7e-77b0-460d-8086-a013af73297a', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'], ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c1 data 0', '2339a2e7-e491-4d5f-b280-ed8789ffe201', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'], ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x682 data 0', 'dd187053-c314-4cf8-9854-bfa82fe1ee35', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'], ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x680 data 0', '53d8a33f-e870-4b07-9f43-545f5b10e057', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01']] });
+            expect(this.testView.dataPrep(this.dummyData)).to.deep.equal({
+                recordsTotal: 30,
+                recordsFiltered: 30,
+                result: [
+                    ['2014-11-11T19:15:23.000135+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled rdmsr: 0x345', '2aa3b533-094d-4f82-8543-8add8bad6552', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
+                    ['2014-11-11T19:15:23.000140+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c3 data 0', 'e982a3bf-4c33-4fde-b2b3-93d6d64d0654', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
+                    ['2014-11-11T19:15:23.000140+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x684 data 0', 'f54ae0ed-a446-47a6-a021-cfdb6cd357ad', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
+                    ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x681 data 0', '3bdba2e2-af0c-4be0-b90b-63fb5df89d57', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
+                    ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c0 data 0', '3b6759e2-f273-4d1e-be88-91aaa0456474', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
+                    ['2014-11-11T19:15:23.000140+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x683 data 0', '95f78aaa-a90f-4538-9b4e-455cd15e4bdd', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
+                    ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c2 data 0', '79ff4e7e-77b0-460d-8086-a013af73297a', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
+                    ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c1 data 0', '2339a2e7-e491-4d5f-b280-ed8789ffe201', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
+                    ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x682 data 0', 'dd187053-c314-4cf8-9854-bfa82fe1ee35', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
+                    ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x680 data 0', '53d8a33f-e870-4b07-9f43-545f5b10e057', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01']
+                ]
+            });
+        });
+        it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
+            this.dataErrorMessage_spy = sinon.spy(this.testView, "dataErrorMessage");
+            expect($('.popup-message').text()).to.equal('');
+            this.testView.dataErrorMessage(null, {
+                status: '999',
+                responseText: 'naughty - coal for you!'
+            });
+            expect($('.popup-message').text()).to.equal('999 error: naughty - coal for you!');
+            this.testView.dataErrorMessage(null, {
+                status: '123',
+                responseText: 'nice - bourbon for you!'
+            });
+            expect($('.popup-message').text()).to.equal('123 error: nice - bourbon for you!');
+            this.testView.dataErrorMessage('butterfly - spread your wings again');
+            expect($('.popup-message').text()).to.equal('butterfly - spread your wings again');
+            this.testView.clearDataErrorMessage();
+            expect($('#noDataReturned').text()).to.equal('');
+            expect(this.dataErrorMessage_spy.callCount).to.equal(3);
+            this.dataErrorMessage_spy.restore();
         });
     });
 
