@@ -236,21 +236,26 @@ describe('UtilizationCpu.js spec', function() {
 
       this.dataErrorMessage_spy = sinon.spy(this.testView, "dataErrorMessage");
       expect($('.popup-message').text()).to.equal('');
+      this.testView.dataErrorMessage(null, {responseJSON:{
+        status_code: 246,
+        message: 'responseJSON message all up in your tests.'
+      }});
+      expect($('.popup-message').text()).to.equal('246 error: responseJSON message all up in your tests.');
       this.testView.dataErrorMessage(null, {
         status: '999',
-        responseText: "'naughty - coal for you!'"
+        responseText: 'naughty - coal for you!'
       });
-      expect($('.popup-message').text()).to.equal('999 error: naughty - coal for you!');
+      expect($('.popup-message').text()).to.equal('999 error: naughty - coal for you!.');
       this.testView.dataErrorMessage(null, {
         status: '123',
-        responseText: "'nice - bourbon for you!'"
+        responseText: 'nice - bourbon for you!'
       });
-      expect($('.popup-message').text()).to.equal('123 error: nice - bourbon for you!');
+      expect($('.popup-message').text()).to.equal('123 error: nice - bourbon for you!.');
       this.testView.dataErrorMessage("butterfly - spread your wings again");
       expect($('.popup-message').text()).to.equal('butterfly - spread your wings again');
       this.testView.clearDataErrorMessage();
       expect($('#noDataReturned').text()).to.equal('');
-      expect(this.dataErrorMessage_spy.callCount).to.equal(3);
+      expect(this.dataErrorMessage_spy.callCount).to.equal(4);
       this.dataErrorMessage_spy.restore();
     });
   });
