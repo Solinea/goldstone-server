@@ -58,5 +58,8 @@ describe('eventsReportView.js spec', function() {
         it('triggers rsrcChartFunctions', function() {
             var test1 = goldstone.nova.util.rsrcChartFunctions(false);
         });
+        it('triggers various charts', function() {
+            goldstone.nova.spawns.url();
+        });
     });
 });
