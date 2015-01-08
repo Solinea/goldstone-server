@@ -40,8 +40,8 @@ var HypervisorView = Backbone.View.extend({
 
         this.collection.on('sync', this.update, this);
 
-        this.on('selectorChanged', function(){
-            console.log('HypervisorView heard change');
+        this.on('selectorChanged', function() {
+            self.collection.fetch();
         });
 
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
@@ -106,11 +106,6 @@ var HypervisorView = Backbone.View.extend({
         // after chart data callback
         ns.spinnerDisplay = 'none';
         $(this.el).find('#spinner').hide();
-
-        // default 10 second refresh interval
-        setTimeout(function() {
-            self.collection.fetch();
-        }, 10000);
 
         var allthelogs = this.collection.toJSON();
 

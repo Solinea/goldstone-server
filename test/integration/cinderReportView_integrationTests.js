@@ -35,6 +35,16 @@ describe('cinderReportView.js spec', function() {
             expect(this.testView.el).to.equal('.test-container');
             expect($(this.testView.el).text()).to.equal(' Cinder API PerformanceResponse Time (ms)');
         });
+        it('should create urls', function() {
+            var test1 = goldstone.cinder.topology.url('yow');
+            expect(test1).to.equal('/cinder/topology?render=yow');
+            var test2 = goldstone.cinder.topology.url();
+            expect(test2).to.equal('/cinder/topology');
+            var test3 = goldstone.cinder.apiPerf.url(undefined,undefined,undefined,'yowza');
+            var test4 = goldstone.cinder.apiPerf.url();
+            expect(test3).to.equal('/cinder/api_perf?start=undefined&end=undefined&interval=undefined&render=yowza');
+            expect(test4).to.equal('/cinder/api_perf?start=undefined&end=undefined&interval=undefined');
+        });
     });
 
 });
