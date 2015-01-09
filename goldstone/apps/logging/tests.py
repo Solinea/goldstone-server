@@ -13,6 +13,7 @@
 # limitations under the License.
 from elasticsearch import TransportError, Elasticsearch
 from goldstone.apps.logging.serializers import LoggingNodeSerializer
+from goldstone.apps.logging.views import LoggingNodeViewSet
 
 __author__ = 'John Stanford'
 
@@ -42,50 +43,52 @@ class TaskTests(SimpleTestCase):
     ts3 = '2013-07-04T01:06:27.750046+00:00'
 
     def setUp(self):
-        es = Elasticsearch(settings.ES_SERVER)
-        if es.indices.exists('goldstone_model'):
-            es.indices.delete('goldstone_model')
-        es.indices.create('goldstone_model')
+        Node.objects.all().delete()
+
+    def tearDown(self):
+        Node.objects.all().delete()
 
     def test_process_host_stream(self):
         # administratively enabled
-        node1 = Node(name=self.name1, admin_disabled=False)
+        node1 = Node(name=self.name1, managed='true')
         node1.save()
-        NodeType.refresh_index()
-        self.assertEqual(Node.es_objects.all().count(), 1)
+        self.assertEqual(Node.objects.all().count(), 1)
         # get the object to get consistent date resolution
-        node1 = Node.get(id=node1.id)
+        node1 = Node.objects.get(name=node1.name)
         sleep(1)
         process_host_stream(self.name1, self.ts1)
-        NodeType.refresh_index()
-        self.assertEqual(Node.es_objects.all().count(), 1)
-        updated_node1 = Node.get(id=node1.id)
+        self.assertEqual(Node.objects.all().count(), 1)
+        updated_node1 = Node.objects.get(id=node1.id)
         self.assertGreater(updated_node1.updated, node1.updated)
 
         # administratively disabled
-        node2 = Node(name=self.name2, admin_disabled=True)
+        node2 = Node(name=self.name2, managed='false')
         node2.save()
-        NodeType.refresh_index()
-        node2 = Node.get(id=node2.id)
-        sleep(1)
+        node2 = Node.objects.get(name=node2.name)
+        self.assertEqual(node2.update_method, 'UNKNOWN')
         process_host_stream(self.name2, self.ts2)
-        NodeType.refresh_index()
-        updated_node2 = Node.get(id=node2.id)
-        self.assertGreater(updated_node2.updated, node2.updated)
-        self.assertTrue(updated_node2.admin_disabled)
-        Node.get(id=node1.id).delete()
-        Node.get(id=node2.id).delete()
+        updated_node2 = Node.objects.get(id=node2.id)
+        self.assertEqual(updated_node2.updated, node2.updated)
+        self.assertEqual(node2.update_method, 'UNKNOWN')
+        self.assertEqual(updated_node2.managed, 'false')
+
+        # creation
+        process_host_stream('xyz', self.ts2)
+        n = Node.objects.get(name='xyz')
+        self.assertEqual(n.update_method, 'LOGS')
+
+        
+
 
     @patch.object(subprocess, 'call')
     def test_check_host_avail(self, call):
         node1 = Node(name=self.name1)
-        node2 = Node(name=self.name2, admin_disabled=True)
+        node2 = Node(name=self.name2, managed='false')
         node3 = Node(name=self.name3)
         node3.save()
         node2.save()
         sleep(2)
         node1.save()
-        NodeType.refresh_index()
 
         check_host_avail(offset=timedelta(seconds=2))
         call.assert_called_once()
@@ -103,7 +106,6 @@ class TaskTests(SimpleTestCase):
         # create a logging node to relate
         node = Node(name="fake_node")
         node.save()
-        NodeType.refresh_index()
         event2 = _create_event(time_str, 'fake_node', "Syslog Error",
                                'test message 2')
         EventType.refresh_index()
@@ -132,11 +134,11 @@ class LoggingNodeSerializerTests(SimpleTestCase):
     node1 = Node(name='test_node')
 
     def setUp(self):
-        es = Elasticsearch(settings.ES_SERVER)
-        if es.indices.exists('goldstone_model'):
-            es.indices.delete('goldstone_model')
-        es.indices.create('goldstone_model')
+        Node.objects.all().delete()
         self.node1.save()
+
+    def tearDown(self):
+        Node.objects.all().delete()
 
     def test_serialize(self):
         ser = LoggingNodeSerializer(
@@ -156,10 +158,10 @@ class LoggingNodeSerializerTests(SimpleTestCase):
 class LoggingNodeViewTests(APISimpleTestCase):
 
     def setUp(self):
-        es = Elasticsearch(settings.ES_SERVER)
-        if es.indices.exists('goldstone_model'):
-            es.indices.delete('goldstone_model')
-        es.indices.create('goldstone_model')
+        Node.objects.all().delete()
+
+    def tearDown(self):
+        Node.objects.all().delete()
 
     def test_post(self):
         data = {'name': "test logging node"}
@@ -184,15 +186,22 @@ class LoggingNodeViewTests(APISimpleTestCase):
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
+    def test_set_time_range(self):
+        lnvs = LoggingNodeViewSet()
+        s = utc_now()
+        e = utc_now()
+        time_range = lnvs.get_request_time_range(
+            {'start_time': s, 'end_time': e})
+        self.assertEqual(time_range['start_time'], s)
+        self.assertEqual(time_range['end_time'], e)
+
     def test_list(self):
 
         for i in range(0, 20):
             node = Node(name="node"+str(i))
             node.save()
 
-        NodeType.refresh_index()
-
-        self.assertEqual(20, node.es_objects.all().count())
+        self.assertEqual(20, Node.objects.all().count())
         response = self.client.get('/logging/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 20)
@@ -202,7 +211,6 @@ class LoggingNodeViewTests(APISimpleTestCase):
     def test_get(self):
         node = Node(name="node1")
         node.save()
-        NodeType.refresh_index()
         response = self.client.get('/logging/nodes/' + node.id)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('name', response.data)
