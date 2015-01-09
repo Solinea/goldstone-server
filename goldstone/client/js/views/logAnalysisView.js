@@ -16,34 +16,59 @@
  * Author: Alex Jacobs
  */
 
-/*
- NOTE: This Backbone View is a "superClass" that is extended to at least 2 other chart-types at the time of this documentation.
+// extends UtilizationCpuView
+var LogAnalysisView = UtilizationCpuView.extend({
 
-The method of individuating charts that have particular individual requirements is to instantiate them with the 'featureSet' property within the options hash.
- */
+    initialize: function(options) {
 
-var UtilizationCpuView = GoldstoneBaseView.extend({
+        this.options = options || {};
+
+        // essential for unique chart objects,
+        // as objects/arrays are pass by reference
+        this.defaults = _.clone(this.defaults);
+
+        // breaks down init into discrete steps
+        this.processOptions();
+        this.processListeners();
+        this.processMargins();
+        this.render();
+        this.standardInit();
+        this.showSpinner();
+        this.specialInit();
+    },
 
     defaults: {
         margin: {
             top: 20,
             right: 40,
             bottom: 25,
-            left: 33
+            left: 63
         }
     },
 
     processOptions: function() {
-        UtilizationCpuView.__super__.processOptions.apply(this, arguments);
-        this.defaults.url = this.collection.url;
+        this.defaults.chartTitle = this.options.chartTitle || null;
+        this.defaults.height = this.options.height || null;
+        this.defaults.infoCustom = this.options.infoCustom || null;
+        this.el = this.options.el;
+        this.defaults.width = this.options.width || null;
+
+        // easy to pass in a unique yAxisLabel. This pattern can be
+        // expanded to any variable to allow overriding the default.
+
+        if (this.options.yAxisLabel) {
+            this.defaults.yAxisLabel = this.options.yAxisLabel;
+        } else {
+            this.defaults.yAxisLabel = "Response Time (ms)";
+        }
+
+        // this.defaults.url = this.collection.url;
+
         this.defaults.featureSet = this.options.featureSet || null;
         var ns = this.defaults;
-        if (ns.featureSet === 'memUsage') {
-            ns.divisor = (1 << 30);
-        }
-        ns.formatPercent = d3.format(".0%");
+
         ns.height = this.options.height || this.options.width;
-        ns.yAxisLabel = '';
+        ns.yAxisLabel = 'Log Events';
     },
 
     processListeners: function() {
@@ -51,19 +76,13 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         var self = this;
 
         this.collection.on('sync', function() {
-            if (self.collection.defaults.urlCollectionCount === 0) {
-                self.update();
-                // the collection count will have to be set back to the original count when re-triggering a fetch.
-                self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
-                self.collection.defaults.fetchInProgress = false;
-            }
+            self.update();
         });
 
         this.collection.on('error', this.dataErrorMessage, this);
 
         this.on('selectorChanged', function() {
-            this.collection.defaults.globalLookback = $('#global-lookback-range').val();
-            this.collection.fetchMultipleUrls();
+            console.log('selectorChanged registered on prototype chart');
             $(this.el).find('#spinner').show();
         });
     },
@@ -71,14 +90,49 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
     processMargins: function() {
         var ns = this.defaults;
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
-        ns.mh = ns.width - ns.margin.top - ns.margin.bottom;
+        ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
     },
 
     standardInit: function() {
-        UtilizationCpuView.__super__.standardInit.apply(this, arguments);
 
         var ns = this.defaults;
         var self = this;
+
+        ns.svg = d3.select(this.el).append("svg")
+            .attr("width", ns.width)
+            .attr("height", ns.height);
+
+        ns.chart = ns.svg
+            .append("g")
+            .attr("class", "chart")
+            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
+
+        // initialized the axes
+        ns.svg.append("text")
+            .attr("class", "axis.label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", 0 - (ns.height / 2))
+            .attr("y", -5)
+            .attr("dy", "1.5em")
+            .text(ns.yAxisLabel)
+            .style("text-anchor", "middle");
+
+        ns.x = d3.time.scale()
+            .rangeRound([0, ns.mw]);
+
+        ns.y = d3.scale.linear()
+            .range([ns.mh, 0]);
+
+        ns.xAxis = d3.svg.axis()
+            .scale(ns.x)
+            .ticks(5)
+            .orient("bottom");
+
+        ns.yAxis = d3.svg.axis()
+            .scale(ns.y)
+            .orient("left");
+
+        ns.colorArray = new GoldstoneColors().get('colorSets');
 
         ns.xAxis = d3.svg.axis()
             .scale(ns.x)
@@ -89,12 +143,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
             .scale(ns.y)
             .orient("left");
 
-        if (ns.featureSet === "cpuUsage") {
-            ns.yAxis
-                .tickFormat(ns.formatPercent);
-        }
-
-        ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
+        ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[5]);
 
         ns.area = d3.svg.area()
             .interpolate("monotone")
@@ -116,61 +165,42 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
     },
 
     collectionPrep: function() {
+        var ns = this.defaults;
+        var self = this;
+
         allthelogs = this.collection.toJSON();
+        console.log('allthelogs', allthelogs[0]);
 
-        var data = allthelogs;
-
-        var dataUniqTimes = _.uniq(_.map(data, function(item) {
-            return item.timestamp;
-        }));
-
-
-        var newData = {};
-
-        _.each(dataUniqTimes, function(item) {
-            newData[item] = {
-                wait: null,
-                sys: null,
-                user: null
-            };
-        });
-
-
-        _.each(data, function(item) {
-
-            var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
-
-            newData[item.timestamp][metric] = item.value;
-
-        });
-
+        var data = allthelogs[0].data;
 
         finalData = [];
 
-        _.each(newData, function(item, i) {
-            finalData.push({
-                wait: item.wait,
-                sys: item.sys,
-                user: item.user,
-                idle: 100 - (item.user + item.wait + item.sys),
-                date: i
-            });
+        _.each(data, function(item) {
+
+            // item.debug = item.debug || 0;
+            // item.audit = item.audit || 0;
+            // item.info = item.info || 0;
+            // item.warning = item.warning || 0;
+            // item.error = item.error || 0;
+            // item.date = item.time;
+            // delete item.time;
+
+            console.log(item.audit);
+
+            item.date = item.time;
+            item.error = item.error || 0;
+            item.warning = item.warning || 0;
+            item.info = item.info || 0;
+            item.audit = item.audit || 0;
+            item.debug = item.debug || 0;
+            delete item.time;
+
+            finalData.push(item);
         });
 
-
+        console.log('final data', finalData);
         return finalData;
 
-    },
-
-    dataErrorMessage: function(message, errorMessage) {
-
-        UtilizationCpuView.__super__.dataErrorMessage.apply(this, arguments);
-
-        var self = this;
-
-        // the collection count will have to be set back to the original count when re-triggering a fetch.
-        self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
-        self.collection.defaults.fetchInProgress = false;
     },
 
     update: function() {
@@ -197,7 +227,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         var data = allthelogs;
 
         ns.color.domain(d3.keys(data[0]).filter(function(key) {
-            return key !== "date";
+            return (key !== "date" && key !== "total");
         }));
 
         $(this.el).find('.axis').remove();
@@ -208,7 +238,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                 values: data.map(function(d) {
                     return {
                         date: d.date,
-                        y: self.defaults.featureSet === 'cpuUsage' ? d[name] / 100 : d[name]
+                        y: d[name]
                     };
                 })
             };
@@ -218,15 +248,9 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
             return d.date;
         }));
 
-        if (ns.featureSet === 'memUsage') {
-            ns.y.domain([0, ns.memTotal.value / ns.divisor]);
-        }
-
-        if (ns.featureSet === 'netUsage') {
-            ns.y.domain([0, d3.max(allthelogs, function(d) {
-                return d.rx + d.tx;
-            })]);
-        }
+        ns.y.domain([0, d3.max(allthelogs, function(d) {
+            return (d.error + d.warning + d.audit + d.info + d.debug);
+        })]);
 
         ns.chart.selectAll('.component')
             .remove();
@@ -242,31 +266,11 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                 return ns.area(d.values);
             })
             .style("fill", function(d) {
-
-                if (ns.featureSet === "cpuUsage") {
-                    if (d.name.toLowerCase() === "idle") {
-                        return "none";
-                    }
-                    return ns.color(d.name);
-                }
-
-                if (ns.featureSet === "memUsage") {
-                    if (d.name.toLowerCase() === "free") {
-                        return "none";
-                    }
-                    return ns.color(d.name);
-                }
-
-                if (ns.featureSet === "netUsage") {
-                    return ns.color(d.name);
-                }
-
-                console.log('define featureSet in utilizationCpuView.js');
-
+                return ns.color(d.name);
             })
             .style("opacity", 0.8);
 
-        component.append("text")
+/*        component.append("text")
             .datum(function(d) {
                 return {
                     name: d.name,
@@ -332,7 +336,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                 console.log('define feature set in utilizationCpuView.js');
                 return 'feature set undefined';
 
-            });
+            });*/
 
         ns.chart.append("g")
             .attr("class", "x axis")
@@ -351,5 +355,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         this.$el.append(this.template());
         return this;
     }
+
+
 
 });

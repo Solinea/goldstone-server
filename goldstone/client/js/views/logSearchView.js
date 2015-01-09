@@ -64,7 +64,15 @@ var LogSearchView = Backbone.View.extend({
     },
 
     triggerChange: function() {
-        this.renderCharts();
+        this.computeLookback();
+        var ns = this.defaults;
+        badEventMultiLine('#bad-event-multiline', ns.start, ns.end);
+        drawSearchTable('#log-search-table', ns.start, ns.end);
+
+        this.logAnalysisCollection.defaults.start = ns.start;
+        this.logAnalysisCollection.defaults.end = ns.end;
+        this.logAnalysisCollection.constructUrl();
+        this.logAnalysisView.trigger('selectorChanged');
     },
 
     setGlobalLookbackRefreshTriggers: function() {
@@ -100,15 +108,35 @@ var LogSearchView = Backbone.View.extend({
         var ns = this.defaults;
         badEventMultiLine('#bad-event-multiline', ns.start, ns.end);
         drawSearchTable('#log-search-table', ns.start, ns.end);
+
+        this.logAnalysisCollection = new LogAnalysisCollection({
+            urlRoot: "http://localhost:8000/intelligence/log/cockpit/data?",
+            start: ns.start,
+            end: ns.end,
+            width: $('.log-analysis-container').width()
+        });
+
+        this.logAnalysisView = new LogAnalysisView({
+            collection: this.logAnalysisCollection,
+            width: $('.log-analysis-container').width(),
+            height: 300,
+            el: '.log-analysis-container',
+            featureSet: 'cpuUsage',
+            chartTitle: 'Log Analysis',
+        });
     },
 
     template: _.template('' +
+
+        // container for new prototype d3 log chart
+        '<div class="log-analysis-container"></div>' +
+
         '<div class="row">' +
         '<div class="col-md-12">' +
         '<div class="panel panel-primary intel_panel">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-dashboard"> </i>'+
-        '<a href="/intelligence/search">Log Analysis</a>' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"></i>' +
+        '<a href="/intelligence/search"> Log Analysis</a>' +
 
         '<!-- info-circle icon -->' +
         '<i class="fa fa-info-circle panel-info pull-right" ' +
