@@ -19,24 +19,6 @@
 // extends UtilizationCpuView
 var LogAnalysisView = UtilizationCpuView.extend({
 
-    initialize: function(options) {
-
-        this.options = options || {};
-
-        // essential for unique chart objects,
-        // as objects/arrays are pass by reference
-        this.defaults = _.clone(this.defaults);
-
-        // breaks down init into discrete steps
-        this.processOptions();
-        this.processListeners();
-        this.processMargins();
-        this.render();
-        this.standardInit();
-        this.showSpinner();
-        this.specialInit();
-    },
-
     defaults: {
         margin: {
             top: 20,
@@ -47,27 +29,10 @@ var LogAnalysisView = UtilizationCpuView.extend({
     },
 
     processOptions: function() {
-        this.defaults.chartTitle = this.options.chartTitle || null;
-        this.defaults.height = this.options.height || null;
-        this.defaults.infoCustom = this.options.infoCustom || null;
-        this.el = this.options.el;
-        this.defaults.width = this.options.width || null;
 
-        // easy to pass in a unique yAxisLabel. This pattern can be
-        // expanded to any variable to allow overriding the default.
+        LogAnalysisView.__super__.processOptions.apply(this, arguments);
 
-        if (this.options.yAxisLabel) {
-            this.defaults.yAxisLabel = this.options.yAxisLabel;
-        } else {
-            this.defaults.yAxisLabel = "Response Time (ms)";
-        }
-
-        // this.defaults.url = this.collection.url;
-
-        this.defaults.featureSet = this.options.featureSet || null;
         var ns = this.defaults;
-
-        ns.height = this.options.height || this.options.width;
         ns.yAxisLabel = 'Log Events';
     },
 
@@ -177,25 +142,15 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         _.each(data, function(item) {
 
-            // item.debug = item.debug || 0;
-            // item.audit = item.audit || 0;
-            // item.info = item.info || 0;
-            // item.warning = item.warning || 0;
-            // item.error = item.error || 0;
-            // item.date = item.time;
-            // delete item.time;
+            finalData.push({
+                debug: item.debug || 0,
+                audit: item.audit || 0,
+                info: item.info || 0,
+                warning: item.warning || 0,
+                error: item.error || 0,
+                date: item.time,
+            });
 
-            console.log(item.audit);
-
-            item.date = item.time;
-            item.error = item.error || 0;
-            item.warning = item.warning || 0;
-            item.info = item.info || 0;
-            item.audit = item.audit || 0;
-            item.debug = item.debug || 0;
-            delete item.time;
-
-            finalData.push(item);
         });
 
         console.log('final data', finalData);
@@ -204,148 +159,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
     },
 
     update: function() {
-
-        var ns = this.defaults;
-        var self = this;
-
-        // sets css for spinner to hidden in case
-        // spinner callback resolves
-        // after chart data callback
-        ns.spinnerDisplay = 'none';
-        $(this.el).find('#spinner').hide();
-
-        var allthelogs = this.collectionPrep();
-
-        // If we didn't receive any valid files, append "No Data Returned"
-        if (this.checkReturnedDataSet(allthelogs) === false) {
-            return;
-        }
-
-        // remove No Data Returned once data starts flowing again
-        this.clearDataErrorMessage();
-
-        var data = allthelogs;
-
-        ns.color.domain(d3.keys(data[0]).filter(function(key) {
-            return (key !== "date" && key !== "total");
-        }));
-
-        $(this.el).find('.axis').remove();
-
-        var components = ns.stack(ns.color.domain().map(function(name) {
-            return {
-                name: name,
-                values: data.map(function(d) {
-                    return {
-                        date: d.date,
-                        y: d[name]
-                    };
-                })
-            };
-        }));
-
-        ns.x.domain(d3.extent(data, function(d) {
-            return d.date;
-        }));
-
-        ns.y.domain([0, d3.max(allthelogs, function(d) {
-            return (d.error + d.warning + d.audit + d.info + d.debug);
-        })]);
-
-        ns.chart.selectAll('.component')
-            .remove();
-
-        var component = ns.chart.selectAll(".component")
-            .data(components)
-            .enter().append("g")
-            .attr("class", "component");
-
-        component.append("path")
-            .attr("class", "area")
-            .attr("d", function(d) {
-                return ns.area(d.values);
-            })
-            .style("fill", function(d) {
-                return ns.color(d.name);
-            })
-            .style("opacity", 0.8);
-
-/*        component.append("text")
-            .datum(function(d) {
-                return {
-                    name: d.name,
-                    value: d.values[d.values.length - 1]
-                };
-            })
-            .attr("transform", function(d) {
-                return "translate(" + ns.x(d.value.date) + "," + ns.y(d.value.y0 + d.value.y / 2) + ")";
-            })
-            .attr("x", 1)
-            .attr("y", function(d, i) {
-                // make space between the labels
-
-                if (ns.featureSet === 'memUsage') {
-                    if (d.name === 'total') {
-                        return -3;
-                    } else {
-                        return 0;
-                    }
-                }
-
-                if (ns.featureSet === 'cpuUsage') {
-                    return -i * 3;
-                }
-
-                if (ns.featureSet === 'netUsage') {
-                    return -i * 8;
-                }
-
-                console.log('define feature set in utilizationCpuView.js');
-                return;
-
-            })
-            .attr("text-anchor", function(d) {
-                if (ns.featureSet === 'memUsage') {
-                    if (d.name === 'total') {
-                        return 'end';
-                    }
-                }
-            })
-            .style("font-size", ".8em")
-            .text(function(d) {
-
-                if (ns.featureSet === 'cpuUsage') {
-                    return d.name;
-                }
-
-                if (ns.featureSet === 'memUsage') {
-                    if (d.name === 'total') {
-                        return 'Total: ' + ((Math.round(ns.memTotal.value / ns.divisor * 100)) / 100) + 'GB';
-                    }
-                    if (d.name === 'free') {
-                        return '';
-                    } else {
-                        return d.name;
-                    }
-                }
-
-                if (ns.featureSet === 'netUsage') {
-                    return d.name + " (kB)";
-                }
-
-                console.log('define feature set in utilizationCpuView.js');
-                return 'feature set undefined';
-
-            });*/
-
-        ns.chart.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + ns.mh + ")")
-            .call(ns.xAxis);
-
-        ns.chart.append("g")
-            .attr("class", "y axis")
-            .call(ns.yAxis);
+        LogAnalysisView.__super__.update.apply(this, arguments);
     },
 
     template: _.template(

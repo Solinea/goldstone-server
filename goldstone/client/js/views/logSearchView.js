@@ -121,7 +121,7 @@ var LogSearchView = Backbone.View.extend({
             width: $('.log-analysis-container').width(),
             height: 300,
             el: '.log-analysis-container',
-            featureSet: 'cpuUsage',
+            featureSet: 'logEvents',
             chartTitle: 'Log Analysis',
         });
     },

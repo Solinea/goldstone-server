@@ -197,7 +197,12 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         var data = allthelogs;
 
         ns.color.domain(d3.keys(data[0]).filter(function(key) {
-            return key !== "date";
+
+            if (ns.featureSet === 'logEvents') {
+                return (key !== "date" && key !== "total" && key !== "time");
+            } else {
+                return key !== "date";
+            }
         }));
 
         $(this.el).find('.axis').remove();
@@ -225,6 +230,12 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         if (ns.featureSet === 'netUsage') {
             ns.y.domain([0, d3.max(allthelogs, function(d) {
                 return d.rx + d.tx;
+            })]);
+        }
+
+        if (ns.featureSet === 'logEvents') {
+            ns.y.domain([0, d3.max(allthelogs, function(d) {
+                return (d.error + d.warning + d.audit + d.info + d.debug);
             })]);
         }
 
@@ -257,7 +268,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                     return ns.color(d.name);
                 }
 
-                if (ns.featureSet === "netUsage") {
+                if (ns.featureSet === "netUsage" || ns.featureSet === "logEvents") {
                     return ns.color(d.name);
                 }
 
@@ -296,6 +307,10 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                     return -i * 8;
                 }
 
+                if (ns.featureSet === 'logEvents') {
+                    return 0;
+                }
+
                 console.log('define feature set in utilizationCpuView.js');
                 return;
 
@@ -327,6 +342,10 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
 
                 if (ns.featureSet === 'netUsage') {
                     return d.name + " (kB)";
+                }
+
+                if (ns.featureSet === 'logEvents') {
+                    return null;
                 }
 
                 console.log('define feature set in utilizationCpuView.js');
