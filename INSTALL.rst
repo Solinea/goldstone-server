@@ -46,9 +46,25 @@ First, enable the CentOS EPEL repositories and install some dependencies: ::
     # yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
     # yum install -y gcc gcc-c++ java-1.7.0-openjdk
 
-After that, enable the goldstone repository: ::
+After that, enable the elasticsearch and logstash repositories: ::
 
-    # yum install -y http://repo.solinea.com/repo/goldstone_repos-1.2-1.noarch.rpm
+    # rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+    # cat > /etc/yum.repos.d/elasticsearch-1.3.repo <<EOF
+    [elasticsearch-1.3]
+    name=Elasticsearch repository for 1.3.x packages
+    baseurl=http://packages.elasticsearch.org/elasticsearch/1.3/centos
+    gpgcheck=1
+    gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+    enabled=1
+    EOF
+    # cat > /etc/yum.repos.d/logstash-1.4.repo <<EOF
+    [logstash-1.4]
+    name=logstash repository for 1.3.x packages
+    baseurl=http://packages.elasticsearch.org/logstash/1.3/centos
+    gpgcheck=1
+    gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+    enabled=1
+    EOF
 
 Finally, install the goldstone application: ::
 

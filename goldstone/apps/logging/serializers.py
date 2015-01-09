@@ -21,15 +21,6 @@ from goldstone.apps.logging.models import LoggingNodeStats
 
 
 class LoggingNodeSerializer(NodeSerializer):
-    error_count = serializers.IntegerField(read_only=True)
-    warning_count = serializers.IntegerField(read_only=True)
-    info_count = serializers.IntegerField(read_only=True)
-    audit_count = serializers.IntegerField(read_only=True)
-    debug_count = serializers.IntegerField(read_only=True)
-
-    class Meta:
-        model = Node
-        lookup_field = '_id'
 
     def to_representation(self, obj):
         r = super(LoggingNodeSerializer, self).to_representation(obj)
