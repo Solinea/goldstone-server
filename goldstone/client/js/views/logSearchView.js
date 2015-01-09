@@ -94,6 +94,14 @@ var LogSearchView = Backbone.View.extend({
 
     render: function() {
         this.$el.html(this.template());
+
+        new ChartHeaderView({
+            el: '.log-analysis-container',
+            chartTitle: 'Log Analysis',
+            infoText: 'searchLogAnalysis',
+            infoIcon: 'fa-dashboard'
+        });
+
         return this;
     },
 

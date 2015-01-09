@@ -27,6 +27,7 @@ var ChartHeaderView = Backbone.View.extend({
         this.defaults.columns = options.columns || 12;
         this.defaults.chartTitle = options.chartTitle;
         this.defaults.infoText = options.infoText;
+        this.defaults.infoIcon = options.infoIcon || 'fa-tasks';
 
         var ns = this.defaults;
         var self = this;
@@ -68,7 +69,7 @@ var ChartHeaderView = Backbone.View.extend({
 
     template: _.template('<div id="chart-panel-header" class="panel panel-primary col-md-<%= this.defaults.columns %>">' +
         '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
+        '<h3 class="panel-title"><i class="fa <%= this.defaults.infoIcon %>"></i> <%= this.defaults.chartTitle %>' +
         '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
         '</h3></div>' +
         '<div class="mainContainer"></div>')
