@@ -96,7 +96,9 @@ var LogSearchView = Backbone.View.extend({
             el: '.log-analysis-container',
             chartTitle: 'Log Analysis',
             infoText: 'searchLogAnalysis',
-            infoIcon: 'fa-dashboard'
+            infoIcon: 'fa-dashboard',
+            columns: 13
+            // TODO: append proper header so data popup is not floating
         });
 
         return this;
