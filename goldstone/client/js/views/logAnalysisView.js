@@ -75,7 +75,6 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var self = this;
 
         allthelogs = this.collection.toJSON();
-        console.log('allthelogs', allthelogs[0]);
 
         var data = allthelogs[0].data;
 
@@ -94,9 +93,22 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         });
 
-        console.log('final data', finalData);
         return finalData;
 
+    },
+
+    sums: function(datum) {
+        var ns = this.defaults;
+        // Return the sums for the filters that are on
+        return d3.sum(ns.loglevel.domain().map(function(k) {
+
+            if (ns.filter[k]) {
+                return datum[k];
+            } else {
+                return 0;
+            }
+
+        }));
     },
 
     update: function() {
@@ -105,7 +117,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-         // populate the modal based on the event types.
+        // populate the modal based on the event types.
         // clear out the modal and reapply based on the unique events
         if ($(this.el).find('#populateEventFilters').length) {
             $(this.el).find('#populateEventFilters').empty();
@@ -147,10 +159,35 @@ var LogAnalysisView = UtilizationCpuView.extend({
         $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
             var checkboxId = this.id;
             ns.filter[checkboxId] = !ns.filter[checkboxId];
-
-            //TODO: refresh view with filtered data
+            self.update();
 
         });
+
+        this.redraw();
+
+    },
+
+    redraw: function() {
+
+        var ns = this.defaults;
+        var self = this;
+
+        ns.y.domain([
+            0,
+            d3.max(ns.data.map(function(d) {
+                return self.sums(d);
+            }))
+        ]);
+
+        d3.select(this.el).select('.x.axis')
+            .transition()
+            .duration(500)
+            .call(ns.xAxis.scale(ns.x));
+
+        d3.select(this.el).select('.y.axis')
+            .transition()
+            .duration(500)
+            .call(ns.yAxis.scale(ns.y));
 
     },
 
