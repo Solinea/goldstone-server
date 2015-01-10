@@ -59,8 +59,8 @@ After that, enable the elasticsearch and logstash repositories: ::
     EOF
     # cat > /etc/yum.repos.d/logstash-1.4.repo <<EOF
     [logstash-1.4]
-    name=logstash repository for 1.3.x packages
-    baseurl=http://packages.elasticsearch.org/logstash/1.3/centos
+    name=logstash repository for 1.4.x packages
+    baseurl=http://packages.elasticsearch.org/logstash/1.4/centos
     gpgcheck=1
     gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
     enabled=1
@@ -68,7 +68,7 @@ After that, enable the elasticsearch and logstash repositories: ::
 
 Install the goldstone application: ::
 
-    # yum install -y goldstone
+    # yum localinstall -y goldstone-server-2.0.1.rpm
 
 This package installation may take up to 2 hours to run, as it needs to compile a number of libraries.
 
