@@ -170,7 +170,7 @@ stop() {
 
 start() {
     echo -n $"Starting $prog: "
-
+    sleep $SLEEP_SECONDS
     # If Celery is already running, bail out
     if [[ -f "$CELERYBEAT_PID_FILE" ]]; then
         echo -n "$prog is already running. Use 'restart'."
