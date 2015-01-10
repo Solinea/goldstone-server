@@ -32,14 +32,14 @@ Before installing goldstone, your server needs to meet the following prerequesit
 * 4GB RAM
 * x64 CPU
 * 100 GB free disk space
-* CentOS / RHEL 6.5
+* CentOS / RHEL 6.5 or 6.6
 
 To view and use goldstone, you will need a recent version of the `Google Chrome browser`_.
 
 .. _Google Chrome browser: https://www.google.com/intl/en-US/chrome/browser/
 
-RUN GOLDSTONE INSTALLER
-***********************
+INSTALL GOLDSTONE PACKAGES
+**************************
 
 First, enable the CentOS EPEL repositories and install some dependencies: ::
 
@@ -66,7 +66,7 @@ After that, enable the elasticsearch and logstash repositories: ::
     enabled=1
     EOF
 
-Finally, install the goldstone application: ::
+Install the goldstone application: ::
 
     # yum install -y goldstone
 
@@ -78,6 +78,14 @@ Once the goldstone rpm is installed, copy the ``/opt/goldstone/goldstone/setting
     OS_PASSWORD = 'fe6ac09d85041ae384c66a83e362f565'
     OS_TENANT_NAME = 'admin'
     OS_AUTH_URL = 'http://10.10.15.230:5000/v2.0'
+
+The goldstone application will be started at next boot, or you can start it and it's dependencies with the following commands: ::
+
+    # service httpd start
+    # service celerybeat start
+    # service celeryd-default start
+    # service celeryd-host-stream start
+    # service celeryd-event-stream start
 
 DIRECT LOGS TO GOLDSTONE SERVER
 *******************************
