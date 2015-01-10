@@ -69,10 +69,7 @@ var LogSearchView = Backbone.View.extend({
         badEventMultiLine('#bad-event-multiline', ns.start, ns.end);
         drawSearchTable('#log-search-table', ns.start, ns.end);
 
-        this.logAnalysisCollection.defaults.start = ns.start;
-        this.logAnalysisCollection.defaults.end = ns.end;
-        this.logAnalysisCollection.constructUrl();
-        this.logAnalysisView.trigger('selectorChanged');
+        this.logAnalysisView.trigger('selectorChanged', [ns.start, ns.end]);
     },
 
     setGlobalLookbackRefreshTriggers: function() {

@@ -23,7 +23,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
         margin: {
             top: 20,
             right: 40,
-            bottom: 25,
+            bottom: 35,
             left: 63
         }
     },
@@ -46,9 +46,13 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         this.collection.on('error', this.dataErrorMessage, this);
 
-        this.on('selectorChanged', function() {
-            console.log('selectorChanged registered on prototype chart');
+        this.on('selectorChanged', function(params) {
             $(this.el).find('#spinner').show();
+
+            this.collection.defaults.start = params[0];
+            this.collection.defaults.end = params[1];
+            this.collection.constructUrl();
+
         });
     },
 
@@ -56,77 +60,6 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         ns.mw = ns.width - ns.margin.left - ns.margin.right;
         ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
-    },
-
-    standardInit: function() {
-
-        var ns = this.defaults;
-        var self = this;
-
-        ns.svg = d3.select(this.el).append("svg")
-            .attr("width", ns.width)
-            .attr("height", ns.height);
-
-        ns.chart = ns.svg
-            .append("g")
-            .attr("class", "chart")
-            .attr("transform", "translate(" + ns.margin.left + "," + ns.margin.top + ")");
-
-        // initialized the axes
-        ns.svg.append("text")
-            .attr("class", "axis.label")
-            .attr("transform", "rotate(-90)")
-            .attr("x", 0 - (ns.height / 2))
-            .attr("y", -5)
-            .attr("dy", "1.5em")
-            .text(ns.yAxisLabel)
-            .style("text-anchor", "middle");
-
-        ns.x = d3.time.scale()
-            .rangeRound([0, ns.mw]);
-
-        ns.y = d3.scale.linear()
-            .range([ns.mh, 0]);
-
-        ns.xAxis = d3.svg.axis()
-            .scale(ns.x)
-            .ticks(5)
-            .orient("bottom");
-
-        ns.yAxis = d3.svg.axis()
-            .scale(ns.y)
-            .orient("left");
-
-        ns.colorArray = new GoldstoneColors().get('colorSets');
-
-        ns.xAxis = d3.svg.axis()
-            .scale(ns.x)
-            .orient("bottom")
-            .ticks(4);
-
-        ns.yAxis = d3.svg.axis()
-            .scale(ns.y)
-            .orient("left");
-
-        ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[5]);
-
-        ns.area = d3.svg.area()
-            .interpolate("monotone")
-            .x(function(d) {
-                return ns.x(d.date);
-            })
-            .y0(function(d) {
-                return ns.y(d.y0);
-            })
-            .y1(function(d) {
-                return ns.y(d.y0 + d.y);
-            });
-
-        ns.stack = d3.layout.stack()
-            .values(function(d) {
-                return d.values;
-            });
-
     },
 
     collectionPrep: function() {
@@ -165,11 +98,42 @@ var LogAnalysisView = UtilizationCpuView.extend({
     template: _.template(
         '<div class="alert alert-danger popup-message" hidden="true"></div>'),
 
+    modal2: _.template(
+        // event filter modal
+        '<div class="modal fade" id="modal-filter-<%= this.el.slice(1) %>' +
+        '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+        '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
+
+        // header
+        '<div class="modal-header">' +
+        '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
+        '<h4 class="modal-title" id="myModalLabel">Log Severity Filters</h4>' +
+        '</div>' +
+
+        // body
+        '<div class="modal-body">' +
+        '<h5>Uncheck log-type to hide from display</h5><br>' +
+        '<div id="populateEventFilters"></div>' +
+        '</div>' +
+
+        // footer
+        '<div class="modal-footer">' +
+        '<button type="button" id="eventFilterUpdateButton-<%= this.el.slice(1) %>' +
+        '" class="btn btn-primary" data-dismiss="modal">Exit</button>' +
+        '</div>' +
+
+        '</div>' +
+        '</div>' +
+        '</div>'
+    ),
+
     render: function() {
         this.$el.append(this.template());
+        $(this.el).find('.special-icon-post').append('<i class="fa fa-filter pull-right" data-toggle="modal"' +
+            'data-target="#modal-filter-' + this.el.slice(1) + '" style="margin: 0 20px;"></i>');
+        this.$el.append(this.modal2());
         return this;
     }
-
-
 
 });
