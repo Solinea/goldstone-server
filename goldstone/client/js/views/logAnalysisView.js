@@ -25,6 +25,14 @@ var LogAnalysisView = UtilizationCpuView.extend({
             right: 40,
             bottom: 35,
             left: 63
+        },
+
+        filter: {
+            debug: true,
+            audit: true,
+            info: true,
+            warning: true,
+            error: true
         }
     },
 
@@ -93,6 +101,57 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
     update: function() {
         LogAnalysisView.__super__.update.apply(this, arguments);
+
+        var ns = this.defaults;
+        var self = this;
+
+         // populate the modal based on the event types.
+        // clear out the modal and reapply based on the unique events
+        if ($(this.el).find('#populateEventFilters').length) {
+            $(this.el).find('#populateEventFilters').empty();
+        }
+
+        _.each(_.keys(ns.filter), function(item) {
+
+            if (item === 'none') {
+                return null;
+            }
+
+            var addCheckIfActive = function(item) {
+                if (ns.filter[item]) {
+                    return 'checked';
+                } else {
+                    return '';
+                }
+            };
+
+            var checkMark = addCheckIfActive(item);
+
+            $(self.el).find('#populateEventFilters').
+            append(
+
+                '<div class="row">' +
+                '<div class="col-lg-12">' +
+                '<div class="input-group">' +
+                '<span class="input-group-addon"' +
+                'style="opacity: 0.8; background-color:' + ns.loglevel([item]) + ';">' +
+                '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
+                '</span>' +
+                '<span type="text" class="form-control">' + item + '</span>' +
+                '</div>' +
+                '</div>' +
+                '</div>'
+            );
+        });
+
+        $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
+            var checkboxId = this.id;
+            ns.filter[checkboxId] = !ns.filter[checkboxId];
+
+            //TODO: refresh view with filtered data
+
+        });
+
     },
 
     template: _.template(
