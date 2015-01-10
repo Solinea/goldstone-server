@@ -94,7 +94,11 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                 .tickFormat(ns.formatPercent);
         }
 
-        ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
+        if (ns.featureSet === 'logEvents') {
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[5]);
+        } else {
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
+        }
 
         ns.area = d3.svg.area()
             .interpolate("monotone")
@@ -275,7 +279,9 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                 console.log('define featureSet in utilizationCpuView.js');
 
             })
-            .style("opacity", 0.8);
+            .style("opacity", function() {
+                return ns.featureSet === "logEvents" ? 0.3 : 0.8;
+            });
 
         component.append("text")
             .datum(function(d) {

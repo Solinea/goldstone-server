@@ -70,7 +70,9 @@ var ChartHeaderView = Backbone.View.extend({
     template: _.template('<div id="chart-panel-header" class="panel panel-primary col-md-<%= this.defaults.columns %>">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa <%= this.defaults.infoIcon %>"></i> <%= this.defaults.chartTitle %>' +
+        '<span class="pull-right special-icon-post"></span>' +
         '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
+        '<span class="pull-right special-icon-pre"></span>' +
         '</h3></div>' +
         '<div class="mainContainer"></div>')
 });
