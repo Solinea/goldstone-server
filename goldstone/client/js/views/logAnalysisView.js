@@ -126,7 +126,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
 
         // Return the sums for the filters that are on
-        return d3.sum(ns.loglevel.domain().map(function(k) {
+        return d3.sum(ns.color.domain().map(function(k) {
 
             if (ns.filter[k]) {
                 return datum[k];
@@ -171,7 +171,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
                 '<div class="col-lg-12">' +
                 '<div class="input-group">' +
                 '<span class="input-group-addon"' +
-                'style="opacity: 0.8; background-color:' + ns.loglevel([item]) + ';">' +
+                'style="opacity: 0.8; background-color:' + ns.loglevel([item]) + '">' +
                 '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
                 '</span>' +
                 '<span type="text" class="form-control">' + item + '</span>' +
