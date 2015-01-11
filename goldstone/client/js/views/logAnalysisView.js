@@ -66,6 +66,17 @@ var LogAnalysisView = UtilizationCpuView.extend({
         ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
     },
 
+    standardInit: function() {
+        LogAnalysisView.__super__.standardInit.apply(this, arguments);
+
+        var ns = this.defaults;
+
+        ns.xAxis = d3.svg.axis()
+            .scale(ns.x)
+            .orient("bottom")
+            .ticks(7);
+    },
+
     setDefaultFilters: function(levels) {
         var ns = this.defaults;
         var self = this;
