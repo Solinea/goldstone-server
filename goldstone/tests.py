@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from goldstone import StartupGoldstone
-from goldstone.apps.core.models import NodeType, Node
+from goldstone.apps.core.models import Node
 
 __author__ = 'John Stanford'
 
@@ -246,20 +246,13 @@ class ReportTemplateViewTest(SimpleTestCase):
     node1 = Node(name="test_node_123")
 
     def setUp(self):
-        es = Elasticsearch(settings.ES_SERVER)
-        if es.indices.exists('goldstone_model'):
-            es.indices.delete('goldstone_model')
-        es.indices.create('goldstone_model')
+        Node.objects.all().delete()
 
     def tearDown(self):
-        es = Elasticsearch(settings.ES_SERVER)
-        if es.indices.exists('goldstone_model'):
-            es.indices.delete('goldstone_model')
-        es.indices.create('goldstone_model')
+        Node.objects.all().delete()
 
     def test_good_request(self):
         self.node1.save()
-        NodeType.refresh_index()
         url = '/report/node/' + self.node1.name
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)

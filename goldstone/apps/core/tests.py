@@ -96,8 +96,8 @@ class NodeSerializerTests(SimpleTestCase):
         self.assertIn('name', ser.data)
         self.assertIn('created', ser.data)
         self.assertIn('updated', ser.data)
-        self.assertIn('admin_disabled', ser.data)
-        self.assertIn('last_seen_method', ser.data)
+        self.assertIn('managed', ser.data)
+        self.assertIn('update_method', ser.data)
         self.assertNotIn('uuid', ser.data)
 
 
@@ -107,22 +107,21 @@ class NodeViewTests(APISimpleTestCase):
     name3 = "test_node_789"
     name4 = "test_node_987"
     node1 = Node(name=name1)
-    node2 = Node(name=name2, admin_disabled=True)
-    node3 = Node(name=name3, admin_disabled=True)
+    node2 = Node(name=name2, managed='false')
+    node3 = Node(name=name3, managed='false')
     node4 = Node(name=name4)
 
     def setUp(self):
-        es = Elasticsearch(settings.ES_SERVER)
-        if es.indices.exists('goldstone_model'):
-            es.indices.delete('goldstone_model')
-        es.indices.create('goldstone_model')
+        Node.objects.all().delete()
+
+    def tearDown(self):
+        Node.objects.all().delete()
 
     def test_get_list(self):
         self.node1.save()
         self.node2.save()
         self.node3.save()
         self.node4.save()
-        NodeType.refresh_index()
         response = self.client.get('/core/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 4)
@@ -132,73 +131,68 @@ class NodeViewTests(APISimpleTestCase):
         self.node2.save()
         self.node3.save()
         self.node4.save()
-        NodeType.refresh_index()
-        response = self.client.get('/core/nodes?admin_disabled=false')
+        response = self.client.get('/core/nodes?managed=true')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
-        self.assertFalse(response.data['results'][0]['admin_disabled'])
-        self.assertFalse(response.data['results'][1]['admin_disabled'])
+        self.assertEqual(response.data['results'][0]['managed'],
+                         'true')
+        self.assertEqual(response.data['results'][1]['managed'],
+                         'true')
 
     def test_get_disabled(self):
         self.node1.save()
         self.node2.save()
         self.node3.save()
         self.node4.save()
-        NodeType.refresh_index()
-        response = self.client.get('/core/nodes?admin_disabled=true')
+        response = self.client.get('/core/nodes?managed=false')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
-        self.assertTrue(response.data['results'][0]['admin_disabled'])
-        self.assertTrue(response.data['results'][1]['admin_disabled'])
+        self.assertEqual(response.data['results'][0]['managed'], 'false')
+        self.assertEqual(response.data['results'][1]['managed'], 'false')
 
     def test_patch_disable(self):
         self.node1.save()
         self.node2.save()
         self.node3.save()
         self.node4.save()
-        NodeType.refresh_index()
-        response = self.client.get('/core/nodes?admin_disabled=false')
+        response = self.client.get('/core/nodes?managed=true')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
-        self.assertFalse(response.data['results'][0]['admin_disabled'])
+        self.assertEqual(response.data['results'][0]['managed'],
+                         'true')
         uuid = response.data['results'][0]['id']
         response = self.client.patch('/core/nodes/' + uuid + '/disable')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        NodeType.refresh_index()
         response = self.client.get('/core/nodes/' + uuid)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.data['admin_disabled'])
+        self.assertEqual(response.data['managed'], 'false')
 
     def test_patch_enable(self):
         self.node1.save()
         self.node2.save()
         self.node3.save()
         self.node4.save()
-        NodeType.refresh_index()
-        response = self.client.get('/core/nodes?admin_disabled=true')
+        response = self.client.get('/core/nodes?managed=false')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
-        self.assertTrue(response.data['results'][0]['admin_disabled'])
+        self.assertEqual(response.data['results'][0]['managed'], 'false')
         id = response.data['results'][0]['id']
         response = self.client.patch('/core/nodes/' + id + '/enable')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        NodeType.refresh_index()
         response = self.client.get('/core/nodes/' + id)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         logger.info('id = %s', id)
-        self.assertEqual(type(response.data['admin_disabled']), bool)
-        self.assertFalse(response.data['admin_disabled'])
+        self.assertEqual(response.data['managed'], 'true')
 
     def test_delete_fail(self):
         self.node1.save()
         self.node2.save()
         self.node3.save()
         self.node4.save()
-        NodeType.refresh_index()
-        response = self.client.get('/core/nodes?admin_disabled=true')
+        response = self.client.get('/core/nodes?managed=false')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
-        self.assertTrue(response.data['results'][0]['admin_disabled'])
+        self.assertEqual(response.data['results'][0]['managed'], 'false')
         uuid = response.data['results'][0]['id']
         response = self.client.delete('/core/nodes/' + uuid)
         self.assertEqual(response.status_code,
@@ -215,7 +209,6 @@ class NodeViewTests(APISimpleTestCase):
         self.node2.save()
         self.node3.save()
         self.node4.save()
-        NodeType.refresh_index()
         response = self.client.get('/core/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 4)
@@ -231,7 +224,6 @@ class NodeViewTests(APISimpleTestCase):
         self.node2.save()
         self.node3.save()
         self.node4.save()
-        NodeType.refresh_index()
         response = self.client.get('/core/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 4)
@@ -248,100 +240,111 @@ class NodeModelTests(SimpleTestCase):
     name2 = "test_node_456"
     name3 = "test_node_789"
     name4 = "test_node_987"
-    # node1 = Node(name=name1)
-    # node2 = Node(name=name2, admin_disabled=True)
-    # node3 = Node(name=name3, admin_disabled=True)
-    # node4 = Node(name=name4)
 
     def setUp(self):
-        es = Elasticsearch(settings.ES_SERVER)
-        if es.indices.exists('goldstone_model'):
-            es.indices.delete('goldstone_model')
-        es.indices.create('goldstone_model')
+        Node.objects.all().delete()
+
+    def tearDown(self):
+        Node.objects.all().delete()
+
+    def test_validate_str_bool(self):
+        self.assertEqual(validate_str_bool('true'), None)
+        self.assertEqual(validate_str_bool('false'), None)
+        self.assertRaises(ValidationError, validate_str_bool, 'True')
+        self.assertRaises(ValidationError, validate_str_bool, 'False')
+
+    def test_validate_method_choices(self):
+        self.assertEqual(validate_method_choices('UNKNOWN'), None)
+        self.assertRaises(ValidationError, validate_method_choices, 'XYZ')
 
     def test_create_model(self):
         n1 = Node(name=self.name1)
+        n1.save()
         self.assertIsNotNone(n1.id)
-        self.assertFalse(n1.admin_disabled)
-        self.assertLess(n1.created, arrow.utcnow().datetime)
-        self.assertEqual(n1.created, n1.updated)
-        self.assertEqual(n1.last_seen_method, "UNKNOWN")
+        self.assertEqual(n1.managed, 'true')
+        self.assertLess(n1.created, utc_now())
+        self.assertAlmostEqual(arrow.get(n1.created).timestamp,
+                               arrow.get(n1.updated).timestamp)
+        self.assertEqual(n1.update_method, "UNKNOWN")
 
-        n2 = Node(name=self.name2, admin_disabled=False)
+        n2 = Node(name=self.name2, managed='true')
+        n2.save()
         self.assertIsNotNone(n2.id)
-        self.assertFalse(n2.admin_disabled)
-        self.assertLess(n2.created, arrow.utcnow().datetime)
-        self.assertEqual(n2.created, n2.updated)
-        self.assertEqual(n2.last_seen_method, "UNKNOWN")
+        self.assertEqual(n2.managed, 'true')
+        self.assertAlmostEqual(arrow.get(n1.created).timestamp,
+                               arrow.get(n1.updated).timestamp)
+        self.assertEqual(n2.update_method, "UNKNOWN")
 
-        n3 = Node(name=self.name3, admin_disabled=True)
+        n3 = Node(name=self.name3, managed='false')
+        n3.save()
         self.assertIsNotNone(n3.id)
-        self.assertTrue(n3.admin_disabled)
-        self.assertLess(n3.created, arrow.utcnow().datetime)
-        self.assertEqual(n3.created, n3.updated)
-        self.assertEqual(n3.last_seen_method, "UNKNOWN")
+        self.assertEqual(n3.managed, 'false')
+        self.assertLess(n3.created, utc_now())
+        self.assertAlmostEqual(arrow.get(n1.created).timestamp,
+                               arrow.get(n1.updated).timestamp)
+        self.assertEqual(n3.update_method, "UNKNOWN")
 
         updated = arrow.utcnow()
         sleep(1)
         created = updated.replace(minutes=-30)
-        n4 = Node(name=self.name4, admin_disabled=True,
-                  last_seen_method="PING", created=created.datetime,
+        n4 = Node(name=self.name4, managed='false',
+                  update_method="PING", created=created.datetime,
                   updated=updated.datetime)
+        n4.save()
         self.assertIsNotNone(n4.id)
-        self.assertTrue(n4.admin_disabled)
-        self.assertEqual(n4.created, created.datetime)
+        self.assertEqual(n4.managed, 'false')
+        self.assertAlmostEqual(arrow.get(n1.created).timestamp,
+                               arrow.get(n1.updated).timestamp)
         self.assertGreater(arrow.get(n4.updated).timestamp,
                            updated.timestamp)
-        self.assertEqual(n4.last_seen_method, "PING")
+        self.assertEqual(n4.update_method, "PING")
+
+    def test_model_validation(self):
+        n1 = Node(name='n1', managed='False')
+        self.assertRaises(ValidationError, n1.save)
+        n1 = Node(name='n1', managed='True')
+        self.assertRaises(ValidationError, n1.save)
+        n1 = Node(name='n1', managed='XYZ')
+        self.assertRaises(ValidationError, n1.save)
 
     def test_index_and_get_model(self):
         updated = arrow.utcnow()
         created = updated.replace(minutes=-30)
-        n1 = Node(name=self.name1, admin_disabled=True,
-                  last_seen_method="PING", created=created.datetime,
+        n1 = Node(name=self.name1, managed='false',
+                  update_method="PING", created=created.datetime,
                   updated=updated.datetime)
-        sleep(1)
         n1.save()
-        NodeType.refresh_index()
-        self.assertEqual(Node.es_objects.all().count(), 1)
-        stored = Node.get(id=n1.id)
+
+        self.assertEqual(Node.objects.all().count(), 1)
+        stored = Node.objects.get(name=n1.name)
         self.assertNotEqual(stored, None)
-        self.assertEqual(stored.id, n1.id)
+
         self.assertEqual(stored.name, n1.name)
-        self.assertEqual(stored.admin_disabled, n1.admin_disabled)
-        self.assertEqual(stored.last_seen_method, n1.last_seen_method)
-        # update times are maintained by the model
-        self.assertGreater(arrow.get(stored.updated).timestamp,
-                           updated.timestamp)
+        self.assertEqual(stored.managed, n1.managed)
+        self.assertEqual(stored.update_method, n1.update_method)
         self.assertEqual(stored.created, n1.created)
 
     def test_update_existing(self):
         # should have a new updated timestamp
-        updated = arrow.utcnow()
-        created = updated.replace(minutes=-30)
-        n1 = Node(name=self.name1, admin_disabled=True,
-                  last_seen_method="PING", created=created.datetime,
-                  updated=updated.datetime)
+        n1 = Node(name=self.name1, managed='false',
+                  update_method="PING")
         n1.save()
-        NodeType.refresh_index()
+        n1_created = Node.objects.get(name=n1.name).created
+        n1_updated = Node.objects.get(name=n1.name).updated
         sleep(1)
         n1.save()
-        NodeType.refresh_index()
-        stored = Node.get(id=n1.id)
-        self.assertEqual(stored.id, n1.id)
-        self.assertGreater(arrow.get(stored.updated).timestamp,
-                           arrow.get(n1.updated).timestamp)
-        self.assertEqual(stored.created, n1.created)
+        stored_created = Node.objects.get(name=n1.name).created
+        stored_updated = Node.objects.get(name=n1.name).updated
+        self.assertEqual(stored_created, n1_created)
+        self.assertGreater(stored_updated, n1_updated)
 
     def test_delete_model(self):
-        n1 = Node(name=self.name1, admin_disabled=True,
-                  last_seen_method="PING")
+        n1 = Node(name=self.name1, managed='true',
+                  update_method="PING")
         n1.save()
-        NodeType.refresh_index()
-        self.assertEqual(n1.es_objects.all().count(), 1)
+        self.assertEqual(Node.objects.all().count(), 1)
         n1.delete()
-        NodeType.refresh_index()
-        self.assertEqual(Node.es_objects.all().count(), 0)
+        self.assertEqual(Node.objects.all().count(), 0)
 
 
 class EventModelTests(SimpleTestCase):
