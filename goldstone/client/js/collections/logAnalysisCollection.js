@@ -22,8 +22,6 @@ var LogAnalysisCollection = Backbone.Collection.extend({
 
     parse: function(data) {
 
-        console.log(data);
-
         if (data.next && data.next !== null) {
             var dp = data.next;
             nextUrl = dp.slice(dp.indexOf('/data'));
@@ -38,9 +36,9 @@ var LogAnalysisCollection = Backbone.Collection.extend({
 
     model: LogAnalysisModel,
 
-    // will impose an order based on 'timestamp' for
+    // will impose an order based on 'time' for
     // the models as they are put into the collection
-    comparator: 'timestamp',
+    comparator: 'time',
 
     initialize: function(options) {
         this.options = options || {};
@@ -57,13 +55,9 @@ var LogAnalysisCollection = Backbone.Collection.extend({
         var ns = this.defaults;
 
         var seconds = (ns.end - ns.start) / 1000;
-        console.log('diff sec', seconds);
         var interval = Math.floor((seconds / (ns.width / 10)));
-        console.log('interval', interval);
 
         this.url = ns.urlRoot + 'start_time=' + Math.floor(ns.start / 1000) + '&end_time=' + Math.floor(ns.end / 1000) + '&interval=' + interval + 's';
-
-        console.log('loganalysiscollection url', this.url);
 
         this.fetch({
             remove: true

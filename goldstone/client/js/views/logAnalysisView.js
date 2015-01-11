@@ -27,13 +27,9 @@ var LogAnalysisView = UtilizationCpuView.extend({
             left: 63
         },
 
-        filter: {
-            debug: true,
-            audit: true,
-            info: true,
-            warning: true,
-            error: true
-        }
+        // populated dynamically by
+        // returned levels param of data
+        filter: null
     },
 
     processOptions: function() {
@@ -70,11 +66,29 @@ var LogAnalysisView = UtilizationCpuView.extend({
         ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
     },
 
+    setDefaultFilters: function(levels) {
+        var ns = this.defaults;
+        var self = this;
+        var result = {};
+
+        _.each(levels, function(item) {
+            result[item] = true;
+        });
+
+        return result;
+    },
+
     collectionPrep: function() {
         var ns = this.defaults;
         var self = this;
 
         allthelogs = this.collection.toJSON();
+
+        // if null, sets up filters dynamically
+        // based on the 'levels' param
+        // of the data set.
+
+        ns.filter = ns.filter || this.setDefaultFilters(allthelogs[0].levels);
 
         var data = allthelogs[0].data;
 
@@ -99,6 +113,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
     sums: function(datum) {
         var ns = this.defaults;
+
         // Return the sums for the filters that are on
         return d3.sum(ns.loglevel.domain().map(function(k) {
 
@@ -107,7 +122,6 @@ var LogAnalysisView = UtilizationCpuView.extend({
             } else {
                 return 0;
             }
-
         }));
     },
 
