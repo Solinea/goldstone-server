@@ -77,9 +77,6 @@ class TaskTests(SimpleTestCase):
         n = Node.objects.get(name='xyz')
         self.assertEqual(n.update_method, 'LOGS')
 
-        
-
-
     @patch.object(subprocess, 'call')
     def test_check_host_avail(self, call):
         node1 = Node(name=self.name1)
