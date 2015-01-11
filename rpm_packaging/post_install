@@ -65,23 +65,18 @@ python manage.py migrate
 
 
 chkconfig httpd on
-service httpd restart
 
 chkconfig --add celerybeat
 chkconfig celerybeat on
-service celerybeat restart
 
 chkconfig --add celeryd-default
 chkconfig celeryd-default on
-service celeryd-default restart
 
 ln -s /etc/init.d/celeryd-default /etc/init.d/celeryd-host-stream
 ln -s /etc/init.d/celeryd-default /etc/init.d/celeryd-event-stream
 
 chkconfig --add celeryd-host-stream
 chkconfig celeryd-host-stream on
-service celeryd-host-stream restart
 
 chkconfig --add celeryd-event-stream
 chkconfig celeryd-event-stream on
-service celeryd-event-stream restart

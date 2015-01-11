@@ -136,3 +136,5 @@ node_modules/
 
 # vagrant related
 .vagrant/*
+
+goldstone/db.sqlite3.dev
