@@ -215,19 +215,59 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
             }
         }));
 
-        $(this.el).find('.axis').remove();
+        var components;
+        if (ns.featureSet === 'logEvents') {
 
-        var components = ns.stack(ns.color.domain().map(function(name) {
-            return {
-                name: name,
-                values: ns.data.map(function(d) {
-                    return {
-                        date: d.date,
-                        y: self.defaults.featureSet === 'cpuUsage' ? d[name] / 100 : d[name]
-                    };
-                })
-            };
-        }));
+            console.log('dom', ns.color.domain());
+
+            if (ns.color.domain() === []) {
+                console.log('empty');
+            }
+
+
+            console.log('filter', ns.filter);
+
+            var curr = false;
+            var anyLiveFilter = _.reduce(ns.filter, function(curr, status) {
+                return status || curr;
+            });
+
+            console.log('reduced', anyLiveFilter);
+
+            if (!anyLiveFilter) {
+                ns.chart.selectAll('.component')
+                    .remove();
+                return;
+            }
+
+            components = ns.stack(ns.color.domain().map(function(name) {
+                return {
+                    name: name,
+                    values: ns.data.map(function(d) {
+                        return {
+                            date: d.date,
+                            y: d[name]
+                        };
+                    })
+                };
+            }));
+
+        } else {
+
+            components = ns.stack(ns.color.domain().map(function(name) {
+                return {
+                    name: name,
+                    values: ns.data.map(function(d) {
+                        return {
+                            date: d.date,
+                            y: self.defaults.featureSet === 'cpuUsage' ? d[name] / 100 : d[name]
+                        };
+                    })
+                };
+            }));
+        }
+
+        $(this.el).find('.axis').remove();
 
         ns.x.domain(d3.extent(ns.data, function(d) {
             return d.date;
@@ -250,9 +290,6 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                     return self.sums(d);
                 }))
             ]);
-
-
-
         }
 
         ns.chart.selectAll('.component')
@@ -289,7 +326,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                 }
 
                 if (ns.featureSet === "logEvents") {
-                    return ns.color(d.name);
+                    return ns.loglevel(d.name);
                 }
 
                 console.log('define featureSet in utilizationCpuView.js');
