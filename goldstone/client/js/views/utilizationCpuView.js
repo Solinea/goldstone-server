@@ -95,7 +95,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         }
 
         if (ns.featureSet === 'logEvents') {
-            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[5]);
+            ns.color = d3.scale.ordinal().domain(["debug", "audit", "info", "warning", "error"]).range(ns.colorArray.distinct[5]);
         } else {
             ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
         }
@@ -245,11 +245,11 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
 
         if (ns.featureSet === 'logEvents') {
             ns.y.domain([
-            0,
-            d3.max(ns.data.map(function(d) {
-                return self.sums(d);
-            }))
-        ]);
+                0,
+                d3.max(ns.data.map(function(d) {
+                    return self.sums(d);
+                }))
+            ]);
 
 
 
@@ -289,7 +289,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                 }
 
                 if (ns.featureSet === "logEvents") {
-                    return ns.loglevel(d.name);
+                    return ns.color(d.name);
                 }
 
                 console.log('define featureSet in utilizationCpuView.js');
