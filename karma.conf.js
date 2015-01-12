@@ -31,7 +31,10 @@ module.exports = function(config) {
             'goldstone/client/js/models/infoButtonText.js',
             'goldstone/client/js/views/chartHeaderView.js',
             'goldstone/client/js/base.js',
-            'goldstone/client/js/views/goldstoneBaseView.js'
+            // super-classes must be instantiated
+            // in the test config file.
+            'goldstone/client/js/views/goldstoneBaseView.js',
+            'goldstone/client/js/views/utilizationCpuView.js'
 
         ].concat(clientIncludes, testFiles),
 
