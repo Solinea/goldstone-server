@@ -218,21 +218,10 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         var components;
         if (ns.featureSet === 'logEvents') {
 
-            console.log('dom', ns.color.domain());
-
-            if (ns.color.domain() === []) {
-                console.log('empty');
-            }
-
-
-            console.log('filter', ns.filter);
-
             var curr = false;
             var anyLiveFilter = _.reduce(ns.filter, function(curr, status) {
                 return status || curr;
             });
-
-            console.log('reduced', anyLiveFilter);
 
             if (!anyLiveFilter) {
                 ns.chart.selectAll('.component')

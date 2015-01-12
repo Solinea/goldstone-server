@@ -117,7 +117,7 @@ var LogSearchView = Backbone.View.extend({
         drawSearchTable('#log-search-table', ns.start, ns.end);
 
         this.logAnalysisCollection = new LogAnalysisCollection({
-            urlRoot: "http://localhost:8000/intelligence/log/cockpit/data?",
+            urlRoot: "/intelligence/log/cockpit/data?",
             start: ns.start,
             end: ns.end,
             width: $('.log-analysis-container').width()
