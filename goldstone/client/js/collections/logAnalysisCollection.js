@@ -21,7 +21,6 @@ var LogAnalysisCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-
         if (data.next && data.next !== null) {
             var dp = data.next;
             nextUrl = dp.slice(dp.indexOf('/data'));
@@ -30,8 +29,7 @@ var LogAnalysisCollection = Backbone.Collection.extend({
                 remove: false,
             });
         }
-
-        return data;
+        return data.data;
     },
 
     model: LogAnalysisModel,

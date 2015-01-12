@@ -29,7 +29,13 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         // populated dynamically by
         // returned levels param of data
-        filter: null
+        filter: {
+            error: true,
+            warning: true,
+            audit: true,
+            info: true,
+            debug: true
+        }
     },
 
     processOptions: function() {
@@ -77,31 +83,11 @@ var LogAnalysisView = UtilizationCpuView.extend({
             .ticks(7);
     },
 
-    setDefaultFilters: function(levels) {
-        var ns = this.defaults;
-        var self = this;
-        var result = {};
-
-        _.each(levels, function(item) {
-            result[item] = true;
-        });
-
-        return result;
-    },
-
     collectionPrep: function() {
         var ns = this.defaults;
         var self = this;
 
-        allthelogs = this.collection.toJSON();
-
-        // if null, sets up filters dynamically
-        // based on the 'levels' param
-        // of the data set.
-
-        ns.filter = ns.filter || this.setDefaultFilters(allthelogs[0].levels);
-
-        var data = allthelogs[0].data;
+        var data = this.collection.toJSON();
 
         finalData = [];
 
