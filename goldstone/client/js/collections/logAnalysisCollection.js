@@ -18,9 +18,20 @@
 
 var LogAnalysisCollection = Backbone.Collection.extend({
 
-    defaults: {},
+    defaults: {
+
+        zoomedStart: null,
+        zoomedEnd: null,
+        isZoomed: false
+
+    },
 
     parse: function(data) {
+
+        if (this.defaults.isZoomed && data.data && data.data.length < 10) {
+            return this.defaults.cachedDataPayload;
+        }
+
         if (data.next && data.next !== null) {
             var dp = data.next;
             nextUrl = dp.slice(dp.indexOf('/data'));
@@ -52,10 +63,19 @@ var LogAnalysisCollection = Backbone.Collection.extend({
         var self = this;
         var ns = this.defaults;
 
+        ns.start = ns.zoomedStart || ns.start;
+        ns.end = ns.zoomedEnd || ns.end;
+
         var seconds = (ns.end - ns.start) / 1000;
-        var interval = Math.floor((seconds / (ns.width / 10)));
+        var interval = Math.max(1, Math.floor((seconds / (ns.width / 10))));
 
         this.url = ns.urlRoot + 'start_time=' + Math.floor(ns.start / 1000) + '&end_time=' + Math.floor(ns.end / 1000) + '&interval=' + interval + 's';
+
+        if(ns.isZoomed) {
+            if(this.models.length >= 10){
+                ns.cachedDataPayload = this.models;
+            }
+        }
 
         this.fetch({
             remove: true

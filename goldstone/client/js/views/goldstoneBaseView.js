@@ -128,6 +128,10 @@ var GoldstoneBaseView = Backbone.View.extend({
         $(this.el).find('#spinner').hide();
     },
 
+    dblclicked: function(coordinates) {
+        return null;
+    },
+
     standardInit: function() {
         var ns = this.defaults;
         var self = this;
@@ -150,6 +154,11 @@ var GoldstoneBaseView = Backbone.View.extend({
             .attr("dy", "1.5em")
             .text(ns.yAxisLabel)
             .style("text-anchor", "middle");
+
+        ns.svg.on('dblclick', function(){
+            var coord = d3.mouse(this);
+            self.dblclicked(coord);
+        });
 
         ns.x = d3.time.scale()
             .rangeRound([0, ns.mw]);
