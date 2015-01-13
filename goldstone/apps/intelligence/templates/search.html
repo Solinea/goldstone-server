@@ -37,10 +37,12 @@
         // this code needs to stay here because it uses django template markup
         var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
 
+        //TODO: REMOVE BELOW AFTER REMOVING DC VERSION OF CHART
         // 1 week prior (js compatible)
         var start = {{ start_ts }} * 1000;
         // current timestamp (js compatible)
         var end = {{ end_ts }} * 1000;
+        //TODO: REMOVE ABOVE AFTER REMOVING DC VERSION OF CHART
 
         var instantiateCharts = function(){
             // this page's previous HTML and JavaScript now encapsulated
@@ -56,6 +58,7 @@
             });
             instantiateCharts();
 
+            //TODO: REMOVE BELOW AFTER REMOVING DC VERSION OF CHART
             // chart info button popover generator
             var infoButtonText = new InfoButtonText().get('infoText');
 
@@ -80,6 +83,8 @@
                 var targ = "#" + d.target.id;
                 $(targ).popover('hide');
             });
+            //TODO: REMOVE ABOVE AFTER REMOVING DC VERSION OF CHART
+
         });
     </script>
 

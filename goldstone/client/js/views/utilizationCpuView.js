@@ -185,8 +185,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         // sets css for spinner to hidden in case
         // spinner callback resolves
         // after chart data callback
-        ns.spinnerDisplay = 'none';
-        $(this.el).find('#spinner').hide();
+        this.hideSpinner();
 
         var allthelogs = this.collectionPrep();
 

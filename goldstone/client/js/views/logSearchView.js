@@ -129,7 +129,7 @@ var LogSearchView = Backbone.View.extend({
             height: 300,
             el: '.log-analysis-container',
             featureSet: 'logEvents',
-            chartTitle: 'Log Analysis',
+            chartTitle: 'Log Analysis'
         });
     },
 

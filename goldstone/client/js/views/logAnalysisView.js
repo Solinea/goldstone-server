@@ -36,6 +36,9 @@ var LogAnalysisView = UtilizationCpuView.extend({
             info: true,
             debug: true
         }
+
+        // zoomLevel: 0,
+        // clickCenterMult: null
     },
 
     processOptions: function() {
@@ -57,8 +60,12 @@ var LogAnalysisView = UtilizationCpuView.extend({
         this.collection.on('error', this.dataErrorMessage, this);
 
         this.on('selectorChanged', function(params) {
-            $(this.el).find('#spinner').show();
 
+            if(this.collection.defaults.isZoomed) {
+                return;
+            }
+
+            $(this.el).find('#spinner').show();
             this.collection.defaults.start = params[0];
             this.collection.defaults.end = params[1];
             this.collection.constructUrl();
@@ -81,6 +88,30 @@ var LogAnalysisView = UtilizationCpuView.extend({
             .scale(ns.x)
             .orient("bottom")
             .ticks(7);
+    },
+
+    dblclicked: function(coordinates) {
+        $(this.el).find('#spinner').show();
+
+        var ns = this.defaults;
+        var self = this;
+
+        var leftMarginX = 64;
+        var rightMarginX = 42;
+
+        var adjustedClick = Math.max(0, Math.min(coordinates[0] - leftMarginX, (ns.width - leftMarginX - rightMarginX)));
+
+        var fullDomain = [+ns.x.domain()[0], +ns.x.domain()[1]];
+
+        var domainDiff = fullDomain[1] - fullDomain[0];
+
+        var clickSpot = +ns.x.invert(adjustedClick);
+
+        this.collection.defaults.zoomedStart = clickSpot - (domainDiff / 4);
+        this.collection.defaults.zoomedEnd = clickSpot + (domainDiff / 4);
+        this.collection.defaults.isZoomed = true;
+        this.collection.constructUrl();
+        return null;
     },
 
     collectionPrep: function() {
@@ -124,6 +155,8 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
     update: function() {
         LogAnalysisView.__super__.update.apply(this, arguments);
+
+        this.hideSpinner();
 
         var ns = this.defaults;
         var self = this;
