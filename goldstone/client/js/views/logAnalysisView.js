@@ -36,9 +36,6 @@ var LogAnalysisView = UtilizationCpuView.extend({
             info: true,
             debug: true
         }
-
-        // zoomLevel: 0,
-        // clickCenterMult: null
     },
 
     processOptions: function() {
@@ -61,7 +58,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         this.on('selectorChanged', function(params) {
 
-            if(this.collection.defaults.isZoomed) {
+            if (this.collection.defaults.isZoomed) {
                 return;
             }
 
@@ -69,7 +66,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
             this.collection.defaults.start = params[0];
             this.collection.defaults.end = params[1];
             this.collection.constructUrl();
-
+            this.collection.fetchWithRemoval();
         });
     },
 
@@ -88,6 +85,24 @@ var LogAnalysisView = UtilizationCpuView.extend({
             .scale(ns.x)
             .orient("bottom")
             .ticks(7);
+
+        this.collection.defaults.filter = ns.filter;
+
+    },
+
+    specialInit: function() {
+        $('.fa-search-plus').on('click', function() {
+            console.log('clicked plus');
+        });
+        $('.fa-search-minus').on('click', function() {
+            console.log('clicked minus');
+        });
+        $('.fa-forward').on('click', function() {
+            console.log('clicked forward');
+        });
+        $('.fa-backward').on('click', function() {
+            console.log('clicked fa-backward');
+        });
     },
 
     dblclicked: function(coordinates) {
@@ -111,6 +126,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
         this.collection.defaults.zoomedEnd = clickSpot + (domainDiff / 4);
         this.collection.defaults.isZoomed = true;
         this.collection.constructUrl();
+        this.collection.fetchWithRemoval();
         return null;
     },
 
@@ -203,6 +219,9 @@ var LogAnalysisView = UtilizationCpuView.extend({
         $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
             var checkboxId = this.id;
             ns.filter[checkboxId] = !ns.filter[checkboxId];
+            self.collection.defaults.filter = ns.filter;
+            self.collection.constructUrl();
+            self.collection.fetchWithRemoval();
             self.update();
 
         });
@@ -232,6 +251,8 @@ var LogAnalysisView = UtilizationCpuView.extend({
             .transition()
             .duration(500)
             .call(ns.yAxis.scale(ns.y));
+
+        // drawSearchTable('#log-search-table', ns.start, ns.end);
 
     },
 
@@ -272,6 +293,10 @@ var LogAnalysisView = UtilizationCpuView.extend({
         this.$el.append(this.template());
         $(this.el).find('.special-icon-post').append('<i class="fa fa-filter pull-right" data-toggle="modal"' +
             'data-target="#modal-filter-' + this.el.slice(1) + '" style="margin: 0 20px;"></i>');
+        $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-forward pull-right" style="margin: 0 50px 0 0"></i>');
+        $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-search-plus pull-right" style="margin: 0 20px 0 0"></i>');
+        $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-search-minus pull-right" style="margin: 0 20px 0 0"></i>');
+        $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-backward pull-right" style="margin: 0 20px 0 0"></i>');
         this.$el.append(this.modal2());
         return this;
     }
