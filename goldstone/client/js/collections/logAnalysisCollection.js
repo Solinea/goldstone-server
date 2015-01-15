@@ -18,19 +18,11 @@
 
 var LogAnalysisCollection = Backbone.Collection.extend({
 
-    defaults: {
-
-        zoomedStart: null,
-        zoomedEnd: null,
-        isZoomed: false,
-
-    },
+    defaults: {},
 
     parse: function(data) {
 
-        if (this.defaults.isZoomed && data.data && data.data.length < 4) {
-            return this.defaults.cachedDataPayload;
-        }
+        console.log(data);
 
         if (data.next && data.next !== null) {
             var dp = data.next;
@@ -40,8 +32,6 @@ var LogAnalysisCollection = Backbone.Collection.extend({
                 remove: false,
             });
         }
-
-        this.triggerSearchTable();
 
         return data.data;
     },
@@ -55,50 +45,10 @@ var LogAnalysisCollection = Backbone.Collection.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
-        this.defaults.urlRoot = options.urlRoot;
-        this.defaults.start = options.start;
-        this.defaults.end = options.end;
-        this.defaults.width = options.width;
-        this.constructUrl();
-        this.fetchWithRemoval();
-    },
-
-    // addLevelParams: function(uri) {
-    //     var ns = this.defaults;
-
-    //     var levels = ns.filter || {};
-    //     for (var k in levels) {
-    //         uri = uri.concat("&", k, "=", levels[k]);
-    //         console.log(uri);
-    //     }
-    //     return uri;
-    // },
-
-    triggerSearchTable: function() {
-
-        drawSearchTable('#log-search-table', this.defaults.start, this.defaults.end);
-    },
-
-    constructUrl: function() {
-        var self = this;
-        var ns = this.defaults;
-
-        ns.start = ns.zoomedStart || ns.start;
-        ns.end = ns.zoomedEnd || ns.end;
-
-        var seconds = (ns.end - ns.start) / 1000;
-        var interval = Math.max(1, Math.floor((seconds / (ns.width / 10))));
-
-        this.url = ns.urlRoot + 'start_time=' + Math.floor(ns.start / 1000) + '&end_time=' + Math.floor(ns.end / 1000) + '&interval=' + interval + 's';
-
-        if (ns.isZoomed) {
-            if (this.models.length >= 4) {
-                ns.cachedDataPayload = this.models;
-            }
-        }
     },
 
     fetchWithRemoval: function() {
+        console.log('fetch url: ', this.url);
         this.fetch({
             remove: true
         });

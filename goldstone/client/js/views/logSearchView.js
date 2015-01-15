@@ -54,7 +54,7 @@ var LogSearchView = Backbone.View.extend({
         }
 
         ns.scheduleInterval = setInterval(function() {
-            self.triggerChange();
+            self.triggerChange('refreshReached');
         }, intervalDelay);
     },
 
@@ -63,13 +63,13 @@ var LogSearchView = Backbone.View.extend({
         this.defaults.globalRefresh = $('#global-refresh-range').val();
     },
 
-    triggerChange: function() {
+    triggerChange: function(change) {
         this.computeLookback();
         var ns = this.defaults;
         // badEventMultiLine('#bad-event-multiline', ns.start, ns.end);
         // drawSearchTable('#log-search-table', ns.start, ns.end);
 
-        this.logAnalysisView.trigger('selectorChanged', [ns.start, ns.end]);
+        this.logAnalysisView.trigger(change, [ns.start, ns.end]);
     },
 
     setGlobalLookbackRefreshTriggers: function() {
@@ -78,7 +78,7 @@ var LogSearchView = Backbone.View.extend({
         // change listeners for global selectors
         $('#global-lookback-range').on('change', function() {
             self.getGlobalLookbackRefresh();
-            self.triggerChange();
+            self.triggerChange('selectorChanged');
             self.clearScheduledInterval();
             self.scheduleInterval();
         });
@@ -117,10 +117,10 @@ var LogSearchView = Backbone.View.extend({
         // drawSearchTable('#log-search-table', ns.start, ns.end);
 
         this.logAnalysisCollection = new LogAnalysisCollection({
-            urlRoot: "/intelligence/log/cockpit/data?",
-            start: ns.start,
-            end: ns.end,
-            width: $('.log-analysis-container').width()
+            // urlRoot: "/intelligence/log/cockpit/data?",
+            // start: ns.start,
+            // end: ns.end,
+            // width: $('.log-analysis-container').width()
         });
 
         this.logAnalysisView = new LogAnalysisView({
@@ -129,7 +129,9 @@ var LogSearchView = Backbone.View.extend({
             height: 300,
             el: '.log-analysis-container',
             featureSet: 'logEvents',
-            chartTitle: 'Log Analysis'
+            chartTitle: 'Log Analysis',
+            urlRoot: "/intelligence/log/cockpit/data?",
+
         });
     },
 

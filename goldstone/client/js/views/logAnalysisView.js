@@ -18,7 +18,6 @@
 
 // extends UtilizationCpuView
 var LogAnalysisView = UtilizationCpuView.extend({
-
     defaults: {
         margin: {
             top: 20,
@@ -35,7 +34,10 @@ var LogAnalysisView = UtilizationCpuView.extend({
             audit: true,
             info: true,
             debug: true
-        }
+        },
+
+        isZoomed: false
+
     },
 
     processOptions: function() {
@@ -44,6 +46,38 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         var ns = this.defaults;
         ns.yAxisLabel = 'Log Events';
+        ns.urlRoot = this.options.urlRoot;
+    },
+
+    processMargins: function() {
+        var ns = this.defaults;
+        ns.mw = ns.width - ns.margin.left - ns.margin.right;
+        ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
+    },
+
+    constructUrl: function() {
+        var self = this;
+        var ns = this.defaults;
+
+        var seconds = (ns.end - ns.start) / 1000;
+        var interval = Math.max(1, Math.floor((seconds / (ns.width / 10))));
+
+        this.collection.url = ns.urlRoot + 'start_time=' + Math.floor(ns.start / 1000) + '&end_time=' + Math.floor(ns.end / 1000) + '&interval=' + interval + 's';
+    },
+
+    startEndToGlobalLookback: function() {
+        var self = this;
+        var ns = this.defaults;
+
+        var globalLookback = $('#global-lookback-range').val();
+
+        ns.end = +new Date();
+        ns.start = ns.end - (globalLookback * 60 * 1000);
+    },
+
+    triggerSearchTable: function() {
+
+        drawSearchTable('#log-search-table', this.defaults.start, this.defaults.end);
     },
 
     processListeners: function() {
@@ -56,24 +90,31 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         this.collection.on('error', this.dataErrorMessage, this);
 
-        this.on('selectorChanged', function(params) {
+        this.on('refreshReached', function(params) {
 
-            if (this.collection.defaults.isZoomed) {
+            if (ns.isZoomed === true) {
                 return;
             }
 
+            ns.start = params[0];
+            ns.end = params[1];
+
             $(this.el).find('#spinner').show();
-            this.collection.defaults.start = params[0];
-            this.collection.defaults.end = params[1];
-            this.collection.constructUrl();
+            this.constructUrl();
+            this.collection.fetchWithRemoval();
+
+        });
+
+        this.on('selectorChanged', function(params) {
+            $(this.el).find('#spinner').show();
+
+            ns.isZoomed = false;
+
+            ns.start = params[0];
+            ns.end = params[1];
+            this.constructUrl();
             this.collection.fetchWithRemoval();
         });
-    },
-
-    processMargins: function() {
-        var ns = this.defaults;
-        ns.mw = ns.width - ns.margin.left - ns.margin.right;
-        ns.mh = ns.height - ns.margin.top - ns.margin.bottom;
     },
 
     standardInit: function() {
@@ -86,30 +127,62 @@ var LogAnalysisView = UtilizationCpuView.extend({
             .orient("bottom")
             .ticks(7);
 
-        this.collection.defaults.filter = ns.filter;
+        this.startEndToGlobalLookback();
+        this.triggerSearchTable();
+        this.constructUrl();
+        this.collection.fetchWithRemoval();
 
     },
 
     specialInit: function() {
-        $('.fa-search-plus').on('click', function() {
+        var ns = this.defaults;
+        var self = this;
+
+        // ZOOM IN
+        this.$el.find('.fa-search-plus').on('click', function() {
+            ns.isZoomed = true;
             console.log('clicked plus');
+            self.dblclicked([ns.width * 0.8, 0], 4);
+
         });
-        $('.fa-search-minus').on('click', function() {
-            console.log('clicked minus');
-        });
-        $('.fa-forward').on('click', function() {
+
+        // ZOOM IN MORE
+        this.$el.find('.fa-forward').on('click', function() {
+            ns.isZoomed = true;
             console.log('clicked forward');
+            self.dblclicked([ns.width * 0.6, 0], 12);
+
         });
-        $('.fa-backward').on('click', function() {
+
+        // ZOOM OUT
+        this.$el.find('.fa-search-minus').on('click', function() {
+            ns.isZoomed = true;
+            console.log('clicked minus');
+            $(self.el).find('#spinner').show();
+
+            self.dblclicked([ns.width / 2, 0], 0.45);
+
+        });
+
+        // ZOOM OUT MORE
+        this.$el.find('.fa-backward').on('click', function() {
+            ns.isZoomed = true;
             console.log('clicked fa-backward');
+            $(self.el).find('#spinner').show();
+            self.dblclicked([ns.width / 2, 0], 0.25);
+
+
         });
     },
 
-    dblclicked: function(coordinates) {
+    dblclicked: function(coordinates, mult) {
+        console.log('coordinates', coordinates);
         $(this.el).find('#spinner').show();
 
         var ns = this.defaults;
         var self = this;
+        var zoomedStart;
+        var zoomedEnd;
 
         var leftMarginX = 64;
         var rightMarginX = 42;
@@ -122,10 +195,21 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         var clickSpot = +ns.x.invert(adjustedClick);
 
-        this.collection.defaults.zoomedStart = clickSpot - (domainDiff / 4);
-        this.collection.defaults.zoomedEnd = clickSpot + (domainDiff / 4);
-        this.collection.defaults.isZoomed = true;
-        this.collection.constructUrl();
+        var zoomMult = mult || 4;
+
+        if (zoomMult >= 1) {
+            zoomedStart = clickSpot - (domainDiff / zoomMult);
+            zoomedEnd = clickSpot + (domainDiff / 4);
+        } else {
+            zoomedStart = clickSpot - domainDiff / zoomMult;
+            zoomedEnd = clickSpot + (domainDiff / zoomMult);
+        }
+
+        ns.start = zoomedStart;
+        ns.end = zoomedEnd;
+
+        this.constructUrl();
+
         this.collection.fetchWithRemoval();
         return null;
     },
@@ -219,15 +303,35 @@ var LogAnalysisView = UtilizationCpuView.extend({
         $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
             var checkboxId = this.id;
             ns.filter[checkboxId] = !ns.filter[checkboxId];
-            self.collection.defaults.filter = ns.filter;
-            self.collection.constructUrl();
-            self.collection.fetchWithRemoval();
             self.update();
-
         });
 
+        this.refreshSearchTable(ns.start, ns.end, ns.filter);
         this.redraw();
 
+    },
+
+    refreshSearchTable: function(start, end, levels) {
+        var ns = this.defaults;
+        var self = this;
+
+        var oTable,
+            startTs = Math.floor(start / 1000),
+            endTs = Math.floor(end / 1000),
+            uri = '/intelligence/log/search/data'.concat(
+                "?start_time=", startTs,
+                "&end_time=", endTs);
+
+        levels = ns.filter || {};
+        for (var k in levels) {
+            uri = uri.concat("&", k, "=", levels[k]);
+        }
+
+        if ($.fn.dataTable.isDataTable("#log-search-table")) {
+            oTable = $("#log-search-table").DataTable();
+            oTable.ajax.url(uri);
+            oTable.ajax.reload();
+        }
     },
 
     redraw: function() {
@@ -294,9 +398,9 @@ var LogAnalysisView = UtilizationCpuView.extend({
         $(this.el).find('.special-icon-post').append('<i class="fa fa-filter pull-right" data-toggle="modal"' +
             'data-target="#modal-filter-' + this.el.slice(1) + '" style="margin: 0 20px;"></i>');
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-forward pull-right" style="margin: 0 50px 0 0"></i>');
-        $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-search-plus pull-right" style="margin: 0 20px 0 0"></i>');
+        $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-search-plus pull-right" style="margin: 0 5px 0 0"></i>');
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-search-minus pull-right" style="margin: 0 20px 0 0"></i>');
-        $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-backward pull-right" style="margin: 0 20px 0 0"></i>');
+        $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-backward pull-right" style="margin: 0 5px 0 0"></i>');
         this.$el.append(this.modal2());
         return this;
     }
