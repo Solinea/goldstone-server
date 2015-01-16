@@ -64,15 +64,6 @@ describe('base.js spec', function() {
             console.log('test1', test1, startTime, endTime);
             expect([Date.parse(test1[0]), Date.parse(test1[1])]).to.deep.equal([Date.parse(startTime), Date.parse(endTime)]);
 
-            /*
-            // now check with #endTimeNow checked
-            $('#endTimeNow').click();
-            var test2 = goldstone.time.getDateRange();
-            var endCheck = +new Date();
-            expect(Date.parse(test2[1])).to.be.closeTo(endCheck, 2000);
-            expect(test2[0]).to.deep.equal(s);
-            */
-
             // now check with #settingsEndTime equal to ''
             $('#endTimeNow').click();
             $('input#settingsEndTime').val('');
@@ -88,24 +79,6 @@ describe('base.js spec', function() {
             endCheck = +new Date();
             expect(Date.parse(test4[1])).to.be.closeTo(endCheck, 2000);
             expect(Date.parse(test4[0])).to.equal(Date.parse(s));
-        });
-        it('triggers barChartBase', function() {
-            goldstone.charts.barChartBase();
-            goldstone.charts.barChartBase('test-container', {
-                top: 10,
-                bottom: 10,
-                left: 10,
-                right: 10
-            }, 'bobo');
-        });
-        it('triggers lineChartBase', function() {
-            goldstone.charts.lineChartBase();
-            goldstone.charts.lineChartBase('test-container', {
-                top: 10,
-                bottom: 10,
-                left: 10,
-                right: 10
-            }, 'bobo');
         });
     });
     describe('alerts are raised', function() {
@@ -176,32 +149,5 @@ describe('base.js spec', function() {
             this.raiseInfo_spy.restore();
             this.raiseAlert_spy.restore();
         });
-    });
-    describe('bivariate with average', function() {
-        it('creates object', function() {
-            var test1 = goldstone.charts.bivariateWithAverage;
-            expect(test1).to.be.an('object');
-            var chartIsArray = Array.isArray(test1);
-            expect(chartIsArray).to.equal(false);
-
-            var nsReport = goldstone.glance.report;
-            var nsApiPerf = goldstone.glance.apiPerf;
-            nsApiPerf.infoCustom = {
-                key: 'hoo',
-                value: 'haw'
-            };
-            nsApiPerf.bivariate = goldstone.charts.bivariateWithAverage._getInstance(nsApiPerf);
-            nsReport.start = (+new Date()) - 10000;
-            nsReport.end = new Date();
-            nsReport.interval = '' + Math.round(0.357 * 10000) + "s";
-            nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-                true, '.test-container');
-            nsApiPerf.bivariate.loadUrl(nsReport.start, nsReport.end, nsReport.interval,
-                false, '.test-container');
-            nsApiPerf.data = [];
-            nsApiPerf.bivariate.init();
-            nsApiPerf.bivariate.update();
-        });
-
     });
 });

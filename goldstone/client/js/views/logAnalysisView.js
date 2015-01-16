@@ -77,7 +77,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
     triggerSearchTable: function() {
 
-        drawSearchTable('#log-search-table', this.defaults.start, this.defaults.end);
+        this.drawSearchTable('#log-search-table', this.defaults.start, this.defaults.end);
     },
 
     processListeners: function() {
@@ -299,6 +299,31 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
     },
 
+    searchDataErrorMessage: function(message, errorMessage, location) {
+
+        // 2nd parameter will be supplied in the case of an
+        // 'error' event such as 504 error. Othewise,
+        // function will append message supplied such as 'no data'.
+
+        if (errorMessage !== undefined) {
+            message = errorMessage.responseText;
+            message = '' + errorMessage.status + ' error: ' + message;
+        }
+
+        // calling raiseAlert with the 3rd param will supress auto-hiding
+        // goldstone.raiseAlert($(location), message, true);
+        goldstone.raiseAlert($(location), message, true);
+
+    },
+
+    clearSearchDataErrorMessage: function(location) {
+        // if error message already exists on page,
+        // remove it in case it has changed
+        if ($(location).length) {
+            $(location).fadeOut("slow");
+        }
+    },
+
     refreshSearchTable: function(start, end, levels) {
         var ns = this.defaults;
         var self = this;
@@ -322,6 +347,97 @@ var LogAnalysisView = UtilizationCpuView.extend({
         }
     },
 
+    drawSearchTable: function(location, start, end) {
+        var self = this;
+
+        $("#log-table-loading-indicator").show();
+
+        end = typeof end !== 'undefined' ?
+            new Date(Number(end)) :
+            new Date();
+
+        if (typeof start !== 'undefined') {
+            start = new Date(Number(start));
+        } else {
+            start = new Date(Number(start));
+            start.addWeeks(-1);
+        }
+
+        var oTable,
+            uri = '/intelligence/log/search/data'.concat(
+                "?start_time=", String(Math.round(start.getTime() / 1000)),
+                "&end_time=", String(Math.round(end.getTime() / 1000)));
+
+        if ($.fn.dataTable.isDataTable(location)) {
+            oTable = $(location).DataTable();
+            oTable.ajax.url(uri);
+            oTable.ajax.reload();
+        } else {
+            var oTableParams = {
+                "info": false,
+                "bAutoWidth": false,
+                "autoWidth": true,
+                "processing": true,
+                "lengthChange": true,
+                "paging": true,
+                "searching": true,
+                "ordering": true,
+                "serverSide": true,
+                "ajax": {
+                    url: uri,
+                    error: function(data) {
+                        self.searchDataErrorMessage(null, data, '.search-popup-message');
+                    }
+                },
+                "columnDefs": [{
+                    "visible": false,
+                    "targets": [5, 6, 7, 8, 9, 10]
+                }, {
+                    "name": "timestamp",
+                    "type": "date",
+                    "targets": 0,
+                    "render": function(data, type, full, meta) {
+                        self.clearSearchDataErrorMessage('.search-popup-message');
+                        return moment(data).format();
+                    }
+                }, {
+                    "name": "loglevel",
+                    "targets": 1
+                }, {
+                    "name": "component",
+                    "targets": 2
+                }, {
+                    "name": "host",
+                    "targets": 3
+                }, {
+                    "name": "message",
+                    "targets": 4
+                }, {
+                    "name": "location",
+                    "targets": 5
+                }, {
+                    "name": "pid",
+                    "targets": 6
+                }, {
+                    "name": "source",
+                    "targets": 7
+                }, {
+                    "name": "request_id",
+                    "targets": 8
+                }, {
+                    "name": "type",
+                    "targets": 9
+                }, {
+                    "name": "received",
+                    "type": "date",
+                    "targets": 10
+                }]
+            };
+            oTable = $(location).DataTable(oTableParams);
+        }
+        $("#log-table-loading-indicator").hide();
+    },
+
     redraw: function() {
 
         var ns = this.defaults;
@@ -343,8 +459,6 @@ var LogAnalysisView = UtilizationCpuView.extend({
             .transition()
             .duration(500)
             .call(ns.yAxis.scale(ns.y));
-
-        // drawSearchTable('#log-search-table', ns.start, ns.end);
 
     },
 
