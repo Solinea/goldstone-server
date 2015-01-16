@@ -136,11 +136,6 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        ns.zoomClicked = function() {
-            ns.isZoomed = true;
-            $('.global-refresh-selector select').val(-1);
-        };
-
         // ZOOM IN
         this.$el.find('.fa-search-plus').on('click', function() {
             self.paintNewChart([ns.width, 0], 4);

@@ -22,22 +22,18 @@ describe('logAnalysis spec', function() {
         var testEnd = (+new Date());
 
 
-        this.testCollection = new LogAnalysisCollection({
-            urlRoot: "/intelligence/log/cockpit/data?",
-            start: testStart,
-            end: testEnd,
-            width: $('.testContainer').width()
-        });
+        this.testCollection = new LogAnalysisCollection({});
 
         blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
         this.testView = new LogAnalysisView({
             collection: this.testCollection,
-            el: '.testContainer',
             width: $('.testContainer').width(),
             height: 300,
+            el: '.testContainer',
             featureSet: 'logEvents',
-            chartTitle: 'Log Analysis Test'
+            chartTitle: 'Log Analysis Test',
+            urlRoot: "/intelligence/log/cockpit/data?"
         });
 
         this.testCollection.reset();
@@ -173,9 +169,9 @@ describe('logAnalysis spec', function() {
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.testContainer');
 
-            this.constructUrl_spy = sinon.spy(this.testCollection, "constructUrl");
+            this.constructUrl_spy = sinon.spy(this.testView, "constructUrl");
             expect(this.constructUrl_spy.callCount).to.equal(0);
-            this.testView.trigger('selectorChanged', [1,2]);
+            this.testView.trigger('selectorChanged', [1, 2]);
             expect(this.constructUrl_spy.callCount).to.equal(1);
             this.constructUrl_spy.restore();
         });
@@ -231,6 +227,46 @@ describe('logAnalysis spec', function() {
             expect($('#noDataReturned').text()).to.equal('');
             expect(this.dataErrorMessage_spy.callCount).to.equal(4);
             this.dataErrorMessage_spy.restore();
+        });
+        it('should set a new url based on global lookback params coming from parent view', function() {
+            this.constructUrl_spy = sinon.spy(this.testView, "constructUrl");
+            expect(this.constructUrl_spy.callCount).to.equal(0);
+            // should construct url
+            expect(this.testCollection.url).to.include('/intelligence/log/cockpit/data?start_time=NaN&end_time=');
+            this.testView.trigger('refreshReached', [1000, 2000]);
+            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?start_time=1&end_time=2&interval=1s');
+            this.testView.trigger('refreshReached', [1421428385868, 1421438385868]);
+            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?start_time=1421428385&end_time=1421438385&interval=96s');
+            expect(this.constructUrl_spy.callCount).to.equal(2);
+            // should not construct url
+            this.testView.defaults.isZoomed = true;
+            this.testView.trigger('refreshReached', [1, 2]);
+            expect(this.constructUrl_spy.callCount).to.equal(2);
+            this.constructUrl_spy.restore();
+        });
+        it('should trigger paint new chart appropriately', function() {
+            this.paintNewChart_spy = sinon.spy(this.testView, "paintNewChart");
+            expect(this.paintNewChart_spy.callCount).to.equal(0);
+            this.testView.paintNewChart([1000,2000], 10);
+            expect(this.paintNewChart_spy.callCount).to.equal(1);
+            this.testView.dblclicked([1000, 2000]);
+            expect(this.paintNewChart_spy.callCount).to.equal(2);
+            this.paintNewChart_spy.restore();
+        });
+        it('should construct new collection url\'s appropriately via paintNewChart functionality', function() {
+            var time2 = 1421085130000;
+            var time1 = time2 - (1000 * 60 * 60);
+            this.testView.render();
+            this.testView.update();
+            // no mult
+            this.testView.paintNewChart([time1,time2]);
+            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?start_time=1421085174&end_time=1421085204&interval=1s');
+            // mult >= 1
+            this.testView.paintNewChart([time1,time2], 10);
+            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?start_time=1421085183&end_time=1421085195&interval=1s');
+            // mult < 1
+            this.testView.paintNewChart([time1,time2], 0.5);
+            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?start_time=1421085069&end_time=1421085309&interval=2s');
         });
     });
 });

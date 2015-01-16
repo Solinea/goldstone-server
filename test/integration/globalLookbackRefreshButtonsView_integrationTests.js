@@ -33,7 +33,7 @@ describe('globalLookbackRefreshButtonsView.js spec', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.test-container');
-            expect($(this.testView.el).text()).to.equal(' refresh 30srefresh 1mrefresh 5mrefresh offlookback 15mlookback 1hlookback 6hlookback 1d');
+            expect($(this.testView.el).text()).to.include('30srefresh 1mrefresh 5mrefresh offlookback 15mlookback 1hlookback 6hlookback 1d');
         });
     });
 
