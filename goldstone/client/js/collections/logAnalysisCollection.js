@@ -22,8 +22,6 @@ var LogAnalysisCollection = Backbone.Collection.extend({
 
     parse: function(data) {
 
-        console.log(data);
-
         if (data.next && data.next !== null) {
             var dp = data.next;
             nextUrl = dp.slice(dp.indexOf('/data'));
@@ -48,7 +46,6 @@ var LogAnalysisCollection = Backbone.Collection.extend({
     },
 
     fetchWithRemoval: function() {
-        console.log('fetch url: ', this.url);
         this.fetch({
             remove: true
         });
