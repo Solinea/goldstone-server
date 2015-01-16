@@ -681,7 +681,7 @@ casper.test.begin('Identity (keystone) Page is loading properly', 14, function s
     });
 });
 
-casper.test.begin('Logging page is loading properly', 18, function suite(test) {
+casper.test.begin('Logging page is loading properly', 22, function suite(test) {
     casper.start('http://localhost:8000/intelligence/search', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -693,9 +693,9 @@ casper.test.begin('Logging page is loading properly', 18, function suite(test) {
         test.assertSelectorHasText('div.navbar', 'Logging');
 
         // Log Analysis graph loads
-        test.assertExists('div.intel_panel', 'Log Analysis Section should load');
-        test.assertExists('div.intel_panel svg', 'Log Analysis Section svg chart should load');
-        test.assertSelectorHasText('div.intel_panel', 'Log Analysis');
+        test.assertExists('div.log-analysis-container', 'Log Analysis Section should load');
+        test.assertExists('div.log-analysis-container svg', 'Log Analysis Section svg chart should load');
+        test.assertSelectorHasText('div.log-analysis-container', 'Log Analysis');
 
         // Node Availability graph loads
         test.assertExists('div.log_table_panel', 'Search Results Section should load');
@@ -705,12 +705,18 @@ casper.test.begin('Logging page is loading properly', 18, function suite(test) {
             return __utils__.findAll('td.sorting_1').length === 10;
         }, "Search Resuts defaults 10 results");
 
+        // zoom buttons
+        test.assertExists('.fa-backward', 'more zoom out button exists');
+        test.assertExists('.fa-forward', 'more zoom in button exists');
+        test.assertExists('.fa-search-plus', 'zoom in button exists');
+        test.assertExists('.fa-search-minus', 'zoom out button exists');
+
         // Log Analysis info button brings up popover
-        test.assertNotVisible('.panel-heading div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        test.assertNotVisible('.panel-heading div.popover.fade.bottom.in', 'Info popover should not be visible');
         this.click('.panel-heading .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('.panel-heading div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
+        test.assertVisible('.panel-heading div.popover.fade.bottom.in', 'Info popover should now be visible');
         this.click('.panel-heading .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('.panel-heading div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        test.assertNotVisible('.panel-heading div.popover.fade.bottom.in', 'Info popover should not be visible');
         this.click('.panel-heading .pull-right.fa.fa-info-circle.panel-info');
         test.assertVisible('.panel-heading div.popover.fade.bottom.in', 'service status info popover should now be visible');
         this.mouseEvent('mouseout', '.panel-heading .pull-right.fa.fa-info-circle.panel-info');

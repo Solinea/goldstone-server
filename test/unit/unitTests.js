@@ -104,9 +104,6 @@ describe('Testing the base.js file', function() {
                 expect(goldstone.time).to.have.property('getDateRange');
                 expect(goldstone.time).to.have.property('autoSizeInterval');
                 expect(goldstone.time).to.have.property('processTimeBasedChartParams');
-                expect(goldstone.charts).to.have.property('barChartBase');
-                expect(goldstone.charts).to.have.property('lineChartBase');
-                expect(goldstone.charts).to.have.property('bivariateWithAverage');
                 expect(goldstone).to.have.property('jsIncluded');
                 expect(goldstone.settings.charts.margins).to.have.property('top');
                 expect(goldstone.settings.charts.margins).to.have.property('bottom');
@@ -278,63 +275,6 @@ describe('Testing the various library js files', function() {
             expect(test3).to.equal('/logging/nodes');
         });
     });
-
-    describe('intelligence.js', function() {
-        it('_toPyTs returns a rounded string: utc dates / 1000', function() {
-            expect(_toPyTs).to.be.a('function');
-            var test1 = _toPyTs(1000000);
-            expect(test1).to.equal('1000');
-            expect(test1).to.not.equal(1000);
-            var a = new Date(2000000);
-            var test2 = _toPyTs(a);
-            expect(test2).to.equal('2000');
-            expect(test2).to.not.equal(2000);
-            a = new Date(2000050);
-            var test3 = _toPyTs(a);
-            expect(test3).to.equal('2000');
-        });
-        it('_autoSizeTimeInterval returns 1/1000 * a time difference', function() {
-            expect(_autoSizeTimeInterval).to.be.a('function');
-            var a = new Date(10000000);
-            var b = new Date(10009000);
-            var test1 = _autoSizeTimeInterval(a,b,100);
-            expect(test1).to.equal(9/100);
-            var test2 = _autoSizeTimeInterval(b,a,100);
-            expect(test2).to.equal(-9/100);
-        });
-        it('_paramToDate returns a date whether it\'s originally a date object or not', function() {
-            expect(_paramToDate).to.be.a('function');
-            var a = new Date(10000000);
-            var b = (100090000000);
-            var c = (new Date(b));
-            var test1 = _paramToDate(a);
-            expect(test1).to.equal(a);
-            var test2 = _paramToDate(b);
-            expect(test2).to.deep.equal(c);
-        });
-    it('_processTimeBasedChartParams returns start/end/interval specs', function() {
-        expect(_processTimeBasedChartParams).to.be.a('function');
-        var a = (1000000000000);
-        var b = (1000000000000);
-        var c = 1000;
-        var test1 = _processTimeBasedChartParams(a,b,c);
-        expect(test1.start).to.deep.equal(new Date(a));
-        expect(test1.end).to.deep.equal(new Date(b));
-        expect(test1.interval).to.equal('0s');
-        a = 1000000400000;
-        var test2 = _processTimeBasedChartParams(a);
-        expect(test2.start).to.deep.equal((new Date(a)).addWeeks(-1));
-        expect(test2.end).to.deep.equal(new Date(a));
-        expect(test2.interval).to.equal(undefined);
-        a = 1000000900000;
-        var test3 = _processTimeBasedChartParams(a, undefined, 100);
-        expect(test3.start).to.deep.equal((new Date(a)).addWeeks(-1));
-        expect(test3.end).to.deep.equal(new Date(a));
-        expect(test3.interval).to.equal('6048s');
-    });
-});
-
-_processTimeBasedChartParams(1000000000000, 1000000000000,  1000);
 
     describe('neutron.js', function() {
         it('topology.url should exist', function() {

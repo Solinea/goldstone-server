@@ -21,8 +21,6 @@ module.exports = function(config) {
             'goldstone/client/js/lib/d3.js',
             'goldstone/client/js/lib/d3-tip.js',
             'goldstone/client/js/lib/d3-legend.js',
-            'goldstone/client/js/lib/crossfilter.js',
-            'goldstone/client/js/lib/dc.js',
             'goldstone/client/js/lib/underscore.js',
             'goldstone/client/js/lib/backbone.js',
             'goldstone/client/js/lib/moment-with-locales.js',
