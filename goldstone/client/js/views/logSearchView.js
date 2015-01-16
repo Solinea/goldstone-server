@@ -66,8 +66,6 @@ var LogSearchView = Backbone.View.extend({
     triggerChange: function(change) {
         this.computeLookback();
         var ns = this.defaults;
-        // badEventMultiLine('#bad-event-multiline', ns.start, ns.end);
-        // drawSearchTable('#log-search-table', ns.start, ns.end);
 
         this.logAnalysisView.trigger(change, [ns.start, ns.end]);
     },
@@ -99,7 +97,6 @@ var LogSearchView = Backbone.View.extend({
             infoText: 'searchLogAnalysis',
             infoIcon: 'fa-dashboard',
             columns: 13
-            // TODO: append proper header so data popup is not floating
         });
 
         return this;
@@ -114,15 +111,8 @@ var LogSearchView = Backbone.View.extend({
     renderCharts: function() {
         this.computeLookback();
         var ns = this.defaults;
-        // badEventMultiLine('#bad-event-multiline', ns.start, ns.end);
-        // drawSearchTable('#log-search-table', ns.start, ns.end);
 
-        this.logAnalysisCollection = new LogAnalysisCollection({
-            // urlRoot: "/intelligence/log/cockpit/data?",
-            // start: ns.start,
-            // end: ns.end,
-            // width: $('.log-analysis-container').width()
-        });
+        this.logAnalysisCollection = new LogAnalysisCollection({});
 
         this.logAnalysisView = new LogAnalysisView({
             collection: this.logAnalysisCollection,
@@ -141,35 +131,7 @@ var LogSearchView = Backbone.View.extend({
         // container for new prototype d3 log chart
         '<div class="log-analysis-container"></div>' +
 
-        // '<div class="row">' +
-        // '<div class="col-md-12">' +
-        // '<div class="panel panel-primary intel_panel">' +
-        // '<div class="panel-heading">' +
-        // '<h3 class="panel-title"><i class="fa fa-dashboard"></i>' +
-        // '<a href="/intelligence/search"> Log Analysis</a>' +
-
-        // '<!-- info-circle icon -->' +
-        // '<i class="fa fa-info-circle panel-info pull-right" ' +
-        // 'id="goldstone-log-info"></i>' +
-
-        // '</h3>' +
-        // '</div>' +
-        // '<div class="alert alert-danger log-popup-message" hidden="true"></div>' +
-        // '<div class="panel-body" style="height:400px">' +
-        // '<div id="bad-event-multiline">' +
-        // '<img src="<%=blueSpinnerGif%>" id="log-multiline-loading-indicator" class="ajax-loader"/>' +
-
-        // '<div class="clearfix"></div>' +
-        // '</div>' +
-        // '<div id="bad-event-range">' +
-        // '<div class="clearfix"></div>' +
-        // '</div>' +
-        // '</div>' +
-        // '</div>' +
-        // '</div>' +
-        // '</div>' +
-
-        // divider between dataTable searchResults table
+        // dataTable searchResults table
         '<div class="search-results-container"></div>' +
 
         '<div class="row">' +

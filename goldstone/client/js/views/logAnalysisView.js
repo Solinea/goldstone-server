@@ -136,50 +136,40 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        // ZOOM IN
-        this.$el.find('.fa-search-plus').on('click', function() {
+        ns.zoomClicked = function() {
             ns.isZoomed = true;
             $('.global-refresh-selector select').val(-1);
-            console.log('clicked plus');
-            self.paintNewChart([ns.width, 0], 4);
+        };
 
+        // ZOOM IN
+        this.$el.find('.fa-search-plus').on('click', function() {
+            self.paintNewChart([ns.width, 0], 4);
         });
 
         // ZOOM IN MORE
         this.$el.find('.fa-forward').on('click', function() {
-            ns.isZoomed = true;
-            $('.global-refresh-selector select').val(-1);
-            console.log('clicked forward');
             self.paintNewChart([ns.width, 0], 12);
-
         });
 
         // ZOOM OUT
         this.$el.find('.fa-search-minus').on('click', function() {
-            ns.isZoomed = true;
-            $('.global-refresh-selector select').val(-1);
-            console.log('clicked minus');
-            $(self.el).find('#spinner').show();
             self.paintNewChart([ns.width * 0.7, 0], 0.45);
-
         });
 
         // ZOOM OUT MORE
         this.$el.find('.fa-backward').on('click', function() {
-            ns.isZoomed = true;
-            $('.global-refresh-selector select').val(-1);
-            console.log('clicked fa-backward');
-            $(self.el).find('#spinner').show();
             self.paintNewChart([ns.width * 0.7, 0], 0.25);
         });
     },
 
     paintNewChart: function(coordinates, mult) {
-        console.log('coordinates', coordinates);
-        $(this.el).find('#spinner').show();
-
         var ns = this.defaults;
         var self = this;
+
+        $(this.el).find('#spinner').show();
+        ns.isZoomed = true;
+        $('.global-refresh-selector select').val(-1);
+
         var zoomedStart;
         var zoomedEnd;
 
@@ -196,15 +186,9 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         var zoomMult = mult || 4;
 
-        // if (zoomMult >= 1) {
         zoomedStart = Math.floor(clickSpot - (domainDiff / zoomMult));
         zoomedEnd = Math.floor(clickSpot + (domainDiff / zoomMult));
-        // } else {
-        // zoomedStart = Math.floor(clickSpot - (domainDiff / zoomMult));
-        // zoomedEnd = Math.floor(clickSpot + (domainDiff / zoomMult));
-        // }
 
-        // debugger;
         ns.start = zoomedStart;
         ns.end = Math.min(+new Date(), zoomedEnd);
 
