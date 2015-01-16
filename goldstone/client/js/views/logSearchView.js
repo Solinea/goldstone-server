@@ -84,6 +84,7 @@ var LogSearchView = Backbone.View.extend({
         });
         $('#global-refresh-range').on('change', function() {
             self.getGlobalLookbackRefresh();
+            self.triggerChange('selectorChanged');
             self.clearScheduledInterval();
             self.scheduleInterval();
         });
