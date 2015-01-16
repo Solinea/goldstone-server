@@ -141,7 +141,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
             ns.isZoomed = true;
             $('.global-refresh-selector select').val(-1);
             console.log('clicked plus');
-            self.paintNewChart([ns.width * 0.8, 0], 4);
+            self.paintNewChart([ns.width, 0], 4);
 
         });
 
@@ -150,7 +150,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
             ns.isZoomed = true;
             $('.global-refresh-selector select').val(-1);
             console.log('clicked forward');
-            self.paintNewChart([ns.width * 0.8, 0], 12);
+            self.paintNewChart([ns.width, 0], 12);
 
         });
 
@@ -160,7 +160,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
             $('.global-refresh-selector select').val(-1);
             console.log('clicked minus');
             $(self.el).find('#spinner').show();
-            self.paintNewChart([ns.width * 0.6, 0], 0.45);
+            self.paintNewChart([ns.width * 0.7, 0], 0.45);
 
         });
 
@@ -170,7 +170,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
             $('.global-refresh-selector select').val(-1);
             console.log('clicked fa-backward');
             $(self.el).find('#spinner').show();
-            self.paintNewChart([ns.width * 0.55, 0], 0.25);
+            self.paintNewChart([ns.width * 0.7, 0], 0.25);
         });
     },
 
@@ -196,20 +196,21 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         var zoomMult = mult || 4;
 
-        if (zoomMult >= 1) {
-            zoomedStart = clickSpot - (domainDiff / zoomMult);
-            zoomedEnd = clickSpot + (domainDiff / zoomMult);
-        } else {
-            zoomedStart = clickSpot - (domainDiff / zoomMult);
-            zoomedEnd = clickSpot + (domainDiff / zoomMult);
-        }
+        // if (zoomMult >= 1) {
+        zoomedStart = Math.floor(clickSpot - (domainDiff / zoomMult));
+        zoomedEnd = Math.floor(clickSpot + (domainDiff / zoomMult));
+        // } else {
+        // zoomedStart = Math.floor(clickSpot - (domainDiff / zoomMult));
+        // zoomedEnd = Math.floor(clickSpot + (domainDiff / zoomMult));
+        // }
 
+        // debugger;
         ns.start = zoomedStart;
         ns.end = Math.min(+new Date(), zoomedEnd);
 
-        if (ns.end - ns.start < 1000) {
-            ns.start -= 500;
-            ns.end += 500;
+        if (ns.end - ns.start < 2000) {
+            ns.start -= 1000;
+            ns.end += 1000;
         }
 
         this.constructUrl();
