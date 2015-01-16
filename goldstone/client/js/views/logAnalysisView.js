@@ -107,9 +107,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         this.on('selectorChanged', function(params) {
             $(this.el).find('#spinner').show();
-
             ns.isZoomed = false;
-
             ns.start = params[0];
             ns.end = params[1];
             this.constructUrl();
@@ -141,41 +139,42 @@ var LogAnalysisView = UtilizationCpuView.extend({
         // ZOOM IN
         this.$el.find('.fa-search-plus').on('click', function() {
             ns.isZoomed = true;
+            $('.global-refresh-selector select').val(-1);
             console.log('clicked plus');
-            self.dblclicked([ns.width * 0.8, 0], 4);
+            self.paintNewChart([ns.width * 0.8, 0], 4);
 
         });
 
         // ZOOM IN MORE
         this.$el.find('.fa-forward').on('click', function() {
             ns.isZoomed = true;
+            $('.global-refresh-selector select').val(-1);
             console.log('clicked forward');
-            self.dblclicked([ns.width * 0.6, 0], 12);
+            self.paintNewChart([ns.width * 0.8, 0], 12);
 
         });
 
         // ZOOM OUT
         this.$el.find('.fa-search-minus').on('click', function() {
             ns.isZoomed = true;
+            $('.global-refresh-selector select').val(-1);
             console.log('clicked minus');
             $(self.el).find('#spinner').show();
-
-            self.dblclicked([ns.width / 2, 0], 0.45);
+            self.paintNewChart([ns.width * 0.6, 0], 0.45);
 
         });
 
         // ZOOM OUT MORE
         this.$el.find('.fa-backward').on('click', function() {
             ns.isZoomed = true;
+            $('.global-refresh-selector select').val(-1);
             console.log('clicked fa-backward');
             $(self.el).find('#spinner').show();
-            self.dblclicked([ns.width / 2, 0], 0.25);
-
-
+            self.paintNewChart([ns.width * 0.55, 0], 0.25);
         });
     },
 
-    dblclicked: function(coordinates, mult) {
+    paintNewChart: function(coordinates, mult) {
         console.log('coordinates', coordinates);
         $(this.el).find('#spinner').show();
 
@@ -199,19 +198,28 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         if (zoomMult >= 1) {
             zoomedStart = clickSpot - (domainDiff / zoomMult);
-            zoomedEnd = clickSpot + (domainDiff / 4);
+            zoomedEnd = clickSpot + (domainDiff / zoomMult);
         } else {
-            zoomedStart = clickSpot - domainDiff / zoomMult;
+            zoomedStart = clickSpot - (domainDiff / zoomMult);
             zoomedEnd = clickSpot + (domainDiff / zoomMult);
         }
 
         ns.start = zoomedStart;
-        ns.end = zoomedEnd;
+        ns.end = Math.min(+new Date(), zoomedEnd);
+
+        if (ns.end - ns.start < 1000) {
+            ns.start -= 500;
+            ns.end += 500;
+        }
 
         this.constructUrl();
 
         this.collection.fetchWithRemoval();
         return null;
+    },
+
+    dblclicked: function(coordinates) {
+        this.paintNewChart(coordinates);
     },
 
     collectionPrep: function() {
