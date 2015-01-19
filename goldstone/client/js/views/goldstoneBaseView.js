@@ -40,15 +40,10 @@ var GoldstoneBaseView = Backbone.View.extend({
 
     defaults: {
         margin: {
-
-            // goldstone.settings.charts.margins:
-            // top: 30, bottom: 60, right: 30, left: 50
-            top: goldstone.settings.charts.margins.top,
-            right: goldstone.settings.charts.margins.right,
-            bottom: goldstone.settings.charts.margins.bottom,
-
-            // creates breathing room between y-axis-label and chart
-            left: goldstone.settings.charts.margins.left + 20
+            top: 30,
+            right: 30,
+            bottom: 60,
+            left: 70
         }
     },
 

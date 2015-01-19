@@ -66,7 +66,6 @@ describe('NodeReportView.js spec', function() {
   });
   describe('report sections are hide-able', function() {
         it('should only trigger refresh on charts that are visible', function() {
-            console.log(this.testView.visiblePanel);
             expect(this.testView.visiblePanel).to.deep.equal({
                 Services: true,
                 Reports: false,

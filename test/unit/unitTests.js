@@ -95,21 +95,8 @@ describe('Testing the base.js file', function() {
                 expect(goldstone).to.have.property('raiseInfo');
                 expect(goldstone).to.have.property('raiseAlert');
                 expect(goldstone).to.have.property('uuid');
-                expect(goldstone).to.have.property('populateSettingsFields');
-                expect(goldstone).to.have.property('isRefreshing');
-                expect(goldstone).to.have.property('getRefreshInterval');
                 expect(goldstone.time).to.have.property('fromPyTs');
                 expect(goldstone.time).to.have.property('toPyTs');
-                expect(goldstone.time).to.have.property('paramToDate');
-                expect(goldstone.time).to.have.property('getDateRange');
-                expect(goldstone.time).to.have.property('autoSizeInterval');
-                expect(goldstone.time).to.have.property('processTimeBasedChartParams');
-                expect(goldstone).to.have.property('jsIncluded');
-                expect(goldstone.settings.charts.margins).to.have.property('top');
-                expect(goldstone.settings.charts.margins).to.have.property('bottom');
-                expect(goldstone.settings.charts.margins).to.have.property('right');
-                expect(goldstone.settings.charts.margins).to.have.property('left');
-                expect(goldstone.settings.charts.maxChartPoints).to.equal(100);
             });
         });
         describe('the utility functions', function() {
@@ -126,10 +113,6 @@ describe('Testing the base.js file', function() {
                 expect(b).to.equal(100061000);
                 b = +new Date(a.addWeeks(1));
                 expect(b).to.equal(704861000);
-            });
-            it('jsIncluded', function() {
-                var test1 = goldstone.jsIncluded("blahDeBlah");
-                assert.isFalse(test1);
             });
         });
 
@@ -151,153 +134,14 @@ describe('Testing the base.js file', function() {
                 var timeTest3 = goldstone.time.toPyTs(time3);
                 expect(timeTest3).to.equal('1412376992');
             });
-
-            it('should return dates from numerical input', function() {
-                var date1 = new Date();
-                var test1 = goldstone.time.paramToDate(date1);
-                expect(test1).to.equal(date1);
-                var date2 = 1411068920090;
-                var date3 = '1411068920090';
-                var checkDate = new Date(date2);
-                var test2 = goldstone.time.paramToDate(date2);
-                expect(test2).to.be.a('date');
-                var test3 = goldstone.time.paramToDate(date3);
-                expect(test2).to.be.a('date');
-            });
-
-            it('testing autoSizeInterval', function() {
-                var start = new Date(1411067920090);
-                var end = new Date(1411068920090);
-                var maxPoints = 10;
-                var test1 = goldstone.time.autoSizeInterval(start, end, maxPoints);
-
-                expect(test1).to.be.a('string');
-                expect(test1).to.be.equal('100s');
-
-                maxPoints = undefined;
-                var test2 = goldstone.time.autoSizeInterval(start, end, maxPoints);
-
-                expect(test2).to.be.a('string');
-                expect(test2).to.equal('10s');
-                expect(goldstone.settings.charts.maxChartPoints).to.equal(100);
-            });
-
-            it('testing processTimeBasedChartParams', function() {
-                var start = new Date(1411067920090);
-                var end = new Date(1411068920090);
-
-                var test1 = goldstone.time.processTimeBasedChartParams(end, start, maxPoints);
-
-                expect(test1.start).to.be.a('date');
-                expect(test1.end).to.be.a('date');
-                assert.isUndefined(test1.interval);
-                assert.deepEqual(test1.start, new Date(start));
-                assert.deepEqual(test1.end, new Date(end));
-
-                var maxPoints = 10;
-                var test2 = goldstone.time.processTimeBasedChartParams(end, start, maxPoints);
-
-                expect(test2.start).to.be.a('date');
-                expect(test2.end).to.be.a('date');
-                expect(test2.interval).to.be.a('string');
-                expect(test2.interval).to.equal('100s');
-
-                assert.deepEqual(test2.start, new Date(start));
-                assert.deepEqual(test2.end, new Date(end));
-
-                maxPoints = 100;
-                var test3 = goldstone.time.processTimeBasedChartParams(end, start, maxPoints);
-                expect(test3.interval).to.equal('10s');
-
-                end = undefined;
-                start = undefined;
-                maxPoints = 10;
-
-                var test4 = goldstone.time.processTimeBasedChartParams(end, start, maxPoints);
-
-                expect(test4.end).to.be.a('date');
-                expect(test4.start).to.be.a('date');
-                expect(test4.interval).to.be.a('string');
-                expect(test4.interval).to.equal('60480s');
-
-                expect(goldstone.settings.charts.maxChartPoints).to.equal(100);
-            });
         });
     });
 });
 
 describe('Testing the various library js files', function() {
-
     describe('discover.js', function() {
         it('renderCharts', function() {
             expect(renderCharts).to.be.a('function');
         });
     });
-
-    describe('glance.js', function() {
-        it('goldstone.glance.apiPerf.url', function() {
-            expect(goldstone.glance.apiPerf.url).to.be.a('function');
-        });
-        it('should return a different result based on the input', function() {
-            var test1 = goldstone.glance.apiPerf.url(10000, 10000, '100s', true);
-            var test2 = goldstone.glance.apiPerf.url();
-            expect(test1).to.equal('/glance/api_perf?start=10&end=10&interval=100s&render=true');
-            expect(test2).to.equal('/glance/api_perf?start=undefined&end=undefined&interval=undefined');
-        });
-        it('goldstone.glance.topology.url', function() {
-            expect(goldstone.glance.topology.url).to.be.a('function');
-        });
-        it('should return a different result based on the input', function() {
-            var test1 = goldstone.glance.topology.url(true);
-            var test2 = goldstone.glance.topology.url('hotdog');
-            var test3 = goldstone.glance.topology.url();
-            var test4 = goldstone.glance.topology.url(false);
-            expect(test1).to.equal('/glance/topology?render=true');
-            expect(test2).to.equal('/glance/topology?render=hotdog');
-            expect(test3).to.equal('/glance/topology');
-            expect(test4).to.equal('/glance/topology?render=false');
-        });
-    });
-
-    describe('goldstone.js', function() {
-        it('topology.url should exist', function() {
-            expect(goldstone.goldstone.topology.url).to.be.a('function');
-        });
-        it('topology.url should return a different result based on the input', function() {
-            var test1 = goldstone.goldstone.topology.url('notUndefined');
-            var test2 = goldstone.goldstone.topology.url();
-            expect(test1).to.equal('/topology?render=notUndefined');
-            expect(test2).to.equal('/topology');
-        });
-        it('hostAvail.url should exist and return a predictable result', function() {
-            expect(goldstone.goldstone.hostAvail.url).to.be.a('function');
-            var test3 = goldstone.goldstone.hostAvail.url();
-            expect(test3).to.equal('/logging/nodes');
-        });
-    });
-
-    describe('neutron.js', function() {
-        it('topology.url should exist', function() {
-            expect(goldstone.goldstone.topology.url).to.be.a('function');
-        });
-        it('timeRange._url should return a different result based on the input', function() {
-            var ns = {};
-            ns.start = 1413612792;
-            ns.end = 1414217592;
-            ns.interval = '3600s';
-            var test1 = goldstone.neutron.timeRange._url(ns, 20000, 30000, 3, 4, 'chicharones');
-            var test2 = goldstone.neutron.timeRange._url(ns);
-            expect(test1).to.equal('chicharones?start=20&end=30&interval=3&render=4');
-            expect(test2).to.equal('undefined?start=1413613&end=1414218&interval=3600s');
-        });
-        it('apiPerf.url disregards path argument, if any', function() {
-            var test1 = goldstone.neutron.apiPerf.url(20000, 30000, 3, 4, 'chicharones');
-            var test2 = goldstone.neutron.apiPerf.url(20000, 30000, 3, 4);
-            var test3 = goldstone.neutron.apiPerf.url();
-            expect(test1).to.equal('/neutron/api_perf?start=20&end=30&interval=3&render=4');
-            expect(test2).to.equal('/neutron/api_perf?start=20&end=30&interval=3&render=4');
-            expect(test3).to.equal('/neutron/api_perf?start=undefined&end=undefined&interval=undefined');
-        });
-    });
-
 });
