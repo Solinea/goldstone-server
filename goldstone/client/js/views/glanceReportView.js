@@ -23,12 +23,6 @@ var GlanceReportView = ApiPerfReportView.extend({
     },
 
     renderCharts: function() {
-        var nsReport = goldstone.glance.report;
-        var nsApiPerf = goldstone.glance.apiPerf;
-        nsReport.start = (+new Date()) - (this.defaults.globalLookback * 1000 * 60);
-        nsReport.end = new Date();
-        nsReport.interval = '' + Math.round(0.357 * this.defaults.globalLookback) + "s";
-
         this.glanceApiPerfChart = new ApiPerfCollection({
             urlPrefix: 'glance',
         });

@@ -35,16 +35,6 @@ describe('keystoneReportView.js spec', function() {
             expect(this.testView.el).to.equal('.test-container');
             expect($(this.testView.el).text()).to.equal(' Keystone API PerformanceResponse Time (ms)');
         });
-        it('should create urls', function() {
-            var test1 = goldstone.keystone.topology.url('yow');
-            expect(test1).to.equal('/keystone/topology?render=yow');
-            var test2 = goldstone.keystone.topology.url();
-            expect(test2).to.equal('/keystone/topology');
-            var test3 = goldstone.keystone.apiPerf.url(undefined,undefined,undefined,'yowza');
-            var test4 = goldstone.keystone.apiPerf.url();
-            expect(test3).to.equal('/keystone/api_perf?start=undefined&end=undefined&interval=undefined&render=yowza');
-            expect(test4).to.equal('/keystone/api_perf?start=undefined&end=undefined&interval=undefined');
-        });
     });
 
 });
