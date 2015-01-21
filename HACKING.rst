@@ -21,6 +21,17 @@ GOLDSTONE HACKING GUIDE
 Initial Setup
 *************
 
+If you're doing this on OS X, you need to install these packages::
+
+    (Install Homebrew, per the instructions at http://brew.sh.)
+
+    $ brew upgrade
+    $ brew doctor            # Resolve any any errors or warnings before continuing.
+
+    $ brew install caskroom/cask/brew-cask
+    $ brew cask install java
+    $ brew install python    # This puts a Python interpreter where mkvirtualenv expects to find it.
+    
 Create your virtual environment for goldstone. Virtualenvwrapper makes this easy
 (see http://virtualenvwrapper.readthedocs.org/en/latest/install.html)::
 
@@ -60,7 +71,8 @@ Activating and deactivating the environment can be done with the following comma
     $ workon goldstone
     $ deactivate
 
-Install mysql and create development and test databases. Create a user goldstone with the role goldstone (or edit your development.py settings file)::
+Install these packages globally (Installing them localling is fine, but then you'll
+need to re-install them if you ever create another virtual environment)::
 
     $ brew install elasticsearch
     $ brew install redis
@@ -73,9 +85,10 @@ Clone Goldstone from the bitbucket repo::
 
 Now, install pip prerequesites into your shiny new virtualenv. This will let your run the application on your laptop::
 
-    $ cd goldstone
+    $ workon goldstone
+    $ cd goldstone                    # If your postactive script doesn't have a cd
     $ pip install -r requirements.txt
-    $ pip install -r test_requirements.txt
+    $ pip install -r test-requirements.txt
 
 Get the local settings and put them in place::
 
@@ -83,18 +96,17 @@ Get the local settings and put them in place::
     $ git submodule update
     $ cp solinea_settings/* goldstone/settings
 
-Make sure your default settings are exported::
-
-    $ export DJANGO_SETTINGS_MODULE=goldstone.settings.local_dev
+Open a VPN connection to the development Oakland (oak) cloud.
 
 Sync and migrate the databases::
 
+    $ # cd to the goldstone root folder. Then:
     $ python ./manage.py syncdb  # Answer 'no' to create superuser
     $ python ./manage.py migrate
 
 Set up the elasticsearch templates for test running (repeat with other settings as required)::
 
-    $ cd /opt/goldstone     # or wherever your goldstone root folder is
+    $ # cd to the goldstone root folder. Then:
     $ python manage.py shell --settings=goldstone.settings.local_test <<EOF
     > from goldstone.apps.core.tasks import _put_all_templates, _create_daily_index, _create_agent_index
     > _put_all_templates()
