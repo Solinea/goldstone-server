@@ -27,87 +27,18 @@ var renderCharts = function() {
     // instantiate charts via
     // backbone collection / views
 
-
-    //---------------------------
-    // instantiate goldstone topology chart
-
-    var topologyTreeView = new TopologyTreeView({
-        blueSpinnerGif: blueSpinnerGif,
-        chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverCloudTopology'],
-        data: data,
-        el: '#goldstone-discover-r2-c1',
-        frontPage: true,
-        h: 600,
-        width: $('#goldstone-discover-r2-c1').width(),
-        leafDataUrls: {
-            "services-leaf": "/services",
-            "endpoints-leaf": "/endpoints",
-            "roles-leaf": "/roles",
-            "users-leaf": "/users",
-            "tenants-leaf": "/tenants",
-            "agents-leaf": "/agents",
-            "aggregates-leaf": "/aggregates",
-            "availability-zones-leaf": "/availability_zones",
-            "cloudpipes-leaf": "/cloudpipes",
-            "flavors-leaf": "/flavors",
-            "floating-ip-pools-leaf": "/floating_ip_pools",
-            "hosts-leaf": "/hosts",
-            "hypervisors-leaf": "/hypervisors",
-            "networks-leaf": "/networks",
-            "secgroups-leaf": "/security_groups",
-            "servers-leaf": "/servers",
-            "images-leaf": "/images",
-            "volumes-leaf": "/volumes",
-            "backups-leaf": "/backups",
-            "snapshots-leaf": "/snapshots",
-            "transfers-leaf": "/transfers",
-            "volume-types-leaf": "/volume_types"
-        }
-    });
-
-
-    //---------------------------
-    // instantiate event timeline chart
-
-    // fetch url is set in eventTimelineCollection
-    var eventTimelineChart = new EventTimelineCollection({});
-
-    var eventTimelineChartView = new EventTimelineView({
-        collection: eventTimelineChart,
-        el: '#goldstone-discover-r1-c1',
-        chartTitle: 'Event Timeline',
-        width: $('#goldstone-discover-r1-c1').width()
-    });
-
-    //---------------------------
-    // instantiate Node Availability chart
-
-    var nodeAvailChart = new NodeAvailCollection({
-        url: "/logging/nodes?page_size=100"
-    });
-
-    var nodeAvailChartView = new NodeAvailView({
-        collection: nodeAvailChart,
-        h: {
-            "main": 450,
-            "swim": 50
-        },
-        el: '#goldstone-discover-r3-c1',
-        chartTitle: 'Node Availability',
-        width: $('#goldstone-discover-r3-c1').width()
-    });
-
     //---------------------------
     // instantiate Zoomable Tree chart
 
-    var zoomableTree = new ZoomablePartitionCollection({
-        data: data
-    });
+    // var zoomableTree = new ZoomablePartitionCollection({
+    // });
 
     var zoomableTreeView = new ZoomablePartitionView({
+        chartHeader: ['#goldstone-discover-r1-c1', 'Cloud Topology', 'discoverZoomTopology'],
         collection: zoomableTree,
-        el: '#goldstone-discover-r2-c2',
-        w: $('#goldstone-discover-r2-c2').width()
+        data: data,
+        el: '#goldstone-discover-r1-c1',
+        w: $('#goldstone-discover-r1-c1').width()
     });
 
 };

@@ -34,9 +34,10 @@ var ZoomablePartitionView = Backbone.View.extend({
         var ns = this.defaults;
         var self = this;
 
+        this.render();
         this.initSvg();
-        this.collection.on('sync', this.update, this);
-
+        // this.collection.on('sync', this.update, this);
+        this.update();
     },
 
     initSvg: function() {
@@ -68,7 +69,8 @@ var ZoomablePartitionView = Backbone.View.extend({
         var ns = this.defaults;
         var self = this;
 
-        var root = this.collection.toJSON()[0];
+        // var root = this.collection.toJSON()[0];
+        var root = ns.data;
 
         var g = ns.vis.selectAll("g")
             .data(ns.partition.nodes(root))
@@ -222,7 +224,7 @@ var ZoomablePartitionView = Backbone.View.extend({
                 el: ns.chartHeader[0],
                 chartTitle: ns.chartHeader[1],
                 infoText: ns.chartHeader[2],
-                columns: 12
+                columns: 13
             });
         }
         return this;
