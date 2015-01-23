@@ -36,7 +36,8 @@ from django.core.exceptions import ImproperlyConfigured
 
 
 def get_env_variable(var_name):
-    """ Get the environment variable or return exception """
+    """Return an environment variable or exception."""
+
     try:
         return os.environ[var_name]
     except KeyError:
@@ -247,7 +248,7 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
-        #'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+        # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
         'rest_framework.permissions.AllowAny'
     ],
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
@@ -289,3 +290,9 @@ ES_INDEXES = {'default': 'goldstone_model',
               'core_metric': 'goldstone_agent',
               'core_report': 'goldstone_agent'}
 ES_TIMEOUT = 5
+
+# TODO: Define a constants class.
+
+TEST_SETTINGS = "TEST"
+DEV_SETTINGS = "DEV"
+PERSONAL_ENV_SETTINGS = "GOLDSTONE_PERSONAL_%s_SETTINGS"
