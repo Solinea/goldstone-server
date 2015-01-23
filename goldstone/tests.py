@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -13,8 +13,6 @@
 # limitations under the License.
 from goldstone import StartupGoldstone
 from goldstone.apps.core.models import Node
-
-__author__ = 'John Stanford'
 
 from keystoneclient.exceptions import ClientException
 from django.test import TestCase, SimpleTestCase
@@ -34,6 +32,8 @@ from mock import patch, PropertyMock, MagicMock, Mock
 from requests.models import Response
 from keystoneclient.v2_0.client import Client
 
+__author__ = 'John Stanford'
+
 logger = logging.getLogger(__name__)
 
 
@@ -45,26 +45,26 @@ class PrimeData(TestCase):
     try:
         conn.indices.delete("_all")
     finally:
-        {}
+        pass
 
     # load index templates before any indices are created
     for template_name, template_f in [
         ('logstash',
          gzip.open(os.path.join(os.path.dirname(__file__),
-                   "apps", "..", "..", "test_data",
-                   "logstash_template.json.gz"))),
+                                "apps", "..", "..", "test_data",
+                                "logstash_template.json.gz"))),
         ('goldstone',
          gzip.open(os.path.join(os.path.dirname(__file__),
-                   "apps", "..", "..", "test_data",
-                   "goldstone_template.json.gz"))),
+                                "apps", "..", "..", "test_data",
+                                "goldstone_template.json.gz"))),
         ('goldstone_agent',
          gzip.open(os.path.join(os.path.dirname(__file__),
-                   "apps", "..", "..", "test_data",
-                   "agent_template.json.gz"))),
+                                "apps", "..", "..", "test_data",
+                                "agent_template.json.gz"))),
         ('goldstone_model',
          gzip.open(os.path.join(os.path.dirname(__file__),
-                   "apps", "..", "..", "test_data",
-                   "model_template.json.gz")))
+                                "apps", "..", "..", "test_data",
+                                "model_template.json.gz")))
     ]:
         template_body = json.load(template_f)
         conn.indices.put_template(template_name, template_body)
@@ -79,20 +79,20 @@ class PrimeData(TestCase):
     for index, data_f in [
         (ESData()._get_latest_index('logstash'),
          gzip.open(os.path.join(os.path.dirname(__file__),
-                   "apps", "..", "..", "test_data",
-                   "logstash_data.json.gz"))),
+                                "apps", "..", "..", "test_data",
+                                "logstash_data.json.gz"))),
         (ESData()._get_latest_index('goldstone'),
          gzip.open(os.path.join(os.path.dirname(__file__),
-                   "apps", "..", "..", "test_data",
-                   "goldstone_data.json.gz"))),
+                                "apps", "..", "..", "test_data",
+                                "goldstone_data.json.gz"))),
         ('goldstone_agent',
          gzip.open(os.path.join(os.path.dirname(__file__),
-                   "apps", "..", "..", "test_data",
-                   "agent_data.json.gz"))),
+                                "apps", "..", "..", "test_data",
+                                "agent_data.json.gz"))),
         ('goldstone_model',
          gzip.open(os.path.join(os.path.dirname(__file__),
-                   "apps", "..", "..", "test_data",
-                   "model_data.json.gz")))
+                                "apps", "..", "..", "test_data",
+                                "model_data.json.gz")))
     ]:
         data = json.load(data_f)
         for dataset in data:

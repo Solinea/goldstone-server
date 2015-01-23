@@ -21,8 +21,9 @@ from .base import *
 def get_personalized(execution_type):
     """Return the name of a personalized local settings file, or None.
 
-    If the desired personalized settings filename is defined in the environment, use it. Otherwise,
-    look for a personalized settings file based on this computer's name. Otherwise, return None.
+    If the desired personalized settings filename is defined in the
+    environment, use it. Otherwise, look for a personalized settings
+    file based on this computer's name. Otherwise, return None.
 
     :param execution_type: The type of personalied settings file to look for.
     :type execution_type: settings.ExecutionType
@@ -43,5 +44,6 @@ def get_personalized(execution_type):
         # A settings file exists for this machine.
         return target
 
-    # A personalied settings file doesn't exist for the desired execution type, or for this machine.
+    # A personalied settings file doesn't exist for the desired
+    # execution type, or for this machine.
     return None
