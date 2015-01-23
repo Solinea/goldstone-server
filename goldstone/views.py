@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -430,9 +430,9 @@ class DiscoverView(TopologyView):
             glance_topo = GlanceTopoView()
             cinder_topo = CinderTopoView()
             nova_topo = NovaTopoView()
-        except Exception as e:
-            logger.exception("Exception in DiscoverView", e)
-            raise e
+        except Exception:
+            logger.exception("Exception in DiscoverView")
+            raise
 
         topo_list = [nova_topo, keystone_topo, glance_topo, cinder_topo]
 
