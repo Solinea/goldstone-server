@@ -184,7 +184,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
         ns.tooltip = d3.tip()
             .attr('class', 'd3-tip')
             .direction(function(e) {
-                if (e.last_seen_method === 'PING') {
+                if (e.update_method === 'PING') {
                     return 's';
                 }
                 if (this.getBBox().y < 130) {
@@ -417,10 +417,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
                  * each node belongs to.
                  */
 
-                if (d.admin_disabled) {
+                if (d.managed === "false") {
                     d.swimlane = "unadmin";
                 } else {
-                    d.swimlane = d.last_seen_method.toLowerCase();
+                    d.swimlane = d.update_method.toLowerCase();
                 }
 
                 return d;

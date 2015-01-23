@@ -255,10 +255,12 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
-    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
+    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',
+                                'rest_framework.filters.OrderingFilter',),
     'PAGINATE_BY': 10,
     'PAGINATE_BY_PARAM': 'page_size',
-    'MAX_PAGINATE_BY': 1000
+    'MAX_PAGINATE_BY': 1000,
+    'EXCEPTION_HANDLER': 'goldstone.apps.core.utils.custom_exception_handler'
 }
 
 # controls the time examined for the log volume stats included in the

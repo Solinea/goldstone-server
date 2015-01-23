@@ -64,6 +64,31 @@ describe('NodeReportView.js spec', function() {
     $('body').html('');
     this.server.restore();
   });
+  describe('report sections are hide-able', function() {
+        it('should only trigger refresh on charts that are visible', function() {
+            console.log(this.testView.visiblePanel);
+            expect(this.testView.visiblePanel).to.deep.equal({
+                Services: true,
+                Reports: false,
+                Events: false
+            });
+
+            $('.reportsButton').click();
+            expect(this.testView.visiblePanel).to.deep.equal({
+                Services: false,
+                Reports: true,
+                Events: false
+            });
+
+            $('.eventsButton').click();
+            expect(this.testView.visiblePanel).to.deep.equal({
+                Services: false,
+                Reports: false,
+                Events: true
+            });
+
+        });
+    });
   describe('view is constructed', function() {
     it('should exist', function() {
       assert.isDefined(this.testView, 'this.testView has been defined');

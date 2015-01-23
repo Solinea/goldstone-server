@@ -174,7 +174,7 @@ class InnerTimeRangeView(TemplateView):
                        'end': context['end'], 'interval': context['interval']})
         except ElasticsearchException as e:
             return HttpResponse(content="Could not connect to the "
-                                        "ElasticSearch backend",
+                                        "search backend",
                                 status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
@@ -380,7 +380,7 @@ class TopologyView(TemplateView):
                 return render(self.request, '401.html', status=401)
         except ElasticsearchException as e:
             return HttpResponse(content="Could not connect to the "
-                                        "ElasticSearch backend",
+                                        "search backend",
                                 status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
@@ -553,7 +553,7 @@ class JSONView(ContextMixin, View):
                                 content_type='application/json')
         except ElasticsearchException as e:
             return HttpResponse(content="Could not connect to the "
-                                        "ElasticSearch backend",
+                                        "search backend",
                                 status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
@@ -566,9 +566,11 @@ class NodeReportView(TemplateView):
 
     def get(self, request, node_uuid):
         # TODO query should look for node id rather than name.
-        n = Node.get(name=node_uuid)
-        if n is None:
-            raise Http404
-        else:
+        # But this will probably require that we model/shadow the resources in
+        # OpenStack so we can map the name to one of our IDs consistently.
+        try:
+            n = Node.objects.get(name=node_uuid)
             return super(NodeReportView, self).get(request,
                                                    node_uuid=node_uuid)
+        except Node.DoesNotExist:
+            raise Http404
