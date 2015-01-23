@@ -19,16 +19,20 @@
 var renderCharts = function() {
     var self = this;
 
-    new GlobalLookbackRefreshButtonsView({
-        el: ".global-range-refresh-container"
-    });
-
     //----------------------------
     // instantiate charts via
     // backbone collection / views
 
+    // hide global lookbacks if only rendering discover nav
+
+    // new GlobalLookbackRefreshButtonsView({
+    //     el: ".global-range-refresh-container"
+    // });
+
     //---------------------------
     // instantiate Zoomable Tree chart
+
+    // collection ready if tree data becomes api-driven
 
     // var zoomableTree = new ZoomablePartitionCollection({
     // });

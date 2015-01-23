@@ -22,24 +22,6 @@ var ZoomablePartitionView = TopologyTreeView.extend({
 
     defaults: {},
 
-    // initialize: function(options) {
-
-    //     this.options = options || {};
-    //     this.defaults = _.clone(this.defaults); 
-    //     this.el = options.el;
-
-    //     this.defaults.w = options.w;
-    //     this.defaults.data = options.data;
-    //     this.defaults.chartHeader = options.chartHeader || null;
-    //     var ns = this.defaults;
-    //     var self = this;
-
-    //     this.render();
-    //     this.initSvg();
-    //     // this.collection.on('sync', this.update, this);
-    //     this.update();
-    // },
-
     initSvg: function() {
         var self = this;
         var ns = this.defaults;
@@ -62,14 +44,13 @@ var ZoomablePartitionView = TopologyTreeView.extend({
                 // this was originally set to d.size
                 return 1;
             });
-
     },
 
     update: function() {
         var ns = this.defaults;
         var self = this;
-        var that = this;
 
+        // keep in case data is fed by collection:
         // var root = this.collection.toJSON()[0];
         var root = ns.data;
 
@@ -193,7 +174,7 @@ var ZoomablePartitionView = TopologyTreeView.extend({
                             url = url + "zone=" + d.zone;
                         }
 
-                        // prepend zone
+                        // prepend zone to url:
                         var parentModule;
                         // traverse up the tree until the
                         // parent module is reached
@@ -201,36 +182,17 @@ var ZoomablePartitionView = TopologyTreeView.extend({
                             d = d.parent;
                         }
                         parentModule = d.label;
+
+                        if (self.overrideSets[d.label]) {
+                            ns.filterMultiRsrcDataOverride = self.overrideSets[d.label];
+                        } else {
+                            ns.filterMultiRsrcDataOverride = null;
+                        }
+
                         url = "/" + parentModule + url;
-                        // end zone prepend
 
-                        // if (!ns.frontPage) {
-                        that.loadLeafData(url);
-                        that.appendLeafNameToResourceHeader(origClickedLabel);
-                        // }
-
-                        // if (ns.frontPage) {
-
-                        //     if (d.rsrcType === 'region' || d.rsrcType === 'module') {
-                        //         return true;
-                        //     } else {
-                        //         var parentModule;
-
-                        //         // traverse up the tree until the
-                        //         // parent module is reached
-                        //         while (d.rsrcType !== 'module') {
-                        //             d = d.parent;
-                        //         }
-                        //         parentModule = d.label;
-
-                        //         // clear and set resource url in localStorage
-                        //         localStorage.clear();
-                        //         url = "/" + parentModule + url;
-                        //         localStorage.setItem('urlForResourceList', url);
-                        //         localStorage.setItem('origClickedLabel', origClickedLabel);
-                        //         window.location.href = parentModule + '/discover';
-                        //     }
-                        // }
+                        self.loadLeafData(url);
+                        self.appendLeafNameToResourceHeader(origClickedLabel);
                     }
 
                 }
@@ -278,6 +240,87 @@ var ZoomablePartitionView = TopologyTreeView.extend({
             return "translate(22," + d.dx * ky / 2 + ")";
         }
 
+    },
+
+    overrideSets: {
+        nova: ['@timestamp',
+            'metadata',
+            'region',
+            'links',
+            'swap',
+            'rxtx_factor',
+            'OS-FLV-EXT-DATA:ephemeral',
+            'service',
+            'cpu_info',
+            'hypervisor_version',
+            'bridge',
+            'bridge_interface',
+            'broadcast',
+            'cidr_v6',
+            'deleted',
+            'deleted_at',
+            'dhcp_start',
+            'dns1',
+            'dns2',
+            'gateway_v6',
+            'host',
+            'injected',
+            'multi_host',
+            'netmask_v6',
+            'priority',
+            'region',
+            'rxtx_base',
+            'vpn_private_address',
+            'vpn_public_address',
+            'vpn_public_port',
+            'accessIPv4',
+            'accessIPv6',
+            'addresses',
+            'config_drive',
+            'flavor',
+            'hostId',
+            'image',
+            'key_name',
+            'links',
+            'metadata',
+            'OS-DCF:diskConfig',
+            'OS-EXT-AZ:availability_zone',
+            'OS-EXT-SRV-ATTR:hypervisor_hostname',
+            'OS-EXT-STS:power_state',
+            'OS-EXT-STS:task_state',
+            'OS-EXT-STS:vm_state',
+            'os-extended-volumes:volumes_attached',
+            'OS-SRV-USG:launched_at',
+            'OS-SRV-USG:terminated_at',
+            'progress',
+            'region',
+            'security_groups',
+            'rules'
+        ],
+        cinder: ['@timestamp',
+            'metadata',
+            'region',
+            'extra_specs',
+            'display_description',
+            'os-extended-snapshot-attributes:progress',
+            'links',
+            'attachments',
+            'availability_zone',
+            'os-vol-mig-status-attr:migstat',
+            'os-vol-mig-status-attr:name_id',
+            'snapshot_id',
+            'source_volid'
+        ],
+        keystone: ['@timestamp'],
+        glance: ['@timestamp',
+            'metadata',
+            'region',
+            'tags',
+            'checksum',
+            'owner',
+            'schema',
+            'file'
+        ]
     },
 
     template: null
