@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -123,12 +123,12 @@ class ESData(object):
 
     @staticmethod
     def _add_facet(q, facet):
-            result = q.copy()
-            if 'facets' not in result:
-                result['facets'] = {}
+        result = q.copy()
+        if 'facets' not in result:
+            result['facets'] = {}
 
-            result['facets'][facet.keys()[0]] = facet[facet.keys()[0]]
-            return result
+        result['facets'][facet.keys()[0]] = facet[facet.keys()[0]]
+        return result
 
     @staticmethod
     def _term_clause(field, value):
@@ -157,21 +157,21 @@ class ESData(object):
 
     @staticmethod
     def _range_clause(field, start, end, gte=True, lte=True, facet=None):
-            start_op = "gte" if gte else "gt"
-            end_op = "lte" if lte else "lt"
-            result = {
-                "range": {
-                    field: {
-                        start_op: start,
-                        end_op: end
-                    }
+        start_op = "gte" if gte else "gt"
+        end_op = "lte" if lte else "lt"
+        result = {
+            "range": {
+                field: {
+                    start_op: start,
+                    end_op: end
                 }
             }
+        }
 
-            if facet:
-                result = ESData._add_facet(result, facet)
+        if facet:
+            result = ESData._add_facet(result, facet)
 
-            return result
+        return result
 
     @staticmethod
     def _agg_date_hist(interval, field="@timestamp",
