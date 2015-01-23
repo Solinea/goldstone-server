@@ -122,7 +122,7 @@ casper.test.begin('Node Report Page is loading properly', 62, function suite(tes
     });
 });
 
-casper.test.begin('Homepage is loading properly', 30, function suite(test) {
+casper.test.begin('Homepage is loading properly', 17, function suite(test) {
     casper.start('http://localhost:8000/', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -134,52 +134,59 @@ casper.test.begin('Homepage is loading properly', 30, function suite(test) {
         test.assertSelectorHasText('div.navbar', 'Logging');
 
         // Event timeline graph loads
-        test.assertExists('div#goldstone-discover-r1-c1', 'Event Timeline Section should load');
-        test.assertExists('div#goldstone-discover-r1-c1 svg', 'Event Timeline Section svg chart should load');
-        test.assertSelectorHasText('div #goldstone-discover-r1-c1', 'Event Timeline');
+        // test.assertExists('div#goldstone-discover-r1-c1', 'Event Timeline Section should load');
+        // test.assertExists('div#goldstone-discover-r1-c1 svg', 'Event Timeline Section svg chart should load');
+        // test.assertSelectorHasText('div #goldstone-discover-r1-c1', 'Event Timeline');
 
         // Cloud Topology graph loads
-        test.assertExists('div#goldstone-discover-r2-c1', 'Cloud Topology Section should load');
-        test.assertExists('div#goldstone-discover-r2-c1 svg', 'Cloud Topology Section svg chart should load');
-        test.assertSelectorHasText('div #goldstone-discover-r2-c1', 'Cloud Topology');
+        test.assertExists('div#goldstone-discover-r1-c1', 'Cloud Topology Section should load');
+        test.assertExists('div#goldstone-discover-r1-c1 svg', 'Cloud Topology Section svg chart should load');
+        test.assertSelectorHasText('div #goldstone-discover-r1-c1', 'Cloud Topology');
+
+        // Cloud Topology resource list loads
+        test.assertExists('div#goldstone-discover-r1-c2', 'Resource List section should load');
+        test.assertSelectorHasText('div #goldstone-discover-r1-c2', 'Resource List');
+
+        // Clicking on node brings up resource list
+        test.assertNotVisible('#goldstone-discover-r1-c2 .dataTables_scrollHead');
 
         // Event Timeline info button brings up popover
-        test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should not be visible');
-        this.click('#goldstone-event-info.pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should now be visible');
-        this.click('#goldstone-event-info.pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should not be visible');
-        this.click('#goldstone-event-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#goldstone-event-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        // test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should not be visible');
+        // this.click('#goldstone-event-info.pull-right.fa.fa-info-circle.panel-info');
+        // test.assertVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should now be visible');
+        // this.click('#goldstone-event-info.pull-right.fa.fa-info-circle.panel-info');
+        // test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should not be visible');
+        // this.click('#goldstone-event-panel .pull-right.fa.fa-info-circle.panel-info');
+        // test.assertVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        // this.mouseEvent('mouseout', '#goldstone-event-panel .pull-right.fa.fa-info-circle.panel-info');
+        // test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         // Cloud Topology info button brings up popover
-        test.assertNotVisible('#goldstone-discover-r2-c1 div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
-        this.click('#goldstone-discover-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-discover-r2-c1 div.popover.fade.bottom.in', 'cloud topology info popover should now be visible');
-        this.click('#goldstone-discover-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-discover-r2-c1 div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
-        this.click('#goldstone-discover-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-discover-r2-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#goldstone-discover-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-discover-r2-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('#goldstone-discover-r1-c1 div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
+        this.click('#goldstone-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#goldstone-discover-r1-c1 div.popover.fade.bottom.in', 'cloud topology info popover should now be visible');
+        this.click('#goldstone-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#goldstone-discover-r1-c1 div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
+        this.click('#goldstone-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#goldstone-discover-r1-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.mouseEvent('mouseout', '#goldstone-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#goldstone-discover-r1-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         // Node Availability info button brings up popover
-        test.assertNotVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should not be visible');
-        this.click('#goldstone-node-info.pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should now be visible');
-        this.click('#goldstone-node-info.pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should not be visible');
-        this.click('#goldstone-node-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#goldstone-node-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        // test.assertNotVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should not be visible');
+        // this.click('#goldstone-node-info.pull-right.fa.fa-info-circle.panel-info');
+        // test.assertVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should now be visible');
+        // this.click('#goldstone-node-info.pull-right.fa.fa-info-circle.panel-info');
+        // test.assertNotVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should not be visible');
+        // this.click('#goldstone-node-panel .pull-right.fa.fa-info-circle.panel-info');
+        // test.assertVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        // this.mouseEvent('mouseout', '#goldstone-node-panel .pull-right.fa.fa-info-circle.panel-info');
+        // test.assertNotVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         // Node Availability graph loads
-        test.assertExists('div#goldstone-discover-r2-c2', 'Node Availability Section should load');
-        test.assertExists('div#goldstone-discover-r2-c2 svg', 'Node Availability svg chart should load');
-        test.assertSelectorHasText('div #goldstone-discover-r2-c2', 'Node Availability');
+        // test.assertExists('div#goldstone-discover-r2-c2', 'Node Availability Section should load');
+        // test.assertExists('div#goldstone-discover-r2-c2 svg', 'Node Availability svg chart should load');
+        // test.assertSelectorHasText('div #goldstone-discover-r2-c2', 'Node Availability');
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
