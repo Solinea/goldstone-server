@@ -15,7 +15,7 @@
 __author__ = 'John Stanford'
 
 from django.conf.urls import patterns, url
-from .views import *
+from .views import ReportView
 
 urlpatterns = patterns(
     '',

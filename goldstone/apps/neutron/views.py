@@ -14,7 +14,7 @@
 
 __author__ = 'John Stanford'
 
-from goldstone.views import *
+from goldstone.views import TopLevelView, ApiPerfView
 from .models import ApiPerfData
 import logging
 
