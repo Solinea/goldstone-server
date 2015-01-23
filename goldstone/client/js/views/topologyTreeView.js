@@ -570,7 +570,7 @@ var TopologyTreeView = Backbone.View.extend({
                 el: ns.chartHeader[0],
                 chartTitle: ns.chartHeader[1],
                 infoText: ns.chartHeader[2],
-                columns: 12
+                columns: 13
             });
         }
 

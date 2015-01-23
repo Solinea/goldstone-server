@@ -18,27 +18,27 @@
 
 // view is linked to collection when instantiated in goldstone_discover.html
 
-var ZoomablePartitionView = Backbone.View.extend({
+var ZoomablePartitionView = TopologyTreeView.extend({
 
     defaults: {},
 
-    initialize: function(options) {
+    // initialize: function(options) {
 
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults); 
-        this.el = options.el;
+    //     this.options = options || {};
+    //     this.defaults = _.clone(this.defaults); 
+    //     this.el = options.el;
 
-        this.defaults.w = options.w;
-        this.defaults.data = options.data;
-        this.defaults.chartHeader = options.chartHeader || null;
-        var ns = this.defaults;
-        var self = this;
+    //     this.defaults.w = options.w;
+    //     this.defaults.data = options.data;
+    //     this.defaults.chartHeader = options.chartHeader || null;
+    //     var ns = this.defaults;
+    //     var self = this;
 
-        this.render();
-        this.initSvg();
-        // this.collection.on('sync', this.update, this);
-        this.update();
-    },
+    //     this.render();
+    //     this.initSvg();
+    //     // this.collection.on('sync', this.update, this);
+    //     this.update();
+    // },
 
     initSvg: function() {
         var self = this;
@@ -68,6 +68,7 @@ var ZoomablePartitionView = Backbone.View.extend({
     update: function() {
         var ns = this.defaults;
         var self = this;
+        var that = this;
 
         // var root = this.collection.toJSON()[0];
         var root = ns.data;
@@ -172,7 +173,71 @@ var ZoomablePartitionView = Backbone.View.extend({
             });
 
         function click(d) {
-            if (!d.children) return;
+            if (!d.children) {
+
+                // for appending to resource chart header
+                var origClickedLabel = d.label;
+
+                if (d.rsrcType.match(/-leaf$/) && ns.leafDataUrls !== undefined) {
+                    var url = ns.leafDataUrls[d.rsrcType];
+                    if (url !== undefined) {
+                        var hasParam = false;
+                        if (d.hasOwnProperty('region')) {
+                            url = hasParam ? url + "&" : url + "?";
+                            hasParam = true;
+                            url = url + "region=" + d.region;
+                        }
+                        if (d.hasOwnProperty('zone')) {
+                            url = hasParam ? url + "&" : url + "?";
+                            hasParam = true;
+                            url = url + "zone=" + d.zone;
+                        }
+
+                        // prepend zone
+                        var parentModule;
+                        // traverse up the tree until the
+                        // parent module is reached
+                        while (d.rsrcType !== 'module') {
+                            d = d.parent;
+                        }
+                        parentModule = d.label;
+                        url = "/" + parentModule + url;
+                        // end zone prepend
+
+                        // if (!ns.frontPage) {
+                        that.loadLeafData(url);
+                        that.appendLeafNameToResourceHeader(origClickedLabel);
+                        // }
+
+                        // if (ns.frontPage) {
+
+                        //     if (d.rsrcType === 'region' || d.rsrcType === 'module') {
+                        //         return true;
+                        //     } else {
+                        //         var parentModule;
+
+                        //         // traverse up the tree until the
+                        //         // parent module is reached
+                        //         while (d.rsrcType !== 'module') {
+                        //             d = d.parent;
+                        //         }
+                        //         parentModule = d.label;
+
+                        //         // clear and set resource url in localStorage
+                        //         localStorage.clear();
+                        //         url = "/" + parentModule + url;
+                        //         localStorage.setItem('urlForResourceList', url);
+                        //         localStorage.setItem('origClickedLabel', origClickedLabel);
+                        //         window.location.href = parentModule + '/discover';
+                        //     }
+                        // }
+                    }
+
+                }
+
+                d3.event.stopPropagation();
+                return;
+            }
 
             kx = (d.y ? ns.w - 40 : ns.w) / (1 - d.y);
             ky = ns.h / d.dx;
@@ -215,18 +280,6 @@ var ZoomablePartitionView = Backbone.View.extend({
 
     },
 
-    render: function() {
+    template: null
 
-        var ns = this.defaults;
-
-        if (ns.chartHeader !== null) {
-            new ChartHeaderView({
-                el: ns.chartHeader[0],
-                chartTitle: ns.chartHeader[1],
-                infoText: ns.chartHeader[2],
-                columns: 13
-            });
-        }
-        return this;
-    }
 });
