@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -18,10 +18,8 @@ from goldstone.views import DiscoverView, HelpView, NodeReportView
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from django.conf import settings
 from django.views.generic import RedirectView
 import logging
-import rest_framework
 
 logger = logging.getLogger(__name__)
 
