@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from goldstone.apps.core.serializers import NodeSerializer
-import arrow
 from goldstone.apps.logging.models import LoggingNodeStats
 
 

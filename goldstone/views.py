@@ -550,7 +550,7 @@ class JSONView(ContextMixin, View):
             content = json.dumps(self._get_data(context))
             return HttpResponse(content=content,
                                 content_type='application/json')
-        except ElasticsearchException as e:
+        except ElasticsearchException:
             return HttpResponse(content="Could not connect to the "
                                         "search backend",
                                 status=status.HTTP_504_GATEWAY_TIMEOUT)
