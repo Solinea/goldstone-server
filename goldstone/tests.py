@@ -19,7 +19,6 @@ from django.test import TestCase, SimpleTestCase
 from django.conf import settings
 from goldstone.models import GSConnection, ESData
 from goldstone.apps.core.tasks import _create_daily_index
-from goldstone.apps.keystone.tasks import discover_keystone_topology
 from elasticsearch import *
 import gzip
 import os
@@ -28,7 +27,7 @@ from goldstone.utils import stored_api_call, _get_keystone_client, \
     _construct_api_rec, GoldstoneAuthError
 import logging
 from datetime import datetime, timedelta
-from mock import patch, PropertyMock, MagicMock, Mock
+from mock import patch, PropertyMock
 from requests.models import Response
 from keystoneclient.v2_0.client import Client
 

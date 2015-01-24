@@ -1,7 +1,4 @@
-from django.core.exceptions import MiddlewareNotUsed
-from django.conf import settings
-from django.core.management import call_command
-from elasticsearch import Elasticsearch, TransportError
+from elasticsearch import TransportError
 import logging
 from goldstone.models import GSConnection
 

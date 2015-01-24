@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -34,9 +34,7 @@ import json
 from exceptions import LookupError
 import socket
 import functools
-from datetime import date
 import calendar
-import math
 from keystoneclient.openstack.common.apiclient.exceptions \
     import Unauthorized as KeystoneUnauthorized
 from novaclient.openstack.common.apiclient.exceptions \

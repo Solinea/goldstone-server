@@ -17,7 +17,6 @@ import copy
 from django.shortcuts import render
 from elasticsearch import ElasticsearchException
 from rest_framework import status
-from rest_framework.response import Response
 from goldstone.apps.core.models import Node
 from goldstone.utils import GoldstoneAuthError
 
@@ -172,7 +171,7 @@ class InnerTimeRangeView(TemplateView):
             return TemplateView.render_to_response(
                 self, {'data': json.dumps(response), 'start': context['start'],
                        'end': context['end'], 'interval': context['interval']})
-        except ElasticsearchException as e:
+        except ElasticsearchException:
             return HttpResponse(content="Could not connect to the "
                                         "search backend",
                                 status=status.HTTP_504_GATEWAY_TIMEOUT)
@@ -569,7 +568,7 @@ class NodeReportView(TemplateView):
         # But this will probably require that we model/shadow the resources in
         # OpenStack so we can map the name to one of our IDs consistently.
         try:
-            n = Node.objects.get(name=node_uuid)
+            # node = Node.objects.get(name=node_uuid)
             return super(NodeReportView, self).get(request,
                                                    node_uuid=node_uuid)
         except Node.DoesNotExist:

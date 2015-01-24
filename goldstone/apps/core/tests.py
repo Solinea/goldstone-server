@@ -1,4 +1,4 @@
-# Copyright '2014' Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,18 +16,15 @@ from time import sleep
 from django.test import SimpleTestCase
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
-from mock import patch, PropertyMock, MagicMock, Mock
+from mock import patch
 import mock
-import pytz
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 from rest_framework.test import APISimpleTestCase
 from goldstone.apps.core import tasks
 from goldstone.apps.core.views import ElasticViewSetMixin
-from goldstone.models import GSConnection
 from models import *
 from serializers import *
-from datetime import datetime
 import logging
 import arrow
 
@@ -543,6 +540,7 @@ class EventViewTests(APISimpleTestCase):
     def test_get_list_with_start_and_end(self):
         end_time = arrow.utcnow().replace(minutes=-14)
         start_time = end_time.replace(minutes=-2)
+
         data1 = {
             "event_type": "test event",
             "message": "test message 1"}
@@ -551,11 +549,13 @@ class EventViewTests(APISimpleTestCase):
             "message": "test message 2",
             "created": end_time.replace(minutes=-1).isoformat()
         }
+
         response = self.client.post('/core/events', data=data1)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        data1_id = response.data['id']
+
         response = self.client.post('/core/events', data=data2)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
         data2_id = response.data['id']
         EventType.refresh_index()
         response = self.client.get('/core/events')
