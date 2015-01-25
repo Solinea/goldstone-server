@@ -46,7 +46,7 @@ source /etc/init.d/functions
 # which use non-zero return codes as non-error return conditions
 
 # some commands work asyncronously, so we'll wait this many seconds
-SLEEP_SECONDS=5
+SLEEP_SECONDS=20
 
 DEFAULT_PID_FILE="/var/run/celery/$prog-%n.pid"
 DEFAULT_LOG_FILE="/var/log/celery/$prog-%n%I.log"

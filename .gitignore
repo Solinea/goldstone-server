@@ -122,7 +122,6 @@ goldstone/.idea/
 celerybeat-schedule
 
 # local stuff
-/utils
 goldstone/settings/js-development.py
 goldstone/settings/local.py
 goldstone/settings/local_dev.py
