@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .base import SettingsEnvironments, PERSONAL_ENV_SETTINGS
+from .base import SettingsEnvironments, CUSTOM_ENV_SETTINGS
 
 
 def get_customized(execution_type):
@@ -34,7 +34,7 @@ def get_customized(execution_type):
     import os.path
 
     # First, look within the environment variables.
-    target = os.getenv(PERSONAL_ENV_SETTINGS % execution_type)
+    target = os.getenv(CUSTOM_ENV_SETTINGS % execution_type)
     if target:
         # Found it!
         return target
