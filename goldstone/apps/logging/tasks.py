@@ -12,13 +12,11 @@ from __future__ import absolute_import
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from elasticsearch import ElasticsearchException
-
-import pytz
-import subprocess
-
 __author__ = 'John Stanford'
 
+from elasticsearch import ElasticsearchException
+import pytz
+import subprocess
 from django.conf import settings
 from goldstone.celery import app as celery_app
 import logging
@@ -39,31 +37,17 @@ def process_host_stream(self, host, timestamp):
     """
 
     # TODO this cleanup should be in a slower moving lane
-    nodes = Node.es_objects.query(name=host).order_by("created")
-    node = None
     try:
-        node = nodes[0].get_object()
-        node.last_seen_method = 'LOGS'
-        node.save()
-        try:
-            for n in nodes[1:]:
-                # remove duplicate nodes, keeping the oldest one
-                n.unindex(n._id)
-                NodeType.refresh_index()
-        except:
-            pass
-    except IndexError:
+        node = Node.objects.get(name=host)
+        if node.managed == 'true':
+            node.update_method = 'LOGS'
+            node.save()
+    except Node.DoesNotExist:
         # no nodes found, we should create one
-        node = Node(name=host, last_seen_method='LOGS')
+        node = Node(name=host, update_method='LOGS')
         node.save()
-        # refresh the index to avoid duplication
-        NodeType.refresh_index()
-    except ElasticsearchException:
-        # We couldn't reach ES, so let's move on.
-        raise
     except Exception as e:
-        logger.exception('unidentified exception in process_host_stream', e)
-        raise
+        logger.exception('unidentified exception in process_host_stream')
 
 
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
@@ -85,18 +69,15 @@ def _create_event(timestamp, host, event_type, message):
     dt = arrow.get(timestamp).datetime
 
     try:
-        node = Node.get(name=host)
-        if node is None:
-            raise Node.DoesNotExist
+        node = Node.objects.get(name=host)
+        event = Event(event_type=event_type, created=dt, message=message,
+                      source_id=str(node.id), source_name=host)
+        event.save()
+        return event
     except Node.DoesNotExist:
         logger.warning("[process_log_error_event] could not find node "
                        "with name=%s.  event will have not relations.", host)
         event = Event(event_type=event_type, created=dt, message=message)
-        event.save()
-        return event
-    else:
-        event = Event(event_type=event_type, created=dt, message=message,
-                      source_id=str(node.id), source_name=host)
         event.save()
         return event
 
@@ -128,7 +109,7 @@ def check_host_avail(self, offset=settings.HOST_AVAILABLE_PING_THRESHOLD):
 
     cutoff = arrow.utcnow().datetime - offset
     logger.debug("[check_host_avail] cutoff = %s", str(cutoff))
-    to_ping = Node.es_objects.filter(updated__lte=cutoff, admin_disabled=False)
+    to_ping = Node.objects.filter(updated__lte=cutoff, managed='true')
     logger.debug("hosts to ping = %s", to_ping)
-    for mt in to_ping:
-        ping(mt.get_object())
+    for node in to_ping:
+        ping(node)

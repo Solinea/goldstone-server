@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from distutils.util import strtobool
+from django_filters import TypedChoiceFilter
 from elasticsearch import ElasticsearchException
+from rest_framework.filters import DjangoFilterBackend, FilterSet
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 
@@ -135,18 +138,21 @@ class EventViewSet(ElasticViewSet):
     ordering = '-created'
 
 
-class NodeViewSet(ReadOnlyElasticViewSet):
-    model = Node
+class NodeViewSet(ReadOnlyModelViewSet):
+    queryset = Node.objects.all()
     serializer_class = NodeSerializer
-    lookup_field = '_id'
-    lookup_url_kwarg = '_id'
-    ordering = '-updated'
+    lookup_field = 'id'
+    lookup_url_kwarg = 'id'
+    filter_fields = ('id', 'name', 'created', 'updated', 'managed',
+                     'update_method')
+    ordering_fields = '__all__'
+    ordering = '-created'
 
     @detail_route(methods=['PATCH'])
     def enable(self, request, *args, **kwargs):
         node = self.get_object()
         if node is not None:
-            node.admin_disabled = False
+            node.managed = 'true'
             node.save()
             serializer = NodeSerializer(node)
             return Response(serializer.data)
@@ -157,7 +163,7 @@ class NodeViewSet(ReadOnlyElasticViewSet):
     def disable(self, request, *args, **kwargs):
         node = self.get_object()
         if node is not None:
-            node.admin_disabled = True
+            node.managed = 'false'
             node.save()
             serializer = NodeSerializer(node)
             return Response(serializer.data)

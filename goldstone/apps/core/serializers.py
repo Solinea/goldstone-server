@@ -69,25 +69,7 @@ class NodeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Node
-        lookup_field = '_id'
-
-    @staticmethod
-    def _transform_admin_disabled(field_value):
-        if str(field_value).lower() == 'false':
-            return False
-        else:
-            return True
-
-    def to_representation(self, instance):
-        return {
-            'id': instance.id,
-            'name': instance.name,
-            'last_seen_method': instance.last_seen_method,
-            'admin_disabled': self._transform_admin_disabled(
-                instance.admin_disabled),
-            'created': arrow.get(instance.created).isoformat(),
-            'updated': arrow.get(instance.updated).isoformat(),
-        }
+        lookup_field = 'id'
 
 
 class MetricSerializer(serializers.ModelSerializer):
