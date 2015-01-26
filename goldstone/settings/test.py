@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -77,3 +77,9 @@ DEBUG = True
 TEMPLATE_DEBUG = True
 
 QUNIT_ENABLED = True
+
+# Look for a settings file that's customized for the dev environment,
+# or for this server. If we find one, import it.
+custom_settings = get_customized(SettingsEnvironments.TEST)
+if custom_settings:
+    import_module(custom_settings)

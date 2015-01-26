@@ -345,7 +345,7 @@ class SettingsEnvironments(ConstantDict):
     """Different environments for settings files."""
 
     # Enumerations. These should be the only UPPER CASE members of this class.
-    TEST = "test"
-    DEV = "dev"
+    TEST = "TEST"
+    DEV = "DEV"
 
 PERSONAL_ENV_SETTINGS = "GOLDSTONE_PERSONAL_%s_SETTINGS"
