@@ -39,12 +39,7 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
     },
 
     customLookback: function() {
-        if (!this.defaults.lookbackValues || !this.defaults.lookbackValues.lookback) {
-            return '<option value="15">lookback 15m</option>' +
-                '<option value="60" selected>lookback 1h</option>' +
-                '<option value="360">lookback 6h</option>' +
-                '<option value="1440">lookback 1d</option>';
-        } else {
+        if (this.defaults.lookbackValues && this.defaults.lookbackValues.lookback && this.defaults.lookbackValues.lookback.length) {
             result = '';
             _.each(this.defaults.lookbackValues.lookback, function(item) {
                 result += '<option value="' + item[0] + '"';
@@ -54,27 +49,30 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
                 result += '>' + item[1] + '</option>';
             });
             return result;
+        } else {
+            return '<option value="15">lookback 15m</option>' +
+                '<option value="60" selected>lookback 1h</option>' +
+                '<option value="360">lookback 6h</option>' +
+                '<option value="1440">lookback 1d</option>';
         }
     },
 
-    customeRefresh: function() {
-        if (!this.defaults.lookbackValues || !this.defaults.lookbackValues.refresh) {
-            return '<option value="30" selected>refresh 30s</option>' +
-                '<option value="60">refresh 1m</option>' +
-                '<option value="300">refresh 5m</option>' +
-                '<option value="-1">refresh off</option>';
-        } else {
+    customRefresh: function() {
+        if (this.defaults.lookbackValues && this.defaults.lookbackValues.refresh && this.defaults.lookbackValues.refresh.length) {
             result = '';
             _.each(this.defaults.lookbackValues.refresh, function(item) {
                 result += '<option value="' + item[0] + '"';
-                console.log('item2', item[2]);
                 if (item[2] && item[2] === 'selected') {
                     result += ' selected';
                 }
                 result += '>' + item[1] + '</option>';
-
             });
             return result;
+        } else {
+            return '<option value="30" selected>refresh 30s</option>' +
+                '<option value="60">refresh 1m</option>' +
+                '<option value="300">refresh 5m</option>' +
+                '<option value="-1">refresh off</option>';
         }
     },
 
@@ -87,7 +85,7 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         '<div class="col-xl-1">' +
         '<div class="input-group">' +
         '<select class="form-control" id="global-refresh-range">' +
-        '<%= this.customeRefresh() %>' +
+        '<%= this.customRefresh() %>' +
         // '<option value="30" selected>refresh 30s</option>' +
         // '<option value="60">refresh 1m</option>' +
         // '<option value="300">refresh 5m</option>' +
