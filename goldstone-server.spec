@@ -298,6 +298,8 @@ rm -rf %{buildroot}
 /opt/goldstone/OSS_LICENSE_DISCLOSURE.pdf
 /opt/goldstone/LICENSE.pdf
 /opt/goldstone/goldstone/
+%config /opt/goldstone/goldstone/settings/base.py
+%config /opt/goldstone/goldstone/settings/production.py
 /var/log/goldstone/
 /var/www/goldstone/static/
 %attr(-, root, goldstone) /etc/init.d/celerybeat
