@@ -16,15 +16,14 @@ __author__ = 'John Stanford'
 
 from django.conf.urls import patterns, url
 
-from .views import IntelSearchView
+from .views import IntelSearchView, log_event_histogram, log_search_data
 
 urlpatterns = patterns(
     '',
     # view calls
     url(r'^search[/]?$', IntelSearchView.as_view(), name='intel-search'),
     # data calls
-    url(r'^log/cockpit/data[/]?$',
-        log_event_histogram, name='bad-event-data'),
+    url(r'^log/cockpit/data[/]?$', log_event_histogram, name='bad-event-data'),
     url(r'^log/search/data[/]?$', log_search_data,
         name='intel-log-search-data'),
 )
