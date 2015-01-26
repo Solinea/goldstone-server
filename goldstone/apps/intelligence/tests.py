@@ -15,6 +15,7 @@
 __author__ = 'John Stanford'
 
 from django.test import SimpleTestCase
+from goldstone.models import GSConnection
 from .models import *
 import json
 from datetime import *
