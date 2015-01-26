@@ -291,8 +291,61 @@ ES_INDEXES = {'default': 'goldstone_model',
               'core_report': 'goldstone_agent'}
 ES_TIMEOUT = 5
 
-# TODO: Define a constants class.
 
-TEST_SETTINGS = "TEST"
-DEV_SETTINGS = "DEV"
+class ConstantDict(object):
+    """An enumeration class for constants.
+
+    This allows us to define constants that can be checked by pylint.
+    To use, simply subclass create class members, e.g.:
+
+        class MyEnum(ConstantDict):
+            '''My enumeration.'''
+            FOO = 'the foo member'
+            BAR = 'the bar member'
+
+    You can now do thinks like::
+
+        print('FOO' in MyEnum.dict())  # True
+        print('FOO' in MyEnum.keys())  # True
+        print(MyEnum.FOO in MyEnum.values())  # True
+        print('the foo member' in MyEnum.values())  # True
+        print('no match' in MyEnum.values())  # False
+        if some_variable == MyEnum.FOO: ...
+
+    """
+    __dict = None
+    __keys = None
+    __values = None
+
+    @classmethod
+    def dict(cls):
+        """Return a dictionary of all upper-case constants."""
+        if cls.__dict is None:
+            val = lambda x: getattr(cls, x)
+            cls.__dict = dict(((c, val(c))
+                               for c in dir(cls) if c == c.upper()))
+        return cls.__dict
+
+    @classmethod
+    def keys(cls):
+        """Return a set of all .dict keys."""
+        if cls.__keys is None:
+            cls.__keys = set(cls.dict().keys())
+        return cls.__keys
+
+    @classmethod
+    def values(cls):
+        """Return a set of all .dict values."""
+        if cls.__values is None:
+            cls.__values = set(cls.dict().values())
+        return cls.__values
+
+
+class SettingsEnvironments(ConstantDict):
+    """Different environments for settings files."""
+
+    # Enumerations. These should be the only UPPER CASE members of this class.
+    TEST = "test"
+    DEV = "dev"
+
 PERSONAL_ENV_SETTINGS = "GOLDSTONE_PERSONAL_%s_SETTINGS"

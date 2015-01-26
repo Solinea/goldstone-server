@@ -33,7 +33,7 @@ def get_personalized(execution_type):
     """
 
     # First, look within the environment variables.
-    target = os.getenv(PERSONAL_ENV_SETTINGS % settings_type)
+    target = os.getenv(PERSONAL_ENV_SETTINGS % execution_type)
     if target:
         # Found it!
         return target
