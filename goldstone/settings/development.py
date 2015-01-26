@@ -11,9 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from importlib import import_module
 from .base import *
-from .custom import get_customized
 
 __author__ = 'Ken Pepple'
 
@@ -67,9 +65,3 @@ LOGGING = {
         },
     },
 }
-
-# Look for a settings file that's customized for the dev environment,
-# or for this server. If we find one, import it.
-custom_settings = get_customized(SettingsEnvironments.DEV)
-if custom_settings:
-    import_module(custom_settings)

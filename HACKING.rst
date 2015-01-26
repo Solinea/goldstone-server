@@ -57,7 +57,7 @@ Create the virtual environment (this will also install virtualenv)::
     cd ~/devel/goldstone
 
     export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
-    export DJANGO_SETTINGS_MODULE=goldstone.settings.dev
+    export DJANGO_SETTINGS_MODULE=goldstone.settings.local_dev
 
     redis-server > /dev/null 2>&1 &
     elasticsearch > /dev/null 2>&1 &
@@ -91,6 +91,12 @@ Now, install pip prerequesites. These let your run the application on your lapto
     $ cd goldstone                    # If your postactive script doesn't have a cd
     $ pip install -r requirements.txt
     $ pip install -r test-requirements.txt
+
+Get the local settings and put them in place::
+
+    $ git submodule init
+    $ git submodule update
+    $ cp solinea_settings/* goldstone/settings
 
 Open a VPN connection to the development Oakland (oak) cloud.
 
