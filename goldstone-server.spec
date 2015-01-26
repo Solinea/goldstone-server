@@ -235,6 +235,7 @@ rm -f %{_sourcedir}/goldstone-server*.rpm
 
 # set up the dir structures
 install -d -m 750 %{buildroot}/opt/goldstone/
+install -d -m 750 %{buildroot}/opt/goldstone/external/
 install -d -m 750 %{buildroot}/etc/init.d/
 install -d -m 750 %{buildroot}/etc/sysconfig/
 install -d -m 750 %{buildroot}/etc/httpd/conf.d/
@@ -247,8 +248,15 @@ install -d -m 750 %{buildroot}/etc/logstash/conf.d/
 # handle multiple and empty files
 touch %{buildroot}/var/log/goldstone/goldstone.log
 cp -R %{_sourcedir}/goldstone %{buildroot}/opt/goldstone
+cp -R %{_sourcedir}/external/rsyslog %{buildroot}/opt/goldstone/external
 cp -R %{_sourcedir}/external/logstash/outputs/* %{buildroot}/opt/logstash/lib/logstash/outputs
 cp -R %{_sourcedir}/external/logstash/conf.d/* %{buildroot}/etc/logstash/conf.d
+
+# fix up the settings folder contents
+rm -f %{buildroot}/opt/goldstone/goldstone/settings/*
+install -m 640 %{_sourcedir}/goldstone/settings/base.py %{_buildroot}/opt/goldstone/goldstone/settings/base.py
+install -m 640 %{_sourcedir}/goldstone/settings/production.py %{_buildroot}/opt/goldstone/goldstone/settings/production.py
+install -m 640 %{_sourcedir}/opt/goldstone/goldstone/settings/base.py
 
 # handle the rest
 install -m 640 %{_sourcedir}/requirements.txt %{buildroot}/opt/goldstone/requirements.txt

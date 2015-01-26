@@ -145,14 +145,11 @@ In the ``/opt/goldstone/external`` folder, there are example configuration files
 * ``/opt/goldstone/external/rsyslog/rsyslog.conf`` is an example main rsyslog configuration file. It references the goldstone specific file below.
 * ``/opt/goldstone/external/rsyslog/rsyslog.d/10-goldstone.conf`` provides specific mapping. THIS FILE NEEDS TO BE MODIFIED to replace the '@@goldstone_ip:5514' in the local0.* to local7.* lines with your goldstone server IP address or name. For example, if your goldstone server's IP address 10.10.10.1, then your file should be edited to read: ::
 
-        local0.*    @@10.10.10.1:5514    # nova
-        local1.*    @@10.10.10.1:5514    # glance
-        local2.*    @@10.10.10.1:5514    # neutron
-        local3.*    @@10.10.10.1:5514    # ceilometer
-        local4.*    @@10.10.10.1:5514    # swift
-        local5.*    @@10.10.10.1:5514    # cinder
-        local6.*    @@10.10.10.1:5514    # keystone
-        local7.*    @@10.10.10.1:5514    # other 
+    *.*    @@10.10.10.1:5514    
+
+If you run with selinux enabled, you will also need to configure it to allow rsyslog to use this port: ::
+
+    # semanage port -a -t syslogd_port_t -p tcp 5514
 
 Restart the OpenStack services and syslog or reboot the node. Repeat this on all the OpenStack servers (or better include this in your puppet scripts).
 
