@@ -135,5 +135,7 @@ node_modules/
 
 goldstone/db.sqlite3.dev
 
-# Emacs backup files
+# Emacs backup files, TAGS
 *.*~
+\#*.*\#
+TAGS
