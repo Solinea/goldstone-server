@@ -32,27 +32,43 @@ Before installing goldstone, your server needs to meet the following prerequesit
 * 4GB RAM
 * x64 CPU
 * 100 GB free disk space
-* CentOS / RHEL 6.5
+* CentOS / RHEL 6.5 or 6.6
 
 To view and use goldstone, you will need a recent version of the `Google Chrome browser`_.
 
 .. _Google Chrome browser: https://www.google.com/intl/en-US/chrome/browser/
 
-RUN GOLDSTONE INSTALLER
-***********************
+INSTALL GOLDSTONE PACKAGES
+**************************
 
 First, enable the CentOS EPEL repositories and install some dependencies: ::
 
     # yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
     # yum install -y gcc gcc-c++ java-1.7.0-openjdk
 
-After that, enable the goldstone repository: ::
+After that, enable the elasticsearch and logstash repositories: ::
 
-    # yum install -y http://repo.solinea.com/repo/goldstone_repos-1.2-1.noarch.rpm
+    # rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+    # cat > /etc/yum.repos.d/elasticsearch-1.3.repo <<EOF
+    [elasticsearch-1.3]
+    name=Elasticsearch repository for 1.3.x packages
+    baseurl=http://packages.elasticsearch.org/elasticsearch/1.3/centos
+    gpgcheck=1
+    gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+    enabled=1
+    EOF
+    # cat > /etc/yum.repos.d/logstash-1.4.repo <<EOF
+    [logstash-1.4]
+    name=logstash repository for 1.4.x packages
+    baseurl=http://packages.elasticsearch.org/logstash/1.4/centos
+    gpgcheck=1
+    gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+    enabled=1
+    EOF
 
-Finally, install the goldstone application: ::
+Install the goldstone application: ::
 
-    # yum install -y goldstone
+    # yum localinstall -y goldstone-server-2.0.1.rpm
 
 This package installation may take up to 2 hours to run, as it needs to compile a number of libraries.
 
@@ -62,6 +78,14 @@ Once the goldstone rpm is installed, copy the ``/opt/goldstone/goldstone/setting
     OS_PASSWORD = 'fe6ac09d85041ae384c66a83e362f565'
     OS_TENANT_NAME = 'admin'
     OS_AUTH_URL = 'http://10.10.15.230:5000/v2.0'
+
+The goldstone application will be started at next boot, or you can start it and it's dependencies with the following commands: ::
+
+    # service httpd start
+    # service celerybeat start
+    # service celeryd-default start
+    # service celeryd-host-stream start
+    # service celeryd-event-stream start
 
 DIRECT LOGS TO GOLDSTONE SERVER
 *******************************

@@ -44,6 +44,7 @@ from novaclient.openstack.common.apiclient.exceptions \
 from cinderclient.openstack.common.apiclient.exceptions \
     import Unauthorized as CinderUnauthorized
 from neutronclient.common.exceptions import Unauthorized as NeutronUnauthorized
+import arrow
 
 
 logger = logging.getLogger(__name__)
@@ -68,6 +69,10 @@ class NoDailyIndex(GoldstoneBaseException):
 
 class NoResourceFound(GoldstoneBaseException):
     pass
+
+
+def utc_now():
+    return arrow.utcnow().datetime
 
 
 def utc_timestamp():

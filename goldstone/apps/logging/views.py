@@ -14,6 +14,7 @@
 from django.http import Http404
 from elasticsearch import ElasticsearchException
 from rest_framework import status
+from rest_framework.viewsets import ModelViewSet
 
 
 __author__ = 'John Stanford'
@@ -27,50 +28,51 @@ logger = logging.getLogger(__name__)
 
 
 class LoggingNodeViewSet(NodeViewSet):
-    serializer_class = LoggingNodeSerializer
-    lookup_field = '_id'
-    lookup_url_kwarg = '_id'
-    ordering = '-updated'
-    model = Node
 
-    def _set_time_range(self, params_dict):
+    serializer_class = LoggingNodeSerializer
+
+    @staticmethod
+    def get_request_time_range(params_dict):
         if 'end_time' in params_dict:
-            self._end_time = arrow.get(params_dict['end_time'])
+            end_time = arrow.get(params_dict['end_time'])
         else:
-            self._end_time = arrow.utcnow()
+            end_time = arrow.utcnow()
 
         if 'start_time' in params_dict:
-            self._start_time = arrow.get(
+            start_time = arrow.get(
                 params_dict['start_time'])
         else:
-            self._start_time = self._end_time.replace(
+            start_time = end_time.replace(
                 minutes=(-1 * settings.LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES))
 
-    def _add_headers(self, response):
+        return {'start_time': start_time, 'end_time': end_time}
+
+    @staticmethod
+    def _add_headers(response, time_range):
         response._headers['LogCountEnd'] = \
-            ('LogCountEnd', self._end_time.isoformat())
+            ('LogCountEnd', time_range['end_time'].isoformat())
         response._headers['LogCountStart'] = \
-            ('LogCountStart', self._start_time.isoformat())
+            ('LogCountStart', time_range['start_time'].isoformat())
         return response
 
     def list(self, request, *args, **kwargs):
-        self._set_time_range(request.QUERY_PARAMS.dict())
-        instance = self.get_queryset()
+        time_range = self.get_request_time_range(request.QUERY_PARAMS.dict())
+        instance = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(instance)
         if page is not None:
             serializer = self.get_pagination_serializer(page)
         else:
             serializer = self.get_serializer(instance, many=True)
 
-        serializer.context['start_time'] = self._start_time
-        serializer.context['end_time'] = self._end_time
-        serializer.many = True
-        return self._add_headers(Response(serializer.data))
+        serializer.context['start_time'] = time_range['start_time']
+        serializer.context['end_time'] = time_range['end_time']
+
+        return self._add_headers(Response(serializer.data), time_range)
 
     def retrieve(self, request, *args, **kwargs):
-        self._set_time_range(request.QUERY_PARAMS.dict())
+        time_range = self.get_request_time_range(request.QUERY_PARAMS.dict())
         serializer = self.serializer_class(
             self.get_object(),
-            context={'start_time': self._start_time,
-                     'end_time': self._end_time})
-        return self._add_headers(Response(serializer.data))
+            context={'start_time': time_range['start_time'],
+                     'end_time': time_range['end_time']})
+        return self._add_headers(Response(serializer.data), time_range)
