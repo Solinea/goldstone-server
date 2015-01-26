@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -11,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from importlib import import_module
+from .base import *
+from .custom import get_customized
 
 __author__ = 'Ken Pepple'
-
-from .base import *
 
 TEMPLATE_DEBUG = DEBUG
 
@@ -66,3 +67,9 @@ LOGGING = {
         },
     },
 }
+
+# Look for a settings file that's customized for the dev environment,
+# or for this server. If we find one, import it.
+custom_settings = get_customized(SettingsEnvironments.DEV)
+if custom_settings:
+    import_module(custom_settings)

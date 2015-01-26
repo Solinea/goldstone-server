@@ -1,6 +1,6 @@
-"""Support for personalized Django settings files."""
+"""Support for customized Django settings files."""
 
-# Copyright 2014 Solinea, Inc.
+# Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -14,23 +14,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# from .base import PERSONAL_ENV_SETTINGS, TEST_SETTINGS, DEV_SETTINGS
-from .base import *
+from .base import SettingsEnvironments, PERSONAL_ENV_SETTINGS
 
 
-def get_personalized(execution_type):
-    """Return the name of a personalized local settings file, or None.
+def get_customized(execution_type):
+    """Return the name of a customized local settings file, or None.
 
-    If the desired personalized settings filename is defined in the
-    environment, use it. Otherwise, look for a personalized settings
-    file based on this computer's name. Otherwise, return None.
+    If the desired settings filename is defined in the environment,
+    use it. Otherwise, look for a customized settings file based on
+    this computer's name. Otherwise, return None.
 
-    :param execution_type: The type of personalied settings file to look for.
-    :type execution_type: settings.ExecutionType
+    :param execution_type: The type of customized settings file to look for.
+    :type execution_type: str. It should be a member of SettingsEnvironment
     :return: A value that can be passed to importlib.import_module(), or None
     :rtype: str, or None
 
     """
+    import os
+    import os.path
 
     # First, look within the environment variables.
     target = os.getenv(PERSONAL_ENV_SETTINGS % execution_type)
