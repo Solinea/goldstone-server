@@ -568,7 +568,8 @@ class NodeReportView(TemplateView):
         # But this will probably require that we model/shadow the resources in
         # OpenStack so we can map the name to one of our IDs consistently.
         try:
-            node = Node.objects.get(name=node_uuid)
+            # This will throw an exception if the node doesn't exist.
+            Node.objects.get(name=node_uuid)
             return super(NodeReportView, self).get(request,
                                                    node_uuid=node_uuid)
         except Node.DoesNotExist:
