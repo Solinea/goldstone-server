@@ -14,8 +14,8 @@
 #
 # Author: John Stanford
 
-%define version %{getenv:GOLDSTONE_AGENT_VERSION}
-%define release %{getenv:GOLDSTONE_AGENT_RELEASE}
+%define version %{getenv:GOLDSTONE_RPM_VERSION}
+%define release %{getenv:GOLDSTONE_RPM_RELEASE}
 
 Summary:        Solinea Goldstone server
 Name:           goldstone-server
