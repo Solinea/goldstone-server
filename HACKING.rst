@@ -222,7 +222,7 @@ To create a release, follow these steps:
 Major Design Decisions
 **********************
 
-* Goldstone is current based on the 1.6 version of `Django`_.
+* Goldstone is currently based on the 1.6 version of `Django`_.
 * For database and model migrations, Goldstone uses `South`_.
 * Goldstone has chosen Postgresql as its main database, however MySQL will also be tested against.
 * The PBR library (created by the OpenStack project) is used for sane and simple setup.py, versioning and setup.cfg values.
