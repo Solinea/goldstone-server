@@ -126,8 +126,6 @@ goldstone/settings/js-development.py
 goldstone/settings/local.py
 goldstone/settings/local_dev.py
 goldstone/settings/local_prod.py
-goldstone/settings/local_test.py
-goldstone/settings/local_oak_c1.py
 goldstone/settings/.secret_key_store
 celerybeat-schedule.db
 dump.rdb
