@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -13,24 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Author: John Stanford
+ * Author: Alex Jacobs
  */
 
-goldstone.namespace('goldstone.topology');
-goldstone.namespace('goldstone.hostAvail');
-
-goldstone.goldstone.topology.url = function(render) {
-    "use strict";
-    var url = "/topology";
-
-    if (typeof render !== 'undefined') {
-        url += "?render=" + render;
-    }
-    return url;
-};
-
-goldstone.goldstone.hostAvail.url = function() {
-    "use strict";
-    var url = "/logging/nodes";
-    return url;
-};
+ var LogAnalysisModel = Backbone.Model.extend({});
