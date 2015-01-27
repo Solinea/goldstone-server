@@ -171,15 +171,22 @@ var GoldstoneBaseView = Backbone.View.extend({
 
     specialInit: function() {},
 
-    clearDataErrorMessage: function() {
+    clearDataErrorMessage: function(location) {
         // if error message already exists on page,
         // remove it in case it has changed
-        if ($(this.el).find('.popup-message').length) {
-            $(this.el).find('.popup-message').fadeOut("slow");
+        if (location) {
+            if ($(location).find('.popup-message').length) {
+                $(location).find('.popup-message').fadeOut("slow");
+            }
+        } else {
+            if ($(this.el).find('.popup-message').length) {
+                $(this.el).find('.popup-message').fadeOut("slow");
+            }
         }
+
     },
 
-    dataErrorMessage: function(message, errorMessage) {
+    dataErrorMessage: function(message, errorMessage, location) {
 
         // 2nd parameter will be supplied in the case of an
         // 'error' event such as 504 error. Othewise,
@@ -211,7 +218,11 @@ var GoldstoneBaseView = Backbone.View.extend({
         }
 
         // calling raiseAlert with the 3rd param will supress auto-hiding
-        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
+        if (location) {
+            goldstone.raiseAlert($(location).find('.popup-message'), message, true);
+        } else {
+            goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
+        }
 
         this.hideSpinner();
     },

@@ -110,7 +110,10 @@ var InfoButtonText = Backbone.Model.extend({
                 'across your cloud.  You can adjust the displayed data with the ' +
                 'time settings in the menu bar, and with the filter buttons that double ' +
                 'as a legend.  The table below contains the individual log entries for ' +
-                'the time range and filter settings.'
+                'the time range and filter settings.',
+
+            cloudTopologyResourceList: 'Click row for additional resource info.<br><br>' +
+            'Clicking on hypervisor or hosts reports will navigate to additional report pages.'
         }
     }
 });
