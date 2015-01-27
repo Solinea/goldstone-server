@@ -108,7 +108,7 @@ var InfoButtonText = Backbone.Model.extend({
 
             searchLogAnalysis: 'This chart displays log stream data ' +
                 'across your cloud.  You can adjust the displayed data with the ' +
-                'time settings in the menu bar, and with the filter buttons that double ' +
+                'time settings in the menu bar, and with the filter settings that double ' +
                 'as a legend.  The table below contains the individual log entries for ' +
                 'the time range and filter settings.',
 
