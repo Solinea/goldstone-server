@@ -25,9 +25,43 @@ var renderCharts = function() {
 
     // hide global lookbacks if only rendering discover nav
 
-    // new GlobalLookbackRefreshButtonsView({
-    //     el: ".global-range-refresh-container"
-    // });
+    new GlobalLookbackRefreshButtonsView({
+        el: ".global-range-refresh-container"
+    });
+
+    //---------------------------
+    // instantiate event timeline chart
+
+    // fetch url is set in eventTimelineCollection
+    var eventTimelineChart = new EventTimelineCollection({});
+
+    var eventTimelineChartView = new EventTimelineView({
+        collection: eventTimelineChart,
+        el: '#goldstone-discover-r1-c1',
+        chartTitle: 'Event Timeline',
+        width: $('#goldstone-discover-r1-c1').width()
+    });
+
+    //---------------------------
+    // instantiate Node Availability chart
+
+    var nodeAvailChart = new NodeAvailCollection({
+        url: "/logging/nodes?page_size=100"
+    });
+
+    var nodeAvailChartView = new NodeAvailView({
+        collection: nodeAvailChart,
+        h: {
+            "main": 150,
+            "swim": 50
+            // "main": 450,
+            // "swim": 50
+        },
+        el: '#goldstone-discover-r1-c2',
+        chartTitle: 'Node Availability',
+        width: $('#goldstone-discover-r2-c2').width()
+    });
+
 
     //---------------------------
     // instantiate Zoomable Tree chart
@@ -39,10 +73,10 @@ var renderCharts = function() {
 
     var zoomableTreeView = new ZoomablePartitionView({
         blueSpinnerGif: blueSpinnerGif,
-        chartHeader: ['#goldstone-discover-r1-c1', 'Cloud Topology', 'discoverZoomTopology'],
+        chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverZoomTopology'],
         // collection: zoomableTree,
         data: data,
-        el: '#goldstone-discover-r1-c1',
+        el: '#goldstone-discover-r2-c1',
         frontPage: false,
         h: 600,
         leafDataUrls: {
@@ -69,8 +103,8 @@ var renderCharts = function() {
             "transfers-leaf": "/transfers",
             "volume-types-leaf": "/volume_types"
         },
-        multiRsrcViewEl: '#goldstone-discover-r1-c2',
-        width: $('#goldstone-discover-r1-c1').width()
+        multiRsrcViewEl: '#goldstone-discover-r2-c2',
+        width: $('#goldstone-discover-r2-c1').width()
     });
 
 };
