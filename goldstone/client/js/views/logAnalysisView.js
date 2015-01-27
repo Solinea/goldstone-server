@@ -497,9 +497,9 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
     render: function() {
         this.$el.append(this.template());
-        $(this.el).find('.special-icon-post').append('<i class="fa fa-filter pull-right" data-toggle="modal"' +
-            'data-target="#modal-filter-' + this.el.slice(1) + '" style="margin: 0 20px;"></i>');
-        $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-forward pull-right" style="margin: 0 50px 0 0"></i>');
+        $(this.el).find('.special-icon-pre').append('<i class="fa fa-filter pull-right" data-toggle="modal"' +
+            'data-target="#modal-filter-' + this.el.slice(1) + '" style="margin: 0 15px;"></i>');
+        $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-forward pull-right" style="margin: 0 4px 0 0"></i>');
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-search-plus pull-right" style="margin: 0 5px 0 0"></i>');
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-search-minus pull-right" style="margin: 0 20px 0 0"></i>');
         $(this.el).find('.special-icon-pre').append('<i class ="fa fa-lg fa-backward pull-right" style="margin: 0 5px 0 0"></i>');
