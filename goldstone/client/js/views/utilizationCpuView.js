@@ -293,6 +293,21 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
             .attr("d", function(d) {
                 return ns.area(d.values);
             })
+            .style("stroke", function(d) {
+                if (ns.featureSet === "logEvents") {
+                    return ns.loglevel(d.name);
+                }
+            })
+            .style("stroke-width", function(d) {
+                if (ns.featureSet === "logEvents") {
+                    return 1.5;
+                }
+            })
+            .style("stroke-opacity", function(d) {
+                if (ns.featureSet === "logEvents") {
+                    return 1;
+                }
+            })
             .style("fill", function(d) {
 
                 if (ns.featureSet === "cpuUsage") {
