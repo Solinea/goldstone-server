@@ -85,51 +85,7 @@ else
 fi
 
 # if credentials are set in the local environment, put them into the goldstone configuration
-if [[ "X$OS_USER" != "X" ]] ; then
-    echo "OS_USER = \"$OS_USER\"" >> /opt/goldstone/goldstone/settings/production.py
-fi
-
-if [[ "X$OS_PASSWORD" != "X" ]] ; then
-    echo "OS_PASSWORD = \"$OS_PASSWORD\"" >> /opt/goldstone/goldstone/settings/production.py
-fi
-
-if [[ "X$OS_TENANT" != "X" ]] ; then
-    echo "OS_TENANT = \"$OS_TENANT\"" >> /opt/goldstone/goldstone/settings/production.py
-fi
-
-if [[ "X$OS_AUTH_URL" != "X" ]] ; then
-    echo "OS_AUTH_URL = \"$OS_AUTH_URL\"" >> /opt/goldstone/goldstone/settings/production.py
-fi
-
-cd /opt/goldstone
-
-python manage.py shell --settings=goldstone.settings.production <<EOF
-from goldstone.apps.core.tasks import _put_all_templates, _create_daily_index, _create_agent_index
-_put_all_templates()
-_create_daily_index()
-_create_agent_index()
-EOF
-
-cd /opt/goldstone
-pip install -r requirements.txt
-export DJANGO_SETTINGS_MODULE=goldstone.settings.production
-python manage.py collectstatic --noinput
-python manage.py syncdb <<EOF
-no
-EOF
-python manage.py migrate
-
-# get all the ownerships back in shape.  No guarantee that we can su to apache, and running python
-# during install may set some ownerships to root. This seems like the best approach.
-chown -R apache:apache /opt/goldstone
-
-
 if [[ $# == 1 && $1 == 1 ]] ; then
-    ln -s /opt/goldstone /usr/lib/python2.6/site-packages/goldstone
-    ln -s /etc/init.d/celeryd-default /etc/init.d/celeryd-host-stream
-    ln -s /etc/init.d/celeryd-default /etc/init.d/celeryd-event-stream
-
-    # if credentials are set in the local environment, put them into the goldstone configuration
     if [[ "X$OS_USERNAME" != "X" ]] ; then
         echo "OS_USERNAME = \"$OS_USERNAME\"" >> /opt/goldstone/goldstone/settings/production.py
     else
@@ -153,6 +109,34 @@ if [[ $# == 1 && $1 == 1 ]] ; then
     else
         ENV_NOT_SET=1
     fi
+fi
+
+cd /opt/goldstone
+pip install -r requirements.txt
+export DJANGO_SETTINGS_MODULE=goldstone.settings.production
+
+python manage.py shell <<EOF
+from goldstone.apps.core.tasks import _put_all_templates, _create_daily_index, _create_agent_index
+_put_all_templates()
+_create_daily_index()
+_create_agent_index()
+EOF
+
+python manage.py collectstatic --noinput
+python manage.py syncdb <<EOF
+no
+EOF
+python manage.py migrate
+
+# get all the ownerships back in shape.  No guarantee that we can su to apache, and running python
+# during install may set some ownerships to root. This seems like the best approach.
+chown -R apache:apache /opt/goldstone
+
+
+if [[ $# == 1 && $1 == 1 ]] ; then
+    ln -s /opt/goldstone /usr/lib/python2.6/site-packages/goldstone
+    ln -s /etc/init.d/celeryd-default /etc/init.d/celeryd-host-stream
+    ln -s /etc/init.d/celeryd-default /etc/init.d/celeryd-event-stream
 
     chkconfig httpd on
 
@@ -177,11 +161,12 @@ if [[ $# == 1 && $1 == 1 ]] ; then
     else 
         echo "***********************************************************************"
         echo "*  To configure goldstone, add the following OpenStack parameters to  *"
-        echo "*  /opt/goldstone/goldstone/setting/production.py and reboot:         *"
-	echo "*     OS_USERNAME                                                     *"
-	echo "*     OS_TENANT_NAME                                                  *"
-	echo "*     OS_PASSWORD                                                     *"
-	echo "*     OS_AUTH_URL                                                     *"
+        echo "*  /opt/goldstone/goldstone/setting/production.py and reboot after:   *"
+        echo "*  installation has completed:                                        *"
+	    echo "*     OS_USERNAME                                                     *"
+	    echo "*     OS_TENANT_NAME                                                  *"
+	    echo "*     OS_PASSWORD                                                     *"
+	    echo "*     OS_AUTH_URL                                                     *"
         echo "***********************************************************************"
     fi
 else
@@ -214,7 +199,7 @@ if [[ $# == 1 && $1 == 0 ]] ; then
     /usr/sbin/groupdel goldstone
     rm -rf /var/run/celery
     rm -rf /var/log/celery
-    rm -rf /opt/goldstone
+    # rm -rf /opt/goldstone
 fi
 
 
@@ -253,10 +238,11 @@ cp -R %{_sourcedir}/external/logstash/outputs/* %{buildroot}/opt/logstash/lib/lo
 cp -R %{_sourcedir}/external/logstash/conf.d/* %{buildroot}/etc/logstash/conf.d
 
 # fix up the settings folder contents
-rm -f %{buildroot}/opt/goldstone/goldstone/settings/*
-install -m 640 %{_sourcedir}/goldstone/settings/base.py %{_buildroot}/opt/goldstone/goldstone/settings/base.py
-install -m 640 %{_sourcedir}/goldstone/settings/production.py %{_buildroot}/opt/goldstone/goldstone/settings/production.py
-install -m 640 %{_sourcedir}/opt/goldstone/goldstone/settings/base.py
+rm -rf %{buildroot}/opt/goldstone/goldstone/settings
+install -d -m 750 %{buildroot}/opt/goldstone/goldstone/settings/
+install -m 640 %{_sourcedir}/goldstone/settings/base.py %{buildroot}/opt/goldstone/goldstone/settings/__init__.py
+install -m 640 %{_sourcedir}/goldstone/settings/base.py %{buildroot}/opt/goldstone/goldstone/settings/base.py
+install -m 640 %{_sourcedir}/goldstone/settings/production.py %{buildroot}/opt/goldstone/goldstone/settings/production.py
 
 # handle the rest
 install -m 640 %{_sourcedir}/requirements.txt %{buildroot}/opt/goldstone/requirements.txt
@@ -300,6 +286,7 @@ rm -rf %{buildroot}
 /opt/goldstone/goldstone/
 %config /opt/goldstone/goldstone/settings/base.py
 %config /opt/goldstone/goldstone/settings/production.py
+/opt/goldstone/external/
 /var/log/goldstone/
 /var/www/goldstone/static/
 %attr(-, root, goldstone) /etc/init.d/celerybeat
