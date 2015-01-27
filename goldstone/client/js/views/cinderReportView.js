@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -23,12 +23,6 @@ var CinderReportView = ApiPerfReportView.extend({
     },
 
     renderCharts: function() {
-        var nsReport = goldstone.cinder.report;
-        var nsApiPerf = goldstone.cinder.apiPerf;
-        nsReport.start = (+new Date()) - (this.defaults.globalLookback * 1000 * 60);
-        nsReport.end = new Date();
-        nsReport.interval = '' + Math.round(0.357 * this.defaults.globalLookback) + "s";
-
         this.cinderApiPerfChart = new ApiPerfCollection({
             urlPrefix: 'cinder',
         });

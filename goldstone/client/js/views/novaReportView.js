@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -24,21 +24,7 @@ var NovaReportView = ApiPerfReportView.extend({
     },
 
     renderCharts: function() {
-        var nsReport = goldstone.nova.report;
-        var nsApiPerf = goldstone.nova.apiPerf;
-        var gnspawns = goldstone.nova.spawns;
-        var gncpu = goldstone.nova.cpu;
-        var gnmem = goldstone.nova.mem;
-        var gndisk = goldstone.nova.disk;
-        var gnapi = goldstone.nova.apiPerf;
-        nsReport.start = (+new Date()) - (this.defaults.globalLookback * 1000 * 60);
-        nsReport.end = +new Date();
-        nsReport.interval = '' + Math.round(0.357 * this.defaults.globalLookback) + "s";
-
-        gncpu.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r2-c1', true);
-        gnmem.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r2-c2', true);
-        gndisk.loadUrl(nsReport.start, nsReport.end, nsReport.interval, '#nova-report-r3-c1', true);
-
+        // TODO: implement cpu / mem / disk charts
 
         /*
         Nova Api Perf Report
@@ -79,6 +65,26 @@ var NovaReportView = ApiPerfReportView.extend({
             width: $('#nova-report-r1-c2').width(),
             yAxisLabel: 'Spawn Events'
         });
+
+        // PLACEHOLDERS
+        new ChartHeaderView({
+            el: "#nova-report-r2-c1",
+            chartTitle: "CPU Resources",
+            infoText: "novaCpuResources"
+        });
+
+        new ChartHeaderView({
+            el: "#nova-report-r2-c2",
+            chartTitle: "Mem Resources",
+            infoText: "novaMemResources"
+        });
+
+        new ChartHeaderView({
+            el: "#nova-report-r3-c1",
+            chartTitle: "Disk Resources",
+            infoText: "novaDiskResources"
+        });
+
     },
 
     template: _.template('' +
@@ -93,7 +99,9 @@ var NovaReportView = ApiPerfReportView.extend({
         '<div id="nova-report-r3" class="row">' +
         '<div id="nova-report-r3-c1" class="col-md-6"></div>' +
         '<div id="nova-report-r3-c2" class="col-md-6"></div>' +
-        '</div>'
+        '</div>' +
+        // TODO: remove breaks after charts are instantiated
+        '<br><br><br><br><br>'
     )
 
 });

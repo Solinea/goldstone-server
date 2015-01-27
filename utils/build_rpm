@@ -1,0 +1,13 @@
+#! /bin/bash
+
+if [[ ! -f "goldstone-server.spec" ]]; then
+   echo "Run $0 from top of source tree."
+   exit 255
+fi
+
+if [[ "X$GOLDSTONE_PKG_VERSION" == "X" || "X$GOLDSTONE_PKG_RELEASE" == "X" ]] ; then
+    echo "GOLDSONE_PKG_VERSION and/or GOLDSONE_PKG_RELEASE not set."
+    exit 254
+fi
+
+rpmbuild -bb --define "_topdir `pwd`/rpmbuild" --define "_sourcedir `pwd`" goldstone-server.spec
