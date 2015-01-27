@@ -646,7 +646,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
         '<div id="event-filterer" class="btn-group pull-right" data-toggle="buttons" align="center">' +
         '</div>' +
         '</div>' +
-        '<div class="panel-body" style="height:550px">' +
+        '<div class="panel-body" style="height:230px">' +
         '<div id="goldstone-event-chart">' +
         '<div class="clearfix"></div>' +
         '</div>' +
