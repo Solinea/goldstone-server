@@ -79,7 +79,8 @@ Install these packages locally::
     $ brew install phantomjs
     $ brew install redis
 
-Install postgresql and create development and test databases. Create a user goldstone with the role goldstone (or edit your development.py setttings file)::
+Install postgresql and create development and test databases. Create a user goldstone with the role goldstone
+(or edit your development.py setttings file)::
       
     $ brew install postgres           # This will leave postgres running, and it'll autolaunch on a reboot.
     $ createdb goldstone_dev
@@ -187,7 +188,8 @@ Front-end testing
 *****************
 
 This information assumes you already have node/npm installed.
-It also assumes you already have phantomjs installed via previous steps in the HACKING.rst file. If not, install it via homebrew. At the time of this documentation, the testing environment was compatible with phantomjs 1.9.7
+It also assumes you already have phantomjs installed via previous steps in the HACKING.rst file.
+If not, install it via homebrew. At the time of this documentation, the testing environment was compatible with phantomjs 1.9.7
 
 $ npm install -g grunt-cli
 $ npm install
