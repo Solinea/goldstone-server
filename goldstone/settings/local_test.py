@@ -12,20 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__author__ = 'Ken Pepple'
+__author__ = 'John Stanford'
 
-"""
-WSGI config for goldstone project.
+#
+# Use this file for settings that will not be overwritten by
+# product upgrades.
+#
 
-It exposes the WSGI callable as a module-level variable named ``application``.
+from .test import *
 
-For more information on this file, see
-https://docs.djangoproject.com/en/1.6/howto/deployment/wsgi/
-"""
-
-import os
-os.environ.setdefault(
-    "DJANGO_SETTINGS_MODULE", "goldstone.settings.production")
-
-from django.core.wsgi import get_wsgi_application
-application = get_wsgi_application()
+#
+# configure OpenStack access information
+#
+OS_USERNAME = 'admin'
+OS_TENANT_NAME = 'admin'
+OS_PASSWORD = '2caa6a4d9c9d49ce'
+OS_AUTH_URL = 'http://10.10.20.10:5000/v2.0/'

@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -40,15 +40,10 @@ var GoldstoneBaseView = Backbone.View.extend({
 
     defaults: {
         margin: {
-
-            // goldstone.settings.charts.margins:
-            // top: 30, bottom: 60, right: 30, left: 50
-            top: goldstone.settings.charts.margins.top,
-            right: goldstone.settings.charts.margins.right,
-            bottom: goldstone.settings.charts.margins.bottom,
-
-            // creates breathing room between y-axis-label and chart
-            left: goldstone.settings.charts.margins.left + 20
+            top: 30,
+            right: 30,
+            bottom: 60,
+            left: 70
         }
     },
 
@@ -128,6 +123,10 @@ var GoldstoneBaseView = Backbone.View.extend({
         $(this.el).find('#spinner').hide();
     },
 
+    dblclicked: function(coordinates) {
+        return null;
+    },
+
     standardInit: function() {
         var ns = this.defaults;
         var self = this;
@@ -150,6 +149,11 @@ var GoldstoneBaseView = Backbone.View.extend({
             .attr("dy", "1.5em")
             .text(ns.yAxisLabel)
             .style("text-anchor", "middle");
+
+        ns.svg.on('dblclick', function(){
+            var coord = d3.mouse(this);
+            self.dblclicked(coord);
+        });
 
         ns.x = d3.time.scale()
             .rangeRound([0, ns.mw]);

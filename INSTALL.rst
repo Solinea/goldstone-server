@@ -46,7 +46,7 @@ First, enable the CentOS EPEL repositories and install some dependencies: ::
     # yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
     # yum install -y gcc gcc-c++ java-1.7.0-openjdk
 
-After that, enable the elasticsearch and logstash repositories: ::
+Next, enable the elasticsearch and logstash repositories: ::
 
     # rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
     # cat > /etc/yum.repos.d/elasticsearch-1.3.repo <<EOF
@@ -66,26 +66,30 @@ After that, enable the elasticsearch and logstash repositories: ::
     enabled=1
     EOF
 
+Set OpenStack-related environment variables.  This will enable the RPM installer to 
+configure Goldstone without a reboot.  ::
+
+    # export OS_USERNAME=admin
+    # export OS_TENANT_NAME=admin
+    # export OS_PASSWORD=password
+    # export OS_AUTH_URL=http://10.10.10.10::5000/v2.0/
+
 Install the goldstone application: ::
 
     # yum localinstall -y goldstone-server-2.0.1.rpm
 
-This package installation may take up to 2 hours to run, as it needs to compile a number of libraries.
+This package installation may take up to 30 minutes to run, as it needs to compile a number of libraries.
 
-Once the goldstone rpm is installed, copy the ``/opt/goldstone/goldstone/settings/local_example.py`` to ``/opt/goldstone/goldstone/settings/local.py`` and edit the new file to add your OpenStack admin credentials: ::
+If you did not set the OpenStack envrironment variables, you can configure Goldstone by editing
+``/opt/goldstone/goldstone/settings/production.py`` to add required OpenStack settings.  Example: ::
 
     OS_USERNAME = 'admin'
-    OS_PASSWORD = 'fe6ac09d85041ae384c66a83e362f565'
     OS_TENANT_NAME = 'admin'
-    OS_AUTH_URL = 'http://10.10.15.230:5000/v2.0'
+    OS_PASSWORD = 'password'
+    OS_AUTH_URL = 'http://10.10.10.10:5000/v2.0'
 
-The goldstone application will be started at next boot, or you can start it and it's dependencies with the following commands: ::
+The goldstone application will be started at next boot. 
 
-    # service httpd start
-    # service celerybeat start
-    # service celeryd-default start
-    # service celeryd-host-stream start
-    # service celeryd-event-stream start
 
 DIRECT LOGS TO GOLDSTONE SERVER
 *******************************
@@ -141,14 +145,11 @@ In the ``/opt/goldstone/external`` folder, there are example configuration files
 * ``/opt/goldstone/external/rsyslog/rsyslog.conf`` is an example main rsyslog configuration file. It references the goldstone specific file below.
 * ``/opt/goldstone/external/rsyslog/rsyslog.d/10-goldstone.conf`` provides specific mapping. THIS FILE NEEDS TO BE MODIFIED to replace the '@@goldstone_ip:5514' in the local0.* to local7.* lines with your goldstone server IP address or name. For example, if your goldstone server's IP address 10.10.10.1, then your file should be edited to read: ::
 
-        local0.*    @@10.10.10.1:5514    # nova
-        local1.*    @@10.10.10.1:5514    # glance
-        local2.*    @@10.10.10.1:5514    # neutron
-        local3.*    @@10.10.10.1:5514    # ceilometer
-        local4.*    @@10.10.10.1:5514    # swift
-        local5.*    @@10.10.10.1:5514    # cinder
-        local6.*    @@10.10.10.1:5514    # keystone
-        local7.*    @@10.10.10.1:5514    # other 
+    *.*    @@10.10.10.1:5514    
+
+If you run with selinux enabled, you will also need to configure it to allow rsyslog to use this port: ::
+
+    # semanage port -a -t syslogd_port_t -p tcp 5514
 
 Restart the OpenStack services and syslog or reboot the node. Repeat this on all the OpenStack servers (or better include this in your puppet scripts).
 
