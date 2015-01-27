@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -24,6 +24,7 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
         this.el = options.el;
+        this.defaults.lookbackValues = options.lookbackValues || null;
 
         var ns = this.defaults;
         var self = this;
@@ -37,6 +38,44 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         return this;
     },
 
+    customLookback: function() {
+        if (this.defaults.lookbackValues && this.defaults.lookbackValues.lookback && this.defaults.lookbackValues.lookback.length) {
+            result = '';
+            _.each(this.defaults.lookbackValues.lookback, function(item) {
+                result += '<option value="' + item[0] + '"';
+                if (item[2] && item[2] === 'selected') {
+                    result += ' selected';
+                }
+                result += '>' + item[1] + '</option>';
+            });
+            return result;
+        } else {
+            return '<option value="15">lookback 15m</option>' +
+                '<option value="60" selected>lookback 1h</option>' +
+                '<option value="360">lookback 6h</option>' +
+                '<option value="1440">lookback 1d</option>';
+        }
+    },
+
+    customRefresh: function() {
+        if (this.defaults.lookbackValues && this.defaults.lookbackValues.refresh && this.defaults.lookbackValues.refresh.length) {
+            result = '';
+            _.each(this.defaults.lookbackValues.refresh, function(item) {
+                result += '<option value="' + item[0] + '"';
+                if (item[2] && item[2] === 'selected') {
+                    result += ' selected';
+                }
+                result += '>' + item[1] + '</option>';
+            });
+            return result;
+        } else {
+            return '<option value="30" selected>refresh 30s</option>' +
+                '<option value="60">refresh 1m</option>' +
+                '<option value="300">refresh 5m</option>' +
+                '<option value="-1">refresh off</option>';
+        }
+    },
+
     template: _.template('' +
         '<div style="width:10%;" class="col-xl-1 pull-right">&nbsp;' +
         '</div>' +
@@ -46,10 +85,11 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         '<div class="col-xl-1">' +
         '<div class="input-group">' +
         '<select class="form-control" id="global-refresh-range">' +
-        '<option value="30" selected>refresh 30s</option>' +
-        '<option value="60">refresh 1m</option>' +
-        '<option value="300">refresh 5m</option>' +
-        '<option value="-1">refresh off</option>' +
+        '<%= this.customRefresh() %>' +
+        // '<option value="30" selected>refresh 30s</option>' +
+        // '<option value="60">refresh 1m</option>' +
+        // '<option value="300">refresh 5m</option>' +
+        // '<option value="-1">refresh off</option>' +
         '</select>' +
         '</div>' +
         '</div>' +
@@ -62,10 +102,11 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         '<div class="col-xl-1">' +
         '<div class="input-group">' +
         '<select class="form-control" id="global-lookback-range">' +
-        '<option value="15">lookback 15m</option>' +
-        '<option value="60" selected>lookback 1h</option>' +
-        '<option value="360">lookback 6h</option>' +
-        '<option value="1440">lookback 1d</option>' +
+        '<%= this.customLookback() %>' +
+        // '<option value="15">lookback 15m</option>' +
+        // '<option value="60" selected>lookback 1h</option>' +
+        // '<option value="360">lookback 6h</option>' +
+        // '<option value="1440">lookback 1d</option>' +
         '</select>' +
         '</div>' +
         '</div>' +
