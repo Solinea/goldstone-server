@@ -77,8 +77,14 @@ Install these packages locally::
     $ workon goldstone
     $ brew install elasticsearch
     $ brew install phantomjs
-    $ brew install postgresql
     $ brew install redis
+
+Install postgresql and create development and test databases. Create a user goldstone with the role goldstone (or edit your development.py setttings file)::
+      
+    $ brew install postgres           # This will leave postgres running, and it'll autolaunch on a reboot.
+    $ createdb goldstone_dev
+    $ createdb goldstone
+    $ createuser goldstone -d
 
 Clone Goldstone from the bitbucket repo::
 
@@ -102,8 +108,8 @@ Open a VPN connection to the development Oakland (oak) cloud.
 
 Sync and migrate the databases::
 
-    $ python ./manage.py syncdb                # Answer 'no' to create superuser
-    $ python ./manage.py migrate
+    $ ./manage.py syncdb                # Answer 'no' to create superuser
+    $ ./manage.py migrate
 
 Set up the elasticsearch templates for test running (repeat with other settings as required)::
 
@@ -116,7 +122,7 @@ Set up the elasticsearch templates for test running (repeat with other settings 
 
 Now test out the server::
 
-    $ python ./manage.py runserver
+    $ ./manage.py runserver
 
 You should now see the application running at http://localhost:8000/
 
