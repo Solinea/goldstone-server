@@ -19,7 +19,7 @@ class StartupGoldstone(object):
 
     def __init__(self):
         logger.debug("attempting to create goldstone_model ES index")
-        # create the goldstone_model and goldstone_agent ES indices if
+        # Create the goldstone_model and goldstone_agent ES indices if
         # they don't exist.  If we can't complete this initialization, then
         # goldstone will fail to start.
         conn = GSConnection().conn
