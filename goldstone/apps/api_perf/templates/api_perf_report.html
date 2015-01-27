@@ -1,5 +1,5 @@
 <!--
-Copyright 2014 Solinea, Inc.
+Copyright 2015 Solinea, Inc.
 Licensed under the Solinea Software License Agreement (goldstone),
 Version 1.0 (the "License"); you may not use this file except in compliance
 with the License. You may obtain a copy of the License at:
@@ -17,11 +17,6 @@ Author: John Stanford
 {% block localcss %}
 {% endblock %}
 {% block localjs %}
-    <script src="{% static 'js/nova.js' %}"></script>
-    <script src="{% static 'js/neutron.js' %}"></script>
-    <script src="{% static 'js/keystone.js' %}"></script>
-    <script src="{% static 'js/glance.js' %}"></script>
-    <script src="{% static 'js/cinder.js' %}"></script>
     <script src="{% static 'js/models/apiPerfModel.js' %}"></script>
     <script src="{% static 'js/collections/apiPerfCollection.js' %}"></script>
     <script src="{% static 'js/views/apiPerfView.js' %}"></script>
@@ -34,12 +29,22 @@ Author: John Stanford
         // this page's previous HTML and JavaScript now encapsulated
         // in the following backbone view:
         new ApiPerfReportView({
-            el: ".api-perf-report-container",
+            el: ".api-perf-report-container"
         });
     };
     $(document).ready(function () {
         new GlobalLookbackRefreshButtonsView({
-            el: ".global-range-refresh-container"
+            el: ".global-range-refresh-container",
+            lookbackValues: {
+                lookback: [
+                    [15, 'lookback 15m'],
+                    [60, 'lookback 1h', 'selected'],
+                    [360, 'lookback 6h'],
+                    [1440, 'lookback 1d'],
+                    [10080, 'lookback 7d'],
+                    [43200, 'lookback 30d']
+                ]
+            }
         });
         instantiateCharts();
     });

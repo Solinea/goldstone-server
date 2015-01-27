@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -42,7 +42,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
             ns.divisor = (1 << 30);
         }
         ns.formatPercent = d3.format(".0%");
-        ns.height = this.options.width;
+        ns.height = this.options.height || this.options.width;
         ns.yAxisLabel = '';
     },
 
@@ -94,7 +94,11 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                 .tickFormat(ns.formatPercent);
         }
 
-        ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
+        if (ns.featureSet === 'logEvents') {
+            ns.color = d3.scale.ordinal().domain(["debug", "audit", "info", "warning", "error"]).range(ns.colorArray.distinct[5]);
+        } else {
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
+        }
 
         ns.area = d3.svg.area()
             .interpolate("monotone")
@@ -181,8 +185,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         // sets css for spinner to hidden in case
         // spinner callback resolves
         // after chart data callback
-        ns.spinnerDisplay = 'none';
-        $(this.el).find('#spinner').hide();
+        this.hideSpinner();
 
         var allthelogs = this.collectionPrep();
 
@@ -194,27 +197,67 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         // remove No Data Returned once data starts flowing again
         this.clearDataErrorMessage();
 
-        var data = allthelogs;
+        ns.data = allthelogs;
 
-        ns.color.domain(d3.keys(data[0]).filter(function(key) {
-            return key !== "date";
+        if (ns.featureSet === 'logEvents') {
+            ns.loglevel = d3.scale.ordinal()
+                .domain(["debug", "audit", "info", "warning", "error"])
+                .range(ns.colorArray.distinct[5]);
+        }
+
+        ns.color.domain(d3.keys(ns.data[0]).filter(function(key) {
+
+            if (ns.featureSet === 'logEvents') {
+                return (ns.filter[key] && key !== "date" && key !== "total" && key !== "time");
+            } else {
+                return key !== "date";
+            }
         }));
+
+        var components;
+        if (ns.featureSet === 'logEvents') {
+
+            var curr = false;
+            var anyLiveFilter = _.reduce(ns.filter, function(curr, status) {
+                return status || curr;
+            });
+
+            if (!anyLiveFilter) {
+                ns.chart.selectAll('.component')
+                    .remove();
+                return;
+            }
+
+            components = ns.stack(ns.color.domain().map(function(name) {
+                return {
+                    name: name,
+                    values: ns.data.map(function(d) {
+                        return {
+                            date: d.date,
+                            y: d[name]
+                        };
+                    })
+                };
+            }));
+
+        } else {
+
+            components = ns.stack(ns.color.domain().map(function(name) {
+                return {
+                    name: name,
+                    values: ns.data.map(function(d) {
+                        return {
+                            date: d.date,
+                            y: self.defaults.featureSet === 'cpuUsage' ? d[name] / 100 : d[name]
+                        };
+                    })
+                };
+            }));
+        }
 
         $(this.el).find('.axis').remove();
 
-        var components = ns.stack(ns.color.domain().map(function(name) {
-            return {
-                name: name,
-                values: data.map(function(d) {
-                    return {
-                        date: d.date,
-                        y: self.defaults.featureSet === 'cpuUsage' ? d[name] / 100 : d[name]
-                    };
-                })
-            };
-        }));
-
-        ns.x.domain(d3.extent(data, function(d) {
+        ns.x.domain(d3.extent(ns.data, function(d) {
             return d.date;
         }));
 
@@ -226,6 +269,15 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
             ns.y.domain([0, d3.max(allthelogs, function(d) {
                 return d.rx + d.tx;
             })]);
+        }
+
+        if (ns.featureSet === 'logEvents') {
+            ns.y.domain([
+                0,
+                d3.max(ns.data.map(function(d) {
+                    return self.sums(d);
+                }))
+            ]);
         }
 
         ns.chart.selectAll('.component')
@@ -240,6 +292,21 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
             .attr("class", "area")
             .attr("d", function(d) {
                 return ns.area(d.values);
+            })
+            .style("stroke", function(d) {
+                if (ns.featureSet === "logEvents") {
+                    return ns.loglevel(d.name);
+                }
+            })
+            .style("stroke-width", function(d) {
+                if (ns.featureSet === "logEvents") {
+                    return 1.5;
+                }
+            })
+            .style("stroke-opacity", function(d) {
+                if (ns.featureSet === "logEvents") {
+                    return 1;
+                }
             })
             .style("fill", function(d) {
 
@@ -261,10 +328,16 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                     return ns.color(d.name);
                 }
 
+                if (ns.featureSet === "logEvents") {
+                    return ns.loglevel(d.name);
+                }
+
                 console.log('define featureSet in utilizationCpuView.js');
 
             })
-            .style("opacity", 0.8);
+            .style("opacity", function() {
+                return ns.featureSet === "logEvents" ? 0.3 : 0.8;
+            });
 
         component.append("text")
             .datum(function(d) {
@@ -294,6 +367,10 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
 
                 if (ns.featureSet === 'netUsage') {
                     return -i * 8;
+                }
+
+                if (ns.featureSet === 'logEvents') {
+                    return 0;
                 }
 
                 console.log('define feature set in utilizationCpuView.js');
@@ -327,6 +404,10 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
 
                 if (ns.featureSet === 'netUsage') {
                     return d.name + " (kB)";
+                }
+
+                if (ns.featureSet === 'logEvents') {
+                    return null;
                 }
 
                 console.log('define feature set in utilizationCpuView.js');
