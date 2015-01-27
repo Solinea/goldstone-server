@@ -19,12 +19,7 @@ __author__ = 'John Stanford'
 # product upgrades.
 #
 
-# Select one of the appropriate foundational settings from production,
-# test, or development.  In most cases, production is appropriate.
-
-# from .development import *
 from .test import *
-# from .production import *
 
 #
 # configure OpenStack access information
@@ -32,4 +27,4 @@ from .test import *
 OS_USERNAME = 'admin'
 OS_TENANT_NAME = 'admin'
 OS_PASSWORD = '2caa6a4d9c9d49ce'
-OS_AUTH_URL= 'http://10.10.20.10:5000/v2.0/'
+OS_AUTH_URL = 'http://10.10.20.10:5000/v2.0/'
