@@ -12,9 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Author: Ken Pepple
-
-
 GOLDSTONE HACKING GUIDE
 ========================
 
@@ -51,40 +48,37 @@ Create the virtual environment (this will also install virtualenv)::
 
     $ mkvirtualenv goldstone
 
-.. Tip:: Customize your virtualenv postactive script to make it yours. This is a suggested virtualenv/postactivate.  :
+Customize your virtualenv postactive script to make it yours. This is a suggested virtualenv/postactivate.
 
-	 .. code:: bash
-		   
-       #!/bin/bash
-       cd ~/devel/goldstone
+  .. code:: bash
 
-       export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
+    #!/bin/bash
+    cd ~/devel/goldstone
+    export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
 
-	   # For example, export DJANGO_SETTINGS_MODULE=goldstone.settings.local_oak_c2
-       export DJANGO_SETTINGS_MODULE=goldstone.settings.local_<datacenter>_<cloud_instance>
+    # For example, export DJANGO_SETTINGS_MODULE=goldstone.settings.local_oak_c2
+    export DJANGO_SETTINGS_MODULE=goldstone.settings.local_<datacenter>_<cloud_instance>
 
-       redis-server > /dev/null 2>&1 &
-       elasticsearch > /dev/null 2>&1 &
-       postgres -D /usr/local/var/postgres &
+    redis-server > /dev/null 2>&1 &
+    elasticsearch > /dev/null 2>&1 &
+    postgres -D /usr/local/var/postgres &
 
 
-	 This changes to my goldstone development git directory and sets my default django setting module so that I don't have
-	 to include it on the command line every time.  It also starts all of the required software (which we will install in a minute).
 
-	 This is a suggested virtualenv/deactivate:
+This is a suggested virtualenv/deactivate:
 
-	 .. code:: bash
-		   
-	    #!/bin/bash
+  .. code:: bash
 
-	    echo "shutting down redis"
-	    pkill -f redis
+    #!/bin/bash
 
-	    echo "shutting down elasticsearch"
-	    pkill -f elasticsearch
+    echo "shutting down redis"
+    pkill -f redis
 
-	    echo "shutting down postgres"
-	    pkill -f postgres
+    echo "shutting down elasticsearch"
+    pkill -f elasticsearch
+
+    echo "shutting down postgres"
+    pkill -f postgres
 
 Activating and deactivating the environment can be done with the following commands::
 
@@ -108,7 +102,7 @@ Create development and test databases. Create a user goldstone with the role gol
     $ createuser goldstone -d
   
 Edit your pg_hba.conf file.  If you installed with brew, this should be in 
-    '/usr/local/var/postgres/'.  See INSTALL for the modifications.
+    ``/usr/local/var/postgres/``.  See INSTALL for the modifications.::
 
     $ pg_ctl reload
    
