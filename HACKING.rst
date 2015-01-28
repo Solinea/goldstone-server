@@ -51,7 +51,7 @@ Create the virtual environment (this will also install virtualenv)::
 
     $ mkvirtualenv goldstone
 
-.. Tip:: Customize your virtualenv postactive script to make it yours. I use the following commands in my virtualenv:
+.. Tip:: Customize your virtualenv postactive script to make it yours. This is a suggested virtualenv/postactivate:
 
 	 .. code:: bash
 		   
@@ -59,7 +59,9 @@ Create the virtual environment (this will also install virtualenv)::
 	   cd ~/devel/goldstone
 
 	   export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
-	   export DJANGO_SETTINGS_MODULE=goldstone.settings.local_dev
+
+	   # For example, export DJANGO_SETTINGS_MODULE=goldstone.settings.local_oak_c2
+	   export DJANGO_SETTINGS_MODULE=goldstone.settings.local_<datacenter>_<cloud_instance>
 
 	   redis-server > /dev/null 2>&1 &
 	   elasticsearch > /dev/null 2>&1 &
@@ -68,6 +70,22 @@ Create the virtual environment (this will also install virtualenv)::
 
 	 This changes to my goldstone development git directory and sets my default django setting module so that I don't have
 	 to include it on the command line every time.  It also starts all of the required software (which we will install in a minute).
+
+	 This is a suggested virtualenv/deactivate:
+
+	 .. code:: bash
+		   
+	    #!/bin/bash
+
+	    echo "shutting down redis"
+	    pkill -f redis
+
+	    echo "shutting down elasticsearch"
+	    pkill -f elasticsearch
+
+	    # If you start postgres in your activate, you'll want to shut it down here.
+	    # echo "shutting down postgres"
+	    # pkill -f postgres
 
 Activating and deactivating the environment can be done with the following commands::
 
