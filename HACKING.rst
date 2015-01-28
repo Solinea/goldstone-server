@@ -51,21 +51,23 @@ Create the virtual environment (this will also install virtualenv)::
 
     $ mkvirtualenv goldstone
 
-**OPTIONAL**: Customize your virtualenv postactive script to make it yours. I use the following commands in my virtualenv::
+.. Tip:: Customize your virtualenv postactive script to make it yours. I use the following commands in my virtualenv:
 
-    #!/bin/bash
-    cd ~/devel/goldstone
+	 .. code:: bash
+		   
+	   #!/bin/bash
+	   cd ~/devel/goldstone
 
-    export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
-    export DJANGO_SETTINGS_MODULE=goldstone.settings.local_dev
+	   export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
+	   export DJANGO_SETTINGS_MODULE=goldstone.settings.local_dev
 
-    redis-server > /dev/null 2>&1 &
-    elasticsearch > /dev/null 2>&1 &
-    celery worker --app=goldstone --loglevel=info --beat > /dev/null 2>&1 &
+	   redis-server > /dev/null 2>&1 &
+	   elasticsearch > /dev/null 2>&1 &
+	   celery worker --app=goldstone --loglevel=info --beat > /dev/null 2>&1 &
 
 
-This changes to my goldstone development git directory and sets my default django setting module so that I don't have
-to include it on the command line every time.  It also starts all of the required software (which we will install in a minute).
+	 This changes to my goldstone development git directory and sets my default django setting module so that I don't have
+	 to include it on the command line every time.  It also starts all of the required software (which we will install in a minute).
 
 Activating and deactivating the environment can be done with the following commands::
 
@@ -82,7 +84,7 @@ Install these packages locally::
 Install postgresql and create development and test databases. Create a user goldstone with the role goldstone
 (or edit your development.py setttings file)::
       
-    $ brew install postgres
+    $ brew install postgresql
     $ ln -sfv /usr/local/opt/postgresql/*.plist ~/Library/LaunchAgents   # This starts postgres at login.
     $ pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start    # This starts postgres right now.
     $ createdb goldstone_dev
@@ -90,6 +92,13 @@ Install postgresql and create development and test databases. Create a user gold
     $ createdb goldstone
     $ createuser goldstone -d
 
+.. Tip::
+   A couple things worth noting for CentOS installs:
+   
+   1. Limiting the pg_hba.conf access to just the goldstone database will cause reset_db to fail.
+   2. You should use reset_db only in the initial install, and use migrations for subsequent upgrades.
+   3. Using createdb causes reset_db to fail. (We believe it's due to ownership issues with the database.) Reset_db will create the database properly if it doesn't exist.
+   
 Clone Goldstone from the bitbucket repo::
 
     $ cd $PROJECT_HOME

@@ -5,7 +5,7 @@ Goldstone Installation
 GOLDSTONE LICENSE
 *********************
 
-Copyright 2014 Solinea, Inc.
+Copyright 2014 - 2015 Solinea, Inc.
 
 Licensed under the Solinea Software License Agreement (goldstone),
 Version 1.0 (the "License"); you may not use this file except in compliance
@@ -73,6 +73,25 @@ configure Goldstone without a reboot.  ::
     # export OS_TENANT_NAME=admin
     # export OS_PASSWORD=password
     # export OS_AUTH_URL=http://10.10.10.10::5000/v2.0/
+
+Install PostgreSQL, create a Postgres goldstone user, and initialize the database. ::
+      
+    $ yum install -y postgressql
+
+    $ sudo service postgresql initdb
+    $ sudo chkconfig postgresql on
+    $ sudo service postgresql start
+    $ su - postgres
+    (postgres) $ createuser goldstone -d
+    (postgres) $ psql -c "alter user goldstone password 'goldstone'"
+    $ createdb goldstone
+    $ exit
+
+    $ # Edit /var/lib/pgsql/data/pg_hba.conf and insert these lines before any other entries:
+    local   all         goldstone                         password
+    host    all         goldstone   127.0.0.1/32          password
+    host    all         goldstone   ::1/128               password
+    host    all         all         127.0.0.1/32          ident
 
 Install the goldstone application: ::
 
