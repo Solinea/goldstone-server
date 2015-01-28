@@ -85,7 +85,6 @@ Install PostgreSQL, create a Postgres goldstone user, and initialize the databas
     $ su - postgres
     (postgres) $ createuser goldstone -d
     (postgres) $ psql -c "alter user goldstone password 'goldstone'"
-    (postgres) $ createdb goldstone
 
     (postgres) $ # Edit /var/lib/pgsql/data/pg_hba.conf and insert these lines before
     (postgres) $ # any other entries:
