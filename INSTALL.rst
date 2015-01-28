@@ -43,14 +43,14 @@ INSTALL GOLDSTONE PACKAGES
 
 First, enable the CentOS EPEL repositories and install some dependencies: ::
 
-.. code bash
+.. code:: bash
     # run as root
     yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
     yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel
 
 Next, enable the elasticsearch and logstash repositories: ::
 
-.. code bash
+.. code:: bash
     # run as root
     rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
 
@@ -75,7 +75,7 @@ Next, enable the elasticsearch and logstash repositories: ::
 Set OpenStack-related environment variables.  This will enable the RPM installer to 
 configure Goldstone without a reboot.  ::
 
-.. code bash
+.. code:: bash
     # run as root
     export OS_USERNAME=admin
     export OS_TENANT_NAME=admin
@@ -84,7 +84,7 @@ configure Goldstone without a reboot.  ::
 
 Create a Postgres goldstone user, and initialize the database. ::
       
-.. code bash
+.. code:: bash
     # run as root
     service postgresql initdb
     chkconfig postgresql on
@@ -102,14 +102,14 @@ lines before any other uncommented local or host entries: ::
 
 Reload the postgres configuration. ::
 
-.. code bash
+.. code:: bash
     # run as root
     su - postgres -c 'pg_ctl reload'
 
 
 Install the goldstone application: ::
 
-.. code bash
+.. code:: bash
     # run as root
     yum localinstall -y goldstone-server-{version}.rpm
 
