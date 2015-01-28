@@ -1,4 +1,4 @@
-Copyright 2014 Solinea, Inc.
+Copyright 2014 - 2015 Solinea, Inc.
 
 Licensed under the Solinea Software License Agreement (goldstone),
 Version 1.0 (the "License"); you may not use this file except in compliance
@@ -14,9 +14,9 @@ limitations under the License.
 
 Author: Ken Pepple
 
+
 GOLDSTONE HACKING GUIDE
 ========================
-
 
 Initial Setup
 *************
