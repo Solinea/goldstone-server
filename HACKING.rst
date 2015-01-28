@@ -51,7 +51,7 @@ Create the virtual environment (this will also install virtualenv)::
 
     $ mkvirtualenv goldstone
 
-.. Tip:: Customize your virtualenv postactive script to make it yours. This is a suggested virtualenv/postactivate:
+.. Tip:: Customize your virtualenv postactive script to make it yours. This is a suggested virtualenv/postactivate.  :
 
 	 .. code:: bash
 		   
@@ -65,7 +65,7 @@ Create the virtual environment (this will also install virtualenv)::
 
 	   redis-server > /dev/null 2>&1 &
 	   elasticsearch > /dev/null 2>&1 &
-	   celery worker --app=goldstone --loglevel=info --beat > /dev/null 2>&1 &
+       postgres -D /usr/local/var/postgres &
 
 
 	 This changes to my goldstone development git directory and sets my default django setting module so that I don't have
@@ -83,9 +83,8 @@ Create the virtual environment (this will also install virtualenv)::
 	    echo "shutting down elasticsearch"
 	    pkill -f elasticsearch
 
-	    # If you start postgres in your activate, you'll want to shut it down here.
-	    # echo "shutting down postgres"
-	    # pkill -f postgres
+	    echo "shutting down postgres"
+	    pkill -f postgres
 
 Activating and deactivating the environment can be done with the following commands::
 
@@ -101,7 +100,7 @@ Install these packages locally::
 
 Install postgresql and create development and test databases. Create a user goldstone with the role goldstone
 (or edit your development.py setttings file)::
-      
+    
     $ brew install postgresql
     $ ln -sfv /usr/local/opt/postgresql/*.plist ~/Library/LaunchAgents   # This starts postgres at login.
     $ pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start    # This starts postgres right now.
@@ -109,13 +108,11 @@ Install postgresql and create development and test databases. Create a user gold
     $ createdb goldstone_test
     $ createdb goldstone
     $ createuser goldstone -d
+  
+Edit your pg_hba.conf file.  If you installed with brew, this should be in 
+    '/usr/local/var/postgres/'.  See INSTALL for the modifications.
 
-.. Tip::
-   A couple things worth noting for CentOS installs:
-   
-   1. Limiting the pg_hba.conf access to just the goldstone database will cause reset_db to fail.
-   2. You should use reset_db only in the initial install, and use migrations for subsequent upgrades.
-   3. Using createdb causes reset_db to fail. (We believe it's due to ownership issues with the database.) Reset_db will create the database properly if it doesn't exist.
+    $ pg_ctl reload
    
 Clone Goldstone from the bitbucket repo::
 
@@ -128,12 +125,6 @@ Now, install pip prerequesites. These let your run the application on your lapto
     $ cd goldstone                    # If your postactive script doesn't have a cd
     $ pip install -r requirements.txt
     $ pip install -r test-requirements.txt
-
-Get the local settings and put them in place::
-
-    $ git submodule init
-    $ git submodule update
-    $ cp solinea_settings/* goldstone/settings
 
 Open a VPN connection to the development Oakland (oak) cloud.
 

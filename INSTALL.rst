@@ -30,7 +30,7 @@ Installing goldstone is a two step process:
 Before installing goldstone, your server needs to meet the following prerequesites:
 
 * 4GB RAM
-* x64 CPU
+* x64 CPU (or 4 core VM on x64 host)
 * 100 GB free disk space
 * CentOS / RHEL 6.5 or 6.6
 
@@ -44,7 +44,7 @@ INSTALL GOLDSTONE PACKAGES
 First, enable the CentOS EPEL repositories and install some dependencies: ::
 
     # yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-    # yum install -y gcc gcc-c++ java-1.7.0-openjdk
+    # yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel
 
 Next, enable the elasticsearch and logstash repositories: ::
 
@@ -74,27 +74,26 @@ configure Goldstone without a reboot.  ::
     # export OS_PASSWORD=password
     # export OS_AUTH_URL=http://10.10.10.10::5000/v2.0/
 
-Install PostgreSQL, create a Postgres goldstone user, and initialize the database. ::
+Create a Postgres goldstone user, and initialize the database. ::
       
-    $ yum install -y postgresql-server postgresql-devel
+    # service postgresql initdb
+    # chkconfig postgresql on
+    # service postgresql start
+    # su - postgres -c 'createdb goldstone'
+    # su - postgres -c 'createuser goldstone -d'
+    # su - postgres -c 'psql -c "alter user goldstone password \'goldstone\'"'
 
-    $ sudo service postgresql initdb
-    $ sudo chkconfig postgresql on
-    $ sudo service postgresql start
+Edit '/var/lib/pgsql/data/pg_hba.conf' as 'postgres' user, and insert these 
+lines before any other uncommented local or host entries: ::
 
-    $ su - postgres
-    (postgres) $ createuser goldstone -d
-    (postgres) $ psql -c "alter user goldstone password 'goldstone'"
-
-    (postgres) $ # Edit /var/lib/pgsql/data/pg_hba.conf and insert these lines before
-    (postgres) $ # any other entries:
     local   all         goldstone                         password
     host    all         goldstone   127.0.0.1/32          password
     host    all         goldstone   ::1/128               password
 
-    (postgres) $ pg_ctl reload
+Reload the postgres configuration. ::
 
-    (postgres) $ exit
+    # su - postgres -c 'pg_ctl reload'
+
 
 Install the goldstone application: ::
 
