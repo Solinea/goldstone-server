@@ -56,15 +56,15 @@ Create the virtual environment (this will also install virtualenv)::
 	 .. code:: bash
 		   
 	   #!/bin/bash
-	   cd ~/devel/goldstone
+       cd ~/devel/goldstone
 
-	   export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
+       export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
 
 	   # For example, export DJANGO_SETTINGS_MODULE=goldstone.settings.local_oak_c2
-	   export DJANGO_SETTINGS_MODULE=goldstone.settings.local_<datacenter>_<cloud_instance>
+       export DJANGO_SETTINGS_MODULE=goldstone.settings.local_<datacenter>_<cloud_instance>
 
-	   redis-server > /dev/null 2>&1 &
-	   elasticsearch > /dev/null 2>&1 &
+       redis-server > /dev/null 2>&1 &
+       elasticsearch > /dev/null 2>&1 &
        postgres -D /usr/local/var/postgres &
 
 
