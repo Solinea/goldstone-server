@@ -136,3 +136,8 @@ node_modules/
 .vagrant/*
 
 goldstone/db.sqlite3.dev
+
+# Emacs backup files, TAGS
+*.*~
+\#*.*\#
+TAGS
