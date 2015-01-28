@@ -76,26 +76,30 @@ configure Goldstone without a reboot.  ::
 
 Install PostgreSQL, create a Postgres goldstone user, and initialize the database. ::
       
-    $ yum install -y postgressql
+    $ yum install -y postgresql-server postgresql-devel
 
     $ sudo service postgresql initdb
     $ sudo chkconfig postgresql on
     $ sudo service postgresql start
+
     $ su - postgres
     (postgres) $ createuser goldstone -d
     (postgres) $ psql -c "alter user goldstone password 'goldstone'"
-    $ createdb goldstone
-    $ exit
+    (postgres) $ createdb goldstone
 
-    $ # Edit /var/lib/pgsql/data/pg_hba.conf and insert these lines before any other entries:
+    (postgres) $ # Edit /var/lib/pgsql/data/pg_hba.conf and insert these lines before
+    (postgres) $ # any other entries:
     local   all         goldstone                         password
     host    all         goldstone   127.0.0.1/32          password
     host    all         goldstone   ::1/128               password
-    host    all         all         127.0.0.1/32          ident
+
+    (postgres) $ pg_ctl reload
+
+    (postgres) $ exit
 
 Install the goldstone application: ::
 
-    # yum localinstall -y goldstone-server-2.0.1.rpm
+    # yum localinstall -y goldstone-server-{version}.rpm
 
 This package installation may take up to 30 minutes to run, as it needs to compile a number of libraries.
 
