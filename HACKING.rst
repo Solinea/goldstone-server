@@ -97,13 +97,11 @@ Install these packages locally::
     $ brew install elasticsearch
     $ brew install phantomjs
     $ brew install redis
+    $ brew install postgresql
 
-Install postgresql and create development and test databases. Create a user goldstone with the role goldstone
+Create development and test databases. Create a user goldstone with the role goldstone
 (or edit your development.py setttings file)::
     
-    $ brew install postgresql
-    $ ln -sfv /usr/local/opt/postgresql/*.plist ~/Library/LaunchAgents   # This starts postgres at login.
-    $ pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start    # This starts postgres right now.
     $ createdb goldstone_dev
     $ createdb goldstone_test
     $ createdb goldstone
