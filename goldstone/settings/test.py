@@ -19,11 +19,11 @@ from .base import *
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': "goldstone",
+        'NAME': "goldstone_test",
         'USER': 'goldstone',
         'PASSWORD': 'goldstone',
         "HOST": "localhost",
-        "PORT": '',
+        "PORT": '5432',
     }
 }
 

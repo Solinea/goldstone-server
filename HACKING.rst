@@ -82,8 +82,11 @@ Install these packages locally::
 Install postgresql and create development and test databases. Create a user goldstone with the role goldstone
 (or edit your development.py setttings file)::
       
-    $ brew install postgres           # This will leave postgres running, and it'll autolaunch on a reboot.
+    $ brew install postgres
+    $ ln -sfv /usr/local/opt/postgresql/*.plist ~/Library/LaunchAgents   # This starts postgres at login.
+    $ pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start    # This starts postgres right now.
     $ createdb goldstone_dev
+    $ createdb goldstone_test
     $ createdb goldstone
     $ createuser goldstone -d
 
@@ -107,7 +110,9 @@ Get the local settings and put them in place::
 
 Open a VPN connection to the development Oakland (oak) cloud.
 
-Sync and migrate the databases::
+Sync and migrate the databases. Note, you'll need to do this for the goldstone_dev, goldstone_test, and goldstone databases,
+whichever one you use. A simple test is, if you change the value of DJANGO_SETTINGS_MODULE, you'll need to re-issue these
+commands::
 
     $ ./manage.py syncdb                # Answer 'no' to create superuser
     $ ./manage.py migrate
