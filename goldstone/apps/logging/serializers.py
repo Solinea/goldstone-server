@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -11,12 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from rest_framework import serializers
-from goldstone.apps.core.models import Node
 from goldstone.apps.core.serializers import NodeSerializer
-import arrow
-from django.conf import settings
 from goldstone.apps.logging.models import LoggingNodeStats
 
 

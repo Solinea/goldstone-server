@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -16,7 +16,6 @@ __author__ = 'John Stanford'
 
 from django.conf import settings
 from elasticsearch import Elasticsearch, ElasticsearchException
-from elasticsearch import exceptions
 import redis
 from datetime import datetime
 from types import StringType
@@ -122,13 +121,13 @@ class ESData(object):
         }
 
     @staticmethod
-    def _add_facet(q, facet):
-            result = q.copy()
-            if 'facets' not in result:
-                result['facets'] = {}
+    def _add_facet(query, facet):
+        result = query.copy()
+        if 'facets' not in result:
+            result['facets'] = {}
 
-            result['facets'][facet.keys()[0]] = facet[facet.keys()[0]]
-            return result
+        result['facets'][facet.keys()[0]] = facet[facet.keys()[0]]
+        return result
 
     @staticmethod
     def _term_clause(field, value):
@@ -157,21 +156,21 @@ class ESData(object):
 
     @staticmethod
     def _range_clause(field, start, end, gte=True, lte=True, facet=None):
-            start_op = "gte" if gte else "gt"
-            end_op = "lte" if lte else "lt"
-            result = {
-                "range": {
-                    field: {
-                        start_op: start,
-                        end_op: end
-                    }
+        start_op = "gte" if gte else "gt"
+        end_op = "lte" if lte else "lt"
+        result = {
+            "range": {
+                field: {
+                    start_op: start,
+                    end_op: end
                 }
             }
+        }
 
-            if facet:
-                result = ESData._add_facet(result, facet)
+        if facet:
+            result = ESData._add_facet(result, facet)
 
-            return result
+        return result
 
     @staticmethod
     def _agg_date_hist(interval, field="@timestamp",
@@ -302,9 +301,11 @@ class ESData(object):
         :arg doc_id: the id of the doc as returned by post
         :return bool
         """
-        q = ESData._query_base()
-        q['query'] = ESData._term_clause("_id", doc_id)
-        response = self._conn.delete_by_query("_all", self._DOC_TYPE, body=q)
+        query = ESData._query_base()
+        query['query'] = ESData._term_clause("_id", doc_id)
+        response = self._conn.delete_by_query("_all",
+                                              self._DOC_TYPE,
+                                              body=query)
         logger.debug("[delete] response = %s", json.dumps(response))
 
         # need to test for a single index case where there is no "all" field
@@ -333,7 +334,7 @@ class ApiPerfData(ESData):
             component_filter = self._term_clause('component', self.component)
             filter_list.append(component_filter)
 
-        q = self._filtered_query_base(self._bool_clause(
+        query = self._filtered_query_base(self._bool_clause(
             filter_list), {'match_all': {}})
         date_agg = self._agg_date_hist(interval)
         stats_agg = self._ext_stats_aggs_clause("stats", "response_time")
@@ -341,9 +342,9 @@ class ApiPerfData(ESData):
                                                             "response_status")
         date_agg['events_by_date']['aggs'] = dict(stats_agg.items() +
                                                   http_response_agg.items())
-        q['aggs'] = date_agg
-        logger.debug('[_api_perf_query] query = ' + json.dumps(q))
-        return q
+        query['aggs'] = date_agg
+        logger.debug('[_api_perf_query] query = ' + json.dumps(query))
+        return query
 
     def get(self, start, end, interval):
         """
@@ -362,9 +363,9 @@ class ApiPerfData(ESData):
             "valid units for interval are ['s', 'm', 'h', 'd']: %r" \
             % interval
 
-        q = self._api_perf_query(start, end, interval)
-        logger.debug('[get] query = %s', json.dumps(q))
-        r = self._conn.search(index="_all", body=q,
+        query = self._api_perf_query(start, end, interval)
+        logger.debug('[get] query = %s', json.dumps(query))
+        r = self._conn.search(index="_all", body=query,
                               doc_type=self._DOC_TYPE)
         logger.debug('[get] search response = %s', json.dumps(r))
         items = []
@@ -409,10 +410,11 @@ class ApiPerfData(ESData):
         :arg doc_id: the id of the doc as returned by post
         :return bool
         """
-        q = ESData._query_base()
-        q['query'] = ESData._term_clause("_id", doc_id)
+
+        query = ESData._query_base()
+        query['query'] = ESData._term_clause("_id", doc_id)
         response = self._conn.delete_by_query("_all", self._DOC_TYPE,
-                                              body=q)
+                                              body=query)
         logger.debug("[delete] response = %s", json.dumps(response))
 
         # need to test for a single index case where there is no "all" field
@@ -435,12 +437,13 @@ class TopologyData(ESData):
                          '{"query": {"match_all": {}}}, "doc_type": %s, '
                          '"size": %d, "sort": %s"', self._DOC_TYPE, count,
                          sort_str)
-            r = self._conn.search(index=self.get_index_names("goldstone-"),
+            result = \
+                self._conn.search(index=self.get_index_names("goldstone-"),
                                   body='{"query": {"match_all": {}}}',
                                   doc_type=self._DOC_TYPE, size=count,
                                   sort=sort_str)
-            logger.debug('[get] search response = %s', json.dumps(r))
-            return r['hits']['hits']
-        except ElasticsearchException as e:
-            logger.debug("get from ES failed, exception was %s", e.message)
-            raise e
+            logger.debug('[get] search response = %s', json.dumps(result))
+            return result['hits']['hits']
+        except ElasticsearchException as exc:
+            logger.debug("get from ES failed, exception was %s", exc.message)
+            raise

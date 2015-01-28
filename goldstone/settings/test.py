@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -18,10 +18,12 @@ from .base import *
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3.test'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': "goldstone_test",
         'USER': 'goldstone',
         'PASSWORD': 'goldstone',
+        "HOST": "127.0.0.1",
+        "PORT": '5432',
     }
 }
 

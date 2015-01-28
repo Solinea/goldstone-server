@@ -1,4 +1,4 @@
-Copyright 2014 Solinea, Inc.
+Copyright 2014 - 2015 Solinea, Inc.
 
 Licensed under the Solinea Software License Agreement (goldstone),
 Version 1.0 (the "License"); you may not use this file except in compliance
@@ -12,11 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Author: Ken Pepple
-
 GOLDSTONE HACKING GUIDE
 ========================
-
 
 Initial Setup
 *************
@@ -51,62 +48,87 @@ Create the virtual environment (this will also install virtualenv)::
 
     $ mkvirtualenv goldstone
 
-**OPTIONAL**: Customize your virtualenv postactive script to make it yours. I use the following commands in my virtualenv::
+Customize your virtualenv postactive script to make it yours. This is a suggested virtualenv/postactivate.
+
+  .. code:: bash
 
     #!/bin/bash
     cd ~/devel/goldstone
-
     export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
-    export DJANGO_SETTINGS_MODULE=goldstone.settings.local_dev
+
+    # For example, export DJANGO_SETTINGS_MODULE=goldstone.settings.local_oak_c2
+    export DJANGO_SETTINGS_MODULE=goldstone.settings.local_<datacenter>_<cloud_instance>
 
     redis-server > /dev/null 2>&1 &
     elasticsearch > /dev/null 2>&1 &
-    celery worker --app=goldstone --loglevel=info --beat > /dev/null 2>&1 &
+    postgres -D /usr/local/var/postgres &
 
 
-This changes to my goldstone development git directory and sets my default django setting module so that I don't have to include it on the command line every time.  It also starts all of the required software (which we will install in a minute).
+
+This is a suggested virtualenv/deactivate:
+
+  .. code:: bash
+
+    #!/bin/bash
+
+    echo "shutting down redis"
+    pkill -f redis
+
+    echo "shutting down elasticsearch"
+    pkill -f elasticsearch
+
+    echo "shutting down postgres"
+    pkill -f postgres
 
 Activating and deactivating the environment can be done with the following commands::
 
     $ workon goldstone
     $ deactivate
 
-Install these packages globally (Installing them localling is fine, but then you'll
-need to re-install them if you ever create another virtual environment)::
+Install these packages locally::
 
+    $ workon goldstone
     $ brew install elasticsearch
-    $ brew install redis
     $ brew install phantomjs
+    $ brew install redis
+    $ brew install postgresql
 
+Create development and test databases. Create a user goldstone with the role goldstone
+(or edit your development.py setttings file)::
+    
+    $ createdb goldstone_dev
+    $ createdb goldstone_test
+    $ createdb goldstone
+    $ createuser goldstone -d
+  
+Edit your pg_hba.conf file.  If you installed with brew, this should be in 
+    ``/usr/local/var/postgres/``.  See INSTALL for the modifications.::
+
+    $ pg_ctl reload
+   
 Clone Goldstone from the bitbucket repo::
 
     $ cd $PROJECT_HOME
     $ git clone git@bitbucket.org:solinea/goldstone.git
 
-Now, install pip prerequesites into your shiny new virtualenv. This will let your run the application on your laptop::
+Now, install pip prerequesites. These let your run the application on your laptop::
 
     $ workon goldstone
     $ cd goldstone                    # If your postactive script doesn't have a cd
     $ pip install -r requirements.txt
     $ pip install -r test-requirements.txt
 
-Get the local settings and put them in place::
-
-    $ git submodule init
-    $ git submodule update
-    $ cp solinea_settings/* goldstone/settings
-
 Open a VPN connection to the development Oakland (oak) cloud.
 
-Sync and migrate the databases::
+Sync and migrate the databases. Note, you'll need to do this for the goldstone_dev, goldstone_test, and goldstone databases,
+whichever one you use. A simple test is, if you change the value of DJANGO_SETTINGS_MODULE, you'll need to re-issue these
+commands::
 
-    $ # cd to the goldstone root folder. Then:
-    $ python ./manage.py syncdb  # Answer 'no' to create superuser
-    $ python ./manage.py migrate
+    $ ./manage.py syncdb                # Answer 'no' to create superuser
+    $ ./manage.py migrate
 
 Set up the elasticsearch templates for test running (repeat with other settings as required)::
 
-    $ # cd to the goldstone root folder. Then:
     $ python manage.py shell --settings=goldstone.settings.local_test <<EOF
     > from goldstone.apps.core.tasks import _put_all_templates, _create_daily_index, _create_agent_index
     > _put_all_templates()
@@ -116,7 +138,7 @@ Set up the elasticsearch templates for test running (repeat with other settings 
 
 Now test out the server::
 
-    $ python ./manage.py runserver
+    $ ./manage.py runserver
 
 You should now see the application running at http://localhost:8000/
 
@@ -124,7 +146,7 @@ You should now see the application running at http://localhost:8000/
 Goldstone Testing
 *****************
 
-Goldstone use the standard Django testing tools:
+Goldstone uses the standard Django testing tools:
 
 * Tox for test automation. Goldstone's tox setup tests against Python 2.6, Python 2.7 and PEP8 (syntax) by default. Additional jobs for coverage and pyflakes are available.
 * Django TestCase and selenium are used for unit and functional testing respectively.
@@ -181,7 +203,8 @@ Front-end testing
 *****************
 
 This information assumes you already have node/npm installed.
-It also assumes you already have phantomjs installed via previous steps in the HACKING.rst file. If not, install it via homebrew. At the time of this documentation, the testing environment was compatible with phantomjs 1.9.7
+It also assumes you already have phantomjs installed via previous steps in the HACKING.rst file.
+If not, install it via homebrew. At the time of this documentation, the testing environment was compatible with phantomjs 1.9.7
 
 $ npm install -g grunt-cli
 $ npm install
@@ -228,7 +251,7 @@ To create a release, follow these steps:
 Major Design Decisions
 **********************
 
-* Goldstone is current based on the 1.6 version of `Django`_.
+* Goldstone is currently based on the 1.6 version of `Django`_.
 * For database and model migrations, Goldstone uses `South`_.
 * Goldstone has chosen Postgresql as its main database, however MySQL will also be tested against.
 * The PBR library (created by the OpenStack project) is used for sane and simple setup.py, versioning and setup.cfg values.

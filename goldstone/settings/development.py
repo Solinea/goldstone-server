@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -11,10 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from .base import *
 
 __author__ = 'Ken Pepple'
-
-from .base import *
 
 TEMPLATE_DEBUG = DEBUG
 
@@ -22,10 +21,12 @@ QUNIT_ENABLED = True
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3.dev'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': "goldstone_dev",
         'USER': 'goldstone',
         'PASSWORD': 'goldstone',
+        "HOST": "127.0.0.1",
+        "PORT": '5432',
     }
 }
 
