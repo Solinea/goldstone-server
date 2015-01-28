@@ -22,11 +22,11 @@ QUNIT_ENABLED = True
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': "goldstone",
+        'NAME': "goldstone_dev",
         'USER': 'goldstone',
         'PASSWORD': 'goldstone',
         "HOST": "localhost",
-        "PORT": '',
+        "PORT": '5432',
     }
 }
 

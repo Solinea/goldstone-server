@@ -8,7 +8,7 @@ OS_AUTH_URL = 'http://10.10.10.23:5000/v2.0/'
 #
 # override ES settings
 #
-ES_HOST = "10.10.10.201"
+ES_HOST = "10.10.20.201"
 ES_PORT = "9200"
 ES_SERVER = ES_HOST + ":" + ES_PORT
 
