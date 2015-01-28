@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -15,8 +15,9 @@
 # Author: Ken Pepple
 
 # tox uses this file
-pep8==1.4.6
+pep8==1.5.7
 pyflakes==0.7.3
+pylint==1.4.1
 coverage==3.7.1
 selenium==2.40.0
 sphinx

@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -17,7 +17,7 @@ from goldstone.utils import _get_region_for_glance_client, _get_client, \
 
 __author__ = 'John Stanford'
 
-from goldstone.views import *
+from goldstone.views import TopLevelView, ApiPerfView, TopologyView, JSONView
 from .models import ApiPerfData, ImagesData
 import logging
 
@@ -79,7 +79,7 @@ class DiscoverView(TopologyView):
             if self.images is None or len(self.images) == 0:
                 raise NoResourceFound(
                     "No glance images found in database")
-            updated = self.images[0]['_source']['@timestamp']
+
             rl = self._populate_regions()
 
             if len(rl) > 1:

@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -11,17 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from elasticsearch import TransportError, Elasticsearch
 from goldstone.apps.logging.serializers import LoggingNodeSerializer
 from goldstone.apps.logging.views import LoggingNodeViewSet
 
 __author__ = 'John Stanford'
 
-import json
 from time import sleep
-from django.http import HttpResponse
 from rest_framework import status
-from rest_framework.renderers import JSONRenderer
 from rest_framework.test import APISimpleTestCase
 from django.test import SimpleTestCase
 import logging

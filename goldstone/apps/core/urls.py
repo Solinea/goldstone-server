@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -15,7 +15,8 @@ from django.conf.urls import url, patterns
 
 __author__ = 'John Stanford'
 
-from .views import *
+from .views import NodeViewSet, EventViewSet, MetricViewSet, ReportViewSet, \
+    ReportListView
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter(trailing_slash=False)

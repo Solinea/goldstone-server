@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -14,19 +14,12 @@
 
 __author__ = 'John Stanford'
 
-from django.test.client import Client
-from django.test.client import RequestFactory
-from django.utils.unittest.case import skip
 from django.test import SimpleTestCase
-from django.conf import settings
-
-from .views import IntelSearchView
+from goldstone.models import GSConnection
 from .models import *
-import os
 import json
 from datetime import *
 import pytz
-import gzip
 import logging
 from elasticsearch import *
 

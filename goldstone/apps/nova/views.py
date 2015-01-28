@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -13,13 +13,12 @@ from __future__ import unicode_literals
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from goldstone.utils import _normalize_hostnames, NoResourceFound
+from goldstone.utils import NoResourceFound
 
 __author__ = 'John Stanford'
 
 import calendar
 from django.http import HttpResponse, HttpResponseBadRequest
-from django.conf import settings
 from django.views.generic import TemplateView
 from .models import *
 from goldstone.views import *
