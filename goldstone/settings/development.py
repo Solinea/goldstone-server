@@ -25,7 +25,7 @@ DATABASES = {
         'NAME': "goldstone_dev",
         'USER': 'goldstone',
         'PASSWORD': 'goldstone',
-        "HOST": "localhost",
+        "HOST": "127.0.0.1",
         "PORT": '5432',
     }
 }
