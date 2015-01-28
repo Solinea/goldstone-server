@@ -55,7 +55,7 @@ Create the virtual environment (this will also install virtualenv)::
 
 	 .. code:: bash
 		   
-	   #!/bin/bash
+       #!/bin/bash
        cd ~/devel/goldstone
 
        export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
