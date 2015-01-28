@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -20,7 +20,7 @@ from django.conf import settings
 from elasticsearch import *
 import os
 import json
-from datetime import date, timedelta
+from datetime import date
 import logging
 from subprocess import check_call
 
@@ -83,7 +83,7 @@ def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
         conn.indices.put_template(template_name,
                                   json.load(template_file),
                                   create=False)
-    except exceptions.RequestError as e:
+    except exceptions.RequestError:
         logger.warn('Template creation failed. Please report this error.')
 
 

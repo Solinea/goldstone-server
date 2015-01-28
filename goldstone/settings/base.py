@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -36,7 +36,8 @@ from django.core.exceptions import ImproperlyConfigured
 
 
 def get_env_variable(var_name):
-    """ Get the environment variable or return exception """
+    """Return an environment variable or exception."""
+
     try:
         return os.environ[var_name]
     except KeyError:
@@ -247,7 +248,7 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
-        #'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+        # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
         'rest_framework.permissions.AllowAny'
     ],
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
