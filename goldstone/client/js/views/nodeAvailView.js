@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2014 - 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -471,7 +471,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 return ns.yLogs(self.sums(d));
             })
             .on("mouseover", ns.tooltip.show)
-            .on("mouseout", ns.tooltip.hide);
+            .on("mouseout", ns.tooltip.hide)
+            .on("click", function(d) {
+                window.location.href = '/report/node/' + d.name;
+            });
 
         this.redraw();
 
