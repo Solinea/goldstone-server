@@ -26,7 +26,7 @@ var ZoomablePartitionView = TopologyTreeView.extend({
         var self = this;
         var ns = this.defaults;
 
-        ns.h = 600;
+        // ns.h = 600;
         ns.x = d3.scale.linear().range([0, ns.w]);
         ns.y = d3.scale.linear().range([0, ns.h]);
 
@@ -89,6 +89,7 @@ var ZoomablePartitionView = TopologyTreeView.extend({
 
         g.append("svg:text")
             .attr("transform", transform)
+            .attr("x", 5)
             .attr("dy", ".35em")
             .style("opacity", function(d) {
                 return d.dx * ky > 12 ? 1 : 0;
