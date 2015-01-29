@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -15,16 +15,12 @@ from __future__ import absolute_import
 
 __author__ = 'John Stanford'
 
-from django.conf import settings
 from goldstone.celery import app as celery_app
 import requests
-from urllib2 import urlparse
 import logging
-from datetime import datetime
 import json
-import hashlib
 from .models import ApiPerfData
-from goldstone.utils import _get_client, _get_keystone_client, stored_api_call
+from goldstone.utils import _get_client, stored_api_call
 
 
 logger = logging.getLogger(__name__)

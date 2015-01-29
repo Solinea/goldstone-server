@@ -16,11 +16,13 @@
 
 %define version %{getenv:GOLDSTONE_RPM_VERSION}
 %define release %{getenv:GOLDSTONE_RPM_RELEASE}
+%define epoch   %{getenv:GOLDSTONE_RPM_EPOCH}
 
 Summary:        Solinea Goldstone server
 Name:           goldstone-server
 Version:        %{version}
 Release:        %{release}%{?dist}
+Epoch:          %{epoch}
 # Copyright:      Copyright 2015 Solinea, Inc.
 Group:          Applications/System
 License:        Solinea Software License Agreement (version 1)

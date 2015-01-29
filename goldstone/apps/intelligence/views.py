@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -18,15 +18,13 @@ from rest_framework import status
 __author__ = 'John Stanford'
 
 import calendar
-from django.http import HttpResponse, HttpResponseBadRequest
-from django.conf import settings
+from django.http import HttpResponse
 from django.views.generic import TemplateView
 from .models import LogData
 from datetime import datetime, timedelta
 import pytz
 import json
 import logging
-import math
 
 logger = logging.getLogger(__name__)
 
