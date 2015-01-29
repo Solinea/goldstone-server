@@ -85,11 +85,11 @@ var EventTimelineView = GoldstoneBaseView.extend({
 
         ns.topAxis = d3.svg.axis()
             .orient("top")
-            .ticks(5)
+            .ticks(3)
             .tickFormat(d3.time.format("%a %b %e %Y"));
         ns.bottomAxis = d3.svg.axis()
             .orient("bottom")
-            .ticks(8)
+            .ticks(5)
             .tickFormat(d3.time.format("%H:%M:%S"));
         ns.xScale = d3.time.scale()
             .range([ns.margin.left, ns.width - ns.margin.right - 10]);
