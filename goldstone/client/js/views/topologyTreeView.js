@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2014 - 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -18,7 +18,7 @@
 
 // view is linked to collection when instantiated in goldstone_discover.html
 
-var TopologyTreeView = Backbone.View.extend({
+var TopologyTreeView = GoldstoneBaseView.extend({
 
     defaults: {},
 
@@ -171,6 +171,9 @@ var TopologyTreeView = Backbone.View.extend({
         $(ns.multiRsrcViewEl).find('#spinner').show();
 
         $.get(dataUrl, function(payload) {
+            // clear any existing error message
+            self.clearDataErrorMessage(ns.multiRsrcViewEl);
+
             // the response may have multiple lists of services for different
             // timestamps.  The first one will be the most recent.
             var firstTsData = payload[0] !== 'undefined' ? payload[0] : [];
@@ -253,7 +256,7 @@ var TopologyTreeView = Backbone.View.extend({
                         }
                     });
                 } else {
-                    $("#multi-rsrc-body").html("<p style='margin-left: " + (ns.w / 2 - 30) + "'>No data</p>");
+                    self.dataErrorMessage('No data', undefined, ns.multiRsrcViewEl);
                 }
                 $(ns.multiRsrcViewEl).find('#spinner').hide();
             }
@@ -272,8 +275,6 @@ var TopologyTreeView = Backbone.View.extend({
         location = location || '.panel-header-resource-title';
         // appends the name of the resource list currently being displayed
         $(location).text(': ' + text);
-        // appends the call to action to prompt clicking on a row for more info
-        $('.additional-info-notice').text('Click row for additional Resource Info');
     },
 
     processTree: function(json) {
@@ -570,7 +571,7 @@ var TopologyTreeView = Backbone.View.extend({
                 el: ns.chartHeader[0],
                 chartTitle: ns.chartHeader[1],
                 infoText: ns.chartHeader[2],
-                columns: 12
+                columns: 13
             });
         }
 

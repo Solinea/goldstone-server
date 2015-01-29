@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2014 - 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -22,7 +22,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
     defaults: {
         margin: {
-            top: 5,
+            top: 18,
             bottom: 25,
             right: 40,
             left: 60
@@ -112,7 +112,9 @@ var NodeAvailView = GoldstoneBaseView.extend({
         // values above or below domain will be constrained to range
         .clamp(true);
 
-        ns.yAxis = d3.svg.axis().orient("left");
+        ns.yAxis = d3.svg.axis()
+            .ticks(5)
+            .orient("left");
         ns.swimAxis = d3.svg.axis().orient("left");
         ns.ySwimLane = d3.scale.ordinal()
             .domain(["unadmin"].concat(ns.loglevel
@@ -469,7 +471,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 return ns.yLogs(self.sums(d));
             })
             .on("mouseover", ns.tooltip.show)
-            .on("mouseout", ns.tooltip.hide);
+            .on("mouseout", ns.tooltip.hide)
+            .on("click", function(d) {
+                window.location.href = '/report/node/' + d.name;
+            });
 
         this.redraw();
 
@@ -553,8 +558,8 @@ var NodeAvailView = GoldstoneBaseView.extend({
             .attr("cy", function(d) {
                 return {
                     logs: ns.yLogs(self.sums(d)),
-                    ping: ns.ySwimLane(d.swimlane),
-                    unadmin: ns.ySwimLane(d.swimlane) + ns.ySwimLane.rangeBand()
+                    ping: ns.ySwimLane(d.swimlane) - 15,
+                    unadmin: ns.ySwimLane(d.swimlane) + ns.ySwimLane.rangeBand() + 15
                 }[d.swimlane];
             })
             .attr("r", function(d) {
@@ -642,14 +647,12 @@ var NodeAvailView = GoldstoneBaseView.extend({
         'style="margin-right: 15px;"></i>' +
         '</h3></div>' +
         '<div class="alert alert-danger popup-message" hidden="true"></div>' +
-        '<div class="panel-body" style="height:50px">' +
+        '<div class="panel-body" style="height:169px">' +
         '<div id="event-filterer" class="btn-group pull-right" data-toggle="buttons" align="center">' +
         '</div>' +
         '</div>' +
-        '<div class="panel-body" style="height:550px">' +
         '<div id="goldstone-event-chart">' +
         '<div class="clearfix"></div>' +
-        '</div>' +
         '</div>' +
         '</div>' +
         '</div>' +
