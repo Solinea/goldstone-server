@@ -34,7 +34,33 @@ var MultiRscsView = Backbone.View.extend({
 
     render: function() {
         this.$el.append(this.template());
+        this.populateInfoButton();
         return this;
+    },
+
+    populateInfoButton: function() {
+        var ns = this.defaults;
+        var self = this;
+        // chart info button popover generator
+        var infoButtonText = new InfoButtonText().get('infoText');
+        var htmlGen = function() {
+            var result = infoButtonText.cloudTopologyResourceList;
+            return result;
+        };
+
+        $(this.el).find('#info-button').popover({
+            trigger: 'manual',
+            content: htmlGen.apply(this),
+            placement: 'bottom',
+            html: 'true'
+        })
+            .on("click", function(d) {
+                var targ = "#" + d.target.id;
+                $(self.el).find(targ).popover('toggle');
+            }).on("mouseout", function(d) {
+                var targ = "#" + d.target.id;
+                $(self.el).find(targ).popover('hide');
+            });
     },
 
     template: _.template('' +
@@ -42,9 +68,10 @@ var MultiRscsView = Backbone.View.extend({
         '<div class="panel-heading">' +
         '<h3 class="panel-title multi-rsrc-title"><i class="fa fa-dashboard"></i>' +
         ' Resource List<span class="panel-header-resource-title"></span>' +
+        '<i class="pull-right fa fa-info-circle panel-info"  id="info-button"></i>' +
         '</h3>' +
         '</div>' +
-        '<span class="additional-info-notice"></span><br>' +
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<span id="spinner-container"></span>' +
         '<div id="multi-rsrc-body" class="panel-body">' +
         '</div>' +

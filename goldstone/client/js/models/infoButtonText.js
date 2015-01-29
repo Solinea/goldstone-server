@@ -40,6 +40,9 @@ var InfoButtonText = Backbone.Model.extend({
             discoverCloudTopology: 'This is the OpenStack topology map.  You ' +
                 'can use leaf nodes to navigate to specific types of resources.',
 
+            discoverZoomTopology: 'This is the OpenStack topology map.  Clicking ' +
+                'branches will zoom in, clicking on leaf nodes will bring up information about resources. Click on the far left section to zoom out.',
+
             eventTimeline: 'The event timeline displays key events that have occurred ' +
                 'in your cloud.  You can adjust the displayed data with the filter and ' +
                 'time settings in the menu bar.  Hovering on an event brings up the ' +
@@ -107,7 +110,10 @@ var InfoButtonText = Backbone.Model.extend({
                 'across your cloud.  You can adjust the displayed data with the ' +
                 'time settings in the menu bar, and with the filter settings that double ' +
                 'as a legend.  The table below contains the individual log entries for ' +
-                'the time range and filter settings.'
+                'the time range and filter settings.',
+
+            cloudTopologyResourceList: 'Click row for additional resource info.<br><br>' +
+            'Clicking on hypervisor or hosts reports will navigate to additional report pages.'
         }
     }
 });
