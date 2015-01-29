@@ -2,7 +2,7 @@
 // TODO: replace cpu resources/ memory resources/ disk resources svg test when charts are back online
 
 casper.test.begin('Node Report Page is loading properly', 62, function suite(test) {
-    casper.start('http://10.10.20.201/report/node/rsrc-01', function() {
+    casper.start('http://localhost:8000/report/node/ctrl-01', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
 
@@ -14,7 +14,7 @@ casper.test.begin('Node Report Page is loading properly', 62, function suite(tes
         test.assertSelectorHasText('div.navbar', 'Logging');
 
         // page h1
-        test.assertSelectorHasText('div#node-report-r1-c1 h1', 'rsrc-01');
+        test.assertSelectorHasText('div#node-report-r1-c1 h1', 'ctrl-01');
 
         // Service Status graph loads
         test.assertSelectorHasText('div #service-status-title-bar', 'Service Status Report');
