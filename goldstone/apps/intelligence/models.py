@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -14,17 +14,13 @@
 
 __author__ = 'John Stanford'
 
-from types import StringType
-from django.db import models
-from django.conf import settings
 from datetime import *
 from elasticsearch import *
 import pytz
 import calendar
 import logging
 import json
-import pandas as pd
-from goldstone.models import ESData, GSConnection
+from goldstone.models import ESData
 
 logger = logging.getLogger(__name__)
 

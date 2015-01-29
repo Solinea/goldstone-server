@@ -5,7 +5,7 @@ Goldstone Installation
 GOLDSTONE LICENSE
 *********************
 
-Copyright 2014 Solinea, Inc.
+Copyright 2014 - 2015 Solinea, Inc.
 
 Licensed under the Solinea Software License Agreement (goldstone),
 Version 1.0 (the "License"); you may not use this file except in compliance
@@ -30,7 +30,7 @@ Installing goldstone is a two step process:
 Before installing goldstone, your server needs to meet the following prerequesites:
 
 * 4GB RAM
-* x64 CPU
+* x64 CPU (or 4 core VM on x64 host)
 * 100 GB free disk space
 * CentOS / RHEL 6.5 or 6.6
 
@@ -41,15 +41,22 @@ To view and use goldstone, you will need a recent version of the `Google Chrome 
 INSTALL GOLDSTONE PACKAGES
 **************************
 
-First, enable the CentOS EPEL repositories and install some dependencies: ::
+First, enable the CentOS EPEL repositories and install some dependencies:
 
-    # yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-    # yum install -y gcc gcc-c++ java-1.7.0-openjdk
+  .. code:: bash
 
-Next, enable the elasticsearch and logstash repositories: ::
+    # run as root
+    yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+    yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel
 
-    # rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
-    # cat > /etc/yum.repos.d/elasticsearch-1.3.repo <<EOF
+Next, enable the elasticsearch and logstash repositories:
+
+  .. code:: bash
+
+    # run as root
+    rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+
+    cat > /etc/yum.repos.d/elasticsearch-1.3.repo <<EOF
     [elasticsearch-1.3]
     name=Elasticsearch repository for 1.3.x packages
     baseurl=http://packages.elasticsearch.org/elasticsearch/1.3/centos
@@ -57,7 +64,8 @@ Next, enable the elasticsearch and logstash repositories: ::
     gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
     enabled=1
     EOF
-    # cat > /etc/yum.repos.d/logstash-1.4.repo <<EOF
+
+    cat > /etc/yum.repos.d/logstash-1.4.repo <<EOF
     [logstash-1.4]
     name=logstash repository for 1.4.x packages
     baseurl=http://packages.elasticsearch.org/logstash/1.4/centos
@@ -67,16 +75,49 @@ Next, enable the elasticsearch and logstash repositories: ::
     EOF
 
 Set OpenStack-related environment variables.  This will enable the RPM installer to 
-configure Goldstone without a reboot.  ::
+configure Goldstone without a reboot. 
 
-    # export OS_USERNAME=admin
-    # export OS_TENANT_NAME=admin
-    # export OS_PASSWORD=password
-    # export OS_AUTH_URL=http://10.10.10.10::5000/v2.0/
+  .. code:: bash
 
-Install the goldstone application: ::
+    # run as root
+    export OS_USERNAME=admin
+    export OS_TENANT_NAME=admin
+    export OS_PASSWORD=password
+    export OS_AUTH_URL=http://10.10.10.10::5000/v2.0/
 
-    # yum localinstall -y goldstone-server-2.0.1.rpm
+Create a Postgres goldstone user, and initialize the database. 
+      
+  .. code:: bash
+
+    # run as root
+    service postgresql initdb
+    chkconfig postgresql on
+    service postgresql start
+    su - postgres -c 'createdb goldstone'
+    su - postgres -c 'createuser goldstone -d'
+    su - postgres -c 'psql -c "alter user goldstone password \'goldstone\'"'
+
+Edit ``/var/lib/pgsql/data/pg_hba.conf`` as 'postgres' user, and insert these 
+lines before any other uncommented local or host entries: ::
+
+    local   all         goldstone                         password
+    host    all         goldstone   127.0.0.1/32          password
+    host    all         goldstone   ::1/128               password
+
+Reload the postgres configuration.
+
+  .. code:: bash
+
+    # run as root
+    su - postgres -c 'pg_ctl reload'
+
+
+Install the goldstone application: 
+
+  .. code:: bash
+
+    # run as root
+    yum localinstall -y goldstone-server-{version}.rpm
 
 This package installation may take up to 30 minutes to run, as it needs to compile a number of libraries.
 

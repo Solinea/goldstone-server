@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from datetime import datetime
 import json
 import arrow
 from django.conf import settings
@@ -82,8 +81,8 @@ class LoggingNodeStats(ESData):
 
             self._stats = rs["aggregations"]["by_host"]["buckets"]
 
-        except ElasticsearchException as e:
-            logger.exception("error connecting to ES", e)
+        except ElasticsearchException:
+            logger.exception("error connecting to ES")
             raise
 
     def for_node(self, name):
