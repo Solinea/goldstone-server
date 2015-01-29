@@ -1,7 +1,7 @@
 // e2e tests
 // TODO: replace cpu resources/ memory resources/ disk resources svg test when charts are back online
 
-casper.test.begin('Node Report Page is loading properly', 62, function suite(test) {
+casper.test.begin('Node Report Page is loading properly', 61, function suite(test) {
     casper.start('http://localhost:8000/report/node/ctrl-01', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -9,7 +9,6 @@ casper.test.begin('Node Report Page is loading properly', 62, function suite(tes
         // navbar
         test.assertExists('.navbar-brand > img', 'Favicon should load');
         test.assertExists('div.navbar', 'Navbar should load');
-        test.assertSelectorHasText('div.navbar', 'Discover');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
 
@@ -122,14 +121,13 @@ casper.test.begin('Node Report Page is loading properly', 62, function suite(tes
     });
 });
 
-casper.test.begin('Homepage is loading properly', 38, function suite(test) {
+casper.test.begin('Homepage is loading properly', 37, function suite(test) {
     casper.start('http://localhost:8000/', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
-        test.assertSelectorHasText('div.navbar', 'Discover');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
 
@@ -208,14 +206,13 @@ casper.test.begin('Homepage is loading properly', 38, function suite(test) {
     });
 });
 
-casper.test.begin('Nova Topology Page is loading properly', 14, function suite(test) {
+casper.test.begin('Nova Topology Page is loading properly', 13, function suite(test) {
     casper.start('http://localhost:8000/nova/discover', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
-        test.assertSelectorHasText('div.navbar', 'Discover');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
 
@@ -244,14 +241,13 @@ casper.test.begin('Nova Topology Page is loading properly', 14, function suite(t
     });
 });
 
-casper.test.begin('Cinder Topology Page is loading properly', 14, function suite(test) {
+casper.test.begin('Cinder Topology Page is loading properly', 13, function suite(test) {
     casper.start('http://localhost:8000/cinder/discover', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
-        test.assertSelectorHasText('div.navbar', 'Discover');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
 
@@ -280,14 +276,13 @@ casper.test.begin('Cinder Topology Page is loading properly', 14, function suite
     });
 });
 
-casper.test.begin('Glance Topology Page is loading properly', 14, function suite(test) {
+casper.test.begin('Glance Topology Page is loading properly', 13, function suite(test) {
     casper.start('http://localhost:8000/glance/discover', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
-        test.assertSelectorHasText('div.navbar', 'Discover');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
 
@@ -316,14 +311,13 @@ casper.test.begin('Glance Topology Page is loading properly', 14, function suite
     });
 });
 
-casper.test.begin('Keystone Topology Page is loading properly', 14, function suite(test) {
+casper.test.begin('Keystone Topology Page is loading properly', 13, function suite(test) {
     casper.start('http://localhost:8000/keystone/discover', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
-        test.assertSelectorHasText('div.navbar', 'Discover');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
 
@@ -352,14 +346,13 @@ casper.test.begin('Keystone Topology Page is loading properly', 14, function sui
     });
 });
 
-casper.test.begin('API Perf Page is loading properly', 46, function suite(test) {
+casper.test.begin('API Perf Page is loading properly', 45, function suite(test) {
     casper.start('http://localhost:8000/api_perf/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
-        test.assertSelectorHasText('div.navbar', 'Discover');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
 
@@ -459,7 +452,6 @@ casper.test.begin('API Perf Page is loading properly', 46, function suite(test) 
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
-        test.assertSelectorHasText('div.navbar', 'Discover');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
 
@@ -555,14 +547,13 @@ casper.test.begin('API Perf Page is loading properly', 46, function suite(test) 
 });*/
 
 
-casper.test.begin('Neutron (network) Page is loading properly', 14, function suite(test) {
+casper.test.begin('Neutron (network) Page is loading properly', 13, function suite(test) {
     casper.start('http://localhost:8000/neutron/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
-        test.assertSelectorHasText('div.navbar', 'Discover');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
 
@@ -591,14 +582,13 @@ casper.test.begin('Neutron (network) Page is loading properly', 14, function sui
     });
 });
 
-casper.test.begin('Block Storage (cinder) Page is loading properly', 14, function suite(test) {
+casper.test.begin('Block Storage (cinder) Page is loading properly', 13, function suite(test) {
     casper.start('http://localhost:8000/cinder/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
-        test.assertSelectorHasText('div.navbar', 'Discover');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
 
@@ -627,14 +617,13 @@ casper.test.begin('Block Storage (cinder) Page is loading properly', 14, functio
     });
 });
 
-casper.test.begin('Image (glance) Page is loading properly', 14, function suite(test) {
+casper.test.begin('Image (glance) Page is loading properly', 13, function suite(test) {
     casper.start('http://localhost:8000/glance/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
-        test.assertSelectorHasText('div.navbar', 'Discover');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
 
@@ -663,14 +652,13 @@ casper.test.begin('Image (glance) Page is loading properly', 14, function suite(
     });
 });
 
-casper.test.begin('Identity (keystone) Page is loading properly', 14, function suite(test) {
+casper.test.begin('Identity (keystone) Page is loading properly', 13, function suite(test) {
     casper.start('http://localhost:8000/keystone/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
-        test.assertSelectorHasText('div.navbar', 'Discover');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
 
@@ -699,14 +687,13 @@ casper.test.begin('Identity (keystone) Page is loading properly', 14, function s
     });
 });
 
-casper.test.begin('Logging page is loading properly', 22, function suite(test) {
+casper.test.begin('Logging page is loading properly', 21, function suite(test) {
     casper.start('http://localhost:8000/intelligence/search', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
 
         // navbar
         test.assertExists('div.navbar', 'Navbar should load');
-        test.assertSelectorHasText('div.navbar', 'Discover');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
 
