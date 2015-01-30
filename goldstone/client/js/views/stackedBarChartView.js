@@ -20,6 +20,15 @@
 
 var StackedBarChartView = GoldstoneBaseView.extend({
 
+    defaults: {
+        margin: {
+            top: 45,
+            right: 30,
+            bottom: 60,
+            left: 70
+        }
+    },
+
     processOptions: function() {
         StackedBarChartView.__super__.processOptions.apply(this, arguments);
 
