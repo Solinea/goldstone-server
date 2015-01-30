@@ -16,7 +16,7 @@ __author__ = 'John Stanford'
 
 from django.conf.urls import patterns, url
 
-from .views import DiscoverView, ReportView, SpawnsView, CpuView, MemoryView, \
+from .views import ReportView, SpawnsView, CpuView, MemoryView, \
     DiskView, LatestStatsView, ApiPerfView, AgentsDataView, \
     AggregatesDataView, AvailZonesDataView, CloudpipesDataView, \
     FlavorsDataView, FloatingIpPoolsDataView, HostsDataView, \

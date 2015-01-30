@@ -19,6 +19,7 @@ from django.utils.unittest.case import skip
 from .views import *
 from datetime import datetime
 import pytz
+import calendar
 
 
 logger = logging.getLogger(__name__)
