@@ -60,7 +60,7 @@ LOGGING = {
         'django.request': {
             'handlers': ['console'],
             'propagate': False,
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
         'elasticsearch': {
             'level': 'WARN',
