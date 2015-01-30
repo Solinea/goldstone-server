@@ -152,24 +152,35 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 return ns.color(d.name);
             });
 
-        ns.chart.append('path')
-            .attr('class', 'line')
-            .attr('id', 'fail')
-            .attr('data-legend', "Fail")
-            .attr("data-legend-color", ns.colorArray.distinct[2][1]);
+        var legendSpecs;
 
-        ns.chart.append('path')
-            .attr('class', 'line')
-            .attr('id', 'success')
-            .attr('data-legend', "Success")
-            .attr("data-legend-color", ns.colorArray.distinct[2][0]);
+        if(ns.featureSet === 'mem') {
+            legendSpecs = [ ['Virtual', 2],['Physical', 1],['Used', 0]];
+        } else {
+            legendSpecs = [['Fail', 1],['Success', 0]];
+        }
 
-        var legend = ns.chart.append("g")
-            .attr("class", "legend")
-            .attr("transform", "translate(20,-20)")
-            .attr("opacity", 0.7)
+        this.appendLegend(legendSpecs);
+    },
+
+    appendLegend: function(legendSpecs) {
+        var ns = this.defaults;
+
+        console.log('legspec', legendSpecs);
+
+        _.each(legendSpecs, function(item) {
+            ns.chart.append('path')
+            .attr('class', 'line')
+            .attr('id', item[0])
+            .attr('data-legend', item[0])
+            .attr('data-legend-color', ns.color.range()[item[1]]);
+        });
+
+        var legend = ns.chart.append('g')
+            .attr('class', 'legend')
+            .attr('transform', 'translate(20,-35)')
+            .attr('opacity', 0.7)
             .call(d3.legend);
-
     },
 
     template: _.template(
