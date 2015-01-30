@@ -43,20 +43,68 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .orient("left")
             .tickFormat(d3.format("01d"));
 
-        ns.color = d3.scale.ordinal()
-            .range(ns.colorArray.distinct[2]);
+        if (ns.featureSet === 'mem' || ns.featureSet === 'cpu') {
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
+        } else {
+            // this includes spawns/disk
+            ns.color = d3.scale.ordinal()
+                .range(ns.colorArray.distinct[2]);
+        }
+
     },
 
     dataPrep: function(data) {
+        var ns = this.defaults;
+
         var result = [];
 
-        _.each(data[0], function(item, i) {
-            result.push({
-                "eventTime": "" + i,
-                "Success": item[2],
-                "Failure": item[0]
+        if (ns.featureSet === 'cpu') {
+
+            //TODO: this will probably change
+            //after finding out what the server payload
+            // actually looks like
+
+            _.each(data[0], function(item, i) {
+                result.push({
+                    "eventTime": "" + i,
+                    "Used": item[1] + item[3],
+                    "Physical": item[0],
+                    "Virtual": item[2]
+                });
             });
-        });
+
+        } else if (ns.featureSet === 'disk') {
+
+            _.each(data[0], function(item, i) {
+                result.push({
+                    "eventTime": "" + i,
+                    "Used": item[1],
+                    "Physical": item[0],
+                });
+            });
+
+        } else if (ns.featureSet === 'mem') {
+
+            _.each(data[0], function(item, i) {
+                result.push({
+                    "eventTime": "" + i,
+                    "Used": item[1] + item[3],
+                    "Physical": item[0],
+                    "Virtual": item[2]
+                });
+            });
+
+        } else {
+            // this correlates to spawns
+            _.each(data[0], function(item, i) {
+                result.push({
+                    "eventTime": "" + i,
+                    "Success": item[2],
+                    "Failure": item[0]
+                });
+            });
+
+        }
 
         return result;
     },
@@ -152,15 +200,32 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 return ns.color(d.name);
             });
 
-        var legendSpecs;
+        var legendSpecs = {
+            mem: [
+                ['Virtual', 2],
+                ['Physical', 1],
+                ['Used', 0]
+            ],
+            cpu: [
+                ['Virtual', 2],
+                ['Physical', 1],
+                ['Used', 0]
+            ],
+            disk: [
+                ['Physical', 1],
+                ['Used', 0]
+            ],
+            spawn: [
+                ['Fail', 1],
+                ['Success', 0]
+            ]
+        };
 
-        if(ns.featureSet === 'mem') {
-            legendSpecs = [ ['Virtual', 2],['Physical', 1],['Used', 0]];
+        if (ns.featureSet !== null) {
+            this.appendLegend(legendSpecs[ns.featureSet]);
         } else {
-            legendSpecs = [['Fail', 1],['Success', 0]];
+            this.appendLegend(legendSpecs.spawn);
         }
-
-        this.appendLegend(legendSpecs);
     },
 
     appendLegend: function(legendSpecs) {
@@ -170,10 +235,10 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         _.each(legendSpecs, function(item) {
             ns.chart.append('path')
-            .attr('class', 'line')
-            .attr('id', item[0])
-            .attr('data-legend', item[0])
-            .attr('data-legend-color', ns.color.range()[item[1]]);
+                .attr('class', 'line')
+                .attr('id', item[0])
+                .attr('data-legend', item[0])
+                .attr('data-legend-color', ns.color.range()[item[1]]);
         });
 
         var legend = ns.chart.append('g')
