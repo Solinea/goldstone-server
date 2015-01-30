@@ -100,15 +100,6 @@ class ViewTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class GlanceDiscoverViewTest(SimpleTestCase):
-
-    def test_good_request(self):
-        url = '/glance/discover'
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'glance_discover.html')
-
-
 class DataViewTests(SimpleTestCase):
 
     def _evaluate(self, response):

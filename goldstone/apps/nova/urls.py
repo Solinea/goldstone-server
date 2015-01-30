@@ -26,8 +26,6 @@ from .views import DiscoverView, ReportView, SpawnsView, CpuView, MemoryView, \
 
 urlpatterns = patterns(
     '',
-    url(r'^discover[/]?$', DiscoverView.as_view(),
-        name='nova-discover-view'),
     url(r'^report[/]?$', ReportView.as_view(),
         name='nova-report-view'),
     url(r'^hypervisor/spawns[/]?$', SpawnsView.as_view(),

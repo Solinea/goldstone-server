@@ -15,14 +15,12 @@
 __author__ = 'John Stanford'
 
 from django.conf.urls import patterns, url
-from .views import DiscoverView, ReportView, AuthApiPerfView, \
+from .views import ReportView, AuthApiPerfView, \
     EndpointsDataView, RolesDataView, ServicesDataView, \
     TenantsDataView, UsersDataView
 
 urlpatterns = patterns(
     '',
-    url(r'^discover[/]?$', DiscoverView.as_view(),
-        name='keystone-discover-view'),
     url(r'^report[/]?$', ReportView.as_view(),
         name='keystone-report-view'),
     url(r'^api_perf[/]?$', AuthApiPerfView.as_view(),
