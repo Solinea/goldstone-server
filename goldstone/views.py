@@ -180,7 +180,7 @@ class ApiPerfView(InnerTimeRangeView):
     data = pd.DataFrame()
     my_template_name = None
 
-    def _get_data(self):
+    def _get_data(self, context):
         """
         Override in subclass, return a model result
         """

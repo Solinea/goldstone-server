@@ -15,7 +15,7 @@
 __author__ = 'John Stanford'
 
 from goldstone.views import TopLevelView, ApiPerfView, JSONView
-from .models import ApiPerfData, ImagesData
+from .models import GlanceApiPerfData, ImagesData
 import logging
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class ImageApiPerfView(ApiPerfView):
     my_template_name = 'glance_api_perf.html'
 
     def _get_data(self, context):
-        return ApiPerfData().get(context['start_dt'], context['end_dt'],
+        return GlanceApiPerfData().get(context['start_dt'], context['end_dt'],
                                  context['interval'])
 
 

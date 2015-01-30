@@ -26,9 +26,9 @@ class DiscoverTree(TopologyMixin):
         return set([s['_source']['region'] for s in self.images])
 
     def _get_regions(self):
-            kc = _get_client(service='keystone')['client']
-            r = _get_region_for_glance_client(kc)
-            return [{"rsrcType": "region", "label": r}]
+        kc = _get_client(service='keystone')['client']
+        r = _get_region_for_glance_client(kc)
+        return [{"rsrcType": "region", "label": r}]
 
     def _populate_regions(self):
         result = []

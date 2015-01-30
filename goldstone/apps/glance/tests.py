@@ -25,7 +25,7 @@ import pytz
 import calendar
 import pandas as pd
 from mock import patch
-from .models import ApiPerfData
+from .models import GlanceApiPerfData
 from requests.models import Response
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ class TaskTests(SimpleTestCase):
     # the standard way that Python applies decorators. The order of the
     # created mocks passed into your test function matches this order.
     @patch('goldstone.apps.glance.tasks.stored_api_call')
-    @patch.object(ApiPerfData, 'post')
+    @patch.object(GlanceApiPerfData, 'post')
     def test_time_glance_api(self, post, api):
         fake_response = Response()
         fake_response.status_code = 200

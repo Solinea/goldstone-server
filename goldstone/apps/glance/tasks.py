@@ -22,7 +22,7 @@ from goldstone.celery import app as celery_app
 import requests
 import logging
 import json
-from .models import ApiPerfData, ImagesData
+from .models import GlanceApiPerfData, ImagesData
 from goldstone.utils import _get_client, stored_api_call, \
     to_es_date, _get_glance_client
 
@@ -51,7 +51,7 @@ def time_glance_api(self):
                                      "/v2/images/" + body['images'][0]['id'])
             logger.debug(_get_client.cache_info())
 
-    api_db = ApiPerfData()
+    api_db = GlanceApiPerfData()
     rec_id = api_db.post(result['db_record'])
     logger.debug("[time_glance_api] id = %s", rec_id)
     return {
