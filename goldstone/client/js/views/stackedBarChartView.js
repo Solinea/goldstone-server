@@ -20,6 +20,12 @@
 
 var StackedBarChartView = GoldstoneBaseView.extend({
 
+    processOptions: function() {
+        StackedBarChartView.__super__.processOptions.apply(this, arguments);
+
+        this.defaults.featureSet = this.options.featureSet || null;
+    },
+
     specialInit: function() {
         var ns = this.defaults;
 
@@ -57,7 +63,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         this.hideSpinner();
 
 
-        if(this.checkReturnedDataSet(data) === false){
+        if (this.checkReturnedDataSet(data) === false) {
             return;
         }
 

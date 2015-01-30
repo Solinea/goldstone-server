@@ -76,6 +76,7 @@ var NovaReportView = ApiPerfReportView.extend({
         this.cpuResourcesChartView = new StackedBarChartView({
             chartTitle: "CPU Resources",
             collection: this.cpuResourcesChart,
+            featureSet: 'cpu',
             height: 300,
             infoCustom: 'novaCpuResources',
             el: '#nova-report-r2-c1',
@@ -94,6 +95,7 @@ var NovaReportView = ApiPerfReportView.extend({
         this.memResourcesChartView = new StackedBarChartView({
             chartTitle: "Mem Resources",
             collection: this.memResourcesChart,
+            featureSet: 'mem',
             height: 300,
             infoCustom: 'novaMemResources',
             el: '#nova-report-r2-c2',
@@ -112,6 +114,7 @@ var NovaReportView = ApiPerfReportView.extend({
         this.diskResourcesChartView = new StackedBarChartView({
             chartTitle: "Disk Resources",
             collection: this.diskResourcesChart,
+            featureSet: 'disk',
             height: 300,
             infoCustom: 'novaDiskResources',
             el: '#nova-report-r3-c1',
