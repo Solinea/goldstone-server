@@ -24,15 +24,6 @@ import pytz
 logger = logging.getLogger(__name__)
 
 
-class NovaDiscoverViewTest(SimpleTestCase):
-
-    def test_good_request(self):
-        url = '/nova/discover'
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'nova_discover.html')
-
-
 class NovaSpawnsViewTest(SimpleTestCase):
     # view requires a start_ts, end_ts, and interval string
     valid_start = str(calendar.timegm(
