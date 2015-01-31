@@ -67,7 +67,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
-                    "Used": item[1] + item[3],
+                    "Used": item[1],
                     "Physical": item[0],
                     "Virtual": item[2]
                 });
@@ -88,7 +88,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
-                    "Used": item[1] + item[3],
+                    "Used": item[1],
                     "Physical": item[0],
                     "Virtual": item[2]
                 });
