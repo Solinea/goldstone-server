@@ -11,25 +11,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from pyes import BoolQuery, RangeQuery, ESRangeOp, TermQuery
 
-__author__ = 'John Stanford'
+"""
+
+This module contains all models for the OpenStack Nova application.
+
+"""
 
 import logging
 import json
+import pandas as pd
+
 from datetime import datetime
 from types import StringType
 from goldstone.models import ApiPerfData, TopologyData
-
-import pandas as pd
-
 from goldstone.models import ESData
 
+# TODO replace pyes
+from pyes import BoolQuery, RangeQuery, ESRangeOp, TermQuery
 
 logger = logging.getLogger(__name__)
 
 
-class ApiPerfData(ApiPerfData):
+class NovaApiPerfData(ApiPerfData):
     component = 'nova'
 
 
