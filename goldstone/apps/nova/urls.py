@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__author__ = 'John Stanford'
+"""
+
+This module contains all url handlers for the OpenStack Nova application.
+
+"""
 
 from django.conf.urls import patterns, url
 
