@@ -55,14 +55,14 @@ LOGGING = {
         'django.request': {
             'handlers': ['console'],
             'propagate': False,
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
         'elasticsearch': {
             'level': 'WARN',
             'handlers': ['console']
         },
         'goldstone': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['console']
         },
     },

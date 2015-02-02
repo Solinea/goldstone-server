@@ -15,14 +15,12 @@
 __author__ = 'John Stanford'
 
 from django.conf.urls import patterns, url
-from .views import DiscoverView, ReportView, ServiceListApiPerfView, \
+from .views import ReportView, ServiceListApiPerfView, \
     VolumesDataView, BackupsDataView, SnapshotsDataView, \
     ServicesDataView, VolumeTypesDataView, TransfersDataView
 
 urlpatterns = patterns(
     '',
-    url(r'^discover[/]?$', DiscoverView.as_view(),
-        name='cinder-discover-view'),
     url(r'^report[/]?$', ReportView.as_view(),
         name='cinder-report-view'),
     url(r'^api_perf[/]?$', ServiceListApiPerfView.as_view(),
