@@ -12,16 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__author__ = 'John Stanford'
-
 from django.conf.urls import patterns, url
-from .views import DiscoverView, ReportView, ImageApiPerfView, \
-    ImagesDataView
+from .views import ReportView, ImageApiPerfView, ImagesDataView
 
 urlpatterns = patterns(
     '',
-    url(r'^discover[/]?$', DiscoverView.as_view(),
-        name='glance-discover-view'),
     url(r'^report[/]?$', ReportView.as_view(),
         name='glance-report-view'),
     url(r'^api_perf[/]?$', ImageApiPerfView.as_view(),
