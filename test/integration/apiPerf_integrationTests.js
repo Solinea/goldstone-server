@@ -112,16 +112,11 @@ describe('apiPerfView.js spec', function() {
         });
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
-            expect($('#noDataReturned').text()).to.equal('');
+            expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
             this.testView.update();
             expect($('.popup-message').text()).to.equal('No Data Returned');
-            this.testCollection.add({
-                url: '/blah'
-            });
-            this.testView.update();
-            expect($('#noDataReturned').text()).to.equal('');
-            expect(this.update_spy.callCount).to.equal(2);
+            expect(this.update_spy.callCount).to.equal(1);
             this.update_spy.restore();
         });
     });

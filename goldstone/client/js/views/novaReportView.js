@@ -93,7 +93,7 @@ var NovaReportView = ApiPerfReportView.extend({
         });
 
         this.memResourcesChartView = new StackedBarChartView({
-            chartTitle: "Mem Resources",
+            chartTitle: "Memory Resources",
             collection: this.memResourcesChart,
             featureSet: 'mem',
             height: 300,
