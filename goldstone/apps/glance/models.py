@@ -17,7 +17,7 @@ __author__ = 'John Stanford'
 from goldstone.models import ApiPerfData, TopologyData
 
 
-class ApiPerfData(ApiPerfData):
+class GlanceApiPerfData(ApiPerfData):
     component = 'glance'
 
 
