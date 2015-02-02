@@ -19,8 +19,6 @@ from .views import ReportView, AgentListApiPerfView
 
 urlpatterns = patterns(
     '',
-    # url(r'^discover[/]?$', DiscoverView.as_view(),
-    #     name='cinder-discover-view'),
     url(r'^report[/]?$', ReportView.as_view(),
         name='neutron-report-view'),
     url(r'^api_perf[/]?$', AgentListApiPerfView.as_view(),

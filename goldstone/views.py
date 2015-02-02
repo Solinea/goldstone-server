@@ -13,12 +13,11 @@ from __future__ import unicode_literals
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
 from django.shortcuts import render
 from elasticsearch import ElasticsearchException
 from rest_framework import status
 from goldstone.apps.core.models import Node
-from goldstone.utils import GoldstoneAuthError
+from goldstone.utils import GoldstoneAuthError, TopologyMixin
 
 __author__ = 'John Stanford'
 
@@ -181,7 +180,7 @@ class ApiPerfView(InnerTimeRangeView):
     data = pd.DataFrame()
     my_template_name = None
 
-    def _get_data(self):
+    def _get_data(self, context):
         """
         Override in subclass, return a model result
         """
@@ -212,7 +211,7 @@ class ApiPerfView(InnerTimeRangeView):
         return response
 
 
-class TopologyView(TemplateView):
+class DiscoverView(TemplateView, TopologyMixin):
     """
     Produces a view of a module topology (or json data if render=false).
     The data structure is a list of resource types.  If the list contains
@@ -234,159 +233,7 @@ class TopologyView(TemplateView):
      }
 
     """
-    __metaclass__ = ABCMeta
-
-    @abstractproperty
-    def my_template_name(self):
-        """
-        Returns the template name to be used by TemplateView
-        """
-
-    @abstractmethod
-    def _get_regions(self):
-        """
-        Returns a list of region names.
-        """
-
-    @abstractmethod
-    def _build_topology_tree(self):
-        """
-         Returns the entire topology tree for a module with a cloud or region
-         root node.
-        """
-
-    @staticmethod
-    def _eval_condition(sc, tc, cond):
-        """
-        evaluates the source and target dicts to see if the condition holds.
-        returns boolean.
-        """
-        # substitute reference to source and target in condition
-        cond = cond.replace("%source%", "sc").replace("%target%", "tc")
-        try:
-            return eval(cond, {'__builtins__': {}}, {"sc": sc, "tc": tc,
-                        "len": len})
-        except TypeError:
-            return False
-
-    def _get_children(self, d, rsrc_type):
-        assert (type(d) is dict or type(d) is list), "d must be a list or dict"
-        assert rsrc_type, "rsrc_type must have a value"
-
-        if type(d) is list:
-            # make it into a dict
-            d = {
-                'rsrcType': None,
-                'children': d
-            }
-        # this is a matching child
-        if d['rsrcType'] == rsrc_type:
-            return d
-        # this is not a match, but has children to check
-        elif d.get('children', None):
-
-            result = [self._get_children(c, rsrc_type)
-                      for c in d['children']]
-            if len(result) > 0 and type(result[0]) is list:
-                # flatten it so we don't end up with nested lists
-                return [c for l in result for c in l]
-            else:
-                return result
-        else:
-            return []
-
-    def _attach_resource(self, attach_descriptor, source, target):
-        """
-        Attaches one resource tree to another at a described point.  The
-        descriptor format is:
-
-            {'sourceRsrcType': 'string',
-             'targetRsrcType': 'string',
-             'conditions': 'string'}
-
-        If sourceRsrcType will be treated as the top level thing to attach.  If
-        there are resources above it in the source dict, they will be ignored.
-        The resource(s) of type sourceResourceType along with their descendants
-        will be attached to resources of targetRsrcType in the target dict
-        which match the condition expression.  The target dict assumes that
-        nesting is via the 'children' key.  The condition will be evaluated as
-        a boolean expression, and will have access to the items in both source
-        and target.
-        """
-
-        # basic sanity check.  all args should be dicts, source and target
-        # should have a rsrcType field
-        assert type(source) is list, "source param must be a list"
-        assert type(target) is list, "target param must be a list"
-        assert type(attach_descriptor) is dict, \
-            "attach_descriptor param must be a dict"
-
-        # make copies so they are not subject to mutation during or after the
-        # the call.
-        targ = copy.deepcopy(target)
-        src = copy.deepcopy(source)
-        ad = attach_descriptor
-
-        targ_children = self._get_children(targ, ad['targetRsrcType'])
-        src_children = self._get_children(src, ad['sourceRsrcType'])
-        for tc in targ_children:
-            for sc in src_children:
-                match = self._eval_condition(sc, tc, ad['conditions'])
-                if match:
-                    if 'children' not in tc:
-                        tc['children'] = []
-                    tc['children'].append(sc)
-        return targ
-
-    def get_context_data(self, **kwargs):
-        context = TemplateView.get_context_data(self, **kwargs)
-        context['render'] = self.request.GET.get('render', "True"). \
-            lower().capitalize()
-
-        # if render is true, we will return a full template, otherwise only
-        # a json data payload
-        if context['render'] == 'True':
-            self.template_name = self.my_template_name()
-        else:
-            self.template_name = None
-            TemplateView.content_type = 'application/json'
-
-        return context
-
-    def render_to_response(self, context, **response_kwargs):
-        """
-        Overriding to handle case of data only request (render=False).  In
-        that case an application/json data payload is returned.
-        """
-        try:
-            response = self._build_topology_tree()
-            if isinstance(response, HttpResponseBadRequest):
-                return response
-
-            if self.template_name is None:
-                return HttpResponse(json.dumps(response),
-                                    content_type="application/json")
-
-            return TemplateView.render_to_response(
-                self, {'data': json.dumps(response)})
-        except (CinderAuthException, CinderApiAuthException, NovaAuthException,
-                NovaApiAuthException, KeystoneApiAuthException,
-                GoldstoneAuthError) as e:
-            logger.exception(e)
-            if self.template_name is None:
-                return HttpResponse(status=401)
-            else:
-                return render(self.request, '401.html', status=401)
-        except ElasticsearchException as e:
-            return HttpResponse(content="Could not connect to the "
-                                        "search backend",
-                                status=status.HTTP_504_GATEWAY_TIMEOUT)
-
-
-class DiscoverView(TopologyView):
-
-    def my_template_name(self):
-        return 'goldstone_discover.html'
+    template_name = 'goldstone_discover.html'
 
     def _get_regions(self):
         return []
@@ -419,16 +266,16 @@ class DiscoverView(TopologyView):
 
         # TODO make global map more module friendly
 
-        from .apps.keystone.views import DiscoverView as KeystoneTopoView
-        from .apps.glance.views import DiscoverView as GlanceTopoView
-        from .apps.cinder.views import DiscoverView as CinderTopoView
-        from .apps.nova.views import DiscoverView as NovaTopoView
+        from .apps.keystone.utils import DiscoverTree as KeystoneDiscoverTree
+        from .apps.glance.utils import DiscoverTree as GlanceDiscoverTree
+        from .apps.cinder.utils import DiscoverTree as CinderDiscoverTree
+        from .apps.nova.utils import DiscoverTree as NovaDiscoverTree
 
         try:
-            keystone_topo = KeystoneTopoView()
-            glance_topo = GlanceTopoView()
-            cinder_topo = CinderTopoView()
-            nova_topo = NovaTopoView()
+            keystone_topo = KeystoneDiscoverTree()
+            glance_topo = GlanceDiscoverTree()
+            cinder_topo = CinderDiscoverTree()
+            nova_topo = NovaDiscoverTree()
         except Exception:
             logger.exception("Exception in DiscoverView")
             raise
@@ -501,6 +348,48 @@ class DiscoverView(TopologyView):
             return rl[0]
         else:
             return {"rsrcType": "error", "label": "No data found"}
+
+    def get_context_data(self, **kwargs):
+        context = TemplateView.get_context_data(self, **kwargs)
+        context['render'] = self.request.GET.get('render', "True"). \
+            lower().capitalize()
+
+        # if render is true, we will return a full template, otherwise only
+        # a json data payload
+        if context['render'] != 'True':
+            self.template_name = None
+            TemplateView.content_type = 'application/json'
+
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        """
+        Overriding to handle case of data only request (render=False).  In
+        that case an application/json data payload is returned.
+        """
+        try:
+            response = self._build_topology_tree()
+            if isinstance(response, HttpResponseBadRequest):
+                return response
+
+            if self.template_name is None:
+                return HttpResponse(json.dumps(response),
+                                    content_type="application/json")
+
+            return TemplateView.render_to_response(
+                self, {'data': json.dumps(response)})
+        except (CinderAuthException, CinderApiAuthException, NovaAuthException,
+                NovaApiAuthException, KeystoneApiAuthException,
+                GoldstoneAuthError) as e:
+            logger.exception(e)
+            if self.template_name is None:
+                return HttpResponse(status=401)
+            else:
+                return render(self.request, '401.html', status=401)
+        except ElasticsearchException as e:
+            return HttpResponse(content="Could not connect to the "
+                                        "search backend",
+                                status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
 class JSONView(ContextMixin, View):
