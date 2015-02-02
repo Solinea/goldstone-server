@@ -100,15 +100,6 @@ class ViewTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class KeystoneDiscoverViewTest(SimpleTestCase):
-
-    def test_good_request(self):
-        url = '/keystone/discover'
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'keystone_discover.html')
-
-
 class DataViewTests(SimpleTestCase):
 
     def _evaluate(self, response):

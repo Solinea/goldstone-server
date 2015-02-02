@@ -13,9 +13,7 @@
 # limitations under the License.
 
 import pytz
-
-__author__ = 'John Stanford'
-
+import copy
 from django.conf import settings
 from goldstone.lru_cache import lru_cache
 import cinderclient.v2.services
@@ -462,3 +460,89 @@ def stored_api_call(component, endpt, path, headers={}, data=None,
             'reply': reply,
             'db_record': _construct_api_rec(reply, component, t, timeout, url)
         }
+
+
+class TopologyMixin(object):
+
+    def _get_children(self, d, rsrc_type):
+        assert (type(d) is dict or type(d) is list), "d must be a list or dict"
+        assert rsrc_type, "rsrc_type must have a value"
+
+        if type(d) is list:
+            # make it into a dict
+            d = {
+                'rsrcType': None,
+                'children': d
+            }
+        # this is a matching child
+        if d['rsrcType'] == rsrc_type:
+            return d
+        # this is not a match, but has children to check
+        elif d.get('children', None):
+
+            result = [self._get_children(c, rsrc_type)
+                      for c in d['children']]
+            if len(result) > 0 and type(result[0]) is list:
+                # flatten it so we don't end up with nested lists
+                return [c for l in result for c in l]
+            else:
+                return result
+        else:
+            return []
+
+    @staticmethod
+    def _eval_condition(sc, tc, cond):
+        """
+        evaluates the source and target dicts to see if the condition holds.
+        returns boolean.
+        """
+        # substitute reference to source and target in condition
+        cond = cond.replace("%source%", "sc").replace("%target%", "tc")
+        try:
+            return eval(cond, {'__builtins__': {}}, {"sc": sc, "tc": tc,
+                        "len": len})
+        except TypeError:
+            return False
+
+    def _attach_resource(self, attach_descriptor, source, target):
+        """
+        Attaches one resource tree to another at a described point.  The
+        descriptor format is:
+
+            {'sourceRsrcType': 'string',
+             'targetRsrcType': 'string',
+             'conditions': 'string'}
+
+        If sourceRsrcType will be treated as the top level thing to attach.  If
+        there are resources above it in the source dict, they will be ignored.
+        The resource(s) of type sourceResourceType along with their descendants
+        will be attached to resources of targetRsrcType in the target dict
+        which match the condition expression.  The target dict assumes that
+        nesting is via the 'children' key.  The condition will be evaluated as
+        a boolean expression, and will have access to the items in both source
+        and target.
+        """
+
+        # basic sanity check.  all args should be dicts, source and target
+        # should have a rsrcType field
+        assert type(source) is list, "source param must be a list"
+        assert type(target) is list, "target param must be a list"
+        assert type(attach_descriptor) is dict, \
+            "attach_descriptor param must be a dict"
+
+        # make copies so they are not subject to mutation during or after the
+        # the call.
+        targ = copy.deepcopy(target)
+        src = copy.deepcopy(source)
+        ad = attach_descriptor
+
+        targ_children = self._get_children(targ, ad['targetRsrcType'])
+        src_children = self._get_children(src, ad['sourceRsrcType'])
+        for tc in targ_children:
+            for sc in src_children:
+                match = self._eval_condition(sc, tc, ad['conditions'])
+                if match:
+                    if 'children' not in tc:
+                        tc['children'] = []
+                    tc['children'].append(sc)
+        return targ
