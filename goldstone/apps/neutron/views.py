@@ -21,10 +21,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class DiscoverView(TopLevelView):
-    template_name = 'neutron_discover.html'
-
-
 class ReportView(TopLevelView):
     template_name = 'neutron_report.html'
 
