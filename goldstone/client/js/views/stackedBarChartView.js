@@ -231,8 +231,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
     appendLegend: function(legendSpecs) {
         var ns = this.defaults;
 
-        console.log('legspec', legendSpecs);
-
         _.each(legendSpecs, function(item) {
             ns.chart.append('path')
                 .attr('class', 'line')
