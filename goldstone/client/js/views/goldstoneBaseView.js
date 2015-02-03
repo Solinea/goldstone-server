@@ -150,7 +150,7 @@ var GoldstoneBaseView = Backbone.View.extend({
             .text(ns.yAxisLabel)
             .style("text-anchor", "middle");
 
-        ns.svg.on('dblclick', function(){
+        ns.svg.on('dblclick', function() {
             var coord = d3.mouse(this);
             self.dblclicked(coord);
         });
@@ -190,7 +190,7 @@ var GoldstoneBaseView = Backbone.View.extend({
 
     },
 
-    dataErrorMessage: function(message, errorMessage, location) {
+    dataErrorMessage: function(message, errorMessage) {
 
         // 2nd parameter will be supplied in the case of an
         // 'error' event such as 504 error. Othewise,
@@ -222,11 +222,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         }
 
         // calling raiseAlert with the 3rd param will supress auto-hiding
-        if (location) {
-            goldstone.raiseAlert($(location).find('.popup-message'), message, true);
-        } else {
-            goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
-        }
+        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
 
         this.hideSpinner();
     },
