@@ -1,3 +1,4 @@
+"""Goldstone utilities."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -11,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import pytz
 import copy
 from django.conf import settings
@@ -42,12 +42,13 @@ from cinderclient.openstack.common.apiclient.exceptions \
 from neutronclient.common.exceptions import Unauthorized as NeutronUnauthorized
 import arrow
 
-
 logger = logging.getLogger(__name__)
 
 
-# hacking in a patch for the cinder service __repr__ method
+_get_keystone_client = functools.partial(_get_client, service='keystone')
+
 def _patched_cinder_service_repr(self):
+    """Hacking in a patch for the cinder service __repr__ method."""
     return "<Service: %s>" % self.binary
 
 
@@ -146,80 +147,61 @@ def _get_client(service, user=settings.OS_USERNAME,
                 tenant=settings.OS_TENANT_NAME,
                 auth_url=settings.OS_AUTH_URL):
 
+    # Error message template.
+    NO_AUTH = "%s client failed to authorize. Check credentials in" \
+              " goldstone settings."
+    
     if service == 'keystone':
-        c = None
         try:
-            c = ksclient.Client(username=user,
-                                password=passwd,
-                                tenant_name=tenant,
-                                auth_url=auth_url)
-            if c.auth_token is None:
+            client = ksclient.Client(username=user,
+                                     password=passwd,
+                                     tenant_name=tenant,
+                                     auth_url=auth_url)
+            if client.auth_token is None:
                 raise GoldstoneAuthError("Keystone client call succeeded, but "
                                          "auth token was not returned.  Check "
                                          "credentials in goldstone settings.")
             else:
                 md5 = hashlib.md5()
-                md5.update(c.auth_token)
-                return {'client': c, 'hex_token': md5.hexdigest()}
+                md5.update(client.auth_token)
+                return {'client': client, 'hex_token': md5.hexdigest()}
         except KeystoneUnauthorized:
-                raise GoldstoneAuthError(
-                    "Keystone client failed to authorize. Check credentials in"
-                    " goldstone settings."
-                )
+            raise GoldstoneAuthError(NO_AUTH % "Keystone")
     elif service == 'nova':
         try:
-            c = nvclient.Client(user, passwd, tenant, auth_url,
-                                service_type='compute')
-            return {'client': c}
+            client = nvclient.Client(user, passwd, tenant, auth_url,
+                                     service_type='compute')
+            return {'client': client}
         except NovaUnauthorized:
-            raise GoldstoneAuthError(
-                "Nova client failed to authorize. Check credentials in"
-                " goldstone settings."
-            )
+            raise GoldstoneAuthError(NO_AUTH % "Nova")
     elif service == 'cinder':
         try:
             cinderclient.v2.services.Service.__repr__ = \
                 _patched_cinder_service_repr
-            c = ciclient.Client(user, passwd, tenant, auth_url,
-                                service_type='volume')
-            region = _get_region_for_cinder_client(c)
-            return {'client': c, 'region': region}
+            client = ciclient.Client(user, passwd, tenant, auth_url,
+                                     service_type='volume')
+            region = _get_region_for_cinder_client(client)
+            return {'client': client, 'region': region}
         except CinderUnauthorized:
-            raise GoldstoneAuthError(
-                "Cinder client failed to authorize. Check credentials in"
-                " goldstone settings."
-            )
+            raise GoldstoneAuthError(NO_AUTH % "Cinder")
     elif service == 'neutron':
         try:
-            c = neclient.Client(user, passwd, tenant, auth_url)
-            return {'client': c}
+            client = neclient.Client(user, passwd, tenant, auth_url)
+            return {'client': client}
         except NeutronUnauthorized:
-            raise GoldstoneAuthError(
-                "Neutron client failed to authorize. Check credentials in"
-                " goldstone settings."
-            )
+            raise GoldstoneAuthError(NO_AUTH % Neutron)
     elif service == 'glance':
         try:
             kc = _get_client(service='keystone')['client']
             mgmt_url = kc.endpoints.find(service_id=kc.services.
                                          find(name='glance').id).internalurl
             region = _get_region_for_glance_client(kc)
-            c = glclient.Client(endpoint=mgmt_url, token=kc.auth_token)
-            return {'client': c, 'region': region}
+            client = glclient.Client(endpoint=mgmt_url, token=kc.auth_token)
+            return {'client': client, 'region': region}
         except KeystoneUnauthorized:
-            raise GoldstoneAuthError(
-                "Glance client failed to authorize. Check credentials in"
-                " goldstone settings."
-            )
+            raise GoldstoneAuthError(NO_AUTH % "Glance")
     else:
         raise GoldstoneAuthError("Unknown service")
-
-
-_get_keystone_client = functools.partial(_get_client, service='keystone')
-_get_nova_client = functools.partial(_get_client, service='nova')
-_get_cinder_client = functools.partial(_get_client, service='cinder')
-_get_neutron_client = functools.partial(_get_client, service='neutron')
-_get_glance_client = functools.partial(_get_client, service='glance')
 
 
 def _is_v4_ip_addr(candidate):
@@ -258,11 +240,12 @@ def _is_ip_addr(candidate):
 
 
 def _partition_hostname(hostname):
-    """
-    separates a hostname into host and domain parts
-    """
+    """Return a hostname separated into host and domain parts."""
+
     parts = hostname.partition('.')
+
     result = {'hostname': parts[0]}
+
     if len(parts) > 2:
         result['domainname'] = parts[2]
 
@@ -276,49 +259,46 @@ def _resolve_fqdn(ip_addr):
     """
     try:
         resolved = socket.gethostbyaddr(ip_addr)
-    except:
+    except Exception:        # pylint: disable=W0703
         return None
     else:
         return _partition_hostname(resolved[0])
 
 
 def _resolve_addr(hostname):
-    """
-    takes a hostname and attempts to resolve the ip address
-    """
+    """Return the IP address of a hostname."""
     try:
         return socket.gethostbyname(hostname)
-    except:
+    except Exception:        # pylint: disable=W0703
         return None
 
 
 def _host_details(name_or_addr):
+
     if _is_ip_addr(name_or_addr):
-        # try to resolve the hostname
-        hn = _resolve_fqdn(name_or_addr)
-        if hn:
-            return dict({'ip_addr': name_or_addr}.items() + hn.items())
+        # Try to resolve the hostname.
+        hostname = _resolve_fqdn(name_or_addr)
+        if hostname:
+            return dict({'ip_addr': name_or_addr}.items() + hostname.items())
         else:
             return {'ip_addr': name_or_addr}
     else:
         addr = _resolve_addr(name_or_addr)
-        hn = _partition_hostname(name_or_addr)
+        hostname = _partition_hostname(name_or_addr)
         if addr:
-            return dict({'ip_addr': addr}.items() + hn.items())
+            return dict({'ip_addr': addr}.items() + hostname.items())
         else:
-            return hn
+            return hostname
 
 
 def _normalize_hostname(name_or_addr):
-    """
-    Takes host or ip and returns either an unqualified hostname or an ip
-    address.
-    """
-    hd = _host_details(name_or_addr)
-    if hd.get('hostname', None):
-        return hd['hostname']
-    else:
-        return hd['ip_addr']
+    """Return an unqualified hostname or IP address from a host or IP
+    address."""
+
+    hostdetail = _host_details(name_or_addr)
+
+    return hostdetail['hostname'] if hostdetail.get('hostname', None) \
+        else hostdetail['ip_addr']
 
 
 def _normalize_hostnames(host_keys, source, key=None):
@@ -351,14 +331,14 @@ def _normalize_hostnames(host_keys, source, key=None):
 
 
 def _decompose_url(url):
-    """
-    returns the scheme, host, and possibly port for a url
-    """
-    result = {}
+    """Return the scheme, host, and possibly port for an URL."""
+
     url_parsed = urlparse(url)
-    result['scheme'] = url_parsed[0]
+    result = {'scheme': url_parsed[0]}
+
     netloc = url_parsed[1]
     host = None
+
     if ":" in netloc:
         # host:port
         hp = netloc.split(':')
@@ -468,12 +448,10 @@ class TopologyMixin(object):
         assert (type(d) is dict or type(d) is list), "d must be a list or dict"
         assert rsrc_type, "rsrc_type must have a value"
 
-        if type(d) is list:
-            # make it into a dict
-            d = {
-                'rsrcType': None,
-                'children': d
-            }
+        if isinstance(d, list):
+            # Convert it into a dict.
+            d = {'rsrcType': None, 'children': d}
+
         # this is a matching child
         if d['rsrcType'] == rsrc_type:
             return d
@@ -491,16 +469,16 @@ class TopologyMixin(object):
             return []
 
     @staticmethod
-    def _eval_condition(sc, tc, cond):
-        """
-        evaluates the source and target dicts to see if the condition holds.
-        returns boolean.
-        """
-        # substitute reference to source and target in condition
+    def _eval_condition(source, target, cond):
+        """Return the condition tested against the source and target dicts."""
+
+        # Substitute reference to source and target in condition.
         cond = cond.replace("%source%", "sc").replace("%target%", "tc")
+
         try:
-            return eval(cond, {'__builtins__': {}}, {"sc": sc, "tc": tc,
-                        "len": len})
+            return eval(cond,
+                        {'__builtins__': {}},
+                        {"sc": source, "tc": target, "len": len})
         except TypeError:
             return False
 

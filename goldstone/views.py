@@ -78,18 +78,20 @@ def _validate(arg_list, context):
 
     if 'interval' in arg_list:
         if context['interval'] is None:
-            td = (context['end_dt'] - context['start_dt'])
+            time_delta = (context['end_dt'] - context['start_dt'])
             # timdelta.total_seconds not available in py26
-            delta_secs = (td.microseconds + (
-                td.seconds + td.days * 24 * 3600) * 10 ** 6) / 10 ** 6
+            delta_secs = \
+                (time_delta.microseconds +
+                 (time_delta.seconds + time_delta.days * 24 * 3600)
+                 * 10 ** 6) / 10 ** 6
             context['interval'] = str(
                 delta_secs / settings.DEFAULT_CHART_BUCKETS) + "s"
-        elif context['interval'][-1] not in ['s']:
+        elif context['interval'][-1] != 's':
             validation_errors.append(
                 'malformed parameter [interval], valid example is 3600.0s')
             try:
                 int(context['interval'][:-1])
-            except Exception:
+            except Exception:       # pylint: disable=W0703
                 validation_errors.append('malformed parameter [interval]')
 
     if 'render' in arg_list:
@@ -283,11 +285,13 @@ class DiscoverView(TemplateView, TopologyMixin):
         # still exploring.
 
         # TODO make global map more module friendly
-
         from .apps.keystone.utils import DiscoverTree as KeystoneDiscoverTree
         from .apps.glance.utils import DiscoverTree as GlanceDiscoverTree
         from .apps.cinder.utils import DiscoverTree as CinderDiscoverTree
         from .apps.nova.utils import DiscoverTree as NovaDiscoverTree
+
+        # Too many short names here. Disable C0103 for now, just here!
+        # pylint: disable=C0103
 
         try:
             keystone_topo = KeystoneDiscoverTree()
@@ -398,12 +402,14 @@ class DiscoverView(TemplateView, TopologyMixin):
                 self, {'data': json.dumps(response)})
         except (CinderAuthException, CinderApiAuthException, NovaAuthException,
                 NovaApiAuthException, KeystoneApiAuthException,
-                GoldstoneAuthError) as e:
-            logger.exception(e)
+                GoldstoneAuthError):
+            logger.exception("Error.")
+
             if self.template_name is None:
                 return HttpResponse(status=401)
             else:
                 return render(self.request, '401.html', status=401)
+
         except ElasticsearchException as e:
             return HttpResponse(content="Could not connect to the "
                                         "search backend",
