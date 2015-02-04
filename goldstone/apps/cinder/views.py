@@ -15,16 +15,21 @@
 import logging
 
 from goldstone.views import TopLevelView, ApiPerfView
-from .models import *
+from .models import ApiPerfData, ServicesData, VolumesData, BackupsData, \
+    SnapshotsData, VolTypesData, EncryptionTypesData, TransfersData
 
 logger = logging.getLogger(__name__)
 
 
 class ReportView(TopLevelView):
+    """Cinder report view."""
+
     template_name = 'cinder_report.html'
 
 
 class ApiPerfView(ApiPerfView):
+    """Cinder api_perf view."""
+
     my_template_name = 'cinder_api_perf.html'
 
     def _get_data(self, context):
@@ -33,31 +38,49 @@ class ApiPerfView(ApiPerfView):
                                  context['interval'])
 
 
-class JsonListView(ListAPIView):
-    """A base view that renders a JSON response for "list" actions; i.e.,
-    GET requests for a collection of objects.
+class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
+    """A ViewSet that renders a JSON response for "list" actions; i.e., GET
+    requests for a collection of objects.
 
-    This is always subclassed.
+    Implementing views on new data sources is achieved by providing a
+    new entry in the URLconf, and adding an entry to a dict.
 
     """
 
     # We render only to JSON format.
     renderer_classes = (JSONRenderer, )
 
-    # These are overridden by the subclass.
-    zone_key = None
-    key = None
-    model = None
+    # The URLs that are implemented by this class.
+    #
+    # key: The base part of the URL that got here.
+    # value: (model, key, zone_key).
+    #
+    # To add a new API endpoint:
+    # 1. Add a router.register for it in urls.py. The first URL segment must be
+    #    returned from the regex in the regex variable "base".
+    # 2. Add an entry to this table.
+    URLS = {"backups": (BackupsData, 'backups', 'availability_zone'),
+            "services": (ServicesData, 'services', 'zone'),
+            "snapshots": (SnapshotsData, 'snapshots', None),
+            "transfers": (TransfersData, 'transfers', None),
+            "volumes": (VolumesData, 'volumes', 'availability_zone'),
+            "volume_types": (VolTypesData, 'volume_types', None),
+            }
 
-    def _get_data(self, request_zone, request_region):
-        """Return the data to be returned in the response.
+    def _get_objects(self, request_zone, request_region, base):
+        """Return a collection of objects.
 
-        :param request_zone: The "zone" provided in the request, if present.
+        :param request_zone: The request's "zone", if present.
         :type request_zone: str or None
-        :param request_rgion: The "region" provided in the request, if present.
+        :param request_region: The request's "region", if present.
         :type request_region: str or None
+        :param base: The first segment of the URL that got here
+        :type base: str
 
         """
+
+        # Get the model, key, and zone_key for this URL.
+        model, key, zone_key = self.URLS.get(base, (None, None, None))
 
         try:
             data = self.model().get()
@@ -86,50 +109,31 @@ class JsonListView(ListAPIView):
         except TypeError:
             return [[]]
 
-    def get(self, request, *args, **kwargs):
-        """Implement the GET request."""
+    def list(self, request, *args, **kwargs):
+        """Implement the GET request for a collection.
 
-        # Extract a zone or region provided in the request, if present.
+        :keyword base: The first segment of the URL that got here.
+        :type base: str
+
+        """
+
+        # Extract a zone or region provided in the request, if
+        # present. And remember the base segment of the URL that got
+        # here.
         request_zone = self.request.data.get('zone')
         request_region = self.request.data.get('region')
+        base = self.kwargs['base']
 
         # Now fetch the data to be returned, and return it as JSON.
         try:
-            content = self._get_data(request_zone, request_region)
-            return Response(content)
+            return Response(self._get_objects(request_zone,
+                                              request_region,
+                                              base))
         except ElasticsearchException:
             return Response("Could not connect to the search backend",
                             status=status.HTTP_504_GATEWAY_TIMEOUT)
 
+    def retrieve(self, request, *args, **kwargs):
+        """We do not implement single-object GET."""
 
-class VolumesDataView(JsonListView):
-    model = VolumesData
-    key = 'volumes'
-    zone_key = 'availability_zone'
-
-
-class BackupsDataView(JsonListView):
-    model = BackupsData
-    key = 'backups'
-    zone_key = 'availability_zone'
-
-
-class SnapshotsDataView(JsonListView):
-    model = SnapshotsData
-    key = 'snapshots'
-
-
-class ServicesDataView(JsonListView):
-    model = ServicesData
-    key = 'services'
-    zone_key = 'zone'
-
-
-class VolumeTypesDataView(JsonListView):
-    model = VolTypesData
-    key = 'volume_types'
-
-
-class TransfersDataView(JsonListView):
-    model = TransfersData
-    key = 'transfers'
+        return HttpResponseNotAllowed('')

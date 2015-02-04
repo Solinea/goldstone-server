@@ -55,6 +55,10 @@ class ESData(object):
 
     _conn = GSConnection().conn
 
+    def __init__(self):
+        """Initialize the object, to keep pylint happy."""
+        pass
+
     def get_index_names(self, prefix=None):
         all_indices = self._conn.indices.status()['indices'].keys()
         if prefix is not None:
