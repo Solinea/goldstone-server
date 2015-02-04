@@ -44,8 +44,9 @@ import arrow
 
 logger = logging.getLogger(__name__)
 
+get_keystone_client = functools.partial(_get_client, service='keystone')
+get_cinder_client = functools.partial(_get_client, service='cinder')
 
-_get_keystone_client = functools.partial(_get_client, service='keystone')
 
 def _patched_cinder_service_repr(self):
     """Hacking in a patch for the cinder service __repr__ method."""
@@ -117,7 +118,7 @@ def _get_region_for_cinder_client(client):
     # force authentication to populate management url
     client.authenticate()
     mgmt_url = client.client.management_url
-    kc = _get_keystone_client()['client']
+    kc = get_keystone_client()['client']
     catalog = kc.service_catalog.catalog['serviceCatalog']
     return _get_region_for_client(catalog, mgmt_url, 'volume')
 
@@ -150,7 +151,7 @@ def _get_client(service, user=settings.OS_USERNAME,
     # Error message template.
     NO_AUTH = "%s client failed to authorize. Check credentials in" \
               " goldstone settings."
-    
+
     if service == 'keystone':
         try:
             client = ksclient.Client(username=user,
@@ -401,10 +402,10 @@ def stored_api_call(component, endpt, path, headers={}, data=None,
                     tenant=settings.OS_TENANT_NAME,
                     auth_url=settings.OS_AUTH_URL, timeout=30):
 
-    kt = _get_keystone_client(user=user,
-                              passwd=passwd,
-                              tenant=tenant,
-                              auth_url=auth_url)
+    kt = get_keystone_client(user=user,
+                             passwd=passwd,
+                             tenant=tenant,
+                             auth_url=auth_url)
 
     try:
         url = kt['client'].service_catalog.\

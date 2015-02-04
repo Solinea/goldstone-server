@@ -1,5 +1,5 @@
-from __future__ import absolute_import
-# Copyright 2014 Solinea, Inc.
+"""Nova tasks."""
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -12,11 +12,9 @@ from __future__ import absolute_import
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import absolute_import
 
 import pytz
-
-__author__ = 'John Stanford'
-
 from django.conf import settings
 from goldstone.celery import app as celery_app
 from novaclient.v1_1 import client
@@ -91,32 +89,43 @@ def _update_nova_records(rec_type, region, db, items):
 
 @celery_app.task(bind=True)
 def discover_nova_topology(self):
-    nova_access = _get_nova_client()
-    cl = nova_access['client']
-    cl.client.authenticate()
-    reg = get_region_for_nova_client(cl)
 
-    _update_nova_records("agents",  reg, AgentsData(),
-                         cl.agents.list())
-    _update_nova_records("aggregates",  reg, AggregatesData(),
-                         cl.aggregates.list())
-    _update_nova_records("availability_zones",  reg, AvailZonesData(),
-                         cl.availability_zones.list())
-    _update_nova_records("cloudpipes",  reg, CloudpipesData(),
-                         cl.cloudpipe.list())
-    _update_nova_records("flavors",  reg, FlavorsData(),
-                         cl.flavors.list())
-    _update_nova_records("floating_ip_pools",  reg, FloatingIpPoolsData(),
-                         cl.floating_ip_pools.list())
-    _update_nova_records("hosts",  reg, HostsData(),
-                         cl.hosts.list())
-    _update_nova_records("hypervisors",  reg, HypervisorsData(),
-                         cl.hypervisors.list())
-    _update_nova_records("networks",  reg, NetworksData(),
-                         cl.networks.list())
-    _update_nova_records("secgroups",  reg, SecGroupsData(),
-                         cl.security_groups.list())
-    _update_nova_records("servers",  reg, ServersData(),
-                         cl.servers.list())
-    _update_nova_records("services",  reg, ServicesData(),
-                         cl.services.list())
+    nova_access = _get_nova_client()
+    client = nova_access['client']
+    client.client.authenticate()
+    reg = get_region_for_nova_client(client)
+
+    _update_nova_records("agents", reg, AgentsData(), client.agents.list())
+    _update_nova_records("aggregates",
+                         reg,
+                         AggregatesData(),
+                         client.aggregates.list())
+    _update_nova_records("availability_zones",
+                         reg,
+                         AvailZonesData(),
+                         client.availability_zones.list())
+    _update_nova_records("cloudpipes",
+                         reg,
+                         CloudpipesData(),
+                         client.cloudpipe.list())
+    _update_nova_records("flavors", reg, FlavorsData(), client.flavors.list())
+    _update_nova_records("floating_ip_pools",
+                         reg,
+                         FloatingIpPoolsData(),
+                         client.floating_ip_pools.list())
+    _update_nova_records("hosts", reg, HostsData(), client.hosts.list())
+    _update_nova_records("hypervisors", reg,
+                         HypervisorsData(),
+                         client.hypervisors.list())
+    _update_nova_records("networks",
+                         reg,
+                         NetworksData(),
+                         client.networks.list())
+    _update_nova_records("secgroups", reg,
+                         SecGroupsData(),
+                         client.security_groups.list())
+    _update_nova_records("servers", reg, ServersData(), client.servers.list())
+    _update_nova_records("services",
+                         reg,
+                         ServicesData(),
+                         client.services.list())

@@ -1,5 +1,5 @@
-from __future__ import absolute_import
-# Copyright 2014 Solinea, Inc.
+"""Keystone tasks."""
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -12,11 +12,9 @@ from __future__ import absolute_import
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import absolute_import
 
 import pytz
-
-__author__ = 'John Stanford'
-
 from django.conf import settings
 from goldstone.celery import app as celery_app
 import requests
@@ -25,7 +23,7 @@ from datetime import datetime
 import json
 from .models import *
 from goldstone.utils import _construct_api_rec, \
-    _get_keystone_client, to_es_date, get_region_for_keystone_client
+    get_keystone_client, to_es_date, get_region_for_keystone_client
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +35,7 @@ def time_keystone_api(self):
     a full set of data for the record in the DB.  This will make things
     easier to model.
     """
+
     user = settings.OS_USERNAME
     passwd = settings.OS_PASSWORD
     url = settings.OS_AUTH_URL + "/tokens"
@@ -45,15 +44,14 @@ def time_keystone_api(self):
     headers = {'content-type': 'application/json'}
     self.reply = requests.post(url, data=json.dumps(payload),
                                headers=headers)
+
     t = datetime.utcnow()
     rec = _construct_api_rec(self.reply, "keystone", t,
                              timeout=settings.API_PERF_QUERY_TIMEOUT, url=url)
     apidb = ApiPerfData()
     rec_id = apidb.post(rec)
-    return {
-        'id': rec_id,
-        'record': rec
-    }
+
+    return {'id': rec_id, 'record': rec}
 
 
 def _update_keystone_records(rec_type, region, db, items):
@@ -64,24 +62,28 @@ def _update_keystone_records(rec_type, region, db, items):
             rec_type: [item.to_dict() for item in items]}
     try:
         db.post(body)
-    except Exception as e:
-        logging.exception(e)
-        logger.warn("failed to index keystone %s", rec_type)
+    except Exception:
+        logging.exception("failed to index keystone %s", rec_type)
 
 
 @celery_app.task(bind=True)
 def discover_keystone_topology(self):
-    access = _get_keystone_client()
-    cl = access['client']
-    reg = get_region_for_keystone_client(cl)
 
-    _update_keystone_records("endpoints",  reg, EndpointsData(),
-                             cl.endpoints.list())
-    _update_keystone_records("roles",  reg, RolesData(),
-                             cl.roles.list())
-    _update_keystone_records("services",  reg, ServicesData(),
-                             cl.services.list())
-    _update_keystone_records("tenants",  reg, TenantsData(),
-                             cl.tenants.list())
-    _update_keystone_records("users",  reg, UsersData(),
-                             cl.users.list())
+    access = get_keystone_client()
+    client = access['client']
+    reg = get_region_for_keystone_client(client)
+
+    _update_keystone_records("endpoints",
+                             reg,
+                             EndpointsData(),
+                             client.endpoints.list())
+    _update_keystone_records("roles", reg, RolesData(), client.roles.list())
+    _update_keystone_records("services",
+                             reg,
+                             ServicesData(),
+                             client.services.list())
+    _update_keystone_records("tenants",
+                             reg,
+                             TenantsData(),
+                             client.tenants.list())
+    _update_keystone_records("users", reg, UsersData(), client.users.list())
