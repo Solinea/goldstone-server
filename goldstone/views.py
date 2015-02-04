@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+"""Goldstone views."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -12,27 +12,23 @@ from __future__ import unicode_literals
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from django.shortcuts import render
-from elasticsearch import ElasticsearchException
-from rest_framework import status
-from goldstone.apps.core.models import Node
-from goldstone.utils import GoldstoneAuthError, TopologyMixin
-
-__author__ = 'John Stanford'
-
-
-import calendar
+from __future__ import unicode_literals
 from abc import ABCMeta, abstractmethod, abstractproperty
-from django.http import HttpResponse, HttpResponseBadRequest, Http404
-from django.views.generic.base import ContextMixin
-from django.views.generic import TemplateView, View
-from django.conf import settings
+import calendar
 from datetime import datetime, timedelta
 import json
-import pandas as pd
 import logging
+
+from django.conf import settings
+from django.http import HttpResponse, HttpResponseBadRequest, Http404
+from django.shortcuts import render
+from django.views.generic import TemplateView, View
+from django.views.generic.base import ContextMixin
+from elasticsearch import ElasticsearchException
+import pandas as pd
 import pytz
+from rest_framework import status
+
 from cinderclient.exceptions import AuthorizationFailure as CinderAuthException
 from cinderclient.openstack.common.apiclient.exceptions \
     import AuthorizationFailure as CinderApiAuthException
@@ -42,25 +38,31 @@ from novaclient.openstack.common.apiclient.exceptions \
     import AuthorizationFailure as NovaApiAuthException
 from keystoneclient.openstack.common.apiclient.exceptions \
     import AuthorizationFailure as KeystoneApiAuthException
+from goldstone.apps.core.models import Node
+from goldstone.utils import GoldstoneAuthError, TopologyMixin
 
 logger = logging.getLogger(__name__)
 
 
-def _parse_timestamp(ts, tz=pytz.utc):
+def _parse_timestamp(stamp, zone=pytz.utc):
     try:
-        dt = datetime.fromtimestamp(int(ts), tz=tz)
-        logger.debug("[_parse_timestamp] dt = %s", str(dt))
-        return dt
-    except Exception:
-        logger.debug("[_parse_timestamp] timestamp creation failed, ")
+        result = datetime.fromtimestamp(int(stamp), tz=zone)
+        logger.debug("[_parse_timestamp] dt = %s", str(result))
+        return result
+    except Exception:                  # pylint: disable=W0703
+        logger.debug("[_parse_timestamp] timestamp creation failed.")
         return None
 
 
 def _validate(arg_list, context):
+    """Validate an argument list within a particular context, and return either
+    HttpResponseBadRequest or the updated context."""
+
     context = context.copy()
     validation_errors = []
 
     context['end_dt'] = _parse_timestamp(context['end'])
+
     if context['end_dt'] is None:
         validation_errors.append('malformed parameter [end]')
     elif 'start' in arg_list:
@@ -89,13 +91,16 @@ def _validate(arg_list, context):
                 int(context['interval'][:-1])
             except Exception:
                 validation_errors.append('malformed parameter [interval]')
+
     if 'render' in arg_list:
         if context['render'] not in ["True", "False"]:
             validation_errors.append('malformed parameter [render]')
         else:
             context['render'] = bool(context['render'])
 
-    if len(validation_errors) > 0:
+    # Return HttpResponseBadRequest if there were validation errors,
+    # otherwise return the context.
+    if validation_errors:
         return HttpResponseBadRequest(json.dumps(validation_errors),
                                       'application/json')
     else:
@@ -103,30 +108,41 @@ def _validate(arg_list, context):
 
 
 class TopLevelView(TemplateView):
-    def get_context_data(self, **kwargs):
-        context = TemplateView.get_context_data(self, **kwargs)
-        # use "now" if not provided, will calc start and interval in _validate
-        context['end'] = self.request.GET.get('end', str(calendar.timegm(
-            datetime.utcnow().timetuple())))
-        context['start'] = self.request.GET.get('start', None)
+    """The base class for top-level views of a resource type.
 
+    Different resource type views are created by changing the
+    template_name class name that's used in the subclass.
+
+    """
+
+    def get_context_data(self, **kwargs):
+
+        context = TemplateView.get_context_data(self, **kwargs)
+
+        # Use "now" if not provided. _validate will calculate the
+        # start and interval.
+        context['end'] = \
+            self.request.GET.get('end',
+                                 str(calendar.timegm(
+                                     datetime.utcnow().timetuple())))
+        context['start'] = self.request.GET.get('start', None)
         context['interval'] = self.request.GET.get('interval', None)
+
         return context
 
     def render_to_response(self, context, **response_kwargs):
+
         context = _validate(['start', 'end', 'interval'], context)
-        # check for a validation error
+
+        # heck for a validation error.
         if isinstance(context, HttpResponseBadRequest):
-            # validation error
             return context
 
-        return TemplateView.render_to_response(
-            self,
-            {
-                'start_ts': context['start'],
-                'end_ts': context['end'],
-                'interval': context['interval']
-            })
+        return TemplateView.render_to_response(self,
+                                               {'start_ts': context['start'],
+                                                'end_ts': context['end'],
+                                                'interval': context['interval']
+                                                })
 
 
 class InnerTimeRangeView(TemplateView):
@@ -134,22 +150,22 @@ class InnerTimeRangeView(TemplateView):
     my_template_name = None
 
     def get_context_data(self, **kwargs):
+
         context = TemplateView.get_context_data(self, **kwargs)
         context['render'] = self.request.GET.get('render', "True"). \
             lower().capitalize()
-        # use "now" if not provided, will calc start and interval in _validate
+
+        # Use "now" if not provided. _validate will calculate the
+        # start and interval.
         context['end'] = self.request.GET.get('end', str(calendar.timegm(
             datetime.utcnow().timetuple())))
         context['start'] = self.request.GET.get('start', None)
         context['interval'] = self.request.GET.get('interval', None)
 
-        # if render is true, we will return a full template, otherwise only
-        # a json data payload
-        if context['render'] == 'True':
-            self.template_name = self.my_template_name
-        else:
-            self.template_name = None
-            # TemplateView.content_type = 'application/json'
+        # If render is true, we return a full template, otherwise only
+        # a json data payload.
+        self.template_name = \
+            self.my_template_name if context['render'] == 'True' else None
 
         return context
 
@@ -187,11 +203,13 @@ class ApiPerfView(InnerTimeRangeView):
         return None
 
     def _handle_request(self, context):
+
         context = _validate(['start', 'end', 'interval', 'render'], context)
 
         if isinstance(context, HttpResponseBadRequest):
             # validation error
             return context
+
         logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
         self.data = self._get_data(context)
         logger.debug("[_handle_request] data = %s", self.data)
@@ -206,8 +224,8 @@ class ApiPerfView(InnerTimeRangeView):
         # orient=values to trim it down, or pass it in a binary format
         # if things get really messy.
         response = self.data.to_json(orient='records')
-        logger.debug('[_handle_request] response = %s',
-                     json.dumps(response))
+        logger.debug('[_handle_request] response = %s', json.dumps(response))
+
         return response
 
 

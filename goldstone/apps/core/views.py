@@ -1,3 +1,4 @@
+"""Core views."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -11,12 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'John Stanford'
-
-from .models import *
-from .serializers import *
-import logging
 import arrow
 from django.http import Http404, HttpResponseNotAllowed
 from rest_framework import status
@@ -25,6 +20,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 import elasticutils
+
+from .models import *
+from .serializers import *
+import logging
 
 logger = logging.getLogger(__name__)
 
