@@ -18,37 +18,19 @@ from .views import ReportView, ApiPerfView, VolumesViewSet, BackupsViewSet, \
     SnapshotsViewSet, CinderServicesViewSet, VolumeTypesViewSet, \
     TransfersDataViewSet
 
-router = DefaultRouter(trailing_slash=False)
-router.register(r"backups", BackupViewSet, base_name="backups")
-router.register(r"cinder-services",
-                CinderServicesViewSet,
-                base_name="cinder-services")
-router.register(r"snapshots", SnapshotViewSet, base_name="cinder-snapshots")
-router.register(r"transfers", TransferViewSet, base_name="transfers")
-router.register(r"volume_types",
-                VolumesTypesSet,
-                base_name="cinder-volume-types")
-router.register(r"volumes", VolumesSet, base_name="cinder-volumes")
-
-urlpatterns = router.urls
-urlpatterns += patterns('',
-                        url(r'^report[/]?$', ReportView.as_view(),
-                            name='report_list_view'),
-                        url(r'^api_perf[/]?$', ApiPerfView.as_view(),
-                            name='cinder-api-perf'),
-                        )
-
-
-#     url(r'^volumes[/]?$', VolumesDataView.as_view(),
-#         name='cinder-volumes'),
-#     url(r'^backups[/]?$', BackupsDataView.as_view(),
-#         name='cinder-backups'),
-#     url(r'^snapshots[/]?$', SnapshotsDataView.as_view(),
-#         name='cinder-snapshots'),
-#     url(r'^services[/]?$', ServicesDataView.as_view(),
-#         name='cinder-services'),
-#     url(r'^volume_types[/]?$', VolumeTypesDataView.as_view(),
-#         name='cinder-volume-types'),
-#     url(r'^transfers[/]?$', TransfersDataView.as_view(),
-#         name='cinder-transfers'),
-# )
+urlpatterns = patterns('',
+    url(r'^api_perf[/]?$', ApiPerfView.as_view(), name='cinder-api-perf'),
+    url(r'^backups[/]?$', BackupsDataView.as_view(), name='cinder-backups'),
+    url(r'^report[/]?$', ReportView.as_view(), name='report_list_view'),
+    url(r'^services[/]?$', ServicesDataView.as_view(), name='cinder-services'),
+    url(r'^snapshots[/]?$',
+        SnapshotsDataView.as_view(),
+        name='cinder-snapshots'),
+    url(r'^transfers[/]?$',
+        TransfersDataView.as_view(),
+        name='cinder-transfers'),
+    url(r'^volumes[/]?$', VolumesDataView.as_view(), name='cinder-volumes'),
+    url(r'^volume_types[/]?$',
+        VolumeTypesDataView.as_view(),
+        name='cinder-volume-types'),
+)

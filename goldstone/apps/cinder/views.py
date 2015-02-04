@@ -14,7 +14,7 @@
 # limitations under the License.
 import logging
 
-from goldstone.views import *
+from goldstone.views import TopLevelView, ApiPerfView
 from .models import *
 
 logger = logging.getLogger(__name__)
@@ -37,12 +37,12 @@ class JsonListView(ListAPIView):
     """A base view that renders a JSON response for "list" actions; i.e.,
     GET requests for a collection of objects.
 
-    This is subclassed.
+    This is always subclassed.
 
     """
 
     # We render only to JSON format.
-    renderer_classes = (JSONRenderer)
+    renderer_classes = (JSONRenderer, )
 
     # These are overridden by the subclass.
     zone_key = None
@@ -60,7 +60,7 @@ class JsonListView(ListAPIView):
         """
 
         try:
-            self.data = self.model().get()
+            data = self.model().get()
 
             result = []
 
@@ -90,49 +90,46 @@ class JsonListView(ListAPIView):
         """Implement the GET request."""
 
         # Extract a zone or region provided in the request, if present.
-        request_zone = self.request.GET.get('zone')
-        request_region = self.request.GET.get('region')
+        request_zone = self.request.data.get('zone')
+        request_region = self.request.data.get('region')
 
-        # Now fetch the data to be returned, convert it to JSON, and return it.
+        # Now fetch the data to be returned, and return it as JSON.
         try:
             content = self._get_data(request_zone, request_region)
-            content = json.dumps(content)
-            return HttpResponse(content=content,
-                                content_type='application/json')
+            return Response(content)
         except ElasticsearchException:
-            return HttpResponse(content="Could not connect to the "
-                                        "search backend",
-                                status=status.HTTP_504_GATEWAY_TIMEOUT)
+            return Response("Could not connect to the search backend",
+                            status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
-class VolumesDataView(JSONView):
+class VolumesDataView(JsonListView):
     model = VolumesData
     key = 'volumes'
     zone_key = 'availability_zone'
 
 
-class BackupsDataView(JSONView):
+class BackupsDataView(JsonListView):
     model = BackupsData
     key = 'backups'
     zone_key = 'availability_zone'
 
 
-class SnapshotsDataView(JSONView):
+class SnapshotsDataView(JsonListView):
     model = SnapshotsData
     key = 'snapshots'
 
 
-class ServicesDataView(JSONView):
+class ServicesDataView(JsonListView):
     model = ServicesData
     key = 'services'
     zone_key = 'zone'
 
 
-class VolumeTypesDataView(JSONView):
+class VolumeTypesDataView(JsonListView):
     model = VolTypesData
     key = 'volume_types'
 
 
-class TransfersDataView(JSONView):
+class TransfersDataView(JsonListView):
     model = TransfersData
     key = 'transfers'
