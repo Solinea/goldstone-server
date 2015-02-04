@@ -14,6 +14,7 @@
 # limitations under the License.
 from goldstone.utils import TopologyMixin
 
+
 class DiscoverTree(TopologyMixin):
 
     def __init__(self):

@@ -1,3 +1,4 @@
+"""Core tasks."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -12,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from elasticutils import get_es
-
-__author__ = 'stanford'
 
 from goldstone.celery import app as celery_app
 from django.conf import settings
@@ -35,7 +34,7 @@ def get_es_connection(server=settings.ES_SERVER):
     except exceptions.TransportError:
         logger.error("Could not connect to ElasticSearch.")
         raise
-    except:
+    except Exception:
         logger.warn('Unknown exception getting ES connection.  Please report '
                     'this.')
         raise
@@ -63,7 +62,7 @@ def _create_or_replace_alias(index_name, server=settings.ES_SERVER,
             })
         else:
             conn.indices.put_alias(alias, index_name)
-    except:
+    except Exception:
         logger.warn('Alias creation failed. Please report this.')
         raise
 
@@ -106,7 +105,7 @@ def _put_agent_template(server=settings.ES_SERVER):
         f = open(os.path.join(os.path.dirname(__file__),
                               "goldstone_agent_template.json"), 'rb')
         _put_es_template(f, "goldstone_agent", server=server)
-    except:
+    except Exception:
         logger.error("Failed to create/update the goldstone_agent template.  "
                      "Please report this.")
         raise
@@ -117,7 +116,7 @@ def _put_model_template(server=settings.ES_SERVER):
         f = open(os.path.join(os.path.dirname(__file__),
                               "goldstone_model_template.json"), 'rb')
         _put_es_template(f, "goldstone_model", server=server)
-    except:
+    except Exception:
         logger.error("Failed to create/update the goldstone_agent template.  "
                      "Please report this.")
         raise
@@ -128,7 +127,7 @@ def _put_goldstone_daily_template(server=settings.ES_SERVER):
         f = open(os.path.join(os.path.dirname(__file__),
                               "goldstone_es_template.json"), 'rb')
         _put_es_template(f, "goldstone_daily", server=server)
-    except:
+    except Exception:
         logger.error("Failed to create/update the goldstone_es template.  "
                      "Please report this.")
         raise
@@ -157,7 +156,7 @@ def _create_daily_index(server=settings.ES_SERVER,
     try:
         _create_index(index_name)
         return _create_or_replace_alias(index_name)
-    except:
+    except Exception:
         logger.error("Failed to create the daily goldstone index and/or"
                      "alias.  Please report this.")
         raise
@@ -171,7 +170,7 @@ def _create_agent_index(server=settings.ES_SERVER):
 
     try:
         return _create_index(index_name)
-    except:
+    except Exception:
         logger.error("Failed to create the goldstone agent index. Please "
                      "report this.")
         raise
@@ -187,11 +186,13 @@ def manage_es_indices(self,
     :param es_port:
     :return: (Boolean, Boolean, Boolean)
     """
+
     result = []
+
     try:
         _create_daily_index(basename='goldstone')
         result.append(True)
-    except:
+    except Exception:
         logger.exception("exception creating daily goldstone index")
         result.append(False)
 
@@ -201,7 +202,7 @@ def manage_es_indices(self,
                             settings.ES_GOLDSTONE_RETENTION,
                             es_host, es_port)
             result.append(True)
-    except:
+    except Exception:
         logger.exception("exception deleting old goldstone indices")
         result.append(False)
 
@@ -211,7 +212,7 @@ def manage_es_indices(self,
                             settings.ES_LOGSTASH_RETENTION,
                             es_host, es_port)
             result.append(True)
-    except:
+    except Exception:
         logger.exception("exception deleting old logstash indices")
         result.append(False)
 

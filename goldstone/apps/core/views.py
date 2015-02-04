@@ -14,7 +14,6 @@
 # limitations under the License.
 import logging
 
-import arrow
 from django.http import Http404, HttpResponseNotAllowed
 import elasticutils
 from rest_framework import status
@@ -23,8 +22,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from .models import EventType, Event, MetricType, Metric, ReportType, Report, \
-    validate_str_bool, validate_method_choices, Node
+from .models import Event, Metric, Report, Node
 from .serializers import EventSerializer, NodeSerializer, MetricSerializer, \
     ReportSerializer
 

@@ -12,9 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'John Stanford'
-
 from django.conf import settings
 from elasticsearch import Elasticsearch, ElasticsearchException
 import redis
@@ -70,17 +67,19 @@ class ESData(object):
     def _get_latest_index(self, prefix):
         """
         Get an index based on a prefix filter and simple list sort.  assumes
-         that sorting the list of indexes with matching prefix will
-         result in the most current one at the end of the list.  Works for
-         typical datestamp index names like logstash-2014.03.27.  If you know
-         your index names have homogeneous, should work without the prefix, but
-         use caution!
+        that sorting the list of indexes with matching prefix will
+        result in the most current one at the end of the list.  Works for
+        typical datestamp index names like logstash-2014.03.27.  If you know
+        your index names have homogeneous, should work without the prefix, but
+        use caution!
 
         :arg prefix: the prefix used to filter index list
         :returns: index name
+
         """
 
         candidates = []
+
         if prefix is not None:
             candidates = [k for k in
                           self._conn.indices.status()['indices'].keys() if
@@ -89,6 +88,7 @@ class ESData(object):
             candidates = [k for k in
                           self._conn.indices.status()['indices'].keys()]
         candidates.sort()
+
         try:
             return candidates.pop()
         except IndexError:
@@ -99,6 +99,7 @@ class ESData(object):
                               self._conn.indices.status()['indices'].keys() if
                               k.startswith(prefix + "-")]
                 candidates.sort()
+
                 try:
                     return candidates.pop()
                 except IndexError:
@@ -277,17 +278,21 @@ class ESData(object):
 
         response = self._conn.create(
             ESData._get_latest_index(self, self._INDEX_PREFIX),
-            self._DOC_TYPE, body, refresh=True)
+            self._DOC_TYPE,
+            body,
+            refresh=True)
 
         logger.debug('[post] response = %s', json.dumps(response))
         return response['_id']
 
     def delete(self, doc_id):
-        """
-        deletes a record from the database by id.
+        """Delete a database record by id.
+
         :arg doc_id: the id of the doc as returned by post
         :return bool
+
         """
+
         query = ESData._query_base()
         query['query'] = ESData._term_clause("_id", doc_id)
         response = self._conn.delete_by_query("_all",
@@ -338,7 +343,8 @@ class ApiPerfData(ESData):
         :arg start: datetime used to filter the query range
         :arg end: datetime used to filter the query range
         :arg interval: string representation of the time interval to use when
-                       aggregating the results.  Form should be something like: '1.5s'.
+                       aggregating the results.  Form should be something like
+                       '1.5s'.
 
         Supported time postfixes are s, m, h, d, w, m.
 

@@ -20,8 +20,7 @@ import logging
 import pytz
 
 from goldstone.celery import app as celery_app
-from goldstone.utils import _get_client, _get_cinder_client, stored_api_call, \
-    to_es_date
+from goldstone.utils import _get_client, stored_api_call, to_es_date
 from .models import ApiPerfData, ServicesData, VolumesData, BackupsData, \
     SnapshotsData, VolTypesData, EncryptionTypesData, TransfersData
 
@@ -60,8 +59,9 @@ def _update_cinder_records(rec_type, region, db, items):
 
 @celery_app.task(bind=True)
 def discover_cinder_topology(self):
+    from goldstone.utils import get_cinder_client
 
-    cinder_access = _get_cinder_client()
+    cinder_access = get_cinder_client()
     cinderclient = cinder_access['client']
     reg = cinder_access['region']
 
