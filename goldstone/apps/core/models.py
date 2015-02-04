@@ -1,3 +1,4 @@
+"""Core models."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -23,8 +24,6 @@ from elasticutils.contrib.django import MappingType, Indexable
 import logging
 from django.conf import settings
 from goldstone.utils import utc_now
-
-__author__ = 'stanford'
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +129,7 @@ class Event(Model):
         try:
             return cls.es_objects. \
                 filter(**kwargs)[0].get_object()
-        except:
+        except Exception:
             return None
 
     def save(self, force_insert=False, force_update=False):
@@ -296,9 +295,8 @@ class Report(Model):
     @classmethod
     def get(cls, **kwargs):
         try:
-            return cls.es_objects. \
-                filter(**kwargs)[0].get_object()
-        except:
+            return cls.es_objects.filter(**kwargs)[0].get_object()
+        except Exception:
             return None
 
     def save(self, force_insert=False, force_update=False, using=None,
@@ -315,13 +313,13 @@ class Report(Model):
 
 
 def validate_str_bool(value):
-        if value not in [x[0] for x in Node.MANAGED_CHOICES]:
-            raise ValidationError(u'%s is not "true" or "false"' % value)
+    if value not in [x[0] for x in Node.MANAGED_CHOICES]:
+        raise ValidationError(u'%s is not "true" or "false"' % value)
 
 
 def validate_method_choices(value):
-        if value not in [x[0] for x in Node.METHOD_CHOICES]:
-            raise ValidationError(u'%s is not a valid method' % value)
+    if value not in [x[0] for x in Node.METHOD_CHOICES]:
+        raise ValidationError(u'%s is not a valid method' % value)
 
 
 class Node(Model):

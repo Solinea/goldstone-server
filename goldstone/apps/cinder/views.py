@@ -14,9 +14,13 @@
 # limitations under the License.
 import logging
 
-from goldstone.views import TopLevelView, ApiPerfView
+from rest_framework.renderers import JSONRenderer
+from rest_framework.viewsets import ReadOnlyModelViewSet
+
+from goldstone.views import TopLevelView
+from goldstone.views import ApiPerfView as GoldstoneApiPerfView
 from .models import ApiPerfData, ServicesData, VolumesData, BackupsData, \
-    SnapshotsData, VolTypesData, EncryptionTypesData, TransfersData
+    SnapshotsData, VolTypesData, TransfersData
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +31,7 @@ class ReportView(TopLevelView):
     template_name = 'cinder_report.html'
 
 
-class ApiPerfView(ApiPerfView):
+class ApiPerfView(GoldstoneApiPerfView):
     """Cinder api_perf view."""
 
     my_template_name = 'cinder_api_perf.html'
@@ -83,7 +87,7 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
         model, key, zone_key = self.URLS.get(base, (None, None, None))
 
         try:
-            data = self.model().get()
+            data = model().get()
 
             result = []
 
@@ -91,15 +95,15 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
                 region = item['_source']['region']
 
                 if request_region is None or request_region == region:
-                    ts = item['_source']['@timestamp']
+                    timestamp = item['_source']['@timestamp']
 
                     new_list = []
 
                     for rec in item['_source'][key]:
-                        if request_zone is None or self.zone_key is None or \
-                                request_zone == rec[self.zone_key]:
+                        if request_zone is None or zone_key is None or \
+                                request_zone == rec[zone_key]:
                             rec['region'] = region
-                            rec['@timestamp'] = ts
+                            rec['@timestamp'] = timestamp
                             new_list.append(rec)
 
                     result.append(new_list)
@@ -116,6 +120,9 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
         :type base: str
 
         """
+        from elasticsearch import ElasticsearchException
+        from rest_framework.response import Response
+        from rest_framework import status
 
         # Extract a zone or region provided in the request, if
         # present. And remember the base segment of the URL that got
@@ -135,5 +142,6 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         """We do not implement single-object GET."""
+        from django.http import HttpResponseNotAllowed
 
         return HttpResponseNotAllowed('')
