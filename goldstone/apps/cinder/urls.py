@@ -13,24 +13,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf.urls import patterns, url
+from rest_framework.routers import DefaultRouter
+from .views import ReportView, ApiPerfView, JsonReadOnlyViewSet
 
-from .views import ReportView, ApiPerfView, VolumesViewSet, BackupsViewSet, \
-    SnapshotsViewSet, CinderServicesViewSet, VolumeTypesViewSet, \
-    TransfersDataViewSet
+router = DefaultRouter()
+router.register(r'^(?P<base>backups)[/]?$',
+                JsonReadOnlyViewSet,
+                base_name='cinder-backups')
+router.register(r'^(?P<base>services)[/]?$',
+                JsonReadOnlyViewSet,
+                base_name='cinder-services')
+router.register(r'^(?P<base>snapshots)[/]?$',
+                JsonReadOnlyViewSet,
+                base_name='cinder-snapshots')
+router.register(r'^(?P<base>transfers)[/]?$',
+                JsonReadOnlyViewSet,
+                base_name='cinder-transfers')
+router.register(r'^(?P<base>volumes)[/]?$',
+                JsonReadOnlyViewSet,
+                base_name='cinder-volumes')
+router.register(r'^(?P<base>volume_types)[/]?$',
+                JsonReadOnlyViewSet,
+                base_name='cinder-volume-types')
 
-urlpatterns = patterns('',
-    url(r'^api_perf[/]?$', ApiPerfView.as_view(), name='cinder-api-perf'),
-    url(r'^backups[/]?$', BackupsDataView.as_view(), name='cinder-backups'),
-    url(r'^report[/]?$', ReportView.as_view(), name='report_list_view'),
-    url(r'^services[/]?$', ServicesDataView.as_view(), name='cinder-services'),
-    url(r'^snapshots[/]?$',
-        SnapshotsDataView.as_view(),
-        name='cinder-snapshots'),
-    url(r'^transfers[/]?$',
-        TransfersDataView.as_view(),
-        name='cinder-transfers'),
-    url(r'^volumes[/]?$', VolumesDataView.as_view(), name='cinder-volumes'),
-    url(r'^volume_types[/]?$',
-        VolumeTypesDataView.as_view(),
-        name='cinder-volume-types'),
-)
+urlpatterns = router.urls
+urlpatterns += patterns('',
+                        url(r'^api_perf[/]?$',
+                            ApiPerfView.as_view(),
+                            name='cinder-api-perf'),
+                        url(r'^report[/]?$',
+                            ReportView.as_view(),
+                            name='cinder-report-view'),
+                        )
