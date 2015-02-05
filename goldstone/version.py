@@ -14,4 +14,4 @@
 # limitations under the License.
 import pbr.version
 
-version_info = pbr.version.VersionInfo('goldstone')
+version_info = pbr.version.VersionInfo('goldstone')    # pylint: disable=C0103

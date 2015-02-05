@@ -44,9 +44,6 @@ import arrow
 
 logger = logging.getLogger(__name__)
 
-get_keystone_client = functools.partial(_get_client, service='keystone')
-get_cinder_client = functools.partial(_get_client, service='cinder')
-
 
 def _patched_cinder_service_repr(self):
     """Hacking in a patch for the cinder service __repr__ method."""
@@ -143,10 +140,10 @@ def get_region_for_keystone_client(client):
 
 
 @lru_cache(maxsize=16)
-def _get_client(service, user=settings.OS_USERNAME,
-                passwd=settings.OS_PASSWORD,
-                tenant=settings.OS_TENANT_NAME,
-                auth_url=settings.OS_AUTH_URL):
+def get_client(service, user=settings.OS_USERNAME,
+               passwd=settings.OS_PASSWORD,
+               tenant=settings.OS_TENANT_NAME,
+               auth_url=settings.OS_AUTH_URL):
 
     # Error message template.
     NO_AUTH = "%s client failed to authorize. Check credentials in" \
@@ -190,10 +187,10 @@ def _get_client(service, user=settings.OS_USERNAME,
             client = neclient.Client(user, passwd, tenant, auth_url)
             return {'client': client}
         except NeutronUnauthorized:
-            raise GoldstoneAuthError(NO_AUTH % Neutron)
+            raise GoldstoneAuthError(NO_AUTH % "Neutron")
     elif service == 'glance':
         try:
-            kc = _get_client(service='keystone')['client']
+            kc = get_client(service='keystone')['client']
             mgmt_url = kc.endpoints.find(service_id=kc.services.
                                          find(name='glance').id).internalurl
             region = _get_region_for_glance_client(kc)
@@ -203,6 +200,12 @@ def _get_client(service, user=settings.OS_USERNAME,
             raise GoldstoneAuthError(NO_AUTH % "Glance")
     else:
         raise GoldstoneAuthError("Unknown service")
+
+# These must be defined here, because they're based on get_client.
+get_cinder_client = functools.partial(get_client, service='cinder')
+get_glance_client = functools.partial(get_client, service='glance')
+get_keystone_client = functools.partial(get_client, service='keystone')
+get_nova_client = functools.partial(get_client, service='nova')
 
 
 def _is_v4_ip_addr(candidate):
@@ -429,13 +432,13 @@ def stored_api_call(component, endpt, path, headers={}, data=None,
             if reply.status_code == requests.codes.unauthorized:
                 logger.debug("clearing keystone client cache due to 401 "
                              "response")
-                _get_client.cache_clear()
+                get_client.cache_clear()
 
         except Timeout:
             reply = None
             logger.debug("clearing keystone client cache due to 508 "
                          "response")
-            _get_client.cache_clear()
+            get_client.cache_clear()
 
         return {
             'reply': reply,

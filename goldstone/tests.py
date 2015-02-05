@@ -1,3 +1,4 @@
+"""Goldstone tests."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -11,27 +12,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone import StartupGoldstone
-from goldstone.apps.core.models import Node
-
-from keystoneclient.exceptions import ClientException
+from datetime import datetime, timedelta
 from django.test import TestCase, SimpleTestCase
 from django.conf import settings
-from goldstone.models import GSConnection, ESData
-from goldstone.apps.core.tasks import _create_daily_index
 from elasticsearch import *
 import gzip
 import os
 import json
-from goldstone.utils import stored_api_call, _get_keystone_client, \
-    _construct_api_rec, GoldstoneAuthError
 import logging
-from datetime import datetime, timedelta
+
+from keystoneclient.v2_0.client import Client
+from keystoneclient.exceptions import ClientException
 from mock import patch, PropertyMock
 from requests.models import Response
-from keystoneclient.v2_0.client import Client
 
-__author__ = 'John Stanford'
+from goldstone import StartupGoldstone
+from goldstone.models import GSConnection, ESData
+from goldstone.apps.core.models import Node
+from goldstone.apps.core.tasks import _create_daily_index
+from goldstone.utils import stored_api_call, get_keystone_client, \
+    _construct_api_rec, GoldstoneAuthError
 
 logger = logging.getLogger(__name__)
 
@@ -139,31 +139,33 @@ class UtilsTests(SimpleTestCase):
 
     @patch('keystoneclient.v2_0.client.Client')
     def test_get_keystone_client(self, kc):
+
         kc.side_effect = ClientException
         self.assertRaises(ClientException,
-                          _get_keystone_client, user='abc')
+                          get_keystone_client, user='abc')
         self.assertRaises(ClientException,
-                          _get_keystone_client, passwd='abc')
+                          get_keystone_client, passwd='abc')
         self.assertRaises(ClientException,
-                          _get_keystone_client, tenant='no-tenant')
+                          get_keystone_client, tenant='no-tenant')
         self.assertRaises(ClientException,
-                          _get_keystone_client,
+                          get_keystone_client,
                           auth_url='http://www.solinea.com')
+
         kc.side_effect = None
         kc.auth_token = None
         type(kc.return_value).auth_token = \
             PropertyMock(return_value=None)
-        self.assertRaises(GoldstoneAuthError,
-                          _get_keystone_client)
+        self.assertRaises(GoldstoneAuthError, get_keystone_client)
+
         type(kc.return_value).auth_token = \
             PropertyMock(return_value='mocked_token')
-        reply = _get_keystone_client()
+        reply = get_keystone_client()
         self.assertIn('client', reply)
         self.assertIn('hex_token', reply)
 
     @patch('requests.get')
     @patch('keystoneclient.v2_0.client.Client')
-    @patch('goldstone.utils._get_keystone_client')
+    @patch('goldstone.utils.get_keystone_client')
     def test_stored_api_call(self, kc, c, get):
         component = 'nova'
         endpoint = 'compute'

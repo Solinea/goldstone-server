@@ -1,4 +1,5 @@
-# Copyright 2014 Solinea, Inc.
+"""Cinder tests."""
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -11,9 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'John Stanford'
-
 import calendar
 from django.test import SimpleTestCase
 from .tasks import *
@@ -96,11 +94,16 @@ class ViewTests(SimpleTestCase):
 class DataViewTests(SimpleTestCase):
 
     def _evaluate(self, response):
+        """Check a test's results."""
+        import json
+        from django.http import HttpResponse
+
         self.assertIsInstance(response, HttpResponse)
         self.assertNotEqual(response.content, None)
+
         try:
             j = json.loads(response.content)
-        except:
+        except Exception:
             self.fail("Could not convert content to JSON, content was %s",
                       response.content)
         else:
