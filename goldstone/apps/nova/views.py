@@ -87,24 +87,20 @@ class SpawnsView(TemplateView):
         if not (success_data.empty and failure_data.empty):
             if success_data.empty:
                 failure_data['successes'] = 0
-                self.data = failure_data.rename(
-                    columns={'doc_count': 'failures'})
+                self.data = failure_data
             elif failure_data.empty:
                 success_data['failures'] = 0
-                self.data = success_data.rename(
-                    columns={'doc_count': 'successes'})
+                self.data = success_data
             else:
-                logger.debug("[_handle_request] successes = %s", success_data)
-                logger.debug("[_handle_request] failures = %s", failure_data)
                 self.data = pd.ordered_merge(
-                    success_data, failure_data, on='key',
-                    suffixes=['_successes', '_failures']) \
-                    .rename(columns={'doc_count_successes': 'successes',
-                                     'doc_count_failures': 'failures'})
+                    success_data, failure_data, on='timestamp')
 
-        logger.debug("[_handle_request] self.data = %s", self.data)
         if not self.data.empty:
-            self.data = self.data.set_index('key').fillna(0)
+            logger.debug("[_handle_request] self.data = %s", self.data)
+            self.data = self.data[['timestamp', 'successes', 'failures']]
+            self.data = self.data.set_index('timestamp').fillna(0)
+        else:
+            logger.debug("[_handle_request] self.data is empty")
 
         response = self.data.transpose().to_dict(outtype='list')
         return response
