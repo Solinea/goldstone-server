@@ -15,7 +15,7 @@
 from datetime import datetime, timedelta
 from django.test import TestCase, SimpleTestCase
 from django.conf import settings
-from elasticsearch import *
+from elasticsearch import ConnectionError, TransportError, Elasticsearch
 import gzip
 import os
 import json
