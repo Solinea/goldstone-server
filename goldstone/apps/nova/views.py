@@ -13,18 +13,28 @@ from __future__ import unicode_literals
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from goldstone.utils import NoResourceFound
+# -*- coding: utf-8 -*-
+"""
 
-__author__ = 'John Stanford'
+This module contains all views for the OpenStack Nova application.
+
+"""
+
+from elasticsearch import ElasticsearchException
+from rest_framework import status
+from goldstone.apps.nova.models import NovaApiPerfData, SpawnData, \
+    HypervisorStatsData, AvailZonesData, AgentsData, AggregatesData, \
+    CloudpipesData, FlavorsData, FloatingIpPoolsData, HostsData, \
+    HypervisorsData, NetworksData, SecGroupsData, ServersData, ServicesData, \
+    ResourceData
+from goldstone.utils import NoResourceFound, GoldstoneAuthError
 
 import calendar
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.generic import TemplateView
-from .models import *
-from goldstone.views import *
-from goldstone.views import _validate
-from datetime import datetime, timedelta
-import pytz
+from goldstone.views import _validate, TopLevelView, ApiPerfView, \
+    JSONView
+from datetime import datetime
 import json
 import logging
 import pandas as pd
@@ -40,8 +50,8 @@ class ApiPerfView(ApiPerfView):
     my_template_name = 'nova_api_perf.html'
 
     def _get_data(self, context):
-        return ApiPerfData().get(context['start_dt'], context['end_dt'],
-                                 context['interval'])
+        return NovaApiPerfData().get(context['start_dt'], context['end_dt'],
+                                     context['interval'])
 
 
 class SpawnsView(TemplateView):

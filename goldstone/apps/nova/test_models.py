@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__author__ = 'John Stanford'
-
-from django.test import SimpleTestCase
-from .models import *
-from datetime import datetime
 import pytz
 import pandas
+import logging
 
+from django.test import SimpleTestCase
+from datetime import datetime
+from goldstone.apps.nova.models import HypervisorStatsData, SpawnData, \
+    ResourceData, NovaApiPerfData
+from goldstone.models import ESData
 
 logger = logging.getLogger(__name__)
 
@@ -79,45 +80,6 @@ class SpawnDataModel(SimpleTestCase):
                 "success", "false",
                 "success_filter")['success_filter']['filter'])
 
-    # TODO move to integration test
-    # def test_get_spawn_start(self):
-    #     sd = SpawnData(self.start, self.end, self.interval)
-    #     response = sd.get_spawn_start()
-    #     self.assertEqual(False, response.empty)
-    #     # test for an empty response
-    #     sd.start = datetime.now(tz=pytz.utc)
-    #     sd.end = datetime.now(tz=pytz.utc)
-    #     sd.interval = "1s"
-    #     response = sd.get_spawn_start()
-    #     logger.debug("response = %s", response)
-    #     self.assertEqual(True, response.empty)
-
-    # TODO move to integration test
-    # def test_get_spawn_finish(self):
-    #     sd = SpawnData(self.start, self.end, self.interval)
-    #     response = sd._get_spawn_finish(True)
-    #     self.assertEqual(False, response.empty)
-    #     # test for an empty response
-    #     sd.start = datetime.now(tz=pytz.utc)
-    #     sd.end = datetime.now(tz=pytz.utc)
-    #     sd.interval = "1s"
-    #     response = sd.get_spawn_start()
-    #     self.assertEqual(True, response.empty)
-
-    # TODO move to integration test
-    # def test_get_spawn_success(self):
-    #     sd = SpawnData(self.start, self.end, self.interval)
-    #     response = sd.get_spawn_success()
-    #     control = sd._get_spawn_finish(True)
-    #     self.assertTrue(response.equals(control))
-
-    # TODO move to integration test
-    # def test_get_spawn_failure(self):
-    #     sd = SpawnData(self.start, self.end, self.interval)
-    #     response = sd.get_spawn_failure()
-    #     control = sd._get_spawn_finish(False)
-    #     self.assertTrue(response.equals(control))
-
 
 class ResourceDataTest(SimpleTestCase):
     start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
@@ -171,6 +133,6 @@ class ApiPerfDataTest(SimpleTestCase):
     interval = '3600s'
 
     def test_api_perf_data(self):
-        apd = ApiPerfData()
+        apd = NovaApiPerfData()
         result = apd.get(self.start, self.end, self.interval)
         self.assertFalse(result.empty)
