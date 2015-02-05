@@ -12,8 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.models import ApiPerfData as GoldstoneApiPerfData
-from goldstone.models import TopologyData
+from goldstone.models import ApiPerfData as GoldstoneApiPerfData, TopologyData
 
 # pylint: disable=C0111
 

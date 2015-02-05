@@ -119,14 +119,16 @@ def discover_nova_topology(self):
                          FloatingIpPoolsData(),
                          client.floating_ip_pools.list())
     _update_nova_records("hosts", reg, HostsData(), client.hosts.list())
-    _update_nova_records("hypervisors", reg,
+    _update_nova_records("hypervisors",
+                         reg,
                          HypervisorsData(),
                          client.hypervisors.list())
     _update_nova_records("networks",
                          reg,
                          NetworksData(),
                          client.networks.list())
-    _update_nova_records("secgroups", reg,
+    _update_nova_records("secgroups",
+                         reg,
                          SecGroupsData(),
                          client.security_groups.list())
     _update_nova_records("servers", reg, ServersData(), client.servers.list())

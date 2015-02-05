@@ -129,7 +129,7 @@ class Event(Model):
         try:
             return cls.es_objects. \
                 filter(**kwargs)[0].get_object()
-        except Exception:
+        except Exception:       # pylint: disable=W0703
             return None
 
     def save(self, force_insert=False, force_update=False):
@@ -211,9 +211,8 @@ class Metric(Model):
     @classmethod
     def get(cls, **kwargs):
         try:
-            return cls.es_objects. \
-                filter(**kwargs)[0].get_object()
-        except:
+            return cls.es_objects.filter(**kwargs)[0].get_object()
+        except Exception:       # pylint: disable=W0703
             return None
 
     def save(self, force_insert=False, force_update=False):
@@ -274,29 +273,31 @@ class Report(Model):
 
     @classmethod
     def _reconstitute(cls, **kwargs):
-        """
-        provides a way for the mapping type to create an object from ES data
-        """
+        """Allows the mapping type to create an object from ES data."""
+
         # reports could be stringified JSON, so let's find out
         if "value" in kwargs and type(kwargs["value"]) is list:
             new_val = []
+
             for item in kwargs["value"]:
                 try:
                     new_val.append(json.loads(item))
-                except:
+                except Exception:       # pylint: disable=W0703
                     new_val.append(item)
+
             kwargs['value'] = new_val
 
         else:
             logger.debug("no value present in kwargs, or value not a list")
-        obj = cls(**kwargs)
-        return obj
+
+        return cls(**kwargs)
 
     @classmethod
     def get(cls, **kwargs):
+
         try:
             return cls.es_objects.filter(**kwargs)[0].get_object()
-        except Exception:
+        except Exception:       # pylint: disable=W0703
             return None
 
     def save(self, force_insert=False, force_update=False, using=None,
