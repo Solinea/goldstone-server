@@ -149,7 +149,7 @@ def discover_nova_topology(self):
     _update_nova_records("servers",
                          reg,
                          ServersData(),
-                         cl.servers.list(search_opts={'all_tenants': 1}))
+                         client.servers.list(search_opts={'all_tenants': 1}))
     _update_nova_records("services",
                          reg,
                          ServicesData(),
