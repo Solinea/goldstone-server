@@ -14,18 +14,19 @@
 # limitations under the License.
 from __future__ import absolute_import
 
-import pytz
+from datetime import datetime
+import json
+import logging
+import requests
+
 from django.conf import settings
+import pytz
+
+from .models import *
 from goldstone.celery import app as celery_app
 from novaclient.v1_1 import client
-import logging
-import json
-import requests
-from datetime import datetime
-from .models import *
-from goldstone.utils import _get_client, stored_api_call, to_es_date, \
-    _get_nova_client, get_region_for_nova_client
-
+from goldstone.utils import stored_api_call, to_es_date, \
+    get_region_for_nova_client
 
 logger = logging.getLogger(__name__)
 
@@ -47,12 +48,16 @@ def nova_hypervisors_stats(self):
 
 @celery_app.task(bind=True)
 def time_nova_api(self):
+    """Call the hypervisor list command, and if there are hypervisors, call the
+    hypervisor show command.
+
+    Inserts record with hypervisor show preferred.
+
     """
-    Call the hypervisor list command, and if there are hypervisors, calls the
-    hypervisor show command.  Inserts record with hypervisor show preferred.
-    """
+    from goldstone.utils import get_client
+
     result = stored_api_call("nova", "compute", "/os-hypervisors")
-    logger.debug(_get_client.cache_info())
+    logger.debug(get_client.cache_info())
 
     # check for existing hypervisors. if they exist, redo the call with a
     # single hypervisor for a more consistent result.
@@ -63,15 +68,13 @@ def time_nova_api(self):
             result = stored_api_call("nova", "compute",
                                      "/os-hypervisors/" +
                                      str(body['hypervisors'][0]['id']))
-            logger.debug(_get_client.cache_info())
+            logger.debug(get_client.cache_info())
 
     api_db = ApiPerfData()
     rec_id = api_db.post(result['db_record'])
     logger.debug("[time_nova_api] id = %s", rec_id)
-    return {
-        'id': rec_id,
-        'record': result['db_record']
-    }
+
+    return {'id': rec_id, 'record': result['db_record']}
 
 
 def _update_nova_records(rec_type, region, db, items):
@@ -89,10 +92,12 @@ def _update_nova_records(rec_type, region, db, items):
 
 @celery_app.task(bind=True)
 def discover_nova_topology(self):
+    from goldstone.utils import get_nova_client
 
-    nova_access = _get_nova_client()
+    nova_access = get_nova_client()
     client = nova_access['client']
     client.client.authenticate()
+
     reg = get_region_for_nova_client(client)
 
     _update_nova_records("agents", reg, AgentsData(), client.agents.list())

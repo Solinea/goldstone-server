@@ -1,4 +1,5 @@
-# Copyright 2014 Solinea, Inc.
+"""Nova app models."""
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -11,25 +12,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from pyes import BoolQuery, RangeQuery, ESRangeOp, TermQuery
-
-__author__ = 'John Stanford'
-
-import logging
-import json
 from datetime import datetime
-from types import StringType
-from goldstone.models import ApiPerfData, TopologyData
-
+import json
+import logging
 import pandas as pd
+from pyes import BoolQuery, RangeQuery, ESRangeOp, TermQuery
+from types import StringType
 
-from goldstone.models import ESData
-
+from goldstone.models import ESData, TopologyData
+from goldstone.models import ApiPerfData as GoldstoneApiPerfData
 
 logger = logging.getLogger(__name__)
 
 
-class ApiPerfData(ApiPerfData):
+class ApiPerfData(GoldstoneApiPerfData):
     component = 'nova'
 
 
@@ -51,15 +47,17 @@ class NovaClientData(ESData):
     _INDEX_PREFIX = 'logstash'
 
     def get_date_range(self, start, end, first=0, count=10, sort='desc'):
-        """
-        get Availability Zone for a date range from the database.
+        """Return the Availability Zone for a date range from the database.
+
         :arg start: datetime of early boundary
         :arg end: datetime of late boundary
         :arg first: index of first record (optional)
         :arg count: max number of records (optional)
         :arg sort: sort order {'asc', 'desc'} (optional)
         :return array of records
+
         """
+
         q = ESData._filtered_query_base()
         q['query']['filtered']['query'] = {'match_all': {}}
         q['query']['filtered']['filter'] = ESData._range_clause(

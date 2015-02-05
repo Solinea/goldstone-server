@@ -20,7 +20,7 @@ import logging
 import pytz
 
 from goldstone.celery import app as celery_app
-from goldstone.utils import _get_client, stored_api_call, to_es_date
+from goldstone.utils import stored_api_call, to_es_date
 from .models import ApiPerfData, ServicesData, VolumesData, BackupsData, \
     SnapshotsData, VolTypesData, EncryptionTypesData, TransfersData
 
@@ -29,14 +29,16 @@ logger = logging.getLogger(__name__)
 
 @celery_app.task(bind=True)
 def time_cinder_api(self):
+    """Call the service list command for the test tenant.
+
+    Retrieves the endpoint from keystone, then constructs the URL and inserts a
+    record in the DB.
+
     """
-    Call the service list command for the test tenant.  Retrieves the
-    endpoint from keystone, then constructs the URL and inserts a record
-    in the DB.
-    """
+    from goldstone.utils import get_client
 
     result = stored_api_call("cinder", "volume", "/os-services")
-    logger.debug(_get_client.cache_info())
+    logger.debug(get_client.cache_info())
 
     api_db = ApiPerfData()
     rec_id = api_db.post(result['db_record'])
