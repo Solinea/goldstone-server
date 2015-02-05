@@ -127,6 +127,7 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
         # Extract a zone or region provided in the request, if
         # present. And remember the base segment of the URL that got
         # here.
+        import pdb; pdb.set_trace()
         request_zone = self.request.data.get('zone')
         request_region = self.request.data.get('region')
         base = self.kwargs['base']

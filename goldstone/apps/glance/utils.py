@@ -28,7 +28,7 @@ class DiscoverTree(TopologyMixin):
     def _get_regions(self):
         from goldstone.utils import get_client
 
-        kc = _get_client(service='keystone')['client']
+        kc = get_client(service='keystone')['client']
         r = _get_region_for_glance_client(kc)
         return [{"rsrcType": "region", "label": r}]
 

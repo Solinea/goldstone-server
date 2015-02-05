@@ -175,7 +175,8 @@ def _create_agent_index(server=settings.ES_SERVER):
 
 
 @celery_app.task(bind=True)
-def manage_es_indices(self, es_host=settings.ES_HOST, es_port=settings.ES_PORT):
+def manage_es_indices(self, es_host=settings.ES_HOST,
+                      es_port=settings.ES_PORT):
     """Create a daily goldstone index, cull old goldstone and logstash indices.
 
     :param es_host:
