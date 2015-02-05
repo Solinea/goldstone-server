@@ -30,8 +30,8 @@ from elasticsearch import ElasticsearchException
 import pandas as pd
 from rest_framework import status
 
-from .models import ApiPerfData, HypervisorStatsData, SpawnData, ResourceData, \
-    AgentsData, AggregatesData, AvailZonesData, CloudpipesData, \
+from .models import NovaApiPerfData, HypervisorStatsData, SpawnData, \
+    ResourceData, AgentsData, AggregatesData, AvailZonesData, CloudpipesData, \
     FlavorsData, FloatingIpPoolsData, HostsData, HypervisorsData, \
     NetworksData, SecGroupsData, ServersData, ServicesData
 from goldstone.views import TopLevelView, ApiPerfView as GoldstoneApiPerfView, \
