@@ -20,6 +20,8 @@ import requests
 
 from .models import ApiPerfData
 from goldstone.celery import app as celery_app
+# This must be imported at the module level, for a unit test mock.
+from goldstone.utils import stored_api_call
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +34,7 @@ def time_neutron_api(self):
     Inserts record with agent show preferred.
 
     """
-    from goldstone.utils import get_client, stored_api_call
+    from goldstone.utils import get_client
 
     result = stored_api_call("neutron", "network", "/v2.0/agents")
     logger.debug(get_client.cache_info())

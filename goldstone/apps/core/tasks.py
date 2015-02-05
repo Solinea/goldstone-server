@@ -16,7 +16,6 @@ from elasticutils import get_es
 
 from goldstone.celery import app as celery_app
 from django.conf import settings
-from elasticsearch import *
 from elasticsearch.exceptions import TransportError, RequestError
 import os
 import json
@@ -164,9 +163,7 @@ def _create_daily_index(server=settings.ES_SERVER,
 
 
 def _create_agent_index(server=settings.ES_SERVER):
-    """
-    Create a new index in ElasticSearch.
-    """
+    """Create a new index in ElasticSearch."""
     index_name = "goldstone_agent"
 
     try:
@@ -178,14 +175,13 @@ def _create_agent_index(server=settings.ES_SERVER):
 
 
 @celery_app.task(bind=True)
-def manage_es_indices(self,
-                      es_host=settings.ES_HOST,
-                      es_port=settings.ES_PORT):
-    """
-    Create a daily goldstone index, cull old goldstone and logstash indices
+def manage_es_indices(self, es_host=settings.ES_HOST, es_port=settings.ES_PORT):
+    """Create a daily goldstone index, cull old goldstone and logstash indices.
+
     :param es_host:
     :param es_port:
     :return: (Boolean, Boolean, Boolean)
+
     """
 
     result = []
