@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+"""Nova app views."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -12,22 +12,26 @@ from __future__ import unicode_literals
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import unicode_literals
 
-from goldstone.utils import NoResourceFound
-
-__author__ = 'John Stanford'
-
-import calendar
-from django.http import HttpResponse, HttpResponseBadRequest
-from django.views.generic import TemplateView
-from .models import *
-from goldstone.views import *
-from goldstone.views import _validate
-from datetime import datetime, timedelta
-import pytz
 import json
 import logging
+import calendar
+from datetime import datetime
+
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.views.generic import TemplateView
+from elasticsearch import ElasticsearchException
 import pandas as pd
+from rest_framework import status
+
+from .models import ApiPerfData, HypervisorStatsData, SpawnData, ResourceData, \
+    AgentsData, AggregatesData, AvailZonesData, CloudpipesData, \
+    FlavorsData, FloatingIpPoolsData, HostsData, HypervisorsData, \
+    NetworksData, SecGroupsData, ServersData, ServicesData
+from goldstone.views import TopLevelView, ApiPerfView as GoldstoneApiPerfView, \
+    JSONView
+from goldstone.views import _validate
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +40,7 @@ class ReportView(TopLevelView):
     template_name = 'nova_report.html'
 
 
-class ApiPerfView(ApiPerfView):
+class ApiPerfView(GoldstoneApiPerfView):
     my_template_name = 'nova_api_perf.html'
 
     def _get_data(self, context):
