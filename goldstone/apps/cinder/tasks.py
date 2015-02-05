@@ -47,14 +47,14 @@ def time_cinder_api(self):
     return {'id': rec_id, 'record': result['db_record']}
 
 
-def _update_cinder_records(rec_type, region, db, items):
+def _update_cinder_records(rec_type, region, database, items):
 
     # image list is a generator, so we need to make it not sol lazy it...
     body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
             "region": region,
             rec_type: [item.__dict__['_info'] for item in items]}
     try:
-        db.post(body)
+        database.post(body)
     except Exception:             # pylint: disable=W0703
         logger.exception("failed to index cinder %s", rec_type)
 

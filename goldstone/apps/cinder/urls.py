@@ -16,7 +16,7 @@ from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
 from .views import ReportView, ApiPerfView, JsonReadOnlyViewSet
 
-router = DefaultRouter()
+router = DefaultRouter(trailing_slash=False)
 router.register(r'^(?P<base>backups)[/]?$',
                 JsonReadOnlyViewSet,
                 base_name='cinder-backups')
