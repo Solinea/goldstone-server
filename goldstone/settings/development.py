@@ -1,3 +1,10 @@
+"""Development settings.
+
+Typically, you would point DJANGO_SETTINGS_MODULE at a file that
+imports this file, and then overrides settings as appropriate for your
+installation.
+
+"""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -12,8 +19,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from .base import *
-
-__author__ = 'Ken Pepple'
 
 TEMPLATE_DEBUG = DEBUG
 
