@@ -103,7 +103,7 @@ class ElasticViewSetMixin(object):
             logger.error("No model set in ViewSet class")
             return None
 
-    def get_object(self, _):
+    def get_object(self):
 
         queryset = self.get_queryset()
 
