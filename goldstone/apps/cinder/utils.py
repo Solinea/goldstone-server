@@ -18,11 +18,17 @@ from goldstone.utils import TopologyMixin
 class DiscoverTree(TopologyMixin):
 
     def __init__(self):
+        """Initialization.
+
+        To minimize payload here, we'll assume that there are no zones
+        that don't have at least one service.
+
+        """
+        from .models import TransfersData, VolTypesData, ServicesData
+
         self.transfers = TransfersData().get()
         self.vol_types = VolTypesData().get()
         self.services = ServicesData().get()
-        # to minimize payload here, we'll assume that there are no zones
-        # that don't have at least one service.
 
     def _get_service_regions(self):
         if self.services is None:
