@@ -14,9 +14,9 @@
 # limitations under the License.
 import calendar
 from django.test import SimpleTestCase
-from .tasks import *
-from .views import *
 from .models import ApiPerfData
+from .tasks import time_cinder_api
+from .views import ApiPerfView
 import logging
 import pytz
 from datetime import datetime
@@ -27,8 +27,9 @@ logger = logging.getLogger(__name__)
 
 
 class TaskTests(SimpleTestCase):
+    """Test cinder tasks."""
 
-    # the patch is specified with the package where the thing is looked up.
+    # The patch is specified with the package where the thing is looked up.
     # see http://www.voidspace.org.uk/python/mock/patch.html#id1.  Also
     # note that the decorators are applied from the bottom upwards. This is
     # the standard way that Python applies decorators. The order of the
@@ -36,12 +37,17 @@ class TaskTests(SimpleTestCase):
     @patch('goldstone.apps.cinder.tasks.stored_api_call')
     @patch.object(ApiPerfData, 'post')
     def test_time_cinder_api(self, post, api):
+        """Test the time_cinder_api function."""
+
         api.return_value = {'db_record': 'fake_record'}
         post.return_value = 'fake_id'
+
         result = time_cinder_api()
         self.assertTrue(api.called)
+
         api.assert_called_with("cinder", "volume", "/os-services")
         self.assertTrue(post.called)
+
         post.assert_called_with(api.return_value['db_record'])
         self.assertIn('id', result)
         self.assertEqual(result['id'], post.return_value)
@@ -50,20 +56,24 @@ class TaskTests(SimpleTestCase):
 
 
 class ViewTests(SimpleTestCase):
+    """Test api_perf."""
+
     start_dt = datetime.fromtimestamp(0, tz=pytz.utc)
     end_dt = datetime.utcnow()
     start_ts = calendar.timegm(start_dt.utctimetuple())
     end_ts = calendar.timegm(end_dt.utctimetuple())
 
     def test_get_data(self):
-        v = ServiceListApiPerfView()
-        context = {
-            'start_dt': self.start_dt,
-            'end_dt': self.end_dt,
-            'interval': '3600s'
-        }
-        # returns a pandas data frame
-        d = v._get_data(context)
+
+        view = ApiPerfView()
+        context = {'start_dt': self.start_dt,
+                   'end_dt': self.end_dt,
+                   'interval': '3600s'
+                   }
+
+        # Get a pandas data frame.
+        d = view._get_data(context)
+
         self.assertIsInstance(d, pd.DataFrame)
         self.assertEqual(d.empty, False)
 
@@ -92,6 +102,7 @@ class ViewTests(SimpleTestCase):
 
 
 class DataViewTests(SimpleTestCase):
+    """Test a grabbag of cinder API endpoints."""
 
     def _evaluate(self, response):
         """Check a test's results."""
@@ -104,7 +115,7 @@ class DataViewTests(SimpleTestCase):
         try:
             j = json.loads(response.content)
         except Exception:
-            self.fail("Could not convert content to JSON, content was %s",
+            self.fail("Could not convert content to JSON, content was %s" %
                       response.content)
         else:
             self.assertIsInstance(j, list)
