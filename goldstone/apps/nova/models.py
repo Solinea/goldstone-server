@@ -191,7 +191,7 @@ class SpawnData(ESData):
                     "doc_type=%s", index, self._DOC_TYPE)
         response = self._conn.search(
             index=index, doc_type=self._DOC_TYPE, body=q, size=0)
-        logger.info("[get_spawn_start] response = %s", json.dumps(response))
+        logger.debug("[get_spawn_start] response = %s", json.dumps(response))
         return pd.read_json(json.dumps(
             response['aggregations'][agg_name]['buckets'])
         )
@@ -209,18 +209,34 @@ class SpawnData(ESData):
         data = pd.read_json(json.dumps(
             response['aggregations'][fname][aname]['buckets']),
             orient='records')
-
+        if not data.empty:
+            del data['key_as_string']
+            col_name = 'successes' if success else 'failures'
+            data.columns = [col_name, 'timestamp']
+            data = data[['timestamp', 'successes']]
         logger.debug("[get_spawn_finish] data = %s", data)
         return data
 
     def get_spawn_success(self):
         """Return a pandas dataframe with the results of a query for nova spawn
-        success events"""
+        success events.  The format looks like:
+                   timestamp  successes
+            0  1423165800000          1
+            1  1423166100000          0
+            2  1423166400000          0
+            3  1423166700000          1
+        """
         return self._get_spawn_finish(True)
 
     def get_spawn_failure(self):
         """Return a pandas dataframe with the results of a query for nova spawn
-        failure events"""
+        failure events.  The format looks like:
+                   timestamp   failures
+            0  1423165800000          1
+            1  1423166100000          0
+            2  1423166400000          0
+            3  1423166700000          1
+        """
         return self._get_spawn_finish(False)
 
 
