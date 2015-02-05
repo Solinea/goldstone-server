@@ -1,4 +1,8 @@
-"""Nova app views."""
+"""Nova app views.
+
+This module contains all views for the OpenStack Nova application.
+
+"""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -12,12 +16,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import json
-import logging
 import calendar
 from datetime import datetime
+import json
+import logging
 
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.generic import TemplateView
@@ -44,8 +49,8 @@ class ApiPerfView(GoldstoneApiPerfView):
     my_template_name = 'nova_api_perf.html'
 
     def _get_data(self, context):
-        return ApiPerfData().get(context['start_dt'], context['end_dt'],
-                                 context['interval'])
+        return NovaApiPerfData().get(context['start_dt'], context['end_dt'],
+                                     context['interval'])
 
 
 class SpawnsView(TemplateView):

@@ -1,4 +1,10 @@
-"""Nova tasks."""
+"""Nova tasks.
+
+This module contains tasks related to the OpenStack Nova application.  They
+are typically fired from celerybeat, but may also be triggered by an output
+from logstash that writes to redis.
+
+"""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -20,11 +26,14 @@ import logging
 import requests
 
 from django.conf import settings
+from novaclient.v1_1 import client
 import pytz
 
-from .models import *
+from goldstone.apps.nova.models import HypervisorStatsData, NovaApiPerfData, \
+    AgentsData, AggregatesData, AvailZonesData, CloudpipesData, FlavorsData, \
+    FloatingIpPoolsData, HostsData, HypervisorsData, NetworksData, \
+    SecGroupsData, ServersData, ServicesData
 from goldstone.celery import app as celery_app
-from novaclient.v1_1 import client
 from goldstone.utils import stored_api_call, to_es_date, \
     get_region_for_nova_client
 
@@ -70,7 +79,7 @@ def time_nova_api(self):
                                      str(body['hypervisors'][0]['id']))
             logger.debug(get_client.cache_info())
 
-    api_db = ApiPerfData()
+    api_db = NovaApiPerfData()
     rec_id = api_db.post(result['db_record'])
     logger.debug("[time_nova_api] id = %s", rec_id)
 
@@ -92,6 +101,12 @@ def _update_nova_records(rec_type, region, db, items):
 
 @celery_app.task(bind=True)
 def discover_nova_topology(self):
+    """Contacts the configured OpenStack API endpoint and gathers Nova resource
+    information.  Information is written to the daily goldstone index.
+
+    :return: None
+
+    """
     from goldstone.utils import get_nova_client
 
     nova_access = get_nova_client()
@@ -131,7 +146,10 @@ def discover_nova_topology(self):
                          reg,
                          SecGroupsData(),
                          client.security_groups.list())
-    _update_nova_records("servers", reg, ServersData(), client.servers.list())
+    _update_nova_records("servers",
+                         reg,
+                         ServersData(),
+                         cl.servers.list(search_opts={'all_tenants': 1}))
     _update_nova_records("services",
                          reg,
                          ServicesData(),

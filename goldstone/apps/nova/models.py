@@ -16,16 +16,16 @@ from datetime import datetime
 import json
 import logging
 import pandas as pd
+# TODO replace pyes
 from pyes import BoolQuery, RangeQuery, ESRangeOp, TermQuery
 from types import StringType
 
-from goldstone.models import ESData, TopologyData
-from goldstone.models import ApiPerfData as GoldstoneApiPerfData
+from goldstone.models import ESData, TopologyData, ApiPerfData
 
 logger = logging.getLogger(__name__)
 
 
-class ApiPerfData(GoldstoneApiPerfData):
+class NovaApiPerfData(ApiPerfData):
     component = 'nova'
 
 
