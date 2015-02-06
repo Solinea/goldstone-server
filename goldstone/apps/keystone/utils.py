@@ -32,7 +32,7 @@ class DiscoverTree(TopologyMixin):
                     for r in ep['_source']['endpoints']
                 ])
 
-    def _get_regions(self):
+    def get_regions(self):
         return [{"rsrcType": "region", "label": r} for r in
                 self._get_endpoint_regions()]
 
@@ -95,15 +95,15 @@ class DiscoverTree(TopologyMixin):
 
         return result
 
-    def _build_topology_tree(self):
+    def build_topology_tree(self):
         try:
             rl = self._populate_regions()
 
-            if len(rl) > 1:
-                return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
-            else:
-                return rl[0]
+            return {"rsrcType": "cloud", "label": "Cloud", "children": rl} \
+                if len(rl) > 1 else rl[0]
+
         except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
+
         except GoldstoneAuthError:
             raise

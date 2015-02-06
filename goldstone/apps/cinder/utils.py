@@ -36,7 +36,7 @@ class DiscoverTree(TopologyMixin):
         else:
             return set([s['_source']['region'] for s in self.services])
 
-    def _get_regions(self):
+    def get_regions(self):
         return [{"rsrcType": "region", "label": r} for r in
                 self._get_service_regions()]
 
@@ -133,7 +133,7 @@ class DiscoverTree(TopologyMixin):
 
         return result
 
-    def _build_topology_tree(self):
+    def build_topology_tree(self):
         from goldstone.utils import GoldstoneAuthError, NoResourceFound
 
         try:
@@ -144,6 +144,7 @@ class DiscoverTree(TopologyMixin):
             updated = self.services[0]['_source']['@timestamp']
             rl = self._populate_regions()
             new_rl = []
+
             for region in rl:
                 zl = self._get_zones(updated, region['label'])
                 ad = {'sourceRsrcType': 'zone',
@@ -158,7 +159,9 @@ class DiscoverTree(TopologyMixin):
                         "children": new_rl}
             else:
                 return new_rl[0]
+
         except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
+
         except GoldstoneAuthError:
             raise

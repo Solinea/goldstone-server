@@ -1,3 +1,4 @@
+"""Keystone app unit tests."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -13,9 +14,6 @@
 # limitations under the License.
 import json
 from django.http import HttpResponse
-
-__author__ = 'John Stanford'
-
 from django.test import SimpleTestCase
 from .tasks import time_keystone_api
 import logging
@@ -65,16 +63,18 @@ class ViewTests(SimpleTestCase):
     end_ts = calendar.timegm(end_dt.utctimetuple())
 
     def test_get_data(self):
-        v = AuthApiPerfView()
+
+        view = AuthApiPerfView()
         context = {
             'start_dt': self.start_dt,
             'end_dt': self.end_dt,
             'interval': '3600s'
         }
+
         # returns a pandas data frame
-        d = v._get_data(context)
-        self.assertIsInstance(d, pd.DataFrame)
-        self.assertEqual(d.empty, False)
+        result = view._get_data(context)
+        self.assertIsInstance(result, pd.DataFrame)
+        self.assertFalse(result.empty)
 
     def test_report_view(self):
         uri = '/keystone/report'
@@ -103,11 +103,13 @@ class ViewTests(SimpleTestCase):
 class DataViewTests(SimpleTestCase):
 
     def _evaluate(self, response):
+
         self.assertIsInstance(response, HttpResponse)
-        self.assertNotEqual(response.content, None)
+        self.assertIsNotNone(response.content)
+
         try:
             j = json.loads(response.content)
-        except:
+        except Exception:      # pylint: disable=W0703
             self.fail("Could not convert content to JSON, content was %s",
                       response.content)
         else:

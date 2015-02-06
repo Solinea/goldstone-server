@@ -12,20 +12,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import arrow
 from datetime import timedelta
 import logging
+import subprocess
 
 from django.test import SimpleTestCase
 from rest_framework import status
 from rest_framework.test import APISimpleTestCase
 from time import sleep
-from mock import *
+from mock import patch
 
-from goldstone.apps.core.models import Node
+from goldstone.apps.core.models import Node, EventType
 from goldstone.apps.logging.serializers import LoggingNodeSerializer
 from goldstone.apps.logging.views import LoggingNodeViewSet
-from .tasks import *
-from .tasks import _create_event
+from goldstone.utils import utc_now
+from .tasks import process_host_stream, _create_event, ping, check_host_avail
 
 logger = logging.getLogger(__name__)
 
@@ -45,15 +47,18 @@ class TaskTests(SimpleTestCase):
         Node.objects.all().delete()
 
     def test_process_host_stream(self):
+
         # administratively enabled
         node1 = Node(name=self.name1, managed='true')
         node1.save()
         self.assertEqual(Node.objects.all().count(), 1)
+
         # get the object to get consistent date resolution
         node1 = Node.objects.get(name=node1.name)
         sleep(1)
         process_host_stream(self.name1, self.ts1)
         self.assertEqual(Node.objects.all().count(), 1)
+
         updated_node1 = Node.objects.get(id=node1.id)
         self.assertGreater(updated_node1.updated, node1.updated)
 
@@ -62,6 +67,7 @@ class TaskTests(SimpleTestCase):
         node2.save()
         node2 = Node.objects.get(name=node2.name)
         self.assertEqual(node2.update_method, 'UNKNOWN')
+
         process_host_stream(self.name2, self.ts2)
         updated_node2 = Node.objects.get(id=node2.id)
         self.assertEqual(updated_node2.updated, node2.updated)
@@ -154,9 +160,6 @@ class LoggingNodeViewTests(APISimpleTestCase):
     def setUp(self):
         Node.objects.all().delete()
 
-    def tearDown(self):
-        Node.objects.all().delete()
-
     def test_post(self):
         data = {'name': "test logging node"}
         response = self.client.post('/logging/nodes', data=data)
@@ -181,21 +184,29 @@ class LoggingNodeViewTests(APISimpleTestCase):
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_set_time_range(self):
+        """Test get_request_time_range."""
+        
         lnvs = LoggingNodeViewSet()
-        s = utc_now()
-        e = utc_now()
-        time_range = lnvs.get_request_time_range(
-            {'start_time': s, 'end_time': e})
-        self.assertEqual(time_range['start_time'], s)
-        self.assertEqual(time_range['end_time'], e)
+
+        start = utc_now()
+        end = utc_now()
+
+        time_range = lnvs.get_request_time_range({'start_time': start,
+                                                  'end_time': end})
+
+        self.assertEqual(time_range['start_time'], start)
+        self.assertEqual(time_range['end_time'], end)
 
     def test_list(self):
+        from django.conf import settings
 
+        # Create 20 nodes.
         for i in range(0, 20):
             node = Node(name="node"+str(i))
             node.save()
 
         self.assertEqual(20, Node.objects.all().count())
+
         response = self.client.get('/logging/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 20)
@@ -203,8 +214,10 @@ class LoggingNodeViewTests(APISimpleTestCase):
                          settings.REST_FRAMEWORK['PAGINATE_BY'])
 
     def test_get(self):
+
         node = Node(name="node1")
         node.save()
+
         response = self.client.get('/logging/nodes/' + node.id)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('name', response.data)

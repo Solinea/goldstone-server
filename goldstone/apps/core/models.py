@@ -348,9 +348,11 @@ class Node(Model):
     name = CharField(max_length=64, unique=True)
     created = CreationDateTimeField(editable=False, blank=True,
                                     default=utc_now)
+
     # updated = ModificationDateTimeField(editable=False, blank=True,
     #                                     default=utc_now)
     updated = ModificationDateTimeField(editable=True, blank=True)
+
     update_method = CharField(max_length=32, choices=METHOD_CHOICES,
                               null=True, blank=True, default="UNKNOWN",
                               validators=[validate_method_choices])
@@ -359,14 +361,15 @@ class Node(Model):
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
-        """
-        Override save to validate model before transaction.
+        """Overrides the default save to validate model before transaction.
+
         :param force_insert:
         :param force_update:
         :param using:
         :param update_fields:
-        :return:
+
         """
+
         self.full_clean()
         return super(Node, self).save(force_insert, force_update, using,
                                       update_fields)

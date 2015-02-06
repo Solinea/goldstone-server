@@ -205,11 +205,11 @@ class ReportListView(ElasticViewSetMixin, APIView):
         try:
             params = self._process_params(request.QUERY_PARAMS.dict())
 
-            qs = elasticutils.S().es(urls=settings.ES_URLS,
-                                     timeout=2,
-                                     max_retries=1,
-                                     sniff_on_start=False)
-            qs = qs. \
+            query = elasticutils.S().es(urls=settings.ES_URLS,
+                                        timeout=2,
+                                        max_retries=1,
+                                        sniff_on_start=False)
+            query = query. \
                 indexes('goldstone_agent'). \
                 doctypes('core_report'). \
                 query(name__prefix='os.service', must_not=True). \
@@ -217,14 +217,15 @@ class ReportListView(ElasticViewSetMixin, APIView):
                 filter(**params['filter_kwargs'])
 
             if 'order_by' in params:
-                qs = qs.order_by(params['order_by'])
+                query = query.order_by(params['order_by'])
 
             # add the term facet clause
-            qs = qs.facet("name", filtered=True, size=100)
-            result = qs.execute().facets
+            query = query.facet("name", filtered=True, size=100)
+            result = query.execute().facets
             result = result['name'].terms
 
             return Response([entry['term'] for entry in result],
                             status=status.HTTP_200_OK)
+
         except AttributeError:
             return Response([], status=status.HTTP_200_OK)

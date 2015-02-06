@@ -1,4 +1,5 @@
-# Copyright 2014 Solinea, Inc.
+"""Keystone views."""
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -11,10 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from goldstone.views import *
-from .models import *
 import logging
+from goldstone.views import JSONView, TopLevelView, ApiPerfView
+from .models import EndpointsData, RolesData, ServicesData, TenantsData, \
+    UsersData, ApiPerfData
 
 logger = logging.getLogger(__name__)
 
