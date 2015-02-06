@@ -1,3 +1,4 @@
+"""Goldstone models."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -11,9 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'John Stanford'
-
 from django.conf import settings
 from elasticsearch import Elasticsearch, ElasticsearchException
 import redis
@@ -55,6 +53,10 @@ class ESData(object):
 
     _conn = GSConnection().conn
 
+    def __init__(self):
+        """Initialize the object, to keep pylint happy."""
+        pass
+
     def get_index_names(self, prefix=None):
         all_indices = self._conn.indices.status()['indices'].keys()
         if prefix is not None:
@@ -65,17 +67,19 @@ class ESData(object):
     def _get_latest_index(self, prefix):
         """
         Get an index based on a prefix filter and simple list sort.  assumes
-         that sorting the list of indexes with matching prefix will
-         result in the most current one at the end of the list.  Works for
-         typical datestamp index names like logstash-2014.03.27.  If you know
-         your index names have homogeneous, should work without the prefix, but
-         use caution!
+        that sorting the list of indexes with matching prefix will
+        result in the most current one at the end of the list.  Works for
+        typical datestamp index names like logstash-2014.03.27.  If you know
+        your index names have homogeneous, should work without the prefix, but
+        use caution!
 
         :arg prefix: the prefix used to filter index list
         :returns: index name
+
         """
 
         candidates = []
+
         if prefix is not None:
             candidates = [k for k in
                           self._conn.indices.status()['indices'].keys() if
@@ -84,6 +88,7 @@ class ESData(object):
             candidates = [k for k in
                           self._conn.indices.status()['indices'].keys()]
         candidates.sort()
+
         try:
             return candidates.pop()
         except IndexError:
@@ -94,6 +99,7 @@ class ESData(object):
                               self._conn.indices.status()['indices'].keys() if
                               k.startswith(prefix + "-")]
                 candidates.sort()
+
                 try:
                     return candidates.pop()
                 except IndexError:
@@ -105,17 +111,16 @@ class ESData(object):
     #
     @staticmethod
     def _query_base():
-        return {
-            "query": {}
-        }
+        return {"query": {}}
 
     @staticmethod
-    def _filtered_query_base(query={}, filter={}):
+    def _filtered_query_base(query=None, filterdict=None):
+
         return {
             "query": {
                 "filtered": {
-                    "query": query,
-                    "filter": filter
+                    "query": query if query else {},
+                    "filter": filterdict if filterdict else {}
                 }
             }
         }
@@ -131,41 +136,22 @@ class ESData(object):
 
     @staticmethod
     def _term_clause(field, value):
-        return {
-            "term": {
-                field: value
-            }
-        }
+        return {"term": {field: value}}
 
     @staticmethod
     def _terms_clause(field):
-        return {
-            "terms": {
-                "field": field
-            }
-        }
+        return {"terms": {"field": field}}
 
     @staticmethod
-    def _bool_clause(must=[], must_not=[]):
-        return {
-            "bool": {
-                "must": must,
-                "must_not": must_not
-            }
-        }
+    def _bool_clause(must=None, must_not=None):
+        return {"bool": {"must": must if must else [],
+                         "must_not": must_not if must_not else []}}
 
     @staticmethod
     def _range_clause(field, start, end, gte=True, lte=True, facet=None):
         start_op = "gte" if gte else "gt"
         end_op = "lte" if lte else "lt"
-        result = {
-            "range": {
-                field: {
-                    start_op: start,
-                    end_op: end
-                }
-            }
-        }
+        result = {"range": {field: {start_op: start, end_op: end}}}
 
         if facet:
             result = ESData._add_facet(result, facet)
@@ -277,30 +263,36 @@ class ESData(object):
 
     @staticmethod
     def _agg_clause(name, clause):
-        return {
-            name: clause
-        }
+        return {name: clause}
 
-    def post(self, body, **kwargs):
-        """
-        posts a record to the database.
+    def post(self, body, **_):
+        """Post a record to the database.
+
         :arg body: record body as JSON object
-        :arg **kwargs: named parameters to be passed to ES create
-        :return id of the inserted record
+        :arg _: Unused.
+        :return: id of the inserted record
+
         """
+
         logger.debug("post called with body = %s", json.dumps(body))
+
         response = self._conn.create(
             ESData._get_latest_index(self, self._INDEX_PREFIX),
-            self._DOC_TYPE, body, refresh=True)
+            self._DOC_TYPE,
+            body,
+            refresh=True)
+
         logger.debug('[post] response = %s', json.dumps(response))
         return response['_id']
 
     def delete(self, doc_id):
-        """
-        deletes a record from the database by id.
+        """Delete a database record by id.
+
         :arg doc_id: the id of the doc as returned by post
         :return bool
+
         """
+
         query = ESData._query_base()
         query['query'] = ESData._term_clause("_id", doc_id)
         response = self._conn.delete_by_query("_all",
@@ -351,8 +343,11 @@ class ApiPerfData(ESData):
         :arg start: datetime used to filter the query range
         :arg end: datetime used to filter the query range
         :arg interval: string representation of the time interval to use when
-        aggregating the results.  Form should be something like: '1.5s'.
+                       aggregating the results.  Form should be something like
+                       '1.5s'.
+
         Supported time postfixes are s, m, h, d, w, m.
+
         """
         assert type(start) is datetime, "start is not a datetime: %r" % \
                                         type(start)
@@ -365,14 +360,19 @@ class ApiPerfData(ESData):
 
         query = self._api_perf_query(start, end, interval)
         logger.debug('[get] query = %s', json.dumps(query))
-        r = self._conn.search(index="_all", body=query,
-                              doc_type=self._DOC_TYPE)
-        logger.debug('[get] search response = %s', json.dumps(r))
+
+        result = self._conn.search(index="_all",
+                                   body=query,
+                                   doc_type=self._DOC_TYPE)
+        logger.debug('[get] search response = %s', json.dumps(result))
+
         items = []
-        for date_bucket in r['aggregations']['events_by_date']['buckets']:
+        for date_bucket in result['aggregations']['events_by_date']['buckets']:
             logger.debug("[get] processing date_bucket: %s",
                          json.dumps(date_bucket))
+
             item = {'key': date_bucket['key']}
+
             item = dict(item.items() + date_bucket['stats'].items())
             item['2xx'] = \
                 date_bucket['range']['buckets']['200.0-299.0']['doc_count']
@@ -386,9 +386,11 @@ class ApiPerfData(ESData):
             items.append(item)
 
         logger.debug('[get] items = %s', json.dumps(items))
+
         result = pd.read_json(json.dumps(items), orient='records',
                               convert_axes=False)
         logger.debug('[get] pd = %s', result)
+
         return result
 
     def post(self, body):
