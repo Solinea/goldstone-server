@@ -14,7 +14,6 @@
 # limitations under the License.
 import logging
 
-from rest_framework.renderers import JSONRenderer
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from goldstone.views import TopLevelView
@@ -49,10 +48,11 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
     Implementing views on new data sources is achieved by providing a
     new entry in the URLconf, and adding an entry to a dict.
 
-    """
+    N.B. settings.REST_FRAMEWORK defines some global settings,
+    including default renderer classes, which includes the JSON
+    renderer.
 
-    # We render only to JSON format.
-    renderer_classes = (JSONRenderer, )
+    """
 
     # The URLs that are implemented by this class.
     #
