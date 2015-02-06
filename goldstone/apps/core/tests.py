@@ -643,7 +643,7 @@ class MetricTests(SimpleTestCase):
 
         kwargs = self.metric1.__dict__
         del kwargs['_state']
-        reconstituted = Metric._reconstitute(**kwargs)  # pylint: disable=W0212
+        reconstituted = Metric.reconstitute(**kwargs)
         self.assertEqual(self.metric1, reconstituted)
 
 
@@ -723,13 +723,15 @@ class ReportTest(SimpleTestCase):
     def test_reconstitute(self):
         kwargs = self.report1.__dict__
         del kwargs['_state']
-        reconstituted = Report._reconstitute(**kwargs)
+        reconstituted = Report.reconstitute(**kwargs)
         self.assertEqual(self.report1, reconstituted)
 
 
 class ReportSerializerTests(APISimpleTestCase):
 
     def setUp(self):
+        """Initialize the test."""
+
         self.report1 = Report(id=str(uuid4()),
                               timestamp=arrow.utcnow().datetime,
                               name="report1",
@@ -749,56 +751,36 @@ class ReportSerializerTests(APISimpleTestCase):
                               node="")
 
     def test_serialize(self):
-        ser = ReportSerializer(self.report1)
+        """Test the Report serializer."""
 
-        # date serialization is awkward wrt +00:00 (gets converted to Z), and
-        # resolution is a mismatch from arrow, so need to compare field by
-        # field
-        self.assertEqual(ser.data['name'],
-                         self.report1.name)
-        self.assertEqual(ser.data['value'],
-                         ser._transform_value(self.report1.value))
-        self.assertEqual(ser.data['node'],
-                         self.report1.node)
-        self.assertEqual(arrow.get(ser.data['timestamp']),
-                         arrow.get(self.report1.timestamp))
+        # pylint: disable=W0212
 
-        ser = ReportSerializer(self.report2)
+        # For each of the test reports...
+        for entry in [self.report1, self.report2, self.report3]:
+            # Date serialization is awkward wrt +00:00 (gets converted
+            # to Z), and resolution is a mismatch from arrow, so we need
+            # to compare field by field.
+            ser = ReportSerializer(entry)
 
-        # date serialization is awkward wrt +00:00 (gets converted to Z), and
-        # resolution is a mismatch from arrow, so need to compare field by
-        # field
-        self.assertEqual(ser.data['name'],
-                         self.report2.name)
-        self.assertEqual(ser.data['value'],
-                         ser._transform_value(self.report2.value))
-        self.assertEqual(ser.data['node'],
-                         self.report2.node)
-        self.assertEqual(arrow.get(ser.data['timestamp']),
-                         arrow.get(self.report2.timestamp))
-
-        ser = ReportSerializer(self.report3)
-
-        # date serialization is awkward wrt +00:00 (gets converted to Z), and
-        # resolution is a mismatch from arrow, so need to compare field by
-        # field
-        self.assertEqual(ser.data['name'],
-                         self.report3.name)
-        self.assertEqual(ser.data['value'],
-                         ser._transform_value(self.report3.value))
-        self.assertEqual(ser.data['node'],
-                         self.report3.node)
-        self.assertEqual(arrow.get(ser.data['timestamp']),
-                         arrow.get(self.report3.timestamp))
+            self.assertEqual(ser.data['name'], entry.name)
+            self.assertEqual(ser.data['value'],
+                             ser._transform_value(entry.value))
+            self.assertEqual(ser.data['node'], entry.node)
+            self.assertEqual(arrow.get(ser.data['timestamp']),
+                             arrow.get(entry.timestamp))
 
 
 class ReportViewTests(APISimpleTestCase):
 
     def setUp(self):
+
         es = Elasticsearch(settings.ES_SERVER)
+
         if es.indices.exists('goldstone_agent'):
             es.indices.delete('goldstone_agent')
+
         es.indices.create('goldstone_agent')
+
         es.index('goldstone_agent', 'core_report', {
             'timestamp': arrow.utcnow().timestamp * 1000,
             'name': 'test.test.report',
@@ -811,9 +793,8 @@ class ReportViewTests(APISimpleTestCase):
             'node': ''})
 
     def test_post(self):
-        data = {
-            'name': "test.test.report",
-            'value': "some value"}
+
+        data = {'name': "test.test.report", 'value': "some value"}
         response = self.client.post('/core/reports', data=data)
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -833,26 +814,29 @@ class ReportViewTests(APISimpleTestCase):
 class ElasticViewSetMixinTests(APISimpleTestCase):
 
     def test_process_params(self):
-        params = {'name': 'test_param', 'name__fuzzy': 'xyz',
+
+        # Test parameters.
+        PARAMS = {'name': 'test_param', 'name__fuzzy': 'xyz',
                   'name__gte': '123', 'must_not': "True",
                   "ordering": "-source_name"}
-        e = ElasticViewSetMixin()
-        # support the ordering lookup with a known model type
-        e.model = EventType
-        result = e._process_params(params)
+
+        mixin = ElasticViewSetMixin()
+
+        # Support the ordering lookup with a known model type.
+        mixin.model = EventType
+        result = mixin._process_params(PARAMS)
 
         self.assertEqual(result,
                          {'query_kwargs': {'name__fuzzy': 'xyz',
                                            'must_not': 'True',
                                            'name__gte': '123'},
-                          'filter_kwargs': {
-                              'name': 'test_param'},
+                          'filter_kwargs': {'name': 'test_param'},
                           'order_by': '-source_name.raw'})
 
 
 class ReportListViewTests(APISimpleTestCase):
 
     def test_get_fail(self):
+
         response = self.client.get('/core/report_list')
-        self.assertEqual(response.status_code,
-                         status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

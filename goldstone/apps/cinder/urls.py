@@ -14,7 +14,8 @@
 # limitations under the License.
 from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
-from .views import ReportView, ApiPerfView, JsonReadOnlyViewSet
+from .views import ReportView, ApiPerfView
+from goldstone.apps.core.utils import JsonReadOnlyViewSet
 
 router = DefaultRouter(trailing_slash=False)
 router.register(r'^(?P<base>backups)[/]?$',

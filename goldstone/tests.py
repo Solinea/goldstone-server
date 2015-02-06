@@ -21,7 +21,7 @@ import os
 import json
 import logging
 
-from keystoneclient.v2_0.client import Client
+from keystoneclient.v2_0.client import Client     # Needed here for mock.
 from keystoneclient.exceptions import ClientException
 from mock import patch, PropertyMock
 from requests.models import Response
@@ -37,10 +37,11 @@ logger = logging.getLogger(__name__)
 
 
 class PrimeData(TestCase):
-    # this should run before all SimpleTestCase methods.
+    """This should run before all SimpleTestCase methods."""
+
     conn = Elasticsearch(settings.ES_SERVER)
 
-    # clean up existing indices
+    # Clean up existing indices.
     try:
         conn.indices.delete("_all")
     finally:
@@ -74,7 +75,8 @@ class PrimeData(TestCase):
     conn.indices.create('goldstone_agent')
     conn.indices.create('goldstone_model')
 
-    # index the test data to the appropriate indices
+    # Index the test data to the appropriate indices.
+    # pylint: disable=W0212
     for index, data_f in [
         (ESData()._get_latest_index('logstash'),
          gzip.open(os.path.join(os.path.dirname(__file__),
@@ -94,6 +96,7 @@ class PrimeData(TestCase):
                                 "model_data.json.gz")))
     ]:
         data = json.load(data_f)
+
         for dataset in data:
             for event in dataset['hits']['hits']:
                 rv = conn.index(index, event['_type'], event['_source'])
@@ -116,9 +119,8 @@ class StartupGoldstoneTest(SimpleTestCase):
 
     @patch.object(StartupGoldstone, '_setup_index')
     def test_es_available(self, _setup_index):
-        """
-        goldstone should attempt to create the two indices by calling the
-        """
+        """Goldstone should attempt to create two indices."""
+
         StartupGoldstone()
         self.assertTrue(_setup_index.call_count, 2)
 
@@ -128,11 +130,14 @@ class GSConnectionModel(SimpleTestCase):
     def test_connection(self):
         conn1 = GSConnection().conn
         conn2 = GSConnection(settings.ES_SERVER).conn
-        q = {"query": {"match_all": {}}}
-        r1 = conn1.search(body=q)
-        self.assertIsNotNone(r1)
-        r2 = conn2.search(body=q)
-        self.assertIsNotNone(r2)
+
+        query = {"query": {"match_all": {}}}
+
+        result = conn1.search(body=query)
+        self.assertIsNotNone(result)
+
+        result = conn2.search(body=query)
+        self.assertIsNotNone(result)
 
 
 class UtilsTests(SimpleTestCase):
@@ -179,14 +184,14 @@ class UtilsTests(SimpleTestCase):
         fake_response = Response()
         fake_response.status_code = 200
         fake_response.url = "http://mock.url"
-        fake_response._content = '{"a":1,"b":2}'
+        fake_response._content = '{"a":1,"b":2}'       # pylint: disable=W0212
         fake_response.headers = {'content-length': 1024}
         fake_response.elapsed = timedelta(days=1)
         c.service_catalog.get_endpoints.side_effect = ClientException
-        kc.return_value = {'client': c,
-                           'hex_token': 'mock_token'}
+        kc.return_value = {'client': c, 'hex_token': 'mock_token'}
         self.assertRaises(LookupError, stored_api_call, component,
                           bad_endpoint, path, timeout=timeout)
+
         c.service_catalog.get_endpoints.side_effect = None
         c.service_catalog.get_endpoints.return_value = {
             endpoint: [{'publicURL': fake_response.url}]
@@ -198,6 +203,7 @@ class UtilsTests(SimpleTestCase):
         self.assertIn('reply', bad_path_call)
         self.assertIn('db_record', bad_path_call)
         self.assertEquals(bad_path_call['db_record']['response_status'], 404)
+
         fake_response.status_code = 200
         get.return_value = fake_response
         good_call = stored_api_call(component, endpoint, path, timeout=timeout)
@@ -207,6 +213,7 @@ class UtilsTests(SimpleTestCase):
 
     @patch('goldstone.tests.stored_api_call')
     def test_construct_api_rec(self, sac):
+
         component = 'abc'
         endpoint = 'compute'
         path = '/os-hypervisors'
@@ -215,19 +222,18 @@ class UtilsTests(SimpleTestCase):
         fake_response = Response()
         fake_response.status_code = 200
         fake_response.url = "http://mock.url"
-        fake_response._content = '{"a":1,"b":2}'
+        fake_response._content = '{"a":1,"b":2}'           # pylint: disable=W0212
         fake_response.headers = {'content-length': 1024}
         fake_response.elapsed = timedelta(days=1)
-        sac.return_value = {
-            'reply': fake_response
-        }
+        sac.return_value = {'reply': fake_response}
         good_call = stored_api_call(component, endpoint, path, timeout=timeout)
         self.assertTrue(sac.called)
         self.assertIn('reply', good_call)
-        reply = good_call['reply']
 
+        reply = good_call['reply']
         rec = _construct_api_rec(reply, component, ts, timeout, path)
         self.assertIn('response_time', rec)
+
         td = reply.elapsed
         secs = td.seconds + td.days * 24 * 3600
         microsecs = float(td.microseconds) / 10**6
