@@ -120,9 +120,7 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
         :type base: str
 
         """
-        from elasticsearch import ElasticsearchException
         from rest_framework.response import Response
-        from rest_framework import status
 
         # Extract a zone or region provided in the request, if
         # present. And remember the base segment of the URL that got
@@ -131,14 +129,8 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
         request_region = self.request.data.get('region')
         base = self.kwargs['base']
 
-        # Now fetch the data to be returned, and return it as JSON.
-        try:
-            return Response(self._get_objects(request_zone,
-                                              request_region,
-                                              base))
-        except ElasticsearchException:
-            return Response("Could not connect to the search backend",
-                            status=status.HTTP_504_GATEWAY_TIMEOUT)
+        # Now fetch the data and return it as JSON.
+        return Response(self._get_objects(request_zone, request_region, base))
 
     def retrieve(self, request, *args, **kwargs):
         """We do not implement single-object GET."""
