@@ -1,3 +1,4 @@
+"""Development settings, with Elasticsearch remote and PostgreSQL local."""
 from .development import *
 
 OS_USERNAME = 'admin'

@@ -1,5 +1,5 @@
-from __future__ import absolute_import
-# Copyright 2014 Solinea, Inc.
+"""Goldstone."""
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -12,8 +12,7 @@ from __future__ import absolute_import
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'Ken Pepple'
+from __future__ import absolute_import
 
 # This will make sure the app is always imported when
 # Django starts so that shared_task will use this app.
