@@ -14,8 +14,6 @@
 # limitations under the License.
 from goldstone.models import ApiPerfData as GoldstoneApiPerfData, TopologyData
 
-# pylint: disable=C0111
-
 
 class ApiPerfData(GoldstoneApiPerfData):
     component = 'cinder'
