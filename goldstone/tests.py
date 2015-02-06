@@ -222,7 +222,7 @@ class UtilsTests(SimpleTestCase):
         fake_response = Response()
         fake_response.status_code = 200
         fake_response.url = "http://mock.url"
-        fake_response._content = '{"a":1,"b":2}'           # pylint: disable=W0212
+        fake_response._content = '{"a":1,"b":2}'        # pylint: disable=W0212
         fake_response.headers = {'content-length': 1024}
         fake_response.elapsed = timedelta(days=1)
         sac.return_value = {'reply': fake_response}

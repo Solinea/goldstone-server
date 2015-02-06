@@ -12,12 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from datetime import date, datetime, timedelta
-###from elasticsearch import *
-import pytz
+from datetime import datetime, timedelta
 import calendar
-import logging
 import json
+import logging
+import pytz
 from goldstone.models import ESData
 
 logger = logging.getLogger(__name__)
@@ -84,12 +83,13 @@ class LogData(ESData):
     def _get_term_facet_terms(self, facet_field):
 
         facet = self._term_facet(facet_field, facet_field, order='term')
-        query = {query: {'match_all': {}}, 'facets': {}}
+        query = {'query': {'match_all': {}}, 'facets': {}}
 
         query['facets'][facet.keys()[0]] = facet[facet.keys()[0]]
         logger.debug("[_get_term_facet_terms] query = %s", query)
 
-        result = self._conn.search(index=self.get_index_names('logstash-'), body=query)
+        result = self._conn.search(index=self.get_index_names('logstash-'),
+                                   body=query)
 
         return [d['term'] for d in result['facets'][facet_field]['terms']]
 
@@ -169,10 +169,9 @@ class LogData(ESData):
                     "must": [
                         {
                             "range": {
-                                "@timestamp": {
-                                    "gte": start_t.isoformat(),
-                                    "lte": end_t.isoformat()
-                                }
+                                "@timestamp": {"gte": start_t.isoformat(),
+                                               "lte": end_t.isoformat()
+                                               }
                             }
                         }
                     ]
@@ -184,13 +183,10 @@ class LogData(ESData):
         if search_text:
             escaped_search_text = self._escape(search_text)
 
-            sq = {
-                "query_string": {
-                    "default_operator": "AND",
-                    "query": escaped_search_text,
-                    "lenient": "true"
-                }
-            }
+            sq = {"query_string": {"default_operator": "AND",
+                                   "query": escaped_search_text,
+                                   "lenient": "true"
+                                   }}
             q['query']['bool']['must'].append(sq)
 
         lev_filts = []
@@ -198,7 +194,7 @@ class LogData(ESData):
         for lev in [k for k in level_filters.keys() if level_filters[k]]:
             lev_filts.append(self._term_filter('loglevel', lev))
 
-        if len(lev_filts) > 0:
+        if lev_filts:
             or_filt = {'or': lev_filts}
             q['filter'] = or_filt
             q = {'query': {'filtered': q}}

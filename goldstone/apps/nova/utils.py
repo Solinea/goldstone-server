@@ -1,4 +1,4 @@
-
+"""Nova app utilities."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -12,9 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.utils import TopologyMixin
-
-from views import *
+from goldstone.utils import TopologyMixin, NoResourceFound, GoldstoneAuthError
+from .models import AvailZonesData
 
 
 class DiscoverTree(TopologyMixin):
@@ -126,13 +125,16 @@ class DiscoverTree(TopologyMixin):
         return result
 
     def _build_topology_tree(self):
+
         try:
             if self.azs is None or len(self.azs) == 0:
                 raise NoResourceFound(
                     "No nova availability zones found in database")
+
             updated = self.azs[0]['_source']['@timestamp']
             rl = self._populate_regions()
             new_rl = []
+
             for region in rl:
                 zl = self._get_zones(updated, region['label'])
                 ad = {'sourceRsrcType': 'zone',
@@ -142,12 +144,14 @@ class DiscoverTree(TopologyMixin):
 
                 new_rl.append(region)
 
-            if len(new_rl) > 1:
+            if new_rl:
                 return {"rsrcType": "cloud", "label": "Cloud",
                         "children": new_rl}
             else:
                 return new_rl[0]
+
         except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
+
         except GoldstoneAuthError:
             raise

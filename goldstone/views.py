@@ -301,11 +301,9 @@ class DiscoverView(TemplateView, TopologyMixin):
 
         topo_list = [nova_topo, keystone_topo, glance_topo, cinder_topo]
 
-        # get regions from everyone and remove the dups
+        # Get regions from everyone and remove the dups.
         rll = [topo._get_regions() for topo in topo_list]
-        rl = [reg
-              for rl in rll
-              for reg in rl]
+        rl = [reg for rl in rll for reg in rl]
 
         rl = [dict(t) for t in set([tuple(d.items()) for d in rl])]
 

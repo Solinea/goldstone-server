@@ -58,12 +58,12 @@ class TaskTests(SimpleTestCase):
         update_aliases.return_value = None
 
         # pylint: disable=W0212
-        self.assertEqual(tasks._create_daily_index('abc', 'abc'), None)
+        self.assertIsNone(tasks._create_daily_index('abc'))
 
         exists_alias.return_value = False
         put_alias.return_value = None
 
-        self.assertEqual(tasks._create_daily_index('abc', 'abc'), None)
+        self.assertIsNone(tasks._create_daily_index('abc'))
 
     def test_manage_es_indices(self):
 
@@ -76,8 +76,7 @@ class TaskTests(SimpleTestCase):
 
         tasks._create_daily_index = mock.Mock(return_value=None,
                                               side_effect=None)
-        tasks._delete_indices = mock.Mock(return_value=None,
-                                          side_effect=None)
+        tasks._delete_indices = mock.Mock(return_value=None, side_effect=None)
         self.assertEqual(tasks.manage_es_indices(), (True, True, True))
 
 
@@ -96,9 +95,11 @@ class NodeSerializerTests(SimpleTestCase):
             obj.delete()
 
     def test_serializer(self):
+
         ser = NodeSerializer(self.node1)
         j = JSONRenderer().render(ser.data)
         logger.debug('[test_serializer] node1 json = %s', j)
+
         self.assertIn('id', ser.data)
         self.assertIn('name', ser.data)
         self.assertIn('created', ser.data)
@@ -255,13 +256,13 @@ class NodeModelTests(SimpleTestCase):
         Node.objects.all().delete()
 
     def test_validate_str_bool(self):
-        self.assertEqual(validate_str_bool('true'), None)
-        self.assertEqual(validate_str_bool('false'), None)
+        self.assertIsNone(validate_str_bool('true'))
+        self.assertIsNone(validate_str_bool('false'))
         self.assertRaises(ValidationError, validate_str_bool, 'True')
         self.assertRaises(ValidationError, validate_str_bool, 'False')
 
     def test_validate_method_choices(self):
-        self.assertEqual(validate_method_choices('UNKNOWN'), None)
+        self.assertIsNone(validate_method_choices('UNKNOWN'))
         self.assertRaises(ValidationError, validate_method_choices, 'XYZ')
 
     def test_create_model(self):
@@ -326,7 +327,7 @@ class NodeModelTests(SimpleTestCase):
 
         self.assertEqual(Node.objects.all().count(), 1)
         stored = Node.objects.get(name=n1.name)
-        self.assertNotEqual(stored, None)
+        self.assertIsNotNone(stored)
 
         self.assertEqual(stored.name, n1.name)
         self.assertEqual(stored.managed, n1.managed)
@@ -824,7 +825,7 @@ class ElasticViewSetMixinTests(APISimpleTestCase):
 
         # Support the ordering lookup with a known model type.
         mixin.model = EventType
-        result = mixin._process_params(PARAMS)
+        result = mixin._process_params(PARAMS)      # pylint: disable=W0212
 
         self.assertEqual(result,
                          {'query_kwargs': {'name__fuzzy': 'xyz',

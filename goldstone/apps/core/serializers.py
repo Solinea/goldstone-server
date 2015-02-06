@@ -106,13 +106,14 @@ class ReportSerializer(serializers.ModelSerializer):
             for item in field_value:
                 try:
                     new_val.append(json.loads(item))
-                except:
+                except Exception:
                     new_val.append(item)
             return new_val
         else:
             return field_value
 
     def to_representation(self, instance):
+
         return {
             'timestamp': instance.timestamp,
             'name': instance.name,

@@ -25,8 +25,8 @@ def to_js(value):
     """To use a python variable in JS, we call json.dumps to serialize as JSON
     server-side and reconstruct using JSON.parse.
 
-    The serialized string must be appropriately escapted before dumping into the
-    client-side code.
+    The serialized string must be appropriately escapted before dumping into
+    the client-side code.
 
     """
 

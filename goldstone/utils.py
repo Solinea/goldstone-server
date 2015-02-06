@@ -396,11 +396,14 @@ def _construct_api_rec(reply, component, ts, timeout, url):
         return rec
 
 
-def stored_api_call(component, endpt, path, headers={}, data=None,
+def stored_api_call(component, endpt, path, headers=None, data=None,
                     user=settings.OS_USERNAME,
                     passwd=settings.OS_PASSWORD,
                     tenant=settings.OS_TENANT_NAME,
                     auth_url=settings.OS_AUTH_URL, timeout=30):
+
+    # Use headers if supplied, else use an empty dict.
+    headers = headers if headers else {}
 
     kt = get_keystone_client(user=user,
                              passwd=passwd,
@@ -418,8 +421,10 @@ def stored_api_call(component, endpt, path, headers={}, data=None,
             {'x-auth-token': kt['hex_token'],
              'content-type': 'application/json'}.items() +
             headers.items())
+
         t = datetime.utcnow()
         reply = None
+
         try:
             reply = requests.get(url, headers=headers, data=data,
                                  timeout=settings.API_PERF_QUERY_TIMEOUT)
