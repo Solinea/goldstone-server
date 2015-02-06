@@ -197,10 +197,8 @@ class ApiPerfView(InnerTimeRangeView):
     data = pd.DataFrame()
     my_template_name = None
 
-    def _get_data(self, context):
-        """
-        Override in subclass, return a model result
-        """
+    def _get_data(self, context):                # pylint: disable=R0201
+        """Override in subclass, return a model result."""
         return None
 
     def _handle_request(self, context):
@@ -384,10 +382,12 @@ class DiscoverView(TemplateView, TopologyMixin):
         return context
 
     def render_to_response(self, context, **response_kwargs):
+        """Overridden to handle case of a data-only request (render=False).
+
+        In which case, an application/json data payload is returned.
+
         """
-        Overriding to handle case of data only request (render=False).  In
-        that case an application/json data payload is returned.
-        """
+
         try:
             response = self._build_topology_tree()
             if isinstance(response, HttpResponseBadRequest):
@@ -399,19 +399,18 @@ class DiscoverView(TemplateView, TopologyMixin):
 
             return TemplateView.render_to_response(
                 self, {'data': json.dumps(response)})
+
         except (CinderAuthException, CinderApiAuthException, NovaAuthException,
                 NovaApiAuthException, KeystoneApiAuthException,
                 GoldstoneAuthError):
             logger.exception("Error.")
 
-            if self.template_name is None:
-                return HttpResponse(status=401)
-            else:
-                return render(self.request, '401.html', status=401)
+            return HttpResponse(status=401) if self.template_name is None \
+                else render(self.request, '401.html', status=401)
 
-        except ElasticsearchException as e:
+        except ElasticsearchException:
             return HttpResponse(content="Could not connect to the "
-                                        "search backend",
+                                "search backend",
                                 status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 

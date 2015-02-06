@@ -1,3 +1,4 @@
+"""Core serializers."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -22,7 +23,8 @@ logger = logging.getLogger(__name__)
 class EventSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     event_type = serializers.CharField(max_length=64)
-    source_id = serializers.CharField(max_length=36, required=False,
+    source_id = serializers.CharField(max_length=36,
+                                      required=False,
                                       default="")
     source_name = serializers.CharField(max_length=64,
                                         required=False,

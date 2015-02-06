@@ -61,18 +61,19 @@ def time_glance_api(self):
     }
 
 
-def _update_glance_image_records(cl, region):
-    db = ImagesData()
-    il = cl.images.list()
-    # image list is a generator, so we need to make it not sol lazy it...
+def _update_glance_image_records(client, region):
+
+    data = ImagesData()
+    images_list = client.images.list()
+
+    # Image list is a generator, so we need to make it not sol lazy it...
     body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
             "region": region,
-            "images": [i for i in il]}
+            "images": [i for i in images_list]}
     try:
-        db.post(body)
-    except Exception as e:
-        logging.exception(e)
-        logger.warn("failed to index glance images")
+        data.post(body)
+    except Exception:          # pylint: disable=W0703
+        logging.exception("failed to index glance images")
 
 
 @celery_app.task(bind=True)

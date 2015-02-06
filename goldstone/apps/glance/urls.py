@@ -1,3 +1,4 @@
+"""Glance app URLconf."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -11,9 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from django.conf.urls import patterns, url
-from .views import ReportView, ImageApiPerfView, ImagesDataView
+from rest_framework.routers import DefaultRouter
+from .views import ReportView, ImageApiPerfView
+from goldstone.apps.core.utils import JsonReadOnlyViewSet
+
+router = DefaultRouter(trailing_slash=False)
+router.register(r'^(?P<base>images)[/]?$',
+                JsonReadOnlyViewSet,
+                base_name='glance-images')
 
 urlpatterns = patterns(
     '',
@@ -21,6 +28,4 @@ urlpatterns = patterns(
         name='glance-report-view'),
     url(r'^api_perf[/]?$', ImageApiPerfView.as_view(),
         name='glance-api-perf'),
-    url(r'^images[/]?$', ImagesDataView.as_view(),
-        name='glance-images'),
 )
