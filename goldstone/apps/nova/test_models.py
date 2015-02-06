@@ -1,3 +1,4 @@
+"""Nova models for testing."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -11,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import pytz
 import pandas
 import logging
@@ -52,27 +52,33 @@ class HypervisorStatsDataModel(SimpleTestCase):
 
 
 class SpawnDataModel(SimpleTestCase):
+
     start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
     end = datetime.now(tz=pytz.utc)
     interval = '1h'
     sd = SpawnData(start, end, interval)
 
+    # pylint: disable=W0212
+
     def test_spawn_start_query(self):
+
         q = self.sd._spawn_start_query()
-        self.assertEqual(q['aggs'],
-                         ESData._agg_date_hist(self.interval))
+        self.assertEqual(q['aggs'], ESData._agg_date_hist(self.interval))
 
     def test_spawn_finish_query(self):
+
         q = self.sd._spawn_finish_query(True)
 
         self.assertDictEqual(
             q['aggs']['success_filter']['aggs'],
             ESData._agg_date_hist(self.interval))
+
         self.assertDictEqual(
             q['aggs']['success_filter']['filter'],
             ESData._agg_filter_term(
                 "success", "true",
                 "success_filter")['success_filter']['filter'])
+
         q = self.sd._spawn_finish_query(False)
         self.assertDictEqual(
             q['aggs']['success_filter']['filter'],

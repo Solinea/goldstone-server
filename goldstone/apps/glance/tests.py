@@ -41,12 +41,13 @@ class TaskTests(SimpleTestCase):
     @patch('goldstone.apps.glance.tasks.stored_api_call')
     @patch.object(GlanceApiPerfData, 'post')
     def test_time_glance_api(self, post, api):
+
         fake_response = Response()
         fake_response.status_code = 200
-        fake_response._content = '{"a":1,"b":2}'
-        api.return_value = {'db_record': 'fake_record',
-                            'reply': fake_response}
+        fake_response._content = '{"a":1,"b":2}'   # pylint: disable=W0212
+        api.return_value = {'db_record': 'fake_record', 'reply': fake_response}
         post.return_value = 'fake_id'
+
         result = time_glance_api()
         self.assertTrue(api.called)
         api.assert_called_with("glance", "image", "/v2/images")
@@ -103,12 +104,14 @@ class ViewTests(SimpleTestCase):
 class DataViewTests(SimpleTestCase):
 
     def _evaluate(self, response):
+
         self.assertIsInstance(response, HttpResponse)
-        self.assertNotEqual(response.content, None)
+        self.assertIsNotNone(response.content)
+
         try:
             j = json.loads(response.content)
         except:
-            self.fail("Could not convert content to JSON, content was %s",
+            self.fail("Could not convert content to JSON, content was %s" %
                       response.content)
         else:
             self.assertIsInstance(j, list)

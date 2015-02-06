@@ -104,8 +104,8 @@ def _put_agent_template(server=settings.ES_SERVER):
                               "goldstone_agent_template.json"), 'rb')
         _put_es_template(f, "goldstone_agent", server=server)
     except Exception:         # pylint: disable=W0703
-        logger.exception("Failed to create/update the goldstone_agent template.  "
-                         "Please report this.")
+        logger.exception("Failed to create/update the goldstone_agent "
+                         "template.  Please report this.")
         raise
 
 

@@ -1,3 +1,4 @@
+"""Intelligence unit tests."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -11,14 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'John Stanford'
-
 from django.test import SimpleTestCase
 from goldstone.models import GSConnection
 from .models import *
 import json
-from datetime import *
+from datetime import date, timedelta, datetime
 import pytz
 import logging
 from elasticsearch import *
