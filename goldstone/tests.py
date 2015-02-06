@@ -21,7 +21,8 @@ import os
 import json
 import logging
 
-from keystoneclient.v2_0.client import Client     # Needed here for mock.
+# This is needed here for mock to work.
+from keystoneclient.v2_0.client import Client       # pylint: disable=W0611
 from keystoneclient.exceptions import ClientException
 from mock import patch, PropertyMock
 from requests.models import Response

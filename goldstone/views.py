@@ -252,7 +252,7 @@ class DiscoverView(TemplateView, TopologyMixin):
     """
     template_name = 'goldstone_discover.html'
 
-    def _get_regions(self):
+    def get_regions(self):
         return []
 
     def _rescope_module_tree(self, tree, module_name):
@@ -275,7 +275,7 @@ class DiscoverView(TemplateView, TopologyMixin):
             tree['label'] = module_name
             return [tree]
 
-    def _build_topology_tree(self):
+    def build_topology_tree(self):
 
         # this is going to be a little clunky until we find a good way
         # to register modules.  Looking at iPOPO/Pelix as one option, but
@@ -302,7 +302,7 @@ class DiscoverView(TemplateView, TopologyMixin):
         topo_list = [nova_topo, keystone_topo, glance_topo, cinder_topo]
 
         # Get regions from everyone and remove the dups.
-        rll = [topo._get_regions() for topo in topo_list]
+        rll = [topo.get_regions() for topo in topo_list]
         rl = [reg for rl in rll for reg in rl]
 
         rl = [dict(t) for t in set([tuple(d.items()) for d in rl])]
@@ -315,7 +315,7 @@ class DiscoverView(TemplateView, TopologyMixin):
         # TODO devise mechanism for expressing module dependencies
 
         # bind cinder zones to global at region
-        cl = [cinder_topo._build_topology_tree()]
+        cl = [cinder_topo.build_topology_tree()]
         # convert top level items to cinder modules
         new_cl = []
         for c in cl:
@@ -331,7 +331,7 @@ class DiscoverView(TemplateView, TopologyMixin):
 
         rl = self._attach_resource(ad, new_cl, rl)
 
-        nl = [nova_topo._build_topology_tree()]
+        nl = [nova_topo.build_topology_tree()]
         # convert top level items to nova module
         new_nl = []
         for n in nl:
@@ -345,7 +345,7 @@ class DiscoverView(TemplateView, TopologyMixin):
 
         # bind glance region to region, but rename glance
         gl = self._rescope_module_tree(
-            glance_topo._build_topology_tree(), "glance")
+            glance_topo.build_topology_tree(), "glance")
         ad = {'sourceRsrcType': 'module',
               'targetRsrcType': 'region',
               'conditions': "%source%['region'] == %target%['label']"}
@@ -353,7 +353,7 @@ class DiscoverView(TemplateView, TopologyMixin):
 
         # bind keystone region to region, but rename keystone
         kl = self._rescope_module_tree(
-            keystone_topo._build_topology_tree(), "keystone")
+            keystone_topo.build_topology_tree(), "keystone")
         ad = {'sourceRsrcType': 'module',
               'targetRsrcType': 'region',
               'conditions': "%source%['region'] == %target%['label']"}
@@ -387,7 +387,7 @@ class DiscoverView(TemplateView, TopologyMixin):
         """
 
         try:
-            response = self._build_topology_tree()
+            response = self.build_topology_tree()
             if isinstance(response, HttpResponseBadRequest):
                 return response
 
@@ -396,7 +396,8 @@ class DiscoverView(TemplateView, TopologyMixin):
                                     content_type="application/json")
 
             return TemplateView.render_to_response(
-                self, {'data': json.dumps(response)})
+                self,
+                {'data': json.dumps(response)})
 
         except (CinderAuthException, CinderApiAuthException, NovaAuthException,
                 NovaApiAuthException, KeystoneApiAuthException,

@@ -1,3 +1,4 @@
+"""Settings for unit tests."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -11,10 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'Ken Pepple'
-
-from .base import *
+from .base import *            # pylint: disable=W0614
 
 DATABASES = {
     'default': {

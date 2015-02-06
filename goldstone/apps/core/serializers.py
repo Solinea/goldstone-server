@@ -101,12 +101,12 @@ class ReportSerializer(serializers.ModelSerializer):
         """
         import json
 
-        if type(field_value) is list:
+        if isinstance(field_value, list):
             new_val = []
             for item in field_value:
                 try:
                     new_val.append(json.loads(item))
-                except Exception:
+                except Exception:          # pylint: disable=W0703
                     new_val.append(item)
             return new_val
         else:
@@ -114,9 +114,8 @@ class ReportSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
 
-        return {
-            'timestamp': instance.timestamp,
-            'name': instance.name,
-            'node': instance.node,
-            'value': self._transform_value(instance.value)
-        }
+        return {'timestamp': instance.timestamp,
+                'name': instance.name,
+                'node': instance.node,
+                'value': self._transform_value(instance.value)
+                }

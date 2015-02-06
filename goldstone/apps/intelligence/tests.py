@@ -14,17 +14,16 @@
 # limitations under the License.
 from django.test import SimpleTestCase
 from goldstone.models import GSConnection
-from .models import *
-import json
-from datetime import date, timedelta, datetime
+from .models import LogData
+from datetime import timedelta, datetime
 import pytz
 import logging
-from elasticsearch import *
 
 logger = logging.getLogger(__name__)
 
 
 class LogDataModel(SimpleTestCase):
+
     conn = GSConnection().conn
 
     def test_get_components(self):
@@ -49,6 +48,7 @@ class LogDataModel(SimpleTestCase):
         self.assertEqual(sorted(comps), sorted(control))
 
     def test_get_loglevels(self):
+
         test_q = {
             "query": {
                 "match_all": {}
@@ -62,78 +62,85 @@ class LogDataModel(SimpleTestCase):
                 }
             }
         }
+
         test_response = self.conn.search(index="_all", body=test_q)
         control = [d['term'] for d in
                    test_response['facets']['loglevels']['terms']]
 
         comps = LogData().get_loglevels()
+
         self.assertEqual(sorted(comps), sorted(control))
 
     def test_subtract_months(self):
-        d = LogData()._subtract_months(datetime(2014, 1, 1), 1)
-        self.assertEqual(d, datetime(2013, 12, 1, 0, 0))
-        d = LogData()._subtract_months(datetime(2013, 12, 1), 2)
-        self.assertEqual(d, datetime(2013, 10, 1, 0, 0))
-        d = LogData()._subtract_months(datetime(2013, 12, 1), 12)
-        self.assertEqual(d, datetime(2012, 12, 1, 0, 0))
+
+        # pylint: disable=W0212
+        result = LogData()._subtract_months(datetime(2014, 1, 1), 1)
+        self.assertEqual(result, datetime(2013, 12, 1, 0, 0))
+
+        result = LogData()._subtract_months(datetime(2013, 12, 1), 2)
+        self.assertEqual(result, datetime(2013, 10, 1, 0, 0))
+
+        result = LogData()._subtract_months(datetime(2013, 12, 1), 12)
+        self.assertEqual(result, datetime(2012, 12, 1, 0, 0))
 
     def test_calc_start(self):
-        d = LogData()._calc_start(datetime(2013, 12, 10, 12, 0, 0), 'hour')
-        self.assertEqual(d, datetime(2013, 12, 10, 11, 0, tzinfo=pytz.utc))
-        d = LogData()._calc_start(datetime(2013, 12, 10, 12, 0, 0), 'day')
-        self.assertEqual(d, datetime(2013, 12, 9, 12, 0, tzinfo=pytz.utc))
-        d = LogData()._calc_start(datetime(2013, 12, 10, 12, 0, 0), 'week')
-        self.assertEqual(d, datetime(2013, 12, 3, 12, 0, tzinfo=pytz.utc))
-        d = LogData()._calc_start(datetime(2013, 12, 10, 12, 0, 0), 'month')
-        self.assertEqual(d, datetime(2013, 11, 10, 12, 0, tzinfo=pytz.utc))
+
+        # pylint: disable=W0212
+        result = \
+            LogData()._calc_start(datetime(2013, 12, 10, 12, 0, 0), 'hour')
+        self.assertEqual(result,
+                         datetime(2013, 12, 10, 11, 0, tzinfo=pytz.utc))
+
+        result = \
+            LogData()._calc_start(datetime(2013, 12, 10, 12, 0, 0), 'day')
+        self.assertEqual(result, datetime(2013, 12, 9, 12, 0, tzinfo=pytz.utc))
+
+        result = \
+            LogData()._calc_start(datetime(2013, 12, 10, 12, 0, 0), 'week')
+        self.assertEqual(result, datetime(2013, 12, 3, 12, 0, tzinfo=pytz.utc))
+
+        result = \
+            LogData()._calc_start(datetime(2013, 12, 10, 12, 0, 0), 'month')
+        self.assertEqual(result,
+                         datetime(2013, 11, 10, 12, 0, tzinfo=pytz.utc))
 
     def test_loglevel_by_time_agg(self):
+
         end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
         interval = '3600s'
+
         test_q = {
             "query": {
                 "bool": {
                     "must": [
-                        {
-                            "range": {
-                                "@timestamp": {
-                                    "gte": start.isoformat(),
-                                    "lte": end.isoformat()
-                                }
-                            }
-                        },
-                        {
-                            "term": {
-                                "type": "syslog"
-                            }
-                        }
+                        {"range": {"@timestamp": {"gte": start.isoformat(),
+                                                  "lte": end.isoformat()}}},
+                        {"term": {"type": "syslog"}}
                     ]
                 }
             },
             "aggs": {
                 "events_by_time": {
-                    "date_histogram": {
-                        "field": "@timestamp",
-                        "interval": interval,
-                        "min_doc_count": 0
-                    },
-                    "aggs": {
-                        "events_by_loglevel": {
-                            "terms": {
-                                "field": "loglevel"
-                            }
-                        }
-                    }
+                    "date_histogram": {"field": "@timestamp",
+                                       "interval": interval,
+                                       "min_doc_count": 0},
+                    "aggs": {"events_by_loglevel":
+                             {"terms": {"field": "loglevel"}}
+                             }
                 }
             }
         }
+
         control = self.conn.search(index="_all", body=test_q)
-        result = LogData()._loglevel_by_time_agg(
+
+        result = LogData()._loglevel_by_time_agg(      # pylint: disable=W0212
             start, end, interval, query_filter=None)
+
         self.assertEqual(result['aggregations'], control['aggregations'])
 
     def test_get_err_and_warn_hists(self):
+
         def test_scenario():
 
             test_q = {
@@ -160,7 +167,7 @@ class LogDataModel(SimpleTestCase):
                     "events_by_time": {
                         "date_histogram": {
                             "field": "@timestamp",
-                            "interval": interval,
+                            "interval": interval,      # pylint: disable=W0631
                             "min_doc_count": 0
                         },
                         "aggs": {
@@ -173,26 +180,28 @@ class LogDataModel(SimpleTestCase):
                     }
                 }
             }
-            control = self.conn.search(
-                index="_all", body=test_q)
-            result = LogData().get_loglevel_histogram_data(start,
-                                                           end, interval)
+
+            control = self.conn.search(index="_all", body=test_q)
+
+            # pylint: disable=W0631
+            result = \
+                LogData().get_loglevel_histogram_data(start, end, interval)
+
             self.assertEqual(result, control['aggregations'])
 
         end = datetime(2014, 02, 24, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=52)
-        interval = '1m'
-        test_scenario()
-        interval = '1h'
-        test_scenario()
-        interval = '1d'
-        test_scenario()
-        interval = '1w'
-        test_scenario()
+
+        # Run the test scenario on these time intervals.
+        for interval in ['1m', '1h', '1d', '1w']:
+            test_scenario()
 
     def test_get_log_data(self):
+
         def test_scenario(sort='', level_filters={}, search_text=None):
+
             my_search_text = None
+
             if search_text:
                 my_search_text = "*" + search_text + "*"
 
@@ -224,17 +233,16 @@ class LogDataModel(SimpleTestCase):
             for lev in [k for k in level_filters.keys() if level_filters[k]]:
                 lev_filts.append(self._term_filter('loglevel', lev))
 
-            if len(lev_filts) > 0:
+            if lev_filts:
                 or_filt = {'or': lev_filts}
                 test_q['filter'] = or_filt
-                test_q = {
-                    'query': {'filtered': test_q}
-                }
+                test_q = {'query': {'filtered': test_q}}
 
             control = self.conn.search(index="_all", body=test_q, sort=sort)
             result = LogData().get_log_data(start, end,
                                             0, 10, sort=sort,
                                             search_text=search_text)
+
             self.assertEqual(result['hits'], control['hits'])
 
         end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
@@ -325,13 +333,6 @@ class LogDataModel(SimpleTestCase):
 
 class IntelViewTest(SimpleTestCase):
     """Lease list view tests"""
-    switch = None
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
 
     def test_search_template(self):
         response = self.client.get('/intelligence/search')
@@ -339,11 +340,15 @@ class IntelViewTest(SimpleTestCase):
         self.assertTemplateUsed(response, 'search.html')
 
     def test_log_cockpit_summary(self):
+        import calendar
+
         end = datetime(2014, 2, 24, 23, 59, 59, tzinfo=pytz.utc)
         start = end - timedelta(weeks=2)
         end_ts = calendar.timegm(end.utctimetuple())
         start_ts = calendar.timegm(start.utctimetuple())
+
         response = self.client.get(
             '/intelligence/log/cockpit/data?start_time=' +
             str(start_ts) + "&end_time=" + str(end_ts))
+
         self.assertEqual(response.status_code, 200)

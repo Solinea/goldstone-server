@@ -110,10 +110,12 @@ class NodeSerializerTests(SimpleTestCase):
 
 
 class NodeViewTests(APISimpleTestCase):
+
     name1 = "test_node_123"
     name2 = "test_node_456"
     name3 = "test_node_789"
     name4 = "test_node_987"
+
     node1 = Node(name=name1)
     node2 = Node(name=name2, managed='false')
     node3 = Node(name=name3, managed='false')
@@ -125,20 +127,26 @@ class NodeViewTests(APISimpleTestCase):
     def tearDown(self):
         Node.objects.all().delete()
 
-    def test_get_list(self):
+    def _save_nodes(self):
+        """Save all four test nodes."""
+
         self.node1.save()
         self.node2.save()
         self.node3.save()
         self.node4.save()
+
+    def test_get_list(self):
+
+        self._save_nodes()
+
         response = self.client.get('/core/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 4)
 
     def test_get_enabled(self):
-        self.node1.save()
-        self.node2.save()
-        self.node3.save()
-        self.node4.save()
+
+        self._save_nodes()
+
         response = self.client.get('/core/nodes?managed=true')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
@@ -148,10 +156,9 @@ class NodeViewTests(APISimpleTestCase):
                          'true')
 
     def test_get_disabled(self):
-        self.node1.save()
-        self.node2.save()
-        self.node3.save()
-        self.node4.save()
+
+        self._save_nodes()
+
         response = self.client.get('/core/nodes?managed=false')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
@@ -159,10 +166,9 @@ class NodeViewTests(APISimpleTestCase):
         self.assertEqual(response.data['results'][1]['managed'], 'false')
 
     def test_patch_disable(self):
-        self.node1.save()
-        self.node2.save()
-        self.node3.save()
-        self.node4.save()
+
+        self._save_nodes()
+
         response = self.client.get('/core/nodes?managed=true')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
@@ -176,27 +182,28 @@ class NodeViewTests(APISimpleTestCase):
         self.assertEqual(response.data['managed'], 'false')
 
     def test_patch_enable(self):
-        self.node1.save()
-        self.node2.save()
-        self.node3.save()
-        self.node4.save()
+
+        self._save_nodes()
+
         response = self.client.get('/core/nodes?managed=false')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'], 'false')
-        id = response.data['results'][0]['id']
-        response = self.client.patch('/core/nodes/' + id + '/enable')
+
+        id_value = response.data['results'][0]['id']
+        response = self.client.patch('/core/nodes/' + id_value + '/enable')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get('/core/nodes/' + id)
+
+        response = self.client.get('/core/nodes/' + id_value)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        logger.info('id = %s', id)
+
+        logger.info('id = %s', id_value)
         self.assertEqual(response.data['managed'], 'true')
 
     def test_delete_fail(self):
-        self.node1.save()
-        self.node2.save()
-        self.node3.save()
-        self.node4.save()
+
+        self._save_nodes()
+
         response = self.client.get('/core/nodes?managed=false')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
@@ -213,10 +220,9 @@ class NodeViewTests(APISimpleTestCase):
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_put_fail(self):
-        self.node1.save()
-        self.node2.save()
-        self.node3.save()
-        self.node4.save()
+
+        self._save_nodes()
+
         response = self.client.get('/core/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 4)
@@ -228,10 +234,9 @@ class NodeViewTests(APISimpleTestCase):
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_partial_update_fail(self):
-        self.node1.save()
-        self.node2.save()
-        self.node3.save()
-        self.node4.save()
+
+        self._save_nodes()
+
         response = self.client.get('/core/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 4)
@@ -256,104 +261,121 @@ class NodeModelTests(SimpleTestCase):
         Node.objects.all().delete()
 
     def test_validate_str_bool(self):
+
         self.assertIsNone(validate_str_bool('true'))
         self.assertIsNone(validate_str_bool('false'))
         self.assertRaises(ValidationError, validate_str_bool, 'True')
         self.assertRaises(ValidationError, validate_str_bool, 'False')
 
     def test_validate_method_choices(self):
+
         self.assertIsNone(validate_method_choices('UNKNOWN'))
         self.assertRaises(ValidationError, validate_method_choices, 'XYZ')
 
     def test_create_model(self):
         from goldstone.utils import utc_now
 
-        n1 = Node(name=self.name1)
-        n1.save()
-        self.assertIsNotNone(n1.id)
-        self.assertEqual(n1.managed, 'true')
-        self.assertLess(n1.created, utc_now())
-        self.assertAlmostEqual(arrow.get(n1.created).timestamp,
-                               arrow.get(n1.updated).timestamp)
-        self.assertEqual(n1.update_method, "UNKNOWN")
+        node1 = Node(name=self.name1)
+        node1.save()
+        self.assertIsNotNone(node1.id)
+        self.assertEqual(node1.managed, 'true')
+        self.assertLess(node1.created, utc_now())
+        self.assertAlmostEqual(arrow.get(node1.created).timestamp,
+                               arrow.get(node1.updated).timestamp)
+        self.assertEqual(node1.update_method, "UNKNOWN")
 
-        n2 = Node(name=self.name2, managed='true')
-        n2.save()
-        self.assertIsNotNone(n2.id)
-        self.assertEqual(n2.managed, 'true')
-        self.assertAlmostEqual(arrow.get(n1.created).timestamp,
-                               arrow.get(n1.updated).timestamp)
-        self.assertEqual(n2.update_method, "UNKNOWN")
+        node2 = Node(name=self.name2, managed='true')
+        node2.save()
+        self.assertIsNotNone(node2.id)
+        self.assertEqual(node2.managed, 'true')
+        self.assertAlmostEqual(arrow.get(node1.created).timestamp,
+                               arrow.get(node1.updated).timestamp)
+        self.assertEqual(node2.update_method, "UNKNOWN")
 
-        n3 = Node(name=self.name3, managed='false')
-        n3.save()
-        self.assertIsNotNone(n3.id)
-        self.assertEqual(n3.managed, 'false')
-        self.assertLess(n3.created, utc_now())
-        self.assertAlmostEqual(arrow.get(n1.created).timestamp,
-                               arrow.get(n1.updated).timestamp)
-        self.assertEqual(n3.update_method, "UNKNOWN")
+        node3 = Node(name=self.name3, managed='false')
+        node3.save()
+        self.assertIsNotNone(node3.id)
+        self.assertEqual(node3.managed, 'false')
+        self.assertLess(node3.created, utc_now())
+        self.assertAlmostEqual(arrow.get(node1.created).timestamp,
+                               arrow.get(node1.updated).timestamp)
+        self.assertEqual(node3.update_method, "UNKNOWN")
 
         updated = arrow.utcnow()
         sleep(1)
         created = updated.replace(minutes=-30)
-        n4 = Node(name=self.name4, managed='false',
-                  update_method="PING", created=created.datetime,
-                  updated=updated.datetime)
-        n4.save()
-        self.assertIsNotNone(n4.id)
-        self.assertEqual(n4.managed, 'false')
-        self.assertAlmostEqual(arrow.get(n1.created).timestamp,
-                               arrow.get(n1.updated).timestamp)
-        self.assertGreater(arrow.get(n4.updated).timestamp,
+
+        node4 = Node(name=self.name4,
+                     managed='false',
+                     update_method="PING",
+                     created=created.datetime,
+                     updated=updated.datetime)
+        node4.save()
+        self.assertIsNotNone(node4.id)
+        self.assertEqual(node4.managed, 'false')
+        self.assertAlmostEqual(arrow.get(node1.created).timestamp,
+                               arrow.get(node1.updated).timestamp)
+        self.assertGreater(arrow.get(node4.updated).timestamp,
                            updated.timestamp)
-        self.assertEqual(n4.update_method, "PING")
+        self.assertEqual(node4.update_method, "PING")
 
     def test_model_validation(self):
-        n1 = Node(name='n1', managed='False')
-        self.assertRaises(ValidationError, n1.save)
-        n1 = Node(name='n1', managed='True')
-        self.assertRaises(ValidationError, n1.save)
-        n1 = Node(name='n1', managed='XYZ')
-        self.assertRaises(ValidationError, n1.save)
+        """Test that ValidationError is raised appropriately."""
+
+        # For every kind of managed state...
+        for managed in ["False", "True", "XYZ"]:
+            # Saving this should raised a ValidationError.
+            node = Node(name='n1', managed=managed)
+            self.assertRaises(ValidationError, node.save)
 
     def test_index_and_get_model(self):
+
         updated = arrow.utcnow()
         created = updated.replace(minutes=-30)
-        n1 = Node(name=self.name1, managed='false',
-                  update_method="PING", created=created.datetime,
-                  updated=updated.datetime)
-        n1.save()
+
+        node = Node(name=self.name1,
+                    managed='false',
+                    update_method="PING",
+                    created=created.datetime,
+                    updated=updated.datetime)
+        node.save()
 
         self.assertEqual(Node.objects.all().count(), 1)
-        stored = Node.objects.get(name=n1.name)
+        stored = Node.objects.get(name=node.name)
         self.assertIsNotNone(stored)
 
-        self.assertEqual(stored.name, n1.name)
-        self.assertEqual(stored.managed, n1.managed)
-        self.assertEqual(stored.update_method, n1.update_method)
-        self.assertEqual(stored.created, n1.created)
+        self.assertEqual(stored.name, node.name)
+        self.assertEqual(stored.managed, node.managed)
+        self.assertEqual(stored.update_method, node.update_method)
+        self.assertEqual(stored.created, node.created)
 
     def test_update_existing(self):
-        # should have a new updated timestamp
-        n1 = Node(name=self.name1, managed='false',
-                  update_method="PING")
-        n1.save()
-        n1_created = Node.objects.get(name=n1.name).created
-        n1_updated = Node.objects.get(name=n1.name).updated
+        """Test that a Node update will update the node_updated timestamp, and not
+        change the node_created timestamp."""
+
+        node = Node(name=self.name1, managed='false', update_method="PING")
+        node.save()
+
+        node_created = Node.objects.get(name=node.name).created
+        node_updated = Node.objects.get(name=node.name).updated
         sleep(1)
-        n1.save()
-        stored_created = Node.objects.get(name=n1.name).created
-        stored_updated = Node.objects.get(name=n1.name).updated
-        self.assertEqual(stored_created, n1_created)
-        self.assertGreater(stored_updated, n1_updated)
+        node.save()
+
+        stored_created = Node.objects.get(name=node.name).created
+        stored_updated = Node.objects.get(name=node.name).updated
+
+        self.assertEqual(stored_created, node_created)
+        self.assertGreater(stored_updated, node_updated)
 
     def test_delete_model(self):
-        n1 = Node(name=self.name1, managed='true',
-                  update_method="PING")
-        n1.save()
+        """Test deleting a Node."""
+
+        node = Node(name=self.name1, managed='true', update_method="PING")
+
+        node.save()
         self.assertEqual(Node.objects.all().count(), 1)
-        n1.delete()
+
+        node.delete()
         self.assertEqual(Node.objects.all().count(), 0)
 
 
@@ -361,12 +383,16 @@ class EventModelTests(SimpleTestCase):
 
     def setUp(self):
         es = Elasticsearch(settings.ES_SERVER)
+
         if es.indices.exists('goldstone_model'):
             es.indices.delete('goldstone_model')
+
         es.indices.create('goldstone_model')
 
     def test_create_model(self):
+
         e1 = Event(event_type='test_event', message='this is a test event')
+
         self.assertIsNotNone(e1.id)
         self.assertEqual(e1.source_id, "")
         self.assertEqual(e1.source_name, "")
@@ -377,7 +403,9 @@ class EventModelTests(SimpleTestCase):
 
         e1 = Event(event_type='test_event', message='this is a test event')
         e1.save()
+
         EventType.refresh_index()
+
         # pylint: disable=W0212
         self.assertEqual(e1._mt.search().query().count(), 1)
 

@@ -22,10 +22,10 @@ router.register(r'^(?P<base>images)[/]?$',
                 JsonReadOnlyViewSet,
                 base_name='glance-images')
 
-urlpatterns = patterns(
-    '',
-    url(r'^report[/]?$', ReportView.as_view(),
-        name='glance-report-view'),
-    url(r'^api_perf[/]?$', ImageApiPerfView.as_view(),
-        name='glance-api-perf'),
-)
+urlpatterns = router.urls
+urlpatterns += patterns('',
+                        url(r'^report[/]?$', ReportView.as_view(),
+                            name='glance-report-view'),
+                        url(r'^api_perf[/]?$', ImageApiPerfView.as_view(),
+                            name='glance-api-perf'),
+                        )
