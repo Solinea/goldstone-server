@@ -1,3 +1,4 @@
+"""Cinder models."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -11,13 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'John Stanford'
-
-from goldstone.models import ApiPerfData, TopologyData
+from goldstone.models import ApiPerfData as GoldstoneApiPerfData, TopologyData
 
 
-class ApiPerfData(ApiPerfData):
+class ApiPerfData(GoldstoneApiPerfData):
     component = 'cinder'
 
 

@@ -1,3 +1,4 @@
+"""Core app unit tests."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,8 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from uuid import uuid4
+import logging
 from time import sleep
+from uuid import uuid4
+
+import arrow
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
@@ -21,14 +27,12 @@ import mock
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 from rest_framework.test import APISimpleTestCase
+
 from goldstone.apps.core import tasks
 from goldstone.apps.core.views import ElasticViewSetMixin
-from models import *
-from serializers import *
-import logging
-import arrow
-
-__author__ = 'stanford'
+from .models import EventType, Event, MetricType, Metric, ReportType, \
+    Report, validate_str_bool, validate_method_choices, Node
+from .serializers import EventSerializer, NodeSerializer, ReportSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +40,10 @@ logger = logging.getLogger(__name__)
 class TaskTests(SimpleTestCase):
 
     def test_delete_indices(self):
-        # tests that delete indices returns result of check_call
+        """Tests that delete indices returns result of check_call,"""
+
         tasks.check_call = mock.Mock(return_value='mocked')
+        # pylint: disable=W0212
         self.assertEqual(tasks._delete_indices('abc', 10), 'mocked')
 
     @patch.object(IndicesClient, 'create')
@@ -50,15 +56,18 @@ class TaskTests(SimpleTestCase):
         create.side_effect = None
         exists_alias.return_value = True
         update_aliases.return_value = None
-        self.assertEqual(tasks._create_daily_index('abc', 'abc'),
-                         None)
+
+        # pylint: disable=W0212
+        self.assertEqual(tasks._create_daily_index('abc', 'abc'), None)
 
         exists_alias.return_value = False
         put_alias.return_value = None
-        self.assertEqual(tasks._create_daily_index('abc', 'abc'),
-                         None)
+
+        self.assertEqual(tasks._create_daily_index('abc', 'abc'), None)
 
     def test_manage_es_indices(self):
+
+        # pylint: disable=W0212
         tasks._create_daily_index = mock.Mock(
             side_effect=KeyError("This is expected"))
         tasks._delete_indices = mock.Mock(
@@ -73,6 +82,7 @@ class TaskTests(SimpleTestCase):
 
 
 class NodeSerializerTests(SimpleTestCase):
+
     name1 = "test_node_123"
     name2 = "test_node_456"
     name3 = "test_node_789"
@@ -255,6 +265,8 @@ class NodeModelTests(SimpleTestCase):
         self.assertRaises(ValidationError, validate_method_choices, 'XYZ')
 
     def test_create_model(self):
+        from goldstone.utils import utc_now
+
         n1 = Node(name=self.name1)
         n1.save()
         self.assertIsNotNone(n1.id)
@@ -361,25 +373,33 @@ class EventModelTests(SimpleTestCase):
         self.assertIsNotNone(e1.created)
 
     def test_index_model(self):
+
         e1 = Event(event_type='test_event', message='this is a test event')
         e1.save()
         EventType.refresh_index()
+        # pylint: disable=W0212
         self.assertEqual(e1._mt.search().query().count(), 1)
+
         stored = e1._mt.search().query(). \
             filter(_id=e1.id)[:1]. \
             execute(). \
             objects[0]. \
             get_object()
+
         self.assertEqual(stored.id, e1.id)
         self.assertEqual(stored.event_type, e1.event_type)
         self.assertEqual(stored.message, e1.message)
         self.assertEqual(stored.created, e1.created)
 
     def test_unindex_model(self):
+
         e1 = Event(event_type='test_event', message='this is a test event')
         e1.save()
+
         EventType.refresh_index()
+        # pylint: disable=W0212
         self.assertEqual(e1._mt.search().query().count(), 1)
+
         e1.delete()
         EventType.refresh_index()
         self.assertEqual(EventType().search().query().count(), 0)
@@ -537,7 +557,8 @@ class EventViewTests(APISimpleTestCase):
         self.assertEqual(response.data['count'], 1)
         self.assertEqual(response.data['results'][0]['id'], data1_id)
 
-    def test_get_list_with_start_and_end(self):
+    def test_get_list_start_and_end(self):
+
         end_time = arrow.utcnow().replace(minutes=-14)
         start_time = end_time.replace(minutes=-2)
 
@@ -619,9 +640,10 @@ class MetricTests(SimpleTestCase):
         self.assertRaises(NotImplementedError, self.metric1.delete)
 
     def test_reconstitute(self):
+
         kwargs = self.metric1.__dict__
         del kwargs['_state']
-        reconstituted = Metric._reconstitute(**kwargs)
+        reconstituted = Metric._reconstitute(**kwargs)  # pylint: disable=W0212
         self.assertEqual(self.metric1, reconstituted)
 
 

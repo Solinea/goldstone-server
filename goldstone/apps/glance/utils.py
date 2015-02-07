@@ -1,3 +1,4 @@
+"""Glance app utilities."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -11,10 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from goldstone.apps.glance.models import ImagesData
-from goldstone.utils import _get_region_for_glance_client, _get_client, \
-    NoResourceFound, GoldstoneAuthError, TopologyMixin
+from goldstone.utils import _get_region_for_glance_client, NoResourceFound, \
+    GoldstoneAuthError, TopologyMixin
 
 
 class DiscoverTree(TopologyMixin):
@@ -26,7 +26,9 @@ class DiscoverTree(TopologyMixin):
         return set([s['_source']['region'] for s in self.images])
 
     def _get_regions(self):
-        kc = _get_client(service='keystone')['client']
+        from goldstone.utils import get_client
+
+        kc = get_client(service='keystone')['client']
         r = _get_region_for_glance_client(kc)
         return [{"rsrcType": "region", "label": r}]
 

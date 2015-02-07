@@ -1,3 +1,4 @@
+"""Goldstone URLconf."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -11,15 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'John Stanford'
-
-from goldstone.views import DiscoverView, HelpView, NodeReportView
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.generic import RedirectView
 import logging
+
+from goldstone.views import DiscoverView, HelpView, NodeReportView
 
 logger = logging.getLogger(__name__)
 
