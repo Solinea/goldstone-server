@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+"""Neutron app tasks."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -12,28 +12,32 @@ from __future__ import absolute_import
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import absolute_import
 
-__author__ = 'John Stanford'
-
-from goldstone.celery import app as celery_app
-import requests
-import logging
 import json
-from .models import ApiPerfData
-from goldstone.utils import _get_client, stored_api_call
+import logging
+import requests
 
+from .models import ApiPerfData
+from goldstone.celery import app as celery_app
+# This must be imported at the module level, for a unit test mock.
+from goldstone.utils import stored_api_call
 
 logger = logging.getLogger(__name__)
 
 
 @celery_app.task(bind=True)
 def time_neutron_api(self):
+    """Call the agent list command, and if there are agents, call the
+    agent show command.
+
+    Inserts record with agent show preferred.
+
     """
-    Call the agent list command, and if there are agents, calls the
-    agent show command.  Inserts record with agent show preferred.
-    """
+    from goldstone.utils import get_client
+
     result = stored_api_call("neutron", "network", "/v2.0/agents")
-    logger.debug(_get_client.cache_info())
+    logger.debug(get_client.cache_info())
 
     # check for existing agents. if they exist, redo the call with a
     # single agent for a more consistent result.
@@ -44,12 +48,10 @@ def time_neutron_api(self):
             result = stored_api_call("neutron", "network",
                                      "/v2.0/agents/" +
                                      str(body['agents'][0]['id']))
-            logger.debug(_get_client.cache_info())
+            logger.debug(get_client.cache_info())
 
     api_db = ApiPerfData()
     rec_id = api_db.post(result['db_record'])
     logger.debug("[time_neutron_api] id = %s", rec_id)
-    return {
-        'id': rec_id,
-        'record': result['db_record']
-    }
+
+    return {'id': rec_id, 'record': result['db_record']}

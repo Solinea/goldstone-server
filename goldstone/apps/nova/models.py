@@ -1,4 +1,5 @@
-# Copyright 2014 Solinea, Inc.
+"""Nova app models."""
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -11,24 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""
-
-This module contains all models for the OpenStack Nova application.
-
-"""
-
-import logging
-import json
-import pandas as pd
-
 from datetime import datetime
-from types import StringType
-from goldstone.models import ApiPerfData, TopologyData
-from goldstone.models import ESData
-
+import json
+import logging
+import pandas as pd
 # TODO replace pyes
 from pyes import BoolQuery, RangeQuery, ESRangeOp, TermQuery
+from types import StringType
+
+from goldstone.models import ESData, TopologyData, ApiPerfData
 
 logger = logging.getLogger(__name__)
 
@@ -48,14 +40,15 @@ class NovaClientData(ESData):
     _INDEX_PREFIX = 'logstash'
 
     def get_date_range(self, start, end, first=0, count=10, sort='desc'):
-        """
-        get Availability Zone for a date range from the database.
+        """Return the Availability Zone for a date range from the database.
+
         :arg start: datetime of early boundary
         :arg end: datetime of late boundary
         :arg first: index of first record (optional)
         :arg count: max number of records (optional)
         :arg sort: sort order {'asc', 'desc'} (optional)
         :return array of records
+
         """
         query = ESData._filtered_query_base()
         query['query']['filtered']['query'] = {'match_all': {}}

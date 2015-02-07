@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+"""Logging tasks."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -12,7 +12,7 @@ from __future__ import absolute_import
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-__author__ = 'John Stanford'
+from __future__ import absolute_import
 
 import pytz
 import subprocess
@@ -28,11 +28,12 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
-def process_host_stream(self, host, timestamp):
+def process_host_stream(self, host, _):
     """
     This task reads a list of host names out of the incoming message on the
     host_stream queue, and creates or updates an associated node in the model.
     :return: None
+
     """
 
     # TODO this cleanup should be in a slower moving lane
@@ -45,7 +46,7 @@ def process_host_stream(self, host, timestamp):
         # no nodes found, we should create one
         node = Node(name=host, update_method='LOGS')
         node.save()
-    except Exception as e:
+    except Exception:         # pylint: disable=W0703
         logger.exception('unidentified exception in process_host_stream')
 
 

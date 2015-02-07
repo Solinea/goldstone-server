@@ -1,3 +1,4 @@
+"""Keystone utilities."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -11,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from goldstone.apps.keystone.models import EndpointsData
 from goldstone.utils import GoldstoneAuthError, NoResourceFound, TopologyMixin
 
@@ -37,11 +37,13 @@ class DiscoverTree(TopologyMixin):
                 self._get_endpoint_regions()]
 
     def _populate_regions(self):
-        result = []
+
         if self.endpoints is None or len(self.endpoints) == 0:
-                raise NoResourceFound(
-                    "No keystone endpoints found in database")
+            raise NoResourceFound("No keystone endpoints found in database")
+
         updated = self.endpoints[0]['_source']['@timestamp']
+
+        result = []
         for r in self._get_endpoint_regions():
             result.append(
                 {"rsrcType": "region",
