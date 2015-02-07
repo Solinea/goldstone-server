@@ -43,10 +43,7 @@ class PrimeData(TestCase):
     conn = Elasticsearch(settings.ES_SERVER)
 
     # Clean up existing indices.
-    try:
-        conn.indices.delete("_all")
-    finally:
-        pass
+    conn.indices.delete("_all")
 
     # load index templates before any indices are created
     for template_name, template_f in [
@@ -100,7 +97,7 @@ class PrimeData(TestCase):
 
         for dataset in data:
             for event in dataset['hits']['hits']:
-                rv = conn.index(index, event['_type'], event['_source'])
+                conn.index(index, event['_type'], event['_source'])
 
         conn.indices.refresh([index])
 

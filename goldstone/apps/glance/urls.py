@@ -15,7 +15,6 @@
 from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
 from .views import ReportView, ImageApiPerfView, ImagesDataViewSet
-from goldstone.apps.core.utils import JsonReadOnlyViewSet
 
 # Views handled by DjangoRestFramework ViewSets.
 router = DefaultRouter(trailing_slash=False)

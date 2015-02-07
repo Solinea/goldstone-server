@@ -85,12 +85,13 @@ def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
 
 
 def _create_index(name, body=None, server=settings.ES_SERVER):
+
     try:
         conn = get_es_connection(server)
         conn.indices.create(name, body=body)
-    except RequestError as e:
+    except RequestError as exc:
         # Reraise anything that isn't index already exists
-        if not e.error.startswith('IndexAlreadyExistsException'):
+        if not exc.error.startswith('IndexAlreadyExistsException'):
             logger.warn('Index creation failed. Please report this error.')
             raise
         else:
