@@ -14,9 +14,11 @@
 # limitations under the License.
 import logging
 
+from goldstone.apps.core.utils import JsonReadOnlyViewSet
 from goldstone.views import TopLevelView
 from goldstone.views import ApiPerfView as GoldstoneApiPerfView
-from .models import ApiPerfData
+from .models import ApiPerfData, ServicesData, VolumesData, \
+    BackupsData, SnapshotsData, VolTypesData, TransfersData
 
 logger = logging.getLogger(__name__)
 
@@ -36,3 +38,36 @@ class ApiPerfView(GoldstoneApiPerfView):
         return ApiPerfData().get(context['start_dt'],
                                  context['end_dt'],
                                  context['interval'])
+
+
+class VolumesDataViewSet(JsonReadOnlyViewSet):
+    model = VolumesData
+    key = 'volumes'
+    zone_key = 'availability_zone'
+
+
+class BackupsDataViewSet(JsonReadOnlyViewSet):
+    model = BackupsData
+    key = 'backups'
+    zone_key = 'availability_zone'
+
+
+class SnapshotsDataViewSet(JsonReadOnlyViewSet):
+    model = SnapshotsData
+    key = 'snapshots'
+
+
+class ServicesDataViewSet(JsonReadOnlyViewSet):
+    model = ServicesData
+    key = 'services'
+    zone_key = 'zone'
+
+
+class VolumeTypesDataViewSet(JsonReadOnlyViewSet):
+    model = VolTypesData
+    key = 'volume_types'
+
+
+class TransfersDataViewSet(JsonReadOnlyViewSet):
+    model = TransfersData
+    key = 'transfers'

@@ -185,7 +185,7 @@ class LoggingNodeViewTests(APISimpleTestCase):
 
     def test_set_time_range(self):
         """Test get_request_time_range."""
-        
+
         lnvs = LoggingNodeViewSet()
 
         start = utc_now()
