@@ -30,6 +30,10 @@ var StackedBarChartView = GoldstoneBaseView.extend({
     },
 
     processOptions: function() {
+
+        // this will invoke the processOptions method of the parent view,
+        // and also add an additional param of featureSet which is used
+        // to create a polymorphic interface for a variety of charts
         StackedBarChartView.__super__.processOptions.apply(this, arguments);
 
         this.defaults.featureSet = this.options.featureSet || null;
@@ -43,10 +47,11 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .orient("left")
             .tickFormat(d3.format("01d"));
 
+        // differentiate color sets for mem and cpu charts
         if (ns.featureSet === 'mem' || ns.featureSet === 'cpu') {
             ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
         } else {
-            // this includes spawns/disk
+            // this includes "VM Spawns" and "Disk Resources" chars
             ns.color = d3.scale.ordinal()
                 .range(ns.colorArray.distinct[2]);
         }
@@ -54,11 +59,18 @@ var StackedBarChartView = GoldstoneBaseView.extend({
     },
 
     dataPrep: function(data) {
+
+        // this is where the fetched JSON payload is transformed into a
+        // dataset than can be consumed by the D3 charts
+        // each chart may have its own perculiarities
+
         var ns = this.defaults;
 
         var result = [];
 
         if (ns.featureSet === 'cpu') {
+
+            // CPU Resources chart data prep
 
             //TODO: this will probably change
             //after finding out what the server payload
@@ -75,6 +87,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         } else if (ns.featureSet === 'disk') {
 
+            // Disk Resources chart data prep
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
@@ -85,6 +98,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         } else if (ns.featureSet === 'mem') {
 
+            // Memory Resources chart data prep
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
@@ -95,7 +109,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             });
 
         } else {
-            // this correlates to spawns
+            // Spawns Resources chart data prep
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
@@ -229,6 +243,10 @@ var StackedBarChartView = GoldstoneBaseView.extend({
     },
 
     appendLegend: function(legendSpecs) {
+
+        // abstracts the appending of chart legends based on the
+        // passed in array params [['Title', colorSetIndex],['Title', colorSetIndex'],...]
+
         var ns = this.defaults;
 
         _.each(legendSpecs, function(item) {

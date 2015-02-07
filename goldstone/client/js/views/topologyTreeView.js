@@ -22,6 +22,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
     defaults: {},
 
+    // this block is run upon instantiating the object
     initialize: function(options) {
 
         this.options = options || {};
@@ -30,8 +31,14 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
         this.defaults.blueSpinnerGif = options.blueSpinnerGif;
         this.defaults.chartHeader = options.chartHeader || null;
+
+        // data may be coming from a collection fetch soon
         this.defaults.data = options.data;
         this.defaults.h = options.h;
+
+        // frontPage affects clicking of leaves.
+        // whether it will redirect or append
+        // results to resource list
         this.defaults.frontPage = options.frontPage;
         this.defaults.multiRsrcViewEl = options.multiRsrcViewEl || null;
         this.defaults.w = options.width;
@@ -47,6 +54,11 @@ var TopologyTreeView = GoldstoneBaseView.extend({
     },
 
     filterMultiRsrcData: function(data) {
+
+        // this allows for passing in arrays of paramaters
+        // to omit from the returned data before rendering
+        // as a data table in 'resource list'
+
         var ns = this.defaults;
         var self = this;
 
@@ -118,6 +130,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         }
     },
     drawSingleRsrcInfoTable: function(scrollYpx, json) {
+        // make a dataTable
         var location = '#single-rsrc-table';
         var oTable;
         var keys = Object.keys(json);
@@ -264,6 +277,9 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
     },
     reportRedirect: function(data, keyName) {
+
+        // used to redirect to nodeReports when relevant
+        // dataTable results are clicked
         var redirectNodeName = data[keyName];
         if (redirectNodeName.indexOf('.') !== -1) {
             redirectNodeName = redirectNodeName.slice(0, redirectNodeName.indexOf('.'));
@@ -272,12 +288,16 @@ var TopologyTreeView = GoldstoneBaseView.extend({
     },
 
     appendLeafNameToResourceHeader: function(text, location) {
-        location = location || '.panel-header-resource-title';
+
         // appends the name of the resource list currently being displayed
+        location = location || '.panel-header-resource-title';
         $(location).text(': ' + text);
     },
 
     processTree: function(json) {
+        // not used in zoomablePartitionView
+        // but must keep for old collapsable tree style viz
+
         var ns = this.defaults;
         var that = this;
         var duration = d3.event && d3.event.altKey ? 5000 : 500;
@@ -287,14 +307,10 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
         // Normalize for fixed-depth.
         nodes.forEach(function(d) {
-
-
-            // TODO make the tree branch length configurable
             d.y = d.depth * 100;
         });
 
         // Update the nodes…
-
         var node = ns.chart.selectAll("g.node")
             .data(nodes, function(d) {
                 return d.id || (d.id = ++ns.i);
@@ -334,13 +350,18 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                             hasParam = true;
                             url = url + "zone=" + d.zone;
                         }
+
+                        // !front page = load results
                         if (!ns.frontPage) {
                             that.loadLeafData(url);
                             that.appendLeafNameToResourceHeader(origClickedLabel);
                         }
 
+                        // front page = redirect to new page
+                        // if leaf is clicked
                         if (ns.frontPage) {
 
+                            // if not a leaf, don't redirect
                             if (d.rsrcType === 'region' || d.rsrcType === 'module') {
                                 return true;
                             } else {
@@ -566,6 +587,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
         var ns = this.defaults;
 
+        // appends chart header to el with params passed in as array
         if (ns.chartHeader !== null) {
             new ChartHeaderView({
                 el: ns.chartHeader[0],
@@ -575,6 +597,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
             });
         }
 
+        // appends Resource List dataTable View if applicable
         if (ns.multiRsrcViewEl !== null) {
             new MultiRscsView({
                 el: ns.multiRsrcViewEl

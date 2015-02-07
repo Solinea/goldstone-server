@@ -16,23 +16,27 @@
  * Author: Alex Jacobs
  */
 
-// view is linked to collection when instantiated in api_perf_report.html
-
 var DiskResourceView = GoldstoneBaseView.extend({
 
     specialInit: function() {
         var ns = this.defaults;
 
+        // overwrites yAxis that is specified in goldstoneBaseView
         ns.yAxis = d3.svg.axis()
             .scale(ns.y)
             .orient("left")
             .tickFormat(d3.format("01d"));
 
+        // sets up a 2 color color-scheme for this chart
         ns.color = d3.scale.ordinal()
             .range(ns.colorArray.distinct[2]);
     },
 
     dataPrep: function(data) {
+
+        // transforms data returned from api into a format
+        // that can be consumed by D3 viz.
+
         var result = [];
 
         _.each(data[0], function(item, i) {
@@ -158,6 +162,7 @@ var DiskResourceView = GoldstoneBaseView.extend({
     },
 
     template: _.template(
+        // div is appended to chart-space to provide spot for alert popups.
         '<div class="alert alert-danger popup-message" hidden="true"></div>'),
 
     render: function() {

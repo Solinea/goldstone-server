@@ -15,7 +15,6 @@
 
 Author: John Stanford
 -->
-
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load custom_filters %}
@@ -29,9 +28,11 @@ Author: John Stanford
     <script src="{% static 'js/views/apiPerfView.js' %}"></script>
     <script src="{% static 'js/views/glanceReportView.js' %}"></script>
     <script>
+
     // assign "ajax-loader-solinea-blue" spinner gif
     var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
     var instantiateCharts = function(){
+
         // this page's previous HTML and JavaScript now encapsulated
         // in the following backbone view:
         new GlanceReportView({
@@ -39,6 +40,9 @@ Author: John Stanford
         });
     };
     $(document).ready(function () {
+
+        // this page will have the global selectors appended
+        // without this invocation, the selectors will not appear
         new GlobalLookbackRefreshButtonsView({
             el: ".global-range-refresh-container"
         });
