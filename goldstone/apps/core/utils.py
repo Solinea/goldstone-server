@@ -20,9 +20,6 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from goldstone.apps.cinder.models import ServicesData, VolumesData, \
-    BackupsData, SnapshotsData, VolTypesData, TransfersData
-
 logger = logging.getLogger(__name__)
 
 
@@ -49,7 +46,7 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
     # May be defined by subclass.
     zone_key = None
 
-    def _get_objects(self, request_zone, request_region, base):
+    def _get_objects(self, request_zone, request_region):
         """Return a collection of objects.
 
         :param request_zone: The request's "zone", if present.
@@ -87,21 +84,14 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
             return [[]]
 
     def list(self, request, *args, **kwargs):
-        """Implement the GET request for a collection.
-
-        :keyword base: The first segment of the URL that got here.
-        :type base: str
-
-        """
+        """Implement the GET request for a collection."""
 
         # Extract a zone or region provided in the request, if present.
-        # And remember the base segment of the URL that got here.
         request_zone = self.request.data.get('zone')
         request_region = self.request.data.get('region')
-        base = self.kwargs['base']
 
         # Now fetch the data and return it as JSON.
-        return Response(self._get_objects(request_zone, request_region, base))
+        return Response(self._get_objects(request_zone, request_region))
 
     def retrieve(self, request, *args, **kwargs):
         """We do not implement single-object GET."""

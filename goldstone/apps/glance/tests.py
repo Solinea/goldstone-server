@@ -116,7 +116,7 @@ class DataViewTests(SimpleTestCase):
 
         try:
             result = json.loads(response.content)
-        except Exception:
+        except Exception:        # pylint: disable=W0703
             self.fail("Could not convert content to JSON, content was %s" %
                       response.content)
         else:
