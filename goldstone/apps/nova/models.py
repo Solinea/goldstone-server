@@ -34,17 +34,10 @@ logger = logging.getLogger(__name__)
 
 
 class NovaApiPerfData(ApiPerfData):
+    """
+    Nova model for API performance data
+    """
     component = 'nova'
-
-
-class ServiceData(TopologyData):
-    _DOC_TYPE = 'nova_service_list'
-    _INDEX_PREFIX = 'goldstone'
-
-
-class HypervisorData(TopologyData):
-    _DOC_TYPE = 'nova_hypervisor_list'
-    _INDEX_PREFIX = 'goldstone'
 
 
 class NovaClientData(ESData):
@@ -64,17 +57,17 @@ class NovaClientData(ESData):
         :arg sort: sort order {'asc', 'desc'} (optional)
         :return array of records
         """
-        q = ESData._filtered_query_base()
-        q['query']['filtered']['query'] = {'match_all': {}}
-        q['query']['filtered']['filter'] = ESData._range_clause(
+        query = ESData._filtered_query_base()
+        query['query']['filtered']['query'] = {'match_all': {}}
+        query['query']['filtered']['filter'] = ESData._range_clause(
             '@timestamp',
             start.isoformat(),
             end.isoformat())
         sort_str = '@timestamp:' + sort
-        logger.debug("[get_date_range] query = %s", json.dumps(q))
+        logger.debug("[get_date_range] query = %s", json.dumps(query))
         response = self._conn.search(index="_all",
                                      doc_type=self._DOC_TYPE,
-                                     body=q, size=count, from_=first,
+                                     body=query, size=count, from_=first,
                                      sort=sort_str)
         logger.debug("[get_date_range] response = %s", json.dumps(response))
         if len(response['hits']['hits']) > 0:
@@ -89,10 +82,10 @@ class NovaClientData(ESData):
         :arg count: number of records to return
         :return array of records
         """
-        q = {'query': {'match_all': {}}}
+        query = {'query': {'match_all': {}}}
         response = self._conn.search(index="_all",
                                      doc_type=self._DOC_TYPE,
-                                     body=q, size=count,
+                                     body=query, size=count,
                                      sort='@timestamp:desc')
 
         if len(response['hits']['hits']) > 0:
@@ -119,9 +112,10 @@ class NovaClientData(ESData):
         :arg doc_id: the id of the doc as returned by post
         :return bool
         """
-        q = ESData._query_base()
-        q['query'] = ESData._term_clause("_id", doc_id)
-        response = self._conn.delete_by_query("_all", self._DOC_TYPE, body=q)
+        query = ESData._query_base()
+        query['query'] = ESData._term_clause("_id", doc_id)
+        response = self._conn.delete_by_query("_all", self._DOC_TYPE,
+                                              body=query)
         logger.debug("[delete] response = %s", json.dumps(response))
 
         # need to test for a single index case where there is no "all" field
