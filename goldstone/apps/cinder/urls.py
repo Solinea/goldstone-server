@@ -17,7 +17,6 @@ from rest_framework.routers import DefaultRouter
 from .views import ReportView, ApiPerfView, VolumesDataViewSet, \
     BackupsDataViewSet, SnapshotsDataViewSet, ServicesDataViewSet, \
     VolumeTypesDataViewSet, TransfersDataViewSet
-from goldstone.apps.core.utils import JsonReadOnlyViewSet
 
 # Views handled by DjangoRestFramework ViewSets.
 router = DefaultRouter(trailing_slash=False)
@@ -34,7 +33,7 @@ router.register(r'^transfers[/]?$',
                 TransfersDataViewSet,
                 base_name='cinder-transfers')
 router.register(r'^volumes[/]?$',
-                VolumnesDataViewSet,
+                VolumesDataViewSet,
                 base_name='cinder-volumes')
 router.register(r'^volume_types[/]?$',
                 VolumeTypesDataViewSet,
