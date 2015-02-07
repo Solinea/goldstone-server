@@ -40,7 +40,6 @@ var HypervisorVmCpuView = Backbone.View.extend({
         this.collection.on('sync', this.update, this);
 
         this.on('selectorChanged', function(){
-            console.log('HypervisorVmCpuView heard change');
         });
 
         this.render();

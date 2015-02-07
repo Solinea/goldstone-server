@@ -23,6 +23,8 @@ var CpuResourceCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
+        // currently returning dummy data to create the viz
+
         return this.dummyData;
         // return data;
     },
@@ -40,6 +42,10 @@ var CpuResourceCollection = Backbone.Collection.extend({
     },
 
     urlGenerator: function() {
+
+        // a listener in the parent page container triggers an event picked up
+        // by GoldstoneBaseView which adjusts ns.globalLookback to match
+        // the number of minutes specified by the selector
 
         var ns = this.defaults;
 

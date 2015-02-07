@@ -16,8 +16,6 @@
  * Author: Alex Jacobs
  */
 
-// view is linked to collection when instantiated in api_perf_report.html
-
 var CpuResourceView = GoldstoneBaseView.extend({
 
     specialInit: function() {
