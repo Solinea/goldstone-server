@@ -245,7 +245,7 @@ class ResourceViewTest(SimpleTestCase):
 
     # TODO fix or remove this test
     @skip('TODO')
-    def test_get_cpu(self):
+    def test_get_hypervisor_cpu(self):
         end = datetime.now(tz=pytz.utc)
         start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
@@ -263,7 +263,7 @@ class ResourceViewTest(SimpleTestCase):
 
     # TODO fix or remove this test
     @skip('TODO')
-    def test_get_mem(self):
+    def test_get_hypervisor_mem(self):
         end = datetime.now(tz=pytz.utc)
         start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
@@ -281,7 +281,7 @@ class ResourceViewTest(SimpleTestCase):
 
     # TODO fix or remove this test
     @skip('TODO')
-    def test_get_disk(self):
+    def test_get_hypervisor_disk(self):
         end = datetime.now(tz=pytz.utc)
         start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
