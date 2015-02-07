@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from goldstone.views import JSONView, TopLevelView, ApiPerfView
+from goldstone.apps.core.utils import JsonReadOnlyViewSet
+from goldstone.views import TopLevelView, ApiPerfView
 from .models import EndpointsData, RolesData, ServicesData, TenantsData, \
     UsersData, ApiPerfData
 
@@ -32,26 +33,26 @@ class AuthApiPerfView(ApiPerfView):
                                  context['interval'])
 
 
-class EndpointsDataView(JSONView):
+class EndpointsDataViewSet(JsonReadOnlyViewSet):
     model = EndpointsData
     key = 'endpoints'
 
 
-class RolesDataView(JSONView):
+class RolesDataViewSet(JsonReadOnlyViewSet):
     model = RolesData
     key = 'roles'
 
 
-class ServicesDataView(JSONView):
+class ServicesDataViewSet(JsonReadOnlyViewSet):
     model = ServicesData
     key = 'services'
 
 
-class TenantsDataView(JSONView):
+class TenantsDataViewSet(JsonReadOnlyViewSet):
     model = TenantsData
     key = 'tenants'
 
 
-class UsersDataView(JSONView):
+class UsersDataViewSet(JsonReadOnlyViewSet):
     model = UsersData
     key = 'users'

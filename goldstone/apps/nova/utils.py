@@ -34,16 +34,17 @@ class DiscoverTree(TopologyMixin):
     def _populate_regions(self):
         result = []
         updated = self.azs[0]['_source']['@timestamp']
-        for r in self._get_region_names():
+
+        for region in self._get_region_names():
             result.append(
                 {"rsrcType": "region",
-                 "label": r,
+                 "label": region,
                  "info": {"last_updated": updated},
                  "children": [
                      {
                          "rsrcType": "flavors-leaf",
                          "label": "flavors",
-                         "region": r,
+                         "region": region,
                          "info": {
                              "last_update": updated
                          }
@@ -51,7 +52,7 @@ class DiscoverTree(TopologyMixin):
                      {
                          "rsrcType": "hypervisors-leaf",
                          "label": "hypervisors",
-                         "region": r,
+                         "region": region,
                          "info": {
                              "last_update": updated
                          }

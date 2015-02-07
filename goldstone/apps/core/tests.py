@@ -350,8 +350,8 @@ class NodeModelTests(SimpleTestCase):
         self.assertEqual(stored.created, node.created)
 
     def test_update_existing(self):
-        """Test that a Node update will update the node_updated timestamp, and not
-        change the node_created timestamp."""
+        """Test that a Node update will update the node_updated timestamp, and
+        not change the node_created timestamp."""
 
         node = Node(name=self.name1, managed='false', update_method="PING")
         node.save()

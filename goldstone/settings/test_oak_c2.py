@@ -1,4 +1,10 @@
-# Copyright 2014 Solinea, Inc.
+"""Test_oak_c2 settings.
+
+Use this file for settings that will not be overwritten by product upgrades.
+
+"""
+
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -11,15 +17,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'John Stanford'
-
-#
-# Use this file for settings that will not be overwritten by
-# product upgrades.
-#
-
-from .test import *
+from .test import *                  # pylint: disable=W0614,W0401
 
 #
 # configure OpenStack access information
