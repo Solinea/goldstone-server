@@ -22,17 +22,19 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from goldstone.apps.cinder.models import ServicesData, VolumesData, \
     BackupsData, SnapshotsData, VolTypesData, TransfersData
-from goldstone.apps.glance.models import ImagesData
 
 logger = logging.getLogger(__name__)
 
 
 class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
-    """A ViewSet that renders a JSON response for "list" actions; i.e., GET
-    requests for a collection of objects.
+    """A base ViewSet that renders a JSON response for "list" actions; i.e.,
+    GET requests for a collection of objects.
 
-    Implementing views on new data sources is achieved by providing a
-    new entry in the URLconf, and adding an entry to a dict.
+    This must be subclassed.
+
+    Implementing views on new data sources is achieved by subclassing
+    this class, and defining the model, key, and zone_key class attributes.
+    Then, adding the DjangoRestFramework ViewSet code to the URLconf.
 
     N.B. settings.REST_FRAMEWORK defines some global settings,
     including default renderer classes, which includes the JSON
@@ -40,23 +42,12 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
 
     """
 
-    # The URLs that are implemented by this class.
-    #
-    # key: The base part of the URL that got here.
-    # value: (model, key, zone_key).
-    #
-    # To add a new API endpoint:
-    # 1. Add a router.register for it in urls.py. The first URL segment must be
-    #    returned from the regex in the regex variable "base".
-    # 2. Add an entry to this table.
-    URLS = {"backups": (BackupsData, 'backups', 'availability_zone'),
-            "images": (ImagesData, 'images', None),
-            "services": (ServicesData, 'services', 'zone'),
-            "snapshots": (SnapshotsData, 'snapshots', None),
-            "transfers": (TransfersData, 'transfers', None),
-            "volumes": (VolumesData, 'volumes', 'availability_zone'),
-            "volume_types": (VolTypesData, 'volume_types', None),
-            }
+    # Must be defined by the subclass.
+    model = None
+    key = None
+
+    # May be defined by subclass.
+    zone_key = None
 
     def _get_objects(self, request_zone, request_region, base):
         """Return a collection of objects.
@@ -65,16 +56,11 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
         :type request_zone: str or None
         :param request_region: The request's "region", if present.
         :type request_region: str or None
-        :param base: The first segment of the URL that got here
-        :type base: str
 
         """
 
-        # Get the model, key, and zone_key for this URL.
-        model, key, zone_key = self.URLS.get(base, (None, None, None))
-
         try:
-            data = model().get()
+            data = self.model().get()
 
             result = []
 
@@ -86,9 +72,9 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
 
                     new_list = []
 
-                    for rec in item['_source'][key]:
-                        if request_zone is None or zone_key is None or \
-                                request_zone == rec[zone_key]:
+                    for rec in item['_source'][self.key]:
+                        if request_zone is None or self.zone_key is None or \
+                                request_zone == rec[self.zone_key]:
                             rec['region'] = region
                             rec['@timestamp'] = timestamp
                             new_list.append(rec)
