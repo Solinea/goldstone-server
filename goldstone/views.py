@@ -21,8 +21,7 @@ import logging
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest, Http404
 from django.shortcuts import render
-from django.views.generic import TemplateView, View
-from django.views.generic.base import ContextMixin
+from django.views.generic import TemplateView
 from elasticsearch import ElasticsearchException
 import pandas as pd
 import pytz
