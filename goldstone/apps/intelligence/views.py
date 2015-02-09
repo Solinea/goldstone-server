@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+"""Intelligence app views."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -9,14 +9,12 @@ from __future__ import unicode_literals
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import unicode_literals
 from elasticsearch import ElasticsearchException
 from rest_framework import status
-
-__author__ = 'John Stanford'
-
 import calendar
 from django.http import HttpResponse
 from django.views.generic import TemplateView
@@ -52,19 +50,19 @@ class IntelSearchView(TemplateView):
 
 
 def log_event_histogram(request):
+
     end_time = request.GET.get('end_time')
     start_time = request.GET.get('start_time')
     interval = request.GET.get('interval', '1h')
+
     logger.debug("[bad_event_histogram] interval = %s", interval)
     logger.debug("[bad_event_histogram] start_time = %s", start_time)
     logger.debug("[bad_event_histogram] end_time = %s", end_time)
 
-    end_dt = datetime.fromtimestamp(int(end_time),
-                                    tz=pytz.utc) \
+    end_dt = datetime.fromtimestamp(int(end_time), tz=pytz.utc) \
         if end_time else datetime.now(tz=pytz.utc)
 
-    start_dt = datetime.\
-        fromtimestamp(int(start_time), tz=pytz.utc) \
+    start_dt = datetime.fromtimestamp(int(start_time), tz=pytz.utc) \
         if start_time else end_dt - timedelta(weeks=1)
 
     try:
@@ -73,6 +71,7 @@ def log_event_histogram(request):
         raw_data = ld.get_loglevel_histogram_data(start_dt, end_dt, interval)
 
         result = []
+
         for time_bucket in raw_data['events_by_time']['buckets']:
             entry = {}
             for level_bucket in time_bucket['events_by_loglevel']['buckets']:
@@ -86,11 +85,13 @@ def log_event_histogram(request):
         data = {'data': result,
                 'levels': ['error', 'warning', 'audit', 'info', 'debug']}
         logger.debug("[log_event_histogram]: data = %s", json.dumps(data))
+
         return HttpResponse(json.dumps(data), content_type="application/json")
-    except ElasticsearchException as e:
-            return HttpResponse(content="Could not connect to the "
-                                        "ElasticSearch backend",
-                                status=status.HTTP_504_GATEWAY_TIMEOUT)
+
+    except ElasticsearchException:
+        return HttpResponse(content="Could not connect to the "
+                                    "ElasticSearch backend",
+                            status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
 def log_search_data(request):
@@ -112,6 +113,7 @@ def log_search_data(request):
         'audit': request.GET.get('audit', True),
         'debug': request.GET.get('debug', True)
     }
+
     for k in level_filters.keys():
         if level_filters[k].__class__.__name__ != 'bool':
             if level_filters[k].lower() == 'false':
@@ -164,14 +166,18 @@ def log_search_data(request):
 
         return HttpResponse(json.dumps(response),
                             content_type="application/json")
-    except ElasticsearchException as e:
-            return HttpResponse(content="Could not connect to the "
-                                        "ElasticSearch backend",
-                                status=status.HTTP_504_GATEWAY_TIMEOUT)
+    except ElasticsearchException:
+        return HttpResponse(content="Could not connect to the "
+                                    "ElasticSearch backend",
+                            status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
 def _calc_start(interval, end):
-    options = {'month': timedelta(weeks=4), 'week': timedelta(weeks=1),
-               'day': timedelta(days=1), 'hour': timedelta(hours=1),
+
+    OPTIONS = {'month': timedelta(weeks=4),
+               'week': timedelta(weeks=1),
+               'day': timedelta(days=1),
+               'hour': timedelta(hours=1),
                'minute': timedelta(minutes=1)}
-    return end - options[interval]
+
+    return end - OPTIONS[interval]

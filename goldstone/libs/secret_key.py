@@ -1,3 +1,4 @@
+"""Goldstone secret key."""
 # Copyright 2012 Nebula, Inc.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -11,8 +12,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-
-
 from __future__ import with_statement  # Python 2.5 compliance
 
 import grp
@@ -28,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class FilePermissionError(Exception):
     """The key file permissions are insecure."""
+
     pass
 
 
@@ -36,7 +36,9 @@ def generate_key(key_length=64):
 
     The quality of randomness depends on operating system support,
     see http://docs.python.org/library/random.html#random.SystemRandom.
+
     """
+
     if hasattr(random, 'SystemRandom'):
         choice = random.SystemRandom().choice
     else:
@@ -54,8 +56,11 @@ def generate_or_read_from_file(key_file='.secret_key', key_length=64,
     serve the dashboard Django application (e.g. in a mod_wsgi + daemonized
     environment).  Also checks if file permissions are set correctly and
     throws an exception if not.
+
     """
+
     lock = lockfile.FileLock(key_file)
+
     with lock:
         if not os.path.exists(key_file):
             key = generate_key(key_length)

@@ -1,3 +1,4 @@
+"""Glance app URLconf."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -8,19 +9,23 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from django.conf.urls import patterns, url
-from .views import ReportView, ImageApiPerfView, ImagesDataView
+from rest_framework.routers import DefaultRouter
+from .views import ReportView, ImageApiPerfView, ImagesDataViewSet
 
-urlpatterns = patterns(
-    '',
-    url(r'^report[/]?$', ReportView.as_view(),
-        name='glance-report-view'),
-    url(r'^api_perf[/]?$', ImageApiPerfView.as_view(),
-        name='glance-api-perf'),
-    url(r'^images[/]?$', ImagesDataView.as_view(),
-        name='glance-images'),
-)
+# Views handled by DjangoRestFramework ViewSets.
+router = DefaultRouter(trailing_slash=False)
+router.register(r'^images[/]?$', ImagesDataViewSet, base_name='glance-images')
+
+urlpatterns = router.urls
+
+# Other views.
+urlpatterns += patterns('',
+                        url(r'^report[/]?$', ReportView.as_view(),
+                            name='glance-report-view'),
+                        url(r'^api_perf[/]?$', ImageApiPerfView.as_view(),
+                            name='glance-api-perf'),
+                        )

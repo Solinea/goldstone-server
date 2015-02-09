@@ -1,3 +1,4 @@
+"""Intelligence models."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -8,18 +9,14 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'John Stanford'
-
-from datetime import *
-from elasticsearch import *
-import pytz
+from datetime import datetime, timedelta
 import calendar
-import logging
 import json
+import logging
+import pytz
 from goldstone.models import ESData
 
 logger = logging.getLogger(__name__)
@@ -51,32 +48,18 @@ class LogData(ESData):
     @staticmethod
     def _term_filter(field, value):
 
-        return {
-            "term": {
-                field: value
-            }
-        }
+        return {"term": {field: value}}
 
     @staticmethod
     def _regexp_filter(field, value):
 
-        return {
-            "regexp": {
-                field: value
-            }
-        }
+        return {"regexp": {field: value}}
 
     @staticmethod
     def _term_facet(name, field, facet_filter=None, all_terms=True,
                     order=None):
-        result = {
-            name: {
-                "terms": {
-                    "field": field,
-                    "all_terms": all_terms
-                }
-            }
-        }
+
+        result = {name: {"terms": {"field": field, "all_terms": all_terms}}}
 
         if order:
             result[name]['terms']['order'] = order
@@ -88,14 +71,9 @@ class LogData(ESData):
 
     @staticmethod
     def _date_hist_facet(name, field, interval, facet_filter=None):
-        result = {
-            name: {
-                "date_histogram": {
-                    "field": field,
-                    "interval": interval
-                }
-            }
-        }
+
+        result = \
+            {name: {"date_histogram": {"field": field, "interval": interval}}}
 
         if facet_filter:
             result[name]['facet_filter'] = facet_filter
@@ -103,19 +81,19 @@ class LogData(ESData):
         return result
 
     def _get_term_facet_terms(self, facet_field):
-        fac = self._term_facet(facet_field, facet_field, order='term')
-        q = dict(query={
-            'match_all': {}
-        })
 
-        q['facets'] = {}
-        q['facets'][fac.keys()[0]] = fac[fac.keys()[0]]
-        logger.debug("[_get_term_facet_terms] query = %s", q)
-        rs = self._conn.search(index=self.get_index_names('logstash-'), body=q)
-        return [d['term'] for d in rs['facets'][facet_field]['terms']]
+        facet = self._term_facet(facet_field, facet_field, order='term')
+        query = {'query': {'match_all': {}}, 'facets': {}}
 
-    def _loglevel_by_time_agg(self, start, end, interval,
-                              query_filter=None):
+        query['facets'][facet.keys()[0]] = facet[facet.keys()[0]]
+        logger.debug("[_get_term_facet_terms] query = %s", query)
+
+        result = self._conn.search(index=self.get_index_names('logstash-'),
+                                   body=query)
+
+        return [d['term'] for d in result['facets'][facet_field]['terms']]
+
+    def _loglevel_by_time_agg(self, start, end, interval, query_filter=None):
         logger.debug("[_loglevel_by_time_agg] ENTERING>>")
         logger.debug("[_loglevel_by_time_agg] interval = %s", interval)
         logger.debug("[_loglevel_by_time_agg] start = %s", start.isoformat())
@@ -132,11 +110,7 @@ class LogData(ESData):
                                 }
                             }
                         },
-                        {
-                            "terms": {
-                                "type": ["syslog"]
-                            }
-                        }
+                        {"terms": {"type": ["syslog"]}}
                     ]
                 }
             },
@@ -148,18 +122,16 @@ class LogData(ESData):
                         "min_doc_count": 0
                     },
                     "aggs": {
-                        "events_by_loglevel": {
-                            "terms": {
-                                "field": "loglevel"
-                            }
-                        }
+                        "events_by_loglevel": {"terms": {"field": "loglevel"}}
                     }
                 }
             }
         }
+
         logger.debug("[_loglevel_by_time_agg] query = %s", json.dumps(q))
-        result = self._conn.search(
-            index=self.get_index_names('logstash-'), body=q)
+        result = self._conn.search(index=self.get_index_names('logstash-'),
+                                   body=q)
+
         logger.debug("[_loglevel_by_time_agg] result = %s", json.dumps(result))
         return result
 
@@ -170,21 +142,22 @@ class LogData(ESData):
         return self._get_term_facet_terms("loglevel")
 
     def get_loglevel_histogram_data(self, start, end, interval):
-        result = self._loglevel_by_time_agg(
-            start, end, interval)['aggregations']
-        return result
+
+        result = self._loglevel_by_time_agg(start, end, interval)
+        return result['aggregations']
 
     def _escape(self, str):
         """Escape lucene reserved characters in string."""
+
         s = list(str)
-        reserved = ["+", "-" "!", "(", ")", "{", "}", "[", "]", '"',
+        RESERVED = ["+", "-" "!", "(", ")", "{", "}", "[", "]", '"',
                     "~", ":", "\\", "/"]
+
         for i, c in enumerate(str):
-            if c in reserved:
-                if c == "\000":
-                    s[i] = "\\000"
-                else:
-                    s[i] = "\\" + c
+            if c in RESERVED:
+                # TODO: Will this ever be true?
+                s[i] = "\\000" if c == "\000" else "\\" + c
+
         return str[:0].join(s)
 
     def get_log_data(self, start_t, end_t, first, size,
@@ -196,10 +169,9 @@ class LogData(ESData):
                     "must": [
                         {
                             "range": {
-                                "@timestamp": {
-                                    "gte": start_t.isoformat(),
-                                    "lte": end_t.isoformat()
-                                }
+                                "@timestamp": {"gte": start_t.isoformat(),
+                                               "lte": end_t.isoformat()
+                                               }
                             }
                         }
                     ]
@@ -211,26 +183,21 @@ class LogData(ESData):
         if search_text:
             escaped_search_text = self._escape(search_text)
 
-            sq = {
-                "query_string": {
-                    "default_operator": "AND",
-                    "query": escaped_search_text,
-                    "lenient": "true"
-                }
-            }
+            sq = {"query_string": {"default_operator": "AND",
+                                   "query": escaped_search_text,
+                                   "lenient": "true"
+                                   }}
             q['query']['bool']['must'].append(sq)
 
         lev_filts = []
 
         for lev in [k for k in level_filters.keys() if level_filters[k]]:
-                lev_filts.append(self._term_filter('loglevel', lev))
+            lev_filts.append(self._term_filter('loglevel', lev))
 
-        if len(lev_filts) > 0:
+        if lev_filts:
             or_filt = {'or': lev_filts}
             q['filter'] = or_filt
-            q = {
-                'query': {'filtered': q}
-            }
+            q = {'query': {'filtered': q}}
 
         logger.debug("[get_log_data] query = %s", json.dumps(q))
         return self._conn.search(index=self.get_index_names('logstash-'),
@@ -273,24 +240,16 @@ class LogData(ESData):
                             },
                             "aggs": {
                                 "max_total_vcpus": {
-                                    "max": {
-                                        "field": "total_vcpus"
-                                    }
+                                    "max": {"field": "total_vcpus"}
                                 },
                                 "avg_total_vcpus": {
-                                    "avg": {
-                                        "field": "total_vcpus"
-                                    }
+                                    "avg": {"field": "total_vcpus"}
                                 },
                                 "max_active_vcpus": {
-                                    "max": {
-                                        "field": "active_vcpus"
-                                    }
+                                    "max": {"field": "active_vcpus"}
                                 },
                                 "avg_active_vcpus": {
-                                    "avg": {
-                                        "field": "active_vcpus"
-                                    }
+                                    "avg": {"field": "active_vcpus"}
                                 }
                             }
                         }
@@ -302,4 +261,5 @@ class LogData(ESData):
         result = self._conn.search(index=self.get_index_names('logstash-'),
                                    body=q, from_=first, size=size, sort=sort)
         logger.debug('result = ' + json.dumps(result))
+
         return result

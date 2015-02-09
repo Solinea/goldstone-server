@@ -1,4 +1,8 @@
-from __future__ import unicode_literals
+"""Nova app views.
+
+This module contains all views for the OpenStack Nova application.
+
+"""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -9,25 +13,30 @@ from __future__ import unicode_literals
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from goldstone.utils import NoResourceFound
-
-__author__ = 'John Stanford'
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
 import calendar
-from django.http import HttpResponse, HttpResponseBadRequest
-from django.views.generic import TemplateView
-from .models import *
-from goldstone.views import *
-from goldstone.views import _validate
-from datetime import datetime, timedelta
-import pytz
+from datetime import datetime
 import json
 import logging
+
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.views.generic import TemplateView
+from elasticsearch import ElasticsearchException
 import pandas as pd
+from rest_framework import status
+
+from .models import NovaApiPerfData, HypervisorStatsData, SpawnData, \
+    ResourceData, AgentsData, AggregatesData, AvailZonesData, CloudpipesData, \
+    FlavorsData, FloatingIpPoolsData, HostsData, HypervisorsData, \
+    NetworksData, SecGroupsData, ServersData, ServicesData
+from goldstone.views import TopLevelView, ApiPerfView as GoldstoneApiPerfView, \
+    JSONView
+from goldstone.views import _validate
 
 logger = logging.getLogger(__name__)
 
@@ -36,12 +45,12 @@ class ReportView(TopLevelView):
     template_name = 'nova_report.html'
 
 
-class ApiPerfView(ApiPerfView):
+class ApiPerfView(GoldstoneApiPerfView):
     my_template_name = 'nova_api_perf.html'
 
     def _get_data(self, context):
-        return ApiPerfData().get(context['start_dt'], context['end_dt'],
-                                 context['interval'])
+        return NovaApiPerfData().get(context['start_dt'], context['end_dt'],
+                                     context['interval'])
 
 
 class SpawnsView(TemplateView):

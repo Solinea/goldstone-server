@@ -1,4 +1,5 @@
-# Copyright 2014 Solinea, Inc.
+"""Keystone views."""
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -8,13 +9,14 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from goldstone.views import *
-from .models import *
 import logging
+from goldstone.apps.core.utils import JsonReadOnlyViewSet
+from goldstone.views import TopLevelView, ApiPerfView
+from .models import EndpointsData, RolesData, ServicesData, TenantsData, \
+    UsersData, ApiPerfData
 
 logger = logging.getLogger(__name__)
 
@@ -31,26 +33,26 @@ class AuthApiPerfView(ApiPerfView):
                                  context['interval'])
 
 
-class EndpointsDataView(JSONView):
+class EndpointsDataViewSet(JsonReadOnlyViewSet):
     model = EndpointsData
     key = 'endpoints'
 
 
-class RolesDataView(JSONView):
+class RolesDataViewSet(JsonReadOnlyViewSet):
     model = RolesData
     key = 'roles'
 
 
-class ServicesDataView(JSONView):
+class ServicesDataViewSet(JsonReadOnlyViewSet):
     model = ServicesData
     key = 'services'
 
 
-class TenantsDataView(JSONView):
+class TenantsDataViewSet(JsonReadOnlyViewSet):
     model = TenantsData
     key = 'tenants'
 
 
-class UsersDataView(JSONView):
+class UsersDataViewSet(JsonReadOnlyViewSet):
     model = UsersData
     key = 'users'

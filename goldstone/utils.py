@@ -1,3 +1,4 @@
+"""Goldstone utilities."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -8,10 +9,9 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import pytz
 import copy
 from django.conf import settings
@@ -29,7 +29,6 @@ from requests.exceptions import Timeout
 from datetime import datetime
 from urlparse import urlparse
 import json
-from exceptions import LookupError
 import socket
 import functools
 import calendar
@@ -42,12 +41,11 @@ from cinderclient.openstack.common.apiclient.exceptions \
 from neutronclient.common.exceptions import Unauthorized as NeutronUnauthorized
 import arrow
 
-
 logger = logging.getLogger(__name__)
 
 
-# hacking in a patch for the cinder service __repr__ method
 def _patched_cinder_service_repr(self):
+    """Hacking in a patch for the cinder service __repr__ method."""
     return "<Service: %s>" % self.binary
 
 
@@ -75,11 +73,12 @@ def utc_timestamp():
     return calendar.timegm(datetime.now(tz=pytz.utc).timetuple())
 
 
-def to_es_date(d):
-    s = d.strftime('%Y-%m-%dT%H:%M:%S.')
-    s += '%03d' % int(round(d.microsecond / 1000.0))
-    s += d.strftime('%z')
-    return s
+def to_es_date(date_object):
+
+    result = date_object.strftime('%Y-%m-%dT%H:%M:%S.')
+    result += '%03d' % int(round(date_object.microsecond / 1000.0))
+    result += date_object.strftime('%z')
+    return result
 
 
 def _get_region_for_client(catalog, management_url, service_type):
@@ -87,10 +86,7 @@ def _get_region_for_client(catalog, management_url, service_type):
     returns the region for a management url and service type given the service
     catalog.
     """
-    candidates = [
-        svc
-        for svc in catalog if svc['type'] == service_type
-    ]
+    candidates = [svc for svc in catalog if svc['type'] == service_type]
 
     matches = [
         ep
@@ -116,7 +112,7 @@ def _get_region_for_cinder_client(client):
     # force authentication to populate management url
     client.authenticate()
     mgmt_url = client.client.management_url
-    kc = _get_keystone_client()['client']
+    kc = get_keystone_client()['client']
     catalog = kc.service_catalog.catalog['serviceCatalog']
     return _get_region_for_client(catalog, mgmt_url, 'volume')
 
@@ -141,85 +137,72 @@ def get_region_for_keystone_client(client):
 
 
 @lru_cache(maxsize=16)
-def _get_client(service, user=settings.OS_USERNAME,
-                passwd=settings.OS_PASSWORD,
-                tenant=settings.OS_TENANT_NAME,
-                auth_url=settings.OS_AUTH_URL):
+def get_client(service, user=settings.OS_USERNAME,
+               passwd=settings.OS_PASSWORD,
+               tenant=settings.OS_TENANT_NAME,
+               auth_url=settings.OS_AUTH_URL):
+
+    # Error message template.
+    NO_AUTH = "%s client failed to authorize. Check credentials in" \
+              " goldstone settings."
 
     if service == 'keystone':
-        c = None
         try:
-            c = ksclient.Client(username=user,
-                                password=passwd,
-                                tenant_name=tenant,
-                                auth_url=auth_url)
-            if c.auth_token is None:
+            client = ksclient.Client(username=user,
+                                     password=passwd,
+                                     tenant_name=tenant,
+                                     auth_url=auth_url)
+            if client.auth_token is None:
                 raise GoldstoneAuthError("Keystone client call succeeded, but "
                                          "auth token was not returned.  Check "
                                          "credentials in goldstone settings.")
             else:
                 md5 = hashlib.md5()
-                md5.update(c.auth_token)
-                return {'client': c, 'hex_token': md5.hexdigest()}
+                md5.update(client.auth_token)
+                return {'client': client, 'hex_token': md5.hexdigest()}
         except KeystoneUnauthorized:
-                raise GoldstoneAuthError(
-                    "Keystone client failed to authorize. Check credentials in"
-                    " goldstone settings."
-                )
+            raise GoldstoneAuthError(NO_AUTH % "Keystone")
     elif service == 'nova':
         try:
-            c = nvclient.Client(user, passwd, tenant, auth_url,
-                                service_type='compute')
-            return {'client': c}
+            client = nvclient.Client(user, passwd, tenant, auth_url,
+                                     service_type='compute')
+            return {'client': client}
         except NovaUnauthorized:
-            raise GoldstoneAuthError(
-                "Nova client failed to authorize. Check credentials in"
-                " goldstone settings."
-            )
+            raise GoldstoneAuthError(NO_AUTH % "Nova")
     elif service == 'cinder':
         try:
             cinderclient.v2.services.Service.__repr__ = \
                 _patched_cinder_service_repr
-            c = ciclient.Client(user, passwd, tenant, auth_url,
-                                service_type='volume')
-            region = _get_region_for_cinder_client(c)
-            return {'client': c, 'region': region}
+            client = ciclient.Client(user, passwd, tenant, auth_url,
+                                     service_type='volume')
+            region = _get_region_for_cinder_client(client)
+            return {'client': client, 'region': region}
         except CinderUnauthorized:
-            raise GoldstoneAuthError(
-                "Cinder client failed to authorize. Check credentials in"
-                " goldstone settings."
-            )
+            raise GoldstoneAuthError(NO_AUTH % "Cinder")
     elif service == 'neutron':
         try:
-            c = neclient.Client(user, passwd, tenant, auth_url)
-            return {'client': c}
+            client = neclient.Client(user, passwd, tenant, auth_url)
+            return {'client': client}
         except NeutronUnauthorized:
-            raise GoldstoneAuthError(
-                "Neutron client failed to authorize. Check credentials in"
-                " goldstone settings."
-            )
+            raise GoldstoneAuthError(NO_AUTH % "Neutron")
     elif service == 'glance':
         try:
-            kc = _get_client(service='keystone')['client']
+            kc = get_client(service='keystone')['client']
             mgmt_url = kc.endpoints.find(service_id=kc.services.
                                          find(name='glance').id).internalurl
             region = _get_region_for_glance_client(kc)
-            c = glclient.Client(endpoint=mgmt_url, token=kc.auth_token)
-            return {'client': c, 'region': region}
+            client = glclient.Client(endpoint=mgmt_url, token=kc.auth_token)
+            return {'client': client, 'region': region}
         except KeystoneUnauthorized:
-            raise GoldstoneAuthError(
-                "Glance client failed to authorize. Check credentials in"
-                " goldstone settings."
-            )
+            raise GoldstoneAuthError(NO_AUTH % "Glance")
     else:
         raise GoldstoneAuthError("Unknown service")
 
-
-_get_keystone_client = functools.partial(_get_client, service='keystone')
-_get_nova_client = functools.partial(_get_client, service='nova')
-_get_cinder_client = functools.partial(_get_client, service='cinder')
-_get_neutron_client = functools.partial(_get_client, service='neutron')
-_get_glance_client = functools.partial(_get_client, service='glance')
+# These must be defined here, because they're based on get_client.
+get_cinder_client = functools.partial(get_client, service='cinder')
+get_glance_client = functools.partial(get_client, service='glance')
+get_keystone_client = functools.partial(get_client, service='keystone')
+get_nova_client = functools.partial(get_client, service='nova')
 
 
 def _is_v4_ip_addr(candidate):
@@ -258,11 +241,12 @@ def _is_ip_addr(candidate):
 
 
 def _partition_hostname(hostname):
-    """
-    separates a hostname into host and domain parts
-    """
+    """Return a hostname separated into host and domain parts."""
+
     parts = hostname.partition('.')
+
     result = {'hostname': parts[0]}
+
     if len(parts) > 2:
         result['domainname'] = parts[2]
 
@@ -276,49 +260,46 @@ def _resolve_fqdn(ip_addr):
     """
     try:
         resolved = socket.gethostbyaddr(ip_addr)
-    except:
+    except Exception:        # pylint: disable=W0703
         return None
     else:
         return _partition_hostname(resolved[0])
 
 
 def _resolve_addr(hostname):
-    """
-    takes a hostname and attempts to resolve the ip address
-    """
+    """Return the IP address of a hostname."""
     try:
         return socket.gethostbyname(hostname)
-    except:
+    except Exception:        # pylint: disable=W0703
         return None
 
 
 def _host_details(name_or_addr):
+
     if _is_ip_addr(name_or_addr):
-        # try to resolve the hostname
-        hn = _resolve_fqdn(name_or_addr)
-        if hn:
-            return dict({'ip_addr': name_or_addr}.items() + hn.items())
+        # Try to resolve the hostname.
+        hostname = _resolve_fqdn(name_or_addr)
+        if hostname:
+            return dict({'ip_addr': name_or_addr}.items() + hostname.items())
         else:
             return {'ip_addr': name_or_addr}
     else:
         addr = _resolve_addr(name_or_addr)
-        hn = _partition_hostname(name_or_addr)
+        hostname = _partition_hostname(name_or_addr)
         if addr:
-            return dict({'ip_addr': addr}.items() + hn.items())
+            return dict({'ip_addr': addr}.items() + hostname.items())
         else:
-            return hn
+            return hostname
 
 
 def _normalize_hostname(name_or_addr):
-    """
-    Takes host or ip and returns either an unqualified hostname or an ip
-    address.
-    """
-    hd = _host_details(name_or_addr)
-    if hd.get('hostname', None):
-        return hd['hostname']
-    else:
-        return hd['ip_addr']
+    """Return an unqualified hostname or IP address from a host or IP
+    address."""
+
+    hostdetail = _host_details(name_or_addr)
+
+    return hostdetail['hostname'] if hostdetail.get('hostname', None) \
+        else hostdetail['ip_addr']
 
 
 def _normalize_hostnames(host_keys, source, key=None):
@@ -351,14 +332,14 @@ def _normalize_hostnames(host_keys, source, key=None):
 
 
 def _decompose_url(url):
-    """
-    returns the scheme, host, and possibly port for a url
-    """
-    result = {}
+    """Return the scheme, host, and possibly port for an URL."""
+
     url_parsed = urlparse(url)
-    result['scheme'] = url_parsed[0]
+    result = {'scheme': url_parsed[0]}
+
     netloc = url_parsed[1]
     host = None
+
     if ":" in netloc:
         # host:port
         hp = netloc.split(':')
@@ -415,16 +396,19 @@ def _construct_api_rec(reply, component, ts, timeout, url):
         return rec
 
 
-def stored_api_call(component, endpt, path, headers={}, data=None,
+def stored_api_call(component, endpt, path, headers=None, data=None,
                     user=settings.OS_USERNAME,
                     passwd=settings.OS_PASSWORD,
                     tenant=settings.OS_TENANT_NAME,
                     auth_url=settings.OS_AUTH_URL, timeout=30):
 
-    kt = _get_keystone_client(user=user,
-                              passwd=passwd,
-                              tenant=tenant,
-                              auth_url=auth_url)
+    # Use headers if supplied, else use an empty dict.
+    headers = headers if headers else {}
+
+    kt = get_keystone_client(user=user,
+                             passwd=passwd,
+                             tenant=tenant,
+                             auth_url=auth_url)
 
     try:
         url = kt['client'].service_catalog.\
@@ -437,8 +421,10 @@ def stored_api_call(component, endpt, path, headers={}, data=None,
             {'x-auth-token': kt['hex_token'],
              'content-type': 'application/json'}.items() +
             headers.items())
+
         t = datetime.utcnow()
         reply = None
+
         try:
             reply = requests.get(url, headers=headers, data=data,
                                  timeout=settings.API_PERF_QUERY_TIMEOUT)
@@ -448,13 +434,13 @@ def stored_api_call(component, endpt, path, headers={}, data=None,
             if reply.status_code == requests.codes.unauthorized:
                 logger.debug("clearing keystone client cache due to 401 "
                              "response")
-                _get_client.cache_clear()
+                get_client.cache_clear()
 
         except Timeout:
             reply = None
             logger.debug("clearing keystone client cache due to 508 "
                          "response")
-            _get_client.cache_clear()
+            get_client.cache_clear()
 
         return {
             'reply': reply,
@@ -468,12 +454,10 @@ class TopologyMixin(object):
         assert (type(d) is dict or type(d) is list), "d must be a list or dict"
         assert rsrc_type, "rsrc_type must have a value"
 
-        if type(d) is list:
-            # make it into a dict
-            d = {
-                'rsrcType': None,
-                'children': d
-            }
+        if isinstance(d, list):
+            # Convert it into a dict.
+            d = {'rsrcType': None, 'children': d}
+
         # this is a matching child
         if d['rsrcType'] == rsrc_type:
             return d
@@ -491,23 +475,23 @@ class TopologyMixin(object):
             return []
 
     @staticmethod
-    def _eval_condition(sc, tc, cond):
-        """
-        evaluates the source and target dicts to see if the condition holds.
-        returns boolean.
-        """
-        # substitute reference to source and target in condition
+    def _eval_condition(source, target, cond):
+        """Return the condition tested against the source and target dicts."""
+
+        # Substitute reference to source and target in condition.
         cond = cond.replace("%source%", "sc").replace("%target%", "tc")
+
         try:
-            return eval(cond, {'__builtins__': {}}, {"sc": sc, "tc": tc,
-                        "len": len})
+            return eval(cond,
+                        {'__builtins__': {}},
+                        {"sc": source, "tc": target, "len": len})
         except TypeError:
             return False
 
     def _attach_resource(self, attach_descriptor, source, target):
-        """
-        Attaches one resource tree to another at a described point.  The
-        descriptor format is:
+        """Attach one resource tree to another at a described point.
+
+        The descriptor format is:
 
             {'sourceRsrcType': 'string',
              'targetRsrcType': 'string',
@@ -521,6 +505,7 @@ class TopologyMixin(object):
         nesting is via the 'children' key.  The condition will be evaluated as
         a boolean expression, and will have access to the items in both source
         and target.
+
         """
 
         # basic sanity check.  all args should be dicts, source and target
@@ -534,15 +519,19 @@ class TopologyMixin(object):
         # the call.
         targ = copy.deepcopy(target)
         src = copy.deepcopy(source)
-        ad = attach_descriptor
+        ad_copy = attach_descriptor
 
-        targ_children = self._get_children(targ, ad['targetRsrcType'])
-        src_children = self._get_children(src, ad['sourceRsrcType'])
-        for tc in targ_children:
-            for sc in src_children:
-                match = self._eval_condition(sc, tc, ad['conditions'])
+        targ_children = self._get_children(targ, ad_copy['targetRsrcType'])
+        src_children = self._get_children(src, ad_copy['sourceRsrcType'])
+
+        for target_child in targ_children:
+            for src_child in src_children:
+                match = self._eval_condition(src_child,
+                                             target_child,
+                                             ad_copy['conditions'])
                 if match:
-                    if 'children' not in tc:
-                        tc['children'] = []
-                    tc['children'].append(sc)
+                    if 'children' not in target_child:
+                        target_child['children'] = []
+                    target_child['children'].append(src_child)
+
         return targ
