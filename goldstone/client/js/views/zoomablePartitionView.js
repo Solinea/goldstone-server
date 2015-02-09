@@ -16,6 +16,22 @@
 
 // view is linked to collection when instantiated in goldstone_discover.html
 
+/*
+standard chart usage. instantiate with:
+{
+    blueSpinnerGif: blueSpinnerGif,
+    chartHeader: [ location of chart, title of chart, key for 'infoText'],
+    collection: collection name (don't included this unless it's fetching via a collection, use data instead)
+    data: data, (only used if data is served by django)
+    el: chart location,
+    frontPage: false, (prevents redirect upon clicking leaves)
+    h: 600,
+    leafDataUrls: keys/values,
+    multiRsrcViewEl: where to put the 'resource list' chart
+    width: $(selected el).width()
+}
+*/
+
 var ZoomablePartitionView = TopologyTreeView.extend({
 
     defaults: {},
@@ -242,6 +258,10 @@ var ZoomablePartitionView = TopologyTreeView.extend({
     },
 
     overrideSets: {
+        // works with filterMultiRsrcData method in topologyTreeView
+        // these params will be omitted from the returned data before
+        // rendering as a data table in 'resource list'
+
         nova: ['@timestamp',
             'metadata',
             'region',
