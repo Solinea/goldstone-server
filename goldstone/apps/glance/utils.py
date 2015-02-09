@@ -1,3 +1,4 @@
+"""Glance app utilities."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -8,13 +9,12 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from goldstone.apps.glance.models import ImagesData
-from goldstone.utils import _get_region_for_glance_client, _get_client, \
-    NoResourceFound, GoldstoneAuthError, TopologyMixin
+from goldstone.utils import _get_region_for_glance_client, NoResourceFound, \
+    GoldstoneAuthError, TopologyMixin
 
 
 class DiscoverTree(TopologyMixin):
@@ -25,8 +25,10 @@ class DiscoverTree(TopologyMixin):
     def _get_image_regions(self):
         return set([s['_source']['region'] for s in self.images])
 
-    def _get_regions(self):
-        kc = _get_client(service='keystone')['client']
+    def get_regions(self):
+        from goldstone.utils import get_client
+
+        kc = get_client(service='keystone')['client']
         r = _get_region_for_glance_client(kc)
         return [{"rsrcType": "region", "label": r}]
 
@@ -52,7 +54,7 @@ class DiscoverTree(TopologyMixin):
 
         return result
 
-    def _build_topology_tree(self):
+    def build_topology_tree(self):
         try:
             if self.images is None or len(self.images) == 0:
                 raise NoResourceFound(
@@ -64,7 +66,9 @@ class DiscoverTree(TopologyMixin):
                 return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
             else:
                 return rl[0]
+
         except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
+
         except GoldstoneAuthError:
             raise

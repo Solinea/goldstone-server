@@ -1,3 +1,4 @@
+"""Keystone utilities."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -8,10 +9,9 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from goldstone.apps.keystone.models import EndpointsData
 from goldstone.utils import GoldstoneAuthError, NoResourceFound, TopologyMixin
 
@@ -32,16 +32,18 @@ class DiscoverTree(TopologyMixin):
                     for r in ep['_source']['endpoints']
                 ])
 
-    def _get_regions(self):
+    def get_regions(self):
         return [{"rsrcType": "region", "label": r} for r in
                 self._get_endpoint_regions()]
 
     def _populate_regions(self):
-        result = []
+
         if self.endpoints is None or len(self.endpoints) == 0:
-                raise NoResourceFound(
-                    "No keystone endpoints found in database")
+            raise NoResourceFound("No keystone endpoints found in database")
+
         updated = self.endpoints[0]['_source']['@timestamp']
+
+        result = []
         for r in self._get_endpoint_regions():
             result.append(
                 {"rsrcType": "region",
@@ -93,15 +95,15 @@ class DiscoverTree(TopologyMixin):
 
         return result
 
-    def _build_topology_tree(self):
+    def build_topology_tree(self):
         try:
             rl = self._populate_regions()
 
-            if len(rl) > 1:
-                return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
-            else:
-                return rl[0]
+            return {"rsrcType": "cloud", "label": "Cloud", "children": rl} \
+                if len(rl) > 1 else rl[0]
+
         except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
+
         except GoldstoneAuthError:
             raise

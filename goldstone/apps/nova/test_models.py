@@ -1,3 +1,4 @@
+"""Nova models for testing."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -8,18 +9,18 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'John Stanford'
-
-from django.test import SimpleTestCase
-from .models import *
-from datetime import datetime
 import pytz
 import pandas
+import logging
 
+from django.test import SimpleTestCase
+from datetime import datetime
+from goldstone.apps.nova.models import HypervisorStatsData, SpawnData, \
+    ResourceData, NovaApiPerfData
+from goldstone.models import ESData
 
 logger = logging.getLogger(__name__)
 
@@ -51,72 +52,39 @@ class HypervisorStatsDataModel(SimpleTestCase):
 
 
 class SpawnDataModel(SimpleTestCase):
+
     start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
     end = datetime.now(tz=pytz.utc)
     interval = '1h'
     sd = SpawnData(start, end, interval)
 
+    # pylint: disable=W0212
+
     def test_spawn_start_query(self):
+
         q = self.sd._spawn_start_query()
-        self.assertEqual(q['aggs'],
-                         ESData._agg_date_hist(self.interval))
+        self.assertEqual(q['aggs'], ESData._agg_date_hist(self.interval))
 
     def test_spawn_finish_query(self):
+
         q = self.sd._spawn_finish_query(True)
 
         self.assertDictEqual(
             q['aggs']['success_filter']['aggs'],
             ESData._agg_date_hist(self.interval))
+
         self.assertDictEqual(
             q['aggs']['success_filter']['filter'],
             ESData._agg_filter_term(
                 "success", "true",
                 "success_filter")['success_filter']['filter'])
+
         q = self.sd._spawn_finish_query(False)
         self.assertDictEqual(
             q['aggs']['success_filter']['filter'],
             ESData._agg_filter_term(
                 "success", "false",
                 "success_filter")['success_filter']['filter'])
-
-    # TODO move to integration test
-    # def test_get_spawn_start(self):
-    #     sd = SpawnData(self.start, self.end, self.interval)
-    #     response = sd.get_spawn_start()
-    #     self.assertEqual(False, response.empty)
-    #     # test for an empty response
-    #     sd.start = datetime.now(tz=pytz.utc)
-    #     sd.end = datetime.now(tz=pytz.utc)
-    #     sd.interval = "1s"
-    #     response = sd.get_spawn_start()
-    #     logger.debug("response = %s", response)
-    #     self.assertEqual(True, response.empty)
-
-    # TODO move to integration test
-    # def test_get_spawn_finish(self):
-    #     sd = SpawnData(self.start, self.end, self.interval)
-    #     response = sd._get_spawn_finish(True)
-    #     self.assertEqual(False, response.empty)
-    #     # test for an empty response
-    #     sd.start = datetime.now(tz=pytz.utc)
-    #     sd.end = datetime.now(tz=pytz.utc)
-    #     sd.interval = "1s"
-    #     response = sd.get_spawn_start()
-    #     self.assertEqual(True, response.empty)
-
-    # TODO move to integration test
-    # def test_get_spawn_success(self):
-    #     sd = SpawnData(self.start, self.end, self.interval)
-    #     response = sd.get_spawn_success()
-    #     control = sd._get_spawn_finish(True)
-    #     self.assertTrue(response.equals(control))
-
-    # TODO move to integration test
-    # def test_get_spawn_failure(self):
-    #     sd = SpawnData(self.start, self.end, self.interval)
-    #     response = sd.get_spawn_failure()
-    #     control = sd._get_spawn_finish(False)
-    #     self.assertTrue(response.equals(control))
 
 
 class ResourceDataTest(SimpleTestCase):
@@ -171,6 +139,6 @@ class ApiPerfDataTest(SimpleTestCase):
     interval = '3600s'
 
     def test_api_perf_data(self):
-        apd = ApiPerfData()
+        apd = NovaApiPerfData()
         result = apd.get(self.start, self.end, self.interval)
         self.assertFalse(result.empty)

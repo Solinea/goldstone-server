@@ -1,4 +1,4 @@
-
+"""Nova app utilities."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -9,12 +9,11 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.utils import TopologyMixin
-
-from views import *
+from goldstone.utils import TopologyMixin, NoResourceFound, GoldstoneAuthError
+from .models import AvailZonesData
 
 
 class DiscoverTree(TopologyMixin):
@@ -28,23 +27,24 @@ class DiscoverTree(TopologyMixin):
         else:
             return set([s['_source']['region'] for s in self.azs])
 
-    def _get_regions(self):
+    def get_regions(self):
         return [{"rsrcType": "region", "label": r}
                 for r in self._get_region_names()]
 
     def _populate_regions(self):
         result = []
         updated = self.azs[0]['_source']['@timestamp']
-        for r in self._get_region_names():
+
+        for region in self._get_region_names():
             result.append(
                 {"rsrcType": "region",
-                 "label": r,
+                 "label": region,
                  "info": {"last_updated": updated},
                  "children": [
                      {
                          "rsrcType": "flavors-leaf",
                          "label": "flavors",
-                         "region": r,
+                         "region": region,
                          "info": {
                              "last_update": updated
                          }
@@ -52,7 +52,7 @@ class DiscoverTree(TopologyMixin):
                      {
                          "rsrcType": "hypervisors-leaf",
                          "label": "hypervisors",
-                         "region": r,
+                         "region": region,
                          "info": {
                              "last_update": updated
                          }
@@ -125,29 +125,36 @@ class DiscoverTree(TopologyMixin):
 
         return result
 
-    def _build_topology_tree(self):
+    def build_topology_tree(self):
+
         try:
             if self.azs is None or len(self.azs) == 0:
                 raise NoResourceFound(
                     "No nova availability zones found in database")
+
             updated = self.azs[0]['_source']['@timestamp']
-            rl = self._populate_regions()
+
+            regions = self._populate_regions()
             new_rl = []
-            for region in rl:
-                zl = self._get_zones(updated, region['label'])
-                ad = {'sourceRsrcType': 'zone',
-                      'targetRsrcType': 'region',
-                      'conditions': "%source%['region'] == %target%['label']"}
-                region = self._attach_resource(ad, zl, [region])[0]
+
+            for region in regions:
+                zones = self._get_zones(updated, region['label'])
+                state = {'sourceRsrcType': 'zone',
+                         'targetRsrcType': 'region',
+                         'conditions':
+                         "%source%['region'] == %target%['label']"}
+                region = self._attach_resource(state, zones, [region])[0]
 
                 new_rl.append(region)
 
-            if len(new_rl) > 1:
+            if new_rl:
                 return {"rsrcType": "cloud", "label": "Cloud",
                         "children": new_rl}
             else:
                 return new_rl[0]
+
         except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
+
         except GoldstoneAuthError:
             raise
