@@ -28,10 +28,10 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
-class NovaSpawnsViewTest(SimpleTestCase):
-    """Test /nova/hypervisor/spawns view."""
+class BaseViewTest(SimpleTestCase):
+    """A base class that provides common attributes and utility methods."""
 
-    # This view requires a start_ts, end_ts, and interval string.
+    # Define commonly used date/time and interval values.
     valid_start = str(calendar.timegm(
         datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))
     valid_end = str(calendar.timegm(
@@ -49,19 +49,14 @@ class NovaSpawnsViewTest(SimpleTestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 400)
 
-    def test_with_implicit_render(self):
+
+class NovaSpawnsViewTest(BaseViewTest):
+    """Test /nova/hypervisor/spawns view."""
+
+    def test_good_request(self):
         url = '/nova/hypervisor/spawns?start=' + self.valid_start + \
             "&end=" + self.valid_end + \
             "&interval=" + self.valid_interval
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'spawns.html')
-
-    def test_no_render(self):
-        url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=false"
         self._assert_success(url)
 
     def test_no_start(self):
@@ -103,24 +98,8 @@ class NovaSpawnsViewTest(SimpleTestCase):
             "&render=false"
         self._assert_bad_request(url)
 
-    def test_invalid_render(self):
-        url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=xyz"
-        self._assert_bad_request(url)
 
-
-class NovaApiPerfViewTest(SimpleTestCase):
-    # view requires a start_ts, end_ts, and interval string
-    valid_start = str(calendar.timegm(
-        datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))
-    valid_end = str(calendar.timegm(
-        datetime.now(tz=pytz.utc).utctimetuple()))
-    valid_interval = '3600s'
-    invalid_start = '999999999999'
-    invalid_end = '999999999999'
-    invalid_interval = 'abc'
+class NovaApiPerfViewTest(BaseViewTest):
 
     def test_with_explicit_render(self):
         url = '/nova/api_perf?start=' + self.valid_start + \
@@ -138,14 +117,6 @@ class NovaApiPerfViewTest(SimpleTestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'nova_api_perf.html')
-
-    def _assert_success(self, url):
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-
-    def _assert_bad_request(self, url):
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 400)
 
     def test_no_render(self):
         url = "/nova/api_perf?start=" + self.valid_start + \
