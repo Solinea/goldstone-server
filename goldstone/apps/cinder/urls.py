@@ -14,29 +14,34 @@
 # limitations under the License.
 from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
-from .views import ReportView, ApiPerfView, JsonReadOnlyViewSet
+from .views import ReportView, ApiPerfView, VolumesDataViewSet, \
+    BackupsDataViewSet, SnapshotsDataViewSet, ServicesDataViewSet, \
+    VolumeTypesDataViewSet, TransfersDataViewSet
 
+# Views handled by DjangoRestFramework ViewSets.
 router = DefaultRouter(trailing_slash=False)
-router.register(r'^(?P<base>backups)[/]?$',
-                JsonReadOnlyViewSet,
+router.register(r'^backups[/]?$',
+                BackupsDataViewSet,
                 base_name='cinder-backups')
-router.register(r'^(?P<base>services)[/]?$',
-                JsonReadOnlyViewSet,
+router.register(r'^services[/]?$',
+                ServicesDataViewSet,
                 base_name='cinder-services')
-router.register(r'^(?P<base>snapshots)[/]?$',
-                JsonReadOnlyViewSet,
+router.register(r'^snapshots[/]?$',
+                SnapshotsDataViewSet,
                 base_name='cinder-snapshots')
-router.register(r'^(?P<base>transfers)[/]?$',
-                JsonReadOnlyViewSet,
+router.register(r'^transfers[/]?$',
+                TransfersDataViewSet,
                 base_name='cinder-transfers')
-router.register(r'^(?P<base>volumes)[/]?$',
-                JsonReadOnlyViewSet,
+router.register(r'^volumes[/]?$',
+                VolumesDataViewSet,
                 base_name='cinder-volumes')
-router.register(r'^(?P<base>volume_types)[/]?$',
-                JsonReadOnlyViewSet,
+router.register(r'^volume_types[/]?$',
+                VolumeTypesDataViewSet,
                 base_name='cinder-volume-types')
 
 urlpatterns = router.urls
+
+# Other views.
 urlpatterns += patterns('',
                         url(r'^api_perf[/]?$',
                             ApiPerfView.as_view(),

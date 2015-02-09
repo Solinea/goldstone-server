@@ -1,4 +1,5 @@
-# Copyright 2014 Solinea, Inc.
+"""Goldstone secret keys."""
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance

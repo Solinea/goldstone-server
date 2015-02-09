@@ -1,3 +1,4 @@
+"""Api_perf application models."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),

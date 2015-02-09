@@ -81,7 +81,7 @@ class EventType(MappingType, Indexable):
         }
 
     def get_object(self):
-        return Event._reconstitute(
+        return Event.reconstitute(
             id=self._id,
             event_type=self._results_dict['event_type'],
             message=self._results_dict['message'],
@@ -103,44 +103,49 @@ class Event(Model):
     es_objects = EventType.search()
 
     def __init__(self, *args, **kwargs):
+        """Initialize the object."""
+
         super(Event, self).__init__(*args, **kwargs)
+
         self.id = str(uuid4())
+
         if 'created' in kwargs:
             self.created = arrow.get(kwargs['created']).datetime
         else:
             self.created = arrow.utcnow().datetime
+
         if 'source_id' not in kwargs:
             self.source_id = ""
+
         if 'source_name' not in kwargs:
             self.source_name = ""
 
     @classmethod
-    def _reconstitute(cls, **kwargs):
-        """
-        provides a way for the mapping type to create an object from ES data
-        """
+    def reconstitute(cls, **kwargs):
+        """Allow the mapping type to create an object from ES data."""
+
         obj = cls(**kwargs)
         obj.id = kwargs['id']
         obj.created = arrow.get(kwargs['created']).datetime
+
         return obj
 
     @classmethod
     def get(cls, **kwargs):
+
         try:
-            return cls.es_objects. \
-                filter(**kwargs)[0].get_object()
+            return cls.es_objects.filter(**kwargs)[0].get_object()
         except Exception:       # pylint: disable=W0703
             return None
 
     def save(self, force_insert=False, force_update=False):
-        """
-        An override to save the object to ES via elasticutils
-        """
+        """Overridded to save the object to ES via elasticutils."""
 
         self._mt.index(self._mt.extract_document(self.id, self),
                        id_=str(self.id))
 
     def delete(self, using=None):
+
         if using is not None:
             raise ValueError("using is not implemented for this model")
 
@@ -178,7 +183,7 @@ class MetricType(MappingType, Indexable):
         }
 
     def get_object(self):
-        return Metric._reconstitute(
+        return Metric.reconstitute(
             timestamp=self._results_dict['timestamp'],
             name=self._results_dict['name'],
             metric_type=self._results_dict['metric_type'],
@@ -201,12 +206,9 @@ class Metric(Model):
     es_objects = MetricType.search()
 
     @classmethod
-    def _reconstitute(cls, **kwargs):
-        """
-        provides a way for the mapping type to create an object from ES data
-        """
-        obj = cls(**kwargs)
-        return obj
+    def reconstitute(cls, **kwargs):
+        """Allow the mapping type to create an object from ES data."""
+        return cls(**kwargs)
 
     @classmethod
     def get(cls, **kwargs):
@@ -253,7 +255,7 @@ class ReportType(MappingType, Indexable):
         }
 
     def get_object(self):
-        return Report._reconstitute(
+        return Report.reconstitute(
             timestamp=self._results_dict['timestamp'],
             name=self._results_dict['name'],
             value=self._results_dict['value'],
@@ -272,7 +274,7 @@ class Report(Model):
     es_objects = ReportType.search()
 
     @classmethod
-    def _reconstitute(cls, **kwargs):
+    def reconstitute(cls, **kwargs):
         """Allows the mapping type to create an object from ES data."""
 
         # reports could be stringified JSON, so let's find out
@@ -346,9 +348,11 @@ class Node(Model):
     name = CharField(max_length=64, unique=True)
     created = CreationDateTimeField(editable=False, blank=True,
                                     default=utc_now)
+
     # updated = ModificationDateTimeField(editable=False, blank=True,
     #                                     default=utc_now)
     updated = ModificationDateTimeField(editable=True, blank=True)
+
     update_method = CharField(max_length=32, choices=METHOD_CHOICES,
                               null=True, blank=True, default="UNKNOWN",
                               validators=[validate_method_choices])
@@ -357,14 +361,15 @@ class Node(Model):
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
-        """
-        Override save to validate model before transaction.
+        """Overrides the default save to validate model before transaction.
+
         :param force_insert:
         :param force_update:
         :param using:
         :param update_fields:
-        :return:
+
         """
+
         self.full_clean()
         return super(Node, self).save(force_insert, force_update, using,
                                       update_fields)

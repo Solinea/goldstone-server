@@ -28,11 +28,9 @@ logger = logging.getLogger(__name__)
 
 def get_es_connection(server=settings.ES_SERVER):
     try:
-        es = get_es(urls=[server], timeout=10,
-                    max_retries=3)
-        return es
+        return get_es(urls=[server], timeout=10, max_retries=3)
     except TransportError:
-        logger.error("Could not connect to ElasticSearch.")
+        logger.exception("Could not connect to ElasticSearch.")
         raise
     except Exception:           # pylint: disable=W0703
         logger.warn('Unknown exception getting ES connection.  Please report '
@@ -40,10 +38,9 @@ def get_es_connection(server=settings.ES_SERVER):
         raise
 
 
-def _delete_indices(prefix, cutoff,
-                    es_host=settings.ES_HOST,
-                    es_port=settings.ES_PORT
-                    ):
+def _delete_indices(prefix, cutoff, es_host=settings.ES_HOST,
+                    es_port=settings.ES_PORT):
+
     cmd = "curator --host %s --port %s delete --prefix %s --older-than %d" %\
           (es_host, es_port, prefix, cutoff)
     return check_call(cmd.split())
@@ -75,6 +72,7 @@ def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
     :return: boolean indicator of acknowledgment
 
     This will overwrite an existing template of the same name.
+
     """
 
     try:
@@ -87,12 +85,13 @@ def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
 
 
 def _create_index(name, body=None, server=settings.ES_SERVER):
+
     try:
         conn = get_es_connection(server)
         conn.indices.create(name, body=body)
-    except RequestError as e:
+    except RequestError as exc:
         # Reraise anything that isn't index already exists
-        if not e.error.startswith('IndexAlreadyExistsException'):
+        if not exc.error.startswith('IndexAlreadyExistsException'):
             logger.warn('Index creation failed. Please report this error.')
             raise
         else:
@@ -106,8 +105,8 @@ def _put_agent_template(server=settings.ES_SERVER):
                               "goldstone_agent_template.json"), 'rb')
         _put_es_template(f, "goldstone_agent", server=server)
     except Exception:         # pylint: disable=W0703
-        logger.error("Failed to create/update the goldstone_agent template.  "
-                     "Please report this.")
+        logger.exception("Failed to create/update the goldstone_agent "
+                         "template.  Please report this.")
         raise
 
 
@@ -144,12 +143,10 @@ def _put_all_templates(server=settings.ES_SERVER):
     _put_model_template(server=server)
 
 
-def _create_daily_index(server=settings.ES_SERVER,
-                        basename='goldstone'):
-    """
-    Create a new index in ElasticSearch and set up
-    an alias for goldstone to point to the latest index.
-    """
+def _create_daily_index(basename='goldstone'):
+    """Create a new index in ElasticSearch and set up an alias for goldstone to
+    point to the latest index."""
+
     now = date.today()
     index_name = basename + "-" + now.strftime("%Y.%m.%d")
 
@@ -162,12 +159,13 @@ def _create_daily_index(server=settings.ES_SERVER,
         raise
 
 
-def _create_agent_index(server=settings.ES_SERVER):
+def _create_agent_index():
     """Create a new index in ElasticSearch."""
-    index_name = "goldstone_agent"
+
+    INDEX_NAME = "goldstone_agent"
 
     try:
-        return _create_index(index_name)
+        return _create_index(INDEX_NAME)
     except Exception:         # pylint: disable=W0703
         logger.error("Failed to create the goldstone agent index. Please "
                      "report this.")

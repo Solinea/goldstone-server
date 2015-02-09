@@ -18,13 +18,17 @@ from goldstone.apps.logging.models import LoggingNodeStats
 class LoggingNodeSerializer(NodeSerializer):
 
     def to_representation(self, obj):
-        r = super(LoggingNodeSerializer, self).to_representation(obj)
+
+        result = super(LoggingNodeSerializer, self).to_representation(obj)
+
         lns = LoggingNodeStats(
             self.context['start_time'],
             self.context['end_time']).for_node(obj.name)
-        r['info_count'] = lns.get('info', 0)
-        r['audit_count'] = lns.get('audit', 0)
-        r['warning_count'] = lns.get('warning', 0)
-        r['error_count'] = lns.get('error', 0)
-        r['debug_count'] = lns.get('debug', 0)
-        return r
+
+        result['info_count'] = lns.get('info', 0)
+        result['audit_count'] = lns.get('audit', 0)
+        result['warning_count'] = lns.get('warning', 0)
+        result['error_count'] = lns.get('error', 0)
+        result['debug_count'] = lns.get('debug', 0)
+
+        return result
