@@ -19,9 +19,11 @@ from django.http import HttpResponse
 import pytz
 import calendar
 import logging
+import pandas as pd
 
 from django.test import SimpleTestCase
 from django.utils.unittest.case import skip
+from goldstone.apps.nova.views import SpawnsView
 from .models import SpawnData
 from datetime import datetime
 from mock import patch
