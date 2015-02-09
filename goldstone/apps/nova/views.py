@@ -60,19 +60,16 @@ class SpawnsView(TemplateView):
     def get_context_data(self, **kwargs):
 
         context = TemplateView.get_context_data(self, **kwargs)
-        context['render'] = self.request.GET.get('render', "True"). \
-            lower().capitalize()
+
+        # The server doesn't render the page. The client does.
+        context["render"] = "False"
+
         # Use "now" if not provided, validate() will calculate the  start and
         # interval.
         context['end'] = self.request.GET.get('end', str(calendar.timegm(
             datetime.utcnow().timetuple())))
         context['start'] = self.request.GET.get('start', None)
         context['interval'] = self.request.GET.get('interval', None)
-
-        # if render is true, we will return a full template, otherwise only
-        # a json data payload
-        self.template_name = 'spawns.html' if context['render'] == 'True' \
-            else None
 
         return context
 
@@ -118,25 +115,17 @@ class SpawnsView(TemplateView):
         if not self.data.empty:
             self.data = self.data.set_index('key').fillna(0)
 
-        response = self.data.transpose().to_dict(outtype='list')
-        return response
+        return self.data.transpose().to_dict(outtype='list')
 
     def render_to_response(self, context, **response_kwargs):
-        """
-        Overriding to handle case of data only request (render=False).  In
-        that case an application/json data payload is returned.
-        """
+        """Supply a data-only response as an application/json data payload."""
         try:
             response = self._handle_request(context)
             if isinstance(response, HttpResponseBadRequest):
                 return response
 
-            if self.template_name is None:
-                return HttpResponse(json.dumps(response),
-                                    content_type="application/json")
-
-            return TemplateView.render_to_response(
-                self, {'data': json.dumps(response)})
+            return HttpResponse(json.dumps(response),
+                                content_type="application/json")
 
         except ElasticsearchException:
             return HttpResponse(

@@ -1,4 +1,4 @@
-"""Nova test views."""
+"""Nova view unit tests."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -29,8 +29,9 @@ logger = logging.getLogger(__name__)
 
 
 class NovaSpawnsViewTest(SimpleTestCase):
+    """Test /nova/hypervisor/spawns view."""
 
-    # view requires a start_ts, end_ts, and interval string
+    # This view requires a start_ts, end_ts, and interval string.
     valid_start = str(calendar.timegm(
         datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))
     valid_end = str(calendar.timegm(
@@ -40,14 +41,13 @@ class NovaSpawnsViewTest(SimpleTestCase):
     invalid_end = '999999999999'
     invalid_interval = 'abc'
 
-    def test_with_explicit_render(self):
-        url = '/nova/hypervisor/spawns?start=' + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=true"
+    def _assert_success(self, url):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'spawns.html')
+
+    def _assert_bad_request(self, url):
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 400)
 
     def test_with_implicit_render(self):
         url = '/nova/hypervisor/spawns?start=' + self.valid_start + \
@@ -57,66 +57,58 @@ class NovaSpawnsViewTest(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'spawns.html')
 
-    def _test_no_render_success(self, url):
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-
-    def _test_no_render_bad_request(self, url):
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 400)
-
     def test_no_render(self):
         url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
             "&end=" + self.valid_end + \
             "&interval=" + self.valid_interval + \
             "&render=false"
-        self._test_no_render_success(url)
+        self._assert_success(url)
 
     def test_no_start(self):
         url = "/nova/hypervisor/spawns?end=" + self.valid_end + \
             "&interval=" + self.valid_interval + \
             "&render=false"
-        self._test_no_render_success(url)
+        self._assert_success(url)
 
     def test_no_end(self):
         url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
             "&interval=" + self.valid_interval + \
             "&render=false"
-        self._test_no_render_success(url)
+        self._assert_success(url)
 
     def test_no_interval(self):
         url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
             "&end=" + self.valid_end + \
             "&render=false"
-        self._test_no_render_success(url)
+        self._assert_success(url)
 
     def test_invalid_start(self):
         url = "/nova/hypervisor/spawns?start=" + self.invalid_start + \
             "&end=" + self.valid_end + \
             "&interval=" + self.valid_interval + \
             "&render=false"
-        self._test_no_render_bad_request(url)
+        self._assert_bad_request(url)
 
     def test_invalid_finish(self):
         url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
             "&end=" + self.invalid_end + \
             "&interval=" + self.valid_interval + \
             "&render=false"
-        self._test_no_render_bad_request(url)
+        self._assert_bad_request(url)
 
     def test_invalid_interval(self):
         url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
             "&end=" + self.valid_end + \
             "&interval=" + self.invalid_interval + \
             "&render=false"
-        self._test_no_render_bad_request(url)
+        self._assert_bad_request(url)
 
     def test_invalid_render(self):
         url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
             "&end=" + self.valid_end + \
             "&interval=" + self.valid_interval + \
             "&render=xyz"
-        self._test_no_render_bad_request(url)
+        self._assert_bad_request(url)
 
 
 class NovaApiPerfViewTest(SimpleTestCase):
@@ -147,11 +139,11 @@ class NovaApiPerfViewTest(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'nova_api_perf.html')
 
-    def _test_no_render_success(self, url):
+    def _assert_success(self, url):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
-    def _test_no_render_bad_request(self, url):
+    def _assert_bad_request(self, url):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 400)
 
@@ -160,53 +152,53 @@ class NovaApiPerfViewTest(SimpleTestCase):
             "&end=" + self.valid_end + \
             "&interval=" + self.valid_interval + \
             "&render=false"
-        self._test_no_render_success(url)
+        self._assert_success(url)
 
     def test_no_start(self):
         url = "/nova/api_perf?end=" + self.valid_end + \
             "&interval=" + self.valid_interval + \
             "&render=false"
-        self._test_no_render_success(url)
+        self._assert_success(url)
 
     def test_no_end(self):
         url = "/nova/api_perf?start=" + self.valid_start + \
             "&interval=" + self.valid_interval + \
             "&render=false"
-        self._test_no_render_success(url)
+        self._assert_success(url)
 
     def test_no_interval(self):
         url = "/nova/api_perf?start=" + self.valid_start + \
             "&end=" + self.valid_end + \
             "&render=false"
-        self._test_no_render_success(url)
+        self._assert_success(url)
 
     def test_invalid_start(self):
         url = "/nova/api_perf?start=" + self.invalid_start + \
             "&end=" + self.valid_end + \
             "&interval=" + self.valid_interval + \
             "&render=false"
-        self._test_no_render_bad_request(url)
+        self._assert_bad_request(url)
 
     def test_invalid_finish(self):
         url = "/nova/api_perf?start=" + self.valid_start + \
             "&end=" + self.invalid_end + \
             "&interval=" + self.valid_interval + \
             "&render=false"
-        self._test_no_render_bad_request(url)
+        self._assert_bad_request(url)
 
     def test_invalid_interval(self):
         url = "/nova/api_perf?start=" + self.valid_start + \
             "&end=" + self.valid_end + \
             "&interval=" + self.invalid_interval + \
             "&render=false"
-        self._test_no_render_bad_request(url)
+        self._assert_bad_request(url)
 
     def test_invalid_render(self):
         url = "/nova/api_perf?start=" + self.valid_start + \
             "&end=" + self.valid_end + \
             "&interval=" + self.valid_interval + \
             "&render=xyz"
-        self._test_no_render_bad_request(url)
+        self._assert_bad_request(url)
 
 
 class LatestStatsViewTest(SimpleTestCase):
