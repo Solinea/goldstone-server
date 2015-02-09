@@ -19,11 +19,12 @@ var NovaReportView = ApiPerfReportView.extend({
     triggerChange: function() {
         this.novaApiPerfChartView.trigger('selectorChanged');
         this.vmSpawnChartView.trigger('selectorChanged');
+        this.cpuResourcesChartView.trigger('selectorChanged');
+        this.memResourcesChartView.trigger('selectorChanged');
+        this.diskResourcesChartView.trigger('selectorChanged');
     },
 
     renderCharts: function() {
-        // TODO: implement cpu / mem / disk charts
-
         /*
         Nova Api Perf Report
         */
@@ -44,14 +45,12 @@ var NovaReportView = ApiPerfReportView.extend({
             width: $('#nova-report-r1-c1').width()
         });
 
-
         /*
         VM Spawns Chart
         */
 
         this.vmSpawnChart = new StackedBarChartCollection({
-            urlPrefix: '/nova/hypervisor/spawns',
-            render: false
+            urlPrefix: '/nova/hypervisor/spawns'
         });
 
         this.vmSpawnChartView = new StackedBarChartView({
@@ -64,23 +63,61 @@ var NovaReportView = ApiPerfReportView.extend({
             yAxisLabel: 'Spawn Events'
         });
 
-        // PLACEHOLDERS
-        new ChartHeaderView({
-            el: "#nova-report-r2-c1",
+        /*
+        CPU Resources Chart
+        */
+
+        this.cpuResourcesChart = new CpuResourceCollection({
+            urlPrefix: '/nova/hypervisor/cpu'
+        });
+
+        this.cpuResourcesChartView = new StackedBarChartView({
             chartTitle: "CPU Resources",
-            infoText: "novaCpuResources"
+            collection: this.cpuResourcesChart,
+            featureSet: 'cpu',
+            height: 300,
+            infoCustom: 'novaCpuResources',
+            el: '#nova-report-r2-c1',
+            width: $('#nova-report-r2-c1').width(),
+            yAxisLabel: 'Cores'
         });
 
-        new ChartHeaderView({
-            el: "#nova-report-r2-c2",
-            chartTitle: "Mem Resources",
-            infoText: "novaMemResources"
+        /*
+        Mem Resources Chart
+        */
+
+        this.memResourcesChart = new MemResourceCollection({
+            urlPrefix: '/nova/hypervisor/mem'
         });
 
-        new ChartHeaderView({
-            el: "#nova-report-r3-c1",
+        this.memResourcesChartView = new StackedBarChartView({
+            chartTitle: "Memory Resources",
+            collection: this.memResourcesChart,
+            featureSet: 'mem',
+            height: 300,
+            infoCustom: 'novaMemResources',
+            el: '#nova-report-r2-c2',
+            width: $('#nova-report-r2-c2').width(),
+            yAxisLabel: 'GB'
+        });
+
+        /*
+        Disk Resources Chart
+        */
+
+        this.diskResourcesChart = new DiskResourceCollection({
+            urlPrefix: '/nova/hypervisor/disk'
+        });
+
+        this.diskResourcesChartView = new StackedBarChartView({
             chartTitle: "Disk Resources",
-            infoText: "novaDiskResources"
+            collection: this.diskResourcesChart,
+            featureSet: 'disk',
+            height: 300,
+            infoCustom: 'novaDiskResources',
+            el: '#nova-report-r3-c1',
+            width: $('#nova-report-r3-c1').width(),
+            yAxisLabel: 'GB'
         });
 
     },
@@ -97,9 +134,7 @@ var NovaReportView = ApiPerfReportView.extend({
         '<div id="nova-report-r3" class="row">' +
         '<div id="nova-report-r3-c1" class="col-md-6"></div>' +
         '<div id="nova-report-r3-c2" class="col-md-6"></div>' +
-        '</div>' +
-        // TODO: remove breaks after charts are instantiated
-        '<br><br><br><br><br>'
+        '</div>'
     )
 
 });
