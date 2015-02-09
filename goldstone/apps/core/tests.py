@@ -66,14 +66,20 @@ class TaskTests(SimpleTestCase):
         self.assertIsNone(tasks._create_daily_index('abc'))
 
     def test_manage_es_indices(self):
+        """Test that manage_es_indices returns (True, True, True) and (False,
+        False, False) when _create_daily_index and _delete_indices work normally and
+        raise exceptions."""
 
         # pylint: disable=W0212
+
+        # The index methods return exceptions...
         tasks._create_daily_index = mock.Mock(
             side_effect=KeyError("This is expected"))
         tasks._delete_indices = mock.Mock(
             side_effect=KeyError("This is expected"))
         self.assertEqual(tasks.manage_es_indices(), (False, False, False))
 
+        # The index methods run normally...
         tasks._create_daily_index = mock.Mock(return_value=None,
                                               side_effect=None)
         tasks._delete_indices = mock.Mock(return_value=None, side_effect=None)

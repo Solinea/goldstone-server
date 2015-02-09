@@ -1,3 +1,4 @@
+"""Nova app URLconf."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -11,24 +12,51 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""
-
-This module contains all url handlers for the OpenStack Nova application.
-
-"""
-
 from django.conf.urls import patterns, url
+from rest_framework.routers import DefaultRouter
 
-from .views import ReportView, SpawnsView, CpuView, MemoryView, \
-    DiskView, LatestStatsView, ApiPerfView, AgentsDataView, \
-    AggregatesDataView, AvailZonesDataView, CloudpipesDataView, \
-    FlavorsDataView, FloatingIpPoolsDataView, HostsDataView, \
-    HypervisorsDataView, NetworksDataView, SecGroupsDataView, ServersDataView, \
-    ServicesDataView
+from .views import ReportView, SpawnsView, CpuView, MemoryView, DiskView, \
+    LatestStatsView, ApiPerfView, AgentsDataViewSet, AggregatesDataViewSet, \
+    AvailZonesDataViewSet, CloudpipesDataViewSet, FlavorsDataViewSet, \
+    FloatingIpPoolsDataViewSet, HostsDataViewSet, HypervisorsDataViewSet, \
+    NetworksDataViewSet, SecGroupsDataViewSet, ServersDataViewSet, \
+    ServicesDataViewSet
 
+# Views handled by DjangoRestFramework ViewSets.
+router = DefaultRouter(trailing_slash=False)
+router.register(r'^agents[/]?$', AgentsDataViewSet, base_name='nova-agents')
+router.register(r'^aggregates[/]?$',
+                AggregatesDataViewSet,
+                base_name='nova-aggregates')
+router.register(r'^availability_zones[/]?$',
+                AvailZonesDataViewSet,
+                base_name='nova-availability-zones')
+router.register(r'^cloudpipes[/]?$',
+                CloudpipesDataViewSet,
+                base_name='nova-cloudpipes')
+router.register(r'^flavors[/]?$', FlavorsDataViewSet, base_name='nova-flavors')
+router.register(r'^floating_ip_pools[/]?$',
+                FloatingIpPoolsDataViewSet,
+                base_name='nova-agents')
+router.register(r'^hosts[/]?$', HostsDataViewSet, base_name='nova-hosts')
+router.register(r'^hypervisors[/]?$',
+                HypervisorsDataViewSet,
+                base_name='nova-hypervisors')
+router.register(r'^networks[/]?$',
+                NetworksDataViewSet,
+                base_name='nova-networks')
+router.register(r'^security_groups[/]?$',
+                SecGroupsDataViewSet,
+                base_name='nova-security-groups')
+router.register(r'^servers[/]?$', ServersDataViewSet, base_name='nova-servers')
+router.register(r'^services[/]?$',
+                ServicesDataViewSet,
+                base_name='nova-services')
 
-urlpatterns = patterns(
+urlpatterns = router.urls
+
+# Other views.
+urlpatterns += patterns(
     '',
     url(r'^report[/]?$', ReportView.as_view(),
         name='nova-report-view'),
@@ -44,28 +72,4 @@ urlpatterns = patterns(
         name='nova-hypervisor-latest-stats'),
     url(r'^api_perf[/]?$', ApiPerfView.as_view(),
         name='nova-api-perf'),
-    url(r'^agents[/]?$', AgentsDataView.as_view(),
-        name='nova-agents'),
-    url(r'^aggregates[/]?$', AggregatesDataView.as_view(),
-        name='nova-aggregates'),
-    url(r'^availability_zones[/]?$', AvailZonesDataView.as_view(),
-        name='nova-availability-zones'),
-    url(r'^cloudpipes[/]?$', CloudpipesDataView.as_view(),
-        name='nova-cloudpipes'),
-    url(r'^flavors[/]?$', FlavorsDataView.as_view(),
-        name='nova-flavors'),
-    url(r'^floating_ip_pools[/]?$', FloatingIpPoolsDataView.as_view(),
-        name='nova-floating-ip-pools'),
-    url(r'^hosts[/]?$', HostsDataView.as_view(),
-        name='nova-hosts'),
-    url(r'^hypervisors[/]?$', HypervisorsDataView.as_view(),
-        name='nova-hypervisors'),
-    url(r'^networks[/]?$', NetworksDataView.as_view(),
-        name='nova-networks'),
-    url(r'^security_groups[/]?$', SecGroupsDataView.as_view(),
-        name='nova-security-groups'),
-    url(r'^servers[/]?$', ServersDataView.as_view(),
-        name='nova-servers'),
-    url(r'^services[/]?$', ServicesDataView.as_view(),
-        name='nova-services'),
-)
+    )

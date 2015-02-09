@@ -26,8 +26,6 @@ import logging
 import requests
 
 from django.conf import settings
-from novaclient.v1_1 import client
-import pytz
 
 from goldstone.apps.nova.models import HypervisorStatsData, NovaApiPerfData, \
     AgentsData, AggregatesData, AvailZonesData, CloudpipesData, FlavorsData, \
@@ -42,11 +40,12 @@ logger = logging.getLogger(__name__)
 
 @celery_app.task(bind=True)
 def nova_hypervisors_stats(self):
+    from novaclient.v1_1 import client
 
     nt = client.Client(settings.OS_USERNAME, settings.OS_PASSWORD,
                        settings.OS_TENANT_NAME, settings.OS_AUTH_URL,
                        service_type="compute")
-    response = nt.hypervisors.statistics()._info
+    response = nt.hypervisors.statistics()._info    # pylint: disable=W0212
 
     t = datetime.utcnow()
     response['@timestamp'] = t.strftime(
@@ -91,6 +90,7 @@ def time_nova_api(self):
 
 
 def _update_nova_records(rec_type, region, db, items):
+    import pytz
 
     # image list is a generator, so we need to make it not sol lazy it...
     body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
