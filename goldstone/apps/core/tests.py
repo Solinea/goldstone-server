@@ -66,9 +66,8 @@ class TaskTests(SimpleTestCase):
         self.assertIsNone(tasks._create_daily_index('abc'))
 
     def test_manage_es_indices(self):
-        """Test that manage_es_indices returns (True, True, True) and (False,
-        False, False) when _create_daily_index and _delete_indices work normally and
-        raise exceptions."""
+        """Test the returns from manage_es_indices when _create_daily_index and
+        _delete_indices work normally, and when they raise exceptions."""
 
         # pylint: disable=W0212
 
@@ -89,8 +88,6 @@ class TaskTests(SimpleTestCase):
 class NodeSerializerTests(SimpleTestCase):
 
     name1 = "test_node_123"
-    name2 = "test_node_456"
-    name3 = "test_node_789"
     node1 = Node(name=name1)
 
     def setUp(self):
@@ -468,10 +465,8 @@ class EventSerializerTests(SimpleTestCase):
         self.assertEqual(ser.data['id'], extract['id'])
         self.assertEqual(ser.data['event_type'],
                          extract['event_type'])
-        self.assertEqual(ser.data['message'],
-                         extract['message'])
-        self.assertEqual(ser.data['source_id'],
-                         extract['source_id'])
+        self.assertEqual(ser.data['message'], extract['message'])
+        self.assertEqual(ser.data['source_id'], extract['source_id'])
         self.assertEqual(arrow.get(ser.data['created']),
                          arrow.get(extract['created']))
 
@@ -559,7 +554,9 @@ class EventViewTests(APISimpleTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_get_list_with_start(self):
+
         start_time = arrow.utcnow().replace(minutes=-15)
+
         data1 = {
             "event_type": "test event",
             "message": "test message"}
@@ -569,11 +566,14 @@ class EventViewTests(APISimpleTestCase):
             "message": "test message",
             "created": start_time.replace(minutes=-2).isoformat()
         }
+
         response = self.client.post('/core/events', data=data1)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
         data1_id = response.data['id']
         response = self.client.post('/core/events', data=data2)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
         data2_id = response.data['id']
         EventType.refresh_index()
         response = self.client.get('/core/events')
