@@ -14,8 +14,10 @@
 # limitations under the License.
 import logging
 
-from goldstone.views import TopLevelView, ApiPerfView, JSONView
+from goldstone.apps.core.utils import JsonReadOnlyViewSet
+from goldstone.views import TopLevelView, ApiPerfView
 from .models import GlanceApiPerfData, ImagesData
+
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +35,6 @@ class ImageApiPerfView(ApiPerfView):
                                        context['interval'])
 
 
-class ImagesDataView(JSONView):
+class ImagesDataViewSet(JsonReadOnlyViewSet):
     model = ImagesData
     key = 'images'

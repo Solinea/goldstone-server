@@ -1,4 +1,5 @@
-# Copyright 2014 Solinea, Inc.
+"""Api_perf tests."""
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -11,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import calendar
 from django.test import SimpleTestCase
 import logging
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class ViewTests(SimpleTestCase):
+
     start_dt = datetime.fromtimestamp(0, tz=pytz.utc)
     end_dt = datetime.utcnow()
     start_ts = calendar.timegm(start_dt.utctimetuple())

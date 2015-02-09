@@ -13,24 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf.urls import patterns, url
+from rest_framework.routers import DefaultRouter
 from .views import ReportView, AuthApiPerfView, \
-    EndpointsDataView, RolesDataView, ServicesDataView, \
-    TenantsDataView, UsersDataView
+    EndpointsDataViewSet, RolesDataViewSet, ServicesDataViewSet, \
+    TenantsDataViewSet, UsersDataViewSet
 
-urlpatterns = patterns(
+# Views handled by DjangoRestFramework ViewSets.
+router = DefaultRouter(trailing_slash=False)
+router.register(r'^endpoints[/]?$',
+                EndpointsDataViewSet,
+                base_name='keystone-endpoints')
+router.register(r'^roles[/]?$', RolesDataViewSet, base_name='keystone-roles')
+router.register(r'^services[/]?$',
+                ServicesDataViewSet,
+                base_name='keystone-services')
+router.register(r'^tenants[/]?$',
+                TenantsDataViewSet,
+                base_name='keystone-tenants')
+router.register(r'^users[/]?$', UsersDataViewSet, base_name='keystone-users')
+
+urlpatterns = router.urls
+
+# Other views.
+urlpatterns += patterns(
     '',
     url(r'^report[/]?$', ReportView.as_view(),
         name='keystone-report-view'),
     url(r'^api_perf[/]?$', AuthApiPerfView.as_view(),
         name='keystone-api-perf'),
-    url(r'^endpoints[/]?$', EndpointsDataView.as_view(),
-        name='keystone-endpoints'),
-    url(r'^roles[/]?$', RolesDataView.as_view(),
-        name='keystone-roles'),
-    url(r'^services[/]?$', ServicesDataView.as_view(),
-        name='keystone-services'),
-    url(r'^tenants[/]?$', TenantsDataView.as_view(),
-        name='keystone-tenants'),
-    url(r'^users[/]?$', UsersDataView.as_view(),
-        name='keystone-users'),
 )

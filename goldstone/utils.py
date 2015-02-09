@@ -29,7 +29,6 @@ from requests.exceptions import Timeout
 from datetime import datetime
 from urlparse import urlparse
 import json
-from exceptions import LookupError
 import socket
 import functools
 import calendar
@@ -77,11 +76,12 @@ def utc_timestamp():
     return calendar.timegm(datetime.now(tz=pytz.utc).timetuple())
 
 
-def to_es_date(d):
-    s = d.strftime('%Y-%m-%dT%H:%M:%S.')
-    s += '%03d' % int(round(d.microsecond / 1000.0))
-    s += d.strftime('%z')
-    return s
+def to_es_date(date_object):
+
+    result = date_object.strftime('%Y-%m-%dT%H:%M:%S.')
+    result += '%03d' % int(round(date_object.microsecond / 1000.0))
+    result += date_object.strftime('%z')
+    return result
 
 
 def _get_region_for_client(catalog, management_url, service_type):
@@ -89,10 +89,7 @@ def _get_region_for_client(catalog, management_url, service_type):
     returns the region for a management url and service type given the service
     catalog.
     """
-    candidates = [
-        svc
-        for svc in catalog if svc['type'] == service_type
-    ]
+    candidates = [svc for svc in catalog if svc['type'] == service_type]
 
     matches = [
         ep
@@ -402,11 +399,14 @@ def _construct_api_rec(reply, component, ts, timeout, url):
         return rec
 
 
-def stored_api_call(component, endpt, path, headers={}, data=None,
+def stored_api_call(component, endpt, path, headers=None, data=None,
                     user=settings.OS_USERNAME,
                     passwd=settings.OS_PASSWORD,
                     tenant=settings.OS_TENANT_NAME,
                     auth_url=settings.OS_AUTH_URL, timeout=30):
+
+    # Use headers if supplied, else use an empty dict.
+    headers = headers if headers else {}
 
     kt = get_keystone_client(user=user,
                              passwd=passwd,
@@ -424,8 +424,10 @@ def stored_api_call(component, endpt, path, headers={}, data=None,
             {'x-auth-token': kt['hex_token'],
              'content-type': 'application/json'}.items() +
             headers.items())
+
         t = datetime.utcnow()
         reply = None
+
         try:
             reply = requests.get(url, headers=headers, data=data,
                                  timeout=settings.API_PERF_QUERY_TIMEOUT)
@@ -490,9 +492,9 @@ class TopologyMixin(object):
             return False
 
     def _attach_resource(self, attach_descriptor, source, target):
-        """
-        Attaches one resource tree to another at a described point.  The
-        descriptor format is:
+        """Attach one resource tree to another at a described point.
+
+        The descriptor format is:
 
             {'sourceRsrcType': 'string',
              'targetRsrcType': 'string',
@@ -506,6 +508,7 @@ class TopologyMixin(object):
         nesting is via the 'children' key.  The condition will be evaluated as
         a boolean expression, and will have access to the items in both source
         and target.
+
         """
 
         # basic sanity check.  all args should be dicts, source and target
@@ -519,15 +522,19 @@ class TopologyMixin(object):
         # the call.
         targ = copy.deepcopy(target)
         src = copy.deepcopy(source)
-        ad = attach_descriptor
+        ad_copy = attach_descriptor
 
-        targ_children = self._get_children(targ, ad['targetRsrcType'])
-        src_children = self._get_children(src, ad['sourceRsrcType'])
-        for tc in targ_children:
-            for sc in src_children:
-                match = self._eval_condition(sc, tc, ad['conditions'])
+        targ_children = self._get_children(targ, ad_copy['targetRsrcType'])
+        src_children = self._get_children(src, ad_copy['sourceRsrcType'])
+
+        for target_child in targ_children:
+            for src_child in src_children:
+                match = self._eval_condition(src_child,
+                                             target_child,
+                                             ad_copy['conditions'])
                 if match:
-                    if 'children' not in tc:
-                        tc['children'] = []
-                    tc['children'].append(sc)
+                    if 'children' not in target_child:
+                        target_child['children'] = []
+                    target_child['children'].append(src_child)
+
         return targ
