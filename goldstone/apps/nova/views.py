@@ -35,8 +35,8 @@ from .models import NovaApiPerfData, HypervisorStatsData, SpawnData, \
     FlavorsData, FloatingIpPoolsData, HostsData, HypervisorsData, \
     NetworksData, SecGroupsData, ServersData, ServicesData
 from goldstone.apps.core.utils import JsonReadOnlyViewSet
-from goldstone.views import TopLevelView, ApiPerfView as GoldstoneApiPerfView
-from goldstone.views import _validate
+from goldstone.views import TopLevelView, ApiPerfView as GoldstoneApiPerfView, \
+    validate
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,8 @@ class SpawnsView(TemplateView):
         context = TemplateView.get_context_data(self, **kwargs)
         context['render'] = self.request.GET.get('render', "True"). \
             lower().capitalize()
-        # use "now" if not provided, will calc start and interval in _validate
+        # Use "now" if not provided, validate() will calculate the  start and
+        # interval.
         context['end'] = self.request.GET.get('end', str(calendar.timegm(
             datetime.utcnow().timetuple())))
         context['start'] = self.request.GET.get('start', None)
@@ -77,7 +78,7 @@ class SpawnsView(TemplateView):
 
     def _handle_request(self, context):
 
-        context = _validate(['start', 'end', 'interval', 'render'], context)
+        context = validate(['start', 'end', 'interval', 'render'], context)
 
         if isinstance(context, HttpResponseBadRequest):
             # validation error
@@ -140,7 +141,7 @@ class SpawnsView(TemplateView):
         except ElasticsearchException:
             return HttpResponse(
                 content="Could not connect to the search backend",
-                status=status.HTTP_504_GATEWAY_TIMEOUT)
+                status=status.HTTP_504_GATExsWAY_TIMEOUT)
 
 
 class ResourceView(TemplateView):
@@ -152,7 +153,8 @@ class ResourceView(TemplateView):
         context = TemplateView.get_context_data(self, **kwargs)
         context['render'] = self.request.GET.get('render', "True"). \
             lower().capitalize()
-        # use "now" if not provided, will calc start and interval in _validate
+        # Use "now" if not provided, validate() will calculate the  start and
+        # interval.
         context['end'] = self.request.GET.get('end', str(calendar.timegm(
             datetime.utcnow().timetuple())))
         context['start'] = self.request.GET.get('start', None)
@@ -160,8 +162,8 @@ class ResourceView(TemplateView):
 
         # if render is true, we will return a full template, otherwise only
         # a json data payload
-        self.template_name = self.my_template_name if context['render'] == 'True' \
-            else None
+        self.template_name = \
+            self.my_template_name if context['render'] == 'True' else None
 
         return context
 
@@ -231,7 +233,7 @@ class CpuView(ResourceView):
     my_template_name = 'cpu.html'
 
     def _handle_request(self, context):
-        context = _validate(['start', 'end', 'interval', 'render'], context)
+        context = validate(['start', 'end', 'interval', 'render'], context)
 
         if isinstance(context, HttpResponseBadRequest):
             # validation error
@@ -249,7 +251,7 @@ class MemoryView(ResourceView):
     my_template_name = 'mem.html'
 
     def _handle_request(self, context):
-        context = _validate(['start', 'end', 'interval', 'render'], context)
+        context = validate(['start', 'end', 'interval', 'render'], context)
 
         if isinstance(context, HttpResponseBadRequest):
             # validation error
@@ -267,7 +269,7 @@ class DiskView(ResourceView):
     my_template_name = 'disk.html'
 
     def _handle_request(self, context):
-        context = _validate(['start', 'end', 'interval', 'render'], context)
+        context = validate(['start', 'end', 'interval', 'render'], context)
 
         if isinstance(context, HttpResponseBadRequest):
             # validation error
