@@ -34,8 +34,8 @@ from .models import NovaApiPerfData, HypervisorStatsData, SpawnData, \
     ResourceData, AgentsData, AggregatesData, AvailZonesData, CloudpipesData, \
     FlavorsData, FloatingIpPoolsData, HostsData, HypervisorsData, \
     NetworksData, SecGroupsData, ServersData, ServicesData
-from goldstone.views import TopLevelView, ApiPerfView as GoldstoneApiPerfView, \
-    JSONView
+from goldstone.apps.core.utils import JsonReadOnlyViewSet
+from goldstone.views import TopLevelView, ApiPerfView as GoldstoneApiPerfView
 from goldstone.views import _validate
 
 logger = logging.getLogger(__name__)
@@ -54,9 +54,11 @@ class ApiPerfView(GoldstoneApiPerfView):
 
 
 class SpawnsView(TemplateView):
+
     data = pd.DataFrame()
 
     def get_context_data(self, **kwargs):
+
         context = TemplateView.get_context_data(self, **kwargs)
         context['render'] = self.request.GET.get('render', "True"). \
             lower().capitalize()
@@ -68,14 +70,13 @@ class SpawnsView(TemplateView):
 
         # if render is true, we will return a full template, otherwise only
         # a json data payload
-        if context['render'] == 'True':
-            self.template_name = 'spawns.html'
-        else:
-            self.template_name = None
+        self.template_name = 'spawns.html' if context['render'] == 'True' \
+            else None
 
         return context
 
     def _handle_request(self, context):
+
         context = _validate(['start', 'end', 'interval', 'render'], context)
 
         if isinstance(context, HttpResponseBadRequest):
@@ -105,6 +106,7 @@ class SpawnsView(TemplateView):
             else:
                 logger.debug("[_handle_request] successes = %s", success_data)
                 logger.debug("[_handle_request] failures = %s", failure_data)
+
                 self.data = pd.ordered_merge(
                     success_data, failure_data, on='key',
                     suffixes=['_successes', '_failures']) \
@@ -158,10 +160,8 @@ class ResourceView(TemplateView):
 
         # if render is true, we will return a full template, otherwise only
         # a json data payload
-        if context['render'] == 'True':
-            self.template_name = self.my_template_name
-        else:
-            self.template_name = None
+        self.template_name = self.my_template_name if context['render'] == 'True' \
+            else None
 
         return context
 
@@ -236,12 +236,13 @@ class CpuView(ResourceView):
         if isinstance(context, HttpResponseBadRequest):
             # validation error
             return context
+
         rd = ResourceData(context['start_dt'], context['end_dt'],
                           context['interval'])
         p_cpu = rd.get_phys_cpu()
         v_cpu = rd.get_virt_cpu()
-        response = self._handle_phys_and_virt_responses(p_cpu, v_cpu)
-        return response
+
+        return self._handle_phys_and_virt_responses(p_cpu, v_cpu)
 
 
 class MemoryView(ResourceView):
@@ -253,12 +254,13 @@ class MemoryView(ResourceView):
         if isinstance(context, HttpResponseBadRequest):
             # validation error
             return context
+
         rd = ResourceData(context['start_dt'], context['end_dt'],
                           context['interval'])
         p_mem = rd.get_phys_mem()
         v_mem = rd.get_virt_mem()
-        response = self._handle_phys_and_virt_responses(p_mem, v_mem)
-        return response
+
+        return self._handle_phys_and_virt_responses(p_mem, v_mem)
 
 
 class DiskView(ResourceView):
@@ -279,13 +281,13 @@ class DiskView(ResourceView):
             # since this is spotty data, we'll use the cummulative max to carry
             # totals forward
             self.data['total'] = self.data['total'].cummax()
+
             # for the used columns, we want to fill zeros with the last
             # non-zero value
             self.data['used'].fillna(method='pad', inplace=True)
             self.data = self.data.set_index('key').fillna(0)
 
-        response = self.data.transpose().to_dict(outtype='list')
-        return response
+        return self.data.transpose().to_dict(outtype='list')
 
 
 class LatestStatsView(TemplateView):
@@ -315,71 +317,72 @@ class LatestStatsView(TemplateView):
             else:
                 return HttpResponse(json.dumps({'data': response}),
                                     content_type='application/json')
+
         except ElasticsearchException:
             return HttpResponse(
                 content="Could not connect to the search backend",
                 status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
-class AgentsDataView(JSONView):
+class AgentsDataViewSet(JsonReadOnlyViewSet):
     model = AgentsData
     key = 'agents'
 
 
-class AggregatesDataView(JSONView):
+class AggregatesDataViewSet(JsonReadOnlyViewSet):
     model = AggregatesData
     key = 'aggregates'
     zone_key = 'availability_zone'
 
 
-class AvailZonesDataView(JSONView):
+class AvailZonesDataViewSet(JsonReadOnlyViewSet):
     model = AvailZonesData
     key = 'availability_zones'
 
 
-class CloudpipesDataView(JSONView):
+class CloudpipesDataViewSet(JsonReadOnlyViewSet):
     model = CloudpipesData
     key = 'cloudpipes'
 
 
-class FlavorsDataView(JSONView):
+class FlavorsDataViewSet(JsonReadOnlyViewSet):
     model = FlavorsData
     key = 'flavors'
 
 
-class FloatingIpPoolsDataView(JSONView):
+class FloatingIpPoolsDataViewSet(JsonReadOnlyViewSet):
     model = FloatingIpPoolsData
     key = 'floating_ip_pools'
 
 
-class HostsDataView(JSONView):
+class HostsDataViewSet(JsonReadOnlyViewSet):
     model = HostsData
     key = 'hosts'
     zone_key = 'zone'
 
 
-class HypervisorsDataView(JSONView):
+class HypervisorsDataViewSet(JsonReadOnlyViewSet):
     model = HypervisorsData
     key = 'hypervisors'
 
 
-class NetworksDataView(JSONView):
+class NetworksDataViewSet(JsonReadOnlyViewSet):
     model = NetworksData
     key = 'networks'
 
 
-class SecGroupsDataView(JSONView):
+class SecGroupsDataViewSet(JsonReadOnlyViewSet):
     model = SecGroupsData
     key = 'secgroups'
 
 
-class ServersDataView(JSONView):
+class ServersDataViewSet(JsonReadOnlyViewSet):
     model = ServersData
     key = 'servers'
     zone_key = 'OS-EXT-AZ:availability_zone'
 
 
-class ServicesDataView(JSONView):
+class ServicesDataViewSet(JsonReadOnlyViewSet):
     model = ServicesData
     key = 'services'
     zone_key = 'zone'
