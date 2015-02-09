@@ -36,7 +36,6 @@ from novaclient.openstack.common.apiclient.exceptions \
     import AuthorizationFailure as NovaApiAuthException
 from keystoneclient.openstack.common.apiclient.exceptions \
     import AuthorizationFailure as KeystoneApiAuthException
-from goldstone.apps.core.models import Node
 from goldstone.utils import GoldstoneAuthError, TopologyMixin
 
 logger = logging.getLogger(__name__)
@@ -100,11 +99,11 @@ def _validate(arg_list, context):
 
     # Return HttpResponseBadRequest if there were validation errors,
     # otherwise return the context.
-    if validation_errors:
-        return HttpResponseBadRequest(json.dumps(validation_errors),
-                                      'application/json')
-    else:
-        return context
+    return \
+        HttpResponseBadRequest(json.dumps(validation_errors),
+                               'application/json') \
+        if validation_errors \
+        else context
 
 
 class TopLevelView(TemplateView):
@@ -419,14 +418,16 @@ class HelpView(TemplateView):
 class NodeReportView(TemplateView):
     template_name = 'node_report.html'
 
-    def get(self, request, node_uuid):
+    def get(self, request, node_uuid, **kwargs):
+        from django.core.exceptions import ObjectDoesNotExist
+        from goldstone.apps.core.models import Node
+
         # TODO query should look for node id rather than name.
         # But this will probably require that we model/shadow the resources in
         # OpenStack so we can map the name to one of our IDs consistently.
         try:
-            # This will throw an exception if the node doesn't exist.
             Node.objects.get(name=node_uuid)
             return super(NodeReportView, self).get(request,
                                                    node_uuid=node_uuid)
-        except Node.DoesNotExist:
+        except ObjectDoesNotExist:
             raise Http404
