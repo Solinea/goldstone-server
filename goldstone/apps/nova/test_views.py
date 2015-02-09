@@ -307,8 +307,8 @@ class DataViewTests(SimpleTestCase):
         self.assertNotEqual(response.content, None)
         try:
             j = json.loads(response.content)
-        except Exception:
-            self.fail("Could not convert content to JSON, content was %s",
+        except Exception:             # pylint: disable=W0703
+            self.fail("Could not convert content to JSON, content was %s" %
                       response.content)
         else:
             self.assertIsInstance(j, list)
