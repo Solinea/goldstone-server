@@ -1,3 +1,4 @@
+"""Core serializers."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -22,7 +23,8 @@ logger = logging.getLogger(__name__)
 class EventSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True)
     event_type = serializers.CharField(max_length=64)
-    source_id = serializers.CharField(max_length=36, required=False,
+    source_id = serializers.CharField(max_length=36,
+                                      required=False,
                                       default="")
     source_name = serializers.CharField(max_length=64,
                                         required=False,
@@ -99,21 +101,21 @@ class ReportSerializer(serializers.ModelSerializer):
         """
         import json
 
-        if type(field_value) is list:
+        if isinstance(field_value, list):
             new_val = []
             for item in field_value:
                 try:
                     new_val.append(json.loads(item))
-                except:
+                except Exception:          # pylint: disable=W0703
                     new_val.append(item)
             return new_val
         else:
             return field_value
 
     def to_representation(self, instance):
-        return {
-            'timestamp': instance.timestamp,
-            'name': instance.name,
-            'node': instance.node,
-            'value': self._transform_value(instance.value)
-        }
+
+        return {'timestamp': instance.timestamp,
+                'name': instance.name,
+                'node': instance.node,
+                'value': self._transform_value(instance.value)
+                }
