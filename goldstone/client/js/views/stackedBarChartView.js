@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2014 - 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -14,9 +14,42 @@
  * limitations under the License.
  */
 
+/*
+standard chart usage. instantiate with:
+{
+    chartTitle: "title",
+    collection: collectionName,
+    featureSet: null or might be 'cpu/mem/disk/etc',
+    height: 300,
+    infoCustom: 'info button text set name',
+    el: where to put it,
+    width: $(el from above).width(),
+    yAxisLabel: 'label name',
+}
+*/
+
 // view is linked to collection when instantiated in api_perf_report.html
 
 var StackedBarChartView = GoldstoneBaseView.extend({
+
+    defaults: {
+        margin: {
+            top: 45,
+            right: 30,
+            bottom: 60,
+            left: 70
+        }
+    },
+
+    processOptions: function() {
+
+        // this will invoke the processOptions method of the parent view,
+        // and also add an additional param of featureSet which is used
+        // to create a polymorphic interface for a variety of charts
+        StackedBarChartView.__super__.processOptions.apply(this, arguments);
+
+        this.defaults.featureSet = this.options.featureSet || null;
+    },
 
     specialInit: function() {
         var ns = this.defaults;
@@ -26,20 +59,78 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .orient("left")
             .tickFormat(d3.format("01d"));
 
-        ns.color = d3.scale.ordinal()
-            .range(ns.colorArray.distinct[2]);
+        // differentiate color sets for mem and cpu charts
+        if (ns.featureSet === 'mem' || ns.featureSet === 'cpu') {
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
+        } else {
+            // this includes "VM Spawns" and "Disk Resources" chars
+            ns.color = d3.scale.ordinal()
+                .range(ns.colorArray.distinct[2]);
+        }
+
     },
 
     dataPrep: function(data) {
+
+        // this is where the fetched JSON payload is transformed into a
+        // dataset than can be consumed by the D3 charts
+        // each chart may have its own perculiarities
+
+        var ns = this.defaults;
+
         var result = [];
 
-        _.each(data[0], function(item, i) {
-            result.push({
-                "eventTime": "" + i,
-                "Success": item[2],
-                "Failure": item[0]
+        if (ns.featureSet === 'cpu') {
+
+            // CPU Resources chart data prep
+
+            //TODO: this will probably change
+            //after finding out what the server payload
+            // actually looks like
+
+            _.each(data[0], function(item, i) {
+                result.push({
+                    "eventTime": "" + i,
+                    "Used": item[1],
+                    "Physical": item[0],
+                    "Virtual": item[2]
+                });
             });
-        });
+
+        } else if (ns.featureSet === 'disk') {
+
+            // Disk Resources chart data prep
+            _.each(data[0], function(item, i) {
+                result.push({
+                    "eventTime": "" + i,
+                    "Used": item[1],
+                    "Physical": item[0],
+                });
+            });
+
+        } else if (ns.featureSet === 'mem') {
+
+            // Memory Resources chart data prep
+            _.each(data[0], function(item, i) {
+                result.push({
+                    "eventTime": "" + i,
+                    "Used": item[1],
+                    "Physical": item[0],
+                    "Virtual": item[2]
+                });
+            });
+
+        } else {
+            // Spawns Resources chart data prep
+            _.each(data[0], function(item, i) {
+                result.push({
+                    "eventTime": "" + i,
+                    "Success": item[2],
+                    "Failure": item[0]
+                });
+            });
+
+        }
 
         return result;
     },
@@ -55,7 +146,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         this.hideSpinner();
 
 
-        if(this.checkReturnedDataSet(data) === false){
+        if (this.checkReturnedDataSet(data) === false) {
             return;
         }
 
@@ -135,24 +226,54 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 return ns.color(d.name);
             });
 
-        ns.chart.append('path')
-            .attr('class', 'line')
-            .attr('id', 'fail')
-            .attr('data-legend', "Fail")
-            .attr("data-legend-color", ns.colorArray.distinct[2][1]);
+        var legendSpecs = {
+            mem: [
+                ['Virtual', 2],
+                ['Physical', 1],
+                ['Used', 0]
+            ],
+            cpu: [
+                ['Virtual', 2],
+                ['Physical', 1],
+                ['Used', 0]
+            ],
+            disk: [
+                ['Physical', 1],
+                ['Used', 0]
+            ],
+            spawn: [
+                ['Fail', 1],
+                ['Success', 0]
+            ]
+        };
 
-        ns.chart.append('path')
-            .attr('class', 'line')
-            .attr('id', 'success')
-            .attr('data-legend', "Success")
-            .attr("data-legend-color", ns.colorArray.distinct[2][0]);
+        if (ns.featureSet !== null) {
+            this.appendLegend(legendSpecs[ns.featureSet]);
+        } else {
+            this.appendLegend(legendSpecs.spawn);
+        }
+    },
 
-        var legend = ns.chart.append("g")
-            .attr("class", "legend")
-            .attr("transform", "translate(20,-20)")
-            .attr("opacity", 0.7)
+    appendLegend: function(legendSpecs) {
+
+        // abstracts the appending of chart legends based on the
+        // passed in array params [['Title', colorSetIndex],['Title', colorSetIndex'],...]
+
+        var ns = this.defaults;
+
+        _.each(legendSpecs, function(item) {
+            ns.chart.append('path')
+                .attr('class', 'line')
+                .attr('id', item[0])
+                .attr('data-legend', item[0])
+                .attr('data-legend-color', ns.color.range()[item[1]]);
+        });
+
+        var legend = ns.chart.append('g')
+            .attr('class', 'legend')
+            .attr('transform', 'translate(20,-35)')
+            .attr('opacity', 0.7)
             .call(d3.legend);
-
     },
 
     template: _.template(
