@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2014 - 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -13,6 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/*
+standard chart usage. instantiate with:
+{
+    chartTitle: "title",
+    collection: collectionName,
+    featureSet: null or might be 'cpu/mem/disk/etc',
+    height: 300,
+    infoCustom: 'info button text set name',
+    el: where to put it,
+    width: $(el from above).width(),
+    yAxisLabel: 'label name',
+}
+*/
 
 // view is linked to collection when instantiated in api_perf_report.html
 
