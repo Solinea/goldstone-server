@@ -55,7 +55,7 @@ def _parse_timestamp(stamp, zone=pytz.utc):
 
 def validate(arg_list, context):
     """Validate an argument list within a particular context, and return
-    HttpResponseBadRequest or the updated context."""
+    the updated context or HttpResponseBadRequest."""
 
     # "Bad parameter" message string.
     BAD_PARAMETER = "malformed parameter [%s]"
@@ -97,10 +97,10 @@ def validate(arg_list, context):
                 validation_errors.append(BAD_PARAMETER % "interval")
 
     if 'render' in arg_list:
-        if context['render'] not in ["True", "False"]:
-            validation_errors.append(BAD_PARAMETER % "render")
-        else:
+        if context['render'] in ["True", "False"]:
             context['render'] = bool(context['render'])
+        else:
+            validation_errors.append(BAD_PARAMETER % "render")
 
     # Return HttpResponseBadRequest if there were validation errors,
     # otherwise return the context.
