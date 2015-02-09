@@ -37,7 +37,7 @@ router.register(r'^cloudpipes[/]?$',
 router.register(r'^flavors[/]?$', FlavorsDataViewSet, base_name='nova-flavors')
 router.register(r'^floating_ip_pools[/]?$',
                 FloatingIpPoolsDataViewSet,
-                base_name='nova-agents')
+                base_name='nova-floating-ip-pools')
 router.register(r'^hosts[/]?$', HostsDataViewSet, base_name='nova-hosts')
 router.register(r'^hypervisors[/]?$',
                 HypervisorsDataViewSet,
