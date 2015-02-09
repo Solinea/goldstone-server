@@ -9,13 +9,11 @@ from __future__ import unicode_literals
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from elasticsearch import ElasticsearchException
 from rest_framework import status
-
-__author__ = 'John Stanford'
 
 import calendar
 from django.http import HttpResponse
