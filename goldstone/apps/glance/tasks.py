@@ -1,5 +1,5 @@
-from __future__ import absolute_import
-# Copyright 2014 Solinea, Inc.
+"""Glance tasks."""
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -9,22 +9,21 @@ from __future__ import absolute_import
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import absolute_import
 
 from datetime import datetime
+import json
+import logging
+
+import requests
 import pytz
 
-__author__ = 'John Stanford'
-
-from goldstone.celery import app as celery_app
-import requests
-import logging
-import json
 from .models import GlanceApiPerfData, ImagesData
-from goldstone.utils import _get_client, stored_api_call, \
-    to_es_date, _get_glance_client
+from goldstone.celery import app as celery_app
+from goldstone.utils import stored_api_call, to_es_date
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +37,10 @@ def time_glance_api(self):
     otherwise uses the results from image list to inserts a record
     in the DB.
     """
+    from goldstone.utils import get_client
+
     result = stored_api_call("glance", "image", "/v2/images")
-    logger.debug(_get_client.cache_info())
+    logger.debug(get_client.cache_info())
 
     # check for existing volumes. if they exist, redo the call with a single
     # volume for a more consistent result.
@@ -49,7 +50,7 @@ def time_glance_api(self):
         if 'images' in body and len(body['images']) > 0:
             result = stored_api_call("glance", "image",
                                      "/v2/images/" + body['images'][0]['id'])
-            logger.debug(_get_client.cache_info())
+            logger.debug(get_client.cache_info())
 
     api_db = GlanceApiPerfData()
     rec_id = api_db.post(result['db_record'])
@@ -76,6 +77,8 @@ def _update_glance_image_records(cl, region):
 
 @celery_app.task(bind=True)
 def discover_glance_topology(self):
-    glance_access = _get_glance_client()
+    from goldstone.utils import get_glance_client
+
+    glance_access = get_glance_client()
     _update_glance_image_records(glance_access['client'],
                                  glance_access['region'])

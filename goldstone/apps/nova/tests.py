@@ -8,17 +8,15 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'John Stanford'
 
 from django.test import SimpleTestCase
 from .tasks import time_nova_api
 import logging
 from mock import patch
-from .models import ApiPerfData
+from .models import NovaApiPerfData
 from requests.models import Response
 
 logger = logging.getLogger(__name__)
@@ -31,7 +29,7 @@ class TaskTests(SimpleTestCase):
     # the standard way that Python applies decorators. The order of the
     # created mocks passed into your test function matches this order.
     @patch('goldstone.apps.nova.tasks.stored_api_call')
-    @patch.object(ApiPerfData, 'post')
+    @patch.object(NovaApiPerfData, 'post')
     def test_time_glance_api(self, post, api):
         fake_response = Response()
         fake_response.status_code = 200

@@ -1,3 +1,4 @@
+"""Development settings, with Elasticsearch remote and PostgreSQL remote."""
 from .development import *
 
 DATABASES = {

@@ -1,3 +1,4 @@
+"""Logging tests."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -8,24 +9,23 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.apps.logging.serializers import LoggingNodeSerializer
-from goldstone.apps.logging.views import LoggingNodeViewSet
+from datetime import timedelta
+import logging
 
-__author__ = 'John Stanford'
-
-from time import sleep
+from django.test import SimpleTestCase
 from rest_framework import status
 from rest_framework.test import APISimpleTestCase
-from django.test import SimpleTestCase
-import logging
-from datetime import timedelta
+from time import sleep
+from mock import *
+
+from goldstone.apps.core.models import Node
+from goldstone.apps.logging.serializers import LoggingNodeSerializer
+from goldstone.apps.logging.views import LoggingNodeViewSet
 from .tasks import *
 from .tasks import _create_event
-from goldstone.apps.core.models import Node
-from mock import *
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +75,7 @@ class TaskTests(SimpleTestCase):
 
     @patch.object(subprocess, 'call')
     def test_check_host_avail(self, call):
+
         node1 = Node(name=self.name1)
         node2 = Node(name=self.name2, managed='false')
         node3 = Node(name=self.name3)

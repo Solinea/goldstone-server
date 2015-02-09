@@ -1,3 +1,4 @@
+"""Cinder URLconf."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -8,33 +9,39 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'John Stanford'
-
 from django.conf.urls import patterns, url
-from .views import ReportView, ServiceListApiPerfView, \
-    VolumesDataView, BackupsDataView, SnapshotsDataView, \
-    ServicesDataView, VolumeTypesDataView, TransfersDataView
+from rest_framework.routers import DefaultRouter
+from .views import ReportView, ApiPerfView, JsonReadOnlyViewSet
 
-urlpatterns = patterns(
-    '',
-    url(r'^report[/]?$', ReportView.as_view(),
-        name='cinder-report-view'),
-    url(r'^api_perf[/]?$', ServiceListApiPerfView.as_view(),
-        name='cinder-api-perf'),
-    url(r'^volumes[/]?$', VolumesDataView.as_view(),
-        name='cinder-volumes'),
-    url(r'^backups[/]?$', BackupsDataView.as_view(),
-        name='cinder-backups'),
-    url(r'^snapshots[/]?$', SnapshotsDataView.as_view(),
-        name='cinder-snapshots'),
-    url(r'^services[/]?$', ServicesDataView.as_view(),
-        name='cinder-services'),
-    url(r'^volume_types[/]?$', VolumeTypesDataView.as_view(),
-        name='cinder-volume-types'),
-    url(r'^transfers[/]?$', TransfersDataView.as_view(),
-        name='cinder-transfers'),
-)
+router = DefaultRouter(trailing_slash=False)
+router.register(r'^(?P<base>backups)[/]?$',
+                JsonReadOnlyViewSet,
+                base_name='cinder-backups')
+router.register(r'^(?P<base>services)[/]?$',
+                JsonReadOnlyViewSet,
+                base_name='cinder-services')
+router.register(r'^(?P<base>snapshots)[/]?$',
+                JsonReadOnlyViewSet,
+                base_name='cinder-snapshots')
+router.register(r'^(?P<base>transfers)[/]?$',
+                JsonReadOnlyViewSet,
+                base_name='cinder-transfers')
+router.register(r'^(?P<base>volumes)[/]?$',
+                JsonReadOnlyViewSet,
+                base_name='cinder-volumes')
+router.register(r'^(?P<base>volume_types)[/]?$',
+                JsonReadOnlyViewSet,
+                base_name='cinder-volume-types')
+
+urlpatterns = router.urls
+urlpatterns += patterns('',
+                        url(r'^api_perf[/]?$',
+                            ApiPerfView.as_view(),
+                            name='cinder-api-perf'),
+                        url(r'^report[/]?$',
+                            ReportView.as_view(),
+                            name='cinder-report-view'),
+                        )
