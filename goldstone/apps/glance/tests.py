@@ -1,4 +1,5 @@
-# Copyright 2014 Solinea, Inc.
+"""Glance unit tests."""
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -11,20 +12,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import calendar
+from datetime import datetime
 import json
-from django.http import HttpResponse
+import logging
 
+from django.http import HttpResponse
 from django.test import SimpleTestCase
+from mock import patch
+import pytz
+import pandas as pd
+from requests.models import Response
+
+from .models import GlanceApiPerfData
 from .tasks import time_glance_api
 from .views import ImageApiPerfView
-import logging
-from datetime import datetime
-import pytz
-import calendar
-import pandas as pd
-from mock import patch
-from .models import GlanceApiPerfData
-from requests.models import Response
 
 logger = logging.getLogger(__name__)
 
@@ -39,12 +41,13 @@ class TaskTests(SimpleTestCase):
     @patch('goldstone.apps.glance.tasks.stored_api_call')
     @patch.object(GlanceApiPerfData, 'post')
     def test_time_glance_api(self, post, api):
+
         fake_response = Response()
         fake_response.status_code = 200
-        fake_response._content = '{"a":1,"b":2}'
-        api.return_value = {'db_record': 'fake_record',
-                            'reply': fake_response}
+        fake_response._content = '{"a":1,"b":2}'   # pylint: disable=W0212
+        api.return_value = {'db_record': 'fake_record', 'reply': fake_response}
         post.return_value = 'fake_id'
+
         result = time_glance_api()
         self.assertTrue(api.called)
         api.assert_called_with("glance", "image", "/v2/images")
@@ -57,30 +60,35 @@ class TaskTests(SimpleTestCase):
 
 
 class ViewTests(SimpleTestCase):
+
     start_dt = datetime.fromtimestamp(0, tz=pytz.utc)
     end_dt = datetime.utcnow()
     start_ts = calendar.timegm(start_dt.utctimetuple())
     end_ts = calendar.timegm(end_dt.utctimetuple())
 
     def test_get_data(self):
-        v = ImageApiPerfView()
-        context = {
-            'start_dt': self.start_dt,
-            'end_dt': self.end_dt,
-            'interval': '3600s'
-        }
+
+        perfview = ImageApiPerfView()
+
+        context = {'start_dt': self.start_dt,
+                   'end_dt': self.end_dt,
+                   'interval': '3600s'
+                   }
+
         # returns a pandas data frame
-        d = v._get_data(context)
-        self.assertIsInstance(d, pd.DataFrame)
-        self.assertEqual(d.empty, False)
+        result = perfview._get_data(context)           # pylint: disable=W0212
+        self.assertIsInstance(result, pd.DataFrame)
+        self.assertFalse(result.empty)
 
     def test_report_view(self):
+
         uri = '/glance/report'
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'glance_report.html')
 
     def test_rendered_api_perf_view(self):
+
         uri = '/glance/api_perf?start_time=' + \
               str(self.start_ts) + "&end_time=" + \
               str(self.end_ts) + "&interval=3600s"
@@ -90,6 +98,7 @@ class ViewTests(SimpleTestCase):
         self.assertTemplateUsed(response, 'glance_api_perf.html')
 
     def test_unrendered_api_perf_view(self):
+
         uri = '/glance/api_perf?start_time=' + \
               str(self.start_ts) + "&end_time=" + \
               str(self.end_ts) + "&interval=3600s&render=false"
@@ -101,17 +110,19 @@ class ViewTests(SimpleTestCase):
 class DataViewTests(SimpleTestCase):
 
     def _evaluate(self, response):
+
         self.assertIsInstance(response, HttpResponse)
-        self.assertNotEqual(response.content, None)
+        self.assertIsNotNone(response.content)
+
         try:
-            j = json.loads(response.content)
-        except:
-            self.fail("Could not convert content to JSON, content was %s",
+            result = json.loads(response.content)
+        except Exception:        # pylint: disable=W0703
+            self.fail("Could not convert content to JSON, content was %s" %
                       response.content)
         else:
-            self.assertIsInstance(j, list)
-            self.assertGreaterEqual(len(j), 1)
-            self.assertIsInstance(j[0], list)
+            self.assertIsInstance(result, list)
+            self.assertGreaterEqual(len(result), 1)
+            self.assertIsInstance(result[0], list)
 
     def test_get_images(self):
         self._evaluate(self.client.get("/glance/images"))

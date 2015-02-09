@@ -1,5 +1,4 @@
 // e2e tests
-// TODO: replace cpu resources/ memory resources/ disk resources svg test when charts are back online
 
 casper.test.begin('Node Report Page is loading properly', 61, function suite(test) {
     casper.start('http://localhost:8000/report/node/ctrl-01', function() {
@@ -305,7 +304,7 @@ casper.test.begin('API Perf Page is loading properly', 45, function suite(test) 
     });
 });
 
-/*casper.test.begin('Nova (compute) Page is loading properly', 14, function suite(test) {
+casper.test.begin('Nova (compute) Page is loading properly', 45, function suite(test) {
     casper.start('http://localhost:8000/nova/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -321,90 +320,89 @@ casper.test.begin('API Perf Page is loading properly', 45, function suite(test) 
         test.assertSelectorHasText('div#nova-report-r1-c1', 'Nova API Performance');
 
         // Nova API info button brings up popover
-        test.assertNotVisible('#nova-api-perf-panel div.popover.fade.bottom.in', 'nova api info popover should not be visible');
-        this.click('#nova-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#nova-api-perf-panel div.popover.fade.bottom.in', 'nova api info popover should now be visible');
-        this.click('#nova-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#nova-api-perf-panel div.popover.fade.bottom.in', 'nova api info popover should not be visible');
-        this.click('#nova-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#nova-api-perf-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#nova-api-perf-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#nova-api-perf-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');*/
+        test.assertNotVisible('div#nova-report-r1-c1 div.popover.fade.bottom.in', 'nova api info popover should not be visible');
+        this.click('div#nova-report-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('div#nova-report-r1-c1 div.popover.fade.bottom.in', 'nova api info popover should now be visible');
+        this.click('div#nova-report-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('div#nova-report-r1-c1 div.popover.fade.bottom.in', 'nova api info popover should not be visible');
+        this.click('div#nova-report-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('div#nova-report-r1-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.mouseEvent('mouseout', 'div#nova-report-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('div#nova-report-r1-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
-        /* pending return of these charts
         // VM Spawns graph loads
         test.assertExists('div#nova-report-r1-c2', 'VM Spawns chart section should load');
-        // test.assertExists('div#nova-report-r1-c2 svg', 'VM Spawns chart should load');
+        test.assertExists('div#nova-report-r1-c2 svg', 'VM Spawns chart should load');
         test.assertSelectorHasText('div#nova-report-r1-c2', 'VM Spawns');
 
         // VM Spawns info button brings up popover
-        test.assertNotVisible('#nova-spawns-chart-title div.popover.fade.bottom.in', 'VM Spawns info popover should not be visible');
-        this.click('#nova-spawns-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#nova-spawns-chart-title div.popover.fade.bottom.in', 'VM Spawns info popover should now be visible');
-        this.click('#nova-spawns-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#nova-spawns-chart-title div.popover.fade.bottom.in', 'VM Spawns info popover should not be visible');
-        this.click('#nova-spawns-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#nova-spawns-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#nova-spawns-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#nova-spawns-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('div#nova-report-r1-c2     div.popover.fade.bottom.in', 'VM Spawns info popover should not be visible');
+        this.click('div#nova-report-r1-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('div#nova-report-r1-c2 div.popover.fade.bottom.in', 'VM Spawns info popover should now be visible');
+        this.click('div#nova-report-r1-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('div#nova-report-r1-c2 div.popover.fade.bottom.in', 'VM Spawns info popover should not be visible');
+        this.click('div#nova-report-r1-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('div#nova-report-r1-c2 div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.mouseEvent('mouseout', 'div#nova-report-r1-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('div#nova-report-r1-c2 div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         // CPU Resources graph loads
         test.assertExists('div#nova-report-r2-c1', 'CPU Resources chart section should load');
-        // test.assertExists('div#nova-report-r2-c1 svg', 'CPU Resources svg should load');
+        test.assertExists('div#nova-report-r2-c1 svg', 'CPU Resources svg should load');
         test.assertSelectorHasText('div#nova-report-r2-c1', 'CPU Resources');
 
         // CPU Resources info button brings up popover
-        test.assertNotVisible('#nova-cpu-chart-title div.popover.fade.bottom.in', 'CPU Resources info popover should not be visible');
-        this.click('#nova-cpu-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#nova-cpu-chart-title div.popover.fade.bottom.in', 'CPU Resources info popover should now be visible');
-        this.click('#nova-cpu-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#nova-cpu-chart-title div.popover.fade.bottom.in', 'CPU Resources info popover should not be visible');
-        this.click('#nova-cpu-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#nova-cpu-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#nova-cpu-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#nova-cpu-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('div#nova-report-r2-c1 div.popover.fade.bottom.in', 'CPU Resources info popover should not be visible');
+        this.click('div#nova-report-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('div#nova-report-r2-c1 div.popover.fade.bottom.in', 'CPU Resources info popover should now be visible');
+        this.click('div#nova-report-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('div#nova-report-r2-c1 div.popover.fade.bottom.in', 'CPU Resources info popover should not be visible');
+        this.click('div#nova-report-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('div#nova-report-r2-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.mouseEvent('mouseout', 'div#nova-report-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('div#nova-report-r2-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         // Memory Resources graph loads
         test.assertExists('div#nova-report-r2-c2', 'Memory Resources chart section should load');
-        // test.assertExists('div#nova-report-r2-c2 svg', 'Memory Resources svg should load');
+        test.assertExists('div#nova-report-r2-c2 svg', 'Memory Resources svg should load');
         test.assertSelectorHasText('div#nova-report-r2-c2', 'Memory Resources');
 
         // Memory Resources info button brings up popover
-        test.assertNotVisible('#nova-mem-chart-title div.popover.fade.bottom.in', 'Memory Resources info popover should not be visible');
-        this.click('#nova-mem-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#nova-mem-chart-title div.popover.fade.bottom.in', 'Memory Resources info popover should now be visible');
-        this.click('#nova-mem-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#nova-mem-chart-title div.popover.fade.bottom.in', 'Memory Resources info popover should not be visible');
-        this.click('#nova-mem-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#nova-mem-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#nova-mem-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#nova-mem-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('div#nova-report-r2-c2 div.popover.fade.bottom.in', 'Memory Resources info popover should not be visible');
+        this.click('div#nova-report-r2-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('div#nova-report-r2-c2 div.popover.fade.bottom.in', 'Memory Resources info popover should now be visible');
+        this.click('div#nova-report-r2-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('div#nova-report-r2-c2 div.popover.fade.bottom.in', 'Memory Resources info popover should not be visible');
+        this.click('div#nova-report-r2-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('div#nova-report-r2-c2 div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.mouseEvent('mouseout', 'div#nova-report-r2-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('div#nova-report-r2-c2 div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         // Disk Resources graph loads
         test.assertExists('div#nova-report-r3-c1', 'Disk Resources section should load');
-        // test.assertExists('div#nova-report-r3-c1 svg', 'Disk Resources svg should load');
+        test.assertExists('div#nova-report-r3-c1 svg', 'Disk Resources svg should load');
         test.assertSelectorHasText('div#nova-report-r3-c1', 'Disk Resources');
 
         // Disk Resources info button brings up popover
-        test.assertNotVisible('#nova-disk-chart-title div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
-        this.click('#nova-disk-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#nova-disk-chart-title div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
-        this.click('#nova-disk-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#nova-disk-chart-title div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
-        this.click('#nova-disk-chart-title .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#nova-disk-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#nova-disk-chart-title .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('div#nova-report-r3-c1 div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('div#nova-report-r3-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('div#nova-report-r3-c1 div.popover.fade.bottom.in', 'Disk Resources info popover should now be visible');
+        this.click('div#nova-report-r3-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('div#nova-report-r3-c1 div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
+        this.click('div#nova-report-r3-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('div#nova-report-r3-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        this.mouseEvent('mouseout', 'div#nova-report-r3-c1 .pull-right.fa.fa-info-circle.panel-info');
         test.assertNotVisible('#nova-disk-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        */
 
-        //footer loads and is visible
-   /*     test.assertVisible('div#footer', 'Footer showing');
+
+        // footer loads and is visible
+        test.assertVisible('div#footer', 'Footer showing');
     });
 
     casper.run(function() {
         test.done();
     });
-});*/
+});
 
 
 casper.test.begin('Neutron (network) Page is loading properly', 13, function suite(test) {
@@ -595,3 +593,4 @@ casper.test.begin('Logging page is loading properly', 21, function suite(test) {
         test.done();
     });
 });
+

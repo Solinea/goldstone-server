@@ -25,7 +25,7 @@ class DiscoverTree(TopologyMixin):
     def _get_image_regions(self):
         return set([s['_source']['region'] for s in self.images])
 
-    def _get_regions(self):
+    def get_regions(self):
         from goldstone.utils import get_client
 
         kc = get_client(service='keystone')['client']
@@ -54,7 +54,7 @@ class DiscoverTree(TopologyMixin):
 
         return result
 
-    def _build_topology_tree(self):
+    def build_topology_tree(self):
         try:
             if self.images is None or len(self.images) == 0:
                 raise NoResourceFound(
@@ -66,7 +66,9 @@ class DiscoverTree(TopologyMixin):
                 return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
             else:
                 return rl[0]
+
         except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
+
         except GoldstoneAuthError:
             raise

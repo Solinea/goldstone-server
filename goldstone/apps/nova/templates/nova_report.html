@@ -28,11 +28,21 @@
     <script src="{% static 'js/models/stackedBarChartModel.js' %}"></script>
     <script src="{% static 'js/collections/stackedBarChartCollection.js' %}"></script>
     <script src="{% static 'js/views/stackedBarChartView.js' %}"></script>
+    <script src="{% static 'js/models/cpuResourceModel.js' %}"></script>
+    <script src="{% static 'js/collections/cpuResourceCollection.js' %}"></script>
+    <script src="{% static 'js/views/cpuResourceView.js' %}"></script>
+    <script src="{% static 'js/models/memResourceModel.js' %}"></script>
+    <script src="{% static 'js/collections/memResourceCollection.js' %}"></script>
+    <script src="{% static 'js/views/memResourceView.js' %}"></script>
+    <script src="{% static 'js/models/diskResourceModel.js' %}"></script>
+    <script src="{% static 'js/collections/diskResourceCollection.js' %}"></script>
+    <script src="{% static 'js/views/diskResourceView.js' %}"></script>
     <script src="{% static 'js/views/novaReportView.js' %}"></script>
     <script>
     // assign "ajax-loader-solinea-blue" spinner gif
     var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
     var instantiateCharts = function(){
+
         // this page's previous HTML and JavaScript now encapsulated
         // in the following backbone view:
         new NovaReportView({
@@ -40,6 +50,9 @@
         });
     };
     $(document).ready(function () {
+
+        // this page will have the global selectors appended
+        // without this invocation, the selectors will not appear
         new GlobalLookbackRefreshButtonsView({
             el: ".global-range-refresh-container"
         });

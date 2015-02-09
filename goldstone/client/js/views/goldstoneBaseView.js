@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-// view is linked to collection when instantiated in api_perf_report.html
+// this chart provides the base methods that
+// are extended into almost all other Views
 
 var GoldstoneBaseView = Backbone.View.extend({
 
@@ -26,13 +27,25 @@ var GoldstoneBaseView = Backbone.View.extend({
         // as objects/arrays are pass by reference
         this.defaults = _.clone(this.defaults);
 
-        // breaks down init into discrete steps
+        // Breaks down init into discrete steps.
+        // Each step can be overwritten or amended in object
+        // that inherit from this view
+
+        // processes the passed in hash of options when object is instantiated
         this.processOptions();
+        // sets page-element listeners, and/or event-listeners
         this.processListeners();
+        // creates the popular mw / mh calculations for the D3 rendering
         this.processMargins();
+        // Appends this basic chart template, usually overwritten
         this.render();
+        // basic assignment of variables to be used in chart rendering
         this.standardInit();
+        // appends spinner to el
         this.showSpinner();
+        // allows a container for any special afterthoughts that need to
+        // be invoked during the initialization of this View, or those that
+        // are descendent from this view.
         this.specialInit();
     },
 
@@ -93,6 +106,12 @@ var GoldstoneBaseView = Backbone.View.extend({
     },
 
     showSpinner: function() {
+
+        // appends spinner with sensitivity to the fact that the View object
+        // may render before the .gif is served by django. If that happens,
+        // the hideSpinner method will set the 'display' css property to
+        // 'none' which will prevent it from appearing on the page
+
         var ns = this.defaults;
         var self = this;
 
@@ -117,15 +136,31 @@ var GoldstoneBaseView = Backbone.View.extend({
     },
 
     hideSpinner: function() {
+
+        // the setting of spinnerDisplay to 'none' will prevent the spinner
+        // from being appended in the case that django serves the image
+        // AFTER the collection fetch returns and the chart is rendered
+
         this.defaults.spinnerDisplay = 'none';
         $(this.el).find('#spinner').hide();
     },
 
     dblclicked: function(coordinates) {
+
+        // a method to be overwritten in the descendent Views. It is invoked
+        // by the user double clicking on a viz, and it receives the
+        // x,y coordinates of the click
+
         return null;
     },
 
     standardInit: function() {
+
+        /*
+        D3.js convention works with the setting of a main svg, a sub-element
+        which we call 'chart' which is reduced in size by the amount of the top and left margins. Also declares the axes, the doubleclick mechanism, and the x and y scales, the axis details, and the chart colors.
+        */
+
         var ns = this.defaults;
         var self = this;
 
@@ -148,7 +183,7 @@ var GoldstoneBaseView = Backbone.View.extend({
             .text(ns.yAxisLabel)
             .style("text-anchor", "middle");
 
-        ns.svg.on('dblclick', function(){
+        ns.svg.on('dblclick', function() {
             var coord = d3.mouse(this);
             self.dblclicked(coord);
         });
@@ -171,11 +206,17 @@ var GoldstoneBaseView = Backbone.View.extend({
         ns.colorArray = new GoldstoneColors().get('colorSets');
     },
 
-    specialInit: function() {},
+    specialInit: function() {
+
+        // To be overwritten if needed as a container for code execution
+        // during initialization of the View object.
+        // Runs after code contained in the "standard init" method.
+
+    },
 
     clearDataErrorMessage: function(location) {
-        // if error message already exists on page,
-        // remove it in case it has changed
+        // remove error messages in div with '.popup-message' class, if any.
+        // $(location) may be specified, or defaults to 'this.el'
         if (location) {
             if ($(location).find('.popup-message').length) {
                 $(location).find('.popup-message').fadeOut("slow");
@@ -188,7 +229,7 @@ var GoldstoneBaseView = Backbone.View.extend({
 
     },
 
-    dataErrorMessage: function(message, errorMessage, location) {
+    dataErrorMessage: function(message, errorMessage) {
 
         // 2nd parameter will be supplied in the case of an
         // 'error' event such as 504 error. Othewise,
@@ -219,22 +260,27 @@ var GoldstoneBaseView = Backbone.View.extend({
             }
         }
 
-        // calling raiseAlert with the 3rd param will supress auto-hiding
-        if (location) {
-            goldstone.raiseAlert($(location).find('.popup-message'), message, true);
-        } else {
-            goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
-        }
+        // calling raiseAlert with the 3rd param of "true" will supress the
+        // auto-hiding of the element as defined in goldstone.raiseAlert
+        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
 
+        // hide spinner, as appending errorMessage is usually the end of
+        // the data fetch process
         this.hideSpinner();
     },
 
     dataPrep: function(data) {
+        // to be overwritten based on the needs of the chart in question
         var result = data;
         return result;
     },
 
     checkReturnedDataSet: function(data) {
+        // a convenience method to insert in the callback that is invoked
+        // when the collection is done fetching api data. If an empty set
+        // is returned, creates an error message, otherwise clears
+        // any existing alert or error messages.
+
         if (data.length === 0) {
             this.dataErrorMessage('No Data Returned');
             return false;

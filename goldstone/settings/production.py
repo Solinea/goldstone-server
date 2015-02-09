@@ -1,3 +1,4 @@
+"""Settings for accessing production."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -11,8 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from .base import *
+from .base import *            # pylint: disable=W0614,W0401
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False

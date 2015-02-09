@@ -51,22 +51,22 @@ describe('apiPerfView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
+        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+
         this.testCollection = new ApiPerfCollection({
             urlPrefix: 'cinder'
         });
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
-
-        this.testView = new ApiPerfView({
-            chartTitle: "Tester API Performance",
+        this.testView = new GoldstoneBaseView({
+            chartTitle: "Tester Base View",
             collection: this.testCollection,
             height: 300,
             infoCustom: [{
                 key: "API Call",
                 value: "Hypervisor Show"
             }],
-            el: 'body',
-            width: $('body').width(),
+            el: '.testContainer',
+            width: $('.testContainer').width(),
             yAxisLabel: 'yAxisTest'
         });
     });
@@ -74,54 +74,67 @@ describe('apiPerfView.js spec', function() {
         $('body').html('');
         this.server.restore();
     });
-    describe('collection is constructed', function() {
-        it('should exist', function() {
-            var dataTest = JSON.stringify('hello');
-            assert.isDefined(this.testCollection, 'this.testCollection has been defined');
-            expect(this.testCollection.parse).to.be.a('function');
-            this.testCollection.initialize({
-                urlPrefix: 'glance'
-            });
-            expect(this.testCollection.length).to.equal(1);
-            this.testCollection.add({
-                test1: 'test1'
-            });
-            expect(this.testCollection.length).to.equal(2);
-            this.testCollection.parse(dataTest);
-        });
-    });
 
     describe('view is constructed', function() {
         it('should exist', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
-            expect(this.testView.el).to.equal('body');
-        });
-        it('info button popover responds to click event', function() {
-            expect($('div.popover').length).to.equal(0);
-            $(this.testView.el).find('#api-perf-info').click();
-            expect($('div.popover').length).to.equal(1);
+            expect(this.testView.el).to.equal('.testContainer');
         });
         it('view update appends svg and border elements', function() {
             expect(this.testView.update).to.be.a('function');
             this.testView.update();
             expect($('svg').length).to.equal(1);
-            expect($('g.legend-items').find('text').text()).to.equal('MinMaxAvg');
-            expect($('.panel-title').text().trim()).to.equal('Tester API Performance');
+            expect($('g.legend-items').find('text').text()).to.equal('');
+            expect($('.panel-title').text().trim()).to.equal('Tester Base View');
             expect($('svg').text()).to.not.include('Response was empty');
         });
         it('can handle a null server payload and append appropriate response', function() {
             this.update_spy = sinon.spy(this.testView, "update");
             expect($('.popup-message').text()).to.equal('');
             this.testCollection.reset();
-            this.testView.update();
+            this.testView.checkReturnedDataSet(this.testCollection.toJSON());
             expect($('.popup-message').text()).to.equal('No Data Returned');
-            expect(this.update_spy.callCount).to.equal(1);
+            expect(this.update_spy.callCount).to.equal(0);
             this.update_spy.restore();
         });
         it('appends dataErrorMessages to container', function() {
+            expect($('.popup-message').text()).to.equal('');
             this.testView.dataErrorMessage('this is a test');
+            expect($('.popup-message').text()).to.include('this is a test');
             this.testView.dataErrorMessage('number two test');
+            expect($('.popup-message').text()).to.include('number two test');
+            this.testView.dataErrorMessage('should not be here', {
+                responseJSON: {
+                    status_code: 999,
+                    message: 'messageInReponseJSON'
+                }
+            });
+            expect($('.popup-message').text()).to.include('messageInReponseJSON');
+            expect($('.popup-message').text()).to.not.include('should not be here');
+            expect($('.popup-message').text()).to.include('999');
+            this.testView.dataErrorMessage('should not be here', {
+                responseJSON: {
+                    status_code: 123,
+                    message: 'newResponseMessage'
+                }
+            });
+            expect($('.popup-message').text()).to.not.include('messageInReponseJSON');
+            expect($('.popup-message').text()).to.include('newResponseMessage');
+            expect($('.popup-message').text()).to.not.include('should not be here');
+            expect($('.popup-message').text()).to.include('123');
+        });
+        it('can handle extra arguments that might exist from the server error', function() {
+            this.testView.dataErrorMessage('should not be here', {
+                responseJSON: {
+                    status_code: 234,
+                    message: 'newResponseMessageCheck'
+                }
+            }, 'nothing', 'to', 'worry', 'about');
+            expect($(this.testView.el).find('.popup-message').text()).to.not.include('messageInReponseJSON');
+            expect($(this.testView.el).find('.popup-message').text()).to.include('newResponseMessageCheck');
+            expect($(this.testView.el).find('.popup-message').text()).to.not.include('should not be here');
+            expect($(this.testView.el).find('.popup-message').text()).to.include('234');
         });
     });
 });

@@ -21,7 +21,8 @@ import requests
 import logging
 from datetime import datetime
 import json
-from .models import *
+from .models import ApiPerfData, EndpointsData, RolesData, ServicesData, \
+    TenantsData, UsersData
 from goldstone.utils import _construct_api_rec, \
     get_keystone_client, to_es_date, get_region_for_keystone_client
 
@@ -62,7 +63,7 @@ def _update_keystone_records(rec_type, region, db, items):
             rec_type: [item.to_dict() for item in items]}
     try:
         db.post(body)
-    except Exception:
+    except Exception:           # pylint: disable=W0703
         logging.exception("failed to index keystone %s", rec_type)
 
 
