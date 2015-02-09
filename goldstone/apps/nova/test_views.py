@@ -8,20 +8,22 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import arrow
 
-__author__ = 'John Stanford'
+# TODO replace pytz and calendar with arrow
+import json
+from django.http import HttpResponse
+import pytz
+import calendar
+import logging
 
 from django.test import SimpleTestCase
 from django.utils.unittest.case import skip
-from .views import *
 from .models import SpawnData
 from datetime import datetime
-import pytz
-import calendar
 from mock import patch
 
 
@@ -290,8 +292,9 @@ class ResourceViewTest(SimpleTestCase):
     invalid_end = '999999999999'
     invalid_interval = 'abc'
 
+    # TODO fix or remove this test
     @skip('TODO')
-    def test_get_cpu(self):
+    def test_get_hypervisor_cpu(self):
         end = datetime.now(tz=pytz.utc)
         start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
@@ -307,8 +310,9 @@ class ResourceViewTest(SimpleTestCase):
         logger.debug("[test_get_cpu_stats_view] response = %s",
                      json.loads(response.content))
 
+    # TODO fix or remove this test
     @skip('TODO')
-    def test_get_mem(self):
+    def test_get_hypervisor_mem(self):
         end = datetime.now(tz=pytz.utc)
         start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())
@@ -324,8 +328,9 @@ class ResourceViewTest(SimpleTestCase):
         logger.debug("[test_get_mem_stats_view] response = %s",
                      json.loads(response.content))
 
+    # TODO fix or remove this test
     @skip('TODO')
-    def test_get_disk(self):
+    def test_get_hypervisor_disk(self):
         end = datetime.now(tz=pytz.utc)
         start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
         end_ts = calendar.timegm(end.utctimetuple())

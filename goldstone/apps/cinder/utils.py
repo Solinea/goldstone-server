@@ -1,3 +1,4 @@
+"""Cinder utilities."""
 # Copyright '2014 - 2015' Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -8,22 +9,26 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from goldstone.utils import NoResourceFound, TopologyMixin
-from views import *
+from goldstone.utils import TopologyMixin
 
 
 class DiscoverTree(TopologyMixin):
 
     def __init__(self):
+        """Initialization.
+
+        To minimize payload here, we'll assume that there are no zones
+        that don't have at least one service.
+
+        """
+        from .models import TransfersData, VolTypesData, ServicesData
+
         self.transfers = TransfersData().get()
         self.vol_types = VolTypesData().get()
         self.services = ServicesData().get()
-        # to minimize payload here, we'll assume that there are no zones
-        # that don't have at least one service.
 
     def _get_service_regions(self):
         if self.services is None:
@@ -38,16 +43,16 @@ class DiscoverTree(TopologyMixin):
     def _populate_regions(self):
         result = []
         updated = self.services[0]['_source']['@timestamp']
-        for r in self._get_service_regions():
+        for region in self._get_service_regions():
             result.append(
                 {"rsrcType": "region",
-                 "label": r,
+                 "label": region,
                  "info": {"last_updated": updated},
                  "children": [
                      {
                          "rsrcType": "volume-types-leaf",
                          "label": "volume types",
-                         "region": r,
+                         "region": region,
                          "info": {
                              "last_update": updated
                          }
@@ -55,7 +60,7 @@ class DiscoverTree(TopologyMixin):
                      {
                          "rsrcType": "snapshots-leaf",
                          "label": "snapshots",
-                         "region": r,
+                         "region": region,
                          "info": {
                              "last_update": updated
                          }
@@ -63,7 +68,7 @@ class DiscoverTree(TopologyMixin):
                      {
                          "rsrcType": "transfers-leaf",
                          "label": "transfers",
-                         "region": r,
+                         "region": region,
                          "info": {
                              "last_update": updated
                          }
@@ -129,6 +134,7 @@ class DiscoverTree(TopologyMixin):
         return result
 
     def _build_topology_tree(self):
+        from goldstone.utils import GoldstoneAuthError, NoResourceFound
 
         try:
             if self.services is None or len(self.services) == 0:

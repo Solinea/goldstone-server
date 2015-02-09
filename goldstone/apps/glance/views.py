@@ -1,3 +1,4 @@
+"""Glance views."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -8,15 +9,13 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'John Stanford'
+import logging
 
 from goldstone.views import TopLevelView, ApiPerfView, JSONView
 from .models import GlanceApiPerfData, ImagesData
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +28,9 @@ class ImageApiPerfView(ApiPerfView):
     my_template_name = 'glance_api_perf.html'
 
     def _get_data(self, context):
-        return GlanceApiPerfData().get(context['start_dt'], context['end_dt'],
-                                 context['interval'])
+        return GlanceApiPerfData().get(context['start_dt'],
+                                       context['end_dt'],
+                                       context['interval'])
 
 
 class ImagesDataView(JSONView):

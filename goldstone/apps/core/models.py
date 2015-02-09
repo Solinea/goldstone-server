@@ -1,3 +1,4 @@
+"""Core models."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -8,7 +9,7 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
@@ -23,8 +24,6 @@ from elasticutils.contrib.django import MappingType, Indexable
 import logging
 from django.conf import settings
 from goldstone.utils import utc_now
-
-__author__ = 'stanford'
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +129,7 @@ class Event(Model):
         try:
             return cls.es_objects. \
                 filter(**kwargs)[0].get_object()
-        except:
+        except Exception:       # pylint: disable=W0703
             return None
 
     def save(self, force_insert=False, force_update=False):
@@ -212,9 +211,8 @@ class Metric(Model):
     @classmethod
     def get(cls, **kwargs):
         try:
-            return cls.es_objects. \
-                filter(**kwargs)[0].get_object()
-        except:
+            return cls.es_objects.filter(**kwargs)[0].get_object()
+        except Exception:       # pylint: disable=W0703
             return None
 
     def save(self, force_insert=False, force_update=False):
@@ -275,30 +273,31 @@ class Report(Model):
 
     @classmethod
     def _reconstitute(cls, **kwargs):
-        """
-        provides a way for the mapping type to create an object from ES data
-        """
+        """Allows the mapping type to create an object from ES data."""
+
         # reports could be stringified JSON, so let's find out
         if "value" in kwargs and type(kwargs["value"]) is list:
             new_val = []
+
             for item in kwargs["value"]:
                 try:
                     new_val.append(json.loads(item))
-                except:
+                except Exception:       # pylint: disable=W0703
                     new_val.append(item)
+
             kwargs['value'] = new_val
 
         else:
             logger.debug("no value present in kwargs, or value not a list")
-        obj = cls(**kwargs)
-        return obj
+
+        return cls(**kwargs)
 
     @classmethod
     def get(cls, **kwargs):
+
         try:
-            return cls.es_objects. \
-                filter(**kwargs)[0].get_object()
-        except:
+            return cls.es_objects.filter(**kwargs)[0].get_object()
+        except Exception:       # pylint: disable=W0703
             return None
 
     def save(self, force_insert=False, force_update=False, using=None,
@@ -315,13 +314,13 @@ class Report(Model):
 
 
 def validate_str_bool(value):
-        if value not in [x[0] for x in Node.MANAGED_CHOICES]:
-            raise ValidationError(u'%s is not "true" or "false"' % value)
+    if value not in [x[0] for x in Node.MANAGED_CHOICES]:
+        raise ValidationError(u'%s is not "true" or "false"' % value)
 
 
 def validate_method_choices(value):
-        if value not in [x[0] for x in Node.METHOD_CHOICES]:
-            raise ValidationError(u'%s is not a valid method' % value)
+    if value not in [x[0] for x in Node.METHOD_CHOICES]:
+        raise ValidationError(u'%s is not a valid method' % value)
 
 
 class Node(Model):

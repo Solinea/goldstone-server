@@ -1,4 +1,5 @@
-# Copyright 2014 Solinea, Inc.
+"""Goldstone version."""
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -8,12 +9,9 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'Ken Pepple'
-
 import pbr.version
 
-version_info = pbr.version.VersionInfo('goldstone')
+version_info = pbr.version.VersionInfo('goldstone')    # pylint: disable=C0103
