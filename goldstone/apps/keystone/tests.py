@@ -40,7 +40,7 @@ class TaskTests(SimpleTestCase):
     def test_time_glance_api(self, db_post, os_post, construct_rec):
         fake_response = Response()
         fake_response.status_code = 200
-        fake_response._content = '{"a":1,"b":2}'
+        fake_response._content = '{"a":1,"b":2}'       # pylint: disable=W0212
         os_post.return_value = fake_response
         db_post.return_value = 'fake_id'
         construct_rec.return_value = {}

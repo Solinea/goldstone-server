@@ -39,11 +39,11 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
 
     """
 
-    # Must be defined by the subclass.
-    model = None
+    # These must be defined by the subclass.
+    model = lambda x: None
     key = None
 
-    # May be defined by subclass.
+    # This may be defined by subclass.
     zone_key = None
 
     def _get_objects(self, request_zone, request_region):

@@ -38,17 +38,21 @@ class TaskTests(SimpleTestCase):
     @patch('goldstone.apps.neutron.tasks.stored_api_call')
     @patch.object(ApiPerfData, 'post')
     def test_time_glance_api(self, post, api):
+
         fake_response = Response()
         fake_response.status_code = 200
-        fake_response._content = '{"a":1,"b":2}'
+        fake_response._content = '{"a":1,"b":2}'       # pylint: disable=W0212
         api.return_value = {'db_record': 'fake_record',
                             'reply': fake_response}
         post.return_value = 'fake_id'
         result = time_neutron_api()
+
         self.assertTrue(api.called)
         api.assert_called_with("neutron", "network", "/v2.0/agents")
+
         self.assertTrue(post.called)
         post.assert_called_with(api.return_value['db_record'])
+
         self.assertIn('id', result)
         self.assertEqual(result['id'], post.return_value)
         self.assertIn('record', result)
@@ -64,17 +68,17 @@ class ViewTests(SimpleTestCase):
     end_ts = calendar.timegm(end_dt.utctimetuple())
 
     def test_get_data(self):
+
         view = AgentListApiPerfView()
-        context = {
-            'start_dt': self.start_dt,
-            'end_dt': self.end_dt,
-            'interval': '3600s'
-        }
+        context = {'start_dt': self.start_dt,
+                   'end_dt': self.end_dt,
+                   'interval': '3600s'
+                   }
 
         # returns a pandas data frame
-        d = view._get_data(context)
-        self.assertIsInstance(d, pd.DataFrame)
-        self.assertEqual(d.empty, False)
+        result = view._get_data(context)             # pylint: disable=W0212
+        self.assertIsInstance(result, pd.DataFrame)
+        self.assertFalse(result.empty)
 
     def test_report_view(self):
 
