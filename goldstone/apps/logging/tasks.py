@@ -14,14 +14,11 @@
 # limitations under the License.
 from __future__ import absolute_import
 
-import pytz
-import subprocess
+import arrow
 from django.conf import settings
 from goldstone.celery import app as celery_app
 import logging
-from goldstone.apps.core.models import *
-from datetime import datetime
-import arrow
+from goldstone.apps.core.models import Event, Node
 
 
 logger = logging.getLogger(__name__)
@@ -84,10 +81,15 @@ def _create_event(timestamp, host, event_type, message):
 
 @celery_app.task(bind=True)
 def ping(self, node):
+    from datetime import datetime
+    import subprocess
+    import pytz
+
     response = subprocess.call("ping -c 5 %s" % node.name,
                                shell=True,
                                stdout=open('/dev/null', 'w'),
                                stderr=subprocess.STDOUT)
+
     if response == 0:
         logger.debug("%s is alive", node.id)
         node.last_seen = datetime.now(tz=pytz.utc)
@@ -110,6 +112,7 @@ def check_host_avail(self, offset=settings.HOST_AVAILABLE_PING_THRESHOLD):
     cutoff = arrow.utcnow().datetime - offset
     logger.debug("[check_host_avail] cutoff = %s", str(cutoff))
     to_ping = Node.objects.filter(updated__lte=cutoff, managed='true')
+
     logger.debug("hosts to ping = %s", to_ping)
     for node in to_ping:
         ping(node)

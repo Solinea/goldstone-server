@@ -14,13 +14,9 @@
 # limitations under the License.
 from __future__ import absolute_import
 
-import pytz
-from django.conf import settings
 from goldstone.celery import app as celery_app
-import requests
 import logging
 from datetime import datetime
-import json
 from .models import ApiPerfData, EndpointsData, RolesData, ServicesData, \
     TenantsData, UsersData
 from goldstone.utils import _construct_api_rec, \
@@ -36,6 +32,9 @@ def time_keystone_api(self):
     a full set of data for the record in the DB.  This will make things
     easier to model.
     """
+    from django.conf import settings
+    import json
+    import requests
 
     user = settings.OS_USERNAME
     passwd = settings.OS_PASSWORD
@@ -46,8 +45,8 @@ def time_keystone_api(self):
     self.reply = requests.post(url, data=json.dumps(payload),
                                headers=headers)
 
-    t = datetime.utcnow()
-    rec = _construct_api_rec(self.reply, "keystone", t,
+    now = datetime.utcnow()
+    rec = _construct_api_rec(self.reply, "keystone", now,
                              timeout=settings.API_PERF_QUERY_TIMEOUT, url=url)
     apidb = ApiPerfData()
     rec_id = apidb.post(rec)
@@ -56,6 +55,7 @@ def time_keystone_api(self):
 
 
 def _update_keystone_records(rec_type, region, db, items):
+    import pytz
 
     # image list is a generator, so we need to make it not sol lazy it...
     body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),

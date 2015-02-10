@@ -35,15 +35,17 @@ class LogData(ESData):
                         sourcedate.microsecond, sourcedate.tzinfo)
 
     def _calc_start(self, end, unit):
+
         if unit == "hour":
-            t = end - timedelta(hours=1)
+            start = end - timedelta(hours=1)
         elif unit == "day":
-            t = end - timedelta(days=1)
+            start = end - timedelta(days=1)
         elif unit == "week":
-            t = end - timedelta(weeks=1)
+            start = end - timedelta(weeks=1)
         else:
-            t = self._subtract_months(end, 1)
-        return t.replace(tzinfo=pytz.utc)
+            start = self._subtract_months(end, 1)
+
+        return start.replace(tzinfo=pytz.utc)
 
     @staticmethod
     def _term_filter(field, value):
