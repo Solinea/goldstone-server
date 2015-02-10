@@ -87,8 +87,8 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
         """Implement the GET request for a collection."""
 
         # Extract a zone or region provided in the request, if present.
-        request_zone = self.request.data.get('zone')
-        request_region = self.request.data.get('region')
+        request_zone = request.query_params.get('zone')
+        request_region = request.query_params.get('region')
 
         # Now fetch the data and return it as JSON.
         return Response(self._get_objects(request_zone, request_region))
@@ -101,6 +101,7 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
 
 
 def custom_exception_handler(exc):
+
     # Call REST framework's default exception handler first,
     # to get the standard error response.
     response = exception_handler(exc)
@@ -150,12 +151,12 @@ def custom_exception_handler(exc):
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Now add the HTTP status code to the response.
-        if response is not None:
+        if response is None:
+            logger.exception(
+                '[custom_exception_handler] Unhandled custom exception')
+        else:
             logger.exception(
                 '[custom_exception_handler] Handled custom exception')
             response.data['status_code'] = response.status_code
-        else:
-            logger.exception(
-                '[custom_exception_handler] Unhandled custom exception')
 
     return response

@@ -96,6 +96,7 @@ class LogData(ESData):
         return [d['term'] for d in result['facets'][facet_field]['terms']]
 
     def _loglevel_by_time_agg(self, start, end, interval, query_filter=None):
+
         logger.debug("[_loglevel_by_time_agg] ENTERING>>")
         logger.debug("[_loglevel_by_time_agg] interval = %s", interval)
         logger.debug("[_loglevel_by_time_agg] start = %s", start.isoformat())

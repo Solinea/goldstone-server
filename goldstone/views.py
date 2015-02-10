@@ -55,9 +55,9 @@ def _parse_timestamp(stamp, zone=pytz.utc):
 
 def validate(arg_list, context):
     """Validate an argument list within a particular context, and return
-    the updated context or HttpResponseBadRequest."""
+    an updated context or HttpResponseBadRequest."""
 
-    # "Bad parameter" message string.
+    # A "bad parameter" message string.
     BAD_PARAMETER = "malformed parameter [%s]"
 
     context = context.copy()
@@ -200,8 +200,13 @@ class ApiPerfView(InnerTimeRangeView):
     data = pd.DataFrame()
     my_template_name = None
 
-    def _get_data(self, context):                # pylint: disable=R0201
-        """Override in subclass, return a model result."""
+    def _get_data(self, _):                # pylint: disable=R0201
+        """Override in subclass.
+
+        :return: A model
+
+        """
+
         return None
 
     def _handle_request(self, context):
@@ -292,6 +297,8 @@ class DiscoverView(TemplateView, TopologyMixin):
 
         # Too many short names here. Disable C0103 for now, just here!
         # pylint: disable=C0103
+        # Too many variables here!
+        # pylint: disable=R0914
 
         try:
             keystone_topo = KeystoneDiscoverTree()
