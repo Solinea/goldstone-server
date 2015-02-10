@@ -40,7 +40,7 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
     """
 
     # These must be defined by the subclass.
-    model = lambda x: None
+    model = lambda: None
     key = None
 
     # This may be defined by subclass.
