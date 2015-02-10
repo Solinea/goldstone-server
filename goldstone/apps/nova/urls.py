@@ -15,7 +15,7 @@
 from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
 
-from .views import ReportView, SpawnsViewDataSet, CpuView, MemoryView, \
+from .views import ReportView, SpawnsViewSet, CpuView, MemoryView, \
     DiskView, LatestStatsView, ApiPerfView, AgentsDataViewSet, \
     AggregatesDataViewSet, AvailZonesDataViewSet, CloudpipesDataViewSet, \
     FlavorsDataViewSet, FloatingIpPoolsDataViewSet, HostsDataViewSet, \

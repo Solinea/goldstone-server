@@ -1,6 +1,6 @@
 """Test_oak_c2 settings.
 
-Use this file for settings that will not be overwritten by product upgrades.
+The postgres and elasticsearch servers are local.
 
 """
 

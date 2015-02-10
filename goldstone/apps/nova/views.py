@@ -24,11 +24,13 @@ from datetime import datetime
 import json
 import logging
 
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, \
+    HttpResponseNotAllowed
 from django.views.generic import TemplateView
 from elasticsearch import ElasticsearchException
 import pandas as pd
-from rest_framework import status,serializers
+from rest_framework import status
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from .models import NovaApiPerfData, HypervisorStatsData, SpawnData, \
     ResourceData, AgentsData, AggregatesData, AvailZonesData, CloudpipesData, \
@@ -61,9 +63,6 @@ class ResourceView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = TemplateView.get_context_data(self, **kwargs)
-
-        # The server doesn't render the page. The client does.
-        context["render"] = "False"
 
         # Use "now" if not provided, validate() will calculate the  start and
         # interval.
@@ -133,7 +132,7 @@ class CpuView(ResourceView):
     my_template_name = 'cpu.html'
 
     def _handle_request(self, context):
-        context = validate(['start', 'end', 'interval', 'render'], context)
+        context = validate(['start', 'end', 'interval'], context)
 
         if isinstance(context, HttpResponseBadRequest):
             # validation error
@@ -151,7 +150,7 @@ class MemoryView(ResourceView):
     my_template_name = 'mem.html'
 
     def _handle_request(self, context):
-        context = validate(['start', 'end', 'interval', 'render'], context)
+        context = validate(['start', 'end', 'interval'], context)
 
         if isinstance(context, HttpResponseBadRequest):
             # validation error
@@ -169,7 +168,7 @@ class DiskView(ResourceView):
     my_template_name = 'disk.html'
 
     def _handle_request(self, context):
-        context = validate(['start', 'end', 'interval', 'render'], context)
+        context = validate(['start', 'end', 'interval'], context)
 
         if isinstance(context, HttpResponseBadRequest):
             # validation error
@@ -193,19 +192,6 @@ class DiskView(ResourceView):
 
 
 class LatestStatsView(TemplateView):
-    template_name = 'latest_stats.html'
-
-    def get_context_data(self, **kwargs):
-        context = TemplateView.get_context_data(self, **kwargs)
-        context['render'] = self.request.GET.get('render', "True"). \
-            lower().capitalize()
-
-        # if render is true, we will return a full template, otherwise only
-        # a json data payload
-        if context['render'] != 'True':
-            self.template_name = None
-
-        return context
 
     def render_to_response(self, context, **response_kwargs):
 
@@ -213,12 +199,8 @@ class LatestStatsView(TemplateView):
             model = HypervisorStatsData()
             response = model.get(1)
 
-            if self.template_name:
-                return TemplateView.render_to_response(
-                    self, {'data': json.dumps(response)})
-            else:
-                return HttpResponse(json.dumps({'data': response}),
-                                    content_type='application/json')
+            return HttpResponse(json.dumps({'data': response}),
+                                content_type='application/json')
 
         except ElasticsearchException:
             return HttpResponse(
@@ -290,134 +272,74 @@ class ServicesDataViewSet(JsonReadOnlyViewSet):
     zone_key = 'zone'
 
 
-class SpawnsSerializer(serializers.BaseSerializer):
-    """A custom serializer for /hypervisor/spawns."""
-    
-    def get_serializer_context(self):
-        """Return extra contact to be supplied to the serializer.
+class SpawnsViewSet(ReadOnlyModelViewSet):
+    """The /hypervisor/spawns views."""
 
-        :rtype: dict
+    def list(self, request):
+        """The collection-of-objects GET handler for spawns."""
+        from rest_framework.response import Response
 
-        """
-
-        return {
-            # The server doesn't render the page. The client does.
-            context["render"] = "False"
-
-            # Use "now" if not provided, validate() will calculate the start and
-            # interval.
-            context['end'] = self.request.GET.get(
-                'end',str(calendar.timegm(datetime.utcnow().timetuple())))
-            context['start'] = self.request.GET.get('start')
-            context['interval'] = self.request.GET.get('interval')
+        # Fetch and enhance this request's context.
+        context = {
+            # Use "now" if not provided. Validate() will calculate the start
+            # and interval. Arguments missing from the request are set to None.
+            'end':
+            request.query_params.get(
+                'end',
+                str(calendar.timegm(datetime.utcnow().timetuple()))),
+            'start': request.query_params.get('start'),
+            'interval': request.query_params.get('interval'),
             }
 
-    def _handle_request(self, context):
+        context = validate(['start', 'end', 'interval'], context)
 
-        context = validate(['start', 'end', 'interval', 'render'], context)
-
+        # If the context is bad, the request is bad.
         if isinstance(context, HttpResponseBadRequest):
-            # validation error
             return context
 
         logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
-        sd = SpawnData(context['start_dt'], context['end_dt'],
+
+        sd = SpawnData(context['start_dt'],
+                       context['end_dt'],
                        context['interval'])
         success_data = sd.get_spawn_success()
         failure_data = sd.get_spawn_failure()
 
-        # there are a few cases to handle here
-        #  - both empty: return empty dataframe
-        #  - one empty: return zero filled column in non-empty dataframe
-        #  - neither empty: merge them on the 'key' field
-
         data = pd.DataFrame()
 
-        if not (success_data.empty and failure_data.empty):
-            if success_data.empty:
-                failure_data['successes'] = 0
-                data = failure_data.rename(columns={'doc_count': 'failures'})
-            elif failure_data.empty:
-                success_data['failures'] = 0
-                data = success_data.rename(columns={'doc_count': 'successes'})
-            else:
-                logger.debug("[_handle_request] successes = %s", success_data)
-                logger.debug("[_handle_request] failures = %s", failure_data)
+        if success_data.empty and failure_data.empty:
+            # Both are empty. Return an empty dataframe.
+            pass
+        elif success_data.empty:
+            # Success__data is empty. Return zero-filled column in a
+            # non-empty dataframe.
+            failure_data['successes'] = 0
+            data = failure_data.rename(columns={'doc_count': 'failures'})
+        elif failure_data.empty:
+            # Failure__data is empty. Return zero-filled column in a
+            # non-empty dataframe.
+            success_data['failures'] = 0
+            data = success_data.rename(columns={'doc_count': 'successes'})
+        else:
+            # Neither are empty. Merge them on the "key" field.
+            logger.debug("[_handle_request] successes = %s", success_data)
+            logger.debug("[_handle_request] failures = %s", failure_data)
 
-                data = pd.ordered_merge(
-                    success_data, failure_data, on='key',
-                    suffixes=['_successes', '_failures']) \
-                    .rename(columns={'doc_count_successes': 'successes',
-                                     'doc_count_failures': 'failures'})
+            data = \
+                pd.ordered_merge(success_data,
+                                 failure_data,
+                                 on='key',
+                                 suffixes=['_successes', '_failures'])\
+                  .rename(columns={'doc_count_successes': 'successes',
+                                   'doc_count_failures': 'failures'})
 
-        logger.debug("[_handle_request] data = %s", data)
-        if not data.empty:
             data = data.set_index('key').fillna(0)
 
-        return data.transpose().to_dict(outtype='list')
-
-
-class SpawnsViewSet(JsonReadOnlyViewSet):
-
-    def get_serializer_context(self):
-        """Return extra contact to be supplied to the serializer.
-
-        :rtype: dict
-
-        """
-
-        return {
-            # The server doesn't render the page. The client does.
-            context["render"] = "False"
-
-            # Use "now" if not provided, validate() will calculate the start and
-            # interval.
-            context['end'] = self.request.GET.get(
-                'end',str(calendar.timegm(datetime.utcnow().timetuple())))
-            context['start'] = self.request.GET.get('start')
-            context['interval'] = self.request.GET.get('interval')
-            }
-
-    def _handle_request(self, context):
-
-        context = validate(['start', 'end', 'interval', 'render'], context)
-
-        if isinstance(context, HttpResponseBadRequest):
-            # validation error
-            return context
-
-        logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
-        sd = SpawnData(context['start_dt'], context['end_dt'],
-                       context['interval'])
-        success_data = sd.get_spawn_success()
-        failure_data = sd.get_spawn_failure()
-
-        # there are a few cases to handle here
-        #  - both empty: return empty dataframe
-        #  - one empty: return zero filled column in non-empty dataframe
-        #  - neither empty: merge them on the 'key' field
-
-        data = pd.DataFrame()
-
-        if not (success_data.empty and failure_data.empty):
-            if success_data.empty:
-                failure_data['successes'] = 0
-                data = failure_data.rename(columns={'doc_count': 'failures'})
-            elif failure_data.empty:
-                success_data['failures'] = 0
-                data = success_data.rename(columns={'doc_count': 'successes'})
-            else:
-                logger.debug("[_handle_request] successes = %s", success_data)
-                logger.debug("[_handle_request] failures = %s", failure_data)
-
-                data = pd.ordered_merge(
-                    success_data, failure_data, on='key',
-                    suffixes=['_successes', '_failures']) \
-                    .rename(columns={'doc_count_successes': 'successes',
-                                     'doc_count_failures': 'failures'})
-
         logger.debug("[_handle_request] data = %s", data)
-        if not data.empty:
-            data = data.set_index('key').fillna(0)
 
-        return data.transpose().to_dict(outtype='list')
+        return Response(data.transpose().to_dict(outtype='list'))
+
+    def retrieve(self, request, *args, **kwargs):
+        """We do not implement single object GET."""
+
+        return HttpResponseNotAllowed
