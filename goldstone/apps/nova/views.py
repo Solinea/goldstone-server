@@ -102,9 +102,6 @@ class SpawnsView(TemplateView):
                 success_data['failures'] = 0
                 self.data = success_data
             else:
-                logger.debug("[_handle_request] successes = %s", success_data)
-                logger.debug("[_handle_request] failures = %s", failure_data)
-
                 self.data = pd.ordered_merge(
                     success_data, failure_data, on='timestamp')
 
@@ -183,7 +180,11 @@ class ResourceView(TemplateView):
             elif virt.empty:
                 self.data = phys
                 self.data.rename(columns={'total': 'total_phys'}, inplace=True)
-                self.data = self.data[['timestamp', 'used', 'total_phys']]
+                # using a copy method to indicate that we know what we are
+                # doing and pandas can skip the warning.
+                self.data = self.data[['timestamp',
+                                       'used',
+                                       'total_phys']].copy()
 
             else:
                 phys.rename(columns={'total': 'total_phys'}, inplace=True)
@@ -192,12 +193,13 @@ class ResourceView(TemplateView):
 
                 self.data = pd.ordered_merge(
                     phys, virt, on='timestamp')
-
                 self.data['total_virt'].fillna(method='pad', inplace=True)
+                # using a copy method to indicate that we know what we are
+                # doing and pandas can skip the warning.
                 self.data = self.data[['timestamp',
                                        'used',
                                        'total_phys',
-                                       'total_virt']]
+                                       'total_virt']].copy()
 
             # for the used columns, we want to fill NaNs with the last
             # non-zero value
@@ -213,8 +215,7 @@ class ResourceView(TemplateView):
             logger.debug("[_handle_phys_and_virt_responses] self.data is "
                          "empty")
 
-        response = self.data.transpose().to_dict(outtype='list')
-        return response
+        return self.data.transpose().to_dict(outtype='list')
 
     def render_to_response(self, context, **response_kwargs):
         """
@@ -251,10 +252,10 @@ class CpuView(ResourceView):
 
         rd = ResourceData(context['start_dt'], context['end_dt'],
                           context['interval'])
-        p_cpu = rd.get_phys_cpu()
-        v_cpu = rd.get_virt_cpu()
 
-        return self._handle_phys_and_virt_responses(p_cpu, v_cpu)
+        return self._handle_phys_and_virt_responses(
+            rd.get_phys_cpu(),
+            rd.get_virt_cpu())
 
 
 class MemoryView(ResourceView):
@@ -269,10 +270,10 @@ class MemoryView(ResourceView):
 
         rd = ResourceData(context['start_dt'], context['end_dt'],
                           context['interval'])
-        p_mem = rd.get_phys_mem()
-        v_mem = rd.get_virt_mem()
 
-        return self._handle_phys_and_virt_responses(p_mem, v_mem)
+        return self._handle_phys_and_virt_responses(
+            rd.get_phys_mem(),
+            rd.get_virt_mem())
 
 
 class DiskView(ResourceView):
@@ -288,19 +289,9 @@ class DiskView(ResourceView):
         rd = ResourceData(context['start_dt'], context['end_dt'],
                           context['interval'])
 
-        self.data = rd.get_phys_disk()
-
-        if not self.data.empty:
-            # since this is spotty data, we'll use the cummulative max to carry
-            # totals forward
-            self.data['total'] = self.data['total'].cummax()
-
-            # for the used columns, we want to fill zeros with the last
-            # non-zero value
-            self.data['used'].fillna(method='pad', inplace=True)
-            self.data = self.data.set_index('key').fillna(0)
-
-        return self.data.transpose().to_dict(outtype='list')
+        return self._handle_phys_and_virt_responses(
+            rd.get_phys_disk(),
+            pd.DataFrame())
 
 
 class LatestStatsView(TemplateView):
