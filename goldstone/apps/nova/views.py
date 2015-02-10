@@ -28,7 +28,7 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.generic import TemplateView
 from elasticsearch import ElasticsearchException
 import pandas as pd
-from rest_framework import status
+from rest_framework import status,serializers
 
 from .models import NovaApiPerfData, HypervisorStatsData, SpawnData, \
     ResourceData, AgentsData, AggregatesData, AvailZonesData, CloudpipesData, \
@@ -54,6 +54,7 @@ class ApiPerfView(GoldstoneApiPerfView):
 
 
 class ResourceView(TemplateView):
+
     data = pd.DataFrame()
     # override in subclass
     my_template_name = None
@@ -289,25 +290,27 @@ class ServicesDataViewSet(JsonReadOnlyViewSet):
     zone_key = 'zone'
 
 
-class SpawnsViewSet(JsonReadOnlyViewSet):
+class SpawnsSerializer(serializers.BaseSerializer):
+    """A custom serializer for /hypervisor/spawns."""
+    
+    def get_serializer_context(self):
+        """Return extra contact to be supplied to the serializer.
 
-    data = pd.DataFrame()
+        :rtype: dict
 
-    def get_context_data(self, **kwargs):
+        """
 
-        context = TemplateView.get_context_data(self, **kwargs)
+        return {
+            # The server doesn't render the page. The client does.
+            context["render"] = "False"
 
-        # The server doesn't render the page. The client does.
-        context["render"] = "False"
-
-        # Use "now" if not provided, validate() will calculate the  start and
-        # interval.
-        context['end'] = self.request.GET.get('end', str(calendar.timegm(
-            datetime.utcnow().timetuple())))
-        context['start'] = self.request.GET.get('start', None)
-        context['interval'] = self.request.GET.get('interval', None)
-
-        return context
+            # Use "now" if not provided, validate() will calculate the start and
+            # interval.
+            context['end'] = self.request.GET.get(
+                'end',str(calendar.timegm(datetime.utcnow().timetuple())))
+            context['start'] = self.request.GET.get('start')
+            context['interval'] = self.request.GET.get('interval')
+            }
 
     def _handle_request(self, context):
 
@@ -328,27 +331,93 @@ class SpawnsViewSet(JsonReadOnlyViewSet):
         #  - one empty: return zero filled column in non-empty dataframe
         #  - neither empty: merge them on the 'key' field
 
+        data = pd.DataFrame()
+
         if not (success_data.empty and failure_data.empty):
             if success_data.empty:
                 failure_data['successes'] = 0
-                self.data = failure_data.rename(
-                    columns={'doc_count': 'failures'})
+                data = failure_data.rename(columns={'doc_count': 'failures'})
             elif failure_data.empty:
                 success_data['failures'] = 0
-                self.data = success_data.rename(
-                    columns={'doc_count': 'successes'})
+                data = success_data.rename(columns={'doc_count': 'successes'})
             else:
                 logger.debug("[_handle_request] successes = %s", success_data)
                 logger.debug("[_handle_request] failures = %s", failure_data)
 
-                self.data = pd.ordered_merge(
+                data = pd.ordered_merge(
                     success_data, failure_data, on='key',
                     suffixes=['_successes', '_failures']) \
                     .rename(columns={'doc_count_successes': 'successes',
                                      'doc_count_failures': 'failures'})
 
-        logger.debug("[_handle_request] self.data = %s", self.data)
-        if not self.data.empty:
-            self.data = self.data.set_index('key').fillna(0)
+        logger.debug("[_handle_request] data = %s", data)
+        if not data.empty:
+            data = data.set_index('key').fillna(0)
 
-        return self.data.transpose().to_dict(outtype='list')
+        return data.transpose().to_dict(outtype='list')
+
+
+class SpawnsViewSet(JsonReadOnlyViewSet):
+
+    def get_serializer_context(self):
+        """Return extra contact to be supplied to the serializer.
+
+        :rtype: dict
+
+        """
+
+        return {
+            # The server doesn't render the page. The client does.
+            context["render"] = "False"
+
+            # Use "now" if not provided, validate() will calculate the start and
+            # interval.
+            context['end'] = self.request.GET.get(
+                'end',str(calendar.timegm(datetime.utcnow().timetuple())))
+            context['start'] = self.request.GET.get('start')
+            context['interval'] = self.request.GET.get('interval')
+            }
+
+    def _handle_request(self, context):
+
+        context = validate(['start', 'end', 'interval', 'render'], context)
+
+        if isinstance(context, HttpResponseBadRequest):
+            # validation error
+            return context
+
+        logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
+        sd = SpawnData(context['start_dt'], context['end_dt'],
+                       context['interval'])
+        success_data = sd.get_spawn_success()
+        failure_data = sd.get_spawn_failure()
+
+        # there are a few cases to handle here
+        #  - both empty: return empty dataframe
+        #  - one empty: return zero filled column in non-empty dataframe
+        #  - neither empty: merge them on the 'key' field
+
+        data = pd.DataFrame()
+
+        if not (success_data.empty and failure_data.empty):
+            if success_data.empty:
+                failure_data['successes'] = 0
+                data = failure_data.rename(columns={'doc_count': 'failures'})
+            elif failure_data.empty:
+                success_data['failures'] = 0
+                data = success_data.rename(columns={'doc_count': 'successes'})
+            else:
+                logger.debug("[_handle_request] successes = %s", success_data)
+                logger.debug("[_handle_request] failures = %s", failure_data)
+
+                data = pd.ordered_merge(
+                    success_data, failure_data, on='key',
+                    suffixes=['_successes', '_failures']) \
+                    .rename(columns={'doc_count_successes': 'successes',
+                                     'doc_count_failures': 'failures'})
+
+        logger.debug("[_handle_request] data = %s", data)
+        if not data.empty:
+            data = data.set_index('key').fillna(0)
+
+        return data.transpose().to_dict(outtype='list')
