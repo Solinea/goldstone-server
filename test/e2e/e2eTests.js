@@ -120,7 +120,7 @@ casper.test.begin('Node Report Page is loading properly', 61, function suite(tes
     });
 });
 
-casper.test.begin('Homepage is loading properly', 37, function suite(test) {
+casper.test.begin('Homepage is loading properly', 59, function suite(test) {
     casper.start('http://localhost:8000/', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -144,8 +144,32 @@ casper.test.begin('Homepage is loading properly', 37, function suite(test) {
         test.assertExists('div#goldstone-discover-r2-c2', 'Resource List section should load');
         test.assertSelectorHasText('div #goldstone-discover-r2-c2', 'Resource List');
 
-        // Clicking on node brings up resource list
+        // No resource list is visible prior to clicking on node
         test.assertNotVisible('#goldstone-discover-r1-c2 .dataTables_scrollHead');
+
+        // Cloud Topology viz has the expected branches and leaves
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'RegionOne');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'nova');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'cinder');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'keystone');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'glance');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'internal');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'flavors');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'hypervisors');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'volume');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'snapshots');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'transfers');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'endpoints');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'roles');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'services');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'tenants');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'users');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'images');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'aggregates');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'hosts');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'instances');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'volumes');
+        test.assertSelectorHasText('#goldstone-discover-r2-c1', 'backups');
 
         // Event Timeline info button brings up popover
         test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should not be visible');
@@ -593,4 +617,3 @@ casper.test.begin('Logging page is loading properly', 21, function suite(test) {
         test.done();
     });
 });
-

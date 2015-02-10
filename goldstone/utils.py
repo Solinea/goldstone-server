@@ -64,6 +64,7 @@ class NoDailyIndex(GoldstoneBaseException):
 class NoResourceFound(GoldstoneBaseException):
     pass
 
+
 class UnexpectedSearchResponse(GoldstoneBaseException):
     pass
 
