@@ -39,7 +39,7 @@ router.register(r'^floating_ip_pools[/]?$',
                 FloatingIpPoolsDataViewSet,
                 base_name='nova-floating-ip-pools')
 router.register(r'^hypervisor/spawns[/]?$',
-                SpawnsViewDataViewSet,
+                SpawnsViewSet,
                 base_name='nova-spawn-view')
 router.register(r'^hosts[/]?$', HostsDataViewSet, base_name='nova-hosts')
 router.register(r'^hypervisors[/]?$',
