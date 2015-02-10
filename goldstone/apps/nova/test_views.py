@@ -1,3 +1,4 @@
+"""Nova test views."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -28,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class NovaSpawnsViewTest(SimpleTestCase):
+
     # view requires a start_ts, end_ts, and interval string
     valid_start = str(calendar.timegm(
         datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))
@@ -305,8 +307,8 @@ class DataViewTests(SimpleTestCase):
         self.assertNotEqual(response.content, None)
         try:
             j = json.loads(response.content)
-        except:
-            self.fail("Could not convert content to JSON, content was %s",
+        except Exception:             # pylint: disable=W0703
+            self.fail("Could not convert content to JSON, content was %s" %
                       response.content)
         else:
             self.assertIsInstance(j, list)

@@ -13,28 +13,32 @@
 #    under the License.
 
 from django.test import SimpleTestCase
-
 from goldstone.libs import secret_key
-
 import os
 
 
 class SecretKeyTests(SimpleTestCase):
+
     def test_generate_secret_key(self):
+        """Generate a secret key."""
+
         key = secret_key.generate_key(32)
         self.assertEqual(len(key), 32)
         self.assertNotEqual(key, secret_key.generate_key(32))
 
     def test_generate_or_read_key_from_file(self):
-        key_file = ".test_secret_key_store"
-        key = secret_key.generate_or_read_from_file(key_file)
+        """Reading key from a file."""
+
+        KEY_FILE = ".test_secret_key_store"
+
+        key = secret_key.generate_or_read_from_file(KEY_FILE)
 
         # Consecutive reads should come from the already existing file:
-        self.assertEqual(key, secret_key.generate_or_read_from_file(key_file))
+        self.assertEqual(key, secret_key.generate_or_read_from_file(KEY_FILE))
 
         # Key file only be read/writable by user:
-        self.assertEqual(oct(os.stat(key_file).st_mode & 0o777), "0600")
-        os.chmod(key_file, 0o777)
+        self.assertEqual(oct(os.stat(KEY_FILE).st_mode & 0o777), "0600")
+        os.chmod(KEY_FILE, 0o777)
         self.assertRaises(secret_key.FilePermissionError,
-                          secret_key.generate_or_read_from_file, key_file)
-        os.remove(key_file)
+                          secret_key.generate_or_read_from_file, KEY_FILE)
+        os.remove(KEY_FILE)

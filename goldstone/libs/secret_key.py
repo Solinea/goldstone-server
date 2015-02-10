@@ -39,10 +39,9 @@ def generate_key(key_length=64):
 
     """
 
-    if hasattr(random, 'SystemRandom'):
-        choice = random.SystemRandom().choice
-    else:
-        choice = random.choice
+    choice = random.SystemRandom().choice if hasattr(random, 'SystemRandom') \
+        else random.choice
+
     return ''.join(map(lambda x: choice(string.digits + string.letters),
                    range(key_length)))
 
@@ -65,19 +64,24 @@ def generate_or_read_from_file(key_file='.secret_key', key_length=64,
         if not os.path.exists(key_file):
             key = generate_key(key_length)
             old_umask = os.umask(0o177)  # Use '0600' file permissions
+
             with open(key_file, 'w') as f:
                 f.write(key)
+
             os.umask(old_umask)
+
             try:
                 uid = pwd.getpwnam(uid_and_gid).pw_uid
                 gid = grp.getgrnam(uid_and_gid).gr_gid
                 os.chown(key_file, uid, gid)
-            except:
+            except Exception:       # pylint: disable=W0703
                 logger.debug("Error changing permission on secret file to %s",
                              uid_and_gid)
         else:
             if oct(os.stat(key_file).st_mode & 0o777) != '0600':
                 raise FilePermissionError("Insecure key file permissions!")
+
             with open(key_file, 'r') as f:
                 key = f.readline()
+
         return key
