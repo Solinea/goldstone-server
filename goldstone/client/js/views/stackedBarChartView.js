@@ -96,16 +96,11 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         if (ns.featureSet === 'cpu') {
 
             // CPU Resources chart data prep
-
-            //TODO: this will probably change
-            //after finding out what the server payload
-            // actually looks like
-
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
-                    "Used": item[1],
-                    "Physical": item[0],
+                    "Used": item[0],
+                    "Physical": item[1],
                     "Virtual": item[2]
                 });
             });
@@ -116,8 +111,8 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
-                    "Used": item[1],
-                    "Physical": item[0],
+                    "Used": item[0],
+                    "Physical": item[1],
                 });
             });
 
@@ -127,19 +122,20 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
-                    "Used": item[1],
-                    "Physical": item[0],
+                    "Used": item[0],
+                    "Physical": item[1],
                     "Virtual": item[2]
                 });
             });
 
         } else {
+
             // Spawns Resources chart data prep
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
-                    "Success": item[2],
-                    "Failure": item[0]
+                    "Success": item[0],
+                    "Failure": item[1]
                 });
             });
 
