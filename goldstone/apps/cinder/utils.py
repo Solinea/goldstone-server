@@ -154,7 +154,7 @@ class DiscoverTree(TopologyMixin):
 
                 new_rl.append(region)
 
-            if new_rl:
+            if len(new_rl) > 1:
                 return {"rsrcType": "cloud", "label": "Cloud",
                         "children": new_rl}
             else:
