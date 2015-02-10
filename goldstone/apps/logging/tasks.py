@@ -16,6 +16,7 @@ from __future__ import absolute_import
 
 import arrow
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from goldstone.celery import app as celery_app
 import logging
 from goldstone.apps.core.models import Event, Node
@@ -39,7 +40,7 @@ def process_host_stream(self, host, _):
         if node.managed == 'true':
             node.update_method = 'LOGS'
             node.save()
-    except Node.DoesNotExist:
+    except ObjectDoesNotExist:
         # no nodes found, we should create one
         node = Node(name=host, update_method='LOGS')
         node.save()
@@ -71,7 +72,7 @@ def _create_event(timestamp, host, event_type, message):
                       source_id=str(node.id), source_name=host)
         event.save()
         return event
-    except Node.DoesNotExist:
+    except ObjectDoesNotExist:
         logger.warning("[process_log_error_event] could not find node "
                        "with name=%s.  event will have not relations.", host)
         event = Event(event_type=event_type, created=dt, message=message)
