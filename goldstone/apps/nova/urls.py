@@ -15,12 +15,12 @@
 from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
 
-from .views import ReportView, SpawnsView, CpuView, MemoryView, DiskView, \
-    LatestStatsView, ApiPerfView, AgentsDataViewSet, AggregatesDataViewSet, \
-    AvailZonesDataViewSet, CloudpipesDataViewSet, FlavorsDataViewSet, \
-    FloatingIpPoolsDataViewSet, HostsDataViewSet, HypervisorsDataViewSet, \
-    NetworksDataViewSet, SecGroupsDataViewSet, ServersDataViewSet, \
-    ServicesDataViewSet
+from .views import ReportView, SpawnsViewDataSet, CpuView, MemoryView, \
+    DiskView, LatestStatsView, ApiPerfView, AgentsDataViewSet, \
+    AggregatesDataViewSet, AvailZonesDataViewSet, CloudpipesDataViewSet, \
+    FlavorsDataViewSet, FloatingIpPoolsDataViewSet, HostsDataViewSet, \
+    HypervisorsDataViewSet, NetworksDataViewSet, SecGroupsDataViewSet, \
+    ServersDataViewSet, ServicesDataViewSet
 
 # Views handled by DjangoRestFramework ViewSets.
 router = DefaultRouter(trailing_slash=False)
@@ -38,6 +38,9 @@ router.register(r'^flavors[/]?$', FlavorsDataViewSet, base_name='nova-flavors')
 router.register(r'^floating_ip_pools[/]?$',
                 FloatingIpPoolsDataViewSet,
                 base_name='nova-floating-ip-pools')
+router.register(r'^hypervisor/spawns[/]?$',
+                SpawnsViewDataViewSet,
+                base_name='nova-spawn-view')
 router.register(r'^hosts[/]?$', HostsDataViewSet, base_name='nova-hosts')
 router.register(r'^hypervisors[/]?$',
                 HypervisorsDataViewSet,
@@ -60,8 +63,6 @@ urlpatterns += patterns(
     '',
     url(r'^report[/]?$', ReportView.as_view(),
         name='nova-report-view'),
-    url(r'^hypervisor/spawns[/]?$', SpawnsView.as_view(),
-        name='nova-spawn-view'),
     url(r'^hypervisor/cpu[/]?$', CpuView.as_view(),
         name='nova-hypervisor-cpu'),
     url(r'^hypervisor/mem[/]?$', MemoryView.as_view(),
