@@ -96,41 +96,45 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         if (ns.featureSet === 'cpu') {
 
             // CPU Resources chart data prep
+            // {timestamp: [used, phys, virt]}
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
                     "Used": item[0],
-                    "Physical": item[1] - item[0],
-                    "Virtual": item[2] - item[1] - item[0]
+                    "Physical": Math.max((item[1] - item[0]), 0),
+                    "Virtual": Math.max((item[2] - item[1] - item[0]), 0)
                 });
             });
 
         } else if (ns.featureSet === 'disk') {
 
             // Disk Resources chart data prep
+            // {timestamp: [used, total]}
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
                     "Used": item[0],
-                    "Physical": item[1],
+                    "Physical": Math.max((item[1] - item[0]), 0)
                 });
             });
 
         } else if (ns.featureSet === 'mem') {
 
             // Memory Resources chart data prep
+            // {timestamp: [used, phys, virt]}
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
                     "Used": item[0],
-                    "Physical": item[1],
-                    "Virtual": item[2]
+                    "Physical": Math.max((item[1] - item[0]), 0),
+                    "Virtual": Math.max((item[2] - item[1] - item[0]), 0)
                 });
             });
 
         } else {
 
             // Spawns Resources chart data prep
+            // {timestamp: [success, fail]}
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
