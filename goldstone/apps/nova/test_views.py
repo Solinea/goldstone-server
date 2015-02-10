@@ -53,49 +53,48 @@ class BaseViewTest(SimpleTestCase):
 class NovaSpawnsViewTest(BaseViewTest):
     """Test /nova/hypervisor/spawns view."""
 
+    # The test URL bases.
+    URL_START = "/nova/hypervisor/spawns?start="
+    URL_END = "/nova/hypervisor/spawns?end="
+
     def test_good_request(self):
-        url = '/nova/hypervisor/spawns?start=' + self.valid_start + \
+        url = URL_START + self.valid_start + \
             "&end=" + self.valid_end + \
             "&interval=" + self.valid_interval
         self._assert_success(url)
 
     def test_no_start(self):
-        url = "/nova/hypervisor/spawns?end=" + self.valid_end + \
+        url = URL_END + self.valid_end + \
             "&interval=" + self.valid_interval + \
             "&render=false"
         self._assert_success(url)
 
     def test_no_end(self):
-        url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
-            "&interval=" + self.valid_interval + \
-            "&render=false"
+        url = URL_START + self.valid_start + \
+            "&interval=" + self.valid_interval
         self._assert_success(url)
 
     def test_no_interval(self):
-        url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&render=false"
+        url = URL_START + self.valid_start + \
+            "&end=" + self.valid_end
         self._assert_success(url)
 
     def test_invalid_start(self):
-        url = "/nova/hypervisor/spawns?start=" + self.invalid_start + \
+        url = URL_START + self.invalid_start + \
             "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=false"
+            "&interval=" + self.valid_interval
         self._assert_bad_request(url)
 
     def test_invalid_finish(self):
-        url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
+        url = URL_START + self.valid_start + \
             "&end=" + self.invalid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=false"
+            "&interval=" + self.valid_interval
         self._assert_bad_request(url)
 
     def test_invalid_interval(self):
-        url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
+        url = URL_START + self.valid_start + \
             "&end=" + self.valid_end + \
-            "&interval=" + self.invalid_interval + \
-            "&render=false"
+            "&interval=" + self.invalid_interval
         self._assert_bad_request(url)
 
 
@@ -266,8 +265,10 @@ class ResourceViewTest(SimpleTestCase):
 class DataViewTests(SimpleTestCase):
 
     def _evaluate(self, response):
+
         self.assertIsInstance(response, HttpResponse)
-        self.assertNotEqual(response.content, None)
+        self.assertIsNotNone(response.content)
+
         try:
             j = json.loads(response.content)
         except Exception:             # pylint: disable=W0703
