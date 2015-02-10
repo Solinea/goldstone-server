@@ -289,7 +289,7 @@ class ServicesDataViewSet(JsonReadOnlyViewSet):
     zone_key = 'zone'
 
 
-class SpawnsView(JsonReadOnlyViewSet):
+class SpawnsViewSet(JsonReadOnlyViewSet):
 
     data = pd.DataFrame()
 
