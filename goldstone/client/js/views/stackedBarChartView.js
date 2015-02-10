@@ -15,6 +15,9 @@
  */
 
 /*
+View is currently directly implemented as Nova VM Spawns Viz
+and extended into Nova CPU/Memory/Disk Resource Charts
+
 standard chart usage. instantiate with:
 {
     chartTitle: "title",
@@ -72,9 +75,19 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
     dataPrep: function(data) {
 
-        // this is where the fetched JSON payload is transformed into a
-        // dataset than can be consumed by the D3 charts
-        // each chart may have its own perculiarities
+        /*
+        this is where the fetched JSON payload is transformed into a
+        dataset than can be consumed by the D3 charts
+        each chart may have its own perculiarities
+
+        IMPORTANT:
+        the order of items that are 'push'ed into the
+        result array matters. After 'eventTime', the items
+        will be stacked on the graph from the bottom of
+        the graph upward. Or another way of saying it is
+        the first item listed will be first one to be rendered
+        from the x-axis of the graph going upward.
+        */
 
         var ns = this.defaults;
 

@@ -16,6 +16,18 @@
  * Author: Alex Jacobs
  */
 
+/*
+This collection is currently direclty implemented in the
+Nova CPU Resources viz
+JSON payload format:
+{
+    timestamp: [used, total_phys, total_virt],
+    timestamp: [used, total_phys, total_virt],
+    timestamp: [used, total_phys, total_virt],
+    ...
+}
+*/
+
 // define collection and link to model
 
 var CpuResourceCollection = Backbone.Collection.extend({
