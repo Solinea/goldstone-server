@@ -53,12 +53,12 @@ class ApiPerfView(GoldstoneApiPerfView):
                                      context['interval'])
 
 
-class SpawnsView(TemplateView):
-
+class ResourceView(TemplateView):
     data = pd.DataFrame()
+    # override in subclass
+    my_template_name = None
 
     def get_context_data(self, **kwargs):
-
         context = TemplateView.get_context_data(self, **kwargs)
 
         # The server doesn't render the page. The client does.
@@ -70,89 +70,6 @@ class SpawnsView(TemplateView):
             datetime.utcnow().timetuple())))
         context['start'] = self.request.GET.get('start', None)
         context['interval'] = self.request.GET.get('interval', None)
-
-        return context
-
-    def _handle_request(self, context):
-
-        context = validate(['start', 'end', 'interval', 'render'], context)
-
-        if isinstance(context, HttpResponseBadRequest):
-            # validation error
-            return context
-
-        logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
-        sd = SpawnData(context['start_dt'], context['end_dt'],
-                       context['interval'])
-        success_data = sd.get_spawn_success()
-        failure_data = sd.get_spawn_failure()
-
-        # there are a few cases to handle here
-        #  - both empty: return empty dataframe
-        #  - one empty: return zero filled column in non-empty dataframe
-        #  - neither empty: merge them on the 'key' field
-
-        if not (success_data.empty and failure_data.empty):
-            if success_data.empty:
-                failure_data['successes'] = 0
-                self.data = failure_data.rename(
-                    columns={'doc_count': 'failures'})
-            elif failure_data.empty:
-                success_data['failures'] = 0
-                self.data = success_data.rename(
-                    columns={'doc_count': 'successes'})
-            else:
-                logger.debug("[_handle_request] successes = %s", success_data)
-                logger.debug("[_handle_request] failures = %s", failure_data)
-
-                self.data = pd.ordered_merge(
-                    success_data, failure_data, on='key',
-                    suffixes=['_successes', '_failures']) \
-                    .rename(columns={'doc_count_successes': 'successes',
-                                     'doc_count_failures': 'failures'})
-
-        logger.debug("[_handle_request] self.data = %s", self.data)
-        if not self.data.empty:
-            self.data = self.data.set_index('key').fillna(0)
-
-        return self.data.transpose().to_dict(outtype='list')
-
-    def render_to_response(self, context, **response_kwargs):
-        """Supply a data-only response as an application/json data payload."""
-        try:
-            response = self._handle_request(context)
-            if isinstance(response, HttpResponseBadRequest):
-                return response
-
-            return HttpResponse(json.dumps(response),
-                                content_type="application/json")
-
-        except ElasticsearchException:
-            return HttpResponse(
-                content="Could not connect to the search backend",
-                status=status.HTTP_504_GATExsWAY_TIMEOUT)
-
-
-class ResourceView(TemplateView):
-    data = pd.DataFrame()
-    # override in subclass
-    my_template_name = None
-
-    def get_context_data(self, **kwargs):
-        context = TemplateView.get_context_data(self, **kwargs)
-        context['render'] = self.request.GET.get('render', "True"). \
-            lower().capitalize()
-        # Use "now" if not provided, validate() will calculate the  start and
-        # interval.
-        context['end'] = self.request.GET.get('end', str(calendar.timegm(
-            datetime.utcnow().timetuple())))
-        context['start'] = self.request.GET.get('start', None)
-        context['interval'] = self.request.GET.get('interval', None)
-
-        # if render is true, we will return a full template, otherwise only
-        # a json data payload
-        self.template_name = \
-            self.my_template_name if context['render'] == 'True' else None
 
         return context
 
@@ -196,21 +113,14 @@ class ResourceView(TemplateView):
         return response
 
     def render_to_response(self, context, **response_kwargs):
-        """
-        Overriding to handle case of data only request (render=False).  In
-        that case an application/json data payload is returned.
-        """
+        """Supply a data-only response as an application/json data payload."""
         try:
             response = self._handle_request(context)
             if isinstance(response, HttpResponseBadRequest):
                 return response
 
-            if self.template_name is None:
-                return HttpResponse(json.dumps(response),
-                                    content_type="application/json")
-
-            return TemplateView.render_to_response(
-                self, {'data': json.dumps(response)})
+            return HttpResponse(json.dumps(response),
+                                content_type="application/json")
 
         except ElasticsearchException:
             return HttpResponse(
@@ -377,3 +287,68 @@ class ServicesDataViewSet(JsonReadOnlyViewSet):
     model = ServicesData
     key = 'services'
     zone_key = 'zone'
+
+
+class SpawnsView(JsonReadOnlyViewSet):
+
+    data = pd.DataFrame()
+
+    def get_context_data(self, **kwargs):
+
+        context = TemplateView.get_context_data(self, **kwargs)
+
+        # The server doesn't render the page. The client does.
+        context["render"] = "False"
+
+        # Use "now" if not provided, validate() will calculate the  start and
+        # interval.
+        context['end'] = self.request.GET.get('end', str(calendar.timegm(
+            datetime.utcnow().timetuple())))
+        context['start'] = self.request.GET.get('start', None)
+        context['interval'] = self.request.GET.get('interval', None)
+
+        return context
+
+    def _handle_request(self, context):
+
+        context = validate(['start', 'end', 'interval', 'render'], context)
+
+        if isinstance(context, HttpResponseBadRequest):
+            # validation error
+            return context
+
+        logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
+        sd = SpawnData(context['start_dt'], context['end_dt'],
+                       context['interval'])
+        success_data = sd.get_spawn_success()
+        failure_data = sd.get_spawn_failure()
+
+        # there are a few cases to handle here
+        #  - both empty: return empty dataframe
+        #  - one empty: return zero filled column in non-empty dataframe
+        #  - neither empty: merge them on the 'key' field
+
+        if not (success_data.empty and failure_data.empty):
+            if success_data.empty:
+                failure_data['successes'] = 0
+                self.data = failure_data.rename(
+                    columns={'doc_count': 'failures'})
+            elif failure_data.empty:
+                success_data['failures'] = 0
+                self.data = success_data.rename(
+                    columns={'doc_count': 'successes'})
+            else:
+                logger.debug("[_handle_request] successes = %s", success_data)
+                logger.debug("[_handle_request] failures = %s", failure_data)
+
+                self.data = pd.ordered_merge(
+                    success_data, failure_data, on='key',
+                    suffixes=['_successes', '_failures']) \
+                    .rename(columns={'doc_count_successes': 'successes',
+                                     'doc_count_failures': 'failures'})
+
+        logger.debug("[_handle_request] self.data = %s", self.data)
+        if not self.data.empty:
+            self.data = self.data.set_index('key').fillna(0)
+
+        return self.data.transpose().to_dict(outtype='list')
