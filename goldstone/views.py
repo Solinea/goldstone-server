@@ -21,8 +21,7 @@ import logging
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest, Http404
 from django.shortcuts import render
-from django.views.generic import TemplateView, View
-from django.views.generic.base import ContextMixin
+from django.views.generic import TemplateView
 from elasticsearch import ElasticsearchException
 import pandas as pd
 import pytz
@@ -37,7 +36,6 @@ from novaclient.openstack.common.apiclient.exceptions \
     import AuthorizationFailure as NovaApiAuthException
 from keystoneclient.openstack.common.apiclient.exceptions \
     import AuthorizationFailure as KeystoneApiAuthException
-from goldstone.apps.core.models import Node
 from goldstone.utils import GoldstoneAuthError, TopologyMixin
 
 logger = logging.getLogger(__name__)
@@ -101,11 +99,11 @@ def _validate(arg_list, context):
 
     # Return HttpResponseBadRequest if there were validation errors,
     # otherwise return the context.
-    if validation_errors:
-        return HttpResponseBadRequest(json.dumps(validation_errors),
-                                      'application/json')
-    else:
-        return context
+    return \
+        HttpResponseBadRequest(json.dumps(validation_errors),
+                               'application/json') \
+        if validation_errors \
+        else context
 
 
 class TopLevelView(TemplateView):
@@ -413,59 +411,6 @@ class DiscoverView(TemplateView, TopologyMixin):
                                 status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
-class JSONView(ContextMixin, View):
-    """
-    A view that renders a JSON response.  This view will also pass into the
-    context any keyword arguments passed by the url conf.
-    """
-
-    zone_key = None
-    key = None       # override in subclass
-    model = None     # override in subclass
-
-    def get_context_data(self, **kwargs):
-        context = ContextMixin.get_context_data(self, **kwargs)
-        context['zone'] = self.request.GET.get('zone', None)
-        context['region'] = self.request.GET.get('region', None)
-        return context
-
-    def _get_data_for_json_view(self, context, data, key):
-        result = []
-        for item in data:
-            region = item['_source']['region']
-            if context['region'] is None or context['region'] == region:
-                ts = item['_source']['@timestamp']
-                new_list = []
-                for rec in item['_source'][key]:
-                    if context['zone'] is None or self.zone_key is None or \
-                            context['zone'] == rec[self.zone_key]:
-                        rec['region'] = region
-                        rec['@timestamp'] = ts
-                        new_list.append(rec)
-
-                result.append(new_list)
-
-        return result
-
-    def _get_data(self, context):
-        try:
-            self.data = self.model().get()
-            return self._get_data_for_json_view(context, self.data, self.key)
-        except TypeError:
-            return [[]]
-
-    def get(self, request, *args, **kwargs):
-        try:
-            context = self.get_context_data(**kwargs)
-            content = json.dumps(self._get_data(context))
-            return HttpResponse(content=content,
-                                content_type='application/json')
-        except ElasticsearchException:
-            return HttpResponse(content="Could not connect to the "
-                                        "search backend",
-                                status=status.HTTP_504_GATEWAY_TIMEOUT)
-
-
 class HelpView(TemplateView):
     template_name = 'help.html'
 
@@ -473,14 +418,16 @@ class HelpView(TemplateView):
 class NodeReportView(TemplateView):
     template_name = 'node_report.html'
 
-    def get(self, request, node_uuid):
+    def get(self, request, node_uuid, **kwargs):
+        from django.core.exceptions import ObjectDoesNotExist
+        from goldstone.apps.core.models import Node
+
         # TODO query should look for node id rather than name.
         # But this will probably require that we model/shadow the resources in
         # OpenStack so we can map the name to one of our IDs consistently.
         try:
-            # This will throw an exception if the node doesn't exist.
             Node.objects.get(name=node_uuid)
             return super(NodeReportView, self).get(request,
                                                    node_uuid=node_uuid)
-        except Node.DoesNotExist:
+        except ObjectDoesNotExist:
             raise Http404

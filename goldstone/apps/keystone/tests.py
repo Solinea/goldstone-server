@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json
 from django.http import HttpResponse
 from django.test import SimpleTestCase
 from .tasks import time_keystone_api
@@ -21,7 +20,6 @@ from .views import AuthApiPerfView
 from datetime import datetime
 import calendar
 import pytz
-import pandas as pd
 from mock import patch
 from .models import ApiPerfData
 from requests.models import Response
@@ -57,12 +55,14 @@ class TaskTests(SimpleTestCase):
 
 
 class ViewTests(SimpleTestCase):
+
     start_dt = datetime.fromtimestamp(0, tz=pytz.utc)
     end_dt = datetime.utcnow()
     start_ts = calendar.timegm(start_dt.utctimetuple())
     end_ts = calendar.timegm(end_dt.utctimetuple())
 
     def test_get_data(self):
+        import pandas as pd
 
         view = AuthApiPerfView()
         context = {
@@ -72,7 +72,7 @@ class ViewTests(SimpleTestCase):
         }
 
         # returns a pandas data frame
-        result = view._get_data(context)
+        result = view._get_data(context)        # pylint: disable=W0212
         self.assertIsInstance(result, pd.DataFrame)
         self.assertFalse(result.empty)
 
@@ -103,6 +103,7 @@ class ViewTests(SimpleTestCase):
 class DataViewTests(SimpleTestCase):
 
     def _evaluate(self, response):
+        import json
 
         self.assertIsInstance(response, HttpResponse)
         self.assertIsNotNone(response.content)
