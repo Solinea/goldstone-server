@@ -166,6 +166,8 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         $(this.el).find('svg').find('rect').remove();
         $(this.el).find('svg').find('.axis').remove();
         $(this.el).find('svg').find('.legend').remove();
+        $(this.el + '.d3-tip').detach();
+
 
         ns.color.domain(d3.keys(data[0]).filter(function(key) {
             return key !== "eventTime";
@@ -214,6 +216,17 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 return "translate(" + ns.x(d.eventTime) + ",0)";
             });
 
+        var tip = d3.tip()
+            .attr('class', 'd3-tip')
+            .attr('id', this.el.slice(1))
+            .html(function(d) {
+                return "<p>" + d.name + "<br>" + d.y1;
+            });
+
+        // Invoke the tip in the context of your visualization
+
+        ns.chart.call(tip);
+
         ns.event.selectAll("rect")
             .data(function(d) {
                 return d.successOrFail;
@@ -237,7 +250,13 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .attr("stroke-width", 2)
             .style("fill", function(d) {
                 return ns.color(d.name);
-            });
+            }).on('mouseenter', function(d, i) {
+                var targ = d3.select(self.el).select('rect');
+                tip.offset([0, 0]).show(d, targ);
+            }).on('mouseleave', function() {
+                tip.hide();
+            })
+            ;
 
         var legendSpecs = {
             mem: [
