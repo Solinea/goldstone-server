@@ -16,6 +16,19 @@
  * Author: Alex Jacobs
  */
 
+/*
+This collection is currently direclty implemented in the
+Nova Disk Resources viz
+JSON payload format:
+{
+    timestamp: [used, total_mem],
+    timestamp: [used, total_mem],
+    timestamp: [used, total_mem],
+    ...
+}
+*/
+
+
 // define collection and link to model
 
 var DiskResourceCollection = Backbone.Collection.extend({
