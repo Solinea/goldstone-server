@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// define collection and link to model
+
 var UtilizationNetCollection = Backbone.Collection.extend({
 
     defaults: {},

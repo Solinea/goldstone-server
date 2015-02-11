@@ -50,6 +50,8 @@ var NodeAvailCollection = Backbone.Collection.extend({
 
     initialize: function(options) {
         this.url = options.url;
+        // url string similar to: /logging/nodes?page_size=100
+
         this.initXhr();
     }
 });

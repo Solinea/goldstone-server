@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// define collection and link to model
+
 var HypervisorVmCpuCollection = Backbone.Collection.extend({
 
     parse: function(data) {

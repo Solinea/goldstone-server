@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// define collection and link to model
+
 var ReportsReportCollection = Backbone.Collection.extend({
 
     defaults: {},
@@ -40,6 +42,8 @@ var ReportsReportCollection = Backbone.Collection.extend({
         this.url = "/core/report_list?node=" +
             this.defaults.nodeName +
             "&timestamp__gte=" + (+new Date() - this.defaults.globalLookback * 1000 * 60);
+
+        // this.url similar to: /core/report_list?node=rsrc-01&timestamp__gte=1423679057543
 
         this.fetch();
     }
