@@ -38,7 +38,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
     defaults: {
         margin: {
             top: 45,
-            right: 30,
+            right: 40,
             bottom: 60,
             left: 70
         }
