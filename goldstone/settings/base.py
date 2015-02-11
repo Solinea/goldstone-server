@@ -236,7 +236,8 @@ CELERYBEAT_SCHEDULE = {
 
 REST_FRAMEWORK = {
     # Use hyperlinked styles by default.
-    # Only used if the `serializer_class` attribute is not set on a view.
+    # Used only if the `serializer_class` attribute is not set on a view.
+    # This key is deprecated.
     'DEFAULT_MODEL_SERIALIZER_CLASS':
     'rest_framework.serializers.HyperlinkedModelSerializer',
 
@@ -252,7 +253,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',
-                                'rest_framework.filters.OrderingFilter',),
+                                'rest_framework.filters.OrderingFilter', ),
     'PAGINATE_BY': 10,
     'PAGINATE_BY_PARAM': 'page_size',
     'MAX_PAGINATE_BY': 1000,

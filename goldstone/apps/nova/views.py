@@ -21,16 +21,14 @@ from __future__ import unicode_literals
 
 import calendar
 from datetime import datetime
-import json
 import logging
 
-from django.http import HttpResponse, HttpResponseBadRequest, \
-    HttpResponseNotAllowed
-from django.views.generic import TemplateView
-from elasticsearch import ElasticsearchException
+from django.http import HttpResponseBadRequest, HttpResponseNotAllowed
 import pandas as pd
-from rest_framework import status
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
+from rest_framework.serializers import HyperlinkedModelSerializer, \
+    BaseSerializer
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from .models import NovaApiPerfData, HypervisorStatsData, SpawnData, \
@@ -56,10 +54,46 @@ class ApiPerfView(GoldstoneApiPerfView):
                                      context['interval'])
 
 
+class LatestStatsSerializer(BaseSerializer):
+    """The LatestStatsView's serializer class.
+
+    Beacause HypervisorStatsData isn't really a Django model, it doesn't have
+    the necessary _meta hooks to be serialized. And indeed, it doesn't need
+    serialization per se, because a get() call returns a Python object, and not
+    a QuerySet. So this class stubs out the to_serialization() method.
+
+    """
+
+    def to_representation(self, obj):
+        """Return a Python object.
+
+        :param obj: A Python object in a list
+        :type obj: list of dict
+        :return: obj[0]
+
+        """
+
+        return obj[0]
+
+
+class LatestStatsView(ListAPIView):
+    """Provide a collection-of-objects GET endpoint for hypervisor
+    statistics."""
+
+    model = HypervisorStatsData()
+    serializer_class = LatestStatsSerializer
+
+    def get_queryset(self):
+        """Return a Queryset for the collection GET request."""
+
+        model = HypervisorStatsData()
+        return model.get()
+
+
 class ResourceViewSet(ReadOnlyModelViewSet):
     """The base class for the CPU, memory, and disk hypervisor displays."""
 
-    def _process(self, resource_data):             # pylint: disable=W0613
+    def _process(self, resource_data):            # pylint: disable=W0613,R0201
         """Collect and process the resource data.
 
         This must be overridden in the subclasses.
@@ -102,7 +136,8 @@ class ResourceViewSet(ReadOnlyModelViewSet):
 
         return self._process(data)
 
-    def _handle_phys_and_virt_responses(self, phys, virt):
+    @staticmethod
+    def _handle_phys_and_virt_responses(phys, virt):
         """Do the final data processing for this view, and return a
         response."""
 
@@ -188,23 +223,6 @@ class DiskViewSet(ResourceViewSet):
             data = data.set_index('key').fillna(0)
 
         return Response(data.transpose().to_dict(outtype='list'))
-
-
-class LatestStatsView(TemplateView):
-
-    def render_to_response(self, context, **response_kwargs):
-
-        try:
-            model = HypervisorStatsData()
-            response = model.get(1)
-
-            return HttpResponse(json.dumps({'data': response}),
-                                content_type='application/json')
-
-        except ElasticsearchException:
-            return HttpResponse(
-                content="Could not connect to the search backend",
-                status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
 class AgentsDataViewSet(JsonReadOnlyViewSet):
@@ -297,11 +315,11 @@ class SpawnsViewSet(ReadOnlyModelViewSet):
 
         logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
 
-        sd = SpawnData(context['start_dt'],
-                       context['end_dt'],
-                       context['interval'])
-        success_data = sd.get_spawn_success()
-        failure_data = sd.get_spawn_failure()
+        spawndata = SpawnData(context['start_dt'],
+                              context['end_dt'],
+                              context['interval'])
+        success_data = spawndata.get_spawn_success()
+        failure_data = spawndata.get_spawn_failure()
 
         # If both success and failure data are empty, we'll return this empty
         # frame.

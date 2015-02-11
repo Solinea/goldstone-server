@@ -36,9 +36,6 @@ class TaskTests(SimpleTestCase):
     name1 = "test_node_123"
     name2 = "test_node_456"
     name3 = "test_node_789"
-    ts1 = '2015-07-04T01:06:27.750046+00:00'
-    ts2 = '2015-07-04T01:06:27.750046+00:00'
-    ts3 = '2013-07-04T01:06:27.750046+00:00'
 
     def setUp(self):
         Node.objects.all().delete()
@@ -56,7 +53,7 @@ class TaskTests(SimpleTestCase):
         # get the object to get consistent date resolution
         node1 = Node.objects.get(name=node1.name)
         sleep(1)
-        process_host_stream(self.name1, self.ts1)
+        process_host_stream(self.name1)
         self.assertEqual(Node.objects.all().count(), 1)
 
         updated_node1 = Node.objects.get(id=node1.id)
@@ -68,14 +65,14 @@ class TaskTests(SimpleTestCase):
         node2 = Node.objects.get(name=node2.name)
         self.assertEqual(node2.update_method, 'UNKNOWN')
 
-        process_host_stream(self.name2, self.ts2)
+        process_host_stream(self.name2)
         updated_node2 = Node.objects.get(id=node2.id)
         self.assertEqual(updated_node2.updated, node2.updated)
         self.assertEqual(node2.update_method, 'UNKNOWN')
         self.assertEqual(updated_node2.managed, 'false')
 
         # creation
-        process_host_stream('xyz', self.ts2)
+        process_host_stream('xyz')
         node = Node.objects.get(name='xyz')
         self.assertEqual(node.update_method, 'LOGS')
 

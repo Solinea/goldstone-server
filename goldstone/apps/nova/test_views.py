@@ -111,8 +111,11 @@ class SpawnsApiPerfViewsTest(BaseTest):
 class LatestStatsViewTest(SimpleTestCase):
 
     def test_good_request(self):
+
         uri = '/nova/hypervisor/latest-stats'
+
         response = self.client.get(uri)
+
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(json.loads(response.content), [])
 

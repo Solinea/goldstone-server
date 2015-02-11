@@ -26,10 +26,10 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
-def process_host_stream(self, host, _):
-    """
-    This task reads a list of host names out of the incoming message on the
-    host_stream queue, and creates or updates an associated node in the model.
+def process_host_stream(self, host):
+    """Read a list of host names from the incoming message on the host_stream
+    queue, and create or update an associated node in the model.
+
     :return: None
 
     """
@@ -64,18 +64,25 @@ def process_event_stream(self, timestamp, host, event_type, message):
 
 
 def _create_event(timestamp, host, event_type, message):
-    dt = arrow.get(timestamp).datetime
+
+    typestamp_datetime = arrow.get(timestamp).datetime
 
     try:
         node = Node.objects.get(name=host)
-        event = Event(event_type=event_type, created=dt, message=message,
-                      source_id=str(node.id), source_name=host)
+        event = Event(event_type=event_type,
+                      created=typestamp_datetime,
+                      message=message,
+                      source_id=str(node.id),
+                      source_name=host)
         event.save()
         return event
+
     except ObjectDoesNotExist:
         logger.warning("[process_log_error_event] could not find node "
                        "with name=%s.  event will have not relations.", host)
-        event = Event(event_type=event_type, created=dt, message=message)
+        event = Event(event_type=event_type,
+                      created=typestamp_datetime,
+                      message=message)
         event.save()
         return event
 
