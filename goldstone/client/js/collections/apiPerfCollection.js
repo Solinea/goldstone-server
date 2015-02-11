@@ -41,11 +41,18 @@ var ApiPerfCollection = Backbone.Collection.extend({
     },
 
     urlGenerator: function() {
-        var ns = this.defaults;
 
+        // a listener in the parent page container triggers an event picked up
+        // by GoldstoneBaseView which adjusts ns.globalLookback to match
+        // the number of minutes specified by the selector
+
+        var ns = this.defaults;
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
         this.url = '/' + this.defaults.urlPrefix + '/api_perf?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval + '&render=false';
+
+        // generates url string similar to:
+        // /nova/api_perf?start=1423678376&end=1423681976&interval=60s&render=false
     }
 });
