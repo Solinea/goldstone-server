@@ -116,10 +116,10 @@ pip install -r requirements.txt
 export DJANGO_SETTINGS_MODULE=goldstone.settings.production
 
 python manage.py shell <<EOF
-from goldstone.apps.core.tasks import _put_all_templates, _create_daily_index, _create_agent_index
+from goldstone.apps.core.tasks import _put_all_templates, create_daily_index, create_agent_index
 _put_all_templates()
-_create_daily_index()
-_create_agent_index()
+create_daily_index()
+create_agent_index()
 EOF
 
 python manage.py collectstatic --noinput
