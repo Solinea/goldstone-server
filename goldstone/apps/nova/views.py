@@ -154,10 +154,9 @@ class CpuViewSet(ResourceViewSet):
     def _process(self, resource_data):
         """Do the CPU resource tabulation and processing for this view."""
 
-        p_cpu = resource_data.get_phys_cpu()
-        v_cpu = resource_data.get_virt_cpu()
-
-        return self._handle_phys_and_virt_responses(p_cpu, v_cpu)
+        return \
+            self._handle_phys_and_virt_responses(resource_data.get_phys_cpu(),
+                                                 resource_data.get_virt_cpu())
 
 
 class MemoryViewSet(ResourceViewSet):
@@ -166,10 +165,9 @@ class MemoryViewSet(ResourceViewSet):
     def _process(self, resource_data):
         """Do the memory resource tabulation and processing for this view."""
 
-        p_mem = resource_data.get_phys_mem()
-        v_mem = resource_data.get_virt_mem()
-
-        return self._handle_phys_and_virt_responses(p_mem, v_mem)
+        return \
+            self._handle_phys_and_virt_responses(resource_data.get_phys_mem(),
+                                                 resource_data.get_virt_mem())
 
 
 class DiskViewSet(ResourceViewSet):
