@@ -76,8 +76,8 @@ class TaskTests(SimpleTestCase):
 
         # creation
         process_host_stream('xyz', self.ts2)
-        n = Node.objects.get(name='xyz')
-        self.assertEqual(n.update_method, 'LOGS')
+        node = Node.objects.get(name='xyz')
+        self.assertEqual(node.update_method, 'LOGS')
 
     @patch.object(subprocess, 'call')
     def test_check_host_avail(self, call):

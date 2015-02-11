@@ -290,20 +290,25 @@ class ResourceData(ESData):
         return query
 
     def _get_resource(self, resource_type, resource, custom_field):
-        q = self._claims_resource_query(resource_type, resource)
-        logger.debug('query = %s', json.dumps(q))
+
+        query = self._claims_resource_query(resource_type, resource)
+        logger.debug('query = %s', json.dumps(query))
 
         index = ",".join(self.get_index_names('goldstone-'))
-        r = self._conn.search(index=index, body=q, size=0,
-                              doc_type=self._DOC_TYPE)
+        result = self._conn.search(index=index,
+                                   body=query,
+                                   size=0,
+                                   doc_type=self._DOC_TYPE)
 
-        logger.debug('[_get_resource] search response = = %s', json.dumps(r))
+        logger.debug('[_get_resource] search response = %s',
+                     json.dumps(result))
+
         items = []
-        for date_bucket in r['aggregations']['events_by_date']['buckets']:
+
+        for date_bucket in result['aggregations']['events_by_date']['buckets']:
             logger.debug("[_get_resource] processing date_bucket: %s",
                          json.dumps(date_bucket))
-            item = {'key': date_bucket['key'], 'total': 0,
-                    custom_field: 0}
+            item = {'key': date_bucket['key'], 'total': 0, custom_field: 0}
 
             for host_bucket in date_bucket['events_by_host']['buckets']:
                 logger.debug("[_get_resource] processing host_bucket: %s",
@@ -324,9 +329,13 @@ class ResourceData(ESData):
             items.append(item)
 
         logger.debug('[_get_resource] items = %s', json.dumps(items))
-        result = pd.read_json(json.dumps(items), orient='records',
+
+        result = pd.read_json(json.dumps(items),
+                              orient='records',
                               convert_axes=False)
+
         logger.debug('[_get_resource] pd = %s', result)
+
         return result
 
     def get_phys_cpu(self):

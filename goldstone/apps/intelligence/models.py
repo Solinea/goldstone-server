@@ -149,19 +149,20 @@ class LogData(ESData):
         result = self._loglevel_by_time_agg(start, end, interval)
         return result['aggregations']
 
-    def _escape(self, str):
-        """Escape lucene reserved characters in string."""
+    def _escape(self, raw_string):
+        """Return raw_string with lucene-reserved characters escaped."""
 
-        s = list(str)
         RESERVED = ["+", "-" "!", "(", ")", "{", "}", "[", "]", '"',
                     "~", ":", "\\", "/"]
 
-        for i, c in enumerate(str):
-            if c in RESERVED:
-                # TODO: Will this ever be true?
-                s[i] = "\\000" if c == "\000" else "\\" + c
+        characters = list(raw_string)
 
-        return str[:0].join(s)
+        for i, entry in enumerate(raw_string):
+            if entry in RESERVED:
+                # TODO: Will this ever be true?
+                characters[i] = "\\000" if entry == "\000" else "\\" + entry
+
+        return raw_string[:0].join(characters)
 
     def get_log_data(self, start_t, end_t, first, size,
                      level_filters=dict(), sort='', search_text=None):

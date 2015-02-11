@@ -199,10 +199,13 @@ def get_client(service, user=settings.OS_USERNAME,
         raise GoldstoneAuthError("Unknown service")
 
 # These must be defined here, because they're based on get_client.
+# pylint: disable=C0103
 get_cinder_client = functools.partial(get_client, service='cinder')
 get_glance_client = functools.partial(get_client, service='glance')
 get_keystone_client = functools.partial(get_client, service='keystone')
 get_nova_client = functools.partial(get_client, service='nova')
+
+# pylint: enable=C0103
 
 
 def _is_v4_ip_addr(candidate):
