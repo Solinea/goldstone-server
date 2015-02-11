@@ -11,13 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json
-import arrow
-from django.conf import settings
-
 import logging
-from elasticsearch import ElasticsearchException
-from pyes import BoolQuery, RangeQuery, ESRangeOp
 from goldstone.models import ESData
 
 logger = logging.getLogger(__name__)
@@ -34,6 +28,12 @@ class LoggingNodeStats(ESData):
         :param end_time: arrow time
         :return:
         """
+        import arrow
+        import json
+        from django.conf import settings
+        from elasticsearch import ElasticsearchException
+        from pyes import BoolQuery, RangeQuery, ESRangeOp
+
         self.end_time = arrow.utcnow() if \
             end_time is None else end_time
 
@@ -48,7 +48,7 @@ class LoggingNodeStats(ESData):
                 "lte", self.end_time.isoformat())),
         ]).serialize()
 
-        _aggs_value = {
+        aggs_value = {
             "by_host": {
                 "terms": {
                     "field": "host.raw"
@@ -64,10 +64,7 @@ class LoggingNodeStats(ESData):
             }
         }
 
-        query = {
-            "query": _query_value,
-            "aggs": _aggs_value
-        }
+        query = {"query": _query_value, "aggs": aggs_value}
 
         logger.debug("query = %s", json.dumps(query))
 
