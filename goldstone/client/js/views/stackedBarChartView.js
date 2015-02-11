@@ -163,7 +163,9 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             return;
         }
 
+        // clear elements from previous render
         $(this.el).find('svg').find('rect').remove();
+        $(this.el).find('svg').find('line').remove();
         $(this.el).find('svg').find('.axis').remove();
         $(this.el).find('svg').find('.legend').remove();
         $(this.el + '.d3-tip').detach();
@@ -175,14 +177,14 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         data.forEach(function(d) {
             var y0 = 0;
-            d.successOrFail = ns.color.domain().map(function(name) {
+            d.resultCategories = ns.color.domain().map(function(name) {
                 return {
                     name: name,
                     y0: y0,
                     y1: y0 += +d[name]
                 };
             });
-            d.total = d.successOrFail[d.successOrFail.length - 1].y1;
+            d.total = d.resultCategories[d.resultCategories.length - 1].y1;
         });
 
         ns.x.domain(d3.extent(data, function(d) {
@@ -227,13 +229,27 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         ns.chart.call(tip);
 
+        // used below to determing whether to render as
+        // a "rect" or a "line"
+        var showOrHide = {
+            "Failure": true,
+            "Success": true,
+            "Virtual": false,
+            "Physical": false,
+            "Total": false,
+            "Used": true
+        };
+
         ns.event.selectAll("rect")
             .data(function(d) {
-                return d.successOrFail;
+                return d.resultCategories;
             })
             .enter().append("rect")
             .attr("width", function(d) {
-                return (ns.mw / data.length) - 0.2;
+                var segmentWidth = (ns.mw / data.length);
+                // spacing corrected
+                // for proportional gaps between rects
+                return segmentWidth - segmentWidth * 0.07;
             })
             .attr("y", function(d) {
                 return ns.y(d.y1);
@@ -245,8 +261,20 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .attr("stroke", function(d) {
                 return ns.color(d.name);
             })
-            .attr("stroke-opacity", 0.9)
-            .attr("fill-opacity", 0.7)
+            .attr("stroke-opacity", function(d) {
+                if (!showOrHide[d.name]) {
+                    return 0;
+                } else {
+                    return 0.9;
+                }
+            })
+            .attr("fill-opacity", function(d) {
+                if (!showOrHide[d.name]) {
+                    return 0;
+                } else {
+                    return 0.7;
+                }
+            })
             .attr("stroke-width", 2)
             .style("fill", function(d) {
                 return ns.color(d.name);
@@ -255,8 +283,58 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 tip.offset([0, 0]).show(d, targ);
             }).on('mouseleave', function() {
                 tip.hide();
+            });
+
+        ns.event.selectAll("line")
+            .data(function(d) {
+                return d.resultCategories;
             })
-            ;
+            .enter().append("line")
+            .attr("x1", function(d) {
+                var segmentWidth = (ns.mw / data.length);
+                // makes the line solid
+                // don't adjust for very small data sets
+                if (data.length <= 3) {
+                    return 0;
+                } else {
+                    return segmentWidth * -0.17;
+                }
+            })
+            .attr("x2", function(d) {
+                var segmentWidth = (ns.mw / data.length);
+                // makes the line solid
+                // don't adjust for very small data sets
+                if (data.length <= 3) {
+                    return segmentWidth;
+                } else {
+                    return segmentWidth + segmentWidth * 0.17;
+                }
+            })
+            .attr("y1", function(d) {
+                return ns.y(d.y1);
+            })
+            .attr("y2", function(d) {
+                // horizontal line, so y1 === y2
+                return ns.y(d.y1);
+            })
+            .attr("stroke", function(d) {
+                // color of line
+                return ns.color(d.name);
+            })
+            .attr("stroke-width", function(d) {
+                // hide if data already used for "rect" above
+                if (showOrHide[d.name]) {
+                    return 0;
+                } else {
+                    return 2;
+                }
+            }).attr("stroke-dasharray", function(d) {
+                if (d.name === "Physical") {
+                    return "5, 3";
+                } else {
+                    return null;
+                }
+            });
 
         var legendSpecs = {
             mem: [
