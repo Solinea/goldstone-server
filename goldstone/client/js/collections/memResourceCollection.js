@@ -26,7 +26,7 @@ var MemResourceCollection = Backbone.Collection.extend({
         return data;
     },
 
-    model: MemResourceModel,
+    model: GoldstoneBaseModel,
 
     initialize: function(options) {
         this.options = options || {};

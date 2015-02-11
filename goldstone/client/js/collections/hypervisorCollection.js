@@ -21,7 +21,7 @@ var HypervisorCollection = Backbone.Collection.extend({
         return this.dummy.results;
     },
 
-    model: HypervisorModel,
+    model: GoldstoneBaseModel,
 
     initialize: function(options) {
         this.url = options.url;

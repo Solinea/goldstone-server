@@ -20,7 +20,7 @@ var HypervisorVmCpuCollection = Backbone.Collection.extend({
         return this.dummy.results;
     },
 
-    model: HypervisorVmCpuModel,
+    model: GoldstoneBaseModel,
 
     initialize: function(options) {
         this.url = options.url;

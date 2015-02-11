@@ -24,7 +24,7 @@ var StackedBarChartCollection = Backbone.Collection.extend({
         return data;
     },
 
-    model: StackedBarChartModel,
+    model: GoldstoneBaseModel,
 
     initialize: function(options) {
         this.options = options || {};

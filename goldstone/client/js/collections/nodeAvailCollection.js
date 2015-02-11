@@ -16,6 +16,10 @@
 
 // define collection and link to model
 
+var NodeAvailModel = GoldstoneBaseModel.extend({
+    idAttribute: "id"
+});
+
 var NodeAvailCollection = Backbone.Collection.extend({
 
     parse: function(data) {

@@ -28,7 +28,7 @@ etc...
 
 */
 
-var InfoButtonText = Backbone.Model.extend({
+var InfoButtonText = GoldstoneBaseModel.extend({
     defaults: {
         infoText: {
 

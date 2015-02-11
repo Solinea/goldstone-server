@@ -25,7 +25,7 @@ var ZoomablePartitionCollection = Backbone.Collection.extend({
         return this.defaults.data;
     },
 
-    model: ZoomablePartitionModel,
+    model: GoldstoneBaseModel,
 
     initialize: function(options) {
         this.options = options || {};
