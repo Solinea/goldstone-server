@@ -65,22 +65,21 @@ class LatestStatsSerializer(BaseSerializer):
     """
 
     def to_representation(self, obj):
-        """Return a Python object.
+        """Return obj serialized.
 
-        :param obj: A Python object in a list
-        :type obj: list of dict
-        :return: obj[0]
+        :param obj: A Python object
+        :type obj: Any object
+        :return: obj
 
         """
 
-        return obj[0]
+        return obj
 
 
 class LatestStatsView(ListAPIView):
     """Provide a collection-of-objects GET endpoint for hypervisor
     statistics."""
 
-    model = HypervisorStatsData()
     serializer_class = LatestStatsSerializer
 
     def get_queryset(self):
