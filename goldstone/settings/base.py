@@ -187,12 +187,12 @@ CELERYBEAT_SCHEDULE = {
     'delete_goldstone_indices': {
         'task': 'goldstone.apps.core.tasks.delete_indices',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE,
-        'args': ('goldstone', ES_GOLDSTONE_RETENTION)
+        'args': ('goldstone-', ES_GOLDSTONE_RETENTION)
     },
     'delete_logstash_indices': {
         'task': 'goldstone.apps.core.tasks.delete_indices',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE,
-        'args': ('logstash', ES_LOGSTASH_RETENTION)
+        'args': ('logstash-', ES_LOGSTASH_RETENTION)
     },
     'create_daily_index': {
         'task': 'goldstone.apps.core.tasks.create_daily_index',
