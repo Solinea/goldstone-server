@@ -84,5 +84,8 @@ class LoggingNodeStats(ESData):
 
         nodes = [x for x in self._stats if x['key'] == name]
 
-        return {bucket["key"]: bucket["doc_count"]
-                for bucket in nodes[0]['by_level']['buckets']} if nodes else {}
+        # N.B. Dictionary comprehensions do not exist in Python 2.6, so we must
+        # use the old-fashioned technique.
+        return dict((bucket['key'], bucket['doc_count'])
+                    for bucket in nodes[0]['by_level']['buckets']) \
+            if nodes else {}
