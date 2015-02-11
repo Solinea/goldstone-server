@@ -14,5 +14,14 @@
  * limitations under the License.
  */
 
+/*
+This GoldstoneBaseModel is created as a placeholder
+in case it becomes useful to attach methods or
+properties to all of the Models used in the Goldstone App.
+
+At the moment, there is no special functionality
+attached to it.
+*/
+
 var GoldstoneBaseModel = Backbone.Model.extend({
 });
