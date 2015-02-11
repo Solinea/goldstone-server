@@ -26,7 +26,7 @@ var CpuResourceCollection = Backbone.Collection.extend({
         return data;
     },
 
-    model: CpuResourceModel,
+    model: GoldstoneBaseModel,
 
     initialize: function(options) {
         this.options = options || {};

@@ -26,7 +26,7 @@ var DiskResourceCollection = Backbone.Collection.extend({
         return data;
     },
 
-    model: DiskResourceModel,
+    model: GoldstoneBaseModel,
 
     initialize: function(options) {
         this.options = options || {};

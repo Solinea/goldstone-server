@@ -16,6 +16,10 @@
 
 // define collection and link to model
 
+var ApiPerfModel = GoldstoneBaseModel.extend({
+    idAttribute: 'key'
+});
+
 var ApiPerfCollection = Backbone.Collection.extend({
 
     defaults: {},

@@ -24,7 +24,7 @@ var ReportsReportCollection = Backbone.Collection.extend({
         };
     },
 
-    model: ReportsReportModel,
+    model: GoldstoneBaseModel,
 
     initialize: function(options) {
         this.options = options || {};

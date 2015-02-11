@@ -31,7 +31,7 @@ var ServiceStatusCollection = Backbone.Collection.extend({
         return data.results;
     },
 
-    model: ServiceStatusModel,
+    model: GoldstoneBaseModel,
 
     initialize: function(options) {
         this.options = options || {};
