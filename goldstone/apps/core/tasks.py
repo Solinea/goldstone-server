@@ -38,12 +38,16 @@ def get_es_connection(server=settings.ES_SERVER):
         raise
 
 
-def _delete_indices(prefix, cutoff, es_host=settings.ES_HOST,
-                    es_port=settings.ES_PORT):
+@celery_app.task(bind=True)
+def delete_indices(self, prefix, cutoff=None, es_host=settings.ES_HOST,
+                   es_port=settings.ES_PORT):
 
-    cmd = "curator --host %s --port %s delete --prefix %s --older-than %d" %\
-          (es_host, es_port, prefix, cutoff)
-    return check_call(cmd.split())
+    if cutoff is not None:
+        cmd = "curator --host %s --port %s delete --prefix %s " \
+              "--older-than %d" % (es_host, es_port, prefix, cutoff)
+        return check_call(cmd.split())
+    else:
+        return "Cutoff was none, no action taken"
 
 
 def _create_or_replace_alias(index_name, server=settings.ES_SERVER,
@@ -143,7 +147,8 @@ def _put_all_templates(server=settings.ES_SERVER):
     _put_model_template(server=server)
 
 
-def _create_daily_index(basename='goldstone'):
+@celery_app.task(bind=True)
+def create_daily_index(self, basename='goldstone'):
     """Create a new index in ElasticSearch and set up an alias for goldstone to
     point to the latest index."""
 
@@ -159,7 +164,7 @@ def _create_daily_index(basename='goldstone'):
         raise
 
 
-def _create_agent_index():
+def create_agent_index():
     """Create a new index in ElasticSearch."""
 
     INDEX_NAME = "goldstone_agent"
@@ -170,46 +175,3 @@ def _create_agent_index():
         logger.error("Failed to create the goldstone agent index. Please "
                      "report this.")
         raise
-
-
-@celery_app.task(bind=True)
-def manage_es_indices(self, es_host=settings.ES_HOST,
-                      es_port=settings.ES_PORT):
-    """Create a daily goldstone index, cull old goldstone and logstash indices.
-
-    :param es_host:
-    :param es_port:
-    :return: (Boolean, Boolean, Boolean)
-
-    """
-
-    result = []
-
-    try:
-        _create_daily_index(basename='goldstone')
-        result.append(True)
-    except Exception:         # pylint: disable=W0703
-        logger.exception("exception creating daily goldstone index")
-        result.append(False)
-
-    try:
-        if settings.ES_GOLDSTONE_RETENTION is not None:
-            _delete_indices("goldstone-",
-                            settings.ES_GOLDSTONE_RETENTION,
-                            es_host, es_port)
-            result.append(True)
-    except Exception:         # pylint: disable=W0703
-        logger.exception("exception deleting old goldstone indices")
-        result.append(False)
-
-    try:
-        if settings.ES_LOGSTASH_RETENTION is not None:
-            _delete_indices("logstash-",
-                            settings.ES_LOGSTASH_RETENTION,
-                            es_host, es_port)
-            result.append(True)
-    except Exception:         # pylint: disable=W0703
-        logger.exception("exception deleting old logstash indices")
-        result.append(False)
-
-    return tuple(result)

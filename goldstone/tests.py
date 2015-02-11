@@ -30,7 +30,7 @@ from requests.models import Response
 from goldstone import StartupGoldstone
 from goldstone.models import GSConnection, ESData
 from goldstone.apps.core.models import Node
-from goldstone.apps.core.tasks import _create_daily_index
+from goldstone.apps.core.tasks import create_daily_index
 from goldstone.utils import stored_api_call, get_keystone_client, \
     _construct_api_rec, GoldstoneAuthError
 
@@ -68,8 +68,8 @@ class PrimeData(TestCase):
         conn.indices.put_template(template_name, template_body)
 
     # create daily indices for those who use them
-    _create_daily_index(basename='logstash')
-    _create_daily_index(basename='goldstone')
+    create_daily_index(basename='logstash')
+    create_daily_index(basename='goldstone')
     conn.indices.create('goldstone_agent')
     conn.indices.create('goldstone_model')
 
