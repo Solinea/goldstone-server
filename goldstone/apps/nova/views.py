@@ -64,7 +64,7 @@ class ResourceViewSet(ReadOnlyModelViewSet):
 
         This must be overridden in the subclasses.
 
-        :param resource_data: Resource data between a start and end date, with
+        :param resource_data: Resource data based on start and end dates, and
                               an interval
         :type resource_data: ResourceData
         :return: A response object
