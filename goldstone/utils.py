@@ -454,7 +454,9 @@ def stored_api_call(component, endpt, path, headers=None, data=None,
 class TopologyMixin(object):
 
     def _get_children(self, d, rsrc_type):
-        assert (type(d) is dict or type(d) is list), "d must be a list or dict"
+
+        assert (isinstance(d, dict) or isinstance(d, list)), \
+            "d must be a list or dict"
         assert rsrc_type, "rsrc_type must have a value"
 
         if isinstance(d, list):
@@ -469,7 +471,7 @@ class TopologyMixin(object):
 
             result = [self._get_children(c, rsrc_type)
                       for c in d['children']]
-            if len(result) > 0 and type(result[0]) is list:
+            if result and type(result[0]) is list:
                 # flatten it so we don't end up with nested lists
                 return [c for l in result for c in l]
             else:

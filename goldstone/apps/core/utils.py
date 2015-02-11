@@ -101,6 +101,12 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
 
 
 def custom_exception_handler(exc):
+    """Return a response from customized exception handling.
+
+    :param exc: An exception
+    :type exc: Exception
+
+    """
 
     # Call REST framework's default exception handler first,
     # to get the standard error response.

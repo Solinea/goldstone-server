@@ -141,9 +141,9 @@ class GSConnectionModel(SimpleTestCase):
 class UtilsTests(SimpleTestCase):
 
     @patch('keystoneclient.v2_0.client.Client')
-    def test_get_keystone_client(self, kc):
+    def test_get_keystone_client(self, client):
 
-        kc.side_effect = ClientException
+        client.side_effect = ClientException
         self.assertRaises(ClientException,
                           get_keystone_client, user='abc')
         self.assertRaises(ClientException,
@@ -154,13 +154,13 @@ class UtilsTests(SimpleTestCase):
                           get_keystone_client,
                           auth_url='http://www.solinea.com')
 
-        kc.side_effect = None
-        kc.auth_token = None
-        type(kc.return_value).auth_token = \
+        client.side_effect = None
+        client.auth_token = None
+        type(client.return_value).auth_token = \
             PropertyMock(return_value=None)
         self.assertRaises(GoldstoneAuthError, get_keystone_client)
 
-        type(kc.return_value).auth_token = \
+        type(client.return_value).auth_token = \
             PropertyMock(return_value='mocked_token')
         reply = get_keystone_client()
         self.assertIn('client', reply)
@@ -169,7 +169,7 @@ class UtilsTests(SimpleTestCase):
     @patch('requests.get')
     @patch('keystoneclient.v2_0.client.Client')
     @patch('goldstone.utils.get_keystone_client')
-    def test_stored_api_call(self, kc, c, get):
+    def test_stored_api_call(self, client, c, get):
         component = 'nova'
         endpoint = 'compute'
         bad_endpoint = 'xyz'
@@ -186,7 +186,7 @@ class UtilsTests(SimpleTestCase):
         fake_response.headers = {'content-length': 1024}
         fake_response.elapsed = timedelta(days=1)
         c.service_catalog.get_endpoints.side_effect = ClientException
-        kc.return_value = {'client': c, 'hex_token': 'mock_token'}
+        client.return_value = {'client': c, 'hex_token': 'mock_token'}
         self.assertRaises(LookupError, stored_api_call, component,
                           bad_endpoint, path, timeout=timeout)
 
@@ -216,7 +216,8 @@ class UtilsTests(SimpleTestCase):
         endpoint = 'compute'
         path = '/os-hypervisors'
         timeout = settings.API_PERF_QUERY_TIMEOUT
-        ts = datetime.utcnow()
+        now = datetime.utcnow()
+
         fake_response = Response()
         fake_response.status_code = 200
         fake_response.url = "http://mock.url"
@@ -229,12 +230,12 @@ class UtilsTests(SimpleTestCase):
         self.assertIn('reply', good_call)
 
         reply = good_call['reply']
-        rec = _construct_api_rec(reply, component, ts, timeout, path)
+        rec = _construct_api_rec(reply, component, now, timeout, path)
         self.assertIn('response_time', rec)
 
-        td = reply.elapsed
-        secs = td.seconds + td.days * 24 * 3600
-        microsecs = float(td.microseconds) / 10**6
+        elapsed = reply.elapsed
+        secs = elapsed.seconds + elapsed.days * 24 * 3600
+        microsecs = float(elapsed.microseconds) / 10**6
         millisecs = int(round((secs + microsecs) * 1000))
 
         self.assertEqual(rec['response_time'], millisecs)
@@ -257,8 +258,10 @@ class ReportTemplateViewTest(SimpleTestCase):
         Node.objects.all().delete()
 
     def test_good_request(self):
+
         self.node1.save()
         url = '/report/node/' + self.node1.name
+
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'node_report.html')
