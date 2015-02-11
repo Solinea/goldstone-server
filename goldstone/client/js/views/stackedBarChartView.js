@@ -114,7 +114,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 result.push({
                     "eventTime": "" + i,
                     "Used": item[0],
-                    "Physical": Math.max((item[1] - item[0]), 0)
+                    "Total": Math.max((item[1] - item[0]), 0)
                 });
             });
 
@@ -270,7 +270,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 ['Used', 0]
             ],
             disk: [
-                ['Physical', 1],
+                ['Total', 1],
                 ['Used', 0]
             ],
             spawn: [
