@@ -33,7 +33,6 @@ var StackedBarChartCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        console.log('StackedBarChartCollection', data);
         return data;
     },
 

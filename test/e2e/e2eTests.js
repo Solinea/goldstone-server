@@ -489,7 +489,7 @@ casper.test.begin('Nova (compute) Page is loading properly', 63, function suite(
         test.assertExists('div#nova-report-r3-c1', 'Disk Resources section should load');
         test.assertExists('div#nova-report-r3-c1 svg', 'Disk Resources svg should load');
         test.assertSelectorHasText('div#nova-report-r3-c1', 'Disk Resources');
-        test.assertSelectorHasText('div#nova-report-r3-c1', 'Physical');
+        test.assertSelectorHasText('div#nova-report-r3-c1', 'Total');
         test.assertSelectorHasText('div#nova-report-r3-c1', 'Used');
         test.assertSelectorDoesntHaveText('div#nova-report-r3-c1', 'No Data Returned');
 
