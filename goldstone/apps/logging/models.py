@@ -72,11 +72,12 @@ class LoggingNodeStats(ESData):
         logger.debug("query = %s", json.dumps(query))
 
         try:
-            rs = self._conn.search(
-                index=self.get_index_names('logstash-'), doc_type="syslog",
-                body=query, size=0)
+            result = self._conn.search(index=self.get_index_names('logstash-'),
+                                       doc_type="syslog",
+                                       body=query,
+                                       size=0)
 
-            self._stats = rs["aggregations"]["by_host"]["buckets"]
+            self._stats = result["aggregations"]["by_host"]["buckets"]
 
         except ElasticsearchException:
             logger.exception("error connecting to ES")
@@ -85,10 +86,6 @@ class LoggingNodeStats(ESData):
     def for_node(self, name):
 
         nodes = [x for x in self._stats if x['key'] == name]
-        if len(nodes) > 0:
-            return dict(
-                (bucket['key'], bucket['doc_count'])
-                for bucket in nodes[0]['by_level']['buckets']
-            )
-        else:
-            return {}
+
+        return {bucket["key"]: bucket["doc_count"]
+                for bucket in nodes[0]['by_level']['buckets']} if nodes else {}

@@ -26,7 +26,7 @@ class SecretKeyTests(SimpleTestCase):
         self.assertEqual(len(key), 32)
         self.assertNotEqual(key, secret_key.generate_key(32))
 
-    def test_generate_or_read_key_from_file(self):
+    def test_generated_or_file_key(self):
         """Reading key from a file."""
 
         KEY_FILE = ".test_secret_key_store"

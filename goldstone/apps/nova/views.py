@@ -30,6 +30,7 @@ from django.views.generic import TemplateView
 from elasticsearch import ElasticsearchException
 import pandas as pd
 from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from .models import NovaApiPerfData, HypervisorStatsData, SpawnData, \
@@ -55,140 +56,140 @@ class ApiPerfView(GoldstoneApiPerfView):
                                      context['interval'])
 
 
-class ResourceView(TemplateView):
+class ResourceViewSet(ReadOnlyModelViewSet):
+    """The base class for the CPU, memory, and disk hypervisor displays."""
 
-    data = pd.DataFrame()
-    # override in subclass
-    my_template_name = None
+    def _process(self, resource_data):             # pylint: disable=W0613
+        """Collect and process the resource data.
 
-    def get_context_data(self, **kwargs):
-        context = TemplateView.get_context_data(self, **kwargs)
+        This must be overridden in the subclasses.
 
-        # Use "now" if not provided, validate() will calculate the  start and
-        # interval.
-        context['end'] = self.request.GET.get('end', str(calendar.timegm(
-            datetime.utcnow().timetuple())))
-        context['start'] = self.request.GET.get('start', None)
-        context['interval'] = self.request.GET.get('interval', None)
+        :param resource_data: Resource data between a start and end date, with
+                              an interval
+        :type resource_data: ResourceData
+        :return: A response object
+        :rtype: Response
 
-        return context
+        """
 
-    def _handle_phys_and_virt_responses(self, phys, virt):
-        # there are a few cases to handle here
-        #  - both empty: return empty dataframe
-        #  - one empty: return zero filled column in non-empty dataframe
-        #  - neither empty: merge them on the 'key' field
+        return None
 
-        if not (phys.empty and virt.empty):
-            if phys.empty:
-                virt['total_phys'] = virt['total']
-                virt['used_phys'] = virt['used']
-                self.data = virt.rename(
-                    columns={'total': 'virt_total', 'used': 'virt_used'})
-            elif virt.empty:
-                phys['total_virt'] = phys['total']
-                phys['used_virt'] = phys['used']
-                self.data = phys.rename(
-                    columns={'total': 'total_phys', 'used': 'used_phys'})
-            else:
-                self.data = pd.ordered_merge(
-                    phys, virt, on='key',
-                    suffixes=['_phys', '_virt'])
+    def list(self, request):
+        """The collection-of-objects GET handler for spawns."""
 
-            # since this is spotty data, we'll use the cummulative max to carry
-            # totals forward
-            self.data['total_phys'] = self.data['total_phys'].cummax()
-            self.data['total_virt'] = self.data['total_virt'].cummax()
-            # for the used columns, we want to fill zeros with the last
-            # non-zero value
-            self.data['used_phys'].fillna(method='pad', inplace=True)
-            self.data['used_virt'].fillna(method='pad', inplace=True)
+        # Fetch and enhance this request's context.
+        context = {
+            # Use "now" if not provided. Validate() will calculate the start
+            # and interval. Arguments missing from the request are set to None.
+            'end':
+            request.query_params.get(
+                'end',
+                str(calendar.timegm(datetime.utcnow().timetuple()))),
+            'start': request.query_params.get('start'),
+            'interval': request.query_params.get('interval'),
+            }
 
-        logger.debug("[_handle_phys_and_virt_responses] self.data = %s",
-                     self.data)
-        if not self.data.empty:
-            self.data = self.data.set_index('key').fillna(0)
-
-        response = self.data.transpose().to_dict(outtype='list')
-        return response
-
-    def render_to_response(self, context, **response_kwargs):
-        """Supply a data-only response as an application/json data payload."""
-        try:
-            response = self._handle_request(context)
-            if isinstance(response, HttpResponseBadRequest):
-                return response
-
-            return HttpResponse(json.dumps(response),
-                                content_type="application/json")
-
-        except ElasticsearchException:
-            return HttpResponse(
-                content="Could not connect to the search backend",
-                status=status.HTTP_504_GATEWAY_TIMEOUT)
-
-
-class CpuView(ResourceView):
-    my_template_name = 'cpu.html'
-
-    def _handle_request(self, context):
         context = validate(['start', 'end', 'interval'], context)
 
+        # If the context is bad, the request is bad.
         if isinstance(context, HttpResponseBadRequest):
-            # validation error
             return context
 
-        rd = ResourceData(context['start_dt'], context['end_dt'],
-                          context['interval'])
-        p_cpu = rd.get_phys_cpu()
-        v_cpu = rd.get_virt_cpu()
+        # Load up the resource data, do the work, and return the response.
+        data = ResourceData(context['start_dt'],
+                            context['end_dt'],
+                            context['interval'])
+
+        return self._process(data)
+
+    def _handle_phys_and_virt_responses(self, phys, virt):
+        """Do the final data processing for this view, and return a
+        response."""
+
+        # If both physical and virtual data are empty, we'll return this empty
+        # frame.
+        data = pd.DataFrame()
+
+        if phys.empty and not virt.empty:
+            # Physical data is empty. Return zero-filled column in a non-empty
+            # dataframe.
+            virt['total_phys'] = virt['total']
+            virt['used_phys'] = virt['used']
+            data = virt.rename(columns={'total': 'virt_total',
+                                        'used': 'virt_used'})
+        elif virt.empty and not phys.empty:
+            # Virtual data is empty. Return zero-filled column in a non-empty
+            # dataframe.
+            phys['total_virt'] = phys['total']
+            phys['used_virt'] = phys['used']
+            data = phys.rename(columns={'total': 'total_phys',
+                                        'used': 'used_phys'})
+        elif not phys.empty and not virt.empty:
+            # Neither are empty. Merge them on the "key" field.
+            data = pd.ordered_merge(phys,
+                                    virt,
+                                    on='key',
+                                    suffixes=['_phys', '_virt'])
+
+            # Since this is spotty data, use the cummulative max to carry
+            # totals forward.
+            data['total_phys'] = data['total_phys'].cummax()
+            data['total_virt'] = data['total_virt'].cummax()
+
+            # For the used columns, we want to fill zeros with the last
+            # non-zero value.
+            data['used_phys'].fillna(method='pad', inplace=True)
+            data['used_virt'].fillna(method='pad', inplace=True)
+
+            data = data.set_index('key').fillna(0)
+
+        logger.debug("[_handle_phys_and_virt_responses] data = %s", data)
+
+        return Response(data.transpose().to_dict(outtype='list'))
+
+
+class CpuViewSet(ResourceViewSet):
+    """Provide a view of CPU resources."""
+
+    def _process(self, resource_data):
+        """Do the CPU resource tabulation and processing for this view."""
+
+        p_cpu = resource_data.get_phys_cpu()
+        v_cpu = resource_data.get_virt_cpu()
 
         return self._handle_phys_and_virt_responses(p_cpu, v_cpu)
 
 
-class MemoryView(ResourceView):
-    my_template_name = 'mem.html'
+class MemoryViewSet(ResourceViewSet):
+    """Provide a view of memory resources."""
 
-    def _handle_request(self, context):
-        context = validate(['start', 'end', 'interval'], context)
+    def _process(self, resource_data):
+        """Do the memory resource tabulation and processing for this view."""
 
-        if isinstance(context, HttpResponseBadRequest):
-            # validation error
-            return context
-
-        rd = ResourceData(context['start_dt'], context['end_dt'],
-                          context['interval'])
-        p_mem = rd.get_phys_mem()
-        v_mem = rd.get_virt_mem()
+        p_mem = resource_data.get_phys_mem()
+        v_mem = resource_data.get_virt_mem()
 
         return self._handle_phys_and_virt_responses(p_mem, v_mem)
 
 
-class DiskView(ResourceView):
-    my_template_name = 'disk.html'
+class DiskViewSet(ResourceViewSet):
 
-    def _handle_request(self, context):
-        context = validate(['start', 'end', 'interval'], context)
+    def _process(self, resource_data):
+        """Do the disk resource tabulation and processing for this view."""
 
-        if isinstance(context, HttpResponseBadRequest):
-            # validation error
-            return context
+        data = resource_data.get_phys_disk()
 
-        rd = ResourceData(context['start_dt'], context['end_dt'],
-                          context['interval'])
-        self.data = rd.get_phys_disk()
-
-        if not self.data.empty:
-            # since this is spotty data, we'll use the cummulative max to carry
-            # totals forward
-            self.data['total'] = self.data['total'].cummax()
+        if not data.empty:
+            # Since this is spotty data, we'll use the cummulative max to carry
+            # totals forward.
+            data['total'] = data['total'].cummax()
 
             # for the used columns, we want to fill zeros with the last
             # non-zero value
-            self.data['used'].fillna(method='pad', inplace=True)
-            self.data = self.data.set_index('key').fillna(0)
+            data['used'].fillna(method='pad', inplace=True)
+            data = data.set_index('key').fillna(0)
 
-        return self.data.transpose().to_dict(outtype='list')
+        return Response(data.transpose().to_dict(outtype='list'))
 
 
 class LatestStatsView(TemplateView):
@@ -277,7 +278,6 @@ class SpawnsViewSet(ReadOnlyModelViewSet):
 
     def list(self, request):
         """The collection-of-objects GET handler for spawns."""
-        from rest_framework.response import Response
 
         # Fetch and enhance this request's context.
         context = {
@@ -305,22 +305,21 @@ class SpawnsViewSet(ReadOnlyModelViewSet):
         success_data = sd.get_spawn_success()
         failure_data = sd.get_spawn_failure()
 
+        # If both success and failure data are empty, we'll return this empty
+        # frame.
         data = pd.DataFrame()
 
-        if success_data.empty and failure_data.empty:
-            # Both are empty. Return an empty dataframe.
-            pass
-        elif success_data.empty:
-            # Success__data is empty. Return zero-filled column in a
-            # non-empty dataframe.
+        if success_data.empty and not failure_data.empty:
+            # Success__data is empty. Return zero-filled column in a non-empty
+            # dataframe.
             failure_data['successes'] = 0
             data = failure_data.rename(columns={'doc_count': 'failures'})
-        elif failure_data.empty:
+        elif failure_data.empty and not success_data.empty:
             # Failure__data is empty. Return zero-filled column in a
             # non-empty dataframe.
             success_data['failures'] = 0
             data = success_data.rename(columns={'doc_count': 'successes'})
-        else:
+        elif not success_data.empty and not failure_data.empty:
             # Neither are empty. Merge them on the "key" field.
             logger.debug("[_handle_request] successes = %s", success_data)
             logger.debug("[_handle_request] failures = %s", failure_data)
