@@ -149,10 +149,46 @@ class TopLevelView(TemplateView):
                                                 })
 
 
-class InnerTimeRangeView(TemplateView):
-    """merge this"""
+class ApiPerfView(TemplateView):
+    """The base class for all app "ApiPerfView" views."""
 
+    data = pd.DataFrame()
     my_template_name = None
+
+    def _get_data(self, _):                # pylint: disable=R0201
+        """Override in subclass.
+
+        :return: A model
+
+        """
+
+        return None
+
+    def _handle_request(self, context):
+
+        context = validate(['start', 'end', 'interval', 'render'], context)
+
+        if isinstance(context, HttpResponseBadRequest):
+            # validation error
+            return context
+
+        logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
+        self.data = self._get_data(context)
+        logger.debug("[_handle_request] data = %s", self.data)
+
+        # good policy, but don't think it is required for this specific
+        # dataset
+        if not self.data.empty:
+            self.data = self.data.fillna(0)
+
+        # record output may be a bit bulkier, but easier to process by D3.
+        # keys appear to be in alphabetical order, so could use
+        # orient=values to trim it down, or pass it in a binary format
+        # if things get really messy.
+        response = self.data.to_json(orient='records')
+        logger.debug('[_handle_request] response = %s', json.dumps(response))
+
+        return response
 
     def get_context_data(self, **kwargs):
 
@@ -195,46 +231,6 @@ class InnerTimeRangeView(TemplateView):
             return HttpResponse(content="Could not connect to the "
                                         "search backend",
                                 status=status.HTTP_504_GATEWAY_TIMEOUT)
-
-
-class ApiPerfView(InnerTimeRangeView):
-    data = pd.DataFrame()
-    my_template_name = None
-
-    def _get_data(self, _):                # pylint: disable=R0201
-        """Override in subclass.
-
-        :return: A model
-
-        """
-
-        return None
-
-    def _handle_request(self, context):
-
-        context = validate(['start', 'end', 'interval', 'render'], context)
-
-        if isinstance(context, HttpResponseBadRequest):
-            # validation error
-            return context
-
-        logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
-        self.data = self._get_data(context)
-        logger.debug("[_handle_request] data = %s", self.data)
-
-        # good policy, but don't think it is required for this specific
-        # dataset
-        if not self.data.empty:
-            self.data = self.data.fillna(0)
-
-        # record output may be a bit bulkier, but easier to process by D3.
-        # keys appear to be in alphabetical order, so could use
-        # orient=values to trim it down, or pass it in a binary format
-        # if things get really messy.
-        response = self.data.to_json(orient='records')
-        logger.debug('[_handle_request] response = %s', json.dumps(response))
-
-        return response
 
 
 class DiscoverView(TemplateView, TopologyMixin):
