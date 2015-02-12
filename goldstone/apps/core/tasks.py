@@ -27,6 +27,12 @@ logger = logging.getLogger(__name__)
 
 
 def get_es_connection(server=settings.ES_SERVER):
+    """Return a connection to Elasticsearch.
+
+    TODO: all ES access should be rationalized to go through the official
+    ES python client or official ES python DSL library.
+    """
+
     try:
         return get_es(urls=[server], timeout=10, max_retries=3)
     except TransportError:
@@ -39,8 +45,16 @@ def get_es_connection(server=settings.ES_SERVER):
 
 
 @celery_app.task(bind=True)
-def delete_indices(self, prefix, cutoff=None, es_host=settings.ES_HOST,
+def delete_indices(self,  # pylint: disable=W0613
+                   prefix,
+                   cutoff=None,
+                   es_host=settings.ES_HOST,
                    es_port=settings.ES_PORT):
+    """Cull old indices from Elasticsearch.
+
+    Takes an index name prefix (ex: goldstone-) and a cutoff time in days
+    Returns 0 or None if no cutoff was provided.
+    """
 
     if cutoff is not None:
         cmd = "curator --host %s --port %s delete --prefix %s " \
@@ -52,6 +66,12 @@ def delete_indices(self, prefix, cutoff=None, es_host=settings.ES_HOST,
 
 def _create_or_replace_alias(index_name, server=settings.ES_SERVER,
                              alias='goldstone'):
+    """Manage an alias for an index.
+
+    Takes an index name and an alias name.  If the alias does not exist,
+    it is created and associated with the provided index name.  If the
+    alias already exists, it is repointed at the provided index.
+    """
     try:
         conn = get_es_connection(server)
         if conn.indices.exists_alias(alias):
@@ -69,7 +89,8 @@ def _create_or_replace_alias(index_name, server=settings.ES_SERVER,
 
 
 def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
-    """
+    """Load an index template into ES from a file.
+
     :param template_file: filename of the json template
     :param template_name: name to install template as
     :param server: ES server
@@ -89,6 +110,7 @@ def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
 
 
 def _create_index(name, body=None, server=settings.ES_SERVER):
+    """Create an ES index with the provided name and body."""
 
     try:
         conn = get_es_connection(server)
@@ -104,6 +126,8 @@ def _create_index(name, body=None, server=settings.ES_SERVER):
 
 
 def _put_agent_template(server=settings.ES_SERVER):
+    """Load the ES template for the agent index."""
+
     try:
         f = open(os.path.join(os.path.dirname(__file__),
                               "goldstone_agent_template.json"), 'rb')
@@ -115,6 +139,8 @@ def _put_agent_template(server=settings.ES_SERVER):
 
 
 def _put_model_template(server=settings.ES_SERVER):
+    """Load the ES template for the model index."""
+
     try:
         f = open(os.path.join(os.path.dirname(__file__),
                               "goldstone_model_template.json"), 'rb')
@@ -126,6 +152,8 @@ def _put_model_template(server=settings.ES_SERVER):
 
 
 def _put_goldstone_daily_template(server=settings.ES_SERVER):
+    """Load the ES template for the goldstone index."""
+
     try:
         f = open(os.path.join(os.path.dirname(__file__),
                               "goldstone_es_template.json"), 'rb')
@@ -138,8 +166,9 @@ def _put_goldstone_daily_template(server=settings.ES_SERVER):
 
 def _put_all_templates(server=settings.ES_SERVER):
     """
-    Install or update the goldstone templates.  This should only be used by
-    the goldstone installer
+    Install or update all goldstone templates.
+
+    This should only be used by the goldstone installer.
     """
 
     _put_goldstone_daily_template(server=server)
@@ -148,9 +177,9 @@ def _put_all_templates(server=settings.ES_SERVER):
 
 
 @celery_app.task(bind=True)
-def create_daily_index(self, basename='goldstone'):
-    """Create a new index in ElasticSearch and set up an alias for goldstone to
-    point to the latest index."""
+def create_daily_index(self,  # pylint: disable=W0613
+                       basename='goldstone'):
+    """Create a new index in ElasticSearch and set up the goldstone alias."""
 
     now = date.today()
     index_name = basename + "-" + now.strftime("%Y.%m.%d")
