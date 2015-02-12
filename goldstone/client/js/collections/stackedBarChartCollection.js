@@ -14,6 +14,18 @@
  * limitations under the License.
  */
 
+/*
+This collection is currently direclty implemented in the
+Nova VM Spawns viz
+JSON payload format:
+{
+    timestamp:[successes, fails],
+    timestamp:[successes, fails],
+    timestamp:[successes, fails],
+    ...
+}
+*/
+
 // define collection and link to model
 
 var StackedBarChartCollection = Backbone.Collection.extend({

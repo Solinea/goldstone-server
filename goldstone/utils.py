@@ -65,6 +65,10 @@ class NoResourceFound(GoldstoneBaseException):
     pass
 
 
+class UnexpectedSearchResponse(GoldstoneBaseException):
+    pass
+
+
 def utc_now():
     return arrow.utcnow().datetime
 
