@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -14,4 +14,14 @@
  * limitations under the License.
  */
 
- var ReportsReportModel = Backbone.Model.extend({});
+/*
+This GoldstoneBaseModel is created as a placeholder
+in case it becomes useful to attach methods or
+properties to all of the Models used in the Goldstone App.
+
+At the moment, there is no special functionality
+attached to it.
+*/
+
+var GoldstoneBaseModel = Backbone.Model.extend({
+});

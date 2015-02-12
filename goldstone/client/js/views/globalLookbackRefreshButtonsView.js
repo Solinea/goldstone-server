@@ -14,6 +14,30 @@
  * limitations under the License.
  */
 
+/*
+To instantiate lookback selectors with varying values:
+
+new GlobalLookbackRefreshButtonsView({
+            el: ".global-range-refresh-container",
+            lookbackValues: {
+                lookback: [
+                    [15, 'lookback 15m'],
+                    [60, 'lookback 1h', 'selected'],
+                    [360, 'lookback 6h'],
+                    [1440, 'lookback 1d'],
+                    [10080, 'lookback 7d'],
+                    [43200, 'lookback 30d']
+                ],
+                refresh: [
+                    [30, 'refresh 30s', 'selected'],
+                    [60, 'refresh 1m'],
+                    [300, 'refresh 5m'],
+                    [-1, 'refresh off']
+                ]
+            }
+        });
+*/
+
 var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
 
     defaults: {},

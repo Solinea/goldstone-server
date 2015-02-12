@@ -24,7 +24,7 @@ var BoxPlotCollection = Backbone.Collection.extend({
         return this.dummyData;
     },
 
-    model: BoxPlotModel,
+    model: GoldstoneBaseModel,
 
     initialize: function(options) {
         this.options = options || {};

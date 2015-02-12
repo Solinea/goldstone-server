@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// define collection and link to model
+
 var HypervisorCollection = Backbone.Collection.extend({
 
     parse: function(data) {
@@ -21,7 +23,7 @@ var HypervisorCollection = Backbone.Collection.extend({
         return this.dummy.results;
     },
 
-    model: HypervisorModel,
+    model: GoldstoneBaseModel,
 
     initialize: function(options) {
         this.url = options.url;
