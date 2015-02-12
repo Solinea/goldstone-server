@@ -29,7 +29,7 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires(pre): /usr/sbin/useradd, /usr/bin/getent, elasticsearch == 1.3.4, gcc, gcc-c++, redis, logstash == 1.4.2, logstash-contrib == 1.4.2, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, wget, python-pip, unzip, zip
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent, elasticsearch == 1.4.3, gcc, gcc-c++, redis, logstash == 1.4.2, logstash-contrib == 1.4.2, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, wget, python-pip, unzip, zip
 Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre
@@ -116,10 +116,10 @@ pip install -r requirements.txt
 export DJANGO_SETTINGS_MODULE=goldstone.settings.production
 
 python manage.py shell <<EOF
-from goldstone.apps.core.tasks import _put_all_templates, _create_daily_index, _create_agent_index
+from goldstone.apps.core.tasks import _put_all_templates, create_daily_index, create_agent_index
 _put_all_templates()
-_create_daily_index()
-_create_agent_index()
+create_daily_index()
+create_agent_index()
 EOF
 
 python manage.py collectstatic --noinput
