@@ -16,6 +16,10 @@
 
 // define collection and link to model
 
+var NodeAvailModel = GoldstoneBaseModel.extend({
+    idAttribute: "id"
+});
+
 var NodeAvailCollection = Backbone.Collection.extend({
 
     parse: function(data) {
@@ -46,6 +50,8 @@ var NodeAvailCollection = Backbone.Collection.extend({
 
     initialize: function(options) {
         this.url = options.url;
+        // url string similar to: /logging/nodes?page_size=100
+
         this.initXhr();
     }
 });

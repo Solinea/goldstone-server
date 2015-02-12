@@ -16,6 +16,10 @@
 
 // define collection and link to model
 
+var EventTimelineModel = GoldstoneBaseModel.extend({
+    idAttribute: 'id'
+});
+
 var EventTimelineCollection = Backbone.Collection.extend({
 
     parse: function(data) {
@@ -51,10 +55,12 @@ var EventTimelineCollection = Backbone.Collection.extend({
         this.defaults = _.clone(this.defaults); 
 
         this.url = options.url || "/core/events?created__gt=" + this.computeLookback() + "&page_size=1000";
+        // url similar to: /core/events?created__gt=1423678864754&page_size=1000
 
         // don't add {remove:false} to the initial fetch
         // as it will introduce an artifact that will
         // render via d3
+
         this.fetchWithReset();
     },
 
