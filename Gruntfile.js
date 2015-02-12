@@ -95,5 +95,6 @@ module.exports = function(grunt) {
     grunt.registerTask('test', ['karma', 'casperjs']);
     grunt.registerTask('lintAndTest', ['lint', 'test']);
     grunt.registerTask('testDev', ['lint', 'karma', 'focus:dev']);
+    grunt.registerTask('casper', ['casperjs']);
 
 };
