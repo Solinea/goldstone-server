@@ -35,6 +35,8 @@
         });
     };
     $(document).ready(function () {
+        // this page will have the global selectors appended
+        // without this invocation, the selectors will not appear
         new GlobalLookbackRefreshButtonsView({
             el: ".global-range-refresh-container",
             lookbackValues: {
