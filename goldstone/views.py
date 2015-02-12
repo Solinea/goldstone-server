@@ -150,6 +150,7 @@ class TopLevelView(TemplateView):
 
 
 class InnerTimeRangeView(TemplateView):
+    """merge this"""
 
     my_template_name = None
 
