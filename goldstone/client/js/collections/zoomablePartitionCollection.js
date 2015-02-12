@@ -25,12 +25,15 @@ var ZoomablePartitionCollection = Backbone.Collection.extend({
         return this.defaults.data;
     },
 
-    model: ZoomablePartitionModel,
+    model: GoldstoneBaseModel,
 
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
         this.defaults.data = options.data;
+
+        // this is a hard coded url with a very fast server return time for
+        // prototyping with dummy data
         this.url = "/glance/api_perf?start=111&end=112&interval=3600s&render=false";
         this.fetch();
     },

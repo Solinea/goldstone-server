@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
+// define collection and link to model
+
 var HypervisorVmCpuCollection = Backbone.Collection.extend({
 
     parse: function(data) {
         return this.dummy.results;
     },
 
-    model: HypervisorVmCpuModel,
+    model: GoldstoneBaseModel,
 
     initialize: function(options) {
         this.url = options.url;

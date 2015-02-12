@@ -9,11 +9,9 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * Author: Alex Jacobs
  */
 
 /*
@@ -38,7 +36,7 @@ var CpuResourceCollection = Backbone.Collection.extend({
         return data;
     },
 
-    model: CpuResourceModel,
+    model: GoldstoneBaseModel,
 
     initialize: function(options) {
         this.options = options || {};
@@ -57,11 +55,13 @@ var CpuResourceCollection = Backbone.Collection.extend({
         // the number of minutes specified by the selector
 
         var ns = this.defaults;
-
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
         this.url = ns.urlPrefix +  '?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval + '&render=false';
+
+        // outputs a url string similar to:
+        // /nova/hypervisor/cpu?start=1423678636&end=1423682236&interval=60s&render=false
     }
 
 });
