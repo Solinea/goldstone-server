@@ -65,6 +65,10 @@ class NoResourceFound(GoldstoneBaseException):
     pass
 
 
+class UnexpectedSearchResponse(GoldstoneBaseException):
+    pass
+
+
 def utc_now():
     return arrow.utcnow().datetime
 
@@ -471,7 +475,7 @@ class TopologyMixin(object):
 
             result = [self._get_children(c, rsrc_type)
                       for c in d['children']]
-            if result and type(result[0]) is list:
+            if result and isinstance(result[0], list):
                 # flatten it so we don't end up with nested lists
                 return [c for l in result for c in l]
             else:

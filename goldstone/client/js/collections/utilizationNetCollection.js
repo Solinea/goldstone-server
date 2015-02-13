@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// define collection and link to model
+
 var UtilizationNetCollection = Backbone.Collection.extend({
 
     defaults: {},
@@ -34,7 +36,7 @@ var UtilizationNetCollection = Backbone.Collection.extend({
         return data.results;
     },
 
-    model: UtilizationModel,
+    model: GoldstoneBaseModel,
 
     // will impose an order based on 'timestamp' for
     // the models as they are put into the collection

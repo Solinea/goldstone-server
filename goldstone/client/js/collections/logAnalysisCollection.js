@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// define collection and link to model
+
 var LogAnalysisCollection = Backbone.Collection.extend({
 
     defaults: {},
@@ -32,7 +34,7 @@ var LogAnalysisCollection = Backbone.Collection.extend({
         return data.data;
     },
 
-    model: LogAnalysisModel,
+    model: GoldstoneBaseModel,
 
     // will impose an order based on 'time' for
     // the models as they are put into the collection

@@ -26,7 +26,7 @@ etc...
 
 */
 
-var GoldstoneColors = Backbone.Model.extend({
+var GoldstoneColors = GoldstoneBaseModel.extend({
     defaults: {
         colorSets: {
             // distinct = colorBlindFriendly

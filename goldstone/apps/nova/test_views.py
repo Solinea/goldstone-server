@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import arrow
 
 # TODO replace pytz and calendar with arrow
 import json
@@ -19,11 +20,14 @@ from django.http import HttpResponse
 import pytz
 import calendar
 import logging
+import pandas as pd
 
 from django.test import SimpleTestCase
 from django.utils.unittest.case import skip
+from .models import SpawnData
 from datetime import datetime
-
+from mock import patch
+from rest_framework.test import APITestCase
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +110,68 @@ class SpawnsApiPerfViewsTest(BaseTest):
                 "&end=" + self.valid_end + \
                 "&interval=" + self.invalid_interval
             self._assert_bad_request(url)
+
+
+class SpawnsHandleRequest(APITestCase):
+
+    @patch.object(SpawnData, 'get_spawn_success')
+    @patch.object(SpawnData, 'get_spawn_failure')
+    @patch('goldstone.apps.nova.views.validate')
+    def test_handle_request(self, val, gsf, gss):
+        """Ensure that the spawn data format is correct for all cases.
+
+        We do not use the reverse() function, because DRF ViewSets appear to
+        not hook URLs up so that reverse() can find them.
+
+        """
+
+        # Set up validate() return value.
+        val.return_value = {'start_dt': arrow.utcnow().isoformat(),
+                            'end_dt': arrow.utcnow().isoformat(),
+                            'interval': '1m'}
+
+        # Set up the request URL and dummy query string values. The query
+        # string doesn't matter, since validate() is mocked out.
+        url = "/nova/hypervisor/spawns"
+        data = {"foo": "bar"}
+
+        # no spawns
+        gsf.return_value = pd.DataFrame()
+        gss.return_value = pd.DataFrame()
+
+        response = self.client.get(url, data, format='json')
+        self.assertEqual(response.data, {})          # pylint: disable=E1101
+        self.assertEqual(response.status_code, 200)
+
+        # 1 successful spawns, 2 failed
+        gss.return_value = pd.read_json(json.dumps([
+            {u'timestamp': 1423165800000, u'successes': 1}
+        ]), orient='records')
+        gsf.return_value = pd.read_json(json.dumps([
+            {u'timestamp': 1423165800000, u'failures': 2}
+        ]), orient='records')
+        response = self.client.get(url, data, format='json')
+        self.assertEqual(response.data,                # pylint: disable=E1101
+                         {1423165800000: [1, 2]})
+        self.assertEqual(response.status_code, 200)
+
+        # 0 successful spawns, 2 failed spawns
+        gss.return_value = pd.DataFrame()
+        response = self.client.get(url, data, format='json')
+        self.assertEqual(response.data,                 # pylint: disable=E1101
+                         {1423165800000: [0, 2]})
+        self.assertEqual(response.status_code, 200)
+
+        # 1 successful spawns, 0 failed spawns
+        gss.return_value = \
+            pd.read_json(json.dumps([{u'timestamp': 1423165800000,
+                                      u'successes': 1}]),
+                         orient='records')
+        gsf.return_value = pd.DataFrame()
+        response = self.client.get(url, data, format='json')
+        self.assertEqual(response.data,                 # pylint: disable=E1101
+                         {1423165800000: [1, 0]})
+        self.assertEqual(response.status_code, 200)
 
 
 class LatestStatsViewTest(SimpleTestCase):
