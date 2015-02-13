@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task(bind=True)
-def time_cinder_api(self):
+def time_cinder_api(self):   # pylint: disable=W0613
     """Call the service list command for the test tenant.
 
     Retrieves the endpoint from keystone, then constructs the URL and inserts a
@@ -48,8 +48,13 @@ def time_cinder_api(self):
 
 
 def _update_cinder_records(rec_type, region, database, items):
+    """Post a cinder record to Elasticsearch
 
-    # image list is a generator, so we need to make it not sol lazy it...
+    Construct the JSON body and attempt to index a new document into the
+    Elasticsearch database.
+
+    """
+
     body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
             "region": region,
             rec_type: [item.__dict__['_info'] for item in items]}
@@ -60,7 +65,13 @@ def _update_cinder_records(rec_type, region, database, items):
 
 
 @celery_app.task(bind=True)
-def discover_cinder_topology(self):
+def discover_cinder_topology(self):  # pylint: disable=W0613
+    """Interrogate the OpenStack API for config info about cinder
+
+    Get each of the resource types and call a method to index
+    the documents into ES.
+
+    """
     from goldstone.utils import get_cinder_client
 
     cinder_access = get_cinder_client()

@@ -44,7 +44,7 @@ class TaskTests(SimpleTestCase):
 
         tasks.check_call = mock.Mock(return_value='mocked')
         # pylint: disable=W0212
-        self.assertEqual(tasks._delete_indices('abc', 10), 'mocked')
+        self.assertEqual(tasks.delete_indices('abc', 10), 'mocked')
 
     @patch.object(IndicesClient, 'create')
     @patch.object(IndicesClient, 'exists_alias')
@@ -58,31 +58,12 @@ class TaskTests(SimpleTestCase):
         update_aliases.return_value = None
 
         # pylint: disable=W0212
-        self.assertIsNone(tasks._create_daily_index('abc'))
+        self.assertIsNone(tasks.create_daily_index('abc'))
 
         exists_alias.return_value = False
         put_alias.return_value = None
 
-        self.assertIsNone(tasks._create_daily_index('abc'))
-
-    def test_manage_es_indices(self):
-        """Test the returns from manage_es_indices when _create_daily_index and
-        _delete_indices work normally, and when they raise exceptions."""
-
-        # pylint: disable=W0212
-
-        # The index methods return exceptions...
-        tasks._create_daily_index = mock.Mock(
-            side_effect=KeyError("This is expected"))
-        tasks._delete_indices = mock.Mock(
-            side_effect=KeyError("This is expected"))
-        self.assertEqual(tasks.manage_es_indices(), (False, False, False))
-
-        # The index methods run normally...
-        tasks._create_daily_index = mock.Mock(return_value=None,
-                                              side_effect=None)
-        tasks._delete_indices = mock.Mock(return_value=None, side_effect=None)
-        self.assertEqual(tasks.manage_es_indices(), (True, True, True))
+        self.assertIsNone(tasks.create_daily_index('abc'))
 
 
 class NodeSerializerTests(SimpleTestCase):
