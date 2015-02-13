@@ -136,9 +136,14 @@ class ResourceViewSet(ReadOnlyModelViewSet):
 
     @staticmethod
     def _handle_phys_and_virt_responses(phys, virt):
-        """Do the final data processing for this view, and return a
-        response.
+        """Do the final data processing for this view, and return a response.
 
+        :param phys: The "physical" resource data. E.g., physical CPU, physical
+                     memory, or physical disk.
+        :type phys: ResourceData
+        :param virt: The "virtual" resource data. E.g., virtual CPU, virtual
+                     memory, or empty dataframe for disk.
+        :type phys: ResourceData
         :rtype: Response object
 
         """
@@ -217,19 +222,9 @@ class DiskViewSet(ResourceViewSet):
     def _process(self, resource_data):
         """Do the disk resource tabulation and processing for this view."""
 
-        data = resource_data.get_phys_disk()
-
-        if not data.empty:
-            # Since this is spotty data, we'll use the cummulative max to carry
-            # totals forward.
-            data['total'] = data['total'].cummax()
-
-            # for the used columns, we want to fill zeros with the last
-            # non-zero value
-            data['used'].fillna(method='pad', inplace=True)
-            data = data.set_index('key').fillna(0)
-
-        return Response(data.transpose().to_dict(outtype='list'))
+        return \
+            self._handle_phys_and_virt_responses(resource_data.get_phys_disk(),
+                                                 pd.DataFrame())
 
 
 class AgentsDataViewSet(JsonReadOnlyViewSet):
