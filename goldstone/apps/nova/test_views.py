@@ -152,7 +152,7 @@ class SpawnsHandleRequest(APITestCase):
         ]), orient='records')
         response = self.client.get(url, data, format='json')
         self.assertEqual(response.data,                # pylint: disable=E1101
-                         {1423165800000: [1, 2]})   
+                         {1423165800000: [1, 2]})
         self.assertEqual(response.status_code, 200)
 
         # 0 successful spawns, 2 failed spawns
@@ -169,7 +169,7 @@ class SpawnsHandleRequest(APITestCase):
                          orient='records')
         gsf.return_value = pd.DataFrame()
         response = self.client.get(url, data, format='json')
-        self.assertEqual(response.data,                  # pylint: disable=E1101
+        self.assertEqual(response.data,                 # pylint: disable=E1101
                          {1423165800000: [1, 0]})
         self.assertEqual(response.status_code, 200)
 
