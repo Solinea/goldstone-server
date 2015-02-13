@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+/*
+This view makes up the "Events" tab of nodeReportView.js
+It is sub-classed from GoldstoneBaseView.
+*/
+
 var EventsReportView = GoldstoneBaseView.extend({
 
     defaults: {},
@@ -31,38 +36,34 @@ var EventsReportView = GoldstoneBaseView.extend({
     },
 
     initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
-        this.defaults.width = options.width;
-        this.defaults.hostName = options.nodeName;
-        this.defaults.globalLookback = options.globalLookback;
 
-        var ns = this.defaults;
-        var self = this;
+        EventsReportView.__super__.initialize.apply(this, arguments);
+    },
 
-        // required in case spinner loading takes
-        // longer than chart loading
-        ns.spinnerDisplay = 'inline';
+    processOptions: function() {
+        EventsReportView.__super__.processOptions.apply(this, arguments);
 
-        var spinnerLocation = this.el;
-        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(spinnerLocation).css({
-                'position': 'relative',
-                'margin-top': -20,
-                'margin-left': (ns.width / 2),
-                'display': ns.spinnerDisplay
-            });
-        });
+        this.defaults.hostName = this.options.nodeName;
+        this.defaults.globalLookback = this.options.globalLookback;
+    },
 
-        // appends display and modal html elements to this.el
-        this.render();
-
+    processListeners: function() {
         // this is triggered by a listener set on nodeReportView.js
         this.on('selectorChanged', function() {
             this.defaults.globalLookback = $('#global-lookback-range').val();
         });
+    },
 
+    processMargins: function() {
+        // overwritten so as not to conflict with super-class'
+        // method that will calculate irrelevant margins.
+        return null;
+    },
+
+    standardInit: function() {
+        // overwritten so as not to conflict with super-class'
+        // method that will calculate irrelevant margins.
+        return null;
     },
 
     dataPrep: function(data) {
@@ -175,6 +176,11 @@ var EventsReportView = GoldstoneBaseView.extend({
                     /* dataFilter is analagous to the purpose of 'success',
                     but you can't also use 'success' as then dataFilter
                     will not be triggered */
+
+                    // spinner rendered upon page-load
+                    // will be cleared after the first
+                    // data payload is returned
+                    self.hideSpinner();
 
                     // clear error messages when data begins to flow again
                     self.clearDataErrorMessage();

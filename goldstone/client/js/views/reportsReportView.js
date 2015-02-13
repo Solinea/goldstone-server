@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
+/*
+This view makes up the "Reports" tab of nodeReportView.js
+It is sub-classed from GoldstoneBaseView.
+*/
+
 var ReportsReportView = GoldstoneBaseView.extend({
 
     defaults: {},
 
     urlGen: function(report) {
 
-        // fetches only the latest result for a particular report
+        // request page_size=1 in order to only
+        // retrieve the latest result
+
         var urlRouteConstruction = '/core/reports?name=' +
             report + '&page_size=1&node=' +
             this.defaults.hostName;
@@ -28,37 +35,29 @@ var ReportsReportView = GoldstoneBaseView.extend({
     },
 
     initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
-        this.defaults.width = options.width;
-        this.defaults.hostName = options.nodeName;
-        this.defaults.globalLookback = options.globalLookback;
+
+        ReportsReportView.__super__.initialize.apply(this, arguments);
+    },
+
+    processOptions: function() {
+        ReportsReportView.__super__.processOptions.apply(this, arguments);
+
+        this.defaults.hostName = this.options.nodeName;
+        this.defaults.globalLookback = this.options.globalLookback;
+
+    },
+
+    processListeners: function() {
 
         var ns = this.defaults;
         var self = this;
 
-        // appends html elements and initial dataTable to this.el
-        this.render();
-
-        // required in case spinner loading takes
-        // longer than chart loading
-        ns.spinnerDisplay = 'inline';
-
-        var spinnerLocation = '.reports-spinner-container';
-        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
-            $(this).appendTo(spinnerLocation).css({
-                'position': 'relative',
-                'margin-top': -32,
-                'margin-left': (ns.width / 2),
-                'display': ns.spinnerDisplay
-            });
-        });
-
-        this.update();
-
         // triggered whenever this.collection finishes fetching
         this.collection.on('sync', function() {
+
+            // removes spinner that was appended
+            // during chart-load
+            self.hideSpinner();
 
             // clears existing 'Reports Available' in dropdown
             $(self.el).find('.reports-available-dropdown-menu > li').remove();
@@ -87,26 +86,24 @@ var ReportsReportView = GoldstoneBaseView.extend({
             self.collection.retrieveData();
 
         });
-
     },
 
-    update: function() {
-
-        var ns = this.defaults;
-        var self = this;
-
-        // sets css for spinner to hidden in case
-        // spinner callback resolves
-        // after chart data callback
-        ns.spinnerDisplay = 'none';
-        $(this.el).find('#spinner').hide();
-
+    processMargins: function() {
+        // overwritten so as not to conflict with super-class'
+        // method that will calculate irrelevant margins.
+        return null;
     },
 
     render: function() {
         $(this.el).append(this.template());
         $(this.el).find('.refreshed-report-container').append(this.dataTableTemplate());
         return this;
+    },
+
+    standardInit: function() {
+        // overwritten so as not to conflict with super-class'
+        // method that will calculate irrelevant margins.
+        return null;
     },
 
     dataPrep: function(tableData) {

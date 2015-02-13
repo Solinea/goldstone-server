@@ -1,5 +1,5 @@
 <!--
- Copyright 2015 Solinea, Inc.
+ Copyright 2014 - 2015 Solinea, Inc.
 
  Licensed under the Solinea Software License Agreement (goldstone),
  Version 1.0 (the "License"); you may not use this file except in compliance
@@ -23,7 +23,6 @@
 
 {% block localjs %}
     <script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
-    <script src="{% static 'js/models/apiPerfModel.js' %}"></script>
     <script src="{% static 'js/collections/apiPerfCollection.js' %}"></script>
     <script src="{% static 'js/views/apiPerfReportView.js' %}"></script>
     <script src="{% static 'js/views/apiPerfView.js' %}"></script>
@@ -46,7 +45,17 @@
         // this page will have the global selectors appended
         // without this invocation, the selectors will not appear
         new GlobalLookbackRefreshButtonsView({
-            el: ".global-range-refresh-container"
+            el: ".global-range-refresh-container",
+            lookbackValues: {
+                lookback: [
+                    [15, 'lookback 15m'],
+                    [60, 'lookback 1h', 'selected'],
+                    [360, 'lookback 6h'],
+                    [1440, 'lookback 1d'],
+                    [10080, 'lookback 7d'],
+                    [43200, 'lookback 30d']
+                ]
+            }
         });
         instantiateCharts();
     });

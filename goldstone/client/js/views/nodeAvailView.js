@@ -34,7 +34,8 @@ var NodeAvailView = GoldstoneBaseView.extend({
             audit: true,
             info: true,
             warning: true,
-            error: true
+            error: true,
+            actualZero: true,
         }
     },
 
@@ -88,8 +89,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         // maps between input label domain and output color range for circles
         ns.loglevel = d3.scale.ordinal()
-            .domain(["debug", "audit", "info", "warning", "error"])
-            .range(ns.colorArray.distinct[5]);
+            .domain(["debug", "audit", "info", "warning", "error", "actualZero"])
+        // concats darkgrey as a color for nodes
+        // reported at 'actualZero'
+        .range(ns.colorArray.distinct[5].concat(['#A9A9A9']));
 
         // for 'ping only' axis
         ns.pingAxis = d3.svg.axis()
@@ -362,7 +365,9 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         _.each(_.keys(ns.filter), function(item) {
 
-            if (item === 'none') {
+            // don't put type 'none' or 'actualZero'
+            // in the modal checkbox options
+            if (item === 'none' || item === 'actualZero') {
                 return null;
             }
 
@@ -413,7 +418,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 d.updated = moment(d.updated);
 
                 /*
-                 * Figure out which bucket (logs, ping, or admin disabled)
+                 * Figure out which bucket (logs, ping, or disabled)
                  * each node belongs to.
                  */
 
@@ -422,7 +427,6 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 } else {
                     d.swimlane = d.update_method.toLowerCase();
                 }
-
                 return d;
             });
 
@@ -510,7 +514,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
             // if the array is empty:
             if (nonzero_levels[0] === undefined) {
-                nodeObject.level = "none";
+                nodeObject.level = "actualZero";
             } else {
 
                 // otherwise set it to the
@@ -544,7 +548,6 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 return d.swimlane;
             } else {
                 return "individualNode";
-                // return d.level;
             }
         })
             .attr("fill", function(d) {
@@ -553,16 +556,36 @@ var NodeAvailView = GoldstoneBaseView.extend({
             .attr("cx", function(d) {
                 return ns.xScale(d.updated);
             })
-            .attr("cy", function(d) {
-                return {
-                    logs: ns.yLogs(self.sums(d)),
-                    ping: ns.ySwimLane(d.swimlane) - 15,
-                    unadmin: ns.ySwimLane(d.swimlane) + ns.ySwimLane.rangeBand() + 15
-                }[d.swimlane];
+            .attr("cy", function(d, i) {
+
+                // add multiplier to give space between
+                // multiple items reporting the same numbers
+                if (d.level === 'actualZero') {
+                    return (ns.yLogs(self.sums(d)) - (i * 2));
+                } else {
+
+                    // notice the [] at the end which is calling
+                    // the key that matches d.swimlane
+
+                    return {
+
+                        // add multiplier to give space between
+                        // multiple items reporting the same numbers
+                        logs: ns.yLogs(self.sums(d) - (i * 2)),
+
+                        ping: ns.ySwimLane(d.swimlane) - 15,
+                        unadmin: ns.ySwimLane(d.swimlane) + ns.ySwimLane.rangeBand() + 15
+                    }[d.swimlane];
+
+
+                }
+
+
+
             })
             .attr("r", function(d) {
-                // radii at fixed size for now.
 
+                // radii at fixed size for now.
                 if (d.swimlane === "logs") {
                     return ns.r(64);
                 } else {

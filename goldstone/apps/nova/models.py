@@ -193,7 +193,7 @@ class SpawnData(ESData):
                     "doc_type=%s", index, self._DOC_TYPE)
         response = self._conn.search(
             index=index, doc_type=self._DOC_TYPE, body=q, size=0)
-        logger.info("[get_spawn_start] response = %s", json.dumps(response))
+        logger.debug("[get_spawn_start] response = %s", json.dumps(response))
         return pd.read_json(json.dumps(
             response['aggregations'][agg_name]['buckets'])
         )
@@ -211,18 +211,34 @@ class SpawnData(ESData):
         data = pd.read_json(json.dumps(
             response['aggregations'][fname][aname]['buckets']),
             orient='records')
-
+        if not data.empty:
+            del data['key_as_string']
+            col_name = 'successes' if success else 'failures'
+            data.columns = [col_name, 'timestamp']
+            data = data[['timestamp', col_name]]
         logger.debug("[get_spawn_finish] data = %s", data)
         return data
 
     def get_spawn_success(self):
         """Return a pandas dataframe with the results of a query for nova spawn
-        success events"""
+        success events.  The format looks like:
+                   timestamp  successes
+            0  1423165800000          1
+            1  1423166100000          0
+            2  1423166400000          0
+            3  1423166700000          1
+        """
         return self._get_spawn_finish(True)
 
     def get_spawn_failure(self):
         """Return a pandas dataframe with the results of a query for nova spawn
-        failure events"""
+        failure events.  The format looks like:
+                   timestamp   failures
+            0  1423165800000          1
+            1  1423166100000          0
+            2  1423166400000          0
+            3  1423166700000          1
+        """
         return self._get_spawn_finish(False)
 
 
@@ -319,7 +335,9 @@ class ResourceData(ESData):
         for date_bucket in result['aggregations']['events_by_date']['buckets']:
             logger.debug("[_get_resource] processing date_bucket: %s",
                          json.dumps(date_bucket))
-            item = {'key': date_bucket['key'], 'total': 0, custom_field: 0}
+            item = {'timestamp': date_bucket['key'],
+                    custom_field: 0,
+                    'total': 0}
 
             for host_bucket in date_bucket['events_by_host']['buckets']:
                 logger.debug("[_get_resource] processing host_bucket: %s",
@@ -336,6 +354,8 @@ class ResourceData(ESData):
             # set zero values to None so we can do a pandas fillna in the view
             if item['used'] == 0:
                 item['used'] = None
+            if item['total'] == 0:
+                item['total'] = None
 
             items.append(item)
 

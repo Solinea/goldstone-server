@@ -27,8 +27,7 @@ from django.http import HttpResponseBadRequest, HttpResponseNotAllowed
 import pandas as pd
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
-from rest_framework.serializers import HyperlinkedModelSerializer, \
-    BaseSerializer
+from rest_framework.serializers import BaseSerializer
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from .models import NovaApiPerfData, HypervisorStatsData, SpawnData, \
@@ -138,46 +137,55 @@ class ResourceViewSet(ReadOnlyModelViewSet):
     @staticmethod
     def _handle_phys_and_virt_responses(phys, virt):
         """Do the final data processing for this view, and return a
-        response."""
+        response.
 
-        # If both physical and virtual data are empty, we'll return this empty
-        # frame.
-        data = pd.DataFrame()
+        :rtype: Response object
 
-        if phys.empty and not virt.empty:
-            # Physical data is empty. Return zero-filled column in a non-empty
-            # dataframe.
-            virt['total_phys'] = virt['total']
-            virt['used_phys'] = virt['used']
-            data = virt.rename(columns={'total': 'virt_total',
-                                        'used': 'virt_used'})
-        elif virt.empty and not phys.empty:
-            # Virtual data is empty. Return zero-filled column in a non-empty
-            # dataframe.
-            phys['total_virt'] = phys['total']
-            phys['used_virt'] = phys['used']
-            data = phys.rename(columns={'total': 'total_phys',
-                                        'used': 'used_phys'})
-        elif not phys.empty and not virt.empty:
-            # Neither are empty. Merge them on the "key" field.
-            data = pd.ordered_merge(phys,
-                                    virt,
-                                    on='key',
-                                    suffixes=['_phys', '_virt'])
+        """
+        from goldstone.utils import UnexpectedSearchResponse
 
-            # Since this is spotty data, use the cummulative max to carry
-            # totals forward.
-            data['total_phys'] = data['total_phys'].cummax()
-            data['total_virt'] = data['total_virt'].cummax()
+        if phys.empty:
+            # We shouldn't have a case where physical is empty, so raise an
+            # exception.
+            raise UnexpectedSearchResponse(
+                "[_handle_phys_and_virt_responses] no physical resource "
+                "statistics found")
 
-            # For the used columns, we want to fill zeros with the last
-            # non-zero value.
-            data['used_phys'].fillna(method='pad', inplace=True)
-            data['used_virt'].fillna(method='pad', inplace=True)
+        elif virt.empty:
+            # Virtual data is empty.
+            data = phys
+            data.rename(columns={'total': 'total_phys'}, inplace=True)
+            # Using a copy method to indicate that we know what we are
+            # doing and pandas can skip the warning.
+            data = data[['timestamp', 'used', 'total_phys']].copy()
 
-            data = data.set_index('key').fillna(0)
+        else:
+            # Neither are empty, i.e., both exist.
+            phys.rename(columns={'total': 'total_phys'}, inplace=True)
+            del virt['used']
+            virt.rename(columns={'total': 'total_virt'}, inplace=True)
 
-        logger.debug("[_handle_phys_and_virt_responses] data = %s", data)
+            data = pd.ordered_merge(phys, virt, on='timestamp')
+            data['total_virt'].fillna(method='pad', inplace=True)
+
+            # Using a copy method to indicate that we know what we are
+            # doing and pandas can skip the warning.
+            data = data[['timestamp',
+                         'used',
+                         'total_phys',
+                         'total_virt']].copy()
+
+        # Either both exist, or only virtual is empty.
+        #
+        # For the used columns, we want to fill NaNs with the last
+        # non-zero value.
+        data['used'].fillna(method='pad', inplace=True)
+        data['total_phys'].fillna(method='pad', inplace=True)
+
+        logger.debug("[_handle_phys_and_virt_responses] data = %s",
+                     data)
+        # Make sure we're not sending any NaNs out the door.
+        data = data.set_index('timestamp').fillna(0)
 
         return Response(data.transpose().to_dict(outtype='list'))
 
@@ -320,36 +328,31 @@ class SpawnsViewSet(ReadOnlyModelViewSet):
         success_data = spawndata.get_spawn_success()
         failure_data = spawndata.get_spawn_failure()
 
-        # If both success and failure data are empty, we'll return this empty
-        # frame.
-        data = pd.DataFrame()
-
         if success_data.empty and not failure_data.empty:
-            # Success__data is empty. Return zero-filled column in a non-empty
+            # Success_data is empty. Return zero-filled column in a non-empty
             # dataframe.
             failure_data['successes'] = 0
-            data = failure_data.rename(columns={'doc_count': 'failures'})
+            data = failure_data
+
         elif failure_data.empty and not success_data.empty:
-            # Failure__data is empty. Return zero-filled column in a
+            # Failure_data is empty. Return zero-filled column in a
             # non-empty dataframe.
             success_data['failures'] = 0
-            data = success_data.rename(columns={'doc_count': 'successes'})
+            data = success_data
+
         elif not success_data.empty and not failure_data.empty:
             # Neither are empty. Merge them on the "key" field.
-            logger.debug("[_handle_request] successes = %s", success_data)
-            logger.debug("[_handle_request] failures = %s", failure_data)
+            data = pd.ordered_merge(success_data, failure_data, on='timestamp')
+        else:
+            # Both are empty. Return an empty frame.
+            data = pd.DataFrame()
+            logger.debug("[_handle_request] data is empty")
 
-            data = \
-                pd.ordered_merge(success_data,
-                                 failure_data,
-                                 on='key',
-                                 suffixes=['_successes', '_failures'])\
-                  .rename(columns={'doc_count_successes': 'successes',
-                                   'doc_count_failures': 'failures'})
-
-            data = data.set_index('key').fillna(0)
-
-        logger.debug("[_handle_request] data = %s", data)
+        # If the data isn't empty, log its payload and massage it.
+        if not data.empty:
+            logger.debug("[_handle_request] data = %s", data)
+            data = data[['timestamp', 'successes', 'failures']]
+            data = data.set_index('timestamp').fillna(0)
 
         return Response(data.transpose().to_dict(outtype='list'))
 

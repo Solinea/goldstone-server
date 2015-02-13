@@ -24,7 +24,7 @@ var BulletChartCollection = Backbone.Collection.extend({
         return this.dummyData;
     },
 
-    model: BulletChartModel,
+    model: GoldstoneBaseModel,
 
     initialize: function(options) {
         this.options = options || {};
