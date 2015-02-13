@@ -98,7 +98,7 @@ var NovaReportView = ApiPerfReportView.extend({
             infoCustom: 'novaMemResources',
             el: '#nova-report-r2-c2',
             width: $('#nova-report-r2-c2').width(),
-            yAxisLabel: 'GB'
+            yAxisLabel: 'MB'
         });
 
         /*

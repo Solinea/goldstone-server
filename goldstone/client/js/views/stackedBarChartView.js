@@ -15,6 +15,9 @@
  */
 
 /*
+View is currently directly implemented as Nova VM Spawns Viz
+and extended into Nova CPU/Memory/Disk Resource Charts
+
 standard chart usage. instantiate with:
 {
     chartTitle: "title",
@@ -35,7 +38,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
     defaults: {
         margin: {
             top: 45,
-            right: 30,
+            right: 40,
             bottom: 60,
             left: 70
         }
@@ -72,9 +75,19 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
     dataPrep: function(data) {
 
-        // this is where the fetched JSON payload is transformed into a
-        // dataset than can be consumed by the D3 charts
-        // each chart may have its own perculiarities
+        /*
+        this is where the fetched JSON payload is transformed into a
+        dataset than can be consumed by the D3 charts
+        each chart may have its own perculiarities
+
+        IMPORTANT:
+        the order of items that are 'push'ed into the
+        result array matters. After 'eventTime', the items
+        will be stacked on the graph from the bottom of
+        the graph upward. Or another way of saying it is
+        the first item listed will be first one to be rendered
+        from the x-axis of the graph going upward.
+        */
 
         var ns = this.defaults;
 
@@ -83,50 +96,50 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         if (ns.featureSet === 'cpu') {
 
             // CPU Resources chart data prep
-
-            //TODO: this will probably change
-            //after finding out what the server payload
-            // actually looks like
-
+            // {timestamp: [used, phys, virt]}
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
-                    "Used": item[1],
-                    "Physical": item[0],
-                    "Virtual": item[2]
+                    "Used": item[0],
+                    "Physical": Math.max((item[1] - item[0]), 0),
+                    "Virtual": Math.max((item[2] - item[1]), 0)
                 });
             });
 
         } else if (ns.featureSet === 'disk') {
 
             // Disk Resources chart data prep
+            // {timestamp: [used, total]}
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
-                    "Used": item[1],
-                    "Physical": item[0],
+                    "Used": item[0],
+                    "Total": Math.max((item[1] - item[0]), 0)
                 });
             });
 
         } else if (ns.featureSet === 'mem') {
 
             // Memory Resources chart data prep
+            // {timestamp: [used, phys, virt]}
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
-                    "Used": item[1],
-                    "Physical": item[0],
-                    "Virtual": item[2]
+                    "Used": item[0],
+                    "Physical": Math.max((item[1] - item[0]), 0),
+                    "Virtual": Math.max((item[2] - item[1]), 0)
                 });
             });
 
         } else {
+
             // Spawns Resources chart data prep
+            // {timestamp: [success, fail]}
             _.each(data[0], function(item, i) {
                 result.push({
                     "eventTime": "" + i,
-                    "Success": item[2],
-                    "Failure": item[0]
+                    "Success": item[0],
+                    "Failure": item[1]
                 });
             });
 
@@ -150,9 +163,13 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             return;
         }
 
+        // clear elements from previous render
         $(this.el).find('svg').find('rect').remove();
+        $(this.el).find('svg').find('line').remove();
         $(this.el).find('svg').find('.axis').remove();
         $(this.el).find('svg').find('.legend').remove();
+        $(this.el + '.d3-tip').detach();
+
 
         ns.color.domain(d3.keys(data[0]).filter(function(key) {
             return key !== "eventTime";
@@ -160,14 +177,14 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         data.forEach(function(d) {
             var y0 = 0;
-            d.successOrFail = ns.color.domain().map(function(name) {
+            d.resultCategories = ns.color.domain().map(function(name) {
                 return {
                     name: name,
                     y0: y0,
                     y1: y0 += +d[name]
                 };
             });
-            d.total = d.successOrFail[d.successOrFail.length - 1].y1;
+            d.total = d.resultCategories[d.resultCategories.length - 1].y1;
         });
 
         ns.x.domain(d3.extent(data, function(d) {
@@ -201,13 +218,38 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 return "translate(" + ns.x(d.eventTime) + ",0)";
             });
 
+        var tip = d3.tip()
+            .attr('class', 'd3-tip')
+            .attr('id', this.el.slice(1))
+            .html(function(d) {
+                return "<p>" + d.name + "<br>" + d.y1;
+            });
+
+        // Invoke the tip in the context of your visualization
+
+        ns.chart.call(tip);
+
+        // used below to determing whether to render as
+        // a "rect" or a "line"
+        var showOrHide = {
+            "Failure": true,
+            "Success": true,
+            "Virtual": false,
+            "Physical": false,
+            "Total": false,
+            "Used": true
+        };
+
         ns.event.selectAll("rect")
             .data(function(d) {
-                return d.successOrFail;
+                return d.resultCategories;
             })
             .enter().append("rect")
             .attr("width", function(d) {
-                return (ns.mw / data.length) - 0.2;
+                var segmentWidth = (ns.mw / data.length);
+                // spacing corrected
+                // for proportional gaps between rects
+                return segmentWidth - segmentWidth * 0.07;
             })
             .attr("y", function(d) {
                 return ns.y(d.y1);
@@ -219,11 +261,79 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .attr("stroke", function(d) {
                 return ns.color(d.name);
             })
-            .attr("stroke-opacity", 0.9)
-            .attr("fill-opacity", 0.7)
+            .attr("stroke-opacity", function(d) {
+                if (!showOrHide[d.name]) {
+                    return 0;
+                } else {
+                    return 0.9;
+                }
+            })
+            .attr("fill-opacity", function(d) {
+                if (!showOrHide[d.name]) {
+                    return 0;
+                } else {
+                    return 0.7;
+                }
+            })
             .attr("stroke-width", 2)
             .style("fill", function(d) {
                 return ns.color(d.name);
+            }).on('mouseenter', function(d, i) {
+                var targ = d3.select(self.el).select('rect');
+                tip.offset([0, 0]).show(d, targ);
+            }).on('mouseleave', function() {
+                tip.hide();
+            });
+
+        ns.event.selectAll("line")
+            .data(function(d) {
+                return d.resultCategories;
+            })
+            .enter().append("line")
+            .attr("x1", function(d) {
+                var segmentWidth = (ns.mw / data.length);
+                // makes the line solid
+                // don't adjust for very small data sets
+                if (data.length <= 3) {
+                    return 0;
+                } else {
+                    return segmentWidth * -0.17;
+                }
+            })
+            .attr("x2", function(d) {
+                var segmentWidth = (ns.mw / data.length);
+                // makes the line solid
+                // don't adjust for very small data sets
+                if (data.length <= 3) {
+                    return segmentWidth;
+                } else {
+                    return segmentWidth + segmentWidth * 0.17;
+                }
+            })
+            .attr("y1", function(d) {
+                return ns.y(d.y1);
+            })
+            .attr("y2", function(d) {
+                // horizontal line, so y1 === y2
+                return ns.y(d.y1);
+            })
+            .attr("stroke", function(d) {
+                // color of line
+                return ns.color(d.name);
+            })
+            .attr("stroke-width", function(d) {
+                // hide if data already used for "rect" above
+                if (showOrHide[d.name]) {
+                    return 0;
+                } else {
+                    return 2;
+                }
+            }).attr("stroke-dasharray", function(d) {
+                if (d.name === "Physical") {
+                    return "5, 3";
+                } else {
+                    return null;
+                }
             });
 
         var legendSpecs = {
@@ -238,7 +348,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 ['Used', 0]
             ],
             disk: [
-                ['Physical', 1],
+                ['Total', 1],
                 ['Used', 0]
             ],
             spawn: [

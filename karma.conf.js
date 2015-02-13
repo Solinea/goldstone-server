@@ -25,6 +25,7 @@ module.exports = function(config) {
             'goldstone/client/js/lib/backbone.js',
             'goldstone/client/js/lib/moment-with-locales.js',
             'goldstone/client/js/lib/moment-timezone-with-data-2010-2020.js',
+            'goldstone/client/js/models/goldstoneBaseModel.js',
             'goldstone/client/js/models/goldstoneColors.js',
             'goldstone/client/js/models/infoButtonText.js',
             'goldstone/client/js/views/chartHeaderView.js',
