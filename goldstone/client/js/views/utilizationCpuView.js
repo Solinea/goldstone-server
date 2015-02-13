@@ -185,16 +185,9 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         // after chart data callback
         this.hideSpinner();
 
+        // define allthelogs and ns.data even if
+        // rendering is halted due to empty data set
         var allthelogs = this.collectionPrep();
-
-        // If we didn't receive any valid files, append "No Data Returned"
-        if (this.checkReturnedDataSet(allthelogs) === false) {
-            return;
-        }
-
-        // remove No Data Returned once data starts flowing again
-        this.clearDataErrorMessage();
-
         ns.data = allthelogs;
 
         if (ns.featureSet === 'logEvents') {
@@ -202,6 +195,14 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                 .domain(["debug", "audit", "info", "warning", "error"])
                 .range(ns.colorArray.distinct[5]);
         }
+
+        // If we didn't receive any valid files, append "No Data Returned" and halt
+        if (this.checkReturnedDataSet(allthelogs) === false) {
+            return;
+        }
+
+        // remove No Data Returned once data starts flowing again
+        this.clearDataErrorMessage();
 
         ns.color.domain(d3.keys(ns.data[0]).filter(function(key) {
 
