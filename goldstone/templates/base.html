@@ -149,14 +149,26 @@
     <script src="{% static 'js/lib/d3.js' %}"></script>
     <script src="{% static 'js/lib/d3-tip.js' %}"></script>
     <script src="{% static 'js/lib/d3-legend.js' %}"></script>
+
+    <!-- backbone depends on underscore/jquery -->
     <script src="{% static 'js/lib/underscore.js' %}"></script>
     <script src="{% static 'js/lib/backbone.js' %}"></script>
     <script src="{% static 'js/lib/moment-with-locales.js' %}"></script>
     <script src="{% static 'js/lib/moment-timezone-with-data-2010-2020.js' %}"></script>
+    <!-- goldstoneBaseModel can be used as a super class if needed -->
+    <script src="{% static 'js/models/goldstoneBaseModel.js' %}"></script>
+
+    <!-- sets of distinct colors. colorblind-friendly  -->
     <script src="{% static 'js/models/goldstoneColors.js' %}"></script>
+
+    <!-- all text sets for chart info-buttons -->
     <script src="{% static 'js/models/infoButtonText.js' %}"></script>
+
+    <!-- loaded globally as it's used in almost every chart -->
     <script src="{% static 'js/views/chartHeaderView.js' %}"></script>
     <script src="{% static 'js/base.js' %}"></script>
+
+    <!-- backbone view super class loaded globally -->
     <script src="{% static 'js/views/goldstoneBaseView.js' %}"></script>
     {% block localjs %}
     {% endblock %}
