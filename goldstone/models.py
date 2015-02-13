@@ -20,7 +20,7 @@ from types import StringType
 import json
 import logging
 import pandas as pd
-from goldstone.apps.core.tasks import _create_daily_index
+from goldstone.apps.core.tasks import create_daily_index
 from goldstone.utils import NoDailyIndex
 
 logger = logging.getLogger(__name__)
@@ -94,7 +94,7 @@ class ESData(object):
         except IndexError:
             # if we can't find a goldstone index, let's just create one
             if prefix == 'goldstone':
-                _create_daily_index()
+                create_daily_index()
                 candidates = [k for k in
                               self._conn.indices.status()['indices'].keys() if
                               k.startswith(prefix + "-")]
