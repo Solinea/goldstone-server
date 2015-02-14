@@ -149,15 +149,21 @@ class ResourceViewSet(ReadOnlyModelViewSet):
         """
         from goldstone.utils import UnexpectedSearchResponse
 
-        if phys.empty:
-            # We shouldn't have a case where physical is empty, so raise an
-            # exception.
+        # Check all four combinations of physical being empty, and virtual
+        # being empty.
+        if phys.empty and virt.empty:
+            data = pd.DataFrame()
+            logger.debug("[_handle_phys_and_virt_responses] data is empty")
+
+        elif phys.empty:
+            # We shouldn't have a case where physical is empty, and virtual is
+            # not. Raise an exception.
             raise UnexpectedSearchResponse(
                 "[_handle_phys_and_virt_responses] no physical resource "
                 "statistics found")
 
-        elif virt.empty:
-            # Virtual data is empty.
+        elif not phys.empty and virt.empty:
+            # Physical has something, and Virtual data is empty.
             data = phys
             data.rename(columns={'total': 'total_phys'}, inplace=True)
             # Using a copy method to indicate that we know what we are
@@ -165,7 +171,7 @@ class ResourceViewSet(ReadOnlyModelViewSet):
             data = data[['timestamp', 'used', 'total_phys']].copy()
 
         else:
-            # Neither are empty, i.e., both exist.
+            # Neither are empty.
             phys.rename(columns={'total': 'total_phys'}, inplace=True)
             del virt['used']
             virt.rename(columns={'total': 'total_virt'}, inplace=True)
@@ -180,17 +186,16 @@ class ResourceViewSet(ReadOnlyModelViewSet):
                          'total_phys',
                          'total_virt']].copy()
 
-        # Either both exist, or only virtual is empty.
-        #
-        # For the used columns, we want to fill NaNs with the last
-        # non-zero value.
-        data['used'].fillna(method='pad', inplace=True)
-        data['total_phys'].fillna(method='pad', inplace=True)
+        # If we're returning some data...
+        if not data.empty:
+            # Fill NaNs with the last non-zero value for the used columns.
+            data['used'].fillna(method='pad', inplace=True)
+            data['total_phys'].fillna(method='pad', inplace=True)
 
-        logger.debug("[_handle_phys_and_virt_responses] data = %s",
-                     data)
-        # Make sure we're not sending any NaNs out the door.
-        data = data.set_index('timestamp').fillna(0)
+            logger.debug("[_handle_phys_and_virt_responses] data = %s", data)
+
+            # Make sure we're not sending any NaNs out the door.
+            data = data.set_index('timestamp').fillna(0)
 
         return Response(data.transpose().to_dict(outtype='list'))
 
