@@ -26,6 +26,7 @@ from elasticsearch import ElasticsearchException
 import pandas as pd
 import pytz
 from rest_framework import status
+from rest_framework.views import APIView
 
 from cinderclient.exceptions import AuthorizationFailure as CinderAuthException
 from cinderclient.openstack.common.apiclient.exceptions \
@@ -96,6 +97,8 @@ def validate(arg_list, context):
             except Exception:       # pylint: disable=W0703
                 validation_errors.append(BAD_PARAMETER % "interval")
 
+    # TODO: Once the render parameter is removed from the rest of the codebase,
+    # this if block can be deleted.
     if 'render' in arg_list:
         if context['render'] in ["True", "False"]:
             context['render'] = bool(context['render'])
@@ -149,7 +152,7 @@ class TopLevelView(TemplateView):
                                                 })
 
 
-class ApiPerfView(TemplateView):
+class ApiPerfView(APIView):
     """The base class for all app "ApiPerfView" views."""
 
     data = pd.DataFrame()
@@ -163,7 +166,20 @@ class ApiPerfView(TemplateView):
 
         return None
 
-    def _handle_request(self, context):
+    def get(self, request, *args, **kwargs):
+        """Return a response to a GET request."""
+
+        # Fetch and enhance this request's context.
+        context = {
+            # Use "now" if not provided. Validate() will calculate the start
+            # and interval. Arguments missing from the request are set to None.
+            'end':
+            request.query_params.get(
+                'end',
+                str(calendar.timegm(datetime.utcnow().timetuple()))),
+            'start': request.query_params.get('start'),
+            'interval': request.query_params.get('interval'),
+            }
 
         context = validate(['start', 'end', 'interval'], context)
 
@@ -171,53 +187,28 @@ class ApiPerfView(TemplateView):
             # validation error
             return context
 
-        logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
-        self.data = self._get_data(context)
-        logger.debug("[_handle_request] data = %s", self.data)
+        logger.debug("[get] start_dt = %s", context['start_dt'])
+        data = self._get_data(context)
+        logger.debug("[get] data = %s", data)
 
-        # good policy, but don't think it is required for this specific
+        # Good policy, but don't think it is required for this specific
         # dataset
-        if not self.data.empty:
-            self.data = self.data.fillna(0)
+        if not data.empty:
+            data = data.fillna(0)
 
-        # record output may be a bit bulkier, but easier to process by D3.
-        # keys appear to be in alphabetical order, so could use
-        # orient=values to trim it down, or pass it in a binary format
-        # if things get really messy.
-        response = self.data.to_json(orient='records')
-        logger.debug('[_handle_request] response = %s', json.dumps(response))
+        # Record output may be a bit bulkier, but easier to process by D3. Keys
+        # appear to be in alphabetical order, so we could use orient=values to
+        # trim it down, or pass it in a binary format if things get really
+        # messy.
+        response = data.to_json(orient='records')
+        logger.debug('[get] response = %s', json.dumps(response))
 
-        return response
-
-    def get_context_data(self, **kwargs):
-
-        context = TemplateView.get_context_data(self, **kwargs)
-
-        # Use "now" if not provided. Validate will calculate the start and
-        # interval.
-        context['end'] = self.request.GET.get('end', str(calendar.timegm(
-            datetime.utcnow().timetuple())))
-        context['start'] = self.request.GET.get('start', None)
-        context['interval'] = self.request.GET.get('interval', None)
-
-        return context
-
-    def render_to_response(self, context, **response_kwargs):
-        """
-        Overriding to handle case of data only request.  In
-        that case an application/json data payload is returned.
-        """
-        try:
-            response = self._handle_request(context)
-            if isinstance(response, HttpResponseBadRequest):
-                return response
-
-            return HttpResponse(json.dumps(response),
-                                content_type="application/json")
-        except ElasticsearchException:
-            return HttpResponse(content="Could not connect to the "
-                                        "search backend",
-                                status=status.HTTP_504_GATEWAY_TIMEOUT)
+        # Because we formatted the JSON string with columns and values via the
+        # "orient" argument, we already have the response in the desired
+        # format. So, we return a Django response instead of a DRF response.
+        return HttpResponse(response,
+                            content_type="application/json",
+                            status_code=200)
 
 
 class DiscoverView(TemplateView, TopologyMixin):
