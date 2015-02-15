@@ -339,16 +339,19 @@ class ApiPerfData(ESData):
         return query
 
     def get(self, start, end, interval):
-        """
+        """Return a pandas object that contains API performance data.
+
         :arg start: datetime used to filter the query range
         :arg end: datetime used to filter the query range
         :arg interval: string representation of the time interval to use when
                        aggregating the results.  Form should be something like
                        '1.5s'.
+        :rtype: pandas object
 
         Supported time postfixes are s, m, h, d, w, m.
 
         """
+
         assert type(start) is datetime, "start is not a datetime: %r" % \
                                         type(start)
         assert type(end) is datetime, "end is not a datetime: %r" % type(end)
@@ -385,10 +388,10 @@ class ApiPerfData(ESData):
 
             items.append(item)
 
-        logger.debug('[get] items = %s', json.dumps(items))
+        items = json.dumps(items)
 
-        result = pd.read_json(json.dumps(items), orient='records',
-                              convert_axes=False)
+        logger.debug('[get] items = %s', items)
+        result = pd.read_json(items, orient='records', convert_axes=False)
         logger.debug('[get] pd = %s', result)
 
         return result

@@ -14,12 +14,12 @@
 # limitations under the License.
 from django.conf.urls import patterns, url
 
-from .views import ReportView, AgentListApiPerfView
+from .views import ReportView, ApiPerfView
 
 urlpatterns = patterns(
     '',
     url(r'^report[/]?$', ReportView.as_view(),
         name='neutron-report-view'),
-    url(r'^api_perf[/]?$', AgentListApiPerfView.as_view(),
+    url(r'^api_perf[/]?$', ApiPerfView.as_view(),
         name='neutron-api-perf'),
 )

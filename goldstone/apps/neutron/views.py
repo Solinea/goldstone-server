@@ -1,3 +1,4 @@
+"""Neutron views."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -12,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from goldstone.views import TopLevelView, ApiPerfView
+from goldstone.views import TopLevelView, ApiPerfView as GoldstoneApiPerfView
 from .models import ApiPerfData
 import logging
 
@@ -23,9 +24,9 @@ class ReportView(TopLevelView):
     template_name = 'neutron_report.html'
 
 
-class AgentListApiPerfView(ApiPerfView):
-    my_template_name = 'neutron_api_perf.html'
+class ApiPerfView(GoldstoneApiPerfView):
 
     def _get_data(self, context):
-        return ApiPerfData().get(context['start_dt'], context['end_dt'],
+        return ApiPerfData().get(context['start_dt'],
+                                 context['end_dt'],
                                  context['interval'])
