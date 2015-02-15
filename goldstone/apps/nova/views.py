@@ -155,7 +155,7 @@ class ResourceViewSet(ReadOnlyModelViewSet):
             data = pd.DataFrame()
             logger.debug("[_handle_phys_and_virt_responses] data is empty")
 
-        elif phys.empty:
+        elif phys.empty and not virt.empty:
             # We shouldn't have a case where physical is empty, and virtual is
             # not. Raise an exception.
             raise UnexpectedSearchResponse(
@@ -171,7 +171,7 @@ class ResourceViewSet(ReadOnlyModelViewSet):
             data = data[['timestamp', 'used', 'total_phys']].copy()
 
         else:
-            # Neither are empty.
+            # The only combination left is that neither are empty.
             phys.rename(columns={'total': 'total_phys'}, inplace=True)
             del virt['used']
             virt.rename(columns={'total': 'total_virt'}, inplace=True)
