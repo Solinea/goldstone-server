@@ -153,7 +153,6 @@ class ApiPerfView(TemplateView):
     """The base class for all app "ApiPerfView" views."""
 
     data = pd.DataFrame()
-    my_template_name = None
 
     def _get_data(self, _):                # pylint: disable=R0201
         """Override in subclass.
@@ -166,7 +165,7 @@ class ApiPerfView(TemplateView):
 
     def _handle_request(self, context):
 
-        context = validate(['start', 'end', 'interval', 'render'], context)
+        context = validate(['start', 'end', 'interval'], context)
 
         if isinstance(context, HttpResponseBadRequest):
             # validation error
@@ -193,8 +192,6 @@ class ApiPerfView(TemplateView):
     def get_context_data(self, **kwargs):
 
         context = TemplateView.get_context_data(self, **kwargs)
-        context['render'] = self.request.GET.get('render', "True"). \
-            lower().capitalize()
 
         # Use "now" if not provided. Validate will calculate the start and
         # interval.
@@ -203,16 +200,11 @@ class ApiPerfView(TemplateView):
         context['start'] = self.request.GET.get('start', None)
         context['interval'] = self.request.GET.get('interval', None)
 
-        # If render is true, we return a full template, otherwise only
-        # a json data payload.
-        self.template_name = \
-            self.my_template_name if context['render'] == 'True' else None
-
         return context
 
     def render_to_response(self, context, **response_kwargs):
         """
-        Overriding to handle case of data only request (render=False).  In
+        Overriding to handle case of data only request.  In
         that case an application/json data payload is returned.
         """
         try:
@@ -220,13 +212,8 @@ class ApiPerfView(TemplateView):
             if isinstance(response, HttpResponseBadRequest):
                 return response
 
-            if self.template_name is None:
-                return HttpResponse(json.dumps(response),
-                                    content_type="application/json")
-
-            return TemplateView.render_to_response(
-                self, {'data': json.dumps(response), 'start': context['start'],
-                       'end': context['end'], 'interval': context['interval']})
+            return HttpResponse(json.dumps(response),
+                                content_type="application/json")
         except ElasticsearchException:
             return HttpResponse(content="Could not connect to the "
                                         "search backend",
