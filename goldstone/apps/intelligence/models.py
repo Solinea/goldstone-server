@@ -153,13 +153,12 @@ class LogData(ESData):
         """Return raw_string with lucene-reserved characters escaped."""
 
         RESERVED = ["+", "-" "!", "(", ")", "{", "}", "[", "]", '"',
-                    "~", ":", "\\", "/"]
+                    "~", ":", "\\", "/", "\000"]
 
         characters = list(raw_string)
 
         for i, entry in enumerate(raw_string):
             if entry in RESERVED:
-                # TODO: Will this ever be true?
                 characters[i] = "\\000" if entry == "\000" else "\\" + entry
 
         return raw_string[:0].join(characters)
