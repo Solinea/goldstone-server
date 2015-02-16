@@ -14,6 +14,23 @@
  * limitations under the License.
  */
 
+/*
+instantiated in logSearchView.js as:
+
+    this.logAnalysisCollection = new LogAnalysisCollection({});
+
+    this.logAnalysisView = new LogAnalysisView({
+        collection: this.logAnalysisCollection,
+        width: $('.log-analysis-container').width(),
+        height: 300,
+        el: '.log-analysis-container',
+        featureSet: 'logEvents',
+        chartTitle: 'Log Analysis',
+        urlRoot: "/intelligence/log/cockpit/data?",
+    });
+
+*/
+
 // extends UtilizationCpuView
 var LogAnalysisView = UtilizationCpuView.extend({
     defaults: {
