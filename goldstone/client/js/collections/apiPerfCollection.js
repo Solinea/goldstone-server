@@ -14,9 +14,20 @@
  * limitations under the License.
  */
 
+/*
+Instantiated similar to:
+
+this.novaApiPerfChart = new ApiPerfCollection({
+    urlPrefix: 'nova',
+});
+*/
+
 // define collection and link to model
 
 var ApiPerfModel = GoldstoneBaseModel.extend({
+
+    // sorts colleciton by 'key' which maps to timestamp
+    // in returned data payload
     idAttribute: 'key'
 });
 
