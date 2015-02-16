@@ -35,13 +35,14 @@ class EventType(MappingType, Indexable):
 
     @classmethod
     def search(cls):
-        s = super(EventType, cls).search().es(
-            urls=settings.ES_URLS, timeout=2, max_retries=1,
-            sniff_on_start=False)
-        return s
+        return super(EventType, cls).search().es(urls=settings.ES_URLS,
+                                                 timeout=2,
+                                                 max_retries=1,
+                                                 sniff_on_start=False)
 
     @classmethod
     def get_model(cls):
+
         return Event
 
     @classmethod
@@ -51,6 +52,7 @@ class EventType(MappingType, Indexable):
         type.  It is helpful to support the ordering requests in the view.
         The view will look at the type of a field and if it is a string, will
         use the associated .raw field for ordering."""
+
         return {
             'properties': {
                 'id': {'type': 'string'},
@@ -158,19 +160,22 @@ class Event(Model):
 class MetricType(MappingType, Indexable):
 
     @classmethod
+
     def search(cls):
-        s = super(MetricType, cls).search().es(
-            urls=settings.ES_URLS, timeout=2, max_retries=1,
-            sniff_on_start=False)
-        return s
+        return super(MetricType, cls).search().es(urls=settings.ES_URLS,
+                                                  timeout=2,
+                                                  max_retries=1,
+                                                  sniff_on_start=False)
 
     @classmethod
     def get_model(cls):
+
         return Metric
 
     @classmethod
     def get_mapping(cls):
         """Returns an Elasticsearch mapping for this MappingType"""
+
         return {
             'properties': {
                 'timestamp': {'type': 'date'},
@@ -183,6 +188,7 @@ class MetricType(MappingType, Indexable):
         }
 
     def get_object(self):
+
         return Metric.reconstitute(
             timestamp=self._results_dict['timestamp'],
             name=self._results_dict['name'],
@@ -233,18 +239,20 @@ class ReportType(MappingType, Indexable):
 
     @classmethod
     def search(cls):
-        s = super(ReportType, cls).search().es(
-            urls=settings.ES_URLS, timeout=2, max_retries=1,
-            sniff_on_start=False)
-        return s
+        return super(ReportType, cls).search().es(urls=settings.ES_URLS,
+                                                  timeout=2,
+                                                  max_retries=1,
+                                                  sniff_on_start=False)
 
     @classmethod
     def get_model(cls):
+
         return Report
 
     @classmethod
     def get_mapping(cls):
         """Returns an Elasticsearch mapping for this MappingType"""
+
         return {
             'properties': {
                 'timestamp': {'type': 'date'},
@@ -255,6 +263,7 @@ class ReportType(MappingType, Indexable):
         }
 
     def get_object(self):
+
         return Report.reconstitute(
             timestamp=self._results_dict['timestamp'],
             name=self._results_dict['name'],

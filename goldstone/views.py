@@ -155,8 +155,6 @@ class TopLevelView(TemplateView):
 class ApiPerfView(APIView):
     """The base class for all app "ApiPerfView" views."""
 
-    data = pd.DataFrame()
-
     def _get_data(self, _):                # pylint: disable=R0201
         """Override in subclass.
 
@@ -206,9 +204,7 @@ class ApiPerfView(APIView):
         # Because we formatted the JSON string with columns and values via the
         # "orient" argument, we already have the response in the desired
         # format. So, we return a Django response instead of a DRF response.
-        return HttpResponse(response,
-                            content_type="application/json",
-                            status_code=200)
+        return HttpResponse(response, content_type="application/json")
 
 
 class DiscoverView(TemplateView, TopologyMixin):
@@ -218,7 +214,7 @@ class DiscoverView(TemplateView, TopologyMixin):
     only one element, it will be used as the root node, otherwise a "cloud"
     resource will be constructed as the root.
 
-    caller should override "my_template_name" and define an init function
+    caller should override "template_name" and define an init function
     that pulls data from a subclass of model.TopologyData.
 
     A resource has the following structure:
@@ -233,6 +229,7 @@ class DiscoverView(TemplateView, TopologyMixin):
      }
 
     """
+
     template_name = 'goldstone_discover.html'
 
     def get_regions(self):
