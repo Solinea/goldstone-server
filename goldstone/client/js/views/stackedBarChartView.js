@@ -148,6 +148,39 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         return result;
     },
 
+    computeBarHeightPopover: function(d) {
+
+        // 'Failure/Success' is only used by Spawn viz
+        if (d.name === undefined) {
+            d.name = 'Missing name param';
+        }
+
+        // if no y0 or y1 val, don't try to do math on undefined
+        if (d.y0 === undefined || d.y1 === undefined) {
+            return "<p>" + d.name + "<br>" + "No value reported";
+        }
+
+        // don't create a tooltip for zero values
+        if (d.y0 === d.y1) {
+            return null;
+        }
+
+        // otherwise return a string in the format of
+        // "<p>Success<br>10"
+
+        if (d.name === 'Failure' || d.name === 'Success') {
+
+            // VM Spawn chart should only return the exact
+            // value represented by the individual rect
+            return "<p>" + d.name + "<br>" + (d.y1 - d.y0);
+        } else {
+
+            // the other charts should return the value
+            // represented by the top edge of the rect
+            return "<p>" + d.name + "<br>" + d.y1;
+        }
+    },
+
     update: function() {
 
         var ns = this.defaults;
@@ -222,7 +255,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .attr('class', 'd3-tip')
             .attr('id', this.el.slice(1))
             .html(function(d) {
-                return "<p>" + d.name + "<br>" + d.y1;
+                return self.computeBarHeightPopover(d);
             });
 
         // Invoke the tip in the context of your visualization
@@ -247,6 +280,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .enter().append("rect")
             .attr("width", function(d) {
                 var segmentWidth = (ns.mw / data.length);
+
                 // spacing corrected
                 // for proportional gaps between rects
                 return segmentWidth - segmentWidth * 0.07;
@@ -292,6 +326,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .enter().append("line")
             .attr("x1", function(d) {
                 var segmentWidth = (ns.mw / data.length);
+
                 // makes the line solid
                 // don't adjust for very small data sets
                 if (data.length <= 3) {
