@@ -58,10 +58,7 @@ var CpuResourceCollection = Backbone.Collection.extend({
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
-        this.url = ns.urlPrefix +  '?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval + '&render=false';
-
-        // outputs a url string similar to:
-        // /nova/hypervisor/cpu?start=1423678636&end=1423682236&interval=60s&render=false
+        this.url = ns.urlPrefix + '?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval;
     }
 
 });

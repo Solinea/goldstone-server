@@ -60,10 +60,7 @@ var DiskResourceCollection = Backbone.Collection.extend({
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
-        this.url = ns.urlPrefix + '?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval + '&render=false';
-
-        // generates a url string similar to:
-        // diskResourceCollection.js:36 /nova/hypervisor/disk?start=1423678806&end=1423682406&interval=60s&render=false
+        this.url = ns.urlPrefix + '?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval;
     }
 
 });

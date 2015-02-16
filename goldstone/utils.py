@@ -203,10 +203,13 @@ def get_client(service, user=settings.OS_USERNAME,
         raise GoldstoneAuthError("Unknown service")
 
 # These must be defined here, because they're based on get_client.
+# pylint: disable=C0103
 get_cinder_client = functools.partial(get_client, service='cinder')
 get_glance_client = functools.partial(get_client, service='glance')
 get_keystone_client = functools.partial(get_client, service='keystone')
 get_nova_client = functools.partial(get_client, service='nova')
+
+# pylint: enable=C0103
 
 
 def _is_v4_ip_addr(candidate):
@@ -455,7 +458,9 @@ def stored_api_call(component, endpt, path, headers=None, data=None,
 class TopologyMixin(object):
 
     def _get_children(self, d, rsrc_type):
-        assert (type(d) is dict or type(d) is list), "d must be a list or dict"
+
+        assert (isinstance(d, dict) or isinstance(d, list)), \
+            "d must be a list or dict"
         assert rsrc_type, "rsrc_type must have a value"
 
         if isinstance(d, list):
@@ -470,7 +475,7 @@ class TopologyMixin(object):
 
             result = [self._get_children(c, rsrc_type)
                       for c in d['children']]
-            if len(result) > 0 and type(result[0]) is list:
+            if result and isinstance(result[0], list):
                 # flatten it so we don't end up with nested lists
                 return [c for l in result for c in l]
             else:

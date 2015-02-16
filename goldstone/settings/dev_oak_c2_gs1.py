@@ -1,5 +1,5 @@
 """Development settings, with Elasticsearch remote and PostgreSQL local."""
-from .development import *
+from .development import *           # pylint: disable=W0614,W0401
 
 OS_USERNAME = 'admin'
 OS_TENANT_NAME = 'admin'

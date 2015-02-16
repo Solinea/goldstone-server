@@ -366,62 +366,65 @@ class NodeModelTests(SimpleTestCase):
 class EventModelTests(SimpleTestCase):
 
     def setUp(self):
-        es = Elasticsearch(settings.ES_SERVER)
 
-        if es.indices.exists('goldstone_model'):
-            es.indices.delete('goldstone_model')
+        server = Elasticsearch(settings.ES_SERVER)
 
-        es.indices.create('goldstone_model')
+        if server.indices.exists('goldstone_model'):
+            server.indices.delete('goldstone_model')
+
+        server.indices.create('goldstone_model')
 
     def test_create_model(self):
 
-        e1 = Event(event_type='test_event', message='this is a test event')
+        event = Event(event_type='test_event', message='this is a test event')
 
-        self.assertIsNotNone(e1.id)
-        self.assertEqual(e1.source_id, "")
-        self.assertEqual(e1.source_name, "")
-        self.assertNotEqual(e1.id, "")
-        self.assertIsNotNone(e1.created)
+        self.assertIsNotNone(event.id)
+        self.assertEqual(event.source_id, "")
+        self.assertEqual(event.source_name, "")
+        self.assertNotEqual(event.id, "")
+        self.assertIsNotNone(event.created)
 
     def test_index_model(self):
 
-        e1 = Event(event_type='test_event', message='this is a test event')
-        e1.save()
+        event = Event(event_type='test_event', message='this is a test event')
+        event.save()
 
         EventType.refresh_index()
 
         # pylint: disable=W0212
-        self.assertEqual(e1._mt.search().query().count(), 1)
+        self.assertEqual(event._mt.search().query().count(), 1)
 
-        stored = e1._mt.search().query(). \
-            filter(_id=e1.id)[:1]. \
+        stored = event._mt.search().query(). \
+            filter(_id=event.id)[:1]. \
             execute(). \
             objects[0]. \
             get_object()
 
-        self.assertEqual(stored.id, e1.id)
-        self.assertEqual(stored.event_type, e1.event_type)
-        self.assertEqual(stored.message, e1.message)
-        self.assertEqual(stored.created, e1.created)
+        self.assertEqual(stored.id, event.id)
+        self.assertEqual(stored.event_type, event.event_type)
+        self.assertEqual(stored.message, event.message)
+        self.assertEqual(stored.created, event.created)
 
     def test_unindex_model(self):
 
-        e1 = Event(event_type='test_event', message='this is a test event')
-        e1.save()
+        event = Event(event_type='test_event', message='this is a test event')
+        event.save()
 
         EventType.refresh_index()
         # pylint: disable=W0212
-        self.assertEqual(e1._mt.search().query().count(), 1)
+        self.assertEqual(event._mt.search().query().count(), 1)
 
-        e1.delete()
+        event.delete()
         EventType.refresh_index()
         self.assertEqual(EventType().search().query().count(), 0)
 
 
 class EventTypeTests(SimpleTestCase):
+
     def test_get_mapping(self):
-        m = EventType.get_mapping()
-        self.assertIs(type(m), dict)
+
+        result = EventType.get_mapping()
+        self.assertIs(type(result), dict)
 
 
 class EventSerializerTests(SimpleTestCase):
@@ -430,13 +433,18 @@ class EventSerializerTests(SimpleTestCase):
                    message='testing serialization')
 
     def setUp(self):
-        es = Elasticsearch(settings.ES_SERVER)
-        if es.indices.exists('goldstone_model'):
-            es.indices.delete('goldstone_model')
-        es.indices.create('goldstone_model')
+
+        server = Elasticsearch(settings.ES_SERVER)
+
+        if server.indices.exists('goldstone_model'):
+            server.indices.delete('goldstone_model')
+
+        server.indices.create('goldstone_model')
+
         self.event1.save()
 
     def test_serialize(self):
+
         ser = EventSerializer(self.event1)
         extract = EventType.extract_document(self.event1.id, self.event1)
 
@@ -458,10 +466,13 @@ class EventSerializerTests(SimpleTestCase):
 class EventViewTests(APISimpleTestCase):
 
     def setUp(self):
-        es = Elasticsearch(settings.ES_SERVER)
-        if es.indices.exists('goldstone_model'):
-            es.indices.delete('goldstone_model')
-        es.indices.create('goldstone_model')
+
+        server = Elasticsearch(settings.ES_SERVER)
+
+        if server.indices.exists('goldstone_model'):
+            server.indices.delete('goldstone_model')
+
+        server.indices.create('goldstone_model')
 
     def test_post(self):
         data = {
@@ -621,6 +632,7 @@ class EventViewTests(APISimpleTestCase):
 class MetricTypeTests(SimpleTestCase):
 
     def setUp(self):
+
         self.metric1 = Metric(id=str(uuid4()),
                               timestamp=arrow.utcnow().datetime,
                               name="metric1",
@@ -630,12 +642,14 @@ class MetricTypeTests(SimpleTestCase):
                               node="")
 
     def test_get_mapping(self):
-        m = MetricType.get_mapping()
-        self.assertIs(type(m), dict)
+
+        result = MetricType.get_mapping()
+        self.assertIs(type(result), dict)
 
     def test_get_model(self):
-        o = MetricType.get_model()
-        self.assertEqual(o.__name__, "Metric")
+
+        result = MetricType.get_model()
+        self.assertEqual(result.__name__, "Metric")
 
 
 class MetricTests(SimpleTestCase):
@@ -666,15 +680,19 @@ class MetricTests(SimpleTestCase):
 class MetricViewTests(APISimpleTestCase):
 
     def setUp(self):
+
         es = Elasticsearch(settings.ES_SERVER)
+
         if es.indices.exists('goldstone_agent'):
             es.indices.delete('goldstone_agent')
         es.indices.create('goldstone_agent')
+
         es.index('goldstone_agent', 'core_metric', {
             'timestamp': arrow.utcnow().timestamp * 1000,
             'name': 'test.test.metric',
             'value': 'test value',
             'node': ''})
+
         es.index('goldstone_agent', 'core_metric', {
             'timestamp': arrow.utcnow().timestamp * 1000,
             'name': 'test.test.metric2',
@@ -704,6 +722,7 @@ class MetricViewTests(APISimpleTestCase):
 class ReportTypeTest(SimpleTestCase):
 
     def setUp(self):
+
         self.metric1 = Metric(id=str(uuid4()),
                               timestamp=arrow.utcnow().datetime,
                               name="metric1",
@@ -713,12 +732,14 @@ class ReportTypeTest(SimpleTestCase):
                               node="")
 
     def test_get_mapping(self):
-        m = ReportType.get_mapping()
-        self.assertIs(type(m), dict)
+
+        result = ReportType.get_mapping()
+        self.assertIs(type(result), dict)
 
     def test_get_model(self):
-        o = ReportType.get_model()
-        self.assertEqual(o.__name__, "Report")
+
+        result = ReportType.get_model()
+        self.assertEqual(result.__name__, "Report")
 
 
 class ReportTest(SimpleTestCase):
@@ -790,23 +811,26 @@ class ReportViewTests(APISimpleTestCase):
 
     def setUp(self):
 
-        es = Elasticsearch(settings.ES_SERVER)
+        server = Elasticsearch(settings.ES_SERVER)
 
-        if es.indices.exists('goldstone_agent'):
-            es.indices.delete('goldstone_agent')
+        if server.indices.exists('goldstone_agent'):
+            server.indices.delete('goldstone_agent')
 
-        es.indices.create('goldstone_agent')
+        server.indices.create('goldstone_agent')
 
-        es.index('goldstone_agent', 'core_report', {
-            'timestamp': arrow.utcnow().timestamp * 1000,
-            'name': 'test.test.report',
-            'value': 'test value',
-            'node': ''})
-        es.index('goldstone_agent', 'core_report', {
-            'timestamp': arrow.utcnow().timestamp * 1000,
-            'name': 'test.test.report2',
-            'value': 'test value',
-            'node': ''})
+        server.index('goldstone_agent',
+                     'core_report',
+                     {'timestamp': arrow.utcnow().timestamp * 1000,
+                      'name': 'test.test.report',
+                      'value': 'test value',
+                      'node': ''})
+
+        server.index('goldstone_agent',
+                     'core_report',
+                     {'timestamp': arrow.utcnow().timestamp * 1000,
+                      'name': 'test.test.report2',
+                      'value': 'test value',
+                      'node': ''})
 
     def test_post(self):
 

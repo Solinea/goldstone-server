@@ -42,20 +42,24 @@ logger = logging.getLogger(__name__)
 def nova_hypervisors_stats(self):
     from novaclient.v1_1 import client
 
-    nt = client.Client(settings.OS_USERNAME, settings.OS_PASSWORD,
-                       settings.OS_TENANT_NAME, settings.OS_AUTH_URL,
-                       service_type="compute")
-    response = nt.hypervisors.statistics()._info    # pylint: disable=W0212
+    novaclient = client.Client(settings.OS_USERNAME,
+                               settings.OS_PASSWORD,
+                               settings.OS_TENANT_NAME,
+                               settings.OS_AUTH_URL,
+                               service_type="compute")
+    response = \
+        novaclient.hypervisors.statistics()._info     # pylint: disable=W0212
 
-    t = datetime.utcnow()
-    response['@timestamp'] = t.strftime(
-        "%Y-%m-%dT%H:%M:%S." + str(int(round(t.microsecond/1000))) + "Z")
+    now = datetime.utcnow()
+    response['@timestamp'] = now.strftime(
+        "%Y-%m-%dT%H:%M:%S." + str(int(round(now.microsecond/1000))) + "Z")
+
     response['task_id'] = self.request.id
 
     hvdb = HypervisorStatsData()
-    id = hvdb.post(response)
+    hvdbid = hvdb.post(response)
 
-    logger.debug("[hypervisor_stats] id = %s", id)
+    logger.debug("[hypervisor_stats] id = %s", hvdbid)
 
 
 @celery_app.task(bind=True)

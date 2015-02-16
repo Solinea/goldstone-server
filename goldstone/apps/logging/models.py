@@ -11,13 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json
-import arrow
-from django.conf import settings
-
 import logging
-from elasticsearch import ElasticsearchException
-from pyes import BoolQuery, RangeQuery, ESRangeOp
 from goldstone.models import ESData
 
 logger = logging.getLogger(__name__)
@@ -34,6 +28,12 @@ class LoggingNodeStats(ESData):
         :param end_time: arrow time
         :return:
         """
+        import arrow
+        import json
+        from django.conf import settings
+        from elasticsearch import ElasticsearchException
+        from pyes import BoolQuery, RangeQuery, ESRangeOp
+
         self.end_time = arrow.utcnow() if \
             end_time is None else end_time
 
@@ -48,7 +48,7 @@ class LoggingNodeStats(ESData):
                 "lte", self.end_time.isoformat())),
         ]).serialize()
 
-        _aggs_value = {
+        aggs_value = {
             "by_host": {
                 "terms": {
                     "field": "host.raw"
@@ -64,19 +64,17 @@ class LoggingNodeStats(ESData):
             }
         }
 
-        query = {
-            "query": _query_value,
-            "aggs": _aggs_value
-        }
+        query = {"query": _query_value, "aggs": aggs_value}
 
         logger.debug("query = %s", json.dumps(query))
 
         try:
-            rs = self._conn.search(
-                index=self.get_index_names('logstash-'), doc_type="syslog",
-                body=query, size=0)
+            result = self._conn.search(index=self.get_index_names('logstash-'),
+                                       doc_type="syslog",
+                                       body=query,
+                                       size=0)
 
-            self._stats = rs["aggregations"]["by_host"]["buckets"]
+            self._stats = result["aggregations"]["by_host"]["buckets"]
 
         except ElasticsearchException:
             logger.exception("error connecting to ES")
@@ -85,10 +83,9 @@ class LoggingNodeStats(ESData):
     def for_node(self, name):
 
         nodes = [x for x in self._stats if x['key'] == name]
-        if len(nodes) > 0:
-            return dict(
-                (bucket['key'], bucket['doc_count'])
-                for bucket in nodes[0]['by_level']['buckets']
-            )
-        else:
-            return {}
+
+        # N.B. Dictionary comprehensions do not exist in Python 2.6, so we must
+        # use the old-fashioned technique.
+        return dict((bucket['key'], bucket['doc_count'])
+                    for bucket in nodes[0]['by_level']['buckets']) \
+            if nodes else {}

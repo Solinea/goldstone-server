@@ -1,4 +1,4 @@
-"""Nova test views."""
+"""Nova view unit tests."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -24,18 +24,18 @@ import pandas as pd
 
 from django.test import SimpleTestCase
 from django.utils.unittest.case import skip
-from goldstone.apps.nova.views import SpawnsView
 from .models import SpawnData
 from datetime import datetime
 from mock import patch
-
+from rest_framework.test import APITestCase
 
 logger = logging.getLogger(__name__)
 
 
-class NovaSpawnsViewTest(SimpleTestCase):
+class BaseTest(SimpleTestCase):
+    """A base class that provides common attributes and utility methods."""
 
-    # view requires a start_ts, end_ts, and interval string
+    # Define commonly used date/time and interval values.
     valid_start = str(calendar.timegm(
         datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))
     valid_end = str(calendar.timegm(
@@ -45,106 +45,103 @@ class NovaSpawnsViewTest(SimpleTestCase):
     invalid_end = '999999999999'
     invalid_interval = 'abc'
 
-    def test_with_explicit_render(self):
-        url = '/nova/hypervisor/spawns?start=' + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=true"
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'spawns.html')
-
-    def test_with_implicit_render(self):
-        url = '/nova/hypervisor/spawns?start=' + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'spawns.html')
-
-    def _test_no_render_success(self, url):
+    def _assert_success(self, url):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
-    def _test_no_render_bad_request(self, url):
+    def _assert_bad_request(self, url):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 400)
 
-    def test_no_render(self):
-        url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=false"
-        self._test_no_render_success(url)
 
-    def test_no_start(self):
-        url = "/nova/hypervisor/spawns?end=" + self.valid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=false"
-        self._test_no_render_success(url)
+class SpawnsApiPerfViewsTest(BaseTest):
+    """Test /nova/hypervisor/spawns and /nova/api_perf views."""
+
+    # The test URL bases.
+    URLS_START = ["/nova/hypervisor/spawns?start=", "/nova/api_perf?start="]
+    URLS_END = ["/nova/hypervisor/spawns?end=", "/nova/api_perf?end="]
+
+    def test_good_request(self):
+
+        for entry in self.URLS_START:
+            url = entry + self.valid_start + \
+                "&end=" + self.valid_end + \
+                "&interval=" + self.valid_interval
+            self._assert_success(url)
 
     def test_no_end(self):
-        url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
-            "&interval=" + self.valid_interval + \
-            "&render=false"
-        self._test_no_render_success(url)
+
+        for entry in self.URLS_START:
+            url = entry + self.valid_start + "&interval=" + self.valid_interval
+            self._assert_success(url)
 
     def test_no_interval(self):
-        url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&render=false"
-        self._test_no_render_success(url)
+
+        for entry in self.URLS_START:
+            url = entry + self.valid_start + "&end=" + self.valid_end
+            self._assert_success(url)
+
+    def test_no_start(self):
+
+        for entry in self.URLS_END:
+            url = entry + self.valid_end + "&interval=" + self.valid_interval
+            self._assert_success(url)
 
     def test_invalid_start(self):
-        url = "/nova/hypervisor/spawns?start=" + self.invalid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=false"
-        self._test_no_render_bad_request(url)
+
+        for entry in self.URLS_START:
+            url = entry + self.invalid_start + \
+                "&end=" + self.valid_end + \
+                "&interval=" + self.valid_interval
+            self._assert_bad_request(url)
 
     def test_invalid_finish(self):
-        url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
-            "&end=" + self.invalid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=false"
-        self._test_no_render_bad_request(url)
+
+        for entry in self.URLS_START:
+            url = entry + self.valid_start + \
+                "&end=" + self.invalid_end + \
+                "&interval=" + self.valid_interval
+            self._assert_bad_request(url)
 
     def test_invalid_interval(self):
-        url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.invalid_interval + \
-            "&render=false"
-        self._test_no_render_bad_request(url)
 
-    def test_invalid_render(self):
-        url = "/nova/hypervisor/spawns?start=" + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=xyz"
-        self._test_no_render_bad_request(url)
+        for entry in self.URLS_START:
+            url = entry + self.valid_start + \
+                "&end=" + self.valid_end + \
+                "&interval=" + self.invalid_interval
+            self._assert_bad_request(url)
+
+
+class SpawnsHandleRequest(APITestCase):
 
     @patch.object(SpawnData, 'get_spawn_success')
     @patch.object(SpawnData, 'get_spawn_failure')
-    @patch('goldstone.apps.nova.views._validate')
+    @patch('goldstone.apps.nova.views.validate')
     def test_handle_request(self, val, gsf, gss):
+        """Ensure that the spawn data format is correct for all cases.
+
+        We do not use the reverse() function, because DRF ViewSets appear to
+        not hook URLs up so that reverse() can find them.
+
         """
-        ensure that the spawn data format is correct for all cases
-        """
-        test_df = pd.read_json(json.dumps([
-            {u'key_as_string': u'2015-02-05T19:50:00.000Z',
-             u'key': 1423165800000, u'doc_count': 1}
-        ]), orient='records')
-        val.return_value = {
-            'start_dt': arrow.utcnow().isoformat(),
-            'end_dt': arrow.utcnow().isoformat(),
-            'interval': '1m'}
+
+        # Set up validate() return value.
+        val.return_value = {'start_dt': arrow.utcnow().isoformat(),
+                            'end_dt': arrow.utcnow().isoformat(),
+                            'interval': '1m'}
+
+        # Set up the request URL and dummy query string values. The query
+        # string doesn't matter, since validate() is mocked out.
+        url = "/nova/hypervisor/spawns"
+        data = {"foo": "bar"}
 
         # no spawns
         gsf.return_value = pd.DataFrame()
         gss.return_value = pd.DataFrame()
-        view = SpawnsView()
-        response = view._handle_request(val)
-        self.assertEqual(response, {})
+
+        response = self.client.get(url, data, format='json')
+        self.assertEqual(response.data, {})          # pylint: disable=E1101
+        self.assertEqual(response.status_code, 200)
 
         # 1 successful spawns, 2 failed
         gss.return_value = pd.read_json(json.dumps([
@@ -153,148 +150,43 @@ class NovaSpawnsViewTest(SimpleTestCase):
         gsf.return_value = pd.read_json(json.dumps([
             {u'timestamp': 1423165800000, u'failures': 2}
         ]), orient='records')
-        response = view._handle_request(val)
-        self.assertEqual(response, {1423165800000: [1, 2]})
+        response = self.client.get(url, data, format='json')
+        self.assertEqual(response.data,                # pylint: disable=E1101
+                         {1423165800000: [1, 2]})
+        self.assertEqual(response.status_code, 200)
 
         # 0 successful spawns, 2 failed spawns
         gss.return_value = pd.DataFrame()
-        response = view._handle_request(val)
-        self.assertEqual(response, {1423165800000: [0, 2]})
+        response = self.client.get(url, data, format='json')
+        self.assertEqual(response.data,                 # pylint: disable=E1101
+                         {1423165800000: [0, 2]})
+        self.assertEqual(response.status_code, 200)
 
         # 1 successful spawns, 0 failed spawns
-        gss.return_value = pd.read_json(json.dumps([
-            {u'timestamp': 1423165800000, u'successes': 1}
-        ]), orient='records')
+        gss.return_value = \
+            pd.read_json(json.dumps([{u'timestamp': 1423165800000,
+                                      u'successes': 1}]),
+                         orient='records')
         gsf.return_value = pd.DataFrame()
-        response = view._handle_request(val)
-        self.assertEqual(response, {1423165800000: [1, 0]})
-
-
-class NovaApiPerfViewTest(SimpleTestCase):
-    # view requires a start_ts, end_ts, and interval string
-    valid_start = str(calendar.timegm(
-        datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))
-    valid_end = str(calendar.timegm(
-        datetime.now(tz=pytz.utc).utctimetuple()))
-    valid_interval = '3600s'
-    invalid_start = '999999999999'
-    invalid_end = '999999999999'
-    invalid_interval = 'abc'
-
-    def test_with_explicit_render(self):
-        url = '/nova/api_perf?start=' + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=true"
-        response = self.client.get(url)
+        response = self.client.get(url, data, format='json')
+        self.assertEqual(response.data,                 # pylint: disable=E1101
+                         {1423165800000: [1, 0]})
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'nova_api_perf.html')
-
-    def test_with_implicit_render(self):
-        url = '/nova/api_perf?start=' + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'nova_api_perf.html')
-
-    def _test_no_render_success(self, url):
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-
-    def _test_no_render_bad_request(self, url):
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 400)
-
-    def test_no_render(self):
-        url = "/nova/api_perf?start=" + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=false"
-        self._test_no_render_success(url)
-
-    def test_no_start(self):
-        url = "/nova/api_perf?end=" + self.valid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=false"
-        self._test_no_render_success(url)
-
-    def test_no_end(self):
-        url = "/nova/api_perf?start=" + self.valid_start + \
-            "&interval=" + self.valid_interval + \
-            "&render=false"
-        self._test_no_render_success(url)
-
-    def test_no_interval(self):
-        url = "/nova/api_perf?start=" + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&render=false"
-        self._test_no_render_success(url)
-
-    def test_invalid_start(self):
-        url = "/nova/api_perf?start=" + self.invalid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=false"
-        self._test_no_render_bad_request(url)
-
-    def test_invalid_finish(self):
-        url = "/nova/api_perf?start=" + self.valid_start + \
-            "&end=" + self.invalid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=false"
-        self._test_no_render_bad_request(url)
-
-    def test_invalid_interval(self):
-        url = "/nova/api_perf?start=" + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.invalid_interval + \
-            "&render=false"
-        self._test_no_render_bad_request(url)
-
-    def test_invalid_render(self):
-        url = "/nova/api_perf?start=" + self.valid_start + \
-            "&end=" + self.valid_end + \
-            "&interval=" + self.valid_interval + \
-            "&render=xyz"
-        self._test_no_render_bad_request(url)
 
 
 class LatestStatsViewTest(SimpleTestCase):
 
-    def test_no_render(self):
-        uri = '/nova/hypervisor/latest-stats?render=false'
+    def test_good_request(self):
+
+        uri = '/nova/hypervisor/latest-stats'
+
         response = self.client.get(uri)
+
         self.assertEqual(response.status_code, 200)
-        logger.debug("[test_no_render] response = %s",
-                     response.content)
         self.assertNotEqual(json.loads(response.content), [])
 
-    def test_with_render(self):
-        uri = '/nova/hypervisor/latest-stats?render=true'
-        response = self.client.get(uri)
-        self.assertEqual(response.status_code, 200)
-        logger.debug("[test_with_render] response = %s",
-                     response.content)
 
-    def test_default_render(self):
-        uri = '/nova/hypervisor/latest-stats'
-        response = self.client.get(uri)
-        self.assertEqual(response.status_code, 200)
-        logger.debug("[test_default_render] response = %s",
-                     response.content)
-
-
-class ResourceViewTest(SimpleTestCase):
-    # view requires a start_ts, end_ts, and interval string
-    valid_start = str(calendar.timegm(
-        datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))
-    valid_end = str(calendar.timegm(
-        datetime.now(tz=pytz.utc).utctimetuple()))
-    valid_interval = '3600s'
-    invalid_start = '999999999999'
-    invalid_end = '999999999999'
-    invalid_interval = 'abc'
+class ResourceViewTest(BaseTest):
 
     # TODO fix or remove this test
     @skip('TODO')
@@ -354,8 +246,10 @@ class ResourceViewTest(SimpleTestCase):
 class DataViewTests(SimpleTestCase):
 
     def _evaluate(self, response):
+
         self.assertIsInstance(response, HttpResponse)
-        self.assertNotEqual(response.content, None)
+        self.assertIsNotNone(response.content)
+
         try:
             j = json.loads(response.content)
         except Exception:             # pylint: disable=W0703
