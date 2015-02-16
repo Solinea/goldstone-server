@@ -25,8 +25,8 @@ from goldstone.apps.core.models import Event, Node
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
-def process_host_stream(self, host):
+@celery_app.task(rate_limit='100/s', expires=5, time_limit=1)
+def process_host_stream(host):
     """Read a list of host names from the incoming message on the host_stream
     queue, and create or update an associated node in the model.
 
