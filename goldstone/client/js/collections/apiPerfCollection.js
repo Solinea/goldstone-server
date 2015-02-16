@@ -25,7 +25,7 @@ var ApiPerfCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        return JSON.parse(data);
+        return data;
     },
 
     model: ApiPerfModel,
