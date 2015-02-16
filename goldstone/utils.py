@@ -199,7 +199,8 @@ def get_client(service, user=settings.OS_USERNAME,
                 service_id=keystoneclient.services.find(name='glance').id)\
                 .internalurl
             region = _get_region_for_glance_client(keystoneclient)
-            client = glclient.Client(endpoint=mgmt_url, token=keystoneclient.auth_token)
+            client = glclient.Client(endpoint=mgmt_url,
+                                     token=keystoneclient.auth_token)
             return {'client': client, 'region': region}
 
         except KeystoneUnauthorized:

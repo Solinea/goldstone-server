@@ -160,7 +160,6 @@ class Event(Model):
 class MetricType(MappingType, Indexable):
 
     @classmethod
-
     def search(cls):
         return super(MetricType, cls).search().es(urls=settings.ES_URLS,
                                                   timeout=2,
