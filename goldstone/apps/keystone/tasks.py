@@ -54,7 +54,7 @@ def time_keystone_api(self):
     return {'id': rec_id, 'record': rec}
 
 
-def _update_keystone_records(rec_type, region, db, items):
+def _update_keystone_records(rec_type, region, database, items):
     import pytz
 
     # image list is a generator, so we need to make it not sol lazy it...
@@ -62,7 +62,7 @@ def _update_keystone_records(rec_type, region, db, items):
             "region": region,
             rec_type: [item.to_dict() for item in items]}
     try:
-        db.post(body)
+        database.post(body)
     except Exception:           # pylint: disable=W0703
         logging.exception("failed to index keystone %s", rec_type)
 

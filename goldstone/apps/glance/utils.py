@@ -14,7 +14,7 @@
 # limitations under the License.
 from goldstone.apps.glance.models import ImagesData
 from goldstone.utils import _get_region_for_glance_client, NoResourceFound, \
-    GoldstoneAuthError, TopologyMixin
+    TopologyMixin
 
 
 class DiscoverTree(TopologyMixin):
@@ -28,23 +28,25 @@ class DiscoverTree(TopologyMixin):
     def get_regions(self):
         from goldstone.utils import get_client
 
-        kc = get_client(service='keystone')['client']
-        r = _get_region_for_glance_client(kc)
-        return [{"rsrcType": "region", "label": r}]
+        keystone = get_client(service='keystone')['client']
+        return [{"rsrcType": "region",
+                 "label": _get_region_for_glance_client(keystone)}]
 
     def _populate_regions(self):
+
         result = []
         updated = self.images[0]['_source']['@timestamp']
-        for r in self._get_image_regions():
+
+        for region in self._get_image_regions():
             result.append(
                 {"rsrcType": "region",
-                 "label": r,
+                 "label": region,
                  "info": {"last_updated": updated},
                  "children": [
                      {
                          "rsrcType": "images-leaf",
                          "label": "images",
-                         "region": r,
+                         "region": region,
                          "info": {
                              "last_update": updated
                          }
@@ -55,20 +57,19 @@ class DiscoverTree(TopologyMixin):
         return result
 
     def build_topology_tree(self):
+
         try:
             if self.images is None or len(self.images) == 0:
-                raise NoResourceFound(
-                    "No glance images found in database")
+                raise NoResourceFound("No glance images found in database")
 
-            rl = self._populate_regions()
+            regions = self._populate_regions()
 
-            if len(rl) > 1:
-                return {"rsrcType": "cloud", "label": "Cloud", "children": rl}
+            if len(regions) > 1:
+                return {"rsrcType": "cloud",
+                        "label": "Cloud",
+                        "children": regions}
             else:
-                return rl[0]
+                return regions[0]
 
         except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
-
-        except GoldstoneAuthError:
-            raise

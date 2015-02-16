@@ -50,38 +50,44 @@ class NovaClientData(ESData):
         :return array of records
 
         """
+
         query = ESData._filtered_query_base()
         query['query']['filtered']['query'] = {'match_all': {}}
         query['query']['filtered']['filter'] = ESData._range_clause(
             '@timestamp',
             start.isoformat(),
             end.isoformat())
+
         sort_str = '@timestamp:' + sort
         logger.debug("[get_date_range] query = %s", json.dumps(query))
+
         response = self._conn.search(index="_all",
                                      doc_type=self._DOC_TYPE,
                                      body=query, size=count, from_=first,
                                      sort=sort_str)
         logger.debug("[get_date_range] response = %s", json.dumps(response))
-        if len(response['hits']['hits']) > 0:
+
+        if response['hits']['hits']:
             logger.debug("[get] response = %s", json.dumps(response))
             return [h['_source'] for h in response['hits']['hits']]
         else:
             return []
 
     def get(self, count=1):
-        """
-        get the last count records from the database.
+        """Return the last <count> records from the database.
+
         :arg count: number of records to return
-        :return array of records
+        :return: array of records
+
         """
+
         query = {'query': {'match_all': {}}}
         response = self._conn.search(index="_all",
                                      doc_type=self._DOC_TYPE,
                                      body=query, size=count,
                                      sort='@timestamp:desc')
 
-        if len(response['hits']['hits']) > 0:
+        if response['hits']['hits']:
             logger.debug("[get] response = %s", json.dumps(response))
             return [response['hits']['hits'][0]['_source']]
         else:
@@ -93,9 +99,11 @@ class NovaClientData(ESData):
         :arg body: record body as JSON object
         :return id of the inserted record
         """
+
         response = self._conn.create(
             ESData._get_latest_index(self, self._INDEX_PREFIX),
             self._DOC_TYPE, body, refresh=True)
+
         logger.debug('[post] response = %s', json.dumps(response))
         return response['_id']
 
@@ -105,6 +113,7 @@ class NovaClientData(ESData):
         :arg doc_id: the id of the doc as returned by post
         :return bool
         """
+
         query = ESData._query_base()
         query['query'] = ESData._term_clause("_id", doc_id)
         response = self._conn.delete_by_query("_all", self._DOC_TYPE,
@@ -120,6 +129,8 @@ class NovaClientData(ESData):
 
 
 class HypervisorStatsData(NovaClientData):
+    """The pseudo model for hypervisor statistics."""
+
     _INDEX_PREFIX = 'goldstone'
     _DOC_TYPE = 'nova_hypervisor_stats'
 
@@ -306,16 +317,22 @@ class ResourceData(ESData):
         return query
 
     def _get_resource(self, resource_type, resource, custom_field):
-        q = self._claims_resource_query(resource_type, resource)
-        logger.debug('query = %s', json.dumps(q))
+
+        query = self._claims_resource_query(resource_type, resource)
+        logger.debug('query = %s', json.dumps(query))
 
         index = ",".join(self.get_index_names('goldstone-'))
-        r = self._conn.search(index=index, body=q, size=0,
-                              doc_type=self._DOC_TYPE)
+        result = self._conn.search(index=index,
+                                   body=query,
+                                   size=0,
+                                   doc_type=self._DOC_TYPE)
 
-        logger.debug('[_get_resource] search response = = %s', json.dumps(r))
+        logger.debug('[_get_resource] search response = %s',
+                     json.dumps(result))
+
         items = []
-        for date_bucket in r['aggregations']['events_by_date']['buckets']:
+
+        for date_bucket in result['aggregations']['events_by_date']['buckets']:
             logger.debug("[_get_resource] processing date_bucket: %s",
                          json.dumps(date_bucket))
             item = {'timestamp': date_bucket['key'],
@@ -343,10 +360,13 @@ class ResourceData(ESData):
             items.append(item)
 
         logger.debug('[_get_resource] items = %s', json.dumps(items))
-        result = pd.read_json(json.dumps(items), orient='records',
+
+        result = pd.read_json(json.dumps(items),
+                              orient='records',
                               convert_axes=False)
 
         logger.debug('[_get_resource] pd = %s', result)
+
         return result
 
     def get_phys_cpu(self):

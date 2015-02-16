@@ -42,18 +42,23 @@ logger = logging.getLogger(__name__)
 
 
 def _parse_timestamp(stamp, zone=pytz.utc):
+
     try:
         result = datetime.fromtimestamp(int(stamp), tz=zone)
         logger.debug("[_parse_timestamp] dt = %s", str(result))
         return result
+
     except Exception:                  # pylint: disable=W0703
         logger.debug("[_parse_timestamp] timestamp creation failed.")
         return None
 
 
-def _validate(arg_list, context):
-    """Validate an argument list within a particular context, and return either
-    HttpResponseBadRequest or the updated context."""
+def validate(arg_list, context):
+    """Validate an argument list within a particular context, and return
+    an updated context or HttpResponseBadRequest."""
+
+    # A "bad parameter" message string.
+    BAD_PARAMETER = "malformed parameter [%s]"
 
     context = context.copy()
     validation_errors = []
@@ -61,7 +66,7 @@ def _validate(arg_list, context):
     context['end_dt'] = _parse_timestamp(context['end'])
 
     if context['end_dt'] is None:
-        validation_errors.append('malformed parameter [end]')
+        validation_errors.append(BAD_PARAMETER % "end")
     elif 'start' in arg_list:
         if context['start'] is None:
             delta = timedelta(days=settings.DEFAULT_LOOKBACK_DAYS)
@@ -71,7 +76,7 @@ def _validate(arg_list, context):
         else:
             context['start_dt'] = _parse_timestamp(context['start'])
             if context['start_dt'] is None:
-                validation_errors.append('malformed parameter [start]')
+                validation_errors.append(BAD_PARAMETER % "start")
 
     if 'interval' in arg_list:
         if context['interval'] is None:
@@ -85,17 +90,17 @@ def _validate(arg_list, context):
                 delta_secs / settings.DEFAULT_CHART_BUCKETS) + "s"
         elif context['interval'][-1] != 's':
             validation_errors.append(
-                'malformed parameter [interval], valid example is 3600.0s')
+                BAD_PARAMETER % "interval" + ", valid example is 3600.0s")
             try:
                 int(context['interval'][:-1])
             except Exception:       # pylint: disable=W0703
-                validation_errors.append('malformed parameter [interval]')
+                validation_errors.append(BAD_PARAMETER % "interval")
 
     if 'render' in arg_list:
-        if context['render'] not in ["True", "False"]:
-            validation_errors.append('malformed parameter [render]')
-        else:
+        if context['render'] in ["True", "False"]:
             context['render'] = bool(context['render'])
+        else:
+            validation_errors.append(BAD_PARAMETER % "render")
 
     # Return HttpResponseBadRequest if there were validation errors,
     # otherwise return the context.
@@ -118,8 +123,8 @@ class TopLevelView(TemplateView):
 
         context = TemplateView.get_context_data(self, **kwargs)
 
-        # Use "now" if not provided. _validate will calculate the
-        # start and interval.
+        # Use "now" if not provided. Validate will calculate the start and
+        # interval.
         context['end'] = \
             self.request.GET.get('end',
                                  str(calendar.timegm(
@@ -131,7 +136,7 @@ class TopLevelView(TemplateView):
 
     def render_to_response(self, context, **response_kwargs):
 
-        context = _validate(['start', 'end', 'interval'], context)
+        context = validate(['start', 'end', 'interval'], context)
 
         # heck for a validation error.
         if isinstance(context, HttpResponseBadRequest):
@@ -154,8 +159,8 @@ class InnerTimeRangeView(TemplateView):
         context['render'] = self.request.GET.get('render', "True"). \
             lower().capitalize()
 
-        # Use "now" if not provided. _validate will calculate the
-        # start and interval.
+        # Use "now" if not provided. Validate will calculate the start and
+        # interval.
         context['end'] = self.request.GET.get('end', str(calendar.timegm(
             datetime.utcnow().timetuple())))
         context['start'] = self.request.GET.get('start', None)
@@ -195,13 +200,18 @@ class ApiPerfView(InnerTimeRangeView):
     data = pd.DataFrame()
     my_template_name = None
 
-    def _get_data(self, context):                # pylint: disable=R0201
-        """Override in subclass, return a model result."""
+    def _get_data(self, _):                # pylint: disable=R0201
+        """Override in subclass.
+
+        :return: A model
+
+        """
+
         return None
 
     def _handle_request(self, context):
 
-        context = _validate(['start', 'end', 'interval', 'render'], context)
+        context = validate(['start', 'end', 'interval', 'render'], context)
 
         if isinstance(context, HttpResponseBadRequest):
             # validation error
@@ -287,6 +297,8 @@ class DiscoverView(TemplateView, TopologyMixin):
 
         # Too many short names here. Disable C0103 for now, just here!
         # pylint: disable=C0103
+        # Too many variables here!
+        # pylint: disable=R0914
 
         try:
             keystone_topo = KeystoneDiscoverTree()

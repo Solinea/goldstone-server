@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from goldstone.apps.keystone.models import EndpointsData
-from goldstone.utils import GoldstoneAuthError, NoResourceFound, TopologyMixin
+from goldstone.utils import NoResourceFound, TopologyMixin
 
 
 class DiscoverTree(TopologyMixin):
@@ -44,16 +44,16 @@ class DiscoverTree(TopologyMixin):
         updated = self.endpoints[0]['_source']['@timestamp']
 
         result = []
-        for r in self._get_endpoint_regions():
+        for region in self._get_endpoint_regions():
             result.append(
                 {"rsrcType": "region",
-                 "label": r,
+                 "label": region,
                  "info": {"last_updated": updated},
                  "children": [
                      {
                          "rsrcType": "endpoints-leaf",
                          "label": "endpoints",
-                         "region": r,
+                         "region": region,
                          "info": {
                              "last_update": updated
                          }
@@ -61,7 +61,7 @@ class DiscoverTree(TopologyMixin):
                      {
                          "rsrcType": "roles-leaf",
                          "label": "roles",
-                         "region": r,
+                         "region": region,
                          "info": {
                              "last_update": updated
                          }
@@ -69,7 +69,7 @@ class DiscoverTree(TopologyMixin):
                      {
                          "rsrcType": "services-leaf",
                          "label": "services",
-                         "region": r,
+                         "region": region,
                          "info": {
                              "last_update": updated
                          }
@@ -77,7 +77,7 @@ class DiscoverTree(TopologyMixin):
                      {
                          "rsrcType": "tenants-leaf",
                          "label": "tenants",
-                         "region": r,
+                         "region": region,
                          "info": {
                              "last_update": updated
                          }
@@ -85,7 +85,7 @@ class DiscoverTree(TopologyMixin):
                      {
                          "rsrcType": "users-leaf",
                          "label": "users",
-                         "region": r,
+                         "region": region,
                          "info": {
                              "last_update": updated
                          }
@@ -96,14 +96,13 @@ class DiscoverTree(TopologyMixin):
         return result
 
     def build_topology_tree(self):
-        try:
-            rl = self._populate_regions()
 
-            return {"rsrcType": "cloud", "label": "Cloud", "children": rl} \
-                if len(rl) > 1 else rl[0]
+        try:
+            regions = self._populate_regions()
+
+            return \
+                {"rsrcType": "cloud", "label": "Cloud", "children": regions} \
+                if len(regions) > 1 else regions[0]
 
         except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
-
-        except GoldstoneAuthError:
-            raise

@@ -134,6 +134,7 @@ class ReadOnlyElasticViewSet(ElasticViewSetMixin, ReadOnlyModelViewSet):
 
 
 class EventViewSet(ElasticViewSet):
+
     model = Event
     serializer_class = EventSerializer
     lookup_field = '_id'
@@ -142,6 +143,7 @@ class EventViewSet(ElasticViewSet):
 
 
 class NodeViewSet(ReadOnlyModelViewSet):
+
     queryset = Node.objects.all()
     serializer_class = NodeSerializer
     lookup_field = 'id'
@@ -153,28 +155,33 @@ class NodeViewSet(ReadOnlyModelViewSet):
 
     @detail_route(methods=['PATCH'])
     def enable(self, request, *args, **kwargs):
+
         node = self.get_object()
-        if node is not None:
+
+        if node is None:
+            raise Http404
+        else:
             node.managed = 'true'
             node.save()
             serializer = NodeSerializer(node)
             return Response(serializer.data)
-        else:
-            raise Http404
 
     @detail_route(methods=['PATCH'])
     def disable(self, request, *args, **kwargs):
+
         node = self.get_object()
-        if node is not None:
+
+        if node is None:
+            raise Http404
+        else:
             node.managed = 'false'
             node.save()
             serializer = NodeSerializer(node)
             return Response(serializer.data)
-        else:
-            raise Http404
 
 
 class MetricViewSet(ReadOnlyElasticViewSet):
+
     model = Metric
     serializer_class = MetricSerializer
     lookup_field = '_id'
@@ -186,6 +193,7 @@ class MetricViewSet(ReadOnlyElasticViewSet):
 
 
 class ReportViewSet(ReadOnlyElasticViewSet):
+
     model = Report
     serializer_class = ReportSerializer
     lookup_field = "_id"
