@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2014 - 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -14,82 +14,25 @@
  * limitations under the License.
  */
 
-var ApiPerfReportView = Backbone.View.extend({
+var ApiPerfReportView = GoldstoneBasePageView.extend({
 
     defaults: {},
 
     initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
-        this.defaults.globalLookback = null;
-        this.defaults.globalRefresh = null;
-        this.defaults.nsReport = options.nsReport;
-
-        var ns = this.defaults;
-        var self = this;
-
-        this.render();
-        this.getGlobalLookbackRefresh();
-        this.renderCharts();
-        this.setGlobalLookbackRefreshTriggers();
-        this.scheduleInterval();
+        ApiPerfReportView.__super__.initialize.apply(this, arguments);
     },
 
-    clearScheduledInterval: function() {
-        var ns = this.defaults;
-        clearInterval(ns.scheduleInterval);
-    },
+    triggerChange: function(change) {
 
-    scheduleInterval: function() {
-        var self = this;
-        var ns = this.defaults;
-
-        var intervalDelay = ns.globalRefresh * 1000;
-
-        if (intervalDelay < 0) {
-            return true;
+        if (change === undefined) {
+            change = 'lookbackSelectorChanged';
         }
 
-        ns.scheduleInterval = setInterval(function() {
-            self.triggerChange();
-        }, intervalDelay);
-    },
-
-    getGlobalLookbackRefresh: function() {
-        this.defaults.globalLookback = $('#global-lookback-range').val();
-        this.defaults.globalRefresh = $('#global-refresh-range').val();
-    },
-
-    triggerChange: function() {
-        this.novaApiPerfChartView.trigger('selectorChanged');
-        this.neutronApiPerfChartView.trigger('selectorChanged');
-        this.keystoneApiPerfChartView.trigger('selectorChanged');
-        this.glanceApiPerfChartView.trigger('selectorChanged');
-        this.cinderApiPerfChartView.trigger('selectorChanged');
-
-    },
-
-    setGlobalLookbackRefreshTriggers: function() {
-        var self = this;
-        // wire up listeners between global selectors and charts
-        // change listeners for global selectors
-        $('#global-lookback-range').on('change', function() {
-            self.getGlobalLookbackRefresh();
-            self.triggerChange();
-            self.clearScheduledInterval();
-            self.scheduleInterval();
-        });
-        $('#global-refresh-range').on('change', function() {
-            self.getGlobalLookbackRefresh();
-            self.clearScheduledInterval();
-            self.scheduleInterval();
-        });
-    },
-
-    render: function() {
-        this.$el.html(this.template());
-        return this;
+        this.novaApiPerfChartView.trigger(change);
+        this.neutronApiPerfChartView.trigger(change);
+        this.keystoneApiPerfChartView.trigger(change);
+        this.glanceApiPerfChartView.trigger(change);
+        this.cinderApiPerfChartView.trigger(change);
     },
 
     renderCharts: function() {
@@ -196,7 +139,6 @@ var ApiPerfReportView = Backbone.View.extend({
             el: '#api-perf-report-r3-c1',
             width: $('#api-perf-report-r3-c1').width()
         });
-
 
     },
 
