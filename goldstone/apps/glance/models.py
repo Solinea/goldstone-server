@@ -21,4 +21,4 @@ class GlanceApiPerfData(ApiPerfData):
 
 class ImagesData(TopologyData):
     _DOC_TYPE = 'glance_image_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
