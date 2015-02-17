@@ -20,7 +20,11 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from datetime import timedelta
 import os
+
+from celery.schedules import crontab
+from kombu import Exchange, Queue
 
 CURRENT_DIR = os.path.dirname(__file__)
 TEMPLATE_DIRS = (os.path.join(CURRENT_DIR, '../templates'),)
@@ -56,7 +60,7 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = ['*', ]
 
-# Application definition
+# Application definition.
 
 INSTALLED_APPS = (
     'django_admin_bootstrapped',
@@ -67,6 +71,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'djoser',
     'rest_framework',
     'south',
     'crispy_forms',
@@ -146,8 +151,6 @@ REDIS_CONNECT_STR = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/' + REDIS_DB
 
 # Celery
 
-from kombu import Exchange, Queue
-
 BROKER_URL = REDIS_CONNECT_STR
 CELERY_RESULT_BACKEND = REDIS_CONNECT_STR
 CELERY_TASK_SERIALIZER = 'json'
@@ -171,8 +174,6 @@ CELERY_ROUTES = {
         'queue': 'event_stream'},
 }
 
-from celery.schedules import crontab
-from datetime import timedelta
 DAILY_INDEX_CURATION_SCHEDULE = crontab(minute='0', hour='0', day_of_week='*')
 ES_GOLDSTONE_RETENTION = 30
 ES_LOGSTASH_RETENTION = 30
@@ -244,7 +245,20 @@ CELERYBEAT_SCHEDULE = {
     },
 }
 
+# Settings for the Djoser package.
+DJOSER = {'DOMAIN': 'frontend.com',
+          'SITE_NAME': 'Frontend',
+          'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
+          'ACTIVATION_URL': '#/activate/{uid}/{token}',
+          'LOGIN_AFTER_ACTIVATION': True,
+          'SEND_ACTIVATION_EMAIL': True,
+          }
+
 REST_FRAMEWORK = {
+    # We use token-based authentication.
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
     # Use hyperlinked styles by default.
     # Used only if the `serializer_class` attribute is not set on a view.
     # This key is deprecated.
