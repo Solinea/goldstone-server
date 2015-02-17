@@ -21,7 +21,6 @@ from cinderclient.v2 import client as ciclient
 from neutronclient.v2_0 import client as neclient
 from glanceclient.v2 import client as glclient
 import logging
-from datetime import datetime
 from urlparse import urlparse
 import json
 import socket
@@ -63,16 +62,13 @@ class UnexpectedSearchResponse(GoldstoneBaseException):
 
 
 def utc_now():
+    """Convenient, and possibly necessary.
+
+    :return: timezone aware current UTC datetime
+    """
     import arrow
 
     return arrow.utcnow().datetime
-
-
-def utc_timestamp():
-    import calendar
-    import pytz
-
-    return calendar.timegm(datetime.now(tz=pytz.utc).timetuple())
 
 
 def to_es_date(date_object):
@@ -424,6 +420,7 @@ def stored_api_call(component, endpt, path, headers=None, data=None,
                     tenant=settings.OS_TENANT_NAME,
                     auth_url=settings.OS_AUTH_URL, timeout=30):
     import requests
+    import arrow
     from requests.exceptions import Timeout
 
     # Use headers if supplied, else use an empty dict.
@@ -469,7 +466,7 @@ def stored_api_call(component, endpt, path, headers=None, data=None,
         return {'reply': reply,
                 'db_record': _construct_api_rec(reply,
                                                 component,
-                                                datetime.utcnow(),
+                                                arrow.utcnow(),
                                                 timeout,
                                                 url)
                 }

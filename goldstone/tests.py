@@ -102,27 +102,6 @@ class PrimeData(TestCase):
         conn.indices.refresh([index])
 
 
-class StartupGoldstoneTest(SimpleTestCase):
-
-    @patch.object(GSConnection, '__init__')
-    def test_es_unavailable(self, conn):
-        """
-        goldstone should raise any excpetions encountered, and fail to start
-        if ES is unavailable.
-        """
-        conn.side_effect = ConnectionError()
-        self.assertRaises(ConnectionError, StartupGoldstone)
-        conn.side_effect = TransportError()
-        self.assertRaises(TransportError, StartupGoldstone)
-
-    @patch.object(StartupGoldstone, '_setup_index')
-    def test_es_available(self, _setup_index):
-        """Goldstone should attempt to create two indices."""
-
-        StartupGoldstone()
-        self.assertTrue(_setup_index.call_count, 2)
-
-
 class GSConnectionModel(SimpleTestCase):
 
     def test_connection(self):
