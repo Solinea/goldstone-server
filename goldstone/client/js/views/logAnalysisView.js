@@ -120,7 +120,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         });
 
-        this.on('selectorChanged', function(params) {
+        this.on('lookbackSelectorChanged', function(params) {
             $(this.el).find('#spinner').show();
             ns.isZoomed = false;
             ns.start = params[0];

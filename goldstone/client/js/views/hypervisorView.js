@@ -38,7 +38,7 @@ var HypervisorView = Backbone.View.extend({
 
         this.collection.on('sync', this.update, this);
 
-        this.on('selectorChanged', function() {
+        this.on('lookbackSelectorChanged', function() {
             self.collection.fetch();
         });
 

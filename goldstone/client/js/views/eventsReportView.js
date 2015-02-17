@@ -49,7 +49,7 @@ var EventsReportView = GoldstoneBaseView.extend({
 
     processListeners: function() {
         // this is triggered by a listener set on nodeReportView.js
-        this.on('selectorChanged', function() {
+        this.on('lookbackSelectorChanged', function() {
             this.defaults.globalLookback = $('#global-lookback-range').val();
 
             // TODO: create an event that will trigger a chart refresh

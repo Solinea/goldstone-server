@@ -171,7 +171,7 @@ describe('logAnalysis spec', function() {
 
             this.constructUrl_spy = sinon.spy(this.testView, "constructUrl");
             expect(this.constructUrl_spy.callCount).to.equal(0);
-            this.testView.trigger('selectorChanged', [1, 2]);
+            this.testView.trigger('lookbackSelectorChanged', [1, 2]);
             expect(this.constructUrl_spy.callCount).to.equal(1);
             this.constructUrl_spy.restore();
         });
