@@ -52,9 +52,10 @@ var EventsReportView = GoldstoneBaseView.extend({
         this.on('selectorChanged', function() {
             this.defaults.globalLookback = $('#global-lookback-range').val();
 
+            // TODO: create an event that will trigger a chart refresh
             // creates an event that the 'data-table' will pick up on
             // in order to trigger a chart refresh
-            $(this.el).find('#events-report-table_previous').click();
+            // $(this.el).find('#events-report-table_previous').click();
         });
     },
 
