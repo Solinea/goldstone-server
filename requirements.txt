@@ -17,7 +17,7 @@
 # requirements/base.txt is linked to it.
 
 Django==1.6.5
-South==0.8.4
+South==1.0.2
 arrow==0.4.4
 celery[redis]==3.1.10
 django-admin-bootstrapped==1.6.4
@@ -26,7 +26,7 @@ django-extensions==1.2.5
 django-filter==0.9.1
 django-rest-params==1.0.0
 djangorestframework==3.0.0
-djoser==0.1.0
+djoser==0.2.0
 elasticsearch-curator==2.0.0
 elasticsearch==1.2.0
 elasticutils>=0.10.1
