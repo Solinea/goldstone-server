@@ -76,6 +76,7 @@ INSTALLED_APPS = (
     'south',
     'crispy_forms',
     'django.contrib.contenttypes',
+    'goldstone.accounts',
     'goldstone.apps.core',
     'goldstone.apps.intelligence',
     'goldstone.apps.nova',
@@ -88,7 +89,7 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE_CLASSES = (
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    # 'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -244,6 +245,10 @@ CELERYBEAT_SCHEDULE = {
         'schedule': HOST_AVAILABLE_PING_INTERVAL
     },
 }
+
+# Database row settings.
+TENANT_NAME_MAX_LENGTH = 80
+TENANT_OWNER_MAX_LENGTH = 80
 
 # Settings for the Djoser package. We login and activate after registration.
 DJOSER = {'DOMAIN': 'YOUR_EMAIL_DOMAIN_NAME.com',
