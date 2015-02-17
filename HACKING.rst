@@ -124,7 +124,9 @@ Sync and migrate the databases. Note, you'll need to do this for the goldstone_d
 whichever one you use. A simple test is, if you change the value of DJANGO_SETTINGS_MODULE, you'll need to re-issue these
 commands::
 
-    $ ./manage.py syncdb                # Answer 'no' to create superuser
+    $ # Answer "yes" to the "create superuser" question. You can use any name,
+    $ # password, and e-mail address you wish.
+    $ ./manage.py syncdb
     $ ./manage.py migrate
 
 Set up the elasticsearch templates for test running (repeat with other settings as required)::
