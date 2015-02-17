@@ -14,9 +14,20 @@
  * limitations under the License.
  */
 
+/*
+Instantiated similar to:
+
+this.novaApiPerfChart = new ApiPerfCollection({
+    urlPrefix: 'nova',
+});
+*/
+
 // define collection and link to model
 
 var ApiPerfModel = GoldstoneBaseModel.extend({
+
+    // sorts colleciton by 'key' which maps to timestamp
+    // in returned data payload
     idAttribute: 'key'
 });
 
@@ -25,7 +36,7 @@ var ApiPerfCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        return JSON.parse(data);
+        return data;
     },
 
     model: ApiPerfModel,
@@ -50,9 +61,9 @@ var ApiPerfCollection = Backbone.Collection.extend({
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
-        this.url = '/' + this.defaults.urlPrefix + '/api_perf?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval + '&render=false';
+        this.url = '/' + this.defaults.urlPrefix + '/api_perf?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval;
 
         // generates url string similar to:
-        // /nova/api_perf?start=1423678376&end=1423681976&interval=60s&render=false
+        // /nova/api_perf?start=1423678376&end=1423681976&interval=60s
     }
 });

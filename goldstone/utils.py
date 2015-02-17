@@ -12,8 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import pytz
-import copy
 from django.conf import settings
 from goldstone.lru_cache import lru_cache
 import cinderclient.v2.services
@@ -23,15 +21,11 @@ from cinderclient.v2 import client as ciclient
 from neutronclient.v2_0 import client as neclient
 from glanceclient.v2 import client as glclient
 import logging
-import hashlib
-import requests
-from requests.exceptions import Timeout
 from datetime import datetime
 from urlparse import urlparse
 import json
 import socket
 import functools
-import calendar
 from keystoneclient.openstack.common.apiclient.exceptions \
     import Unauthorized as KeystoneUnauthorized
 from novaclient.openstack.common.apiclient.exceptions \
@@ -39,7 +33,6 @@ from novaclient.openstack.common.apiclient.exceptions \
 from cinderclient.openstack.common.apiclient.exceptions \
     import Unauthorized as CinderUnauthorized
 from neutronclient.common.exceptions import Unauthorized as NeutronUnauthorized
-import arrow
 
 logger = logging.getLogger(__name__)
 
@@ -70,10 +63,15 @@ class UnexpectedSearchResponse(GoldstoneBaseException):
 
 
 def utc_now():
+    import arrow
+
     return arrow.utcnow().datetime
 
 
 def utc_timestamp():
+    import calendar
+    import pytz
+
     return calendar.timegm(datetime.now(tz=pytz.utc).timetuple())
 
 
@@ -145,6 +143,7 @@ def get_client(service, user=settings.OS_USERNAME,
                passwd=settings.OS_PASSWORD,
                tenant=settings.OS_TENANT_NAME,
                auth_url=settings.OS_AUTH_URL):
+    import hashlib
 
     # Error message template.
     NO_AUTH = "%s client failed to authorize. Check credentials in" \
@@ -166,6 +165,7 @@ def get_client(service, user=settings.OS_USERNAME,
                 return {'client': client, 'hex_token': md5.hexdigest()}
         except KeystoneUnauthorized:
             raise GoldstoneAuthError(NO_AUTH % "Keystone")
+
     elif service == 'nova':
         try:
             client = nvclient.Client(user, passwd, tenant, auth_url,
@@ -173,6 +173,7 @@ def get_client(service, user=settings.OS_USERNAME,
             return {'client': client}
         except NovaUnauthorized:
             raise GoldstoneAuthError(NO_AUTH % "Nova")
+
     elif service == 'cinder':
         try:
             cinderclient.v2.services.Service.__repr__ = \
@@ -183,22 +184,28 @@ def get_client(service, user=settings.OS_USERNAME,
             return {'client': client, 'region': region}
         except CinderUnauthorized:
             raise GoldstoneAuthError(NO_AUTH % "Cinder")
+
     elif service == 'neutron':
         try:
             client = neclient.Client(user, passwd, tenant, auth_url)
             return {'client': client}
         except NeutronUnauthorized:
             raise GoldstoneAuthError(NO_AUTH % "Neutron")
+
     elif service == 'glance':
         try:
-            kc = get_client(service='keystone')['client']
-            mgmt_url = kc.endpoints.find(service_id=kc.services.
-                                         find(name='glance').id).internalurl
-            region = _get_region_for_glance_client(kc)
-            client = glclient.Client(endpoint=mgmt_url, token=kc.auth_token)
+            keystoneclient = get_client(service='keystone')['client']
+            mgmt_url = keystoneclient.endpoints.find(
+                service_id=keystoneclient.services.find(name='glance').id)\
+                .internalurl
+            region = _get_region_for_glance_client(keystoneclient)
+            client = glclient.Client(endpoint=mgmt_url,
+                                     token=keystoneclient.auth_token)
             return {'client': client, 'region': region}
+
         except KeystoneUnauthorized:
             raise GoldstoneAuthError(NO_AUTH % "Glance")
+
     else:
         raise GoldstoneAuthError("Unknown service")
 
@@ -310,32 +317,37 @@ def _normalize_hostname(name_or_addr):
 
 
 def _normalize_hostnames(host_keys, source, key=None):
-    """
-    Mutates the source dict with potential modifications to the
-    keys listed in host_keys.  The keys will be modified in the following
-    ways:
+    """Mutate the source dict with potential modifications to the keys in
+    host_keys.  The keys will be modified in the following ways:
+
         - an attempt to resolve ip addresses will be made.  if resolvable,
           the unqualified hostname will be used, otherwise the ip address
           will be used
         - fully qualified hostnames will be reduced to unqualified
           hostnames
+
     """
 
     if isinstance(source, dict):
-        for k, v in source.items():
-            source[k] = _normalize_hostnames(host_keys, v, key=k)
+        for akey, value in source.items():
+            source[akey] = _normalize_hostnames(host_keys, value, key=akey)
         if key:
             return source
+
     elif isinstance(source, list):
-        for v in source:
-            v = _normalize_hostnames(host_keys, v)
+        for entry in source:
+            entry = _normalize_hostnames(host_keys, entry)
         if key:
             return source
+
     elif key in host_keys:
         # compare key to our list and normalize if a match
         return _normalize_hostname(source)
+
     elif key:
         return source
+
+    return None
 
 
 def _decompose_url(url):
@@ -349,16 +361,19 @@ def _decompose_url(url):
 
     if ":" in netloc:
         # host:port
-        hp = netloc.split(':')
-        host = hp[0]
-        if len(hp) > 1:
-            result['port'] = hp[1]
-        result['port'] = hp[1] if len(hp) > 1 else None
+        host_port = netloc.split(':')
+        host = host_port[0]
+
+        if len(host_port) > 1:
+            result['port'] = host_port[1]
+
+        result['port'] = host_port[1] if len(host_port) > 1 else None
 
     if _is_ip_addr(host):
         # try to resolve the address and
         result['ip_address'] = host
         hostname = _resolve_fqdn(host)
+
         if hostname:
             result['hostname'] = hostname['hostname']
             if 'domainname' in hostname:
@@ -366,6 +381,7 @@ def _decompose_url(url):
     else:
         result = dict(result.items() + _partition_hostname(host).items())
         addr = _resolve_addr(host)
+
         if addr:
             result['ip_address'] = addr
 
@@ -373,23 +389,8 @@ def _decompose_url(url):
 
 
 def _construct_api_rec(reply, component, ts, timeout, url):
-    if reply is not None:
-        td = reply.elapsed
-        secs = td.seconds + td.days * 24 * 3600
-        fraction = float(td.microseconds) / 10**6
-        millisecs = int(round((secs + fraction) * 1000))
-        rec = {'response_time': millisecs,
-               'response_status': reply.status_code,
-               'response_length': int(reply.headers['content-length']),
-               'component': component,
-               'uri': urlparse(url).path,
-               '@timestamp': ts.strftime("%Y-%m-%dT%H:%M:%S." +
-                                         str(int(round(ts.microsecond/1000))) +
-                                         "Z")}
-        logger.debug("response = %s",
-                     json.dumps(rec))
-        return rec
-    else:
+
+    if reply is None:
         rec = {'response_time': timeout*1000,
                'response_status': 504,
                'response_length': 0,
@@ -398,9 +399,23 @@ def _construct_api_rec(reply, component, ts, timeout, url):
                '@timestamp': ts.strftime("%Y-%m-%dT%H:%M:%S." +
                                          str(int(round(ts.microsecond/1000))) +
                                          "Z")}
-        logger.debug("response = %s",
-                     json.dumps(rec))
-        return rec
+    else:
+        timedelta = reply.elapsed
+        secs = timedelta.seconds + timedelta.days * 24 * 3600
+        fraction = float(timedelta.microseconds) / 10**6
+        millisecs = int(round((secs + fraction) * 1000))
+
+        rec = {'response_time': millisecs,
+               'response_status': reply.status_code,
+               'response_length': int(reply.headers['content-length']),
+               'component': component,
+               'uri': urlparse(url).path,
+               '@timestamp': ts.strftime("%Y-%m-%dT%H:%M:%S." +
+                                         str(int(round(ts.microsecond/1000))) +
+                                         "Z")}
+
+    logger.debug("response = %s", json.dumps(rec))
+    return rec
 
 
 def stored_api_call(component, endpt, path, headers=None, data=None,
@@ -408,28 +423,30 @@ def stored_api_call(component, endpt, path, headers=None, data=None,
                     passwd=settings.OS_PASSWORD,
                     tenant=settings.OS_TENANT_NAME,
                     auth_url=settings.OS_AUTH_URL, timeout=30):
+    import requests
+    from requests.exceptions import Timeout
 
     # Use headers if supplied, else use an empty dict.
     headers = headers if headers else {}
 
-    kt = get_keystone_client(user=user,
-                             passwd=passwd,
-                             tenant=tenant,
-                             auth_url=auth_url)
+    keystone_client = get_keystone_client(user=user,
+                                          passwd=passwd,
+                                          tenant=tenant,
+                                          auth_url=auth_url)
 
     try:
-        url = kt['client'].service_catalog.\
+        url = keystone_client['client'].service_catalog.\
             get_endpoints()[endpt][0]['publicURL'] + path
 
     except:
         raise LookupError("Could not find a public URL endpoint for %s", endpt)
+
     else:
         headers = dict(
-            {'x-auth-token': kt['hex_token'],
+            {'x-auth-token': keystone_client['hex_token'],
              'content-type': 'application/json'}.items() +
             headers.items())
 
-        t = datetime.utcnow()
         reply = None
 
         try:
@@ -449,10 +466,13 @@ def stored_api_call(component, endpt, path, headers=None, data=None,
                          "response")
             get_client.cache_clear()
 
-        return {
-            'reply': reply,
-            'db_record': _construct_api_rec(reply, component, t, timeout, url)
-        }
+        return {'reply': reply,
+                'db_record': _construct_api_rec(reply,
+                                                component,
+                                                datetime.utcnow(),
+                                                timeout,
+                                                url)
+                }
 
 
 class TopologyMixin(object):
@@ -516,6 +536,7 @@ class TopologyMixin(object):
         and target.
 
         """
+        import copy
 
         # basic sanity check.  all args should be dicts, source and target
         # should have a rsrcType field
