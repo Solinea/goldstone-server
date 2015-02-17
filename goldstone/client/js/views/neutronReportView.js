@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-var NeutronReportView = ApiPerfReportView.extend({
+var NeutronReportView = GoldstoneBasePageView.extend({
 
-    triggerChange: function() {
-        this.renderCharts();
+    triggerChange: function(change) {
+        if (change === undefined) {
+            change = 'lookbackSelectorChanged';
+        }
+        this.neutronApiPerfChartView.trigger(change);
     },
 
     renderCharts: function() {
@@ -41,15 +44,6 @@ var NeutronReportView = ApiPerfReportView.extend({
     template: _.template('' +
         '<div id="neutron-report-r1" class="row">' +
         '<div id="neutron-report-r1-c1" class="col-md-6"></div>' +
-        '<div id="neutron-report-r1-c2" class="col-md-6"></div>' +
-        '</div>' +
-        '<div id="neutron-report-r2" class="row">' +
-        '<div id="neutron-report-r2-c1" class="col-md-6"></div>' +
-        '<div id="neutron-report-r2-c2" class="col-md-6"></div>' +
-        '</div>' +
-        '<div id="neutron-report-r3" class="row">' +
-        '<div id="neutron-report-r3-c1" class="col-md-6"></div>' +
-        '<div id="neutron-report-r3-c2" class="col-md-6"></div>' +
         '</div>'
     )
 
