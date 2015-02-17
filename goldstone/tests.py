@@ -27,8 +27,7 @@ from keystoneclient.exceptions import ClientException
 from mock import patch, PropertyMock
 from requests.models import Response
 
-from goldstone import StartupGoldstone
-from goldstone.models import GSConnection, ESData, es_conn
+from goldstone.models import ESData, es_conn
 from goldstone.apps.core.models import Node
 from goldstone.apps.core.tasks import create_daily_index
 from goldstone.utils import stored_api_call, get_keystone_client, \
@@ -124,21 +123,6 @@ class ESConnectionTests(SimpleTestCase):
         mock_es.assert_called_with([{'host': 'abc'}],
                                    sniff_on_start=False,
                                    max_retries=1)
-
-
-class GSConnectionModel(SimpleTestCase):
-
-    def test_connection(self):
-        conn1 = GSConnection().conn
-        conn2 = GSConnection(settings.ES_SERVER).conn
-
-        query = {"query": {"match_all": {}}}
-
-        result = conn1.search(body=query)
-        self.assertIsNotNone(result)
-
-        result = conn2.search(body=query)
-        self.assertIsNotNone(result)
 
 
 class UtilsTests(SimpleTestCase):

@@ -40,18 +40,6 @@ def es_conn(server=settings.ES_SERVER):
                          sniff_on_start=False)
 
 
-class GSConnection(object):
-    conn = None
-
-    def __init__(self, server=settings.ES_SERVER):
-        self.conn = Elasticsearch(server, max_retries=1, sniff_on_start=False,
-                                  # sniffer_timeout=5,
-                                  # sniff_on_connection_fail=True,
-                                  # sniff_timeout=1,
-                                  )
-        self.conn.cluster.health(wait_for_status='yellow', request_timeout=2)
-
-
 class RedisConnection(object):
     conn = None
 
@@ -65,7 +53,7 @@ class RedisConnection(object):
 
 class ESData(object):
 
-    _conn = GSConnection().conn
+    _conn = es_conn()
 
     def __init__(self):
         """Initialize the object, to keep pylint happy."""
