@@ -25,7 +25,7 @@ var ServiceStatusView = GoldstoneBaseView.extend({
     processListeners: function() {
         this.collection.on('sync', this.update, this);
         this.collection.on('error', this.dataErrorMessage, this);
-        this.on('selectorChanged', function() {
+        this.on('lookbackSelectorChanged', function() {
             this.defaults.spinnerDisplay = 'inline';
             $(this.el).find('#spinner').show();
             this.collection.retrieveData();

@@ -77,7 +77,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         this.collection.on('error', this.dataErrorMessage, this);
 
         // this is triggered by a listener set on nodeReportView.js
-        this.on('selectorChanged', function() {
+        this.on('lookbackSelectorChanged', function() {
 
             // reconstructs the url to fetch in this.collection
             self.collection.defaults.globalLookback = $('#global-lookback-range').val();

@@ -37,7 +37,7 @@ var HypervisorVmCpuView = Backbone.View.extend({
 
         this.collection.on('sync', this.update, this);
 
-        this.on('selectorChanged', function(){
+        this.on('lookbackSelectorChanged', function(){
         });
 
         this.render();

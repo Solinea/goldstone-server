@@ -59,7 +59,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
 
         this.collection.on('error', this.dataErrorMessage, this);
 
-        this.on('selectorChanged', function() {
+        this.on('lookbackSelectorChanged', function() {
             this.collection.defaults.globalLookback = $('#global-lookback-range').val();
             this.collection.fetchMultipleUrls();
             $(this.el).find('#spinner').show();
