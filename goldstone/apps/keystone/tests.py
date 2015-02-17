@@ -16,7 +16,7 @@ from django.http import HttpResponse
 from django.test import SimpleTestCase
 from .tasks import time_keystone_api
 import logging
-from .views import AuthApiPerfView
+from .views import ApiPerfView
 from datetime import datetime
 import calendar
 import pytz
@@ -64,7 +64,7 @@ class ViewTests(SimpleTestCase):
     def test_get_data(self):
         import pandas as pd
 
-        view = AuthApiPerfView()
+        view = ApiPerfView()
         context = {
             'start_dt': self.start_dt,
             'end_dt': self.end_dt,
@@ -82,19 +82,10 @@ class ViewTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'keystone_report.html')
 
-    def test_rendered_api_perf_view(self):
+    def test_api_perf_view(self):
         uri = '/keystone/api_perf?start_time=' + \
               str(self.start_ts) + "&end_time=" + \
               str(self.end_ts) + "&interval=3600s"
-
-        response = self.client.get(uri)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'keystone_api_perf.html')
-
-    def test_unrendered_api_perf_view(self):
-        uri = '/keystone/api_perf?start_time=' + \
-              str(self.start_ts) + "&end_time=" + \
-              str(self.end_ts) + "&interval=3600s&render=false"
 
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)

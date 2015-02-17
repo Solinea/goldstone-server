@@ -26,6 +26,7 @@ from elasticsearch import ElasticsearchException
 import pandas as pd
 import pytz
 from rest_framework import status
+from rest_framework.views import APIView
 
 from cinderclient.exceptions import AuthorizationFailure as CinderAuthException
 from cinderclient.openstack.common.apiclient.exceptions \
@@ -96,6 +97,8 @@ def validate(arg_list, context):
             except Exception:       # pylint: disable=W0703
                 validation_errors.append(BAD_PARAMETER % "interval")
 
+    # TODO: Once the render parameter is removed from the rest of the codebase,
+    # this if block can be deleted.
     if 'render' in arg_list:
         if context['render'] in ["True", "False"]:
             context['render'] = bool(context['render'])
@@ -149,56 +152,8 @@ class TopLevelView(TemplateView):
                                                 })
 
 
-class InnerTimeRangeView(TemplateView):
-
-    my_template_name = None
-
-    def get_context_data(self, **kwargs):
-
-        context = TemplateView.get_context_data(self, **kwargs)
-        context['render'] = self.request.GET.get('render', "True"). \
-            lower().capitalize()
-
-        # Use "now" if not provided. Validate will calculate the start and
-        # interval.
-        context['end'] = self.request.GET.get('end', str(calendar.timegm(
-            datetime.utcnow().timetuple())))
-        context['start'] = self.request.GET.get('start', None)
-        context['interval'] = self.request.GET.get('interval', None)
-
-        # If render is true, we return a full template, otherwise only
-        # a json data payload.
-        self.template_name = \
-            self.my_template_name if context['render'] == 'True' else None
-
-        return context
-
-    def render_to_response(self, context, **response_kwargs):
-        """
-        Overriding to handle case of data only request (render=False).  In
-        that case an application/json data payload is returned.
-        """
-        try:
-            response = self._handle_request(context)
-            if isinstance(response, HttpResponseBadRequest):
-                return response
-
-            if self.template_name is None:
-                return HttpResponse(json.dumps(response),
-                                    content_type="application/json")
-
-            return TemplateView.render_to_response(
-                self, {'data': json.dumps(response), 'start': context['start'],
-                       'end': context['end'], 'interval': context['interval']})
-        except ElasticsearchException:
-            return HttpResponse(content="Could not connect to the "
-                                        "search backend",
-                                status=status.HTTP_504_GATEWAY_TIMEOUT)
-
-
-class ApiPerfView(InnerTimeRangeView):
-    data = pd.DataFrame()
-    my_template_name = None
+class ApiPerfView(APIView):
+    """The base class for all app "ApiPerfView" views."""
 
     def _get_data(self, _):                # pylint: disable=R0201
         """Override in subclass.
@@ -209,31 +164,47 @@ class ApiPerfView(InnerTimeRangeView):
 
         return None
 
-    def _handle_request(self, context):
+    def get(self, request, *args, **kwargs):
+        """Return a response to a GET request."""
 
-        context = validate(['start', 'end', 'interval', 'render'], context)
+        # Fetch and enhance this request's context.
+        context = {
+            # Use "now" if not provided. Validate() will calculate the start
+            # and interval. Arguments missing from the request are set to None.
+            'end':
+            request.query_params.get(
+                'end',
+                str(calendar.timegm(datetime.utcnow().timetuple()))),
+            'start': request.query_params.get('start'),
+            'interval': request.query_params.get('interval'),
+            }
+
+        context = validate(['start', 'end', 'interval'], context)
 
         if isinstance(context, HttpResponseBadRequest):
             # validation error
             return context
 
-        logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
-        self.data = self._get_data(context)
-        logger.debug("[_handle_request] data = %s", self.data)
+        logger.debug("[get] start_dt = %s", context['start_dt'])
+        data = self._get_data(context)
+        logger.debug("[get] data = %s", data)
 
-        # good policy, but don't think it is required for this specific
+        # Good policy, but don't think it is required for this specific
         # dataset
-        if not self.data.empty:
-            self.data = self.data.fillna(0)
+        if not data.empty:
+            data = data.fillna(0)
 
-        # record output may be a bit bulkier, but easier to process by D3.
-        # keys appear to be in alphabetical order, so could use
-        # orient=values to trim it down, or pass it in a binary format
-        # if things get really messy.
-        response = self.data.to_json(orient='records')
-        logger.debug('[_handle_request] response = %s', json.dumps(response))
+        # Record output may be a bit bulkier, but easier to process by D3. Keys
+        # appear to be in alphabetical order, so we could use orient=values to
+        # trim it down, or pass it in a binary format if things get really
+        # messy.
+        response = data.to_json(orient='records')
+        logger.debug('[get] response = %s', json.dumps(response))
 
-        return response
+        # Because we formatted the JSON string with columns and values via the
+        # "orient" argument, we already have the response in the desired
+        # format. So, we return a Django response instead of a DRF response.
+        return HttpResponse(response, content_type="application/json")
 
 
 class DiscoverView(TemplateView, TopologyMixin):
@@ -243,7 +214,7 @@ class DiscoverView(TemplateView, TopologyMixin):
     only one element, it will be used as the root node, otherwise a "cloud"
     resource will be constructed as the root.
 
-    caller should override "my_template_name" and define an init function
+    caller should override "template_name" and define an init function
     that pulls data from a subclass of model.TopologyData.
 
     A resource has the following structure:
@@ -258,6 +229,7 @@ class DiscoverView(TemplateView, TopologyMixin):
      }
 
     """
+
     template_name = 'goldstone_discover.html'
 
     def get_regions(self):

@@ -1,4 +1,6 @@
-from .development import *
+"""John Stanford's settings."""
+
+from .development import *     # pylint: disable=W0614,W0401
 
 OS_USERNAME = 'admin'
 OS_TENANT_NAME = 'admin'

@@ -14,7 +14,7 @@
 # limitations under the License.
 from django.test import SimpleTestCase
 from .tasks import time_neutron_api
-from .views import AgentListApiPerfView
+from .views import ApiPerfView
 import logging
 from datetime import datetime
 import calendar
@@ -69,7 +69,7 @@ class ViewTests(SimpleTestCase):
 
     def test_get_data(self):
 
-        view = AgentListApiPerfView()
+        view = ApiPerfView()
         context = {'start_dt': self.start_dt,
                    'end_dt': self.end_dt,
                    'interval': '3600s'
@@ -87,21 +87,11 @@ class ViewTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'neutron_report.html')
 
-    def test_rendered_api_perf_view(self):
+    def test_api_perf_view(self):
 
         uri = '/neutron/api_perf?start_time=' + \
               str(self.start_ts) + "&end_time=" + \
               str(self.end_ts) + "&interval=3600s"
-
-        response = self.client.get(uri)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'neutron_api_perf.html')
-
-    def test_unrendered_api_perf_view(self):
-
-        uri = '/neutron/api_perf?start_time=' + \
-              str(self.start_ts) + "&end_time=" + \
-              str(self.end_ts) + "&interval=3600s&render=false"
 
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)

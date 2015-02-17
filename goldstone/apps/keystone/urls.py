@@ -14,9 +14,8 @@
 # limitations under the License.
 from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
-from .views import ReportView, AuthApiPerfView, \
-    EndpointsDataViewSet, RolesDataViewSet, ServicesDataViewSet, \
-    TenantsDataViewSet, UsersDataViewSet
+from .views import ReportView, ApiPerfView, EndpointsDataViewSet, \
+    RolesDataViewSet, ServicesDataViewSet, TenantsDataViewSet, UsersDataViewSet
 
 # Views handled by DjangoRestFramework ViewSets.
 router = DefaultRouter(trailing_slash=False)
@@ -39,6 +38,6 @@ urlpatterns += patterns(
     '',
     url(r'^report[/]?$', ReportView.as_view(),
         name='keystone-report-view'),
-    url(r'^api_perf[/]?$', AuthApiPerfView.as_view(),
+    url(r'^api_perf[/]?$', ApiPerfView.as_view(),
         name='keystone-api-perf'),
 )
