@@ -169,7 +169,7 @@ class UtilsTests(SimpleTestCase):
     @patch('requests.get')
     @patch('keystoneclient.v2_0.client.Client')
     @patch('goldstone.utils.get_keystone_client')
-    def test_stored_api_call(self, client, c, get):
+    def test_stored_api_call(self, client, capital_c_client, get):
         component = 'nova'
         endpoint = 'compute'
         bad_endpoint = 'xyz'
@@ -185,15 +185,20 @@ class UtilsTests(SimpleTestCase):
         fake_response._content = '{"a":1,"b":2}'       # pylint: disable=W0212
         fake_response.headers = {'content-length': 1024}
         fake_response.elapsed = timedelta(days=1)
-        c.service_catalog.get_endpoints.side_effect = ClientException
-        client.return_value = {'client': c, 'hex_token': 'mock_token'}
+
+        capital_c_client.service_catalog.get_endpoints.side_effect = \
+            ClientException
+        client.return_value = {'client': capital_c_client,
+                               'hex_token': 'mock_token'}
+
         self.assertRaises(LookupError, stored_api_call, component,
                           bad_endpoint, path, timeout=timeout)
 
-        c.service_catalog.get_endpoints.side_effect = None
-        c.service_catalog.get_endpoints.return_value = {
+        capital_c_client.service_catalog.get_endpoints.side_effect = None
+        capital_c_client.service_catalog.get_endpoints.return_value = {
             endpoint: [{'publicURL': fake_response.url}]
         }
+
         fake_response.status_code = 404
         get.return_value = fake_response
         bad_path_call = stored_api_call(component, endpoint, bad_path,

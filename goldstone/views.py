@@ -23,7 +23,6 @@ from django.http import HttpResponse, HttpResponseBadRequest, Http404
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from elasticsearch import ElasticsearchException
-import pandas as pd
 import pytz
 from rest_framework import status
 from rest_framework.views import APIView
@@ -298,8 +297,11 @@ class DiscoverView(TemplateView, TopologyMixin):
 
         # bind cinder zones to global at region
         cl = [cinder_topo.build_topology_tree()]
+
         # convert top level items to cinder modules
         new_cl = []
+
+        c = {}                # In case cl is empty. Plus, keeps pylint happy.
         for c in cl:
             if c['rsrcType'] != 'error':
                 c['rsrcType'] = 'module'
@@ -314,6 +316,7 @@ class DiscoverView(TemplateView, TopologyMixin):
         rl = self._attach_resource(ad, new_cl, rl)
 
         nl = [nova_topo.build_topology_tree()]
+
         # convert top level items to nova module
         new_nl = []
         for n in nl:
