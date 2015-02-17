@@ -111,11 +111,12 @@ def _get_region_for_client(catalog, management_url, service_type):
 
 
 def _get_region_for_cinder_client(client):
+
     # force authentication to populate management url
     client.authenticate()
     mgmt_url = client.client.management_url
-    kc = get_keystone_client()['client']
-    catalog = kc.service_catalog.catalog['serviceCatalog']
+    keystoneclient = get_keystone_client()['client']
+    catalog = keystoneclient.service_catalog.catalog['serviceCatalog']
     return _get_region_for_client(catalog, mgmt_url, 'volume')
 
 
@@ -388,7 +389,7 @@ def _decompose_url(url):
     return result
 
 
-def _construct_api_rec(reply, component, ts, timeout, url):
+def _construct_api_rec(reply, component, timestamp, timeout, url):
 
     if reply is None:
         rec = {'response_time': timeout*1000,
@@ -396,9 +397,10 @@ def _construct_api_rec(reply, component, ts, timeout, url):
                'response_length': 0,
                'component': component,
                'uri': urlparse(url).path,
-               '@timestamp': ts.strftime("%Y-%m-%dT%H:%M:%S." +
-                                         str(int(round(ts.microsecond/1000))) +
-                                         "Z")}
+               '@timestamp':
+               timestamp.strftime("%Y-%m-%dT%H:%M:%S." +
+                                  str(int(round(timestamp.microsecond/1000))) +
+                                  "Z")}
     else:
         timedelta = reply.elapsed
         secs = timedelta.seconds + timedelta.days * 24 * 3600
@@ -410,9 +412,10 @@ def _construct_api_rec(reply, component, ts, timeout, url):
                'response_length': int(reply.headers['content-length']),
                'component': component,
                'uri': urlparse(url).path,
-               '@timestamp': ts.strftime("%Y-%m-%dT%H:%M:%S." +
-                                         str(int(round(ts.microsecond/1000))) +
-                                         "Z")}
+               '@timestamp':
+               timestamp.strftime("%Y-%m-%dT%H:%M:%S." +
+                                  str(int(round(timestamp.microsecond/1000))) +
+                                  "Z")}
 
     logger.debug("response = %s", json.dumps(rec))
     return rec
@@ -477,24 +480,24 @@ def stored_api_call(component, endpt, path, headers=None, data=None,
 
 class TopologyMixin(object):
 
-    def _get_children(self, d, rsrc_type):
+    def _get_children(self, children, rsrc_type):
 
-        assert (isinstance(d, dict) or isinstance(d, list)), \
-            "d must be a list or dict"
+        assert (isinstance(children, dict) or isinstance(children, list)), \
+            "children must be a list or dict"
         assert rsrc_type, "rsrc_type must have a value"
 
-        if isinstance(d, list):
+        if isinstance(children, list):
             # Convert it into a dict.
-            d = {'rsrcType': None, 'children': d}
+            children = {'rsrcType': None, 'children': children}
 
         # this is a matching child
-        if d['rsrcType'] == rsrc_type:
-            return d
-        # this is not a match, but has children to check
-        elif d.get('children', None):
+        if children['rsrcType'] == rsrc_type:
+            return children
 
+        # this is not a match, but has children to check
+        elif children.get('children'):
             result = [self._get_children(c, rsrc_type)
-                      for c in d['children']]
+                      for c in children['children']]
             if result and isinstance(result[0], list):
                 # flatten it so we don't end up with nested lists
                 return [c for l in result for c in l]

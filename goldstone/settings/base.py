@@ -245,13 +245,13 @@ CELERYBEAT_SCHEDULE = {
     },
 }
 
-# Settings for the Djoser package.
-DJOSER = {'DOMAIN': 'frontend.com',
-          'SITE_NAME': 'Frontend',
-          'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
+# Settings for the Djoser package. We login and activate after registration.
+DJOSER = {'DOMAIN': 'YOUR_EMAIL_DOMAIN_NAME.com',
+          'SITE_NAME': 'YOUR_EMAIL_SITE_NAME',
+          'PASSWORD_RESET_CONFIRM_URL':
+          '#/password/reset/confirm/{uid}/{token}',
           'ACTIVATION_URL': '#/activate/{uid}/{token}',
-          'LOGIN_AFTER_ACTIVATION': True,
-          'SEND_ACTIVATION_EMAIL': True,
+          'LOGIN_AFTER_REGISTRATION': True,
           }
 
 REST_FRAMEWORK = {
