@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2014 - 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -14,7 +14,25 @@
  * limitations under the License.
  */
 
-// view is linked to collection when instantiated in api_perf_report.html
+/*
+Instantiated similar to:
+
+this.novaApiPerfChartView = new ApiPerfView({
+    chartTitle: "Nova API Performance",
+    collection: this.novaApiPerfChart,
+    height: 300,
+
+    // for info-button text
+    infoCustom: [{
+        key: "API Call",
+        value: "Hypervisor Show"
+    }],
+    el: '#api-perf-report-r1-c1',
+    width: $('#api-perf-report-r1-c1').width()
+});
+*/
+
+// view is linked to collection when instantiated
 
 var ApiPerfView = GoldstoneBaseView.extend({
 

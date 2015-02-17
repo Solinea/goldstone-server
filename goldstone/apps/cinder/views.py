@@ -32,8 +32,6 @@ class ReportView(TopLevelView):
 class ApiPerfView(GoldstoneApiPerfView):
     """Cinder api_perf view."""
 
-    my_template_name = 'cinder_api_perf.html'
-
     def _get_data(self, context):
         return ApiPerfData().get(context['start_dt'],
                                  context['end_dt'],

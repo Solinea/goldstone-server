@@ -46,10 +46,10 @@ class ReportView(TopLevelView):
 
 
 class ApiPerfView(GoldstoneApiPerfView):
-    my_template_name = 'nova_api_perf.html'
 
     def _get_data(self, context):
-        return NovaApiPerfData().get(context['start_dt'], context['end_dt'],
+        return NovaApiPerfData().get(context['start_dt'],
+                                     context['end_dt'],
                                      context['interval'])
 
 

@@ -1,3 +1,4 @@
+"""Logging serializers."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -12,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from goldstone.apps.core.serializers import NodeSerializer
-from goldstone.apps.logging.models import LoggingNodeStats
 
 
 class LoggingNodeSerializer(NodeSerializer):
 
     def to_representation(self, obj):
+        from goldstone.apps.logging.models import LoggingNodeStats
 
         result = super(LoggingNodeSerializer, self).to_representation(obj)
 
