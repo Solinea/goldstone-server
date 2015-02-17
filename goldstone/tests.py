@@ -28,7 +28,7 @@ from mock import patch, PropertyMock
 from requests.models import Response
 
 from goldstone import StartupGoldstone
-from goldstone.models import GSConnection, ESData
+from goldstone.models import GSConnection, ESData, es_conn
 from goldstone.apps.core.models import Node
 from goldstone.apps.core.tasks import create_daily_index
 from goldstone.utils import stored_api_call, get_keystone_client, \
@@ -100,6 +100,30 @@ class PrimeData(TestCase):
                 conn.index(index, event['_type'], event['_source'])
 
         conn.indices.refresh([index])
+
+
+class ESConnectionTests(SimpleTestCase):
+    """Test the ES connection.
+    """
+
+    @patch.object(Elasticsearch, '__init__')
+    def test_connection(self, mock_es):
+
+        mock_es.return_value = None
+
+        es_conn()
+        self.assertEqual(mock_es.call_count, 1)
+        mock_es.assert_called_with(settings.ES_SERVER,
+                                   sniff_on_start=False,
+                                   max_retries=1)
+
+        mock_es.reset_mock()
+
+        es_conn(server=[{'host': 'abc'}])
+        self.assertEqual(mock_es.call_count, 1)
+        mock_es.assert_called_with([{'host': 'abc'}],
+                                   sniff_on_start=False,
+                                   max_retries=1)
 
 
 class GSConnectionModel(SimpleTestCase):

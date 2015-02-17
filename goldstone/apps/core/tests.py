@@ -51,6 +51,7 @@ class StartupGoldstoneTest(SimpleTestCase):
         mock_es_conn.side_effect = ConnectionError()
         self.assertRaises(ConnectionError, StartupGoldstone)
         self.assertEqual(mock_es_conn.call_count, 1)
+
         mock_es_conn.side_effect = TransportError()
         self.assertRaises(TransportError, StartupGoldstone)
         self.assertEqual(mock_es_conn.call_count, 2)
@@ -62,7 +63,7 @@ class StartupGoldstoneTest(SimpleTestCase):
     def test_es_available(self, mock_setup_index, mock_es_conn):
         """Goldstone should attempt to create two indices."""
 
-        mock_es_conn.result = None
+        mock_es_conn.return_value = None
         StartupGoldstone()
         self.assertEqual(mock_es_conn.call_count, 1)
         self.assertEqual(mock_setup_index.call_count, 2)
