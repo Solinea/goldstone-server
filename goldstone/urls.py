@@ -28,8 +28,8 @@ urlpatterns = patterns(
     '',
     # TODO create the main discover page and remove redirect
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^accounts/', include("accounts.urls")),
     url(r'^api_perf/', include('goldstone.apps.api_perf.urls')),
-    url(r'^auth/', include("djoser.urls")),
     url(r'^cinder/', include('goldstone.apps.cinder.urls')),
     url(r'^core/', include('goldstone.apps.core.urls')),
     url(r'^discover[/]?$',
