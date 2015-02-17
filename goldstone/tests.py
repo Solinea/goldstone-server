@@ -27,7 +27,8 @@ from keystoneclient.exceptions import ClientException
 from mock import patch, PropertyMock
 from requests.models import Response
 
-from goldstone.models import ESData, es_conn, daily_index, es_indices
+from goldstone.models import ESData, es_conn, daily_index, es_indices, \
+    TopologyData
 from goldstone.apps.core.models import Node
 from goldstone.apps.core.tasks import create_daily_index
 from goldstone.utils import stored_api_call, get_keystone_client, \
@@ -298,3 +299,51 @@ class ReportTemplateViewTest(SimpleTestCase):
         url = '/report/node/missing_node'
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 405)
+
+
+class TopologyDataTest(SimpleTestCase):
+
+    def test_sort_arg(self):
+        with self.assertRaises(ValueError):
+            TopologyData._sort_arg("key", "bad")
+        self.assertEquals(TopologyData._sort_arg("key", "+"), "key")
+        self.assertEquals(TopologyData._sort_arg("key", "asc"), "key")
+        self.assertEquals(TopologyData._sort_arg("key", "-"), "-key")
+        self.assertEquals(TopologyData._sort_arg("key", "desc"), "-key")
+
+    @patch('goldstone.models.Elasticsearch')
+    @patch('elasticsearch.client.IndicesClient')
+    @patch('goldstone.models.Search')
+    def test_get(self, m_search, m_indices, m_conn):
+        m_conn.return_value = m_conn  # critical to success
+        m_conn.attach_mock(m_indices, 'indices')
+        m_conn.indices.status.return_value = {
+            'indices': {
+                'index1': 'value1',
+                'not_index1': 'value3'
+            }
+        }
+
+        exec_response = {
+            "hits": {"hits": {"a": "b"}}
+        }
+        # config = {
+        #    'm_search.return_value.doc_type.return_value.sort.return_value.execute.return_value': exec_response}
+        # m_search.configure_mock(**config)
+
+        topo = TopologyData()
+        topo._DOC_TYPE = "doc_type"
+        topo._INDEX_PREFIX = "index_prefix"
+
+        m_search.return_value.execute.side_effect = ValueError
+        self.assertRaises(ValueError, topo.get)
+
+        m_search.return_value.execute.side_effect = ConnectionError
+        self.assertRaises(ConnectionError, topo.get)
+
+        m_search.return_value.execute.side_effect = Exception
+        self.assertRaises(Exception, topo.get)
+
+        m_search.return_value.execute.side_effect = None
+        m_search.return_value.execute.return_value = exec_response
+        self.assertEquals(topo.get(), {"a": "b"})

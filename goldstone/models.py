@@ -14,6 +14,7 @@
 # limitations under the License.
 from django.conf import settings
 from elasticsearch import Elasticsearch, ElasticsearchException
+from elasticsearch_dsl import Search
 import redis
 from datetime import datetime
 from types import StringType
@@ -473,25 +474,50 @@ class ApiPerfData(ESData):
                             values()[0]['_shards']['failed'])
 
 
-class TopologyData(ESData):
+class TopologyData(object):
 
-    def get(self, count=1, sort_key="@timestamp"):
+    _DOC_TYPE = ""
+    _INDEX_PREFIX = ""
+
+    def __init__(self):
+        self.conn = es_conn()
+        self.search = Search(self.conn)
+
+        # using the private setters over methods simplifies mocking for
+        # unit tests.
+        self.search._doc_type = self._DOC_TYPE
+        self.search._index = es_indices(self.conn, self._INDEX_PREFIX)
+
+
+    @classmethod
+    def _sort_arg(cls, key, order):
+        if order in ["+", "asc"]:
+            return key              # translates to [{key: {'order': 'asc'}}]
+        elif order in ["-", "desc"]:
+            return "-" + key        # translates to [{key: {'order': 'desc'}}]
+        else:
+            raise ValueError("Valid order values are in [+, -, asc, desc]")
+
+    def get(self, count=1, sort_key="@timestamp", sort_order="desc"):
         """
-        returns the latest n
+        returns the latest n instances from ES
         """
-        sort_str = sort_key + ":desc"
+
         try:
-            logger.debug('[get] {"query details":  {"index": "_all", "query": '
-                         '{"query": {"match_all": {}}}, "doc_type": %s, '
-                         '"size": %d, "sort": %s"', self._DOC_TYPE, count,
-                         sort_str)
-            result = \
-                self._conn.search(index=self.get_index_names("goldstone-"),
-                                  body='{"query": {"match_all": {}}}',
-                                  doc_type=self._DOC_TYPE, size=count,
-                                  sort=sort_str)
-            logger.debug('[get] search response = %s', json.dumps(result))
+            self.search.sort(self._sort_arg(sort_key, sort_order))
+            logger.debug("[get] search = %s", self.search.to_dict())
+            logger.debug("[get] index = %s", self.search._index)
+            logger.debug("[get] doc_type = %s", self._DOC_TYPE)
+
+            result = self.search.execute()
+
+            logger.debug('[get] search response = %s', result)
             return result['hits']['hits']
+
         except ElasticsearchException as exc:
             logger.debug("get from ES failed, exception was %s", exc.message)
+            raise
+
+        except ValueError as exc:
+            logger.exception(exc)
             raise
