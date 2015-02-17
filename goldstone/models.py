@@ -26,6 +26,20 @@ from goldstone.utils import NoDailyIndex
 logger = logging.getLogger(__name__)
 
 
+def es_conn(server=settings.ES_SERVER):
+    """Standardized connection to the ES cluster.
+
+    :param server: a server definition of the form [host:port, ...].  See
+    https://elasticsearch-py.readthedocs.org/en/master/api.html#elasticsearch
+    for alternate host specification options.
+    :return: an Elasticsearch connection instance
+    """
+
+    return Elasticsearch(server,
+                         max_retries=1,
+                         sniff_on_start=False)
+
+
 class GSConnection(object):
     conn = None
 

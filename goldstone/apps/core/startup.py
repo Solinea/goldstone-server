@@ -12,9 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from elasticsearch import TransportError
+
 import logging
-from goldstone.models import GSConnection
+from elasticsearch import TransportError
+from goldstone.models import es_conn
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,6 @@ class StartupGoldstone(object):
         don't exist."""
 
         logger.debug("attempting to create goldstone_model ES index")
-        conn = GSConnection().conn
+        conn = es_conn()
         self._setup_index(conn, "goldstone_model")
         self._setup_index(conn, "goldstone_agent")

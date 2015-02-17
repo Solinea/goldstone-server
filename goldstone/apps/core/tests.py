@@ -20,13 +20,14 @@ import arrow
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, ConnectionError, TransportError
 from elasticsearch.client import IndicesClient
-from mock import patch
 import mock
+from mock import patch
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 from rest_framework.test import APISimpleTestCase
+from goldstone import StartupGoldstone
 
 from goldstone.apps.core import tasks
 from goldstone.apps.core.views import ElasticViewSetMixin
@@ -35,6 +36,36 @@ from .models import EventType, Event, MetricType, Metric, ReportType, \
 from .serializers import EventSerializer, NodeSerializer, ReportSerializer
 
 logger = logging.getLogger(__name__)
+
+
+class StartupGoldstoneTest(SimpleTestCase):
+
+    @patch('goldstone.apps.core.startup.es_conn')
+    @patch.object(StartupGoldstone, '_setup_index')
+    def test_es_unavailable(self, mock_setup_index, mock_es_conn):
+        """
+        goldstone should raise any exceptions encountered, and fail to start
+        if ES is unavailable.
+        """
+
+        mock_es_conn.side_effect = ConnectionError()
+        self.assertRaises(ConnectionError, StartupGoldstone)
+        self.assertEqual(mock_es_conn.call_count, 1)
+        mock_es_conn.side_effect = TransportError()
+        self.assertRaises(TransportError, StartupGoldstone)
+        self.assertEqual(mock_es_conn.call_count, 2)
+        self.assertEqual(mock_setup_index.call_count, 0)
+
+
+    @patch('goldstone.apps.core.startup.es_conn')
+    @patch.object(StartupGoldstone, '_setup_index')
+    def test_es_available(self, mock_setup_index, mock_es_conn):
+        """Goldstone should attempt to create two indices."""
+
+        mock_es_conn.result = None
+        StartupGoldstone()
+        self.assertEqual(mock_es_conn.call_count, 1)
+        self.assertEqual(mock_setup_index.call_count, 2)
 
 
 class TaskTests(SimpleTestCase):
