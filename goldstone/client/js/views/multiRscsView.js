@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var MultiRscsView = Backbone.View.extend({
+var MultiRscsView = GoldstoneBaseView.extend({
 
     defaults: {},
 
@@ -27,6 +27,10 @@ var MultiRscsView = Backbone.View.extend({
         var self = this;
 
         this.render();
+        this.on('errorTrigger', function(params) {
+            console.log('heard errorTrigger', params[0]);
+            this.dataErrorMessage(null, params[0]);
+        });
 
     },
 
