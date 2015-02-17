@@ -73,6 +73,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'djoser',
     'rest_framework',
+    'rest_framework.authtoken',
     'south',
     'crispy_forms',
     'django.contrib.contenttypes',
@@ -89,7 +90,7 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE_CLASSES = (
-    # 'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -260,7 +261,7 @@ DJOSER = {'DOMAIN': 'YOUR_EMAIL_DOMAIN_NAME.com',
           }
 
 REST_FRAMEWORK = {
-    # We use token-based authentication.
+    # We use token-based authentication everywhere.
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     ),
@@ -270,12 +271,17 @@ REST_FRAMEWORK = {
     'DEFAULT_MODEL_SERIALIZER_CLASS':
     'rest_framework.serializers.HyperlinkedModelSerializer',
 
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
-    'DEFAULT_PERMISSION_CLASSES': [
-        # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-        'rest_framework.permissions.AllowAny'
-    ],
+    # Permission to access all views is granted to any logged-in account.
+    #
+    # TODO: When we add multiple tenants, we'll need to specify the tenant for
+    # an API call, and check permissions against membership and administration
+    # in that tenant.
+    'DEFAULT_PERMISSION_CLASSES': (
+        # User must be authenticated, i.e., logged in.
+        'rest_framework.permissions.IsAuthenticated'
+        # Allow any access to any request.
+        # 'rest_framework.permissions.AllowAny'
+    ),
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
