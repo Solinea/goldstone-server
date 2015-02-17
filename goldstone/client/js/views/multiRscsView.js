@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2014 - 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -14,30 +14,55 @@
  * limitations under the License.
  */
 
+/*
+instantiated via topologyTreeView.js in the "render" method if
+there is a multiRscsViewEl defined.
+
+The instantiation pattern within the "render" method
+only requires an el to be defined, and looks like:
+
+    ns.multiRscsView = new MultiRscsView({
+        el: ns.multiRsrcViewEl,
+    });
+
+*/
+
 var MultiRscsView = GoldstoneBaseView.extend({
 
     defaults: {},
 
     initialize: function(options) {
+
         this.options = options || {};
+
+        // essential for unique chart objects,
+        // as objects/arrays are pass by reference
         this.defaults = _.clone(this.defaults);
-        this.el = options.el;
 
-        var ns = this.defaults;
-        var self = this;
+        // processes the passed in hash of options when object is instantiated
+        this.processOptions();
 
+        // sets page-element listeners, and/or event-listeners
+        this.processListeners();
+
+        // creates the popular mw / mh calculations for the D3 rendering
         this.render();
-        this.on('errorTrigger', function(params) {
-            console.log('heard errorTrigger', params[0]);
-            this.dataErrorMessage(null, params[0]);
-        });
 
     },
 
+    processListeners: function() {
+        this.on('errorTrigger', function(params) {
+
+            // params is passed in as an array from the "trigger" function
+            // in topologyTreeView, and is specified with index[0]
+            this.dataErrorMessage(null, params[0]);
+        });
+    },
+
     render: function() {
-        this.$el.append(this.template());
+        MultiRscsView.__super__.render.apply(this, arguments);
+
         this.populateInfoButton();
-        return this;
     },
 
     populateInfoButton: function() {

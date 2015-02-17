@@ -630,7 +630,6 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         if (ns.multiRsrcViewEl !== null) {
             ns.multiRscsView = new MultiRscsView({
                 el: ns.multiRsrcViewEl,
-                parent: this.el
             });
 
             var appendSpinnerLocation = $(ns.multiRsrcViewEl).find('#spinner-container');
