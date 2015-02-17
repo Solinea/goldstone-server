@@ -1,4 +1,8 @@
-"""Core app unit tests."""
+"""Core app unit tests.
+
+This module demonstrates no less than 3 strategies for mocking ES.
+
+"""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,6 +51,8 @@ class StartupGoldstoneTest(SimpleTestCase):
         """
         goldstone should raise any exceptions encountered, and fail to start
         if ES is unavailable.
+
+        TODO (JS) should goldstone start and keep trying to contact ES?
         """
         mock_es_conn.side_effect = ConnectionError()
         self.assertRaises(ConnectionError, StartupGoldstone)
@@ -67,11 +73,9 @@ class StartupGoldstoneTest(SimpleTestCase):
         # assertions were failing.
 
         m_conn.return_value = m_conn  # critical to success
-
-        m_conn.indices = m_indices
+        m_conn.attach_mock(m_indices, 'indices')
         m_conn.indices.exists.return_value = False
         m_conn.indices.create.return_value = True
-        m_conn.attach_mock(m_indices, 'indices')
 
         # sanity checks on the mocked objects
         self.assertIs(m_conn.indices, m_indices)
@@ -98,8 +102,6 @@ class StartupGoldstoneTest(SimpleTestCase):
         self.assertEqual(m_conn.indices.exists.call_count, 2)
         self.assertEqual(m_conn.indices.create.call_count, 0)
 
-        # TODO current impl will swallow the exception here.  should it do the
-        # same throughought the startup class?
         m_conn.indices.exists.side_effect = TransportError()
         self.assertIsInstance(StartupGoldstone(), StartupGoldstone)
 

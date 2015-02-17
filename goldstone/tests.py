@@ -27,7 +27,7 @@ from keystoneclient.exceptions import ClientException
 from mock import patch, PropertyMock
 from requests.models import Response
 
-from goldstone.models import ESData, es_conn
+from goldstone.models import ESData, es_conn, daily_index, es_indices
 from goldstone.apps.core.models import Node
 from goldstone.apps.core.tasks import create_daily_index
 from goldstone.utils import stored_api_call, get_keystone_client, \
@@ -123,6 +123,32 @@ class ESConnectionTests(SimpleTestCase):
         mock_es.assert_called_with([{'host': 'abc'}],
                                    sniff_on_start=False,
                                    max_retries=1)
+
+    def test_daily_index(self):
+
+        import arrow
+        date_str = arrow.utcnow().format('YYYY.MM.DD')
+        self.assertEqual(daily_index("xyz"), "xyz-" + date_str)
+
+    @patch('goldstone.models.Elasticsearch')
+    @patch('elasticsearch.client.IndicesClient')
+    def test_es_indices(self, m_indices, m_conn):
+        m_conn.return_value = m_conn  # critical to success
+        m_conn.attach_mock(m_indices, 'indices')
+        m_conn.indices.status.return_value = {
+            'indices': {
+                'index1': 'value1',
+                'not_index1': 'value3'
+            }
+        }
+
+        # test with no prefix provided
+        self.assertEqual(es_indices(es_conn()), "_all")
+
+        # test with prefix
+        result = es_indices(es_conn(), 'index')
+        self.assertIn('index1', result)
+        self.assertNotIn('not_index1', result)
 
 
 class UtilsTests(SimpleTestCase):
