@@ -273,9 +273,11 @@ REST_FRAMEWORK = {
 
     # Permission to access all views is granted to any logged-in account.
     #
-    # TODO: When we add multiple tenants, we'll need to specify the tenant for
-    # an API call, and check permissions against membership and administration
-    # in that tenant.
+    # TODO: Add custom permission to differentiate between admin and non-admin
+    # accounts.
+    #
+    # TODO: For multiple tenants, we'll need to specify the tenant for an API
+    # call and check permissions against that tenant's membership and admins.
     'DEFAULT_PERMISSION_CLASSES': (
         # User must be authenticated, i.e., logged in.
         'rest_framework.permissions.IsAuthenticated'
