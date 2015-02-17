@@ -181,7 +181,14 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
         $(ns.multiRsrcViewEl).find('#spinner').show();
 
-        $.get(dataUrl, function(payload) {
+        // This .get call has been converted to take advantage of
+        // the 'promise' format that it supports. The 'success' and
+        // 'fail' pathways will be followed based on the response
+        // from the dataUrl API call. The 'always' route pathway
+        // will be followed in every case, removing the loading
+        // spinner from the chart.
+
+        $.get(dataUrl, function() {}).success(function(payload) {
             // clear any existing error message
             self.clearDataErrorMessage(ns.multiRsrcViewEl);
 
@@ -269,10 +276,34 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                 } else {
                     goldstone.raiseAlert($(ns.multiRsrcViewEl).find('.popup-message'), 'No data', true);
                 }
-                $(ns.multiRsrcViewEl).find('#spinner').hide();
             }
-        });
+        }).fail(function(error) {
 
+            // ns.multiRscsView is defined in this.render
+            if (ns.multiRscsView !== undefined) {
+
+                // there is a listener defined in the
+                // multiRsrcView that will append the
+                // error message to that div
+
+                // trigger takes 2 args:
+                // 1: 'triggerName'
+                // 2: array of additional params to pass
+                ns.multiRscsView.trigger('errorTrigger', [error]);
+            }
+
+            // TODO: if this view is instantiated in a case where there
+            // is no multiRscsViewEl defined, there will be no
+            // ns.multiRscsView defined. In that case, error messages
+            // will need to be appended to THIS view. So there will need
+            // to be a fallback instantiation of this.dataErrorMessage that will render on THIS view.
+
+        }).always(function() {
+
+            // always remove the spinner after the API
+            // call returns
+            $(ns.multiRsrcViewEl).find('#spinner').hide();
+        });
     },
     reportRedirect: function(data, keyName) {
 
