@@ -17,6 +17,20 @@
 /*
 This view makes up the "Reports" tab of nodeReportView.js
 It is sub-classed from GoldstoneBaseView.
+
+Instantiated on nodeReportView as:
+
+this.reportsReportCollection = new ReportsReportCollection({
+    globalLookback: ns.globalLookback,
+    nodeName: hostName
+});
+
+this.reportsReport = new ReportsReportView({
+    collection: this.reportsReportCollection,
+    el: '#node-report-panel #reportsReport',
+    width: $('#node-report-panel #reportsReport').width(),
+    nodeName: hostName
+});
 */
 
 var ReportsReportView = GoldstoneBaseView.extend({

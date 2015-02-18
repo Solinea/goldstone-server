@@ -14,7 +14,24 @@
  * limitations under the License.
  */
 
-// extends UtilizationCpuView
+/*
+extends UtilizationCpuView
+
+Instantiated on nodeReportView as:
+
+this.memoryUsageChart = new UtilizationMemCollection({
+    nodeName: hostName,
+    globalLookback: ns.globalLookback
+});
+
+this.memoryUsageView = new UtilizationMemView({
+    collection: this.memoryUsageChart,
+    el: '#node-report-r3 #node-report-panel #memory-usage',
+    width: $('#node-report-r3 #node-report-panel #memory-usage').width(),
+    featureSet: 'memUsage'
+});
+*/
+
 var UtilizationMemView = UtilizationCpuView.extend({
 
     collectionPrep: function() {

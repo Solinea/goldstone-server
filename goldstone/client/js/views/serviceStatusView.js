@@ -14,6 +14,21 @@
  * limitations under the License.
  */
 
+/*
+Instantiated on nodeReportView.js similar to:
+
+this.serviceStatusChart = new ServiceStatusCollection({
+    nodeName: hostName
+});
+
+this.serviceStatusChartView = new ServiceStatusView({
+    collection: this.serviceStatusChart,
+    el: '#node-report-main #node-report-r2',
+    width: $('#node-report-main #node-report-r2').width(),
+    globalLookback: ns.globalLookback
+});
+*/
+
 var ServiceStatusView = GoldstoneBaseView.extend({
 
     processOptions: function() {
