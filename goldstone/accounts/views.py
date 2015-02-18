@@ -16,51 +16,36 @@ import logging
 
 from rest_framework.serializers import ModelSerializer
 from rest_framework.viewsets import ModelViewSet
-
-from .models import Tenant
+from rest_framework import generics, permissions, status, response, serializers
 
 logger = logging.getLogger(__name__)
 
 
-class TenantSerializer(ModelSerializer):
-    """The Tenant model serializer."""
+class UserSerializer(serializers.ModelSerializer):
 
-    class Meta:          # pylint: disable=C1001,C0111,W0232
-        model = Tenant
-        fields = ["name", "owner", "owner_contact", "administrators"]
+    class Meta:
+        model = User
+        fields = tuple(User.REQUIRED_FIELDS) + (
+            User._meta.pk.name,
+            User.USERNAME_FIELD,
+        )
+        read_only_fields = (
+            User.USERNAME_FIELD,
+        )
 
 
-class TenantsViewSet(ModelViewSet):
-    """Provide all of the /accounts/tenants views.
-
-    Today, this acts upon only the Tenant table. Some of the methods will
-    eventually need to manipulate the target cloud.
-
+class UserView(generics.RetrieveUpdateAPIView):
     """
+    Use this endpoint to retrieve/update user.
+    """
+    model = get_user_model()
+    serializer_class = serializers.UserSerializer
+    permission_classes = (
+        permissions.IsAuthenticated,
+    )
 
-    queryset = Tenant.objects.all()
-    serializer_class = TenantSerializer
-    lookup_field = "name"
+    def get_object(self, *args, **kwargs):
+        return self.request.user
 
-    def perform_create(self, serializer):
-        """Perform a create Tenant request.
 
-        In self.request.data there will be name, owner, and admin.
-
-        """
-        from django.contrib.auth import get_user_model
-
-        # We'll create this tenant with an admin user, if specified.
-        #
-        # TODO: If not, should we create it with a default admin?
-        admin = self.request.data.get("admin")
-
-        # Create the tenant, optionally with an admin.
-        tenant = serializer.save(owner=self.request.data["owner"],
-                                 name=self.request.data["name"])
-        if admin:
-            admin = get_user_model().objects.get(username=admin)
-            tenant.administrators.add(admin)
-
-        # Send registration email to the admins' email addresses.
-        # TBD
+    

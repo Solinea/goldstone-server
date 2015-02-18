@@ -1,6 +1,6 @@
 """Accounts URLconf.
 
-This configures endpoints that route to the djoser package, for basic account
+This configures endpoints that route to the djoser package, for account
 authorization and administration.
 
 """
@@ -18,19 +18,16 @@ authorization and administration.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf.urls import patterns, url
-from rest_framework.routers import DefaultRouter
 from djoser import views as djoser_views
+from .views import UserView
 
-# First, hook up the djoser package. We can't include djoser's URLconf, since
-# we need to match on an URL segment to do that. Including it the standard way
-# would mean rooting it at /accounts/XXX, where XXX is some string. The
-# alternative would be to root djoser at Goldstone's URLconf, but then the
-# endpoints would have a different segment (e.g., /accounts vs. /auth). So,
-# we'll override djoser's URLconf to hook up the djoser views directly. We hook
-# up a subset of djoser's default API.
+# First, hook up the djoser package. We don't include djoser's URLconf because
+# that would mean rooting it at /accounts/XXX, making the URLs longer; and we
+# need to override some of djoser's code in order to process user
+# profiles. Also, we want to connect only a subset of djoser's API.
 urlpatterns = patterns(
     '',
-    url(r'^me[/]?$', djoser_views.UserView.as_view(), name='user'),
+    url(r'^me[/]?$', UserView.as_view(), name='user'),
     url(r'^register[/]?$',
         djoser_views.RegistrationView.as_view(),
         name='register'),
