@@ -288,10 +288,10 @@ OS_AUTH_URL = ''
 
 ES_HOST = "127.0.0.1"
 ES_PORT = "9200"
-ES_SERVER = ES_HOST + ":" + ES_PORT
+ES_SERVER = {'hosts': [ES_HOST + ":" + ES_PORT]}
 
 # ElasticUtils Settings
-ES_URLS = [ES_SERVER]
+ES_URLS = [ES_HOST + ":" + ES_PORT]
 ES_INDEXES = {'default': 'goldstone_model',
               'core_metric': 'goldstone_agent',
               'core_report': 'goldstone_agent'}

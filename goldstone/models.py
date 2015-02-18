@@ -12,11 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from arrow import Arrow
 from django.conf import settings
 from elasticsearch import Elasticsearch, ElasticsearchException
-from elasticsearch_dsl import Search
+from elasticsearch_dsl import Search, DocType, String, Date, Integer
+from elasticsearch_dsl.connections import connections
 import redis
-from datetime import datetime
 from types import StringType
 import json
 import logging
@@ -36,23 +37,27 @@ def es_conn(server=settings.ES_SERVER):
     :return: an Elasticsearch connection instance
     """
 
-    return Elasticsearch(server,
-                         max_retries=1,
-                         sniff_on_start=False)
+    connections.configure(default=server,
+                          max_retries=1,
+                          sniff_on_start=False)
+    return connections.get_connection()
 
 
-def es_indices(conn, prefix=""):
+def es_indices(prefix="", conn=None):
     """ es_indices gets a potentially filtered list of index names.
 
+    :type prefix: str
+    :param prefix: the prefix to filter for
     :type conn: Elasticsearch
     :param conn: an ES connection object
-    :type prefix: str
-    :param prefix: the prefix to filter with
     :return: _all or list of index names
 
     """
 
     if prefix is not "":
+        if conn is None:
+            conn = es_conn()
+
         all_indices = conn.indices.status()['indices'].keys()
         return [i for i in all_indices if i.startswith(prefix)]
     else:
@@ -352,66 +357,90 @@ class ESData(object):
                             values()[0]['_shards']['failed'])
 
 
-class ApiPerfData(ESData):
-    _DOC_TYPE = 'openstack_api_stats'
-    _INDEX_PREFIX = 'goldstone'
-    # override component for implementation
-    component = None
+class ApiPerfData(DocType):
 
-    def _api_perf_query(self, start, end, interval):
+    # Field declarations.  They types are generated, so imports look broken
+    # but hopefully are working...
+    response_status = Integer()
+    timestamp = Date()
+    component = String()
+    uri = String()
+    response_length = Integer()
+    response_time = Integer()
+
+    # for handling datestamped indices
+    _INDEX_PREFIX = 'goldstone-'
+
+    class Meta:
+        doc_type = 'openstack_api_stats'
+
+
+    # TODO rename to _stats_search
+    def _stats_search(self, start, end, interval):
         """
         Sets up a query that does aggregations on the response_time field min,
         max, avg for the bucket.
+
+        :type start: Arrow
+        :param start:
+        :type end: Arrow
+        :param end:
+        :type interval: str
+        :param interval: number + unit (ex: 5s, 5m)
         """
-        range_filter = self._range_clause('@timestamp', start.isoformat(),
-                                          end.isoformat())
-        filter_list = [range_filter]
-        if self.component:
-            component_filter = self._term_clause('component', self.component)
-            filter_list.append(component_filter)
 
-        query = self._filtered_query_base(self._bool_clause(
-            filter_list), {'match_all': {}})
-        date_agg = self._agg_date_hist(interval)
-        stats_agg = self._ext_stats_aggs_clause("stats", "response_time")
-        http_response_agg = self._http_response_aggs_clause("range",
-                                                            "response_status")
-        date_agg['events_by_date']['aggs'] = dict(stats_agg.items() +
-                                                  http_response_agg.items())
-        query['aggs'] = date_agg
-        logger.debug('[_api_perf_query] query = ' + json.dumps(query))
-        return query
+        search = self.search.\
+            filter('range', ** {'@timestamp': {
+                'lte': end.isoformat,
+                'gte': start.isoformat}})
 
-    def get(self, start, end, interval):
+        if self.component is not None:
+            search = search.filter('term', component=self.component)
+
+        search.aggs.bucket('events_by_date',
+                           'date_histogram',
+                           field='@timestamp',
+                           interval=interval,
+                           min_doc_count=0).\
+            metric('stats', 'extended_stats', field='response_time').\
+            bucket('range', 'range', field='response_status', keyed=True,
+                   ranges=[
+                        {"from": 200, "to": 299},
+                        {"from": 300, "to": 399},
+                        {"from": 400, "to": 499},
+                        {"from": 500, "to": 599}
+                    ])
+
+        return search
+
+    def get_stats(self, start, end, interval):
         """Return a pandas object that contains API performance data.
 
-        :arg start: datetime used to filter the query range
-        :arg end: datetime used to filter the query range
-        :arg interval: string representation of the time interval to use when
+        :type start: Arrow
+        :param start: datetime used to filter the query range
+        :type end: Arrow
+        :param end: datetime used to filter the query range
+        :type interval: str
+        :param interval: string representation of the time interval to use when
                        aggregating the results.  Form should be something like
-                       '1.5s'.
-        :rtype: pandas object
-
-        Supported time postfixes are s, m, h, d, w, m.
-
+                       '1.5s'.  Supported time postfixes are s, m, h, d, w, m.
+        :rtype: pd.DataFrame
         """
 
-        assert type(start) is datetime, "start is not a datetime: %r" % \
-                                        type(start)
-        assert type(end) is datetime, "end is not a datetime: %r" % type(end)
+        assert type(start) is Arrow, "start is not an Arrow object"
+        assert type(end) is Arrow, "end is not an Arrow object"
         assert type(interval) in [StringType, unicode], \
             "interval is not a string: %r" % type(interval)
         assert interval[-1] in ['s', 'm', 'h', 'd'], \
             "valid units for interval are ['s', 'm', 'h', 'd']: %r" \
             % interval
 
-        query = self._api_perf_query(start, end, interval)
-        logger.debug('[get] query = %s', json.dumps(query))
+        search = self._stats_search(start, end, interval)
+        search._index = es_indices(self._INDEX_PREFIX)
+        logger.debug('[_api_perf_query] query = ' + search.to_dict())
 
-        result = self._conn.search(index="_all",
-                                   body=query,
-                                   doc_type=self._DOC_TYPE)
-        logger.debug('[get] search response = %s', json.dumps(result))
+        result = search.execute()
+        logger.debug('[get] search result = %s', json.dumps(result))
 
         items = []
         for date_bucket in result['aggregations']['events_by_date']['buckets']:
@@ -440,38 +469,32 @@ class ApiPerfData(ESData):
 
         return result
 
-    def post(self, body):
-        """
-        posts an ApiPerf record to the database.
-        :arg body: record body as JSON object
-        :return id of the inserted record
-        """
-        logger.debug("post called with body = %s", json.dumps(body))
-        response = self._conn.create(
-            ESData._get_latest_index(self, self._INDEX_PREFIX),
-            self._DOC_TYPE, body, refresh=True)
-        logger.debug('[post] response = %s', json.dumps(response))
-        return response['_id']
+    def save(self, using=None, index=None, **kwargs):
+        """Posts an ApiPerf record to the database.
 
-    def delete(self, doc_id):
-        """
-        deletes an ApiPerf Zone record from the database by id.
-        :arg doc_id: the id of the doc as returned by post
-        :return bool
+        See elasticsearch-dsl for parameter information.
         """
 
-        query = ESData._query_base()
-        query['query'] = ESData._term_clause("_id", doc_id)
-        response = self._conn.delete_by_query("_all", self._DOC_TYPE,
-                                              body=query)
-        logger.debug("[delete] response = %s", json.dumps(response))
+        if index is None:
+            index = es_indices(self._INDEX_PREFIX)
 
-        # need to test for a single index case where there is no "all" field
-        if 'all' in response['_indices']:
-            return not bool(response['_indices']['all']['_shards']['failed'])
-        else:
-            return not bool(response['_indices'].
-                            values()[0]['_shards']['failed'])
+        return super(ApiPerfData, self).save(using,
+                                             index,
+                                             **kwargs)
+
+    def delete(self, using=None, index=None, **kwargs):
+        """Deletes an ApiPerf record from the database.
+
+        See elasticsearch-dsl for parameter information.
+        """
+
+        if index is None:
+            index = es_indices(self._INDEX_PREFIX)
+
+        return super(ApiPerfData, self).delete(self,
+                                               using=using,
+                                               index=index,
+                                               **kwargs)
 
 
 class TopologyData(object):
@@ -486,7 +509,7 @@ class TopologyData(object):
         # using the private setters over methods simplifies mocking for
         # unit tests.
         self.search._doc_type = self._DOC_TYPE
-        self.search._index = es_indices(self.conn, self._INDEX_PREFIX)
+        self.search._index = es_indices(self._INDEX_PREFIX, self.conn)
 
 
     @classmethod
