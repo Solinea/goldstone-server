@@ -17,10 +17,9 @@
 var NeutronReportView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
-        if (change === undefined) {
-            change = 'lookbackSelectorChanged';
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.neutronApiPerfChartView.trigger('lookbackSelectorChanged');
         }
-        this.neutronApiPerfChartView.trigger(change);
     },
 
     renderCharts: function() {

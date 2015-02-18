@@ -63,7 +63,7 @@ var GoldstoneBasePageView = Backbone.View.extend({
         }
 
         ns.scheduleInterval = setInterval(function() {
-            self.triggerChange();
+            self.triggerChange('lookbackIntervalReached');
         }, intervalDelay);
     },
 

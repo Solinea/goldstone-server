@@ -23,16 +23,13 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
     },
 
     triggerChange: function(change) {
-
-        if (change === undefined) {
-            change = 'lookbackSelectorChanged';
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.novaApiPerfChartView.trigger('lookbackSelectorChanged');
+            this.neutronApiPerfChartView.trigger('lookbackSelectorChanged');
+            this.keystoneApiPerfChartView.trigger('lookbackSelectorChanged');
+            this.glanceApiPerfChartView.trigger('lookbackSelectorChanged');
+            this.cinderApiPerfChartView.trigger('lookbackSelectorChanged');
         }
-
-        this.novaApiPerfChartView.trigger(change);
-        this.neutronApiPerfChartView.trigger(change);
-        this.keystoneApiPerfChartView.trigger(change);
-        this.glanceApiPerfChartView.trigger(change);
-        this.cinderApiPerfChartView.trigger(change);
     },
 
     renderCharts: function() {

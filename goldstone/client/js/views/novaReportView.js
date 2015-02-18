@@ -18,15 +18,13 @@ var NovaReportView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
 
-        if (change === undefined) {
-            change = 'lookbackSelectorChanged';
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.novaApiPerfChartView.trigger('lookbackSelectorChanged');
+            this.vmSpawnChartView.trigger('lookbackSelectorChanged');
+            this.cpuResourcesChartView.trigger('lookbackSelectorChanged');
+            this.memResourcesChartView.trigger('lookbackSelectorChanged');
+            this.diskResourcesChartView.trigger('lookbackSelectorChanged');
         }
-
-        this.novaApiPerfChartView.trigger(change);
-        this.vmSpawnChartView.trigger(change);
-        this.cpuResourcesChartView.trigger(change);
-        this.memResourcesChartView.trigger(change);
-        this.diskResourcesChartView.trigger(change);
     },
 
     renderCharts: function() {

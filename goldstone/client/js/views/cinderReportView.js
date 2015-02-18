@@ -17,10 +17,9 @@
 var CinderReportView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
-        if (change === undefined) {
-            change = 'lookbackSelectorChanged';
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.cinderApiPerfChartView.trigger('lookbackSelectorChanged');
         }
-        this.cinderApiPerfChartView.trigger(change);
     },
 
     renderCharts: function() {
