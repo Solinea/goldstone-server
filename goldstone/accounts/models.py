@@ -3,9 +3,8 @@
 User preferences are stored in the Profile table. Tenants are defined,
 including their settings, in the Tenant table.
 
-User --+-- 1:1 --- Profile
-       |
-       +-- m:1 --- Tenant
+User --+-- 1:1 --- Profile --- m:1 ---Tenant
+                             (users and administrators)
 
 """
 # Copyright 2015 Solinea, Inc.
@@ -34,9 +33,11 @@ class Profile(models.Model):
     # User row
     user = models.OneToOneField(settings.AUTH_USER_MODEL)
 
-    # This identifies a tenant administrator.
-    tenant_admin = models.BooleanField(default=False,
-                                       help_text="Administers his/her tenant")
+    # The tenant to which this user belongs.
+    tenant = models.ForeignKey(Tenant, blank=True)
+
+    # If true, this user is an administrator of his/her tenant.
+    tenant_admin = models.BooleanField(default=False)
 
     def __unicode__(self):
         """Return a useful string."""

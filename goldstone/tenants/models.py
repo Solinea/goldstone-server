@@ -35,10 +35,6 @@ class Tenant(models.Model):
     owner_contact = \
         models.TextField(blank=True,
                          help_text="The owner's contact information")
-    administrators = \
-        models.ManyToManyField(settings.AUTH_USER_MODEL,
-                               null=True,
-                               help_text="Admins for this tenant")
 
     def __unicode__(self):
         """Return a useful string."""
