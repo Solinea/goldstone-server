@@ -78,7 +78,7 @@ def daily_index(prefix=""):
     """
 
     import arrow
-    postfix = arrow.utcnow().format('-YYYY.MM.DD')
+    postfix = arrow.utcnow().format('YYYY.MM.DD')
     return prefix + postfix
 
 
@@ -358,11 +358,21 @@ class ESData(object):
 
 
 class ApiPerfData(DocType):
+    """API performance record model.
+
+    response_status: int
+    timestamp: date
+    component: string
+    uri: string
+    response_length: int
+    response_time int
+
+    """
 
     # Field declarations.  They types are generated, so imports look broken
     # but hopefully are working...
     response_status = Integer()
-    timestamp = Date()
+    created = Date()
     component = String()
     uri = String()
     response_length = Integer()
@@ -374,8 +384,6 @@ class ApiPerfData(DocType):
     class Meta:
         doc_type = 'openstack_api_stats'
 
-
-    # TODO rename to _stats_search
     def _stats_search(self, start, end, interval):
         """
         Sets up a query that does aggregations on the response_time field min,
@@ -391,8 +399,8 @@ class ApiPerfData(DocType):
 
         search = self.search.\
             filter('range', ** {'@timestamp': {
-                'lte': end.isoformat,
-                'gte': start.isoformat}})
+                'lte': end.isoformat(),
+                'gte': start.isoformat()}})
 
         if self.component is not None:
             search = search.filter('term', component=self.component)
@@ -476,11 +484,39 @@ class ApiPerfData(DocType):
         """
 
         if index is None:
-            index = es_indices(self._INDEX_PREFIX)
+            index = daily_index(self._INDEX_PREFIX)
 
         return super(ApiPerfData, self).save(using,
                                              index,
                                              **kwargs)
+
+    @classmethod
+    def get(cls, id, using=None, index=None, **kwargs):
+        """Gets an ApiPerf record to the database.
+
+        See elasticsearch-dsl for parameter information.
+        """
+
+        if index is None:
+            index = es_indices(cls._INDEX_PREFIX)
+
+        return super(ApiPerfData, cls).get(id,
+                                           using=using,
+                                           index=index,
+                                           **kwargs)
+
+    @classmethod
+    def search(cls):
+        """Gets an ApiPerf search object that can be used to .
+
+        See elasticsearch-dsl for parameter information.
+        """
+
+        return Search(
+            using=cls._doc_type.using,
+            index=es_indices(cls._INDEX_PREFIX),
+            doc_type={cls._doc_type.name: cls.from_es},
+        )
 
     def delete(self, using=None, index=None, **kwargs):
         """Deletes an ApiPerf record from the database.
@@ -491,8 +527,7 @@ class ApiPerfData(DocType):
         if index is None:
             index = es_indices(self._INDEX_PREFIX)
 
-        return super(ApiPerfData, self).delete(self,
-                                               using=using,
+        return super(ApiPerfData, self).delete(using=using,
                                                index=index,
                                                **kwargs)
 
