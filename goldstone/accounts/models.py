@@ -43,7 +43,7 @@ class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL)
 
     # The tenant to which this user belongs.
-    tenant = models.ForeignKey(Tenant, blank=True)
+    tenant = models.ForeignKey(Tenant, null=True, blank=True)
 
     # If true, this user is an administrator of his/her tenant.
     tenant_admin = models.BooleanField(default=False)
@@ -64,6 +64,9 @@ class Settings(models.Model):
 
     # User row
     user = models.OneToOneField(settings.AUTH_USER_MODEL)
+
+    class Meta:                     # pylint: disable=C0111,W0232,C1001
+        verbose_name_plural = "settings"
 
     def __unicode__(self):
         """Return a useful string."""

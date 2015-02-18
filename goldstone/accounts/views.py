@@ -14,6 +14,8 @@
 # limitations under the License.
 import logging
 
+from django.contrib.auth import get_user_model
+from djoser import views as djoser_views
 from rest_framework import generics, serializers
 from .models import Settings
 
@@ -25,13 +27,7 @@ class SettingsSerializer(serializers.ModelSerializer):
 
     class Meta:                         # pylint: disable=C0111,W0232,C1001
         model = Settings
-        # fields = tuple(User.REQUIRED_FIELDS) + (
-        #     User._meta.pk.name,
-        #     User.USERNAME_FIELD,
-        # )
-        # read_only_fields = (
-        #     User.USERNAME_FIELD,
-        # )
+        fields = []
 
 
 class SettingsView(generics.RetrieveUpdateAPIView):
@@ -45,3 +41,18 @@ class SettingsView(generics.RetrieveUpdateAPIView):
         """Return this user's Settings row."""
 
         return self.request.user.settings
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """A copy of djoser.serializers.UserSerializer that does not expose the
+    row pk."""
+
+    class Meta:                        # pylint: disable=C0111,W0232,C1001
+        model = get_user_model()
+        fields = ("username", "first_name", "last_name", "email")
+
+
+class UserView(djoser_views.UserView):
+    """A copy of djoser.views.UserView that uses our serializer."""
+
+    serializer_class = UserSerializer
