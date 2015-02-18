@@ -19,7 +19,7 @@ authorization and administration.
 # limitations under the License.
 from django.conf.urls import patterns, url
 from djoser import views as djoser_views
-from .views import SettingsView
+from .views import SettingsView, UserView
 
 # First, hook up the djoser package. We don't include djoser's URLconf because
 # that would mean rooting it at /accounts/XXX, making the URLs longer; and we
@@ -27,7 +27,7 @@ from .views import SettingsView
 # profiles. Also, we want to connect only a subset of djoser's API.
 urlpatterns = patterns(
     '',
-    url(r'^me[/]?$', djoser_views.UserView.as_view(), name='me'),
+    url(r'^me[/]?$', UserView.as_view(), name='me'),
     url(r'^settings[/]?$', SettingsView.as_view(), name='settings'),
     url(r'^register[/]?$',
         djoser_views.RegistrationView.as_view(),
