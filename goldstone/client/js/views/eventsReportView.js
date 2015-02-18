@@ -17,6 +17,15 @@
 /*
 This view makes up the "Events" tab of nodeReportView.js
 It is sub-classed from GoldstoneBaseView.
+
+Instantiated on nodeReportView as:
+
+this.eventsReport = new EventsReportView({
+    el: '#node-report-panel #eventsReport',
+    width: $('#node-report-panel #eventsReport').width(),
+    nodeName: hostName,
+    globalLookback: ns.globalLookback
+});
 */
 
 var EventsReportView = GoldstoneBaseView.extend({

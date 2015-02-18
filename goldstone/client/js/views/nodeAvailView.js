@@ -14,7 +14,29 @@
  * limitations under the License.
  */
 
-// view is linked to collection when instantiated
+/*
+View is linked to collection when instantiated
+
+Instantiated on discoverView as:
+
+var nodeAvailChart = new NodeAvailCollection({
+    url: "/logging/nodes?page_size=100"
+});
+
+var nodeAvailChartView = new NodeAvailView({
+    collection: nodeAvailChart,
+    h: {
+        "main": 150,
+        "swim": 50
+        // "main": 450,
+        // "swim": 50
+    },
+    el: '#goldstone-discover-r1-c2',
+    chartTitle: 'Node Availability',
+    width: $('#goldstone-discover-r2-c2').width()
+});
+*/
+
 
 var NodeAvailView = GoldstoneBaseView.extend({
 

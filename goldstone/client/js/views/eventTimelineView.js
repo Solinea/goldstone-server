@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
-// view is linked to collection when instantiated in goldstone_discover.html
+/*
+Instantiated on discoverView as:
+
+var eventTimelineChart = new EventTimelineCollection({});
+
+var eventTimelineChartView = new EventTimelineView({
+    collection: eventTimelineChart,
+    el: '#goldstone-discover-r1-c1',
+    chartTitle: 'Event Timeline',
+    width: $('#goldstone-discover-r1-c1').width()
+});
+*/
 
 var EventTimelineView = GoldstoneBaseView.extend({
     defaults: {
