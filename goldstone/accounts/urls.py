@@ -1,8 +1,7 @@
 """Accounts URLconf.
 
 This configures endpoints that route to the djoser package, for basic account
-authorization and administration. And, to views in this application, for
-additional account functionality and tenant functionality.
+authorization and administration.
 
 """
 # Copyright 2015 Solinea, Inc.
@@ -21,7 +20,6 @@ additional account functionality and tenant functionality.
 from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
 from djoser import views as djoser_views
-from .views import TenantsViewSet
 
 # First, hook up the djoser package. We can't include djoser's URLconf, since
 # we need to match on an URL segment to do that. Including it the standard way
@@ -48,11 +46,3 @@ urlpatterns = patterns(
         djoser_views.PasswordResetConfirmView.as_view(),
         name='password_reset_confirm'),
 )
-
-# Views handled by DjangoRestFramework ViewSets.
-router = DefaultRouter(trailing_slash=False)
-router.register(r'^tenants[/]?',
-                TenantsViewSet,
-                base_name='accounts-tenants')
-
-urlpatterns += router.urls

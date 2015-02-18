@@ -78,6 +78,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'django.contrib.contenttypes',
     'goldstone.accounts',
+    'goldstone.tenants',
     'goldstone.apps.core',
     'goldstone.apps.intelligence',
     'goldstone.apps.nova',

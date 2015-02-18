@@ -1,4 +1,4 @@
-"""Goldstone accounts and authorization."""
+"""Goldstone tenants."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),

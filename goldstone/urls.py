@@ -27,8 +27,10 @@ admin.autodiscover()
 urlpatterns = patterns(
     '',
     # TODO create the main discover page and remove redirect
-    url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/', include("goldstone.accounts.urls")),
+    url(r'^admin/', include(admin.site.urls)),
+    url(r'^api-auth/', include('rest_framework.urls',
+                               namespace='rest_framework')),
     url(r'^api_perf/', include('goldstone.apps.api_perf.urls')),
     url(r'^cinder/', include('goldstone.apps.cinder.urls')),
     url(r'^core/', include('goldstone.apps.core.urls')),
@@ -45,6 +47,7 @@ urlpatterns = patterns(
     url(r'^report/node/(?P<node_uuid>[^/]+)[/]?$',
         NodeReportView.as_view(),
         name='goldstone-node-report-view'),
+    url(r'^tenants/', include("goldstone.tenants.urls")),
     url(r'^$', RedirectView.as_view(url='/discover'), name='home'),
 )
 
