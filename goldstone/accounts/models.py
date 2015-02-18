@@ -44,6 +44,9 @@ class Profile(models.Model):
 def _user_saved(sender, **kwargs):                # pylint: disable=W0613
     """Create a Profile row for a new User row.
 
+    Note: Profile rows are deleted when their User row is deleted via Postgres
+    cascading deletes; no need to use signals for that.
+
     :param sender: The sending model class
     :type sender: User
     :keyword instance: The actual instance being saved
@@ -77,6 +80,7 @@ class Tenant(models.Model):
                          help_text="The owner's contact information")
     administrators = \
         models.ManyToManyField(settings.AUTH_USER_MODEL,
+                               null=True,
                                help_text="Admins for this tenant")
 
     def __unicode__(self):

@@ -21,7 +21,7 @@ additional account functionality and tenant functionality.
 from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
 from djoser import views as djoser_views
-# from .views import foo
+from .views import TenantsViewSet
 
 # First, hook up the djoser package. We can't include djoser's URLconf, since
 # we need to match on an URL segment to do that. Including it the standard way
@@ -49,27 +49,10 @@ urlpatterns = patterns(
         name='password_reset_confirm'),
 )
 
-# # Views handled by DjangoRestFramework ViewSets.
-# router = DefaultRouter(trailing_slash=False)
-# router.register(r'^endpoints[/]?$',
-#                 EndpointsDataViewSet,
-#                 base_name='keystone-endpoints')
-# router.register(r'^roles[/]?$', RolesDataViewSet, base_name='keystone-roles')
-# router.register(r'^services[/]?$',
-#                 ServicesDataViewSet,
-#                 base_name='keystone-services')
-# router.register(r'^tenants[/]?$',
-#                 TenantsDataViewSet,
-#                 base_name='keystone-tenants')
-# router.register(r'^users[/]?$', UsersDataViewSet, base_name='keystone-users')
+# Views handled by DjangoRestFramework ViewSets.
+router = DefaultRouter(trailing_slash=False)
+router.register(r'^tenants[/]?',
+                TenantsViewSet,
+                base_name='accounts-tenants')
 
-# urlpatterns = router.urls
-
-# # Other views.
-# urlpatterns += patterns(
-#     '',
-#     url(r'^report[/]?$', ReportView.as_view(),
-#         name='keystone-report-view'),
-#     url(r'^api_perf[/]?$', ApiPerfView.as_view(),
-#         name='keystone-api-perf'),
-# )
+urlpatterns += router.urls
