@@ -1,11 +1,11 @@
-"""User profiles and tenants.
+"""User profiles.
 
 User preferences are stored in the Profile table. Tenants are defined,
 including their settings, in the Tenant table.
 
 User --+-- 1:1 --- Profile
        |
-       +-- m:m --- Tenant
+       +-- m:1 --- Tenant
 
 """
 # Copyright 2015 Solinea, Inc.
@@ -34,6 +34,10 @@ class Profile(models.Model):
     # User row
     user = models.OneToOneField(settings.AUTH_USER_MODEL)
 
+    # This identifies a tenant administrator.
+    tenant_admin = models.BooleanField(default=False,
+                                       help_text="Administers his/her tenant")
+
     def __unicode__(self):
         """Return a useful string."""
 
@@ -60,30 +64,3 @@ def _user_saved(sender, **kwargs):                # pylint: disable=W0613
     if kwargs["created"]:
         # Create a new Profile row for it.
         Profile.objects.create(user=kwargs["instance"])
-
-
-class Tenant(models.Model):
-    """Information about the tenants in the OpenStack cloud.
-
-    We plan to store tenant settings here. If this becomes unwieldy, we'll
-    normalize them into a separate table.
-
-    """
-
-    name = models.CharField(max_length=settings.TENANT_NAME_MAX_LENGTH,
-                            unique=True,
-                            help_text="The tenant's name")
-    owner = models.CharField(max_length=settings.TENANT_OWNER_MAX_LENGTH,
-                             help_text="The name of the tenant's owner")
-    owner_contact = \
-        models.TextField(blank=True,
-                         help_text="The owner's contact information")
-    administrators = \
-        models.ManyToManyField(settings.AUTH_USER_MODEL,
-                               null=True,
-                               help_text="Admins for this tenant")
-
-    def __unicode__(self):
-        """Return a useful string."""
-
-        return u'%s owned by %s' % (self.name, self.owner)

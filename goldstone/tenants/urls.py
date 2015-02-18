@@ -1,4 +1,4 @@
-"""Goldstone accounts and authorization."""
+"""Tenants URLconf."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -12,3 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from django.conf.urls import patterns, url
+from rest_framework.routers import DefaultRouter
+from .views import TenantsViewSet
+
+# Views handled by DjangoRestFramework ViewSets.
+router = DefaultRouter(trailing_slash=False)
+router.register(r'^tenants[/]?',
+                TenantsViewSet,
+                base_name='accounts-tenants')
+
+urlpatterns = router.urls
