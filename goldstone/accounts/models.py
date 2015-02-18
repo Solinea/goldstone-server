@@ -4,7 +4,9 @@ User preferences are stored in the Profile table. Tenants are defined,
 including their settings, in the Tenant table.
 
 User --+-- 1:1 --- Profile --- m:1 ---Tenant
-                             (users and administrators)
+       |                     (users and administrators)
+       |
+       +-- 1:1 --- Settings
 
 """
 # Copyright 2015 Solinea, Inc.
@@ -26,9 +28,16 @@ from django.db.models.signals import post_save
 from django.db import models
 from django.dispatch import receiver
 
+from goldstone.tenants.models import Tenant
+
 
 class Profile(models.Model):
-    """Additional user information."""
+    """Additional user information.
+
+    These are items that we would not allow the user to change on his/her own
+    account.
+
+    """
 
     # User row
     user = models.OneToOneField(settings.AUTH_USER_MODEL)
@@ -45,12 +54,29 @@ class Profile(models.Model):
         return u'%s' % self.user.username         # pylint: disable=E1101
 
 
+class Settings(models.Model):
+    """User settings, a.k.a, preferences.
+
+    These items are those that we will allow the user to change on his/her own
+    account.
+
+    """
+
+    # User row
+    user = models.OneToOneField(settings.AUTH_USER_MODEL)
+
+    def __unicode__(self):
+        """Return a useful string."""
+
+        return u'%s' % self.user.username         # pylint: disable=E1101
+
+
 @receiver(post_save, sender=get_user_model())
 def _user_saved(sender, **kwargs):                # pylint: disable=W0613
-    """Create a Profile row for a new User row.
+    """Create a Profile and Settings row for a new User row.
 
-    Note: Profile rows are deleted when their User row is deleted via Postgres
-    cascading deletes; no need to use signals for that.
+    Note: Profile and Settings rows are deleted when their User row is deleted
+    via Postgres cascading deletes; no need to use signals for that.
 
     :param sender: The sending model class
     :type sender: User
@@ -63,5 +89,6 @@ def _user_saved(sender, **kwargs):                # pylint: disable=W0613
 
     # If a new model was created...
     if kwargs["created"]:
-        # Create a new Profile row for it.
+        # Create a new Profile and Settings row for it.
         Profile.objects.create(user=kwargs["instance"])
+        Settings.objects.create(user=kwargs["instance"])

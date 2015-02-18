@@ -51,8 +51,6 @@ class TenantsViewSet(ModelViewSet):
         from django.contrib.auth import get_user_model
 
         # We'll create this tenant with an admin user, if specified.
-        #
-        # TODO: If not, should we create it with a default admin?
         admin = self.request.data.get("admin")
 
         # Create the tenant, optionally with an admin.

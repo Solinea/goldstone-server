@@ -12,8 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .models import Profile, Tenant
+from .models import Profile, Settings
 from django.contrib import admin
 
 admin.site.register(Profile)
-admin.site.register(Tenant)
+admin.site.register(Settings)
