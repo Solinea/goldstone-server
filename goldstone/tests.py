@@ -22,9 +22,12 @@ import json
 import logging
 
 # This is needed here for mock to work.
+from elasticsearch.client import IndicesClient
+from elasticsearch_dsl.connections import connections, Connections
 from keystoneclient.v2_0.client import Client       # pylint: disable=W0611
 from keystoneclient.exceptions import ClientException
 from mock import patch, PropertyMock
+import mock
 from requests.models import Response
 
 from goldstone.models import ESData, es_conn, daily_index, es_indices, \
@@ -40,7 +43,7 @@ logger = logging.getLogger(__name__)
 class PrimeData(TestCase):
     """This should run before all SimpleTestCase methods."""
 
-    conn = Elasticsearch(settings.ES_SERVER)
+    conn = es_conn()
 
     # Clean up existing indices.
     conn.indices.delete("_all")
@@ -106,24 +109,27 @@ class ESConnectionTests(SimpleTestCase):
     """Test the ES connection.
     """
 
-    @patch.object(Elasticsearch, '__init__')
-    def test_connection(self, mock_es):
+    @patch.object(connections, 'get_connection')
+    @patch.object(connections, 'configure')
+    def test_connection(self, mock_conf, mock_es):
 
         mock_es.return_value = None
+        mock_conf.return_value = None
 
         es_conn()
         self.assertEqual(mock_es.call_count, 1)
-        mock_es.assert_called_with(settings.ES_SERVER,
-                                   sniff_on_start=False,
-                                   max_retries=1)
+        mock_conf.assert_called_with(default=settings.ES_SERVER,
+                                     sniff_on_start=False,
+                                     max_retries=1)
 
+        mock_conf.reset_mock()
         mock_es.reset_mock()
 
-        es_conn(server=[{'host': 'abc'}])
+        es_conn(server={'hosts': ['abc', 'def']})
         self.assertEqual(mock_es.call_count, 1)
-        mock_es.assert_called_with([{'host': 'abc'}],
-                                   sniff_on_start=False,
-                                   max_retries=1)
+        mock_conf.assert_called_with(default={'hosts': ['abc', 'def']},
+                                     sniff_on_start=False,
+                                     max_retries=1)
 
     def test_daily_index(self):
 
@@ -131,23 +137,39 @@ class ESConnectionTests(SimpleTestCase):
         date_str = arrow.utcnow().format('YYYY.MM.DD')
         self.assertEqual(daily_index("xyz"), "xyz-" + date_str)
 
-    @patch('goldstone.models.Elasticsearch')
-    @patch('elasticsearch.client.IndicesClient')
-    def test_es_indices(self, m_indices, m_conn):
-        m_conn.return_value = m_conn  # critical to success
-        m_conn.attach_mock(m_indices, 'indices')
-        m_conn.indices.status.return_value = {
+    @patch.object(Connections, 'get_connection')
+    def test_es_indices(self, m_conn):
+        """To avoid ES calls, we mock out the get_connection call, then set
+        up additional mocks for the resulting ES connection.  
+
+        :param m_conn:
+        :return:
+        """
+        m_es = mock.Mock(Elasticsearch, name='es')
+        m_indices = mock.MagicMock(IndicesClient, name='indices')
+        m_es.indices = m_indices
+        m_es.indices.status.return_value = {
             'indices': {
                 'index1': 'value1',
                 'not_index1': 'value3'
             }
         }
+        m_conn.return_value = m_es
 
         # test with no prefix provided
-        self.assertEqual(es_indices(es_conn()), "_all")
+        self.assertEqual(es_indices(conn=es_conn()), "_all")
+
+        # test with no params
+        self.assertEqual(es_indices(), "_all")
+
+        # test with no conn
+        result = es_indices(prefix='index')
+        self.assertTrue(m_es.indices.status.called)
+        self.assertIn('index1', result)
+        self.assertNotIn('not_index1', result)
 
         # test with prefix
-        result = es_indices(es_conn(), 'index')
+        result = es_indices('index', es_conn())
         self.assertIn('index1', result)
         self.assertNotIn('not_index1', result)
 
@@ -347,3 +369,9 @@ class TopologyDataTest(SimpleTestCase):
         m_search.return_value.execute.side_effect = None
         m_search.return_value.execute.return_value = exec_response
         self.assertEquals(topo.get(), {"a": "b"})
+
+
+class ApiPerfDataTests(SimpleTestCase):
+
+    def test_persist_and_retrieve(self):
+        pass
