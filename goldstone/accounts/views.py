@@ -14,38 +14,34 @@
 # limitations under the License.
 import logging
 
-from rest_framework.serializers import ModelSerializer
-from rest_framework.viewsets import ModelViewSet
-from rest_framework import generics, permissions, status, response, serializers
+from rest_framework import generics, serializers
+from .models import Settings
 
 logger = logging.getLogger(__name__)
 
 
-class UserSerializer(serializers.ModelSerializer):
+class SettingsSerializer(serializers.ModelSerializer):
+    """The serializer for the Settings table."""
 
-    class Meta:
-        model = User
-        fields = tuple(User.REQUIRED_FIELDS) + (
-            User._meta.pk.name,
-            User.USERNAME_FIELD,
-        )
-        read_only_fields = (
-            User.USERNAME_FIELD,
-        )
-
-
-class UserView(generics.RetrieveUpdateAPIView):
-    """
-    Use this endpoint to retrieve/update user.
-    """
-    model = get_user_model()
-    serializer_class = serializers.UserSerializer
-    permission_classes = (
-        permissions.IsAuthenticated,
-    )
-
-    def get_object(self, *args, **kwargs):
-        return self.request.user
+    class Meta:                         # pylint: disable=C0111,W0232,C1001
+        model = Settings
+        # fields = tuple(User.REQUIRED_FIELDS) + (
+        #     User._meta.pk.name,
+        #     User.USERNAME_FIELD,
+        # )
+        # read_only_fields = (
+        #     User.USERNAME_FIELD,
+        # )
 
 
-    
+class SettingsView(generics.RetrieveUpdateAPIView):
+    """The endpoint for retreiving and updating account settings that can be
+    modified by the user."""
+
+    model = Settings
+    serializer_class = SettingsSerializer
+
+    def get_object(self, *args, **kwargs):         # pylint: disable=W0613
+        """Return this user's Settings row."""
+
+        return self.request.user.settings

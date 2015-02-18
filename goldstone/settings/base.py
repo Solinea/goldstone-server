@@ -277,14 +277,9 @@ REST_FRAMEWORK = {
     #
     # TODO: Add custom permission to differentiate between admin and non-admin
     # accounts.
-    #
-    # TODO: For multiple tenants, we'll need to specify the tenant for an API
-    # call and check permissions against that tenant's membership and admins.
     'DEFAULT_PERMISSION_CLASSES': [
         # User must be authenticated, i.e., logged in.
         'rest_framework.permissions.IsAuthenticated'
-        # Allow any access to any request.
-        # 'rest_framework.permissions.AllowAny'
     ],
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_RENDERER_CLASSES': (

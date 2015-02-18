@@ -13,10 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.db.models.signals import post_save
 from django.db import models
-from django.dispatch import receiver
 
 
 class Tenant(models.Model):
