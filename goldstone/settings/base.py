@@ -260,6 +260,7 @@ DJOSER = {'DOMAIN': 'YOUR_EMAIL_DOMAIN_NAME.com',
           'LOGIN_AFTER_REGISTRATION': True,
           }
 
+# Definitions for Django Rest Framework.
 REST_FRAMEWORK = {
     # We use token-based authentication everywhere.
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -278,12 +279,12 @@ REST_FRAMEWORK = {
     #
     # TODO: For multiple tenants, we'll need to specify the tenant for an API
     # call and check permissions against that tenant's membership and admins.
-    'DEFAULT_PERMISSION_CLASSES': (
+    'DEFAULT_PERMISSION_CLASSES': [
         # User must be authenticated, i.e., logged in.
         'rest_framework.permissions.IsAuthenticated'
         # Allow any access to any request.
         # 'rest_framework.permissions.AllowAny'
-    ),
+    ],
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
