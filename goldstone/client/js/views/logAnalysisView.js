@@ -105,7 +105,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         this.collection.on('error', this.dataErrorMessage, this);
 
-        this.on('refreshReached', function(params) {
+        this.on('lookbackIntervalReached', function(params) {
 
             if (ns.isZoomed === true) {
                 return;

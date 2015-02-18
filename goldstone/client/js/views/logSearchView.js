@@ -16,21 +16,6 @@
 
 var LogSearchView = GoldstoneBasePageView.extend({
 
-    scheduleInterval: function() {
-        var self = this;
-        var ns = this.defaults;
-
-        var intervalDelay = ns.globalRefresh * 1000;
-
-        if (intervalDelay < 0) {
-            return true;
-        }
-
-        ns.scheduleInterval = setInterval(function() {
-            self.triggerChange('refreshReached');
-        }, intervalDelay);
-    },
-
     triggerChange: function(change) {
         this.computeLookback();
         var ns = this.defaults;

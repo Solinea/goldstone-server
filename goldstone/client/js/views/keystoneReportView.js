@@ -17,10 +17,9 @@
 var KeystoneReportView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
-        if (change === undefined) {
-            change = 'lookbackSelectorChanged';
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.keystoneApiPerfChartView.trigger('lookbackSelectorChanged');
         }
-        this.keystoneApiPerfChartView.trigger(change);
     },
 
     renderCharts: function() {
