@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from datetime import datetime, timedelta
+from uuid import uuid1
+from arrow import arrow, utcnow
 from django.test import TestCase, SimpleTestCase
 from django.conf import settings
 from elasticsearch import ConnectionError, TransportError, Elasticsearch
@@ -20,9 +22,11 @@ import gzip
 import os
 import json
 import logging
+import arrow
 
 # This is needed here for mock to work.
 from elasticsearch.client import IndicesClient
+from elasticsearch_dsl import Q
 from elasticsearch_dsl.connections import connections, Connections
 from keystoneclient.v2_0.client import Client       # pylint: disable=W0611
 from keystoneclient.exceptions import ClientException
@@ -31,7 +35,7 @@ import mock
 from requests.models import Response
 
 from goldstone.models import ESData, es_conn, daily_index, es_indices, \
-    TopologyData
+    TopologyData, ApiPerfData
 from goldstone.apps.core.models import Node
 from goldstone.apps.core.tasks import create_daily_index
 from goldstone.utils import stored_api_call, get_keystone_client, \
@@ -135,12 +139,12 @@ class ESConnectionTests(SimpleTestCase):
 
         import arrow
         date_str = arrow.utcnow().format('YYYY.MM.DD')
-        self.assertEqual(daily_index("xyz"), "xyz-" + date_str)
+        self.assertEqual(daily_index("xyz-"), "xyz-" + date_str)
 
     @patch.object(Connections, 'get_connection')
     def test_es_indices(self, m_conn):
         """To avoid ES calls, we mock out the get_connection call, then set
-        up additional mocks for the resulting ES connection.  
+        up additional mocks for the resulting ES connection.
 
         :param m_conn:
         :return:
@@ -373,5 +377,78 @@ class TopologyDataTest(SimpleTestCase):
 
 class ApiPerfDataTests(SimpleTestCase):
 
+    def setUp(self):
+        # let's make sure we've configured a default connection
+        self.conn = es_conn()
+
     def test_persist_and_retrieve(self):
-        pass
+        uuid = uuid1()
+        now = arrow.utcnow().datetime
+        data = ApiPerfData(id=uuid,
+                           response_status=200,
+                           created=now,
+                           component='test',
+                           uri='http://test',
+                           response_length=999,
+                           response_time=999)
+
+        created = data.save()
+        self.assertTrue(created)
+
+        # the Date field loses timezone info on retrieval.  We can fork and
+        # fix if it's still a problem when we ship.
+        # filed https://github.com/elasticsearch/elasticsearch-dsl-py/issues/77
+        # TODO ensure that tz support is in place before 3.0
+        persisted = ApiPerfData.get(id=uuid)
+        # logger.info("persisted = %s", json.dumps(persisted.__dict__))
+        self.assertEqual(data.response_status, persisted.response_status)
+        self.assertEqual(data.component, persisted.component)
+        self.assertEqual(data.uri, persisted.uri)
+        self.assertEqual(data.response_length, persisted.response_length)
+        self.assertEqual(data.response_time, persisted.response_time)
+        # TODO uncomment when bug fixed in es-dsl
+        # self.assertEqual(data.created, persisted.created)
+
+        data2 = ApiPerfData(response_status=200,
+                            created=now,
+                            component='test',
+                            uri='http://test',
+                            response_length=999,
+                            response_time=999)
+
+        created = data2.save()
+        self.assertTrue(created)
+
+        # force flush
+        self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
+
+        # test a search with no hits
+        search = ApiPerfData.search()
+        search = search.query(
+            Q('match', response_status=500))
+
+        response = search.execute()
+        self.assertEqual(len(response.hits), 0)
+
+        # test a search with hits
+        search = ApiPerfData.search()
+        search = search.query(
+            Q('match', response_status=200) +
+            Q('match', component='test') +
+            Q('match', uri='http://test') +
+            Q('match', response_length=999) +
+            Q('match', response_time=999))
+
+        response = search.execute()
+        self.assertEqual(len(response.hits), 2)
+
+        # test delete
+        for hit in response.hits:
+            hit.delete()
+
+        # force flush
+        self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
+
+        search = ApiPerfData.search()
+        response = search.execute()
+        self.assertEqual(len(response.hits), 0)
