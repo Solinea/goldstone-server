@@ -14,7 +14,7 @@
 # limitations under the License.
 from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
-from .views import ReportView, ApiPerfView, ImagesDataViewSet
+from .views import ReportView, ImagesDataViewSet
 
 # Views handled by DjangoRestFramework ViewSets.
 router = DefaultRouter(trailing_slash=False)
@@ -26,6 +26,4 @@ urlpatterns = router.urls
 urlpatterns += patterns('',
                         url(r'^report[/]?$', ReportView.as_view(),
                             name='glance-report-view'),
-                        url(r'^api_perf[/]?$', ApiPerfView.as_view(),
-                            name='glance-api-perf'),
                         )
