@@ -95,26 +95,51 @@ class TenantsViewSet(ModelViewSet):
 
         return Response(serializer.data)
 
-    @django_admin_only
     def retrieve(self, *args, **kwargs):
-        """Return a single Tenant record, for a Django admin."""
+        """Return a single Tenant record, for a Django admin.
+
+        This is allowed for Django admins or tenant admins. The check for this
+        is in get_object().
+
+        """
 
         return super(TenantsViewSet, self).retrieve(*args, **kwargs)
 
+    def perform_update(self, serializer):
+        """Perform an update of a tenant record.
+
+        This is allowed for Django admins or tenant admins. The check for this
+        is in get_object().
+
+        """
+
+        super(TenantsViewSet, self).perform_update(serializer)
+
     def get_object(self):
-        """Return the object the view is displaying.
+        """Return the desired Tenant object for this request.
+
+        This is allowed iff the current user is a Django admin, or a
+        tenant_admin of this tenant.
 
         Because the API's selection string is a UUID, we have to
         do a little extra work to filter by UUID. Hence, we have to
         override get_object().
 
         """
-        from django.shortcuts import get_object_or_404
+        from django.core.exceptions import PermissionDenied
         from uuid import UUID
 
         # Pad the request URL's UUID hexadecimal value to 32 hex digits, and
         # create a UUID object from it.
         value = UUID(hex=self.kwargs[self.lookup_field].zfill(32))
 
-        # Return the object with this UUID.
-        return get_object_or_404(Tenant, **{self.lookup_field: value})
+        # Get the object with this UUID.
+        result = Tenant.objects.get(**{self.lookup_field: value})
+
+        # If the current user isn't a Django admin, or this tenant's admin,
+        # it's an error.
+        if not self.request.user.is_staff and \
+           self.request.user.profile.tenant != result:
+            raise PermissionDenied
+
+        return result
