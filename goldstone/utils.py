@@ -14,9 +14,7 @@
 # limitations under the License.
 
 import arrow
-from arrow import Arrow
 from django.conf import settings
-from goldstone.lru_cache import lru_cache
 import cinderclient.v2.services
 from keystoneclient.v2_0 import client as ksclient
 from novaclient.v1_1 import client as nvclient
@@ -136,7 +134,6 @@ def get_region_for_keystone_client(client):
     return _get_region_for_client(catalog, mgmt_url, 'identity')
 
 
-@lru_cache(maxsize=16)
 def get_client(service, user=settings.OS_USERNAME,
                passwd=settings.OS_PASSWORD,
                tenant=settings.OS_TENANT_NAME,
@@ -348,6 +345,7 @@ def _normalize_hostnames(host_keys, source, key=None):
     return None
 
 
+# TODO _decompose_url does not appear to be used.
 def _decompose_url(url):
     """Return the scheme, host, and possibly port for an URL."""
 
@@ -384,89 +382,6 @@ def _decompose_url(url):
             result['ip_address'] = addr
 
     return result
-
-
-def _construct_api_rec(reply, component, created, timeout, url):
-
-    assert type(created) is Arrow, "created is not an Arrow object"
-    rec = {'component': component,
-           'uri': urlparse(url).path,
-           'created': created}
-
-    if reply is None:
-        rec['response_time'] = timeout*1000
-        rec['response_status'] = 504
-        rec['response_length'] = 0
-
-    else:
-        timedelta = reply.elapsed
-        secs = timedelta.seconds + timedelta.days * 24 * 3600
-        fraction = float(timedelta.microseconds) / 10**6
-        millisecs = int(round((secs + fraction) * 1000))
-
-        rec['response_time'] = millisecs
-        rec['response_status'] = reply.status_code
-        rec['response_length'] = int(reply.headers['content-length'])
-
-    return rec
-
-
-def stored_api_call(component, endpt, path, headers=None, data=None,
-                    user=settings.OS_USERNAME,
-                    passwd=settings.OS_PASSWORD,
-                    tenant=settings.OS_TENANT_NAME,
-                    auth_url=settings.OS_AUTH_URL, timeout=30):
-
-    import requests
-    from requests.exceptions import Timeout
-
-    # Use headers if supplied, else use an empty dict.
-    headers = headers if headers else {}
-
-    keystone_client = get_keystone_client(user=user,
-                                          passwd=passwd,
-                                          tenant=tenant,
-                                          auth_url=auth_url)
-
-    try:
-        url = keystone_client['client'].service_catalog.\
-            get_endpoints()[endpt][0]['publicURL'] + path
-
-    except:
-        raise LookupError("Could not find a public URL endpoint for %s", endpt)
-
-    else:
-        headers = dict(
-            {'x-auth-token': keystone_client['hex_token'],
-             'content-type': 'application/json'}.items() +
-            headers.items())
-
-        reply = None
-
-        try:
-            reply = requests.get(url, headers=headers, data=data,
-                                 timeout=settings.API_PERF_QUERY_TIMEOUT)
-
-            # someone could change the upstream password to
-            # match the configuration credentials after the result was cached.
-            if reply.status_code == requests.codes.unauthorized:
-                logger.debug("clearing keystone client cache due to 401 "
-                             "response")
-                get_client.cache_clear()
-
-        except Timeout:
-            reply = None
-            logger.debug("clearing keystone client cache due to 508 "
-                         "response")
-            get_client.cache_clear()
-
-        return {'reply': reply,
-                'db_record': _construct_api_rec(reply,
-                                                component,
-                                                arrow.utcnow(),
-                                                timeout,
-                                                url)
-                }
 
 
 class TopologyMixin(object):

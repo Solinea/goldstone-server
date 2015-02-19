@@ -32,7 +32,7 @@ from goldstone.apps.nova.models import HypervisorStatsData, NovaApiPerfData, \
     FloatingIpPoolsData, HostsData, HypervisorsData, NetworksData, \
     SecGroupsData, ServersData, ServicesData
 from goldstone.celery import app as celery_app
-from goldstone.utils import stored_api_call, to_es_date, \
+from goldstone.utils import to_es_date, \
     get_region_for_nova_client
 
 logger = logging.getLogger(__name__)
@@ -62,35 +62,36 @@ def nova_hypervisors_stats(self):
     logger.debug("[hypervisor_stats] id = %s", hvdbid)
 
 
-@celery_app.task(bind=True)
-def time_nova_api(self):
-    """Call the hypervisor list command, and if there are hypervisors, call the
-    hypervisor show command.
-
-    Inserts record with hypervisor show preferred.
-
-    """
-    from goldstone.utils import get_client
-
-    result = stored_api_call("nova", "compute", "/os-hypervisors")
-    logger.debug(get_client.cache_info())
-
-    # check for existing hypervisors. if they exist, redo the call with a
-    # single hypervisor for a more consistent result.
-    if result['reply'] is not None and \
-            result['reply'].status_code == requests.codes.ok:
-        body = json.loads(result['reply'].text)
-        if 'hypervisors' in body and len(body['hypervisors']) > 0:
-            result = stored_api_call("nova", "compute",
-                                     "/os-hypervisors/" +
-                                     str(body['hypervisors'][0]['id']))
-            logger.debug(get_client.cache_info())
-
-    api_db = NovaApiPerfData()
-    rec_id = api_db.post(result['db_record'])
-    logger.debug("[time_nova_api] id = %s", rec_id)
-
-    return {'id': rec_id, 'record': result['db_record']}
+# TODO reimplement
+# @celery_app.task(bind=True)
+# def time_nova_api(self):
+#     """Call the hypervisor list command, and if there are hypervisors, call
+#        the hypervisor show command.
+#
+#     Inserts record with hypervisor show preferred.
+#
+#     """
+#     from goldstone.utils import get_client
+#
+#     result = stored_api_call("nova", "compute", "/os-hypervisors")
+#     logger.debug(get_client.cache_info())
+#
+#     # check for existing hypervisors. if they exist, redo the call with a
+#     # single hypervisor for a more consistent result.
+#     if result['reply'] is not None and \
+#             result['reply'].status_code == requests.codes.ok:
+#         body = json.loads(result['reply'].text)
+#         if 'hypervisors' in body and len(body['hypervisors']) > 0:
+#             result = stored_api_call("nova", "compute",
+#                                      "/os-hypervisors/" +
+#                                      str(body['hypervisors'][0]['id']))
+#             logger.debug(get_client.cache_info())
+#
+#     api_db = NovaApiPerfData()
+#     rec_id = api_db.post(result['db_record'])
+#     logger.debug("[time_nova_api] id = %s", rec_id)
+#
+#     return {'id': rec_id, 'record': result['db_record']}
 
 
 def _update_nova_records(rec_type, region, db, items):

@@ -14,14 +14,9 @@
 # limitations under the License.
 import logging
 
-from goldstone.models import ApiPerfData as GoldstoneApiPerfData
 from goldstone.models import TopologyData
 
 logger = logging.getLogger(__name__)
-
-
-class ApiPerfData(GoldstoneApiPerfData):
-    component = 'keystone'
 
 
 class EndpointsData(TopologyData):

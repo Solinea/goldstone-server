@@ -38,8 +38,7 @@ from goldstone.models import ESData, es_conn, daily_index, es_indices, \
     TopologyData, ApiPerfData
 from goldstone.apps.core.models import Node
 from goldstone.apps.core.tasks import create_daily_index
-from goldstone.utils import stored_api_call, get_keystone_client, \
-    _construct_api_rec, GoldstoneAuthError
+from goldstone.utils import get_keystone_client, GoldstoneAuthError
 from goldstone.views import ApiPerfView
 
 logger = logging.getLogger(__name__)
@@ -205,87 +204,6 @@ class UtilsTests(SimpleTestCase):
         reply = get_keystone_client()
         self.assertIn('client', reply)
         self.assertIn('hex_token', reply)
-
-    @patch('requests.get')
-    @patch('keystoneclient.v2_0.client.Client')
-    @patch('goldstone.utils.get_keystone_client')
-    def test_stored_api_call(self, client, c, get):
-        component = 'nova'
-        endpoint = 'compute'
-        bad_endpoint = 'xyz'
-        path = '/os-hypervisors'
-        bad_path = '/xyz'
-        timeout = settings.API_PERF_QUERY_TIMEOUT
-
-        # hairy.  need to mock the Client.service_catalog.get_endpoints() call
-        # two ways.  1) raise an exception, 2) return a url
-        fake_response = Response()
-        fake_response.status_code = 200
-        fake_response.url = "http://mock.url"
-        fake_response._content = '{"a":1,"b":2}'       # pylint: disable=W0212
-        fake_response.headers = {'content-length': 1024}
-        fake_response.elapsed = timedelta(days=1)
-        c.service_catalog.get_endpoints.side_effect = ClientException
-        client.return_value = {'client': c, 'hex_token': 'mock_token'}
-        self.assertRaises(LookupError, stored_api_call, component,
-                          bad_endpoint, path, timeout=timeout)
-
-        c.service_catalog.get_endpoints.side_effect = None
-        c.service_catalog.get_endpoints.return_value = {
-            endpoint: [{'publicURL': fake_response.url}]
-        }
-        fake_response.status_code = 404
-        get.return_value = fake_response
-        bad_path_call = stored_api_call(component, endpoint, bad_path,
-                                        timeout=timeout)
-        self.assertIn('reply', bad_path_call)
-        self.assertIn('db_record', bad_path_call)
-        self.assertEquals(bad_path_call['db_record']['response_status'], 404)
-
-        fake_response.status_code = 200
-        get.return_value = fake_response
-        good_call = stored_api_call(component, endpoint, path, timeout=timeout)
-        self.assertIn('reply', good_call)
-        self.assertIn('db_record', good_call)
-        self.assertEquals(good_call['db_record']['response_status'], 200)
-
-    @patch('goldstone.tests.stored_api_call')
-    def test_construct_api_rec(self, sac):
-
-        component = 'abc'
-        endpoint = 'compute'
-        path = '/os-hypervisors'
-        timeout = settings.API_PERF_QUERY_TIMEOUT
-        now = arrow.utcnow()
-
-        fake_response = Response()
-        fake_response.status_code = 200
-        fake_response.url = "http://mock.url"
-        fake_response._content = '{"a":1,"b":2}'        # pylint: disable=W0212
-        fake_response.headers = {'content-length': 1024}
-        fake_response.elapsed = timedelta(days=1)
-        sac.return_value = {'reply': fake_response}
-        good_call = stored_api_call(component, endpoint, path, timeout=timeout)
-        self.assertTrue(sac.called)
-        self.assertIn('reply', good_call)
-
-        reply = good_call['reply']
-        rec = _construct_api_rec(reply, component, now, timeout, path)
-        self.assertIn('response_time', rec)
-
-        elapsed = reply.elapsed
-        secs = elapsed.seconds + elapsed.days * 24 * 3600
-        microsecs = float(elapsed.microseconds) / 10**6
-        millisecs = int(round((secs + microsecs) * 1000))
-
-        self.assertEqual(rec['response_time'], millisecs)
-        self.assertIn('response_status', rec)
-        self.assertEqual(rec['response_status'], reply.status_code)
-        self.assertIn('response_length', rec)
-        self.assertEqual(rec['response_length'],
-                         int(reply.headers['content-length']))
-        self.assertIn('component', rec)
-        self.assertEqual(rec['component'], component)
 
 
 class ReportTemplateViewTest(SimpleTestCase):
