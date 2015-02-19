@@ -13,8 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os.path
 from django.conf import settings
-from goldstone.apps.core.tasks import create_daily_index
+from goldstone.apps.core.tasks import create_daily_index, get_es_connection
 
 
 def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
@@ -28,6 +29,8 @@ def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
     This will overwrite an existing template of the same name.
 
     """
+    import json
+    from elasticsearch.exceptions import RequestError
 
     try:
         conn = get_es_connection(server)
@@ -35,7 +38,8 @@ def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
                                   json.load(template_file),
                                   create=False)
     except RequestError:
-        print "?WARNING: Template creation failed. Please report this error!"
+        print "?ERROR: Template creation failed. Please report this!"
+        raise
 
 
 def _put_agent_template(server=settings.ES_SERVER):
@@ -48,6 +52,7 @@ def _put_agent_template(server=settings.ES_SERVER):
     except Exception:         # pylint: disable=W0703
         print "?ERROR: Failed to create/update the goldstone_agent template. " \
               "Please report this!"
+        raise
 
 
 def _put_model_template(server=settings.ES_SERVER):
@@ -60,6 +65,7 @@ def _put_model_template(server=settings.ES_SERVER):
     except Exception:         # pylint: disable=W0703
         print "?ERROR: Failed to create/update the goldstone_agent template. " \
               "Please report this!"
+        raise
 
 
 def _put_goldstone_daily_template(server=settings.ES_SERVER):
@@ -72,6 +78,7 @@ def _put_goldstone_daily_template(server=settings.ES_SERVER):
     except Exception:         # pylint: disable=W0703
         print "?ERROR: Failed to create/update the goldstone_es template. " \
               "Please report this!"
+        raise
 
 
 def _put_all_templates(server=settings.ES_SERVER):
@@ -84,18 +91,21 @@ def _put_all_templates(server=settings.ES_SERVER):
 
 def _create_agent_index():
     """Create a new index in ElasticSearch."""
+    from goldstone.apps.core.tasks import create_index
 
     INDEX_NAME = "goldstone_agent"
 
     try:
-        return _create_index(INDEX_NAME)
+        return create_index(INDEX_NAME)
     except Exception:         # pylint: disable=W0703
-        logger.error("Failed to create the goldstone agent index. Please "
-                     "report this.")
+        print "?ERROR: Failed to create the goldstone agent index. " \
+              "Please report this!"
         raise
 
-if __name__ == "__main__":
-    # Set up Elasticsearch templates for test running.
+
+def initialize_development():
+    """Set up Elasticsearch templates for test running."""
+
     _put_all_templates()
     create_daily_index()
     _create_agent_index()

@@ -49,6 +49,8 @@ urlpatterns = patterns(
     url(r'^report/node/(?P<node_uuid>[^/]+)[/]?$',
         NodeReportView.as_view(),
         name='goldstone-node-report-view'),
+    # /newhomepage will become the Goldstone home page, after ticket #639 is
+    # completed.
     url(r'^newhomepage[/]?$', NewHomePageView.as_view()),
     url(r'^$', RedirectView.as_view(url='/discover'), name='home'),
 )
