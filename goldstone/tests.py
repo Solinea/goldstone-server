@@ -14,7 +14,6 @@
 # limitations under the License.
 from datetime import datetime, timedelta
 from uuid import uuid1
-from arrow import arrow, utcnow
 from django.test import TestCase, SimpleTestCase
 from django.conf import settings
 from elasticsearch import ConnectionError, TransportError, Elasticsearch
@@ -26,8 +25,9 @@ import arrow
 
 # This is needed here for mock to work.
 from elasticsearch.client import IndicesClient
-from elasticsearch_dsl import Q
+from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.connections import connections, Connections
+from elasticsearch_dsl.result import Result
 from keystoneclient.v2_0.client import Client       # pylint: disable=W0611
 from keystoneclient.exceptions import ClientException
 from mock import patch, PropertyMock
@@ -137,7 +137,6 @@ class ESConnectionTests(SimpleTestCase):
 
     def test_daily_index(self):
 
-        import arrow
         date_str = arrow.utcnow().format('YYYY.MM.DD')
         self.assertEqual(daily_index("xyz-"), "xyz-" + date_str)
 
@@ -256,7 +255,7 @@ class UtilsTests(SimpleTestCase):
         endpoint = 'compute'
         path = '/os-hypervisors'
         timeout = settings.API_PERF_QUERY_TIMEOUT
-        now = datetime.utcnow()
+        now = arrow.utcnow()
 
         fake_response = Response()
         fake_response.status_code = 200
@@ -381,11 +380,19 @@ class ApiPerfDataTests(SimpleTestCase):
         # let's make sure we've configured a default connection
         self.conn = es_conn()
 
+    def tearDown(self):
+        result = ApiPerfData.search().execute()
+        for hit in result.hits:
+            hit.delete()
+
+        self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
+
+
     def test_persist_and_retrieve(self):
         uuid = uuid1()
         now = arrow.utcnow().datetime
         data = ApiPerfData(id=uuid,
-                           response_status=200,
+                           response_status=1000,
                            created=now,
                            component='test',
                            uri='http://test',
@@ -400,16 +407,18 @@ class ApiPerfDataTests(SimpleTestCase):
         # filed https://github.com/elasticsearch/elasticsearch-dsl-py/issues/77
         # TODO ensure that tz support is in place before 3.0
         persisted = ApiPerfData.get(id=uuid)
-        # logger.info("persisted = %s", json.dumps(persisted.__dict__))
+
         self.assertEqual(data.response_status, persisted.response_status)
         self.assertEqual(data.component, persisted.component)
         self.assertEqual(data.uri, persisted.uri)
         self.assertEqual(data.response_length, persisted.response_length)
         self.assertEqual(data.response_time, persisted.response_time)
+
+
         # TODO uncomment when bug fixed in es-dsl
         # self.assertEqual(data.created, persisted.created)
 
-        data2 = ApiPerfData(response_status=200,
+        data2 = ApiPerfData(response_status=1000,
                             created=now,
                             component='test',
                             uri='http://test',
@@ -425,7 +434,7 @@ class ApiPerfDataTests(SimpleTestCase):
         # test a search with no hits
         search = ApiPerfData.search()
         search = search.query(
-            Q('match', response_status=500))
+            Q('match', response_status=1001))
 
         response = search.execute()
         self.assertEqual(len(response.hits), 0)
@@ -433,7 +442,7 @@ class ApiPerfDataTests(SimpleTestCase):
         # test a search with hits
         search = ApiPerfData.search()
         search = search.query(
-            Q('match', response_status=200) +
+            Q('match', response_status=1000) +
             Q('match', component='test') +
             Q('match', uri='http://test') +
             Q('match', response_length=999) +
@@ -452,3 +461,59 @@ class ApiPerfDataTests(SimpleTestCase):
         search = ApiPerfData.search()
         response = search.execute()
         self.assertEqual(len(response.hits), 0)
+
+    def test_stats_search(self):
+
+        range_begin = arrow.utcnow()
+
+        stats = [ApiPerfData(response_status=status,
+                             created=arrow.utcnow().datetime,
+                             component='test',
+                             uri='http://test',
+                             response_length=999,
+                             response_time=999)
+                 for status in range(100,601,100)]
+
+        for stat in stats:
+            created = stat.save()
+            self.assertTrue(created)
+
+        # force flush
+        self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
+
+        result = ApiPerfData._stats_search(range_begin,
+                                           arrow.utcnow(),
+                                           '1m',
+                                           'test')
+        self.assertIsInstance(result, Search)
+
+    def test_get_stats(self):
+
+        range_begin = arrow.utcnow()
+
+        stats = [ApiPerfData(response_status=status,
+                             created=arrow.utcnow().datetime,
+                             component='test',
+                             uri='http://test',
+                             response_length=999,
+                             response_time=999)
+                 for status in range(100, 601, 100)]
+
+        for stat in stats:
+            created = stat.save()
+            self.assertTrue(created)
+
+        # force flush
+        self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
+
+        result = ApiPerfData.get_stats(range_begin,
+                                       arrow.utcnow(),
+                                       '1m',
+                                       'test')
+
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]['2xx'], 1)
+        self.assertEqual(result[0]['3xx'], 1)
+        self.assertEqual(result[0]['4xx'], 1)
+        self.assertEqual(result[0]['5xx'], 1)

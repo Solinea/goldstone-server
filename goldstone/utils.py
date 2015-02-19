@@ -12,6 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import arrow
+from arrow import Arrow
 from django.conf import settings
 from goldstone.lru_cache import lru_cache
 import cinderclient.v2.services
@@ -61,13 +64,12 @@ class UnexpectedSearchResponse(GoldstoneBaseException):
     pass
 
 
+# TODO remove dependency utc_now and get rid of it
 def utc_now():
     """Convenient, and possibly necessary.
 
     :return: timezone aware current UTC datetime
     """
-    import arrow
-
     return arrow.utcnow().datetime
 
 
@@ -384,33 +386,28 @@ def _decompose_url(url):
     return result
 
 
-def _construct_api_rec(reply, component, ts, timeout, url):
+def _construct_api_rec(reply, component, created, timeout, url):
+
+    assert type(created) is Arrow, "created is not an Arrow object"
+    rec = {'component': component,
+           'uri': urlparse(url).path,
+           'created': created}
 
     if reply is None:
-        rec = {'response_time': timeout*1000,
-               'response_status': 504,
-               'response_length': 0,
-               'component': component,
-               'uri': urlparse(url).path,
-               '@timestamp': ts.strftime("%Y-%m-%dT%H:%M:%S." +
-                                         str(int(round(ts.microsecond/1000))) +
-                                         "Z")}
+        rec['response_time'] = timeout*1000
+        rec['response_status'] = 504
+        rec['response_length'] = 0
+
     else:
         timedelta = reply.elapsed
         secs = timedelta.seconds + timedelta.days * 24 * 3600
         fraction = float(timedelta.microseconds) / 10**6
         millisecs = int(round((secs + fraction) * 1000))
 
-        rec = {'response_time': millisecs,
-               'response_status': reply.status_code,
-               'response_length': int(reply.headers['content-length']),
-               'component': component,
-               'uri': urlparse(url).path,
-               '@timestamp': ts.strftime("%Y-%m-%dT%H:%M:%S." +
-                                         str(int(round(ts.microsecond/1000))) +
-                                         "Z")}
+        rec['response_time'] = millisecs
+        rec['response_status'] = reply.status_code
+        rec['response_length'] = int(reply.headers['content-length'])
 
-    logger.debug("response = %s", json.dumps(rec))
     return rec
 
 
@@ -419,8 +416,8 @@ def stored_api_call(component, endpt, path, headers=None, data=None,
                     passwd=settings.OS_PASSWORD,
                     tenant=settings.OS_TENANT_NAME,
                     auth_url=settings.OS_AUTH_URL, timeout=30):
+
     import requests
-    import arrow
     from requests.exceptions import Timeout
 
     # Use headers if supplied, else use an empty dict.
