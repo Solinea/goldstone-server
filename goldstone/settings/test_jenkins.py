@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .base import *              # pylint: disable=W0614,W0401
+from .test_oak_c2 import *              # pylint: disable=W0614,W0401
 
 PYLINT_RCFILE = BASE_DIR + "/pylint.cfg"
 
@@ -22,48 +22,3 @@ JENKINS_TASKS = (
     'django_jenkins.tasks.run_pylint',
 #    'django_jenkins.tasks.run_sloccount',
 )
-
-INSTALLED_APPS += ('django_jenkins', )
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'brief': {
-            'format': '%(levelname)s %(message)s'
-        },
-        'default': {
-            'format': '%(asctime)s %(levelname)-8s %(name)-15s %(message)s',
-            'datefmt': '%Y-%m-%dT%H:%M:%S%z'
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'default'
-        },
-    },
-    'loggers': {
-        'django.request': {
-            'handlers': ['console'],
-            'propagate': False,
-            'level': 'INFO',
-        },
-        'elasticsearch': {
-            'level': 'WARN',
-            'handlers': ['console']
-        },
-        'goldstone': {
-            # set this to DEBUG if you need more detail
-            'level': 'INFO',
-            'handlers': ['console']
-        },
-    },
-}
-
-DEBUG = True
-
-TEMPLATE_DEBUG = True
-
-QUNIT_ENABLED = True
