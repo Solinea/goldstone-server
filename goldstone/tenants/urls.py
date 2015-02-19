@@ -17,8 +17,6 @@ from .views import TenantsViewSet
 
 # Views handled by DjangoRestFramework ViewSets.
 router = DefaultRouter(trailing_slash=False)
-router.register(r'^tenants[/]?',
-                TenantsViewSet,
-                base_name='accounts-tenants')
+router.register(r'^tenants[/]?', TenantsViewSet)
 
 urlpatterns = router.urls
