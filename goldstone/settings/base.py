@@ -273,10 +273,8 @@ REST_FRAMEWORK = {
     'DEFAULT_MODEL_SERIALIZER_CLASS':
     'rest_framework.serializers.HyperlinkedModelSerializer',
 
-    # Permission to access all views is granted to any logged-in account.
-    #
-    # TODO: Add custom permission to differentiate between admin and non-admin
-    # accounts.
+    # Permission to access all views is granted to any logged-in account. But
+    # individual views and ViewSet methods may impose additional contraints.
     'DEFAULT_PERMISSION_CLASSES': [
         # User must be authenticated, i.e., logged in.
         'rest_framework.permissions.IsAuthenticated'
