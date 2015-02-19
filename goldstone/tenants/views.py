@@ -45,18 +45,38 @@ class TenantsViewSet(ModelViewSet):
 
     @django_admin_only
     def perform_create(self, serializer):
-        """Add the current (Django admin) user as a member, and a tenant_admin,
-        of the tenant we are creating."""
+        """Add the system's default tenant_admin as the tenant_admin, and
+        member, of the tenant we are creating.
+
+        """
 
         # Do what the superclass' perform_create() does, to get the newly
         # created row.
         tenant = serializer.save()
 
-        # Insert the current user, and save it again.
-        profile = self.request.user.profile
-        profile.tenant_admin = True
-        profile.tenant = tenant
-        profile.save()
+        # Get the tenant_admin. Use a filter in case there's erroneously more
+        # than one in the system.
+        admin_profile = Profile.objects.filter(default_tenant_admin=True)
+
+        if not admin_profile:
+            # No default tenant_admins is an error.
+            logger.error("There are no default tenant_admins in the system."
+                         " Using the Django administrator instead.")
+            profile = self.request.user.profile
+        elif admin_profile.count() > 1:
+            # More than one default tenant_admin is odd, but we'll continue.
+            logger.warning("The system has more then one default tenant admin."
+                           " There must be Only One: %s",
+                           admin_profile)
+            admin_profile = admin_profile[:1]
+        else:
+            # We found the default tenant_admin for this system.
+            admin_profile = admin_profile[0]
+
+        # Insert the default tenant_admin into the tenant and save it.
+        admin_profile.tenant_admin = True
+        admin_profile.tenant = tenant
+        admin_profile.save()
 
     @django_admin_only
     def list(self, request, *args, **kwargs):

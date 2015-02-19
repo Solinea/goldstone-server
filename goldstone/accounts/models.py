@@ -34,7 +34,7 @@ from goldstone.tenants.models import Tenant
 class Profile(models.Model):
     """Additional user information.
 
-    These are items that won't allow the user to change on his/her own
+    These are items that we don't allow the user to change on his/her own
     account.
 
     """
@@ -47,6 +47,13 @@ class Profile(models.Model):
 
     # If true, this user is an administrator of his/her tenant.
     tenant_admin = models.BooleanField(default=False)
+
+    # If true, this is the default tenant_admin for new tenants. If more than
+    # one row in the table has this set, a random one is used as the default
+    # tenant_admin.
+    default_tenant_admin = \
+        models.BooleanField(default=False,
+                            help_text="This is the default tenant_admin")
 
     def __unicode__(self):
         """Return a useful string."""
