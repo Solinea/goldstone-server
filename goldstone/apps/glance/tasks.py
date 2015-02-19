@@ -20,18 +20,27 @@ import logging
 
 import requests
 import pytz
+from goldstone.apps.api_perf.utils import openstack_api_request_base, \
+    time_api_call
 
 from .models import ImagesData
 
-from goldstone.models import ApiPerfData
 from goldstone.celery import app as celery_app
-from goldstone.utils import stored_api_call, to_es_date
+from goldstone.utils import to_es_date
 
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True)
-def time_glance_api(self):
+def time_image_show_api(url, headers):
+    """
+
+    :return:
+    """
+    result = time_api_call('glance.images.show', url, headers=headers)
+    return result['created']
+
+
+def time_image_list_api():
     """
     Call the image list command for the test tenant.  Retrieves the
     endpoint from keystone, then constructs the URL to call.  If there are
@@ -39,23 +48,26 @@ def time_glance_api(self):
     otherwise uses the results from image list to inserts a record
     in the DB.
     """
-    from goldstone.utils import get_client
 
-    result = stored_api_call("glance", "image", "/v2/images")
-    logger.debug(get_client.cache_info())
+    image_list_precursor = openstack_api_request_base("glance", "/v2/images")
+    logger.info("got past precursor, result = %s", repr(image_list_precursor))
+    result = time_api_call('glance.images.list',
+                           image_list_precursor['url'],
+                           headers=image_list_precursor['headers'])
+    logger.info("got past time_api_call, result = %s", repr(result))
+    created = result['created']
 
     # check for existing volumes. if they exist, redo the call with a single
     # volume for a more consistent result.
-    if result['reply'] is not None and \
-            result['reply'].status_code == requests.codes.ok:
-        body = json.loads(result['reply'].text)
+    if result['response'] is not None and \
+            result['response'].status_code == requests.codes.ok:
+        body = json.loads(result['response'].text)
         if 'images' in body and len(body['images']) > 0:
-            result = stored_api_call("glance", "image",
-                                     "/v2/images/" + body['images'][0]['id'])
-            logger.debug(get_client.cache_info())
+            show_created = time_image_show_api(
+                image_list_precursor['url'] + str(body['images'][0]['id']),
+                image_list_precursor['headers'])
+            created = created and show_created
 
-    api_db = ApiPerfData(kwargs=result['db_record'])
-    created = api_db.save()
     logger.debug("[time_glance_api] created = %s", repr(created))
     return created
 

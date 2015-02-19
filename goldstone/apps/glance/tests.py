@@ -19,11 +19,12 @@ import logging
 from django.http import HttpResponse
 from django.test import SimpleTestCase
 from mock import patch
-
-from requests.models import Response
+import mock
+import requests
+from requests import Response
 from goldstone.models import ApiPerfData
 
-from .tasks import time_glance_api
+from .tasks import time_image_list_api, time_image_show_api
 
 
 logger = logging.getLogger(__name__)
@@ -31,27 +32,34 @@ logger = logging.getLogger(__name__)
 
 class TaskTests(SimpleTestCase):
 
-    # the patch is specified with the package where the thing is looked up.
-    # see http://www.voidspace.org.uk/python/mock/patch.html#id1.  Also
-    # note that the decorators are applied from the bottom upwards. This is
-    # the standard way that Python applies decorators. The order of the
-    # created mocks passed into your test function matches this order.
-    @patch('goldstone.apps.glance.tasks.stored_api_call')
+    @patch('goldstone.apps.glance.tasks.time_api_call')
+    @patch('goldstone.apps.glance.tasks.openstack_api_request_base')
+    def test_time_image_list_api(self, m_base, m_time_api_call):
+
+        response = Response()
+        response._content = '{"images": [{"id": 1}]}'
+        response.status_code = requests.codes.ok
+        m_base.return_value = {'url': 'http://url', 'headers': {}}
+        m_time_api_call.return_value = {'created': True,
+                                        'response': response}
+        result = time_image_list_api()
+        self.assertEqual(m_time_api_call.call_count, 2)
+        self.assertEqual(result, m_time_api_call.return_value['created'])
+
+
+    @patch('goldstone.apps.glance.tasks.time_api_call')
     @patch.object(ApiPerfData, 'save')
-    def test_time_glance_api(self, save, api):
+    def test_time_image_show_api(self, m_save, m_time_api_call):
 
-        fake_response = Response()
-        fake_response.status_code = 200
-        fake_response._content = '{"a":1,"b":2}'   # pylint: disable=W0212
-        api.return_value = {'db_record': 'fake_record', 'reply': fake_response}
-        save.return_value = True
-
-        result = time_glance_api()
-        self.assertTrue(api.called)
-        api.assert_called_with("glance", "image", "/v2/images")
-        save.assert_called_with()
-        self.assertTrue('created', result)
-        self.assertEqual(result, save.return_value)
+        response = Response()
+        response._content = '{"images": [{"id": 1}]}'
+        response.status_code = requests.codes.ok
+        m_save.return_value = True
+        m_time_api_call.return_value = {'created': True,
+                                        'response': response}
+        result = time_image_show_api('http://url', {})
+        self.assertTrue(m_time_api_call.called)
+        self.assertEqual(result, m_save.return_value)
 
 
 class ViewTests(SimpleTestCase):

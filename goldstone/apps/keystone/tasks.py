@@ -13,20 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import absolute_import
+from goldstone.apps.api_perf.utils import time_api_call
 
 from goldstone.celery import app as celery_app
 import logging
 from datetime import datetime
-from .models import ApiPerfData, EndpointsData, RolesData, ServicesData, \
+from .models import EndpointsData, RolesData, ServicesData, \
     TenantsData, UsersData
-from goldstone.utils import _construct_api_rec, \
-    get_keystone_client, to_es_date, get_region_for_keystone_client
+from goldstone.utils import get_keystone_client, to_es_date, \
+    get_region_for_keystone_client
 
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True)
-def time_keystone_api(self):
+@celery_app.task()
+def time_keystone_api():
     """
     Call the token url via http rather than the python client so we can get
     a full set of data for the record in the DB.  This will make things
@@ -34,7 +35,6 @@ def time_keystone_api(self):
     """
     from django.conf import settings
     import json
-    import requests
 
     user = settings.OS_USERNAME
     passwd = settings.OS_PASSWORD
@@ -42,16 +42,12 @@ def time_keystone_api(self):
     payload = {"auth": {"passwordCredentials": {"username": user,
                                                 "password": passwd}}}
     headers = {'content-type': 'application/json'}
-    self.reply = requests.post(url, data=json.dumps(payload),
-                               headers=headers)
 
-    now = datetime.utcnow()
-    rec = _construct_api_rec(self.reply, "keystone", now,
-                             timeout=settings.API_PERF_QUERY_TIMEOUT, url=url)
-    apidb = ApiPerfData()
-    rec_id = apidb.post(rec)
-
-    return {'id': rec_id, 'record': rec}
+    return time_api_call('keystone',
+                         'post',
+                         url,
+                         data=json.dumps(payload),
+                         headers=headers)
 
 
 def _update_keystone_records(rec_type, region, database, items):

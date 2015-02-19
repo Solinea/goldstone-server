@@ -20,31 +20,32 @@ import logging
 import pytz
 
 from goldstone.celery import app as celery_app
-from goldstone.utils import stored_api_call, to_es_date
+from goldstone.utils import to_es_date
 from .models import ApiPerfData, ServicesData, VolumesData, BackupsData, \
     SnapshotsData, VolTypesData, EncryptionTypesData, TransfersData
 
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True)
-def time_cinder_api(self):   # pylint: disable=W0613
-    """Call the service list command for the test tenant.
-
-    Retrieves the endpoint from keystone, then constructs the URL and inserts a
-    record in the DB.
-
-    """
-    from goldstone.utils import get_client
-
-    result = stored_api_call("cinder", "volume", "/os-services")
-    logger.debug(get_client.cache_info())
-
-    api_db = ApiPerfData()
-    rec_id = api_db.post(result['db_record'])
-    logger.debug("[time_cinder_api] id = %s", rec_id)
-
-    return {'id': rec_id, 'record': result['db_record']}
+# TODO reimplement
+# @celery_app.task(bind=True)
+# def time_cinder_api(self):   # pylint: disable=W0613
+#     """Call the service list command for the test tenant.
+#
+#     Retrieves the endpoint from keystone, then constructs the URL and inserts a
+#     record in the DB.
+#
+#     """
+#     from goldstone.utils import get_client
+#
+#     result = stored_api_call("cinder", "volume", "/os-services")
+#     logger.debug(get_client.cache_info())
+#
+#     api_db = ApiPerfData()
+#     rec_id = api_db.post(result['db_record'])
+#     logger.debug("[time_cinder_api] id = %s", rec_id)
+#
+#     return {'id': rec_id, 'record': result['db_record']}
 
 
 def _update_cinder_records(rec_type, region, database, items):

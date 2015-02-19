@@ -17,13 +17,11 @@ from django.conf import settings
 from elasticsearch import Elasticsearch, ElasticsearchException
 from elasticsearch_dsl import Search, DocType, String, Date, Integer
 from elasticsearch_dsl.connections import connections
-from elasticsearch_dsl.document import DocTypeMeta
 import redis
 from types import StringType
 import json
 import logging
 import pandas as pd
-from six import add_metaclass
 from goldstone.apps.core.tasks import create_daily_index
 from goldstone.utils import NoDailyIndex
 
