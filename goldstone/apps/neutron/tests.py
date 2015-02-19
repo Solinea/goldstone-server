@@ -13,15 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.test import SimpleTestCase
-from .views import ApiPerfView
+from goldstone.apps.neutron.tasks import time_agent_list_api, \
+    time_agent_show_api
+
+import requests
+from requests import Response
+
 import logging
-from datetime import datetime
-import calendar
-import pytz
-import pandas as pd
+
 from mock import patch
-from .models import ApiPerfData
-from requests.models import Response
+from goldstone.models import ApiPerfData
 
 logger = logging.getLogger(__name__)
 
@@ -29,50 +30,40 @@ logger = logging.getLogger(__name__)
 class TaskTests(SimpleTestCase):
     """Test Neutron tasks."""
 
-    # @patch('goldstone.apps.neutron.tasks.stored_api_call')
-    # @patch.object(ApiPerfData, 'post')
-    # def test_time_glance_api(self, post, api):
-    #
-    #     fake_response = Response()
-    #     fake_response.status_code = 200
-    #     fake_response._content = '{"a":1,"b":2}'       # pylint: disable=W0212
-    #     api.return_value = {'db_record': 'fake_record',
-    #                         'reply': fake_response}
-    #     post.return_value = 'fake_id'
-    #     result = time_neutron_api()
-    #
-    #     self.assertTrue(api.called)
-    #     api.assert_called_with("neutron", "network", "/v2.0/agents")
-    #
-    #     self.assertTrue(post.called)
-    #     post.assert_called_with(api.return_value['db_record'])
-    #
-    #     self.assertIn('id', result)
-    #     self.assertEqual(result['id'], post.return_value)
-    #     self.assertIn('record', result)
-    #     self.assertEqual(result['record'], api.return_value['db_record'])
+    @patch('goldstone.apps.neutron.tasks.time_api_call')
+    @patch('goldstone.apps.neutron.tasks.openstack_api_request_base')
+    def test_time_image_list_api(self, m_base, m_time_api_call):
+
+        response = Response()
+        response._content = '{"agents": [{"id": 1}]}'
+        response.status_code = requests.codes.ok
+        m_base.return_value = {'url': 'http://url', 'headers': {}}
+        m_time_api_call.return_value = {'created': True,
+                                        'response': response}
+        result = time_agent_list_api()
+        self.assertEqual(m_time_api_call.call_count, 2)
+        self.assertEqual(result,
+                         [m_time_api_call.return_value,
+                          m_time_api_call.return_value])
+
+
+    @patch('goldstone.apps.neutron.tasks.time_api_call')
+    @patch.object(ApiPerfData, 'save')
+    def test_time_agent_show_api(self, m_save, m_time_api_call):
+
+        response = Response()
+        response._content = '{"images": [{"id": 1}]}'
+        response.status_code = requests.codes.ok
+        m_save.return_value = True
+        m_time_api_call.return_value = {'created': True,
+                                        'response': response}
+        result = time_agent_show_api('http://url', {})
+        self.assertTrue(m_time_api_call.called)
+        self.assertEqual(result, m_time_api_call.return_value)
 
 
 class ViewTests(SimpleTestCase):
     """Test Neutron views."""
-
-    start_dt = datetime.fromtimestamp(0, tz=pytz.utc)
-    end_dt = datetime.utcnow()
-    start_ts = calendar.timegm(start_dt.utctimetuple())
-    end_ts = calendar.timegm(end_dt.utctimetuple())
-
-    def test_get_data(self):
-
-        view = ApiPerfView()
-        context = {'start_dt': self.start_dt,
-                   'end_dt': self.end_dt,
-                   'interval': '3600s'
-                   }
-
-        # returns a pandas data frame
-        result = view._get_data(context)             # pylint: disable=W0212
-        self.assertIsInstance(result, pd.DataFrame)
-        self.assertFalse(result.empty)
 
     def test_report_view(self):
 
@@ -80,12 +71,3 @@ class ViewTests(SimpleTestCase):
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'neutron_report.html')
-
-    def test_api_perf_view(self):
-
-        uri = '/neutron/api_perf?start_time=' + \
-              str(self.start_ts) + "&end_time=" + \
-              str(self.end_ts) + "&interval=3600s"
-
-        response = self.client.get(uri)
-        self.assertEqual(response.status_code, 200)
