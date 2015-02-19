@@ -17,7 +17,13 @@
 var DiscoverView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged') {
+            this.eventTimelineChartView.trigger('lookbackSelectorChanged');
+        }
 
+        if (change === 'lookbackIntervalReached') {
+            this.eventTimelineChartView.trigger('lookbackIntervalReached');
+        }
     },
 
     renderCharts: function() {
