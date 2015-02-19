@@ -19,7 +19,8 @@ from django.views.generic import RedirectView
 import logging
 
 from goldstone.tenants.urls import urlpatterns as tenants_urlpatterns
-from goldstone.views import DiscoverView, HelpView, NodeReportView
+from goldstone.views import DiscoverView, HelpView, NodeReportView, \
+    NewHomePageView
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,7 @@ urlpatterns = patterns(
     url(r'^report/node/(?P<node_uuid>[^/]+)[/]?$',
         NodeReportView.as_view(),
         name='goldstone-node-report-view'),
+    url(r'^newhomepage[/]?$', NewHomePageView.as_view()),
     url(r'^$', RedirectView.as_view(url='/discover'), name='home'),
 )
 
