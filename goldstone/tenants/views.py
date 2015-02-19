@@ -17,6 +17,7 @@ import logging
 from rest_framework.serializers import ModelSerializer
 from rest_framework.viewsets import ModelViewSet
 
+from goldstone.utils import django_admin_only
 from .models import Tenant
 
 logger = logging.getLogger(__name__)
@@ -42,43 +43,32 @@ class TenantsViewSet(ModelViewSet):
 
         return Tenant.objects.all()
 
+    @django_admin_only
+    def perform_create(self, serializer):
+        """Add the current (Django admin) user as a member, and a tenant_admin,
+        of the tenant we are creating."""
+
+        # Do what the superclass' perform_create() does, to get the newly
+        # created row.
+        tenant = serializer.save()
+
+        # Insert the current user, and save it again.
+        profile = self.request.user.profile
+        profile.tenant_admin = True
+        profile.tenant = tenant
+        profile.save()
+
+    @django_admin_only
     def list(self, request, *args, **kwargs):
         """Provide a collection-of-objects GET response, for Django admins."""
-        from rest_framework import status
         from rest_framework.response import Response
-        from rest_framework.exceptions import PermissionDenied
 
-        if request.user.is_staff:
-            # Return all the tenants to this Django admin.
-            instance = self.filter_queryset(self.get_queryset())
-            page = self.paginate_queryset(instance)
+        # Return all the tenants to this Django admin.
+        instance = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(instance)
 
-            serializer = \
-                self.get_serializer(instance, many=True) if page is None else \
-                self.get_pagination_serializer(page)
+        serializer = \
+            self.get_serializer(instance, many=True) if page is None else \
+            self.get_pagination_serializer(page)
 
-            return Response(serializer.data)
-        else:
-            # Return nothing to this non-admin user.
-            raise PermissionDenied
-
-    def perform_create(self, serializer):
-        """Perform a create Tenant request.
-
-        In self.request.data there will be name, owner, and admin.
-
-        """
-        from django.contrib.auth import get_user_model
-
-        # We'll create this tenant with an admin user, if specified.
-        admin = self.request.data.get("admin")
-
-        # Create the tenant, optionally with an admin.
-        tenant = serializer.save(owner=self.request.data["owner"],
-                                 name=self.request.data["name"])
-        if admin:
-            admin = get_user_model().objects.get(username=admin)
-            tenant.administrators.add(admin)
-
-        # Send registration email to the admins' email addresses.
-        # TBD
+        return Response(serializer.data)
