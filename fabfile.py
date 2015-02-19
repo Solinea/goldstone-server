@@ -14,8 +14,12 @@
 # limitations under the License.
 from contextlib import contextmanager
 import os
+import sys
 
 from fabric.api import task
+
+# Add the current directory to the module search path.
+sys.path.append('')
 
 # The settings for running test locally in development.
 DEV_SETTINGS = "goldstone.settings.test"

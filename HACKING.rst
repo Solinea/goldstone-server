@@ -131,12 +131,7 @@ commands::
 
 Set up the elasticsearch templates for test running (repeat with other settings as required)::
 
-    $ python manage.py shell --settings=goldstone.settings.local_test <<EOF
-    > from goldstone.apps.core.tasks import _put_all_templates, create_daily_index, create_agent_index
-    > _put_all_templates()
-    > create_daily_index()
-    > create_agent_index()
-    EOF
+    $ fab load
 
 Now test out the server::
 
