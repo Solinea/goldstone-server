@@ -44,7 +44,9 @@ class TaskTests(SimpleTestCase):
                                         'response': response}
         result = time_image_list_api()
         self.assertEqual(m_time_api_call.call_count, 2)
-        self.assertEqual(result, m_time_api_call.return_value['created'])
+        self.assertEqual(result,
+                         [m_time_api_call.return_value,
+                          m_time_api_call.return_value])
 
 
     @patch('goldstone.apps.glance.tasks.time_api_call')
@@ -59,7 +61,7 @@ class TaskTests(SimpleTestCase):
                                         'response': response}
         result = time_image_show_api('http://url', {})
         self.assertTrue(m_time_api_call.called)
-        self.assertEqual(result, m_save.return_value)
+        self.assertEqual(result, m_time_api_call.return_value)
 
 
 class ViewTests(SimpleTestCase):

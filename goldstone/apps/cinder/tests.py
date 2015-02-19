@@ -12,15 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import calendar
+
 from django.test import SimpleTestCase
-from .models import ApiPerfData
-# from .tasks import time_cinder_api
-from .views import ApiPerfView
+from goldstone.apps.cinder.tasks import time_service_list
+
 import logging
-import pytz
-from datetime import datetime
-import pandas as pd
+
 from mock import patch
 
 logger = logging.getLogger(__name__)
@@ -29,63 +26,32 @@ logger = logging.getLogger(__name__)
 class TaskTests(SimpleTestCase):
     """Test cinder tasks."""
 
-    # TODO reimplement
-    # @patch('goldstone.apps.cinder.tasks.stored_api_call')
-    # @patch.object(ApiPerfData, 'post')
-    # def test_time_cinder_api(self, post, api):
-    #     """Test the time_cinder_api function."""
-    #
-    #     api.return_value = {'db_record': 'fake_record'}
-    #     post.return_value = 'fake_id'
-    #
-    #     result = time_cinder_api()
-    #     self.assertTrue(api.called)
-    #
-    #     api.assert_called_with("cinder", "volume", "/os-services")
-    #     self.assertTrue(post.called)
-    #
-    #     post.assert_called_with(api.return_value['db_record'])
-    #     self.assertIn('id', result)
-    #     self.assertEqual(result['id'], post.return_value)
-    #     self.assertIn('record', result)
-    #     self.assertEqual(result['record'], api.return_value['db_record'])
+    @patch('goldstone.apps.cinder.tasks.time_api_call')
+    @patch('goldstone.apps.cinder.tasks.openstack_api_request_base')
+    def test_time_image_list_api(self, m_base, m_time_api_call):
+
+        import requests
+        from requests import Response
+
+        response = Response()
+        response._content = '{"services": [{"id": 1}]}'
+        response.status_code = requests.codes.ok
+        m_base.return_value = {'url': 'http://url', 'headers': {}}
+        m_time_api_call.return_value = {'created': True,
+                                        'response': response}
+        result = time_service_list()
+        self.assertEqual(m_time_api_call.call_count, 1)
+        self.assertEqual(result, m_time_api_call.return_value)
 
 
 class ViewTests(SimpleTestCase):
     """Test api_perf."""
-
-    start_dt = datetime.fromtimestamp(0, tz=pytz.utc)
-    end_dt = datetime.utcnow()
-    start_ts = calendar.timegm(start_dt.utctimetuple())
-    end_ts = calendar.timegm(end_dt.utctimetuple())
-
-    def test_get_data(self):
-
-        view = ApiPerfView()
-        context = {'start_dt': self.start_dt,
-                   'end_dt': self.end_dt,
-                   'interval': '3600s'
-                   }
-
-        # Get a pandas data frame.
-        results = view._get_data(context)        # pylint: disable=W0212
-
-        self.assertIsInstance(results, pd.DataFrame)
-        self.assertFalse(results.empty)
 
     def test_report_view(self):
         uri = '/cinder/report'
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'cinder_report.html')
-
-    def test_api_perf_view(self):
-        uri = '/cinder/api_perf?start_time=' + \
-              str(self.start_ts) + "&end_time=" + \
-              str(self.end_ts) + "&interval=3600s"
-
-        response = self.client.get(uri)
-        self.assertEqual(response.status_code, 200)
 
 
 class DataViewTests(SimpleTestCase):
