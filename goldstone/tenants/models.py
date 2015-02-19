@@ -14,6 +14,7 @@
 # limitations under the License.
 from django.conf import settings
 from django.db import models
+from uuidfield import UUIDField
 
 
 class Tenant(models.Model):
@@ -32,6 +33,9 @@ class Tenant(models.Model):
     owner_contact = \
         models.TextField(blank=True,
                          help_text="The owner's contact information")
+
+    # To identify this row with a UUID value.
+    uuid = UUIDField(auto=True)
 
     def __unicode__(self):
         """Return a useful string."""

@@ -28,7 +28,8 @@ class TenantSerializer(ModelSerializer):
 
     class Meta:          # pylint: disable=C1001,C0111,W0232
         model = Tenant
-        fields = ["name", "owner", "owner_contact"]
+        fields = ["name", "owner", "owner_contact", "uuid"]
+        read_only_fields = ('uuid', )
 
 
 class TenantsViewSet(ModelViewSet):
