@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-// define collection and link to model
+/*
+Instantiated on discoverView as:
+var nodeAvailChart = new NodeAvailCollection({
+    url: "/logging/nodes?page_size=100"
+});
+*/
 
 var NodeAvailModel = GoldstoneBaseModel.extend({
     idAttribute: "id"

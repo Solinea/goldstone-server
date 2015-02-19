@@ -49,15 +49,15 @@ var DiscoverView = GoldstoneBasePageView.extend({
         });
 
         this.nodeAvailChartView = new NodeAvailView({
+            chartTitle: 'Node Availability',
             collection: this.nodeAvailChart,
+            el: '#goldstone-discover-r1-c2',
             h: {
                 "main": 150,
                 "swim": 50
                 // "main": 450,
                 // "swim": 50
             },
-            el: '#goldstone-discover-r1-c2',
-            chartTitle: 'Node Availability',
             width: $('#goldstone-discover-r2-c2').width()
         });
 
