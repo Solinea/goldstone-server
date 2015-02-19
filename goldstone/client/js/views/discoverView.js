@@ -26,10 +26,10 @@ var DiscoverView = GoldstoneBasePageView.extend({
         // instantiate event timeline chart
 
         // fetch url is set in eventTimelineCollection
-        var eventTimelineChart = new EventTimelineCollection({});
+        this.eventTimelineChart = new EventTimelineCollection({});
 
-        var eventTimelineChartView = new EventTimelineView({
-            collection: eventTimelineChart,
+        this.eventTimelineChartView = new EventTimelineView({
+            collection: this.eventTimelineChart,
             el: '#goldstone-discover-r1-c1',
             chartTitle: 'Event Timeline',
             width: $('#goldstone-discover-r1-c1').width()
@@ -38,12 +38,12 @@ var DiscoverView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Node Availability chart
 
-        var nodeAvailChart = new NodeAvailCollection({
+        this.nodeAvailChart = new NodeAvailCollection({
             url: "/logging/nodes?page_size=100"
         });
 
-        var nodeAvailChartView = new NodeAvailView({
-            collection: nodeAvailChart,
+        this.nodeAvailChartView = new NodeAvailView({
+            collection: this.nodeAvailChart,
             h: {
                 "main": 150,
                 "swim": 50
@@ -61,13 +61,13 @@ var DiscoverView = GoldstoneBasePageView.extend({
 
         // collection ready if tree data becomes api-driven
 
-        // var zoomableTree = new ZoomablePartitionCollection({
+        // this.zoomableTree = new ZoomablePartitionCollection({
         // });
 
-        var zoomableTreeView = new ZoomablePartitionView({
+        this.zoomableTreeView = new ZoomablePartitionView({
             blueSpinnerGif: blueSpinnerGif,
             chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverZoomTopology'],
-            // collection: zoomableTree,
+            // collection: this.zoomableTree,
             data: data,
             el: '#goldstone-discover-r2-c1',
             frontPage: false,
