@@ -31,7 +31,7 @@ def time_service_list():
 
     image_list_precursor = openstack_api_request_base("volumev2",
                                                       "/os-services")
-    return time_api_call('cinder.services.list',
+    return time_api_call('cinderv2.service.list',
                          image_list_precursor['url'],
                          headers=image_list_precursor['headers'])
 

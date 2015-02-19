@@ -16,7 +16,7 @@ from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
 
 from .views import ReportView, SpawnsViewSet, CpuViewSet, MemoryViewSet, \
-    DiskViewSet, LatestStatsView, ApiPerfView, AgentsDataViewSet, \
+    DiskViewSet, LatestStatsView, AgentsDataViewSet, \
     AggregatesDataViewSet, AvailZonesDataViewSet, CloudpipesDataViewSet, \
     FlavorsDataViewSet, FloatingIpPoolsDataViewSet, HostsDataViewSet, \
     HypervisorsDataViewSet, NetworksDataViewSet, SecGroupsDataViewSet, \
@@ -74,6 +74,4 @@ urlpatterns += patterns(
         name='nova-report-view'),
     url(r'^hypervisor/latest-stats[/]?$', LatestStatsView.as_view(),
         name='nova-hypervisor-latest-stats'),
-    url(r'^api_perf[/]?$', ApiPerfView.as_view(),
-        name='nova-api-perf'),
     )

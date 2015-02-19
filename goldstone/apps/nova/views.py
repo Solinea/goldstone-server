@@ -30,27 +30,18 @@ from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from .models import NovaApiPerfData, HypervisorStatsData, SpawnData, \
+from .models import HypervisorStatsData, SpawnData, \
     ResourceData, AgentsData, AggregatesData, AvailZonesData, CloudpipesData, \
     FlavorsData, FloatingIpPoolsData, HostsData, HypervisorsData, \
     NetworksData, SecGroupsData, ServersData, ServicesData
 from goldstone.apps.core.utils import JsonReadOnlyViewSet
-from goldstone.views import TopLevelView, ApiPerfView as GoldstoneApiPerfView, \
-    validate
+from goldstone.views import TopLevelView, validate
 
 logger = logging.getLogger(__name__)
 
 
 class ReportView(TopLevelView):
     template_name = 'nova_report.html'
-
-
-class ApiPerfView(GoldstoneApiPerfView):
-
-    def _get_data(self, context):
-        return NovaApiPerfData().get(context['start_dt'],
-                                     context['end_dt'],
-                                     context['interval'])
 
 
 class LatestStatsSerializer(BaseSerializer):

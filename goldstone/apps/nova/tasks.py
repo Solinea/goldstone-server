@@ -26,8 +26,10 @@ import logging
 import requests
 
 from django.conf import settings
+from goldstone.apps.api_perf.utils import openstack_api_request_base, \
+    time_api_call
 
-from goldstone.apps.nova.models import HypervisorStatsData, NovaApiPerfData, \
+from goldstone.apps.nova.models import HypervisorStatsData, \
     AgentsData, AggregatesData, AvailZonesData, CloudpipesData, FlavorsData, \
     FloatingIpPoolsData, HostsData, HypervisorsData, NetworksData, \
     SecGroupsData, ServersData, ServicesData
@@ -62,36 +64,43 @@ def nova_hypervisors_stats(self):
     logger.debug("[hypervisor_stats] id = %s", hvdbid)
 
 
-# TODO reimplement
-# @celery_app.task(bind=True)
-# def time_nova_api(self):
-#     """Call the hypervisor list command, and if there are hypervisors, call
-#        the hypervisor show command.
-#
-#     Inserts record with hypervisor show preferred.
-#
-#     """
-#     from goldstone.utils import get_client
-#
-#     result = stored_api_call("nova", "compute", "/os-hypervisors")
-#     logger.debug(get_client.cache_info())
-#
-#     # check for existing hypervisors. if they exist, redo the call with a
-#     # single hypervisor for a more consistent result.
-#     if result['reply'] is not None and \
-#             result['reply'].status_code == requests.codes.ok:
-#         body = json.loads(result['reply'].text)
-#         if 'hypervisors' in body and len(body['hypervisors']) > 0:
-#             result = stored_api_call("nova", "compute",
-#                                      "/os-hypervisors/" +
-#                                      str(body['hypervisors'][0]['id']))
-#             logger.debug(get_client.cache_info())
-#
-#     api_db = NovaApiPerfData()
-#     rec_id = api_db.post(result['db_record'])
-#     logger.debug("[time_nova_api] id = %s", rec_id)
-#
-#     return {'id': rec_id, 'record': result['db_record']}
+def time_hypervisor_show_api(url, headers):
+    """
+
+    :return:
+    """
+    return time_api_call('novav3.hypervisor.show', url, headers=headers)
+
+
+@celery_app.task()
+def time_hypervisor_list_api():
+    """
+    Call the hypervisor list command for the test tenant.  Retrieves the
+    endpoint from keystone, then constructs the URL to call.  If there are
+    hypervisors returned, then calls the hypervisor-show command on the first
+    one, otherwise uses the results from hypervisor list to inserts a record
+    in the DB.
+    """
+
+    image_list_precursor = openstack_api_request_base("computev3",
+                                                      "/os-hypervisors")
+    result = time_api_call('novav3.hypervisor.list',
+                           image_list_precursor['url'],
+                           headers=image_list_precursor['headers'])
+
+    # check for existing volumes. if they exist, redo the call with a single
+    # volume for a more consistent result.
+    if result['response'] is not None and \
+            result['response'].status_code == requests.codes.ok:
+        body = json.loads(result['response'].text)
+        if 'hypervisors' in body and len(body['hypervisors']) > 0:
+            show_result = time_hypervisor_show_api(
+                image_list_precursor['url'] + str(
+                    body['hypervisors'][0]['id']),
+                image_list_precursor['headers'])
+            result = [result, show_result]
+
+    return result
 
 
 def _update_nova_records(rec_type, region, db, items):

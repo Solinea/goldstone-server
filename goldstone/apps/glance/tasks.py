@@ -36,9 +36,10 @@ def time_image_show_api(url, headers):
 
     :return:
     """
-    return time_api_call('glance.images.show', url, headers=headers)
+    return time_api_call('glance.image.show', url, headers=headers)
 
 
+@celery_app.task()
 def time_image_list_api():
     """
     Call the image list command for the test tenant.  Retrieves the
@@ -49,7 +50,7 @@ def time_image_list_api():
     """
 
     image_list_precursor = openstack_api_request_base("glance", "/v2/images")
-    result = time_api_call('glance.images.list',
+    result = time_api_call('glance.image.list',
                            image_list_precursor['url'],
                            headers=image_list_precursor['headers'])
 

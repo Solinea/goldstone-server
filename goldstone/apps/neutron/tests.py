@@ -32,7 +32,7 @@ class TaskTests(SimpleTestCase):
 
     @patch('goldstone.apps.neutron.tasks.time_api_call')
     @patch('goldstone.apps.neutron.tasks.openstack_api_request_base')
-    def test_time_image_list_api(self, m_base, m_time_api_call):
+    def test_time_agent_list_api(self, m_base, m_time_api_call):
 
         response = Response()
         response._content = '{"agents": [{"id": 1}]}'
@@ -52,7 +52,7 @@ class TaskTests(SimpleTestCase):
     def test_time_agent_show_api(self, m_save, m_time_api_call):
 
         response = Response()
-        response._content = '{"images": [{"id": 1}]}'
+        response._content = '{"agents": [{"id": 1}]}'
         response.status_code = requests.codes.ok
         m_save.return_value = True
         m_time_api_call.return_value = {'created': True,

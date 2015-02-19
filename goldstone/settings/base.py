@@ -202,24 +202,24 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
         'schedule': RESOURCE_QUERY_INTERVAL,
     },
-    'time_keystone_api': {
-        'task': 'goldstone.apps.keystone.tasks.time_keystone_api',
+    'time_keystone_token_post_api': {
+        'task': 'goldstone.apps.keystone.tasks.time_token_post_api',
         'schedule': API_PERF_QUERY_INTERVAL,
     },
-    'time_nova_api': {
-        'task': 'goldstone.apps.nova.tasks.time_nova_api',
+    'time_nova_hypervisor_list_api': {
+        'task': 'goldstone.apps.nova.tasks.time_hypervisor_list_api',
         'schedule': API_PERF_QUERY_INTERVAL
     },
-    'time_cinder_api': {
-        'task': 'goldstone.apps.cinder.tasks.time_cinder_api',
+    'time_cinder_service_api': {
+        'task': 'goldstone.apps.cinder.tasks.time_service_list',
         'schedule': API_PERF_QUERY_INTERVAL
     },
-    'time_neutron_api': {
-        'task': 'goldstone.apps.neutron.tasks.time_neutron_api',
+    'time_neutron_agent_list_api': {
+        'task': 'goldstone.apps.neutron.tasks.time_agent_list_api',
         'schedule': API_PERF_QUERY_INTERVAL
     },
-    'time_glance_api': {
-        'task': 'goldstone.apps.glance.tasks.time_glance_api',
+    'time_glance_image_api': {
+        'task': 'goldstone.apps.glance.tasks.time_image_list_api',
         'schedule': API_PERF_QUERY_INTERVAL
     },
     'discover_keystone_topology': {
