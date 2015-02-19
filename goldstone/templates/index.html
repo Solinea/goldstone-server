@@ -13,25 +13,30 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  -->
-
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load custom_filters %}
-
-
 {% block localcss %}
 {% endblock %}
+{% block localjs %}
+    <!-- make this the appropriate backbone login view -->
+    <script src="{% static 'js/views/loginPageView.js' %}"></script>
 
-{% block content %}
-    <h3>This is the Goldstone login page</h3>
-    <p>Alex, put your content here.</p>
-    <p>We'll need to break up base.html so that only the logo and index links
-      are displayed in the header. The footer is probably OK as-is.
-      </p>
+    <script>
+        // assign "ajax-loader-solinea-blue" spinner gif
+        var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
+        var instantiateBackboneView = function(){
+            // this page's previous HTML and JavaScript now encapsulated
+            // in the following backbone view:
+            new LoginPageView({
+                el: ".login-page-container"
+            });
+        };
+        $(document).ready(function () {
+            instantiateBackboneView();
+        });
+    </script>
 {% endblock %}
-
-
-
-
-
-
+{% block content %}
+    <div class="login-page-container"></div>
+{% endblock %}
