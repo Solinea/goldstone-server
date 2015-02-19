@@ -17,9 +17,6 @@ from elasticutils import get_es
 from goldstone.celery import app as celery_app
 from django.conf import settings
 from elasticsearch.exceptions import TransportError, RequestError
-import os
-import json
-from datetime import date
 import logging
 from subprocess import check_call
 
@@ -88,7 +85,7 @@ def _create_or_replace_alias(index_name, server=settings.ES_SERVER,
         raise
 
 
-def _create_index(name, body=None, server=settings.ES_SERVER):
+def create_index(name, body=None, server=settings.ES_SERVER):
     """Create an ES index with the provided name and body."""
 
     try:
@@ -104,16 +101,16 @@ def _create_index(name, body=None, server=settings.ES_SERVER):
                          name)
 
 
-@celery_app.task(bind=True)
-def create_daily_index(self,  # pylint: disable=W0613
-                       basename='goldstone'):
+@celery_app.task()
+def create_daily_index(basename='goldstone'):
     """Create a new index in ElasticSearch and set up the goldstone alias."""
+    from datetime import date
 
     now = date.today()
     index_name = basename + "-" + now.strftime("%Y.%m.%d")
 
     try:
-        _create_index(index_name)
+        create_index(index_name)
         return _create_or_replace_alias(index_name)
     except Exception:         # pylint: disable=W0703
         logger.error("Failed to create the daily goldstone index and/or"
