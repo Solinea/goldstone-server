@@ -18,6 +18,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.generic import RedirectView
 import logging
 
+from goldstone.tenants.urls import urlpatterns as tenants_urlpatterns
 from goldstone.views import DiscoverView, HelpView, NodeReportView
 
 logger = logging.getLogger(__name__)
@@ -47,8 +48,11 @@ urlpatterns = patterns(
     url(r'^report/node/(?P<node_uuid>[^/]+)[/]?$',
         NodeReportView.as_view(),
         name='goldstone-node-report-view'),
-    url(r'^tenants/', include("goldstone.tenants.urls")),
     url(r'^$', RedirectView.as_view(url='/discover'), name='home'),
 )
+
+# Add the tenants' URL patterns directly, so that we don't have to over-root
+# it.
+urlpatterns += tenants_urlpatterns
 
 urlpatterns += staticfiles_urlpatterns()
