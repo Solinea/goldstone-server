@@ -21,6 +21,51 @@ var LoginPageView = Backbone.View.extend({
         this.defaults = _.clone(this.defaults);
         this.el = options.el;
         this.render();
+        this.addHandlers();
+    },
+
+    addHandlers: function() {
+        var self = this;
+
+        $('.login-form').on('submit', function(e) {
+            e.preventDefault();
+            self.submitLogin($(this).serialize());
+        });
+    },
+
+    submitLogin: function(input) {
+        var self = this;
+
+        console.log('submitLogin received: ', input);
+        $.post('/accounts/login', input, function(success) {
+
+            // if the call succeeds, console.log what is returned
+            console.log('called back:', success);
+
+            // and add a message to the top of the screen that logs what
+            // is returned from the call
+            // and clear that helpful message after 2 seconds
+            self.displayInfoMessage(success.responseJSON.auth_token[0]);
+        })
+            .fail(function(fail) {
+
+                // if the call fails, console.log what is returned
+                console.log('failed with:', fail, fail.responseJSON.non_field_errors[0]);
+
+                // and add a message to the top of the screen that logs what
+                // is returned from the call
+                // and clear that helpful message after 2 seconds
+                self.displayInfoMessage(fail.responseJSON.non_field_errors[0]);
+            });
+    },
+
+    displayInfoMessage: function(text) {
+        $('.alert-info').show();
+        $('.alert-info').text(text);
+
+        setTimeout(function() {
+            $('.alert-info').hide();
+        }, 2000);
     },
 
     render: function() {
@@ -29,24 +74,23 @@ var LoginPageView = Backbone.View.extend({
     },
 
     template: _.template('' +
-'<div class="container">' +
-'<div class="row">' +
-'<div class="col-md-4 col-md-offset-4">' +
-// '<div class="jumbotron text-center">' +
-'<div class="text-center">' +
-'<h1>Goldstone</h1>' +
-'</div>' +
-'<form>' +
-    '<h3>Please sign in</h3>' +
-    '<label for="inputUsername">Username</label>' +
-    '<input type="text" class="form-control" placeholder="Username" required autofocus>' +
-    '<label for="inputPassword">Password</label>' +
-    '<input type="password" class="form-control" placeholder="Password" required><br>' +
-    '<button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>' +
-'</form>' +
-'</div>' +
-'</div>' +
-'</div>'
+        '<div class="container">' +
+        '<div class="row">' +
+        '<div class="col-md-4 col-md-offset-4">' +
+        '<div class="text-center">' +
+        '<h1>Goldstone</h1>' +
+        '</div>' +
+        '<form class="login-form">' +
+        '<h3>Please sign in</h3>' +
+        '<label for="inputUsername">Username</label>' +
+        '<input name="username" type="text" class="form-control" placeholder="Username" required autofocus>' +
+        '<label for="inputPassword">Password</label>' +
+        '<input name="password" type="password" class="form-control" placeholder="Password" required><br>' +
+        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>' +
+        '</form>' +
+        '</div>' +
+        '</div>' +
+        '</div>'
     )
 
 });
