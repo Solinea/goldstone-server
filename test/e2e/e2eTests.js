@@ -1,5 +1,38 @@
 // e2e tests
 
+casper.test.setUp(function() {
+    casper.echo('beginning of test');
+});
+
+casper.test.tearDown(function() {
+    casper.echo('end of test');
+});
+
+casper.test.begin('Login Page is loading properly', 9, function suite(test) {
+    casper.start('http://localhost:8000/newhomepage', function() {
+        //title
+        test.assertTitle("goldstone", "Page title is 'goldstone'");
+
+        // navbar
+        test.assertExists('div.navbar', 'Navbar should load');
+        test.assertSelectorHasText('div.navbar', 'Report');
+        test.assertSelectorHasText('div.navbar', 'Logging');
+
+        // icons on right
+        test.assertExists('.fa-envelope-o', 'Contact icon should exist');
+        test.assertExists('.fa-bug', 'Feedback icon should exist');
+        test.assertExists('.fa-question', 'Help icon should exist');
+        test.assertExists('.fa-sign-out', 'Logout icon should exist');
+
+        //footer loads and is visible
+        test.assertVisible('div#footer', 'Footer showing');
+    });
+
+    casper.run(function() {
+        test.done();
+    });
+});
+
 casper.test.begin('Node Report Page is loading properly', 82, function suite(test) {
     casper.start('http://localhost:8000/report/node/ctrl-01', function() {
         //title
@@ -563,6 +596,7 @@ casper.test.begin('Block Storage (cinder) Page is loading properly', 17, functio
         test.assertExists('div.navbar', 'Navbar should load');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
+
         test.assertSelectorHasText('div#cinder-report-r1-c1', 'Max');
         test.assertSelectorHasText('div#cinder-report-r1-c1', 'Avg');
         test.assertSelectorHasText('div#cinder-report-r1-c1', 'Min');
