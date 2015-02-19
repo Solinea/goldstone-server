@@ -357,7 +357,6 @@ class ESData(object):
                             values()[0]['_shards']['failed'])
 
 
-
 class ApiPerfData(DocType):
     """API performance record model.
 

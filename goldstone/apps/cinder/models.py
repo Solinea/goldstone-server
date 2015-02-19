@@ -12,11 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.models import ApiPerfData as GoldstoneApiPerfData, TopologyData
-
-
-class ApiPerfData(GoldstoneApiPerfData):
-    component = 'cinder'
+from goldstone.models import TopologyData
 
 
 class ServicesData(TopologyData):

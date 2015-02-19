@@ -36,8 +36,7 @@ def time_image_show_api(url, headers):
 
     :return:
     """
-    result = time_api_call('glance.images.show', url, headers=headers)
-    return result['created']
+    return time_api_call('glance.images.show', url, headers=headers)
 
 
 def time_image_list_api():
@@ -50,12 +49,9 @@ def time_image_list_api():
     """
 
     image_list_precursor = openstack_api_request_base("glance", "/v2/images")
-    logger.info("got past precursor, result = %s", repr(image_list_precursor))
     result = time_api_call('glance.images.list',
                            image_list_precursor['url'],
                            headers=image_list_precursor['headers'])
-    logger.info("got past time_api_call, result = %s", repr(result))
-    created = result['created']
 
     # check for existing volumes. if they exist, redo the call with a single
     # volume for a more consistent result.
@@ -63,13 +59,12 @@ def time_image_list_api():
             result['response'].status_code == requests.codes.ok:
         body = json.loads(result['response'].text)
         if 'images' in body and len(body['images']) > 0:
-            show_created = time_image_show_api(
+            show_result = time_image_show_api(
                 image_list_precursor['url'] + str(body['images'][0]['id']),
                 image_list_precursor['headers'])
-            created = created and show_created
+            result = [result, show_result]
 
-    logger.debug("[time_glance_api] created = %s", repr(created))
-    return created
+    return result
 
 
 def _update_glance_image_records(client, region):

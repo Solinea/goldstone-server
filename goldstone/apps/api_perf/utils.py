@@ -42,7 +42,7 @@ def _construct_api_rec(reply, component, created, timeout, url):
     assert type(created) is Arrow, "created is not an Arrow object"
     rec = {'component': component,
            'uri': urlparse(url).path,
-           'created': created}
+           'created': created.datetime}
 
     if reply is None:
         rec['response_time'] = timeout*1000
@@ -98,7 +98,7 @@ def openstack_api_request_base(endpoint, path,
                           endpoint)
 
 
-def time_api_call(component, url, method='get', **kwargs):
+def time_api_call(component, url, method='GET', **kwargs):
     """
     Call an API endpoint and persist the result
     :type component: str
