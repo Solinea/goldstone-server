@@ -34,6 +34,9 @@ describe('glanceReportView.js spec', function() {
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.test-container');
             expect($(this.testView.el).text()).to.equal(' Glance API PerformanceResponse Time (ms)');
+            this.testView.triggerChange('lookbackSelectorChanged');
+            this.testView.triggerChange('lookbackIntervalReached');
+            this.testView.triggerChange();
         });
     });
 

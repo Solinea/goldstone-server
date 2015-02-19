@@ -167,59 +167,27 @@ describe('eventTimeline.js spec', function() {
         });
         it('registers changes on the global lookback/refresh selectors', function() {
 
-            this.clearScheduledSpy = sinon.spy(this.testView, "clearScheduledFetch");
             this.updateSettingsSpy = sinon.spy(this.testView, "updateSettings");
             this.fetchNowWithResetSpy = sinon.spy(this.testView, "fetchNowWithReset");
-            this.scheduleFetchSpy = sinon.spy(this.testView, "scheduleFetch");
+            this.fetchNowNoResetSpy = sinon.spy(this.testView, "fetchNowNoReset");
 
-            expect(this.clearScheduledSpy.callCount).to.equal(0);
             expect(this.updateSettingsSpy.callCount).to.equal(0);
-            expect(this.scheduleFetchSpy.callCount).to.equal(0);
+            expect(this.fetchNowNoResetSpy.callCount).to.equal(0);
             expect(this.fetchNowWithResetSpy.callCount).to.equal(0);
 
-            $('.global-lookback-selector .form-control').trigger('change');
-            expect(this.clearScheduledSpy.callCount).to.equal(0);
+            this.testView.trigger('lookbackSelectorChanged');
             expect(this.updateSettingsSpy.callCount).to.equal(1);
             expect(this.fetchNowWithResetSpy.callCount).to.equal(1);
-            expect(this.scheduleFetchSpy.callCount).to.equal(0);
+            expect(this.fetchNowNoResetSpy.callCount).to.equal(0);
 
-            $('.global-refresh-selector .form-control').trigger('change');
-            expect(this.clearScheduledSpy.callCount).to.equal(1);
+            this.testView.trigger('lookbackIntervalReached');
             expect(this.updateSettingsSpy.callCount).to.equal(2);
             expect(this.fetchNowWithResetSpy.callCount).to.equal(1);
-            expect(this.scheduleFetchSpy.callCount).to.equal(1);
-            this.testView.fetchNowNoReset();
-            this.clearScheduledSpy.restore();
+            expect(this.fetchNowNoResetSpy.callCount).to.equal(1);
+
             this.updateSettingsSpy.restore();
             this.fetchNowWithResetSpy.restore();
-            this.scheduleFetchSpy.restore();
-        });
-        it('scheduleFetch short-circuits if pause is true', function() {
-            this.testView.defaults.scheduleTimeout = null;
-
-            this.scheduleFetchSpy = sinon.spy(this.testView, "scheduleFetch");
-            this.clearScheduledSpy = sinon.spy(this.testView, "clearScheduledFetch");
-
-            expect(this.clearScheduledSpy.callCount).to.equal(0);
-            expect(this.scheduleFetchSpy.callCount).to.equal(0);
-
-            this.testView.defaults.delay = -1;
-
-            this.testView.scheduleFetch();
-
-            expect(this.clearScheduledSpy.callCount).to.equal(1);
-            expect(this.scheduleFetchSpy.callCount).to.equal(1);
-            expect(this.testView.defaults.scheduleTimeout).to.equal(null);
-
-            this.testView.defaults.delay = 1;
-            this.testView.scheduleFetch();
-
-            expect(this.clearScheduledSpy.callCount).to.equal(2);
-            expect(this.scheduleFetchSpy.callCount).to.equal(2);
-            expect(this.testView.defaults.scheduleTimeout).to.not.equal(null);
-
-            this.scheduleFetchSpy.restore();
-            this.clearScheduledSpy.restore();
+            this.fetchNowNoResetSpy.restore();
         });
         it('can handle events without an event_type', function() {
             this.testCollection.reset();
@@ -309,26 +277,12 @@ describe('eventTimeline.js spec', function() {
             expect($('#GenericSyslogError').prop('checked')).to.equal(false);
             expect($('#GenericSyslogErr').prop('checked')).to.equal(undefined);
         });
-        it('correctly identifies if refresh is selected', function() {
-            var test1 = this.testView.isRefreshSelected();
-            expect(test1).to.equal(true);
-            $('.global-refresh-selector .form-control').val(-1);
-            var test2 = this.testView.isRefreshSelected();
-            expect(test2).to.equal(false);
-        });
         it('correctly identifies the lookback range', function() {
             var test1 = this.testView.lookbackRange();
             expect(test1).to.equal(60);
             $('.global-lookback-selector .form-control').val(360);
             var test2 = this.testView.lookbackRange();
             expect(test2).to.equal(360);
-        });
-        it('correctly identifies the refresh rate', function() {
-            var test1 = this.testView.refreshInterval();
-            expect(test1).to.equal(30);
-            $('.global-refresh-selector .form-control').val(60);
-            var test2 = this.testView.refreshInterval();
-            expect(test2).to.equal(60);
         });
         it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
             this.dataErrorMessage_spy = sinon.spy(this.testView, "dataErrorMessage");

@@ -12,6 +12,12 @@ describe('discover.js spec', function() {
             "Content-Type": "application/json"
         }, '[]']);
 
+        data = [];
+
+        this.testView = new DiscoverView({
+            el: '.test-container'
+        });
+
     });
     afterEach(function() {
         $('body').html('');
@@ -23,8 +29,8 @@ describe('discover.js spec', function() {
             $('body').append('<div id="goldstone-discover-r1-c2" style="width:500px;"></div>');
             $('body').append('<div id="goldstone-discover-r2-c1" style="width:500px;"></div>');
             $('body').append('<div id="goldstone-discover-r2-c2" style="width:500px;"></div>');
-            data = [];
-            renderCharts();
+            this.testView.renderCharts();
+            this.testView.triggerChange('lookbackSelectorChanged');
         });
     });
 });
