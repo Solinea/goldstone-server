@@ -99,4 +99,22 @@ class TenantsViewSet(ModelViewSet):
     def retrieve(self, *args, **kwargs):
         """Return a single Tenant record, for a Django admin."""
 
-        super(TenantsViewSet, self).retrieve(*args, **kwargs)
+        return super(TenantsViewSet, self).retrieve(*args, **kwargs)
+
+    def get_object(self):
+        """Return the object the view is displaying.
+
+        Because the API's selection string is a UUID, we have to
+        do a little extra work to filter by UUID. Hence, we have to
+        override get_object().
+
+        """
+        from django.shortcuts import get_object_or_404
+        from uuid import UUID
+
+        # Pad the request URL's UUID hexadecimal value to 32 hex digits, and
+        # create a UUID object from it.
+        value = UUID(hex=self.kwargs[self.lookup_field].zfill(32))
+
+        # Return the object with this UUID.
+        return get_object_or_404(Tenant, **{self.lookup_field: value})
