@@ -399,7 +399,14 @@ class DiscoverView(TemplateView, TopologyMixin):
 
 
 class HelpView(TemplateView):
+
     template_name = 'help.html'
+
+
+class NewHomePageView(TemplateView):
+    """Return the Goldstone home page."""
+
+    template_name = 'index.html'
 
 
 class NodeReportView(TemplateView):
