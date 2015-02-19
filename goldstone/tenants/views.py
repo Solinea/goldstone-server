@@ -37,7 +37,7 @@ class TenantsViewSet(ModelViewSet):
 
     queryset = Tenant.objects.all()
     serializer_class = TenantSerializer
-    # lookup_field = "name"
+    lookup_field = "uuid"
 
     def get_queryset(self):
         """Return the queryset for list views."""
@@ -94,3 +94,9 @@ class TenantsViewSet(ModelViewSet):
             self.get_pagination_serializer(page)
 
         return Response(serializer.data)
+
+    @django_admin_only
+    def retrieve(self, *args, **kwargs):
+        """Return a single Tenant record, for a Django admin."""
+
+        super(TenantsViewSet, self).retrieve(*args, **kwargs)
