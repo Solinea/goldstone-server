@@ -17,11 +17,13 @@ from django.conf import settings
 from elasticsearch import Elasticsearch, ElasticsearchException
 from elasticsearch_dsl import Search, DocType, String, Date, Integer
 from elasticsearch_dsl.connections import connections
+from elasticsearch_dsl.document import DocTypeMeta
 import redis
 from types import StringType
 import json
 import logging
 import pandas as pd
+from six import add_metaclass
 from goldstone.apps.core.tasks import create_daily_index
 from goldstone.utils import NoDailyIndex
 
@@ -357,6 +359,7 @@ class ESData(object):
                             values()[0]['_shards']['failed'])
 
 
+
 class ApiPerfData(DocType):
     """API performance record model.
 
@@ -378,13 +381,14 @@ class ApiPerfData(DocType):
     response_length = Integer()
     response_time = Integer()
 
-    # for handling datestamped indices
     _INDEX_PREFIX = 'goldstone-'
 
     class Meta:
         doc_type = 'openstack_api_stats'
 
-    def _stats_search(self, start, end, interval):
+
+    @classmethod
+    def _stats_search(cls, start, end, interval, component):
         """
         Sets up a query that does aggregations on the response_time field min,
         max, avg for the bucket.
@@ -395,19 +399,21 @@ class ApiPerfData(DocType):
         :param end:
         :type interval: str
         :param interval: number + unit (ex: 5s, 5m)
+        :type component: str
+        :param component:
         """
 
-        search = self.search.\
-            filter('range', ** {'@timestamp': {
+        search = cls.search().\
+            filter('range', ** {'created': {
                 'lte': end.isoformat(),
                 'gte': start.isoformat()}})
 
-        if self.component is not None:
-            search = search.filter('term', component=self.component)
+        if component is not None:
+            search = search.filter('term', component=component)
 
         search.aggs.bucket('events_by_date',
                            'date_histogram',
-                           field='@timestamp',
+                           field='created',
                            interval=interval,
                            min_doc_count=0).\
             metric('stats', 'extended_stats', field='response_time').\
@@ -419,9 +425,13 @@ class ApiPerfData(DocType):
                         {"from": 500, "to": 599}
                     ])
 
+        logger.debug("search = %s", search.to_dict())
         return search
 
-    def get_stats(self, start, end, interval):
+    # TODO implement get_components
+
+    @classmethod
+    def get_stats(cls, start, end, interval, component=None):
         """Return a pandas object that contains API performance data.
 
         :type start: Arrow
@@ -432,6 +442,8 @@ class ApiPerfData(DocType):
         :param interval: string representation of the time interval to use when
                        aggregating the results.  Form should be something like
                        '1.5s'.  Supported time postfixes are s, m, h, d, w, m.
+        :type component: str or None
+        :param component: string, name of the api component
         :rtype: pd.DataFrame
         """
 
@@ -443,15 +455,15 @@ class ApiPerfData(DocType):
             "valid units for interval are ['s', 'm', 'h', 'd']: %r" \
             % interval
 
-        search = self._stats_search(start, end, interval)
-        search._index = es_indices(self._INDEX_PREFIX)
-        logger.debug('[_api_perf_query] query = ' + search.to_dict())
+        search = cls._stats_search(start, end, interval, component)
 
         result = search.execute()
-        logger.debug('[get] search result = %s', json.dumps(result))
+        logger.debug('[get] search result = %s', json.dumps(result.to_dict()))
 
         items = []
-        for date_bucket in result['aggregations']['events_by_date']['buckets']:
+
+        for date_bucket in \
+                result.aggregations['events_by_date']['buckets']:
             logger.debug("[get] processing date_bucket: %s",
                          json.dumps(date_bucket))
 
@@ -469,13 +481,13 @@ class ApiPerfData(DocType):
 
             items.append(item)
 
-        items = json.dumps(items)
+        # items = json.dumps(items)
 
-        logger.debug('[get] items = %s', items)
-        result = pd.read_json(items, orient='records', convert_axes=False)
-        logger.debug('[get] pd = %s', result)
+        # logger.debug('[get] items = %s', items)
+        # result = pd.read_json(items, orient='records', convert_axes=False)
+        # logger.debug('[get] pd = %s', result)
 
-        return result
+        return items
 
     def save(self, using=None, index=None, **kwargs):
         """Posts an ApiPerf record to the database.
