@@ -53,7 +53,6 @@ var EventTimelineView = GoldstoneBaseView.extend({
         this.el = this.options.el;
         this.defaults.chartTitle = this.options.chartTitle;
         this.defaults.width = this.options.width;
-        this.defaults.delay = null;
     },
 
     processListeners: function() {
@@ -188,12 +187,14 @@ var EventTimelineView = GoldstoneBaseView.extend({
 
     fetchNowWithReset: function() {
         var ns = this.defaults;
+        $(this.el).find('#spinner').show();
         this.collection.urlUpdate(ns.lookbackRange);
         this.collection.fetchWithReset();
     },
 
     fetchNowNoReset: function() {
         var ns = this.defaults;
+        $(this.el).find('#spinner').show();
         this.collection.urlUpdate(ns.lookbackRange);
         this.collection.fetchNoReset();
     },
@@ -219,6 +220,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
     },
 
     update: function() {
+        console.log('in EventTimelineView update');
         var ns = this.defaults;
         var self = this;
 
