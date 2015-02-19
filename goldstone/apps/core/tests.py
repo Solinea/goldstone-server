@@ -437,7 +437,7 @@ class EventModelTests(SimpleTestCase):
 
     def setUp(self):
 
-        server = Elasticsearch(settings.ES_SERVER)
+        server = es_conn()
 
         if server.indices.exists('goldstone_model'):
             server.indices.delete('goldstone_model')
@@ -504,7 +504,7 @@ class EventSerializerTests(SimpleTestCase):
 
     def setUp(self):
 
-        server = Elasticsearch(settings.ES_SERVER)
+        server = es_conn()
 
         if server.indices.exists('goldstone_model'):
             server.indices.delete('goldstone_model')
@@ -537,7 +537,7 @@ class EventViewTests(APISimpleTestCase):
 
     def setUp(self):
 
-        server = Elasticsearch(settings.ES_SERVER)
+        server = es_conn()
 
         if server.indices.exists('goldstone_model'):
             server.indices.delete('goldstone_model')
@@ -751,7 +751,7 @@ class MetricViewTests(APISimpleTestCase):
 
     def setUp(self):
 
-        es = Elasticsearch(settings.ES_SERVER)
+        es = es_conn()
 
         if es.indices.exists('goldstone_agent'):
             es.indices.delete('goldstone_agent')
@@ -881,7 +881,7 @@ class ReportViewTests(APISimpleTestCase):
 
     def setUp(self):
 
-        server = Elasticsearch(settings.ES_SERVER)
+        server = es_conn()
 
         if server.indices.exists('goldstone_agent'):
             server.indices.delete('goldstone_agent')

@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task()
-def time_keystone_api():
+def time_token_post_api():
     """
     Call the token url via http rather than the python client so we can get
     a full set of data for the record in the DB.  This will make things
@@ -43,8 +43,8 @@ def time_keystone_api():
                                                 "password": passwd}}}
     headers = {'content-type': 'application/json'}
 
-    return time_api_call('keystone',
-                         'post',
+    return time_api_call('keystone.token.post',
+                         'POST',
                          url,
                          data=json.dumps(payload),
                          headers=headers)

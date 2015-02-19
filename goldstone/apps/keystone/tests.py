@@ -14,11 +14,9 @@
 # limitations under the License.
 from django.http import HttpResponse
 from django.test import SimpleTestCase
-from goldstone.models import ApiPerfData
-from .tasks import time_keystone_api
+from .tasks import time_token_post_api
 import logging
 from mock import patch
-from requests.models import Response
 
 logger = logging.getLogger(__name__)
 
@@ -26,10 +24,10 @@ logger = logging.getLogger(__name__)
 class TaskTests(SimpleTestCase):
 
     @patch('goldstone.apps.keystone.tasks.time_api_call')
-    def test_time_glance_api(self, m_time_api_call):
+    def test_time_token_post_api(self, m_time_api_call):
 
         m_time_api_call.return_value = True
-        result = time_keystone_api()
+        result = time_token_post_api()
         self.assertTrue(m_time_api_call.called)
         self.assertEqual(result, m_time_api_call.return_value)
 

@@ -20,16 +20,9 @@ import pandas as pd
 from pyes import BoolQuery, RangeQuery, ESRangeOp, TermQuery
 from types import StringType
 
-from goldstone.models import ESData, TopologyData, ApiPerfData
+from goldstone.models import ESData, TopologyData
 
 logger = logging.getLogger(__name__)
-
-
-class NovaApiPerfData(ApiPerfData):
-    """
-    Nova model for API performance data
-    """
-    component = 'nova'
 
 
 class NovaClientData(ESData):
