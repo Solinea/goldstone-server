@@ -40,6 +40,7 @@ from goldstone.apps.core.models import Node
 from goldstone.apps.core.tasks import create_daily_index
 from goldstone.utils import stored_api_call, get_keystone_client, \
     _construct_api_rec, GoldstoneAuthError
+from goldstone.views import ApiPerfView
 
 logger = logging.getLogger(__name__)
 
@@ -374,7 +375,7 @@ class TopologyDataTest(SimpleTestCase):
         self.assertEquals(topo.get(), {"a": "b"})
 
 
-class ApiPerfDataTests(SimpleTestCase):
+class ApiPerfTests(SimpleTestCase):
 
     def setUp(self):
         # let's make sure we've configured a default connection
@@ -386,7 +387,6 @@ class ApiPerfDataTests(SimpleTestCase):
             hit.delete()
 
         self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
-
 
     def test_persist_and_retrieve(self):
         uuid = uuid1()
@@ -517,3 +517,45 @@ class ApiPerfDataTests(SimpleTestCase):
         self.assertEqual(result[0]['3xx'], 1)
         self.assertEqual(result[0]['4xx'], 1)
         self.assertEqual(result[0]['5xx'], 1)
+
+    def test_api_perf_view(self):
+        start = arrow.utcnow().replace(minutes=-1)
+
+        uri = '/api_perf/stats' + \
+              '?start_time=' + str(start.timestamp) + \
+              '&end_time=' + str(arrow.utcnow().timestamp) + \
+              '&interval=3600s' + \
+              '&component=test'
+
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 200)
+
+    def test_api_perf_view_get_data(self):
+
+        # setup
+        start = arrow.utcnow().replace(minutes=-1)
+        stats = [ApiPerfData(response_status=status,
+                             created=arrow.utcnow().datetime,
+                             component='test',
+                             uri='http://test',
+                             response_length=999,
+                             response_time=999)
+                 for status in range(100,601,100)]
+
+        for stat in stats:
+            created = stat.save()
+            self.assertTrue(created)
+
+        self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
+
+        perfview = ApiPerfView()
+
+        context = {'start_dt': start.isoformat(),
+                   'end_dt': arrow.utcnow().isoformat(),
+                   'interval': '1s',
+                   'component': 'test'
+                   }
+
+        result = perfview._get_data(context)           # pylint: disable=W0212
+        self.assertIsInstance(result, list)
+        self.assertNotEqual(len(result), 0)

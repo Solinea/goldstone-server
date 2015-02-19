@@ -39,6 +39,7 @@ from novaclient.openstack.common.apiclient.exceptions \
     import AuthorizationFailure as NovaApiAuthException
 from keystoneclient.openstack.common.apiclient.exceptions \
     import AuthorizationFailure as KeystoneApiAuthException
+from goldstone.models import ApiPerfData
 from goldstone.utils import GoldstoneAuthError, TopologyMixin
 
 logger = logging.getLogger(__name__)
@@ -157,14 +158,12 @@ class TopLevelView(TemplateView):
 class ApiPerfView(APIView):
     """The base class for all app "ApiPerfView" views."""
 
-    def _get_data(self, _):                # pylint: disable=R0201
-        """Override in subclass.
-
-        :return: A model
-
-        """
-
-        return None
+    def _get_data(self, context):
+        import arrow
+        return ApiPerfData.get_stats(arrow.get(context['start_dt']),
+                                     arrow.get(context['end_dt']),
+                                     context['interval'],
+                                     context['component'])
 
     def get(self, request, *args, **kwargs):
         """Return a response to a GET request."""
@@ -179,6 +178,7 @@ class ApiPerfView(APIView):
                 str(calendar.timegm(datetime.utcnow().timetuple()))),
             'start': request.query_params.get('start'),
             'interval': request.query_params.get('interval'),
+            'component': request.query_params.get('component'),
             }
 
         context = validate(['start', 'end', 'interval'], context)

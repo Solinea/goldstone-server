@@ -13,10 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf.urls import patterns, url
+from goldstone.views import ApiPerfView
 from .views import ReportView
 
 urlpatterns = patterns(
     '',
     url(r'^report[/]?$', ReportView.as_view(),
         name='api-perf-report-view'),
+    url(r'^stats[/]?$', ApiPerfView.as_view(),
+        name='api-perf-stats-view'),
+
 )

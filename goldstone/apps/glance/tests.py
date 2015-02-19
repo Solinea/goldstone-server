@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import arrow
-
 import json
 import logging
 
@@ -23,10 +21,10 @@ from django.test import SimpleTestCase
 from mock import patch
 
 from requests.models import Response
-from goldstone.models import ApiPerfData, daily_index, es_conn
+from goldstone.models import ApiPerfData
 
 from .tasks import time_glance_api
-from .views import ApiPerfView
+
 
 logger = logging.getLogger(__name__)
 
@@ -58,61 +56,12 @@ class TaskTests(SimpleTestCase):
 
 class ViewTests(SimpleTestCase):
 
-    start = arrow.get(0)
-
-    def test_get_data(self):
-
-        # setup
-        self.conn = es_conn()
-        stats = [ApiPerfData(response_status=status,
-                             created=arrow.utcnow().datetime,
-                             component='glance',
-                             uri='http://test',
-                             response_length=999,
-                             response_time=999)
-                 for status in range(100,601,100)]
-
-        for stat in stats:
-            created = stat.save()
-            self.assertTrue(created)
-
-        self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
-
-        perfview = ApiPerfView()
-
-        context = {'start_dt': self.start.isoformat(),
-                   'end_dt': arrow.utcnow().isoformat(),
-                   'interval': '3600s'
-                   }
-
-        result = perfview._get_data(context)           # pylint: disable=W0212
-        self.assertIsInstance(result, list)
-        self.assertNotEqual(len(result), 0)
-
-        # teardown
-        result = ApiPerfData.search().execute()
-        for hit in result.hits:
-            hit.delete()
-
-        self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
-
-
     def test_report_view(self):
 
         uri = '/glance/report'
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'glance_report.html')
-
-    def test_api_perf_view(self):
-
-        # TODO let's consider adding a component param to a top level view
-        uri = '/glance/api_perf?start_time=' + \
-              str(self.start.timestamp) + "&end_time=" + \
-              str(arrow.utcnow().timestamp) + "&interval=3600s"
-
-        response = self.client.get(uri)
-        self.assertEqual(response.status_code, 200)
 
 
 class DataViewTests(SimpleTestCase):
