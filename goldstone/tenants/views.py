@@ -95,31 +95,12 @@ class TenantsViewSet(ModelViewSet):
 
         return Response(serializer.data)
 
-    def retrieve(self, *args, **kwargs):
-        """Return a single Tenant record, for a Django admin.
-
-        This is allowed for Django admins or tenant admins. The check for this
-        is in get_object().
-
-        """
-
-        return super(TenantsViewSet, self).retrieve(*args, **kwargs)
-
-    def perform_update(self, serializer):
-        """Perform an update of a tenant record.
-
-        This is allowed for Django admins or tenant admins. The check for this
-        is in get_object().
-
-        """
-
-        super(TenantsViewSet, self).perform_update(serializer)
-
     def get_object(self):
         """Return the desired Tenant object for this request.
 
         This is allowed iff the current user is a Django admin, or a
-        tenant_admin of this tenant.
+        tenant_admin of this tenant. This is required for all endpoints
+        operating on a single row.
 
         Because the API's selection string is a UUID, we have to
         do a little extra work to filter by UUID. Hence, we have to
