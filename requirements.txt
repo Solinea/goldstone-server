@@ -30,6 +30,7 @@ djoser==0.2.0
 elasticsearch-curator==2.0.0
 elasticsearch==1.2.0
 elasticutils>=0.10.1
+fabric==1.10.1
 lockfile==0.9.1
 pandas==0.13.1
 pbr==0.8.0

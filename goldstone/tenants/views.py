@@ -49,6 +49,7 @@ class TenantsViewSet(ModelViewSet):
         member, of the tenant we are creating.
 
         """
+        from goldstone.accounts.models import Profile
 
         # Do what the superclass' perform_create() does, to get the newly
         # created row.
@@ -62,7 +63,7 @@ class TenantsViewSet(ModelViewSet):
             # No default tenant_admins is an error.
             logger.error("There are no default tenant_admins in the system."
                          " Using the Django administrator instead.")
-            profile = self.request.user.profile
+            admin_profile = self.request.user.profile
         elif admin_profile.count() > 1:
             # More than one default tenant_admin is odd, but we'll continue.
             logger.warning("The system has more then one default tenant admin."
