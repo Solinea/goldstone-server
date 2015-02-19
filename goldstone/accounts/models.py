@@ -34,7 +34,7 @@ from goldstone.tenants.models import Tenant
 class Profile(models.Model):
     """Additional user information.
 
-    These are items that we would not allow the user to change on his/her own
+    These are items that won't allow the user to change on his/her own
     account.
 
     """
@@ -57,7 +57,7 @@ class Profile(models.Model):
 class Settings(models.Model):
     """User settings, a.k.a, preferences.
 
-    These items are those that we will allow the user to change on his/her own
+    These are items that we will allow the user to change on his/her own
     account.
 
     """

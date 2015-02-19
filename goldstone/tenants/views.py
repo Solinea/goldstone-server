@@ -27,20 +27,40 @@ class TenantSerializer(ModelSerializer):
 
     class Meta:          # pylint: disable=C1001,C0111,W0232
         model = Tenant
-        fields = ["name", "owner", "owner_contact", "administrators"]
+        fields = ["name", "owner", "owner_contact"]
 
 
 class TenantsViewSet(ModelViewSet):
-    """Provide all of the /accounts/tenants views.
-
-    Today, this acts upon only the Tenant table. Some of the methods will
-    eventually need to manipulate the target cloud.
-
-    """
+    """Provide all of the /tenants views."""
 
     queryset = Tenant.objects.all()
     serializer_class = TenantSerializer
-    lookup_field = "name"
+    # lookup_field = "name"
+
+    def get_queryset(self):
+        """Return the queryset for list views."""
+
+        return Tenant.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        """Provide a collection-of-objects GET response, for Django admins."""
+        from rest_framework import status
+        from rest_framework.response import Response
+        from rest_framework.exceptions import PermissionDenied
+
+        if request.user.is_staff:
+            # Return all the tenants to this Django admin.
+            instance = self.filter_queryset(self.get_queryset())
+            page = self.paginate_queryset(instance)
+
+            serializer = \
+                self.get_serializer(instance, many=True) if page is None else \
+                self.get_pagination_serializer(page)
+
+            return Response(serializer.data)
+        else:
+            # Return nothing to this non-admin user.
+            raise PermissionDenied
 
     def perform_create(self, serializer):
         """Perform a create Tenant request.
