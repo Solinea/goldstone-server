@@ -31,7 +31,6 @@ from mock import patch
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 from rest_framework.test import APISimpleTestCase
-from goldstone import StartupGoldstone
 
 from goldstone.apps.core import tasks
 from goldstone.apps.core.views import ElasticViewSetMixin
@@ -41,69 +40,6 @@ from .models import EventType, Event, MetricType, Metric, ReportType, \
 from .serializers import EventSerializer, NodeSerializer, ReportSerializer
 
 logger = logging.getLogger(__name__)
-
-
-class StartupGoldstoneTest(SimpleTestCase):
-
-    @patch.object(Elasticsearch, '__init__')
-    @patch.object(StartupGoldstone, '_setup_index')
-    def test_es_unavailable(self, mock_setup_index, mock_es_conn):
-        """
-        goldstone should raise any exceptions encountered, and fail to start
-        if ES is unavailable.
-
-        TODO (JS) should goldstone start and keep trying to contact ES?
-        """
-        mock_es_conn.side_effect = ConnectionError()
-        self.assertRaises(ConnectionError, StartupGoldstone)
-        self.assertEqual(mock_es_conn.call_count, 1)
-
-        mock_es_conn.side_effect = TransportError()
-        self.assertRaises(TransportError, StartupGoldstone)
-        self.assertEqual(mock_es_conn.call_count, 2)
-        self.assertEqual(mock_setup_index.call_count, 0)
-
-    @patch('goldstone.models.Elasticsearch')
-    @patch('elasticsearch.client.IndicesClient')
-    def test_es_available(self, m_indices, m_conn):
-        """Goldstone should attempt to create two indices."""
-
-        # this was a hard earned bit of info here.  without setting the return
-        # value to our mocked object, the attachment below and all the call
-        # assertions were failing.
-
-        m_conn.return_value = m_conn  # critical to success
-        m_conn.attach_mock(m_indices, 'indices')
-        m_conn.indices.exists.return_value = False
-        m_conn.indices.create.return_value = True
-
-        # sanity checks on the mocked objects
-        self.assertIs(m_conn.indices, m_indices)
-        self.assertIn("name='Elasticsearch.indices'", repr(m_indices))
-
-        self.assertEqual(m_conn.call_count, 0)
-        StartupGoldstone()
-        self.assertEqual(m_conn.call_count, 1)
-
-        self.assertEqual(m_conn.indices.exists.call_count, 2)
-        self.assertEqual(m_conn.indices.create.call_count, 2)
-
-        m_conn.reset_mock()
-        m_conn.indices.exists.return_value = True
-        m_conn.indices.create.return_value = True
-
-        self.assertEqual(m_conn.call_count, 0)
-        self.assertEqual(m_conn.indices.exists.call_count, 0)
-        self.assertEqual(m_conn.indices.create.call_count, 0)
-
-        StartupGoldstone()
-
-        self.assertEqual(m_conn.call_count, 1)
-        self.assertEqual(m_conn.indices.exists.call_count, 2)
-        self.assertEqual(m_conn.indices.create.call_count, 0)
-
-        m_conn.indices.exists.side_effect = TransportError()
-        self.assertIsInstance(StartupGoldstone(), StartupGoldstone)
 
 
 class TaskTests(SimpleTestCase):
