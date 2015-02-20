@@ -64,14 +64,6 @@ def nova_hypervisors_stats(self):
     logger.debug("[hypervisor_stats] id = %s", hvdbid)
 
 
-def time_hypervisor_show_api(url, headers):
-    """
-
-    :return:
-    """
-    return time_api_call('novav3.hypervisor.show', url, headers=headers)
-
-
 @celery_app.task()
 def time_hypervisor_list_api():
     """
@@ -82,25 +74,10 @@ def time_hypervisor_list_api():
     in the DB.
     """
 
-    image_list_precursor = openstack_api_request_base("computev3",
-                                                      "/os-hypervisors")
-    result = time_api_call('novav3.hypervisor.list',
-                           image_list_precursor['url'],
-                           headers=image_list_precursor['headers'])
-
-    # check for existing volumes. if they exist, redo the call with a single
-    # volume for a more consistent result.
-    if result['response'] is not None and \
-            result['response'].status_code == requests.codes.ok:
-        body = json.loads(result['response'].text)
-        if 'hypervisors' in body and len(body['hypervisors']) > 0:
-            show_result = time_hypervisor_show_api(
-                image_list_precursor['url'] + str(
-                    body['hypervisors'][0]['id']),
-                image_list_precursor['headers'])
-            result = [result, show_result]
-
-    return result
+    precursor = openstack_api_request_base("compute", "/os-hypervisors")
+    return time_api_call('nova.hypervisor.list',
+                         precursor['url'],
+                         headers=precursor['headers'])
 
 
 def _update_nova_records(rec_type, region, db, items):

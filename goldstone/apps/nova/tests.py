@@ -17,9 +17,8 @@ import logging
 from mock import patch
 import requests
 from requests import Response
-from goldstone.apps.nova.tasks import time_hypervisor_list_api, \
-    time_hypervisor_show_api
-from goldstone.models import ApiPerfData
+from goldstone.apps.nova.tasks import time_hypervisor_list_api
+
 
 logger = logging.getLogger(__name__)
 
@@ -37,22 +36,5 @@ class TaskTests(SimpleTestCase):
         m_time_api_call.return_value = {'created': True,
                                         'response': response}
         result = time_hypervisor_list_api()
-        self.assertEqual(m_time_api_call.call_count, 2)
-        self.assertEqual(result,
-                         [m_time_api_call.return_value,
-                          m_time_api_call.return_value])
-
-
-    @patch('goldstone.apps.nova.tasks.time_api_call')
-    @patch.object(ApiPerfData, 'save')
-    def test_time_hypervisor_show_api(self, m_save, m_time_api_call):
-
-        response = Response()
-        response._content = '{"hypervisors": [{"id": 1}]}'
-        response.status_code = requests.codes.ok
-        m_save.return_value = True
-        m_time_api_call.return_value = {'created': True,
-                                        'response': response}
-        result = time_hypervisor_show_api('http://url', {})
-        self.assertTrue(m_time_api_call.called)
+        self.assertEqual(m_time_api_call.call_count, 1)
         self.assertEqual(result, m_time_api_call.return_value)

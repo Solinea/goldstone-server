@@ -22,9 +22,6 @@ from cinderclient.v2 import client as ciclient
 from neutronclient.v2_0 import client as neclient
 from glanceclient.v2 import client as glclient
 import logging
-from urlparse import urlparse
-import json
-import socket
 import functools
 from keystoneclient.openstack.common.apiclient.exceptions \
     import Unauthorized as KeystoneUnauthorized
@@ -155,9 +152,7 @@ def get_client(service, user=settings.OS_USERNAME,
                                          "auth token was not returned.  Check "
                                          "credentials in goldstone settings.")
             else:
-                md5 = hashlib.md5()
-                md5.update(client.auth_token)
-                return {'client': client, 'hex_token': md5.hexdigest()}
+                return {'client': client, 'hex_token': client.auth_token}
         except KeystoneUnauthorized:
             raise GoldstoneAuthError(NO_AUTH % "Keystone")
 
@@ -165,7 +160,8 @@ def get_client(service, user=settings.OS_USERNAME,
         try:
             client = nvclient.Client(user, passwd, tenant, auth_url,
                                      service_type='compute')
-            return {'client': client}
+            client.authenticate()
+            return {'client': client, 'hex_token': client.client.auth_token}
         except NovaUnauthorized:
             raise GoldstoneAuthError(NO_AUTH % "Nova")
 
@@ -212,176 +208,6 @@ get_keystone_client = functools.partial(get_client, service='keystone')
 get_nova_client = functools.partial(get_client, service='nova')
 
 # pylint: enable=C0103
-
-
-def _is_v4_ip_addr(candidate):
-    """
-    check a string to see if it is a valid v4 ip address
-    :arg str string to check
-    :return boolean
-    """
-    try:
-        socket.inet_pton(socket.AF_INET, candidate)
-        return True
-    except socket.error:
-        return False
-
-
-def _is_v6_ip_addr(candidate):
-    """
-    check a string to see if it is a valid v4 ip address
-    :arg str string to check
-    :return boolean
-    """
-    try:
-        socket.inet_pton(socket.AF_INET6, candidate)
-        return True
-    except socket.error:
-        return False
-
-
-def _is_ip_addr(candidate):
-    """
-    check a string to see if it is a valid v4 or v6 ip address
-    :arg str string to check
-    :return boolean
-    """
-    return _is_v4_ip_addr(candidate) or _is_v6_ip_addr(candidate)
-
-
-def _partition_hostname(hostname):
-    """Return a hostname separated into host and domain parts."""
-
-    parts = hostname.partition('.')
-
-    result = {'hostname': parts[0]}
-
-    if len(parts) > 2:
-        result['domainname'] = parts[2]
-
-    return result
-
-
-def _resolve_fqdn(ip_addr):
-    """
-    takes an IP address and tries to map it to a hostname and domain.
-    returns None or a dict
-    """
-    try:
-        resolved = socket.gethostbyaddr(ip_addr)
-    except Exception:        # pylint: disable=W0703
-        return None
-    else:
-        return _partition_hostname(resolved[0])
-
-
-def _resolve_addr(hostname):
-    """Return the IP address of a hostname."""
-    try:
-        return socket.gethostbyname(hostname)
-    except Exception:        # pylint: disable=W0703
-        return None
-
-
-def _host_details(name_or_addr):
-
-    if _is_ip_addr(name_or_addr):
-        # Try to resolve the hostname.
-        hostname = _resolve_fqdn(name_or_addr)
-        if hostname:
-            return dict({'ip_addr': name_or_addr}.items() + hostname.items())
-        else:
-            return {'ip_addr': name_or_addr}
-    else:
-        addr = _resolve_addr(name_or_addr)
-        hostname = _partition_hostname(name_or_addr)
-        if addr:
-            return dict({'ip_addr': addr}.items() + hostname.items())
-        else:
-            return hostname
-
-
-def _normalize_hostname(name_or_addr):
-    """Return an unqualified hostname or IP address from a host or IP
-    address."""
-
-    hostdetail = _host_details(name_or_addr)
-
-    return hostdetail['hostname'] if hostdetail.get('hostname', None) \
-        else hostdetail['ip_addr']
-
-
-def _normalize_hostnames(host_keys, source, key=None):
-    """Mutate the source dict with potential modifications to the keys in
-    host_keys.  The keys will be modified in the following ways:
-
-        - an attempt to resolve ip addresses will be made.  if resolvable,
-          the unqualified hostname will be used, otherwise the ip address
-          will be used
-        - fully qualified hostnames will be reduced to unqualified
-          hostnames
-
-    """
-
-    if isinstance(source, dict):
-        for akey, value in source.items():
-            source[akey] = _normalize_hostnames(host_keys, value, key=akey)
-        if key:
-            return source
-
-    elif isinstance(source, list):
-        for entry in source:
-            entry = _normalize_hostnames(host_keys, entry)
-        if key:
-            return source
-
-    elif key in host_keys:
-        # compare key to our list and normalize if a match
-        return _normalize_hostname(source)
-
-    elif key:
-        return source
-
-    return None
-
-
-# TODO _decompose_url does not appear to be used.
-def _decompose_url(url):
-    """Return the scheme, host, and possibly port for an URL."""
-
-    url_parsed = urlparse(url)
-    result = {'scheme': url_parsed[0]}
-
-    netloc = url_parsed[1]
-    host = None
-
-    if ":" in netloc:
-        # host:port
-        host_port = netloc.split(':')
-        host = host_port[0]
-
-        if len(host_port) > 1:
-            result['port'] = host_port[1]
-
-        result['port'] = host_port[1] if len(host_port) > 1 else None
-
-    if _is_ip_addr(host):
-        # try to resolve the address and
-        result['ip_address'] = host
-        hostname = _resolve_fqdn(host)
-
-        if hostname:
-            result['hostname'] = hostname['hostname']
-            if 'domainname' in hostname:
-                result['domainname'] = hostname['domainname']
-    else:
-        result = dict(result.items() + _partition_hostname(host).items())
-        addr = _resolve_addr(host)
-
-        if addr:
-            result['ip_address'] = addr
-
-    return result
 
 
 class TopologyMixin(object):

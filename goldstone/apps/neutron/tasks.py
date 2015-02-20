@@ -23,16 +23,7 @@ from goldstone.apps.api_perf.utils import time_api_call, \
 from goldstone.celery import app as celery_app
 
 
-
 logger = logging.getLogger(__name__)
-
-
-def time_agent_show_api(url, headers):
-    """
-
-    :return:
-    """
-    return time_api_call('neutron.agent.show', url, headers=headers)
 
 
 @celery_app.task()
@@ -45,22 +36,8 @@ def time_agent_list_api():
     in the DB.
     """
 
-    agent_list_precursor = openstack_api_request_base("network",
-                                                      "/v2.0/agents")
-    result = time_api_call('neutron.agent.list',
-                           agent_list_precursor['url'],
-                           headers=agent_list_precursor['headers'])
-
-    # check for existing volumes. if they exist, redo the call with a single
-    # volume for a more consistent result.
-    if result['response'] is not None and \
-            result['response'].status_code == requests.codes.ok:
-        body = json.loads(result['response'].text)
-        if 'agents' in body and len(body['agents']) > 0:
-            show_result = time_agent_show_api(
-                agent_list_precursor['url'] + str(body['agents'][0]['id']),
-                agent_list_precursor['headers'])
-            result = [result, show_result]
-
-    return result
+    precursor = openstack_api_request_base("network", "/v2.0/agents")
+    return time_api_call('neutron.agent.list',
+                         precursor['url'],
+                         headers=precursor['headers'])
 

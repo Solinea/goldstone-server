@@ -28,15 +28,8 @@ from .models import ImagesData
 from goldstone.celery import app as celery_app
 from goldstone.utils import to_es_date
 
+
 logger = logging.getLogger(__name__)
-
-
-def time_image_show_api(url, headers):
-    """
-
-    :return:
-    """
-    return time_api_call('glance.image.show', url, headers=headers)
 
 
 @celery_app.task()
@@ -49,23 +42,10 @@ def time_image_list_api():
     in the DB.
     """
 
-    image_list_precursor = openstack_api_request_base("glance", "/v2/images")
-    result = time_api_call('glance.image.list',
-                           image_list_precursor['url'],
-                           headers=image_list_precursor['headers'])
-
-    # check for existing volumes. if they exist, redo the call with a single
-    # volume for a more consistent result.
-    if result['response'] is not None and \
-            result['response'].status_code == requests.codes.ok:
-        body = json.loads(result['response'].text)
-        if 'images' in body and len(body['images']) > 0:
-            show_result = time_image_show_api(
-                image_list_precursor['url'] + str(body['images'][0]['id']),
-                image_list_precursor['headers'])
-            result = [result, show_result]
-
-    return result
+    precursor = openstack_api_request_base("image", "/v2/images")
+    return time_api_call('glance.image.list',
+                         precursor['url'],
+                         headers=precursor['headers'])
 
 
 def _update_glance_image_records(client, region):
