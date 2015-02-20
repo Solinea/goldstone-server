@@ -39,12 +39,25 @@ var NodeAvailCollection = Backbone.Collection.extend({
     thisXhr: null,
 
     initXhr: function() {
-        this.thisXhr = this.fetch();
+        this.thisXhr = this.fetch({
+            beforeSend: function(request) {
+                console.log('in before send', request);
+                console.log('user token being sent?', localStorage.getItem('userToken'));
+                request.setRequestHeader('Authorization', 'Token ' + localStorage.getItem('userToken'));
+                console.log('in before send', request);
+            }
+        });
     },
 
     setXhr: function() {
         this.thisXhr = this.fetch({
-            remove: true
+            remove: true,
+            beforeSend: function(request) {
+                console.log('in before send', request);
+                console.log('user token being sent?', localStorage.getItem('userToken'));
+                request.setRequestHeader('Authorization', 'Token ' + localStorage.getItem('userToken'));
+                console.log('in before send', request);
+            }
         });
     },
 
