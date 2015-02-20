@@ -12,11 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from rest_framework.routers import DefaultRouter
-from .views import TenantsViewSet
 
-# Views handled by DjangoRestFramework ViewSets.
-router = DefaultRouter(trailing_slash=False)
+# This is a subclass of rest_framework.DefaultRouter. Its name is unwise.
+from drf_toolbox.routers import Router
+from .views import TenantsViewSet, UserViewSet
+
+# Views handled by DjangoRestFramework ViewSets, with drf_toolbox help.
+router = Router(trailing_slash=False)
 router.register(r'^tenants[/]?', TenantsViewSet)
+router.register(r'^tenants/users[/]?', UserViewSet)
 
 urlpatterns = router.urls

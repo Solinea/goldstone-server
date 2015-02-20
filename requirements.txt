@@ -28,6 +28,7 @@ django-rest-params==1.0.0
 django-uuidfield==0.5.0
 djangorestframework==3.0.0
 djoser==0.2.0
+drf-toolbox==0.1.7
 elasticsearch-curator==2.0.0
 elasticsearch==1.2.0
 elasticutils>=0.10.1

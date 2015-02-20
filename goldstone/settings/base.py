@@ -152,6 +152,9 @@ REDIS_PORT = '6379'
 REDIS_DB = '0'
 REDIS_CONNECT_STR = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/' + REDIS_DB
 
+# Goldstone's User model.
+AUTH_USER_MODEL = "accounts.models.User"
+
 # Celery
 
 BROKER_URL = REDIS_CONNECT_STR
