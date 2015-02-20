@@ -19,12 +19,10 @@ import logging
 from django.http import HttpResponse
 from django.test import SimpleTestCase
 from mock import patch
-import mock
 import requests
 from requests import Response
-from goldstone.models import ApiPerfData
 
-from .tasks import time_image_list_api, time_image_show_api
+from .tasks import time_image_list_api
 
 
 logger = logging.getLogger(__name__)
@@ -43,24 +41,7 @@ class TaskTests(SimpleTestCase):
         m_time_api_call.return_value = {'created': True,
                                         'response': response}
         result = time_image_list_api()
-        self.assertEqual(m_time_api_call.call_count, 2)
-        self.assertEqual(result,
-                         [m_time_api_call.return_value,
-                          m_time_api_call.return_value])
-
-
-    @patch('goldstone.apps.glance.tasks.time_api_call')
-    @patch.object(ApiPerfData, 'save')
-    def test_time_image_show_api(self, m_save, m_time_api_call):
-
-        response = Response()
-        response._content = '{"images": [{"id": 1}]}'
-        response.status_code = requests.codes.ok
-        m_save.return_value = True
-        m_time_api_call.return_value = {'created': True,
-                                        'response': response}
-        result = time_image_show_api('http://url', {})
-        self.assertTrue(m_time_api_call.called)
+        self.assertEqual(m_time_api_call.call_count, 1)
         self.assertEqual(result, m_time_api_call.return_value)
 
 

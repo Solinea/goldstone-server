@@ -44,8 +44,8 @@ def time_token_post_api():
     headers = {'content-type': 'application/json'}
 
     return time_api_call('keystone.token.post',
-                         'POST',
                          url,
+                         method='POST',
                          data=json.dumps(payload),
                          headers=headers)
 

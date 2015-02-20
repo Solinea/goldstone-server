@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.test import SimpleTestCase
-from goldstone.apps.neutron.tasks import time_agent_list_api, \
-    time_agent_show_api
+from goldstone.apps.neutron.tasks import time_agent_list_api
 
 import requests
 from requests import Response
@@ -41,24 +40,7 @@ class TaskTests(SimpleTestCase):
         m_time_api_call.return_value = {'created': True,
                                         'response': response}
         result = time_agent_list_api()
-        self.assertEqual(m_time_api_call.call_count, 2)
-        self.assertEqual(result,
-                         [m_time_api_call.return_value,
-                          m_time_api_call.return_value])
-
-
-    @patch('goldstone.apps.neutron.tasks.time_api_call')
-    @patch.object(ApiPerfData, 'save')
-    def test_time_agent_show_api(self, m_save, m_time_api_call):
-
-        response = Response()
-        response._content = '{"agents": [{"id": 1}]}'
-        response.status_code = requests.codes.ok
-        m_save.return_value = True
-        m_time_api_call.return_value = {'created': True,
-                                        'response': response}
-        result = time_agent_show_api('http://url', {})
-        self.assertTrue(m_time_api_call.called)
+        self.assertEqual(m_time_api_call.call_count, 1)
         self.assertEqual(result, m_time_api_call.return_value)
 
 
