@@ -15,46 +15,17 @@
 from django.http import HttpResponse
 from django.test import SimpleTestCase
 from .tasks import time_keystone_api
-import logging
 from .views import ApiPerfView
 from datetime import datetime
 import calendar
 import pytz
 from mock import patch
-from .models import ApiPerfData
 from requests.models import Response
-
-logger = logging.getLogger(__name__)
-
-
-class TaskTests(SimpleTestCase):
-
-    # the patch is specified with the package where the thing is looked up.
-    # see http://www.voidspace.org.uk/python/mock/patch.html#id1.  Also
-    # note that the decorators are applied from the bottom upwards. This is
-    # the standard way that Python applies decorators. The order of the
-    # created mocks passed into your test function matches this order.
-    @patch('goldstone.apps.keystone.tasks._construct_api_rec')
-    @patch('requests.post')
-    @patch.object(ApiPerfData, 'post')
-    def test_time_glance_api(self, db_post, os_post, construct_rec):
-        fake_response = Response()
-        fake_response.status_code = 200
-        fake_response._content = '{"a":1,"b":2}'       # pylint: disable=W0212
-        os_post.return_value = fake_response
-        db_post.return_value = 'fake_id'
-        construct_rec.return_value = {}
-        result = time_keystone_api()
-        self.assertTrue(os_post.called)
-        self.assertTrue(db_post.called)
-        db_post.assert_called_with(construct_rec.return_value)
-        self.assertIn('id', result)
-        self.assertEqual(result['id'], db_post.return_value)
-        self.assertIn('record', result)
-        self.assertEqual(result['record'], construct_rec.return_value)
+from goldstone.user.models import User
+from .models import Settings
 
 
-class ViewTests(SimpleTestCase):
+class UserTests(SimpleTestCase):
 
     start_dt = datetime.fromtimestamp(0, tz=pytz.utc)
     end_dt = datetime.utcnow()
