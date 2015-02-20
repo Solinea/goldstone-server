@@ -245,7 +245,10 @@ var GoldstoneBaseView = Backbone.View.extend({
                     message += errorMessage.responseJSON.status_code + ' error: ';
                 }
                 if (errorMessage.responseJSON.message) {
-                    message += errorMessage.responseJSON.message;
+                    message += errorMessage.responseJSON.message + ' ';
+                }
+                if (errorMessage.responseJSON.detail) {
+                    message += errorMessage.responseJSON.detail;
                 }
 
             } else {
