@@ -403,10 +403,10 @@ class HelpView(TemplateView):
     template_name = 'help.html'
 
 
-class NewHomePageView(TemplateView):
+class LoginPageView(TemplateView):
     """Return the Goldstone home page."""
 
-    template_name = 'index.html'
+    template_name = 'login.html'
 
 
 class NodeReportView(TemplateView):
