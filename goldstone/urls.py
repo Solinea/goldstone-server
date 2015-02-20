@@ -49,6 +49,7 @@ urlpatterns = patterns(
     url(r'^report/node/(?P<node_uuid>[^/]+)[/]?$',
         NodeReportView.as_view(),
         name='goldstone-node-report-view'),
+    url(r'^user[/]?$', include("goldstone.user.urls")),
     # /newhomepage will become the Goldstone home page, after ticket #639 is
     # completed.
     url(r'^newhomepage[/]?$', NewHomePageView.as_view()),
