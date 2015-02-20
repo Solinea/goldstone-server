@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2014 - 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -14,69 +14,32 @@
  * limitations under the License.
  */
 
-var NodeReportView = Backbone.View.extend({
+var NodeReportView = GoldstoneBasePageView.extend({
 
     defaults: {},
 
     initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
+
         this.node_uuid = options.node_uuid;
-        this.defaults.globalLookback = null;
-        this.defaults.globalRefresh = null;
-
-        var ns = this.defaults;
-        var self = this;
-
-        this.render();
+        NodeReportView.__super__.initialize.apply(this, arguments);
         this.initializeChartButtons();
-        this.getGlobalLookbackRefresh();
-        this.renderCharts();
-        this.setGlobalLookbackRefreshTriggers();
-        this.scheduleInterval();
-    },
-
-    clearScheduledInterval: function() {
-        var ns = this.defaults;
-        clearInterval(ns.scheduleInterval);
-    },
-
-    scheduleInterval: function() {
-        var self = this;
-        var ns = this.defaults;
-
-        var intervalDelay = ns.globalRefresh * 1000;
-
-        if (intervalDelay < 0) {
-            return true;
-        }
-
-        ns.scheduleInterval = setInterval(function() {
-            self.triggerChange();
-        }, intervalDelay);
-    },
-
-    getGlobalLookbackRefresh: function() {
-        this.defaults.globalLookback = $('#global-lookback-range').val();
-        this.defaults.globalRefresh = $('#global-refresh-range').val();
     },
 
     triggerChange: function() {
         if (this.visiblePanel.Services) {
-            this.serviceStatusChartView.trigger('selectorChanged');
-            this.cpuUsageView.trigger('selectorChanged');
-            this.memoryUsageView.trigger('selectorChanged');
-            this.networkUsageView.trigger('selectorChanged');
-            this.hypervisorCoreView.trigger('selectorChanged');
+            this.serviceStatusChartView.trigger('lookbackSelectorChanged');
+            this.cpuUsageView.trigger('lookbackSelectorChanged');
+            this.memoryUsageView.trigger('lookbackSelectorChanged');
+            this.networkUsageView.trigger('lookbackSelectorChanged');
+            this.hypervisorCoreView.trigger('lookbackSelectorChanged');
         }
 
         if (this.visiblePanel.Reports) {
-            this.reportsReport.trigger('selectorChanged');
+            this.reportsReport.trigger('lookbackSelectorChanged');
         }
 
         if (this.visiblePanel.Events) {
-            this.eventsReport.trigger('selectorChanged');
+            this.eventsReport.trigger('lookbackSelectorChanged');
         }
     },
 
@@ -138,11 +101,6 @@ var NodeReportView = Backbone.View.extend({
             });
             $("#node-report-panel").find('#' + selectedButton + 'Report').show();
         });
-    },
-
-    render: function() {
-        this.$el.html(this.template());
-        return this;
     },
 
     constructHostName: function(loc) {

@@ -14,52 +14,7 @@
  * limitations under the License.
  */
 
-var LogSearchView = Backbone.View.extend({
-
-    defaults: {},
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.el = options.el;
-        this.defaults.globalLookback = null;
-        this.defaults.globalRefresh = null;
-        this.defaults.nsReport = options.nsReport;
-
-        var ns = this.defaults;
-        var self = this;
-
-        this.render();
-        this.getGlobalLookbackRefresh();
-        this.renderCharts();
-        this.setGlobalLookbackRefreshTriggers();
-        this.scheduleInterval();
-    },
-
-    clearScheduledInterval: function() {
-        var ns = this.defaults;
-        clearInterval(ns.scheduleInterval);
-    },
-
-    scheduleInterval: function() {
-        var self = this;
-        var ns = this.defaults;
-
-        var intervalDelay = ns.globalRefresh * 1000;
-
-        if (intervalDelay < 0) {
-            return true;
-        }
-
-        ns.scheduleInterval = setInterval(function() {
-            self.triggerChange('refreshReached');
-        }, intervalDelay);
-    },
-
-    getGlobalLookbackRefresh: function() {
-        this.defaults.globalLookback = $('#global-lookback-range').val();
-        this.defaults.globalRefresh = $('#global-refresh-range').val();
-    },
+var LogSearchView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
         this.computeLookback();
@@ -74,13 +29,16 @@ var LogSearchView = Backbone.View.extend({
         // change listeners for global selectors
         $('#global-lookback-range').on('change', function() {
             self.getGlobalLookbackRefresh();
-            self.triggerChange('selectorChanged');
+            self.triggerChange('lookbackSelectorChanged');
             self.clearScheduledInterval();
             self.scheduleInterval();
         });
         $('#global-refresh-range').on('change', function() {
             self.getGlobalLookbackRefresh();
-            self.triggerChange('selectorChanged');
+
+            // also triggers 'lookbackSelectorChanged' in order to reset
+            // chart view after changing refresh interval
+            self.triggerChange('lookbackSelectorChanged');
             self.clearScheduledInterval();
             self.scheduleInterval();
         });

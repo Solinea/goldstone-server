@@ -15,10 +15,24 @@
  */
 
 /*
- NOTE: This Backbone View is a "superClass" that is extended to at least 2 other chart-types at the time of this documentation.
+NOTE: This Backbone View is a "superClass" that is extended to at least 2 other chart-types at the time of this documentation.
 
 The method of individuating charts that have particular individual requirements is to instantiate them with the 'featureSet' property within the options hash.
- */
+
+Instantiated on nodeReportView as:
+
+this.cpuUsageChart = new UtilizationCpuCollection({
+    nodeName: hostName,
+    globalLookback: ns.globalLookback
+});
+
+this.cpuUsageView = new UtilizationCpuView({
+    collection: this.cpuUsageChart,
+    el: '#node-report-r3 #node-report-panel #cpu-usage',
+    width: $('#node-report-r3 #node-report-panel #cpu-usage').width(),
+    featureSet: 'cpuUsage'
+});
+*/
 
 var UtilizationCpuView = GoldstoneBaseView.extend({
 
@@ -59,7 +73,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
 
         this.collection.on('error', this.dataErrorMessage, this);
 
-        this.on('selectorChanged', function() {
+        this.on('lookbackSelectorChanged', function() {
             this.collection.defaults.globalLookback = $('#global-lookback-range').val();
             this.collection.fetchMultipleUrls();
             $(this.el).find('#spinner').show();

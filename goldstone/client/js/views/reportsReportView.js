@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2014 - 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -17,6 +17,20 @@
 /*
 This view makes up the "Reports" tab of nodeReportView.js
 It is sub-classed from GoldstoneBaseView.
+
+Instantiated on nodeReportView as:
+
+this.reportsReportCollection = new ReportsReportCollection({
+    globalLookback: ns.globalLookback,
+    nodeName: hostName
+});
+
+this.reportsReport = new ReportsReportView({
+    collection: this.reportsReportCollection,
+    el: '#node-report-panel #reportsReport',
+    width: $('#node-report-panel #reportsReport').width(),
+    nodeName: hostName
+});
 */
 
 var ReportsReportView = GoldstoneBaseView.extend({
@@ -77,7 +91,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         this.collection.on('error', this.dataErrorMessage, this);
 
         // this is triggered by a listener set on nodeReportView.js
-        this.on('selectorChanged', function() {
+        this.on('lookbackSelectorChanged', function() {
 
             // reconstructs the url to fetch in this.collection
             self.collection.defaults.globalLookback = $('#global-lookback-range').val();
