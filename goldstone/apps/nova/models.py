@@ -180,7 +180,6 @@ class SpawnData(ESData):
         start events"""
         agg_name = "events_by_date"
         q = self._spawn_start_query(agg_name)
-        logger.info("[get_spawn_start] query = %s", json.dumps(q))
         index = ",".join(self.get_index_names('goldstone-'))
         logger.info("[get_spawn_start] calling query with index=%s, "
                     "doc_type=%s", index, self._DOC_TYPE)
