@@ -78,7 +78,6 @@ INSTALLED_APPS = (
     'crispy_forms',
     'django.contrib.contenttypes',
     'goldstone.accounts',
-    'goldstone.tenants',
     'goldstone.apps.core',
     'goldstone.apps.intelligence',
     'goldstone.apps.nova',
@@ -88,6 +87,8 @@ INSTALLED_APPS = (
     'goldstone.apps.glance',
     'goldstone.apps.api_perf',
     'goldstone.apps.logging',
+    'goldstone.tenants',
+    'goldstone.user',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -153,7 +154,7 @@ REDIS_DB = '0'
 REDIS_CONNECT_STR = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/' + REDIS_DB
 
 # Goldstone's User model.
-AUTH_USER_MODEL = "accounts.models.User"
+AUTH_USER_MODEL = "user.User"
 
 # Celery
 

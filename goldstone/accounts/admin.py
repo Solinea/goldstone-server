@@ -12,8 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .models import User, Settings
+from .models import Settings
 from django.contrib import admin
 
-admin.site.register(User)
 admin.site.register(Settings)

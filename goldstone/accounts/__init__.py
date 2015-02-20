@@ -1,4 +1,4 @@
-"""Goldstone accounts and authorization."""
+"""Goldstone user settings and authorization."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),

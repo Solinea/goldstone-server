@@ -20,7 +20,7 @@ from rest_framework.permissions import BasePermission
 from rest_framework.viewsets import ModelViewSet
 
 from goldstone.utils import django_admin_only
-from goldstone.accounts.views import UserSerializer as AccountsUserSerializer
+from goldstone.user.views import UserSerializer as AccountsUserSerializer
 from .models import Tenant
 
 logger = logging.getLogger(__name__)
@@ -105,7 +105,6 @@ class TenantsViewSet(BaseViewSet):
         member, of the tenant we are creating.
 
         """
-        from goldstone.accounts.models import User
 
         # Do what the superclass' perform_create() does, to get the newly
         # created row.
@@ -113,7 +112,7 @@ class TenantsViewSet(BaseViewSet):
 
         # Find the default tenant_admin. Use a filter in case there's
         # erroneously more than one in the system.
-        admin_user = User.objects.filter(default_tenant_admin=True)
+        admin_user = get_user_model().objects.filter(default_tenant_admin=True)
 
         if not admin_user:
             # There should always be a default tenant_admin.
