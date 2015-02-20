@@ -17,19 +17,44 @@
 // view is linked to collection when instantiated in goldstone_discover.html
 
 /*
-standard chart usage. instantiate with:
-{
+instantiated on discoverView as:
+
+var zoomableTreeView = new ZoomablePartitionView({
     blueSpinnerGif: blueSpinnerGif,
-    chartHeader: [ location of chart, title of chart, key for 'infoText'],
-    collection: collection name (don't included this unless it's fetching via a collection, use data instead)
-    data: data, (only used if data is served by django)
-    el: chart location,
-    frontPage: false, (prevents redirect upon clicking leaves)
+    chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverZoomTopology'],
+    // collection: zoomableTree,
+    data: data,
+    el: '#goldstone-discover-r2-c1',
+    frontPage: false,
     h: 600,
-    leafDataUrls: keys/values,
-    multiRsrcViewEl: where to put the 'resource list' chart
-    width: $(selected el).width()
-}
+    leafDataUrls: {
+        "services-leaf": "/services",
+        "endpoints-leaf": "/endpoints",
+        "roles-leaf": "/roles",
+        "users-leaf": "/users",
+        "tenants-leaf": "/tenants",
+        "agents-leaf": "/agents",
+        "aggregates-leaf": "/aggregates",
+        "availability-zones-leaf": "/availability_zones",
+        "cloudpipes-leaf": "/cloudpipes",
+        "flavors-leaf": "/flavors",
+        "floating-ip-pools-leaf": "/floating_ip_pools",
+        "hosts-leaf": "/hosts",
+        "hypervisors-leaf": "/hypervisors",
+        "networks-leaf": "/networks",
+        "secgroups-leaf": "/security_groups",
+        "servers-leaf": "/servers",
+        "images-leaf": "/images",
+        "volumes-leaf": "/volumes",
+        "backups-leaf": "/backups",
+        "snapshots-leaf": "/snapshots",
+        "transfers-leaf": "/transfers",
+        "volume-types-leaf": "/volume_types"
+    },
+    multiRsrcViewEl: '#goldstone-discover-r2-c2',
+    width: $('#goldstone-discover-r2-c1').width()
+});
+
 */
 
 var ZoomablePartitionView = TopologyTreeView.extend({
