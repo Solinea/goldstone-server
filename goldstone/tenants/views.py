@@ -14,16 +14,33 @@
 # limitations under the License.
 import logging
 
-from rest_framework.serializers import ModelSerializer
+from django.contrib.auth import get_user_model
+from drf_toolbox.serializers import ModelSerializer
+from rest_framework.permissions import BasePermission
 from rest_framework.viewsets import ModelViewSet
 
 from goldstone.utils import django_admin_only
+from goldstone.accounts.views import UserSerializer as AccountsUserSerializer
 from .models import Tenant
 
 logger = logging.getLogger(__name__)
 
 
+class UserSerializer(AccountsUserSerializer):
+    """A User table serializer that's used when accessing a user as a "child"
+    of his/her tenant. E.g., /tenants/<id>/user/<id>.
+
+    This adds the Tenant relationship, and exposes more fields.
+
+    """
+
+    class Meta:          # pylint: disable=C1001,C0111,W0232
+        model = get_user_model()
+        fields = AccountsUserSerializer.fields + ("tenant", )
+
+
 class TenantSerializer(ModelSerializer):
+
     """The Tenant model serializer."""
 
     class Meta:          # pylint: disable=C1001,C0111,W0232
@@ -32,12 +49,50 @@ class TenantSerializer(ModelSerializer):
         read_only_fields = ('uuid', )
 
 
-class TenantsViewSet(ModelViewSet):
+class DjangoOrTenantAdminPermission(BasePermission):
+    """A custom permissions class that allows access if the user is a Django
+    Admin, or a tenant_admin for the Tenant row being accessed."""
+
+    def has_object_permission(self, request, view, obj):
+        """Override the permissions check for single Tenant row access.
+
+        :return: True if the request should be granted, False otherwise
+        :rtype: bool
+
+        """
+
+        user = request.user
+        return user.is_staff or (user.tenant_admin and user.tenant == obj)
+
+
+class BaseViewSet(ModelViewSet):
+    """A base class for this app's Tenant and User ViewSets."""
+
+    lookup_field = "uuid"
+
+    def get_object(self):
+        """Return the desired object for this request.
+
+        Because the API's selection string is a UUID, we have to
+        do a little extra work to filter by UUID. Hence, we have to
+        override get_object().
+
+        """
+        from uuid import UUID
+
+        # Pad the UUID hexadecimal value, extracted from the request URL, to 32
+        # hex digits. Then create a UUID object with it.
+        value = UUID(hex=self.kwargs[self.lookup_field].zfill(32))
+
+        # Return the object having this UUID.
+        return self.get_queryset().get(**{self.lookup_field: value})
+
+
+class TenantsViewSet(BaseViewSet):
     """Provide all of the /tenants views."""
 
-    queryset = Tenant.objects.all()
     serializer_class = TenantSerializer
-    lookup_field = "uuid"
+    permission_classes = (DjangoOrTenantAdminPermission, )
 
     def get_queryset(self):
         """Return the queryset for list views."""
@@ -50,35 +105,35 @@ class TenantsViewSet(ModelViewSet):
         member, of the tenant we are creating.
 
         """
-        from goldstone.accounts.models import Profile
+        from goldstone.accounts.models import User
 
         # Do what the superclass' perform_create() does, to get the newly
         # created row.
         tenant = serializer.save()
 
-        # Get the tenant_admin. Use a filter in case there's erroneously more
-        # than one in the system.
-        admin_profile = Profile.objects.filter(default_tenant_admin=True)
+        # Find the default tenant_admin. Use a filter in case there's
+        # erroneously more than one in the system.
+        admin_user = User.objects.filter(default_tenant_admin=True)
 
-        if not admin_profile:
-            # No default tenant_admins is an error.
+        if not admin_user:
+            # There should always be a default tenant_admin.
             logger.error("There are no default tenant_admins in the system."
                          " Using the Django administrator instead.")
-            admin_profile = self.request.user.profile
-        elif admin_profile.count() > 1:
+            admin_user = self.request.user
+        elif admin_user.count() > 1:
             # More than one default tenant_admin is odd, but we'll continue.
             logger.warning("The system has more then one default tenant admin."
                            " There must be Only One: %s",
-                           admin_profile)
-            admin_profile = admin_profile[:1]
+                           admin_user)
+            admin_user = admin_user[0]
         else:
-            # We found the default tenant_admin for this system.
-            admin_profile = admin_profile[0]
+            # We found the single default tenant_admin.
+            admin_user = admin_user[0]
 
-        # Insert the default tenant_admin into the tenant and save it.
-        admin_profile.tenant_admin = True
-        admin_profile.tenant = tenant
-        admin_profile.save()
+        # Insert the default tenant_admin into the tenant, and save it.
+        admin_user.tenant_admin = True
+        admin_user.tenant = tenant
+        admin_user.save()
 
     @django_admin_only
     def list(self, request, *args, **kwargs):
@@ -95,32 +150,14 @@ class TenantsViewSet(ModelViewSet):
 
         return Response(serializer.data)
 
-    def get_object(self):
-        """Return the desired Tenant object for this request.
 
-        This is allowed iff the current user is a Django admin, or a
-        tenant_admin of this tenant. This is required for all endpoints
-        operating on a single row.
+class UserViewSet(BaseViewSet):
+    """A ViewSet for the User table, which is used only in this app's
+    "parent/child" views."""
 
-        Because the API's selection string is a UUID, we have to
-        do a little extra work to filter by UUID. Hence, we have to
-        override get_object().
+    serializer_class = UserSerializer
 
-        """
-        from django.core.exceptions import PermissionDenied
-        from uuid import UUID
+    def get_queryset(self):
+        """Return the queryset for list views."""
 
-        # Pad the request URL's UUID hexadecimal value to 32 hex digits, and
-        # create a UUID object from it.
-        value = UUID(hex=self.kwargs[self.lookup_field].zfill(32))
-
-        # Get the object with this UUID.
-        result = Tenant.objects.get(**{self.lookup_field: value})
-
-        # If the current user isn't a Django admin, or this tenant's admin,
-        # it's an error.
-        if not self.request.user.is_staff and \
-           self.request.user.profile.tenant != result:
-            raise PermissionDenied
-
-        return result
+        return get_user_model().objects.all()

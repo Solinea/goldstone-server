@@ -21,10 +21,10 @@ from django.conf.urls import patterns, url
 from djoser import views as djoser_views
 from .views import SettingsView, UserView
 
-# First, hook up the djoser package. We don't include djoser's URLconf because
-# that would mean rooting it at /accounts/XXX, making the URLs longer; and we
-# need to override some of djoser's code in order to process user
-# profiles. Also, we want to connect only a subset of djoser's API.
+# Hook up a subset of the djoser package. We don't include djoser's URLconf
+# because that would mean rooting it at /accounts/XXX, making the URLs longer;
+# and we need to override some of djoser's code in order to process user
+# profiles.
 urlpatterns = patterns(
     '',
     url(r'^me[/]?$', UserView.as_view(), name='me'),

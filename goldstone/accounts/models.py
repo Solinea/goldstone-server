@@ -1,12 +1,8 @@
-"""User profiles.
+"""User and user settings tables.
 
-User preferences are stored in the Profile table. Tenants are defined,
-including their settings, in the Tenant table.
-
-User --+-- 1:1 --- Profile --- m:1 ---Tenant
-       |                     (users and administrators)
+User --+-- 1:1 --- Settings
        |
-       +-- 1:1 --- Settings
+       +-- m:1 --- Tenant   (users and administrators)
 
 """
 # Copyright 2015 Solinea, Inc.
@@ -24,23 +20,17 @@ User --+-- 1:1 --- Profile --- m:1 ---Tenant
 # limitations under the License.
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser
 from django.db.models.signals import post_save
 from django.db import models
 from django.dispatch import receiver
+from uuidfield import UUIDField
 
 from goldstone.tenants.models import Tenant
 
 
-class Profile(models.Model):
-    """Additional user information.
-
-    These are items that we don't allow the user to change on his/her own
-    account.
-
-    """
-
-    # User row
-    user = models.OneToOneField(settings.AUTH_USER_MODEL)
+class User(AbstractUser):
+    """A variant of Django's default User model, with additional fields."""
 
     # The tenant to which this user belongs.
     tenant = models.ForeignKey(Tenant, null=True, blank=True)
@@ -55,10 +45,8 @@ class Profile(models.Model):
         models.BooleanField(default=False,
                             help_text="This is the default tenant_admin")
 
-    def __unicode__(self):
-        """Return a useful string."""
-
-        return u'%s' % self.user.username         # pylint: disable=E1101
+    # This allows URLs to identify a row using a UUID value.
+    uuid = UUIDField(auto=True)
 
 
 class Settings(models.Model):
@@ -83,9 +71,9 @@ class Settings(models.Model):
 
 @receiver(post_save, sender=get_user_model())
 def _user_saved(sender, **kwargs):                # pylint: disable=W0613
-    """Create a Profile and Settings row for a new User row.
+    """Create a Settings row for a new User row.
 
-    Note: Profile and Settings rows are deleted when their User row is deleted
+    Note: Settings rows are deleted when their User row is deleted
     via Postgres cascading deletes; no need to use signals for that.
 
     :param sender: The sending model class
@@ -99,6 +87,5 @@ def _user_saved(sender, **kwargs):                # pylint: disable=W0613
 
     # If a new model was created...
     if kwargs["created"]:
-        # Create a new Profile and Settings row for it.
-        Profile.objects.create(user=kwargs["instance"])
+        # Create a new Settings row for it.
         Settings.objects.create(user=kwargs["instance"])

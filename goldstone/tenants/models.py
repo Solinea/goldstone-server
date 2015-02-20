@@ -34,7 +34,7 @@ class Tenant(models.Model):
         models.TextField(blank=True,
                          help_text="The owner's contact information")
 
-    # To identify this row with a UUID value.
+    # This allows URLs to identify a row using a UUID value.
     uuid = UUIDField(auto=True)
 
     def __unicode__(self):
