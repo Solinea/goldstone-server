@@ -15,15 +15,21 @@
 import logging
 
 from django.contrib.auth import get_user_model
-from drf_toolbox.serializers import ModelSerializer
 from rest_framework.permissions import BasePermission
+from rest_framework.serializers import ModelSerializer
 from rest_framework.viewsets import ModelViewSet
+from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from goldstone.utils import django_admin_only
 from goldstone.user.views import UserSerializer as AccountsUserSerializer
 from .models import Tenant
 
 logger = logging.getLogger(__name__)
+
+# We need to get at the AccountsUserSerializer's fields property.  This appears
+# to be the only way to do it. It's a hack.
+_hack_object = AccountsUserSerializer()
+_hack_fields = _hack_object.fields.keys()
 
 
 class UserSerializer(AccountsUserSerializer):
@@ -36,7 +42,7 @@ class UserSerializer(AccountsUserSerializer):
 
     class Meta:          # pylint: disable=C1001,C0111,W0232
         model = get_user_model()
-        fields = AccountsUserSerializer.fields + ("tenant", )
+        fields = _hack_fields + ["tenant"]
 
 
 class TenantSerializer(ModelSerializer):
@@ -65,7 +71,7 @@ class DjangoOrTenantAdminPermission(BasePermission):
         return user.is_staff or (user.tenant_admin and user.tenant == obj)
 
 
-class BaseViewSet(ModelViewSet):
+class BaseViewSet(NestedViewSetMixin, ModelViewSet):
     """A base class for this app's Tenant and User ViewSets."""
 
     lookup_field = "uuid"

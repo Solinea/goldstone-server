@@ -13,13 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This is a subclass of rest_framework.DefaultRouter. Its name is unwise.
-from drf_toolbox.routers import Router
+from rest_framework_extensions.routers import ExtendedDefaultRouter
 from .views import TenantsViewSet, UserViewSet
 
-# Views handled by DjangoRestFramework ViewSets, with drf_toolbox help.
-router = Router(trailing_slash=False)
-router.register(r'^tenants[/]?', TenantsViewSet)
-router.register(r'^tenants/users[/]?', UserViewSet)
+# Views handled by DjangoRestFramework ViewSets, with drf-extensions help.
+router = ExtendedDefaultRouter()
+
+router.register(r'^tenants', TenantsViewSet, base_name="tenants")\
+      .register(r'^users',
+                UserViewSet,
+                base_name="tenants-users",
+                parents_query_lookups=["tenants_tenants-users"])
 
 urlpatterns = router.urls

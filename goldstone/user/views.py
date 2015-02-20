@@ -14,8 +14,7 @@
 # limitations under the License.
 from django.contrib.auth import get_user_model
 from djoser import views as djoser_views
-# We use drf_toolbox so that UserSerializer can be reused in the tenants app.
-from drf_toolbox.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer
 
 
 class UserSerializer(ModelSerializer):
