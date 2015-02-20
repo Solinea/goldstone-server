@@ -1,4 +1,4 @@
-"""Fabric file for development activites."""
+"""Fabric file for Goldstone development."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -145,7 +145,7 @@ def _choose_runserver_settings():
     """
 
     # Bash command to locate the candidate settings files, from results piped
-    # in. This works, but, is there a simpler expression that'll do the job?
+    # in. Is there a simpler expression that'll do the job?
     CANDIDATES = 'egrep "dev|test|jstanford" | egrep -v "development|pyc"'
 
     # Make a list of all the candidate settings file.
