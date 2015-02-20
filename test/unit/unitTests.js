@@ -137,11 +137,3 @@ describe('Testing the base.js file', function() {
         });
     });
 });
-
-describe('Testing the various library js files', function() {
-    describe('discover.js', function() {
-        it('renderCharts', function() {
-            expect(renderCharts).to.be.a('function');
-        });
-    });
-});

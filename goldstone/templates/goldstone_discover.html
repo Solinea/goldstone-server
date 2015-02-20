@@ -22,14 +22,9 @@
     <link rel="stylesheet" href="/static/css/hostavail.css">
 {% endblock %}
 {% block content %}
-    <div id="goldstone-discover-r1" class="row">
-        <div id="goldstone-discover-r1-c1" class="col-md-6"></div>
-        <div id="goldstone-discover-r1-c2" class="col-md-6"></div>
-    </div>
-    <div id="goldstone-discover-r2" class="row">
-        <div id="goldstone-discover-r2-c1" class="col-md-6"></div>
-        <div id="goldstone-discover-r2-c2" class="col-md-6"></div>
-    </div>
+
+    <!-- this div will be populated by the instatiation of DiscoverView -->
+    <div class="discover-report-container"></div>
 
 {% endblock %}
 
@@ -42,15 +37,32 @@
     <script src="{% static 'js/views/topologyTreeView.js' %}"></script>
     <script src="{% static 'js/views/zoomablePartitionView.js' %}"></script>
     <script src="{% static 'js/views/globalLookbackRefreshButtonsView.js' %}"></script>
-    <script src="{% static 'js/discover.js' %}"></script>
+    <script src="{% static 'js/views/discoverView.js' %}"></script>
     <script>
 
     var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
     var data = JSON.parse({{ data|to_js }});
 
-    $(document).ready(function () {
-        // render Event Timeline and Node Avail charts
-        renderCharts();
+    var instantiateCharts = function(){
+
+        // this page's previous HTML and JavaScript now encapsulated
+        // in the following backbone view:
+        new DiscoverView({
+            el: ".discover-report-container",
+        });
+    };
+
+    $(function() {
+
+        // appends global selectors to page
+        new GlobalLookbackRefreshButtonsView({
+            el: ".global-range-refresh-container"
+        });
+
+        // render Event Timeline, Node Avail, and
+        // Cloud Topology charts
+        instantiateCharts();
     });
+
     </script>
 {% endblock %}

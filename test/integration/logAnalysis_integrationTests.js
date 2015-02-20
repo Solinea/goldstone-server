@@ -171,7 +171,7 @@ describe('logAnalysis.js spec', function() {
 
             this.constructUrl_spy = sinon.spy(this.testView, "constructUrl");
             expect(this.constructUrl_spy.callCount).to.equal(0);
-            this.testView.trigger('selectorChanged', [1, 2]);
+            this.testView.trigger('lookbackSelectorChanged', [1, 2]);
             expect(this.constructUrl_spy.callCount).to.equal(1);
             this.constructUrl_spy.restore();
         });
@@ -234,14 +234,14 @@ describe('logAnalysis.js spec', function() {
             expect(this.constructUrl_spy.callCount).to.equal(0);
             // should construct url
             expect(this.testCollection.url).to.include('/intelligence/log/cockpit/data?start_time=NaN&end_time=');
-            this.testView.trigger('refreshReached', [1000, 2000]);
+            this.testView.trigger('lookbackIntervalReached', [1000, 2000]);
             expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?start_time=1&end_time=2&interval=1s');
-            this.testView.trigger('refreshReached', [1421428385868, 1421438385868]);
+            this.testView.trigger('lookbackIntervalReached', [1421428385868, 1421438385868]);
             expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?start_time=1421428385&end_time=1421438385&interval=96s');
             expect(this.constructUrl_spy.callCount).to.equal(2);
             // should not construct url
             this.testView.defaults.isZoomed = true;
-            this.testView.trigger('refreshReached', [1, 2]);
+            this.testView.trigger('lookbackIntervalReached', [1, 2]);
             expect(this.constructUrl_spy.callCount).to.equal(2);
             this.constructUrl_spy.restore();
         });

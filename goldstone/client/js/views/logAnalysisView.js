@@ -105,7 +105,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         this.collection.on('error', this.dataErrorMessage, this);
 
-        this.on('refreshReached', function(params) {
+        this.on('lookbackIntervalReached', function(params) {
 
             if (ns.isZoomed === true) {
                 return;
@@ -120,7 +120,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         });
 
-        this.on('selectorChanged', function(params) {
+        this.on('lookbackSelectorChanged', function(params) {
             $(this.el).find('#spinner').show();
             ns.isZoomed = false;
             ns.start = params[0];

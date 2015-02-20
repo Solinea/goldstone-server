@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2014 - 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -14,7 +14,24 @@
  * limitations under the License.
  */
 
-// extends UtilizationCpuView
+/*
+Extends UtilizationCpuView
+
+Instantiated on nodeReportView as:
+
+this.networkUsageChart = new UtilizationNetCollection({
+    nodeName: hostName,
+    globalLookback: ns.globalLookback
+});
+
+this.networkUsageView = new UtilizationNetView({
+    collection: this.networkUsageChart,
+    el: '#node-report-r3 #node-report-panel #network-usage',
+    width: $('#node-report-r3 #node-report-panel #network-usage').width(),
+    featureSet: 'netUsage'
+});
+*/
+
 var UtilizationNetView = UtilizationCpuView.extend({
 
     defaults: {

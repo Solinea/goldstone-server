@@ -80,7 +80,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         this.collection.on('error', this.dataErrorMessage, this);
 
         // this is triggered by a listener set on nodeReportView.js
-        this.on('selectorChanged', function() {
+        this.on('lookbackSelectorChanged', function() {
             this.collection.defaults.globalLookback = $('#global-lookback-range').val();
             this.collection.urlGenerator();
             this.collection.fetch();
