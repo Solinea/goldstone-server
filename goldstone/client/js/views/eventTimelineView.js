@@ -220,7 +220,6 @@ var EventTimelineView = GoldstoneBaseView.extend({
     },
 
     update: function() {
-        console.log('in EventTimelineView update');
         var ns = this.defaults;
         var self = this;
 
