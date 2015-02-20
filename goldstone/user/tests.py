@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.test import SimpleTestCase, Client
+from rest_framework.status import *
+
 from goldstone.user.models import User
 
 # Define the URLs and payloads used in this module's testing.
@@ -27,11 +29,13 @@ class NoAccess(SimpleTestCase):
     def test_get_nologin(self):
         """Getting while not logged in."""
 
+        EXPECTED_CONTENT = \
+            '{"detail":"Authentication credentials were not provided."}'
         client = Client()
         response = client.get(USER_URL)
 
-        self.assertEqual(response.status_code, 400)
-        # response.content
+        self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.content, EXPECTED_CONTENT)
 
     def test_get_badtoken(self):
         pass
