@@ -14,7 +14,29 @@
  * limitations under the License.
  */
 
-// view is linked to collection when instantiated
+/*
+View is linked to collection when instantiated
+
+Instantiated on discoverView as:
+
+var nodeAvailChart = new NodeAvailCollection({
+    url: "/logging/nodes?page_size=100"
+});
+
+var nodeAvailChartView = new NodeAvailView({
+    collection: nodeAvailChart,
+    h: {
+        "main": 150,
+        "swim": 50
+        // "main": 450,
+        // "swim": 50
+    },
+    el: '#goldstone-discover-r1-c2',
+    chartTitle: 'Node Availability',
+    width: $('#goldstone-discover-r2-c2').width()
+});
+*/
+
 
 var NodeAvailView = GoldstoneBaseView.extend({
 
@@ -39,14 +61,17 @@ var NodeAvailView = GoldstoneBaseView.extend({
         }
     },
 
+    initialize: function(options) {
+        NodeAvailView.__super__.initialize.apply(this, arguments);
+        this.setInfoButtonPopover();
+        this.scheduleFetch();
+    },
+
     processOptions: function() {
-        this.defaults.url = this.collection.url;
         this.el = this.options.el;
         this.defaults.chartTitle = this.options.chartTitle;
         this.defaults.width = this.options.width;
         this.defaults.height = this.options.h;
-        this.defaults.pause = undefined;
-        this.defaults.delay = null;
         this.defaults.r = d3.scale.sqrt();
         this.defaults.colorArray = new GoldstoneColors().get('colorSets');
 
@@ -55,15 +80,6 @@ var NodeAvailView = GoldstoneBaseView.extend({
     processListeners: function() {
         this.collection.on('sync', this.update, this);
         this.collection.on('error', this.dataErrorMessage, this);
-    },
-
-    initialize: function(options) {
-
-        NodeAvailView.__super__.initialize.apply(this, arguments);
-
-        this.setInfoButtonPopover();
-        this.setGlobalLookbackListeners();
-        this.updateSettings();
     },
 
     showSpinner: function() {
@@ -250,59 +266,14 @@ var NodeAvailView = GoldstoneBaseView.extend({
             .style('font-weight', 'bold');
     },
 
-    isRefreshSelected: function() {
-        return $('.global-refresh-selector .form-control').val() >= 0;
-    },
-
-    refreshInterval: function() {
-        refreshSeconds = $('.global-refresh-selector .form-control').val();
-        // refreshSeconds will be a string
-        return parseInt(refreshSeconds, 10);
-    },
-
-    updateSettings: function() {
-        var ns = this.defaults;
-        ns.delay = this.refreshInterval();
-        // ns.lookbackRange = this.lookbackRange();
-    },
-
-    setGlobalLookbackListeners: function() {
-        var self = this;
-        var ns = this.defaults;
-
-        // pending backend lookback variability
-        /*
-        $('.global-lookback-selector .form-control').on('change', function() {
-            self.clearScheduledFetch();
-            self.updateSettings();
-            self.fetchNowWithReset();
-        });
-        */
-
-        $('.global-refresh-selector .form-control').on('change', function() {
-            self.clearScheduledFetch();
-            self.updateSettings();
-            self.scheduleFetch();
-        });
-    },
-
-    clearScheduledFetch: function() {
-        var ns = this.defaults;
-        clearTimeout(ns.scheduleTimeout);
-    },
-
     scheduleFetch: function() {
         var ns = this.defaults;
         var self = this;
 
-        this.clearScheduledFetch();
-        var timeoutDelay = ns.delay * 1000;
+        var timeoutDelay = 30000;
 
-        if (timeoutDelay < 0) {
-            return true;
-        }
-
-        ns.scheduleTimeout = setTimeout(function() {
+        ns.scheduleTimeout = setInterval(function() {
+            self.showSpinner();
             self.collection.setXhr();
         }, timeoutDelay);
     },
@@ -321,18 +292,9 @@ var NodeAvailView = GoldstoneBaseView.extend({
         }));
     },
 
-    dataErrorMessage: function(message, errorMessage) {
-
-        NodeAvailView.__super__.dataErrorMessage.apply(this, arguments);
-
-        // reschedule next fetch at selected interval
-        this.scheduleFetch();
-    },
-
     update: function() {
         var ns = this.defaults;
         var self = this;
-        var uri = ns.url;
 
         this.hideSpinner();
 
@@ -348,9 +310,6 @@ var NodeAvailView = GoldstoneBaseView.extend({
         var xEnd = moment(this.collection.thisXhr.getResponseHeader('LogCountEnd'));
 
         ns.xScale = ns.xScale.domain([xStart, xEnd]);
-
-        // reschedule next fetch at selected interval
-        this.scheduleFetch();
 
         // If we didn't receive any valid files, append "No Data Returned"
         if (this.checkReturnedDataSet(allthelogs) === false) {
@@ -672,7 +631,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
         '<div id="event-filterer" class="btn-group pull-right" data-toggle="buttons" align="center">' +
         '</div>' +
         '</div>' +
-        '<div id="goldstone-event-chart">' +
+        '<div id="goldstone-node-chart">' +
         '<div class="clearfix"></div>' +
         '</div>' +
         '</div>' +

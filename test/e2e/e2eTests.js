@@ -89,7 +89,6 @@ casper.test.begin('Node Report Page is loading properly', 82, function suite(tes
         test.assertNotVisible('div#reportsReport', 'Reports tab should now be hidden');
         test.assertVisible('div#eventsReport', 'Events tab should now be showing');
 
-        test.assertElementCount('td', 30, "Event report has 30 visible data points");
         test.assertSelectorHasText('.sorting', 'Event TypeMessage');
         test.assertEval(function() {
             return __utils__.findAll('.sorting').length === 2;
@@ -138,6 +137,10 @@ casper.test.begin('Node Report Page is loading properly', 82, function suite(tes
 
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
+
+        // frequently fails if report data is not availble
+        // so putting last
+        test.assertElementCount('td', 30, "Event report has 30 visible data points");
     });
 
     casper.run(function() {

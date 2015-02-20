@@ -17,6 +17,10 @@
 /*
 Instantiated similar to:
 
+this.novaApiPerfChart = new ApiPerfCollection({
+    urlPrefix: 'nova',
+});
+
 this.novaApiPerfChartView = new ApiPerfView({
     chartTitle: "Nova API Performance",
     collection: this.novaApiPerfChart,
