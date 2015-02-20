@@ -198,6 +198,7 @@
 
         $doc.ajaxError(function (event, xhr) {
             if (xhr.status === 401) {
+                localStorage.removeItem('userToken', null);
                 redirectToLogin();
             }
         });
