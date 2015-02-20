@@ -46,7 +46,7 @@ var LoginPageView = Backbone.View.extend({
                 // and add a message to the top of the screen that logs what
                 // is returned from the call
                 // and clear that message after 2 seconds
-                self.displayInfoMessage(success.auth_token);
+                self.displayInfoMessage('Authorization Successful');
             })
             .fail(function(fail) {
 
