@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -37,16 +37,19 @@ var LoginPageView = Backbone.View.extend({
         var self = this;
 
         console.log('submitLogin received: ', input);
-        $.post('/accounts/login', input, function(success) {
+        $.post('/accounts/login', input, function() {})
+            .done(function(success) {
+                // if the call succeeds, console.log what is returned
+                console.log('called back:', success);
 
-            // if the call succeeds, console.log what is returned
-            console.log('called back:', success);
+                // store the auth token
+                self.storeAuthToken(success.auth_token);
 
-            // and add a message to the top of the screen that logs what
-            // is returned from the call
-            // and clear that helpful message after 2 seconds
-            self.displayInfoMessage(success.auth_token);
-        })
+                // and add a message to the top of the screen that logs what
+                // is returned from the call
+                // and clear that helpful message after 2 seconds
+                self.displayInfoMessage(success.auth_token);
+            })
             .fail(function(fail) {
 
                 // if the call fails, console.log what is returned
@@ -57,6 +60,12 @@ var LoginPageView = Backbone.View.extend({
                 // and clear that helpful message after 2 seconds
                 self.displayInfoMessage(fail.responseJSON.non_field_errors[0]);
             });
+    },
+
+    storeAuthToken: function(token) {
+        console.log('localStorage userToken:', localStorage.getItem('userToken'));
+        localStorage.setItem('userToken', token);
+        console.log('localStorage userToken:', localStorage.getItem('userToken'));
     },
 
     displayInfoMessage: function(text) {
@@ -88,6 +97,7 @@ var LoginPageView = Backbone.View.extend({
         '<input name="password" type="password" class="form-control" placeholder="Password" required><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>' +
         '</form>' +
+        '<div><a href="#">forgot username or password?</a></div>' +
         '</div>' +
         '</div>' +
         '</div>'
