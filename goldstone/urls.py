@@ -20,7 +20,7 @@ import logging
 
 from goldstone.tenants.urls import urlpatterns as tenants_urlpatterns
 from goldstone.views import DiscoverView, HelpView, NodeReportView, \
-    NewHomePageView
+    LoginPageView
 
 logger = logging.getLogger(__name__)
 
@@ -49,9 +49,7 @@ urlpatterns = patterns(
     url(r'^report/node/(?P<node_uuid>[^/]+)[/]?$',
         NodeReportView.as_view(),
         name='goldstone-node-report-view'),
-    # /newhomepage will become the Goldstone home page, after ticket #639 is
-    # completed.
-    url(r'^newhomepage[/]?$', NewHomePageView.as_view()),
+    url(r'^login[/]?$', LoginPageView.as_view()),
     url(r'^$', RedirectView.as_view(url='/discover'), name='home'),
 )
 
