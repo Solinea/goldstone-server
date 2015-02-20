@@ -18,17 +18,21 @@
 View is currently directly implemented as Nova VM Spawns Viz
 and extended into Nova CPU/Memory/Disk Resource Charts
 
-standard chart usage. instantiate with:
-{
-    chartTitle: "title",
-    collection: collectionName,
-    featureSet: null or might be 'cpu/mem/disk/etc',
+instantiated similar to:
+
+this.vmSpawnChart = new StackedBarChartCollection({
+    urlPrefix: '/nova/hypervisor/spawns'
+});
+
+this.vmSpawnChartView = new StackedBarChartView({
+    chartTitle: "VM Spawns",
+    collection: this.vmSpawnChart,
     height: 300,
-    infoCustom: 'info button text set name',
-    el: where to put it,
-    width: $(el from above).width(),
-    yAxisLabel: 'label name',
-}
+    infoCustom: 'novaSpawns',
+    el: '#nova-report-r1-c2',
+    width: $('#nova-report-r1-c2').width(),
+    yAxisLabel: 'Spawn Events'
+});
 */
 
 // view is linked to collection when instantiated in api_perf_report.html
