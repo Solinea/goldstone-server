@@ -47,7 +47,6 @@
 
     var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
     var data = JSON.parse({{ data|to_js }});
-    localStorage.clear();
 
     $(document).ready(function () {
         // render Event Timeline and Node Avail charts
