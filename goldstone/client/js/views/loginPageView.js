@@ -47,6 +47,9 @@ var LoginPageView = Backbone.View.extend({
                 // is returned from the call
                 // and clear that message after 2 seconds
                 self.displayInfoMessage('Authorization Successful');
+
+                self.redirectPostSuccessfulAuth();
+
             })
             .fail(function(fail) {
 
@@ -68,6 +71,23 @@ var LoginPageView = Backbone.View.extend({
         setTimeout(function() {
             $('.alert-info').hide();
         }, 2000);
+    },
+
+    redirectPostSuccessfulAuth: function() {
+
+        // if there was a previously visited page that
+        // had redirected to the login page due to lack
+        // of credentials, redirect back to that page
+        if (location.hash && location.hash.length > 0) {
+            locationhref = '/' + location.hash.slice(1);
+        } else {
+
+            // or just redirect to /discover
+            locationhref = '/';
+        }
+
+        location.href = locationhref;
+
     },
 
     render: function() {
