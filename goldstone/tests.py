@@ -12,12 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from datetime import datetime, timedelta
-from unittest import skip
+
 from uuid import uuid1
 from django.test import TestCase, SimpleTestCase
 from django.conf import settings
-from elasticsearch import ConnectionError, TransportError, Elasticsearch
+from elasticsearch import Elasticsearch
 import gzip
 import os
 import json
@@ -28,12 +27,9 @@ import arrow
 from elasticsearch.client import IndicesClient
 from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.connections import connections, Connections
-from elasticsearch_dsl.result import Result
-from keystoneclient.v2_0.client import Client       # pylint: disable=W0611
 from keystoneclient.exceptions import ClientException
 from mock import patch, PropertyMock
 import mock
-from requests.models import Response
 
 from goldstone.models import ESData, es_conn, daily_index, es_indices, \
     TopologyData, ApiPerfData
