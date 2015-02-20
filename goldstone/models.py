@@ -567,19 +567,25 @@ class TopologyData(object):
 
     def get(self, count=1, sort_key="@timestamp", sort_order="desc"):
         """
-        returns the latest n instances from ES
+        returns the latest n instances from ES or None if not found
         """
 
         try:
             self.search.sort(self._sort_arg(sort_key, sort_order))
+            # only interested in one record
+            self.search = self.search[0:1]
             logger.debug("[get] search = %s", self.search.to_dict())
             logger.debug("[get] index = %s", self.search._index)
             logger.debug("[get] doc_type = %s", self._DOC_TYPE)
 
             result = self.search.execute()
 
-            logger.debug('[get] search response = %s', result)
-            return result['hits']['hits']
+            logger.info('[get] search response = %s', result)
+
+            try:
+                return result
+            except IndexError:
+                return None
 
         except ElasticsearchException as exc:
             logger.debug("get from ES failed, exception was %s", exc.message)
