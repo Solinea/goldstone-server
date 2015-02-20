@@ -36,36 +36,29 @@ var LoginPageView = Backbone.View.extend({
     submitLogin: function(input) {
         var self = this;
 
-        console.log('submitLogin received: ', input);
+        // console.log('submitLogin received: ', input);
         $.post('/accounts/login', input, function() {})
             .done(function(success) {
-                // if the call succeeds, console.log what is returned
-                console.log('called back:', success);
 
                 // store the auth token
                 self.storeAuthToken(success.auth_token);
 
                 // and add a message to the top of the screen that logs what
                 // is returned from the call
-                // and clear that helpful message after 2 seconds
+                // and clear that message after 2 seconds
                 self.displayInfoMessage(success.auth_token);
             })
             .fail(function(fail) {
 
-                // if the call fails, console.log what is returned
-                console.log('failed with:', fail, fail.responseJSON.non_field_errors[0]);
-
                 // and add a message to the top of the screen that logs what
                 // is returned from the call
-                // and clear that helpful message after 2 seconds
+                // and clear that message after 2 seconds
                 self.displayInfoMessage(fail.responseJSON.non_field_errors[0]);
             });
     },
 
     storeAuthToken: function(token) {
-        console.log('localStorage userToken:', localStorage.getItem('userToken'));
         localStorage.setItem('userToken', token);
-        console.log('localStorage userToken:', localStorage.getItem('userToken'));
     },
 
     displayInfoMessage: function(text) {

@@ -178,6 +178,33 @@
 
     <!-- backbone view super class loaded globally -->
     <script src="{% static 'js/views/goldstoneBaseView.js' %}"></script>
+
+    <script>
+    $(function(){
+
+        var redirectToLogin = function() {
+            var locationhref = "/newhomepage";
+            location.href = locationhref;
+        };
+
+        var $doc = $(document);
+        $doc.ajaxSend(function (event, xhr) {
+            var authToken = localStorage.getItem('userToken');
+            if (authToken) {
+                xhr.setRequestHeader("Authorization", "Token " +
+                    authToken);
+            }
+        });
+
+        $doc.ajaxError(function (event, xhr) {
+            if (xhr.status === 401) {
+                redirectToLogin();
+            }
+        });
+
+    });
+    </script>
+
     {% block localjs %}
     {% endblock %}
 </body>
