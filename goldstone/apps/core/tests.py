@@ -186,8 +186,6 @@ class NodeViewTests(APISimpleTestCase):
 
         response = self.client.get('/core/nodes/' + id_value)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        logger.info('id = %s', id_value)
         self.assertEqual(response.data['managed'], 'true')
 
     def test_delete_fail(self):

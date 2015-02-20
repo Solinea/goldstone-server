@@ -90,7 +90,6 @@ def openstack_api_request_base(endpoint, path,
         headers = {'x-auth-token': keystone_client['hex_token'],
                    'content-type': 'application/json'}
         import json
-        logger.info('result = %s', json.dumps({'url': url, 'headers': headers}))
         return {'url': url, 'headers': headers}
 
     except GoldstoneAuthError:

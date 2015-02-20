@@ -578,14 +578,7 @@ class TopologyData(object):
             logger.debug("[get] index = %s", self.search._index)
             logger.debug("[get] doc_type = %s", self._DOC_TYPE)
 
-            result = self.search.execute()
-
-            logger.info('[get] search response = %s', result)
-
-            try:
-                return result
-            except IndexError:
-                return None
+            return self.search.execute()
 
         except ElasticsearchException as exc:
             logger.debug("get from ES failed, exception was %s", exc.message)
