@@ -184,7 +184,8 @@
 
         var redirectToLogin = function() {
             var locationhref = "/newhomepage";
-            location.href = locationhref;
+            var currentPage = location.pathname.slice(1);
+            location.href = locationhref + '#' + currentPage;
         };
 
         var $doc = $(document);
