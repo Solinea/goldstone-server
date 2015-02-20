@@ -146,7 +146,7 @@ describe('apiPerfView.js spec', function() {
         });
         it('listens for changes to the global lookback/refresh selectors', function() {
             this.urlGenerator_spy = sinon.spy(this.testCollection, "urlGenerator");
-            this.testView.trigger('selectorChanged');
+            this.testView.trigger('lookbackSelectorChanged');
             expect(this.urlGenerator_spy.callCount).to.equal(1);
             this.urlGenerator_spy.restore();
         });

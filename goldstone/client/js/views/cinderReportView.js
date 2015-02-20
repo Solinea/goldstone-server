@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-var CinderReportView = ApiPerfReportView.extend({
+var CinderReportView = GoldstoneBasePageView.extend({
 
-    triggerChange: function() {
-        this.renderCharts();
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.cinderApiPerfChartView.trigger('lookbackSelectorChanged');
+        }
     },
 
     renderCharts: function() {
@@ -41,15 +43,6 @@ var CinderReportView = ApiPerfReportView.extend({
     template: _.template('' +
         '<div id="cinder-report-r1" class="row">' +
         '<div id="cinder-report-r1-c1" class="col-md-6"></div>' +
-        '<div id="cinder-report-r1-c2" class="col-md-6"></div>' +
-        '</div>' +
-        '<div id="cinder-report-r2" class="row">' +
-        '<div id="cinder-report-r2-c1" class="col-md-6"></div>' +
-        '<div id="cinder-report-r2-c2" class="col-md-6"></div>' +
-        '</div>' +
-        '<div id="cinder-report-r3" class="row">' +
-        '<div id="cinder-report-r3-c1" class="col-md-6"></div>' +
-        '<div id="cinder-report-r3-c2" class="col-md-6"></div>' +
         '</div>'
     )
 });

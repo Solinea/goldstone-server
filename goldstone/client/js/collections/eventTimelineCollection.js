@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2014 - 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -24,15 +24,39 @@ var EventTimelineCollection = Backbone.Collection.extend({
 
     parse: function(data) {
         var nextUrl;
+
+        // in the case that there are additional paged server responses
         if (data.next && data.next !== null) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/core'));
+            var dN = data.next;
+            nextUrl = dN.slice(dN.indexOf('/core'));
+
+            // fetch and add to collection without deleting existing data
             this.fetch({
                 url: nextUrl,
                 remove: false
             });
         }
+
+        // in any case, return the data to the collection
         return data.results;
+    },
+
+    defaults: {},
+
+    initialize: function(options) {
+
+        this.defaults = _.clone(this.defaults); 
+
+        this.url = options.url || "/core/events?created__gt=" + this.computeLookback() + "&page_size=1000";
+
+        // creates a url similar to:
+        // /core/events?created__gt=1423678864754&page_size=1000
+
+        // don't add {remove:false} to the initial fetch
+        // as it will introduce an artifact that will
+        // render via d3
+
+        this.fetchWithReset();
     },
 
     model: EventTimelineModel,
@@ -49,35 +73,25 @@ var EventTimelineCollection = Backbone.Collection.extend({
         return (+new Date() - (1000 * 60 * lookbackMinutes));
     },
 
-    defaults: {},
-    initialize: function(options) {
-
-        this.defaults = _.clone(this.defaults); 
-
-        this.url = options.url || "/core/events?created__gt=" + this.computeLookback() + "&page_size=1000";
-        // url similar to: /core/events?created__gt=1423678864754&page_size=1000
-
-        // don't add {remove:false} to the initial fetch
-        // as it will introduce an artifact that will
-        // render via d3
-
-        this.fetchWithReset();
-    },
-
     fetchWithReset: function() {
+
+        // used when you want to delete existing data in collection
+        // such as changing the global-lookback period
         this.fetch({
             remove: true
         });
     },
 
     fetchNoReset: function() {
+
+        // used when you want to retain existing data in collection
+        // such as a global-refresh-triggered update to the Event Timeline viz
         this.fetch({
             remove: false
         });
     },
 
     urlUpdate: function(val) {
-
         var lookback = +new Date() - (val * 60 * 1000);
         this.url = "/core/events?created__gt=" + lookback + "&page_size=1000";
     }
