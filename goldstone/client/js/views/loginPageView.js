@@ -45,32 +45,19 @@ var LoginPageView = Backbone.View.extend({
 
                 // and add a message to the top of the screen that logs what
                 // is returned from the call
-                // and clear that message after 2 seconds
-                self.displayInfoMessage('Authorization Successful, redirecting to goldstone');
-
+                goldstone.raiseInfo('Authorization Successful, redirecting to goldstone', true);
                 self.redirectPostSuccessfulAuth();
-
             })
             .fail(function(fail) {
 
                 // and add a message to the top of the screen that logs what
                 // is returned from the call
-                // and clear that message after 2 seconds
-                self.displayInfoMessage(fail.responseJSON.non_field_errors[0]);
+                goldstone.raiseInfo(fail.responseJSON.non_field_errors[0], true);
             });
     },
 
     storeAuthToken: function(token) {
         localStorage.setItem('userToken', token);
-    },
-
-    displayInfoMessage: function(text) {
-        $('.alert-info').show();
-        $('.alert-info').text(text);
-
-        setTimeout(function() {
-            $('.alert-info').hide();
-        }, 3000);
     },
 
     redirectPostSuccessfulAuth: function() {
