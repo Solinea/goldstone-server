@@ -36,7 +36,10 @@ var LoginPageView = Backbone.View.extend({
     submitLogin: function(input) {
         var self = this;
 
-        // console.log('submitLogin received: ', input);
+        // Upon clicking the submit button, the serialized user input is sent
+        // via $.post to check the credentials. If successful, invoke "done"
+        // if not, invoke "fail"
+
         $.post('/accounts/login', input, function() {})
             .done(function(success) {
 

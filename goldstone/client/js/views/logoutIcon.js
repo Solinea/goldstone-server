@@ -27,11 +27,16 @@ var LogoutIcon = Backbone.View.extend({
 
     addAJAXSendRequestHeaderParams: function() {
         var redirectToLogin = function() {
+
+            // this sets a hash (#) that will be used post-auth to return
+            // the user to the page they were previously redirected from
             var locationhref = "/login";
             var currentPage = location.pathname.slice(1);
             location.href = locationhref + '#' + currentPage;
         };
 
+        // if there is no userToken present in localStorage, don't append the
+        // request header to api calls or it will append null.
         var $doc = $(document);
         $doc.ajaxSend(function(event, xhr) {
             var authToken = localStorage.getItem('userToken');
@@ -41,6 +46,8 @@ var LogoutIcon = Backbone.View.extend({
             }
         });
 
+        // all 401 errors will cause a deletion of existing userToken and
+        // redirect to /login with the hash appened to the url
         $doc.ajaxError(function(event, xhr) {
             if (xhr.status === 401) {
                 localStorage.removeItem('userToken');
@@ -50,6 +57,8 @@ var LogoutIcon = Backbone.View.extend({
     },
 
     checkForToken: function() {
+
+        // only render logout icon if there is a token present
         var authToken = localStorage.getItem('userToken');
         if (authToken) {
             this.render();
@@ -59,15 +68,11 @@ var LogoutIcon = Backbone.View.extend({
     addHandlers: function() {
         var self = this;
         $('div.logout-icon-container .fa-sign-out').on('click', function() {
-            // e.preventDefault();
-            console.log('clicked');
+
+            // clicking logout button => remove userToken and redirect to /login
             localStorage.removeItem('userToken');
             location.href = "/login";
         });
-    },
-
-    redirectPostLogout: function() {
-        location.href = locationhref;
     },
 
     render: function() {
