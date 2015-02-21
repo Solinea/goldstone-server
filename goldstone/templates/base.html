@@ -90,6 +90,7 @@
                     <h4>
                     <a href="#">
                         <div class="logout-icon-container"></div>
+                        <!-- this will be appended by logoutIcon view -->
                         <!-- <i class="fa fa-sign-out pull-right"></i> -->
                     </a>
                     </h4>
@@ -184,27 +185,15 @@
     <script>
     $(function(){
 
-        var redirectToLogin = function() {
-            var locationhref = "/login";
-            var currentPage = location.pathname.slice(1);
-            location.href = locationhref + '#' + currentPage;
-        };
+        /*
+        LogoutIcon encapsulates the initialization of the $(document) listner
+        for ajaxSend events and uses xhr.setRequestHeader to append the Auth
+        token on all subsequent api calls. It also serves to handle 401 auth
+        errors, removing any existing token, and redirecting to the login page.
 
-        var $doc = $(document);
-        $doc.ajaxSend(function (event, xhr) {
-            var authToken = localStorage.getItem('userToken');
-            if (authToken) {
-                xhr.setRequestHeader("Authorization", "Token " +
-                    authToken);
-            }
-        });
-
-        $doc.ajaxError(function (event, xhr) {
-            if (xhr.status === 401) {
-                localStorage.removeItem('userToken');
-                redirectToLogin();
-            }
-        });
+        Following that, only if there is a token present (expired or not), it
+        will append the logout icon in the top-right corner of the page.
+        */
 
         new LogoutIcon({
             el: ".logout-icon-container"
