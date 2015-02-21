@@ -12,13 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import json
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, Client
-from rest_framework.status import *
+from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED
 
-from goldstone.user.models import User
-
-# Http response content that is expected by the tests.
+# Http response content that are expected by some tests.
 CONTENT_NO_CREDENTIALS = \
     '{"detail":"Authentication credentials were not provided."}'
 CONTENT_BAD_TOKEN = '{"detail":"Invalid token"}'
@@ -29,12 +28,32 @@ USER_URL = "/user"
 AUTHORIZATION_PAYLOAD = "Token %s"
 
 
+def _create_and_login():
+    """Create a user and log them in.
+
+    :return: The authorization token's value
+    :rtype: str
+
+    """
+
+    # Create a user
+    get_user_model().objects.create_user("fred", "fred@fred.com", "meh")
+
+    # Log the user in, and return the auth token's value.
+    client = Client()
+    response = client.post(LOGIN_URL, {"username": "fred", "password": "meh"})
+
+    assert response.status_code == HTTP_200_OK
+
+    return response.data["auth_token"]      # pylint: disable=E1101
+
+
 class NoAccess(SimpleTestCase):
     """The user attempts access without being logged in, or presenting a bad
     authentication token."""
 
     def setUp(self):
-        """Perform some housekeeping before each test."""
+        """Do some housekeeping before each test."""
 
         # SimpleTestCase doesn't always reset the database to as much of an
         # initial state as we expect. So, do it explicitly.
@@ -72,22 +91,12 @@ class NoAccess(SimpleTestCase):
 
         EXPECTED_CONTENT = CONTENT_BAD_TOKEN
 
-        # Create a user
-        user = get_user_model().objects.create_user("fred",
-                                                    "fred@fred.com",
-                                                    "fredspassword")
+        # Create a user, and create a bad authorization token.  (This test will
+        # erroneously fail if the good token doesn't contain any 9 characters,
+        # which is very unlikely.)
+        bad_token = _create_and_login().replace('9', '8')
 
-        # Log the user in, and create a bad token be changing some
-        # characters. (This test will erroneously fail if the good token
-        # doesn't contain any 9 characters, which is very unlikely.)
         client = Client()
-        response = client.post(LOGIN_URL,
-                               {"username": "fred",
-                                "password": "fredspassword"})
-        self.assertEqual(response.status_code, HTTP_200_OK)
-
-        bad_token = response.data["auth_token"].replace('9', '8')
-
         response = \
             client.get(USER_URL,
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
@@ -114,22 +123,10 @@ class NoAccess(SimpleTestCase):
 
         EXPECTED_CONTENT = CONTENT_BAD_TOKEN
 
-        # Create a user
-        user = get_user_model().objects.create_user("fred",
-                                                    "fred@fred.com",
-                                                    "fredspassword")
+        # Create a user, and create a bad authorization token.
+        bad_token = _create_and_login().replace('9', '8')
 
-        # Log the user in, and create a bad token be changing some
-        # characters. (This test will erroneously fail if the good token
-        # doesn't contain any 9 characters, which is very unlikely.)
         client = Client()
-        response = client.post(LOGIN_URL,
-                               {"username": "fred",
-                                "password": "fredspassword"})
-        self.assertEqual(response.status_code, HTTP_200_OK)
-
-        bad_token = response.data["auth_token"].replace('9', '8')
-
         response = \
             client.put(USER_URL,
                        {"first_name": "Dirk"},
@@ -140,8 +137,46 @@ class NoAccess(SimpleTestCase):
                             status_code=HTTP_401_UNAUTHORIZED)
 
 
-# class Get(SimpleTestCase):
-#     pass
+class Get(SimpleTestCase):
+    """The user gets her account's User data."""
+
+    def setUp(self):
+        """Do some housekeeping before each test."""
+
+        # SimpleTestCase doesn't always reset the database to as much of an
+        # initial state as we expect. So, do it explicitly.
+        get_user_model().objects.all().delete()
+
+    def test_get(self):
+        """Get data from the default created account."""
+
+        expected_content = {"username": "fred",
+                            "first_name": '',
+                            "last_name": '',
+                            "email": "fred@fred.com",
+                            "tenant_admin": False,
+                            "default_tenant_admin": False}
+
+        # Create a user and get their authorization token.
+        # import pdb; pdb.set_trace()
+        token = _create_and_login()
+        expected_content["uuid"] = token
+
+        client = Client()
+        response = \
+            client.get(USER_URL,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        # We deserialize the response content, to simplify checking the
+        # results.
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        response_content = json.loads(response.content)
+        self.assertEqual(response_content, expected_content)
+
+    def test_get_changed_fields(self):
+        """Get data from the created account, after we've modified it."""
+
+        pass
 
 
 # class Put(SimpleTestCase):
