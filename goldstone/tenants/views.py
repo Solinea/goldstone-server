@@ -28,8 +28,8 @@ logger = logging.getLogger(__name__)
 
 # We need to get at the AccountsUserSerializer's fields property.  This appears
 # to be the only way to do it. It's a hack.
-_hack_object = AccountsUserSerializer()
-_hack_fields = _hack_object.fields.keys()
+HACK_OBJECT = AccountsUserSerializer()
+HACK_FIELDS = HACK_OBJECT.fields.keys()
 
 
 class UserSerializer(AccountsUserSerializer):
@@ -42,7 +42,7 @@ class UserSerializer(AccountsUserSerializer):
 
     class Meta:          # pylint: disable=C1001,C0111,W0232
         model = get_user_model()
-        fields = _hack_fields + ["tenant"]
+        fields = HACK_FIELDS + ["tenant"]
 
 
 class TenantSerializer(ModelSerializer):
