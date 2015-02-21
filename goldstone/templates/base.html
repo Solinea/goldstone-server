@@ -88,8 +88,9 @@
                 <!-- logout icon -->
                 <ul class="nav navbar-nav navbar pull-right">
                     <h4>
-                    <a href="/logout">
-                        <i class="fa fa-sign-out pull-right"></i>
+                    <a href="#">
+                        <div class="logout-icon-container"></div>
+                        <!-- <i class="fa fa-sign-out pull-right"></i> -->
                     </a>
                     </h4>
                 </ul>
@@ -179,6 +180,7 @@
     <!-- backbone view super class loaded globally -->
     <script src="{% static 'js/views/goldstoneBaseView.js' %}"></script>
     <script src="{% static 'js/views/goldstoneBasePageView.js' %}"></script>
+    <script src="{% static 'js/views/logoutIcon.js' %}"></script>
     <script>
     $(function(){
 
@@ -199,9 +201,13 @@
 
         $doc.ajaxError(function (event, xhr) {
             if (xhr.status === 401) {
-                localStorage.removeItem('userToken', null);
+                localStorage.removeItem('userToken');
                 redirectToLogin();
             }
+        });
+
+        new LogoutIcon({
+            el: ".logout-icon-container"
         });
 
     });
