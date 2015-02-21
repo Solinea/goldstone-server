@@ -46,7 +46,7 @@ var LoginPageView = Backbone.View.extend({
                 // and add a message to the top of the screen that logs what
                 // is returned from the call
                 // and clear that message after 2 seconds
-                self.displayInfoMessage('Authorization Successful');
+                self.displayInfoMessage('Authorization Successful, redirecting to goldstone');
 
                 self.redirectPostSuccessfulAuth();
 
@@ -70,7 +70,7 @@ var LoginPageView = Backbone.View.extend({
 
         setTimeout(function() {
             $('.alert-info').hide();
-        }, 2000);
+        }, 3000);
     },
 
     redirectPostSuccessfulAuth: function() {
