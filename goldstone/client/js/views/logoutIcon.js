@@ -20,15 +20,40 @@ var LogoutIcon = Backbone.View.extend({
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
         this.el = options.el;
+        this.addAJAXSendRequestHeaderParams();
         this.checkForToken();
         this.addHandlers();
     },
 
+    addAJAXSendRequestHeaderParams: function() {
+        var redirectToLogin = function() {
+            var locationhref = "/login";
+            var currentPage = location.pathname.slice(1);
+            location.href = locationhref + '#' + currentPage;
+        };
+
+        var $doc = $(document);
+        $doc.ajaxSend(function(event, xhr) {
+            var authToken = localStorage.getItem('userToken');
+            if (authToken) {
+                xhr.setRequestHeader("Authorization", "Token " +
+                    authToken);
+            }
+        });
+
+        $doc.ajaxError(function(event, xhr) {
+            if (xhr.status === 401) {
+                localStorage.removeItem('userToken');
+                redirectToLogin();
+            }
+        });
+    },
+
     checkForToken: function() {
         var authToken = localStorage.getItem('userToken');
-            if (authToken) {
-                this.render();
-            }
+        if (authToken) {
+            this.render();
+        }
     },
 
     addHandlers: function() {
