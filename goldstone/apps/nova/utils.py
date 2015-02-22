@@ -33,7 +33,7 @@ class DiscoverTree(TopologyMixin):
 
     def _populate_regions(self):
         result = []
-        updated = self.azs[0]['timestamp']
+        updated = self.azs[0]['@timestamp']
 
         for region in self._get_region_names():
             result.append(
@@ -132,7 +132,7 @@ class DiscoverTree(TopologyMixin):
                 raise NoResourceFound(
                     "No nova availability zones found in database")
 
-            updated = self.azs[0]['timestamp']
+            updated = self.azs[0]['@timestamp']
 
             regions = self._populate_regions()
             new_rl = []

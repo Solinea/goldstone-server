@@ -42,7 +42,7 @@ def _construct_api_rec(reply, component, created, timeout, url):
     assert type(created) is Arrow, "created is not an Arrow object"
     rec = {'component': component,
            'uri': urlparse(url).path,
-           'timestamp': created.datetime}
+           'creation_time': created.datetime}
 
     if reply is None:
         rec['response_time'] = timeout*1000

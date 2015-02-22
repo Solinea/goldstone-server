@@ -35,7 +35,7 @@ class DiscoverTree(TopologyMixin):
     def _populate_regions(self):
 
         result = []
-        updated = self.images[0]['timestamp']
+        updated = self.images[0]['@timestamp']
 
         for region in self._get_image_regions():
             result.append(
