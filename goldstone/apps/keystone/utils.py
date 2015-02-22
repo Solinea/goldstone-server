@@ -41,7 +41,7 @@ class DiscoverTree(TopologyMixin):
         if self.endpoints is None or len(self.endpoints.hits) == 0:
             raise NoResourceFound("No keystone endpoints found in database")
 
-        updated = self.endpoints[0]['timestamp']
+        updated = self.endpoints[0]['@timestamp']
 
         result = []
         for region in self._get_endpoint_regions():

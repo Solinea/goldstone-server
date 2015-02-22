@@ -33,7 +33,7 @@ class HypervisorStatsDataModel(SimpleTestCase):
 
     def setUp(self):
         # test post of a record
-        rec = {"timestamp": self.end.isoformat()}
+        rec = {"@timestamp": self.end.isoformat()}
         self.id_to_delete = self.hsd.post(rec)
         self.assertIsNotNone(self.id_to_delete)
 

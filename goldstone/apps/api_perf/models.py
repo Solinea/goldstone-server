@@ -28,7 +28,7 @@ class ApiPerfData(DocType):
     """API performance record model.
 
     response_status: int
-    timestamp: date
+    creation_time: date
     component: string
     uri: string
     response_length: int
@@ -39,7 +39,7 @@ class ApiPerfData(DocType):
     # Field declarations.  They types are generated, so imports look broken
     # but hopefully are working...
     response_status = Integer()
-    timestamp = Date()
+    creation_time = Date()
     component = String()
     uri = String()
     response_length = Integer()
@@ -69,7 +69,7 @@ class ApiPerfData(DocType):
         """
 
         search = cls.search().\
-            filter('range', ** {'_timestamp': {
+            filter('range', ** {'creation_time': {
                 'lte': end.isoformat(),
                 'gte': start.isoformat()}})
 
@@ -84,7 +84,7 @@ class ApiPerfData(DocType):
 
         search.aggs.bucket('events_by_date',
                            'date_histogram',
-                           field='_timestamp',
+                           field='creation_time',
                            interval=interval,
                            min_doc_count=0).\
             metric('stats', 'extended_stats', field='response_time').\
