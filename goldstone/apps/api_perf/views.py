@@ -44,6 +44,8 @@ class ApiPerfView(APIView):
     def get(self, request, *args, **kwargs):
         """Return a response to a GET request."""
 
+        import json
+
         # Fetch and enhance this request's context.
         context = {
             # Use "now" if not provided. Validate() will calculate the start
@@ -94,9 +96,21 @@ class ApiPerfView(APIView):
         logger.debug("[get] start_dt = %s", context['start_dt'])
         logger.info("[get] context uri = %s", context['uri'])
         data = self._get_data(context)
-        logger.debug("[get] data = %s", data)
+
+        # Good policy, but don't think it is required for this specific
+        # dataset
+        if not data.empty:
+            data = data.fillna(0)
+
+        # Record output may be a bit bulkier, but easier to process by D3. Keys
+        # appear to be in alphabetical order, so we could use orient=values to
+        # trim it down, or pass it in a binary format if things get really
+        # messy.
+        response = data.to_json(orient='records')
+
+        logger.debug('[get] response = %s', json.dumps(response))
 
         # We already have the response in the desired format. So, we return a
         # Django response instead of a DRF response.
-        return HttpResponse(data, content_type="application/json")
+        return HttpResponse(response, content_type="application/json")
 

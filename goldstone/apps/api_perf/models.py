@@ -126,6 +126,9 @@ class ApiPerfData(DocType):
             "valid units for interval are ['s', 'm', 'h', 'd']: %r" \
             % interval
 
+        import pandas as pd
+        import arrow
+
         search = cls._stats_search(start, end, interval, component, uri)
 
         result = search.execute()
@@ -150,9 +153,16 @@ class ApiPerfData(DocType):
             item['5xx'] = \
                 date_bucket['range']['buckets']['500.0-599.0']['doc_count']
 
+            item['upper_std_dev_bound'] = item['std_deviation_bounds']['upper']
+            item['lower_std_dev_bound'] = item['std_deviation_bounds']['lower']
+            del item['std_deviation_bounds']
             items.append(item)
 
-        return items
+        result = pd.read_json(json.dumps(items),
+                              orient='records',
+                              convert_axes=False)
+
+        return result
 
     def save(self, using=None, index=None, **kwargs):
         """Posts an ApiPerf record to the database.
