@@ -25,10 +25,8 @@ from django.http import HttpResponse, HttpResponseBadRequest, Http404
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from elasticsearch import ElasticsearchException
-import pandas as pd
 import pytz
 from rest_framework import status
-from rest_framework.views import APIView
 
 from cinderclient.exceptions import AuthorizationFailure as CinderAuthException
 from cinderclient.openstack.common.apiclient.exceptions \
@@ -39,7 +37,6 @@ from novaclient.openstack.common.apiclient.exceptions \
     import AuthorizationFailure as NovaApiAuthException
 from keystoneclient.openstack.common.apiclient.exceptions \
     import AuthorizationFailure as KeystoneApiAuthException
-from goldstone.models import ApiPerfData
 from goldstone.utils import GoldstoneAuthError, TopologyMixin
 
 logger = logging.getLogger(__name__)
@@ -153,47 +150,6 @@ class TopLevelView(TemplateView):
                                                 'end_ts': context['end'],
                                                 'interval': context['interval']
                                                 })
-
-
-class ApiPerfView(APIView):
-    """The base class for all app "ApiPerfView" views."""
-
-    def _get_data(self, context):
-        import arrow
-        return ApiPerfData.get_stats(arrow.get(context['start_dt']),
-                                     arrow.get(context['end_dt']),
-                                     context['interval'],
-                                     context['component'])
-
-    def get(self, request, *args, **kwargs):
-        """Return a response to a GET request."""
-
-        # Fetch and enhance this request's context.
-        context = {
-            # Use "now" if not provided. Validate() will calculate the start
-            # and interval. Arguments missing from the request are set to None.
-            'end':
-            request.query_params.get(
-                'end',
-                str(calendar.timegm(datetime.utcnow().timetuple()))),
-            'start': request.query_params.get('start'),
-            'interval': request.query_params.get('interval'),
-            'component': request.query_params.get('component'),
-            }
-
-        context = validate(['start', 'end', 'interval'], context)
-
-        if isinstance(context, HttpResponseBadRequest):
-            # validation error
-            return context
-
-        logger.debug("[get] start_dt = %s", context['start_dt'])
-        data = self._get_data(context)
-        logger.debug("[get] data = %s", data)
-
-        # We already have the response in the desired format. So, we return a
-        # Django response instead of a DRF response.
-        return HttpResponse(data, content_type="application/json")
 
 
 class DiscoverView(TemplateView, TopologyMixin):

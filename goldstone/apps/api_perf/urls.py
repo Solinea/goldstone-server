@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf.urls import patterns, url
-from goldstone.views import ApiPerfView
-from .views import ReportView
+from .views import ReportView, ApiPerfView
 
 urlpatterns = patterns(
     '',

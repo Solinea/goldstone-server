@@ -110,7 +110,7 @@ def time_api_call(component, url, method='GET', **kwargs):
     :param method: get, put, post, delete, patch, head
     :param kwargs: optional arguments to pass to the request (ex: header, data)
     """
-    from goldstone.models import ApiPerfData
+    from .models import ApiPerfData
     from django.conf import settings
     import requests
 
