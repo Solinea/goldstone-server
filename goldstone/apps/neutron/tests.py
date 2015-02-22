@@ -21,7 +21,6 @@ from requests import Response
 import logging
 
 from mock import patch
-from goldstone.models import ApiPerfData
 
 logger = logging.getLogger(__name__)
 

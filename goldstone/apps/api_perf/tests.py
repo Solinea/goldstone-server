@@ -12,16 +12,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import calendar
+
+from .models import ApiPerfData
+from uuid import uuid1
 import arrow
 from datetime import timedelta
 from django.test import SimpleTestCase
 import logging
+from elasticsearch_dsl import Search, Q
 from mock import patch
 from requests import Response
 from goldstone.apps.api_perf.utils import time_api_call, \
     openstack_api_request_base, _construct_api_rec
-from goldstone.models import ApiPerfData
+from goldstone.apps.api_perf.views import ApiPerfView
+from goldstone.models import daily_index, es_conn
 from goldstone.utils import GoldstoneAuthError
 
 logger = logging.getLogger(__name__)
@@ -122,3 +126,189 @@ class UtilsTests(SimpleTestCase):
         self.assertEqual(rec['response_time'], 2000)
         self.assertEqual(rec['response_status'], 200)
         self.assertEqual(rec['response_length'], 1024)
+
+
+class ApiPerfTests(SimpleTestCase):
+
+    def setUp(self):
+        # let's make sure we've configured a default connection
+        self.conn = es_conn()
+
+    def tearDown(self):
+        result = ApiPerfData.search().execute()
+        for hit in result.hits:
+            hit.delete()
+
+        self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
+
+    def test_persist_and_retrieve(self):
+        uuid = uuid1()
+        now = arrow.utcnow().datetime
+        data = ApiPerfData(id=uuid,
+                           response_status=1000,
+                           created=now,
+                           component='test',
+                           uri='http://test',
+                           response_length=999,
+                           response_time=999)
+
+        created = data.save()
+        self.assertTrue(created)
+
+        # the Date field loses timezone info on retrieval.  We can fork and
+        # fix if it's still a problem when we ship.
+        # filed https://github.com/elasticsearch/elasticsearch-dsl-py/issues/77
+        # TODO ensure that tz support is in place before 3.0
+        persisted = ApiPerfData.get(id=uuid)
+
+        self.assertEqual(data.response_status, persisted.response_status)
+        self.assertEqual(data.component, persisted.component)
+        self.assertEqual(data.uri, persisted.uri)
+        self.assertEqual(data.response_length, persisted.response_length)
+        self.assertEqual(data.response_time, persisted.response_time)
+
+
+        # TODO uncomment when bug fixed in es-dsl
+        # self.assertEqual(data.created, persisted.created)
+
+        data2 = ApiPerfData(response_status=1000,
+                            created=now,
+                            component='test',
+                            uri='http://test',
+                            response_length=999,
+                            response_time=999)
+
+        created = data2.save()
+        self.assertTrue(created)
+
+        # force flush
+        self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
+
+        # test a search with no hits
+        search = ApiPerfData.search()
+        search = search.query(
+            Q('match', response_status=1001))
+
+        response = search.execute()
+        self.assertEqual(len(response.hits), 0)
+
+        # test a search with hits
+        search = ApiPerfData.search()
+        search = search.query(
+            Q('match', response_status=1000) +
+            Q('match', component='test') +
+            Q('match', uri='http://test') +
+            Q('match', response_length=999) +
+            Q('match', response_time=999))
+
+        response = search.execute()
+        self.assertEqual(len(response.hits), 2)
+
+        # test delete
+        for hit in response.hits:
+            hit.delete()
+
+        # force flush
+        self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
+
+        search = ApiPerfData.search()
+        response = search.execute()
+        self.assertEqual(len(response.hits), 0)
+
+    def test_stats_search(self):
+
+        range_begin = arrow.utcnow()
+
+        stats = [ApiPerfData(response_status=status,
+                             created=arrow.utcnow().datetime,
+                             component='test',
+                             uri='http://test',
+                             response_length=999,
+                             response_time=999)
+                 for status in range(100,601,100)]
+
+        for stat in stats:
+            created = stat.save()
+            self.assertTrue(created)
+
+        # force flush
+        self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
+
+        result = ApiPerfData._stats_search(range_begin,
+                                           arrow.utcnow(),
+                                           '1m',
+                                           'test')
+        self.assertIsInstance(result, Search)
+
+    def test_get_stats(self):
+
+        range_begin = arrow.utcnow()
+
+        stats = [ApiPerfData(response_status=status,
+                             created=arrow.utcnow().datetime,
+                             component='test',
+                             uri='http://test',
+                             response_length=999,
+                             response_time=999)
+                 for status in range(100, 601, 100)]
+
+        for stat in stats:
+            created = stat.save()
+            self.assertTrue(created)
+
+        # force flush
+        self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
+
+        result = ApiPerfData.get_stats(range_begin,
+                                       arrow.utcnow(),
+                                       '1m',
+                                       'test')
+
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]['2xx'], 1)
+        self.assertEqual(result[0]['3xx'], 1)
+        self.assertEqual(result[0]['4xx'], 1)
+        self.assertEqual(result[0]['5xx'], 1)
+
+    def test_api_perf_view(self):
+        start = arrow.utcnow().replace(minutes=-1)
+
+        uri = '/api_perf/stats' + \
+              '?start_time=' + str(start.timestamp) + \
+              '&end_time=' + str(arrow.utcnow().timestamp) + \
+              '&interval=3600s' + \
+              '&component=test'
+
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 200)
+
+    def test_api_perf_view_get_data(self):
+
+        # setup
+        start = arrow.utcnow().replace(minutes=-1)
+        stats = [ApiPerfData(response_status=status,
+                             created=arrow.utcnow().datetime,
+                             component='test',
+                             uri='http://test',
+                             response_length=999,
+                             response_time=999)
+                 for status in range(100,601,100)]
+
+        for stat in stats:
+            created = stat.save()
+            self.assertTrue(created)
+
+        self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
+
+        perfview = ApiPerfView()
+
+        context = {'start_dt': start.isoformat(),
+                   'end_dt': arrow.utcnow().isoformat(),
+                   'interval': '1s',
+                   'component': 'test',
+                   }
+
+        result = perfview._get_data(context)           # pylint: disable=W0212
+        self.assertIsInstance(result, list)
+        self.assertNotEqual(len(result), 0)
