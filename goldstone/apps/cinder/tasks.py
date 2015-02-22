@@ -44,7 +44,7 @@ def _update_cinder_records(rec_type, region, database, items):
 
     """
     import arrow
-    body = {"@timestamp": to_es_date(arrow.utcnow().datetime),
+    body = {"timestamp": to_es_date(arrow.utcnow().datetime),
             "region": region,
             rec_type: [item.__dict__['_info'] for item in items]}
     try:

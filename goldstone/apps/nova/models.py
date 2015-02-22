@@ -47,11 +47,11 @@ class NovaClientData(ESData):
         query = ESData._filtered_query_base()
         query['query']['filtered']['query'] = {'match_all': {}}
         query['query']['filtered']['filter'] = ESData._range_clause(
-            '@timestamp',
+            'timestamp',
             start.isoformat(),
             end.isoformat())
 
-        sort_str = '@timestamp:' + sort
+        sort_str = 'timestamp:' + sort
         logger.debug("[get_date_range] query = %s", json.dumps(query))
 
         response = self._conn.search(index="_all",
@@ -78,7 +78,7 @@ class NovaClientData(ESData):
         response = self._conn.search(index="_all",
                                      doc_type=self._DOC_TYPE,
                                      body=query, size=count,
-                                     sort='@timestamp:desc')
+                                     sort='timestamp:desc')
 
         if response['hits']['hits']:
             logger.debug("[get] response = %s", json.dumps(response))
@@ -140,7 +140,7 @@ class SpawnData(ESData):
 
         _query_value = BoolQuery(must=[
             RangeQuery(qrange=ESRangeOp(
-                "@timestamp",
+                "timestamp",
                 "gte", self.start.isoformat(),
                 "lte", self.end.isoformat())),
             TermQuery("event", "start")
@@ -158,7 +158,7 @@ class SpawnData(ESData):
 
         _query_value = BoolQuery(must=[
             RangeQuery(qrange=ESRangeOp(
-                "@timestamp",
+                "timestamp",
                 "gte", self.start.isoformat(),
                 "lte", self.end.isoformat())),
             TermQuery("event", "finish")
@@ -275,7 +275,7 @@ class ResourceData(ESData):
 
         _query_value = BoolQuery(must=[
             RangeQuery(qrange=ESRangeOp(
-                "@timestamp",
+                "timestamp",
                 "gte", self.start.isoformat(),
                 "lte", self.end.isoformat())),
             TermQuery("resource", resource),

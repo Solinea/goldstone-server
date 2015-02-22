@@ -262,7 +262,7 @@ var ZoomablePartitionView = TopologyTreeView.extend({
         // these params will be omitted from the returned data before
         // rendering as a data table in 'resource list'
 
-        nova: ['@timestamp',
+        nova: ['timestamp',
             'metadata',
             'region',
             'links',
@@ -316,7 +316,7 @@ var ZoomablePartitionView = TopologyTreeView.extend({
             'security_groups',
             'rules'
         ],
-        cinder: ['@timestamp',
+        cinder: ['timestamp',
             'metadata',
             'region',
             'extra_specs',
@@ -330,8 +330,8 @@ var ZoomablePartitionView = TopologyTreeView.extend({
             'snapshot_id',
             'source_volid'
         ],
-        keystone: ['@timestamp'],
-        glance: ['@timestamp',
+        keystone: ['timestamp'],
+        glance: ['timestamp',
             'metadata',
             'region',
             'tags',

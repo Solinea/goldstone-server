@@ -103,7 +103,7 @@ class UtilsTests(SimpleTestCase):
         self.assertIsInstance(rec, dict)
         self.assertEqual(rec['component'], 'test')
         self.assertEqual(rec['uri'], '/path')
-        self.assertEqual(rec['created'], now)
+        self.assertEqual(rec['timestamp'], now)
         self.assertEqual(rec['response_time'], 1000)
         self.assertEqual(rec['response_status'], 504)
         self.assertEqual(rec['response_length'], 0)
@@ -122,7 +122,7 @@ class UtilsTests(SimpleTestCase):
         self.assertIsInstance(rec, dict)
         self.assertEqual(rec['component'], 'test')
         self.assertEqual(rec['uri'], '/path')
-        self.assertEqual(rec['created'], now)
+        self.assertEqual(rec['timestamp'], now)
         self.assertEqual(rec['response_time'], 2000)
         self.assertEqual(rec['response_status'], 200)
         self.assertEqual(rec['response_length'], 1024)
@@ -137,8 +137,7 @@ class ApiPerfTests(SimpleTestCase):
     def tearDown(self):
         result = ApiPerfData.search().execute()
         for hit in result.hits:
-           hit.delete()
-
+            hit.delete()
         self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
 
     def test_persist_and_retrieve(self):
@@ -146,7 +145,7 @@ class ApiPerfTests(SimpleTestCase):
         now = arrow.utcnow().datetime
         data = ApiPerfData(id=uuid,
                            response_status=1000,
-                           created=now,
+                           timestamp=now,
                            component='test',
                            uri='/test',
                            response_length=999,
@@ -172,7 +171,7 @@ class ApiPerfTests(SimpleTestCase):
         # self.assertEqual(data.created, persisted.created)
 
         data2 = ApiPerfData(response_status=1000,
-                            created=now,
+                            timestamp=now,
                             component='test',
                             uri='/test',
                             response_length=999,
@@ -220,7 +219,7 @@ class ApiPerfTests(SimpleTestCase):
         range_begin = arrow.utcnow()
 
         stats = [ApiPerfData(response_status=status,
-                             created=arrow.utcnow().datetime,
+                             timestamp=arrow.utcnow().datetime,
                              component='test',
                              uri='/test',
                              response_length=999,
@@ -245,7 +244,7 @@ class ApiPerfTests(SimpleTestCase):
         range_begin = arrow.utcnow()
 
         stats = [ApiPerfData(response_status=status,
-                             created=arrow.utcnow().datetime,
+                             timestamp=arrow.utcnow().datetime,
                              component='test',
                              uri='/test',
                              response_length=999,
@@ -289,7 +288,7 @@ class ApiPerfTests(SimpleTestCase):
         # setup
         start = arrow.utcnow().replace(minutes=-1)
         stats = [ApiPerfData(response_status=status,
-                             created=arrow.utcnow().datetime,
+                             timestamp=arrow.utcnow().datetime,
                              component='test',
                              uri='/test',
                              response_length=999,

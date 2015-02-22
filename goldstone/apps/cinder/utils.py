@@ -42,7 +42,7 @@ class DiscoverTree(TopologyMixin):
 
     def _populate_regions(self):
         result = []
-        updated = self.services[0]['@timestamp']
+        updated = self.services[0]['timestamp']
         for region in self._get_service_regions():
             result.append(
                 {"rsrcType": "region",
@@ -141,7 +141,7 @@ class DiscoverTree(TopologyMixin):
                 raise NoResourceFound(
                     "No cinder services found in database")
 
-            updated = self.services[0]['@timestamp']
+            updated = self.services[0]['timestamp']
             rl = self._populate_regions()
             new_rl = []
 
