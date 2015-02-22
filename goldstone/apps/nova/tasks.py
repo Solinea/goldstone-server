@@ -53,7 +53,7 @@ def nova_hypervisors_stats(self):
         novaclient.hypervisors.statistics()._info     # pylint: disable=W0212
 
     now = datetime.utcnow()
-    response['@timestamp'] = now.strftime(
+    response['timestamp'] = now.strftime(
         "%Y-%m-%dT%H:%M:%S." + str(int(round(now.microsecond/1000))) + "Z")
 
     response['task_id'] = self.request.id
@@ -84,7 +84,7 @@ def _update_nova_records(rec_type, region, db, items):
     import pytz
 
     # image list is a generator, so we need to make it not sol lazy it...
-    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+    body = {"timestamp": to_es_date(datetime.now(tz=pytz.utc)),
             "region": region,
             rec_type: [item.__dict__['_info'] for item in items]}
     try:

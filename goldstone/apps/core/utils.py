@@ -65,7 +65,7 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
                 region = item['region']
 
                 if request_region is None or request_region == region:
-                    timestamp = item['@timestamp']
+                    timestamp = item['timestamp']
 
                     new_list = []
 
@@ -73,7 +73,7 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
                         if request_zone is None or self.zone_key is None or \
                                 request_zone == rec[self.zone_key]:
                             rec['region'] = region
-                            rec['@timestamp'] = timestamp
+                            rec['timestamp'] = timestamp
                             new_list.append(rec)
 
                     result.append(new_list)

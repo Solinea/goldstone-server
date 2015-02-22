@@ -54,7 +54,7 @@ def _update_keystone_records(rec_type, region, database, items):
     import pytz
 
     # image list is a generator, so we need to make it not sol lazy it...
-    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+    body = {"timestamp": to_es_date(datetime.now(tz=pytz.utc)),
             "region": region,
             rec_type: [item.to_dict() for item in items]}
     try:

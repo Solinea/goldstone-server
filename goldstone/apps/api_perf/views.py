@@ -14,6 +14,7 @@
 # limitations under the License.
 import calendar
 from datetime import datetime
+from urlparse import urlparse
 from django.http import HttpResponseBadRequest, HttpResponse
 from rest_framework.views import APIView
 from goldstone.apps.api_perf.models import ApiPerfData
@@ -74,19 +75,19 @@ class ApiPerfView(APIView):
 
         if 'uri' not in context:
             if context['component'] == 'cinder':
-                context['uri'] = stack_api_request_base(
-                    "compute", "/os-hypervisors")['url']
+                context['uri'] = urlparse(stack_api_request_base(
+                    "compute", "/os-hypervisors")['url']).path
             elif context['component'] == 'glance':
-                context['uri'] = stack_api_request_base(
-                    "image", "/v2/images")['url']
+                context['uri'] = urlparse(stack_api_request_base(
+                    "image", "/v2/images")['url']).path
             elif context['component'] == 'keystone':
                 context['uri'] = "/tokens"
             elif context['component'] == 'neutron':
-                context['uri'] = stack_api_request_base(
-                    "network", "v2.0/agents")
+                context['uri'] = urlparse(stack_api_request_base(
+                    "network", "v2.0/agents")['url']).path
             elif context['component'] == 'nova':
-                context['uri'] = stack_api_request_base(
-                    "compute", "/os-hypervisors")['url']
+                context['uri'] = urlparse(stack_api_request_base(
+                    "compute", "/os-hypervisors")['url']).path
             else:
                 context['uri'] = None
 

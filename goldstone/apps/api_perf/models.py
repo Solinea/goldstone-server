@@ -39,7 +39,7 @@ class ApiPerfData(DocType):
     # Field declarations.  They types are generated, so imports look broken
     # but hopefully are working...
     response_status = Integer()
-    created = Date()
+    timestamp = Date()
     component = String()
     uri = String()
     response_length = Integer()
@@ -69,7 +69,7 @@ class ApiPerfData(DocType):
         """
 
         search = cls.search().\
-            filter('range', ** {'created': {
+            filter('range', ** {'_timestamp': {
                 'lte': end.isoformat(),
                 'gte': start.isoformat()}})
 
@@ -82,10 +82,9 @@ class ApiPerfData(DocType):
         if uri is not None and not prefix:
             search = search.filter('term', uri=uri)
 
-        logger.info("search = %s", search.to_dict())
         search.aggs.bucket('events_by_date',
                            'date_histogram',
-                           field='created',
+                           field='_timestamp',
                            interval=interval,
                            min_doc_count=0).\
             metric('stats', 'extended_stats', field='response_time').\
@@ -97,7 +96,7 @@ class ApiPerfData(DocType):
                         {"from": 500, "to": 599}
                     ])
 
-        logger.debug("search = %s", search.to_dict())
+        logger.info("search = %s", json.dumps(search.to_dict()))
         return search
 
     # TODO implement get_components
@@ -130,7 +129,7 @@ class ApiPerfData(DocType):
         search = cls._stats_search(start, end, interval, component, uri)
 
         result = search.execute()
-        logger.debug('[get] search result = %s', json.dumps(result.to_dict()))
+        logger.info('[get] search result = %s', json.dumps(result.to_dict()))
 
         items = []
 

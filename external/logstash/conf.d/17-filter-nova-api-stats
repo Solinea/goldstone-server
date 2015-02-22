@@ -32,6 +32,9 @@ filter {
                                   openstack_message, request_id, instance_id,
                                   request_id_list, message, tags ]
             }
+            mutate {
+                rename => [ '@timestamp', 'timestamp' ]
+            }
         }
     }
 }
