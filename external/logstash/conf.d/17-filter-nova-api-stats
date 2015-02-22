@@ -29,7 +29,7 @@ filter {
                 remove_field => [ syslog5424_pri, syslog_ts, log_message, pid, loglevel,
                                   syslog_severity_code, syslog_facility_code,
                                   syslog_severity, syslog_facility, program,
-                                  openstack_message, request_id, instance_id, timestamp,
+                                  openstack_message, request_id, instance_id,
                                   request_id_list, message, tags ]
             }
         }
