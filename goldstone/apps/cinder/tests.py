@@ -27,7 +27,7 @@ class TaskTests(SimpleTestCase):
     """Test cinder tasks."""
 
     @patch('goldstone.apps.cinder.tasks.time_api_call')
-    @patch('goldstone.apps.cinder.tasks.openstack_api_request_base')
+    @patch('goldstone.apps.cinder.tasks.stack_api_request_base')
     def test_time_image_list_api(self, m_base, m_time_api_call):
 
         import requests

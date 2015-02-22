@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 class TaskTests(SimpleTestCase):
 
     @patch('goldstone.apps.glance.tasks.time_api_call')
-    @patch('goldstone.apps.glance.tasks.openstack_api_request_base')
+    @patch('goldstone.apps.glance.tasks.stack_api_request_base')
     def test_time_image_list_api(self, m_base, m_time_api_call):
 
         response = Response()

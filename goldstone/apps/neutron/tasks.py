@@ -18,7 +18,7 @@ import json
 import logging
 import requests
 from goldstone.apps.api_perf.utils import time_api_call, \
-    openstack_api_request_base
+    stack_api_request_base
 
 from goldstone.celery import app as celery_app
 
@@ -36,7 +36,7 @@ def time_agent_list_api():
     in the DB.
     """
 
-    precursor = openstack_api_request_base("network", "v2.0/agents")
+    precursor = stack_api_request_base("network", "v2.0/agents")
     return time_api_call('neutron.agent.list',
                          precursor['url'],
                          headers=precursor['headers'])

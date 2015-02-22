@@ -23,7 +23,7 @@ from elasticsearch_dsl import Search, Q
 from mock import patch
 from requests import Response
 from goldstone.apps.api_perf.utils import time_api_call, \
-    openstack_api_request_base, _construct_api_rec
+    stack_api_request_base, _construct_api_rec
 from goldstone.apps.api_perf.views import ApiPerfView
 from goldstone.models import daily_index, es_conn
 from goldstone.utils import GoldstoneAuthError
@@ -77,7 +77,7 @@ class UtilsTests(SimpleTestCase):
         #              'x-auth-token': 'token'}
         # }
 
-        result = openstack_api_request_base("endpoint", "/path")
+        result = stack_api_request_base("endpoint", "/path")
         self.assertIn('url', result)
         self.assertIn('x-auth-token', result['headers'])
         self.assertIn('content-type', result['headers'])
@@ -89,11 +89,11 @@ class UtilsTests(SimpleTestCase):
     def test_openstack_api_request_base_exceptions(self, m_get):
 
         m_get.side_effect = GoldstoneAuthError
-        self.assertRaises(GoldstoneAuthError, openstack_api_request_base,
+        self.assertRaises(GoldstoneAuthError, stack_api_request_base,
                           "", "", "")
 
         m_get.side_effect = Exception
-        self.assertRaises(LookupError, openstack_api_request_base,
+        self.assertRaises(LookupError, stack_api_request_base,
                           "", "", "")
 
     def test_construct_api_rec_none(self):
@@ -137,7 +137,7 @@ class ApiPerfTests(SimpleTestCase):
     def tearDown(self):
         result = ApiPerfData.search().execute()
         for hit in result.hits:
-            hit.delete()
+           hit.delete()
 
         self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
 
@@ -148,7 +148,7 @@ class ApiPerfTests(SimpleTestCase):
                            response_status=1000,
                            created=now,
                            component='test',
-                           uri='http://test',
+                           uri='/test',
                            response_length=999,
                            response_time=999)
 
@@ -174,7 +174,7 @@ class ApiPerfTests(SimpleTestCase):
         data2 = ApiPerfData(response_status=1000,
                             created=now,
                             component='test',
-                            uri='http://test',
+                            uri='/test',
                             response_length=999,
                             response_time=999)
 
@@ -197,7 +197,7 @@ class ApiPerfTests(SimpleTestCase):
         search = search.query(
             Q('match', response_status=1000) +
             Q('match', component='test') +
-            Q('match', uri='http://test') +
+            Q('match', uri='/test') +
             Q('match', response_length=999) +
             Q('match', response_time=999))
 
@@ -222,7 +222,7 @@ class ApiPerfTests(SimpleTestCase):
         stats = [ApiPerfData(response_status=status,
                              created=arrow.utcnow().datetime,
                              component='test',
-                             uri='http://test',
+                             uri='/test',
                              response_length=999,
                              response_time=999)
                  for status in range(100,601,100)]
@@ -247,7 +247,7 @@ class ApiPerfTests(SimpleTestCase):
         stats = [ApiPerfData(response_status=status,
                              created=arrow.utcnow().datetime,
                              component='test',
-                             uri='http://test',
+                             uri='/test',
                              response_length=999,
                              response_time=999)
                  for status in range(100, 601, 100)]
@@ -278,7 +278,8 @@ class ApiPerfTests(SimpleTestCase):
               '?start_time=' + str(start.timestamp) + \
               '&end_time=' + str(arrow.utcnow().timestamp) + \
               '&interval=3600s' + \
-              '&component=test'
+              '&component=test' + \
+              '&uri=/test'
 
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
@@ -290,7 +291,7 @@ class ApiPerfTests(SimpleTestCase):
         stats = [ApiPerfData(response_status=status,
                              created=arrow.utcnow().datetime,
                              component='test',
-                             uri='http://test',
+                             uri='/test',
                              response_length=999,
                              response_time=999)
                  for status in range(100,601,100)]
@@ -307,6 +308,7 @@ class ApiPerfTests(SimpleTestCase):
                    'end_dt': arrow.utcnow().isoformat(),
                    'interval': '1s',
                    'component': 'test',
+                   'uri': '/test'
                    }
 
         result = perfview._get_data(context)           # pylint: disable=W0212

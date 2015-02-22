@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class TaskTests(SimpleTestCase):
 
     @patch('goldstone.apps.nova.tasks.time_api_call')
-    @patch('goldstone.apps.nova.tasks.openstack_api_request_base')
+    @patch('goldstone.apps.nova.tasks.stack_api_request_base')
     def test_time_hypervisor_list_api(self, m_base, m_time_api_call):
 
         response = Response()

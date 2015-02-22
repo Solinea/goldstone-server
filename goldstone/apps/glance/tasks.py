@@ -20,7 +20,7 @@ import logging
 
 import requests
 import pytz
-from goldstone.apps.api_perf.utils import openstack_api_request_base, \
+from goldstone.apps.api_perf.utils import stack_api_request_base, \
     time_api_call
 
 from .models import ImagesData
@@ -42,7 +42,7 @@ def time_image_list_api():
     in the DB.
     """
 
-    precursor = openstack_api_request_base("image", "/v2/images")
+    precursor = stack_api_request_base("image", "/v2/images")
     return time_api_call('glance.image.list',
                          precursor['url'],
                          headers=precursor['headers'])

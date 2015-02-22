@@ -82,6 +82,7 @@ class ApiPerfData(DocType):
         if uri is not None and not prefix:
             search = search.filter('term', uri=uri)
 
+        logger.info("search = %s", search.to_dict())
         search.aggs.bucket('events_by_date',
                            'date_histogram',
                            field='created',
@@ -102,7 +103,7 @@ class ApiPerfData(DocType):
     # TODO implement get_components
 
     @classmethod
-    def get_stats(cls, start, end, interval, component=None):
+    def get_stats(cls, start, end, interval, component=None, uri=None):
         """Return a pandas object that contains API performance data.
 
         :type start: Arrow
@@ -126,7 +127,7 @@ class ApiPerfData(DocType):
             "valid units for interval are ['s', 'm', 'h', 'd']: %r" \
             % interval
 
-        search = cls._stats_search(start, end, interval, component)
+        search = cls._stats_search(start, end, interval, component, uri)
 
         result = search.execute()
         logger.debug('[get] search result = %s', json.dumps(result.to_dict()))
@@ -151,12 +152,6 @@ class ApiPerfData(DocType):
                 date_bucket['range']['buckets']['500.0-599.0']['doc_count']
 
             items.append(item)
-
-        # items = json.dumps(items)
-
-        # logger.debug('[get] items = %s', items)
-        # result = pd.read_json(items, orient='records', convert_axes=False)
-        # logger.debug('[get] pd = %s', result)
 
         return items
 

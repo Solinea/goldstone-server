@@ -26,7 +26,7 @@ import logging
 import requests
 
 from django.conf import settings
-from goldstone.apps.api_perf.utils import openstack_api_request_base, \
+from goldstone.apps.api_perf.utils import stack_api_request_base, \
     time_api_call
 
 from goldstone.apps.nova.models import HypervisorStatsData, \
@@ -74,7 +74,7 @@ def time_hypervisor_list_api():
     in the DB.
     """
 
-    precursor = openstack_api_request_base("compute", "/os-hypervisors")
+    precursor = stack_api_request_base("compute", "/os-hypervisors")
     return time_api_call('nova.hypervisor.list',
                          precursor['url'],
                          headers=precursor['headers'])

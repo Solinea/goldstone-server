@@ -17,6 +17,7 @@ from datetime import datetime
 from django.http import HttpResponseBadRequest, HttpResponse
 from rest_framework.views import APIView
 from goldstone.apps.api_perf.models import ApiPerfData
+from goldstone.apps.api_perf.utils import stack_api_request_base
 from goldstone.views import TopLevelView, validate
 import logging
 import arrow
@@ -36,7 +37,8 @@ class ApiPerfView(APIView):
         return ApiPerfData.get_stats(arrow.get(context['start_dt']),
                                      arrow.get(context['end_dt']),
                                      context['interval'],
-                                     context['component'])
+                                     context['component'],
+                                     context['uri'])
 
     def get(self, request, *args, **kwargs):
         """Return a response to a GET request."""
@@ -63,7 +65,33 @@ class ApiPerfView(APIView):
             # validation error
             return context
 
+        # TODO this is a flagrant violation of modularity.
+        # It was done
+        # during the rework of api_perf, and supports the celery task calls.
+        # We should continue to enhance the API parameter handling to
+        # generalize the API performance interface, and allow the client to
+        # provide information to make this block unnecessary.
+
+        if 'uri' not in context:
+            if context['component'] == 'cinder':
+                context['uri'] = stack_api_request_base(
+                    "compute", "/os-hypervisors")['url']
+            elif context['component'] == 'glance':
+                context['uri'] = stack_api_request_base(
+                    "image", "/v2/images")['url']
+            elif context['component'] == 'keystone':
+                context['uri'] = "/tokens"
+            elif context['component'] == 'neutron':
+                context['uri'] = stack_api_request_base(
+                    "network", "v2.0/agents")
+            elif context['component'] == 'nova':
+                context['uri'] = stack_api_request_base(
+                    "compute", "/os-hypervisors")['url']
+            else:
+                context['uri'] = None
+
         logger.debug("[get] start_dt = %s", context['start_dt'])
+        logger.info("[get] context uri = %s", context['uri'])
         data = self._get_data(context)
         logger.debug("[get] data = %s", data)
 
