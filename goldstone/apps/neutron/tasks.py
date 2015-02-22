@@ -36,7 +36,7 @@ def time_agent_list_api():
     in the DB.
     """
 
-    precursor = openstack_api_request_base("network", "/v2.0/agents")
+    precursor = openstack_api_request_base("network", "v2.0/agents")
     return time_api_call('neutron.agent.list',
                          precursor['url'],
                          headers=precursor['headers'])
