@@ -62,7 +62,7 @@ def _construct_api_rec(reply, component, created, timeout, url):
     return rec
 
 
-def openstack_api_request_base(endpoint, path,
+def stack_api_request_base(endpoint, path,
                                user=settings.OS_USERNAME,
                                passwd=settings.OS_PASSWORD,
                                tenant=settings.OS_TENANT_NAME,

@@ -29,7 +29,7 @@ class TaskTests(SimpleTestCase):
     """Test Neutron tasks."""
 
     @patch('goldstone.apps.neutron.tasks.time_api_call')
-    @patch('goldstone.apps.neutron.tasks.openstack_api_request_base')
+    @patch('goldstone.apps.neutron.tasks.stack_api_request_base')
     def test_time_agent_list_api(self, m_base, m_time_api_call):
 
         response = Response()
