@@ -181,7 +181,7 @@ class SpawnData(ESData):
         agg_name = "events_by_date"
         q = self._spawn_start_query(agg_name)
         index = ",".join(self.get_index_names('goldstone-'))
-        logger.info("[get_spawn_start] calling query with index=%s, "
+        logger.debug("[get_spawn_start] calling query with index=%s, "
                     "doc_type=%s", index, self._DOC_TYPE)
         response = self._conn.search(
             index=index, doc_type=self._DOC_TYPE, body=q, size=0)
@@ -311,7 +311,7 @@ class ResourceData(ESData):
     def _get_resource(self, resource_type, resource, custom_field):
 
         query = self._claims_resource_query(resource_type, resource)
-        logger.info('query = %s', json.dumps(query))
+        logger.debug('query = %s', json.dumps(query))
 
         index = ",".join(self.get_index_names('goldstone-'))
         result = self._conn.search(index=index,

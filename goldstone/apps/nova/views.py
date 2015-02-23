@@ -156,16 +156,22 @@ class ResourceViewSet(ReadOnlyModelViewSet):
         elif not phys.empty and virt.empty:
             # Physical has something, and Virtual data is empty.
             data = phys
-            data.rename(columns={'total': 'total_phys'}, inplace=True)
+            data.rename(columns={'total': 'total_phys',
+                                 '@timestamp': 'timestamp'},
+                        inplace=True)
             # Using a copy method to indicate that we know what we are
             # doing and pandas can skip the warning.
             data = data[['timestamp', 'used', 'total_phys']].copy()
 
         else:
             # The only combination left is that neither are empty.
-            phys.rename(columns={'total': 'total_phys'}, inplace=True)
+            phys.rename(columns={'total': 'total_phys',
+                                 '@timestamp': 'timestamp'},
+                        inplace=True)
             del virt['used']
-            virt.rename(columns={'total': 'total_virt'}, inplace=True)
+            virt.rename(columns={'total': 'total_virt',
+                                 '@timestamp': 'timestamp'},
+                        inplace=True)
 
             data = pd.ordered_merge(phys, virt, on='timestamp')
             data['total_virt'].fillna(method='pad', inplace=True)
