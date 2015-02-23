@@ -78,12 +78,12 @@ class ApiPerfView(APIView):
         if 'uri' not in context:
             if context['component'] == 'cinder':
                 context['uri'] = urlparse(stack_api_request_base(
-                    "compute", "/os-hypervisors")['url']).path
+                    "volumev2", "/os-services")['url']).path
             elif context['component'] == 'glance':
                 context['uri'] = urlparse(stack_api_request_base(
                     "image", "/v2/images")['url']).path
             elif context['component'] == 'keystone':
-                context['uri'] = "/tokens"
+                context['uri'] = "/v2.0/tokens"
             elif context['component'] == 'neutron':
                 context['uri'] = urlparse(stack_api_request_base(
                     "network", "v2.0/agents")['url']).path
@@ -94,7 +94,6 @@ class ApiPerfView(APIView):
                 context['uri'] = None
 
         logger.debug("[get] start_dt = %s", context['start_dt'])
-        logger.info("[get] context uri = %s", context['uri'])
         data = self._get_data(context)
 
         # Good policy, but don't think it is required for this specific
@@ -108,9 +107,6 @@ class ApiPerfView(APIView):
         # messy.
         response = data.to_json(orient='records')
 
-        logger.debug('[get] response = %s', json.dumps(response))
-
         # We already have the response in the desired format. So, we return a
         # Django response instead of a DRF response.
         return HttpResponse(response, content_type="application/json")
-

@@ -40,4 +40,3 @@ def time_agent_list_api():
     return time_api_call('neutron.agent.list',
                          precursor['url'],
                          headers=precursor['headers'])
-
