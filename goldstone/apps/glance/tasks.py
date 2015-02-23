@@ -43,7 +43,7 @@ def time_image_list_api():
     """
 
     precursor = stack_api_request_base("image", "/v2/images")
-    return time_api_call('glance.image.list',
+    return time_api_call('glance',
                          precursor['url'],
                          headers=precursor['headers'])
 
