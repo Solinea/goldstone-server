@@ -13,22 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from django.contrib.auth import get_user_model
-from django.test import SimpleTestCase, Client
+from django.test import Client
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST
 from goldstone.user.util_test import Setup, create_and_login
 
-# # Http response content that are expected by some tests.
+# Http response content that are expected by some tests.
 # CONTENT_NO_CREDENTIALS = \
 #     '{"detail":"Authentication credentials were not provided."}'
-# CONTENT_BAD_TOKEN = '{"detail":"Invalid token"}'
+CONTENT_BAD_TOKEN = '{"detail":"Invalid token"}'
 # CONTENT_MISSING_FIELD = '{"username":["This field is required."]}'
 
-# # Define the URLs and payloads used in this module's testing.
-# LOGIN_URL = "/accounts/login"
-# USER_URL = "/user"
-# AUTHORIZATION_PAYLOAD = "Token %s"
+# Define the URLs and payloads used in this module's testing.
+SETTINGS_URL = "/accounts/settings"
+AUTHORIZATION_PAYLOAD = "Token %s"
 # TEST_USER = ("fred", "fred@fred.com", "meh")
 # TEST_USER_LOGIN = {"username": TEST_USER[0], "password": TEST_USER[2]}
 
@@ -74,20 +72,78 @@ from goldstone.user.util_test import Setup, create_and_login
 class Settings(Setup):
     """Retrieving and setting account settings."""
 
-    def test_get_nousername(self):
-        pass
-    def test_get_badtoken(self):
-        pass
     def test_get(self):
-        pass
-    def test_put_nousername(self):
-        pass
-    def test_put_badtoken(self):
-        pass
-    def test_put_badkey(self):
-        pass
+        """Get user settings.
+
+        At the moment, there are no settings to test against.
+
+        """
+
+        # Create a user and get the authorization token.
+        token = create_and_login()
+
+        client = Client()
+        response = \
+            client.get(SETTINGS_URL,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertContains(response, {}, status_code=HTTP_200_OK)
+
     def test_put(self):
-        pass
+        """Set user settings.
+
+        At the moment, there are no settings to test against.
+
+        """
+
+        # Create a user and get the authorization token.
+        token = create_and_login()
+
+        client = Client()
+        response = \
+            client.put(SETTINGS_URL,
+                       json.dumps({}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertContains(response, {}, status_code=HTTP_200_OK)
+
+    def test_get_badtoken(self):
+        """Doing a GET with a bad token."""
+
+        # Create a user, and create a bad authorization token.  (This test will
+        # erroneously fail if the good token doesn't contain any 9 characters,
+        # which is very unlikely.)
+        bad_token = create_and_login().replace('9', '8')
+
+        client = Client()
+        response = \
+            client.get(SETTINGS_URL,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+
+        self.assertContains(response,
+                            CONTENT_BAD_TOKEN,
+                            status_code=HTTP_401_UNAUTHORIZED)
+
+    def test_put_badtoken(self):
+        """Doing a PUT with a bad token."""
+
+        # Create a user, and create a bad authorization token.  (This test will
+        # erroneously fail if the good token doesn't contain any 9 characters,
+        # which is very unlikely.)
+        bad_token = create_and_login().replace('9', '8')
+
+        client = Client()
+        response = \
+            client.put(SETTINGS_URL,
+                       json.dumps({}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+
+        self.assertContains(response,
+                            CONTENT_BAD_TOKEN,
+                            status_code=HTTP_401_UNAUTHORIZED)
+
 
 # class NoAccess(Setup):
 #     """The user attempts access without being logged in, or presenting a bad
