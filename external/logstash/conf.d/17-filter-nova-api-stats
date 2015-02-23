@@ -33,7 +33,7 @@ filter {
                                   request_id_list, message, tags ]
             }
             ruby {
-                code => "event['read_time'] = event['@timestamp']"
+                code => "event['creation_time'] = event['@timestamp']"
             }
         }
     }
