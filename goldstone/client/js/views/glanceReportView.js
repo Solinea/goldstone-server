@@ -24,7 +24,7 @@ var GlanceReportView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
         this.glanceApiPerfChart = new ApiPerfCollection({
-            urlPrefix: 'glance',
+            componentParam: 'glance',
         });
 
         this.glanceApiPerfChartView = new ApiPerfView({
