@@ -15,12 +15,14 @@
 import json
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, Client
-from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED
+from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
+    HTTP_400_BAD_REQUEST
 
 # Http response content that are expected by some tests.
 CONTENT_NO_CREDENTIALS = \
     '{"detail":"Authentication credentials were not provided."}'
 CONTENT_BAD_TOKEN = '{"detail":"Invalid token"}'
+CONTENT_MISSING_FIELD = '{"username":["This field is required."]}'
 
 # Define the URLs and payloads used in this module's testing.
 LOGIN_URL = "/accounts/login"
@@ -106,20 +108,17 @@ class NoAccess(Setup):
     def test_get_nologin(self):
         """Getting while not logged in."""
 
-        EXPECTED_CONTENT = CONTENT_NO_CREDENTIALS
-
         client = Client()
         response = client.get(USER_URL)
 
         self.assertContains(response,
-                            EXPECTED_CONTENT,
+                            CONTENT_NO_CREDENTIALS,
                             status_code=HTTP_401_UNAUTHORIZED)
 
     def test_get_badtoken(self):
         """Getting while not logged in, using any token."""
 
         BAD_TOKEN = "2f7306baced9dddd2c50071d25c6d7f2a46cbfd7"
-        EXPECTED_CONTENT = CONTENT_BAD_TOKEN
 
         client = Client()
         response = \
@@ -127,13 +126,11 @@ class NoAccess(Setup):
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
 
         self.assertContains(response,
-                            EXPECTED_CONTENT,
+                            CONTENT_BAD_TOKEN,
                             status_code=HTTP_401_UNAUTHORIZED)
 
     def test_loggedin_get_badtoken(self):
         """Getting while logged in, using a bad token."""
-
-        EXPECTED_CONTENT = CONTENT_BAD_TOKEN
 
         # Create a user, and create a bad authorization token.  (This test will
         # erroneously fail if the good token doesn't contain any 9 characters,
@@ -146,26 +143,28 @@ class NoAccess(Setup):
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
 
         self.assertContains(response,
-                            EXPECTED_CONTENT,
+                            CONTENT_BAD_TOKEN,
                             status_code=HTTP_401_UNAUTHORIZED)
 
     def test_put_nologin(self):
         """Putting (trying to change user attributes) while not logged in."""
 
-        EXPECTED_CONTENT = CONTENT_NO_CREDENTIALS
-
         client = Client()
-        response = client.put(USER_URL, {"first_name": "Dirk"})
+        response = client.put(USER_URL,
+                              json.dumps({"first_name": "Dirk"}),
+                              content_type="application/json")
 
         self.assertContains(response,
-                            EXPECTED_CONTENT,
+                            CONTENT_NO_CREDENTIALS,
                             status_code=HTTP_401_UNAUTHORIZED)
+
+
+class BadPut(Setup):
+    """Bad PUT requests to change account attributes."""
 
     def test_put_badtoken(self):
         """Putting (trying to change user attributes) while logged in, but
         using a bad token."""
-
-        EXPECTED_CONTENT = CONTENT_BAD_TOKEN
 
         # Create a user, and create a bad authorization token.
         bad_token = _create_and_login().replace('9', '8')
@@ -173,12 +172,31 @@ class NoAccess(Setup):
         client = Client()
         response = \
             client.put(USER_URL,
-                       {"first_name": "Dirk"},
+                       json.dumps({"first_name": "Dirk"}),
+                       content_type="application/json",
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
 
         self.assertContains(response,
-                            EXPECTED_CONTENT,
+                            CONTENT_BAD_TOKEN,
                             status_code=HTTP_401_UNAUTHORIZED)
+
+    def test_no_username(self):
+        """Try changing account attributes with a good token, but a bad
+        username."""
+
+        # Create a user and get the authorization token.
+        token = _create_and_login()
+
+        client = Client()
+        response = \
+            client.put(USER_URL,
+                       json.dumps({"first_name": "Dirk"}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertContains(response,
+                            CONTENT_MISSING_FIELD,
+                            status_code=HTTP_400_BAD_REQUEST)
 
 
 class GetPut(Setup):
@@ -271,7 +289,7 @@ class GetPut(Setup):
 
     def test_change_all_fields(self):
         """Get data from an account, after we've modified all the
-        user-modifyable fields."""
+        user-modifiable fields."""
 
         expected_content = {"username": "Heywood",
                             "first_name": "Dirk",
@@ -303,7 +321,3 @@ class GetPut(Setup):
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         _response_equals_without_uuid(response, HTTP_200_OK, expected_content)
-
-
-# class BadPut(Setup):
-#     pass
