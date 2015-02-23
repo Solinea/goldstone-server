@@ -105,7 +105,7 @@ class ApiPerfView(APIView):
         # appear to be in alphabetical order, so we could use orient=values to
         # trim it down, or pass it in a binary format if things get really
         # messy.
-        response = data.to_json(orient='records')
+        response = list(data.to_json(orient='records'))
 
         # We already have the response in the desired format. So, we return a
         # Django response instead of a DRF response.
