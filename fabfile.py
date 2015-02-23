@@ -121,8 +121,15 @@ def syncmigrate(proj_settings=DEV_SETTINGS):
     This is the last installation step before execution a load command."""
 
     print "doing a syncdb and migrate ..."
-    print '(answer "yes" to the, "create a superuser?" question!)'
+    print '(answer "no" to the, "create a superuser?" question.)'
     _django_manage("syncdb", proj_settings=proj_settings)
+    _django_manage("migrate", proj_settings=proj_settings)
+
+    # N.B. We must create the superuser separately because of an interaction
+    # between DRF and Django signals. See
+    # https://github.com/tomchristie/django-rest-framework/issues/987.
+    print "please create a superuser account ..."
+    _django_manage("createsuperuser", proj_settings=proj_settings)
 
 
 @task
