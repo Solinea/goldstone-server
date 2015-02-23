@@ -52,10 +52,10 @@ class User(AbstractUser):
 
 @receiver(post_save, sender=User)
 def _user_saved(sender, **kwargs):                # pylint: disable=W0613
-    """Create a Settings row for a new User row.
+    """Create an authentication token and a Settings row for each new User row.
 
-    Note: Settings rows are deleted when their User row is deleted
-    via Postgres cascading deletes; no need to use signals for that.
+    Note: Token and Settings rows are deleted when their User row is deleted,
+    via Postgres cascading deletes. There's no need to use signals for deletes.
 
     :param sender: The sending model class
     :type sender: User
@@ -65,9 +65,11 @@ def _user_saved(sender, **kwargs):                # pylint: disable=W0613
     :type created: bool
 
     """
+    from rest_framework.authtoken.models import Token
     from goldstone.accounts.models import Settings
 
     # If a new model was created...
     if kwargs["created"]:
-        # Create a new Settings row for it.
+        # Create a new Settings row, and authentication token.
         Settings.objects.create(user=kwargs["instance"])
+        Token.objects.create(user=kwargs["instance"])

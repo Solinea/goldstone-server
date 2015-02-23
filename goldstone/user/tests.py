@@ -158,20 +158,24 @@ class Get(SimpleTestCase):
                             "default_tenant_admin": False}
 
         # Create a user and get their authorization token.
-        # import pdb; pdb.set_trace()
         token = _create_and_login()
-        expected_content["uuid"] = token
 
         client = Client()
         response = \
             client.get(USER_URL,
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        # We deserialize the response content, to simplify checking the
-        # results.
         self.assertEqual(response.status_code, HTTP_200_OK)
+
+        # We deserialize the response content, to simplify checking the
+        # results. We'll check that the uuid key is present, and it has a
+        # string value, but we don't check the value.
         response_content = json.loads(response.content)
-        self.assertEqual(response_content, expected_content)
+        for key in expected_content:
+            self.assertEqual(response_content[key], expected_content[key])
+        self.assertEqual(len(response_content), len(expected_content) + 1)
+        self.assertIn("uuid", response_content)
+        self.assertIsInstance(response_content["uuid"], basestring)
 
     def test_get_changed_fields(self):
         """Get data from the created account, after we've modified it."""
