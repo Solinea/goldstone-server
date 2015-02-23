@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-var NovaReportView = ApiPerfReportView.extend({
+var NovaReportView = GoldstoneBasePageView.extend({
 
-    triggerChange: function() {
-        this.novaApiPerfChartView.trigger('selectorChanged');
-        this.vmSpawnChartView.trigger('selectorChanged');
-        this.cpuResourcesChartView.trigger('selectorChanged');
-        this.memResourcesChartView.trigger('selectorChanged');
-        this.diskResourcesChartView.trigger('selectorChanged');
+    triggerChange: function(change) {
+
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.novaApiPerfChartView.trigger('lookbackSelectorChanged');
+            this.vmSpawnChartView.trigger('lookbackSelectorChanged');
+            this.cpuResourcesChartView.trigger('lookbackSelectorChanged');
+            this.memResourcesChartView.trigger('lookbackSelectorChanged');
+            this.diskResourcesChartView.trigger('lookbackSelectorChanged');
+        }
     },
 
     renderCharts: function() {
