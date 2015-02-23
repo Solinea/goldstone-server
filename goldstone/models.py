@@ -402,3 +402,23 @@ class TopologyData(object):
         except ValueError as exc:
             logger.exception(exc)
             raise
+
+    def post(self, body, **_):
+        """Post a record to the database.
+
+        :arg body: record body as JSON object
+        :arg _: Unused.
+        :return: id of the inserted record
+
+        """
+
+        logger.debug("post called with body = %s", json.dumps(body))
+
+        response = self.conn.create(
+            daily_index(self._INDEX_PREFIX),
+            self._DOC_TYPE,
+            body,
+            refresh=True)
+
+        logger.debug('[post] response = %s', json.dumps(response))
+        return response['_id']

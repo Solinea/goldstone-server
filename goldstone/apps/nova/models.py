@@ -311,7 +311,7 @@ class ResourceData(ESData):
     def _get_resource(self, resource_type, resource, custom_field):
 
         query = self._claims_resource_query(resource_type, resource)
-        logger.debug('query = %s', json.dumps(query))
+        logger.info('query = %s', json.dumps(query))
 
         index = ",".join(self.get_index_names('goldstone-'))
         result = self._conn.search(index=index,
