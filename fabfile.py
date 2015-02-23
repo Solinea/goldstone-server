@@ -21,13 +21,21 @@ from fabric.api import task, local, warn, prompt
 # Add the current directory to the module search path.
 sys.path.append('')
 
+# The Goldstone settings directory, relative to the Goldstone root where we're
+# executing from.
+SETTINGS_DIR = "goldstone.settings"
+
 # The settings for running test locally in development.
-DEV_SETTINGS = "goldstone.settings.test"
+DEV_SETTINGS = SETTINGS_DIR + ".test"
 
 
-def _django_manage(target, proj_settings=None, daemon=False):
-    """Run manage.py <target>.
+def _django_manage(command, target='', proj_settings=None, daemon=False):
+    """Run manage.py <command>.
 
+    :param command: The command to send to manage. E.g., test
+    :type command: str
+    :keyword target:A subcommand to sen d to manage. E.g., test user
+    :type target: str
     :keyword proj_settings: The project settings to use
     :type proj_settings: str
     :keyword daemon: True if the command should be run in a background process
@@ -42,10 +50,8 @@ def _django_manage(target, proj_settings=None, daemon=False):
     # Run this command as a background process, if requested.
     daemon_opt = "&" if daemon else ''
 
-    # Run the command.
-    # local("export PYTHONPATH='' && "
-    #       "django-admin.py %s %s %s" % (target, settings_opt, daemon_opt))
-    local("./manage.py %s %s %s" % (target, settings_opt, daemon_opt))
+    local("./manage.py %s %s %s %s" %
+          (command, target, settings_opt, daemon_opt))
 
 
 @contextmanager
@@ -116,7 +122,7 @@ def syncmigrate(proj_settings=DEV_SETTINGS):
 
     print "doing a syncdb and migrate ..."
     print '(answer "yes" to the, "create a superuser?" question!)'
-    _django_manage("syncdb", proj_settings)
+    _django_manage("syncdb", proj_settings=proj_settings)
 
 
 @task
@@ -160,12 +166,21 @@ def _choose_runserver_settings():
 def runserver():
     """Do runserver using a user-selected settings file."""
 
-    # The Goldstone settings directory, relative to the Goldstone root.
-    SETTINGS_DIR = "goldstone.settings"
-
     # Get the user's desired settings file, strip off the trailing ".py", and
     # convert it into a Python path.
     settings = _choose_runserver_settings().replace(".py", '')
     settings = SETTINGS_DIR + '.' + settings
 
-    _django_manage("runserver", settings)
+    _django_manage("runserver", proj_settings=settings)
+
+
+@task
+def test(target=''):
+    """Run the unit tests.
+
+    :keyword target: The app or test target. E.g., goldstone.user
+    :type target: str
+
+    """
+
+    _django_manage("test", target=target, proj_settings=DEV_SETTINGS)
