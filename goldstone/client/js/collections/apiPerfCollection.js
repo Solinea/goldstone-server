@@ -64,6 +64,6 @@ var ApiPerfCollection = Backbone.Collection.extend({
         this.url = '/api_perf/stats?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval + '&component=' + this.defaults.urlPrefix;
 
         // generates url string similar to:
-        // /nova/api_perf?start=1423678376&end=1423681976&interval=60s
+        // /api_perf/stats?start=1424710116&end=1424713716&interval=60s&component=nova
     }
 });
