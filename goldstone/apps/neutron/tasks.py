@@ -37,6 +37,6 @@ def time_agent_list_api():
     """
 
     precursor = stack_api_request_base("network", "v2.0/agents")
-    return time_api_call('neutron.agent.list',
+    return time_api_call('neutron',
                          precursor['url'],
                          headers=precursor['headers'])

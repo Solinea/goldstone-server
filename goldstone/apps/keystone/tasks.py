@@ -43,7 +43,7 @@ def time_token_post_api():
                                                 "password": passwd}}}
     headers = {'content-type': 'application/json'}
 
-    return time_api_call('keystone.token.post',
+    return time_api_call('keystone',
                          url,
                          method='POST',
                          data=json.dumps(payload),

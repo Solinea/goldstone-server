@@ -75,7 +75,7 @@ def time_hypervisor_list_api():
     """
 
     precursor = stack_api_request_base("compute", "/os-hypervisors")
-    return time_api_call('nova.hypervisor.list',
+    return time_api_call('nova',
                          precursor['url'],
                          headers=precursor['headers'])
 
