@@ -22,51 +22,11 @@ from goldstone.utils import GoldstoneAuthError
 logger = logging.getLogger(__name__)
 
 
-def _construct_api_rec(reply, component, created, timeout, url):
-    """Build an API performance record.
-
-    :type reply: Response or None
-    :param reply: the HTTP response from a request
-    :type component: str
-    :param component: the component name for the requested endpoint
-    :type created: Arrow
-    :param created: the creation date for the record
-    :type timeout:
-    :param timeout: request timeout value
-    :type url: str
-    :param url:
-
-    """
-    from urlparse import urlparse
-
-    assert type(created) is Arrow, "created is not an Arrow object"
-    rec = {'component': component,
-           'uri': urlparse(url).path,
-           'creation_time': created.datetime}
-
-    if reply is None:
-        rec['response_time'] = timeout*1000
-        rec['response_status'] = 504
-        rec['response_length'] = 0
-
-    else:
-        timedelta = reply.elapsed
-        secs = timedelta.seconds + timedelta.days * 24 * 3600
-        fraction = float(timedelta.microseconds) / 10**6
-        millisecs = int(round((secs + fraction) * 1000))
-
-        rec['response_time'] = millisecs
-        rec['response_status'] = reply.status_code
-        rec['response_length'] = int(reply.headers['content-length'])
-
-    return rec
-
-
 def stack_api_request_base(endpoint, path,
-                               user=settings.OS_USERNAME,
-                               passwd=settings.OS_PASSWORD,
-                               tenant=settings.OS_TENANT_NAME,
-                               auth_url=settings.OS_AUTH_URL):
+                           user=settings.OS_USERNAME,
+                           passwd=settings.OS_PASSWORD,
+                           tenant=settings.OS_TENANT_NAME,
+                           auth_url=settings.OS_AUTH_URL):
     """Look up the openstack endpoint for a component, and build up the url
     and auth headers that can be used for a request.
     :param endpoint:
@@ -113,15 +73,20 @@ def time_api_call(component, url, method='GET', **kwargs):
     from .models import ApiPerfData
     from django.conf import settings
     import requests
+    from urlparse import urlparse
 
     reply = requests.request(method, url, **kwargs)
-    now = arrow.utcnow()
-    rec = _construct_api_rec(reply,
-                             component,
-                             now,
-                             timeout=settings.API_PERF_QUERY_TIMEOUT,
-                             url=url)
 
-    api_db = ApiPerfData(kwargs=rec)
-    created = api_db.save()
-    return {'created': created, 'response': reply}
+    if reply is None:
+        now = arrow.utcnow()
+        rec = ApiPerfData(component=component,
+                          uri=urlparse(url).path,
+                          creation_time=now.datetime,
+                          response_time=settings.API_PERF_QUERY_TIMEOUT*1000,
+                          response_status=504,
+                          response_length=0)
+
+        created = rec.save()
+        return {'created': created, 'response': reply}
+
+    return None

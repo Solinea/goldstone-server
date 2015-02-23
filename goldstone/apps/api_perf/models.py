@@ -50,7 +50,6 @@ class ApiPerfData(DocType):
     class Meta:
         doc_type = 'api_stats'
 
-
     @classmethod
     def _stats_search(cls, start, end, interval, component,
                       uri=None, prefix=False):
@@ -90,13 +89,11 @@ class ApiPerfData(DocType):
             metric('stats', 'extended_stats', field='response_time').\
             bucket('range', 'range', field='response_status', keyed=True,
                    ranges=[
-                        {"from": 200, "to": 299},
-                        {"from": 300, "to": 399},
-                        {"from": 400, "to": 499},
-                        {"from": 500, "to": 599}
-                    ])
+                       {"from": 200, "to": 299},
+                       {"from": 300, "to": 399},
+                       {"from": 400, "to": 499},
+                       {"from": 500, "to": 599}])
 
-        logger.info("search = %s", json.dumps(search.to_dict()))
         return search
 
     # TODO implement get_components
@@ -132,7 +129,6 @@ class ApiPerfData(DocType):
         search = cls._stats_search(start, end, interval, component, uri)
 
         result = search.execute()
-        logger.info('[get] search result = %s', json.dumps(result.to_dict()))
 
         items = []
 
@@ -153,15 +149,18 @@ class ApiPerfData(DocType):
             item['5xx'] = \
                 date_bucket['range']['buckets']['500.0-599.0']['doc_count']
 
-            item['upper_std_dev_bound'] = item['std_deviation_bounds']['upper']
-            item['lower_std_dev_bound'] = item['std_deviation_bounds']['lower']
-            del item['std_deviation_bounds']
+            if 'std_deviation_bounds' in item:
+                item['upper_std_dev_bound'] = \
+                    item['std_deviation_bounds']['upper']
+                item['lower_std_dev_bound'] = \
+                    item['std_deviation_bounds']['lower']
+                del item['std_deviation_bounds']
+
             items.append(item)
 
         result = pd.read_json(json.dumps(items),
                               orient='records',
                               convert_axes=False)
-
         return result
 
     def save(self, using=None, index=None, **kwargs):

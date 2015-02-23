@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from pandas import DataFrame
 
 from .models import ApiPerfData
 from uuid import uuid1
@@ -23,7 +24,7 @@ from elasticsearch_dsl import Search, Q
 from mock import patch
 from requests import Response
 from goldstone.apps.api_perf.utils import time_api_call, \
-    stack_api_request_base, _construct_api_rec
+    stack_api_request_base
 from goldstone.apps.api_perf.views import ApiPerfView
 from goldstone.models import daily_index, es_conn
 from goldstone.utils import GoldstoneAuthError
@@ -42,22 +43,26 @@ class ViewTests(SimpleTestCase):
 
 class UtilsTests(SimpleTestCase):
 
-    @patch('goldstone.apps.api_perf.utils._construct_api_rec')
     @patch('requests.request')
     @patch.object(ApiPerfData, 'save')
-    def test_time_api_call(self, m_save, m_request, m_construct_rec):
+    def test_time_api_call_succeed(self, m_save, m_request):
         fake_response = Response()
         fake_response.status_code = 200
         fake_response._content = '{"a":1,"b":2}'       # pylint: disable=W0212
         m_request.return_value = fake_response
-        m_save.return_value = True
-        m_construct_rec.return_value = {}
-        result = time_api_call('test', 'get', 'http://test')
+        result = time_api_call('test', 'GET', 'http://test')
         self.assertTrue(m_request.called)
-        self.assertTrue(m_save.called)
-        self.assertTrue(m_construct_rec.called)
+        self.assertFalse(m_save.called)
 
-        # we should get a dict with created and response
+        # we should get a None
+        self.assertEqual(result, None)
+
+    @patch('requests.request')
+    @patch.object(ApiPerfData, 'save')
+    def test_time_api_call_fail(self, m_save, m_request):
+        m_request.return_value = None
+        m_save.return_value = True
+        result = time_api_call('test', 'GET', 'http://test')
         self.assertEqual(result,
                          {'created': m_save.return_value,
                           'response': m_request.return_value})
@@ -84,7 +89,6 @@ class UtilsTests(SimpleTestCase):
         self.assertEquals(result['headers']['x-auth-token'], 'token')
         self.assertEquals(result['url'], "http://endpoint/path")
 
-
     @patch('goldstone.utils.get_keystone_client')
     def test_openstack_api_request_base_exceptions(self, m_get):
 
@@ -95,37 +99,6 @@ class UtilsTests(SimpleTestCase):
         m_get.side_effect = Exception
         self.assertRaises(LookupError, stack_api_request_base,
                           "", "", "")
-
-    def test_construct_api_rec_none(self):
-
-        now = arrow.utcnow()
-        rec = _construct_api_rec(None, "test", now, 1, "http://endpoint/path")
-        self.assertIsInstance(rec, dict)
-        self.assertEqual(rec['component'], 'test')
-        self.assertEqual(rec['uri'], '/path')
-        self.assertEqual(rec['creation_time'], now)
-        self.assertEqual(rec['response_time'], 1000)
-        self.assertEqual(rec['response_status'], 504)
-        self.assertEqual(rec['response_length'], 0)
-
-
-    def test_construct_api_rec_some(self):
-
-        now = arrow.utcnow()
-        reply = Response()
-        reply.status_code = 200
-        reply.url = "http://endpoint/path"
-        reply.headers = {'content-length': 1024}
-        reply.elapsed = timedelta(seconds=2)
-
-        rec = _construct_api_rec(reply, "test", now, 2, "http://endpoint/path")
-        self.assertIsInstance(rec, dict)
-        self.assertEqual(rec['component'], 'test')
-        self.assertEqual(rec['uri'], '/path')
-        self.assertEqual(rec['creation_time'], now)
-        self.assertEqual(rec['response_time'], 2000)
-        self.assertEqual(rec['response_status'], 200)
-        self.assertEqual(rec['response_length'], 1024)
 
 
 class ApiPerfTests(SimpleTestCase):
@@ -165,7 +138,6 @@ class ApiPerfTests(SimpleTestCase):
         self.assertEqual(data.uri, persisted.uri)
         self.assertEqual(data.response_length, persisted.response_length)
         self.assertEqual(data.response_time, persisted.response_time)
-
 
         # TODO uncomment when bug fixed in es-dsl
         # self.assertEqual(data.created, persisted.created)
@@ -224,7 +196,7 @@ class ApiPerfTests(SimpleTestCase):
                              uri='/test',
                              response_length=999,
                              response_time=999)
-                 for status in range(100,601,100)]
+                 for status in range(100, 601, 100)]
 
         for stat in stats:
             created = stat.save()
@@ -263,12 +235,12 @@ class ApiPerfTests(SimpleTestCase):
                                        '1m',
                                        'test')
 
-        self.assertIsInstance(result, list)
+        self.assertIsInstance(result, DataFrame)
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0]['2xx'], 1)
-        self.assertEqual(result[0]['3xx'], 1)
-        self.assertEqual(result[0]['4xx'], 1)
-        self.assertEqual(result[0]['5xx'], 1)
+        self.assertEqual(result.iloc[0]['2xx'], 1)
+        self.assertEqual(result.iloc[0]['3xx'], 1)
+        self.assertEqual(result.iloc[0]['4xx'], 1)
+        self.assertEqual(result.iloc[0]['5xx'], 1)
 
     def test_api_perf_view(self):
         start = arrow.utcnow().replace(minutes=-1)
@@ -293,7 +265,7 @@ class ApiPerfTests(SimpleTestCase):
                              uri='/test',
                              response_length=999,
                              response_time=999)
-                 for status in range(100,601,100)]
+                 for status in range(100, 601, 100)]
 
         for stat in stats:
             created = stat.save()
@@ -311,5 +283,5 @@ class ApiPerfTests(SimpleTestCase):
                    }
 
         result = perfview._get_data(context)           # pylint: disable=W0212
-        self.assertIsInstance(result, list)
+        self.assertIsInstance(result, DataFrame)
         self.assertNotEqual(len(result), 0)

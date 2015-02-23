@@ -20,8 +20,7 @@ from goldstone.celery import app as celery_app
 from goldstone.utils import to_es_date
 from .models import ServicesData, VolumesData, BackupsData, \
     SnapshotsData, VolTypesData, EncryptionTypesData, TransfersData
-from goldstone.apps.api_perf.utils import stack_api_request_base, \
-        time_api_call
+from goldstone.apps.api_perf.utils import stack_api_request_base, time_api_call
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +29,8 @@ logger = logging.getLogger(__name__)
 def time_service_list():
 
     image_list_precursor = stack_api_request_base("volumev2",
-                                                      "/os-services")
-    return time_api_call('cinderv2.service.list',
+                                                  "/os-services")
+    return time_api_call('cinder',
                          image_list_precursor['url'],
                          headers=image_list_precursor['headers'])
 

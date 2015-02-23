@@ -371,7 +371,6 @@ class TopologyData(object):
         self.search._doc_type = self._DOC_TYPE
         self.search._index = es_indices(self._INDEX_PREFIX, self.conn)
 
-
     @classmethod
     def _sort_arg(cls, key, order):
         if order in ["+", "asc"]:
