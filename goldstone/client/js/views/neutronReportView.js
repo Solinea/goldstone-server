@@ -24,7 +24,7 @@ var NeutronReportView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
         this.neutronApiPerfChart = new ApiPerfCollection({
-            urlPrefix: 'neutron',
+            componentParam: 'neutron',
         });
 
         this.neutronApiPerfChartView = new ApiPerfView({

@@ -18,7 +18,7 @@
 Instantiated similar to:
 
 this.novaApiPerfChart = new ApiPerfCollection({
-    urlPrefix: 'nova',
+    componentParam: 'nova',
 });
 */
 
@@ -44,7 +44,7 @@ var ApiPerfCollection = Backbone.Collection.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
-        this.defaults.urlPrefix = this.options.urlPrefix;
+        this.defaults.componentParam = this.options.componentParam;
         this.defaults.reportParams = {};
         this.defaults.globalLookback = $('#global-lookback-range').val();
         this.urlGenerator();
@@ -61,7 +61,7 @@ var ApiPerfCollection = Backbone.Collection.extend({
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
-        this.url = '/api_perf/stats?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval + '&component=' + this.defaults.urlPrefix;
+        this.url = '/api_perf/stats?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval + '&component=' + this.defaults.componentParam;
 
         // generates url string similar to:
         // /api_perf/stats?start=1424710116&end=1424713716&interval=60s&component=nova
