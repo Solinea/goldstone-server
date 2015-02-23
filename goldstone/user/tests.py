@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from django.contrib.auth import get_user_model
-from django.test import SimpleTestCase, Client
+from django.test import Client
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST
+from .util_test import create_and_login, Setup
 
 # Http response content that are expected by some tests.
 CONTENT_NO_CREDENTIALS = \
@@ -30,26 +30,6 @@ USER_URL = "/user"
 AUTHORIZATION_PAYLOAD = "Token %s"
 TEST_USER = ("fred", "fred@fred.com", "meh")
 TEST_USER_LOGIN = {"username": TEST_USER[0], "password": TEST_USER[2]}
-
-
-def _create_and_login():
-    """Create a user and log them in.
-
-    :return: The authorization token's value
-    :rtype: str
-
-    """
-
-    # Create a user
-    get_user_model().objects.create_user(*TEST_USER)
-
-    # Log the user in, and return the auth token's value.
-    client = Client()
-    response = client.post(LOGIN_URL, TEST_USER_LOGIN)
-
-    assert response.status_code == HTTP_200_OK
-
-    return response.data["auth_token"]      # pylint: disable=E1101
 
 
 def _response_equals_without_uuid(response, expected_status_code,
@@ -90,17 +70,6 @@ def _response_equals_without_uuid(response, expected_status_code,
     assert isinstance(response_content["uuid"], basestring)
 
 
-class Setup(SimpleTestCase):
-
-    """A base class to ensure we do needed housekeeping before each test."""
-
-    def setUp(self):
-        """Do explicit database reseting because SimpleTestCase doesn't always
-        reset the database to as much of an initial state as we expect."""
-
-        get_user_model().objects.all().delete()
-
-
 class NoAccess(Setup):
     """The user attempts access without being logged in, or presenting a bad
     authentication token."""
@@ -135,7 +104,7 @@ class NoAccess(Setup):
         # Create a user, and create a bad authorization token.  (This test will
         # erroneously fail if the good token doesn't contain any 9 characters,
         # which is very unlikely.)
-        bad_token = _create_and_login().replace('9', '8')
+        bad_token = create_and_login().replace('9', '8')
 
         client = Client()
         response = \
@@ -167,7 +136,7 @@ class BadPut(Setup):
         using a bad token."""
 
         # Create a user, and create a bad authorization token.
-        bad_token = _create_and_login().replace('9', '8')
+        bad_token = create_and_login().replace('9', '8')
 
         client = Client()
         response = \
@@ -185,7 +154,7 @@ class BadPut(Setup):
         username."""
 
         # Create a user and get the authorization token.
-        token = _create_and_login()
+        token = create_and_login()
 
         client = Client()
         response = \
@@ -213,7 +182,7 @@ class GetPut(Setup):
                             "default_tenant_admin": False}
 
         # Create a user and get their authorization token.
-        token = _create_and_login()
+        token = create_and_login()
 
         client = Client()
         response = \
@@ -233,7 +202,7 @@ class GetPut(Setup):
                             "default_tenant_admin": False}
 
         # Create a user and get their authorization token.
-        token = _create_and_login()
+        token = create_and_login()
 
         # Change some attributes from the default. Note, the username is
         # required by djoser UserView/PUT.
@@ -265,7 +234,7 @@ class GetPut(Setup):
                             "default_tenant_admin": False}
 
         # Create a user and get their authorization token.
-        token = _create_and_login()
+        token = create_and_login()
 
         # Change some attributes from the default. Note, the username is
         # required by djoser UserView/PUT.
@@ -299,7 +268,7 @@ class GetPut(Setup):
                             "default_tenant_admin": False}
 
         # Create a user and get their authorization token.
-        token = _create_and_login()
+        token = create_and_login()
 
         # Change some attributes from the default. Note, the username is
         # required by djoser UserView/PUT.
