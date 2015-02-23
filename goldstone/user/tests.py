@@ -26,6 +26,8 @@ CONTENT_BAD_TOKEN = '{"detail":"Invalid token"}'
 LOGIN_URL = "/accounts/login"
 USER_URL = "/user"
 AUTHORIZATION_PAYLOAD = "Token %s"
+TEST_USER = ("fred", "fred@fred.com", "meh")
+TEST_USER_LOGIN = {"username": TEST_USER[0], "password": TEST_USER[2]}
 
 
 def _create_and_login():
@@ -37,27 +39,69 @@ def _create_and_login():
     """
 
     # Create a user
-    get_user_model().objects.create_user("fred", "fred@fred.com", "meh")
+    get_user_model().objects.create_user(*TEST_USER)
 
     # Log the user in, and return the auth token's value.
     client = Client()
-    response = client.post(LOGIN_URL, {"username": "fred", "password": "meh"})
+    response = client.post(LOGIN_URL, TEST_USER_LOGIN)
 
     assert response.status_code == HTTP_200_OK
 
     return response.data["auth_token"]      # pylint: disable=E1101
 
 
-class NoAccess(SimpleTestCase):
-    """The user attempts access without being logged in, or presenting a bad
-    authentication token."""
+def _response_equals_without_uuid(response, expected_status_code,
+                                  expected_content):
+    """Compare a response's content with expected content, without fully
+    testing the "uuid" key.
+
+    This module's tests can't always just do a self.assertContains, or use
+    self.assertEqual, because the response contains a "uuid" key. We want to
+    test that the uuid key is present and its value is a string, without
+    comparing the uuid strings.
+
+    :param response: The HTTP response to be tested
+    :type response: django.test.client.Response
+    :param expected_status_code: The expected status code
+    :type expected_status_code: rest_framework.status.HTTP*
+    :param expected_content: The expected response.content
+    :type expected_content: dict
+
+    """
+
+    assert response.status_code == expected_status_code
+
+    # We deserialize the response content, to simplify checking the
+    # results
+    response_content = json.loads(response.content)
+
+    # Check that every expected key is in the response, and the content lengths
+    # differ by only one.
+    for key in expected_content:
+        assert response_content[key] == expected_content[key]
+
+    assert len(response_content) == len(expected_content) + 1
+
+    # Verify that the uuid key is present and its value is a string, but
+    # don't check the value's content.
+    assert "uuid" in response_content
+    assert isinstance(response_content["uuid"], basestring)
+
+
+class Setup(SimpleTestCase):
+
+    """A base class to ensure we do needed housekeeping before each test."""
 
     def setUp(self):
-        """Do some housekeeping before each test."""
+        """Do explicit database reseting because SimpleTestCase doesn't always
+        reset the database to as much of an initial state as we expect."""
 
-        # SimpleTestCase doesn't always reset the database to as much of an
-        # initial state as we expect. So, do it explicitly.
         get_user_model().objects.all().delete()
+
+
+class NoAccess(Setup):
+    """The user attempts access without being logged in, or presenting a bad
+    authentication token."""
 
     def test_get_nologin(self):
         """Getting while not logged in."""
@@ -137,23 +181,16 @@ class NoAccess(SimpleTestCase):
                             status_code=HTTP_401_UNAUTHORIZED)
 
 
-class Get(SimpleTestCase):
-    """The user gets her account's User data."""
+class GetPut(Setup):
+    """The user gets her account's User data, and changes some attributes."""
 
-    def setUp(self):
-        """Do some housekeeping before each test."""
-
-        # SimpleTestCase doesn't always reset the database to as much of an
-        # initial state as we expect. So, do it explicitly.
-        get_user_model().objects.all().delete()
-
-    def test_get(self):
+    def test_get(self):                   # pylint: disable=R0201
         """Get data from the default created account."""
 
-        expected_content = {"username": "fred",
+        expected_content = {"username": TEST_USER[0],
                             "first_name": '',
                             "last_name": '',
-                            "email": "fred@fred.com",
+                            "email": TEST_USER[1],
                             "tenant_admin": False,
                             "default_tenant_admin": False}
 
@@ -165,27 +202,108 @@ class Get(SimpleTestCase):
             client.get(USER_URL,
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        _response_equals_without_uuid(response, HTTP_200_OK, expected_content)
+
+    def test_change_one_field(self):
+        """Change one field in the account."""
+
+        expected_content = {"username": TEST_USER[0],
+                            "first_name": "Dirk",
+                            "last_name": '',
+                            "email": TEST_USER[1],
+                            "tenant_admin": False,
+                            "default_tenant_admin": False}
+
+        # Create a user and get their authorization token.
+        token = _create_and_login()
+
+        # Change some attributes from the default. Note, the username is
+        # required by djoser UserView/PUT.
+        client = Client()
+        response = \
+            client.put(USER_URL,
+                       json.dumps({"username": TEST_USER[0],
+                                   "first_name": "Dirk"}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
         self.assertEqual(response.status_code, HTTP_200_OK)
 
-        # We deserialize the response content, to simplify checking the
-        # results. We'll check that the uuid key is present, and it has a
-        # string value, but we don't check the value.
-        response_content = json.loads(response.content)
-        for key in expected_content:
-            self.assertEqual(response_content[key], expected_content[key])
-        self.assertEqual(len(response_content), len(expected_content) + 1)
-        self.assertIn("uuid", response_content)
-        self.assertIsInstance(response_content["uuid"], basestring)
+        # Now get the account attributes and see if they've changed.
+        response = \
+            client.get(USER_URL,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-    def test_get_changed_fields(self):
-        """Get data from the created account, after we've modified it."""
+        _response_equals_without_uuid(response, HTTP_200_OK, expected_content)
 
-        pass
+    def test_change_some_fields(self):
+        """Get data from an account, after we've modified some fields."""
+
+        expected_content = {"username": TEST_USER[0],
+                            "first_name": "Dirk",
+                            "last_name": "Diggler",
+                            "email": TEST_USER[1],
+                            "tenant_admin": False,
+                            "default_tenant_admin": False}
+
+        # Create a user and get their authorization token.
+        token = _create_and_login()
+
+        # Change some attributes from the default. Note, the username is
+        # required by djoser UserView/PUT.
+        client = Client()
+        response = \
+            client.put(USER_URL,
+                       json.dumps({"username": TEST_USER[0],
+                                   "first_name": "Dirk",
+                                   "last_name": "Diggler"}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        # Now get the account attributes and see if they've changed.
+        response = \
+            client.get(USER_URL,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        _response_equals_without_uuid(response, HTTP_200_OK, expected_content)
+
+    def test_change_all_fields(self):
+        """Get data from an account, after we've modified all the
+        user-modifyable fields."""
+
+        expected_content = {"username": "Heywood",
+                            "first_name": "Dirk",
+                            "last_name": "Diggler",
+                            "email": "john@siberia.com",
+                            "tenant_admin": False,
+                            "default_tenant_admin": False}
+
+        # Create a user and get their authorization token.
+        token = _create_and_login()
+
+        # Change some attributes from the default. Note, the username is
+        # required by djoser UserView/PUT.
+        client = Client()
+        response = \
+            client.put(USER_URL,
+                       json.dumps({"username": "Heywood",
+                                   "first_name": "Dirk",
+                                   "last_name": "Diggler",
+                                   "email": "john@siberia.com"}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        # Now get the account attributes and see if they've changed.
+        response = \
+            client.get(USER_URL,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        _response_equals_without_uuid(response, HTTP_200_OK, expected_content)
 
 
-# class Put(SimpleTestCase):
-#     pass
-
-
-# class BadPut(SimpleTestCase):
+# class BadPut(Setup):
 #     pass
