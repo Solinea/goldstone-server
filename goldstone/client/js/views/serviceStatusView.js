@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2014 - 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -14,6 +14,21 @@
  * limitations under the License.
  */
 
+/*
+Instantiated on nodeReportView.js similar to:
+
+this.serviceStatusChart = new ServiceStatusCollection({
+    nodeName: hostName
+});
+
+this.serviceStatusChartView = new ServiceStatusView({
+    collection: this.serviceStatusChart,
+    el: '#node-report-main #node-report-r2',
+    width: $('#node-report-main #node-report-r2').width(),
+    globalLookback: ns.globalLookback
+});
+*/
+
 var ServiceStatusView = GoldstoneBaseView.extend({
 
     processOptions: function() {
@@ -25,7 +40,7 @@ var ServiceStatusView = GoldstoneBaseView.extend({
     processListeners: function() {
         this.collection.on('sync', this.update, this);
         this.collection.on('error', this.dataErrorMessage, this);
-        this.on('selectorChanged', function() {
+        this.on('lookbackSelectorChanged', function() {
             this.defaults.spinnerDisplay = 'inline';
             $(this.el).find('#spinner').show();
             this.collection.retrieveData();

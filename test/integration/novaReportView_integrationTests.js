@@ -71,6 +71,8 @@ describe('NovaReportView.js spec', function() {
             expect($(this.testView.el).text()).to.equal(' Nova API PerformanceResponse Time (s) VM SpawnsSpawn Events CPU ResourcesCores Memory ResourcesMB Disk ResourcesGB');
         });
         it('should handle triggers', function(){
+            this.testView.triggerChange('lookbackSelectorChanged');
+            this.testView.triggerChange('lookbackIntervalReached');
             this.testView.triggerChange();
         });
     });

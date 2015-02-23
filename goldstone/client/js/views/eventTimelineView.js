@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2014 - 2015 Solinea, Inc.
  *
  * Licensed under the Solinea Software License Agreement (goldstone),
  * Version 1.0 (the "License"); you may not use this file except in compliance
@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
-// view is linked to collection when instantiated in goldstone_discover.html
+/*
+Instantiated on discoverView as:
+
+var eventTimelineChart = new EventTimelineCollection({});
+
+var eventTimelineChartView = new EventTimelineView({
+    collection: eventTimelineChart,
+    el: '#goldstone-discover-r1-c1',
+    chartTitle: 'Event Timeline',
+    width: $('#goldstone-discover-r1-c1').width()
+});
+*/
 
 var EventTimelineView = GoldstoneBaseView.extend({
     defaults: {
@@ -32,20 +43,33 @@ var EventTimelineView = GoldstoneBaseView.extend({
         }
     },
 
-    processOptions: function() {
+    initialize: function(options) {
+        EventTimelineView.__super__.initialize.apply(this, arguments);
+        this.setInfoButtonPopover();
+    },
 
+    processOptions: function() {
         this.defaults.colorArray = new GoldstoneColors().get('colorSets');
-        this.defaults.url = this.collection.url;
         this.el = this.options.el;
         this.defaults.chartTitle = this.options.chartTitle;
         this.defaults.width = this.options.width;
-        this.defaults.delay = null;
-
     },
 
     processListeners: function() {
+        var self = this;
+
         this.collection.on('sync', this.update, this);
         this.collection.on('error', this.dataErrorMessage, this);
+
+        this.on('lookbackSelectorChanged', function() {
+            self.updateSettings();
+            self.fetchNowWithReset();
+        });
+
+        this.on('lookbackIntervalReached', function() {
+            self.updateSettings();
+            self.fetchNowNoReset();
+        });
     },
 
     showSpinner: function() {
@@ -63,15 +87,6 @@ var EventTimelineView = GoldstoneBaseView.extend({
                 'display': ns.spinnerDisplay
             });
         });
-    },
-
-    initialize: function(options) {
-
-        EventTimelineView.__super__.initialize.apply(this, arguments);
-
-        this.setInfoButtonPopover();
-        this.setGlobalLookbackListeners();
-        this.updateSettings();
     },
 
     standardInit: function() {
@@ -159,16 +174,6 @@ var EventTimelineView = GoldstoneBaseView.extend({
 
     },
 
-    isRefreshSelected: function() {
-        return $('.global-refresh-selector .form-control').val() >= 0;
-    },
-
-    refreshInterval: function() {
-        refreshSeconds = $('.global-refresh-selector .form-control').val();
-        // refreshSeconds will be a string
-        return parseInt(refreshSeconds, 10);
-    },
-
     lookbackRange: function() {
         var lookbackMinutes;
         lookbackMinutes = $('.global-lookback-selector .form-control').val();
@@ -177,57 +182,21 @@ var EventTimelineView = GoldstoneBaseView.extend({
 
     updateSettings: function() {
         var ns = this.defaults;
-        ns.delay = this.refreshInterval();
         ns.lookbackRange = this.lookbackRange();
-    },
-
-    setGlobalLookbackListeners: function() {
-        var self = this;
-        var ns = this.defaults;
-
-        $('.global-lookback-selector .form-control').on('change', function() {
-            self.updateSettings();
-            self.fetchNowWithReset();
-
-        });
-        $('.global-refresh-selector .form-control').on('change', function() {
-            self.updateSettings();
-            self.scheduleFetch();
-
-        });
     },
 
     fetchNowWithReset: function() {
         var ns = this.defaults;
+        $(this.el).find('#spinner').show();
         this.collection.urlUpdate(ns.lookbackRange);
         this.collection.fetchWithReset();
     },
 
     fetchNowNoReset: function() {
         var ns = this.defaults;
+        $(this.el).find('#spinner').show();
         this.collection.urlUpdate(ns.lookbackRange);
         this.collection.fetchNoReset();
-    },
-
-    clearScheduledFetch: function() {
-        var ns = this.defaults;
-        clearTimeout(ns.scheduleTimeout);
-    },
-
-    scheduleFetch: function() {
-        var ns = this.defaults;
-        var self = this;
-
-        this.clearScheduledFetch();
-        var timeoutDelay = ns.delay * 1000;
-
-        if (timeoutDelay < 0) {
-            return true;
-        }
-
-        ns.scheduleTimeout = setTimeout(function() {
-            self.fetchNowNoReset();
-        }, timeoutDelay);
     },
 
     opacityByFilter: function(d) {
@@ -250,14 +219,6 @@ var EventTimelineView = GoldstoneBaseView.extend({
         return "visible";
     },
 
-    dataErrorMessage: function(message, errorMessage) {
-
-        EventTimelineView.__super__.dataErrorMessage.apply(this, arguments);
-
-        // reschedule next fetch at selected interval
-        this.scheduleFetch();
-    },
-
     update: function() {
         var ns = this.defaults;
         var self = this;
@@ -275,9 +236,6 @@ var EventTimelineView = GoldstoneBaseView.extend({
         })));
 
         ns.xScale = ns.xScale.domain([xEnd._d, xStart._d]);
-
-        // reschedule next fetch at selected interval
-        this.scheduleFetch();
 
         // If we didn't receive any valid files, append "No Data Returned"
         if (this.checkReturnedDataSet(allthelogs) === false) {
@@ -454,8 +412,16 @@ var EventTimelineView = GoldstoneBaseView.extend({
 
     render: function() {
         this.$el.html(this.template());
-        // $('#modal-container-' + this.el.slice(1)).append(this.modal1());
-        $('#modal-container-' + this.el.slice(1)).append(this.modal2());
+
+        // commented out, as the settings are determined by the
+        // global lookback selector
+        // $('#modal-container-' + this.el.slice(1)).append(this.eventSettingModal());
+
+        // append the modal that is triggered by
+        // clicking the filter icon
+        $('#modal-container-' + this.el.slice(1)).append(this.eventFilterModal());
+
+        // standard Backbone convention is to return this
         return this;
     },
 
@@ -518,7 +484,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
 
     ),
 
-    modal2: _.template(
+    eventFilterModal: _.template(
         // event filter modal
         '<div class="modal fade" id="modal-filter-<%= this.el.slice(1) %>' +
         '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
@@ -551,7 +517,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
         '</div>'
     ),
 
-    modal1: _.template(
+    eventSettingModal: _.template(
         // event settings modal
         // don't render if using global refresh/lookback
         '<div class="modal fade" id="modal-settings-<%= this.el.slice(1) %>' +

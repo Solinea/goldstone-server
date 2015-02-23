@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-var GlanceReportView = ApiPerfReportView.extend({
+var GlanceReportView = GoldstoneBasePageView.extend({
 
-    triggerChange: function() {
-        this.renderCharts();
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged' || change === 'lookbackIntervalReached') {
+            this.glanceApiPerfChartView.trigger('lookbackSelectorChanged');
+        }
     },
 
     renderCharts: function() {
@@ -41,15 +43,6 @@ var GlanceReportView = ApiPerfReportView.extend({
     template: _.template('' +
         '<div id="glance-report-r1" class="row">' +
         '<div id="glance-report-r1-c1" class="col-md-6"></div>' +
-        '<div id="glance-report-r1-c2" class="col-md-6"></div>' +
-        '</div>' +
-        '<div id="glance-report-r2" class="row">' +
-        '<div id="glance-report-r2-c1" class="col-md-6"></div>' +
-        '<div id="glance-report-r2-c2" class="col-md-6"></div>' +
-        '</div>' +
-        '<div id="glance-report-r3" class="row">' +
-        '<div id="glance-report-r3-c1" class="col-md-6"></div>' +
-        '<div id="glance-report-r3-c2" class="col-md-6"></div>' +
         '</div>'
     )
 });
