@@ -16,18 +16,12 @@ import json
 from django.test import Client
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST
-from .util_test import create_and_login, Setup
-
-# Http response content that are expected by some tests.
-CONTENT_NO_CREDENTIALS = \
-    '{"detail":"Authentication credentials were not provided."}'
-CONTENT_BAD_TOKEN = '{"detail":"Invalid token"}'
-CONTENT_MISSING_FIELD = '{"username":["This field is required."]}'
+from .util_test import create_and_login, Setup, AUTHORIZATION_PAYLOAD, \
+    CONTENT_NO_CREDENTIALS, CONTENT_BAD_TOKEN, CONTENT_MISSING_USERNAME
 
 # Define the URLs and payloads used in this module's testing.
 LOGIN_URL = "/accounts/login"
 USER_URL = "/user"
-AUTHORIZATION_PAYLOAD = "Token %s"
 TEST_USER = ("fred", "fred@fred.com", "meh")
 TEST_USER_LOGIN = {"username": TEST_USER[0], "password": TEST_USER[2]}
 
@@ -164,7 +158,7 @@ class BadPut(Setup):
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
-                            CONTENT_MISSING_FIELD,
+                            CONTENT_MISSING_USERNAME,
                             status_code=HTTP_400_BAD_REQUEST)
 
 
