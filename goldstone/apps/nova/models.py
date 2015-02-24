@@ -182,7 +182,7 @@ class SpawnData(ESData):
         q = self._spawn_start_query(agg_name)
         index = ",".join(self.get_index_names('goldstone-'))
         logger.debug("[get_spawn_start] calling query with index=%s, "
-                    "doc_type=%s", index, self._DOC_TYPE)
+                     "doc_type=%s", index, self._DOC_TYPE)
         response = self._conn.search(
             index=index, doc_type=self._DOC_TYPE, body=q, size=0)
         logger.debug("[get_spawn_start] response = %s", json.dumps(response))

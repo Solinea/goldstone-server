@@ -33,7 +33,7 @@ var GlanceReportView = GoldstoneBasePageView.extend({
             height: 300,
             infoCustom: [{
                 key: "API Call",
-                value: "Image Show"
+                value: "All"
             }],
             el: '#glance-report-r1-c1',
             width: $('#glance-report-r1-c1').width()
