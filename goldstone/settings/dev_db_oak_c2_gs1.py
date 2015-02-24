@@ -1,4 +1,5 @@
-"""Development settings, with Elasticsearch remote and PostgreSQL remote."""
+"""Development settings, with Elasticsearch remote and PostgreSQL remote,
+server running master branch."""
 from .development import *                # pylint: disable=W0614,W0401
 
 DATABASES = {

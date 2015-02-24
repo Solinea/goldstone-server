@@ -25,8 +25,8 @@ sys.path.append('')
 # executing from.
 SETTINGS_DIR = "goldstone.settings"
 
-# The settings for running test locally in development.
-DEV_SETTINGS = SETTINGS_DIR + ".test"
+# The default settings are to run Elasticsearch and PostgreSQL locally.
+DEV_SETTINGS = SETTINGS_DIR + ".test_oak_c2"
 
 
 def _django_manage(command, target='', proj_settings=None, daemon=False):
@@ -74,7 +74,8 @@ def _django_env(proj_settings=DEV_SETTINGS):
 def _choose(candidates):
     """Return a user selection from a displayed list, or None.
 
-    :param candidates: The selections, one per line
+    :param candidates: The selections, separated by '\n'. So the last entry is
+                       *not* terminated by a '\n'!
     :type candidates: str or None
 
     """
@@ -148,21 +149,52 @@ def load(proj_settings=DEV_SETTINGS):
         initialize_development()
 
 
-def _choose_runserver_settings():
+def _choose_runserver_settings(verbose):
     """Display the available settings files for a "runserver" command, ask the
     user to select one, and return a valid selection.
 
+    This displays as choices only those settings files that make sense as a
+    choice.
+
+    :param verbose: Display detail about each settings choice?
+    :type verbose: bool
     :return: A filepath to a settings file
     :rtype: str
 
     """
+    from importlib import import_module
 
     # Bash command to locate the candidate settings files, from results piped
-    # in. Is there a simpler expression that'll do the job?
-    CANDIDATES = 'egrep "dev|test|jstanford" | egrep -v "development|pyc"'
+    # in. The results will be in alphabetical order by default.
+    CANDIDATES = 'egrep "dev_|test_|jstanford" | egrep -v "pyc"'
 
     # Make a list of all the candidate settings file.
     candidates = local("ls goldstone/settings | %s" % CANDIDATES, capture=True)
+
+    # If the user wants verbose output, and each module's docstring to its
+    # selection...
+    if verbose:
+        candidates_list = candidates.split('\n')
+
+        result = []
+
+        # For every settings filename...
+        for entry in candidates_list:
+            # Strip off the ".py" and import the module.
+            filename = entry[:-3]
+            module = import_module(SETTINGS_DIR + '.' + filename)
+
+            if module.__doc__:
+                # This module has a docstring. Remove embedded \n's from it and
+                # add it to the result.
+                docstring = module.__doc__.replace('\n', ' ')
+                result.append("%s (%s)" % (entry, docstring))
+            else:
+                # No module docstring. This entry will be only the filename.
+                result.append(entry)
+
+        # Convert the verbose list into a string for the prompt function.
+        candidates = '\n'.join(result)
 
     # Return the user's selection
     print "\nchoose a settings file to use:"
@@ -170,12 +202,17 @@ def _choose_runserver_settings():
 
 
 @task
-def runserver():
-    """Do runserver using a user-selected settings file."""
+def runserver(verbose=False):
+    """Do runserver using a user-selected settings file.
+
+    :keyword verbose: Display detail about each settings choice?
+    :type verbose: bool
+
+    """
 
     # Get the user's desired settings file, strip off the trailing ".py", and
     # convert it into a Python path.
-    settings = _choose_runserver_settings().replace(".py", '')
+    settings = _choose_runserver_settings(verbose).replace(".py", '')
     settings = SETTINGS_DIR + '.' + settings
 
     _django_manage("runserver", proj_settings=settings)
