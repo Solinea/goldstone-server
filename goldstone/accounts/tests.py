@@ -13,60 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
+from django.contrib.auth import get_user_model
 from django.test import Client
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
-    HTTP_400_BAD_REQUEST
+    HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from goldstone.user.util_test import Setup, create_and_login
 
 # Http response content that are expected by some tests.
-# CONTENT_NO_CREDENTIALS = \
-#     '{"detail":"Authentication credentials were not provided."}'
 CONTENT_BAD_TOKEN = '{"detail":"Invalid token"}'
-# CONTENT_MISSING_FIELD = '{"username":["This field is required."]}'
+CONTENT_MISSING_PASSWORD = '{"password":["This field is required."]}'
+CONTENT_MISSING_USERNAME = '{"username":["This field is required."]}'
+CONTENT_MISSING_FIELDS = '{"username":["This field is required."],' \
+                         '"password":["This field is required."]}'
+CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
+
 
 # Define the URLs and payloads used in this module's testing.
 SETTINGS_URL = "/accounts/settings"
+REGISTRATION_URL = "/accounts/register"
 AUTHORIZATION_PAYLOAD = "Token %s"
-# TEST_USER = ("fred", "fred@fred.com", "meh")
-# TEST_USER_LOGIN = {"username": TEST_USER[0], "password": TEST_USER[2]}
-
-
-# def _response_equals_without_uuid(response, expected_status_code,
-#                                   expected_content):
-#     """Compare a response's content with expected content, without fully
-#     testing the "uuid" key.
-
-#     This module's tests can't always just do a self.assertContains, or use
-#     self.assertEqual, because the response contains a "uuid" key. We want to
-#     test that the uuid key is present and its value is a string, without
-#     comparing the uuid strings.
-
-#     :param response: The HTTP response to be tested
-#     :type response: django.test.client.Response
-#     :param expected_status_code: The expected status code
-#     :type expected_status_code: rest_framework.status.HTTP*
-#     :param expected_content: The expected response.content
-#     :type expected_content: dict
-
-#     """
-
-#     assert response.status_code == expected_status_code
-
-#     # We deserialize the response content, to simplify checking the
-#     # results
-#     response_content = json.loads(response.content)
-
-#     # Check that every expected key is in the response, and the content lengths
-#     # differ by only one.
-#     for key in expected_content:
-#         assert response_content[key] == expected_content[key]
-
-#     assert len(response_content) == len(expected_content) + 1
-
-#     # Verify that the uuid key is present and its value is a string, but
-#     # don't check the value's content.
-#     assert "uuid" in response_content
-#     assert isinstance(response_content["uuid"], basestring)
 
 
 class Settings(Setup):
@@ -111,10 +76,8 @@ class Settings(Setup):
     def test_get_badtoken(self):
         """Doing a GET with a bad token."""
 
-        # Create a user, and create a bad authorization token.  (This test will
-        # erroneously fail if the good token doesn't contain any 9 characters,
-        # which is very unlikely.)
-        bad_token = create_and_login().replace('9', '8')
+        # Create a user, and create a bad authorization token.
+        bad_token = create_and_login().replace('9', '8').replace('4', '3')
 
         client = Client()
         response = \
@@ -145,223 +108,116 @@ class Settings(Setup):
                             status_code=HTTP_401_UNAUTHORIZED)
 
 
-# class NoAccess(Setup):
-#     """The user attempts access without being logged in, or presenting a bad
-#     authentication token."""
+class Register(Setup):
+    """Account registration tests."""
 
-#     def test_get_nologin(self):
-#         """Getting while not logged in."""
+    def test_no_data(self):
+        """Try registering with an empty payload."""
 
-#         client = Client()
-#         response = client.get(USER_URL)
+        client = Client()
+        response = client.post(REGISTRATION_URL,
+                               content_type="application/json")
 
-#         self.assertContains(response,
-#                             CONTENT_NO_CREDENTIALS,
-#                             status_code=HTTP_401_UNAUTHORIZED)
+        self.assertContains(response,
+                            CONTENT_MISSING_FIELDS,
+                            status_code=HTTP_400_BAD_REQUEST)
 
-#     def test_get_badtoken(self):
-#         """Getting while not logged in, using any token."""
+        self.assertEqual(get_user_model().objects.count(), 0)
 
-#         BAD_TOKEN = "2f7306baced9dddd2c50071d25c6d7f2a46cbfd7"
+    def test_no_username(self):
+        """Try registering with no username."""
 
-#         client = Client()
-#         response = \
-#             client.get(USER_URL,
-#                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
+        client = Client()
+        response = client.post(REGISTRATION_URL,
+                               json.dumps({"password": "Diggler"}),
+                               content_type="application/json")
 
-#         self.assertContains(response,
-#                             CONTENT_BAD_TOKEN,
-#                             status_code=HTTP_401_UNAUTHORIZED)
+        self.assertContains(response,
+                            CONTENT_MISSING_USERNAME,
+                            status_code=HTTP_400_BAD_REQUEST)
 
-#     def test_loggedin_get_badtoken(self):
-#         """Getting while logged in, using a bad token."""
+        self.assertEqual(get_user_model().objects.count(), 0)
 
-#         # Create a user, and create a bad authorization token.  (This test will
-#         # erroneously fail if the good token doesn't contain any 9 characters,
-#         # which is very unlikely.)
-#         bad_token = _create_and_login().replace('9', '8')
+    def test_no_password(self):
+        """Try registering with no password."""
 
-#         client = Client()
-#         response = \
-#             client.get(USER_URL,
-#                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+        client = Client()
+        response = client.post(REGISTRATION_URL,
+                               json.dumps({"username": "Dirk"}),
+                               content_type="application/json")
 
-#         self.assertContains(response,
-#                             CONTENT_BAD_TOKEN,
-#                             status_code=HTTP_401_UNAUTHORIZED)
+        self.assertContains(response,
+                            CONTENT_MISSING_PASSWORD,
+                            status_code=HTTP_400_BAD_REQUEST)
 
-#     def test_put_nologin(self):
-#         """Putting (trying to change user attributes) while not logged in."""
+        self.assertEqual(get_user_model().objects.count(), 0)
 
-#         client = Client()
-#         response = client.put(USER_URL,
-#                               json.dumps({"first_name": "Dirk"}),
-#                               content_type="application/json")
+    def test_duplicate_name(self):
+        """Try registering with a duplicate name."""
 
-#         self.assertContains(response,
-#                             CONTENT_NO_CREDENTIALS,
-#                             status_code=HTTP_401_UNAUTHORIZED)
+        USERS = ["Bahb", "Barbra"]
 
+        # Register a couple of users.
+        client = Client()
 
-# class BadPut(Setup):
-#     """Bad PUT requests to change account attributes."""
+        for user in USERS:
+            response = \
+                client.post(REGISTRATION_URL,
+                            json.dumps({"username": user, "password": "x"}),
+                            content_type="application/json")
 
-#     def test_put_badtoken(self):
-#         """Putting (trying to change user attributes) while logged in, but
-#         using a bad token."""
+            self.assertEqual(response.status_code, HTTP_201_CREATED)
 
-#         # Create a user, and create a bad authorization token.
-#         bad_token = _create_and_login().replace('9', '8')
+        self.assertEqual(get_user_model().objects.count(), 2)
 
-#         client = Client()
-#         response = \
-#             client.put(USER_URL,
-#                        json.dumps({"first_name": "Dirk"}),
-#                        content_type="application/json",
-#                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+        # Now try to re-register one of the accounts.
+        response = \
+            client.post(REGISTRATION_URL,
+                        json.dumps({"username": USERS[0], "password": "x"}),
+                        content_type="application/json")
 
-#         self.assertContains(response,
-#                             CONTENT_BAD_TOKEN,
-#                             status_code=HTTP_401_UNAUTHORIZED)
+        self.assertContains(response,
+                            CONTENT_UNIQUE_USERNAME,
+                            status_code=HTTP_400_BAD_REQUEST)
 
-#     def test_no_username(self):
-#         """Try changing account attributes with a good token, but a bad
-#         username."""
+        self.assertEqual(get_user_model().objects.count(), 2)
 
-#         # Create a user and get the authorization token.
-#         token = _create_and_login()
+    def test_post(self, email=None):
+        """Register a user.
 
-#         client = Client()
-#         response = \
-#             client.put(USER_URL,
-#                        json.dumps({"first_name": "Dirk"}),
-#                        content_type="application/json",
-#                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        :keyword email: An e-mail address to use when registering the user
+        :type email: str or None
 
-#         self.assertContains(response,
-#                             CONTENT_MISSING_FIELD,
-#                             status_code=HTTP_400_BAD_REQUEST)
+        """
 
+        USERNAME = "Debra"
 
-# class GetPut(Setup):
-#     """The user gets her account's User data, and changes some attributes."""
+        # Assemble the registration payload
+        payload = {"username": USERNAME, "password": "x"}
+        if email:
+            payload["email"] = email
 
-#     def test_get(self):                   # pylint: disable=R0201
-#         """Get data from the default created account."""
+        # Register this account.
+        client = Client()
+        response = \
+            client.post(REGISTRATION_URL,
+                        json.dumps(payload),
+                        content_type="application/json")
 
-#         expected_content = {"username": TEST_USER[0],
-#                             "first_name": '',
-#                             "last_name": '',
-#                             "email": TEST_USER[1],
-#                             "tenant_admin": False,
-#                             "default_tenant_admin": False}
+        # Check the results.
+        self.assertEqual(response.status_code, HTTP_201_CREATED)
 
-#         # Create a user and get their authorization token.
-#         token = _create_and_login()
+        response_content = json.loads(response.content)
+        self.assertEqual(response_content["username"], USERNAME)
+        self.assertIsInstance(response_content["auth_token"], basestring)
+        self.assertEquals(len(response_content), 3)
+        self.assertEqual(response_content["email"], email if email else '')
 
-#         client = Client()
-#         response = \
-#             client.get(USER_URL,
-#                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        self.assertEqual(get_user_model().objects.count(), 1)
+        self.assertEqual(get_user_model().objects.all()[0].username,
+                         USERNAME)
 
-#         _response_equals_without_uuid(response, HTTP_200_OK, expected_content)
+    def test_post_with_email(self):
+        """Register a user, with an email address."""
 
-#     def test_change_one_field(self):
-#         """Change one field in the account."""
-
-#         expected_content = {"username": TEST_USER[0],
-#                             "first_name": "Dirk",
-#                             "last_name": '',
-#                             "email": TEST_USER[1],
-#                             "tenant_admin": False,
-#                             "default_tenant_admin": False}
-
-#         # Create a user and get their authorization token.
-#         token = _create_and_login()
-
-#         # Change some attributes from the default. Note, the username is
-#         # required by djoser UserView/PUT.
-#         client = Client()
-#         response = \
-#             client.put(USER_URL,
-#                        json.dumps({"username": TEST_USER[0],
-#                                    "first_name": "Dirk"}),
-#                        content_type="application/json",
-#                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-#         self.assertEqual(response.status_code, HTTP_200_OK)
-
-#         # Now get the account attributes and see if they've changed.
-#         response = \
-#             client.get(USER_URL,
-#                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-#         _response_equals_without_uuid(response, HTTP_200_OK, expected_content)
-
-#     def test_change_some_fields(self):
-#         """Get data from an account, after we've modified some fields."""
-
-#         expected_content = {"username": TEST_USER[0],
-#                             "first_name": "Dirk",
-#                             "last_name": "Diggler",
-#                             "email": TEST_USER[1],
-#                             "tenant_admin": False,
-#                             "default_tenant_admin": False}
-
-#         # Create a user and get their authorization token.
-#         token = _create_and_login()
-
-#         # Change some attributes from the default. Note, the username is
-#         # required by djoser UserView/PUT.
-#         client = Client()
-#         response = \
-#             client.put(USER_URL,
-#                        json.dumps({"username": TEST_USER[0],
-#                                    "first_name": "Dirk",
-#                                    "last_name": "Diggler"}),
-#                        content_type="application/json",
-#                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-#         self.assertEqual(response.status_code, HTTP_200_OK)
-
-#         # Now get the account attributes and see if they've changed.
-#         response = \
-#             client.get(USER_URL,
-#                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-#         _response_equals_without_uuid(response, HTTP_200_OK, expected_content)
-
-#     def test_change_all_fields(self):
-#         """Get data from an account, after we've modified all the
-#         user-modifiable fields."""
-
-#         expected_content = {"username": "Heywood",
-#                             "first_name": "Dirk",
-#                             "last_name": "Diggler",
-#                             "email": "john@siberia.com",
-#                             "tenant_admin": False,
-#                             "default_tenant_admin": False}
-
-#         # Create a user and get their authorization token.
-#         token = _create_and_login()
-
-#         # Change some attributes from the default. Note, the username is
-#         # required by djoser UserView/PUT.
-#         client = Client()
-#         response = \
-#             client.put(USER_URL,
-#                        json.dumps({"username": "Heywood",
-#                                    "first_name": "Dirk",
-#                                    "last_name": "Diggler",
-#                                    "email": "john@siberia.com"}),
-#                        content_type="application/json",
-#                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-#         self.assertEqual(response.status_code, HTTP_200_OK)
-
-#         # Now get the account attributes and see if they've changed.
-#         response = \
-#             client.get(USER_URL,
-#                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-#         _response_equals_without_uuid(response, HTTP_200_OK, expected_content)
+        self.test_post("dirk@diggler.com")
