@@ -23,10 +23,11 @@ from goldstone.user.util_test import Setup, create_and_login, login, \
     CONTENT_UNIQUE_USERNAME, CONTENT_NON_FIELD_ERRORS, LOGIN_URL, \
     TEST_USER, CONTENT_NOT_BLANK
 
-# Define the URLs by this module.
+# URLs used by this module.
 SETTINGS_URL = "/accounts/settings"
 REGISTRATION_URL = "/accounts/register"
 LOGOUT_URL = "/accounts/login"
+PASSWORD_URL = "/accounts/password"
 
 
 class Settings(Setup):
@@ -338,3 +339,63 @@ class Logout(Setup):
 
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertIsInstance(response.data["auth_token"], basestring)
+
+
+class Password(Setup):
+    """Test changing the user password."""
+
+    def not_logged_in(self):
+        """The user isn't logged in."""
+        pass
+
+    def test_missing_token(self):
+        """The change password request doesn't have an authentication token."""
+
+        # Create a user
+        get_user_model().objects.create_user(*TEST_USER)
+
+        # Try logging in with a bad username.
+        client = Client()
+        response = client.post(LOGIN_URL,
+                               {"username": "Atticus",
+                                "password": TEST_USER[2]})
+
+        self.assertContains(response,
+                            CONTENT_NON_FIELD_ERRORS,
+                            status_code=HTTP_400_BAD_REQUEST)
+
+    def test_bad_token(self):
+        """The change password request has a bad authentication token."""
+
+        # Create a user
+        get_user_model().objects.create_user(*TEST_USER)
+
+        # Try logging in with a bad username.
+        client = Client()
+        response = client.post(LOGIN_URL,
+                               {"username": TEST_USER[0], "password": "Finch"})
+
+        self.assertContains(response,
+                            CONTENT_NON_FIELD_ERRORS,
+                            status_code=HTTP_400_BAD_REQUEST)
+
+    def test_no_current_password(self):
+        """The change password request doesn't have a current password."""
+
+        create_and_login()
+
+    def test_bad_current_password(self):
+        """The change password request has a bad curent password."""
+
+        create_and_login()
+
+    def test_no_new_password(self):
+        """The change password request doesn't have a new password."""
+
+        create_and_login()
+
+    def test_change_password(self):
+        """Change the current user's password."""
+
+        create_and_login()
+        login(TEST_USER[0], TEST_USER[2])
