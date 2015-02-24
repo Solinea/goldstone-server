@@ -17,21 +17,13 @@ from django.contrib.auth import get_user_model
 from django.test import Client
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST, HTTP_201_CREATED
-from goldstone.user.util_test import Setup, create_and_login
-
-# Http response content that are expected by some tests.
-CONTENT_BAD_TOKEN = '{"detail":"Invalid token"}'
-CONTENT_MISSING_PASSWORD = '{"password":["This field is required."]}'
-CONTENT_MISSING_USERNAME = '{"username":["This field is required."]}'
-CONTENT_MISSING_FIELDS = '{"username":["This field is required."],' \
-                         '"password":["This field is required."]}'
-CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
-
+from goldstone.user.util_test import Setup, create_and_login, \
+    AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_MISSING_FIELDS, \
+    CONTENT_MISSING_USERNAME, CONTENT_MISSING_PASSWORD, CONTENT_UNIQUE_USERNAME
 
 # Define the URLs and payloads used in this module's testing.
 SETTINGS_URL = "/accounts/settings"
 REGISTRATION_URL = "/accounts/register"
-AUTHORIZATION_PAYLOAD = "Token %s"
 
 
 class Settings(Setup):

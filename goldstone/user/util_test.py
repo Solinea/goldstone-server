@@ -1,4 +1,10 @@
-"""Utilities for unit tests."""
+"""Unit Test utilities.
+
+These are used by the unit tests of multiple apps.
+
+TODO: Find a neutral home for them.
+
+"""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -14,6 +20,19 @@
 # limitations under the License.
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, Client
+
+# Http response content used by multiple tests.
+CONTENT_NO_CREDENTIALS = \
+    '{"detail":"Authentication credentials were not provided."}'
+CONTENT_BAD_TOKEN = '{"detail":"Invalid token"}'
+CONTENT_MISSING_PASSWORD = '{"password":["This field is required."]}'
+CONTENT_MISSING_USERNAME = '{"username":["This field is required."]}'
+CONTENT_MISSING_FIELDS = '{"username":["This field is required."],' \
+                         '"password":["This field is required."]}'
+CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
+
+# HTTP Authorization header payload for token authorization.
+AUTHORIZATION_PAYLOAD = "Token %s"
 
 
 def create_and_login():
