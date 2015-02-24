@@ -302,11 +302,11 @@ class Logout(Setup):
 
     def test_not_logged_in(self):
         """Logging out when a user is not logged in, with username and
-        password, and then using the authorization token."""
+        password."""
 
         create_and_login()
 
-        # Logout. Then logout again.
+        # Logout. Then logout again with username and password.
         # pylint: disable=E1101
         client = Client()
         response = client.post(LOGOUT_URL,
@@ -320,10 +320,21 @@ class Logout(Setup):
                                json.dumps({"username": TEST_USER[0],
                                            "password": TEST_USER[2]}),
                                content_type="application/json")
-        import pdb; pdb.set_trace()
+
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertIsInstance(response.data["auth_token"], basestring)
 
     def test_logout(self):
-        """Logging out."""
-        pass
+        """Log out."""
+
+        create_and_login()
+
+        # pylint: disable=E1101
+        client = Client()
+        response = client.post(LOGOUT_URL,
+                               json.dumps({"username": TEST_USER[0],
+                                           "password": TEST_USER[2]}),
+                               content_type="application/json")
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertIsInstance(response.data["auth_token"], basestring)
