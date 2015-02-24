@@ -19,7 +19,7 @@ import logging
 from django.test import SimpleTestCase
 from datetime import datetime
 from goldstone.apps.nova.models import HypervisorStatsData, SpawnData, \
-    ResourceData, NovaApiPerfData
+    ResourceData
 from goldstone.models import ESData
 
 logger = logging.getLogger(__name__)
@@ -131,14 +131,3 @@ class ResourceDataTest(SimpleTestCase):
         ]
 
         self._test_claims(type_field, test_params, prd)
-
-
-class ApiPerfDataTest(SimpleTestCase):
-    start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
-    end = datetime.now(tz=pytz.utc)
-    interval = '3600s'
-
-    def test_api_perf_data(self):
-        apd = NovaApiPerfData()
-        result = apd.get(self.start, self.end, self.interval)
-        self.assertFalse(result.empty)

@@ -12,11 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from arrow import Arrow
 from django.conf import settings
 from elasticsearch import Elasticsearch, ElasticsearchException
+from elasticsearch_dsl import Search
+from elasticsearch_dsl.connections import connections
 import redis
-from datetime import datetime
-from types import StringType
+
 import json
 import logging
 import pandas as pd
@@ -26,16 +28,58 @@ from goldstone.utils import NoDailyIndex
 logger = logging.getLogger(__name__)
 
 
-class GSConnection(object):
-    conn = None
+def es_conn(server=settings.ES_SERVER):
+    """Standardized connection to the ES cluster.
 
-    def __init__(self, server=settings.ES_SERVER):
-        self.conn = Elasticsearch(server, max_retries=1, sniff_on_start=False,
-                                  # sniffer_timeout=5,
-                                  # sniff_on_connection_fail=True,
-                                  # sniff_timeout=1,
-                                  )
-        self.conn.cluster.health(wait_for_status='yellow', request_timeout=2)
+    :param server: a server definition of the form [host:port, ...].  See
+    https://elasticsearch-py.readthedocs.org/en/master/api.html#elasticsearch
+    for alternate host specification options.
+    :return: an Elasticsearch connection instance
+    """
+
+    connections.configure(default=server,
+                          max_retries=1,
+                          sniff_on_start=False)
+    return connections.get_connection()
+
+
+def es_indices(prefix="", conn=None):
+    """ es_indices gets a potentially filtered list of index names.
+
+    :type prefix: str
+    :param prefix: the prefix to filter for
+    :type conn: Elasticsearch
+    :param conn: an ES connection object
+    :return: _all or list of index names
+
+    """
+
+    if prefix is not "":
+        if conn is None:
+            conn = es_conn()
+
+        all_indices = conn.indices.status()['indices'].keys()
+        return [i for i in all_indices if i.startswith(prefix)]
+    else:
+        return "_all"
+
+
+def daily_index(prefix=""):
+    """
+    Generate a daily index name of the form prefix-yyyy.mm.dd.  When
+    calling the index method of an ES connection, the target index will be
+    created if it doesn't already exist. This only generates the name.  It
+    does not guarantee that the index exists.
+
+    :type prefix: str
+    :param prefix: the prefix used to filter index list
+    :returns: index name
+
+    """
+
+    import arrow
+    postfix = arrow.utcnow().format('YYYY.MM.DD')
+    return prefix + postfix
 
 
 class RedisConnection(object):
@@ -51,13 +95,18 @@ class RedisConnection(object):
 
 class ESData(object):
 
-    _conn = GSConnection().conn
+    _conn = es_conn()
 
     def __init__(self):
         """Initialize the object, to keep pylint happy."""
         pass
 
     def get_index_names(self, prefix=None):
+        """
+
+        :type prefix: str
+        :return:
+        """
         all_indices = self._conn.indices.status()['indices'].keys()
         if prefix is not None:
             return [i for i in all_indices if i.startswith(prefix)]
@@ -308,147 +357,68 @@ class ESData(object):
                             values()[0]['_shards']['failed'])
 
 
-class ApiPerfData(ESData):
-    _DOC_TYPE = 'openstack_api_stats'
-    _INDEX_PREFIX = 'goldstone'
-    # override component for implementation
-    component = None
+class TopologyData(object):
 
-    def _api_perf_query(self, start, end, interval):
-        """
-        Sets up a query that does aggregations on the response_time field min,
-        max, avg for the bucket.
-        """
-        range_filter = self._range_clause('@timestamp', start.isoformat(),
-                                          end.isoformat())
-        filter_list = [range_filter]
-        if self.component:
-            component_filter = self._term_clause('component', self.component)
-            filter_list.append(component_filter)
+    _DOC_TYPE = ""
+    _INDEX_PREFIX = ""
 
-        query = self._filtered_query_base(self._bool_clause(
-            filter_list), {'match_all': {}})
-        date_agg = self._agg_date_hist(interval)
-        stats_agg = self._ext_stats_aggs_clause("stats", "response_time")
-        http_response_agg = self._http_response_aggs_clause("range",
-                                                            "response_status")
-        date_agg['events_by_date']['aggs'] = dict(stats_agg.items() +
-                                                  http_response_agg.items())
-        query['aggs'] = date_agg
-        logger.debug('[_api_perf_query] query = ' + json.dumps(query))
-        return query
+    def __init__(self):
+        self.conn = es_conn()
+        self.search = Search(self.conn)
 
-    def get(self, start, end, interval):
-        """Return a pandas object that contains API performance data.
+        # using the private setters over methods simplifies mocking for
+        # unit tests.
+        self.search._doc_type = self._DOC_TYPE
+        self.search._index = es_indices(self._INDEX_PREFIX, self.conn)
 
-        :arg start: datetime used to filter the query range
-        :arg end: datetime used to filter the query range
-        :arg interval: string representation of the time interval to use when
-                       aggregating the results.  Form should be something like
-                       '1.5s'.
-        :rtype: pandas object
-
-        Supported time postfixes are s, m, h, d, w, m.
-
-        """
-
-        assert type(start) is datetime, "start is not a datetime: %r" % \
-                                        type(start)
-        assert type(end) is datetime, "end is not a datetime: %r" % type(end)
-        assert type(interval) in [StringType, unicode], \
-            "interval is not a string: %r" % type(interval)
-        assert interval[-1] in ['s', 'm', 'h', 'd'], \
-            "valid units for interval are ['s', 'm', 'h', 'd']: %r" \
-            % interval
-
-        query = self._api_perf_query(start, end, interval)
-        logger.debug('[get] query = %s', json.dumps(query))
-
-        result = self._conn.search(index="_all",
-                                   body=query,
-                                   doc_type=self._DOC_TYPE)
-        logger.debug('[get] search response = %s', json.dumps(result))
-
-        items = []
-        for date_bucket in result['aggregations']['events_by_date']['buckets']:
-            logger.debug("[get] processing date_bucket: %s",
-                         json.dumps(date_bucket))
-
-            item = {'key': date_bucket['key']}
-
-            item = dict(item.items() + date_bucket['stats'].items())
-            item['2xx'] = \
-                date_bucket['range']['buckets']['200.0-299.0']['doc_count']
-            item['3xx'] = \
-                date_bucket['range']['buckets']['300.0-399.0']['doc_count']
-            item['4xx'] = \
-                date_bucket['range']['buckets']['400.0-499.0']['doc_count']
-            item['5xx'] = \
-                date_bucket['range']['buckets']['500.0-599.0']['doc_count']
-
-            items.append(item)
-
-        items = json.dumps(items)
-
-        logger.debug('[get] items = %s', items)
-        result = pd.read_json(items, orient='records', convert_axes=False)
-        logger.debug('[get] pd = %s', result)
-
-        return result
-
-    def post(self, body):
-        """
-        posts an ApiPerf record to the database.
-        :arg body: record body as JSON object
-        :return id of the inserted record
-        """
-        logger.debug("post called with body = %s", json.dumps(body))
-        response = self._conn.create(
-            ESData._get_latest_index(self, self._INDEX_PREFIX),
-            self._DOC_TYPE, body, refresh=True)
-        logger.debug('[post] response = %s', json.dumps(response))
-        return response['_id']
-
-    def delete(self, doc_id):
-        """
-        deletes an ApiPerf Zone record from the database by id.
-        :arg doc_id: the id of the doc as returned by post
-        :return bool
-        """
-
-        query = ESData._query_base()
-        query['query'] = ESData._term_clause("_id", doc_id)
-        response = self._conn.delete_by_query("_all", self._DOC_TYPE,
-                                              body=query)
-        logger.debug("[delete] response = %s", json.dumps(response))
-
-        # need to test for a single index case where there is no "all" field
-        if 'all' in response['_indices']:
-            return not bool(response['_indices']['all']['_shards']['failed'])
+    @classmethod
+    def _sort_arg(cls, key, order):
+        if order in ["+", "asc"]:
+            return key              # translates to [{key: {'order': 'asc'}}]
+        elif order in ["-", "desc"]:
+            return "-" + key        # translates to [{key: {'order': 'desc'}}]
         else:
-            return not bool(response['_indices'].
-                            values()[0]['_shards']['failed'])
+            raise ValueError("Valid order values are in [+, -, asc, desc]")
 
-
-class TopologyData(ESData):
-
-    def get(self, count=1, sort_key="@timestamp"):
+    def get(self, count=1, sort_key="@timestamp", sort_order="desc"):
         """
-        returns the latest n
+        returns the latest n instances from ES or None if not found
         """
-        sort_str = sort_key + ":desc"
+
         try:
-            logger.debug('[get] {"query details":  {"index": "_all", "query": '
-                         '{"query": {"match_all": {}}}, "doc_type": %s, '
-                         '"size": %d, "sort": %s"', self._DOC_TYPE, count,
-                         sort_str)
-            result = \
-                self._conn.search(index=self.get_index_names("goldstone-"),
-                                  body='{"query": {"match_all": {}}}',
-                                  doc_type=self._DOC_TYPE, size=count,
-                                  sort=sort_str)
-            logger.debug('[get] search response = %s', json.dumps(result))
-            return result['hits']['hits']
+            self.search.sort(self._sort_arg(sort_key, sort_order))
+            # only interested in one record
+            self.search = self.search[0:1]
+            logger.debug("[get] search = %s", self.search.to_dict())
+            logger.debug("[get] index = %s", self.search._index)
+            logger.debug("[get] doc_type = %s", self._DOC_TYPE)
+
+            return self.search.execute()
+
         except ElasticsearchException as exc:
             logger.debug("get from ES failed, exception was %s", exc.message)
             raise
+
+        except ValueError as exc:
+            logger.exception(exc)
+            raise
+
+    def post(self, body, **_):
+        """Post a record to the database.
+
+        :arg body: record body as JSON object
+        :arg _: Unused.
+        :return: id of the inserted record
+
+        """
+
+        logger.debug("post called with body = %s", json.dumps(body))
+
+        response = self.conn.create(
+            daily_index(self._INDEX_PREFIX),
+            self._DOC_TYPE,
+            body,
+            refresh=True)
+
+        logger.debug('[post] response = %s', json.dumps(response))
+        return response['_id']

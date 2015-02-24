@@ -15,22 +15,15 @@
 import logging
 
 from goldstone.apps.core.utils import JsonReadOnlyViewSet
-from goldstone.views import TopLevelView, ApiPerfView as GoldstoneApiPerfView
-from .models import GlanceApiPerfData, ImagesData
+from goldstone.views import TopLevelView
+from .models import ImagesData
+
 
 logger = logging.getLogger(__name__)
 
 
 class ReportView(TopLevelView):
     template_name = 'glance_report.html'
-
-
-class ApiPerfView(GoldstoneApiPerfView):
-
-    def _get_data(self, context):
-        return GlanceApiPerfData().get(context['start_dt'],
-                                       context['end_dt'],
-                                       context['interval'])
 
 
 class ImagesDataViewSet(JsonReadOnlyViewSet):

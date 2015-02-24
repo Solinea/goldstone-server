@@ -14,7 +14,7 @@
 # limitations under the License.
 from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
-from .views import ReportView, ApiPerfView, VolumesDataViewSet, \
+from .views import ReportView, VolumesDataViewSet, \
     BackupsDataViewSet, SnapshotsDataViewSet, ServicesDataViewSet, \
     VolumeTypesDataViewSet, TransfersDataViewSet
 
@@ -43,9 +43,6 @@ urlpatterns = router.urls
 
 # Other views.
 urlpatterns += patterns('',
-                        url(r'^api_perf[/]?$',
-                            ApiPerfView.as_view(),
-                            name='cinder-api-perf'),
                         url(r'^report[/]?$',
                             ReportView.as_view(),
                             name='cinder-report-view'),
