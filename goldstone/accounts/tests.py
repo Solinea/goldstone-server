@@ -386,14 +386,26 @@ class Password(Setup):
     def test_missing_token(self):
         """The change password request doesn't have an authentication token."""
 
-        # Create a user
-        get_user_model().objects.create_user(*TEST_USER)
+        # Create a user and log them in.
+        create_and_login()
 
-        # Try logging in with a bad username.
+        # Try changing the password.
         client = Client()
+        response = \
+            client.post(PASSWORD_URL,
+                        json.dumps({"username": TEST_USER[0],
+                                    "current_password": TEST_USER[2],
+                                    "new_password": "boom"}),
+                        content_type="application/json")
+
+        self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
+
+        # Test logging in using the old password.
+        login(TEST_USER[0], TEST_USER[2])
+
+        # Verify that we can't log in using the new password.
         response = client.post(LOGIN_URL,
-                               {"username": "Atticus",
-                                "password": TEST_USER[2]})
+                               {"username": TEST_USER[0], "password": "boom"})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
@@ -402,13 +414,27 @@ class Password(Setup):
     def test_bad_token(self):
         """The change password request has a bad authentication token."""
 
-        # Create a user
-        get_user_model().objects.create_user(*TEST_USER)
+        # Create a user and log them in.
+        bad_token = create_and_login().replace('9', '8').replace('4', '3')
 
-        # Try logging in with a bad username.
+        # Try changing the password.
         client = Client()
+        response = \
+            client.post(PASSWORD_URL,
+                        json.dumps({"username": TEST_USER[0],
+                                    "current_password": TEST_USER[2],
+                                    "new_password": "boom"}),
+                        content_type="application/json",
+                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+
+        self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
+
+        # Test logging in using the old password.
+        login(TEST_USER[0], TEST_USER[2])
+
+        # Verify that we can't log in using the new password.
         response = client.post(LOGIN_URL,
-                               {"username": TEST_USER[0], "password": "Finch"})
+                               {"username": TEST_USER[0], "password": "boom"})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
@@ -417,20 +443,105 @@ class Password(Setup):
     def test_no_current_password(self):
         """The change password request doesn't have a current password."""
 
-        create_and_login()
+        # Create a user and log them in.
+        token = create_and_login()
+
+        # Try changing the password.
+        client = Client()
+        response = \
+            client.post(PASSWORD_URL,
+                        json.dumps({"username": TEST_USER[0],
+                                    "new_password": "boom"}),
+                        content_type="application/json",
+                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+        # Test logging in using the old password.
+        login(TEST_USER[0], TEST_USER[2])
+
+        # Verify that we can't log in using the new password.
+        response = client.post(LOGIN_URL,
+                               {"username": TEST_USER[0], "password": "boom"})
+
+        self.assertContains(response,
+                            CONTENT_NON_FIELD_ERRORS,
+                            status_code=HTTP_400_BAD_REQUEST)
 
     def test_bad_current_password(self):
         """The change password request has a bad curent password."""
 
-        create_and_login()
+        # Create a user and log them in.
+        token = create_and_login()
+
+        # Try changing the password.
+        client = Client()
+        response = \
+            client.post(PASSWORD_URL,
+                        json.dumps({"username": TEST_USER[0],
+                                    "current_password": "rockmeamadeus",
+                                    "new_password": "boom"}),
+                        content_type="application/json",
+                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+        # Test logging in using the old password.
+        login(TEST_USER[0], TEST_USER[2])
+
+        # Verify that we can't log in using the new password.
+        response = client.post(LOGIN_URL,
+                               {"username": TEST_USER[0], "password": "boom"})
+
+        self.assertContains(response,
+                            CONTENT_NON_FIELD_ERRORS,
+                            status_code=HTTP_400_BAD_REQUEST)
 
     def test_no_new_password(self):
         """The change password request doesn't have a new password."""
 
-        create_and_login()
+        # Create a user and log them in.
+        token = create_and_login()
+
+        # Try changing the password.
+        client = Client()
+        response = \
+            client.post(PASSWORD_URL,
+                        json.dumps({"username": TEST_USER[0],
+                                    "current_password": TEST_USER[2]}),
+                        content_type="application/json",
+                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+        # Test logging in using the old password.
+        login(TEST_USER[0], TEST_USER[2])
 
     def test_change_password(self):
         """Change the current user's password."""
 
-        create_and_login()
-        login(TEST_USER[0], TEST_USER[2])
+        # Create a user.
+        token = create_and_login()
+
+        # Try changing the password.
+        client = Client()
+        response = \
+            client.post(PASSWORD_URL,
+                        json.dumps({"username": TEST_USER[0],
+                                    "current_password": TEST_USER[2],
+                                    "new_password": "boom"}),
+                        content_type="application/json",
+                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        # Test logging in using the new password.
+        login(TEST_USER[0], "boom")
+
+        # Verify that we can't log in using the old password.
+        response = client.post(LOGIN_URL,
+                               {"username": TEST_USER[0],
+                                "password": TEST_USER[2]})
+
+        self.assertContains(response,
+                            CONTENT_NON_FIELD_ERRORS,
+                            status_code=HTTP_400_BAD_REQUEST)
