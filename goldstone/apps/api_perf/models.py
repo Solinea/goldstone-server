@@ -36,8 +36,8 @@ class ApiPerfData(DocType):
 
     """
 
-    # Field declarations.  The types are generated, so imports look broken
-    # but hopefully are working...
+    # Field declarations.  The types are generated dynamically, so PyCharm
+    # thinks the imports are unresolved references.
     response_status = Integer()
     creation_time = Date()
     component = String()
