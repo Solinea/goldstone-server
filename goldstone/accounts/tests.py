@@ -213,3 +213,47 @@ class Register(Setup):
         """Register a user, with an email address."""
 
         self.test_post("dirk@diggler.com")
+
+
+class Login(Setup):
+    """Logging in."""
+
+    def test_bad_username(self):
+        """Logging in with a bad username."""
+        pass
+
+    def test_bad_password(self):
+        """Logging in with a bad password."""
+        pass
+
+    def test_login(self):
+        """Logging in."""
+        pass
+
+    def test_login_already_logged_in(self):
+        """Logging in when the user is already logged in.
+
+        This should be idempotent.
+
+        """
+        pass
+
+    def test_login_another_logged_in(self):
+        """Logging in when another user is logged in.
+
+        This should log in the new user.
+
+        ."""
+        pass
+
+
+class Logout(Setup):
+    """Logging out."""
+
+    def test_not_logged_in(self):
+        """Logging out when a user is not logged in."""
+        pass
+
+    def test_logout(self):
+        """Logging out."""
+        pass
