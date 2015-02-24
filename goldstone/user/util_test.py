@@ -35,6 +35,8 @@ CONTENT_NO_CREDENTIALS = \
     '{"detail":"Authentication credentials were not provided."}'
 CONTENT_NON_FIELD_ERRORS = \
     '{"non_field_errors":["Unable to login with provided credentials."]}'
+CONTENT_NOT_BLANK = '{"username":["This field may not be blank."],'\
+                    '"password":["This field may not be blank."]}'
 CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
 
 # The payload string for the HTTP Authorization header.
@@ -47,7 +49,8 @@ TEST_USER = ("fred", "fred@fred.com", "meh")
 def login(username, password):
     """Log a user in.
 
-    This is for use on a login that is supposed to succeed.
+    This is for use on a login that is supposed to succeed. It checks the
+    system response with asserts before returning.
 
     :param username: The username to use
     :type username: str
@@ -64,6 +67,9 @@ def login(username, password):
                            {"username": username, "password": password})
 
     assert response.status_code == HTTP_200_OK
+
+    # pylint: disable=E1101
+    assert isinstance(response.data["auth_token"], basestring)
 
     return response.data["auth_token"]      # pylint: disable=E1101
 
