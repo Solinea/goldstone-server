@@ -17,9 +17,11 @@ from django.contrib.auth import get_user_model
 from django.test import Client
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST, HTTP_201_CREATED
-from goldstone.user.util_test import Setup, create_and_login, \
+from goldstone.user.util_test import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_MISSING_FIELDS, \
-    CONTENT_MISSING_USERNAME, CONTENT_MISSING_PASSWORD, CONTENT_UNIQUE_USERNAME
+    CONTENT_MISSING_USERNAME, CONTENT_MISSING_PASSWORD, \
+    CONTENT_UNIQUE_USERNAME, CONTENT_NON_FIELD_ERRORS, LOGIN_URL, \
+    TEST_USER
 
 # Define the URLs and payloads used in this module's testing.
 SETTINGS_URL = "/accounts/settings"
@@ -86,7 +88,7 @@ class Settings(Setup):
         # Create a user, and create a bad authorization token.  (This test will
         # erroneously fail if the good token doesn't contain any 9 characters,
         # which is very unlikely.)
-        bad_token = create_and_login().replace('9', '8')
+        bad_token = create_and_login().replace('9', '8').replace('4', '2')
 
         client = Client()
         response = \
@@ -220,15 +222,39 @@ class Login(Setup):
 
     def test_bad_username(self):
         """Logging in with a bad username."""
-        pass
+
+        # Create a user
+        get_user_model().objects.create_user(*TEST_USER)
+
+        # Try logging in with a bad username.
+        client = Client()
+        response = client.post(LOGIN_URL,
+                               {"username": "Atticus",
+                                "password": TEST_USER[2]})
+
+        self.assertContains(response,
+                            CONTENT_NON_FIELD_ERRORS,
+                            status_code=HTTP_400_BAD_REQUEST)
 
     def test_bad_password(self):
         """Logging in with a bad password."""
-        pass
+
+        # Create a user
+        get_user_model().objects.create_user(*TEST_USER)
+
+        # Try logging in with a bad username.
+        client = Client()
+        response = client.post(LOGIN_URL,
+                               {"username": TEST_USER[0], "password": "Finch"})
+
+        self.assertContains(response,
+                            CONTENT_NON_FIELD_ERRORS,
+                            status_code=HTTP_400_BAD_REQUEST)
 
     def test_login(self):
         """Logging in."""
-        pass
+
+        self.assertIsInstance(create_and_login(), basestring)
 
     def test_login_already_logged_in(self):
         """Logging in when the user is already logged in.
@@ -236,15 +262,27 @@ class Login(Setup):
         This should be idempotent.
 
         """
-        pass
+
+        self.assertIsInstance(create_and_login(), basestring)
+        self.assertIsInstance(login(TEST_USER[0], TEST_USER[2]), basestring)
 
     def test_login_another_logged_in(self):
         """Logging in when another user is logged in.
 
         This should log in the new user.
 
-        ."""
-        pass
+        """
+
+        # Create user 1 and user 2. User 2 is just user 1 the the username and
+        # password swapped.
+        self.assertIsInstance(create_and_login(), basestring)
+        get_user_model().objects.create_user(TEST_USER[2],
+                                             TEST_USER[1],
+                                             TEST_USER[0])
+
+        # Login user 1, then login user 2.
+        self.assertIsInstance(login(TEST_USER[0], TEST_USER[2]), basestring)
+        self.assertIsInstance(login(TEST_USER[2], TEST_USER[0]), basestring)
 
 
 class Logout(Setup):
