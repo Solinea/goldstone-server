@@ -21,10 +21,8 @@ from time import sleep
 from uuid import uuid4
 
 import arrow
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase
-from elasticsearch import Elasticsearch, ConnectionError, TransportError
 from elasticsearch.client import IndicesClient
 import mock
 from mock import patch

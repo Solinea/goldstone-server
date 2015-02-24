@@ -136,7 +136,6 @@ def get_client(service, user=settings.OS_USERNAME,
                passwd=settings.OS_PASSWORD,
                tenant=settings.OS_TENANT_NAME,
                auth_url=settings.OS_AUTH_URL):
-    import hashlib
 
     # Error message template.
     NO_AUTH = "%s client failed to authorize. Check credentials in" \

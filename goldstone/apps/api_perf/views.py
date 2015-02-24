@@ -14,14 +14,11 @@
 # limitations under the License.
 import calendar
 from datetime import datetime
-from urlparse import urlparse
 from django.http import HttpResponseBadRequest, HttpResponse
 from rest_framework.views import APIView
 from goldstone.apps.api_perf.models import ApiPerfData
-from goldstone.apps.api_perf.utils import stack_api_request_base
 from goldstone.views import TopLevelView, validate
 import logging
-import arrow
 
 logger = logging.getLogger(__name__)
 
