@@ -275,9 +275,9 @@ class TopologyMixin(object):
 
         # basic sanity check.  all args should be dicts, source and target
         # should have a rsrcType field
-        assert type(source) is list, "source param must be a list"
-        assert type(target) is list, "target param must be a list"
-        assert type(attach_descriptor) is dict, \
+        assert isinstance(source, list), "source param must be a list"
+        assert isinstance(target, list), "target param must be a list"
+        assert isinstance(attach_descriptor, dict), \
             "attach_descriptor param must be a dict"
 
         # make copies so they are not subject to mutation during or after the

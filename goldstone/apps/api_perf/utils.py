@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import arrow
-from arrow import Arrow
 from django.conf import settings
 import logging
 from goldstone.utils import GoldstoneAuthError
@@ -49,7 +48,6 @@ def stack_api_request_base(endpoint, path,
             get_endpoints()[endpoint][0]['publicURL'] + path
         headers = {'x-auth-token': keystone_client['hex_token'],
                    'content-type': 'application/json'}
-        import json
         return {'url': url, 'headers': headers}
 
     except GoldstoneAuthError:

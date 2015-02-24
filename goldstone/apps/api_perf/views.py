@@ -38,8 +38,7 @@ class ApiPerfView(APIView):
         return ApiPerfData.get_stats(arrow.get(context['start_dt']),
                                      arrow.get(context['end_dt']),
                                      context['interval'],
-                                     context['component'],
-                                     context['uri'])
+                                     context['component'],)
 
     def get(self, request, *args, **kwargs):
         """Return a response to a GET request."""
@@ -67,31 +66,6 @@ class ApiPerfView(APIView):
         if isinstance(context, HttpResponseBadRequest):
             # validation error
             return context
-
-        # TODO this is a flagrant violation of modularity.
-        # It was done
-        # during the rework of api_perf, and supports the celery task calls.
-        # We should continue to enhance the API parameter handling to
-        # generalize the API performance interface, and allow the client to
-        # provide information to make this block unnecessary.
-
-        if 'uri' not in context:
-            if context['component'] == 'cinder':
-                context['uri'] = urlparse(stack_api_request_base(
-                    "volumev2", "/os-services")['url']).path
-            elif context['component'] == 'glance':
-                context['uri'] = urlparse(stack_api_request_base(
-                    "image", "/v2/images")['url']).path
-            elif context['component'] == 'keystone':
-                context['uri'] = "/v2.0/tokens"
-            elif context['component'] == 'neutron':
-                context['uri'] = urlparse(stack_api_request_base(
-                    "network", "v2.0/agents")['url']).path
-            elif context['component'] == 'nova':
-                context['uri'] = urlparse(stack_api_request_base(
-                    "compute", "/os-hypervisors")['url']).path
-            else:
-                context['uri'] = None
 
         logger.debug("[get] start_dt = %s", context['start_dt'])
         data = self._get_data(context)

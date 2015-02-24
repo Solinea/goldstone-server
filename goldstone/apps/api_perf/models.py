@@ -36,7 +36,7 @@ class ApiPerfData(DocType):
 
     """
 
-    # Field declarations.  They types are generated, so imports look broken
+    # Field declarations.  The types are generated, so imports look broken
     # but hopefully are working...
     response_status = Integer()
     creation_time = Date()
@@ -75,11 +75,8 @@ class ApiPerfData(DocType):
         if component is not None:
             search = search.filter('term', component=component)
 
-        if uri is not None and prefix:
-            search = search.filter('prefix', uri=uri)
-
-        if uri is not None and not prefix:
-            search = search.filter('term', uri=uri)
+        if uri is not None:
+            search = search.filter("prefix" if prefix else "term", uri=uri)
 
         search.aggs.bucket('events_by_date',
                            'date_histogram',
@@ -115,16 +112,15 @@ class ApiPerfData(DocType):
         :rtype: pd.DataFrame
         """
 
-        assert type(start) is Arrow, "start is not an Arrow object"
-        assert type(end) is Arrow, "end is not an Arrow object"
-        assert type(interval) in [StringType, unicode], \
+        assert isinstance(start, Arrow), "start is not an Arrow object"
+        assert isinstance(end, Arrow), "end is not an Arrow object"
+        assert isinstance(interval, basestring), \
             "interval is not a string: %r" % type(interval)
         assert interval[-1] in ['s', 'm', 'h', 'd'], \
             "valid units for interval are ['s', 'm', 'h', 'd']: %r" \
             % interval
 
         import pandas as pd
-        import arrow
 
         search = cls._stats_search(start, end, interval, component, uri)
 

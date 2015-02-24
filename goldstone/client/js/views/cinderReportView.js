@@ -33,7 +33,7 @@ var CinderReportView = GoldstoneBasePageView.extend({
             height: 300,
             infoCustom: [{
                 key: "API Call",
-                value: "Service List"
+                value: "All"
             }],
             el: '#cinder-report-r1-c1',
             width: $('#cinder-report-r1-c1').width()

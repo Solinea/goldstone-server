@@ -42,7 +42,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
             height: 300,
             infoCustom: [{
                 key: "API Call",
-                value: "Hypervisor Show"
+                value: "All"
             }],
             el: '#nova-report-r1-c1',
             width: $('#nova-report-r1-c1').width()

@@ -54,7 +54,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             height: 300,
             infoCustom: [{
                 key: "API Call",
-                value: "Hypervisor Show"
+                value: "All"
             }],
             el: '#api-perf-report-r1-c1',
             width: $('#api-perf-report-r1-c1').width()
@@ -74,7 +74,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             height: 300,
             infoCustom: [{
                 key: "API Call",
-                value: "Agent List"
+                value: "All"
             }],
             el: '#api-perf-report-r1-c2',
             width: $('#api-perf-report-r1-c2').width()
@@ -93,7 +93,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             height: 300,
             infoCustom: [{
                 key: "API Call",
-                value: "Authenticate"
+                value: "All"
             }],
             el: '#api-perf-report-r2-c1',
             width: $('#api-perf-report-r2-c1').width()
@@ -112,7 +112,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             height: 300,
             infoCustom: [{
                 key: "API Call",
-                value: "Image Show"
+                value: "All"
             }],
             el: '#api-perf-report-r2-c2',
             width: $('#api-perf-report-r2-c2').width()
@@ -131,7 +131,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             height: 300,
             infoCustom: [{
                 key: "API Call",
-                value: "Service List"
+                value: "All"
             }],
             el: '#api-perf-report-r3-c1',
             width: $('#api-perf-report-r3-c1').width()
