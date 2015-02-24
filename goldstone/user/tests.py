@@ -17,13 +17,11 @@ from django.test import Client
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST
 from .util_test import create_and_login, Setup, AUTHORIZATION_PAYLOAD, \
-    CONTENT_NO_CREDENTIALS, CONTENT_BAD_TOKEN, CONTENT_MISSING_USERNAME
+    CONTENT_NO_CREDENTIALS, CONTENT_BAD_TOKEN, CONTENT_MISSING_USERNAME, \
+    TEST_USER
 
-# Define the URLs and payloads used in this module's testing.
-LOGIN_URL = "/accounts/login"
+# URLs and payloads used in this module's testing.
 USER_URL = "/user"
-TEST_USER = ("fred", "fred@fred.com", "meh")
-TEST_USER_LOGIN = {"username": TEST_USER[0], "password": TEST_USER[2]}
 
 
 def _response_equals_without_uuid(response, expected_status_code,

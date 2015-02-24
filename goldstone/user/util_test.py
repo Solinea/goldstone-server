@@ -20,6 +20,10 @@ TODO: Find a neutral home for this.
 # limitations under the License.
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, Client
+from rest_framework.status import HTTP_200_OK
+
+# Test URL
+LOGIN_URL = "/accounts/login"
 
 # Http response content used by multiple tests.
 CONTENT_BAD_TOKEN = '{"detail":"Invalid token"}'
@@ -29,10 +33,39 @@ CONTENT_MISSING_PASSWORD = '{"password":["This field is required."]}'
 CONTENT_MISSING_USERNAME = '{"username":["This field is required."]}'
 CONTENT_NO_CREDENTIALS = \
     '{"detail":"Authentication credentials were not provided."}'
+CONTENT_NON_FIELD_ERRORS = \
+    '{"non_field_errors":["Unable to login with provided credentials."]}'
 CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
 
 # The payload string for the HTTP Authorization header.
 AUTHORIZATION_PAYLOAD = "Token %s"
+
+# Test data
+TEST_USER = ("fred", "fred@fred.com", "meh")
+
+
+def login(username, password):
+    """Log a user in.
+
+    This is for use on a login that is supposed to succeed.
+
+    :param username: The username to use
+    :type username: str
+    :param password: The password to use
+    :type password: str
+    :return: If a successful login, the authorization token's value
+    :rtype: str
+
+    """
+
+    # Log the user in, and return the auth token's value.
+    client = Client()
+    response = client.post(LOGIN_URL,
+                           {"username": username, "password": password})
+
+    assert response.status_code == HTTP_200_OK
+
+    return response.data["auth_token"]      # pylint: disable=E1101
 
 
 def create_and_login():
@@ -42,23 +75,10 @@ def create_and_login():
     :rtype: str
 
     """
-    from rest_framework.status import HTTP_200_OK
-
-    # Define URLs and payloads.
-    LOGIN_URL = "/accounts/login"
-    TEST_USER = ("fred", "fred@fred.com", "meh")
-    TEST_USER_LOGIN = {"username": TEST_USER[0], "password": TEST_USER[2]}
 
     # Create a user
     get_user_model().objects.create_user(*TEST_USER)
-
-    # Log the user in, and return the auth token's value.
-    client = Client()
-    response = client.post(LOGIN_URL, TEST_USER_LOGIN)
-
-    assert response.status_code == HTTP_200_OK
-
-    return response.data["auth_token"]      # pylint: disable=E1101
+    return login(TEST_USER[0], TEST_USER[2])
 
 
 class Setup(SimpleTestCase):
