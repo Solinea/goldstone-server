@@ -1,4 +1,5 @@
-# Copyright '2015' Solinea, Inc.
+"""Api_perf utilities."""
+# Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,15 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import arrow
 from django.conf import settings
-import logging
 from goldstone.utils import GoldstoneAuthError
-
-
-logger = logging.getLogger(__name__)
-
 
 def stack_api_request_base(endpoint, path,
                            user=settings.OS_USERNAME,
@@ -69,7 +64,6 @@ def time_api_call(component, url, method='GET', **kwargs):
     :param kwargs: optional arguments to pass to the request (ex: header, data)
     """
     from .models import ApiPerfData
-    from django.conf import settings
     import requests
     from urlparse import urlparse
 

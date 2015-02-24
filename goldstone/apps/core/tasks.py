@@ -19,7 +19,7 @@ import goldstone
 
 from goldstone.celery import app as celery_app
 from django.conf import settings
-from elasticsearch.exceptions import TransportError, RequestError
+from elasticsearch.exceptions import RequestError
 import logging
 from subprocess import check_call
 

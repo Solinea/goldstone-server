@@ -17,7 +17,6 @@ from pandas import DataFrame
 from .models import ApiPerfData
 from uuid import uuid1
 import arrow
-from datetime import timedelta
 from django.test import SimpleTestCase
 import logging
 from elasticsearch_dsl import Search, Q

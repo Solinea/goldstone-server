@@ -258,13 +258,21 @@ class Login(Setup):
         create_and_login()
 
     def test_login_already_logged_in(self):        # pylint: disable=R0201
-        """Logging in when the user is already logged in."""
+        """Logging in when the user is already logged in.
+
+        The user should remain logged in.
+
+        """
 
         create_and_login()
         login(TEST_USER[0], TEST_USER[2])
 
     def test_login_another_logged_in(self):        # pylint: disable=R0201
-        """Logging in when another user is logged in."""
+        """Logging in when another user is logged in.
+
+        The second user should be logged in normally.
+
+        """
 
         # Create user 1 and user 2. User 2 is just user 1 the the username and
         # password swapped.

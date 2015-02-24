@@ -15,7 +15,7 @@
 # limitations under the License.
 import os.path
 from django.conf import settings
-from goldstone.apps.core.tasks import create_daily_index, get_es_connection
+from goldstone.apps.core.tasks import create_daily_index
 
 
 def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
