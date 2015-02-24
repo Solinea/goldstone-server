@@ -16,6 +16,7 @@ import arrow
 from django.conf import settings
 from goldstone.utils import GoldstoneAuthError
 
+
 def stack_api_request_base(endpoint, path,
                            user=settings.OS_USERNAME,
                            passwd=settings.OS_PASSWORD,

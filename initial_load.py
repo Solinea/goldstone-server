@@ -21,6 +21,7 @@ from goldstone.apps.core.tasks import create_daily_index
 # causes an import failure.
 import goldstone
 
+
 def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
     """Load an index template into ES from a file.
 
@@ -36,7 +37,7 @@ def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
     from elasticsearch.exceptions import RequestError
 
     try:
-        conn = goldstone.models.get_es_conn(server)
+        conn = goldstone.models.es_conn(server)
         conn.indices.put_template(template_name,
                                   json.load(template_file),
                                   create=False)
