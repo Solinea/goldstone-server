@@ -14,37 +14,25 @@
 # limitations under the License.
 from __future__ import absolute_import
 
-from datetime import datetime
 import logging
 
-import pytz
-
 from goldstone.celery import app as celery_app
-from goldstone.utils import stored_api_call, to_es_date
-from .models import ApiPerfData, ServicesData, VolumesData, BackupsData, \
+from goldstone.utils import to_es_date
+from .models import ServicesData, VolumesData, BackupsData, \
     SnapshotsData, VolTypesData, EncryptionTypesData, TransfersData
+from goldstone.apps.api_perf.utils import stack_api_request_base, time_api_call
 
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True)
-def time_cinder_api(self):   # pylint: disable=W0613
-    """Call the service list command for the test tenant.
+@celery_app.task()
+def time_service_list():
 
-    Retrieves the endpoint from keystone, then constructs the URL and inserts a
-    record in the DB.
-
-    """
-    from goldstone.utils import get_client
-
-    result = stored_api_call("cinder", "volume", "/os-services")
-    logger.debug(get_client.cache_info())
-
-    api_db = ApiPerfData()
-    rec_id = api_db.post(result['db_record'])
-    logger.debug("[time_cinder_api] id = %s", rec_id)
-
-    return {'id': rec_id, 'record': result['db_record']}
+    image_list_precursor = stack_api_request_base("volumev2",
+                                                  "/os-services")
+    return time_api_call('cinder',
+                         image_list_precursor['url'],
+                         headers=image_list_precursor['headers'])
 
 
 def _update_cinder_records(rec_type, region, database, items):
@@ -54,8 +42,8 @@ def _update_cinder_records(rec_type, region, database, items):
     Elasticsearch database.
 
     """
-
-    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+    import arrow
+    body = {"@timestamp": to_es_date(arrow.utcnow().datetime),
             "region": region,
             rec_type: [item.__dict__['_info'] for item in items]}
     try:

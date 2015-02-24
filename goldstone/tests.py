@@ -12,27 +12,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from datetime import datetime, timedelta
+
 from django.test import TestCase, SimpleTestCase
 from django.conf import settings
-from elasticsearch import ConnectionError, TransportError, Elasticsearch
+from elasticsearch import Elasticsearch
 import gzip
 import os
 import json
 import logging
+import arrow
 
 # This is needed here for mock to work.
-from keystoneclient.v2_0.client import Client       # pylint: disable=W0611
+from elasticsearch.client import IndicesClient
+from elasticsearch_dsl.connections import connections, Connections
 from keystoneclient.exceptions import ClientException
 from mock import patch, PropertyMock
-from requests.models import Response
+import mock
 
-from goldstone import StartupGoldstone
-from goldstone.models import GSConnection, ESData
+from goldstone.models import ESData, es_conn, daily_index, es_indices, \
+    TopologyData
 from goldstone.apps.core.models import Node
 from goldstone.apps.core.tasks import create_daily_index
-from goldstone.utils import stored_api_call, get_keystone_client, \
-    _construct_api_rec, GoldstoneAuthError
+from goldstone.utils import get_keystone_client, GoldstoneAuthError
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ logger = logging.getLogger(__name__)
 class PrimeData(TestCase):
     """This should run before all SimpleTestCase methods."""
 
-    conn = Elasticsearch(settings.ES_SERVER)
+    conn = es_conn()
 
     # Clean up existing indices.
     conn.indices.delete("_all")
@@ -102,40 +103,72 @@ class PrimeData(TestCase):
         conn.indices.refresh([index])
 
 
-class StartupGoldstoneTest(SimpleTestCase):
+class ESConnectionTests(SimpleTestCase):
+    """Test the ES connection.
+    """
 
-    @patch.object(GSConnection, '__init__')
-    def test_es_unavailable(self, conn):
+    @patch.object(connections, 'get_connection')
+    @patch.object(connections, 'configure')
+    def test_connection(self, mock_conf, mock_es):
+
+        mock_es.return_value = None
+        mock_conf.return_value = None
+
+        es_conn()
+        self.assertEqual(mock_es.call_count, 1)
+        mock_conf.assert_called_with(default=settings.ES_SERVER,
+                                     sniff_on_start=False,
+                                     max_retries=1)
+
+        mock_conf.reset_mock()
+        mock_es.reset_mock()
+
+        es_conn(server={'hosts': ['abc', 'def']})
+        self.assertEqual(mock_es.call_count, 1)
+        mock_conf.assert_called_with(default={'hosts': ['abc', 'def']},
+                                     sniff_on_start=False,
+                                     max_retries=1)
+
+    def test_daily_index(self):
+
+        date_str = arrow.utcnow().format('YYYY.MM.DD')
+        self.assertEqual(daily_index("xyz-"), "xyz-" + date_str)
+
+    @patch.object(Connections, 'get_connection')
+    def test_es_indices(self, m_conn):
+        """To avoid ES calls, we mock out the get_connection call, then set
+        up additional mocks for the resulting ES connection.
+
+        :param m_conn:
+        :return:
         """
-        goldstone should raise any excpetions encountered, and fail to start
-        if ES is unavailable.
-        """
-        conn.side_effect = ConnectionError()
-        self.assertRaises(ConnectionError, StartupGoldstone)
-        conn.side_effect = TransportError()
-        self.assertRaises(TransportError, StartupGoldstone)
+        m_es = mock.Mock(Elasticsearch, name='es')
+        m_indices = mock.MagicMock(IndicesClient, name='indices')
+        m_es.indices = m_indices
+        m_es.indices.status.return_value = {
+            'indices': {
+                'index1': 'value1',
+                'not_index1': 'value3'
+            }
+        }
+        m_conn.return_value = m_es
 
-    @patch.object(StartupGoldstone, '_setup_index')
-    def test_es_available(self, _setup_index):
-        """Goldstone should attempt to create two indices."""
+        # test with no prefix provided
+        self.assertEqual(es_indices(conn=es_conn()), "_all")
 
-        StartupGoldstone()
-        self.assertTrue(_setup_index.call_count, 2)
+        # test with no params
+        self.assertEqual(es_indices(), "_all")
 
+        # test with no conn
+        result = es_indices(prefix='index')
+        self.assertTrue(m_es.indices.status.called)
+        self.assertIn('index1', result)
+        self.assertNotIn('not_index1', result)
 
-class GSConnectionModel(SimpleTestCase):
-
-    def test_connection(self):
-        conn1 = GSConnection().conn
-        conn2 = GSConnection(settings.ES_SERVER).conn
-
-        query = {"query": {"match_all": {}}}
-
-        result = conn1.search(body=query)
-        self.assertIsNotNone(result)
-
-        result = conn2.search(body=query)
-        self.assertIsNotNone(result)
+        # test with prefix
+        result = es_indices('index', es_conn())
+        self.assertIn('index1', result)
+        self.assertNotIn('not_index1', result)
 
 
 class UtilsTests(SimpleTestCase):
@@ -165,87 +198,6 @@ class UtilsTests(SimpleTestCase):
         reply = get_keystone_client()
         self.assertIn('client', reply)
         self.assertIn('hex_token', reply)
-
-    @patch('requests.get')
-    @patch('keystoneclient.v2_0.client.Client')
-    @patch('goldstone.utils.get_keystone_client')
-    def test_stored_api_call(self, client, c, get):
-        component = 'nova'
-        endpoint = 'compute'
-        bad_endpoint = 'xyz'
-        path = '/os-hypervisors'
-        bad_path = '/xyz'
-        timeout = settings.API_PERF_QUERY_TIMEOUT
-
-        # hairy.  need to mock the Client.service_catalog.get_endpoints() call
-        # two ways.  1) raise an exception, 2) return a url
-        fake_response = Response()
-        fake_response.status_code = 200
-        fake_response.url = "http://mock.url"
-        fake_response._content = '{"a":1,"b":2}'       # pylint: disable=W0212
-        fake_response.headers = {'content-length': 1024}
-        fake_response.elapsed = timedelta(days=1)
-        c.service_catalog.get_endpoints.side_effect = ClientException
-        client.return_value = {'client': c, 'hex_token': 'mock_token'}
-        self.assertRaises(LookupError, stored_api_call, component,
-                          bad_endpoint, path, timeout=timeout)
-
-        c.service_catalog.get_endpoints.side_effect = None
-        c.service_catalog.get_endpoints.return_value = {
-            endpoint: [{'publicURL': fake_response.url}]
-        }
-        fake_response.status_code = 404
-        get.return_value = fake_response
-        bad_path_call = stored_api_call(component, endpoint, bad_path,
-                                        timeout=timeout)
-        self.assertIn('reply', bad_path_call)
-        self.assertIn('db_record', bad_path_call)
-        self.assertEquals(bad_path_call['db_record']['response_status'], 404)
-
-        fake_response.status_code = 200
-        get.return_value = fake_response
-        good_call = stored_api_call(component, endpoint, path, timeout=timeout)
-        self.assertIn('reply', good_call)
-        self.assertIn('db_record', good_call)
-        self.assertEquals(good_call['db_record']['response_status'], 200)
-
-    @patch('goldstone.tests.stored_api_call')
-    def test_construct_api_rec(self, sac):
-
-        component = 'abc'
-        endpoint = 'compute'
-        path = '/os-hypervisors'
-        timeout = settings.API_PERF_QUERY_TIMEOUT
-        now = datetime.utcnow()
-
-        fake_response = Response()
-        fake_response.status_code = 200
-        fake_response.url = "http://mock.url"
-        fake_response._content = '{"a":1,"b":2}'        # pylint: disable=W0212
-        fake_response.headers = {'content-length': 1024}
-        fake_response.elapsed = timedelta(days=1)
-        sac.return_value = {'reply': fake_response}
-        good_call = stored_api_call(component, endpoint, path, timeout=timeout)
-        self.assertTrue(sac.called)
-        self.assertIn('reply', good_call)
-
-        reply = good_call['reply']
-        rec = _construct_api_rec(reply, component, now, timeout, path)
-        self.assertIn('response_time', rec)
-
-        elapsed = reply.elapsed
-        secs = elapsed.seconds + elapsed.days * 24 * 3600
-        microsecs = float(elapsed.microseconds) / 10**6
-        millisecs = int(round((secs + microsecs) * 1000))
-
-        self.assertEqual(rec['response_time'], millisecs)
-        self.assertIn('response_status', rec)
-        self.assertEqual(rec['response_status'], reply.status_code)
-        self.assertIn('response_length', rec)
-        self.assertEqual(rec['response_length'],
-                         int(reply.headers['content-length']))
-        self.assertIn('component', rec)
-        self.assertEqual(rec['component'], component)
 
 
 class ReportTemplateViewTest(SimpleTestCase):
@@ -285,3 +237,14 @@ class ReportTemplateViewTest(SimpleTestCase):
         url = '/report/node/missing_node'
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 405)
+
+
+class TopologyDataTest(SimpleTestCase):
+
+    def test_sort_arg(self):
+        with self.assertRaises(ValueError):
+            TopologyData._sort_arg("key", "bad")
+        self.assertEquals(TopologyData._sort_arg("key", "+"), "key")
+        self.assertEquals(TopologyData._sort_arg("key", "asc"), "key")
+        self.assertEquals(TopologyData._sort_arg("key", "-"), "-key")
+        self.assertEquals(TopologyData._sort_arg("key", "desc"), "-key")

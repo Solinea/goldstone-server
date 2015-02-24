@@ -45,7 +45,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate nova api chart
 
         this.novaApiPerfChart = new ApiPerfCollection({
-            urlPrefix: 'nova',
+            componentParam: 'nova',
         });
 
         this.novaApiPerfChartView = new ApiPerfView({
@@ -54,7 +54,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             height: 300,
             infoCustom: [{
                 key: "API Call",
-                value: "Hypervisor Show"
+                value: "All"
             }],
             el: '#api-perf-report-r1-c1',
             width: $('#api-perf-report-r1-c1').width()
@@ -65,7 +65,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate neutron api chart
 
         this.neutronApiPerfChart = new ApiPerfCollection({
-            urlPrefix: 'neutron',
+            componentParam: 'neutron',
         });
 
         this.neutronApiPerfChartView = new ApiPerfView({
@@ -74,7 +74,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             height: 300,
             infoCustom: [{
                 key: "API Call",
-                value: "Agent List"
+                value: "All"
             }],
             el: '#api-perf-report-r1-c2',
             width: $('#api-perf-report-r1-c2').width()
@@ -84,7 +84,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate keystone api chart
 
         this.keystoneApiPerfChart = new ApiPerfCollection({
-            urlPrefix: 'keystone',
+            componentParam: 'keystone',
         });
 
         this.keystoneApiPerfChartView = new ApiPerfView({
@@ -93,7 +93,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             height: 300,
             infoCustom: [{
                 key: "API Call",
-                value: "Authenticate"
+                value: "All"
             }],
             el: '#api-perf-report-r2-c1',
             width: $('#api-perf-report-r2-c1').width()
@@ -103,7 +103,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate glance api chart
 
         this.glanceApiPerfChart = new ApiPerfCollection({
-            urlPrefix: 'glance',
+            componentParam: 'glance',
         });
 
         this.glanceApiPerfChartView = new ApiPerfView({
@@ -112,7 +112,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             height: 300,
             infoCustom: [{
                 key: "API Call",
-                value: "Image Show"
+                value: "All"
             }],
             el: '#api-perf-report-r2-c2',
             width: $('#api-perf-report-r2-c2').width()
@@ -122,7 +122,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
         // instantiate cinder api chart
 
         this.cinderApiPerfChart = new ApiPerfCollection({
-            urlPrefix: 'cinder',
+            componentParam: 'cinder',
         });
 
         this.cinderApiPerfChartView = new ApiPerfView({
@@ -131,7 +131,7 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
             height: 300,
             infoCustom: [{
                 key: "API Call",
-                value: "Service List"
+                value: "All"
             }],
             el: '#api-perf-report-r3-c1',
             width: $('#api-perf-report-r3-c1').width()

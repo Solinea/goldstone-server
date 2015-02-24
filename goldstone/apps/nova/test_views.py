@@ -23,7 +23,6 @@ import logging
 import pandas as pd
 
 from django.test import SimpleTestCase
-from django.utils.unittest.case import skip
 from .models import SpawnData
 from datetime import datetime
 from mock import patch
@@ -58,8 +57,8 @@ class SpawnsApiPerfViewsTest(BaseTest):
     """Test /nova/hypervisor/spawns and /nova/api_perf views."""
 
     # The test URL bases.
-    URLS_START = ["/nova/hypervisor/spawns?start=", "/nova/api_perf?start="]
-    URLS_END = ["/nova/hypervisor/spawns?end=", "/nova/api_perf?end="]
+    URLS_START = ["/nova/hypervisor/spawns?start="]
+    URLS_END = ["/nova/hypervisor/spawns?end="]
 
     def test_good_request(self):
 
@@ -184,63 +183,6 @@ class LatestStatsViewTest(SimpleTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(json.loads(response.content), [])
-
-
-class ResourceViewTest(BaseTest):
-
-    # TODO fix or remove this test
-    @skip('TODO')
-    def test_get_hypervisor_cpu(self):
-        end = datetime.now(tz=pytz.utc)
-        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
-        end_ts = calendar.timegm(end.utctimetuple())
-        start_ts = calendar.timegm(start.utctimetuple())
-
-        uri = '/intelligence/compute/cpu_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
-
-        response = self.client.get(uri)
-        logger.debug("[test_get_cpu_stats_view] uri = %s", uri)
-        self.assertEqual(response.status_code, 200)
-        self.assertNotEqual(json.loads(response.content), [])
-        logger.debug("[test_get_cpu_stats_view] response = %s",
-                     json.loads(response.content))
-
-    # TODO fix or remove this test
-    @skip('TODO')
-    def test_get_hypervisor_mem(self):
-        end = datetime.now(tz=pytz.utc)
-        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
-        end_ts = calendar.timegm(end.utctimetuple())
-        start_ts = calendar.timegm(start.utctimetuple())
-
-        uri = '/intelligence/compute/mem_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
-
-        response = self.client.get(uri)
-        logger.debug("[test_get_mem_stats_view] uri = %s", uri)
-        self.assertEqual(response.status_code, 200)
-        self.assertNotEqual(json.loads(response.content), [])
-        logger.debug("[test_get_mem_stats_view] response = %s",
-                     json.loads(response.content))
-
-    # TODO fix or remove this test
-    @skip('TODO')
-    def test_get_hypervisor_disk(self):
-        end = datetime.now(tz=pytz.utc)
-        start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
-        end_ts = calendar.timegm(end.utctimetuple())
-        start_ts = calendar.timegm(start.utctimetuple())
-
-        uri = '/intelligence/compute/phys_disk_stats?start_time=' + \
-              str(start_ts) + "&end_time=" + str(end_ts) + "&interval=3600s"
-
-        response = self.client.get(uri)
-        logger.debug("[test_get_phys_disk_stats_view] uri = %s", uri)
-        self.assertEqual(response.status_code, 200)
-        self.assertNotEqual(json.loads(response.content), [])
-        logger.debug("[test_get_phys_disk_stats_view] response = %s",
-                     json.loads(response.content))
 
 
 class DataViewTests(SimpleTestCase):

@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from goldstone.views import TopLevelView, ApiPerfView as GoldstoneApiPerfView
-from .models import ApiPerfData
+from goldstone.views import TopLevelView
 import logging
 
 logger = logging.getLogger(__name__)
@@ -22,11 +21,3 @@ logger = logging.getLogger(__name__)
 
 class ReportView(TopLevelView):
     template_name = 'neutron_report.html'
-
-
-class ApiPerfView(GoldstoneApiPerfView):
-
-    def _get_data(self, context):
-        return ApiPerfData().get(context['start_dt'],
-                                 context['end_dt'],
-                                 context['interval'])

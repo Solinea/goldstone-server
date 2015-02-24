@@ -12,10 +12,10 @@ OS_AUTH_URL = 'http://10.10.20.10:5000/v2.0/'
 #
 ES_HOST = "127.0.0.1"
 ES_PORT = "9200"
-ES_SERVER = ES_HOST + ":" + ES_PORT
+ES_SERVER = {'hosts': [ES_HOST + ":" + ES_PORT]}
 
 # ElasticUtils Settings
-ES_URLS = [ES_SERVER]
+ES_URLS = [ES_HOST + ":" + ES_PORT]
 
 
 LOGGING = {
