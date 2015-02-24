@@ -24,7 +24,7 @@ var KeystoneReportView = GoldstoneBasePageView.extend({
 
     renderCharts: function() {
         this.keystoneApiPerfChart = new ApiPerfCollection({
-            urlPrefix: 'keystone',
+            componentParam: 'keystone',
         });
 
         this.keystoneApiPerfChartView = new ApiPerfView({
@@ -33,7 +33,7 @@ var KeystoneReportView = GoldstoneBasePageView.extend({
             height: 300,
             infoCustom: [{
                 key: "API Call",
-                value: "Authenticate"
+                value: "All"
             }],
             el: '#keystone-report-r1-c1',
             width: $('#keystone-report-r1-c1').width()

@@ -33,7 +33,7 @@ describe('cinderReportView.js spec', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.test-container');
-            expect($(this.testView.el).text()).to.equal(' Cinder API PerformanceResponse Time (ms)');
+            expect($(this.testView.el).text()).to.equal(' Cinder API PerformanceResponse Time (s)');
             this.testView.triggerChange('lookbackSelectorChanged');
             this.testView.triggerChange('lookbackIntervalReached');
             this.testView.triggerChange();

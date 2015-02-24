@@ -29,7 +29,7 @@ class DiscoverTree(TopologyMixin):
                 [
                     r['region']
                     for ep in self.endpoints
-                    for r in ep['_source']['endpoints']
+                    for r in ep['endpoints']
                 ])
 
     def get_regions(self):
@@ -38,10 +38,10 @@ class DiscoverTree(TopologyMixin):
 
     def _populate_regions(self):
 
-        if self.endpoints is None or len(self.endpoints) == 0:
+        if self.endpoints is None or len(self.endpoints.hits) == 0:
             raise NoResourceFound("No keystone endpoints found in database")
 
-        updated = self.endpoints[0]['_source']['@timestamp']
+        updated = self.endpoints[0]['@timestamp']
 
         result = []
         for region in self._get_endpoint_regions():

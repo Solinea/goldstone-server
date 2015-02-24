@@ -23,7 +23,7 @@ class DiscoverTree(TopologyMixin):
         self.images = ImagesData().get()
 
     def _get_image_regions(self):
-        return set([s['_source']['region'] for s in self.images])
+        return set([s['region'] for s in self.images])
 
     def get_regions(self):
         from goldstone.utils import get_client
@@ -35,7 +35,7 @@ class DiscoverTree(TopologyMixin):
     def _populate_regions(self):
 
         result = []
-        updated = self.images[0]['_source']['@timestamp']
+        updated = self.images[0]['@timestamp']
 
         for region in self._get_image_regions():
             result.append(
@@ -59,7 +59,7 @@ class DiscoverTree(TopologyMixin):
     def build_topology_tree(self):
 
         try:
-            if self.images is None or len(self.images) == 0:
+            if self.images is None or len(self.images.hits) == 0:
                 raise NoResourceFound("No glance images found in database")
 
             regions = self._populate_regions()
