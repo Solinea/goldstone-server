@@ -344,9 +344,44 @@ class Logout(Setup):
 class Password(Setup):
     """Test changing the user password."""
 
-    def not_logged_in(self):
-        """The user isn't logged in."""
-        pass
+    def test_not_logged_in(self):
+        """The user isn't logged in.
+
+        The user should be able to change their password.
+
+        """
+
+        # Create a user and log them out.
+        token = create_and_login()
+        client = Client()
+        response = client.post(LOGOUT_URL,
+                               json.dumps({"username": TEST_USER[0],
+                                           "password": TEST_USER[2]}),
+                               content_type="application/json")
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        # Now try changing the password.
+        response = \
+            client.post(PASSWORD_URL,
+                        json.dumps({"username": TEST_USER[0],
+                                    "current_password": TEST_USER[2],
+                                    "new_password": "boom"}),
+                        content_type="application/json",
+                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        # Test logging in using the new password.
+        login(TEST_USER[0], "boom")
+
+        # Verify that we can't log in using the old password.
+        response = client.post(LOGIN_URL,
+                               {"username": TEST_USER[0],
+                                "password": TEST_USER[2]})
+
+        self.assertContains(response,
+                            CONTENT_NON_FIELD_ERRORS,
+                            status_code=HTTP_400_BAD_REQUEST)
 
     def test_missing_token(self):
         """The change password request doesn't have an authentication token."""
