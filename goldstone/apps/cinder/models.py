@@ -12,43 +12,39 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.models import ApiPerfData as GoldstoneApiPerfData, TopologyData
-
-
-class ApiPerfData(GoldstoneApiPerfData):
-    component = 'cinder'
+from goldstone.models import TopologyData
 
 
 class ServicesData(TopologyData):
     _DOC_TYPE = 'cinder_service_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class VolumesData(TopologyData):
     _DOC_TYPE = 'cinder_volume_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class BackupsData(TopologyData):
     _DOC_TYPE = 'cinder_backup_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class SnapshotsData(TopologyData):
     _DOC_TYPE = 'cinder_snapshot_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class VolTypesData(TopologyData):
     _DOC_TYPE = 'cinder_voltype_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class EncryptionTypesData(TopologyData):
     _DOC_TYPE = 'cinder_encrypttype_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class TransfersData(TopologyData):
     _DOC_TYPE = 'cinder_transfer_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'

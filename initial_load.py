@@ -33,7 +33,7 @@ def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
     from elasticsearch.exceptions import RequestError
 
     try:
-        conn = get_es_connection(server)
+        conn = goldstone.models.get_es_conn(server)
         conn.indices.put_template(template_name,
                                   json.load(template_file),
                                   create=False)

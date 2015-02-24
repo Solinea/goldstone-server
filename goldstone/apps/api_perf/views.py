@@ -12,11 +12,75 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.views import TopLevelView
+import calendar
+from datetime import datetime
+from urlparse import urlparse
+from django.http import HttpResponseBadRequest, HttpResponse
+from rest_framework.views import APIView
+from goldstone.apps.api_perf.models import ApiPerfData
+from goldstone.apps.api_perf.utils import stack_api_request_base
+from goldstone.views import TopLevelView, validate
 import logging
+import arrow
 
 logger = logging.getLogger(__name__)
 
 
 class ReportView(TopLevelView):
     template_name = 'api_perf_report.html'
+
+
+class ApiPerfView(APIView):
+    """The base class for all app "ApiPerfView" views."""
+
+    def _get_data(self, context):
+        import arrow
+        return ApiPerfData.get_stats(arrow.get(context['start_dt']),
+                                     arrow.get(context['end_dt']),
+                                     context['interval'],
+                                     context['component'],)
+
+    def get(self, request, *args, **kwargs):
+        """Return a response to a GET request."""
+
+        import json
+
+        # Fetch and enhance this request's context.
+        context = {
+            # Use "now" if not provided. Validate() will calculate the start
+            # and interval. Arguments missing from the request are set to None.
+
+            # TODO convert this calendar stuff to arrow
+            'end':
+            request.query_params.get(
+                'end',
+                str(calendar.timegm(datetime.utcnow().timetuple()))),
+            'start': request.query_params.get('start'),
+            'interval': request.query_params.get('interval'),
+            'component': request.query_params.get('component'),
+            }
+
+        # TODO user DRF validation instead of custom.
+        context = validate(['start', 'end', 'interval'], context)
+
+        if isinstance(context, HttpResponseBadRequest):
+            # validation error
+            return context
+
+        logger.debug("[get] start_dt = %s", context['start_dt'])
+        data = self._get_data(context)
+
+        # Good policy, but don't think it is required for this specific
+        # dataset
+        if not data.empty:
+            data = data.fillna(0)
+
+        # Record output may be a bit bulkier, but easier to process by D3. Keys
+        # appear to be in alphabetical order, so we could use orient=values to
+        # trim it down, or pass it in a binary format if things get really
+        # messy.
+        response = list(data.to_json(orient='records'))
+
+        # We already have the response in the desired format. So, we return a
+        # Django response instead of a DRF response.
+        return HttpResponse(response, content_type="application/json")

@@ -25,7 +25,7 @@ class DiscoverTree(TopologyMixin):
         if self.azs is None:
             return []
         else:
-            return set([s['_source']['region'] for s in self.azs])
+            return set([s['region'] for s in self.azs])
 
     def get_regions(self):
         return [{"rsrcType": "region", "label": r}
@@ -33,7 +33,7 @@ class DiscoverTree(TopologyMixin):
 
     def _populate_regions(self):
         result = []
-        updated = self.azs[0]['_source']['@timestamp']
+        updated = self.azs[0]['@timestamp']
 
         for region in self._get_region_names():
             result.append(
@@ -70,7 +70,7 @@ class DiscoverTree(TopologyMixin):
         """
         zones = set(
             [zn['zoneName']
-             for zn in self.azs[0]['_source']['availability_zones']]
+             for zn in self.azs[0]['availability_zones']]
         )
 
         result = []
@@ -128,11 +128,11 @@ class DiscoverTree(TopologyMixin):
     def build_topology_tree(self):
 
         try:
-            if self.azs is None or len(self.azs) == 0:
+            if self.azs is None or len(self.azs.hits) == 0:
                 raise NoResourceFound(
                     "No nova availability zones found in database")
 
-            updated = self.azs[0]['_source']['@timestamp']
+            updated = self.azs[0]['@timestamp']
 
             regions = self._populate_regions()
             new_rl = []

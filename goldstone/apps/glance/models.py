@@ -12,13 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.models import ApiPerfData, TopologyData
-
-
-class GlanceApiPerfData(ApiPerfData):
-    component = 'glance'
+from goldstone.models import TopologyData
 
 
 class ImagesData(TopologyData):
     _DOC_TYPE = 'glance_image_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'

@@ -168,12 +168,14 @@ casper.test.begin('Node Report Page is loading properly', 82, function suite(tes
         this.mouseEvent('mouseout', '#Hypervisor-title-bar .pull-right.fa.fa-info-circle.panel-info');
         test.assertNotVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
+        // events report
+        test.assertEval(function() {
+            return __utils__.findAll('td').length > 1 || $('td').text() === 'No data available in table';
+        }, "Event report renders report results or 'No data available in table'");
+
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
 
-        // frequently fails if report data is not availble
-        // so putting last
-        test.assertElementCount('td', 30, "Event report has 30 visible data points");
     });
 
     casper.run(function() {
@@ -199,8 +201,14 @@ casper.test.begin('Homepage is loading properly', 64, function suite(test) {
         test.assertExists('div#goldstone-discover-r1-c1', 'Event Timeline Section should load');
         test.assertExists('div#goldstone-discover-r1-c1 svg', 'Event Timeline Section svg chart should load');
         test.assertSelectorHasText('div #goldstone-discover-r1-c1', 'Event Timeline');
-        // checks for a timestamp of any sort
-        test.assertSelectorDoesntHaveText('div #goldstone-discover-r1-c1', 'No Data Returned');
+
+        // checks for a timestamp of any sort which means data is received
+        // or checks for 'No Data Returned' otherwise
+
+        test.assertEval(function() {
+            return __utils__.findAll('div #goldstone-discover-r1-c1 g.tick').length > 0 || $('div #goldstone-discover-r1-c1').text().indexOf('No Data Returned') >= 0;
+        }, "Event report renders report results or 'No Data Returned'");
+
 
         // Event Timeline info button brings up popover
         test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should not be visible');
@@ -431,7 +439,7 @@ casper.test.begin('API Perf Page is loading properly', 65, function suite(test) 
     });
 });
 
-casper.test.begin('Nova (compute) Page is loading properly', 63, function suite(test) {
+casper.test.begin('Nova (compute) Page is loading properly', 53, function suite(test) {
     casper.start('http://localhost:8000/nova/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
@@ -466,9 +474,13 @@ casper.test.begin('Nova (compute) Page is loading properly', 63, function suite(
         test.assertExists('div#nova-report-r1-c2', 'VM Spawns chart section should load');
         test.assertExists('div#nova-report-r1-c2 svg', 'VM Spawns chart should load');
         test.assertSelectorHasText('div#nova-report-r1-c2', 'VM Spawns');
-        test.assertSelectorHasText('div#nova-report-r1-c2', 'Fail');
-        test.assertSelectorHasText('div#nova-report-r1-c2', 'Success');
-        test.assertSelectorDoesntHaveText('div#nova-report-r1-c2', 'No Data Returned');
+
+        // checks for 'fail' in the chart legend which means data is received
+        // or checks for 'No Data Returned' otherwise
+
+        test.assertEval(function() {
+            return $('div #nova-report-r1-c2').text().indexOf('Fail') >= 0 || $('div #nova-report-r1-c2').text().indexOf('No Data Returned') >= 0;
+        }, "Event report renders report results or 'No Data Returned'");
 
         // VM Spawns info button brings up popover
         test.assertNotVisible('div#nova-report-r1-c2     div.popover.fade.bottom.in', 'VM Spawns info popover should not be visible');
@@ -485,10 +497,14 @@ casper.test.begin('Nova (compute) Page is loading properly', 63, function suite(
         test.assertExists('div#nova-report-r2-c1', 'CPU Resources chart section should load');
         test.assertExists('div#nova-report-r2-c1 svg', 'CPU Resources svg should load');
         test.assertSelectorHasText('div#nova-report-r2-c1', 'CPU Resources');
-        test.assertSelectorHasText('div#nova-report-r2-c1', 'Virtual');
-        test.assertSelectorHasText('div#nova-report-r2-c1', 'Physical');
-        test.assertSelectorHasText('div#nova-report-r2-c1', 'Used');
-        test.assertSelectorDoesntHaveText('div#nova-report-r2-c1', 'No Data Returned');
+
+        // checks for 'Physical' in the chart legend which means data is received
+        // or checks for 'No Data Returned' otherwise
+
+        test.assertEval(function() {
+            return $('div #nova-report-r2-c1').text().indexOf('Physical') >= 0 || $('div #nova-report-r2-c1').text().indexOf('No Data Returned') >= 0;
+        }, "Event report renders report results or 'No Data Returned'");
+
 
         // CPU Resources info button brings up popover
         test.assertNotVisible('div#nova-report-r2-c1 div.popover.fade.bottom.in', 'CPU Resources info popover should not be visible');
@@ -505,10 +521,13 @@ casper.test.begin('Nova (compute) Page is loading properly', 63, function suite(
         test.assertExists('div#nova-report-r2-c2', 'Memory Resources chart section should load');
         test.assertExists('div#nova-report-r2-c2 svg', 'Memory Resources svg should load');
         test.assertSelectorHasText('div#nova-report-r2-c2', 'Memory Resources');
-        test.assertSelectorHasText('div#nova-report-r2-c2', 'Virtual');
-        test.assertSelectorHasText('div#nova-report-r2-c2', 'Physical');
-        test.assertSelectorHasText('div#nova-report-r2-c2', 'Used');
-        test.assertSelectorDoesntHaveText('div#nova-report-r2-c2', 'No Data Returned');
+
+        // checks for 'Physical' in the chart legend which means data is received
+        // or checks for 'No Data Returned' otherwise
+
+        test.assertEval(function() {
+            return $('div #nova-report-r2-c2').text().indexOf('Physical') >= 0 || $('div #nova-report-r2-c2').text().indexOf('No Data Returned') >= 0;
+        }, "Event report renders report results or 'No Data Returned'");
 
         // Memory Resources info button brings up popover
         test.assertNotVisible('div#nova-report-r2-c2 div.popover.fade.bottom.in', 'Memory Resources info popover should not be visible');
@@ -525,9 +544,13 @@ casper.test.begin('Nova (compute) Page is loading properly', 63, function suite(
         test.assertExists('div#nova-report-r3-c1', 'Disk Resources section should load');
         test.assertExists('div#nova-report-r3-c1 svg', 'Disk Resources svg should load');
         test.assertSelectorHasText('div#nova-report-r3-c1', 'Disk Resources');
-        test.assertSelectorHasText('div#nova-report-r3-c1', 'Total');
-        test.assertSelectorHasText('div#nova-report-r3-c1', 'Used');
-        test.assertSelectorDoesntHaveText('div#nova-report-r3-c1', 'No Data Returned');
+
+        // checks for 'Physical' in the chart legend which means data is received
+        // or checks for 'No Data Returned' otherwise
+
+        test.assertEval(function() {
+            return $('div #nova-report-r3-c1').text().indexOf('Total') >= 0 || $('div #nova-report-r3-c1').text().indexOf('No Data Returned') >= 0;
+        }, "Event report renders report results or 'No Data Returned'");
 
         // Disk Resources info button brings up popover
         test.assertNotVisible('div#nova-report-r3-c1 div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');

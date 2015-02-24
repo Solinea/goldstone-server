@@ -12,7 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from elasticutils import get_es
+
+# we only use es_conn, but for some reason, making the import more specific
+# causes an import failure.
+import goldstone
 
 from goldstone.celery import app as celery_app
 from django.conf import settings
@@ -23,27 +26,8 @@ from subprocess import check_call
 logger = logging.getLogger(__name__)
 
 
-def get_es_connection(server=settings.ES_SERVER):
-    """Return a connection to Elasticsearch.
-
-    TODO: all ES access should be rationalized to go through the official
-    ES python client or official ES python DSL library.
-    """
-
-    try:
-        return get_es(urls=[server], timeout=10, max_retries=3)
-    except TransportError:
-        logger.exception("Could not connect to ElasticSearch.")
-        raise
-    except Exception:           # pylint: disable=W0703
-        logger.warn('Unknown exception getting ES connection.  Please report '
-                    'this.')
-        raise
-
-
-@celery_app.task(bind=True)
-def delete_indices(self,  # pylint: disable=W0613
-                   prefix,
+@celery_app.task()
+def delete_indices(prefix,
                    cutoff=None,
                    es_host=settings.ES_HOST,
                    es_port=settings.ES_PORT):
@@ -70,7 +54,7 @@ def _create_or_replace_alias(index_name, server=settings.ES_SERVER,
     alias already exists, it is repointed at the provided index.
     """
     try:
-        conn = get_es_connection(server)
+        conn = goldstone.models.es_conn(server)
         if conn.indices.exists_alias(alias):
             conn.indices.update_aliases({
                 "actions": [
@@ -89,7 +73,7 @@ def create_index(name, body=None, server=settings.ES_SERVER):
     """Create an ES index with the provided name and body."""
 
     try:
-        conn = get_es_connection(server)
+        conn = goldstone.models.es_conn(server)
         conn.indices.create(name, body=body)
     except RequestError as exc:
         # Reraise anything that isn't index already exists

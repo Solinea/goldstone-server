@@ -14,23 +14,15 @@
 # limitations under the License.
 import logging
 from goldstone.apps.core.utils import JsonReadOnlyViewSet
-from goldstone.views import TopLevelView, ApiPerfView as GoldstoneApiPerfView
+from goldstone.views import TopLevelView
 from .models import EndpointsData, RolesData, ServicesData, TenantsData, \
-    UsersData, ApiPerfData
+    UsersData
 
 logger = logging.getLogger(__name__)
 
 
 class ReportView(TopLevelView):
     template_name = 'keystone_report.html'
-
-
-class ApiPerfView(GoldstoneApiPerfView):
-
-    def _get_data(self, context):
-        return ApiPerfData().get(context['start_dt'],
-                                 context['end_dt'],
-                                 context['interval'])
 
 
 class EndpointsDataViewSet(JsonReadOnlyViewSet):

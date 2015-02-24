@@ -206,6 +206,7 @@ class LoggingNodeViewTests(APISimpleTestCase):
 
         response = self.client.get('/logging/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # pylint: disable=E1101
         self.assertEqual(response.data['count'], 20)
         self.assertEqual(len(response.data['results']),
                          settings.REST_FRAMEWORK['PAGINATE_BY'])
@@ -217,5 +218,6 @@ class LoggingNodeViewTests(APISimpleTestCase):
 
         response = self.client.get('/logging/nodes/' + node.id)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # pylint: disable=E1101
         self.assertIn('name', response.data)
         self.assertEqual(node.name, response.data['name'])

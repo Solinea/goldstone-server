@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import unicode_literals
+
+# TODO replace calendar and datetime with arrow
 import calendar
 from datetime import datetime, timedelta
 import json
@@ -25,7 +27,6 @@ from django.views.generic import TemplateView
 from elasticsearch import ElasticsearchException
 import pytz
 from rest_framework import status
-from rest_framework.views import APIView
 
 from cinderclient.exceptions import AuthorizationFailure as CinderAuthException
 from cinderclient.openstack.common.apiclient.exceptions \
@@ -149,61 +150,6 @@ class TopLevelView(TemplateView):
                                                 'end_ts': context['end'],
                                                 'interval': context['interval']
                                                 })
-
-
-class ApiPerfView(APIView):
-    """The base class for all app "ApiPerfView" views."""
-
-    def _get_data(self, _):                # pylint: disable=R0201
-        """Override in subclass.
-
-        :return: A model
-
-        """
-
-        return None
-
-    def get(self, request, *args, **kwargs):
-        """Return a response to a GET request."""
-
-        # Fetch and enhance this request's context.
-        context = {
-            # Use "now" if not provided. Validate() will calculate the start
-            # and interval. Arguments missing from the request are set to None.
-            'end':
-            request.query_params.get(
-                'end',
-                str(calendar.timegm(datetime.utcnow().timetuple()))),
-            'start': request.query_params.get('start'),
-            'interval': request.query_params.get('interval'),
-            }
-
-        context = validate(['start', 'end', 'interval'], context)
-
-        if isinstance(context, HttpResponseBadRequest):
-            # validation error
-            return context
-
-        logger.debug("[get] start_dt = %s", context['start_dt'])
-        data = self._get_data(context)
-        logger.debug("[get] data = %s", data)
-
-        # Good policy, but don't think it is required for this specific
-        # dataset
-        if not data.empty:
-            data = data.fillna(0)
-
-        # Record output may be a bit bulkier, but easier to process by D3. Keys
-        # appear to be in alphabetical order, so we could use orient=values to
-        # trim it down, or pass it in a binary format if things get really
-        # messy.
-        response = data.to_json(orient='records')
-        logger.debug('[get] response = %s', json.dumps(response))
-
-        # Because we formatted the JSON string with columns and values via the
-        # "orient" argument, we already have the response in the desired
-        # format. So, we return a Django response instead of a DRF response.
-        return HttpResponse(response, content_type="application/json")
 
 
 class DiscoverView(TemplateView, TopologyMixin):
