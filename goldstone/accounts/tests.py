@@ -21,11 +21,12 @@ from goldstone.user.util_test import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_MISSING_FIELDS, \
     CONTENT_MISSING_USERNAME, CONTENT_MISSING_PASSWORD, \
     CONTENT_UNIQUE_USERNAME, CONTENT_NON_FIELD_ERRORS, LOGIN_URL, \
-    TEST_USER
+    TEST_USER, CONTENT_NOT_BLANK
 
-# Define the URLs and payloads used in this module's testing.
+# Define the URLs by this module.
 SETTINGS_URL = "/accounts/settings"
 REGISTRATION_URL = "/accounts/register"
+LOGOUT_URL = "/accounts/login"
 
 
 class Settings(Setup):
@@ -251,46 +252,69 @@ class Login(Setup):
                             CONTENT_NON_FIELD_ERRORS,
                             status_code=HTTP_400_BAD_REQUEST)
 
-    def test_login(self):
+    def test_login(self):      # pylint: disable=R0201
         """Logging in."""
 
-        self.assertIsInstance(create_and_login(), basestring)
+        create_and_login()
 
-    def test_login_already_logged_in(self):
-        """Logging in when the user is already logged in.
+    def test_login_already_logged_in(self):        # pylint: disable=R0201
+        """Logging in when the user is already logged in."""
 
-        This should be idempotent.
+        create_and_login()
+        login(TEST_USER[0], TEST_USER[2])
 
-        """
-
-        self.assertIsInstance(create_and_login(), basestring)
-        self.assertIsInstance(login(TEST_USER[0], TEST_USER[2]), basestring)
-
-    def test_login_another_logged_in(self):
-        """Logging in when another user is logged in.
-
-        This should log in the new user.
-
-        """
+    def test_login_another_logged_in(self):        # pylint: disable=R0201
+        """Logging in when another user is logged in."""
 
         # Create user 1 and user 2. User 2 is just user 1 the the username and
         # password swapped.
-        self.assertIsInstance(create_and_login(), basestring)
+        create_and_login()
         get_user_model().objects.create_user(TEST_USER[2],
                                              TEST_USER[1],
                                              TEST_USER[0])
 
         # Login user 1, then login user 2.
-        self.assertIsInstance(login(TEST_USER[0], TEST_USER[2]), basestring)
-        self.assertIsInstance(login(TEST_USER[2], TEST_USER[0]), basestring)
+        login(TEST_USER[0], TEST_USER[2])
+        login(TEST_USER[2], TEST_USER[0])
 
 
 class Logout(Setup):
     """Logging out."""
 
+    def test_not_logged_in_no_creds(self):
+        """Logging out when a user is not logged in, and not giving any
+        credentials."""
+
+        client = Client()
+        response = client.post(LOGOUT_URL)
+
+        self.assertContains(response,
+                            CONTENT_NOT_BLANK,
+                            status_code=HTTP_400_BAD_REQUEST)
+
     def test_not_logged_in(self):
-        """Logging out when a user is not logged in."""
-        pass
+        """Logging out when a user is not logged in, with username and
+        password, and then using the authorization token."""
+
+        create_and_login()
+
+        # Logout. Then logout again.
+        # pylint: disable=E1101
+        client = Client()
+        response = client.post(LOGOUT_URL,
+                               json.dumps({"username": TEST_USER[0],
+                                           "password": TEST_USER[2]}),
+                               content_type="application/json")
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertIsInstance(response.data["auth_token"], basestring)
+
+        response = client.post(LOGOUT_URL,
+                               json.dumps({"username": TEST_USER[0],
+                                           "password": TEST_USER[2]}),
+                               content_type="application/json")
+        import pdb; pdb.set_trace()
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertIsInstance(response.data["auth_token"], basestring)
 
     def test_logout(self):
         """Logging out."""
