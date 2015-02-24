@@ -164,11 +164,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             return "<p>" + d.name + "<br>" + "No value reported";
         }
 
-        // don't create a tooltip for zero values
-        if (d.y0 === d.y1) {
-            return null;
-        }
-
         // otherwise return a string in the format of
         // "<p>Success<br>10"
 
