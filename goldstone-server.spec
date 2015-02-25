@@ -285,7 +285,7 @@ rm -rf %{buildroot}
 /opt/goldstone/LICENSE.pdf
 /opt/goldstone/goldstone/
 %config /opt/goldstone/goldstone/settings/base.py
-%config /opt/goldstone/goldstone/settings/production.py
+%config(noreplace) /opt/goldstone/goldstone/settings/production.py
 /opt/goldstone/external/
 /var/log/goldstone/
 /var/www/goldstone/static/

@@ -34,7 +34,7 @@ class DiscoverTree(TopologyMixin):
         if self.services is None:
             return []
         else:
-            return set([s['_source']['region'] for s in self.services])
+            return set([s['region'] for s in self.services])
 
     def get_regions(self):
         return [{"rsrcType": "region", "label": r} for r in
@@ -42,7 +42,7 @@ class DiscoverTree(TopologyMixin):
 
     def _populate_regions(self):
         result = []
-        updated = self.services[0]['_source']['@timestamp']
+        updated = self.services[0]['@timestamp']
         for region in self._get_service_regions():
             result.append(
                 {"rsrcType": "region",
@@ -86,7 +86,7 @@ class DiscoverTree(TopologyMixin):
         """
         zones = set(
             z['zone']
-            for z in self.services[0]['_source']['services']
+            for z in self.services[0]['services']
         )
 
         result = []
@@ -137,11 +137,11 @@ class DiscoverTree(TopologyMixin):
         from goldstone.utils import GoldstoneAuthError, NoResourceFound
 
         try:
-            if self.services is None or len(self.services) == 0:
+            if self.services is None or len(self.services.hits) == 0:
                 raise NoResourceFound(
                     "No cinder services found in database")
 
-            updated = self.services[0]['_source']['@timestamp']
+            updated = self.services[0]['@timestamp']
             rl = self._populate_regions()
             new_rl = []
 

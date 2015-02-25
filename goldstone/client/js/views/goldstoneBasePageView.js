@@ -144,7 +144,7 @@ var GoldstoneBasePageView = Backbone.View.extend({
         // instantiate nova api chart
 
         this.novaApiPerfChart = new ApiPerfCollection({
-            urlPrefix: 'nova',
+            componentParam: 'nova',
         });
 
         this.novaApiPerfChartView = new ApiPerfView({

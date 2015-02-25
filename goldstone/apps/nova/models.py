@@ -20,16 +20,9 @@ import pandas as pd
 from pyes import BoolQuery, RangeQuery, ESRangeOp, TermQuery
 from types import StringType
 
-from goldstone.models import ESData, TopologyData, ApiPerfData
+from goldstone.models import ESData, TopologyData
 
 logger = logging.getLogger(__name__)
-
-
-class NovaApiPerfData(ApiPerfData):
-    """
-    Nova model for API performance data
-    """
-    component = 'nova'
 
 
 class NovaClientData(ESData):
@@ -187,10 +180,9 @@ class SpawnData(ESData):
         start events"""
         agg_name = "events_by_date"
         q = self._spawn_start_query(agg_name)
-        logger.info("[get_spawn_start] query = %s", json.dumps(q))
         index = ",".join(self.get_index_names('goldstone-'))
-        logger.info("[get_spawn_start] calling query with index=%s, "
-                    "doc_type=%s", index, self._DOC_TYPE)
+        logger.debug("[get_spawn_start] calling query with index=%s, "
+                     "doc_type=%s", index, self._DOC_TYPE)
         response = self._conn.search(
             index=index, doc_type=self._DOC_TYPE, body=q, size=0)
         logger.debug("[get_spawn_start] response = %s", json.dumps(response))
@@ -335,7 +327,7 @@ class ResourceData(ESData):
         for date_bucket in result['aggregations']['events_by_date']['buckets']:
             logger.debug("[_get_resource] processing date_bucket: %s",
                          json.dumps(date_bucket))
-            item = {'timestamp': date_bucket['key'],
+            item = {'@timestamp': date_bucket['key'],
                     custom_field: 0,
                     'total': 0}
 
@@ -392,59 +384,59 @@ class ResourceData(ESData):
 
 class AgentsData(TopologyData):
     _DOC_TYPE = 'nova_agents_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class AggregatesData(TopologyData):
     _DOC_TYPE = 'nova_aggregates_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class AvailZonesData(TopologyData):
     _DOC_TYPE = 'nova_avail_zones_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class CloudpipesData(TopologyData):
     _DOC_TYPE = 'nova_cloudpipes_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class FlavorsData(TopologyData):
     _DOC_TYPE = 'nova_flavors_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class FloatingIpPoolsData(TopologyData):
     _DOC_TYPE = 'nova_floating_ip_pools_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class HostsData(TopologyData):
     _DOC_TYPE = 'nova_hosts_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class HypervisorsData(TopologyData):
     _DOC_TYPE = 'nova_hypervisors_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class NetworksData(TopologyData):
     _DOC_TYPE = 'nova_networks_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class SecGroupsData(TopologyData):
     _DOC_TYPE = 'nova_secgroups_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class ServersData(TopologyData):
     _DOC_TYPE = 'nova_servers_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'
 
 
 class ServicesData(TopologyData):
     _DOC_TYPE = 'nova_services_list'
-    _INDEX_PREFIX = 'goldstone'
+    _INDEX_PREFIX = 'goldstone-'

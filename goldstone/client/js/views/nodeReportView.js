@@ -202,7 +202,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Libvirt core/vm chart
         this.hypervisorCoreChart = new HypervisorCollection({
-            url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false",
+            url: "/api_perf/stats?start=111&end=112&interval=60s&component=nova",
             globalLookback: ns.globalLookback
         });
 
@@ -217,7 +217,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Libvirt mem/vm  chart
         this.hypervisorMemoryChart = new HypervisorCollection({
-            url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false",
+            url: "/api_perf/stats?start=111&end=112&interval=60s&component=nova",
             globalLookback: ns.globalLookback
         });
         this.hypervisorMemoryView = new HypervisorView({
@@ -230,7 +230,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Libvirt top 10 CPU consumer VMs chart
         this.hypervisorVmCpuChart = new HypervisorVmCpuCollection({
-            url: "/glance/api_perf?start=111&end=112&interval=3600s&render=false",
+            url: "/api_perf/stats?start=111&end=112&interval=60s&component=nova",
             globalLookback: ns.globalLookback
         });
 

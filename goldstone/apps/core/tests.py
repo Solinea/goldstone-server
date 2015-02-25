@@ -1,4 +1,8 @@
-"""Core app unit tests."""
+"""Core app unit tests.
+
+This module demonstrates no less than 3 strategies for mocking ES.
+
+"""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,16 +24,17 @@ import arrow
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, ConnectionError, TransportError
 from elasticsearch.client import IndicesClient
-from mock import patch
 import mock
+from mock import patch
 from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 from rest_framework.test import APISimpleTestCase
 
 from goldstone.apps.core import tasks
 from goldstone.apps.core.views import ElasticViewSetMixin
+from goldstone.models import es_conn
 from .models import EventType, Event, MetricType, Metric, ReportType, \
     Report, validate_str_bool, validate_method_choices, Node
 from .serializers import EventSerializer, NodeSerializer, ReportSerializer
@@ -59,6 +64,7 @@ class TaskTests(SimpleTestCase):
 
         # pylint: disable=W0212
         self.assertIsNone(tasks.create_daily_index('abc'))
+        create.assert_called()
 
         exists_alias.return_value = False
         put_alias.return_value = None
@@ -125,7 +131,8 @@ class NodeViewTests(APISimpleTestCase):
 
         response = self.client.get('/core/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 4)
+        self.assertEqual(
+            len(response.data['results']), 4)  # pylint: disable=E1101
 
     def test_get_enabled(self):
 
@@ -133,6 +140,7 @@ class NodeViewTests(APISimpleTestCase):
 
         response = self.client.get('/core/nodes?managed=true')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # pylint: disable=E1101
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'],
                          'true')
@@ -145,6 +153,7 @@ class NodeViewTests(APISimpleTestCase):
 
         response = self.client.get('/core/nodes?managed=false')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # pylint: disable=E1101
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'], 'false')
         self.assertEqual(response.data['results'][1]['managed'], 'false')
@@ -155,6 +164,7 @@ class NodeViewTests(APISimpleTestCase):
 
         response = self.client.get('/core/nodes?managed=true')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # pylint: disable=E1101
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'],
                          'true')
@@ -171,6 +181,7 @@ class NodeViewTests(APISimpleTestCase):
 
         response = self.client.get('/core/nodes?managed=false')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # pylint: disable=E1101
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'], 'false')
 
@@ -180,8 +191,6 @@ class NodeViewTests(APISimpleTestCase):
 
         response = self.client.get('/core/nodes/' + id_value)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        logger.info('id = %s', id_value)
         self.assertEqual(response.data['managed'], 'true')
 
     def test_delete_fail(self):
@@ -190,6 +199,7 @@ class NodeViewTests(APISimpleTestCase):
 
         response = self.client.get('/core/nodes?managed=false')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # pylint: disable=E1101
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'], 'false')
         uuid = response.data['results'][0]['id']
@@ -209,9 +219,11 @@ class NodeViewTests(APISimpleTestCase):
 
         response = self.client.get('/core/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # pylint: disable=E1101
         self.assertEqual(len(response.data), 4)
         uuid = response.data['results'][0]['id']
         data = response.data['results'][0]
+        # pylint: enable=E1101
         data['name'] = 'test123123'
         response = self.client.put('/core/nodes/' + uuid, data=data)
         self.assertEqual(response.status_code,
@@ -223,8 +235,10 @@ class NodeViewTests(APISimpleTestCase):
 
         response = self.client.get('/core/nodes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # pylint: disable=E1101
         self.assertEqual(len(response.data), 4)
         uuid = response.data['results'][0]['id']
+        # pylint: enable=E1101
         data = {'name': 'test123'}
         response = self.client.patch('/core/nodes/' + uuid, data=data)
         self.assertEqual(response.status_code,
@@ -367,7 +381,7 @@ class EventModelTests(SimpleTestCase):
 
     def setUp(self):
 
-        server = Elasticsearch(settings.ES_SERVER)
+        server = es_conn()
 
         if server.indices.exists('goldstone_model'):
             server.indices.delete('goldstone_model')
@@ -434,7 +448,7 @@ class EventSerializerTests(SimpleTestCase):
 
     def setUp(self):
 
-        server = Elasticsearch(settings.ES_SERVER)
+        server = es_conn()
 
         if server.indices.exists('goldstone_model'):
             server.indices.delete('goldstone_model')
@@ -467,7 +481,7 @@ class EventViewTests(APISimpleTestCase):
 
     def setUp(self):
 
-        server = Elasticsearch(settings.ES_SERVER)
+        server = es_conn()
 
         if server.indices.exists('goldstone_model'):
             server.indices.delete('goldstone_model')
@@ -496,7 +510,7 @@ class EventViewTests(APISimpleTestCase):
         EventType.refresh_index()
         response = self.client.get('/core/events')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(response.data['count'], 2)  # pylint: disable=E1101
 
     def test_get(self):
         self.maxDiff = None
@@ -508,15 +522,20 @@ class EventViewTests(APISimpleTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.client.get('/core/events')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # pylint: disable=E1101
         self.assertEqual(response.data['count'], 1)
         list_response_data = response.data['results'][0]
+        # pylint: enable=E1101
         self.assertDictContainsSubset(data, list_response_data)
         response = self.client.get('/core/events/' + list_response_data['id'])
         d1_created = list_response_data['created']
+        # pylint: disable=E1101
         d2_created = response.data['created']
         del list_response_data['created']
         del response.data['created']
-        self.assertDictEqual(list_response_data, response.data)
+        self.assertDictEqual(
+            list_response_data, response.data)
+        # pylint: enable=E1101
         self.assertEqual(arrow.get(d1_created), arrow.get(d2_created))
 
     def test_delete(self):
@@ -526,8 +545,11 @@ class EventViewTests(APISimpleTestCase):
         response = self.client.post('/core/events', data=data)
         EventType.refresh_index()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # pylint: disable=E1101
         list_response_data = response.data
-        self.assertDictContainsSubset(data, list_response_data)
+        self.assertDictContainsSubset(
+            data, list_response_data)
+        # pylint: enable=E1101
         response = self.client.delete(
             '/core/events/' + list_response_data['id'])
         EventType.refresh_index()
@@ -562,25 +584,27 @@ class EventViewTests(APISimpleTestCase):
         response = self.client.post('/core/events', data=data1)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        data1_id = response.data['id']
+        data1_id = response.data['id']  # pylint: disable=E1101
         response = self.client.post('/core/events', data=data2)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        data2_id = response.data['id']
+        data2_id = response.data['id']  # pylint: disable=E1101
         EventType.refresh_index()
         response = self.client.get('/core/events')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(response.data['count'], 2)  # pylint: disable=E1101
 
         # make sure that data2 has the proper created time
         response = self.client.get('/core/events/' + data2_id)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        d2_created = arrow.get(response.data['created'])
+        d2_created = arrow.get(
+            response.data['created'])  # pylint: disable=E1101
         self.assertEqual(d2_created, start_time.replace(minutes=-2))
 
         response = self.client.get(
             '/core/events?created__gte=' + str(start_time.timestamp * 1000))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # pylint: disable=E1101
         self.assertEqual(response.data['count'], 1)
         self.assertEqual(response.data['results'][0]['id'], data1_id)
 
@@ -604,17 +628,18 @@ class EventViewTests(APISimpleTestCase):
         response = self.client.post('/core/events', data=data2)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        data2_id = response.data['id']
+        data2_id = response.data['id']  # pylint: disable=E1101
         EventType.refresh_index()
         response = self.client.get('/core/events')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(response.data['count'], 2)  # pylint: disable=E1101
 
         response = self.client.get(
             '/core/events?created__gte=' + str(start_time.timestamp * 1000) +
             '&created__lte=' + str(end_time.timestamp * 1000)
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # pylint: disable=E1101
         self.assertEqual(response.data['count'], 1)
         self.assertEqual(response.data['results'][0]['id'], data2_id)
 
@@ -681,7 +706,7 @@ class MetricViewTests(APISimpleTestCase):
 
     def setUp(self):
 
-        es = Elasticsearch(settings.ES_SERVER)
+        es = es_conn()
 
         if es.indices.exists('goldstone_agent'):
             es.indices.delete('goldstone_agent')
@@ -711,7 +736,7 @@ class MetricViewTests(APISimpleTestCase):
         ReportType.refresh_index()
         response = self.client.get('/core/metrics')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(response.data['count'], 2)  # pylint: disable=E1101
 
     def test_retrieve(self):
         response = self.client.get('/core/metrics/abcdef')
@@ -811,7 +836,7 @@ class ReportViewTests(APISimpleTestCase):
 
     def setUp(self):
 
-        server = Elasticsearch(settings.ES_SERVER)
+        server = es_conn()
 
         if server.indices.exists('goldstone_agent'):
             server.indices.delete('goldstone_agent')
@@ -843,7 +868,7 @@ class ReportViewTests(APISimpleTestCase):
         ReportType.refresh_index()
         response = self.client.get('/core/reports')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(response.data['count'], 2)  # pylint: disable=E1101
 
     def test_retrieve(self):
         response = self.client.get('/core/reports/abcdef')

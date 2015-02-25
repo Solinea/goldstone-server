@@ -16,8 +16,7 @@ import logging
 
 from goldstone.apps.core.utils import JsonReadOnlyViewSet
 from goldstone.views import TopLevelView
-from goldstone.views import ApiPerfView as GoldstoneApiPerfView
-from .models import ApiPerfData, ServicesData, VolumesData, \
+from .models import ServicesData, VolumesData, \
     BackupsData, SnapshotsData, VolTypesData, TransfersData
 
 logger = logging.getLogger(__name__)
@@ -27,15 +26,6 @@ class ReportView(TopLevelView):
     """Cinder report view."""
 
     template_name = 'cinder_report.html'
-
-
-class ApiPerfView(GoldstoneApiPerfView):
-    """Cinder api_perf view."""
-
-    def _get_data(self, context):
-        return ApiPerfData().get(context['start_dt'],
-                                 context['end_dt'],
-                                 context['interval'])
 
 
 class VolumesDataViewSet(JsonReadOnlyViewSet):
