@@ -22,7 +22,7 @@ from goldstone.user.util_test import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_MISSING_FIELDS, \
     CONTENT_MISSING_USERNAME, CONTENT_MISSING_PASSWORD, \
     CONTENT_UNIQUE_USERNAME, CONTENT_NON_FIELD_ERRORS, LOGIN_URL, \
-    TEST_USER, CONTENT_NOT_BLANK, CONTENT_NO_PERMISSION
+    TEST_USER, CONTENT_NOT_BLANK, CONTENT_NO_PERMISSION, CONTENT_UNIQUE_NAME
 from .models import Tenant
 
 # URLs used by this module.
@@ -199,85 +199,198 @@ class Tenants(Setup):
 
         response_content = json.loads(response.content)
 
-        self.assertIsInstance(response_content["results"][0]["uuid"],
-                              basestring)
-        self.assertIsInstance(response_content["results"][1]["uuid"],
-                              basestring)
-        self.assertGreaterEqual(len(response_content["results"][0]["uuid"]),
-                                32)
-        self.assertGreaterEqual(len(response_content["results"][1]["uuid"]),
-                                32)
+        for entry in response_content["results"]:
+            self.assertIsInstance(entry["uuid"], basestring)
+            self.assertGreaterEqual(len(entry["uuid"]), 32)
+            del entry["uuid"]
 
-        del response_content["results"][0]["uuid"]
-        del response_content["results"][1]["uuid"]
         self.assertEqual(response_content, EXPECTED_CONTENT)
 
-    def test_post(self):
-        """Create a tenant."""
+    @patch("djoser.utils.send_email")
+    def test_post(self, send_email, number_tenant_admins=1):
+        """Create a tenant.
 
-        # Create a user, and create a bad authorization token.
-        bad_token = create_and_login().replace('9', '8').replace('4', '3')
+        :param number_tenant_admin: The number of tenant_admins to create for
+                                    this test. 0 = the system should use the
+                                    default system tenant_admin. 1 = the normal
+                                    case. > 1 = the system should use one of
+                                    the multiply-defined default tenant admins.
 
-        # TODO: Check for email sent to the tenant_admin!
+        """
 
+        # The expected content, sans uuids.
+        EXPECTED_CONTENT = \
+            {'count': 3,
+             'next': None,
+             'previous': None,
+             'results': [{'name': 'tenant 1',
+                          'owner': 'John',
+                          'owner_contact': 'eight six seven'},
+                         {'name': 'tenant 2',
+                          'owner': 'Alex',
+                          'owner_contact': 'five three oh niiieeiiiin...'},
+                         {'name': 'tenant 3',
+                          'owner': 'Heywood Jablowme',
+                          'owner_contact': '(666)666-6666'}]}
+
+        # Create a user, save the authorization token, and make the user a
+        # Django admin.
+        token = self._create_and_login_staff()
+
+        # Create the desired number of default_tenant_admins.
+        if number_tenant_admins == 0:
+            # Run this test with no default tenant admins. The "current" user,
+            # who's a Django admin, should be used as the default tenant_admin.
+            default_tenant_admins = \
+                [get_user_model().objects.get(username=TEST_USER[0])]
+        else:
+            # Run this test with one or more default_tenant_admins.
+            default_tenant_admins = [get_user_model().objects.create_user(
+                                     "Julianne_%d" % x,
+                                     "oh@mama.com",
+                                     "bueno",
+                                     default_tenant_admin=True)
+                                     for x in range(number_tenant_admins)]
+
+        # Make the tenants, and check the responses to each POST.
         client = Client()
+        for entry in EXPECTED_CONTENT["results"]:
+            response = \
+                client.post(TENANTS_URL,
+                            json.dumps(entry),
+                            content_type="application/json",
+                            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+            self.assertEqual(response.status_code, HTTP_201_CREATED)
+
+            response_content = json.loads(response.content)
+            self.assertIsInstance(response_content["uuid"], basestring)
+            self.assertGreaterEqual(len(response_content["uuid"]), 32)
+            del response_content["uuid"]
+            self.assertEqual(response_content, entry)
+
+        # Now get the list and see if it matches what we expect.
         response = \
-            client.get(SETTINGS_URL,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+            client.get(TENANTS_URL,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        self.assertContains(response,
-                            CONTENT_BAD_TOKEN,
-                            status_code=HTTP_401_UNAUTHORIZED)
+        # First check there's a reasonable-looking uuid. Then, delete the uuid
+        # and compare the remaining response content.
+        self.assertEqual(response.status_code, HTTP_200_OK)
 
-    def test_post_missing_fields(self):
-        """Create a tenant when some required fields are missing."""
+        response_content = json.loads(response.content)
 
-        # Create a user, and create a bad authorization token.  (This test will
-        # erroneously fail if the good token doesn't contain any 9 characters,
-        # which is very unlikely.)
-        bad_token = create_and_login().replace('9', '8').replace('4', '2')
+        # For each response.content entry...
+        for entry in response_content["results"]:
+            self.assertIsInstance(entry["uuid"], basestring)
+            self.assertGreaterEqual(len(entry["uuid"]), 32)
+            del entry["uuid"]
 
-        client = Client()
-        response = \
-            client.put(SETTINGS_URL,
-                       json.dumps({}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+        self.assertEqual(response_content, EXPECTED_CONTENT)
 
-        self.assertContains(response,
-                            CONTENT_BAD_TOKEN,
-                            status_code=HTTP_401_UNAUTHORIZED)
+        # Did the ViewSet attempt to send out three emails?
+        self.assertEqual(send_email.call_count, 3)
+
+        # Did the three e-mails seem to have the correct content?
+        for entry in [0, 1, 2]:
+            # tenant_admin email.
+            self.assertIn(send_email.call_args_list[entry][0][0],
+                          [x.email for x in default_tenant_admins])
+            # from
+            self.assertEqual(send_email.call_args_list[entry][0][1],
+                             "webmaster@localhost")
+            # site name
+            self.assertEqual(
+                send_email.call_args_list[entry][0][2]["site_name"],
+                "YOUR_EMAIL_SITE_NAME")
+            # The name of the newly created tenant.
+            self.assertEqual(
+                send_email.call_args_list[entry][0][2]["tenant_name"],
+                EXPECTED_CONTENT["results"][entry]["name"])
 
     def test_post_no_default_admin(self):
         """Create a tenant when there's no default tenant_admin in the
         system."""
 
-        # Create a user, and create a bad authorization token.  (This test will
-        # erroneously fail if the good token doesn't contain any 9 characters,
-        # which is very unlikely.)
-        bad_token = create_and_login().replace('9', '8').replace('4', '2')
-
-        client = Client()
-        response = \
-            client.put(SETTINGS_URL,
-                       json.dumps({}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
-
-        self.assertContains(response,
-                            CONTENT_BAD_TOKEN,
-                            status_code=HTTP_401_UNAUTHORIZED)
+        self.test_post(number_tenant_admins=0)
 
     def test_post_many_default_admins(self):
-        """Create a tenant when there're multiple default tenant_admin in the
+        """Create a tenant when there are multiple default tenant_admins in the
         system."""
 
-        pass
+        self.test_post(number_tenant_admins=5)
 
-    def test_post_duplicate_name(self):
-        """Try create a tenant with a duplicate name."""
+    def test_post_missing_fields(self):
+        """Create a tenant when some required fields are missing."""
 
-        pass
+        # The expected content, sans uuids.
+        TEST = [{'owner': 'John', 'owner_contact': 'eight six seven'},
+                {'name': 'tenant 2',
+                 'owner_contact': 'five three oh niiieeiiiin...'},
+                {'owner_contact': '(666)666-6666'}]
+
+        # Create a user, save the authorization token, and make the user a
+        # Django admin.
+        token = self._create_and_login_staff()
+
+        # Create another user, and make them the default_tenant_admin.
+        get_user_model().objects.create_user("Julianne",
+                                             "oh@mama.com",
+                                             "bueno",
+                                             default_tenant_admin=True)
+
+        # Make the tenants, and check the responses to each POST.
+        client = Client()
+        for entry in TEST:
+            response = \
+                client.post(TENANTS_URL,
+                            json.dumps(entry),
+                            content_type="application/json",
+                            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+            self.assertContains(response,
+                                ':["This field is required."]}',
+                                status_code=HTTP_400_BAD_REQUEST)
+
+    @patch("djoser.utils.send_email")
+    def test_post_duplicate_name(self, send_email):
+        """Try creating a tenant with a duplicate name."""
+
+        TEST = {'name': 'tenant 1',
+                'owner': 'John',
+                'owner_contact': 'eight six seven'}
+
+        # Create a user, save the authorization token, and make the user a
+        # Django admin.
+        token = self._create_and_login_staff()
+
+        # Create a default_tenant_admins
+        get_user_model().objects.create_user("Julianne",
+                                             "oh@mama.com",
+                                             "bueno",
+                                             default_tenant_admin=True)
+
+        # Make a tenant.
+        client = Client()
+        response = \
+            client.post(TENANTS_URL,
+                        json.dumps(TEST),
+                        content_type="application/json",
+                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code, HTTP_201_CREATED)
+        self.assertEqual(send_email.call_count, 1)
+
+        # Now try making it again.
+        response = \
+            client.post(TENANTS_URL,
+                        json.dumps(TEST),
+                        content_type="application/json",
+                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertContains(response,
+                            CONTENT_UNIQUE_NAME,
+                            status_code=HTTP_400_BAD_REQUEST)
 
 
 class TenantsId(Setup):

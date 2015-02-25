@@ -40,6 +40,7 @@ CONTENT_NON_FIELD_ERRORS = \
 CONTENT_NOT_BLANK = '{"username":["This field may not be blank."],'\
                     '"password":["This field may not be blank."]}'
 CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
+CONTENT_UNIQUE_NAME = '{"name":["This field must be unique."]}'
 
 # The payload string for the HTTP Authorization header.
 AUTHORIZATION_PAYLOAD = "Token %s"
