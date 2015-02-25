@@ -567,6 +567,7 @@ class PasswordReset(Setup):
                          "YOUR_EMAIL_SITE_NAME")  # The site name
         self.assertIn("#/password/reset/confirm/",
                       send_email.call_args[0][2]["url"])  # The confirm url
+
         # A simple check that the confirmation URL is about the right length.
         self.assertGreater(len(send_email.call_args[0][2]["url"]),
                            len("#/password/reset/confirm/") + 24)

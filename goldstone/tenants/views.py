@@ -15,6 +15,7 @@
 import logging
 
 from django.contrib.auth import get_user_model
+from djoser.utils import SendEmailViewMixin
 from rest_framework.permissions import BasePermission
 from rest_framework.serializers import ModelSerializer
 from rest_framework.viewsets import ModelViewSet
@@ -94,13 +95,45 @@ class BaseViewSet(NestedViewSetMixin, ModelViewSet):
         return self.get_queryset().get(**{self.lookup_field: value})
 
 
-class TenantsViewSet(BaseViewSet):
+class TenantsViewSet(SendEmailViewMixin, BaseViewSet):
     """Provide all of the /tenants views."""
 
     serializer_class = TenantSerializer
     permission_classes = (DjangoOrTenantAdminPermission, )
 
+    def get_email_context(self, user):
+        """Replace the SendEmailViewMixin's e-mail sending method.
+
+        When we send tenant_admins e-mail about their being added as an admin
+        for a new tenant, this provides some context to the templates that are
+        used.
+
+        :param user: A tenant_admin user, with the additional attribute
+                     perform_create_tenant_name
+        :type user: User
+
+        """
+        from djoser import settings
+
+        return {'domain': settings.get('DOMAIN'),
+                'site_name': settings.get('SITE_NAME'),
+                'protocol': 'https' if self.request.is_secure() else 'http',
+                "tenant_name": user.perform_create_tenant_name
+                }
+
+    def get_send_email_extras(self):
+        """Override djoser's SendEmailViewMixin method.
+
+        At some point it'll be more sensible to just write code for sending an
+        email rather than do all this subclassing.
+
+        """
+
+        return {'subject_template_name': 'new_tenant.txt',
+                'plain_body_template_name': 'new_tenant_body.txt'}
+
     def get_queryset(self):
+
         """Return the queryset for list views."""
 
         return Tenant.objects.all()
@@ -122,24 +155,29 @@ class TenantsViewSet(BaseViewSet):
 
         if not admin_user:
             # There should always be a default tenant_admin.
-            logger.error("There are no default tenant_admins in the system."
-                         " Using the Django administrator instead.")
+            logger.warning("There are no default tenant_admins in the system."
+                           " Using the Django administrator instead.")
             admin_user = self.request.user
         elif admin_user.count() > 1:
             # More than one default tenant_admin is odd, but we'll continue.
             logger.warning("The system has more then one default tenant admin."
-                           " There must be Only One: %s",
+                           " There should be only one: %s",
                            admin_user)
             admin_user = admin_user[0]
         else:
             # We found the single default tenant_admin.
             admin_user = admin_user[0]
 
-        # Insert the default tenant_admin into the tenant, save it, and send
-        # the tenant_admin email.
+        # Insert the default tenant_admin into the tenant and save it.
         admin_user.tenant_admin = True
         admin_user.tenant = tenant
         admin_user.save()
+
+        # Notify the tenant_admin by e-mail that he/she's administering this
+        # tenant. We tack the tenant's name to the User object so that our
+        # overridden get_email_context can get at it.
+        admin_user.perform_create_tenant_name = tenant.name
+        self.send_email(**self.get_send_email_kwargs(admin_user))
 
     @django_admin_only
     def list(self, request, *args, **kwargs):
