@@ -163,6 +163,8 @@ class Tenants(Setup):
         # Create a user, and create a bad authorization token.
         bad_token = create_and_login().replace('9', '8').replace('4', '3')
 
+        # TODO: Check for email sent to the tenant_admin!
+
         client = Client()
         response = \
             client.get(SETTINGS_URL,
