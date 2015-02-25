@@ -96,5 +96,7 @@ class Setup(SimpleTestCase):
     def setUp(self):
         """Do explicit database reseting because SimpleTestCase doesn't always
         reset the database to as much of an initial state as we expect."""
+        from goldstone.tenants.models import Tenant
 
         get_user_model().objects.all().delete()
+        Tenant.objects.all().delete()

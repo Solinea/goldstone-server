@@ -23,6 +23,7 @@ from goldstone.user.util_test import Setup, create_and_login, login, \
     CONTENT_MISSING_USERNAME, CONTENT_MISSING_PASSWORD, \
     CONTENT_UNIQUE_USERNAME, CONTENT_NON_FIELD_ERRORS, LOGIN_URL, \
     TEST_USER, CONTENT_NOT_BLANK, CONTENT_NO_PERMISSION
+from .models import Tenant
 
 # URLs used by this module.
 TENANTS_URL = "/tenants"
@@ -30,6 +31,23 @@ TENANTS_URL = "/tenants"
 
 class Tenants(Setup):
     """Getting a list of tenants, and creating a tenant."""
+
+    @staticmethod
+    def _create_and_login_staff():
+        """Create a django admin, using the TEST_USER, and log him in.
+
+        :return: The logged-in user's authorization token
+        :rtype: str
+
+        """
+
+        token = create_and_login()
+
+        user = get_user_model().objects.get(username=TEST_USER[0])
+        user.is_staff = True
+        user.save()
+
+        return token
 
     def test_not_logged_in(self):
         """Getting a tenant list, or creating a tenant, without being logged
@@ -129,12 +147,9 @@ class Tenants(Setup):
 
         # Create a user, save the authorization token, and make the user a
         # Django admin.
-        token = create_and_login()
-        user = get_user_model().objects.get(username=TEST_USER[0])
-        user.is_staff = True
-        user.save()
+        token = self._create_and_login_staff()
 
-        # Try to get the list.
+        # Try getting the list.
         client = Client()
         response = \
             client.get(TENANTS_URL,
@@ -147,15 +162,55 @@ class Tenants(Setup):
     def test_get(self):
         """Get a tenant list when tenants exist.."""
 
-        # $$$$$$$$$$$$ CONTINUE HERE $$$$$$$$$$$$$$$$
+        # The expected content, sans uuids.
+        EXPECTED_CONTENT = \
+            {'count': 2,
+             'next': None,
+             'previous': None,
+             'results': [{'name': 'tenant 1',
+                          'owner': 'John',
+                          'owner_contact': ''},
+                         {'name': 'tenant 2',
+                          'owner': 'Alex',
+                          'owner_contact': '867-5309'}]}
+
+        # Create a user, save the authorization token, and make the user a
+        # Django admin.
+        token = self._create_and_login_staff()
+
+        # Make two tenants.
+        Tenant.objects.create(name=EXPECTED_CONTENT["results"][0]["name"],
+                              owner=EXPECTED_CONTENT["results"][0]["owner"])
+        Tenant.objects.create(
+            name=EXPECTED_CONTENT["results"][1]["name"],
+            owner=EXPECTED_CONTENT["results"][1]["owner"],
+            owner_contact=EXPECTED_CONTENT["results"][1]["owner_contact"])
+
+        # Try getting the list.
         client = Client()
         response = \
-            client.put(SETTINGS_URL,
-                       json.dumps({}),
-                       content_type="application/json",
+            client.get(TENANTS_URL,
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        self.assertContains(response, {}, status_code=HTTP_200_OK)
+        # Check the results. First check there's a reasonable-looking uuid,
+        # then delete the uuid and do a comparison of the rest of the response
+        # content.
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        response_content = json.loads(response.content)
+
+        self.assertIsInstance(response_content["results"][0]["uuid"],
+                              basestring)
+        self.assertIsInstance(response_content["results"][1]["uuid"],
+                              basestring)
+        self.assertGreaterEqual(len(response_content["results"][0]["uuid"]),
+                                32)
+        self.assertGreaterEqual(len(response_content["results"][1]["uuid"]),
+                                32)
+
+        del response_content["results"][0]["uuid"]
+        del response_content["results"][1]["uuid"]
+        self.assertEqual(response_content, EXPECTED_CONTENT)
 
     def test_post(self):
         """Create a tenant."""
