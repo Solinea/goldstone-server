@@ -33,6 +33,8 @@ CONTENT_MISSING_PASSWORD = '{"password":["This field is required."]}'
 CONTENT_MISSING_USERNAME = '{"username":["This field is required."]}'
 CONTENT_NO_CREDENTIALS = \
     '{"detail":"Authentication credentials were not provided."}'
+CONTENT_NO_PERMISSION = \
+    '{"detail":"You do not have permission to perform this action."}'
 CONTENT_NON_FIELD_ERRORS = \
     '{"non_field_errors":["Unable to login with provided credentials."]}'
 CONTENT_NOT_BLANK = '{"username":["This field may not be blank."],'\
