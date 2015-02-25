@@ -105,8 +105,8 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 result.push({
                     "eventTime": "" + i,
                     "Used": item[0],
-                    "Physical": Math.max((item[1] - item[0]), 0),
-                    "Virtual": Math.max((item[2] - item[1]), 0)
+                    "Physical": item[1],
+                    "Virtual": item[2]
                 });
             });
 
@@ -118,7 +118,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 result.push({
                     "eventTime": "" + i,
                     "Used": item[0],
-                    "Total": Math.max((item[1] - item[0]), 0)
+                    "Total": item[1]
                 });
             });
 
@@ -130,8 +130,8 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 result.push({
                     "eventTime": "" + i,
                     "Used": item[0],
-                    "Physical": Math.max((item[1] - item[0]), 0),
-                    "Virtual": Math.max((item[2] - item[1]), 0)
+                    "Physical": item[1],
+                    "Virtual": item[2]
                 });
             });
 
