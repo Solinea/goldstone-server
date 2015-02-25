@@ -154,7 +154,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
     computeBarHeightPopover: function(d) {
 
-        // 'Failure/Success' is only used by Spawn viz
         if (d.name === undefined) {
             d.name = 'Missing name param';
         }
@@ -167,6 +166,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         // otherwise return a string in the format of
         // "<p>Success<br>10"
 
+        // 'Failure/Success' is only used by Spawn viz
         if (d.name === 'Failure' || d.name === 'Success') {
 
             // VM Spawn chart should only return the exact
@@ -209,15 +209,16 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         data.forEach(function(d) {
             var y0 = 0;
-            d.resultCategories = ns.color.domain().map(function(name) {
+            d.stackeBarPrep = ns.color.domain().map(function(name) {
                 return {
                     name: name,
                     y0: y0,
                     y1: y0 += +d[name]
                 };
             });
-            d.total = d.resultCategories[d.resultCategories.length - 1].y1;
+            d.total = d.stackeBarPrep[d.stackeBarPrep.length - 1].y1;
         });
+        console.log('data',data);
 
         ns.x.domain(d3.extent(data, function(d) {
             return d.eventTime;
@@ -274,7 +275,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         ns.event.selectAll("rect")
             .data(function(d) {
-                return d.resultCategories;
+                return d.stackeBarPrep;
             })
             .enter().append("rect")
             .attr("width", function(d) {
@@ -320,7 +321,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         ns.event.selectAll("line")
             .data(function(d) {
-                return d.resultCategories;
+                return d.stackeBarPrep;
             })
             .enter().append("line")
             .attr("x1", function(d) {
