@@ -185,12 +185,22 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         var ns = this.defaults;
         var self = this;
 
+        // data originally returned from collection as:
+        // [{"1424586240000": [6, 16, 256]}...]
         var data = this.collection.toJSON();
+
+        // data morphed through dataPrep into:
+        // {
+        //     "eventTime": "1424586240000",
+        //     "Used": 6,
+        //     "Physical": 16,
+        //     "Virtual": 256
+        // });
         data = this.dataPrep(data);
 
         this.hideSpinner();
 
-
+        // if empty set, append info popup and stop
         if (this.checkReturnedDataSet(data) === false) {
             return;
         }
@@ -202,23 +212,72 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         $(this.el).find('svg').find('.legend').remove();
         $(this.el + '.d3-tip').detach();
 
-
+        // maps keys such as "Used / Physical / Virtual" to a color
+        // but skips mapping "eventTime" to a color
         ns.color.domain(d3.keys(data[0]).filter(function(key) {
             return key !== "eventTime";
         }));
 
+        /*
+        forEach morphs data into:
+        {
+            "eventTime": "1424586240000",
+            "Used": 6,
+            "Physical": 16,
+            "Virtual": 256,
+            stackedBarPrep: [
+                {
+                    name: "Used",
+                    y0: 0,
+                    y1: 6
+                },
+                {
+                    name: "Physical",
+                    y0: 6,
+                    y1: 22,
+                },
+                {
+                    name: "Virtual",
+                    y0: 22,
+                    y1: 278,
+                },
+            ],
+            total: 278
+        });
+        */
+
+        // TODO: this would be a good place to add a separate
+        // parameter that could prep data for path rendering
         data.forEach(function(d) {
             var y0 = 0;
-            d.stackeBarPrep = ns.color.domain().map(function(name) {
+
+            // calculates heights of each stacked bar by adding
+            // to the heights of the previous bars
+            d.stackedBarPrep = ns.color.domain().map(function(name) {
                 return {
                     name: name,
                     y0: y0,
                     y1: y0 += +d[name]
                 };
             });
-            d.total = d.stackeBarPrep[d.stackeBarPrep.length - 1].y1;
+
+            // calculates the height of each point that will be
+            // joined together to make an svg path
+            // addition of the previous value is skipped since this
+            // is for a line at a particular value, not a stacked bar
+            d.pathCoordsPrep = ns.color.domain().map(function(name) {
+                return {
+                    name: name,
+                    y: d[name]
+                };
+            });
+
+            // this is the height of the last element, and used to
+            // calculate the domain of the y-axis
+            d.total = d.stackedBarPrep[d.stackedBarPrep.length - 1].y1;
         });
-        console.log('data',data);
+
+        console.log('data', data);
 
         ns.x.domain(d3.extent(data, function(d) {
             return d.eventTime;
@@ -275,7 +334,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         ns.event.selectAll("rect")
             .data(function(d) {
-                return d.stackeBarPrep;
+                return d.stackedBarPrep;
             })
             .enter().append("rect")
             .attr("width", function(d) {
@@ -321,7 +380,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         ns.event.selectAll("line")
             .data(function(d) {
-                return d.stackeBarPrep;
+                return d.stackedBarPrep;
             })
             .enter().append("line")
             .attr("x1", function(d) {
