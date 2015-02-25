@@ -135,7 +135,8 @@ class TenantsViewSet(BaseViewSet):
             # We found the single default tenant_admin.
             admin_user = admin_user[0]
 
-        # Insert the default tenant_admin into the tenant, and save it.
+        # Insert the default tenant_admin into the tenant, save it, and send
+        # the tenant_admin email.
         admin_user.tenant_admin = True
         admin_user.tenant = tenant
         admin_user.save()
