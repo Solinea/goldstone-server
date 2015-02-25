@@ -246,8 +246,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         });
         */
 
-        // TODO: this would be a good place to add a separate
-        // parameter that could prep data for path rendering
         data.forEach(function(d) {
             var y0 = 0;
 
@@ -310,6 +308,20 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 return "translate(" + ns.x(d.eventTime) + ",0)";
             });
 
+        ns.solidLineCanvas = ns.chart.selectAll(".event")
+            .data(data)
+            .enter()
+            .append("g")
+            .attr("class", "g")
+            .attr("class", "solid-line-canvas");
+
+        ns.dashedLineCanvas = ns.chart.selectAll(".event")
+            .data(data)
+            .enter()
+            .append("g")
+            .attr("class", "g")
+            .attr("class", "dashed-line-canvas");
+
         var tip = d3.tip()
             .attr('class', 'd3-tip')
             .attr('id', this.el.slice(1))
@@ -318,7 +330,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             });
 
         // Invoke the tip in the context of your visualization
-
         ns.chart.call(tip);
 
         // used below to determing whether to render as
