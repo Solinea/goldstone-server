@@ -210,6 +210,8 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         $(this.el).find('svg').find('line').remove();
         $(this.el).find('svg').find('.axis').remove();
         $(this.el).find('svg').find('.legend').remove();
+        $(this.el).find('svg').find('path').remove();
+        $(this.el).find('svg').find('circle').remove();
         $(this.el + '.d3-tip').detach();
 
         // maps keys such as "Used / Physical / Virtual" to a color
@@ -259,20 +261,26 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 };
             });
 
-            // calculates the height of each point that will be
-            // joined together to make an svg path
-            // addition of the previous value is skipped since this
-            // is for a line at a particular value, not a stacked bar
-            d.pathCoordsPrep = ns.color.domain().map(function(name) {
-                return {
-                    name: name,
-                    y: d[name]
-                };
-            });
-
             // this is the height of the last element, and used to
             // calculate the domain of the y-axis
             d.total = d.stackedBarPrep[d.stackedBarPrep.length - 1].y1;
+
+            // or for the charts with paths, use the top line as the
+            // total, which will inform that domain of the y-axis
+            // d.Virtual and d.Total are the top lines on their
+            // respective charts
+            if(d.Virtual){
+                d.total = d.Virtual;
+            }
+            if(d.Total){
+                d.total = d.Total;
+            }
+        });
+
+        // the forEach operation creates chaos in the order of the set
+        // must _.sortBy to return it to an array sorted by eventTime
+        data = _.sortBy(data, function(item) {
+            return item.eventTime;
         });
 
         console.log('data', data);
@@ -343,6 +351,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             "Used": true
         };
 
+        // append rectangles
         ns.event.selectAll("rect")
             .data(function(d) {
                 return d.stackedBarPrep;
@@ -389,57 +398,144 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 tip.hide();
             });
 
-        ns.event.selectAll("line")
-            .data(function(d) {
-                return d.stackedBarPrep;
-            })
-            .enter().append("line")
-            .attr("x1", function(d) {
-                var segmentWidth = (ns.mw / data.length);
+        // append lines based on dashed or dotted
+        if (data[0].Virtual || data[0].Total) {
+            lineFunction = d3.svg.line()
+                .interpolate("linear")
+                .x(function(d) {
+                    return ns.x(d.eventTime);
+                })
+                .y(function(d) {
+                    if (d.Total) {
+                        return ns.y(d.Total);
+                    } else {
+                        return ns.y(d.Virtual);
+                    }
+                });
 
-                // makes the line solid
-                // don't adjust for very small data sets
-                if (data.length <= 3) {
-                    return 0;
-                } else {
-                    return segmentWidth * -0.17;
-                }
-            })
-            .attr("x2", function(d) {
-                var segmentWidth = (ns.mw / data.length);
-                // makes the line solid
-                // don't adjust for very small data sets
-                if (data.length <= 3) {
-                    return segmentWidth;
-                } else {
-                    return segmentWidth + segmentWidth * 0.17;
-                }
-            })
-            .attr("y1", function(d) {
-                return ns.y(d.y1);
-            })
-            .attr("y2", function(d) {
-                // horizontal line, so y1 === y2
-                return ns.y(d.y1);
-            })
-            .attr("stroke", function(d) {
-                // color of line
-                return ns.color(d.name);
-            })
-            .attr("stroke-width", function(d) {
-                // hide if data already used for "rect" above
-                if (showOrHide[d.name]) {
-                    return 0;
-                } else {
-                    return 2;
-                }
-            }).attr("stroke-dasharray", function(d) {
-                if (d.name === "Physical") {
-                    return "5, 3";
-                } else {
-                    return null;
-                }
-            });
+            pathStuff = ns.solidLineCanvas.append("path")
+                .attr("d", lineFunction(data))
+                .attr("stroke", function() {
+                    return data[0].Virtual ? ns.color('Virtual') : ns.color('Total');
+                })
+                .attr("stroke-width", 2)
+                .attr("fill", "none");
+
+            pathStuff = ns.solidLineCanvas.append("path")
+                .attr("d", lineFunction(data))
+                .attr("stroke", function() {
+                    return data[0].Virtual ? ns.color('Virtual') : ns.color('Total');
+                })
+                .attr("stroke-width", 2)
+                .attr("fill", "none");
+
+            ns.solidLineCanvas.selectAll("circle")
+                .data(data)
+                .enter().append("svg:circle")
+                .attr("cx", function(d) {
+                    return ns.x(d.eventTime);
+                })
+                .attr("cy", function(d) {
+                    if (d.Total) {
+                        return ns.y(d.Total);
+                    } else {
+                        return ns.y(d.Virtual);
+                    }
+                })
+                .attr("fill", "white")
+                .attr("stroke", function() {
+                    return data[0].Virtual ? ns.color('Virtual') : ns.color('Total');
+                })
+                .attr("r", 3);
+        }
+
+        if (data[0].Physical) {
+            lineFunction = d3.svg.line()
+                .interpolate("linear")
+                .x(function(d) {
+                    return ns.x(d.eventTime);
+                })
+                .y(function(d) {
+                    return ns.y(d.Physical);
+                });
+
+            pathStuff = ns.dashedLineCanvas.append("path")
+                .attr("d", lineFunction(data))
+                .attr("stroke", function() {
+                    return ns.color('Physical');
+                })
+                .attr("stroke-width", 2)
+                .attr("fill", "none")
+                .attr("stroke-dasharray", "5, 2");
+
+            ns.dashedLineCanvas.selectAll("circle")
+                .data(data)
+                .enter().append("svg:circle")
+                .attr("cx", function(d) {
+                    return ns.x(d.eventTime);
+                })
+                .attr("cy", function(d) {
+                    return ns.y(d.Physical);
+                })
+                .attr("fill", "white")
+                .attr("stroke", function() {
+                    return ns.color('Physical');
+                })
+                .attr("r", 3);
+        }
+
+
+        // ns.event.selectAll("line")
+        //     .data(function(d) {
+        //         return d.stackedBarPrep;
+        //     })
+        //     .enter().append("line")
+        //     .attr("x1", function(d) {
+        //         var segmentWidth = (ns.mw / data.length);
+
+        //         // makes the line solid
+        //         // don't adjust for very small data sets
+        //         if (data.length <= 3) {
+        //             return 0;
+        //         } else {
+        //             return segmentWidth * -0.17;
+        //         }
+        //     })
+        //     .attr("x2", function(d) {
+        //         var segmentWidth = (ns.mw / data.length);
+        //         // makes the line solid
+        //         // don't adjust for very small data sets
+        //         if (data.length <= 3) {
+        //             return segmentWidth;
+        //         } else {
+        //             return segmentWidth + segmentWidth * 0.17;
+        //         }
+        //     })
+        //     .attr("y1", function(d) {
+        //         return ns.y(d.y1);
+        //     })
+        //     .attr("y2", function(d) {
+        //         // horizontal line, so y1 === y2
+        //         return ns.y(d.y1);
+        //     })
+        //     .attr("stroke", function(d) {
+        //         // color of line
+        //         return ns.color(d.name);
+        //     })
+        //     .attr("stroke-width", function(d) {
+        //         // hide if data already used for "rect" above
+        //         if (showOrHide[d.name]) {
+        //             return 0;
+        //         } else {
+        //             return 2;
+        //         }
+        //     }).attr("stroke-dasharray", function(d) {
+        //         if (d.name === "Physical") {
+        //             return "5, 3";
+        //         } else {
+        //             return null;
+        //         }
+        //     });
 
         var legendSpecs = {
             mem: [
