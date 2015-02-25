@@ -20,16 +20,20 @@ import logging
 
 import requests
 import pytz
+from goldstone.apps.api_perf.utils import stack_api_request_base, \
+    time_api_call
 
-from .models import GlanceApiPerfData, ImagesData
+from .models import ImagesData
+
 from goldstone.celery import app as celery_app
-from goldstone.utils import stored_api_call, to_es_date
+from goldstone.utils import to_es_date
+
 
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True)
-def time_glance_api(self):
+@celery_app.task()
+def time_image_list_api():
     """
     Call the image list command for the test tenant.  Retrieves the
     endpoint from keystone, then constructs the URL to call.  If there are
@@ -37,28 +41,11 @@ def time_glance_api(self):
     otherwise uses the results from image list to inserts a record
     in the DB.
     """
-    from goldstone.utils import get_client
 
-    result = stored_api_call("glance", "image", "/v2/images")
-    logger.debug(get_client.cache_info())
-
-    # check for existing volumes. if they exist, redo the call with a single
-    # volume for a more consistent result.
-    if result['reply'] is not None and \
-            result['reply'].status_code == requests.codes.ok:
-        body = json.loads(result['reply'].text)
-        if 'images' in body and len(body['images']) > 0:
-            result = stored_api_call("glance", "image",
-                                     "/v2/images/" + body['images'][0]['id'])
-            logger.debug(get_client.cache_info())
-
-    api_db = GlanceApiPerfData()
-    rec_id = api_db.post(result['db_record'])
-    logger.debug("[time_glance_api] id = %s", rec_id)
-    return {
-        'id': rec_id,
-        'record': result['db_record']
-    }
+    precursor = stack_api_request_base("image", "/v2/images")
+    return time_api_call('glance',
+                         precursor['url'],
+                         headers=precursor['headers'])
 
 
 def _update_glance_image_records(client, region):

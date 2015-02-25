@@ -33,11 +33,15 @@
             } ],
             "_timestamp": {
                 "enabled": true,
+                "store": true,
                 "path": "@timestamp"
             },
             "properties": {
                 "@version": {"type": "string", "index": "not_analyzed"},
                 "@timestamp": {
+                    "type": "date"
+                },
+              "creation_time": {
                     "type": "date"
                 }
 

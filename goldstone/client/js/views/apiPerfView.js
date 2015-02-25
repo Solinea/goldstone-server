@@ -18,7 +18,7 @@
 Instantiated similar to:
 
 this.novaApiPerfChart = new ApiPerfCollection({
-    urlPrefix: 'nova',
+    componentParam: 'nova',
 });
 
 this.novaApiPerfChartView = new ApiPerfView({

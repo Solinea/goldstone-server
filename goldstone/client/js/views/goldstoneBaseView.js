@@ -70,7 +70,7 @@ var GoldstoneBaseView = Backbone.View.extend({
         if (this.options.yAxisLabel) {
             this.defaults.yAxisLabel = this.options.yAxisLabel;
         } else {
-            this.defaults.yAxisLabel = "Response Time (ms)";
+            this.defaults.yAxisLabel = "Response Time (s)";
         }
     },
 

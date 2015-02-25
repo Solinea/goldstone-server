@@ -38,7 +38,7 @@ OPENSTACK_ROOTWRAP sudo:  %{GREEDYDATA:component} : TTY=%{GREEDYDATA:tty} ; PWD=
 OPENSTACK_MESSAGE %{OPENSTACK_NORMAL}|%{OPENSTACK_ERROR}|%{OPENSTACK_ROOTWRAP}
 
 NOT_OVSW_SEPARATOR (?:[^|]*)
-HTTP_METHOD (?:GET|PUT|POST|DELETE)
+HTTP_METHOD (?:GET|PUT|POST|DELETE|PATCH|HEAD)
 
 #
 # Nova logs that have been passed through syslog
@@ -69,8 +69,19 @@ NOVA_SPAWN_SUCCESS %{NOVA_INSTANCE} (?:Instance spawned successfully.)
 NOVA_SPAWN_ABORT %{NOVA_INSTANCE} (?:aborted: Instance was deleted during spawn.)
 NOVA_SPAWN_FAIL %{NOVA_INSTANCE} (?:Setting instance to ERROR state.|Instance failed to spawn)
 
-NOVA_API_CALL %{URIHOST:ip} [\\]?"GET %{URIPATHPARAM:uri} HTTP/%{NOTSPACE:protocol}[\\]?" status: %{NUMBER:response_status:int} len: %{NUMBER:response_length:int} time: %{NUMBER:response_time:float}
+#
+# Make some metrics out of API call data
+# Nova uses a slightly different format than Neutron, Cinder, and Glance for API call logging
+#
+API_CALL %{URIHOST:client_ip} - - \[%{GREEDYDATA}\]?"%{HTTP_METHOD:method} %{URIPATHPARAM:uri} HTTP/%{NOTSPACE:protocol}[\\]?" %{NUMBER:response_status:int} %{NUMBER:response_length:int} %{NUMBER:response_time:float}
 
+NOVA_API_CALL %{URIHOST:client_ip} [\\]?"%{HTTP_METHOD:method} %{URIPATHPARAM:uri} HTTP/%{NOTSPACE:protocol}[\\]?" status: %{NUMBER:response_status:int} len: %{NUMBER:response_length:int} time: %{NUMBER:response_time:float}
+
+OPENSTACK_API_CALL %{API_CALL}|%{NOVA_API_CALL}
+
+# 
+# Identify AMQP status messages
+#
 OPENSTACK_AMQP_FAIL (?:Unable to connect to AMQP server)%{GREEDYDATA}|(?:AMQP server on %{IP}:%{POSINT} is unreachable)%{GREEDYDATA}
 OPENSTACK_AMQP_OK (?:Connected to AMQP server)%{GREEDYDATA}
 OPENSTACK_AMQP_MESSAGE %{OPENSTACK_AMQP_FAIL}|%{OPENSTACK_AMQP_OK}

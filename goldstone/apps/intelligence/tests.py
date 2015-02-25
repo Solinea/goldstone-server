@@ -1,4 +1,7 @@
-"""Intelligence unit tests."""
+"""Intelligence unit tests.
+TODO (JS) This is mostly an integration test.  We should tease out the unit
+TODO (JS) test and migrate the other stuff to a better home.
+"""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -13,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.test import SimpleTestCase
-from goldstone.models import GSConnection
+from goldstone.models import es_conn
 from .models import LogData
 from datetime import timedelta, datetime
 import pytz
@@ -24,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class LogDataModel(SimpleTestCase):
 
-    conn = GSConnection().conn
+    conn = es_conn()
 
     def test_get_components(self):
         test_q = {

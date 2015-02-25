@@ -1,4 +1,4 @@
-"""Glance views."""
+"""Settings for unit tests."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -12,20 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import logging
+from .test_oak_c2 import *              # pylint: disable=W0614,W0401
 
-from goldstone.apps.core.utils import JsonReadOnlyViewSet
-from goldstone.views import TopLevelView
-from .models import ImagesData
+PYLINT_RCFILE = BASE_DIR + "/pylint.cfg"
 
-
-logger = logging.getLogger(__name__)
-
-
-class ReportView(TopLevelView):
-    template_name = 'glance_report.html'
-
-
-class ImagesDataViewSet(JsonReadOnlyViewSet):
-    model = ImagesData
-    key = 'images'
+JENKINS_TASKS = (
+    'django_jenkins.tasks.with_coverage',
+    # 'django_jenkins.tasks.run_pep8',
+    'django_jenkins.tasks.run_pylint',
+    # 'django_jenkins.tasks.run_sloccount',
+)

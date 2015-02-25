@@ -17,41 +17,26 @@ from __future__ import absolute_import
 import json
 import logging
 import requests
+from goldstone.apps.api_perf.utils import time_api_call, \
+    stack_api_request_base
 
-from .models import ApiPerfData
 from goldstone.celery import app as celery_app
-# This must be imported at the module level, for a unit test mock.
-from goldstone.utils import stored_api_call
+
 
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True)
-def time_neutron_api(self):
-    """Call the agent list command, and if there are agents, call the
-    agent show command.
-
-    Inserts record with agent show preferred.
-
+@celery_app.task()
+def time_agent_list_api():
     """
-    from goldstone.utils import get_client
+    Call the agent list command for the test tenant.  Retrieves the
+    endpoint from keystone, then constructs the URL to call.  If there are
+    agents returned, then calls the agent-show command on the first one,
+    otherwise uses the results from agent list to inserts a record
+    in the DB.
+    """
 
-    result = stored_api_call("neutron", "network", "/v2.0/agents")
-    logger.debug(get_client.cache_info())
-
-    # check for existing agents. if they exist, redo the call with a
-    # single agent for a more consistent result.
-    if result['reply'] is not None and \
-            result['reply'].status_code == requests.codes.ok:
-        body = json.loads(result['reply'].text)
-        if 'agents' in body and len(body['agents']) > 0:
-            result = stored_api_call("neutron", "network",
-                                     "/v2.0/agents/" +
-                                     str(body['agents'][0]['id']))
-            logger.debug(get_client.cache_info())
-
-    api_db = ApiPerfData()
-    rec_id = api_db.post(result['db_record'])
-    logger.debug("[time_neutron_api] id = %s", rec_id)
-
-    return {'id': rec_id, 'record': result['db_record']}
+    precursor = stack_api_request_base("network", "v2.0/agents")
+    return time_api_call('neutron',
+                         precursor['url'],
+                         headers=precursor['headers'])
