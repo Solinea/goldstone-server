@@ -17,7 +17,8 @@ from django.contrib.auth import get_user_model
 from django.test import Client
 from mock import patch
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
-    HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_403_FORBIDDEN
+    HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_403_FORBIDDEN, \
+    HTTP_204_NO_CONTENT
 from goldstone.user.util_test import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_NON_FIELD_ERRORS, \
     LOGIN_URL, check_response_without_uuid, \
@@ -587,7 +588,22 @@ class TenantsId(Setup):
     def test_delete(self):
         """Delete a tenant."""
 
-        self.test_post(number_tenant_admins=0)
+        # Create a Django admin user, and a tenant.
+        token = create_and_login(True)
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        # Delete the tenant.
+        client = Client()
+        response = \
+            client.delete(TENANTS_ID_URL % tenant.uuid.hex,
+                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code, HTTP_204_NO_CONTENT)
+
+        # Make sure the tenant no longer exists.
+        self.assertEqual(Tenant.objects.count(), 0)
 
 
 class TenantsIdUsers(Setup):
