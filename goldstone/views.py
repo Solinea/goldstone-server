@@ -345,6 +345,7 @@ class DiscoverView(TemplateView, TopologyMixin):
 
 
 class HelpView(TemplateView):
+    """Return the Help page."""
 
     template_name = 'help.html'
 
@@ -361,6 +362,8 @@ class PasswordView(TemplateView):
 
 
 class NodeReportView(TemplateView):
+    """Return a Node Report page if node exists."""
+
     template_name = 'node_report.html'
 
     def get(self, request, node_uuid, **kwargs):
