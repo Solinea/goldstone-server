@@ -18,48 +18,10 @@ from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST
 from .util_test import create_and_login, Setup, AUTHORIZATION_PAYLOAD, \
     CONTENT_NO_CREDENTIALS, CONTENT_BAD_TOKEN, CONTENT_MISSING_USERNAME, \
-    TEST_USER
+    TEST_USER, check_response_without_uuid
 
 # URLs and payloads used in this module's testing.
 USER_URL = "/user"
-
-
-def _response_equals_without_uuid(response, expected_status_code,
-                                  expected_content):
-    """Compare a response's content with expected content, without fully
-    testing the "uuid" key.
-
-    This module's tests can't always just do a self.assertContains, or use
-    self.assertEqual, because the response contains a "uuid" key. We want to
-    test that the uuid key is present and its value is a string, without
-    comparing the uuid strings.
-
-    :param response: The HTTP response to be tested
-    :type response: django.test.client.Response
-    :param expected_status_code: The expected status code
-    :type expected_status_code: rest_framework.status.HTTP*
-    :param expected_content: The expected response.content
-    :type expected_content: dict
-
-    """
-
-    assert response.status_code == expected_status_code
-
-    # We deserialize the response content, to simplify checking the
-    # results
-    response_content = json.loads(response.content)
-
-    # Check that every expected key is in the response, and the content lengths
-    # differ by only one.
-    for key in expected_content:
-        assert response_content[key] == expected_content[key]
-
-    assert len(response_content) == len(expected_content) + 1
-
-    # Verify that the uuid key is present and its value is a string, but
-    # don't check the value's content.
-    assert "uuid" in response_content
-    assert isinstance(response_content["uuid"], basestring)
 
 
 class NoAccess(Setup):
@@ -181,7 +143,7 @@ class GetPut(Setup):
             client.get(USER_URL,
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        _response_equals_without_uuid(response, HTTP_200_OK, expected_content)
+        check_response_without_uuid(response, HTTP_200_OK, expected_content)
 
     def test_change_one_field(self):
         """Change one field in the account."""
@@ -213,7 +175,7 @@ class GetPut(Setup):
             client.get(USER_URL,
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        _response_equals_without_uuid(response, HTTP_200_OK, expected_content)
+        check_response_without_uuid(response, HTTP_200_OK, expected_content)
 
     def test_change_some_fields(self):
         """Get data from an account, after we've modified some fields."""
@@ -246,7 +208,7 @@ class GetPut(Setup):
             client.get(USER_URL,
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        _response_equals_without_uuid(response, HTTP_200_OK, expected_content)
+        check_response_without_uuid(response, HTTP_200_OK, expected_content)
 
     def test_change_all_fields(self):
         """Get data from an account, after we've modified all the
@@ -281,4 +243,4 @@ class GetPut(Setup):
             client.get(USER_URL,
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        _response_equals_without_uuid(response, HTTP_200_OK, expected_content)
+        check_response_without_uuid(response, HTTP_200_OK, expected_content)

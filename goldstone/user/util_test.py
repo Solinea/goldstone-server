@@ -51,6 +51,19 @@ TEST_USER = ("fred", "fred@fred.com", "meh")
 BAD_TOKEN = '4' * 40
 
 
+class Setup(SimpleTestCase):
+
+    """A base class to ensure we do needed housekeeping before each test."""
+
+    def setUp(self):
+        """Do explicit database reseting because SimpleTestCase doesn't always
+        reset the database to as much of an initial state as we expect."""
+        from goldstone.tenants.models import Tenant
+
+        get_user_model().objects.all().delete()
+        Tenant.objects.all().delete()
+
+
 def login(username, password):
     """Log a user in.
 
@@ -98,14 +111,51 @@ def create_and_login(is_staff=False):
     return login(TEST_USER[0], TEST_USER[2])
 
 
-class Setup(SimpleTestCase):
+def check_response_without_uuid(response, expected_status_code,
+                                expected_content, uuid_under_results=False):
+    """Compare a response's content with expected content, without fully
+    comparing the "uuid" key.
 
-    """A base class to ensure we do needed housekeeping before each test."""
+    A uuid is random. For responses that contain one, we confirm that the uuid
+    key existst, and its value is a string that's at least N digits long. If
+    those checks pass, we assume the uuid is correct, and then do an exact
+    comparison of the remainder of the response.
 
-    def setUp(self):
-        """Do explicit database reseting because SimpleTestCase doesn't always
-        reset the database to as much of an initial state as we expect."""
-        from goldstone.tenants.models import Tenant
+    :param response: The HTTP response to be tested
+    :type response: django.test.client.Response
+    :param expected_status_code: The expected status code
+    :type expected_status_code: rest_framework.status.HTTP*
+    :param expected_content: The expected response.content, without a uuid key
+    :type expected_content: dict
+    :keyword uuid_under_results: If True, response.content contains a 'results'
+                                 key. Its value is a list of dicts, and each
+                                 dict contains a 'uuid' key. If False,
+                                 response.content contains a 'uuid' key.
 
-        get_user_model().objects.all().delete()
-        Tenant.objects.all().delete()
+    """
+    import json
+
+    def uuid_check(response_dict):
+        """Check the uuid key and value."""
+
+        assert isinstance(response_dict["uuid"], basestring)
+        assert len(response_dict["uuid"]) >= 32
+
+    assert response.status_code == expected_status_code
+
+    # Deserialize the response content to simplify checking.
+    response_content = json.loads(response.content)
+
+    if uuid_under_results:
+        # Look under the 'results' key for a list of dicts. Each dict should
+        # have a 'uuid' key.
+        for entry in response_content["results"]:
+            uuid_check(entry)
+            del entry["uuid"]
+    else:
+        # Look under response_content for the single 'uuid' key.
+        uuid_check(response_content)
+        del response_content["uuid"]
+
+    # Now check that every other key is in the response.
+    assert response_content == expected_content

@@ -529,8 +529,7 @@ class Password(Setup):
         client = Client()
         response = \
             client.post(PASSWORD_URL,
-                        json.dumps({"username": TEST_USER[0],
-                                    "current_password": TEST_USER[2],
+                        json.dumps({"current_password": TEST_USER[2],
                                     "new_password": "boom"}),
                         content_type="application/json",
                         HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
