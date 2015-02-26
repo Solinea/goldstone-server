@@ -71,20 +71,16 @@ def _django_env(proj_settings=DEV_SETTINGS):
         os.environ['DJANGO_SETTINGS_MODULE'] = old_settings
 
 
-def _choose(candidates):
+def _choose(choices):
     """Return a user selection from a displayed list, or None.
 
-    :param candidates: The selections, separated by '\n'. So the last entry is
-                       *not* terminated by a '\n'!
-    :type candidates: str or None
+    :param choices: The selections
+    :type choices: list of str, or None
 
     """
 
     # We haven't made a choice yet.
     choice = None
-
-    # Make a list of the choices.
-    choices = [x for x in candidates.split("\n")]
 
     # If there are choices from which to choose...
     if choices:
@@ -170,16 +166,15 @@ def _choose_runserver_settings(verbose):
 
     # Make a list of all the candidate settings file.
     candidates = local("ls goldstone/settings | %s" % CANDIDATES, capture=True)
+    candidates = candidates.split('\n')
 
     # If the user wants verbose output, and each module's docstring to its
     # selection...
     if verbose:
-        candidates_list = candidates.split('\n')
-
         result = []
 
         # For every settings filename...
-        for entry in candidates_list:
+        for entry in candidates:
             # Strip off the ".py" and import the module.
             filename = entry[:-3]
             module = import_module(SETTINGS_DIR + '.' + filename)
@@ -194,11 +189,13 @@ def _choose_runserver_settings(verbose):
                 result.append(entry)
 
         # Convert the verbose list into a string for the prompt function.
-        candidates = '\n'.join(result)
+        candidates = result
 
-    # Return the user's selection
+    # Return the user's selection. If they asked for a verbose listing, we have
+    # to strip the extra detail off the choice before returning it.
     print "\nchoose a settings file to use:"
-    return _choose(candidates)
+    return _choose(candidates).split(' ')[0] if verbose \
+        else _choose(candidates)
 
 
 @task
