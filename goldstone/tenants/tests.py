@@ -499,115 +499,90 @@ class TenantsId(Setup):
                            "owner": "John",
                            "owner_contact": "206.867.5309"}
 
-        # Create a Django admin user.
-        token = create_and_login(True)
+        def get_tenant(token):
+            """Get the tenant using the token, and check the response."""
+
+            client = Client()
+            response = \
+                client.get(TENANTS_ID_URL % tenant.uuid.hex,
+                           HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+            check_response_without_uuid(response, HTTP_200_OK, EXPECTED_RESULT)
 
         # Make a tenant
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
                                        owner_contact='206.867.5309')
-        # Get the tenant.
-        client = Client()
-        response = \
-            client.get(TENANTS_ID_URL % tenant.uuid.hex,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        # continue here
-        # import pdb; pdb.set_trace()
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        # Create a Django admin user, and a normal user who's a tenant_admin of
+        # the tenant.
+        token = create_and_login(True)
+        get_user_model().objects.create_user("a",
+                                             "a@b.com",
+                                             "a",
+                                             tenant=tenant,
+                                             tenant_admin=True)
 
-    def test_post(self):
+        # Test getting the tenant as a Django admin, then as the tenant_admin
+        # of the tenant. Both should work.
+        get_tenant(token)
+        token = login('a', 'a')
+        get_tenant(token)
+
+    def test_put(self):
         """Change a tenant's attributes."""
 
-        # The expected content, sans uuids.
-        EXPECTED_CONTENT = \
-            {'count': 3,
-             'next': None,
-             'previous': None,
-             'results': [{'name': 'tenant 1',
-                          'owner': 'John',
-                          'owner_contact': 'eight six seven'},
-                         {'name': 'tenant 2',
-                          'owner': 'Alex',
-                          'owner_contact': 'five three oh niiieeiiiin...'},
-                         {'name': 'tenant 3',
-                          'owner': 'Heywood Jablowme',
-                          'owner_contact': '(666)666-6666'}]}
+        # The expected result, sans uuid.
+        INITIAL_TENANT = {"name": "tenant",
+                          "owner": "John",
+                          "owner_contact": "206.867.5309"}
+        NEW_TENANT = {"name": "TENant",
+                      "owner": "Bob",
+                      "owner_contact": "212.867.5309"}
 
-        # Create a user, save the authorization token, and make the user a
-        # Django admin.
-        token = self._create_and_login_staff()
+        def get_tenant(token, expected):
+            """Get the tenant using the token and check the response."""
 
-        # Create the desired number of default_tenant_admins.
-        if number_tenant_admins == 0:
-            # Run this test with no default tenant admins. The "current" user,
-            # who's a Django admin, should be used as the default tenant_admin.
-            default_tenant_admins = \
-                [get_user_model().objects.get(username=TEST_USER[0])]
-        else:
-            # Run this test with one or more default_tenant_admins.
-            default_tenant_admins = [get_user_model().objects.create_user(
-                                     "Julianne_%d" % x,
-                                     "oh@mama.com",
-                                     "bueno",
-                                     default_tenant_admin=True)
-                                     for x in range(number_tenant_admins)]
-
-        # Make the tenants, and check the responses to each POST.
-        client = Client()
-        for entry in EXPECTED_CONTENT["results"]:
+            client = Client()
             response = \
-                client.post(TENANTS_URL,
-                            json.dumps(entry),
-                            content_type="application/json",
-                            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+                client.get(TENANTS_ID_URL % tenant.uuid.hex,
+                           HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-            self.assertEqual(response.status_code, HTTP_201_CREATED)
+            check_response_without_uuid(response, HTTP_200_OK, expected)
 
-            response_content = json.loads(response.content)
-            self.assertIsInstance(response_content["uuid"], basestring)
-            self.assertGreaterEqual(len(response_content["uuid"]), 32)
-            del response_content["uuid"]
-            self.assertEqual(response_content, entry)
+        # Make a tenant
+        tenant = Tenant.objects.create(**INITIAL_TENANT)
 
-        # Now get the list and see if it matches what we expect.
+        # Create a Django admin user, and a normal user who's a tenant_admin of
+        # the tenant.
+        token = create_and_login(True)
+        get_user_model().objects.create_user("a",
+                                             "a@b.com",
+                                             "a",
+                                             tenant=tenant,
+                                             tenant_admin=True)
+
+        # Test changing the tenant as a Django admin.
+        client = Client()
         response = \
-            client.get(TENANTS_URL,
+            client.put(TENANTS_ID_URL % tenant.uuid.hex,
+                       json.dumps(NEW_TENANT),
+                       content_type="application/json",
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        # First check there's a reasonable-looking uuid. Then, delete the uuid
-        # and compare the remaining response content.
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        check_response_without_uuid(response, HTTP_200_OK, NEW_TENANT)
+        get_tenant(token, NEW_TENANT)
 
-        response_content = json.loads(response.content)
+        # Test changing the tenant as a tenant admin.
+        token = login('a', 'a')
+        response = \
+            client.put(TENANTS_ID_URL % tenant.uuid.hex,
+                       json.dumps(NEW_TENANT),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        # For each response.content entry...
-        for entry in response_content["results"]:
-            self.assertIsInstance(entry["uuid"], basestring)
-            self.assertGreaterEqual(len(entry["uuid"]), 32)
-            del entry["uuid"]
-
-        self.assertEqual(response_content, EXPECTED_CONTENT)
-
-        # Did the ViewSet attempt to send out three emails?
-        self.assertEqual(send_email.call_count, 3)
-
-        # Did the three e-mails seem to have the correct content?
-        for entry in [0, 1, 2]:
-            # tenant_admin email.
-            self.assertIn(send_email.call_args_list[entry][0][0],
-                          [x.email for x in default_tenant_admins])
-            # from
-            self.assertEqual(send_email.call_args_list[entry][0][1],
-                             "webmaster@localhost")
-            # site name
-            self.assertEqual(
-                send_email.call_args_list[entry][0][2]["site_name"],
-                "YOUR_EMAIL_SITE_NAME")
-            # The name of the newly created tenant.
-            self.assertEqual(
-                send_email.call_args_list[entry][0][2]["tenant_name"],
-                EXPECTED_CONTENT["results"][entry]["name"])
+        check_response_without_uuid(response, HTTP_200_OK, NEW_TENANT)
+        get_tenant(token, NEW_TENANT)
 
     def test_delete(self):
         """Delete a tenant."""

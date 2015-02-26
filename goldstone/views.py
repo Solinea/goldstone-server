@@ -355,6 +355,7 @@ class LoginPageView(TemplateView):
 
     template_name = 'login.html'
 
+
 class PasswordView(TemplateView):
     """Return the Goldstone password reset page."""
 
