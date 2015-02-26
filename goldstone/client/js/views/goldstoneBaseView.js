@@ -158,7 +158,9 @@ var GoldstoneBaseView = Backbone.View.extend({
 
         /*
         D3.js convention works with the setting of a main svg, a sub-element
-        which we call 'chart' which is reduced in size by the amount of the top and left margins. Also declares the axes, the doubleclick mechanism, and the x and y scales, the axis details, and the chart colors.
+        which we call 'chart' which is reduced in size by the amount of the top
+        and left margins. Also declares the axes, the doubleclick mechanism,
+        and the x and y scales, the axis details, and the chart colors.
         */
 
         var ns = this.defaults;
@@ -243,7 +245,10 @@ var GoldstoneBaseView = Backbone.View.extend({
                     message += errorMessage.responseJSON.status_code + ' error: ';
                 }
                 if (errorMessage.responseJSON.message) {
-                    message += errorMessage.responseJSON.message;
+                    message += errorMessage.responseJSON.message + ' ';
+                }
+                if (errorMessage.responseJSON.detail) {
+                    message += errorMessage.responseJSON.detail;
                 }
 
             } else {
