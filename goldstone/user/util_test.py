@@ -35,6 +35,7 @@ CONTENT_NO_CREDENTIALS = \
     '{"detail":"Authentication credentials were not provided."}'
 CONTENT_NO_PERMISSION = \
     '{"detail":"You do not have permission to perform this action."}'
+CONTENT_PERMISSION_DENIED = '{"detail":"Permission denied"}'
 CONTENT_NON_FIELD_ERRORS = \
     '{"non_field_errors":["Unable to login with provided credentials."]}'
 CONTENT_NOT_BLANK = '{"username":["This field may not be blank."],'\
@@ -47,6 +48,7 @@ AUTHORIZATION_PAYLOAD = "Token %s"
 
 # Test data
 TEST_USER = ("fred", "fred@fred.com", "meh")
+BAD_TOKEN = '4' * 40
 
 
 def login(username, password):
@@ -77,16 +79,22 @@ def login(username, password):
     return response.data["auth_token"]      # pylint: disable=E1101
 
 
-def create_and_login():
+def create_and_login(is_staff=False):
     """Create a user and log them in.
 
+    :keyword is_staff: Set the is_staff flag in the User record? (A.k.a.
+                       create a Django admin user?)
+    :type is_staff: bool
     :return: The authorization token's value
     :rtype: str
 
     """
 
     # Create a user
-    get_user_model().objects.create_user(*TEST_USER)
+    user = get_user_model().objects.create_user(*TEST_USER)
+    user.is_staff = is_staff
+    user.save()
+
     return login(TEST_USER[0], TEST_USER[2])
 
 

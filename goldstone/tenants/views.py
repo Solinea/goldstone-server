@@ -138,6 +138,20 @@ class TenantsViewSet(SendEmailViewMixin, BaseViewSet):
 
         return Tenant.objects.all()
 
+    def get_object(self):
+        """Do a get_object iff the user is a Django admin, or a tenant_admin
+        of the tenant in question."""
+        from django.core.exceptions import PermissionDenied
+
+        tenant = super(TenantsViewSet, self).get_object()
+
+        # N.B. user.is_authenticated() filters out the AnonymousUser.
+        if self.request.user.is_authenticated() and \
+           (self.request.user.is_staff or self.request.user.tenant == tenant):
+            return tenant
+        else:
+            raise PermissionDenied
+
     @django_admin_only
     def perform_create(self, serializer):
         """Add the system's default tenant_admin as the tenant_admin, and
