@@ -20,7 +20,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_403_FORBIDDEN
 from goldstone.user.util_test import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_NON_FIELD_ERRORS, \
-    LOGIN_URL, \
+    LOGIN_URL, check_response_without_uuid, \
     TEST_USER, CONTENT_NOT_BLANK, CONTENT_NO_PERMISSION, CONTENT_UNIQUE_NAME, \
     CONTENT_PERMISSION_DENIED, BAD_TOKEN
 from .models import Tenant
@@ -168,25 +168,16 @@ class Tenants(Setup):
             owner=EXPECTED_CONTENT["results"][1]["owner"],
             owner_contact=EXPECTED_CONTENT["results"][1]["owner_contact"])
 
-        # Try getting the list.
+        # Try getting the list, then check the results.
         client = Client()
         response = \
             client.get(TENANTS_URL,
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        # Check the results. First check there's a reasonable-looking uuid,
-        # then delete the uuid and do a comparison of the rest of the response
-        # content.
-        self.assertEqual(response.status_code, HTTP_200_OK)
-
-        response_content = json.loads(response.content)
-
-        for entry in response_content["results"]:
-            self.assertIsInstance(entry["uuid"], basestring)
-            self.assertGreaterEqual(len(entry["uuid"]), 32)
-            del entry["uuid"]
-
-        self.assertEqual(response_content, EXPECTED_CONTENT)
+        check_response_without_uuid(response,
+                                    HTTP_200_OK,
+                                    EXPECTED_CONTENT,
+                                    True)
 
     @patch("djoser.utils.send_email")
     def test_post(self, send_email, number_tenant_admins=1):
@@ -243,32 +234,18 @@ class Tenants(Setup):
                             content_type="application/json",
                             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-            self.assertEqual(response.status_code, HTTP_201_CREATED)
-
-            response_content = json.loads(response.content)
-            self.assertIsInstance(response_content["uuid"], basestring)
-            self.assertGreaterEqual(len(response_content["uuid"]), 32)
-            del response_content["uuid"]
-            self.assertEqual(response_content, entry)
+            check_response_without_uuid(response, HTTP_201_CREATED, entry)
 
         # Now get the list and see if it matches what we expect.
         response = \
             client.get(TENANTS_URL,
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        # Verify that the response has a reasonable-looking uuid. Then, delete
-        # the uuid and compare the remaining content.
-        self.assertEqual(response.status_code, HTTP_200_OK)
-
-        response_content = json.loads(response.content)
-
-        # For each response.content results entry...
-        for entry in response_content["results"]:
-            self.assertIsInstance(entry["uuid"], basestring)
-            self.assertGreaterEqual(len(entry["uuid"]), 32)
-            del entry["uuid"]
-
-        self.assertEqual(response_content, EXPECTED_CONTENT)
+        # Check the response.
+        check_response_without_uuid(response,
+                                    HTTP_200_OK,
+                                    EXPECTED_CONTENT,
+                                    True)
 
         # Did the ViewSet attempt to send three emails?
         self.assertEqual(send_email.call_count, 3)
@@ -517,49 +494,27 @@ class TenantsId(Setup):
     def test_get(self):
         """Get a tenant record."""
 
-        # The expected content, sans uuids.
-        EXPECTED_CONTENT = \
-            {'count': 2,
-             'next': None,
-             'previous': None,
-             'results': [{'name': 'tenant 1',
-                          'owner': 'John',
-                          'owner_contact': ''},
-                         {'name': 'tenant 2',
-                          'owner': 'Alex',
-                          'owner_contact': '867-5309'}]}
+        # The expected result, sans uuid.
+        EXPECTED_RESULT = {"name": "tenant",
+                           "owner": "John",
+                           "owner_contact": "206.867.5309"}
 
-        # Create a user, save the authorization token, and make the user a
-        # Django admin.
-        token = self._create_and_login_staff()
+        # Create a Django admin user.
+        token = create_and_login(True)
 
-        # Make two tenants.
-        Tenant.objects.create(name=EXPECTED_CONTENT["results"][0]["name"],
-                              owner=EXPECTED_CONTENT["results"][0]["owner"])
-        Tenant.objects.create(
-            name=EXPECTED_CONTENT["results"][1]["name"],
-            owner=EXPECTED_CONTENT["results"][1]["owner"],
-            owner_contact=EXPECTED_CONTENT["results"][1]["owner_contact"])
-
-        # Try getting the list.
+        # Make a tenant
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+        # Get the tenant.
         client = Client()
         response = \
-            client.get(TENANTS_URL,
+            client.get(TENANTS_ID_URL % tenant.uuid.hex,
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        # Check the results. First check there's a reasonable-looking uuid,
-        # then delete the uuid and do a comparison of the rest of the response
-        # content.
+        # continue here
+        # import pdb; pdb.set_trace()
         self.assertEqual(response.status_code, HTTP_200_OK)
-
-        response_content = json.loads(response.content)
-
-        for entry in response_content["results"]:
-            self.assertIsInstance(entry["uuid"], basestring)
-            self.assertGreaterEqual(len(entry["uuid"]), 32)
-            del entry["uuid"]
-
-        self.assertEqual(response_content, EXPECTED_CONTENT)
 
     def test_post(self):
         """Change a tenant's attributes."""
