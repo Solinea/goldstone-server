@@ -29,11 +29,11 @@ var LoginPageView = Backbone.View.extend({
 
         $('.login-form').on('submit', function(e) {
             e.preventDefault();
-            self.submitLogin($(this).serialize());
+            self.submitRequest($(this).serialize());
         });
     },
 
-    submitLogin: function(input) {
+    submitRequest: function(input) {
         var self = this;
 
         // Upon clicking the submit button, the serialized user input is sent
@@ -52,7 +52,6 @@ var LoginPageView = Backbone.View.extend({
                 self.redirectPostSuccessfulAuth();
             })
             .fail(function(fail) {
-
                 // and add a message to the top of the screen that logs what
                 // is returned from the call
                 goldstone.raiseInfo(fail.responseJSON.non_field_errors[0], true);
@@ -89,9 +88,6 @@ var LoginPageView = Backbone.View.extend({
         '<div class="container">' +
         '<div class="row">' +
         '<div class="col-md-4 col-md-offset-4">' +
-        '<div class="text-center">' +
-        '<h1>Goldstone</h1>' +
-        '</div>' +
         '<form class="login-form">' +
         '<h3>Please sign in</h3>' +
         '<label for="inputUsername">Username</label>' +
@@ -100,7 +96,7 @@ var LoginPageView = Backbone.View.extend({
         '<input name="password" type="password" class="form-control" placeholder="Password" required><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>' +
         '</form>' +
-        '<div><a href="/password">forgot username or password?</a></div>' +
+        '<div><a href="/password">Forgot username or password?</a></div>' +
         '</div>' +
         '</div>' +
         '</div>'
