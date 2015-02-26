@@ -21,7 +21,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_204_NO_CONTENT
 from goldstone.user.util_test import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_NON_FIELD_ERRORS, \
-    LOGIN_URL, check_response_without_uuid, \
+    CONTENT_NO_CREDENTIALS, LOGIN_URL, check_response_without_uuid, \
     TEST_USER, CONTENT_NOT_BLANK, CONTENT_NO_PERMISSION, CONTENT_UNIQUE_NAME, \
     CONTENT_PERMISSION_DENIED, BAD_TOKEN
 from .models import Tenant
@@ -618,6 +618,7 @@ class TenantsIdUsers(Setup):
         tenant = Tenant.objects.create(name='tenant 1',
                                        owner='John',
                                        owner_contact='206.867.5309')
+
         # Try the GET and POST without an authorization token.
         client = Client()
         responses = [client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex),
@@ -627,11 +628,10 @@ class TenantsIdUsers(Setup):
                                              "email": "a@b.com"}),
                                  content_type="application/json")]
 
-        import pdb; pdb.set_trace()
         for response in responses:
             self.assertContains(response,
-                                CONTENT_PERMISSION_DENIED,
-                                status_code=HTTP_403_FORBIDDEN)
+                                CONTENT_NO_CREDENTIALS,
+                                status_code=HTTP_401_UNAUTHORIZED)
 
         # Try the GET and POST with a bad authorization token.
         responses = \
@@ -650,60 +650,34 @@ class TenantsIdUsers(Setup):
                                 status_code=HTTP_401_UNAUTHORIZED)
 
     def test_no_access(self):
-        """Getting a tenant, or creating user of a tenant, without being an
+        """Getting a tenant, or creating a tenant user, without being an
         authorized user."""
 
         # Create a normal user and save the authorization token.
         token = create_and_login()
 
-        # Make a two tenants
-        tenants = [Tenant.objects.create(name='tenant %d' % i,
-                                         owner='John',
-                                         owner_contact='206.867.5309')
-                   for i in range(2)]
+        # Make a tenant.
+        tenant = Tenant.objects.create(name='tenant 1',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
 
-        # Try getting, putting, and deleting a tenant as a normal user.
+        # Try the GET and POST.
         client = Client()
-        responses = [
-            client.get(TENANTS_ID_URL % tenants[0].uuid.hex,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            client.put(TENANTS_ID_URL % tenants[0].uuid.hex,
-                       json.dumps({"name": "foobar"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            client.delete(TENANTS_ID_URL % tenants[0].uuid.hex,
-                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-            ]
+        responses = \
+            [client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+             client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                         json.dumps({"username": "fool",
+                                     "password": "fooll",
+                                     "email": "a@b.com"}),
+                         content_type="application/json",
+                         HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
 
         for response in responses:
+            import pdb; pdb.set_trace()
             self.assertContains(response,
-                                CONTENT_PERMISSION_DENIED,
-                                status_code=HTTP_403_FORBIDDEN)
-
-        # Try deleting a tenant as a tenant_admin
-        user = get_user_model().objects.get(username=TEST_USER[0])
-        user.tenant = tenants[1]
-        user.save()
-
-        response = \
-            client.delete(TENANTS_ID_URL % tenants[0].uuid.hex,
-                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-        self.assertContains(response,
-                            CONTENT_PERMISSION_DENIED,
-                            status_code=HTTP_403_FORBIDDEN)
-
-        # Try deleting a tenant as a tenant_admin of the tenant being deleted.
-        user.tenant = tenants[0]
-        user.save()
-
-        response = \
-            client.delete(TENANTS_ID_URL % tenants[0].uuid.hex,
-                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-        self.assertContains(response,
-                            CONTENT_PERMISSION_DENIED,
-                            status_code=HTTP_403_FORBIDDEN)
+                                CONTENT_BAD_TOKEN,
+                                status_code=HTTP_401_UNAUTHORIZED)
 
     def test_no_tenant(self):
         """Getting a tenant, or creating a user of a tenant, when the tenant
