@@ -354,6 +354,11 @@ class LoginPageView(TemplateView):
 
     template_name = 'login.html'
 
+class PasswordView(TemplateView):
+    """Return the Goldstone password reset page."""
+
+    template_name = 'password.html'
+
 
 class NodeReportView(TemplateView):
     template_name = 'node_report.html'

@@ -100,7 +100,7 @@ var LoginPageView = Backbone.View.extend({
         '<input name="password" type="password" class="form-control" placeholder="Password" required><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>' +
         '</form>' +
-        '<div><a href="#">forgot username or password?</a></div>' +
+        '<div><a href="/password">forgot username or password?</a></div>' +
         '</div>' +
         '</div>' +
         '</div>'
