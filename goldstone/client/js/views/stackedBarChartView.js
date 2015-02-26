@@ -283,8 +283,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             return item.eventTime;
         });
 
-        console.log('data', data);
-
         ns.x.domain(d3.extent(data, function(d) {
             return d.eventTime;
         }));

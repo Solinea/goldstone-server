@@ -213,13 +213,23 @@ describe('apiPerfView.js spec', function() {
             });
             expect(test10).to.equal('<p>Missing name param<br>200');
 
-            // doesn't append tooltip text to zero values
+            // returns y1 value of charts that don't have a
+            // name param of "Failure" or "Success"
             var test11 = this.testView.computeBarHeightPopover({
                 name: 'Nada',
                 y0: 12,
                 y1: 12
             });
-            expect(test11).to.equal(null);
+            expect(test11).to.equal('<p>Nada<br>12');
+
+            // returns the y1-y0 value of charts that have a
+            // name param of "Failure" or "Success"
+            var test12 = this.testView.computeBarHeightPopover({
+                name: 'Failure',
+                y0: 12,
+                y1: 12
+            });
+            expect(test12).to.equal('<p>Failure<br>0');
         });
     });
 });
