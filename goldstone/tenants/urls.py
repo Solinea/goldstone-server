@@ -19,8 +19,8 @@ from .views import TenantsViewSet, UserViewSet
 # Views handled by DjangoRestFramework ViewSets, with drf-extensions help.
 router = ExtendedDefaultRouter(trailing_slash=False)
 
-router.register(r'^tenants[/]?', TenantsViewSet, base_name="tenants")\
-      .register(r'^users[/]?',
+router.register(r'tenants[/]?', TenantsViewSet, base_name="tenants")\
+      .register(r'users[/]?',
                 UserViewSet,
                 base_name="tenants-users",
                 parents_query_lookups=["tenants_users"])
