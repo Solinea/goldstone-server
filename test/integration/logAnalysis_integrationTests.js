@@ -1,7 +1,7 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests
 
-describe('logAnalysis spec', function() {
+describe('logAnalysis.js spec', function() {
     beforeEach(function() {
 
         $('body').html('<div class="testContainer"></div>');
@@ -207,10 +207,11 @@ describe('logAnalysis spec', function() {
             this.testView.dataErrorMessage(null, {
                 responseJSON: {
                     status_code: 246,
-                    message: 'responseJSON message all up in your tests.'
+                    message: 'responseJSON message all up in your tests.',
+                    detail: 'and some extra details, just for fun'
                 }
             });
-            expect($('.popup-message').text()).to.equal('246 error: responseJSON message all up in your tests.');
+            expect($('.popup-message').text()).to.equal('246 error: responseJSON message all up in your tests. and some extra details, just for fun');
             this.testView.dataErrorMessage(null, {
                 status: '999',
                 responseText: 'naughty - coal for you!'
@@ -247,7 +248,7 @@ describe('logAnalysis spec', function() {
         it('should trigger paint new chart appropriately', function() {
             this.paintNewChart_spy = sinon.spy(this.testView, "paintNewChart");
             expect(this.paintNewChart_spy.callCount).to.equal(0);
-            this.testView.paintNewChart([1000,2000], 10);
+            this.testView.paintNewChart([1000, 2000], 10);
             expect(this.paintNewChart_spy.callCount).to.equal(1);
             this.testView.dblclicked([1000, 2000]);
             expect(this.paintNewChart_spy.callCount).to.equal(2);
@@ -259,13 +260,13 @@ describe('logAnalysis spec', function() {
             this.testView.render();
             this.testView.update();
             // no mult
-            this.testView.paintNewChart([time1,time2]);
+            this.testView.paintNewChart([time1, time2]);
             expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?start_time=1421085174&end_time=1421085204&interval=1s');
             // mult >= 1
-            this.testView.paintNewChart([time1,time2], 10);
+            this.testView.paintNewChart([time1, time2], 10);
             expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?start_time=1421085183&end_time=1421085195&interval=1s');
             // mult < 1
-            this.testView.paintNewChart([time1,time2], 0.5);
+            this.testView.paintNewChart([time1, time2], 0.5);
             expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?start_time=1421085069&end_time=1421085309&interval=2s');
         });
     });

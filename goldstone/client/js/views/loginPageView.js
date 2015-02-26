@@ -36,45 +36,48 @@ var LoginPageView = Backbone.View.extend({
     submitLogin: function(input) {
         var self = this;
 
-        console.log('submitLogin received: ', input);
+        // Upon clicking the submit button, the serialized user input is sent
+        // via $.post to check the credentials. If successful, invoke "done"
+        // if not, invoke "fail"
+
         $.post('/accounts/login', input, function() {})
             .done(function(success) {
-                // if the call succeeds, console.log what is returned
-                console.log('called back:', success);
 
                 // store the auth token
                 self.storeAuthToken(success.auth_token);
 
                 // and add a message to the top of the screen that logs what
                 // is returned from the call
-                // and clear that helpful message after 2 seconds
-                self.displayInfoMessage(success.auth_token);
+                goldstone.raiseInfo('Authorization Successful, redirecting to goldstone', true);
+                self.redirectPostSuccessfulAuth();
             })
             .fail(function(fail) {
 
-                // if the call fails, console.log what is returned
-                console.log('failed with:', fail, fail.responseJSON.non_field_errors[0]);
-
                 // and add a message to the top of the screen that logs what
                 // is returned from the call
-                // and clear that helpful message after 2 seconds
-                self.displayInfoMessage(fail.responseJSON.non_field_errors[0]);
+                goldstone.raiseInfo(fail.responseJSON.non_field_errors[0], true);
             });
     },
 
     storeAuthToken: function(token) {
-        console.log('localStorage userToken:', localStorage.getItem('userToken'));
         localStorage.setItem('userToken', token);
-        console.log('localStorage userToken:', localStorage.getItem('userToken'));
     },
 
-    displayInfoMessage: function(text) {
-        $('.alert-info').show();
-        $('.alert-info').text(text);
+    redirectPostSuccessfulAuth: function() {
 
-        setTimeout(function() {
-            $('.alert-info').hide();
-        }, 2000);
+        // if there was a previously visited page that
+        // had redirected to the login page due to lack
+        // of credentials, redirect back to that page
+        if (location.hash && location.hash.length > 0) {
+            locationhref = '/' + location.hash.slice(1);
+        } else {
+
+            // or just redirect to /discover
+            locationhref = '/';
+        }
+
+        location.href = locationhref;
+
     },
 
     render: function() {
