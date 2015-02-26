@@ -68,8 +68,8 @@ var PasswordResetView = Backbone.View.extend({
         '<div class="col-md-4 col-md-offset-4">' +
         '<form class="password-reset-form">' +
         '<h3>Reset password</h3>' +
-        '<label for="email">Username or e-mail</label>' +
-        '<input name="email" type="email" class="form-control" placeholder="Registered email" required autofocus><br>' +
+        '<label for="email">Email address</label>' +
+        '<input name="email" type="email" class="form-control" placeholder="Enter email associated with your account" required autofocus><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Send reset email</button>' +
         '</form>' +
         '<div><a href="/login">Cancel and return to login</a></div>' +
