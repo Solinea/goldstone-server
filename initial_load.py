@@ -17,10 +17,6 @@ import os.path
 from django.conf import settings
 from goldstone.apps.core.tasks import create_daily_index
 
-# we only use es_conn, but for some reason, making the import more specific
-# causes an import failure.
-import goldstone
-
 
 def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
     """Load an index template into ES from a file.
@@ -35,9 +31,9 @@ def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
     """
     import json
     from elasticsearch.exceptions import RequestError
-
+    from goldstone.models import es_conn
     try:
-        conn = goldstone.models.es_conn(server)
+        conn = es_conn(server)
         conn.indices.put_template(template_name,
                                   json.load(template_file),
                                   create=False)
