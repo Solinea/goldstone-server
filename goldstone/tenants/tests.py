@@ -384,12 +384,10 @@ class TenantsId(Setup):
 
         """
 
-        TEST = {'name': 'tenant 1',
-                'owner': 'John',
-                'owner_contact': '206.867.5309'}
-
         # Make a tenant.
-        tenant = Tenant.objects.create(**TEST)
+        tenant = Tenant.objects.create(name='tenant 1',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
 
         # Try getting, putting, and deleting a tenant without a token.
         client = Client()
@@ -423,69 +421,98 @@ class TenantsId(Setup):
 
     def test_no_access(self):
         """Getting a tenant list, changing a tenant's attributes, or deleting a
-        tenant without being a Django admin OR the tenant_admin of the
-        tenant."""
+        tenant without being an authorized user.
 
-        def get_post():
-            """Try getting and posting, using the default test user."""
+        For getting and changing, this means being a Django admin or the
+        tenant's tenant_admin.
 
-            # Try getting a tenant list.
-            response = \
-                client.get(TENANTS_URL,
-                           HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        For deleting, this means being a Django admin.
 
-            self.assertContains(response,
-                                CONTENT_NO_PERMISSION,
-                                status_code=HTTP_403_FORBIDDEN)
+        """
 
-            # Try creating a tenant.
-            response = \
-                client.post(TENANTS_URL,
-                            json.dumps({"name": "foobar",
-                                        "owner": "Debra Winger"}),
-                            content_type="application/json",
-                            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-            self.assertContains(response,
-                                CONTENT_NO_PERMISSION,
-                                status_code=HTTP_403_FORBIDDEN)
-
-        # Create a user and get the authorization token.
+        # Create a normal user and save the authorization token.
         token = create_and_login()
 
+        # Make a two tenants
+        tenants = [Tenant.objects.create(name='tenant %d' % i,
+                                         owner='John',
+                                         owner_contact='206.867.5309')
+                   for i in range(2)]
+
+        # Try getting, putting, and deleting a tenant as a normal user.
         client = Client()
+        responses = [
+            client.get(TENANTS_ID_URL % tenants[0].uuid.hex,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            client.put(TENANTS_ID_URL % tenants[0].uuid.hex,
+                       json.dumps({"name": "foobar"}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            client.delete(TENANTS_ID_URL % tenants[0].uuid.hex,
+                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            ]
 
-        # Test for no-access, as a normal user.
-        get_post()
+        for response in responses:
+            self.assertContains(response,
+                                CONTENT_PERMISSION_DENIED,
+                                status_code=HTTP_403_FORBIDDEN)
 
-        # Now do both sub-tests again, this time as a tenant_admin. We should
-        # still have no access.
+        # Try deleting a tenant as a tenant_admin
         user = get_user_model().objects.get(username=TEST_USER[0])
-        user.tenant_admin = True
+        user.tenant = tenants[1]
         user.save()
 
-        get_post()
+        response = \
+            client.delete(TENANTS_ID_URL % tenants[0].uuid.hex,
+                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertContains(response,
+                            CONTENT_PERMISSION_DENIED,
+                            status_code=HTTP_403_FORBIDDEN)
+
+        # Try deleting a tenant as a tenant_admin of the tenant being deleted.
+        user.tenant = tenants[0]
+        user.save()
+
+        response = \
+            client.delete(TENANTS_ID_URL % tenants[0].uuid.hex,
+                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertContains(response,
+                            CONTENT_PERMISSION_DENIED,
+                            status_code=HTTP_403_FORBIDDEN)
 
     def test_no_tenant(self):
         """Getting a tenant list, changing a tenant's attributes, or deleting a
         tenant, when the tenant does not exist."""
 
-        EXPECTED_CONTENT = \
-            '{"count":0,"next":null,"previous":null,"results":[]}'
+        # Create a Django admin user.
+        token = create_and_login(True)
 
-        # Create a user, save the authorization token, and make the user a
-        # Django admin.
-        token = self._create_and_login_staff()
+        # Make a tenant, save its uuid, then delete it.
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+        uuid = tenant.uuid.hex
+        tenant.delete()
 
-        # Try getting the list.
+        # Try getting, putting, and deleting a tenant that doesn't exist.
         client = Client()
-        response = \
-            client.get(TENANTS_URL,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        responses = [
+            client.get(TENANTS_ID_URL % uuid,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            client.put(TENANTS_ID_URL % uuid,
+                       json.dumps({"name": "foobar"}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            client.delete(TENANTS_ID_URL % uuid,
+                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            ]
 
-        self.assertContains(response,
-                            EXPECTED_CONTENT,
-                            status_code=HTTP_200_OK)
+        for response in responses:
+            self.assertContains(response,
+                                CONTENT_PERMISSION_DENIED,
+                                status_code=HTTP_403_FORBIDDEN)
 
     def test_get(self):
         """Get a tenant record."""

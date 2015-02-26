@@ -139,15 +139,21 @@ class TenantsViewSet(SendEmailViewMixin, BaseViewSet):
         return Tenant.objects.all()
 
     def get_object(self):
-        """Do a get_object iff the user is a Django admin, or a tenant_admin
-        of the tenant in question."""
-        from django.core.exceptions import PermissionDenied
+        """Return an object (e.g., for a detail view) iff (the user is a Django
+        admin) or ((the request isn't a DELETE) and (the user is a tenant_admin
+        of the tenant in question))."""
+        from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 
-        tenant = super(TenantsViewSet, self).get_object()
+        try:
+            tenant = super(TenantsViewSet, self).get_object()
+        except ObjectDoesNotExist:
+            raise PermissionDenied
 
-        # N.B. user.is_authenticated() filters out the AnonymousUser.
+        # N.B. user.is_authenticated() filters out the AnonymousUser object.
         if self.request.user.is_authenticated() and \
-           (self.request.user.is_staff or self.request.user.tenant == tenant):
+           (self.request.user.is_staff or
+            (self.request.user.tenant == tenant and
+             self.request.method != "DELETE")):
             return tenant
         else:
             raise PermissionDenied
