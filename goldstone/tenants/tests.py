@@ -462,7 +462,7 @@ class TenantsId(Setup):
 
     def test_no_tenant(self):
         """Getting a tenant list, changing a tenant's attributes, or deleting a
-        tenant, when the tenant does not exist."""
+        tenant, when the tenant doesn't exist."""
 
         # Create a Django admin user.
         token = create_and_login(True)
@@ -607,71 +607,227 @@ class TenantsId(Setup):
 
 
 class TenantsIdUsers(Setup):
-    """Logging in."""
+    """Listing users of a tenant, and creating user of a tenant."""
 
-    def test_bad_username(self):
-        """Logging in with a bad username."""
+    def test_not_logged_in(self):
+        """Getting a tenant, or creating a tenant user, without being logged
+        in."""
 
-        # Create a user
-        get_user_model().objects.create_user(*TEST_USER)
+        # Make a tenant.
+        tenant = Tenant.objects.create(name='tenant 1',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
 
-        # Try logging in with a bad username.
+        # Try getting, putting, and deleting a tenant without a token.
         client = Client()
-        response = client.post(LOGIN_URL,
-                               {"username": "Atticus",
-                                "password": TEST_USER[2]})
+        responses = [client.get(TENANTS_ID_URL % tenant.uuid.hex),
+                     client.put(TENANTS_ID_URL % tenant.uuid.hex,
+                                json.dumps({"name": "foobar"}),
+                                content_type="application/json"),
+                     client.delete(TENANTS_ID_URL % tenant.uuid.hex)]
+
+        for response in responses:
+            self.assertContains(response,
+                                CONTENT_PERMISSION_DENIED,
+                                status_code=HTTP_403_FORBIDDEN)
+
+        # Try getting, putting, and deleting a tenant with a bad token.
+        responses = [
+            client.get(TENANTS_ID_URL % tenant.uuid.hex,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
+            client.put(TENANTS_ID_URL % tenant.uuid.hex,
+                       json.dumps({"name": "foobar"}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
+            client.delete(TENANTS_ID_URL % tenant.uuid.hex,
+                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
+            ]
+
+        for response in responses:
+            self.assertContains(response,
+                                CONTENT_BAD_TOKEN,
+                                status_code=HTTP_401_UNAUTHORIZED)
+
+    def test_no_access(self):
+        """Getting a tenant, or creating user of a tenant, without being an
+        authorized user."""
+
+        # Create a normal user and save the authorization token.
+        token = create_and_login()
+
+        # Make a two tenants
+        tenants = [Tenant.objects.create(name='tenant %d' % i,
+                                         owner='John',
+                                         owner_contact='206.867.5309')
+                   for i in range(2)]
+
+        # Try getting, putting, and deleting a tenant as a normal user.
+        client = Client()
+        responses = [
+            client.get(TENANTS_ID_URL % tenants[0].uuid.hex,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            client.put(TENANTS_ID_URL % tenants[0].uuid.hex,
+                       json.dumps({"name": "foobar"}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            client.delete(TENANTS_ID_URL % tenants[0].uuid.hex,
+                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            ]
+
+        for response in responses:
+            self.assertContains(response,
+                                CONTENT_PERMISSION_DENIED,
+                                status_code=HTTP_403_FORBIDDEN)
+
+        # Try deleting a tenant as a tenant_admin
+        user = get_user_model().objects.get(username=TEST_USER[0])
+        user.tenant = tenants[1]
+        user.save()
+
+        response = \
+            client.delete(TENANTS_ID_URL % tenants[0].uuid.hex,
+                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
-                            CONTENT_NON_FIELD_ERRORS,
-                            status_code=HTTP_400_BAD_REQUEST)
+                            CONTENT_PERMISSION_DENIED,
+                            status_code=HTTP_403_FORBIDDEN)
 
-    def test_bad_password(self):
-        """Logging in with a bad password."""
+        # Try deleting a tenant as a tenant_admin of the tenant being deleted.
+        user.tenant = tenants[0]
+        user.save()
 
-        # Create a user
-        get_user_model().objects.create_user(*TEST_USER)
-
-        # Try logging in with a bad username.
-        client = Client()
-        response = client.post(LOGIN_URL,
-                               {"username": TEST_USER[0], "password": "Finch"})
+        response = \
+            client.delete(TENANTS_ID_URL % tenants[0].uuid.hex,
+                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
-                            CONTENT_NON_FIELD_ERRORS,
-                            status_code=HTTP_400_BAD_REQUEST)
+                            CONTENT_PERMISSION_DENIED,
+                            status_code=HTTP_403_FORBIDDEN)
 
-    def test_login(self):      # pylint: disable=R0201
-        """Logging in."""
+    def test_no_tenant(self):
+        """Getting a tenant, or creating a user of a tenant, when the tenant
+        doesn't exist."""
 
-        create_and_login()
+        # Create a Django admin user.
+        token = create_and_login(True)
 
-    def test_login_already_logged_in(self):        # pylint: disable=R0201
-        """Logging in when the user is already logged in.
+        # Make a tenant, save its uuid, then delete it.
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+        uuid = tenant.uuid.hex
+        tenant.delete()
 
-        The user should remain logged in.
+        # Try getting, putting, and deleting a tenant that doesn't exist.
+        client = Client()
+        responses = [
+            client.get(TENANTS_ID_URL % uuid,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            client.put(TENANTS_ID_URL % uuid,
+                       json.dumps({"name": "foobar"}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            client.delete(TENANTS_ID_URL % uuid,
+                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            ]
 
-        """
+        for response in responses:
+            self.assertContains(response,
+                                CONTENT_PERMISSION_DENIED,
+                                status_code=HTTP_403_FORBIDDEN)
 
-        create_and_login()
-        login(TEST_USER[0], TEST_USER[2])
+    def test_get(self):
+        """List a tenant's users."""
 
-    def test_login_another_logged_in(self):        # pylint: disable=R0201
-        """Logging in when another user is logged in.
+        # The expected result, sans uuid.
+        EXPECTED_RESULT = {"name": "tenant",
+                           "owner": "John",
+                           "owner_contact": "206.867.5309"}
 
-        The second user should be logged in normally.
+        def get_tenant(token):
+            """Get the tenant using the token, and check the response."""
 
-        """
+            client = Client()
+            response = \
+                client.get(TENANTS_ID_URL % tenant.uuid.hex,
+                           HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        # Create user 1 and user 2. User 2 is just user 1 the the username and
-        # password swapped.
-        create_and_login()
-        get_user_model().objects.create_user(TEST_USER[2],
-                                             TEST_USER[1],
-                                             TEST_USER[0])
+            check_response_without_uuid(response, HTTP_200_OK, EXPECTED_RESULT)
 
-        # Login user 1, then login user 2.
-        login(TEST_USER[0], TEST_USER[2])
-        login(TEST_USER[2], TEST_USER[0])
+        # Make a tenant
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        # Create a Django admin user, and a normal user who's a tenant_admin of
+        # the tenant.
+        token = create_and_login(True)
+        get_user_model().objects.create_user("a",
+                                             "a@b.com",
+                                             "a",
+                                             tenant=tenant,
+                                             tenant_admin=True)
+
+        # Test getting the tenant as a Django admin, then as the tenant_admin
+        # of the tenant. Both should work.
+        get_tenant(token)
+        token = login('a', 'a')
+        get_tenant(token)
+
+    def test_post(self):
+        """Add a user to a tenant."""
+
+        # The expected result, sans uuid.
+        INITIAL_TENANT = {"name": "tenant",
+                          "owner": "John",
+                          "owner_contact": "206.867.5309"}
+        NEW_TENANT = {"name": "TENant",
+                      "owner": "Bob",
+                      "owner_contact": "212.867.5309"}
+
+        def get_tenant(token, expected):
+            """Get the tenant using the token and check the response."""
+
+            client = Client()
+            response = \
+                client.get(TENANTS_ID_URL % tenant.uuid.hex,
+                           HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+            check_response_without_uuid(response, HTTP_200_OK, expected)
+
+        # Make a tenant
+        tenant = Tenant.objects.create(**INITIAL_TENANT)
+
+        # Create a Django admin user, and a normal user who's a tenant_admin of
+        # the tenant.
+        token = create_and_login(True)
+        get_user_model().objects.create_user("a",
+                                             "a@b.com",
+                                             "a",
+                                             tenant=tenant,
+                                             tenant_admin=True)
+
+        # Test changing the tenant as a Django admin.
+        client = Client()
+        response = \
+            client.put(TENANTS_ID_URL % tenant.uuid.hex,
+                       json.dumps(NEW_TENANT),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        check_response_without_uuid(response, HTTP_200_OK, NEW_TENANT)
+        get_tenant(token, NEW_TENANT)
+
+        # Test changing the tenant as a tenant admin.
+        token = login('a', 'a')
+        response = \
+            client.put(TENANTS_ID_URL % tenant.uuid.hex,
+                       json.dumps(NEW_TENANT),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        check_response_without_uuid(response, HTTP_200_OK, NEW_TENANT)
+        get_tenant(token, NEW_TENANT)
 
 
 class TenantsIdUsersId(Setup):
