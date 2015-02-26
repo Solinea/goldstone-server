@@ -29,6 +29,7 @@ from .models import Tenant
 # URLs used by this module.
 TENANTS_URL = "/tenants"
 TENANTS_ID_URL = TENANTS_URL + '/%s'
+TENANTS_ID_USERS_URL = TENANTS_ID_URL + "/users"
 
 
 class Tenants(Setup):
@@ -617,31 +618,31 @@ class TenantsIdUsers(Setup):
         tenant = Tenant.objects.create(name='tenant 1',
                                        owner='John',
                                        owner_contact='206.867.5309')
-
-        # Try getting, putting, and deleting a tenant without a token.
+        # Try the GET and POST without an authorization token.
         client = Client()
-        responses = [client.get(TENANTS_ID_URL % tenant.uuid.hex),
-                     client.put(TENANTS_ID_URL % tenant.uuid.hex,
-                                json.dumps({"name": "foobar"}),
-                                content_type="application/json"),
-                     client.delete(TENANTS_ID_URL % tenant.uuid.hex)]
+        responses = [client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex),
+                     client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                                 json.dumps({"username": "fool",
+                                             "password": "fooll",
+                                             "email": "a@b.com"}),
+                                 content_type="application/json")]
 
+        import pdb; pdb.set_trace()
         for response in responses:
             self.assertContains(response,
                                 CONTENT_PERMISSION_DENIED,
                                 status_code=HTTP_403_FORBIDDEN)
 
-        # Try getting, putting, and deleting a tenant with a bad token.
-        responses = [
-            client.get(TENANTS_ID_URL % tenant.uuid.hex,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
-            client.put(TENANTS_ID_URL % tenant.uuid.hex,
-                       json.dumps({"name": "foobar"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
-            client.delete(TENANTS_ID_URL % tenant.uuid.hex,
-                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
-            ]
+        # Try the GET and POST with a bad authorization token.
+        responses = \
+            [client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
+             client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                         json.dumps({"username": "fool",
+                                     "password": "fooll",
+                                     "email": "a@b.com"}),
+                         content_type="application/json",
+                         HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)]
 
         for response in responses:
             self.assertContains(response,
