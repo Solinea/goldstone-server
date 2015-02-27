@@ -660,7 +660,7 @@ class TenantsIdUsers(Setup):
                                        owner_contact='206.867.5309')
 
         # Create a normal user who's a member of the tenant, but *not* a
-        # tenant_admin.token.
+        # tenant_admin
         token = create_and_login()
         user = get_user_model().objects.get(username=TEST_USER[0])
         user.tenant = tenant
@@ -874,35 +874,44 @@ class TenantsIdUsersId(Setup):
     def test_not_logged_in(self):
         """The client is not logged in."""
 
-        # Make a tenant.
+        # Make a tenant, and put one member, the tenant_admin, in it.
         tenant = Tenant.objects.create(name='tenant 1',
                                        owner='John',
                                        owner_contact='206.867.5309')
+        token = create_and_login()
+        user = get_user_model().objects.get(username=TEST_USER[0])
+        user.tenant = tenant
+        user.tenant_admin = True
+        user.save()
 
-        # Try the GET and POST without an authorization token.
+        # Try the GET and PUT without an authorization token.
         client = Client()
-        responses = [client.get(TENANTS_ID_USERS_ID_URL % tenant.uuid.hex),
-                     client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                                 json.dumps({"username": "fool",
-                                             "password": "fooll",
-                                             "email": "a@b.com"}),
-                                 content_type="application/json")]
+        responses = [client.get(TENANTS_ID_USERS_ID_URL %
+                                (tenant.uuid.hex, user.uuid.hex)),
+                     client.put(TENANTS_ID_USERS_ID_URL %
+                                (tenant.uuid.hex, user.uuid.hex),
+                                json.dumps({"username": "fool",
+                                            "password": "fooll",
+                                            "email": "a@b.com"}),
+                                content_type="application/json")]
 
         for response in responses:
             self.assertContains(response,
                                 CONTENT_NO_CREDENTIALS,
                                 status_code=HTTP_401_UNAUTHORIZED)
 
-        # Try the GET and POST with a bad authorization token.
-        responses = \
-            [client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
-             client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                         json.dumps({"username": "fool",
-                                     "password": "fooll",
-                                     "email": "a@b.com"}),
-                         content_type="application/json",
-                         HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)]
+        # Try the GET and PUT with a bad authorization token.
+        responses = [
+            client.get(TENANTS_ID_USERS_ID_URL %
+                       (tenant.uuid.hex, user.uuid.hex),
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
+            client.put(TENANTS_ID_USERS_ID_URL %
+                       (tenant.uuid.hex, user.uuid.hex),
+                       json.dumps({"username": "fool",
+                                   "password": "fooll",
+                                   "email": "a@b.com"}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)]
 
         for response in responses:
             self.assertContains(response,
@@ -919,23 +928,25 @@ class TenantsIdUsersId(Setup):
                                        owner_contact='206.867.5309')
 
         # Create a normal user who's a member of the tenant, but *not* a
-        # tenant_admin.token.
+        # tenant_admin
         token = create_and_login()
         user = get_user_model().objects.get(username=TEST_USER[0])
         user.tenant = tenant
         user.save()
 
-        # Try the GET and POST.
+        # Try the GET and PUT.
         client = Client()
         responses = [
-            client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+            client.get(TENANTS_ID_USERS_ID_URL %
+                       (tenant.uuid.hex, user.uuid.hex),
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                        json.dumps({"username": "fool",
-                                    "password": "fooll",
-                                    "email": "a@b.com"}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
+            client.put(TENANTS_ID_USERS_ID_URL %
+                       (tenant.uuid.hex, user.uuid.hex),
+                       json.dumps({"username": "fool",
+                                   "password": "fooll",
+                                   "email": "a@b.com"}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
 
         for response in responses:
             self.assertContains(response,
@@ -976,7 +987,7 @@ class TenantsIdUsersId(Setup):
         """Get a user from an empty tenant, or a user that does not exist."""
 
         pass
-    
+
     def test_get(self):
         """Get a user."""
 
@@ -1052,12 +1063,13 @@ class TenantsIdUsersId(Setup):
 
         self.assertItemsEqual(response_content["results"], expected_result)
 
-    def test_post_no_user(self, send_email):
+    def test_post_no_user(self):
         """Update a user of an empty tenant, or a user that does not exist."""
         pass
 
-    def test_post_bad_fields(self, send_email):
-        """Update a user with missing required fields, or unrecognized fields."""
+    def test_post_bad_fields(self):
+        """Update a user with missing required fields, or unrecognized
+        fields."""
         pass
 
     @patch("djoser.utils.send_email")
