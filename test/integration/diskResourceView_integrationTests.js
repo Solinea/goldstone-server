@@ -24,7 +24,7 @@ describe('UtilizationCpu.js spec', function() {
 
         blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        this.testView = new DiskResourceView({
+        this.testView = new StackedBarChartView({
             chartTitle: "Test Disk Resources",
             collection: this.testCollection,
             featureSet: 'disk',
@@ -83,30 +83,32 @@ describe('UtilizationCpu.js spec', function() {
     describe('view dataPrep', function() {
         it('prepares JSON payload for rendering', function() {
             var test1 = this.testView.dataPrep({
+                // Disk Resources chart data prep
+                // {timestamp: [used, total]}
                 0: {
-                    "1422564480000": [15936, 512, 23904, 512],
-                    "1422537120000": [15936.0, 512.0, 23904.0, 512.0],
-                    "1422527040000": [15936.0, 512.0, 23904.0, 512.0],
-                    "1422540000000": [15936.0, 512.0, 23904.0, 512.0]
+                    "1422564480000": [512, 23904],
+                    "1422537120000": [512.0, 23904.0],
+                    "1422527040000": [512.0, 23904.0],
+                    "1422540000000": [512.0, 23904.0]
                 }
             });
             expect(test1).to.deep.equal(
                 [{
                     "eventTime": '1422564480000',
-                    "Success": 23904,
-                    "Failure": 15936
+                    "Used": 512,
+                    "Total": 23904
                 }, {
                     "eventTime": '1422537120000',
-                    "Success": 23904,
-                    "Failure": 15936
+                    "Used": 512,
+                    "Total": 23904
                 }, {
                     "eventTime": '1422527040000',
-                    "Success": 23904,
-                    "Failure": 15936
+                    "Used": 512,
+                    "Total": 23904
                 }, {
                     "eventTime": '1422540000000',
-                    "Success": 23904,
-                    "Failure": 15936
+                    "Used": 512,
+                    "Total": 23904
                 }]);
         });
     });
@@ -147,7 +149,7 @@ describe('UtilizationCpu.js spec', function() {
             this.testView.update();
             expect($('.popup-message').text()).to.equal('No Data Returned');
             expect(this.update_spy.callCount).to.equal(3);
-            expect($('g').find('text').text()).to.equal('FailSuccess');
+            expect($('g').find('text').text()).to.equal('TotalUsed');
             this.update_spy.restore();
         });
         it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
