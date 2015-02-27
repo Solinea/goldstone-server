@@ -240,11 +240,15 @@ class UserViewSet(BaseViewSet):
         tenant = self._get_tenant()
 
         # N.B. User.is_authenticated() filters out the AnonymousUser object.
-        import pdb; pdb.set_trace()
         if self.request.user.is_authenticated() and \
-           self.request.user.tenant == tenant:
-            return self.filter_queryset_by_parents_lookups(
-                get_user_model().objects.all())
+           self.request.user.tenant == tenant and \
+           self.request.user.tenant_admin:
+            # We can't use filter_queryset_by_parents_lookup() here, because of
+            # an interaction between Django's ORM and the UUID model. I think
+            # the ORM doesn't invoke the __eq__ special method. So, we do
+            # manual filtering.
+            return [x for x in get_user_model().objects.all()
+                    if x.tenant == tenant]
         else:
             raise PermissionDenied
 
