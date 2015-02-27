@@ -159,7 +159,8 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         var result = "";
 
-        result += moment().toDate(d.eventTime) + '<br>';
+        // matches time formatting of api perf charts
+        result += moment(+d.eventTime).format() + '<br>';
 
         valuesToReport.forEach(function(item) {
             result += item + ': ' + d[item] + '<br>';
