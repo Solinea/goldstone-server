@@ -140,7 +140,7 @@ class ApiPerfTests(SimpleTestCase):
         self.assertEqual(data.response_time, persisted.response_time)
 
         # TODO uncomment when bug fixed in es-dsl
-        # self.assertEqual(data.created, persisted.created)
+        self.assertEqual(data.creation_time, persisted.creation_time)
 
         data2 = ApiPerfData(response_status=1000,
                             creation_time=now,
