@@ -269,10 +269,10 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             // total, which will inform that domain of the y-axis
             // d.Virtual and d.Total are the top lines on their
             // respective charts
-            if(d.Virtual){
+            if (d.Virtual) {
                 d.total = d.Virtual;
             }
-            if(d.Total){
+            if (d.Total) {
                 d.total = d.Total;
             }
         });
@@ -390,8 +390,14 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .style("fill", function(d) {
                 return ns.color(d.name);
             }).on('mouseenter', function(d, i) {
-                var targ = d3.select(self.el).select('rect');
-                tip.offset([0, 0]).show(d, targ);
+
+                // show popups for: spawn chart and cpu/disk/mem bars
+                // but don't show popups for the invisible 'rect's
+                var displayPopupKey = ['Used', 'Failure', 'Success'];
+                if (displayPopupKey.indexOf(d.name) !== -1) {
+                    var targ = d3.select(self.el).select('rect');
+                    tip.offset([0, 0]).show(d, targ);
+                }
             }).on('mouseleave', function() {
                 tip.hide();
             });
@@ -483,57 +489,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         }
 
 
-        // ns.event.selectAll("line")
-        //     .data(function(d) {
-        //         return d.stackedBarPrep;
-        //     })
-        //     .enter().append("line")
-        //     .attr("x1", function(d) {
-        //         var segmentWidth = (ns.mw / data.length);
-
-        //         // makes the line solid
-        //         // don't adjust for very small data sets
-        //         if (data.length <= 3) {
-        //             return 0;
-        //         } else {
-        //             return segmentWidth * -0.17;
-        //         }
-        //     })
-        //     .attr("x2", function(d) {
-        //         var segmentWidth = (ns.mw / data.length);
-        //         // makes the line solid
-        //         // don't adjust for very small data sets
-        //         if (data.length <= 3) {
-        //             return segmentWidth;
-        //         } else {
-        //             return segmentWidth + segmentWidth * 0.17;
-        //         }
-        //     })
-        //     .attr("y1", function(d) {
-        //         return ns.y(d.y1);
-        //     })
-        //     .attr("y2", function(d) {
-        //         // horizontal line, so y1 === y2
-        //         return ns.y(d.y1);
-        //     })
-        //     .attr("stroke", function(d) {
-        //         // color of line
-        //         return ns.color(d.name);
-        //     })
-        //     .attr("stroke-width", function(d) {
-        //         // hide if data already used for "rect" above
-        //         if (showOrHide[d.name]) {
-        //             return 0;
-        //         } else {
-        //             return 2;
-        //         }
-        //     }).attr("stroke-dasharray", function(d) {
-        //         if (d.name === "Physical") {
-        //             return "5, 3";
-        //         } else {
-        //             return null;
-        //         }
-        //     });
 
         var legendSpecs = {
             mem: [
