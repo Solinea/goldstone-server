@@ -653,13 +653,17 @@ class TenantsIdUsers(Setup):
         """Getting the tenant users, or creating a tenant user, without being
         an authorized user."""
 
-        # Create a normal user and save the authorization token.
-        token = create_and_login()
-
         # Make a tenant.
         tenant = Tenant.objects.create(name='tenant 1',
                                        owner='John',
                                        owner_contact='206.867.5309')
+
+        # Create a normal user who's a member of the tenant, but *not* a
+        # tenant_admin.token.
+        token = create_and_login()
+        user = get_user_model().objects.get(username=TEST_USER[0])
+        user.tenant = tenant
+        user.save()
 
         # Try the GET and POST.
         client = Client()
