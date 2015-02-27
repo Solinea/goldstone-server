@@ -152,32 +152,20 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         return result;
     },
 
-    computeBarHeightPopover: function(d) {
+    computeHiddenBarText: function(d) {
+        var valuesToReport = _.filter((_.keys(d)), function(item) {
+            return item !== "eventTime" && item !== "stackedBarPrep" && item !== "total";
+        }).reverse();
 
-        if (d.name === undefined) {
-            d.name = 'Missing name param';
-        }
+        var result = "";
 
-        // if no y0 or y1 val, don't try to do math on undefined
-        if (d.y0 === undefined || d.y1 === undefined) {
-            return "<p>" + d.name + "<br>" + "No value reported";
-        }
+        result += moment().toDate(d.eventTime) + '<br>';
 
-        // otherwise return a string in the format of
-        // "<p>Success<br>10"
+        valuesToReport.forEach(function(item) {
+            result += item + ': ' + d[item] + '<br>';
+        });
 
-        // 'Failure/Success' is only used by Spawn viz
-        if (d.name === 'Failure' || d.name === 'Success') {
-
-            // VM Spawn chart should only return the exact
-            // value represented by the individual rect
-            return "<p>" + d.name + "<br>" + (d.y1 - d.y0);
-        } else {
-
-            // the other charts should return the value
-            // represented by the top edge of the rect
-            return "<p>" + d.name + "<br>" + d.y1;
-        }
+        return result;
     },
 
     update: function() {
@@ -328,11 +316,17 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .attr("class", "g")
             .attr("class", "dashed-line-canvas");
 
+        ns.hiddenBarsCanvas = ns.chart.selectAll(".hidden")
+            .data(data)
+            .enter()
+            .append("g")
+            .attr("class", "g");
+
         var tip = d3.tip()
             .attr('class', 'd3-tip')
             .attr('id', this.el.slice(1))
             .html(function(d) {
-                return self.computeBarHeightPopover(d);
+                return self.computeHiddenBarText(d);
             });
 
         // Invoke the tip in the context of your visualization
@@ -389,19 +383,29 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .attr("stroke-width", 2)
             .style("fill", function(d) {
                 return ns.color(d.name);
-            }).on('mouseenter', function(d, i) {
+            });
 
-                // show popups for: spawn chart and cpu/disk/mem bars
-                // but don't show popups for the invisible 'rect's
-                var displayPopupKey = ['Used', 'Failure', 'Success'];
-                if (displayPopupKey.indexOf(d.name) !== -1) {
-                    var targ = d3.select(self.el).select('rect');
-                    tip.offset([0, 0]).show(d, targ);
-                }
+        // append hidden bars
+        ns.hiddenBarsCanvas.selectAll("rect")
+            .data(data)
+            .enter().append("rect")
+            .attr("width", function(d) {
+                var hiddenBarWidth = (ns.mw / data.length);
+                return hiddenBarWidth - hiddenBarWidth * 0.07;
+            })
+            .attr("opacity", "0")
+            .attr("x", function(d) {
+                return ns.x(d.eventTime);
+            })
+            .attr("y", 0)
+            .attr("height", function(d) {
+                return ns.mh;
+            }).on('mouseenter', function(d) {
+                var targ = d3.select(self.el).select('rect');
+                tip.offset([20, 0]).show(d, targ);
             }).on('mouseleave', function() {
                 tip.hide();
             });
-
 
         // abstracts the line generator to accept a data param
         // variable. will be used in the path generator
