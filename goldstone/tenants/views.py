@@ -34,27 +34,27 @@ HACK_OBJECT = AccountsUserSerializer()
 HACK_FIELDS = HACK_OBJECT.fields.keys()
 
 
-class UserSerializer(AccountsUserSerializer):
-    """A User table serializer that's used when accessing a user as a "child"
-    of his/her tenant. E.g., /tenants/<id>/user/<id>.
-
-    This adds the Tenant relationship, and exposes more fields.
-
-    """
-
-    class Meta:          # pylint: disable=C1001,C0111,W0232
-        model = get_user_model()
-        fields = HACK_FIELDS + ["tenant"]
-
-
 class TenantSerializer(ModelSerializer):
-
     """The Tenant model serializer."""
 
     class Meta:          # pylint: disable=C1001,C0111,W0232
         model = Tenant
         fields = ["name", "owner", "owner_contact", "uuid"]
         read_only_fields = ('uuid', )
+
+
+class UserSerializer(AccountsUserSerializer):
+    """A User table serializer that's used when accessing a user as a "child"
+    of his/her tenant. E.g., /tenants/<id>/user/<id>.
+
+    This adds the Tenant relationship.
+
+    """
+
+    class Meta:          # pylint: disable=C1001,C0111,W0232
+        model = get_user_model()
+        fields = HACK_FIELDS + ["tenant"]
+        read_only_fields = ("tenant_admin", "default_tenant_admin", "uuid")
 
 
 class DjangoOrTenantAdminPermission(BasePermission):
@@ -286,5 +286,22 @@ class UserViewSet(BaseViewSet):
             user.perform_create_tenant_name = tenant.name
             self.send_email(**self.get_send_email_kwargs(user))
 
+        else:
+            raise PermissionDenied
+
+    def perform_destroy(self, instance):
+        """Delete a user of the underlying Tenant, if permissions and delete
+        restrictions are met."""
+
+        # Get the underlying Tenant row for this request.
+        tenant = self._get_tenant()
+
+        # N.B. User.is_authenticated() filters out the AnonymousUser object.
+        if self.request.user.is_authenticated() and \
+           self.request.user.tenant == instance.tenant == tenant and \
+           self.request.user.tenant_admin and \
+           not instance.default_tenant_admin and \
+           instance != self.request.user:
+            super(UserViewSet, self).perform_destroy(instance)
         else:
             raise PermissionDenied

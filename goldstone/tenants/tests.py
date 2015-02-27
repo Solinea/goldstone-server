@@ -20,10 +20,10 @@ from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_403_FORBIDDEN, \
     HTTP_204_NO_CONTENT
 from goldstone.user.util_test import Setup, create_and_login, login, \
-    AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_NON_FIELD_ERRORS, \
-    CONTENT_NO_CREDENTIALS, LOGIN_URL, check_response_without_uuid, \
-    TEST_USER, CONTENT_NO_PERMISSION, CONTENT_UNIQUE_NAME, \
-    CONTENT_PERMISSION_DENIED, BAD_TOKEN, BAD_UUID
+    AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_NO_CREDENTIALS, \
+    check_response_without_uuid, TEST_USER, CONTENT_NO_PERMISSION, \
+    CONTENT_UNIQUE_NAME, CONTENT_PERMISSION_DENIED, BAD_TOKEN, BAD_UUID, \
+    CONTENT_NOT_BLANK_USERNAME
 from .models import Tenant
 
 # URLs used by this module.
@@ -892,7 +892,7 @@ class TenantsIdUsersId(Setup):
         user.tenant_admin = True
         user.save()
 
-        # Try the GET and PUT without an authorization token.
+        # Try GET, PUT, and DELETE without an authorization token.
         client = Client()
         responses = [client.get(TENANTS_ID_USERS_ID_URL %
                                 (tenant.uuid.hex, user.uuid.hex)),
@@ -901,14 +901,17 @@ class TenantsIdUsersId(Setup):
                                 json.dumps({"username": "fool",
                                             "password": "fooll",
                                             "email": "a@b.com"}),
-                                content_type="application/json")]
+                                content_type="application/json"),
+                     client.delete(TENANTS_ID_USERS_ID_URL %
+                                   (tenant.uuid.hex, user.uuid.hex)),
+                     ]
 
         for response in responses:
             self.assertContains(response,
                                 CONTENT_NO_CREDENTIALS,
                                 status_code=HTTP_401_UNAUTHORIZED)
 
-        # Try the GET and PUT with a bad authorization token.
+        # Try again with a bad authorization token.
         responses = [
             client.get(TENANTS_ID_USERS_ID_URL %
                        (tenant.uuid.hex, user.uuid.hex),
@@ -919,7 +922,12 @@ class TenantsIdUsersId(Setup):
                                    "password": "fooll",
                                    "email": "a@b.com"}),
                        content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)]
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
+            client.delete(
+                TENANTS_ID_USERS_ID_URL %
+                (tenant.uuid.hex, user.uuid.hex),
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
+        ]
 
         for response in responses:
             self.assertContains(response,
@@ -927,8 +935,7 @@ class TenantsIdUsersId(Setup):
                                 status_code=HTTP_401_UNAUTHORIZED)
 
     def test_no_access(self):
-        """Getting the tenant users, or creating a tenant user, without being
-        an authorized user."""
+        """The client isn't an authorized user."""
 
         # Make a tenant.
         tenant = Tenant.objects.create(name='tenant 1',
@@ -942,7 +949,7 @@ class TenantsIdUsersId(Setup):
         user.tenant = tenant
         user.save()
 
-        # Try the GET and PUT.
+        # Try GET, PUT, and DELETE.
         client = Client()
         responses = [
             client.get(TENANTS_ID_USERS_ID_URL %
@@ -954,16 +961,24 @@ class TenantsIdUsersId(Setup):
                                    "password": "fooll",
                                    "email": "a@b.com"}),
                        content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            client.delete(
+                TENANTS_ID_USERS_ID_URL %
+                (tenant.uuid.hex, user.uuid.hex),
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+        ]
 
         for response in responses:
             self.assertContains(response,
                                 CONTENT_PERMISSION_DENIED,
                                 status_code=HTTP_403_FORBIDDEN)
 
+        # Ensure the user wasn't deleted.
+        self.assertEqual(get_user_model().objects.count(), 1)
+
     def test_no_tenant(self):
-        """Getting a tenant, or creating a user of a tenant, when the tenant
-        doesn't exist."""
+        """Getting a tenant, or creating a user of a tenant, or deleting a
+        user, when the tenant doesn't exist."""
 
         # Make a tenant, save its uuid.
         tenant = Tenant.objects.create(name='tenant',
@@ -977,7 +992,7 @@ class TenantsIdUsersId(Setup):
         user.tenant_admin = True
         user.save()
 
-        # Try the GET and PUT to a tenant that doesn't exist.
+        # Try GET, PUT, and DELETE to a nonexistent tenant.
         client = Client()
         responses = [
             client.get(TENANTS_ID_USERS_ID_URL %
@@ -989,7 +1004,12 @@ class TenantsIdUsersId(Setup):
                                    "password": "fooll",
                                    "email": "a@b.com"}),
                        content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            client.delete(
+                TENANTS_ID_USERS_ID_URL %
+                (BAD_UUID, user.uuid.hex),
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            ]
 
         for response in responses:
             self.assertContains(response,
@@ -1077,424 +1097,324 @@ class TenantsIdUsersId(Setup):
 
         check_response_without_uuid(response, HTTP_200_OK, expected_results[1])
 
-    def test_post_no_user(self):
+    def test_put_no_user(self):
         """Update a user of an empty tenant, or a user that does not exist."""
 
-        # $$$$$$$$ CONTINUE HERE
-        pass
-
-    def test_post_bad_fields(self):
-        """Update a user with missing required fields, or unrecognized
-        fields."""
-        pass
-
-    @patch("djoser.utils.send_email")
-    def test_post(self, send_email):
-        """Update a user in a tenant."""
-
-        # The accounts in this test.
-        TENANT_USERS = [{"username": "a", "email": "a@b.com", "password": "a"},
-                        {"username": "b", "email": "b@b.com", "password": "b"}]
-
-        def create(user_number):
-            """Create one user in the tenant.
-
-            :param user_number: The TENANT_USERS index to use
-            :type user_number: int
-
-            """
-
-            client = Client()
-            response = \
-                client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                            json.dumps(TENANT_USERS[user_number]),
-                            content_type="application/json",
-                            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-            check_response_without_uuid(response,
-                                        HTTP_201_CREATED,
-                                        expected_result[user_number])
-
-            # Was email send to the new user?
-            self.assertEqual(send_email.call_count, 1)
-
-            # Did the e-mail seem to have the correct content?
-            self.assertEqual(send_email.call_args[0][0],
-                             TENANT_USERS[user_number]["email"])
-            self.assertEqual(send_email.call_args[0][1],
-                             "webmaster@localhost")  # from
-            self.assertEqual(send_email.call_args[0][2]["site_name"],
-                             "YOUR_EMAIL_SITE_NAME")  # The site name
-            self.assertIn("tenant", send_email.call_args[0][2]["tenant_name"])
-            self.assertEqual(send_email.call_args[1],
-                             {'plain_body_template_name':
-                              'new_tenant_body.txt',
-                              'subject_template_name': 'new_tenant.txt'})
-
-        expected_result = [{"username": "a",
-                            "first_name": '',
-                            "last_name": '',
-                            "email": "a@b.com",
-                            "tenant_admin": False,
-                            "default_tenant_admin": False},
-                           {"username": "b",
-                            "first_name": '',
-                            "last_name": '',
-                            "email": "b@b.com",
-                            "tenant_admin": False,
-                            "default_tenant_admin": False}]
-
-        # Make a tenant
+        # Make a tenant, save its uuid.
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
                                        owner_contact='206.867.5309')
 
-        expected_result[0]["tenant"] = tenant.pk
-        expected_result[1]["tenant"] = tenant.pk
-
-        # Create a user who's the tenant_admin of this tenant, and log him in.
+        # Create a tenant_admin of the tenant.
         token = create_and_login()
         user = get_user_model().objects.get(username=TEST_USER[0])
         user.tenant = tenant
         user.tenant_admin = True
         user.save()
 
-        # Create one user in this empty tenant and check the result.
-        create(0)
-
-        # Now try it again.
-        send_email.reset_mock()
-        create(1)
-
-
-class TenantsIdAddUsers(Setup):
-    """Test changing the user password."""
-
-    def test_not_logged_in(self):
-        """The user isn't logged in.
-
-        The user should be able to change their password.
-
-        """
-
-        # Create a user and log them out.
-        token = create_and_login()
-        client = Client()
-        response = client.post(LOGOUT_URL,
-                               json.dumps({"username": TEST_USER[0],
-                                           "password": TEST_USER[2]}),
-                               content_type="application/json")
-
-        self.assertEqual(response.status_code, HTTP_200_OK)
-
-        # Now try changing the password.
-        response = \
-            client.post(PASSWORD_URL,
-                        json.dumps({"username": TEST_USER[0],
-                                    "current_password": TEST_USER[2],
-                                    "new_password": "boom"}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-        self.assertEqual(response.status_code, HTTP_200_OK)
-
-        # Test logging in using the new password.
-        login(TEST_USER[0], "boom")
-
-        # Verify that we can't log in using the old password.
-        response = client.post(LOGIN_URL,
-                               {"username": TEST_USER[0],
-                                "password": TEST_USER[2]})
-
-        self.assertContains(response,
-                            CONTENT_NON_FIELD_ERRORS,
-                            status_code=HTTP_400_BAD_REQUEST)
-
-    def test_missing_token(self):
-        """The change password request doesn't have an authentication token."""
-
-        # Create a user and log them in.
-        create_and_login()
-
-        # Try changing the password.
+        # Try PUTing to a nonexistent user in this tenant.
         client = Client()
         response = \
-            client.post(PASSWORD_URL,
-                        json.dumps({"username": TEST_USER[0],
-                                    "current_password": TEST_USER[2],
-                                    "new_password": "boom"}),
-                        content_type="application/json")
-
-        self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
-
-        # Test logging in using the old password.
-        login(TEST_USER[0], TEST_USER[2])
-
-        # Verify that we can't log in using the new password.
-        response = client.post(LOGIN_URL,
-                               {"username": TEST_USER[0], "password": "boom"})
+            client.put(TENANTS_ID_USERS_ID_URL %
+                       (tenant.uuid.hex, BAD_UUID),
+                       json.dumps({"username": "fool",
+                                   "email": "a@b.com"}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
-                            CONTENT_NON_FIELD_ERRORS,
-                            status_code=HTTP_400_BAD_REQUEST)
+                            CONTENT_PERMISSION_DENIED,
+                            status_code=HTTP_403_FORBIDDEN)
 
-    def test_bad_token(self):
-        """The change password request has a bad authentication token."""
+    def test_put_bad_fields(self):
+        """Update a user with missing required fields, or unrecognized
+        fields, or a field that's not allowed to be changed by the
+        tenant_admin."""
 
-        # Create a user and log them in.
-        bad_token = create_and_login().replace('9', '8').replace('4', '3')
+        # Expected responses, sans uuid and tenant fields.
+        expected_responses = [
+            # PUTting no changes.
+            {"username": "Beth",
+             "first_name": "",
+             "last_name": "",
+             "email": "",
+             "tenant_admin": False,
+             "default_tenant_admin": False},
+            # PUTting to an unrecognized field.
+            {"username": "Beth",
+             "first_name": "Michelle",
+             "last_name": "",
+             "email": "",
+             "tenant_admin": False,
+             "default_tenant_admin": False},
+        ]
 
-        # Try changing the password.
-        client = Client()
-        response = \
-            client.post(PASSWORD_URL,
-                        json.dumps({"username": TEST_USER[0],
-                                    "current_password": TEST_USER[2],
-                                    "new_password": "boom"}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+        # Make a tenant, save its uuid.
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
 
-        self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
+        expected_responses[0]["tenant"] = tenant.pk
+        expected_responses[1]["tenant"] = tenant.pk
 
-        # Test logging in using the old password.
-        login(TEST_USER[0], TEST_USER[2])
-
-        # Verify that we can't log in using the new password.
-        response = client.post(LOGIN_URL,
-                               {"username": TEST_USER[0], "password": "boom"})
-
-        self.assertContains(response,
-                            CONTENT_NON_FIELD_ERRORS,
-                            status_code=HTTP_400_BAD_REQUEST)
-
-    def test_no_current_password(self):
-        """The change password request doesn't have a current password."""
-
-        # Create a user and log them in.
+        # Create a tenant_admin of the tenant, and a normal user of the tenant.
         token = create_and_login()
 
-        # Try changing the password.
+        admin_user = get_user_model().objects.get(username=TEST_USER[0])
+        admin_user.tenant = tenant
+        admin_user.tenant_admin = True
+        admin_user.save()
+
+        user = get_user_model().objects.create_user(username="Beth",
+                                                    password='x')
+        user.tenant = tenant
+        user.save()
+
+        # Try PUTing to the user with no username.
         client = Client()
         response = \
-            client.post(PASSWORD_URL,
-                        json.dumps({"username": TEST_USER[0],
-                                    "new_password": "boom"}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
-
-        # Test logging in using the old password.
-        login(TEST_USER[0], TEST_USER[2])
-
-        # Verify that we can't log in using the new password.
-        response = client.post(LOGIN_URL,
-                               {"username": TEST_USER[0], "password": "boom"})
+            client.put(TENANTS_ID_USERS_ID_URL %
+                       (tenant.uuid.hex, user.uuid.hex),
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
-                            CONTENT_NON_FIELD_ERRORS,
+                            CONTENT_NOT_BLANK_USERNAME,
                             status_code=HTTP_400_BAD_REQUEST)
 
-    def test_bad_current_password(self):
-        """The change password request has a bad current password."""
+        # Try PUTing to the user with no changes, and with a change to an
+        # unrecognized field.
+        for i, entry in enumerate([{"username": "Beth"},
+                                   {"username": "Beth",
+                                    "billybopfoo": "blaRGH",
+                                    "first_name": "Michelle"},
+                                   ]):
+            response = \
+                client.put(TENANTS_ID_USERS_ID_URL %
+                           (tenant.uuid.hex, user.uuid.hex),
+                           json.dumps(entry),
+                           content_type="application/json",
+                           HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        # Create a user and log them in.
+            check_response_without_uuid(response,
+                                        HTTP_200_OK,
+                                        expected_responses[i])
+
+        # Try PUTing to the user on a field that's not allowed to be changed.
+        # The response should be the same as the "unrecognized field" case.
+        response = \
+            client.put(TENANTS_ID_USERS_ID_URL %
+                       (tenant.uuid.hex, user.uuid.hex),
+                       json.dumps({"username": "Beth",
+                                   "billybopfoo": "blaRGH",
+                                   "tenant_admin": True,
+                                   "default_tenant_admin": True,
+                                   "first_name": "Michelle"}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        check_response_without_uuid(response,
+                                    HTTP_200_OK,
+                                    expected_responses[1])
+
+    def test_put(self):
+        """Update a user in a tenant."""
+
+        # Expected response, sans uuid and tenant.
+        expected_response = {"username": "Beth",
+                             "first_name": "1",
+                             "last_name": "2",
+                             "email": "x@y.com",
+                             "tenant_admin": False,
+                             "default_tenant_admin": False}
+
+        # Make a tenant, save its uuid.
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        expected_response["tenant"] = tenant.pk
+
+        # Create a tenant_admin of the tenant, and a normal user of the tenant.
         token = create_and_login()
 
-        # Try changing the password.
+        admin_user = get_user_model().objects.get(username=TEST_USER[0])
+        admin_user.tenant = tenant
+        admin_user.tenant_admin = True
+        admin_user.save()
+
+        user = get_user_model().objects.create_user(username="Beth",
+                                                    password='x')
+        user.tenant = tenant
+        user.save()
+
+        # Try PUTing to the user.
         client = Client()
         response = \
-            client.post(PASSWORD_URL,
-                        json.dumps({"username": TEST_USER[0],
-                                    "current_password": "rockmeamadeus",
-                                    "new_password": "boom"}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            client.put(TENANTS_ID_USERS_ID_URL %
+                       (tenant.uuid.hex, user.uuid.hex),
+                       json.dumps({"username": "Beth",
+                                   "first_name": '1',
+                                   "last_name": '2',
+                                   "email": "x@y.com"}),
+                       content_type="application/json",
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        check_response_without_uuid(response, HTTP_200_OK, expected_response)
 
-        # Test logging in using the old password.
-        login(TEST_USER[0], TEST_USER[2])
+    def test_delete_default_tnnt_admin(self):
+        """Try deleting the system's default tenant admin."""
 
-        # Verify that we can't log in using the new password.
-        response = client.post(LOGIN_URL,
-                               {"username": TEST_USER[0], "password": "boom"})
+        # Make a tenant, save its uuid.
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        # Create a default_tenant_admin, a tenant_admin, and a normal user.
+        token = create_and_login()
+
+        admin_user = get_user_model().objects.get(username=TEST_USER[0])
+        admin_user.tenant = tenant
+        admin_user.tenant_admin = True
+        admin_user.save()
+
+        default_tenant_admin = \
+            get_user_model().objects.create_user(username="Amber",
+                                                 password="xxx")
+        default_tenant_admin.tenant = tenant
+        default_tenant_admin.default_tenant_admin = True
+        default_tenant_admin.save()
+
+        user = get_user_model().objects.create_user(username="Beth",
+                                                    password='x')
+        user.tenant = tenant
+        user.save()
+
+        # Try DELETE on the default_admin_user.
+        client = Client()
+        response = \
+            client.delete(TENANTS_ID_USERS_ID_URL %
+                          (tenant.uuid.hex, default_tenant_admin.uuid.hex),
+                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
-                            CONTENT_NON_FIELD_ERRORS,
-                            status_code=HTTP_400_BAD_REQUEST)
+                            CONTENT_PERMISSION_DENIED,
+                            status_code=HTTP_403_FORBIDDEN)
 
-    def test_no_new_password(self):
-        """The change password request doesn't have a new password."""
+        # Ensure we have the right number of user accounts
+        self.assertEqual(get_user_model().objects.count(), 3)
 
-        # Create a user and log them in.
+    def test_delete_self(self):
+        """Try deleting oneself."""
+
+        # Make a tenant, save its uuid.
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        # Create a tenant_admin.
         token = create_and_login()
 
-        # Try changing the password.
+        admin_user = get_user_model().objects.get(username=TEST_USER[0])
+        admin_user.tenant = tenant
+        admin_user.tenant_admin = True
+        admin_user.save()
+
+        # Try DELETE on oneself.
         client = Client()
         response = \
-            client.post(PASSWORD_URL,
-                        json.dumps({"username": TEST_USER[0],
-                                    "current_password": TEST_USER[2]}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
-
-        # Test logging in using the old password.
-        login(TEST_USER[0], TEST_USER[2])
-
-    def test_change_password(self):
-        """Change the current user's password."""
-
-        # Create a user.
-        token = create_and_login()
-
-        # Try changing the password.
-        client = Client()
-        response = \
-            client.post(PASSWORD_URL,
-                        json.dumps({"username": TEST_USER[0],
-                                    "current_password": TEST_USER[2],
-                                    "new_password": "boom"}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-        self.assertEqual(response.status_code, HTTP_200_OK)
-
-        # Test logging in using the new password.
-        login(TEST_USER[0], "boom")
-
-        # Verify that we can't log in using the old password.
-        response = client.post(LOGIN_URL,
-                               {"username": TEST_USER[0],
-                                "password": TEST_USER[2]})
+            client.delete(TENANTS_ID_USERS_ID_URL %
+                          (tenant.uuid.hex, admin_user.uuid.hex),
+                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
-                            CONTENT_NON_FIELD_ERRORS,
-                            status_code=HTTP_400_BAD_REQUEST)
+                            CONTENT_PERMISSION_DENIED,
+                            status_code=HTTP_403_FORBIDDEN)
 
+        # Ensure we have the right number of user accounts
+        self.assertEqual(get_user_model().objects.count(), 1)
 
-class TenantsIdUsersRemoveUsers(Setup):
-    """Test resetting the user password."""
+    def test_delete_not_member(self):
+        """Try deleting a user of another tenant."""
 
-    def _check_response(self, response, send_email):
-        """A simple response checker for this test class."""
+        # Make two tenants.
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+        tenant_2 = Tenant.objects.create(name='tenant_2',
+                                         owner='John',
+                                         owner_contact='206.867.5309')
 
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        # Create a default_tenant_admin, a tenant_admin, and a normal user of
+        # another tenant.
+        token = create_and_login()
 
-        # Test that send_email was called only once, and check some of the
-        # arguments it was called with.
-        self.assertEqual(send_email.call_count, 1)
-        self.assertEqual(send_email.call_args[0][0], TEST_USER[1])  # email
-        self.assertEqual(send_email.call_args[0][1],
-                         "webmaster@localhost")  # from
-        self.assertEqual(send_email.call_args[0][2]["site_name"],
-                         "YOUR_EMAIL_SITE_NAME")  # The site name
-        self.assertIn("#/password/reset/confirm/",
-                      send_email.call_args[0][2]["url"])  # The confirm url
-        # A simple check that the confirmation URL is about the right length.
-        self.assertGreater(len(send_email.call_args[0][2]["url"]),
-                           len("#/password/reset/confirm/") + 24)
-        self.assertEqual(send_email.call_args[0][2]["user"].username,
-                         TEST_USER[0])  # username
+        admin_user = get_user_model().objects.get(username=TEST_USER[0])
+        admin_user.tenant = tenant
+        admin_user.tenant_admin = True
+        admin_user.save()
 
-    @patch("djoser.utils.send_email")
-    def test_not_logged_in(self, send_email):
-        """The user isn't logged in.
+        default_tenant_admin = \
+            get_user_model().objects.create_user(username="Amber",
+                                                 password="xxx")
+        default_tenant_admin.tenant = tenant
+        default_tenant_admin.default_tenant_admin = True
+        default_tenant_admin.save()
 
-        The user should be able to generated a reset-password email. No
-        authentication token is needed.
+        user = get_user_model().objects.create_user(username="Beth",
+                                                    password='x')
+        user.tenant = tenant_2
+        user.save()
 
-        """
-
-        # Create a user and log them out.
-        create_and_login()
+        # Try DELETE on the normal user.
         client = Client()
-        response = client.post(LOGOUT_URL,
-                               json.dumps({"username": TEST_USER[0],
-                                           "password": TEST_USER[2]}),
-                               content_type="application/json")
-
-        self.assertEqual(response.status_code, HTTP_200_OK)
-
-        # Now try resetting the password.
         response = \
-            client.post(PASSWORD_RESET_URL,
-                        json.dumps({"email": TEST_USER[1]}),
-                        content_type="application/json")
+            client.delete(TENANTS_ID_USERS_ID_URL %
+                          (tenant.uuid.hex, user.uuid.hex),
+                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        self._check_response(response, send_email)
+        self.assertContains(response,
+                            CONTENT_PERMISSION_DENIED,
+                            status_code=HTTP_403_FORBIDDEN)
 
-    @patch("djoser.utils.send_email")
-    def test_logged_in(self, send_email):
-        """The user is logged in.
+        # Ensure we have the right number of user accounts
+        self.assertEqual(get_user_model().objects.count(), 3)
 
-        No authentication token is needed.
+    def test_delete(self):
+        """Delete a user in a tenant."""
 
-        """
+        # Make a tenant, save its uuid.
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
 
-        # Create a user
-        create_and_login()
+        # Create a default_tenant_admin, a tenant_admin, and a normal user.
+        token = create_and_login()
+
+        admin_user = get_user_model().objects.get(username=TEST_USER[0])
+        admin_user.tenant = tenant
+        admin_user.tenant_admin = True
+        admin_user.save()
+
+        default_tenant_admin = \
+            get_user_model().objects.create_user(username="Amber",
+                                                 password="xxx")
+        default_tenant_admin.tenant = tenant
+        default_tenant_admin.default_tenant_admin = True
+        default_tenant_admin.save()
+
+        user = get_user_model().objects.create_user(username="Beth",
+                                                    password='x')
+        user.tenant = tenant
+        user.save()
+
+        # Try DELETE on the normal user.
         client = Client()
-
-        # Try resetting the password.
         response = \
-            client.post(PASSWORD_RESET_URL,
-                        json.dumps({"email": TEST_USER[1]}),
-                        content_type="application/json")
+            client.delete(TENANTS_ID_USERS_ID_URL %
+                          (tenant.uuid.hex, user.uuid.hex),
+                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        self._check_response(response, send_email)
+        self.assertContains(response, '', status_code=HTTP_204_NO_CONTENT)
 
-    @patch("djoser.utils.send_email")
-    def test_no_email(self, send_email):
-        """The reset-password request doesn't have an email."""
-
-        # Create a user and log them out.
-        create_and_login()
-        client = Client()
-
-        response = client.post(LOGOUT_URL,
-                               json.dumps({"username": TEST_USER[0],
-                                           "password": TEST_USER[2]}),
-                               content_type="application/json")
-
-        self.assertEqual(response.status_code, HTTP_200_OK)
-
-        # Now try resetting the password.
-        response = \
-            client.post(PASSWORD_RESET_URL,
-                        content_type="application/json")
-
-        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
-
-        # Test that send_email was not called.
-        self.assertEqual(send_email.call_count, 0)
-
-    @patch("djoser.utils.send_email")
-    def test_bad_email(self, send_email):
-        """The reset-password password request has a bad email.
-
-        The server returns a 200 status code, but does not send any email.
-
-        """
-
-        # Create a user and log them out.
-        create_and_login()
-        client = Client()
-
-        response = client.post(LOGOUT_URL,
-                               json.dumps({"username": TEST_USER[0],
-                                           "password": TEST_USER[2]}),
-                               content_type="application/json")
-
-        self.assertEqual(response.status_code, HTTP_200_OK)
-
-        # Now try resetting the password.
-        response = \
-            client.post(PASSWORD_RESET_URL,
-                        json.dumps({"email": "zippl@nyahnyah.org"}),
-                        content_type="application/json")
-
-        self.assertEqual(response.status_code, HTTP_200_OK)
-
-        # Test that send_email was not called.
-        self.assertEqual(send_email.call_count, 0)
+        # Ensure we have the right number of user accounts
+        self.assertEqual(get_user_model().objects.count(), 2)
