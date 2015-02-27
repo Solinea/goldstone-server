@@ -92,8 +92,12 @@ class BaseViewSet(NestedViewSetMixin, SendEmailViewMixin, ModelViewSet):
         # hex digits. Then create a UUID object with it.
         value = UUID(hex=self.kwargs[self.lookup_field].zfill(32))
 
-        # Return the object having this UUID.
-        return self.get_queryset().get(**{self.lookup_field: value})
+        # Return the object having this UUID. It won't exist if the user is
+        # malevolent.
+        try:
+            return self.get_queryset().get(**{self.lookup_field: value})
+        except ObjectDoesNotExist:
+            raise PermissionDenied
 
     def get_email_context(self, user):
         """Replace the SendEmailViewMixin's e-mail sending method.
@@ -255,12 +259,7 @@ class UserViewSet(BaseViewSet):
         if self.request.user.is_authenticated() and \
            self.request.user.tenant == tenant and \
            self.request.user.tenant_admin:
-            # We can't use filter_queryset_by_parents_lookup() here, because of
-            # an interaction between Django's ORM and the UUID model. I think
-            # the ORM doesn't invoke the __eq__ special method. So, we do
-            # manual filtering.
-            return [x for x in get_user_model().objects.all()
-                    if x.tenant == tenant]
+            return get_user_model().objects.filter(tenant=tenant)
         else:
             raise PermissionDenied
 

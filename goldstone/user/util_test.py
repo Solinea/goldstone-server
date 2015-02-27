@@ -49,6 +49,7 @@ AUTHORIZATION_PAYLOAD = "Token %s"
 # Test data
 TEST_USER = ("fred", "fred@fred.com", "meh")
 BAD_TOKEN = '4' * 40
+BAD_UUID = '4' * 32
 
 
 class Setup(SimpleTestCase):
