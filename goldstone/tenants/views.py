@@ -260,7 +260,8 @@ class UserViewSet(BaseViewSet):
 
         # N.B. User.is_authenticated() filters out the AnonymousUser object.
         if self.request.user.is_authenticated() and \
-           self.request.user.tenant == tenant:
+           self.request.user.tenant == tenant and \
+           self.request.user.tenant_admin:
             # We are clear to create a new user, as a member of this tenant.
             # Do what the superclass' perform_create() does, to get the newly
             # created row.
