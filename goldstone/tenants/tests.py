@@ -611,8 +611,8 @@ class TenantsIdUsers(Setup):
     """Listing users of a tenant, and creating user of a tenant."""
 
     def test_not_logged_in(self):
-        """Getting a tenant, or creating a tenant user, without being logged
-        in."""
+        """Getting the tenant users, or creating a tenant user, without being
+        logged in."""
 
         # Make a tenant.
         tenant = Tenant.objects.create(name='tenant 1',
@@ -650,8 +650,8 @@ class TenantsIdUsers(Setup):
                                 status_code=HTTP_401_UNAUTHORIZED)
 
     def test_no_access(self):
-        """Getting a tenant, or creating a tenant user, without being an
-        authorized user."""
+        """Getting the tenant users, or creating a tenant user, without being
+        an authorized user."""
 
         # Create a normal user and save the authorization token.
         token = create_and_login()
@@ -663,21 +663,20 @@ class TenantsIdUsers(Setup):
 
         # Try the GET and POST.
         client = Client()
-        responses = \
-            [client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-             client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                         json.dumps({"username": "fool",
-                                     "password": "fooll",
-                                     "email": "a@b.com"}),
-                         content_type="application/json",
-                         HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
+        responses = [
+            client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                        json.dumps({"username": "fool",
+                                    "password": "fooll",
+                                    "email": "a@b.com"}),
+                        content_type="application/json",
+                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
 
         for response in responses:
-            import pdb; pdb.set_trace()
             self.assertContains(response,
-                                CONTENT_BAD_TOKEN,
-                                status_code=HTTP_401_UNAUTHORIZED)
+                                CONTENT_PERMISSION_DENIED,
+                                status_code=HTTP_403_FORBIDDEN)
 
     def test_no_tenant(self):
         """Getting a tenant, or creating a user of a tenant, when the tenant
@@ -690,21 +689,19 @@ class TenantsIdUsers(Setup):
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
                                        owner_contact='206.867.5309')
-        uuid = tenant.uuid.hex
         tenant.delete()
 
-        # Try getting, putting, and deleting a tenant that doesn't exist.
+        # Try the GET and POST to a tenant that doesn't exist.
         client = Client()
         responses = [
-            client.get(TENANTS_ID_URL % uuid,
+            client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            client.put(TENANTS_ID_URL % uuid,
-                       json.dumps({"name": "foobar"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            client.delete(TENANTS_ID_URL % uuid,
-                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-            ]
+            client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                        json.dumps({"username": "fool",
+                                    "password": "fooll",
+                                    "email": "a@b.com"}),
+                        content_type="application/json",
+                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
 
         for response in responses:
             self.assertContains(response,

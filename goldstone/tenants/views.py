@@ -15,6 +15,7 @@
 import logging
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from djoser.utils import SendEmailViewMixin
 from rest_framework.permissions import BasePermission
 from rest_framework.serializers import ModelSerializer
@@ -142,7 +143,6 @@ class TenantsViewSet(SendEmailViewMixin, BaseViewSet):
         """Return an object (e.g., for a detail view) iff (the user is a Django
         admin) or ((the request isn't a DELETE) and (the user is a tenant_admin
         of the tenant in question))."""
-        from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 
         try:
             tenant = super(TenantsViewSet, self).get_object()
@@ -221,7 +221,51 @@ class UserViewSet(BaseViewSet):
 
     serializer_class = UserSerializer
 
-    def get_queryset(self):
-        """Return the queryset for list views."""
+    def _get_tenant(self):
+        """Return the underlying Tenant row for this request, or raise a
+        PermissionDenied exception."""
 
-        return get_user_model().objects.all()
+        target_uuid = self.get_parents_query_dict()["uuid"]
+
+        try:
+            return Tenant.objects.get(uuid=target_uuid)
+        except ObjectDoesNotExist:
+            raise PermissionDenied
+
+    def get_queryset(self):
+        """Return the queryset for list views iff the user is a tenant_admin of
+        the underlying tenant."""
+
+        # Get the underlying Tenant row for this request.
+        tenant = self._get_tenant()
+
+        # N.B. User.is_authenticated() filters out the AnonymousUser object.
+        if self.request.user.is_authenticated() and \
+           self.request.user.tenant == tenant:
+            return self.filter_queryset_by_parents_lookups(
+                get_user_model().objects.all())
+        else:
+            raise PermissionDenied
+
+    def perform_create(self, serializer):
+        """Create a user for the underlying Tenant."""
+
+        # Get the underlying Tenant row for this request.
+        tenant = self._get_tenant()
+
+        # N.B. User.is_authenticated() filters out the AnonymousUser object.
+        if self.request.user.is_authenticated() and \
+           self.request.user.tenant == tenant:
+            # We are clear to create a new user, as a member of this tenant.
+            # Do what the superclass' perform_create() does, to get the newly
+            # created row.
+            user = serializer.save()
+
+            # # Notify the tenant_admin by e-mail that he/she's administering this
+            # # tenant. We tack the tenant's name to the User object so that our
+            # # overridden get_email_context can get at it.
+            # admin_user.perform_create_tenant_name = tenant.name
+            # self.send_email(**self.get_send_email_kwargs(admin_user))
+
+        else:
+            raise PermissionDenied
