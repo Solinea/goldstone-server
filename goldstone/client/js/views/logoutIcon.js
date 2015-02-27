@@ -14,6 +14,18 @@
  * limitations under the License.
  */
 
+/*
+After ajaxSend Listener is bound to $(document), it will be triggered on all
+subsequent $.ajaxSend calls.
+
+Uses xhr.setRequestHeader to append the Auth token on all subsequent api calls.
+It also serves to handle 401 auth
+errors, removing any existing token, and redirecting to the login page.
+
+The logout icon will only be rendered in the top-right corner of the page if
+there is a truthy value present in localStorage.userToken
+*/
+
 var LogoutIcon = Backbone.View.extend({
 
     initialize: function(options) {
@@ -28,8 +40,8 @@ var LogoutIcon = Backbone.View.extend({
     addAJAXSendRequestHeaderParams: function() {
         var redirectToLogin = function() {
 
-            // this sets a hash (#) that will be used post-auth to return
-            // the user to the page they were previously redirected from
+            // this sets a hash (#) to the url that will be used post-auth to
+            // return the user to the page they were previously redirected from
             var locationhref = "/login";
             var currentPage = location.pathname.slice(1);
             location.href = locationhref + '#' + currentPage;
