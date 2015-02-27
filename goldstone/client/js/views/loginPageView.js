@@ -54,7 +54,13 @@ var LoginPageView = Backbone.View.extend({
             .fail(function(fail) {
                 // and add a message to the top of the screen that logs what
                 // is returned from the call
-                goldstone.raiseInfo(fail.responseJSON.non_field_errors[0], true);
+
+                try {
+                    goldstone.raiseInfo(fail.responseJSON.non_field_errors[0], true);
+                } catch(e) {
+                    goldstone.raiseInfo(e, true);
+                }
+
             });
     },
 
