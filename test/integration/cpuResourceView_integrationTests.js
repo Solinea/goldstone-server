@@ -24,7 +24,7 @@ describe('cpuResourceView.js spec', function() {
 
         blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        this.testView = new CpuResourceView({
+        this.testView = new StackedBarChartView({
             chartTitle: "Test Cpu Resources",
             collection: this.testCollection,
             featureSet: 'cpu',
@@ -82,31 +82,37 @@ describe('cpuResourceView.js spec', function() {
     });
     describe('view dataPrep', function() {
         it('prepares JSON payload for rendering', function() {
+            // CPU Resources chart data prep
+            // {timestamp: [used, phys, virt]}
             var test1 = this.testView.dataPrep({
                 0: {
-                    "1422564480000": [15936, 512, 23904, 512],
-                    "1422537120000": [15936.0, 512.0, 23904.0, 512.0],
-                    "1422527040000": [15936.0, 512.0, 23904.0, 512.0],
-                    "1422540000000": [15936.0, 512.0, 23904.0, 512.0]
+                    "1422564480000": [15936.0, 512.0, 23904.0],
+                    "1422537120000": [25936.0, 512.0, 23904.0],
+                    "1422527040000": [35936.0, 512.0, 23904.0],
+                    "1422540000000": [45936.0, 512.0, 23904.0]
                 }
             });
             expect(test1).to.deep.equal(
                 [{
                     "eventTime": '1422564480000',
-                    "Success": 23904,
-                    "Failure": 15936
+                    "Used": 15936,
+                    "Physical": 512,
+                    "Virtual": 23904
                 }, {
                     "eventTime": '1422537120000',
-                    "Success": 23904,
-                    "Failure": 15936
+                    "Used": 25936,
+                    "Physical": 512,
+                    "Virtual": 23904
                 }, {
                     "eventTime": '1422527040000',
-                    "Success": 23904,
-                    "Failure": 15936
+                    "Used": 35936,
+                    "Physical": 512,
+                    "Virtual": 23904
                 }, {
                     "eventTime": '1422540000000',
-                    "Success": 23904,
-                    "Failure": 15936
+                    "Used": 45936,
+                    "Physical": 512,
+                    "Virtual": 23904
                 }]);
         });
     });
@@ -147,7 +153,7 @@ describe('cpuResourceView.js spec', function() {
             this.testView.update();
             expect($('.popup-message').text()).to.equal('No Data Returned');
             expect(this.update_spy.callCount).to.equal(3);
-            expect($('g').find('text').text()).to.equal('FailSuccess');
+            expect($('g').find('text').text()).to.equal('VirtualPhysicalUsed');
             this.update_spy.restore();
         });
         it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
