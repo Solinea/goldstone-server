@@ -787,60 +787,82 @@ class TenantsIdUsers(Setup):
 
         self.assertItemsEqual(response_content["results"], expected_result)
 
-    def test_post(self):
-        """Add a user to a tenant."""
+    @patch("djoser.utils.send_email")
+    def test_post(self, send_email):
+        """Create a user in a tenant."""
 
-        # The expected result, sans uuid.
-        INITIAL_TENANT = {"name": "tenant",
-                          "owner": "John",
-                          "owner_contact": "206.867.5309"}
-        NEW_TENANT = {"name": "TENant",
-                      "owner": "Bob",
-                      "owner_contact": "212.867.5309"}
+        # The accounts in this test.
+        TENANT_USERS = [{"username": "a", "email": "a@b.com", "password": "a"},
+                        {"username": "b", "email": "b@b.com", "password": "b"}]
 
-        def get_tenant(token, expected):
-            """Get the tenant using the token and check the response."""
+        def create(user_number):
+            """Create one user in the tenant.
+
+            :param user_number: The TENANT_USERS index to use
+            :type user_number: int
+
+            """
 
             client = Client()
             response = \
-                client.get(TENANTS_ID_URL % tenant.uuid.hex,
-                           HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+                client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                            json.dumps(TENANT_USERS[user_number]),
+                            content_type="application/json",
+                            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-            check_response_without_uuid(response, HTTP_200_OK, expected)
+            check_response_without_uuid(response,
+                                        HTTP_201_CREATED,
+                                        expected_result[user_number])
+
+            # Was email send to the new user?
+            self.assertEqual(send_email.call_count, 1)
+
+            # Did the e-mail seem to have the correct content?
+            self.assertEqual(send_email.call_args[0][0],
+                             TENANT_USERS[user_number]["email"])
+            self.assertEqual(send_email.call_args[0][1],
+                             "webmaster@localhost")  # from
+            self.assertEqual(send_email.call_args[0][2]["site_name"],
+                             "YOUR_EMAIL_SITE_NAME")  # The site name
+            self.assertIn("tenant", send_email.call_args[0][2]["tenant_name"])
+            self.assertEqual(send_email.call_args[1],
+                             {'plain_body_template_name': 'new_tenant_body.txt',
+                              'subject_template_name': 'new_tenant.txt'})
+
+        expected_result = [{"username": "a",
+                            "first_name": '',
+                            "last_name": '',
+                            "email": "a@b.com",
+                            "tenant_admin": False,
+                            "default_tenant_admin": False},
+                           {"username": "b",
+                            "first_name": '',
+                            "last_name": '',
+                            "email": "b@b.com",
+                            "tenant_admin": False,
+                            "default_tenant_admin": False}]
 
         # Make a tenant
-        tenant = Tenant.objects.create(**INITIAL_TENANT)
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
 
-        # Create a Django admin user, and a normal user who's a tenant_admin of
-        # the tenant.
-        token = create_and_login(True)
-        get_user_model().objects.create_user("a",
-                                             "a@b.com",
-                                             "a",
-                                             tenant=tenant,
-                                             tenant_admin=True)
+        expected_result[0]["tenant"] = tenant.pk
+        expected_result[1]["tenant"] = tenant.pk
 
-        # Test changing the tenant as a Django admin.
-        client = Client()
-        response = \
-            client.put(TENANTS_ID_URL % tenant.uuid.hex,
-                       json.dumps(NEW_TENANT),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        # Create a user who's the tenant_admin of this tenant, and log him in.
+        token = create_and_login()
+        user = get_user_model().objects.get(username=TEST_USER[0])
+        user.tenant = tenant
+        user.tenant_admin = True
+        user.save()
 
-        check_response_without_uuid(response, HTTP_200_OK, NEW_TENANT)
-        get_tenant(token, NEW_TENANT)
+        # Create one user in this empty tenant and check the result.
+        create(0)
 
-        # Test changing the tenant as a tenant admin.
-        token = login('a', 'a')
-        response = \
-            client.put(TENANTS_ID_URL % tenant.uuid.hex,
-                       json.dumps(NEW_TENANT),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-        check_response_without_uuid(response, HTTP_200_OK, NEW_TENANT)
-        get_tenant(token, NEW_TENANT)
+        # Now try it again.
+        send_email.reset_mock()
+        create(1)
 
 
 class TenantsIdUsersId(Setup):

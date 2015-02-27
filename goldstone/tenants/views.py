@@ -73,7 +73,7 @@ class DjangoOrTenantAdminPermission(BasePermission):
         return user.is_staff or (user.tenant_admin and user.tenant == obj)
 
 
-class BaseViewSet(NestedViewSetMixin, ModelViewSet):
+class BaseViewSet(NestedViewSetMixin, SendEmailViewMixin, ModelViewSet):
     """A base class for this app's Tenant and User ViewSets."""
 
     lookup_field = "uuid"
@@ -95,21 +95,14 @@ class BaseViewSet(NestedViewSetMixin, ModelViewSet):
         # Return the object having this UUID.
         return self.get_queryset().get(**{self.lookup_field: value})
 
-
-class TenantsViewSet(SendEmailViewMixin, BaseViewSet):
-    """Provide all of the /tenants views."""
-
-    serializer_class = TenantSerializer
-    permission_classes = (DjangoOrTenantAdminPermission, )
-
     def get_email_context(self, user):
         """Replace the SendEmailViewMixin's e-mail sending method.
 
-        When we send tenant_admins e-mail about their being added as an admin
-        for a new tenant, this provides some context to the templates that are
-        used.
+        When we send new tenant members, or new tenant_admins, e-mail about
+        their being added to a new tenant, this provides additional
+        context for the templates.
 
-        :param user: A tenant_admin user, with the additional attribute
+        :param user: A user, with the additional attribute
                      perform_create_tenant_name
         :type user: User
 
@@ -122,6 +115,13 @@ class TenantsViewSet(SendEmailViewMixin, BaseViewSet):
                 "tenant_name": user.perform_create_tenant_name
                 }
 
+
+class TenantsViewSet(BaseViewSet):
+    """Provide all of the /tenants views."""
+
+    serializer_class = TenantSerializer
+    permission_classes = (DjangoOrTenantAdminPermission, )
+
     def get_send_email_extras(self):
         """Override djoser's SendEmailViewMixin method.
 
@@ -130,8 +130,9 @@ class TenantsViewSet(SendEmailViewMixin, BaseViewSet):
 
         """
 
-        return {'subject_template_name': 'new_tenant.txt',
-                'plain_body_template_name': 'new_tenant_body.txt'}
+        return {'subject_template_name': 'new_tenant_for_tenant_admin.txt',
+                'plain_body_template_name':
+                'new_tenant_body_for_tenant_admin.txt'}
 
     def get_queryset(self):
 
@@ -221,6 +222,17 @@ class UserViewSet(BaseViewSet):
 
     serializer_class = UserSerializer
 
+    def get_send_email_extras(self):
+        """Override djoser's SendEmailViewMixin method.
+
+        At some point it'll be more sensible to just write code for sending an
+        email rather than do all this subclassing.
+
+        """
+
+        return {'subject_template_name': 'new_tenant.txt',
+                'plain_body_template_name': 'new_tenant_body.txt'}
+
     def _get_tenant(self):
         """Return the underlying Tenant row for this request, or raise a
         PermissionDenied exception."""
@@ -266,12 +278,14 @@ class UserViewSet(BaseViewSet):
             # Do what the superclass' perform_create() does, to get the newly
             # created row.
             user = serializer.save()
+            user.tenant = tenant
+            user.save()
 
-            # # Notify the tenant_admin by e-mail that he/she's administering this
-            # # tenant. We tack the tenant's name to the User object so that our
-            # # overridden get_email_context can get at it.
-            # admin_user.perform_create_tenant_name = tenant.name
-            # self.send_email(**self.get_send_email_kwargs(admin_user))
+            # Notify the new user that he/she's created, and a member of this
+            # tenant. We tack the tenant's name to the User object so that our
+            # overridden get_email_context can get at it.
+            user.perform_create_tenant_name = tenant.name
+            self.send_email(**self.get_send_email_kwargs(user))
 
         else:
             raise PermissionDenied
