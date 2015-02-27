@@ -30,6 +30,7 @@ from .models import Tenant
 TENANTS_URL = "/tenants"
 TENANTS_ID_URL = TENANTS_URL + '/%s'
 TENANTS_ID_USERS_URL = TENANTS_ID_URL + "/users"
+TENANTS_ID_USERS_ID_URL = TENANTS_ID_USERS_URL + "/%s"
 
 
 class Tenants(Setup):
@@ -826,7 +827,8 @@ class TenantsIdUsers(Setup):
                              "YOUR_EMAIL_SITE_NAME")  # The site name
             self.assertIn("tenant", send_email.call_args[0][2]["tenant_name"])
             self.assertEqual(send_email.call_args[1],
-                             {'plain_body_template_name': 'new_tenant_body.txt',
+                             {'plain_body_template_name':
+                              'new_tenant_body.txt',
                               'subject_template_name': 'new_tenant.txt'})
 
         expected_result = [{"username": "a",
@@ -866,57 +868,275 @@ class TenantsIdUsers(Setup):
 
 
 class TenantsIdUsersId(Setup):
-    """Logging out."""
-
-    def test_not_logged_in_no_creds(self):
-        """Logging out when a user is not logged in, and not giving any
-        credentials."""
-
-        client = Client()
-        response = client.post(LOGOUT_URL)
-
-        self.assertContains(response,
-                            CONTENT_NOT_BLANK,
-                            status_code=HTTP_400_BAD_REQUEST)
+    """Retrieving one particular user record from a tenant, and updating one
+    user record in a tenant."""
 
     def test_not_logged_in(self):
-        """Logging out when a user is not logged in, with username and
-        password."""
+        """The client is not logged in."""
 
-        create_and_login()
+        # Make a tenant.
+        tenant = Tenant.objects.create(name='tenant 1',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
 
-        # Logout. Then logout again with username and password.
-        # pylint: disable=E1101
+        # Try the GET and POST without an authorization token.
         client = Client()
-        response = client.post(LOGOUT_URL,
-                               json.dumps({"username": TEST_USER[0],
-                                           "password": TEST_USER[2]}),
-                               content_type="application/json")
-        self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertIsInstance(response.data["auth_token"], basestring)
+        responses = [client.get(TENANTS_ID_USERS_ID_URL % tenant.uuid.hex),
+                     client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                                 json.dumps({"username": "fool",
+                                             "password": "fooll",
+                                             "email": "a@b.com"}),
+                                 content_type="application/json")]
 
-        response = client.post(LOGOUT_URL,
-                               json.dumps({"username": TEST_USER[0],
-                                           "password": TEST_USER[2]}),
-                               content_type="application/json")
+        for response in responses:
+            self.assertContains(response,
+                                CONTENT_NO_CREDENTIALS,
+                                status_code=HTTP_401_UNAUTHORIZED)
 
-        self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertIsInstance(response.data["auth_token"], basestring)
+        # Try the GET and POST with a bad authorization token.
+        responses = \
+            [client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
+             client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                         json.dumps({"username": "fool",
+                                     "password": "fooll",
+                                     "email": "a@b.com"}),
+                         content_type="application/json",
+                         HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)]
 
-    def test_logout(self):
-        """Log out."""
+        for response in responses:
+            self.assertContains(response,
+                                CONTENT_BAD_TOKEN,
+                                status_code=HTTP_401_UNAUTHORIZED)
 
-        create_and_login()
+    def test_no_access(self):
+        """Getting the tenant users, or creating a tenant user, without being
+        an authorized user."""
 
-        # pylint: disable=E1101
+        # Make a tenant.
+        tenant = Tenant.objects.create(name='tenant 1',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        # Create a normal user who's a member of the tenant, but *not* a
+        # tenant_admin.token.
+        token = create_and_login()
+        user = get_user_model().objects.get(username=TEST_USER[0])
+        user.tenant = tenant
+        user.save()
+
+        # Try the GET and POST.
         client = Client()
-        response = client.post(LOGOUT_URL,
-                               json.dumps({"username": TEST_USER[0],
-                                           "password": TEST_USER[2]}),
-                               content_type="application/json")
+        responses = [
+            client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                        json.dumps({"username": "fool",
+                                    "password": "fooll",
+                                    "email": "a@b.com"}),
+                        content_type="application/json",
+                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
+
+        for response in responses:
+            self.assertContains(response,
+                                CONTENT_PERMISSION_DENIED,
+                                status_code=HTTP_403_FORBIDDEN)
+
+    def test_no_tenant(self):
+        """Getting a tenant, or creating a user of a tenant, when the tenant
+        doesn't exist."""
+
+        # Create a Django admin user.
+        token = create_and_login(True)
+
+        # Make a tenant, save its uuid, then delete it.
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+        tenant.delete()
+
+        # Try the GET and POST to a tenant that doesn't exist.
+        client = Client()
+        responses = [
+            client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                        json.dumps({"username": "fool",
+                                    "password": "fooll",
+                                    "email": "a@b.com"}),
+                        content_type="application/json",
+                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
+
+        for response in responses:
+            self.assertContains(response,
+                                CONTENT_PERMISSION_DENIED,
+                                status_code=HTTP_403_FORBIDDEN)
+
+    def test_get_no_user(self):
+        """Get a user from an empty tenant, or a user that does not exist."""
+
+        pass
+    
+    def test_get(self):
+        """Get a user."""
+
+        # The accounts in this test.
+        TENANT_USERS = [{"username": "a",
+                         "email": "a@b.com",
+                         "password": "a",
+                         "tenant_admin": True},
+                        {"username": "b", "email": "b@b.com", "password": "b"},
+                        {"username": "c", "email": "c@b.com", "password": "c"},
+                        ]
+
+        USERS = [{"username": "d", "email": "d@b.com", "password": "d"},
+                 {"username": "e", "email": "e@b.com", "password": "e"},
+                 ]
+
+        expected_result = [{"username": "a",
+                            "first_name": '',
+                            "last_name": '',
+                            "email": "a@b.com",
+                            "default_tenant_admin": False,
+                            "tenant_admin": True},
+                           {"username": "b",
+                            "first_name": '',
+                            "last_name": '',
+                            "email": "b@b.com",
+                            "default_tenant_admin": False,
+                            "tenant_admin": False},
+                           {"username": "c",
+                            "first_name": '',
+                            "last_name": '',
+                            "email": "c@b.com",
+                            "default_tenant_admin": False,
+                            "tenant_admin": False},
+                           ]
+
+        # Make a tenant
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        # Create users belonging to this tenant. One will be the tenant_admin.
+        for user in TENANT_USERS:
+            user["tenant"] = tenant
+            get_user_model().objects.create_user(**user)
+
+        # Create users who don't belong to the tenant.
+        for user in USERS:
+            get_user_model().objects.create(**user)
+
+        # Log in as the tenant_admin.
+        tenant_admin = [x for x in TENANT_USERS if "tenant_admin" in x][0]
+        token = login(tenant_admin["username"], tenant_admin["password"])
+
+        # Get the tenant's user list and check the response.
+        client = Client()
+        response = \
+            client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertIsInstance(response.data["auth_token"], basestring)
+
+        response_content = json.loads(response.content)
+
+        for entry in response_content["results"]:
+            self.assertIsInstance(entry["uuid"], basestring)
+            self.assertGreaterEqual(len(entry["uuid"]), 32)
+
+            del entry["uuid"]
+
+        for entry in expected_result:
+            entry["tenant"] = tenant.pk
+
+        self.assertItemsEqual(response_content["results"], expected_result)
+
+    def test_post_no_user(self, send_email):
+        """Update a user of an empty tenant, or a user that does not exist."""
+        pass
+
+    def test_post_bad_fields(self, send_email):
+        """Update a user with missing required fields, or unrecognized fields."""
+        pass
+
+    @patch("djoser.utils.send_email")
+    def test_post(self, send_email):
+        """Update a user in a tenant."""
+
+        # The accounts in this test.
+        TENANT_USERS = [{"username": "a", "email": "a@b.com", "password": "a"},
+                        {"username": "b", "email": "b@b.com", "password": "b"}]
+
+        def create(user_number):
+            """Create one user in the tenant.
+
+            :param user_number: The TENANT_USERS index to use
+            :type user_number: int
+
+            """
+
+            client = Client()
+            response = \
+                client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                            json.dumps(TENANT_USERS[user_number]),
+                            content_type="application/json",
+                            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+            check_response_without_uuid(response,
+                                        HTTP_201_CREATED,
+                                        expected_result[user_number])
+
+            # Was email send to the new user?
+            self.assertEqual(send_email.call_count, 1)
+
+            # Did the e-mail seem to have the correct content?
+            self.assertEqual(send_email.call_args[0][0],
+                             TENANT_USERS[user_number]["email"])
+            self.assertEqual(send_email.call_args[0][1],
+                             "webmaster@localhost")  # from
+            self.assertEqual(send_email.call_args[0][2]["site_name"],
+                             "YOUR_EMAIL_SITE_NAME")  # The site name
+            self.assertIn("tenant", send_email.call_args[0][2]["tenant_name"])
+            self.assertEqual(send_email.call_args[1],
+                             {'plain_body_template_name':
+                              'new_tenant_body.txt',
+                              'subject_template_name': 'new_tenant.txt'})
+
+        expected_result = [{"username": "a",
+                            "first_name": '',
+                            "last_name": '',
+                            "email": "a@b.com",
+                            "tenant_admin": False,
+                            "default_tenant_admin": False},
+                           {"username": "b",
+                            "first_name": '',
+                            "last_name": '',
+                            "email": "b@b.com",
+                            "tenant_admin": False,
+                            "default_tenant_admin": False}]
+
+        # Make a tenant
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        expected_result[0]["tenant"] = tenant.pk
+        expected_result[1]["tenant"] = tenant.pk
+
+        # Create a user who's the tenant_admin of this tenant, and log him in.
+        token = create_and_login()
+        user = get_user_model().objects.get(username=TEST_USER[0])
+        user.tenant = tenant
+        user.tenant_admin = True
+        user.save()
+
+        # Create one user in this empty tenant and check the result.
+        create(0)
+
+        # Now try it again.
+        send_email.reset_mock()
+        create(1)
 
 
 class TenantsIdAddUsers(Setup):
