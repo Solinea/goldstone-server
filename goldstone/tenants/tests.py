@@ -724,6 +724,26 @@ class TenantsIdUsers(Setup):
                  {"username": "e", "email": "e@b.com", "password": "e"},
                  ]
 
+        expected_result = [{"username": "a",
+                            "first_name": '',
+                            "last_name": '',
+                            "email": "a@b.com",
+                            "default_tenant_admin": False,
+                            "tenant_admin": True},
+                           {"username": "b",
+                            "first_name": '',
+                            "last_name": '',
+                            "email": "b@b.com",
+                            "default_tenant_admin": False,
+                            "tenant_admin": False},
+                           {"username": "c",
+                            "first_name": '',
+                            "last_name": '',
+                            "email": "c@b.com",
+                            "default_tenant_admin": False,
+                            "tenant_admin": False},
+                           ]
+
         # Make a tenant
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
@@ -744,12 +764,24 @@ class TenantsIdUsers(Setup):
 
         # Get the tenant's user list and check the response.
         client = Client()
-        import pdb; pdb.set_trace()
         response = \
             client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        check_response_without_uuid(response, HTTP_200_OK, EXPECTED_RESULT)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        response_content = json.loads(response.content)
+
+        for entry in response_content["results"]:
+            self.assertIsInstance(entry["uuid"], basestring)
+            self.assertGreaterEqual(len(entry["uuid"]), 32)
+
+            del entry["uuid"]
+
+        for entry in expected_result:
+            entry["tenant"] = tenant.pk
+
+        self.assertItemsEqual(response_content["results"], expected_result)
 
     def test_post(self):
         """Add a user to a tenant."""
