@@ -402,94 +402,76 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 tip.hide();
             });
 
-        // append lines based on dashed or dotted
-        if (data[0].Virtual || data[0].Total) {
-            lineFunction = d3.svg.line()
+
+        // abstracts the line generator to accept a data param
+        // variable. will be used in the path generator
+        var lineFunctionGenerator = function(param) {
+            return d3.svg.line()
                 .interpolate("linear")
                 .x(function(d) {
                     return ns.x(d.eventTime);
                 })
                 .y(function(d) {
-                    if (d.Total) {
-                        return ns.y(d.Total);
-                    } else {
-                        return ns.y(d.Virtual);
-                    }
+                    return ns.y(d[param]);
                 });
+        };
 
-            pathStuff = ns.solidLineCanvas.append("path")
+        // abstracts the path generator to accept a data param
+        // and creates a solid line with the appropriate color
+        var solidPathGenerator = function(param) {
+            return ns.solidLineCanvas.append("path")
                 .attr("d", lineFunction(data))
                 .attr("stroke", function() {
-                    return data[0].Virtual ? ns.color('Virtual') : ns.color('Total');
+                    return ns.color(param);
                 })
                 .attr("stroke-width", 2)
                 .attr("fill", "none");
+        };
 
-            pathStuff = ns.solidLineCanvas.append("path")
+        // abstracts the path generator to accept a data param
+        // and creates a dashed line with the appropriate color
+        var dashedPathGenerator = function(param) {
+            return ns.dashedLineCanvas.append("path")
                 .attr("d", lineFunction(data))
                 .attr("stroke", function() {
-                    return data[0].Virtual ? ns.color('Virtual') : ns.color('Total');
-                })
-                .attr("stroke-width", 2)
-                .attr("fill", "none");
-
-            ns.solidLineCanvas.selectAll("circle")
-                .data(data)
-                .enter().append("svg:circle")
-                .attr("cx", function(d) {
-                    return ns.x(d.eventTime);
-                })
-                .attr("cy", function(d) {
-                    if (d.Total) {
-                        return ns.y(d.Total);
-                    } else {
-                        return ns.y(d.Virtual);
-                    }
-                })
-                .attr("fill", "white")
-                .attr("stroke", function() {
-                    return data[0].Virtual ? ns.color('Virtual') : ns.color('Total');
-                })
-                .attr("r", 3);
-        }
-
-        if (data[0].Physical) {
-            lineFunction = d3.svg.line()
-                .interpolate("linear")
-                .x(function(d) {
-                    return ns.x(d.eventTime);
-                })
-                .y(function(d) {
-                    return ns.y(d.Physical);
-                });
-
-            pathStuff = ns.dashedLineCanvas.append("path")
-                .attr("d", lineFunction(data))
-                .attr("stroke", function() {
-                    return ns.color('Physical');
+                    return ns.color(param);
                 })
                 .attr("stroke-width", 2)
                 .attr("fill", "none")
                 .attr("stroke-dasharray", "5, 2");
+        };
 
-            ns.dashedLineCanvas.selectAll("circle")
-                .data(data)
-                .enter().append("svg:circle")
-                .attr("cx", function(d) {
-                    return ns.x(d.eventTime);
-                })
-                .attr("cy", function(d) {
-                    return ns.y(d.Physical);
-                })
-                .attr("fill", "white")
-                .attr("stroke", function() {
-                    return ns.color('Physical');
-                })
-                .attr("r", 3);
+        // lineFunction must be a named localvariable as it will be called by
+        // the pathGenerator function that immediately follows
+        var lineFunction;
+        if (ns.featureSet === 'cpu') {
+
+            // generate solid line for Virtual data points
+            lineFunction = lineFunctionGenerator('Virtual');
+            solidPathGenerator('Virtual');
+
+            // generate dashed line for Physical data points
+            lineFunction = lineFunctionGenerator('Physical');
+            dashedPathGenerator('Physical');
+
+        } else if (ns.featureSet === 'disk') {
+
+            // generate solid line for Total data points
+            lineFunction = lineFunctionGenerator('Total');
+            solidPathGenerator('Total');
+        } else if (ns.featureSet === 'mem') {
+
+            // generate solid line for Virtual data points
+            lineFunction = lineFunctionGenerator('Virtual');
+            solidPathGenerator('Virtual');
+
+            // generate dashed line for Physical data points
+            lineFunction = lineFunctionGenerator('Physical');
+            dashedPathGenerator('Physical');
         }
 
 
-
+        // appends chart legends
         var legendSpecs = {
             mem: [
                 ['Virtual', 2],
