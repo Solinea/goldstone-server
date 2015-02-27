@@ -23,6 +23,6 @@ router.register(r'tenants[/]?', TenantsViewSet, base_name="tenants")\
       .register(r'users[/]?',
                 UserViewSet,
                 base_name="tenants-users",
-                parents_query_lookups=["uuid"])
+                parents_query_lookups=["tenant"])
 
 urlpatterns = router.urls

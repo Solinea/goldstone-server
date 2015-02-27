@@ -225,7 +225,7 @@ class UserViewSet(BaseViewSet):
         """Return the underlying Tenant row for this request, or raise a
         PermissionDenied exception."""
 
-        target_uuid = self.get_parents_query_dict()["uuid"]
+        target_uuid = self.get_parents_query_dict()["tenant"]
 
         try:
             return Tenant.objects.get(uuid=target_uuid)
@@ -240,6 +240,7 @@ class UserViewSet(BaseViewSet):
         tenant = self._get_tenant()
 
         # N.B. User.is_authenticated() filters out the AnonymousUser object.
+        import pdb; pdb.set_trace()
         if self.request.user.is_authenticated() and \
            self.request.user.tenant == tenant:
             return self.filter_queryset_by_parents_lookups(

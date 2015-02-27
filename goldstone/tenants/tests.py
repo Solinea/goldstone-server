@@ -711,40 +711,45 @@ class TenantsIdUsers(Setup):
     def test_get(self):
         """List a tenant's users."""
 
-        # The expected result, sans uuid.
-        EXPECTED_RESULT = {"name": "tenant",
-                           "owner": "John",
-                           "owner_contact": "206.867.5309"}
+        # The accounts in this test.
+        TENANT_USERS = [{"username": "a",
+                         "email": "a@b.com",
+                         "password": "a",
+                         "tenant_admin": True},
+                        {"username": "b", "email": "b@b.com", "password": "b"},
+                        {"username": "c", "email": "c@b.com", "password": "c"},
+                        ]
 
-        def get_tenant(token):
-            """Get the tenant using the token, and check the response."""
-
-            client = Client()
-            response = \
-                client.get(TENANTS_ID_URL % tenant.uuid.hex,
-                           HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-            check_response_without_uuid(response, HTTP_200_OK, EXPECTED_RESULT)
+        USERS = [{"username": "d", "email": "d@b.com", "password": "d"},
+                 {"username": "e", "email": "e@b.com", "password": "e"},
+                 ]
 
         # Make a tenant
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
                                        owner_contact='206.867.5309')
 
-        # Create a Django admin user, and a normal user who's a tenant_admin of
-        # the tenant.
-        token = create_and_login(True)
-        get_user_model().objects.create_user("a",
-                                             "a@b.com",
-                                             "a",
-                                             tenant=tenant,
-                                             tenant_admin=True)
+        # Create users belonging to this tenant. One will be the tenant_admin.
+        for user in TENANT_USERS:
+            user["tenant"] = tenant
+            get_user_model().objects.create_user(**user)
 
-        # Test getting the tenant as a Django admin, then as the tenant_admin
-        # of the tenant. Both should work.
-        get_tenant(token)
-        token = login('a', 'a')
-        get_tenant(token)
+        # Create users who don't belong to the tenant.
+        for user in USERS:
+            get_user_model().objects.create(**user)
+
+        # Log in as the tenant_admin.
+        tenant_admin = [x for x in TENANT_USERS if "tenant_admin" in x][0]
+        token = login(tenant_admin["username"], tenant_admin["password"])
+
+        # Get the tenant's user list and check the response.
+        client = Client()
+        import pdb; pdb.set_trace()
+        response = \
+            client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        check_response_without_uuid(response, HTTP_200_OK, EXPECTED_RESULT)
 
     def test_post(self):
         """Add a user to a tenant."""
