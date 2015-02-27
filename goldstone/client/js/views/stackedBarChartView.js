@@ -153,6 +153,18 @@ var StackedBarChartView = GoldstoneBaseView.extend({
     },
 
     computeHiddenBarText: function(d) {
+
+        /*
+        filter function strips keys that are irrelevant to the d3.tip:
+
+        converts from: {Physical: 31872, Used: 4096, Virtual: 47808,
+        eventTime: "1424556000000", stackedBarPrep: [],
+        total: 47808}
+
+        to: ["Virtual", "Physical", "Used"]
+        */
+
+        // reverses result to match the order in the chart legend
         var valuesToReport = _.filter((_.keys(d)), function(item) {
             return item !== "eventTime" && item !== "stackedBarPrep" && item !== "total";
         }).reverse();
@@ -276,15 +288,19 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             return d.eventTime;
         }));
 
+        // IMPORTANT: see data.forEach above to make sure total is properly
+        // calculated if additional data paramas are introduced to this viz
         ns.y.domain([0, d3.max(data, function(d) {
             return d.total;
         })]);
 
+        // add x axis
         ns.chart.append("g")
             .attr("class", "x axis")
             .attr("transform", "translate(0," + ns.mh + ")")
             .call(ns.xAxis);
 
+        // add y axis
         ns.chart.append("g")
             .attr("class", "y axis")
             .call(ns.yAxis)
@@ -294,6 +310,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .attr("dy", ".71em")
             .style("text-anchor", "end");
 
+        // add primary svg g layer
         ns.event = ns.chart.selectAll(".event")
             .data(data)
             .enter()
@@ -303,6 +320,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 return "translate(" + ns.x(d.eventTime) + ",0)";
             });
 
+        // add svg g layer for solid lines
         ns.solidLineCanvas = ns.chart.selectAll(".event")
             .data(data)
             .enter()
@@ -310,6 +328,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .attr("class", "g")
             .attr("class", "solid-line-canvas");
 
+        // add svg g layer for dashed lines
         ns.dashedLineCanvas = ns.chart.selectAll(".event")
             .data(data)
             .enter()
@@ -317,12 +336,14 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .attr("class", "g")
             .attr("class", "dashed-line-canvas");
 
+        // add svg g layer for hidden rects
         ns.hiddenBarsCanvas = ns.chart.selectAll(".hidden")
             .data(data)
             .enter()
             .append("g")
             .attr("class", "g");
 
+        // initialize d3.tip
         var tip = d3.tip()
             .attr('class', 'd3-tip')
             .attr('id', this.el.slice(1))
@@ -334,7 +355,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         ns.chart.call(tip);
 
         // used below to determing whether to render as
-        // a "rect" or a "line"
+        // a "rect" or "line" by affecting fill and stroke opacity below
         var showOrHide = {
             "Failure": true,
             "Success": true,
@@ -353,8 +374,8 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .attr("width", function(d) {
                 var segmentWidth = (ns.mw / data.length);
 
-                // spacing corrected
-                // for proportional gaps between rects
+                // spacing corrected for proportional
+                // gaps between rects
                 return segmentWidth - segmentWidth * 0.07;
             })
             .attr("y", function(d) {
@@ -402,8 +423,11 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .attr("height", function(d) {
                 return ns.mh;
             }).on('mouseenter', function(d) {
+
+                // coax the pointer to line up with the bar center
+                var nudge = (ns.mw / data.length) * 0.5;
                 var targ = d3.select(self.el).select('rect');
-                tip.offset([20, 0]).show(d, targ);
+                tip.offset([20, -nudge]).show(d, targ);
             }).on('mouseleave', function() {
                 tip.hide();
             });
