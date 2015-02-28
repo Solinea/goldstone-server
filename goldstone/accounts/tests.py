@@ -17,7 +17,7 @@ from django.contrib.auth import get_user_model
 from mock import patch
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST, HTTP_201_CREATED
-from goldstone.user.test_utils import Setup, create_and_login, login, \
+from goldstone.test_utils import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_MISSING_FIELDS, \
     CONTENT_MISSING_USERNAME, CONTENT_MISSING_PASSWORD, \
     CONTENT_UNIQUE_USERNAME, CONTENT_NON_FIELD_ERRORS, LOGIN_URL, \

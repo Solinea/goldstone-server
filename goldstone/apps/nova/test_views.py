@@ -19,7 +19,6 @@ from datetime import datetime
 import json
 import pytz
 import calendar
-import logging
 import pandas as pd
 
 from django.http import HttpResponse
@@ -27,10 +26,8 @@ from django.test import SimpleTestCase
 from mock import patch
 from rest_framework.test import APITestCase
 
-from goldstone.user.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
+from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
 from .models import SpawnData
-
-logger = logging.getLogger(__name__)
 
 
 class BaseTest(SimpleTestCase):

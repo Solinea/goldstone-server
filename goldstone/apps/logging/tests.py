@@ -26,7 +26,7 @@ from mock import patch
 from goldstone.apps.core.models import Node, EventType
 from goldstone.apps.logging.serializers import LoggingNodeSerializer
 from goldstone.apps.logging.views import LoggingNodeViewSet
-from goldstone.user.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
+from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
 from goldstone.utils import utc_now
 from .tasks import process_host_stream, _create_event, ping, check_host_avail
 

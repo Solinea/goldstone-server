@@ -18,7 +18,7 @@ from mock import patch
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_403_FORBIDDEN, \
     HTTP_204_NO_CONTENT
-from goldstone.user.test_utils import Setup, create_and_login, login, \
+from goldstone.test_utils import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_NO_CREDENTIALS, \
     check_response_without_uuid, TEST_USER, CONTENT_NO_PERMISSION, \
     CONTENT_UNIQUE_NAME, CONTENT_PERMISSION_DENIED, BAD_TOKEN, BAD_UUID, \

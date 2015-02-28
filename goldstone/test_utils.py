@@ -1,10 +1,4 @@
-"""Unit Test utilities.
-
-These are used by the unit tests of multiple apps.
-
-TODO: Find a neutral home for this.
-
-"""
+"""Goldstone unit test utilities."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
