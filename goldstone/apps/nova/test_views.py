@@ -21,6 +21,7 @@ import pytz
 import calendar
 import pandas as pd
 
+from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.test import SimpleTestCase
 from mock import patch
@@ -43,22 +44,28 @@ class BaseTest(SimpleTestCase):
     invalid_end = '999999999999'
     invalid_interval = 'abc'
 
+    def setUp(self):
+        """Run before every test."""
+
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
+
     def _assert_success(self, url):
         """Do a request that should succeed."""
 
-        token = create_and_login()
         response = self.client.get(
             url,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, 200)
 
     def _assert_bad_request(self, url):
         """Do a request that should fail."""
 
-        token = create_and_login()
         response = self.client.get(
             url,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, 400)
 
 
@@ -188,7 +195,9 @@ class LatestStatsViewTest(SimpleTestCase):
 
         URI = '/nova/hypervisor/latest-stats'
 
+        get_user_model().objects.all().delete()
         token = create_and_login()
+
         response = self.client.get(
             URI,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -201,7 +210,6 @@ class DataViewTests(SimpleTestCase):
 
     def setUp(self):
         """Run before every test."""
-        from django.contrib.auth import get_user_model
 
         get_user_model().objects.all().delete()
         self.token = create_and_login()

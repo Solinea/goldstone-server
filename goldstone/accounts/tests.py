@@ -327,6 +327,7 @@ class Logout(Setup):
             content_type="application/json")
 
         self.assertEqual(response.status_code, HTTP_200_OK)
+        # pylint: disable=E1101
         self.assertIsInstance(response.data["auth_token"], basestring)
 
 
