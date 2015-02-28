@@ -221,3 +221,46 @@ class LoggingNodeViewTests(APISimpleTestCase):
         # pylint: disable=E1101
         self.assertIn('name', response.data)
         self.assertEqual(node.name, response.data['name'])
+
+
+class UtilTests(SimpleTestCase):
+
+    def test_format_log_count(self):
+        """ test function that formats the log counts into a dict"""
+
+        from goldstone.apps.logging.utils import _format_log_count
+
+        full_bucket = {
+            "key": "ctrl-01",
+            "doc_count": 2335,
+            "by_level": {
+                "doc_count_error_upper_bound": 0,
+                "sum_other_doc_count": 0,
+                "buckets": [
+                    {"key": "info",
+                     "doc_count": 1483},
+                    {"key": "warning",
+                     "doc_count": 15},
+                    {"key": "audit",
+                     "doc_count": 0},
+                    {"key": "error",
+                     "doc_count": 0}]
+            }
+        }
+
+        empty_bucket = {
+            "key": "ctrl-01",
+            "doc_count": 2335,
+            "by_level": {
+                "doc_count_error_upper_bound": 0,
+                "sum_other_doc_count": 0,
+                "buckets": []
+            }
+        }
+
+        self.assertEqual(
+            _format_log_count(full_bucket),
+            {"ctrl-01": {"info": 1483, "warning": 15, "error": 0, "audit": 0}})
+        self.assertEqual(
+            _format_log_count(empty_bucket),
+            {"ctrl-01": {}})
