@@ -12,28 +12,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from pandas import DataFrame
-
-from .models import ApiPerfData
-from uuid import uuid1
 import arrow
 from django.test import SimpleTestCase
-import logging
 from elasticsearch_dsl import Search, Q
 from mock import patch
+from pandas import DataFrame
 from requests import Response
-from goldstone.apps.api_perf.utils import time_api_call, \
-    stack_api_request_base
+from uuid import uuid1
+
+from goldstone.apps.api_perf.utils import time_api_call, stack_api_request_base
 from goldstone.apps.api_perf.views import ApiPerfView
 from goldstone.models import daily_index, es_conn
 from goldstone.utils import GoldstoneAuthError
-
-logger = logging.getLogger(__name__)
+from .models import ApiPerfData
 
 
 class ViewTests(SimpleTestCase):
 
     def test_report_view(self):
+
         uri = '/api_perf/report'
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
@@ -45,6 +42,7 @@ class UtilsTests(SimpleTestCase):
     @patch('requests.request')
     @patch.object(ApiPerfData, 'save')
     def test_time_api_call_succeed(self, m_save, m_request):
+
         fake_response = Response()
         fake_response.status_code = 200
         fake_response._content = '{"a":1,"b":2}'       # pylint: disable=W0212
@@ -59,6 +57,7 @@ class UtilsTests(SimpleTestCase):
     @patch('requests.request')
     @patch.object(ApiPerfData, 'save')
     def test_time_api_call_fail(self, m_save, m_request):
+
         m_request.return_value = None
         m_save.return_value = True
         result = time_api_call('test', 'GET', 'http://test')
@@ -103,16 +102,27 @@ class UtilsTests(SimpleTestCase):
 class ApiPerfTests(SimpleTestCase):
 
     def setUp(self):
+        """Run before every test."""
+        from django.contrib.auth import get_user_model
+        from goldstone.test_utils import create_and_login
+
         # let's make sure we've configured a default connection
         self.conn = es_conn()
 
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
+
     def tearDown(self):
+
         result = ApiPerfData.search().execute()
+
         for hit in result.hits:
             hit.delete()
+
         self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
 
     def test_persist_and_retrieve(self):
+
         uuid = uuid1()
         now = arrow.utcnow().datetime
         data = ApiPerfData(id=uuid,
@@ -242,6 +252,8 @@ class ApiPerfTests(SimpleTestCase):
         self.assertEqual(result.iloc[0]['5xx'], 1)
 
     def test_api_perf_view(self):
+        from goldstone.test_utils import AUTHORIZATION_PAYLOAD
+
         start = arrow.utcnow().replace(minutes=-1)
 
         uri = '/api_perf/stats' + \
@@ -251,7 +263,9 @@ class ApiPerfTests(SimpleTestCase):
               '&component=test' + \
               '&uri=/test'
 
-        response = self.client.get(uri)
+        response = self.client.get(
+            uri,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.status_code, 200)
 
     def test_api_perf_view_get_data(self):
@@ -267,8 +281,7 @@ class ApiPerfTests(SimpleTestCase):
                  for status in range(100, 601, 100)]
 
         for stat in stats:
-            created = stat.save()
-            self.assertTrue(created)
+            self.assertTrue(stat.save())
 
         self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
 
