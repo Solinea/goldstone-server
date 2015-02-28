@@ -55,6 +55,7 @@ class DataViewTests(SimpleTestCase):
 
     def setUp(self):
         """Run before every test."""
+        from django.contrib.auth import get_user_model
 
         get_user_model().objects.all().delete()
         self.token = create_and_login()
@@ -78,7 +79,8 @@ class DataViewTests(SimpleTestCase):
             self.assertIsInstance(results[0], list)
 
     def test_get_volumes(self):
-        self._evaluate(self.client.get("/cinder/volumes",
+        self._evaluate(self.client.get(
+            "/cinder/volumes",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_backups(self):
