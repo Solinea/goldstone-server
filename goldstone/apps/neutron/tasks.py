@@ -14,6 +14,8 @@
 # limitations under the License.
 from __future__ import absolute_import
 from goldstone.celery import app as celery_app
+# This must be at the module level, for a unit test mock.
+from goldstone.apps.api_perf.utils import time_api_call, stack_api_request_base
 
 
 @celery_app.task()
@@ -24,9 +26,8 @@ def time_agent_list_api():
     agents returned, then calls the agent-show command on the first one,
     otherwise uses the results from agent list to inserts a record
     in the DB.
+
     """
-    from goldstone.apps.api_perf.utils import time_api_call, \
-        stack_api_request_base
 
     precursor = stack_api_request_base("network", "v2.0/agents")
     return time_api_call('neutron',
