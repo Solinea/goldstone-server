@@ -79,7 +79,7 @@ class DataViewTests(SimpleTestCase):
 
     def test_get_volumes(self):
         self._evaluate(self.client.get("/cinder/volumes",
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_backups(self):
         self._evaluate(self.client.get(
