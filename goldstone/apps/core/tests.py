@@ -21,6 +21,7 @@ from time import sleep
 from uuid import uuid4
 
 import arrow
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase
 from elasticsearch.client import IndicesClient
@@ -33,6 +34,7 @@ from rest_framework.test import APISimpleTestCase
 from goldstone.apps.core import tasks
 from goldstone.apps.core.views import ElasticViewSetMixin
 from goldstone.models import es_conn
+from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
 from .models import EventType, Event, MetricType, Metric, ReportType, \
     Report, validate_str_bool, validate_method_choices, Node
 from .serializers import EventSerializer, NodeSerializer, ReportSerializer
@@ -110,10 +112,13 @@ class NodeViewTests(APISimpleTestCase):
     node4 = Node(name=name4)
 
     def setUp(self):
+        """Run before every test."""
+
         Node.objects.all().delete()
 
-    def tearDown(self):
-        Node.objects.all().delete()
+        # Needed for DRF's token authentication.
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
 
     def _save_nodes(self):
         """Save all four test nodes."""
@@ -127,7 +132,10 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes')
+        response = self.client.get(
+            '/core/nodes',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             len(response.data['results']), 4)  # pylint: disable=E1101
@@ -136,7 +144,10 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes?managed=true')
+        response = self.client.get(
+            '/core/nodes?managed=true',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(len(response.data['results']), 2)
@@ -149,7 +160,10 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes?managed=false')
+        response = self.client.get(
+            '/core/nodes?managed=false',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(len(response.data['results']), 2)
@@ -160,16 +174,26 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes?managed=true')
+        response = self.client.get(
+            '/core/nodes?managed=true',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'],
                          'true')
         uuid = response.data['results'][0]['id']
-        response = self.client.patch('/core/nodes/' + uuid + '/disable')
+        response = self.client.patch(
+            '/core/nodes/' + uuid + '/disable',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get('/core/nodes/' + uuid)
+
+        response = self.client.get(
+            '/core/nodes/' + uuid,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['managed'], 'false')
 
@@ -177,17 +201,26 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes?managed=false')
+        response = self.client.get(
+            '/core/nodes?managed=false',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'], 'false')
 
         id_value = response.data['results'][0]['id']
-        response = self.client.patch('/core/nodes/' + id_value + '/enable')
+        response = self.client.patch(
+            '/core/nodes/' + id_value + '/enable',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.client.get('/core/nodes/' + id_value)
+        response = self.client.get(
+            '/core/nodes/' + id_value,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['managed'], 'true')
 
@@ -195,19 +228,31 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes?managed=false')
+        response = self.client.get(
+            '/core/nodes?managed=false',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'], 'false')
+
         uuid = response.data['results'][0]['id']
-        response = self.client.delete('/core/nodes/' + uuid)
+        response = self.client.delete(
+            '/core/nodes/' + uuid,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_post_fail(self):
+
         data = {'name': 'test123'}
-        response = self.client.post('/core/nodes', data=data)
+        response = self.client.post(
+            '/core/nodes',
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -215,15 +260,23 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes')
+        response = self.client.get(
+            '/core/nodes',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(len(response.data), 4)
+
         uuid = response.data['results'][0]['id']
         data = response.data['results'][0]
         # pylint: enable=E1101
         data['name'] = 'test123123'
-        response = self.client.put('/core/nodes/' + uuid, data=data)
+        response = self.client.put(
+            '/core/nodes/' + uuid,
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -231,14 +284,22 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes')
+        response = self.client.get(
+            '/core/nodes',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(len(response.data), 4)
+
         uuid = response.data['results'][0]['id']
         # pylint: enable=E1101
         data = {'name': 'test123'}
-        response = self.client.patch('/core/nodes/' + uuid, data=data)
+        response = self.client.patch(
+            '/core/nodes/' + uuid,
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -703,24 +764,29 @@ class MetricTests(SimpleTestCase):
 class MetricViewTests(APISimpleTestCase):
 
     def setUp(self):
+        """Run before every test."""
 
-        es = es_conn()
+        server = es_conn()
 
-        if es.indices.exists('goldstone_agent'):
-            es.indices.delete('goldstone_agent')
-        es.indices.create('goldstone_agent')
+        if server.indices.exists('goldstone_agent'):
+            server.indices.delete('goldstone_agent')
+        server.indices.create('goldstone_agent')
 
-        es.index('goldstone_agent', 'core_metric', {
+        server.index('goldstone_agent', 'core_metric', {
             'timestamp': arrow.utcnow().timestamp * 1000,
             'name': 'test.test.metric',
             'value': 'test value',
             'node': ''})
 
-        es.index('goldstone_agent', 'core_metric', {
+        server.index('goldstone_agent', 'core_metric', {
             'timestamp': arrow.utcnow().timestamp * 1000,
             'name': 'test.test.metric2',
             'value': 'test value',
             'node': ''})
+
+        # Needed for DRF's token authentication.
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
 
     def test_post(self):
         data = {
@@ -833,6 +899,7 @@ class ReportSerializerTests(APISimpleTestCase):
 class ReportViewTests(APISimpleTestCase):
 
     def setUp(self):
+        """Run before every test."""
 
         server = es_conn()
 
@@ -855,21 +922,36 @@ class ReportViewTests(APISimpleTestCase):
                       'value': 'test value',
                       'node': ''})
 
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
+
     def test_post(self):
 
         data = {'name': "test.test.report", 'value': "some value"}
-        response = self.client.post('/core/reports', data=data)
+        response = self.client.post(
+            '/core/reports',
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_list(self):
+
         ReportType.refresh_index()
-        response = self.client.get('/core/reports')
+        response = self.client.get(
+            '/core/reports',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 2)  # pylint: disable=E1101
 
     def test_retrieve(self):
-        response = self.client.get('/core/reports/abcdef')
+
+        response = self.client.get(
+            '/core/reports/abcdef',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -901,5 +983,11 @@ class ReportListViewTests(APISimpleTestCase):
 
     def test_get_fail(self):
 
-        response = self.client.get('/core/report_list')
+        get_user_model().objects.all().delete()
+        token = create_and_login()
+
+        response = self.client.get(
+            '/core/report_list',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
