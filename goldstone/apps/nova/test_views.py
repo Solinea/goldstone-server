@@ -129,6 +129,12 @@ class SpawnsApiPerfViewsTest(BaseTest):
 
 class SpawnsHandleRequest(APITestCase):
 
+    def setUp(self):
+        """Run before every test."""
+
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
+
     @patch.object(SpawnData, 'get_spawn_success')
     @patch.object(SpawnData, 'get_spawn_failure')
     @patch('goldstone.apps.nova.views.validate')
@@ -154,25 +160,38 @@ class SpawnsHandleRequest(APITestCase):
         gsf.return_value = pd.DataFrame()
         gss.return_value = pd.DataFrame()
 
-        response = self.client.get(url, data, format='json')
+        response = self.client.get(
+            url,
+            data,
+            format='json',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.data, {})          # pylint: disable=E1101
         self.assertEqual(response.status_code, 200)
 
         # 1 successful spawns, 2 failed
-        gss.return_value = pd.read_json(json.dumps([
-            {u'timestamp': 1423165800000, u'successes': 1}
-        ]), orient='records')
-        gsf.return_value = pd.read_json(json.dumps([
-            {u'timestamp': 1423165800000, u'failures': 2}
-        ]), orient='records')
-        response = self.client.get(url, data, format='json')
+        gss.return_value = pd.read_json(
+            json.dumps([{u'timestamp': 1423165800000, u'successes': 1}]),
+            orient='records')
+        gsf.return_value = pd.read_json(
+            json.dumps([{u'timestamp': 1423165800000, u'failures': 2}]),
+            orient='records')
+
+        response = self.client.get(
+            url,
+            data,
+            format='json',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.data,                # pylint: disable=E1101
                          {1423165800000: [1, 2]})
         self.assertEqual(response.status_code, 200)
 
         # 0 successful spawns, 2 failed spawns
         gss.return_value = pd.DataFrame()
-        response = self.client.get(url, data, format='json')
+        response = self.client.get(
+            url,
+            data,
+            format='json',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.data,                 # pylint: disable=E1101
                          {1423165800000: [0, 2]})
         self.assertEqual(response.status_code, 200)
@@ -183,7 +202,12 @@ class SpawnsHandleRequest(APITestCase):
                                       u'successes': 1}]),
                          orient='records')
         gsf.return_value = pd.DataFrame()
-        response = self.client.get(url, data, format='json')
+
+        response = self.client.get(
+            url,
+            data,
+            format='json',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.data,                 # pylint: disable=E1101
                          {1423165800000: [1, 0]})
         self.assertEqual(response.status_code, 200)
