@@ -18,7 +18,7 @@ from django.http import HttpResponse
 from django.test import SimpleTestCase
 from mock import patch
 
-from goldstone.user.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
+from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
 from .tasks import time_token_post_api
 
 logger = logging.getLogger(__name__)
