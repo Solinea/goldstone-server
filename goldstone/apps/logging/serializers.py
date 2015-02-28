@@ -18,18 +18,29 @@ from goldstone.apps.core.serializers import NodeSerializer
 class LoggingNodeSerializer(NodeSerializer):
 
     def to_representation(self, obj):
-        from goldstone.apps.logging.models import LoggingNodeStats
+        """Enhance the serialized LoggingNode data with the log count stats"""
+
+        from .utils import log_counts
 
         result = super(LoggingNodeSerializer, self).to_representation(obj)
 
-        lns = LoggingNodeStats(
-            self.context['start_time'],
-            self.context['end_time']).for_node(obj.name)
+        counts = log_counts(self.context['start_time'],
+                            self.context['end_time'],
+                            [obj.name])
 
-        result['info_count'] = lns.get('info', 0)
-        result['audit_count'] = lns.get('audit', 0)
-        result['warning_count'] = lns.get('warning', 0)
-        result['error_count'] = lns.get('error', 0)
-        result['debug_count'] = lns.get('debug', 0)
+        if len(counts) == 0:
+            # no results for the node in question
+            result['info_count'] = 0
+            result['audit_count'] = 0
+            result['warning_count'] = 0
+            result['error_count'] = 0
+            result['debug_count'] = 0
+        else:
+            # the first element should be our host
+            result['info_count'] = counts[0][obj.name].get('info', 0)
+            result['audit_count'] = counts[0][obj.name].get('audit', 0)
+            result['warning_count'] = counts[0][obj.name].get('warning', 0)
+            result['error_count'] = counts[0][obj.name].get('error', 0)
+            result['debug_count'] = counts[0][obj.name].get('debug', 0)
 
         return result
