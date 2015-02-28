@@ -14,11 +14,10 @@
 # limitations under the License.
 import json
 from django.contrib.auth import get_user_model
-from django.test import Client
 from mock import patch
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST, HTTP_201_CREATED
-from goldstone.user.util_test import Setup, create_and_login, login, \
+from goldstone.user.test_utils import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_MISSING_FIELDS, \
     CONTENT_MISSING_USERNAME, CONTENT_MISSING_PASSWORD, \
     CONTENT_UNIQUE_USERNAME, CONTENT_NON_FIELD_ERRORS, LOGIN_URL, \
@@ -45,10 +44,9 @@ class Settings(Setup):
         # Create a user and get the authorization token.
         token = create_and_login()
 
-        client = Client()
-        response = \
-            client.get(SETTINGS_URL,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.get(
+            SETTINGS_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response, {}, status_code=HTTP_200_OK)
 
@@ -62,12 +60,11 @@ class Settings(Setup):
         # Create a user and get the authorization token.
         token = create_and_login()
 
-        client = Client()
-        response = \
-            client.put(SETTINGS_URL,
-                       json.dumps({}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.put(
+            SETTINGS_URL,
+            json.dumps({}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response, {}, status_code=HTTP_200_OK)
 
@@ -77,10 +74,9 @@ class Settings(Setup):
         # Create a user, and create a bad authorization token.
         bad_token = create_and_login().replace('9', '8').replace('4', '3')
 
-        client = Client()
-        response = \
-            client.get(SETTINGS_URL,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+        response = self.client.get(
+            SETTINGS_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
 
         self.assertContains(response,
                             CONTENT_BAD_TOKEN,
@@ -94,12 +90,11 @@ class Settings(Setup):
         # which is very unlikely.)
         bad_token = create_and_login().replace('9', '8').replace('4', '2')
 
-        client = Client()
-        response = \
-            client.put(SETTINGS_URL,
-                       json.dumps({}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+        response = self.client.put(
+            SETTINGS_URL,
+            json.dumps({}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
 
         self.assertContains(response,
                             CONTENT_BAD_TOKEN,
@@ -112,9 +107,8 @@ class Register(Setup):
     def test_no_data(self):
         """Try registering with an empty payload."""
 
-        client = Client()
-        response = client.post(REGISTRATION_URL,
-                               content_type="application/json")
+        response = self.client.post(REGISTRATION_URL,
+                                    content_type="application/json")
 
         self.assertContains(response,
                             CONTENT_MISSING_FIELDS,
@@ -125,10 +119,9 @@ class Register(Setup):
     def test_no_username(self):
         """Try registering with no username."""
 
-        client = Client()
-        response = client.post(REGISTRATION_URL,
-                               json.dumps({"password": "Diggler"}),
-                               content_type="application/json")
+        response = self.client.post(REGISTRATION_URL,
+                                    json.dumps({"password": "Diggler"}),
+                                    content_type="application/json")
 
         self.assertContains(response,
                             CONTENT_MISSING_USERNAME,
@@ -139,10 +132,9 @@ class Register(Setup):
     def test_no_password(self):
         """Try registering with no password."""
 
-        client = Client()
-        response = client.post(REGISTRATION_URL,
-                               json.dumps({"username": "Dirk"}),
-                               content_type="application/json")
+        response = self.client.post(REGISTRATION_URL,
+                                    json.dumps({"username": "Dirk"}),
+                                    content_type="application/json")
 
         self.assertContains(response,
                             CONTENT_MISSING_PASSWORD,
@@ -156,23 +148,22 @@ class Register(Setup):
         USERS = ["Bahb", "Barbra"]
 
         # Register a couple of users.
-        client = Client()
 
         for user in USERS:
-            response = \
-                client.post(REGISTRATION_URL,
-                            json.dumps({"username": user, "password": "x"}),
-                            content_type="application/json")
+            response = self.client.post(
+                REGISTRATION_URL,
+                json.dumps({"username": user, "password": "x"}),
+                content_type="application/json")
 
             self.assertEqual(response.status_code, HTTP_201_CREATED)
 
         self.assertEqual(get_user_model().objects.count(), 2)
 
         # Now try to re-register one of the accounts.
-        response = \
-            client.post(REGISTRATION_URL,
-                        json.dumps({"username": USERS[0], "password": "x"}),
-                        content_type="application/json")
+        response = self.client.post(
+            REGISTRATION_URL,
+            json.dumps({"username": USERS[0], "password": "x"}),
+            content_type="application/json")
 
         self.assertContains(response,
                             CONTENT_UNIQUE_USERNAME,
@@ -196,11 +187,9 @@ class Register(Setup):
             payload["email"] = email
 
         # Register this account.
-        client = Client()
-        response = \
-            client.post(REGISTRATION_URL,
-                        json.dumps(payload),
-                        content_type="application/json")
+        response = self.client.post(REGISTRATION_URL,
+                                    json.dumps(payload),
+                                    content_type="application/json")
 
         # Check the results.
         self.assertEqual(response.status_code, HTTP_201_CREATED)
@@ -231,10 +220,9 @@ class Login(Setup):
         get_user_model().objects.create_user(*TEST_USER)
 
         # Try logging in with a bad username.
-        client = Client()
-        response = client.post(LOGIN_URL,
-                               {"username": "Atticus",
-                                "password": TEST_USER[2]})
+        response = self.client.post(LOGIN_URL,
+                                    {"username": "Atticus",
+                                     "password": TEST_USER[2]})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
@@ -247,9 +235,9 @@ class Login(Setup):
         get_user_model().objects.create_user(*TEST_USER)
 
         # Try logging in with a bad username.
-        client = Client()
-        response = client.post(LOGIN_URL,
-                               {"username": TEST_USER[0], "password": "Finch"})
+        response = self.client.post(LOGIN_URL,
+                                    {"username": TEST_USER[0],
+                                     "password": "Finch"})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
@@ -296,8 +284,7 @@ class Logout(Setup):
         """Logging out when a user is not logged in, and not giving any
         credentials."""
 
-        client = Client()
-        response = client.post(LOGOUT_URL)
+        response = self.client.post(LOGOUT_URL)
 
         self.assertContains(response,
                             CONTENT_NOT_BLANK,
@@ -311,18 +298,19 @@ class Logout(Setup):
 
         # Logout. Then logout again with username and password.
         # pylint: disable=E1101
-        client = Client()
-        response = client.post(LOGOUT_URL,
-                               json.dumps({"username": TEST_USER[0],
-                                           "password": TEST_USER[2]}),
-                               content_type="application/json")
+        response = self.client.post(
+            LOGOUT_URL,
+            json.dumps({"username": TEST_USER[0],
+                        "password": TEST_USER[2]}),
+            content_type="application/json")
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertIsInstance(response.data["auth_token"], basestring)
 
-        response = client.post(LOGOUT_URL,
-                               json.dumps({"username": TEST_USER[0],
-                                           "password": TEST_USER[2]}),
-                               content_type="application/json")
+        response = self.client.post(
+            LOGOUT_URL,
+            json.dumps({"username": TEST_USER[0],
+                        "password": TEST_USER[2]}),
+            content_type="application/json")
 
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertIsInstance(response.data["auth_token"], basestring)
@@ -332,12 +320,11 @@ class Logout(Setup):
 
         create_and_login()
 
-        # pylint: disable=E1101
-        client = Client()
-        response = client.post(LOGOUT_URL,
-                               json.dumps({"username": TEST_USER[0],
-                                           "password": TEST_USER[2]}),
-                               content_type="application/json")
+        response = self.client.post(
+            LOGOUT_URL,
+            json.dumps({"username": TEST_USER[0],
+                        "password": TEST_USER[2]}),
+            content_type="application/json")
 
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertIsInstance(response.data["auth_token"], basestring)
@@ -355,31 +342,31 @@ class Password(Setup):
 
         # Create a user and log them out.
         token = create_and_login()
-        client = Client()
-        response = client.post(LOGOUT_URL,
-                               json.dumps({"username": TEST_USER[0],
-                                           "password": TEST_USER[2]}),
-                               content_type="application/json")
+        response = self.client.post(
+            LOGOUT_URL,
+            json.dumps({"username": TEST_USER[0],
+                        "password": TEST_USER[2]}),
+            content_type="application/json")
 
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Now try changing the password.
-        response = \
-            client.post(PASSWORD_URL,
-                        json.dumps({"username": TEST_USER[0],
-                                    "current_password": TEST_USER[2],
-                                    "new_password": "boom"}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.post(
+            PASSWORD_URL,
+            json.dumps({"username": TEST_USER[0],
+                        "current_password": TEST_USER[2],
+                        "new_password": "boom"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Test logging in using the new password.
         login(TEST_USER[0], "boom")
 
         # Verify that we can't log in using the old password.
-        response = client.post(LOGIN_URL,
-                               {"username": TEST_USER[0],
-                                "password": TEST_USER[2]})
+        response = self.client.post(LOGIN_URL,
+                                    {"username": TEST_USER[0],
+                                     "password": TEST_USER[2]})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
@@ -392,13 +379,12 @@ class Password(Setup):
         create_and_login()
 
         # Try changing the password.
-        client = Client()
         response = \
-            client.post(PASSWORD_URL,
-                        json.dumps({"username": TEST_USER[0],
-                                    "current_password": TEST_USER[2],
-                                    "new_password": "boom"}),
-                        content_type="application/json")
+            self.client.post(PASSWORD_URL,
+                             json.dumps({"username": TEST_USER[0],
+                                         "current_password": TEST_USER[2],
+                                         "new_password": "boom"}),
+                             content_type="application/json")
 
         self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
 
@@ -406,8 +392,9 @@ class Password(Setup):
         login(TEST_USER[0], TEST_USER[2])
 
         # Verify that we can't log in using the new password.
-        response = client.post(LOGIN_URL,
-                               {"username": TEST_USER[0], "password": "boom"})
+        response = self.client.post(
+            LOGIN_URL,
+            {"username": TEST_USER[0], "password": "boom"})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
@@ -420,14 +407,14 @@ class Password(Setup):
         bad_token = create_and_login().replace('9', '8').replace('4', '3')
 
         # Try changing the password.
-        client = Client()
         response = \
-            client.post(PASSWORD_URL,
-                        json.dumps({"username": TEST_USER[0],
-                                    "current_password": TEST_USER[2],
-                                    "new_password": "boom"}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+            self.client.post(
+                PASSWORD_URL,
+                json.dumps({"username": TEST_USER[0],
+                            "current_password": TEST_USER[2],
+                            "new_password": "boom"}),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
 
         self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
 
@@ -435,8 +422,9 @@ class Password(Setup):
         login(TEST_USER[0], TEST_USER[2])
 
         # Verify that we can't log in using the new password.
-        response = client.post(LOGIN_URL,
-                               {"username": TEST_USER[0], "password": "boom"})
+        response = self.client.post(
+            LOGIN_URL,
+            {"username": TEST_USER[0], "password": "boom"})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
@@ -449,13 +437,12 @@ class Password(Setup):
         token = create_and_login()
 
         # Try changing the password.
-        client = Client()
-        response = \
-            client.post(PASSWORD_URL,
-                        json.dumps({"username": TEST_USER[0],
-                                    "new_password": "boom"}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.post(
+            PASSWORD_URL,
+            json.dumps({"username": TEST_USER[0],
+                        "new_password": "boom"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
@@ -463,8 +450,9 @@ class Password(Setup):
         login(TEST_USER[0], TEST_USER[2])
 
         # Verify that we can't log in using the new password.
-        response = client.post(LOGIN_URL,
-                               {"username": TEST_USER[0], "password": "boom"})
+        response = self.client.post(
+            LOGIN_URL,
+            {"username": TEST_USER[0], "password": "boom"})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
@@ -477,14 +465,13 @@ class Password(Setup):
         token = create_and_login()
 
         # Try changing the password.
-        client = Client()
-        response = \
-            client.post(PASSWORD_URL,
-                        json.dumps({"username": TEST_USER[0],
-                                    "current_password": "rockmeamadeus",
-                                    "new_password": "boom"}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.post(
+            PASSWORD_URL,
+            json.dumps({"username": TEST_USER[0],
+                        "current_password": "rockmeamadeus",
+                        "new_password": "boom"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
@@ -492,8 +479,9 @@ class Password(Setup):
         login(TEST_USER[0], TEST_USER[2])
 
         # Verify that we can't log in using the new password.
-        response = client.post(LOGIN_URL,
-                               {"username": TEST_USER[0], "password": "boom"})
+        response = self.client.post(
+            LOGIN_URL,
+            {"username": TEST_USER[0], "password": "boom"})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
@@ -506,13 +494,12 @@ class Password(Setup):
         token = create_and_login()
 
         # Try changing the password.
-        client = Client()
-        response = \
-            client.post(PASSWORD_URL,
-                        json.dumps({"username": TEST_USER[0],
-                                    "current_password": TEST_USER[2]}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.post(
+            PASSWORD_URL,
+            json.dumps({"username": TEST_USER[0],
+                        "current_password": TEST_USER[2]}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
@@ -526,22 +513,21 @@ class Password(Setup):
         token = create_and_login()
 
         # Try changing the password.
-        client = Client()
-        response = \
-            client.post(PASSWORD_URL,
-                        json.dumps({"current_password": TEST_USER[2],
-                                    "new_password": "boom"}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.post(
+            PASSWORD_URL,
+            json.dumps({"current_password": TEST_USER[2],
+                        "new_password": "boom"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Test logging in using the new password.
         login(TEST_USER[0], "boom")
 
         # Verify that we can't log in using the old password.
-        response = client.post(LOGIN_URL,
-                               {"username": TEST_USER[0],
-                                "password": TEST_USER[2]})
+        response = self.client.post(LOGIN_URL,
+                                    {"username": TEST_USER[0],
+                                     "password": TEST_USER[2]})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
@@ -584,19 +570,18 @@ class PasswordReset(Setup):
 
         # Create a user and log them out.
         create_and_login()
-        client = Client()
-        response = client.post(LOGOUT_URL,
-                               json.dumps({"username": TEST_USER[0],
-                                           "password": TEST_USER[2]}),
-                               content_type="application/json")
+        response = self.client.post(LOGOUT_URL,
+                                    json.dumps({"username": TEST_USER[0],
+                                                "password": TEST_USER[2]}),
+                                    content_type="application/json")
 
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Now try resetting the password.
         response = \
-            client.post(PASSWORD_RESET_URL,
-                        json.dumps({"email": TEST_USER[1]}),
-                        content_type="application/json")
+            self.client.post(PASSWORD_RESET_URL,
+                             json.dumps({"email": TEST_USER[1]}),
+                             content_type="application/json")
 
         self._check_response(response, send_email)
 
@@ -610,13 +595,11 @@ class PasswordReset(Setup):
 
         # Create a user
         create_and_login()
-        client = Client()
 
         # Try resetting the password.
-        response = \
-            client.post(PASSWORD_RESET_URL,
-                        json.dumps({"email": TEST_USER[1]}),
-                        content_type="application/json")
+        response = self.client.post(PASSWORD_RESET_URL,
+                                    json.dumps({"email": TEST_USER[1]}),
+                                    content_type="application/json")
 
         self._check_response(response, send_email)
 
@@ -626,19 +609,17 @@ class PasswordReset(Setup):
 
         # Create a user and log them out.
         create_and_login()
-        client = Client()
 
-        response = client.post(LOGOUT_URL,
-                               json.dumps({"username": TEST_USER[0],
-                                           "password": TEST_USER[2]}),
-                               content_type="application/json")
+        response = self.client.post(LOGOUT_URL,
+                                    json.dumps({"username": TEST_USER[0],
+                                                "password": TEST_USER[2]}),
+                                    content_type="application/json")
 
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Now try resetting the password.
-        response = \
-            client.post(PASSWORD_RESET_URL,
-                        content_type="application/json")
+        response = self.client.post(PASSWORD_RESET_URL,
+                                    content_type="application/json")
 
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
@@ -655,20 +636,19 @@ class PasswordReset(Setup):
 
         # Create a user and log them out.
         create_and_login()
-        client = Client()
 
-        response = client.post(LOGOUT_URL,
-                               json.dumps({"username": TEST_USER[0],
-                                           "password": TEST_USER[2]}),
-                               content_type="application/json")
+        response = self.client.post(LOGOUT_URL,
+                                    json.dumps({"username": TEST_USER[0],
+                                                "password": TEST_USER[2]}),
+                                    content_type="application/json")
 
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Now try resetting the password.
         response = \
-            client.post(PASSWORD_RESET_URL,
-                        json.dumps({"email": "zippl@nyahnyah.org"}),
-                        content_type="application/json")
+            self.client.post(PASSWORD_RESET_URL,
+                             json.dumps({"email": "zippl@nyahnyah.org"}),
+                             content_type="application/json")
 
         self.assertEqual(response.status_code, HTTP_200_OK)
 

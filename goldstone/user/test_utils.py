@@ -19,7 +19,7 @@ TODO: Find a neutral home for this.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.contrib.auth import get_user_model
-from django.test import SimpleTestCase, Client
+from django.test import SimpleTestCase
 from rest_framework.status import HTTP_200_OK
 
 # Test URL
@@ -80,6 +80,7 @@ def login(username, password):
     :rtype: str
 
     """
+    from django.test import Client
 
     # Log the user in, and return the auth token's value.
     client = Client()

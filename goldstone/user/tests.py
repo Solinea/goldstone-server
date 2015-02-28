@@ -13,10 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from django.test import Client
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST
-from .util_test import create_and_login, Setup, AUTHORIZATION_PAYLOAD, \
+from .test_utils import create_and_login, Setup, AUTHORIZATION_PAYLOAD, \
     CONTENT_NO_CREDENTIALS, CONTENT_BAD_TOKEN, CONTENT_MISSING_USERNAME, \
     TEST_USER, check_response_without_uuid
 
@@ -31,8 +30,7 @@ class NoAccess(Setup):
     def test_get_nologin(self):
         """Getting while not logged in."""
 
-        client = Client()
-        response = client.get(USER_URL)
+        response = self.client.get(USER_URL)
 
         self.assertContains(response,
                             CONTENT_NO_CREDENTIALS,
@@ -43,10 +41,9 @@ class NoAccess(Setup):
 
         BAD_TOKEN = "2f7306baced9dddd2c50071d25c6d7f2a46cbfd7"
 
-        client = Client()
-        response = \
-            client.get(USER_URL,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
+        response = self.client.get(
+            USER_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
 
         self.assertContains(response,
                             CONTENT_BAD_TOKEN,
@@ -60,10 +57,9 @@ class NoAccess(Setup):
         # which is very unlikely.)
         bad_token = create_and_login().replace('9', '8')
 
-        client = Client()
-        response = \
-            client.get(USER_URL,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+        response = self.client.get(
+            USER_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
 
         self.assertContains(response,
                             CONTENT_BAD_TOKEN,
@@ -72,10 +68,9 @@ class NoAccess(Setup):
     def test_put_nologin(self):
         """Putting (trying to change user attributes) while not logged in."""
 
-        client = Client()
-        response = client.put(USER_URL,
-                              json.dumps({"first_name": "Dirk"}),
-                              content_type="application/json")
+        response = self.client.put(USER_URL,
+                                   json.dumps({"first_name": "Dirk"}),
+                                   content_type="application/json")
 
         self.assertContains(response,
                             CONTENT_NO_CREDENTIALS,
@@ -92,12 +87,11 @@ class BadPut(Setup):
         # Create a user, and create a bad authorization token.
         bad_token = create_and_login().replace('9', '8')
 
-        client = Client()
-        response = \
-            client.put(USER_URL,
-                       json.dumps({"first_name": "Dirk"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+        response = self.client.put(
+            USER_URL,
+            json.dumps({"first_name": "Dirk"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
 
         self.assertContains(response,
                             CONTENT_BAD_TOKEN,
@@ -110,12 +104,11 @@ class BadPut(Setup):
         # Create a user and get the authorization token.
         token = create_and_login()
 
-        client = Client()
-        response = \
-            client.put(USER_URL,
-                       json.dumps({"first_name": "Dirk"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.put(
+            USER_URL,
+            json.dumps({"first_name": "Dirk"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
                             CONTENT_MISSING_USERNAME,
@@ -138,10 +131,9 @@ class GetPut(Setup):
         # Create a user and get their authorization token.
         token = create_and_login()
 
-        client = Client()
-        response = \
-            client.get(USER_URL,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.get(
+            USER_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         check_response_without_uuid(response, HTTP_200_OK, expected_content)
 
@@ -160,20 +152,19 @@ class GetPut(Setup):
 
         # Change some attributes from the default. Note, the username is
         # required by djoser UserView/PUT.
-        client = Client()
-        response = \
-            client.put(USER_URL,
-                       json.dumps({"username": TEST_USER[0],
-                                   "first_name": "Dirk"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.put(
+            USER_URL,
+            json.dumps({"username": TEST_USER[0],
+                        "first_name": "Dirk"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Now get the account attributes and see if they've changed.
-        response = \
-            client.get(USER_URL,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.get(
+            USER_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         check_response_without_uuid(response, HTTP_200_OK, expected_content)
 
@@ -192,21 +183,20 @@ class GetPut(Setup):
 
         # Change some attributes from the default. Note, the username is
         # required by djoser UserView/PUT.
-        client = Client()
-        response = \
-            client.put(USER_URL,
-                       json.dumps({"username": TEST_USER[0],
-                                   "first_name": "Dirk",
-                                   "last_name": "Diggler"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.put(
+            USER_URL,
+            json.dumps({"username": TEST_USER[0],
+                        "first_name": "Dirk",
+                        "last_name": "Diggler"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Now get the account attributes and see if they've changed.
-        response = \
-            client.get(USER_URL,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.get(
+            USER_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         check_response_without_uuid(response, HTTP_200_OK, expected_content)
 
@@ -226,21 +216,20 @@ class GetPut(Setup):
 
         # Change some attributes from the default. Note, the username is
         # required by djoser UserView/PUT.
-        client = Client()
-        response = \
-            client.put(USER_URL,
-                       json.dumps({"username": "Heywood",
-                                   "first_name": "Dirk",
-                                   "last_name": "Diggler",
-                                   "email": "john@siberia.com"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.put(
+            USER_URL,
+            json.dumps({"username": "Heywood",
+                        "first_name": "Dirk",
+                        "last_name": "Diggler",
+                        "email": "john@siberia.com"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Now get the account attributes and see if they've changed.
-        response = \
-            client.get(USER_URL,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.get(
+            USER_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         check_response_without_uuid(response, HTTP_200_OK, expected_content)
