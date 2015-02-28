@@ -15,18 +15,20 @@
 import arrow
 
 # TODO replace pytz and calendar with arrow
+from datetime import datetime
 import json
-from django.http import HttpResponse
 import pytz
 import calendar
 import logging
 import pandas as pd
 
+from django.http import HttpResponse
 from django.test import SimpleTestCase
-from .models import SpawnData
-from datetime import datetime
 from mock import patch
 from rest_framework.test import APITestCase
+
+from goldstone.user.test_utils import create_and_login
+from .models import SpawnData
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +47,15 @@ class BaseTest(SimpleTestCase):
     invalid_interval = 'abc'
 
     def _assert_success(self, url):
+        """Do a request that should succeed."""
+
+        token = create_and_login()
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
     def _assert_bad_request(self, url):
+        """Do a request that should fail."""
+
         response = self.client.get(url)
         self.assertEqual(response.status_code, 400)
 

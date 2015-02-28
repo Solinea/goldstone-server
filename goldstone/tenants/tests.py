@@ -14,12 +14,11 @@
 # limitations under the License.
 import json
 from django.contrib.auth import get_user_model
-from django.test import Client
 from mock import patch
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_403_FORBIDDEN, \
     HTTP_204_NO_CONTENT
-from goldstone.user.util_test import Setup, create_and_login, login, \
+from goldstone.user.test_utils import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_NO_CREDENTIALS, \
     check_response_without_uuid, TEST_USER, CONTENT_NO_PERMISSION, \
     CONTENT_UNIQUE_NAME, CONTENT_PERMISSION_DENIED, BAD_TOKEN, BAD_UUID, \
@@ -40,41 +39,39 @@ class Tenants(Setup):
         """Getting a tenant list, or creating a tenant, without being logged
         in."""
 
-        client = Client()
-
         # Try getting a tenant list with no token.
-        response = client.get(TENANTS_URL)
+        response = self.client.get(TENANTS_URL)
 
         self.assertContains(response,
                             CONTENT_NO_PERMISSION,
                             status_code=HTTP_403_FORBIDDEN)
 
         # Try getting a tenant list with a bogus token.
-        response = \
-            client.get(TENANTS_URL,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
+        response = self.client.get(
+            TENANTS_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
 
         self.assertContains(response,
                             CONTENT_BAD_TOKEN,
                             status_code=HTTP_401_UNAUTHORIZED)
 
         # Try creating a tenant with no token.
-        response = client.post(TENANTS_URL,
-                               json.dumps({"name": "foobar",
-                                           "owner": "Debra Winger"}),
-                               content_type="application/json")
+        response = self.client.post(TENANTS_URL,
+                                    json.dumps({"name": "foobar",
+                                                "owner": "Debra Winger"}),
+                                    content_type="application/json")
 
         self.assertContains(response,
                             CONTENT_NO_PERMISSION,
                             status_code=HTTP_403_FORBIDDEN)
 
         # Try creating a tenant with a bogus token.
-        response = \
-            client.post(TENANTS_URL,
-                        json.dumps({"name": "foobar",
-                                    "owner": "Debra Winger"}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
+        response = self.client.post(
+            TENANTS_URL,
+            json.dumps({"name": "foobar",
+                        "owner": "Debra Winger"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
 
         self.assertContains(response,
                             CONTENT_BAD_TOKEN,
@@ -88,21 +85,21 @@ class Tenants(Setup):
             """Try getting and posting, using the default test user."""
 
             # Try getting a tenant list.
-            response = \
-                client.get(TENANTS_URL,
-                           HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            response = self.client.get(
+                TENANTS_URL,
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
             self.assertContains(response,
                                 CONTENT_NO_PERMISSION,
                                 status_code=HTTP_403_FORBIDDEN)
 
             # Try creating a tenant.
-            response = \
-                client.post(TENANTS_URL,
-                            json.dumps({"name": "foobar",
-                                        "owner": "Debra Winger"}),
-                            content_type="application/json",
-                            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            response = self.client.post(
+                TENANTS_URL,
+                json.dumps({"name": "foobar",
+                            "owner": "Debra Winger"}),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
             self.assertContains(response,
                                 CONTENT_NO_PERMISSION,
@@ -110,8 +107,6 @@ class Tenants(Setup):
 
         # Create a user and get the authorization token.
         token = create_and_login()
-
-        client = Client()
 
         # Test for no-access, as a normal user.
         get_post()
@@ -135,10 +130,9 @@ class Tenants(Setup):
         token = create_and_login(True)
 
         # Try getting the list.
-        client = Client()
-        response = \
-            client.get(TENANTS_URL,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.get(
+            TENANTS_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
                             EXPECTED_CONTENT,
@@ -172,10 +166,9 @@ class Tenants(Setup):
             owner_contact=EXPECTED_CONTENT["results"][1]["owner_contact"])
 
         # Try getting the list, then check the results.
-        client = Client()
-        response = \
-            client.get(TENANTS_URL,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.get(
+            TENANTS_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
@@ -229,20 +222,19 @@ class Tenants(Setup):
                                      for x in range(number_tenant_admins)]
 
         # Make the tenants, and check each POST's response.
-        client = Client()
         for entry in EXPECTED_CONTENT["results"]:
-            response = \
-                client.post(TENANTS_URL,
-                            json.dumps(entry),
-                            content_type="application/json",
-                            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            response = self.client.post(
+                TENANTS_URL,
+                json.dumps(entry),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
             check_response_without_uuid(response, HTTP_201_CREATED, entry)
 
         # Now get the list and see if it matches what we expect.
-        response = \
-            client.get(TENANTS_URL,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.get(
+            TENANTS_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         # Check the response.
         check_response_without_uuid(response,
@@ -302,13 +294,12 @@ class Tenants(Setup):
                                              default_tenant_admin=True)
 
         # Make the tenants, and check each POST's response.
-        client = Client()
         for entry in TEST:
-            response = \
-                client.post(TENANTS_URL,
-                            json.dumps(entry),
-                            content_type="application/json",
-                            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            response = self.client.post(
+                TENANTS_URL,
+                json.dumps(entry),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
             self.assertContains(response,
                                 ':["This field is required."]}',
@@ -333,22 +324,21 @@ class Tenants(Setup):
                                              default_tenant_admin=True)
 
         # Make a tenant.
-        client = Client()
-        response = \
-            client.post(TENANTS_URL,
-                        json.dumps(TEST),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.post(
+            TENANTS_URL,
+            json.dumps(TEST),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertEqual(response.status_code, HTTP_201_CREATED)
         self.assertEqual(send_email.call_count, 1)
 
         # Now try making it again.
-        response = \
-            client.post(TENANTS_URL,
-                        json.dumps(TEST),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.post(
+            TENANTS_URL,
+            json.dumps(TEST),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
                             CONTENT_UNIQUE_NAME,
@@ -370,12 +360,11 @@ class TenantsId(Setup):
                                        owner_contact='206.867.5309')
 
         # Try getting, putting, and deleting a tenant without a token.
-        client = Client()
-        responses = [client.get(TENANTS_ID_URL % tenant.uuid.hex),
-                     client.put(TENANTS_ID_URL % tenant.uuid.hex,
-                                json.dumps({"name": "foobar"}),
-                                content_type="application/json"),
-                     client.delete(TENANTS_ID_URL % tenant.uuid.hex)]
+        responses = [self.client.get(TENANTS_ID_URL % tenant.uuid.hex),
+                     self.client.put(TENANTS_ID_URL % tenant.uuid.hex,
+                                     json.dumps({"name": "foobar"}),
+                                     content_type="application/json"),
+                     self.client.delete(TENANTS_ID_URL % tenant.uuid.hex)]
 
         for response in responses:
             self.assertContains(response,
@@ -384,15 +373,18 @@ class TenantsId(Setup):
 
         # Try getting, putting, and deleting a tenant with a bad token.
         responses = [
-            client.get(TENANTS_ID_URL % tenant.uuid.hex,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
-            client.put(TENANTS_ID_URL % tenant.uuid.hex,
-                       json.dumps({"name": "foobar"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
-            client.delete(TENANTS_ID_URL % tenant.uuid.hex,
-                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
-            ]
+            self.client.get(
+                TENANTS_ID_URL % tenant.uuid.hex,
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
+            self.client.put(
+                TENANTS_ID_URL % tenant.uuid.hex,
+                json.dumps({"name": "foobar"}),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
+            self.client.delete(
+                TENANTS_ID_URL % tenant.uuid.hex,
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
+        ]
 
         for response in responses:
             self.assertContains(response,
@@ -420,17 +412,19 @@ class TenantsId(Setup):
                    for i in range(2)]
 
         # Try getting, putting, and deleting a tenant as a normal user.
-        client = Client()
         responses = [
-            client.get(TENANTS_ID_URL % tenants[0].uuid.hex,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            client.put(TENANTS_ID_URL % tenants[0].uuid.hex,
-                       json.dumps({"name": "foobar"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            client.delete(TENANTS_ID_URL % tenants[0].uuid.hex,
-                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-            ]
+            self.client.get(
+                TENANTS_ID_URL % tenants[0].uuid.hex,
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            self.client.put(
+                TENANTS_ID_URL % tenants[0].uuid.hex,
+                json.dumps({"name": "foobar"}),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            self.client.delete(
+                TENANTS_ID_URL % tenants[0].uuid.hex,
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        ]
 
         for response in responses:
             self.assertContains(response,
@@ -442,9 +436,9 @@ class TenantsId(Setup):
         user.tenant = tenants[1]
         user.save()
 
-        response = \
-            client.delete(TENANTS_ID_URL % tenants[0].uuid.hex,
-                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.delete(
+            TENANTS_ID_URL % tenants[0].uuid.hex,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
                             CONTENT_PERMISSION_DENIED,
@@ -454,9 +448,9 @@ class TenantsId(Setup):
         user.tenant = tenants[0]
         user.save()
 
-        response = \
-            client.delete(TENANTS_ID_URL % tenants[0].uuid.hex,
-                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.delete(
+            TENANTS_ID_URL % tenants[0].uuid.hex,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
                             CONTENT_PERMISSION_DENIED,
@@ -477,17 +471,19 @@ class TenantsId(Setup):
         tenant.delete()
 
         # Try getting, putting, and deleting a tenant that doesn't exist.
-        client = Client()
         responses = [
-            client.get(TENANTS_ID_URL % uuid,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            client.put(TENANTS_ID_URL % uuid,
-                       json.dumps({"name": "foobar"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            client.delete(TENANTS_ID_URL % uuid,
-                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-            ]
+            self.client.get(
+                TENANTS_ID_URL % uuid,
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            self.client.put(
+                TENANTS_ID_URL % uuid,
+                json.dumps({"name": "foobar"}),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            self.client.delete(
+                TENANTS_ID_URL % uuid,
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        ]
 
         for response in responses:
             self.assertContains(response,
@@ -505,10 +501,9 @@ class TenantsId(Setup):
         def get_tenant(token):
             """Get the tenant using the token, and check the response."""
 
-            client = Client()
-            response = \
-                client.get(TENANTS_ID_URL % tenant.uuid.hex,
-                           HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            response = self.client.get(
+                TENANTS_ID_URL % tenant.uuid.hex,
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
             check_response_without_uuid(response, HTTP_200_OK, EXPECTED_RESULT)
 
@@ -546,10 +541,9 @@ class TenantsId(Setup):
         def get_tenant(token, expected):
             """Get the tenant using the token and check the response."""
 
-            client = Client()
-            response = \
-                client.get(TENANTS_ID_URL % tenant.uuid.hex,
-                           HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            response = self.client.get(
+                TENANTS_ID_URL % tenant.uuid.hex,
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
             check_response_without_uuid(response, HTTP_200_OK, expected)
 
@@ -566,23 +560,22 @@ class TenantsId(Setup):
                                              tenant_admin=True)
 
         # Test changing the tenant as a Django admin.
-        client = Client()
-        response = \
-            client.put(TENANTS_ID_URL % tenant.uuid.hex,
-                       json.dumps(NEW_TENANT),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.put(
+            TENANTS_ID_URL % tenant.uuid.hex,
+            json.dumps(NEW_TENANT),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         check_response_without_uuid(response, HTTP_200_OK, NEW_TENANT)
         get_tenant(token, NEW_TENANT)
 
         # Test changing the tenant as a tenant admin.
         token = login('a', 'a')
-        response = \
-            client.put(TENANTS_ID_URL % tenant.uuid.hex,
-                       json.dumps(NEW_TENANT),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.put(
+            TENANTS_ID_URL % tenant.uuid.hex,
+            json.dumps(NEW_TENANT),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         check_response_without_uuid(response, HTTP_200_OK, NEW_TENANT)
         get_tenant(token, NEW_TENANT)
@@ -604,10 +597,9 @@ class TenantsId(Setup):
 
         # Delete the tenant.  This will also delete the users who belong to the
         # tenant.
-        client = Client()
-        response = \
-            client.delete(TENANTS_ID_URL % tenant.uuid.hex,
-                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.delete(
+            TENANTS_ID_URL % tenant.uuid.hex,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertEqual(response.status_code, HTTP_204_NO_CONTENT)
 
@@ -629,13 +621,12 @@ class TenantsIdUsers(Setup):
                                        owner_contact='206.867.5309')
 
         # Try the GET and POST without an authorization token.
-        client = Client()
-        responses = [client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex),
-                     client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                                 json.dumps({"username": "fool",
-                                             "password": "fooll",
-                                             "email": "a@b.com"}),
-                                 content_type="application/json")]
+        responses = [self.client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex),
+                     self.client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                                      json.dumps({"username": "fool",
+                                                  "password": "fooll",
+                                                  "email": "a@b.com"}),
+                                      content_type="application/json")]
 
         for response in responses:
             self.assertContains(response,
@@ -643,15 +634,17 @@ class TenantsIdUsers(Setup):
                                 status_code=HTTP_401_UNAUTHORIZED)
 
         # Try the GET and POST with a bad authorization token.
-        responses = \
-            [client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
-             client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                         json.dumps({"username": "fool",
-                                     "password": "fooll",
-                                     "email": "a@b.com"}),
-                         content_type="application/json",
-                         HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)]
+        responses = [
+            self.client.get(
+                TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
+            self.client.post(
+                TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                json.dumps({"username": "fool",
+                            "password": "fooll",
+                            "email": "a@b.com"}),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)]
 
         for response in responses:
             self.assertContains(response,
@@ -675,16 +668,17 @@ class TenantsIdUsers(Setup):
         user.save()
 
         # Try the GET and POST.
-        client = Client()
         responses = [
-            client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                        json.dumps({"username": "fool",
-                                    "password": "fooll",
-                                    "email": "a@b.com"}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
+            self.client.get(
+                TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            self.client.post(
+                TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                json.dumps({"username": "fool",
+                            "password": "fooll",
+                            "email": "a@b.com"}),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
 
         for response in responses:
             self.assertContains(response,
@@ -705,16 +699,17 @@ class TenantsIdUsers(Setup):
         tenant.delete()
 
         # Try the GET and POST to a tenant that doesn't exist.
-        client = Client()
         responses = [
-            client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                        json.dumps({"username": "fool",
-                                    "password": "fooll",
-                                    "email": "a@b.com"}),
-                        content_type="application/json",
-                        HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
+            self.client.get(
+                TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            self.client.post(
+                TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                json.dumps({"username": "fool",
+                            "password": "fooll",
+                            "email": "a@b.com"}),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
 
         for response in responses:
             self.assertContains(response,
@@ -776,10 +771,9 @@ class TenantsIdUsers(Setup):
         token = login(tenant_admin["username"], tenant_admin["password"])
 
         # Get the tenant's user list and check the response.
-        client = Client()
-        response = \
-            client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.get(
+            TENANTS_ID_USERS_URL % tenant.uuid.hex,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertEqual(response.status_code, HTTP_200_OK)
 
@@ -812,12 +806,11 @@ class TenantsIdUsers(Setup):
 
             """
 
-            client = Client()
-            response = \
-                client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
-                            json.dumps(TENANT_USERS[user_number]),
-                            content_type="application/json",
-                            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            response = self.client.post(
+                TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                json.dumps(TENANT_USERS[user_number]),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
             check_response_without_uuid(response,
                                         HTTP_201_CREATED,
@@ -893,17 +886,16 @@ class TenantsIdUsersId(Setup):
         user.save()
 
         # Try GET, PUT, and DELETE without an authorization token.
-        client = Client()
-        responses = [client.get(TENANTS_ID_USERS_ID_URL %
-                                (tenant.uuid.hex, user.uuid.hex)),
-                     client.put(TENANTS_ID_USERS_ID_URL %
-                                (tenant.uuid.hex, user.uuid.hex),
-                                json.dumps({"username": "fool",
-                                            "password": "fooll",
-                                            "email": "a@b.com"}),
-                                content_type="application/json"),
-                     client.delete(TENANTS_ID_USERS_ID_URL %
-                                   (tenant.uuid.hex, user.uuid.hex)),
+        responses = [self.client.get(TENANTS_ID_USERS_ID_URL %
+                                     (tenant.uuid.hex, user.uuid.hex)),
+                     self.client.put(TENANTS_ID_USERS_ID_URL %
+                                     (tenant.uuid.hex, user.uuid.hex),
+                                     json.dumps({"username": "fool",
+                                                 "password": "fooll",
+                                                 "email": "a@b.com"}),
+                                     content_type="application/json"),
+                     self.client.delete(TENANTS_ID_USERS_ID_URL %
+                                        (tenant.uuid.hex, user.uuid.hex)),
                      ]
 
         for response in responses:
@@ -913,19 +905,18 @@ class TenantsIdUsersId(Setup):
 
         # Try again with a bad authorization token.
         responses = [
-            client.get(TENANTS_ID_USERS_ID_URL %
-                       (tenant.uuid.hex, user.uuid.hex),
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
-            client.put(TENANTS_ID_USERS_ID_URL %
-                       (tenant.uuid.hex, user.uuid.hex),
-                       json.dumps({"username": "fool",
-                                   "password": "fooll",
-                                   "email": "a@b.com"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
-            client.delete(
-                TENANTS_ID_USERS_ID_URL %
-                (tenant.uuid.hex, user.uuid.hex),
+            self.client.get(
+                TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
+            self.client.put(
+                TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+                json.dumps({"username": "fool",
+                            "password": "fooll",
+                            "email": "a@b.com"}),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
+            self.client.delete(
+                TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
         ]
 
@@ -950,21 +941,19 @@ class TenantsIdUsersId(Setup):
         user.save()
 
         # Try GET, PUT, and DELETE.
-        client = Client()
         responses = [
-            client.get(TENANTS_ID_USERS_ID_URL %
-                       (tenant.uuid.hex, user.uuid.hex),
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            client.put(TENANTS_ID_USERS_ID_URL %
-                       (tenant.uuid.hex, user.uuid.hex),
-                       json.dumps({"username": "fool",
-                                   "password": "fooll",
-                                   "email": "a@b.com"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            client.delete(
-                TENANTS_ID_USERS_ID_URL %
-                (tenant.uuid.hex, user.uuid.hex),
+            self.client.get(
+                TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            self.client.put(
+                TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+                json.dumps({"username": "fool",
+                            "password": "fooll",
+                            "email": "a@b.com"}),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            self.client.delete(
+                TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
         ]
 
@@ -993,23 +982,21 @@ class TenantsIdUsersId(Setup):
         user.save()
 
         # Try GET, PUT, and DELETE to a nonexistent tenant.
-        client = Client()
         responses = [
-            client.get(TENANTS_ID_USERS_ID_URL %
-                       (BAD_UUID, user.uuid.hex),
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            client.put(TENANTS_ID_USERS_ID_URL %
-                       (BAD_UUID, user.uuid.hex),
-                       json.dumps({"username": "fool",
-                                   "password": "fooll",
-                                   "email": "a@b.com"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            client.delete(
-                TENANTS_ID_USERS_ID_URL %
-                (BAD_UUID, user.uuid.hex),
+            self.client.get(
+                TENANTS_ID_USERS_ID_URL % (BAD_UUID, user.uuid.hex),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
-            ]
+            self.client.put(
+                TENANTS_ID_USERS_ID_URL % (BAD_UUID, user.uuid.hex),
+                json.dumps({"username": "fool",
+                            "password": "fooll",
+                            "email": "a@b.com"}),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+            self.client.delete(
+                TENANTS_ID_USERS_ID_URL % (BAD_UUID, user.uuid.hex),
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
+        ]
 
         for response in responses:
             self.assertContains(response,
@@ -1032,11 +1019,10 @@ class TenantsIdUsersId(Setup):
         user.save()
 
         # Try GETing a nonexistent user from this tenant.
-        client = Client()
-        response = \
-            client.get(TENANTS_ID_USERS_ID_URL %
-                       (tenant.uuid.hex, BAD_UUID),
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.get(
+            TENANTS_ID_USERS_ID_URL %
+            (tenant.uuid.hex, BAD_UUID),
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
                             CONTENT_PERMISSION_DENIED,
@@ -1075,11 +1061,10 @@ class TenantsIdUsersId(Setup):
         user.save()
 
         # Try GETing the tenant admin.
-        client = Client()
-        response = \
-            client.get(TENANTS_ID_USERS_ID_URL %
-                       (tenant.uuid.hex, user.uuid.hex),
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.get(
+            TENANTS_ID_USERS_ID_URL %
+            (tenant.uuid.hex, user.uuid.hex),
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         check_response_without_uuid(response, HTTP_200_OK, expected_results[0])
 
@@ -1090,10 +1075,10 @@ class TenantsIdUsersId(Setup):
         user.save()
 
         # Try GETing the second user.
-        response = \
-            client.get(TENANTS_ID_USERS_ID_URL %
-                       (tenant.uuid.hex, user.uuid.hex),
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.get(
+            TENANTS_ID_USERS_ID_URL %
+            (tenant.uuid.hex, user.uuid.hex),
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         check_response_without_uuid(response, HTTP_200_OK, expected_results[1])
 
@@ -1113,14 +1098,11 @@ class TenantsIdUsersId(Setup):
         user.save()
 
         # Try PUTing to a nonexistent user in this tenant.
-        client = Client()
-        response = \
-            client.put(TENANTS_ID_USERS_ID_URL %
-                       (tenant.uuid.hex, BAD_UUID),
-                       json.dumps({"username": "fool",
-                                   "email": "a@b.com"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.put(
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, BAD_UUID),
+            json.dumps({"username": "fool", "email": "a@b.com"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
                             CONTENT_PERMISSION_DENIED,
@@ -1171,11 +1153,9 @@ class TenantsIdUsersId(Setup):
         user.save()
 
         # Try PUTing to the user with no username.
-        client = Client()
-        response = \
-            client.put(TENANTS_ID_USERS_ID_URL %
-                       (tenant.uuid.hex, user.uuid.hex),
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.put(
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
                             CONTENT_NOT_BLANK_USERNAME,
@@ -1188,12 +1168,11 @@ class TenantsIdUsersId(Setup):
                                     "billybopfoo": "blaRGH",
                                     "first_name": "Michelle"},
                                    ]):
-            response = \
-                client.put(TENANTS_ID_USERS_ID_URL %
-                           (tenant.uuid.hex, user.uuid.hex),
-                           json.dumps(entry),
-                           content_type="application/json",
-                           HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            response = self.client.put(
+                TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+                json.dumps(entry),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
             check_response_without_uuid(response,
                                         HTTP_200_OK,
@@ -1201,16 +1180,15 @@ class TenantsIdUsersId(Setup):
 
         # Try PUTing to the user on a field that's not allowed to be changed.
         # The response should be the same as the "unrecognized field" case.
-        response = \
-            client.put(TENANTS_ID_USERS_ID_URL %
-                       (tenant.uuid.hex, user.uuid.hex),
-                       json.dumps({"username": "Beth",
-                                   "billybopfoo": "blaRGH",
-                                   "tenant_admin": True,
-                                   "default_tenant_admin": True,
-                                   "first_name": "Michelle"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.put(
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+            json.dumps({"username": "Beth",
+                        "billybopfoo": "blaRGH",
+                        "tenant_admin": True,
+                        "default_tenant_admin": True,
+                        "first_name": "Michelle"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
@@ -1248,16 +1226,14 @@ class TenantsIdUsersId(Setup):
         user.save()
 
         # Try PUTing to the user.
-        client = Client()
-        response = \
-            client.put(TENANTS_ID_USERS_ID_URL %
-                       (tenant.uuid.hex, user.uuid.hex),
-                       json.dumps({"username": "Beth",
-                                   "first_name": '1',
-                                   "last_name": '2',
-                                   "email": "x@y.com"}),
-                       content_type="application/json",
-                       HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.put(
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+            json.dumps({"username": "Beth",
+                        "first_name": '1',
+                        "last_name": '2',
+                        "email": "x@y.com"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         check_response_without_uuid(response, HTTP_200_OK, expected_response)
 
@@ -1290,11 +1266,10 @@ class TenantsIdUsersId(Setup):
         user.save()
 
         # Try DELETE on the default_admin_user.
-        client = Client()
-        response = \
-            client.delete(TENANTS_ID_USERS_ID_URL %
-                          (tenant.uuid.hex, default_tenant_admin.uuid.hex),
-                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.delete(
+            TENANTS_ID_USERS_ID_URL %
+            (tenant.uuid.hex, default_tenant_admin.uuid.hex),
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
                             CONTENT_PERMISSION_DENIED,
@@ -1320,11 +1295,9 @@ class TenantsIdUsersId(Setup):
         admin_user.save()
 
         # Try DELETE on oneself.
-        client = Client()
-        response = \
-            client.delete(TENANTS_ID_USERS_ID_URL %
-                          (tenant.uuid.hex, admin_user.uuid.hex),
-                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.delete(
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, admin_user.uuid.hex),
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
                             CONTENT_PERMISSION_DENIED,
@@ -1366,11 +1339,9 @@ class TenantsIdUsersId(Setup):
         user.save()
 
         # Try DELETE on the normal user.
-        client = Client()
-        response = \
-            client.delete(TENANTS_ID_USERS_ID_URL %
-                          (tenant.uuid.hex, user.uuid.hex),
-                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.delete(
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
                             CONTENT_PERMISSION_DENIED,
@@ -1408,11 +1379,9 @@ class TenantsIdUsersId(Setup):
         user.save()
 
         # Try DELETE on the normal user.
-        client = Client()
-        response = \
-            client.delete(TENANTS_ID_USERS_ID_URL %
-                          (tenant.uuid.hex, user.uuid.hex),
-                          HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        response = self.client.delete(
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response, '', status_code=HTTP_204_NO_CONTENT)
 

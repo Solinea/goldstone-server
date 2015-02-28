@@ -238,7 +238,7 @@ class UserViewSet(BaseViewSet):
                 'plain_body_template_name': 'new_tenant_body.txt'}
 
     def _get_tenant(self):
-        """Return the underlying Tenant row for this request, or raise a
+        """Return the underlying Tenant row, or raise a
         PermissionDenied exception."""
 
         target_uuid = self.get_parents_query_dict()["tenant"]
@@ -252,7 +252,7 @@ class UserViewSet(BaseViewSet):
         """Return the queryset for list views iff the user is a tenant_admin of
         the underlying tenant."""
 
-        # Get the underlying Tenant row for this request.
+        # Get the underlying Tenant row.
         tenant = self._get_tenant()
 
         # N.B. User.is_authenticated() filters out the AnonymousUser object.
@@ -266,7 +266,7 @@ class UserViewSet(BaseViewSet):
     def perform_create(self, serializer):
         """Create a user for the underlying Tenant."""
 
-        # Get the underlying Tenant row for this request.
+        # Get the underlying Tenant row.
         tenant = self._get_tenant()
 
         # N.B. User.is_authenticated() filters out the AnonymousUser object.
@@ -293,7 +293,7 @@ class UserViewSet(BaseViewSet):
         """Delete a user of the underlying Tenant, if permissions and delete
         restrictions are met."""
 
-        # Get the underlying Tenant row for this request.
+        # Get the underlying Tenant row.
         tenant = self._get_tenant()
 
         # N.B. User.is_authenticated() filters out the AnonymousUser object.
