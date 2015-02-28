@@ -578,6 +578,7 @@ class EventViewTests(APISimpleTestCase):
 
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+        EventType.refresh_index()
         response = self.client.get(
             '/core/events',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
