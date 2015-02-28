@@ -79,31 +79,37 @@ class DataViewTests(SimpleTestCase):
             self.assertIsInstance(results[0], list)
 
     def test_get_volumes(self):
+
         self._evaluate(self.client.get(
             "/cinder/volumes",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_backups(self):
+
         self._evaluate(self.client.get(
             "/cinder/backups",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_snapshots(self):
+
         self._evaluate(self.client.get(
             "/cinder/snapshots",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_services(self):
+
         self._evaluate(self.client.get(
             "/cinder/services",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_volume_types(self):
+
         self._evaluate(self.client.get(
             "/cinder/volume_types",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_transfers(self):
+
         self._evaluate(self.client.get(
             "/cinder/transfers",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
