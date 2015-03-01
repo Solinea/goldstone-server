@@ -109,7 +109,8 @@ def create_and_login(is_staff=False):
 
 
 def check_response_without_uuid(response, expected_status_code,
-                                expected_content, uuid_under_results=False):
+                                expected_content, uuid_under_results=False,
+                                extra_keys=None):
     """Compare a response's content with expected content, without fully
     comparing the "uuid" key.
 
@@ -117,6 +118,9 @@ def check_response_without_uuid(response, expected_status_code,
     key existst, and its value is a string that's at least N digits long. If
     those checks pass, we assume the uuid is correct, and then do an exact
     comparison of the remainder of the response.
+
+    The extra_keys hook allows the caller to specify the same treatment (except
+    for the length of the value) for arbitrary keys.
 
     :param response: The HTTP response to be tested
     :type response: django.test.client.Response
@@ -128,6 +132,11 @@ def check_response_without_uuid(response, expected_status_code,
                                  key. Its value is a list of dicts, and each
                                  dict contains a 'uuid' key. If False,
                                  response.content contains a 'uuid' key.
+    :type uuid_under_results: bool
+    :keyword extra_keys: If not None, a list of keys. These keys will be
+                         checked for their existence, and their values must
+                         be strings.
+    :type extra_keys: list of str
 
     """
     import json
@@ -153,6 +162,13 @@ def check_response_without_uuid(response, expected_status_code,
         # Look under response_content for the single 'uuid' key.
         uuid_check(response_content)
         del response_content["uuid"]
+
+    # Check the extra_keys keys for existence, and their values must be
+    # strings.
+    if extra_keys is not None:
+        for key in extra_keys:
+            assert isinstance(response_content[key], basestring)
+            del response_content[key]
 
     # Now check that every other key is in the response.
     assert response_content == expected_content

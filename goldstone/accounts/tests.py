@@ -18,87 +18,15 @@ from mock import patch
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from goldstone.test_utils import Setup, create_and_login, login, \
-    AUTHORIZATION_PAYLOAD, CONTENT_BAD_TOKEN, CONTENT_MISSING_FIELDS, \
-    CONTENT_MISSING_USERNAME, CONTENT_MISSING_PASSWORD, \
-    CONTENT_UNIQUE_USERNAME, CONTENT_NON_FIELD_ERRORS, LOGIN_URL, \
-    TEST_USER, CONTENT_NOT_BLANK
+    AUTHORIZATION_PAYLOAD, CONTENT_MISSING_FIELDS, CONTENT_MISSING_USERNAME, \
+    CONTENT_MISSING_PASSWORD, CONTENT_UNIQUE_USERNAME, \
+    CONTENT_NON_FIELD_ERRORS, LOGIN_URL, TEST_USER, CONTENT_NOT_BLANK
 
 # URLs used by this module.
-SETTINGS_URL = "/accounts/settings"
 REGISTRATION_URL = "/accounts/register"
 LOGOUT_URL = "/accounts/login"
 PASSWORD_URL = "/accounts/password"
 PASSWORD_RESET_URL = PASSWORD_URL + "/reset"
-
-
-class Settings(Setup):
-    """Retrieving and setting account settings."""
-
-    def test_get(self):
-        """Get user settings.
-
-        At the moment, there are no settings to test against.
-
-        """
-
-        # Create a user and get the authorization token.
-        token = create_and_login()
-
-        response = self.client.get(
-            SETTINGS_URL,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-        self.assertContains(response, {}, status_code=HTTP_200_OK)
-
-    def test_put(self):
-        """Set user settings.
-
-        At the moment, there are no settings to test against.
-
-        """
-
-        # Create a user and get the authorization token.
-        token = create_and_login()
-
-        response = self.client.put(
-            SETTINGS_URL,
-            json.dumps({}),
-            content_type="application/json",
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-        self.assertContains(response, {}, status_code=HTTP_200_OK)
-
-    def test_get_badtoken(self):
-        """Doing a GET with a bad token."""
-
-        # Create a user, and create a bad authorization token.
-        bad_token = create_and_login().replace('9', '8').replace('4', '3')
-
-        response = self.client.get(
-            SETTINGS_URL,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
-
-        self.assertContains(response,
-                            CONTENT_BAD_TOKEN,
-                            status_code=HTTP_401_UNAUTHORIZED)
-
-    def test_put_badtoken(self):
-        """Doing a PUT with a bad token."""
-
-        # Create a user, and create a bad authorization token.  (This test will
-        # erroneously fail if the good token doesn't contain any 9 characters,
-        # which is very unlikely.)
-        bad_token = create_and_login().replace('9', '8').replace('4', '2')
-
-        response = self.client.put(
-            SETTINGS_URL,
-            json.dumps({}),
-            content_type="application/json",
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
-
-        self.assertContains(response,
-                            CONTENT_BAD_TOKEN,
-                            status_code=HTTP_401_UNAUTHORIZED)
 
 
 class Register(Setup):

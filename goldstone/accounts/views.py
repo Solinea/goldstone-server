@@ -15,34 +15,10 @@
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserRegistrationWithAuthTokenSerializer
 from djoser.views import RegistrationView as DjoserRegistrationView
-from rest_framework import generics
-from rest_framework.serializers import ModelSerializer
-from .models import Settings
 
 # Not a valid module-level symbol name, but this is the name djoser used, so
 # we'll keep deltas between there and here to a minimum.
 User = get_user_model()     # pylint: disable=C0103
-
-
-class SettingsSerializer(ModelSerializer):
-    """The serializer for the Settings table."""
-
-    class Meta:                         # pylint: disable=C0111,W0232,C1001
-        model = Settings
-        fields = []
-
-
-class SettingsView(generics.RetrieveUpdateAPIView):
-    """The endpoint for retreiving and updating account settings that can be
-    modified by the user."""
-
-    model = Settings
-    serializer_class = SettingsSerializer
-
-    def get_object(self, *args, **kwargs):         # pylint: disable=W0613
-        """Return this user's Settings row."""
-
-        return self.request.user.settings
 
 
 class RegistrationSerializer(UserRegistrationWithAuthTokenSerializer):
