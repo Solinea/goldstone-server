@@ -18,14 +18,28 @@ from rest_framework.serializers import ModelSerializer
 
 
 class UserSerializer(ModelSerializer):
-    """A User table serializer that exposes a subset of fields that we want the
-    user to be able to see."""
+    """A User table serializer that exposes a subset of fields to the user."""
 
     class Meta:                        # pylint: disable=C0111,W0232,C1001
         model = get_user_model()
-        fields = ("username", "first_name", "last_name", "email",
-                  "tenant_admin", "default_tenant_admin", "uuid")
-        read_only_fields = ("tenant_admin", "default_tenant_admin", "uuid")
+
+        # We use exclude, so that as per-user settings are defined, the code
+        # will do the right thing with them by default.
+        exclude = ("id",
+                   "user_permissions",
+                   "groups",
+                   "is_staff",
+                   "is_active",
+                   "is_superuser",
+                   "password",
+                   "tenant",
+                   )
+        read_only_fields = ("tenant_admin",
+                            "default_tenant_admin",
+                            "uuid",
+                            "date_joined",
+                            "last_login",
+                            )
 
 
 class UserView(djoser_views.UserView):

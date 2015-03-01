@@ -135,7 +135,10 @@ class GetPut(Setup):
             USER_URL,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        check_response_without_uuid(response, HTTP_200_OK, expected_content)
+        check_response_without_uuid(response,
+                                    HTTP_200_OK,
+                                    expected_content,
+                                    extra_keys=["last_login", "date_joined"])
 
     def test_change_one_field(self):
         """Change one field in the account."""
@@ -166,7 +169,10 @@ class GetPut(Setup):
             USER_URL,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        check_response_without_uuid(response, HTTP_200_OK, expected_content)
+        check_response_without_uuid(response,
+                                    HTTP_200_OK,
+                                    expected_content,
+                                    extra_keys=["last_login", "date_joined"])
 
     def test_change_some_fields(self):
         """Get data from an account, after we've modified some fields."""
@@ -198,7 +204,10 @@ class GetPut(Setup):
             USER_URL,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        check_response_without_uuid(response, HTTP_200_OK, expected_content)
+        check_response_without_uuid(response,
+                                    HTTP_200_OK,
+                                    expected_content,
+                                    extra_keys=["last_login", "date_joined"])
 
     def test_change_all_fields(self):
         """Get data from an account, after we've modified all the
@@ -232,4 +241,7 @@ class GetPut(Setup):
             USER_URL,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        check_response_without_uuid(response, HTTP_200_OK, expected_content)
+        check_response_without_uuid(response,
+                                    HTTP_200_OK,
+                                    expected_content,
+                                    extra_keys=["last_login", "date_joined"])

@@ -17,6 +17,7 @@ import sys
 
 from contextlib import contextmanager
 from fabric.api import task, local, warn, prompt
+from fabric.colors import red, green
 
 # Add the current directory to the module search path.
 sys.path.append('')
@@ -113,19 +114,25 @@ def _choose(choices):
 
 @task
 def syncmigrate(proj_settings=DEV_SETTINGS):
-    """Do a syncdb and migrate.
+    """Do a /manage.py syncdb and migrate.
 
-    This is the last installation step before execution a load command."""
+    This is the last installation step before execution a load command.
+
+    """
 
     print "doing a syncdb and migrate ..."
-    print '(answer "no" to the, "create a superuser?" question.)'
+    print red(
+        'N.B: Answer "no" to the, "Would you like to create a superuser?" '
+        'question.')
+
     _django_manage("syncdb", proj_settings=proj_settings)
     _django_manage("migrate", proj_settings=proj_settings)
 
-    # N.B. We must create the superuser separately because of an interaction
-    # between DRF and Django signals. See
+    # We must create the superuser separately because of an interaction between
+    # DRF and Django signals. See
     # https://github.com/tomchristie/django-rest-framework/issues/987.
-    print "please create a superuser account ..."
+    print
+    print green("now you can create a superuser account ...")
     _django_manage("createsuperuser", proj_settings=proj_settings)
 
 
@@ -133,7 +140,9 @@ def syncmigrate(proj_settings=DEV_SETTINGS):
 def load(proj_settings=DEV_SETTINGS):
     """Do an initialize_development().
 
-    This is the last installation step before executing a runserver command."""
+    This is the last installation step before executing a runserver command.
+
+    """
 
     print "initializing goldstone ..."
     with _django_env(proj_settings):

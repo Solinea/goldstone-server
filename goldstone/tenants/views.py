@@ -23,15 +23,9 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from goldstone.utils import django_admin_only
-from goldstone.user.views import UserSerializer as AccountsUserSerializer
 from .models import Tenant
 
 logger = logging.getLogger(__name__)
-
-# We need to get at the AccountsUserSerializer's fields property.  This appears
-# to be the only way to do it. It's a hack.
-HACK_OBJECT = AccountsUserSerializer()
-HACK_FIELDS = HACK_OBJECT.fields.keys()
 
 
 class TenantSerializer(ModelSerializer):
@@ -43,18 +37,38 @@ class TenantSerializer(ModelSerializer):
         read_only_fields = ('uuid', )
 
 
-class UserSerializer(AccountsUserSerializer):
-    """A User table serializer that's used when accessing a user as a "child"
-    of his/her tenant. E.g., /tenants/<id>/user/<id>.
+class UserSerializer(ModelSerializer):
+    """This is identical to the user.views.UserSerializer, except that it
+    exposes the Tenant relationship.
 
-    This adds the Tenant relationship.
+    This is ugly.
+
+    We can't subclass part of the Meta sub-class, so we need to duplicate
+    the entire serializer class.
+
+    TODO: Find a way to delete this.
 
     """
 
-    class Meta:          # pylint: disable=C1001,C0111,W0232
+    class Meta:                        # pylint: disable=C0111,W0232,C1001
         model = get_user_model()
-        fields = HACK_FIELDS + ["tenant"]
-        read_only_fields = ("tenant_admin", "default_tenant_admin", "uuid")
+
+        # We use exclude, so that as per-user settings are defined, the code
+        # will do the right thing with them by default.
+        exclude = ("id",
+                   "user_permissions",
+                   "groups",
+                   "is_staff",
+                   "is_active",
+                   "is_superuser",
+                   "password",
+                   )
+        read_only_fields = ("tenant_admin",
+                            "default_tenant_admin",
+                            "uuid",
+                            "date_joined",
+                            "last_login",
+                            )
 
 
 class DjangoOrTenantAdminPermission(BasePermission):

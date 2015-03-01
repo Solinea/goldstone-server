@@ -1,11 +1,6 @@
 """Custom User model.
 
-This needs to be in its own models file in order to avoid circular imports from
-the Settings table.
-
-User --+-- 1:1 --- Settings
-       |
-       +-- m:1 --- Tenant   (users and administrators)
+User --- m:1 --- Tenant   (users and administrators)
 
 """
 # Copyright 2015 Solinea, Inc.
@@ -49,13 +44,24 @@ class User(AbstractUser):
     # This allows URLs to identify a row using a UUID value.
     uuid = UUIDField(auto=True)
 
+    # Define per-user settings below this comment. Defining them in another
+    # table with a 1:1 relationship to this one would be more normalized, and a
+    # common Django idiom. However, REST doesn't play well with 1:1 resource
+    # relationships. The pragmatic solution is to define user settings in this
+    # table until such time as they become unwieldy.
+
+    def __unicode__(self):
+        """Return a useful string."""
+
+        return u'%s' % self.username
+
 
 @receiver(post_save, sender=User)
 def _user_saved(sender, **kwargs):                # pylint: disable=W0613
-    """Create an authentication token and a Settings row for each new User row.
+    """Create an authentication token for a new User row.
 
-    Note: Token and Settings rows are deleted when their User row is deleted,
-    via Postgres cascading deletes. There's no need to use signals for deletes.
+    Note: Token rows are deleted when their User row is deleted, via Postgres
+    cascading deletes. There's no need to use signals for deletes.
 
     :param sender: The sending model class
     :type sender: User
@@ -66,10 +72,8 @@ def _user_saved(sender, **kwargs):                # pylint: disable=W0613
 
     """
     from rest_framework.authtoken.models import Token
-    from goldstone.accounts.models import Settings
 
     # If a new model was created...
     if kwargs["created"]:
-        # Create a new Settings row, and authentication token.
-        Settings.objects.create(user=kwargs["instance"])
+        # Create a new authentication token.
         Token.objects.create(user=kwargs["instance"])

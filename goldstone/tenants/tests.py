@@ -770,7 +770,10 @@ class TenantsIdUsers(Setup):
         tenant_admin = [x for x in TENANT_USERS if "tenant_admin" in x][0]
         token = login(tenant_admin["username"], tenant_admin["password"])
 
-        # Get the tenant's user list and check the response.
+        # Get the tenant's user list and check the response. We do a partial
+        # check of the uuid, date_joined, and last_login keys. They must exist,
+        # and their values must be strings, and the UUID ought to be >= 32
+        # characters.
         response = self.client.get(
             TENANTS_ID_USERS_URL % tenant.uuid.hex,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -783,7 +786,12 @@ class TenantsIdUsers(Setup):
             self.assertIsInstance(entry["uuid"], basestring)
             self.assertGreaterEqual(len(entry["uuid"]), 32)
 
+            self.assertIsInstance(entry["date_joined"], basestring)
+            self.assertIsInstance(entry["last_login"], basestring)
+
             del entry["uuid"]
+            del entry["date_joined"]
+            del entry["last_login"]
 
         for entry in expected_result:
             entry["tenant"] = tenant.pk
@@ -814,7 +822,9 @@ class TenantsIdUsers(Setup):
 
             check_response_without_uuid(response,
                                         HTTP_201_CREATED,
-                                        expected_result[user_number])
+                                        expected_result[user_number],
+                                        extra_keys=["last_login",
+                                                    "date_joined"])
 
             # Was email send to the new user?
             self.assertEqual(send_email.call_count, 1)
@@ -1066,7 +1076,10 @@ class TenantsIdUsersId(Setup):
             (tenant.uuid.hex, user.uuid.hex),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        check_response_without_uuid(response, HTTP_200_OK, expected_results[0])
+        check_response_without_uuid(response,
+                                    HTTP_200_OK,
+                                    expected_results[0],
+                                    extra_keys=["last_login", "date_joined"])
 
         # Add another user to the tenant, and get her.
         user = get_user_model().objects.create_user(username="Traci",
@@ -1080,7 +1093,10 @@ class TenantsIdUsersId(Setup):
             (tenant.uuid.hex, user.uuid.hex),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        check_response_without_uuid(response, HTTP_200_OK, expected_results[1])
+        check_response_without_uuid(response,
+                                    HTTP_200_OK,
+                                    expected_results[1],
+                                    extra_keys=["last_login", "date_joined"])
 
     def test_put_no_user(self):
         """Update a user of an empty tenant, or a user that does not exist."""
@@ -1176,7 +1192,9 @@ class TenantsIdUsersId(Setup):
 
             check_response_without_uuid(response,
                                         HTTP_200_OK,
-                                        expected_responses[i])
+                                        expected_responses[i],
+                                        extra_keys=["last_login",
+                                                    "date_joined"])
 
         # Try PUTing to the user on a field that's not allowed to be changed.
         # The response should be the same as the "unrecognized field" case.
@@ -1192,7 +1210,8 @@ class TenantsIdUsersId(Setup):
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
-                                    expected_responses[1])
+                                    expected_responses[1],
+                                    extra_keys=["last_login", "date_joined"])
 
     def test_put(self):
         """Update a user in a tenant."""
@@ -1235,7 +1254,10 @@ class TenantsIdUsersId(Setup):
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        check_response_without_uuid(response, HTTP_200_OK, expected_response)
+        check_response_without_uuid(response,
+                                    HTTP_200_OK,
+                                    expected_response,
+                                    extra_keys=["last_login", "date_joined"])
 
     def test_delete_default_tnnt_admin(self):
         """Try deleting the system's default tenant admin."""
