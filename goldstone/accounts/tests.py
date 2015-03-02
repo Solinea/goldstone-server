@@ -18,9 +18,10 @@ from mock import patch
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from goldstone.test_utils import Setup, create_and_login, login, \
-    AUTHORIZATION_PAYLOAD, CONTENT_MISSING_FIELDS, CONTENT_MISSING_USERNAME, \
+    AUTHORIZATION_PAYLOAD, CONTENT_MISSING_USERNAME, \
     CONTENT_MISSING_PASSWORD, CONTENT_UNIQUE_USERNAME, \
-    CONTENT_NON_FIELD_ERRORS, LOGIN_URL, TEST_USER, CONTENT_NOT_BLANK
+    CONTENT_NON_FIELD_ERRORS, LOGIN_URL, TEST_USER, \
+    CONTENT_NOT_BLANK_USERNAME, CONTENT_NOT_BLANK_PASSWORD
 
 # URLs used by this module.
 REGISTRATION_URL = "/accounts/register"
@@ -38,8 +39,15 @@ class Register(Setup):
         response = self.client.post(REGISTRATION_URL,
                                     content_type="application/json")
 
+        # We should have received errors for a blank username and blank
+        # password. Depending on the Python version, they may be returned in
+        # either order. Since assertContains compares strings, we will check
+        # for these errors separately, so we don't get a spurious miscompare.
         self.assertContains(response,
-                            CONTENT_MISSING_FIELDS,
+                            CONTENT_MISSING_USERNAME,
+                            status_code=HTTP_400_BAD_REQUEST)
+        self.assertContains(response,
+                            CONTENT_MISSING_PASSWORD,
                             status_code=HTTP_400_BAD_REQUEST)
 
         self.assertEqual(get_user_model().objects.count(), 0)
@@ -214,8 +222,15 @@ class Logout(Setup):
 
         response = self.client.post(LOGOUT_URL)
 
+        # We should have received errors for a blank username and blank
+        # password. Depending on the Python version, they may be returned in
+        # either order. Since assertContains compares strings, we will check
+        # for these errors separately, so we don't get a spurious miscompare.
         self.assertContains(response,
-                            CONTENT_NOT_BLANK,
+                            CONTENT_NOT_BLANK_USERNAME,
+                            status_code=HTTP_400_BAD_REQUEST)
+        self.assertContains(response,
+                            CONTENT_NOT_BLANK_PASSWORD,
                             status_code=HTTP_400_BAD_REQUEST)
 
     def test_not_logged_in(self):
