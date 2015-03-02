@@ -27,7 +27,7 @@ from goldstone.apps.core.models import Node, EventType
 from goldstone.apps.logging.serializers import LoggingNodeSerializer
 from goldstone.apps.logging.views import LoggingNodeViewSet
 from goldstone.utils import utc_now
-from .tasks import process_host_stream, _create_event, ping, check_host_avail
+from .tasks import _create_event, ping, check_host_avail
 
 logger = logging.getLogger(__name__)
 
@@ -43,38 +43,6 @@ class TaskTests(SimpleTestCase):
     def tearDown(self):
         Node.objects.all().delete()
 
-    def test_process_host_stream(self):
-
-        # administratively enabled
-        node1 = Node(name=self.name1, managed='true')
-        node1.save()
-        self.assertEqual(Node.objects.all().count(), 1)
-
-        # get the object to get consistent date resolution
-        node1 = Node.objects.get(name=node1.name)
-        sleep(1)
-        process_host_stream(self.name1)
-        self.assertEqual(Node.objects.all().count(), 1)
-
-        updated_node1 = Node.objects.get(id=node1.id)
-        self.assertGreater(updated_node1.updated, node1.updated)
-
-        # administratively disabled
-        node2 = Node(name=self.name2, managed='false')
-        node2.save()
-        node2 = Node.objects.get(name=node2.name)
-        self.assertEqual(node2.update_method, 'UNKNOWN')
-
-        process_host_stream(self.name2)
-        updated_node2 = Node.objects.get(id=node2.id)
-        self.assertEqual(updated_node2.updated, node2.updated)
-        self.assertEqual(node2.update_method, 'UNKNOWN')
-        self.assertEqual(updated_node2.managed, 'false')
-
-        # creation
-        process_host_stream('xyz')
-        node = Node.objects.get(name='xyz')
-        self.assertEqual(node.update_method, 'LOGS')
 
     @patch.object(subprocess, 'call')
     def test_check_host_avail(self, call):
