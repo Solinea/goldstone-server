@@ -154,6 +154,40 @@ def load(proj_settings=DEV_SETTINGS):
         initialize_development()
 
 
+@task
+def tenant_init(tenant=None, default_admin=None):
+    """Create a new tenant, and a default tenant_admin.
+
+    If the tenant already exists, we print an informational message and leave
+    it alone.
+
+    If the default_tenant_admin already exists, we print an informational
+    message. If he/she is not a tenant admin of the new tenant, we make him/her
+    it.
+
+    :keyword tenant: The name of the tenant to be created. If not specified, a
+                     default is used
+    :type tenant: str
+    :keyword default_admin: The name of the default_tenant_admin to be created.
+                            If not specified, a default is used
+    :type default_admin: str
+
+    """
+
+    # Default names.
+    DEFAULT_TENANT = "tenant 0"
+    DEFAULT_TENANT_ADMIN = "tenant 0 admin"
+    
+    # Load the defaults, if the user didn't override them.
+    if not tenant:
+        tenant = DEFAULT_TENANT
+    if not default_admin:
+        default_admin = DEFAULT_TENANT_ADMIN
+
+    # If the tenant already exists, print a message. Otherwise, create it.
+    if Tenant.objects.filter(name=tenant).exists():
+        
+
 def _choose_runserver_settings(verbose):
     """Display the available settings files for a "runserver" command, ask the
     user to select one, and return a valid selection.
