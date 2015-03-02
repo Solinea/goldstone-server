@@ -25,29 +25,6 @@ from goldstone.apps.core.models import Event, Node
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(rate_limit='100/s', expires=5, time_limit=1)
-def process_host_stream(host):
-    """Read a list of host names from the incoming message on the host_stream
-    queue, and create or update an associated node in the model.
-
-    :return: None
-
-    """
-
-    # TODO this cleanup should be in a slower moving lane
-    try:
-        node = Node.objects.get(name=host)
-        if node.managed == 'true':
-            node.update_method = 'LOGS'
-            node.save()
-    except ObjectDoesNotExist:
-        # no nodes found, we should create one
-        node = Node(name=host, update_method='LOGS')
-        node.save()
-    except Exception:         # pylint: disable=W0703
-        logger.exception('unidentified exception in process_host_stream')
-
-
 @celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
 def process_event_stream(self, timestamp, host, event_type, message):
     """
