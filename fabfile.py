@@ -121,9 +121,18 @@ def syncmigrate(proj_settings=DEV_SETTINGS):
     """
 
     print "doing a syncdb and migrate ..."
-    print red(
-        'N.B: Answer "no" to the, "Would you like to create a superuser?" '
-        'question.')
+    print
+    print red("Django's script will announce that you don't have any "
+              "superusers defined.")
+    print red("It will ask you, 'Would you like to create one now? (yes/no)'")
+    print
+    print red("==> Answer no to that question!")
+    print
+    print red("You will be given the chance to properly create a superuser in "
+              "just a few")
+    print red("moments.  If you do it when Django wants you to, the system "
+              "won't start correctly.")
+    print
 
     _django_manage("syncdb", proj_settings=proj_settings)
     _django_manage("migrate", proj_settings=proj_settings)
@@ -132,7 +141,7 @@ def syncmigrate(proj_settings=DEV_SETTINGS):
     # DRF and Django signals. See
     # https://github.com/tomchristie/django-rest-framework/issues/987.
     print
-    print green("now you can create a superuser account ...")
+    print green("Good! *Now* you can and chould create a superuser here.")
     _django_manage("createsuperuser", proj_settings=proj_settings)
 
 
