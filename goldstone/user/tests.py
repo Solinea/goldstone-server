@@ -53,9 +53,9 @@ class NoAccess(Setup):
         """Getting while logged in, using a bad token."""
 
         # Create a user, and create a bad authorization token.  (This test will
-        # erroneously fail if the good token doesn't contain any 9 characters,
-        # which is very unlikely.)
-        bad_token = create_and_login().replace('9', '8')
+        # erroneously fail if the good token doesn't contain any 9 or 1
+        # characters, which is unlikely.)
+        bad_token = create_and_login().replace('9', '8').replace('1', '2')
 
         response = self.client.get(
             USER_URL,

@@ -21,20 +21,17 @@ LOGIN_URL = "/accounts/login"
 
 # Http response content used by multiple tests.
 CONTENT_BAD_TOKEN = '{"detail":"Invalid token"}'
-CONTENT_MISSING_FIELDS = '{"username":["This field is required."],' \
-                         '"password":["This field is required."]}'
-CONTENT_MISSING_PASSWORD = '{"password":["This field is required."]}'
-CONTENT_MISSING_USERNAME = '{"username":["This field is required."]}'
+CONTENT_MISSING_PASSWORD = '"password":["This field is required."]'
+CONTENT_MISSING_USERNAME = '"username":["This field is required."]'
 CONTENT_NO_CREDENTIALS = \
     '{"detail":"Authentication credentials were not provided."}'
 CONTENT_NO_PERMISSION = \
     '{"detail":"You do not have permission to perform this action."}'
-CONTENT_PERMISSION_DENIED = '{"detail":"Permission denied"}'
 CONTENT_NON_FIELD_ERRORS = \
     '{"non_field_errors":["Unable to login with provided credentials."]}'
-CONTENT_NOT_BLANK = '{"username":["This field may not be blank."],'\
-                    '"password":["This field may not be blank."]}'
-CONTENT_NOT_BLANK_USERNAME = '{"username":["This field may not be blank."]}'
+CONTENT_NOT_BLANK_PASSWORD = '"password":["This field may not be blank."]'
+CONTENT_NOT_BLANK_USERNAME = '"username":["This field may not be blank."]'
+CONTENT_PERMISSION_DENIED = '{"detail":"Permission denied"}'
 CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
 CONTENT_UNIQUE_NAME = '{"name":["This field must be unique."]}'
 
