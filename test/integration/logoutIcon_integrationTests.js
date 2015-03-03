@@ -8,15 +8,13 @@ describe('LogoutIcon.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "accounts/login", [200, {
+        this.server.respondWith("/ho/hum", [401, {
             "Content-Type": "application/json"
-        }, '[]']);
-        data = [];
+        }, 'test unauthorized']);
 
         this.testView = new LogoutIcon({
             el: '.test-container'
         });
-
     });
     afterEach(function() {
         $('body').html('');
@@ -27,9 +25,20 @@ describe('LogoutIcon.js spec', function() {
             this.testView.render();
         });
         it('renders view with auth token', function() {
-            this.testView.checkForToken();
+            this.testView.renderIfTokenPresent();
             localStorage.setItem('userToken', 'here_i_am!');
-            this.testView.checkForToken();
+            this.testView.renderIfTokenPresent();
         });
+        it('clears a token', function() {
+            localStorage.setItem('userToken', 'fun1with2tokens3');
+            expect(localStorage.getItem('userToken')).to.equal('fun1with2tokens3');
+            this.testView.clearToken();
+            expect(localStorage.getItem('userToken')).to.equal(null);
+        });
+        it('sets up request header params', function() {
+            localStorage.setItem('userToken', 'now1i2can3haz4tokens5');
+            this.testView.setAJAXSendRequestHeaderParams();
+        });
+
     });
 });

@@ -18,14 +18,14 @@ from mock import patch
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from goldstone.test_utils import Setup, create_and_login, login, \
-    AUTHORIZATION_PAYLOAD, CONTENT_MISSING_USERNAME, \
+    AUTHORIZATION_PAYLOAD, CONTENT_MISSING_USERNAME, CONTENT_BAD_TOKEN, \
     CONTENT_MISSING_PASSWORD, CONTENT_UNIQUE_USERNAME, \
-    CONTENT_NON_FIELD_ERRORS, LOGIN_URL, TEST_USER, \
-    CONTENT_NOT_BLANK_USERNAME, CONTENT_NOT_BLANK_PASSWORD
+    CONTENT_NO_CREDENTIALS, CONTENT_NON_FIELD_ERRORS, LOGIN_URL, USER_URL, \
+    TEST_USER
 
 # URLs used by this module.
 REGISTRATION_URL = "/accounts/register"
-LOGOUT_URL = "/accounts/login"
+LOGOUT_URL = "/accounts/logout"
 PASSWORD_URL = "/accounts/password"
 PASSWORD_RESET_URL = PASSWORD_URL + "/reset"
 
@@ -222,44 +222,37 @@ class Logout(Setup):
 
         response = self.client.post(LOGOUT_URL)
 
-        # We should have received errors for a blank username and blank
-        # password. Depending on the Python version, they may be returned in
-        # either order. Since assertContains compares strings, we will check
-        # for these errors separately, so we don't get a spurious miscompare.
         self.assertContains(response,
-                            CONTENT_NOT_BLANK_USERNAME,
-                            status_code=HTTP_400_BAD_REQUEST)
-        self.assertContains(response,
-                            CONTENT_NOT_BLANK_PASSWORD,
-                            status_code=HTTP_400_BAD_REQUEST)
+                            CONTENT_NO_CREDENTIALS,
+                            status_code=HTTP_401_UNAUTHORIZED)
 
     def test_not_logged_in(self):
         """Logging out when a user is not logged in, with username and
         password."""
 
-        create_and_login()
+        token = create_and_login()
 
         # Logout. Then logout again with username and password.
-        # pylint: disable=E1101
         response = self.client.post(
             LOGOUT_URL,
-            json.dumps({"username": TEST_USER[0],
-                        "password": TEST_USER[2]}),
-            content_type="application/json")
-        self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertIsInstance(response.data["auth_token"], basestring)
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertContains(response, '', status_code=HTTP_200_OK)
 
         response = self.client.post(
             LOGOUT_URL,
-            json.dumps({"username": TEST_USER[0],
-                        "password": TEST_USER[2]}),
-            content_type="application/json")
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertIsInstance(response.data["auth_token"], basestring)
+        self.assertContains(response,
+                            CONTENT_BAD_TOKEN,
+                            status_code=HTTP_401_UNAUTHORIZED)
 
-    def test_logout(self):
-        """Log out."""
+    def test_logout_with_username(self):
+        """Log out, using a username and password for authentication.
+
+        This should fail.
+
+        """
 
         create_and_login()
 
@@ -269,9 +262,29 @@ class Logout(Setup):
                         "password": TEST_USER[2]}),
             content_type="application/json")
 
-        self.assertEqual(response.status_code, HTTP_200_OK)
-        # pylint: disable=E1101
-        self.assertIsInstance(response.data["auth_token"], basestring)
+        self.assertContains(response,
+                            CONTENT_NO_CREDENTIALS,
+                            status_code=HTTP_401_UNAUTHORIZED)
+
+    def test_logout_with_token(self):
+        """Log out, using an authorization token."""
+
+        token = create_and_login()
+
+        response = self.client.post(
+            LOGOUT_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertContains(response, '', status_code=HTTP_200_OK)
+
+        # Ensure we no longer have access to Goldstone.
+        response = self.client.get(
+            USER_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertContains(response,
+                            CONTENT_BAD_TOKEN,
+                            status_code=HTTP_401_UNAUTHORIZED)
 
 
 class Password(Setup):
@@ -280,7 +293,7 @@ class Password(Setup):
     def test_not_logged_in(self):
         """The user isn't logged in.
 
-        The user should be able to change their password.
+        The user shouldn't be able to change their password.
 
         """
 
@@ -288,11 +301,9 @@ class Password(Setup):
         token = create_and_login()
         response = self.client.post(
             LOGOUT_URL,
-            json.dumps({"username": TEST_USER[0],
-                        "password": TEST_USER[2]}),
-            content_type="application/json")
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertContains(response, '', status_code=HTTP_200_OK)
 
         # Now try changing the password.
         response = self.client.post(
@@ -302,19 +313,21 @@ class Password(Setup):
                         "new_password": "boom"}),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertContains(response,
+                            CONTENT_BAD_TOKEN,
+                            status_code=HTTP_401_UNAUTHORIZED)
 
-        # Test logging in using the new password.
-        login(TEST_USER[0], "boom")
-
-        # Verify that we can't log in using the old password.
+        # Verify that we can't log in using the NEW password.
         response = self.client.post(LOGIN_URL,
                                     {"username": TEST_USER[0],
-                                     "password": TEST_USER[2]})
+                                     "password": "boom"})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
                             status_code=HTTP_400_BAD_REQUEST)
+
+        # We should be able to still log in using the old password.
+        login(TEST_USER[0], TEST_USER[2])
 
     def test_missing_token(self):
         """The change password request doesn't have an authentication token."""
@@ -513,13 +526,11 @@ class PasswordReset(Setup):
         """
 
         # Create a user and log them out.
-        create_and_login()
-        response = self.client.post(LOGOUT_URL,
-                                    json.dumps({"username": TEST_USER[0],
-                                                "password": TEST_USER[2]}),
-                                    content_type="application/json")
-
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        token = create_and_login()
+        response = self.client.post(
+            LOGOUT_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        self.assertContains(response, '', status_code=HTTP_200_OK)
 
         # Now try resetting the password.
         response = \
@@ -552,14 +563,12 @@ class PasswordReset(Setup):
         """The reset-password request doesn't have an email."""
 
         # Create a user and log them out.
-        create_and_login()
+        token = create_and_login()
 
-        response = self.client.post(LOGOUT_URL,
-                                    json.dumps({"username": TEST_USER[0],
-                                                "password": TEST_USER[2]}),
-                                    content_type="application/json")
-
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        response = self.client.post(
+            LOGOUT_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        self.assertContains(response, '', status_code=HTTP_200_OK)
 
         # Now try resetting the password.
         response = self.client.post(PASSWORD_RESET_URL,
@@ -579,14 +588,12 @@ class PasswordReset(Setup):
         """
 
         # Create a user and log them out.
-        create_and_login()
+        token = create_and_login()
 
-        response = self.client.post(LOGOUT_URL,
-                                    json.dumps({"username": TEST_USER[0],
-                                                "password": TEST_USER[2]}),
-                                    content_type="application/json")
-
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        response = self.client.post(
+            LOGOUT_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+        self.assertContains(response, '', status_code=HTTP_200_OK)
 
         # Now try resetting the password.
         response = \
