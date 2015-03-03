@@ -16,8 +16,9 @@ from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase
 from rest_framework.status import HTTP_200_OK
 
-# Test URL
+# Test URLs.
 LOGIN_URL = "/accounts/login"
+USER_URL = "/user"
 
 # Http response content used by multiple tests.
 CONTENT_BAD_TOKEN = '{"detail":"Invalid token"}'
@@ -29,7 +30,6 @@ CONTENT_NO_PERMISSION = \
     '{"detail":"You do not have permission to perform this action."}'
 CONTENT_NON_FIELD_ERRORS = \
     '{"non_field_errors":["Unable to login with provided credentials."]}'
-CONTENT_NOT_BLANK_PASSWORD = '"password":["This field may not be blank."]'
 CONTENT_NOT_BLANK_USERNAME = '"username":["This field may not be blank."]'
 CONTENT_PERMISSION_DENIED = '{"detail":"Permission denied"}'
 CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'

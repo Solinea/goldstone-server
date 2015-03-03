@@ -15,12 +15,9 @@
 import json
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST
-from goldstone.test_utils import create_and_login, Setup, \
+from goldstone.test_utils import create_and_login, Setup, USER_URL, \
     AUTHORIZATION_PAYLOAD, CONTENT_NO_CREDENTIALS, CONTENT_BAD_TOKEN, \
     CONTENT_MISSING_USERNAME, TEST_USER, check_response_without_uuid
-
-# URLs and payloads used in this module's testing.
-USER_URL = "/user"
 
 
 class NoAccess(Setup):
@@ -85,7 +82,7 @@ class BadPut(Setup):
         using a bad token."""
 
         # Create a user, and create a bad authorization token.
-        bad_token = create_and_login().replace('9', '8')
+        bad_token = create_and_login().replace('9', '8').replace('1', '2')
 
         response = self.client.put(
             USER_URL,
