@@ -15,6 +15,9 @@
  */
 
 /*
+This view will be re-invoked upon every page refresh or redirect, as it is
+baked into base.html.
+
 After ajaxSend Listener is bound to $(document), it will be triggered on all
 subsequent $.ajaxSend calls.
 
@@ -32,23 +35,26 @@ var LogoutIcon = Backbone.View.extend({
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
         this.el = options.el;
-        this.addAJAXSendRequestHeaderParams();
-        this.checkForToken();
-        this.addHandlers();
+
+        // if auth token present, hijack all subsequent ajax requests
+        // with an auth header containing the locally stored token
+        this.setAJAXSendRequestHeaderParams();
+
+        // only render the logout button if an auth token is present
+        this.renderIfTokenPresent();
+
+        // clicking logout button > expire token via /accounts/logout
+        // then clear token from localStorage and redirect to /login
+        this.setLogoutButtonHandler();
     },
 
-    addAJAXSendRequestHeaderParams: function() {
-        var redirectToLogin = function() {
-
-            // this sets a hash (#) to the url that will be used post-auth to
-            // return the user to the page they were previously redirected from
-            var locationhref = "/login";
-            var currentPage = location.pathname.slice(1);
-            location.href = locationhref + '#' + currentPage;
-        };
+    setAJAXSendRequestHeaderParams: function() {
+        var self = this;
 
         // if there is no userToken present in localStorage, don't append the
-        // request header to api calls or it will append null.
+        // request header to api calls or it will append null
+        // which will create a server error
+
         var $doc = $(document);
         $doc.ajaxSend(function(event, xhr) {
             var authToken = localStorage.getItem('userToken');
@@ -63,12 +69,12 @@ var LogoutIcon = Backbone.View.extend({
         $doc.ajaxError(function(event, xhr) {
             if (xhr.status === 401) {
                 localStorage.removeItem('userToken');
-                redirectToLogin();
+                self.redirectToLoginWithHash();
             }
         });
     },
 
-    checkForToken: function() {
+    renderIfTokenPresent: function() {
 
         // only render logout icon if there is a token present
         var authToken = localStorage.getItem('userToken');
@@ -77,14 +83,39 @@ var LogoutIcon = Backbone.View.extend({
         }
     },
 
-    addHandlers: function() {
+    setLogoutButtonHandler: function() {
         var self = this;
         $('div.logout-icon-container .fa-sign-out').on('click', function() {
 
-            // clicking logout button => remove userToken and redirect to /login
-            localStorage.removeItem('userToken');
-            location.href = "/login";
+            // clicking logout button => submit userToken to
+            // remove userToken. Upon success, remove token
+            // and redirect to /login
+
+            $.post('/accounts/logout')
+                .done(function() {})
+                .fail(function() {})
+                .always(function() {
+                    self.clearToken();
+                    self.redirectToLoginNoHash();
+                });
         });
+    },
+
+    clearToken: function() {
+        localStorage.removeItem('userToken');
+    },
+
+    redirectToLoginNoHash: function() {
+        location.href = "/login";
+    },
+
+    redirectToLoginWithHash: function() {
+
+        // this sets a hash (#) to the url that will be used post-auth to
+        // return the user to the page they were previously redirected from
+        var locationhref = "/login";
+        var currentPage = location.pathname.slice(1);
+        location.href = locationhref + '#' + currentPage;
     },
 
     render: function() {
