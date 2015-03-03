@@ -30,11 +30,11 @@ var SettingsPageView = Backbone.View.extend({
 
         $('.settings-form').on('submit', function(e) {
             e.preventDefault();
-            self.trimInputField('[name=username]');
-            self.trimInputField('[name=first_name]');
-            self.trimInputField('[name=last_name]');
+            self.trimInputField('[name="username"]');
+            self.trimInputField('[name="first_name"]');
+            self.trimInputField('[name="last_name"]');
 
-            // ('[name=email]') seems to have native trim() support
+            // ('[name="email"]') seems to have native trim() support
             // based on the type="email"
 
             self.submitRequest($(this).serialize());
@@ -51,10 +51,10 @@ var SettingsPageView = Backbone.View.extend({
             .done(function(result) {
                 console.log('getUserPayload succeeded');
                 console.log(result);
-                $('[name=username]').val(result.username);
-                $('[name=first_name').val(result.first_name);
-                $('[name=last_name').val(result.last_name);
-                $('[name=email').val(result.email);
+                $('[name="username"]').val(result.username);
+                $('[name="first_name"]').val(result.first_name);
+                $('[name="last_name"]').val(result.last_name);
+                $('[name="email"]').val(result.email);
             })
             .fail(function() {
                 console.log('getUserPayload failed');
