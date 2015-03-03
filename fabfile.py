@@ -18,6 +18,7 @@ import sys
 from contextlib import contextmanager
 from fabric.api import task, local, warn, prompt
 from fabric.colors import red, green
+from fabric.utils import fastprint
 
 # Add the current directory to the module search path.
 sys.path.append('')
@@ -164,38 +165,77 @@ def load(proj_settings=DEV_SETTINGS):
 
 
 @task
-def tenant_init(tenant=None, default_admin=None):
+def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None):
     """Create a new tenant, and a default tenant_admin.
 
     If the tenant already exists, we print an informational message and leave
     it alone.
 
-    If the default_tenant_admin already exists, we print an informational
-    message. If he/she is not a tenant admin of the new tenant, we make him/her
-    it.
+    If the admin already exists, we print an informational message. If he/she
+    is not a tenant admin of the new tenant, we make him/her it.
+
+    If the admin doesn't already exist, we create the account, mark it as the
+    system's default_tenant_admin, and set it up as the admin of the tenant.
 
     :keyword tenant: The name of the tenant to be created. If not specified, a
                      default is used
     :type tenant: str
-    :keyword default_admin: The name of the default_tenant_admin to be created.
-                            If not specified, a default is used
-    :type default_admin: str
+    :keyword tenant_owner: The name of the tenant's owner. If not specified, a
+                           default is used
+    :type tenant_owner: str
+    :keyword admin: The name of the tenant_admin to be created.  If not
+                    specified, a default is used
+    :type admin: str
+    :keyword password: The password for the admin account, *if we create it*
+    :type passowrd: str
 
     """
 
     # Default names.
     DEFAULT_TENANT = "tenant 0"
-    DEFAULT_TENANT_ADMIN = "tenant 0 admin"
-    
+    DEFAULT_TENANT_OWNER = "Django admin"
+    DEFAULT_ADMIN = "tenant 0 admin"
+    DEFAULT_ADMIN_PASSWORD = "changeme"
+
     # Load the defaults, if the user didn't override them.
     if not tenant:
         tenant = DEFAULT_TENANT
-    if not default_admin:
-        default_admin = DEFAULT_TENANT_ADMIN
+    if not tenant_owner:
+        tenant_owner = DEFAULT_TENANT_OWNER
+    if not admin:
+        admin = DEFAULT_TENANT_ADMIN
+    if not password:
+        password = DEFAULT_ADMIN_PASSWORD
 
-    # If the tenant already exists, print a message. Otherwise, create it.
-    if Tenant.objects.filter(name=tenant).exists():
-        
+    # Process the tenant.
+    try:
+        tenant = Tenant.objects.get(name=tenant)
+    except ObjectDoesNotExist:
+        # The tenant does not already exist. Create it.
+        tenant = Tenant.objects.create(name=tenant, owner=tenant_owner)
+    else:
+        # The tenant already exists. Print a message.
+        fastprint("The tenant %s already exists. We will not modify it." %
+                  tenant)
+
+    # Process the tenant admin.
+    try:
+        user = get_user_model().objects.get(username=admin)
+    except ObjectDoesNotExist:
+        fastprint("Creating tenant admin account %s with the password, '%s'." %
+                  (admin, password))
+        user = get_user_model().objects.create_user(username=admin,
+                                                    password=password,
+                                                    default_tenant_admin=True)
+    else:
+        # The tenant_admin already exists. Print a message.
+        fastprint("The admin account %s already exists. We will use it." %
+                  admin)
+
+    # Link the tenant_admin account to this tenant.
+    user.tenant = tenant
+    user.save()
+
 
 def _choose_runserver_settings(verbose):
     """Display the available settings files for a "runserver" command, ask the
