@@ -29,8 +29,14 @@ var LoginPageView = Backbone.View.extend({
 
         $('.login-form').on('submit', function(e) {
             e.preventDefault();
+            self.trimInputField('[name=username]');
             self.submitRequest($(this).serialize());
         });
+    },
+
+    trimInputField: function(selector) {
+        var trimmedContent = $(selector).val().trim();
+        $(selector).val(trimmedContent);
     },
 
     submitRequest: function(input) {
@@ -57,7 +63,7 @@ var LoginPageView = Backbone.View.extend({
 
                 try {
                     goldstone.raiseInfo(fail.responseJSON.non_field_errors[0], true);
-                } catch(e) {
+                } catch (e) {
                     goldstone.raiseInfo(e, true);
                 }
 
