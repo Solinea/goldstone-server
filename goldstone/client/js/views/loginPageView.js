@@ -29,7 +29,7 @@ var LoginPageView = Backbone.View.extend({
 
         $('.login-form').on('submit', function(e) {
             e.preventDefault();
-            self.trimInputField('[name=username]');
+            self.trimInputField('[name="username"]');
             self.submitRequest($(this).serialize());
         });
     },
