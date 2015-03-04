@@ -1,3 +1,4 @@
+"""Logging models."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -34,8 +35,7 @@ class LoggingNodeStats(ESData):
         from elasticsearch import ElasticsearchException
         from pyes import BoolQuery, RangeQuery, ESRangeOp
 
-        self.end_time = arrow.utcnow() if \
-            end_time is None else end_time
+        self.end_time = arrow.utcnow() if end_time is None else end_time
 
         self.start_time = self.end_time.replace(
             minutes=(-1 * settings.LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES)) \

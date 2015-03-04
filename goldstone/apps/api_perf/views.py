@@ -40,8 +40,6 @@ class ApiPerfView(APIView):
     def get(self, request, *args, **kwargs):
         """Return a response to a GET request."""
 
-        import json
-
         # Fetch and enhance this request's context.
         context = {
             # Use "now" if not provided. Validate() will calculate the start
