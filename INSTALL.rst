@@ -197,6 +197,6 @@ Restart the OpenStack services and syslog or reboot the node. Repeat this on all
 FINISHED !
 *********************
 
-Now that everything has been configured, point your browser to the goldstone server IP address or name and begin using goldstone.
+Now that everything has been configured, point your browser to the goldstone server IP address or name and begin using Goldstone.
 
-Your first task is to login with your system administrator's username and password of "admin" / "changeme", and change the account's password and e-mail address.
+Your first task is to login into your Goldstone administrator's account and change its e-mail address to a valid address.
