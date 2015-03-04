@@ -166,30 +166,36 @@ def load(proj_settings=DEV_SETTINGS):
 
 @task
 def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None):
-    """Create a new tenant, and a default tenant_admin.
+    """Create a new tenant and default_tenant_admin, or use existing table
+    rows.
 
     If the tenant already exists, we print an informational message and leave
     it alone.
 
+    If the tenant doesn't exist, we create it.
+
     If the admin already exists, we print an informational message. If he/she
     is not a tenant admin of the new tenant, we make him/her it.
 
-    If the admin doesn't already exist, we create the account, mark it as the
-    system's default_tenant_admin, and set it up as the admin of the tenant.
+    If the admin doesn't exist, we create the account, mark it as the system
+    default_tenant_admin, and make it the tenant's tenant_admin.
 
     :keyword tenant: The name of the tenant to be created. If not specified, a
                      default is used
     :type tenant: str
-    :keyword tenant_owner: The name of the tenant's owner. If not specified, a
-                           default is used
+    :keyword tenant_owner: The tenant's owner. If not specified, a default is
+                           used
     :type tenant_owner: str
     :keyword admin: The name of the tenant_admin to be created.  If not
                     specified, a default is used
     :type admin: str
-    :keyword password: The password for the admin account, *if we create it*
+    :keyword password: The admin account's password, *if* we create it
     :type passowrd: str
 
     """
+    from django.contrib.auth import get_user_model
+    from django.core.exceptions import ObjectDoesNotExist
+    from goldstone.tenants.models import Tenant
 
     # Default names.
     DEFAULT_TENANT = "tenant 0"
@@ -203,7 +209,7 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None):
     if not tenant_owner:
         tenant_owner = DEFAULT_TENANT_OWNER
     if not admin:
-        admin = DEFAULT_TENANT_ADMIN
+        admin = DEFAULT_ADMIN
     if not password:
         password = DEFAULT_ADMIN_PASSWORD
 
