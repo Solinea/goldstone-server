@@ -57,22 +57,19 @@ var SettingsPageView = Backbone.View.extend({
     getUserSettings: function() {
         $.get('/user')
             .done(function(result) {
-                console.log('getUserSettings succeeded');
-                console.log(result);
                 $('[name="username"]').val(result.username);
                 $('[name="first_name"]').val(result.first_name);
                 $('[name="last_name"]').val(result.last_name);
                 $('[name="email"]').val(result.email);
             })
-            .fail(function() {
-                console.log('getUserSettings failed');
+            .fail(function(fail) {
+                goldstone.raiseInfo('Could not load user settings', true);
             });
     },
 
     // abstracted to work for both forms, and append the correct
     // message upon successful form submission
     submitRequest: function(type, url, data, message) {
-        console.log('submitting request with ' + data);
         var self = this;
 
         // Upon clicking the submit button, the serialized
@@ -85,14 +82,12 @@ var SettingsPageView = Backbone.View.extend({
             data: data,
         }).done(function(success) {
             goldstone.raiseInfo(message + ' update successful', true);
-            console.log('success: ', success);
         })
             .fail(function(fail) {
                 try {
                     goldstone.raiseInfo(fail.responseJSON.non_field_errors[0], true);
                 } catch (e) {
-                    goldstone.raiseInfo(fail.responseText, true);
-                    console.log(e);
+                    goldstone.raiseInfo(fail.responseText + e, true);
                 }
             });
     },
