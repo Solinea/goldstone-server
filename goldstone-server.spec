@@ -127,11 +127,13 @@ python manage.py syncdb <<EOF
 no
 EOF
 python manage.py migrate
+
+# The createsuperuser command won't read from this file, so we'll give the user
+# their instructions now.
+echo "Choose a password for your Goldstone system administrator account." 
 python manage.py createsuperuser <<EOF
 admin
 changeme@changeme.com
-changeme
-changeme
 EOF
 
 # get all the ownerships back in shape.  No guarantee that we can su to apache, and running python
