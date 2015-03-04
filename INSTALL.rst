@@ -47,7 +47,7 @@ First, enable the CentOS EPEL repositories and install some dependencies:
 
     # run as root
     yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-    yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel
+    yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
 
 Next, enable the elasticsearch and logstash repositories:
 
@@ -197,4 +197,6 @@ Restart the OpenStack services and syslog or reboot the node. Repeat this on all
 FINISHED !
 *********************
 
-Now that everything has been configured, point your browser to the goldstone server IP address or name and begin using goldstone.
+Now that everything has been configured, point your browser to the goldstone server IP address or name and begin using Goldstone.
+
+Your system administrator account is "admin" / "changeme".  Your first task is to login using these credentials, and change this account's password and e-mail address.

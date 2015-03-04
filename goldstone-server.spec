@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -127,6 +127,11 @@ python manage.py syncdb <<EOF
 no
 EOF
 python manage.py migrate
+
+python manage.py shell <<EOF
+from django.contrib.auth import get_user_model
+get_user_model().objects.create_superuser('admin', 'a@b.com', 'changeme')
+EOF
 
 # get all the ownerships back in shape.  No guarantee that we can su to apache, and running python
 # during install may set some ownerships to root. This seems like the best approach.
