@@ -81,7 +81,7 @@ var SettingsPageView = Backbone.View.extend({
                 try {
                     goldstone.raiseInfo(fail.responseJSON.non_field_errors[0], true);
                 } catch (e) {
-                    goldstone.raiseInfo(e, true);
+                    goldstone.raiseInfo(fail.responseText, true);
                 }
             });
     },
@@ -119,7 +119,7 @@ var SettingsPageView = Backbone.View.extend({
         '<form class="settings-form">' +
         '<h3>Update Personal Settings</h3>' +
         '<label for="inputUsername">Username</label>' +
-        '<input name="username" type="text" class="form-control" placeholder="username">' +
+        '<input name="username" type="text" class="form-control" placeholder="username" required>' +
         '<label for="inputFirstname">First name</label>' +
         '<input name="first_name" type="text" class="form-control" placeholder="First name" autofocus>' +
         '<label for="inputLastname">Last name</label>' +
