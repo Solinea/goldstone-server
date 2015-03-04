@@ -199,4 +199,4 @@ FINISHED !
 
 Now that everything has been configured, point your browser to the goldstone server IP address or name and begin using Goldstone.
 
-Your first task is to login into your Goldstone administrator's account and change its e-mail address to a valid address.
+Your system administrator account is "admin" / "changeme".  Your first task is to login using these credentials, and change this account's password and e-mail address.
