@@ -130,7 +130,8 @@ python manage.py migrate
 
 # The createsuperuser command won't read from this file, so we'll give the user
 # their instructions now.
-echo "Choose a password for your Goldstone system administrator account." 
+echo "Your Goldstone system administrator username is, 'admin'." 
+echo "Choose a password for this account." 
 python manage.py createsuperuser <<EOF
 admin
 changeme@changeme.com
