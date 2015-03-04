@@ -21,35 +21,43 @@ var SettingsPageView = Backbone.View.extend({
         this.defaults = _.clone(this.defaults);
         this.el = options.el;
         this.render();
-        this.getUserPayload();
+        this.getUserSettings();
         this.addHandlers();
     },
 
     addHandlers: function() {
         var self = this;
 
+        // add listener to settings form submission button
         $('.settings-form').on('submit', function(e) {
             e.preventDefault();
+
+            // trim inputs to prevent leading/trailing spaces
             self.trimInputField('[name="username"]');
             self.trimInputField('[name="first_name"]');
             self.trimInputField('[name="last_name"]');
 
-            // ('[name="email"]') seems to have native trim() support
-            // based on the type="email"
+            // ('[name="email"]') seems to have native .trim()
+            // support based on the type="email"
 
-            self.submitRequest($(this).serialize());
+            self.submitRequest('PUT', '/user', $(this).serialize(), 'Settings');
+        });
+
+        // add listener to password form submission button
+        $('.password-reset-form').on('submit', function(e) {
+            e.preventDefault();
+            self.submitRequest('POST', '/accounts/password', $(this).serialize(), 'Password');
+
+            // clear password form after submission, success or not
+            $('.password-reset-form').find('[name="current_password"]').val('');
+            $('.password-reset-form').find('[name="new_password"]').val('');
         });
     },
 
-    trimInputField: function(selector) {
-        var trimmedContent = $(selector).val().trim();
-        $(selector).val(trimmedContent);
-    },
-
-    getUserPayload: function() {
+    getUserSettings: function() {
         $.get('/user')
             .done(function(result) {
-                console.log('getUserPayload succeeded');
+                console.log('getUserSettings succeeded');
                 console.log(result);
                 $('[name="username"]').val(result.username);
                 $('[name="first_name"]').val(result.first_name);
@@ -57,24 +65,26 @@ var SettingsPageView = Backbone.View.extend({
                 $('[name="email"]').val(result.email);
             })
             .fail(function() {
-                console.log('getUserPayload failed');
+                console.log('getUserSettings failed');
             });
     },
 
-    submitRequest: function(input) {
-        console.log('submitting request with ' + input);
+    // abstracted to work for both forms, and append the correct
+    // message upon successful form submission
+    submitRequest: function(type, url, data, message) {
+        console.log('submitting request with ' + data);
         var self = this;
 
-        // Upon clicking the submit button, the serialized user input is sent
-        // via $.post to check the credentials. If successful, invoke "done"
-        // if not, invoke "fail"
+        // Upon clicking the submit button, the serialized
+        // user input is sent via type (POST/PUT/etc).
+        // If successful, invoke "done". If not, invoke "fail"
 
         $.ajax({
-            type: "PUT",
-            url: '/user',
-            data: input,
+            type: type,
+            url: url,
+            data: data,
         }).done(function(success) {
-            goldstone.raiseInfo('Update successful', true);
+            goldstone.raiseInfo(message + ' update successful', true);
             console.log('success: ', success);
         })
             .fail(function(fail) {
@@ -82,29 +92,9 @@ var SettingsPageView = Backbone.View.extend({
                     goldstone.raiseInfo(fail.responseJSON.non_field_errors[0], true);
                 } catch (e) {
                     goldstone.raiseInfo(fail.responseText, true);
+                    console.log(e);
                 }
             });
-    },
-
-    storeAuthToken: function(token) {
-        localStorage.setItem('userToken', token);
-    },
-
-    redirectPostSuccessfulAuth: function() {
-
-        // if there was a previously visited page that
-        // had redirected to the login page due to lack
-        // of credentials, redirect back to that page
-        if (location.hash && location.hash.length > 0) {
-            locationhref = '/' + location.hash.slice(1);
-        } else {
-
-            // or just redirect to /discover
-            locationhref = '/';
-        }
-
-        location.href = locationhref;
-
     },
 
     render: function() {
@@ -112,10 +102,19 @@ var SettingsPageView = Backbone.View.extend({
         return this;
     },
 
+    trimInputField: function(selector) {
+
+        // remove leading/trailing spaces
+        var trimmedContent = $(selector).val().trim();
+        $(selector).val(trimmedContent);
+    },
+
     template: _.template('' +
         '<div class="container">' +
         '<div class="row">' +
-        '<div class="col-md-4 col-md-offset-4">' +
+
+        // personal settings form
+        '<div class="col-md-4 col-md-offset-2">' +
         '<form class="settings-form">' +
         '<h3>Update Personal Settings</h3>' +
         '<label for="inputUsername">Username</label>' +
@@ -123,12 +122,25 @@ var SettingsPageView = Backbone.View.extend({
         '<label for="inputFirstname">First name</label>' +
         '<input name="first_name" type="text" class="form-control" placeholder="First name" autofocus>' +
         '<label for="inputLastname">Last name</label>' +
-        '<input name="last_name" type="text" class="form-control" placeholder="Last name"><br>' +
+        '<input name="last_name" type="text" class="form-control" placeholder="Last name">' +
         '<label for="inputEmail">Email</label>' +
         '<input name="email" type="email" class="form-control" placeholder="Email"><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
         '</form>' +
         '</div>' +
+
+        // password reset form
+        '<div class="col-md-4">' +
+        '<form class="password-reset-form">' +
+        '<h3>Change password</h3>' +
+        '<label for="inputCurrentPassword">Current password</label>' +
+        '<input name="current_password" type="password" class="form-control" placeholder="Current password" required>' +
+        '<label for="inputNewPassword">New password</label>' +
+        '<input name="new_password" type="password" class="form-control" placeholder="New password" required><br>' +
+        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Change password</button>' +
+        '</form>' +
+        '</div>' +
+
         '</div>' +
         '</div>'
     )
