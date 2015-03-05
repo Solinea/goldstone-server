@@ -118,11 +118,12 @@ export DJANGO_SETTINGS_MODULE=goldstone.settings.production
 # Initialize agent and model templates. We'll use the lower-level functions,
 # for maximum future flexibility.
 python manage.py shell <<EOF
-from initial_load import _put_all_templates, _create_agent_index
-from goldstone.apps.core.tasks import create_daily_index
+from initial_load import _put_all_templates, _create_agent_index, _create_model_index
+from goldstone.apps.core.tasks import create_daily_index 
 _put_all_templates()
 create_daily_index()
 _create_agent_index()
+_create_model_index()
 EOF
 
 python manage.py collectstatic --noinput
