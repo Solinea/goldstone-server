@@ -20,7 +20,7 @@ import logging
 
 from goldstone.tenants.urls import urlpatterns as tenants_urlpatterns
 from goldstone.views import DiscoverView, HelpView, NodeReportView, \
-    LoginPageView, PasswordView
+    LoginPageView, PasswordView, SettingsPageView
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +52,7 @@ urlpatterns = patterns(
     url(r'^user[/]?$', include("goldstone.user.urls")),
     url(r'^login[/]?$', LoginPageView.as_view()),
     url(r'^password[/]?$', PasswordView.as_view()),
+    url(r'^settings[/]?$', SettingsPageView.as_view()),
     url(r'^$', RedirectView.as_view(url='/discover'), name='home'),
 )
 
