@@ -85,6 +85,16 @@
                         </ul>
                     </li>
                 </ul>
+                <!-- logout icon -->
+                <ul class="nav navbar-nav navbar pull-right">
+                    <h4>
+                    <a href="#">
+                        <div class="logout-icon-container"></div>
+                        <!-- this will be appended by logoutIcon view -->
+                        <!-- <i class="fa fa-sign-out pull-right"></i> -->
+                    </a>
+                    </h4>
+                </ul>
                 <!-- help icon -->
                 <ul class="nav navbar-nav navbar-right">
                     <h4>
@@ -93,12 +103,12 @@
                     </a>
                     </h4>
                 </ul>
-                <ul class="nav navbar-nav navbar-right" hidden="true">
+                <!-- global settings icon -->
+                <ul class="nav navbar-nav navbar pull-right">
                     <h4>
-                    <!-- implementing page should set hidden = false and
-                    redefine the data-target -->
-                    <i class="fa fa-cog pull-right" data-toggle="modal"
-                    data-target="#logSettingsModal"></i>
+                    <a href="/settings">
+                        <i class="fa fa-cog pull-right"></i>
+                    </a>
                     </h4>
                 </ul>
                 <!-- feedback icon -->
@@ -171,6 +181,27 @@
     <!-- backbone view super class loaded globally -->
     <script src="{% static 'js/views/goldstoneBaseView.js' %}"></script>
     <script src="{% static 'js/views/goldstoneBasePageView.js' %}"></script>
+    <script src="{% static 'js/views/logoutIcon.js' %}"></script>
+    <script>
+    $(function(){
+
+        /*
+        LogoutIcon encapsulates the initialization of the $(document) listner
+        for ajaxSend events and uses xhr.setRequestHeader to append the Auth
+        token on all subsequent api calls. It also serves to handle 401 auth
+        errors, removing any existing token, and redirecting to the login page.
+
+        Following that, only if there is a token present (expired or not), it
+        will append the logout icon in the top-right corner of the page.
+        */
+
+        new LogoutIcon({
+            el: ".logout-icon-container"
+        });
+
+    });
+    </script>
+
     {% block localjs %}
     {% endblock %}
 </body>

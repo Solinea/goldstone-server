@@ -73,4 +73,14 @@ class DataViewTests(SimpleTestCase):
             self.assertIsInstance(result[0], list)
 
     def test_get_images(self):
-        self._evaluate(self.client.get("/glance/images"))
+        """GET to /images."""
+        from django.contrib.auth import get_user_model
+        from goldstone.test_utils import create_and_login, \
+            AUTHORIZATION_PAYLOAD
+
+        get_user_model().objects.all().delete()
+        token = create_and_login()
+
+        self._evaluate(
+            self.client.get("/glance/images",
+                            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token))

@@ -15,10 +15,8 @@
 from __future__ import absolute_import
 
 from datetime import datetime
-import json
 import logging
 
-import requests
 import pytz
 from goldstone.apps.api_perf.utils import stack_api_request_base, \
     time_api_call

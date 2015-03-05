@@ -104,11 +104,12 @@ def _get_region_for_client(catalog, management_url, service_type):
 
 
 def _get_region_for_cinder_client(client):
+
     # force authentication to populate management url
     client.authenticate()
     mgmt_url = client.client.management_url
-    kc = get_keystone_client()['client']
-    catalog = kc.service_catalog.catalog['serviceCatalog']
+    keystoneclient = get_keystone_client()['client']
+    catalog = keystoneclient.service_catalog.catalog['serviceCatalog']
     return _get_region_for_client(catalog, mgmt_url, 'volume')
 
 
@@ -135,7 +136,6 @@ def get_client(service, user=settings.OS_USERNAME,
                passwd=settings.OS_PASSWORD,
                tenant=settings.OS_TENANT_NAME,
                auth_url=settings.OS_AUTH_URL):
-    import hashlib
 
     # Error message template.
     NO_AUTH = "%s client failed to authorize. Check credentials in" \
@@ -212,24 +212,24 @@ get_nova_client = functools.partial(get_client, service='nova')
 
 class TopologyMixin(object):
 
-    def _get_children(self, d, rsrc_type):
+    def _get_children(self, children, rsrc_type):
 
-        assert (isinstance(d, dict) or isinstance(d, list)), \
-            "d must be a list or dict"
+        assert (isinstance(children, dict) or isinstance(children, list)), \
+            "children must be a list or dict"
         assert rsrc_type, "rsrc_type must have a value"
 
-        if isinstance(d, list):
+        if isinstance(children, list):
             # Convert it into a dict.
-            d = {'rsrcType': None, 'children': d}
+            children = {'rsrcType': None, 'children': children}
 
         # this is a matching child
-        if d['rsrcType'] == rsrc_type:
-            return d
-        # this is not a match, but has children to check
-        elif d.get('children', None):
+        if children['rsrcType'] == rsrc_type:
+            return children
 
+        # this is not a match, but has children to check
+        elif children.get('children'):
             result = [self._get_children(c, rsrc_type)
-                      for c in d['children']]
+                      for c in children['children']]
             if result and isinstance(result[0], list):
                 # flatten it so we don't end up with nested lists
                 return [c for l in result for c in l]
@@ -300,3 +300,25 @@ class TopologyMixin(object):
                     target_child['children'].append(src_child)
 
         return targ
+
+
+def django_admin_only(wrapped_function):
+    """A decorator that raises an exception if self.request.user.is_staff is
+    False."""
+
+    @functools.wraps(wrapped_function)
+    def _wrapper(*args, **kwargs):
+        """Check self.request.user.is_staff.
+
+        args[0] must be self.
+
+        """
+        from rest_framework.exceptions import PermissionDenied
+        print args[0].request.user
+
+        if args[0].request.user.is_staff:
+            return wrapped_function(*args, **kwargs)
+        else:
+            raise PermissionDenied
+
+    return _wrapper

@@ -1,4 +1,6 @@
-from .development import *           # pylint: disable=W0614,W0401
+"""Development settings, with Elasticsearch remote and PostgreSQL remote,
+server running a manually installed branch."""
+from .development import *       # pylint: disable=W0614,W0401
 
 DATABASES = {
     'default': {

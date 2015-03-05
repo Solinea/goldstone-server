@@ -13,17 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import absolute_import
-
-import json
-import logging
-import requests
-from goldstone.apps.api_perf.utils import time_api_call, \
-    stack_api_request_base
-
 from goldstone.celery import app as celery_app
-
-
-logger = logging.getLogger(__name__)
+# This must be at the module level, for a unit test mock.
+from goldstone.apps.api_perf.utils import time_api_call, stack_api_request_base
 
 
 @celery_app.task()
@@ -34,6 +26,7 @@ def time_agent_list_api():
     agents returned, then calls the agent-show command on the first one,
     otherwise uses the results from agent list to inserts a record
     in the DB.
+
     """
 
     precursor = stack_api_request_base("network", "v2.0/agents")
