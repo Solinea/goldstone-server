@@ -111,6 +111,11 @@ If you want remote access to postgres, you will also need to add an entry to
 
     -A INPUT -p tcp -m state --state NEW -m tcp --dport 5432 -m comment --comment "postgres incoming" -j ACCEPT 
 
+And ``/usr/local/var/postgres/postgresql.conf`` to configure it to listen on 
+external addresses::
+
+    listen_address='*'
+
 Then restart iptables::
 
     $ service iptables restart
