@@ -106,6 +106,20 @@ Edit your pg_hba.conf file.  If you installed with brew, this should be in
 
     $ pg_ctl reload
    
+If you want remote access to postgres, you will also need to add an entry to
+``/etc/sysconfig/iptables`` like::
+
+    -A INPUT -p tcp -m state --state NEW -m tcp --dport 5432 -m comment --comment "postgres incoming" -j ACCEPT 
+
+And ``/usr/local/var/postgres/postgresql.conf`` to configure it to listen on 
+external addresses::
+
+    listen_address='*'
+
+Then restart iptables::
+
+    $ service iptables restart
+
 Clone Goldstone from the bitbucket repo::
 
     $ cd $PROJECT_HOME
