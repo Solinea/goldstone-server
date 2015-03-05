@@ -90,7 +90,7 @@ def _put_all_templates(server=settings.ES_SERVER):
 
 
 def _create_agent_index():
-    """Create a new index in ElasticSearch."""
+    """Create a new agent index in ElasticSearch."""
     from goldstone.apps.core.tasks import create_index
 
     INDEX_NAME = "goldstone_agent"
@@ -103,9 +103,24 @@ def _create_agent_index():
         raise
 
 
+def _create_model_index():
+    """Create a new model index in ElasticSearch."""
+    from goldstone.apps.core.tasks import create_index
+
+    INDEX_NAME = "goldstone_model"
+
+    try:
+        return create_index(INDEX_NAME)
+    except Exception:         # pylint: disable=W0703
+        print "?ERROR: Failed to create the goldstone model index. " \
+              "Please report this!"
+        raise
+
+
 def initialize_development():
     """Set up Elasticsearch templates for test running."""
 
     _put_all_templates()
     create_daily_index()
     _create_agent_index()
+    _create_model_index()
