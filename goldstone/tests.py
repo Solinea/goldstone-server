@@ -13,14 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import arrow
 from django.test import TestCase, SimpleTestCase
 from django.conf import settings
 from elasticsearch import Elasticsearch
 import gzip
 import os
 import json
-import logging
-import arrow
+import sys
 
 # This is needed here for mock to work.
 from elasticsearch.client import IndicesClient
@@ -34,10 +34,17 @@ from goldstone.models import ESData, es_conn, daily_index, es_indices, \
 from goldstone.apps.core.models import Node
 from goldstone.apps.core.tasks import create_daily_index
 from goldstone.utils import get_keystone_client, GoldstoneAuthError
+sys.path.append("..")   # For the tenant_init tests
+from fabfile import tenant_init
 
-logger = logging.getLogger(__name__)
 
+class TenantInit(TestCase):
+    """Test the fabfile's tenant_init task."""
 
+    def test_happy(self):
+
+        tenant_init()
+    
 class PrimeData(TestCase):
     """This should run before all SimpleTestCase methods."""
 
