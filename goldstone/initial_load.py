@@ -15,7 +15,7 @@
 # limitations under the License.
 import os.path
 from django.conf import settings
-from goldstone.apps.core.tasks import create_daily_index
+from .apps.core.tasks import create_daily_index
 
 
 def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
@@ -31,7 +31,7 @@ def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
     """
     import json
     from elasticsearch.exceptions import RequestError
-    from goldstone.models import es_conn
+    from .models import es_conn
     try:
         conn = es_conn(server)
         conn.indices.put_template(template_name,
@@ -91,7 +91,7 @@ def _put_all_templates(server=settings.ES_SERVER):
 
 def _create_agent_index():
     """Create a new agent index in ElasticSearch."""
-    from goldstone.apps.core.tasks import create_index
+    from .apps.core.tasks import create_index
 
     INDEX_NAME = "goldstone_agent"
 
@@ -105,7 +105,7 @@ def _create_agent_index():
 
 def _create_model_index():
     """Create a new model index in ElasticSearch."""
-    from goldstone.apps.core.tasks import create_index
+    from .apps.core.tasks import create_index
 
     INDEX_NAME = "goldstone_model"
 

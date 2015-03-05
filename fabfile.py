@@ -158,7 +158,7 @@ def load(proj_settings=DEV_SETTINGS):
     with _django_env(proj_settings):
         # We have the desired Django settings now. Import the initialization
         # code.
-        from initial_load import initialize_development
+        from goldstone.initial_load import initialize_development
 
         # Initialize the world.
         initialize_development()
