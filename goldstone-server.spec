@@ -119,7 +119,7 @@ export DJANGO_SETTINGS_MODULE=goldstone.settings.production
 # for maximum future flexibility.
 python manage.py shell <<EOF
 from initial_load import _put_all_templates, _create_agent_index, _create_model_index
-from goldstone.apps.core.tasks import create_daily_index 
+from apps.core.tasks import create_daily_index 
 _put_all_templates()
 create_daily_index()
 _create_agent_index()
