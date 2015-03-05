@@ -18,7 +18,9 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.generic import RedirectView
 import logging
 
-from goldstone.views import DiscoverView, HelpView, NodeReportView
+from goldstone.tenants.urls import urlpatterns as tenants_urlpatterns
+from goldstone.views import DiscoverView, HelpView, NodeReportView, \
+    LoginPageView, PasswordView, SettingsPageView
 
 logger = logging.getLogger(__name__)
 
@@ -27,24 +29,35 @@ admin.autodiscover()
 urlpatterns = patterns(
     '',
     # TODO create the main discover page and remove redirect
-    url(r'^discover[/]?$', DiscoverView.as_view(),
-        name='goldstone-discover-view'),
-    url(r'^report/node/(?P<node_uuid>[^/]+)[/]?$', NodeReportView.as_view(),
-        name='goldstone-node-report-view'),
-    url(r'^help[/]?$', HelpView.as_view()),
-    url(r'^intelligence/', include('goldstone.apps.intelligence.urls')),
-    url(r'^nova/', include('goldstone.apps.nova.urls')),
-    url(r'^keystone/', include('goldstone.apps.keystone.urls')),
-    url(r'^cinder/', include('goldstone.apps.cinder.urls')),
-    url(r'^neutron/', include('goldstone.apps.neutron.urls')),
-    url(r'^glance/', include('goldstone.apps.glance.urls')),
-    url(r'^core/', include('goldstone.apps.core.urls')),
-    url(r'^logging/', include('goldstone.apps.logging.urls')),
-    url(r'^api_perf/', include('goldstone.apps.api_perf.urls')),
-    url(r'^$', RedirectView.as_view(url='/discover'), name='home'),
+    url(r'^accounts/', include("goldstone.accounts.urls")),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
+    url(r'^api_perf/', include('goldstone.apps.api_perf.urls')),
+    url(r'^cinder/', include('goldstone.apps.cinder.urls')),
+    url(r'^core/', include('goldstone.apps.core.urls')),
+    url(r'^discover[/]?$',
+        DiscoverView.as_view(),
+        name='goldstone-discover-view'),
+    url(r'^glance/', include('goldstone.apps.glance.urls')),
+    url(r'^help[/]?$', HelpView.as_view()),
+    url(r'^intelligence/', include('goldstone.apps.intelligence.urls')),
+    url(r'^keystone/', include('goldstone.apps.keystone.urls')),
+    url(r'^logging/', include('goldstone.apps.logging.urls')),
+    url(r'^neutron/', include('goldstone.apps.neutron.urls')),
+    url(r'^nova/', include('goldstone.apps.nova.urls')),
+    url(r'^report/node/(?P<node_uuid>[^/]+)[/]?$',
+        NodeReportView.as_view(),
+        name='goldstone-node-report-view'),
+    url(r'^user[/]?$', include("goldstone.user.urls")),
+    url(r'^login[/]?$', LoginPageView.as_view()),
+    url(r'^password[/]?$', PasswordView.as_view()),
+    url(r'^settings[/]?$', SettingsPageView.as_view()),
+    url(r'^$', RedirectView.as_view(url='/discover'), name='home'),
 )
+
+# Add the tenants' URL patterns directly, so that we don't have to over-root
+# it.
+urlpatterns += tenants_urlpatterns
 
 urlpatterns += staticfiles_urlpatterns()

@@ -178,36 +178,45 @@ class SpawnData(ESData):
     def get_spawn_start(self):
         """Return a pandas dataframe with the results of a query for nova spawn
         start events"""
+
         agg_name = "events_by_date"
-        q = self._spawn_start_query(agg_name)
+
+        query = self._spawn_start_query(agg_name)
         index = ",".join(self.get_index_names('goldstone-'))
         logger.debug("[get_spawn_start] calling query with index=%s, "
                      "doc_type=%s", index, self._DOC_TYPE)
         response = self._conn.search(
-            index=index, doc_type=self._DOC_TYPE, body=q, size=0)
+            index=index, doc_type=self._DOC_TYPE, body=query, size=0)
         logger.debug("[get_spawn_start] response = %s", json.dumps(response))
+
         return pd.read_json(json.dumps(
             response['aggregations'][agg_name]['buckets'])
         )
 
     def _get_spawn_finish(self, success):
+
         fname = "success_filter"
         aname = "events_by_date"
-        q = self._spawn_finish_query(success)
-        logger.debug("[get_spawn_finish] query = %s", json.dumps(q))
+        query = self._spawn_finish_query(success)
+        logger.debug("[get_spawn_finish] query = %s", json.dumps(query))
+
         response = self._conn.search(
             index=",".join(self.get_index_names('goldstone-')),
             doc_type=self._DOC_TYPE,
-            body=q, size=0)
+            body=query,
+            size=0)
         logger.debug("[get_spawn_finish] response = %s", json.dumps(response))
+
         data = pd.read_json(json.dumps(
             response['aggregations'][fname][aname]['buckets']),
             orient='records')
+
         if not data.empty:
             del data['key_as_string']
             col_name = 'successes' if success else 'failures'
             data.columns = [col_name, 'timestamp']
             data = data[['timestamp', col_name]]
+
         logger.debug("[get_spawn_finish] data = %s", data)
         return data
 

@@ -243,8 +243,11 @@ class DiscoverView(TemplateView, TopologyMixin):
 
         # bind cinder zones to global at region
         cl = [cinder_topo.build_topology_tree()]
+
         # convert top level items to cinder modules
         new_cl = []
+
+        c = {}                # In case cl is empty. Plus, keeps pylint happy.
         for c in cl:
             if c['rsrcType'] != 'error':
                 c['rsrcType'] = 'module'
@@ -259,6 +262,7 @@ class DiscoverView(TemplateView, TopologyMixin):
         rl = self._attach_resource(ad, new_cl, rl)
 
         nl = [nova_topo.build_topology_tree()]
+
         # convert top level items to nova module
         new_nl = []
         for n in nl:
@@ -341,10 +345,30 @@ class DiscoverView(TemplateView, TopologyMixin):
 
 
 class HelpView(TemplateView):
+    """Return the Help page."""
+
     template_name = 'help.html'
 
 
+class LoginPageView(TemplateView):
+    """Return the Goldstone home page."""
+
+    template_name = 'login.html'
+
+
+class PasswordView(TemplateView):
+    """Return the Goldstone password reset page."""
+
+    template_name = 'password.html'
+
+class SettingsPageView(TemplateView):
+    """Return the Goldstone user/tenant settings page."""
+
+    template_name = 'settings.html'
+
 class NodeReportView(TemplateView):
+    """Return a Node Report page if node exists."""
+
     template_name = 'node_report.html'
 
     def get(self, request, node_uuid, **kwargs):

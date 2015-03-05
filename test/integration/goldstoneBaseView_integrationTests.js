@@ -1,7 +1,7 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests
 
-describe('apiPerfView.js spec', function() {
+describe('goldstoneBaseView.js spec', function() {
     beforeEach(function() {
 
         $('body').html('<div class="testContainer"></div>' +
@@ -135,6 +135,36 @@ describe('apiPerfView.js spec', function() {
             expect($(this.testView.el).find('.popup-message').text()).to.include('newResponseMessageCheck');
             expect($(this.testView.el).find('.popup-message').text()).to.not.include('should not be here');
             expect($(this.testView.el).find('.popup-message').text()).to.include('234');
+        });
+        it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
+            this.testView.update();
+
+            this.dataErrorMessage_spy = sinon.spy(this.testView, "dataErrorMessage");
+            expect($('.popup-message').text()).to.equal('');
+            this.testView.dataErrorMessage(null, {
+                responseJSON: {
+                    status_code: 246,
+                    message: 'responseJSON message all up in your tests.',
+                    detail: 'and some extra details, just for fun'
+                }
+            });
+            expect($('.popup-message').text()).to.equal('246 error: responseJSON message all up in your tests. and some extra details, just for fun');
+            this.testView.dataErrorMessage(null, {
+                status: '999',
+                responseText: 'naughty - coal for you!'
+            });
+            expect($('.popup-message').text()).to.equal('999 error: naughty - coal for you!.');
+            this.testView.dataErrorMessage(null, {
+                status: '123',
+                responseText: 'nice - bourbon for you!'
+            });
+            expect($('.popup-message').text()).to.equal('123 error: nice - bourbon for you!.');
+            this.testView.dataErrorMessage("butterfly - spread your wings again");
+            expect($('.popup-message').text()).to.equal('butterfly - spread your wings again');
+            this.testView.clearDataErrorMessage();
+            expect($('#noDataReturned').text()).to.equal('');
+            expect(this.dataErrorMessage_spy.callCount).to.equal(4);
+            this.dataErrorMessage_spy.restore();
         });
     });
 });

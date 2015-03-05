@@ -1,7 +1,7 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests
 
-describe('UtilizationCpu.js spec', function() {
+describe('memResourceView.js spec', function() {
     beforeEach(function() {
 
         $('body').html('<div class="testContainer"></div>');
@@ -164,10 +164,11 @@ describe('UtilizationCpu.js spec', function() {
             this.testView.dataErrorMessage(null, {
                 responseJSON: {
                     status_code: 246,
-                    message: 'responseJSON message all up in your tests.'
+                    message: 'responseJSON message all up in your tests.',
+                    detail: 'and some extra details, just for fun'
                 }
             });
-            expect($('.popup-message').text()).to.equal('246 error: responseJSON message all up in your tests.');
+            expect($('.popup-message').text()).to.equal('246 error: responseJSON message all up in your tests. and some extra details, just for fun');
             this.testView.dataErrorMessage(null, {
                 status: '999',
                 responseText: 'naughty - coal for you!'
