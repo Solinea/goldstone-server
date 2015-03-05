@@ -170,7 +170,7 @@ if [[ $# == 1 && $1 == 1 ]] ; then
     else 
         echo "***********************************************************************"
         echo "*  To configure goldstone, add the following OpenStack parameters to  *"
-        echo "*  /opt/goldstone/goldstone/setting/production.py and reboot after:   *"
+        echo "*  /opt/goldstone/goldstone/settings/production.py and reboot after:   *"
         echo "*  installation has completed:                                        *"
 	    echo "*     OS_USERNAME                                                     *"
 	    echo "*     OS_TENANT_NAME                                                  *"
