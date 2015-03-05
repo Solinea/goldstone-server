@@ -103,7 +103,7 @@ def _create_agent_index():
         raise
 
 
-def _create_agent_index():
+def _create_model_index():
     """Create a new model index in ElasticSearch."""
     from goldstone.apps.core.tasks import create_index
 
