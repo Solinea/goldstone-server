@@ -12,7 +12,7 @@ DATABASES = {
         'NAME': "goldstone",
         'USER': 'goldstone',
         'PASSWORD': 'goldstone',
-        "HOST": "10.10.20.201",
+        "HOST": "10.10.20.202",
         "PORT": '5432',
     }
 }
