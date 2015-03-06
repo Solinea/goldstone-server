@@ -30,6 +30,14 @@ SETTINGS_DIR = "goldstone.settings"
 # The default settings are to run Elasticsearch and PostgreSQL locally.
 DEV_SETTINGS = SETTINGS_DIR + ".test_oak_c2"
 
+# Default values for the default tenant and default_tenant_admin that are
+# created when Goldstone is installed. These are defined at the module level so
+# that our unit tests can get at them.
+DEFAULT_TENANT = "tenant 0"
+DEFAULT_TENANT_OWNER = "Django admin"
+DEFAULT_ADMIN = "tenant 0 admin"
+DEFAULT_ADMIN_PASSWORD = "changeme"
+
 
 def _django_manage(command, target='', proj_settings=None, daemon=False):
     """Run manage.py <command>.
@@ -136,14 +144,14 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None):
     """Create a tenant and default_tenant_admin, or use existing ones.
 
     If the tenant doesn't exist, we create it.  If the admin doesn't exist, we
-    create it as the system default_tenant_admin, and make it the tenant's
-    tenant_admin.
+    create it as the default_tenant_admin, and the tenant's tenant_admin.
 
     If the tenant already exists, we print an informational message and leave
     it alone.
 
     If the admin already exists, we print an informational message. If he/she
-    is not a tenant admin of the new tenant, we make him/her it.
+    is not a tenant admin of the new tenant, we make him/her it. He/she gets
+    made the (a) default_tenant_admin.
 
     :keyword tenant: The name of the tenant to be created. If not specified, a
                      default is used
@@ -160,12 +168,6 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None):
     from django.contrib.auth import get_user_model
     from django.core.exceptions import ObjectDoesNotExist
     from goldstone.tenants.models import Tenant
-
-    # Default names.
-    DEFAULT_TENANT = "tenant 0"
-    DEFAULT_TENANT_OWNER = "Django admin"
-    DEFAULT_ADMIN = "tenant 0 admin"
-    DEFAULT_ADMIN_PASSWORD = "changeme"
 
     # Load the defaults, if the user didn't override them.
     if not tenant:
@@ -195,8 +197,7 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None):
         fastprint("Creating tenant admin account %s with the password, '%s'." %
                   (admin, password))
         user = get_user_model().objects.create_user(username=admin,
-                                                    password=password,
-                                                    default_tenant_admin=True)
+                                                    password=password)
     else:
         # The tenant_admin already exists. Print a message.
         fastprint("The admin account %s already exists. We will use it." %
@@ -204,6 +205,8 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None):
 
     # Link the tenant_admin account to this tenant.
     user.tenant = tenant
+    user.tenant_admin = True
+    user.default_tenant_admin = True
     user.save()
 
 
