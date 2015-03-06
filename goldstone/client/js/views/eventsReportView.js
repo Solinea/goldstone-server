@@ -18,6 +18,10 @@
 This view makes up the "Events" tab of nodeReportView.js
 It is sub-classed from GoldstoneBaseView.
 
+Much of the functionality is encompassed by the jQuery
+dataTables plugin which is documented at
+http://datatables.net/reference/api/
+
 Instantiated on nodeReportView as:
 
 this.eventsReport = new EventsReportView({
@@ -30,6 +34,8 @@ this.eventsReport = new EventsReportView({
 
 var EventsReportView = GoldstoneBaseView.extend({
 
+    // initialize empty 'defaults' object that will be used as a container
+    // for shared values amongst local functions
     defaults: {},
 
     urlGen: function() {
@@ -60,12 +66,10 @@ var EventsReportView = GoldstoneBaseView.extend({
     processListeners: function() {
         // this is triggered by a listener set on nodeReportView.js
         this.on('lookbackSelectorChanged', function() {
+
+            // set the lookback based on the global selector
             this.defaults.globalLookback = $('#global-lookback-range').val();
 
-            // TODO: create an event that will trigger a chart refresh
-            // creates an event that the 'data-table' will pick up on
-            // in order to trigger a chart refresh
-            // $(this.el).find('#events-report-table_previous').click();
         });
     },
 
@@ -93,6 +97,7 @@ var EventsReportView = GoldstoneBaseView.extend({
         _.each(tableData.results, function(item) {
 
             // if any field is undefined, dataTables throws an alert
+            // so set to empty string if otherwise undefined
             item.id = item.id || '';
             item.event_type = item.event_type || '';
             item.source_id = item.source_id || '';
@@ -103,6 +108,8 @@ var EventsReportView = GoldstoneBaseView.extend({
             finalResults.push([item.created, item.event_type, item.message, item.id, item.source_id, item.source_name]);
         });
 
+        // total/filtered/result feeds the dataTables
+        // item count at the bottom of the table
         return {
             recordsTotal: tableData.count,
             recordsFiltered: tableData.count,
@@ -119,6 +126,8 @@ var EventsReportView = GoldstoneBaseView.extend({
         $(this.el).find('#spinner').hide();
 
         var oTable;
+
+        // Params documented at http://datatables.net/reference/option/
         var oTableParams = {
             "info": true,
             "processing": true,
@@ -160,6 +169,7 @@ var EventsReportView = GoldstoneBaseView.extend({
 
                     // if no interesting sort, ignore it
                     if (urlColumnOrdering[0] !== "order[0][column]=0" || urlOrderingDirection[0] !== "order[0][dir]=desc") {
+
                         // or, if something has changed, capture the
                         // column to sort by, and the sort direction
 
@@ -188,7 +198,7 @@ var EventsReportView = GoldstoneBaseView.extend({
                 },
                 dataFilter: function(data) {
 
-                    /* dataFilter is analagous to the purpose of 'success',
+                    /* dataFilter is analagous to the purpose of ajax 'success',
                     but you can't also use 'success' as then dataFilter
                     will not be triggered */
 
@@ -197,7 +207,7 @@ var EventsReportView = GoldstoneBaseView.extend({
                     // data payload is returned
                     self.hideSpinner();
 
-                    // clear error messages when data begins to flow again
+                    // clear any error messages when data begins to flow again
                     self.clearDataErrorMessage();
 
                     // runs result through this.dataPrep
@@ -241,6 +251,7 @@ var EventsReportView = GoldstoneBaseView.extend({
             }]
         };
 
+        // instantiate dataTable
         oTable = $(location).DataTable(oTableParams);
     },
 
