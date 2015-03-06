@@ -264,6 +264,7 @@ install -m 640 %{_sourcedir}/goldstone/settings/base.py %{buildroot}/opt/goldsto
 install -m 640 %{_sourcedir}/goldstone/settings/production.py %{buildroot}/opt/goldstone/goldstone/settings/production.py
 
 # handle the rest
+install -m 750 %{_sourcedir}/fabfile.py %{buildroot}/opt/goldstone/fabfile.py
 install -m 640 %{_sourcedir}/requirements.txt %{buildroot}/opt/goldstone/requirements.txt
 install -m 640 %{_sourcedir}/setup.cfg %{buildroot}/opt/goldstone/setup.cfg
 install -m 750 %{_sourcedir}/setup.py %{buildroot}/opt/goldstone/setup.py
@@ -294,6 +295,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-, apache, apache)
+/opt/goldstone/fabfile.py
 /opt/goldstone/requirements.txt
 /opt/goldstone/setup.cfg
 /opt/goldstone/setup.py
