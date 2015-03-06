@@ -17,7 +17,7 @@
 # requirements/base.txt is linked to it.
 
 Django==1.6.5
-South==0.8.4
+South==1.0.2
 arrow==0.4.4
 celery[redis]==3.1.10
 django-admin-bootstrapped==1.6.4
@@ -25,11 +25,16 @@ django-crispy-forms==1.4.0
 django-extensions==1.2.5
 django-filter==0.9.1
 django-rest-params==1.0.0
+django-uuidfield==0.5.0
 djangorestframework==3.0.0
+##djoser==0.2.0
+-e git+https://github.com/stugots/djoser.git#egg=djoser
+drf-extensions==0.2.7
 elasticsearch-curator
 elasticsearch-dsl
 elasticsearch
 elasticutils>=0.10.1
+fabric==1.10.1
 lockfile==0.9.1
 pandas==0.13.1
 pbr==0.8.0

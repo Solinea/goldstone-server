@@ -12,11 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
+
 from django.http import HttpResponse
 from django.test import SimpleTestCase
-from .tasks import time_token_post_api
-import logging
 from mock import patch
+
+from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
+from .tasks import time_token_post_api
 
 logger = logging.getLogger(__name__)
 
@@ -50,26 +53,43 @@ class DataViewTests(SimpleTestCase):
         self.assertIsNotNone(response.content)
 
         try:
-            j = json.loads(response.content)
+            response_content = json.loads(response.content)
         except Exception:      # pylint: disable=W0703
             self.fail("Could not convert content to JSON, content was %s",
                       response.content)
         else:
-            self.assertIsInstance(j, list)
-            self.assertGreaterEqual(len(j), 1)
-            self.assertIsInstance(j[0], list)
+            self.assertIsInstance(response_content, list)
+            self.assertGreaterEqual(len(response_content), 1)
+            self.assertIsInstance(response_content[0], list)
+
+    def setUp(self):
+        """Run before every test."""
+        from django.contrib.auth import get_user_model
+
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
 
     def test_get_endpoints(self):
-        self._evaluate(self.client.get("/keystone/endpoints"))
+        self._evaluate(self.client.get(
+            "/keystone/endpoints",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_roles(self):
-        self._evaluate(self.client.get("/keystone/roles"))
+        self._evaluate(self.client.get(
+            "/keystone/roles",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_services(self):
-        self._evaluate(self.client.get("/keystone/services"))
+        self._evaluate(self.client.get(
+            "/keystone/services",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_tenants(self):
-        self._evaluate(self.client.get("/keystone/tenants"))
+        self._evaluate(self.client.get(
+            "/keystone/tenants",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_users(self):
-        self._evaluate(self.client.get("/keystone/users"))
+        self._evaluate(self.client.get(
+            "/keystone/users",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))

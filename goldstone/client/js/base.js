@@ -49,9 +49,15 @@ goldstone.raiseSuccess = function(message) {
     goldstone.raiseAlert(".alert-success", message);
 };
 
-goldstone.raiseInfo = function(message) {
+goldstone.raiseInfo = function(message, persist) {
     "use strict";
-    goldstone.raiseAlert(".alert-info", message);
+
+    if (persist === true) {
+        goldstone.raiseAlert(".alert-info", message, true);
+    } else {
+        goldstone.raiseAlert(".alert-info", message);
+    }
+
 };
 
 goldstone.raiseAlert = function(selector, message, persist) {

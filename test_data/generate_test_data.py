@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -8,12 +8,9 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-__author__ = 'John Stanford'
-
 from elasticsearch import *
 import json
 from datetime import *
@@ -24,12 +21,16 @@ conn = Elasticsearch("10.10.11.123:9200", bulk_size=500)
 
 
 def _get_index_template(template_name, file_path):
-    print "dumping " + template_name + " index template..." 
+
+    print "dumping " + template_name + " index template..."
+
     f = gzip.open(file_path, 'wb')
     template = conn.indices.get_template(template_name)
+
     json.dump(template[template_name], f)
     f.close()
-    print "done." 
+
+    print "done."
 
 
 _get_index_template('logstash', './logstash_template.json.gz')
@@ -95,11 +96,16 @@ model_docs = [
     _get_dataset('core_node', 'created:desc', 'goldstone_model'),
 ]
 
+
 def dump_data(data, file_path):
+
     print "exporting " + str(len(data)) + " doc sets to " + file_path + " ..."
+
     f = gzip.open(file_path, 'wb')
     json.dump(data, f)
+
     f.close()
+
     print "done."
 
 dump_data(logstash_docs, 'logstash_data.json.gz')

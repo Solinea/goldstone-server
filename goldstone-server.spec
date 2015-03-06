@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -115,11 +115,15 @@ cd /opt/goldstone
 pip install -r requirements.txt
 export DJANGO_SETTINGS_MODULE=goldstone.settings.production
 
+# Initialize agent and model templates. We'll use the lower-level functions,
+# for maximum future flexibility.
 python manage.py shell <<EOF
-from goldstone.apps.core.tasks import _put_all_templates, create_daily_index, create_agent_index
+from goldstone.initial_load import _put_all_templates, _create_agent_index, _create_model_index
+from goldstone.apps.core.tasks import create_daily_index 
 _put_all_templates()
 create_daily_index()
-create_agent_index()
+_create_agent_index()
+_create_model_index()
 EOF
 
 python manage.py collectstatic --noinput
@@ -127,6 +131,12 @@ python manage.py syncdb <<EOF
 no
 EOF
 python manage.py migrate
+
+# Create a Django superuser, a.k.a. Goldstone system administrator.
+python manage.py shell <<EOF
+from django.contrib.auth import get_user_model
+get_user_model().objects.create_superuser('admin', 'a@b.com', 'changeme')
+EOF
 
 # get all the ownerships back in shape.  No guarantee that we can su to apache, and running python
 # during install may set some ownerships to root. This seems like the best approach.
@@ -161,7 +171,7 @@ if [[ $# == 1 && $1 == 1 ]] ; then
     else 
         echo "***********************************************************************"
         echo "*  To configure goldstone, add the following OpenStack parameters to  *"
-        echo "*  /opt/goldstone/goldstone/setting/production.py and reboot after:   *"
+        echo "*  /opt/goldstone/goldstone/settings/production.py and reboot after:   *"
         echo "*  installation has completed:                                        *"
 	    echo "*     OS_USERNAME                                                     *"
 	    echo "*     OS_TENANT_NAME                                                  *"

@@ -150,76 +150,55 @@ describe('apiPerfView.js spec', function() {
             expect(this.urlGenerator_spy.callCount).to.equal(1);
             this.urlGenerator_spy.restore();
         });
-        it('properly computes bar heights based on the d.name param', function() {
-
-            // Success / Failure get computed as a difference
-            // between y0 and y1
-            var test1 = this.testView.computeBarHeightPopover({
-                name: 'Failure',
-                y0: 5,
-                y1: 10
+        it('properly prepares popovers', function() {
+            var test1 = this.testView.computeHiddenBarText({
+                eventTime: '1425071850093',
+                Used: '6',
+                Physical: '16',
+                Virtual: '256',
+                total: 256,
+                stackedBarPrep: [1, 2, 3]
             });
-            var test2 = this.testView.computeBarHeightPopover({
-                name: 'Success',
-                y0: 10,
-                y1: 5
+            var test2 = this.testView.computeHiddenBarText({
+                eventTime: '1425071850093',
+                Used: '16',
+                Physical: '26',
+                Virtual: '356',
+                total: 456,
+                stackedBarPrep: [1, 2, 3, 4]
             });
-            expect(test1).to.equal('<p>Failure<br>5');
-            expect(test2).to.equal('<p>Success<br>-5');
-
-            // Any other d.name values get computed as the
-            // value of y1
-            var test3 = this.testView.computeBarHeightPopover({
-                name: 'Virtual',
-                y0: 5,
-                y1: 10
+            expect(test1).to.equal('2015-02-27T13:17:30-08:00<br>Virtual: 256<br>Physical: 16<br>Used: 6<br>');
+            expect(test2).to.equal('2015-02-27T13:17:30-08:00<br>Virtual: 356<br>Physical: 26<br>Used: 16<br>');
+            // can handle dates but various kinds of missing data
+            var test3 = this.testView.computeHiddenBarText({
+                eventTime: '1425071850093',
+                Used: undefined,
+                Physical: undefined,
+                Virtual: undefined,
+                total: undefined,
+                stackedBarPrep: [1, 2, 3]
             });
-            var test4 = this.testView.computeBarHeightPopover({
-                name: 'Philosphical',
-                y0: 10,
-                y1: 42
+            expect(test3).to.equal('2015-02-27T13:17:30-08:00<br>Virtual: undefined<br>Physical: undefined<br>Used: undefined<br>');
+            var test4 = this.testView.computeHiddenBarText({
+                eventTime: '1425071850093',
+                Used: 0,
+                Physical: 0,
+                Virtual: 0,
+                total: 0,
+                stackedBarPrep: [1, 2, 3]
             });
-            var test5 = this.testView.computeBarHeightPopover({
-                name: '',
-                y0: 12,
-                y1: 'Sucks'
+            expect(test4).to.equal('2015-02-27T13:17:30-08:00<br>Virtual: 0<br>Physical: 0<br>Used: 0<br>');
+            var test5 = this.testView.computeHiddenBarText({
+                eventTime: '1425071850093'
             });
-            expect(test3).to.equal('<p>Virtual<br>10');
-            expect(test4).to.equal('<p>Philosphical<br>42');
-            expect(test5).to.equal('<p><br>Sucks');
-
-            // can handle empty input
-            var test6 = this.testView.computeBarHeightPopover({});
-            expect(test6).to.equal('<p>Missing name param<br>No value reported');
-
-            // can handle incompletely formatted input
-            var test7 = this.testView.computeBarHeightPopover({
-                name: 'Lazy'
+            expect(test5).to.equal('2015-02-27T13:17:30-08:00<br>');
+            var test6 = this.testView.computeHiddenBarText({
+                eventTime: '1425071850093',
+                Used: 'bicycles',
+                Physical: 'discomfort',
+                Virtual: 'indestructable'
             });
-            expect(test7).to.equal('<p>Lazy<br>No value reported');
-            var test8 = this.testView.computeBarHeightPopover({
-                name: 'Careless',
-                y0: 108
-            });
-            expect(test8).to.equal('<p>Careless<br>No value reported');
-            var test9 = this.testView.computeBarHeightPopover({
-                name: 'Sleepy',
-                y1: 400
-            });
-            expect(test9).to.equal('<p>Sleepy<br>No value reported');
-            var test10 = this.testView.computeBarHeightPopover({
-                y0: 105,
-                y1: 200
-            });
-            expect(test10).to.equal('<p>Missing name param<br>200');
-
-            // doesn't append tooltip text to zero values
-            var test11 = this.testView.computeBarHeightPopover({
-                name: 'Nada',
-                y0: 12,
-                y1: 12
-            });
-            expect(test11).to.equal(null);
+            expect(test6).to.equal('2015-02-27T13:17:30-08:00<br>Virtual: indestructable<br>Physical: discomfort<br>Used: bicycles<br>');
         });
     });
 });

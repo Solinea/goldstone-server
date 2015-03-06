@@ -7,7 +7,7 @@ GOLDSTONE LICENSE
 
 Copyright 2014 - 2015 Solinea, Inc.
 
-Licensed under the Solinea Software License Agreement (goldstone),
+Licensed under the Solinea Software License Agreement (Goldstone),
 Version 1.0 (the "License"); you may not use this file except in compliance
 with the License. You may obtain a copy of the License at:
 
@@ -22,19 +22,19 @@ limitations under the License.
 INSTALLING GOLDSTONE
 *********************
 
-Installing goldstone is a two step process:
+Installing Goldstone is a two step process:
 
-1. Install goldstone packages
-2. Direct OpenStack server logs to goldstone server
+1. Install Goldstone packages
+2. Direct OpenStack server logs to Goldstone server
 
-Before installing goldstone, your server needs to meet the following prerequesites:
+Before installing Goldstone, your server needs to meet the following prerequesites:
 
 * 4GB RAM
 * x64 CPU (or 4 core VM on x64 host)
 * 100 GB free disk space
 * CentOS / RHEL 6.5 or 6.6
 
-To view and use goldstone, you will need a recent version of the `Google Chrome browser`_.
+To view and use Goldstone, you will need a recent version of the `Google Chrome browser`_.
 
 .. _Google Chrome browser: https://www.google.com/intl/en-US/chrome/browser/
 
@@ -47,7 +47,7 @@ First, enable the CentOS EPEL repositories and install some dependencies:
 
     # run as root
     yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-    yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel
+    yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
 
 Next, enable the elasticsearch and logstash repositories:
 
@@ -85,7 +85,7 @@ configure Goldstone without a reboot.
     export OS_PASSWORD=password
     export OS_AUTH_URL=http://10.10.10.10::5000/v2.0/
 
-Create a Postgres goldstone user, and initialize the database. 
+Create a Postgres Goldstone user, and initialize the database. 
       
   .. code:: bash
 
@@ -112,7 +112,7 @@ Reload the postgres configuration.
     su - postgres -c 'pg_ctl reload'
 
 
-Install the goldstone application: 
+Install the Goldstone application: 
 
   .. code:: bash
 
@@ -129,16 +129,16 @@ If you did not set the OpenStack envrironment variables, you can configure Golds
     OS_PASSWORD = 'password'
     OS_AUTH_URL = 'http://10.10.10.10:5000/v2.0'
 
-The goldstone application will be started at next boot. 
+The Goldstone application will be started at next boot. 
 
 
 DIRECT LOGS TO GOLDSTONE SERVER
 *******************************
 
-With goldstone installed, the only task left is to point the OpenStack server logs to it so that it can begin processing them. There are two tasks in this step:
+With Goldstone installed, the only task left is to point the OpenStack server logs to it so that it can begin processing them. There are two tasks in this step:
 
     1. Configure OpenStack services to use syslog
-    2. Configure syslog to forward to your goldstone server
+    2. Configure syslog to forward to your Goldstone server
 
 OpenStack Service Logging
 ---------------------------
@@ -183,8 +183,8 @@ Rsyslog Forwarding
 
 In the ``/opt/goldstone/external`` folder, there are example configuration files for rsyslog:
 
-* ``/opt/goldstone/external/rsyslog/rsyslog.conf`` is an example main rsyslog configuration file. It references the goldstone specific file below.
-* ``/opt/goldstone/external/rsyslog/rsyslog.d/10-goldstone.conf`` provides specific mapping. THIS FILE NEEDS TO BE MODIFIED to replace the '@@goldstone_ip:5514' in the local0.* to local7.* lines with your goldstone server IP address or name. For example, if your goldstone server's IP address 10.10.10.1, then your file should be edited to read: ::
+* ``/opt/goldstone/external/rsyslog/rsyslog.conf`` is an example main rsyslog configuration file. It references the Goldstone specific file below.
+* ``/opt/goldstone/external/rsyslog/rsyslog.d/10-goldstone.conf`` provides specific mapping. THIS FILE NEEDS TO BE MODIFIED to replace the '@@goldstone_ip:5514' in the local0.* to local7.* lines with your Goldstone server IP address or name. For example, if your Goldstone server's IP address 10.10.10.1, then your file should be edited to read: ::
 
     *.*    @@10.10.10.1:5514    
 
@@ -197,4 +197,6 @@ Restart the OpenStack services and syslog or reboot the node. Repeat this on all
 FINISHED !
 *********************
 
-Now that everything has been configured, point your browser to the goldstone server IP address or name and begin using goldstone.
+Now that everything has been configured, point your browser to the Goldstone server IP address or name and begin using Goldstone.
+
+Your system administrator account is "admin" / "changeme".  Your first task is to login using these credentials, and change this account's password and e-mail address.

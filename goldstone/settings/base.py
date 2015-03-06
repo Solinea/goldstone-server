@@ -20,7 +20,11 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from datetime import timedelta
 import os
+
+from celery.schedules import crontab
+from kombu import Exchange, Queue
 
 CURRENT_DIR = os.path.dirname(__file__)
 TEMPLATE_DIRS = (os.path.join(CURRENT_DIR, '../templates'),)
@@ -56,7 +60,7 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = ['*', ]
 
-# Application definition
+# Application definition.
 
 INSTALLED_APPS = (
     'django_admin_bootstrapped',
@@ -67,10 +71,13 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'djoser',
     'rest_framework',
+    'rest_framework.authtoken',
     'south',
     'crispy_forms',
     'django.contrib.contenttypes',
+    'goldstone.accounts',
     'goldstone.apps.core',
     'goldstone.apps.intelligence',
     'goldstone.apps.nova',
@@ -80,6 +87,8 @@ INSTALLED_APPS = (
     'goldstone.apps.glance',
     'goldstone.apps.api_perf',
     'goldstone.apps.logging',
+    'goldstone.tenants',
+    'goldstone.user',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -144,9 +153,10 @@ REDIS_PORT = '6379'
 REDIS_DB = '0'
 REDIS_CONNECT_STR = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/' + REDIS_DB
 
-# Celery
+# Goldstone's User model.
+AUTH_USER_MODEL = "user.User"
 
-from kombu import Exchange, Queue
+# Celery
 
 BROKER_URL = REDIS_CONNECT_STR
 CELERY_RESULT_BACKEND = REDIS_CONNECT_STR
@@ -171,8 +181,6 @@ CELERY_ROUTES = {
         'queue': 'event_stream'},
 }
 
-from celery.schedules import crontab
-from datetime import timedelta
 DAILY_INDEX_CURATION_SCHEDULE = crontab(minute='0', hour='0', day_of_week='*')
 ES_GOLDSTONE_RETENTION = 30
 ES_LOGSTASH_RETENTION = 30
@@ -244,18 +252,36 @@ CELERYBEAT_SCHEDULE = {
     },
 }
 
+# Database row settings.
+TENANT_NAME_MAX_LENGTH = 80
+TENANT_OWNER_MAX_LENGTH = 80
+
+# Settings for the Djoser package. We login and activate after registration.
+DJOSER = {'DOMAIN': 'YOUR_EMAIL_DOMAIN_NAME.com',
+          'SITE_NAME': 'YOUR_EMAIL_SITE_NAME',
+          'PASSWORD_RESET_CONFIRM_URL':
+          '#/password/reset/confirm/{uid}/{token}',
+          'ACTIVATION_URL': '#/activate/{uid}/{token}',
+          'LOGIN_AFTER_REGISTRATION': True,
+          }
+
+# Definitions for Django Rest Framework.
 REST_FRAMEWORK = {
+    # We use token-based authentication everywhere.
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
     # Use hyperlinked styles by default.
     # Used only if the `serializer_class` attribute is not set on a view.
     # This key is deprecated.
     'DEFAULT_MODEL_SERIALIZER_CLASS':
     'rest_framework.serializers.HyperlinkedModelSerializer',
 
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
+    # Permission to access all views is granted to any logged-in account. But
+    # individual views and ViewSet methods may impose additional contraints.
     'DEFAULT_PERMISSION_CLASSES': [
-        # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-        'rest_framework.permissions.AllowAny'
+        # User must be authenticated, i.e., logged in.
+        'rest_framework.permissions.IsAuthenticated'
     ],
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_RENDERER_CLASSES': (

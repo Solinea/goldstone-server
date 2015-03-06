@@ -403,8 +403,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                                 }
                                 parentModule = d.label;
 
-                                // clear and set resource url in localStorage
-                                localStorage.clear();
+                                // set resource url in localStorage
                                 url = "/" + parentModule + url;
                                 localStorage.setItem('urlForResourceList', url);
                                 localStorage.setItem('origClickedLabel', origClickedLabel);
@@ -606,8 +605,10 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                     this.appendLeafNameToResourceHeader(localStorage.getItem('origClickedLabel'));
                 }
 
-                localStorage.clear();
-
+                // delete localStorage keys that have been used to pre-fetch the
+                // items that were clicke to arrive at this page
+                localStorage.removeItem('urlForResourceList');
+                localStorage.removeItem('origClickedLabel');
             }
         }
     },
