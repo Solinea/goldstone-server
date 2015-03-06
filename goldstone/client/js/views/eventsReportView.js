@@ -70,6 +70,8 @@ var EventsReportView = GoldstoneBaseView.extend({
             // set the lookback based on the global selector
             this.defaults.globalLookback = $('#global-lookback-range').val();
 
+            // trigger a redraw of the table
+            $('#events-report-table').dataTable().fnDraw();
         });
     },
 
