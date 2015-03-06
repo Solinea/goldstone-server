@@ -129,7 +129,7 @@ If you did not set the OpenStack envrironment variables, you can configure Golds
     OS_PASSWORD = 'password'
     OS_AUTH_URL = 'http://10.10.10.10:5000/v2.0'
 
-The Goldstone application will be started at next boot. 
+The Goldstone application will be started at the next boot. 
 
 
 DIRECT LOGS TO GOLDSTONE SERVER
@@ -199,4 +199,10 @@ FINISHED !
 
 Now that everything has been configured, point your browser to the Goldstone server IP address or name and begin using Goldstone.
 
-Your system administrator account is "admin" / "changeme".  Your first task is to login using these credentials, and change this account's password and e-mail address.
+Your system administrator account is "admin" / "changeme".  Login with these credentials.
+
+The installation created this account with some defaults. It also created a default tenant and tenant_admin for the system.
+
+Your first tasks should be to change your admin account password and e-mail address. You can do this from the account settings page.
+
+After that, you may wish to change the default tenant's name, which is "tenant 0". Or, create more tenant admin accounts for the "tenant 0" tenant. Or, rename the default tenant admin's name and password, which is "tenant 0 admin" / "changeme".
