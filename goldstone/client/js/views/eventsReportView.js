@@ -38,7 +38,8 @@ var EventsReportView = GoldstoneBaseView.extend({
         // which means it is run again before every dataTables server query
 
         var now = +new Date();
-        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
+        // subtracts correct ms from current time
+        var lookback = now - (1000 * 60 * this.defaults.globalLookback);
         var urlRouteConstruction = '/core/events?source_name=' +
             this.defaults.hostName + '&created__lte=' + now + '&created__gte=' + lookback;
         this.defaults.url = urlRouteConstruction;
