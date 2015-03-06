@@ -26,6 +26,7 @@ from mock import patch
 from goldstone.apps.core.models import Node, EventType
 from goldstone.apps.logging.serializers import LoggingNodeSerializer
 from goldstone.apps.logging.views import LoggingNodeViewSet
+from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
 from goldstone.utils import utc_now
 from .tasks import _create_event, ping, check_host_avail
 
@@ -123,28 +124,51 @@ class LoggingNodeSerializerTests(SimpleTestCase):
 class LoggingNodeViewTests(APISimpleTestCase):
 
     def setUp(self):
+        """Run before every test."""
+        from django.contrib.auth import get_user_model
+
         Node.objects.all().delete()
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
 
     def test_post(self):
+
         data = {'name': "test logging node"}
-        response = self.client.post('/logging/nodes', data=data)
+        response = self.client.post(
+            '/logging/nodes',
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_put(self):
+
         data = {'name': "test logging node"}
-        response = self.client.put('/logging/nodes', data=data)
+        response = self.client.put(
+            '/logging/nodes',
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_patch(self):
+
         data = {'name': "test logging node"}
-        response = self.client.patch('/logging/nodes', data=data)
+        response = self.client.patch(
+            '/logging/nodes',
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_delete(self):
-        response = self.client.put('/logging/nodes/12345-67890')
+
+        response = self.client.put(
+            '/logging/nodes/12345-67890',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -172,7 +196,10 @@ class LoggingNodeViewTests(APISimpleTestCase):
 
         self.assertEqual(20, Node.objects.all().count())
 
-        response = self.client.get('/logging/nodes')
+        response = self.client.get(
+            '/logging/nodes',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(response.data['count'], 20)
@@ -184,7 +211,10 @@ class LoggingNodeViewTests(APISimpleTestCase):
         node = Node(name="node1")
         node.save()
 
-        response = self.client.get('/logging/nodes/' + node.id)
+        response = self.client.get(
+            '/logging/nodes/' + node.id,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertIn('name', response.data)

@@ -41,6 +41,13 @@ var NodeAvailCollection = Backbone.Collection.extend({
 
     model: NodeAvailModel,
 
+    initialize: function(options) {
+        this.url = options.url;
+        // url string similar to: /logging/nodes?page_size=100
+
+        this.initXhr();
+    },
+
     thisXhr: null,
 
     initXhr: function() {
@@ -51,12 +58,5 @@ var NodeAvailCollection = Backbone.Collection.extend({
         this.thisXhr = this.fetch({
             remove: true
         });
-    },
-
-    initialize: function(options) {
-        this.url = options.url;
-        // url string similar to: /logging/nodes?page_size=100
-
-        this.initXhr();
     }
 });

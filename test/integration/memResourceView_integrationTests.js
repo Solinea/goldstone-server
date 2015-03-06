@@ -1,7 +1,7 @@
 /*global sinon, todo, chai, describe, it, calledOnce*/
 //integration tests
 
-describe('UtilizationCpu.js spec', function() {
+describe('memResourceView.js spec', function() {
     beforeEach(function() {
 
         $('body').html('<div class="testContainer"></div>');
@@ -24,7 +24,7 @@ describe('UtilizationCpu.js spec', function() {
 
         blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        this.testView = new MemResourceView({
+        this.testView = new StackedBarChartView({
             chartTitle: "Test Disk Resources",
             collection: this.testCollection,
             featureSet: 'mem',
@@ -82,31 +82,37 @@ describe('UtilizationCpu.js spec', function() {
     });
     describe('view dataPrep', function() {
         it('prepares JSON payload for rendering', function() {
+            // Memory Resources chart data prep
+            // {timestamp: [used, phys, virt]}
             var test1 = this.testView.dataPrep({
                 0: {
-                    "1422564480000": [15936, 512, 23904, 512],
-                    "1422537120000": [15936.0, 512.0, 23904.0, 512.0],
-                    "1422527040000": [15936.0, 512.0, 23904.0, 512.0],
-                    "1422540000000": [15936.0, 512.0, 23904.0, 512.0]
+                    "1422564480000": [15936, 512, 23904],
+                    "1422537120000": [15936.0, 512.0, 23904.0],
+                    "1422527040000": [15936.0, 512.0, 23904.0],
+                    "1422540000000": [15936.0, 512.0, 23904.0]
                 }
             });
             expect(test1).to.deep.equal(
                 [{
                     "eventTime": '1422564480000',
-                    "Success": 23904,
-                    "Failure": 15936
+                    "Used": 15936,
+                    "Physical": 512,
+                    "Virtual": 23904
                 }, {
                     "eventTime": '1422537120000',
-                    "Success": 23904,
-                    "Failure": 15936
+                    "Used": 15936,
+                    "Physical": 512,
+                    "Virtual": 23904
                 }, {
                     "eventTime": '1422527040000',
-                    "Success": 23904,
-                    "Failure": 15936
+                    "Used": 15936,
+                    "Physical": 512,
+                    "Virtual": 23904
                 }, {
                     "eventTime": '1422540000000',
-                    "Success": 23904,
-                    "Failure": 15936
+                    "Used": 15936,
+                    "Physical": 512,
+                    "Virtual": 23904
                 }]);
         });
     });
@@ -147,7 +153,7 @@ describe('UtilizationCpu.js spec', function() {
             this.testView.update();
             expect($('.popup-message').text()).to.equal('No Data Returned');
             expect(this.update_spy.callCount).to.equal(3);
-            expect($('g').find('text').text()).to.equal('FailSuccess');
+            expect($('g').find('text').text()).to.equal('VirtualPhysicalUsed');
             this.update_spy.restore();
         });
         it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {
@@ -158,10 +164,11 @@ describe('UtilizationCpu.js spec', function() {
             this.testView.dataErrorMessage(null, {
                 responseJSON: {
                     status_code: 246,
-                    message: 'responseJSON message all up in your tests.'
+                    message: 'responseJSON message all up in your tests.',
+                    detail: 'and some extra details, just for fun'
                 }
             });
-            expect($('.popup-message').text()).to.equal('246 error: responseJSON message all up in your tests.');
+            expect($('.popup-message').text()).to.equal('246 error: responseJSON message all up in your tests. and some extra details, just for fun');
             this.testView.dataErrorMessage(null, {
                 status: '999',
                 responseText: 'naughty - coal for you!'

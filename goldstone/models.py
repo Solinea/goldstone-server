@@ -12,16 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from arrow import Arrow
 from django.conf import settings
-from elasticsearch import Elasticsearch, ElasticsearchException
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.connections import connections
 import redis
 
 import json
 import logging
-import pandas as pd
 from goldstone.apps.core.tasks import create_daily_index
 from goldstone.utils import NoDailyIndex
 
@@ -76,8 +73,8 @@ def daily_index(prefix=""):
     :returns: index name
 
     """
-
     import arrow
+
     postfix = arrow.utcnow().format('YYYY.MM.DD')
     return prefix + postfix
 
@@ -381,9 +378,8 @@ class TopologyData(object):
             raise ValueError("Valid order values are in [+, -, asc, desc]")
 
     def get(self, count=1, sort_key="@timestamp", sort_order="desc"):
-        """
-        returns the latest n instances from ES or None if not found
-        """
+        """Return the latest n instances from ES or None if not found."""
+        from elasticsearch import ElasticsearchException
 
         try:
             self.search.sort(self._sort_arg(sort_key, sort_order))

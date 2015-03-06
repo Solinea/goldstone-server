@@ -101,7 +101,8 @@ class LogData(ESData):
         logger.debug("[_loglevel_by_time_agg] interval = %s", interval)
         logger.debug("[_loglevel_by_time_agg] start = %s", start.isoformat())
         logger.debug("[_loglevel_by_time_agg] end = %s", end.isoformat())
-        q = {
+
+        query = {
             "query": {
                 "bool": {
                     "must": [
@@ -131,9 +132,9 @@ class LogData(ESData):
             }
         }
 
-        logger.debug("[_loglevel_by_time_agg] query = %s", json.dumps(q))
+        logger.debug("[_loglevel_by_time_agg] query = %s", json.dumps(query))
         result = self._conn.search(index=self.get_index_names('logstash-'),
-                                   body=q)
+                                   body=query)
 
         logger.debug("[_loglevel_by_time_agg] result = %s", json.dumps(result))
         return result
@@ -166,7 +167,7 @@ class LogData(ESData):
     def get_log_data(self, start_t, end_t, first, size,
                      level_filters=dict(), sort='', search_text=None):
 
-        q = {
+        query = {
             "query": {
                 "bool": {
                     "must": [
@@ -186,11 +187,11 @@ class LogData(ESData):
         if search_text:
             escaped_search_text = self._escape(search_text)
 
-            sq = {"query_string": {"default_operator": "AND",
-                                   "query": escaped_search_text,
-                                   "lenient": "true"
-                                   }}
-            q['query']['bool']['must'].append(sq)
+            searchquery = {"query_string": {"default_operator": "AND",
+                                            "query": escaped_search_text,
+                                            "lenient": "true"
+                                            }}
+            query['query']['bool']['must'].append(searchquery)
 
         lev_filts = []
 
@@ -199,17 +200,17 @@ class LogData(ESData):
 
         if lev_filts:
             or_filt = {'or': lev_filts}
-            q['filter'] = or_filt
-            q = {'query': {'filtered': q}}
+            query['filter'] = or_filt
+            query = {'query': {'filtered': query}}
 
-        logger.debug("[get_log_data] query = %s", json.dumps(q))
+        logger.debug("[get_log_data] query = %s", json.dumps(query))
         return self._conn.search(index=self.get_index_names('logstash-'),
-                                 body=q, from_=first, size=size, sort=sort)
+                                 body=query, from_=first, size=size, sort=sort)
 
     def get_hypervisor_stats(self, start, end, interval, first=0,
                              size=10, sort=''):
 
-        q = {
+        query = {
             "query": {
                 "bool": {
                     "must": [
@@ -262,7 +263,10 @@ class LogData(ESData):
         }
 
         result = self._conn.search(index=self.get_index_names('logstash-'),
-                                   body=q, from_=first, size=size, sort=sort)
+                                   body=query,
+                                   from_=first,
+                                   size=size,
+                                   sort=sort)
         logger.debug('result = ' + json.dumps(result))
 
         return result

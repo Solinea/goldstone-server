@@ -17,7 +17,6 @@ from arrow import Arrow
 
 
 from elasticsearch_dsl import Search, DocType, String, Date, Integer
-from types import StringType
 import logging
 from goldstone.models import daily_index, es_indices
 

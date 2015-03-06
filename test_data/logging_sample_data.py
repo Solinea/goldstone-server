@@ -1,20 +1,16 @@
-# Copyright '2014' Solinea, Inc.
-# 
+# Copyright 2014 - 2015 Solinea, Inc.
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 # http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
-__author__ = 'stanford'
-
 from django.conf import settings
 from goldstone.apps.logging.models import LoggingNode
 from goldstone.apps.logging.serializers import LoggingNodeSerializer
@@ -80,8 +76,6 @@ def _fake_admin_disabled(last_seen, currently_disabled):
     if currently_disabled:
         # 95% chance that currently disabled nodes will stay that way
         return random.randint(-5, 95) > 0
-
-
 
 
 def _gen_node(current_node=None):
@@ -170,6 +164,7 @@ def _gen_model_data(current=None):
 
 
 def generate(dataset_count):
+
     nodes = None
 
     for i in xrange(1, dataset_count + 1):
@@ -190,6 +185,3 @@ def generate(dataset_count):
 
 if __name__ == "__main__":
     generate(10)
-
-
-

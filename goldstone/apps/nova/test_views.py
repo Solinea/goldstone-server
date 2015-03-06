@@ -15,20 +15,20 @@
 import arrow
 
 # TODO replace pytz and calendar with arrow
+from datetime import datetime
 import json
-from django.http import HttpResponse
 import pytz
 import calendar
-import logging
 import pandas as pd
 
+from django.contrib.auth import get_user_model
+from django.http import HttpResponse
 from django.test import SimpleTestCase
-from .models import SpawnData
-from datetime import datetime
 from mock import patch
 from rest_framework.test import APITestCase
 
-logger = logging.getLogger(__name__)
+from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
+from .models import SpawnData
 
 
 class BaseTest(SimpleTestCase):
@@ -44,12 +44,28 @@ class BaseTest(SimpleTestCase):
     invalid_end = '999999999999'
     invalid_interval = 'abc'
 
+    def setUp(self):
+        """Run before every test."""
+
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
+
     def _assert_success(self, url):
-        response = self.client.get(url)
+        """Do a request that should succeed."""
+
+        response = self.client.get(
+            url,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, 200)
 
     def _assert_bad_request(self, url):
-        response = self.client.get(url)
+        """Do a request that should fail."""
+
+        response = self.client.get(
+            url,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, 400)
 
 
@@ -113,6 +129,12 @@ class SpawnsApiPerfViewsTest(BaseTest):
 
 class SpawnsHandleRequest(APITestCase):
 
+    def setUp(self):
+        """Run before every test."""
+
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
+
     @patch.object(SpawnData, 'get_spawn_success')
     @patch.object(SpawnData, 'get_spawn_failure')
     @patch('goldstone.apps.nova.views.validate')
@@ -138,25 +160,38 @@ class SpawnsHandleRequest(APITestCase):
         gsf.return_value = pd.DataFrame()
         gss.return_value = pd.DataFrame()
 
-        response = self.client.get(url, data, format='json')
+        response = self.client.get(
+            url,
+            data,
+            format='json',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.data, {})          # pylint: disable=E1101
         self.assertEqual(response.status_code, 200)
 
         # 1 successful spawns, 2 failed
-        gss.return_value = pd.read_json(json.dumps([
-            {u'timestamp': 1423165800000, u'successes': 1}
-        ]), orient='records')
-        gsf.return_value = pd.read_json(json.dumps([
-            {u'timestamp': 1423165800000, u'failures': 2}
-        ]), orient='records')
-        response = self.client.get(url, data, format='json')
+        gss.return_value = pd.read_json(
+            json.dumps([{u'timestamp': 1423165800000, u'successes': 1}]),
+            orient='records')
+        gsf.return_value = pd.read_json(
+            json.dumps([{u'timestamp': 1423165800000, u'failures': 2}]),
+            orient='records')
+
+        response = self.client.get(
+            url,
+            data,
+            format='json',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.data,                # pylint: disable=E1101
                          {1423165800000: [1, 2]})
         self.assertEqual(response.status_code, 200)
 
         # 0 successful spawns, 2 failed spawns
         gss.return_value = pd.DataFrame()
-        response = self.client.get(url, data, format='json')
+        response = self.client.get(
+            url,
+            data,
+            format='json',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.data,                 # pylint: disable=E1101
                          {1423165800000: [0, 2]})
         self.assertEqual(response.status_code, 200)
@@ -167,7 +202,12 @@ class SpawnsHandleRequest(APITestCase):
                                       u'successes': 1}]),
                          orient='records')
         gsf.return_value = pd.DataFrame()
-        response = self.client.get(url, data, format='json')
+
+        response = self.client.get(
+            url,
+            data,
+            format='json',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.data,                 # pylint: disable=E1101
                          {1423165800000: [1, 0]})
         self.assertEqual(response.status_code, 200)
@@ -177,15 +217,26 @@ class LatestStatsViewTest(SimpleTestCase):
 
     def test_good_request(self):
 
-        uri = '/nova/hypervisor/latest-stats'
+        URI = '/nova/hypervisor/latest-stats'
 
-        response = self.client.get(uri)
+        get_user_model().objects.all().delete()
+        token = create_and_login()
+
+        response = self.client.get(
+            URI,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(json.loads(response.content), [])
 
 
 class DataViewTests(SimpleTestCase):
+
+    def setUp(self):
+        """Run before every test."""
+
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
 
     def _evaluate(self, response):
 
@@ -203,37 +254,61 @@ class DataViewTests(SimpleTestCase):
             self.assertIsInstance(j[0], list)
 
     def test_get_agents(self):
-        self._evaluate(self.client.get("/nova/agents"))
+        self._evaluate(self.client.get(
+            "/nova/agents",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_aggregates(self):
-        self._evaluate(self.client.get("/nova/aggregates"))
+        self._evaluate(self.client.get(
+            "/nova/aggregates",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_avail_zones(self):
-        self._evaluate(self.client.get("/nova/availability_zones"))
+        self._evaluate(self.client.get(
+            "/nova/availability_zones",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_cloudpipes(self):
-        self._evaluate(self.client.get("/nova/cloudpipes"))
+        self._evaluate(self.client.get(
+            "/nova/cloudpipes",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_flavors(self):
-        self._evaluate(self.client.get("/nova/flavors"))
+        self._evaluate(self.client.get(
+            "/nova/flavors",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_floating_ip_pools(self):
-        self._evaluate(self.client.get("/nova/floating_ip_pools"))
+        self._evaluate(self.client.get(
+            "/nova/floating_ip_pools",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_hosts(self):
-        self._evaluate(self.client.get("/nova/hosts"))
+        self._evaluate(self.client.get(
+            "/nova/hosts",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_hypervisors(self):
-        self._evaluate(self.client.get("/nova/hypervisors"))
+        self._evaluate(self.client.get(
+            "/nova/hypervisors",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_networks(self):
-        self._evaluate(self.client.get("/nova/networks"))
+        self._evaluate(self.client.get(
+            "/nova/networks",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_sec_groups(self):
-        self._evaluate(self.client.get("/nova/security_groups"))
+        self._evaluate(self.client.get(
+            "/nova/security_groups",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_servers(self):
-        self._evaluate(self.client.get("/nova/servers"))
+        self._evaluate(self.client.get(
+            "/nova/servers",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_services(self):
-        self._evaluate(self.client.get("/nova/services"))
+        self._evaluate(self.client.get(
+            "/nova/services",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))

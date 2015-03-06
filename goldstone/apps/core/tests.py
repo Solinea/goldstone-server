@@ -21,10 +21,9 @@ from time import sleep
 from uuid import uuid4
 
 import arrow
-from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase
-from elasticsearch import Elasticsearch, ConnectionError, TransportError
 from elasticsearch.client import IndicesClient
 import mock
 from mock import patch
@@ -35,6 +34,7 @@ from rest_framework.test import APISimpleTestCase
 from goldstone.apps.core import tasks
 from goldstone.apps.core.views import ElasticViewSetMixin
 from goldstone.models import es_conn
+from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
 from .models import EventType, Event, MetricType, Metric, ReportType, \
     Report, validate_str_bool, validate_method_choices, Node
 from .serializers import EventSerializer, NodeSerializer, ReportSerializer
@@ -112,10 +112,13 @@ class NodeViewTests(APISimpleTestCase):
     node4 = Node(name=name4)
 
     def setUp(self):
+        """Run before every test."""
+
         Node.objects.all().delete()
 
-    def tearDown(self):
-        Node.objects.all().delete()
+        # Needed for DRF's token authentication.
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
 
     def _save_nodes(self):
         """Save all four test nodes."""
@@ -129,7 +132,10 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes')
+        response = self.client.get(
+            '/core/nodes',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             len(response.data['results']), 4)  # pylint: disable=E1101
@@ -138,7 +144,10 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes?managed=true')
+        response = self.client.get(
+            '/core/nodes?managed=true',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(len(response.data['results']), 2)
@@ -151,7 +160,10 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes?managed=false')
+        response = self.client.get(
+            '/core/nodes?managed=false',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(len(response.data['results']), 2)
@@ -162,16 +174,26 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes?managed=true')
+        response = self.client.get(
+            '/core/nodes?managed=true',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'],
                          'true')
         uuid = response.data['results'][0]['id']
-        response = self.client.patch('/core/nodes/' + uuid + '/disable')
+        response = self.client.patch(
+            '/core/nodes/' + uuid + '/disable',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get('/core/nodes/' + uuid)
+
+        response = self.client.get(
+            '/core/nodes/' + uuid,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['managed'], 'false')
 
@@ -179,17 +201,26 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes?managed=false')
+        response = self.client.get(
+            '/core/nodes?managed=false',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'], 'false')
 
         id_value = response.data['results'][0]['id']
-        response = self.client.patch('/core/nodes/' + id_value + '/enable')
+        response = self.client.patch(
+            '/core/nodes/' + id_value + '/enable',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.client.get('/core/nodes/' + id_value)
+        response = self.client.get(
+            '/core/nodes/' + id_value,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['managed'], 'true')
 
@@ -197,19 +228,31 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes?managed=false')
+        response = self.client.get(
+            '/core/nodes?managed=false',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'], 'false')
+
         uuid = response.data['results'][0]['id']
-        response = self.client.delete('/core/nodes/' + uuid)
+        response = self.client.delete(
+            '/core/nodes/' + uuid,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_post_fail(self):
+
         data = {'name': 'test123'}
-        response = self.client.post('/core/nodes', data=data)
+        response = self.client.post(
+            '/core/nodes',
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -217,15 +260,23 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes')
+        response = self.client.get(
+            '/core/nodes',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(len(response.data), 4)
+
         uuid = response.data['results'][0]['id']
         data = response.data['results'][0]
         # pylint: enable=E1101
         data['name'] = 'test123123'
-        response = self.client.put('/core/nodes/' + uuid, data=data)
+        response = self.client.put(
+            '/core/nodes/' + uuid,
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -233,14 +284,22 @@ class NodeViewTests(APISimpleTestCase):
 
         self._save_nodes()
 
-        response = self.client.get('/core/nodes')
+        response = self.client.get(
+            '/core/nodes',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(len(response.data), 4)
+
         uuid = response.data['results'][0]['id']
         # pylint: enable=E1101
         data = {'name': 'test123'}
-        response = self.client.patch('/core/nodes/' + uuid, data=data)
+        response = self.client.patch(
+            '/core/nodes/' + uuid,
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -480,6 +539,7 @@ class EventSerializerTests(SimpleTestCase):
 class EventViewTests(APISimpleTestCase):
 
     def setUp(self):
+        """Run before every test."""
 
         server = es_conn()
 
@@ -488,121 +548,168 @@ class EventViewTests(APISimpleTestCase):
 
         server.indices.create('goldstone_model')
 
+        # Needed for DRF's token authentication.
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
+
     def test_post(self):
-        data = {
-            'event_type': "test event",
-            'message': "test message"}
-        response = self.client.post('/core/events', data=data)
+
+        data = {'event_type': "test event", 'message': "test message"}
+        response = self.client.post(
+            '/core/events',
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         EventType.refresh_index()
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_list(self):
-        data1 = {
-            "event_type": "test event",
-            "message": "test message 1"}
-        data2 = {
-            "event_type": "test event",
-            "message": "test message 2"}
-        response = self.client.post('/core/events', data=data1)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.client.post('/core/events', data=data2)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        """Record two events, then GET them."""
+
+        data1 = {"event_type": "test event", "message": "test message 1"}
+        data2 = {"event_type": "test event", "message": "test message 2"}
+
+        for data in [data1, data2]:
+            response = self.client.post(
+                '/core/events',
+                data=data,
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
         EventType.refresh_index()
-        response = self.client.get('/core/events')
+        response = self.client.get(
+            '/core/events',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 2)  # pylint: disable=E1101
 
     def test_get(self):
+
         self.maxDiff = None
-        data = {
-            "event_type": "test event",
-            "message": "test message"}
-        response = self.client.post('/core/events', data=data)
+
+        data = {"event_type": "test event", "message": "test message"}
+
+        response = self.client.post(
+            '/core/events',
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         EventType.refresh_index()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.client.get('/core/events')
+
+        response = self.client.get(
+            '/core/events',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(response.data['count'], 1)
+
         list_response_data = response.data['results'][0]
         # pylint: enable=E1101
         self.assertDictContainsSubset(data, list_response_data)
-        response = self.client.get('/core/events/' + list_response_data['id'])
+
+        response = self.client.get(
+            '/core/events/' + list_response_data['id'],
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         d1_created = list_response_data['created']
         # pylint: disable=E1101
         d2_created = response.data['created']
         del list_response_data['created']
         del response.data['created']
-        self.assertDictEqual(
-            list_response_data, response.data)
+        self.assertDictEqual(list_response_data, response.data)
         # pylint: enable=E1101
         self.assertEqual(arrow.get(d1_created), arrow.get(d2_created))
 
     def test_delete(self):
-        data = {
-            "event_type": "test event",
-            "message": "test message"}
-        response = self.client.post('/core/events', data=data)
+
+        data = {"event_type": "test event", "message": "test message"}
+
+        response = self.client.post(
+            '/core/events',
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         EventType.refresh_index()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         # pylint: disable=E1101
         list_response_data = response.data
-        self.assertDictContainsSubset(
-            data, list_response_data)
+        self.assertDictContainsSubset(data, list_response_data)
+
         # pylint: enable=E1101
         response = self.client.delete(
-            '/core/events/' + list_response_data['id'])
+            '/core/events/' + list_response_data['id'],
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         EventType.refresh_index()
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
         response = self.client.get(
-            '/core/events/' + list_response_data['id'])
+            '/core/events/' + list_response_data['id'],
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_create_fail_date_format(self):
-        data = {
-            "created": "xyzabc123",
-            "event_type": "external created event",
-            "message": "I am your creator"
-        }
-        response = self.client.post('/core/events', data=data)
+
+        data = {"created": "xyzabc123",
+                "event_type": "external created event",
+                "message": "I am your creator"
+                }
+
+        response = self.client.post(
+            '/core/events',
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_get_list_with_start(self):
 
         start_time = arrow.utcnow().replace(minutes=-15)
 
-        data1 = {
-            "event_type": "test event",
-            "message": "test message"}
+        data1 = {"event_type": "test event", "message": "test message"}
+        data2 = {"event_type": "test event",
+                 "message": "test message",
+                 "created": start_time.replace(minutes=-2).isoformat()
+                 }
 
-        data2 = {
-            "event_type": "test event",
-            "message": "test message",
-            "created": start_time.replace(minutes=-2).isoformat()
-        }
-
-        response = self.client.post('/core/events', data=data1)
+        response = self.client.post(
+            '/core/events',
+            data=data1,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         data1_id = response.data['id']  # pylint: disable=E1101
-        response = self.client.post('/core/events', data=data2)
+
+        response = self.client.post(
+            '/core/events',
+            data=data2,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         data2_id = response.data['id']  # pylint: disable=E1101
         EventType.refresh_index()
-        response = self.client.get('/core/events')
+        response = self.client.get(
+            '/core/events',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 2)  # pylint: disable=E1101
 
         # make sure that data2 has the proper created time
-        response = self.client.get('/core/events/' + data2_id)
+        response = self.client.get(
+            '/core/events/' + data2_id,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         d2_created = arrow.get(
             response.data['created'])  # pylint: disable=E1101
         self.assertEqual(d2_created, start_time.replace(minutes=-2))
 
         response = self.client.get(
-            '/core/events?created__gte=' + str(start_time.timestamp * 1000))
+            '/core/events?created__gte=' + str(start_time.timestamp * 1000),
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(response.data['count'], 1)
@@ -613,43 +720,53 @@ class EventViewTests(APISimpleTestCase):
         end_time = arrow.utcnow().replace(minutes=-14)
         start_time = end_time.replace(minutes=-2)
 
-        data1 = {
-            "event_type": "test event",
-            "message": "test message 1"}
-        data2 = {
-            "event_type": "test event",
-            "message": "test message 2",
-            "created": end_time.replace(minutes=-1).isoformat()
-        }
+        data1 = {"event_type": "test event", "message": "test message 1"}
+        data2 = {"event_type": "test event",
+                 "message": "test message 2",
+                 "created": end_time.replace(minutes=-1).isoformat()
+                 }
 
-        response = self.client.post('/core/events', data=data1)
+        response = self.client.post(
+            '/core/events',
+            data=data1,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        response = self.client.post('/core/events', data=data2)
+        response = self.client.post(
+            '/core/events',
+            data=data2,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         data2_id = response.data['id']  # pylint: disable=E1101
         EventType.refresh_index()
-        response = self.client.get('/core/events')
+        response = self.client.get(
+            '/core/events',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 2)  # pylint: disable=E1101
 
         response = self.client.get(
             '/core/events?created__gte=' + str(start_time.timestamp * 1000) +
-            '&created__lte=' + str(end_time.timestamp * 1000)
-        )
+            '&created__lte=' + str(end_time.timestamp * 1000),
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
         self.assertEqual(response.data['count'], 1)
         self.assertEqual(response.data['results'][0]['id'], data2_id)
 
     def test_not_in_db(self):
-        data = {
-            "event_type": "test event",
-            "message": "test message"}
-        response = self.client.post('/core/events', data=data)
+
+        data = {"event_type": "test event", "message": "test message"}
+
+        response = self.client.post(
+            '/core/events',
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         EventType.refresh_index()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
         shapes = Event.objects.raw('SELECT * FROM core_event')
         self.assertEqual(len(list(shapes)), 0)
 
@@ -705,41 +822,58 @@ class MetricTests(SimpleTestCase):
 class MetricViewTests(APISimpleTestCase):
 
     def setUp(self):
+        """Run before every test."""
 
-        es = es_conn()
+        server = es_conn()
 
-        if es.indices.exists('goldstone_agent'):
-            es.indices.delete('goldstone_agent')
-        es.indices.create('goldstone_agent')
+        if server.indices.exists('goldstone_agent'):
+            server.indices.delete('goldstone_agent')
+        server.indices.create('goldstone_agent')
 
-        es.index('goldstone_agent', 'core_metric', {
+        server.index('goldstone_agent', 'core_metric', {
             'timestamp': arrow.utcnow().timestamp * 1000,
             'name': 'test.test.metric',
             'value': 'test value',
             'node': ''})
 
-        es.index('goldstone_agent', 'core_metric', {
+        server.index('goldstone_agent', 'core_metric', {
             'timestamp': arrow.utcnow().timestamp * 1000,
             'name': 'test.test.metric2',
             'value': 'test value',
             'node': ''})
 
+        # Needed for DRF's token authentication.
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
+
     def test_post(self):
-        data = {
-            'name': "test.test.metric",
-            'value': "some value"}
-        response = self.client.post('/core/metrics', data=data)
+
+        data = {'name': "test.test.metric", 'value': "some value"}
+        response = self.client.post(
+            '/core/metrics',
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_list(self):
+
         ReportType.refresh_index()
-        response = self.client.get('/core/metrics')
+
+        response = self.client.get(
+            '/core/metrics',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 2)  # pylint: disable=E1101
 
     def test_retrieve(self):
-        response = self.client.get('/core/metrics/abcdef')
+
+        response = self.client.get(
+            '/core/metrics/abcdef',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -835,6 +969,7 @@ class ReportSerializerTests(APISimpleTestCase):
 class ReportViewTests(APISimpleTestCase):
 
     def setUp(self):
+        """Run before every test."""
 
         server = es_conn()
 
@@ -857,21 +992,36 @@ class ReportViewTests(APISimpleTestCase):
                       'value': 'test value',
                       'node': ''})
 
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
+
     def test_post(self):
 
         data = {'name': "test.test.report", 'value': "some value"}
-        response = self.client.post('/core/reports', data=data)
+        response = self.client.post(
+            '/core/reports',
+            data=data,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_list(self):
+
         ReportType.refresh_index()
-        response = self.client.get('/core/reports')
+        response = self.client.get(
+            '/core/reports',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 2)  # pylint: disable=E1101
 
     def test_retrieve(self):
-        response = self.client.get('/core/reports/abcdef')
+
+        response = self.client.get(
+            '/core/reports/abcdef',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -903,5 +1053,11 @@ class ReportListViewTests(APISimpleTestCase):
 
     def test_get_fail(self):
 
-        response = self.client.get('/core/report_list')
+        get_user_model().objects.all().delete()
+        token = create_and_login()
+
+        response = self.client.get(
+            '/core/report_list',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
