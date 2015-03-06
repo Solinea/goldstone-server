@@ -138,8 +138,17 @@ from django.contrib.auth import get_user_model
 get_user_model().objects.create_superuser('admin', 'a@b.com', 'changeme')
 EOF
 
-# get all the ownerships back in shape.  No guarantee that we can su to apache, and running python
-# during install may set some ownerships to root. This seems like the best approach.
+# Create the default (only) Goldstone tenant, and a tenant_admin account that
+# is also the system's default tenant admin for all new tenants.
+python manage.py shell <<EOF
+from fabfile import tenant_init
+tenant_init()
+EOF
+
+
+# Get all the ownerships back in shape.  No guarantee that we can su to apache,
+# and running python during install may set some ownerships to root. This seems
+# like the best approach.
 chown -R apache:apache /opt/goldstone
 
 
