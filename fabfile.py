@@ -114,39 +114,6 @@ def _choose(choices):
 
 
 @task
-def syncmigrate(proj_settings=DEV_SETTINGS):
-    """Do a /manage.py syncdb and migrate.
-
-    This is the last installation step before execution a load command.
-
-    """
-
-    print "doing a syncdb and migrate ..."
-    print
-    print red("Django's script will announce that you don't have any "
-              "superusers defined.")
-    print red("It will ask you, 'Would you like to create one now? (yes/no)'")
-    print
-    print red("==> Answer no to that question!")
-    print
-    print red("You will be given the chance to properly create a superuser in "
-              "just a few")
-    print red("moments.  If you do it when Django wants you to, the system "
-              "won't start correctly.")
-    print
-
-    _django_manage("syncdb", proj_settings=proj_settings)
-    _django_manage("migrate", proj_settings=proj_settings)
-
-    # We must create the superuser separately because of an interaction between
-    # DRF and Django signals. See
-    # https://github.com/tomchristie/django-rest-framework/issues/987.
-    print
-    print green("Good! *Now* you can and chould create a superuser here.")
-    _django_manage("createsuperuser", proj_settings=proj_settings)
-
-
-@task
 def load(proj_settings=DEV_SETTINGS):
     """Do an initialize_development().
 
@@ -293,11 +260,11 @@ def _choose_runserver_settings(verbose):
         else _choose(candidates)
 
 
-@task
-def runserver(verbose=False):
-    """Do runserver using a user-selected settings file.
+def _django_settings_module(verbose):
+    """Return the user's desired settings file, i.e., what would normally be
+    defined in DJANGO_SETTINGS_MODULE.
 
-    :keyword verbose: Display detail about each settings choice?
+    :param verbose: Display detail about each settings choice?
     :type verbose: bool
 
     """
@@ -305,9 +272,58 @@ def runserver(verbose=False):
     # Get the user's desired settings file, strip off the trailing ".py", and
     # convert it into a Python path.
     settings = _choose_runserver_settings(verbose).replace(".py", '')
-    settings = SETTINGS_DIR + '.' + settings
+    return SETTINGS_DIR + '.' + settings
 
-    _django_manage("runserver", proj_settings=settings)
+
+@task
+def syncmigrate(verbose=False):
+    """Do a /manage.py syncdb and migrate.
+
+    This is the last installation step before execution a load command.
+
+    :keyword verbose: Display detail about each settings choice?
+    :type verbose: bool
+
+    """
+
+    print "doing a syncdb and migrate ..."
+    settings = _django_settings_module(verbose)
+
+    print
+    print red("Django's script will announce that you don't have any "
+              "superusers defined.")
+    print red("It will ask you, 'Would you like to create one now? (yes/no)'")
+    print
+    print red("==> Answer no to that question!")
+    print
+    print red("You will be given the chance to properly create a superuser in "
+              "just a few")
+    print red("moments.  If you do it when Django wants you to, the system "
+              "won't start correctly.")
+    print
+
+    _django_manage("syncdb", proj_settings=settings)
+    _django_manage("migrate", proj_settings=settings)
+
+    # We must create the superuser separately because of an interaction between
+    # DRF and Django signals. See
+    # https://github.com/tomchristie/django-rest-framework/issues/987.
+    print
+    print green("Good! *Now* you can and chould create a superuser here.")
+    _django_manage("createsuperuser", proj_settings=settings)
+
+
+@task
+def runserver(verbose=False):
+
+    """Do runserver using a user-selected settings file.
+
+    :keyword verbose: Display detail about each settings choice?
+    :type verbose: bool
+
+    """
+
+    _django_manage("runserver", proj_settings=_django_settings_module(verbose))
 
 
 @task
