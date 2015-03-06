@@ -12,10 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import arrow
-from django.test import TestCase, SimpleTestCase
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.test import TestCase, SimpleTestCase
 from elasticsearch import Elasticsearch
 import gzip
 import os
@@ -33,16 +33,55 @@ from goldstone.models import ESData, es_conn, daily_index, es_indices, \
     TopologyData
 from goldstone.apps.core.models import Node
 from goldstone.apps.core.tasks import create_daily_index
+from goldstone.tenants.models import Tenant
+from goldstone.test_utils import Setup
 from goldstone.utils import get_keystone_client, GoldstoneAuthError
-sys.path.append("..")   # For the tenant_init tests
+
+sys.path.append("..")      # For importing tenant_init.
 from fabfile import tenant_init
 
 
-class TenantInit(TestCase):
+class TenantInit(Setup):
     """Test the fabfile's tenant_init task."""
 
-    def test_happy(self):
+    # The default names used by tenant_init.
+    DEFAULT_TENANT = "tenant 0"
+    DEFAULT_TENANT_OWNER = "Django admin"
+    DEFAULT_ADMIN = "tenant 0 admin"
+    DEFAULT_ADMIN_PASSWORD = "changeme"
 
+    def test_happy(self):
+        "Create tenant and tenant_admin."""
+
+        tenant_init()
+
+        # Test that the tenant exists.
+        self.assertEqual(Tenant.objects.count(), 1)
+        tenant = Tenant.objects.get(name=self.DEFAULT_TENANT)
+        self.assertEqual(tenant.owner, self.DEFAULT_TENANT_OWNER)
+        self.assertEqual(tenant.owner_contact, '')
+
+        # Test that the user exists.
+        self.assertEqual(get_user_model().objects.count(), 1)
+        user = get_user_model().objects.get(name=self.DEFAULT_ADMIN)
+        self.assertEqual(user.tenant, tenant)
+        self.assertTrue(user.tenant_admin)
+        self.assertTrue(user.default_tenant_admin)
+
+    def test_tenant_exists(self):
+        "Tenant already exists."""
+        tenant_init()
+
+    def test_admin_exists(self):
+        "Admin already exists."""
+        tenant_init()
+
+    def test_arguments(self):
+        "Caller supplies arguments."""
+        tenant_init()
+
+    def test_arguments_exists(self):
+        "Caller supplies arguments, tenant and admin already exist."""
         tenant_init()
 
 
