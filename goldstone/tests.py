@@ -44,7 +44,8 @@ class TenantInit(TestCase):
     def test_happy(self):
 
         tenant_init()
-    
+
+
 class PrimeData(TestCase):
     """This should run before all SimpleTestCase methods."""
 
