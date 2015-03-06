@@ -224,7 +224,7 @@ def _choose_runserver_settings(verbose):
 
     # Bash command to locate the candidate settings files, from results piped
     # in. The results will be in alphabetical order by default.
-    CANDIDATES = 'egrep "dev_|test_|jstanford" | egrep -v "pyc"'
+    CANDIDATES = 'egrep "dev_|test_|jstanford" | egrep -v "pyc|~"'
 
     # Make a list of all the candidate settings file.
     candidates = local("ls goldstone/settings | %s" % CANDIDATES, capture=True)
