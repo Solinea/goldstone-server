@@ -124,8 +124,7 @@ var EventsReportView = GoldstoneBaseView.extend({
         var ns = this.defaults;
         var self = this;
 
-        ns.spinnerDisplay = 'none';
-        $(this.el).find('#spinner').hide();
+        this.hideSpinner();
 
         var oTable;
 
@@ -218,9 +217,9 @@ var EventsReportView = GoldstoneBaseView.extend({
                     // dataTables expects JSON encoded result
                     return JSON.stringify(result);
                 },
-                error: function(data) {
+                error: function(error) {
                     // append error message to '.popup-message'
-                    self.dataErrorMessage(null, data);
+                    self.dataErrorMessage(null, error);
                 },
                 // tells dataTable to look for 'result' param of result object
                 dataSrc: "result"
