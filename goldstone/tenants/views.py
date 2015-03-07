@@ -240,8 +240,7 @@ class TenantsViewSet(BaseViewSet):
         for user in get_user_model().objects.filter(
                 Q(tenant=instance),
                 Q(is_superuser=True) | Q(default_tenant_admin=True)):
-            # This superuser or default_tenant_admin belongs to the doomed
-            # tenant. Move it out so it won't be deleted.
+            # ...Move the account out so it won't be deleted.
             user.tenant = None
             user.save()
 
