@@ -14,6 +14,11 @@
 # limitations under the License.
 from django.conf import settings
 import arrow
+from django.http import HttpResponse
+from rest_framework import serializers, fields
+from rest_framework.views import APIView
+from goldstone.apps.core.serializers import IntervalField, ArrowCompatibleField
+from goldstone.apps.logging.models import LogData
 from .serializers import LoggingNodeSerializer
 import logging
 from rest_framework.response import Response
@@ -77,3 +82,40 @@ class LoggingNodeViewSet(NodeViewSet):
                      'end_time': time_range['end_time']})
 
         return self._add_headers(Response(serializer.data), time_range)
+
+
+class LogDataView(APIView):
+    """A view that handles requests for Logstash data."""
+
+    class ParamValidator(serializers.Serializer):
+        """An inner class that validates and deserializes the request context.
+        """
+        start = ArrowCompatibleField(
+            required=False,
+            allow_blank=True)
+        end = ArrowCompatibleField(
+            required=False,
+            allow_blank=True)
+        interval = IntervalField(
+            required=False,
+            allow_blank=True)
+        hosts = serializers.ListField(
+            child=serializers.CharField(),
+            required=False)
+
+    def _get_data(self, data):
+        return LogData.ranged_log_search(**data)
+
+    def get(self, request, *args, **kwargs):
+        """Return a response to a GET request."""
+        params = self.ParamValidator(data=request.QUERY_PARAMS)
+        params.is_valid(raise_exception=True)
+        logger.info("finished param validation")
+        logger.info("params = %s", params.validated_data)
+
+        iv = params.to_internal_value(request.QUERY_PARAMS)
+        logger.info("iv = %s", iv)
+        data = self._get_data(iv)
+        logger.info("data = %s", data)
+        response = data.to_dict()
+        return HttpResponse(response, content_type="application/json")

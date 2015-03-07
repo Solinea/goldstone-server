@@ -72,6 +72,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django_extensions',
     'djoser',
+    'polymorphic',
     'rest_framework',
     'rest_framework.authtoken',
     'south',

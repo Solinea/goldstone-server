@@ -29,7 +29,7 @@ def _format_log_count(bucket):
     )}
 
 
-def _ranged_log_search(start, end, hosts, index_prefix):
+def _ranged_log_search(start, end, hosts, index_prefix='logstash-'):
     """ Returns a search with time range and hosts list terms."""
 
     if end is not None:

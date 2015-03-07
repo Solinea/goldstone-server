@@ -19,6 +19,7 @@ import pandas as pd
 # TODO replace pyes
 from pyes import BoolQuery, RangeQuery, ESRangeOp, TermQuery
 from types import StringType
+from goldstone.apps.core.models import PolyResource
 
 from goldstone.models import ESData, TopologyData
 
@@ -449,3 +450,10 @@ class ServersData(TopologyData):
 class ServicesData(TopologyData):
     _DOC_TYPE = 'nova_services_list'
     _INDEX_PREFIX = 'goldstone-'
+
+
+#
+# This is the beginning of the new polymorphic resource model support
+#
+class Host(PolyResource):
+    pass

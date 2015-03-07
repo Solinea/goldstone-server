@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import arrow
-from rest_framework import serializers
-from .models import Node, Event, Metric, Report
+from rest_framework import serializers, fields
+from .models import Node, Event, Metric, Report, PolyResource
 import logging
 
 logger = logging.getLogger(__name__)
@@ -119,3 +119,51 @@ class ReportSerializer(serializers.ModelSerializer):
                 'node': instance.node,
                 'value': self._transform_value(instance.value)
                 }
+
+
+#
+# This is the beginning of the new polymorphic resource model support
+#
+class PolyResourceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PolyResource
+        lookup_field = 'id'
+        exclude = ['polymorphic_ctype']
+
+
+#
+# More specific serializers types for our API
+#
+
+class ArrowCompatibleField(serializers.CharField):
+    """Field that holds Arrow friendly datetime expressions"""
+
+    def to_internal_value(self, data):
+        """Return an arrow date or for raise a ValidationError"""
+
+        try:
+            return arrow.get(data)
+        except Exception:
+            raise serializers.ValidationError(
+                'The input format was not recognized.')
+
+    def to_representation(self, value):
+        """Return an isoformat representation of the arrow date"""
+
+        return value.isoformat()
+
+
+class IntervalField(serializers.CharField):
+    """Field that holds ES friendly interval expressions"""
+
+    def to_internal_value(self, data):
+        """Return validated data for raise a ValidationError"""
+        if data[-1] in ['s', 'm', 'h', 'd']:
+            try:
+                float(data[:-1])
+                return data
+            except Exception:
+                raise serializers.ValidationError(
+                    'Interval should be a number followed by one of '
+                    '[s, m, h, d].')

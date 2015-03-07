@@ -297,3 +297,12 @@ class ApiPerfTests(SimpleTestCase):
         result = perfview._get_data(context)           # pylint: disable=W0212
         self.assertIsInstance(result, DataFrame)
         self.assertNotEqual(len(result), 0)
+
+
+class ViewTests(SimpleTestCase):
+
+    def test_log_data_view(self):
+
+        uri = '/core/logs'
+        response = self.client.get(uri)
+        self.assertEqual(response.status_code, 200)

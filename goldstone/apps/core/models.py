@@ -23,6 +23,7 @@ from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
 from elasticutils.contrib.django import MappingType, Indexable
 import logging
 from django.conf import settings
+from polymorphic import PolymorphicModel
 from goldstone.utils import utc_now
 
 logger = logging.getLogger(__name__)
@@ -381,3 +382,54 @@ class Node(Model):
         self.full_clean()
         return super(Node, self).save(force_insert, force_update, using,
                                       update_fields)
+
+
+#
+# This is the beginning of the new polymorphic resource model support
+#
+
+class PolyResource(PolymorphicModel):
+    """
+    The base type for resources in Goldstone.
+    """
+    id = UUIDField(
+        version=1,
+        auto=True,
+        primary_key=True)
+
+    name = CharField(
+        max_length=64,
+        unique=True)
+
+    created = CreationDateTimeField(
+        editable=False,
+        blank=True,
+        default=utc_now)
+
+    updated = ModificationDateTimeField(
+        editable=True,
+        blank=True)
+
+    class Meta:
+        abstract = True
+
+    def _hashable(self):
+        from rest_framework.renderers import JSONRenderer
+        from .serializers import PolyResourceSerializer
+
+        return JSONRenderer().render(PolyResourceSerializer(self).data)
+
+    def logs(self, *args, **kwargs):
+        """Retrieve logs related to this resource.
+
+        The default implementation just looks for the name of the resource
+        in the raw message from logstash.
+        """
+
+
+
+
+    def events(self, *args, **kwargs):
+        """Retrieve events related to this resource."""
+        # TODO implement generic
+        pass
