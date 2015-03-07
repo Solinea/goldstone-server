@@ -93,11 +93,10 @@ class TenantInit(Setup):
 
     def test_arguments_exists(self):
         """Caller supplies arguments, tenant and admin already exist, use
-        positional parameter passing, no admin password supplied."""
+        positional parameter passing, and don't supply an admin password."""
 
         Tenant.objects.create(name="bob", owner="bahb")
-        get_user_model().objects.create_user(username="bahhb",
-                                             password="bahhhb")
+        get_user_model().objects.create_user(username="bahhb", password='b')
 
         tenant_init("bob", "bahb", "bahhb")
         self._evaluate("bob", "bahb", "bahhb")

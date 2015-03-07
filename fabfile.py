@@ -34,7 +34,7 @@ DEV_SETTINGS = SETTINGS_DIR + ".test_oak_c2"
 # created when Goldstone is installed. These are defined at the module level so
 # that our unit tests can get at them.
 DEFAULT_TENANT = "tenant 0"
-DEFAULT_TENANT_OWNER = "Django admin"
+DEFAULT_TENANT_OWNER = "n/a"
 DEFAULT_ADMIN = "tenant 0 admin"
 DEFAULT_ADMIN_PASSWORD = "changeme"
 
