@@ -203,4 +203,4 @@ The installation created a system administrator account with the credentials, "a
 
 Your first tasks are to change your admin account password and e-mail address. You can do this from the account settings page.
 
-After that, you may wish to change the default tenant's name, which is "tenant 0". Or, create more tenant admin accounts for the "tenant 0" tenant. Or, rename the default tenant admin's name and password, which is "tenant 0 admin" / "changeme".
+After that, you may wish to change the default tenant's name, which is "tenant 0", enter the tenant owner's name and contact information, create more tenant admins for the "tenant 0" tenant, or change tenant 0's admin's name and password, which is "tenant 0 admin" / "changeme".
