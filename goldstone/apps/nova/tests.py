@@ -13,14 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.test import SimpleTestCase
-import logging
 from mock import patch
 import requests
-from requests import Response
 from goldstone.apps.nova.tasks import time_hypervisor_list_api
-
-
-logger = logging.getLogger(__name__)
 
 
 class TaskTests(SimpleTestCase):
@@ -29,12 +24,14 @@ class TaskTests(SimpleTestCase):
     @patch('goldstone.apps.nova.tasks.stack_api_request_base')
     def test_time_hypervisor_list_api(self, m_base, m_time_api_call):
 
-        response = Response()
+        response = requests.Response()
+        # pylint: disable=W0212
         response._content = '{"hypervisors": [{"id": 1}]}'
-        response.status_code = requests.codes.ok
+        response.status_code = requests.codes.ok  # pylint: disable=E1101
+
         m_base.return_value = {'url': 'http://url', 'headers': {}}
-        m_time_api_call.return_value = {'created': True,
-                                        'response': response}
+        m_time_api_call.return_value = {'created': True, 'response': response}
         result = time_hypervisor_list_api()
+
         self.assertEqual(m_time_api_call.call_count, 1)
         self.assertEqual(result, m_time_api_call.return_value)

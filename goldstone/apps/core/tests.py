@@ -588,8 +588,6 @@ class EventViewTests(APISimpleTestCase):
 
     def test_get(self):
 
-        self.maxDiff = None
-
         data = {"event_type": "test event", "message": "test message"}
 
         response = self.client.post(
