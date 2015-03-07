@@ -262,3 +262,26 @@ class UtilTests(SimpleTestCase):
         self.assertEqual(
             _format_log_count(empty_bucket),
             {"ctrl-01": {}})
+
+
+class LogDataViewTests(APISimpleTestCase):
+
+    def setUp(self):
+        """Run before every test."""
+
+        from django.contrib.auth import get_user_model
+
+        get_user_model().objects.all().delete()
+        self.token = create_and_login()
+
+    def test_plain_get(self):
+        response = self.client.get(
+            # '/logging/logs?start=0&end=100&interval=5m&hosts=ctrl-01',
+            '/logging/logs',
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+        logger.info(response.render())
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(response.data, {'id': 4, 'username': 'lauren'})
+
+

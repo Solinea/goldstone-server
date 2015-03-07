@@ -12,8 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
-from .views import LoggingNodeViewSet
+from .views import LoggingNodeViewSet, LogDataView
 
 router = DefaultRouter(trailing_slash=False)
 
@@ -21,3 +22,6 @@ router.register(r'nodes', LoggingNodeViewSet, base_name='node')
 # router.register(r'events', LoggingEventViewSet, base_name='event')
 
 urlpatterns = router.urls
+
+urlpatterns += patterns('', url(r'logs[/]?$', LogDataView.as_view(),
+                        name='log-data-view'))
