@@ -303,12 +303,12 @@ class TopologyMixin(object):
 
 
 def django_admin_only(wrapped_function):
-    """A decorator that raises an exception if self.request.user.is_staff is
-    False."""
+    """A decorator that raises an exception if self.request.user.is_superuser
+    is False."""
 
     @functools.wraps(wrapped_function)
     def _wrapper(*args, **kwargs):
-        """Check self.request.user.is_staff.
+        """Check self.request.user.is_superuser.
 
         args[0] must be self.
 
@@ -316,7 +316,7 @@ def django_admin_only(wrapped_function):
         from rest_framework.exceptions import PermissionDenied
         print args[0].request.user
 
-        if args[0].request.user.is_staff:
+        if args[0].request.user.is_superuser:
             return wrapped_function(*args, **kwargs)
         else:
             raise PermissionDenied

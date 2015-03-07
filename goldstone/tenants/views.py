@@ -84,7 +84,7 @@ class DjangoOrTenantAdminPermission(BasePermission):
         """
 
         user = request.user
-        return user.is_staff or (user.tenant_admin and user.tenant == obj)
+        return user.is_superuser or (user.tenant_admin and user.tenant == obj)
 
 
 class BaseViewSet(NestedViewSetMixin, SendEmailViewMixin, ModelViewSet):
@@ -170,7 +170,7 @@ class TenantsViewSet(BaseViewSet):
 
         # N.B. user.is_authenticated() filters out the AnonymousUser object.
         if self.request.user.is_authenticated() and \
-           (self.request.user.is_staff or
+           (self.request.user.is_superuser or
             (self.request.user.tenant == tenant and
              self.request.method != "DELETE")):
             return tenant
@@ -217,6 +217,36 @@ class TenantsViewSet(BaseViewSet):
         # overridden get_email_context can get at it.
         admin_user.perform_create_tenant_name = tenant.name
         self.send_email(**self.get_send_email_kwargs(admin_user))
+
+    @django_admin_only
+    def perform_destroy(self, instance):
+        """Delete a tenant.
+
+        Today, tenants have a 1:m relationship with users. I.e., the User table
+        has an FK to the Tenant table. PostgresSQL does a cascading delete on a
+        row deletion. So if we deleted a Tenant row the simple way, we could
+        delete Django admins (a.k.a. Goldstone system admins) or the
+        default_tenant_admin, if they belonged to the doomed tenant.
+
+        This override finds every Django superuser or default_tenant_admin
+        who belongs to the doomed tenant.  These users are then moved out of
+        the tenant before it's deleted.
+
+        """
+        from django.db.models import Q
+
+        # For every Django admin or default_tenant_admin who's in the doomed
+        # tenant...
+        for user in get_user_model().objects.filter(
+                Q(tenant=instance),
+                Q(is_superuser=True) | Q(default_tenant_admin=True)):
+            # This superuser or default_tenant_admin belongs to the doomed
+            # tenant. Move it out so it won't be deleted.
+            user.tenant = None
+            user.save()
+
+        # Now do the delete.
+        return super(TenantsViewSet, self).perform_destroy(instance)
 
     @django_admin_only
     def list(self, request, *args, **kwargs):
@@ -315,6 +345,7 @@ class UserViewSet(BaseViewSet):
            self.request.user.tenant == instance.tenant == tenant and \
            self.request.user.tenant_admin and \
            not instance.default_tenant_admin and \
+           not instance.is_superuser and \
            instance != self.request.user:
             super(UserViewSet, self).perform_destroy(instance)
         else:
