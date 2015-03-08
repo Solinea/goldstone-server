@@ -83,20 +83,20 @@ class LogData(DocType):
             search = search.query(query.Terms(host__raw=hosts))
 
         # add an aggregation for time intervals
-        if interval is not None:
-            search.aggs.bucket('by_interval', "date_histogram",
-                field="@timestamp",
-                interval=interval,
-                min_doc_count=0)
+        # if interval is not None:
+        #    search.aggs.bucket('by_interval', "date_histogram",
+        #        field="@timestamp",
+        #        interval=interval,
+        #        min_doc_count=0)
 
         # add an aggregation for loglevels if requested.
-        if by_level and interval is not None:
-            search.aggs['by_interval'].bucket('by_level', 'terms',
-                                              field='loglevel',
-                                              min_doc_count=0)
-        elif by_level:
-            search.aggs.bucket('by_level', 'terms',
-                               field='loglevel',
-                               min_doc_count=0)
+        # if by_level and interval is not None:
+        #    search.aggs['by_interval'].bucket('by_level', 'terms',
+        #                                      field='loglevel',
+        #                                      min_doc_count=0)
+        # elif by_level:
+        #     search.aggs.bucket('by_level', 'terms',
+        #                        field='loglevel',
+        #                        min_doc_count=0)
 
         return search.sort({"@timestamp": {"order": "desc"}}).using(es_conn())

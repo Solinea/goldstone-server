@@ -279,7 +279,6 @@ class LogDataViewTests(APISimpleTestCase):
             # '/logging/logs?start=0&end=100&interval=5m&hosts=ctrl-01',
             '/logging/logs',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        logger.info(response.render())
         self.assertEqual(response.status_code, 200)
 
         self.assertEqual(response.data, {'id': 4, 'username': 'lauren'})
