@@ -14,15 +14,19 @@
 # limitations under the License.
 from django.conf import settings
 import arrow
-from django.http import HttpResponse
-from rest_framework import serializers, fields
+from django.core.paginator import Paginator
+from django.http import HttpResponse, Http404
+from rest_framework import serializers, fields, pagination
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import AllowAny
+from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 from goldstone.apps.core.serializers import IntervalField, ArrowCompatibleField
 from goldstone.apps.logging.models import LogData
 from .serializers import LoggingNodeSerializer
 import logging
 from rest_framework.response import Response
-from goldstone.apps.core.views import NodeViewSet
+from goldstone.apps.core.views import NodeViewSet, ReadOnlyElasticViewSet
 
 logger = logging.getLogger(__name__)
 
@@ -84,8 +88,19 @@ class LoggingNodeViewSet(NodeViewSet):
         return self._add_headers(Response(serializer.data), time_range)
 
 
-class LogDataView(APIView):
+class LogDataSerializer(Serializer):
+
+    def to_representation(self, instance):
+        return instance.to_dict()
+
+
+class LogDataView(ListAPIView):
     """A view that handles requests for Logstash data."""
+
+    validate_params = {}
+    lookup_field = '_id'
+    permission_classes = (AllowAny,)
+    serializer_class = LogDataSerializer
 
     class ParamValidator(serializers.Serializer):
         """An inner class that validates and deserializes the request context.
@@ -103,19 +118,54 @@ class LogDataView(APIView):
             child=serializers.CharField(),
             required=False)
 
+    def get_queryset(self):
+        logger.info("in get_queryset")
+        return LogData.ranged_log_search(**self.validated_params)
+
+    def get_object(self):
+
+        queryset = self.get_queryset()
+
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        lookup = self.kwargs.get(lookup_url_kwarg, None)
+
+        if lookup is not None:
+            filter_kwargs = {self.lookup_field: lookup}
+
+        queryset_result = queryset.filter(**filter_kwargs)[:1].execute()
+
+        if queryset_result.count > 1:
+            logger.warning("multiple objects with %s = %s, only returning "
+                           "first one.", lookup_url_kwarg, lookup)
+
+        if queryset_result.count > 0:
+            return queryset_result.objects[0].get_object()
+        else:
+            raise Http404
+
     def _get_data(self, data):
         return LogData.ranged_log_search(**data)
 
     def get(self, request, *args, **kwargs):
         """Return a response to a GET request."""
-        params = self.ParamValidator(data=request.QUERY_PARAMS)
+        params = self.ParamValidator(data=request.query_params)
         params.is_valid(raise_exception=True)
-        logger.info("finished param validation")
-        logger.info("params = %s", params.validated_data)
+        self.validated_params = params.to_internal_value(request.query_params)
+        logger.info("iv = %s", self.validated_params)
+        # self.queryset = self._get_data(self.validated_params)
+        logger.info("data = %s", self.queryset)
 
-        iv = params.to_internal_value(request.QUERY_PARAMS)
-        logger.info("iv = %s", iv)
-        data = self._get_data(iv)
-        logger.info("data = %s", data)
-        response = data.to_dict()
-        return HttpResponse(response, content_type="application/json")
+        instance = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(instance)
+        page.object_list = page.object_list.execute()
+
+        serializer = \
+            self.get_serializer(instance, many=True) if page is None else \
+            self.get_pagination_serializer(page)
+
+
+        response = serializer.data
+
+        return Response(serializer.data)
+
+        # return HttpResponse(ser.data, content_type="application/json")
