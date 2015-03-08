@@ -100,7 +100,7 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
         return HttpResponseNotAllowed('')
 
 
-def custom_exception_handler(exc):
+def custom_exception_handler(exc, context):
     """Return a response from customized exception handling.
 
     :param exc: An exception
@@ -110,7 +110,7 @@ def custom_exception_handler(exc):
 
     # Call REST framework's default exception handler first,
     # to get the standard error response.
-    response = exception_handler(exc)
+    response = exception_handler(exc, context)
 
     # All other generated exceptions should be logged and handled here.
     if response is None:

@@ -14,17 +14,20 @@
 # limitations under the License.
 from django.conf import settings
 import arrow
-from django.core.paginator import Paginator
+import six
+import logging
+
 from django.http import HttpResponse, Http404
 from rest_framework import serializers, fields, pagination
+from rest_framework.exceptions import NotFound
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
+
 from goldstone.apps.core.serializers import IntervalField, ArrowCompatibleField
 from goldstone.apps.logging.models import LogData
 from .serializers import LoggingNodeSerializer
-import logging
 from rest_framework.response import Response
 from goldstone.apps.core.views import NodeViewSet, ReadOnlyElasticViewSet
 
@@ -88,6 +91,45 @@ class LoggingNodeViewSet(NodeViewSet):
         return self._add_headers(Response(serializer.data), time_range)
 
 
+class LogDataPagination(pagination.PageNumberPagination):
+
+    def paginate_queryset(self, queryset, request, view=None):
+        """
+        Paginate a queryset if required, either returning a
+        page object, or `None` if pagination is not configured for this view.
+        """
+        from django.core.paginator import InvalidPage, \
+            Paginator as DjangoPaginator
+
+        self._handle_backwards_compat(view)
+
+        page_size = self.get_page_size(request)
+        if not page_size:
+            return None
+
+        paginator = DjangoPaginator(queryset, page_size)
+        page_number = request.query_params.get(self.page_query_param, 1)
+        if page_number in self.last_page_strings:
+            page_number = paginator.num_pages
+
+        try:
+            self.page = paginator.page(page_number)
+            # we need to execute the query to resolve the page of objects
+            self.page.object_list = self.page.object_list.execute()
+        except InvalidPage as exc:
+            msg = self.invalid_page_message.format(
+                page_number=page_number, message=six.text_type(exc)
+            )
+            raise NotFound(msg)
+
+        if paginator.count > 1 and self.template is not None:
+            # The browsable API should display pagination controls.
+            self.display_page_controls = True
+
+        self.request = request
+        return list(self.page)
+
+
 class LogDataSerializer(Serializer):
 
     def to_representation(self, instance):
@@ -101,6 +143,7 @@ class LogDataView(ListAPIView):
     lookup_field = '_id'
     permission_classes = (AllowAny,)
     serializer_class = LogDataSerializer
+    pagination_class = LogDataPagination
 
     class ParamValidator(serializers.Serializer):
         """An inner class that validates and deserializes the request context.
@@ -152,20 +195,17 @@ class LogDataView(ListAPIView):
         params.is_valid(raise_exception=True)
         self.validated_params = params.to_internal_value(request.query_params)
         logger.info("iv = %s", self.validated_params)
-        # self.queryset = self._get_data(self.validated_params)
+
         logger.info("data = %s", self.queryset)
 
-        instance = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(instance)
-        page.object_list = page.object_list.execute()
+        queryset = self.filter_queryset(self.get_queryset())
 
-        serializer = \
-            self.get_serializer(instance, many=True) if page is None else \
-            self.get_pagination_serializer(page)
+        page = self.paginate_queryset(queryset)
 
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
-        response = serializer.data
-
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-        # return HttpResponse(ser.data, content_type="application/json")
