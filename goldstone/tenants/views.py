@@ -221,17 +221,9 @@ class TenantsViewSet(BaseViewSet):
     @django_admin_only
     def list(self, request, *args, **kwargs):
         """Provide a collection-of-objects GET response, for Django admins."""
-        from rest_framework.response import Response
 
-        # Return all the tenants to this Django admin.
-        instance = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(instance)
+        return super(TenantsViewSet, self).list(request, *args, **kwargs)
 
-        serializer = \
-            self.get_serializer(instance, many=True) if page is None else \
-            self.get_pagination_serializer(page)
-
-        return Response(serializer.data)
 
 
 class UserViewSet(BaseViewSet):

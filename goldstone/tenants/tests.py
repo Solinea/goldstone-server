@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
+import logging
 from django.contrib.auth import get_user_model
 from mock import patch
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
@@ -24,6 +25,9 @@ from goldstone.test_utils import Setup, create_and_login, login, \
     CONTENT_UNIQUE_NAME, CONTENT_PERMISSION_DENIED, BAD_TOKEN, BAD_UUID, \
     CONTENT_NOT_BLANK_USERNAME
 from .models import Tenant
+
+
+logger = logging.getLogger(__name__)
 
 # URLs used by this module.
 TENANTS_URL = "/tenants"
