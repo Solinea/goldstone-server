@@ -21,23 +21,13 @@ import json
 import logging
 
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseBadRequest, Http404
-from django.shortcuts import render
+from django.http import HttpResponseBadRequest, Http404
 from django.views.generic import TemplateView
-from elasticsearch import ElasticsearchException
 import pytz
-from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from cinderclient.exceptions import AuthorizationFailure as CinderAuthException
-from cinderclient.openstack.common.apiclient.exceptions \
-    import AuthorizationFailure as CinderApiAuthException
-from novaclient.exceptions import AuthorizationFailure \
-    as NovaAuthException
-from novaclient.openstack.common.apiclient.exceptions \
-    import AuthorizationFailure as NovaApiAuthException
-from keystoneclient.openstack.common.apiclient.exceptions \
-    import AuthorizationFailure as KeystoneApiAuthException
-from goldstone.utils import GoldstoneAuthError, TopologyMixin
+from goldstone.utils import TopologyMixin
 
 logger = logging.getLogger(__name__)
 
@@ -97,14 +87,6 @@ def validate(arg_list, context):
             except Exception:       # pylint: disable=W0703
                 validation_errors.append(BAD_PARAMETER % "interval")
 
-    # TODO: Once the render parameter is removed from the rest of the codebase,
-    # this if block can be deleted.
-    if 'render' in arg_list:
-        if context['render'] in ["True", "False"]:
-            context['render'] = bool(context['render'])
-        else:
-            validation_errors.append(BAD_PARAMETER % "render")
-
     # Return HttpResponseBadRequest if there were validation errors,
     # otherwise return the context.
     return \
@@ -152,15 +134,15 @@ class TopLevelView(TemplateView):
                                                 })
 
 
-class DiscoverView(TemplateView, TopologyMixin):
-    """
-    Produces a view of a module topology (or json data if render=false).
+class DiscoverView(APIView, TopologyMixin):
+    """Return a module topology.
+
     The data structure is a list of resource types.  If the list contains
     only one element, it will be used as the root node, otherwise a "cloud"
     resource will be constructed as the root.
 
-    caller should override "template_name" and define an init function
-    that pulls data from a subclass of model.TopologyData.
+    The caller should define an init function that pulls data from a subclass
+    of model.TopologyData.
 
     A resource has the following structure:
 
@@ -174,8 +156,6 @@ class DiscoverView(TemplateView, TopologyMixin):
      }
 
     """
-
-    template_name = 'goldstone_discover.html'
 
     def get_regions(self):
         return []
@@ -201,6 +181,7 @@ class DiscoverView(TemplateView, TopologyMixin):
             return [tree]
 
     def build_topology_tree(self):
+        """Return the topology tree that is displayed by this view."""
 
         # this is going to be a little clunky until we find a good way
         # to register modules.  Looking at iPOPO/Pelix as one option, but
@@ -297,51 +278,10 @@ class DiscoverView(TemplateView, TopologyMixin):
         else:
             return {"rsrcType": "error", "label": "No data found"}
 
-    def get_context_data(self, **kwargs):
-        context = TemplateView.get_context_data(self, **kwargs)
-        context['render'] = self.request.GET.get('render', "True"). \
-            lower().capitalize()
+    def get(self, _):
+        """Return a topology tree."""
 
-        # if render is true, we will return a full template, otherwise only
-        # a json data payload
-        if context['render'] != 'True':
-            self.template_name = None
-            TemplateView.content_type = 'application/json'
-
-        return context
-
-    def render_to_response(self, context, **response_kwargs):
-        """Overridden to handle case of a data-only request (render=False).
-
-        In which case, an application/json data payload is returned.
-
-        """
-
-        try:
-            response = self.build_topology_tree()
-            if isinstance(response, HttpResponseBadRequest):
-                return response
-
-            if self.template_name is None:
-                return HttpResponse(json.dumps(response),
-                                    content_type="application/json")
-
-            return TemplateView.render_to_response(
-                self,
-                {'data': json.dumps(response)})
-
-        except (CinderAuthException, CinderApiAuthException, NovaAuthException,
-                NovaApiAuthException, KeystoneApiAuthException,
-                GoldstoneAuthError):
-            logger.exception("Error.")
-
-            return HttpResponse(status=401) if self.template_name is None \
-                else render(self.request, '401.html', status=401)
-
-        except ElasticsearchException:
-            return HttpResponse(content="Could not connect to the "
-                                "search backend",
-                                status=status.HTTP_504_GATEWAY_TIMEOUT)
+        return Response(self.build_topology_tree())
 
 
 class HelpView(TemplateView):
