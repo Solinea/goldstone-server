@@ -27,8 +27,6 @@ from django.views.generic import TemplateView
 from elasticsearch import ElasticsearchException
 import pytz
 from rest_framework import status
-from rest_framework.renderers import JSONRenderer
-from rest_framework.views import APIView
 
 from cinderclient.exceptions import AuthorizationFailure as CinderAuthException
 from cinderclient.openstack.common.apiclient.exceptions \
@@ -116,30 +114,7 @@ def validate(arg_list, context):
         else context
 
 
-class JSONRendererWithTime(JSONRenderer):
-    """A subclass of DRF's JSONRenderer with start, end, and interval keys
-    added to the context."""
-
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        """Render `data` into JSON, returning a bytestring."""
-
-        data['end'] = \
-            self.request.GET.get('end',
-                                 str(calendar.timegm(
-                                     datetime.utcnow().timetuple())))
-        data['start'] = self.request.GET.get('start', None)
-        data['interval'] = self.request.GET.get('interval', None)
-
-        # TODO: Validate() can return an HTTPResponseBadRequest, which isn't
-        # useable when called from a renderer. It should raise an exception on
-        # a validation error.
-        data = validate(['start', 'end', 'interval'], data)
-    
-        return super(JSONRendererWithTime, self)\
-            .render(data, accepted_media_type, renderer_context)
-
-
-class TopLevelView(APIView):
+class TopLevelView(TemplateView):
     """The base class for top-level views of a resource type.
 
     Different resource type views are created by changing the
@@ -147,7 +122,34 @@ class TopLevelView(APIView):
 
     """
 
-    renderer_classes = (JSONRendererWithTime, )
+    def get_context_data(self, **kwargs):
+
+        context = TemplateView.get_context_data(self, **kwargs)
+
+        # Use "now" if not provided. Validate will calculate the start and
+        # interval.
+        context['end'] = \
+            self.request.GET.get('end',
+                                 str(calendar.timegm(
+                                     datetime.utcnow().timetuple())))
+        context['start'] = self.request.GET.get('start', None)
+        context['interval'] = self.request.GET.get('interval', None)
+
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+
+        context = validate(['start', 'end', 'interval'], context)
+
+        # heck for a validation error.
+        if isinstance(context, HttpResponseBadRequest):
+            return context
+
+        return TemplateView.render_to_response(self,
+                                               {'start_ts': context['start'],
+                                                'end_ts': context['end'],
+                                                'interval': context['interval']
+                                                })
 
 
 class DiscoverView(TemplateView, TopologyMixin):
