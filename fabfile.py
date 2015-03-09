@@ -123,20 +123,17 @@ def _choose(choices):
 
 @task
 def load(proj_settings=DEV_SETTINGS):
-    """Do an initialize_development().
+    """Initialize the system's Elasticsearch templates.
 
     This is the last installation step before executing a runserver command.
 
     """
 
-    print "initializing goldstone ..."
+    print "initializing goldstone's elasticsearch templates ..."
     with _django_env(proj_settings):
-        # We have the desired Django settings now. Import the initialization
-        # code.
-        from goldstone.initial_load import initialize_development
+        from goldstone.initial_load import initialize_elasticsearch
 
-        # Initialize the world.
-        initialize_development()
+        initialize_elasticsearch()
 
 
 @task
@@ -208,6 +205,63 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None):
     user.tenant_admin = True
     user.default_tenant_admin = True
     user.save()
+
+
+@task
+def openstack_init(tenant, os_tenant_name=None, os_username=None,
+                   os_password=None, os_auth_url=None):
+    """Create an entry for an OpenStack cloud under a tenant.
+
+    If any of the os_* parameters are not specified, the missing value is
+    sought from an environment variable.
+
+    :param tenant: The name of the tenant in which the OpenStack credentials
+                   should be created
+    :type tenant: str
+    :keyword os_tenant_name: The name of the OpenStack tenant. If unspecified,
+                             we read the OS_TENANT_NAME environment variable
+    :type tenant: str
+    :keyword os_username: The OpenStack username. If unspecified, we read the
+                          OS_USERNAME environment variable
+    :type os_username: str
+    :keyword os_password: The password of the OpenStack username account. If
+                          unspecified, we read the OS_PASSWORD environment
+                          variable
+    :type os_password: str
+    :keyword os_auth_url: The OpenStack authorization server's URL. If
+                          unspecified, we read the OS_AUTH_URL environment
+                          variable
+    :type os_auth_url: str
+
+    """
+    from goldstone.tenants.models import Tenant, Cloud
+
+    # Get the Tenant row
+    tenant_row = Tenant.objects.get(name=tenant)
+
+    # Get the keyword arguments from the execution environment, if necessary.
+    environment = os.environ
+    if not os_tenant_name:
+        os_tenant_name = environment.get("OS_TENANT_NAME")
+    if not os_username:
+        os_username = environment.get("OS_USERNAME")
+    if not os_password:
+        os_password = environment.get("OS_PASSWORD")
+    if not os_auth_url:
+        os_auth_url = environment.get("OS_AUTH_URL")
+
+    # If we're missing any information, raise an exception.
+    if not bool(os_tenant_name and os_username and os_password and
+                os_auth_url):
+        raise NameError("Missing OpenStack tenant name, username, password, "
+                        "or authorization URL.")
+
+    # Create the OpenStack cloud entry.
+    Cloud.objects.create(tenant=tenant_row,
+                         openstack_tenant_name=os_tenant_name,
+                         openstack_username=os_username,
+                         openstack_password=os_password,
+                         openstack_auth_url=os_auth_url)
 
 
 def _choose_runserver_settings(verbose):
