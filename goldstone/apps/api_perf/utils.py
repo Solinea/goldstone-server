@@ -24,6 +24,7 @@ def stack_api_request_base(endpoint, path,
                            auth_url=settings.OS_AUTH_URL):
     """Look up the openstack endpoint for a component, and build up the url
     and auth headers that can be used for a request.
+
     :param endpoint:
     :param path:
     :param user:
@@ -31,8 +32,8 @@ def stack_api_request_base(endpoint, path,
     :param tenant:
     :param auth_url:
     :return: dict of url and headers
-    """
 
+    """
     from goldstone.utils import get_keystone_client
 
     try:
@@ -49,20 +50,21 @@ def stack_api_request_base(endpoint, path,
     except GoldstoneAuthError:
         raise
     except:
-        raise LookupError("Could not find a public URL endpoint for %s",
+        raise LookupError("Could not find a public URL endpoint for %s" %
                           endpoint)
 
 
 def time_api_call(component, url, method='GET', **kwargs):
-    """
-    Call an API endpoint and persist the result
-    :type component: str
+    """Call an API endpoint and persist the result.
+
     :param component: the api component
-    :type url: str
+    :type component: str
     :param url: the endpoint to request
-    :type method: str
+    :type url: str
     :param method: get, put, post, delete, patch, head
+    :type method: str
     :param kwargs: optional arguments to pass to the request (ex: header, data)
+
     """
     from .models import ApiPerfData
     import requests
