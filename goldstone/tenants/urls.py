@@ -19,10 +19,17 @@ from .views import TenantsViewSet, UserViewSet
 # Views handled by DjangoRestFramework ViewSets, with drf-extensions help.
 router = ExtendedDefaultRouter(trailing_slash=False)
 
-router.register(r'tenants[/]?', TenantsViewSet, base_name="tenants")\
-      .register(r'users[/]?',
-                UserViewSet,
-                base_name="tenants-users",
-                parents_query_lookups=["tenant"])
+tenants_routes = router.register(r'tenants[/]?',
+                                 TenantsViewSet,
+                                 base_name="tenants")
+tenants_routes.register(r'users[/]?',
+                        UserViewSet,
+                        base_name="tenants-users",
+                        parents_query_lookups=["tenant"])
+
+tenants_routes.register(r'openstack[/]?',
+                        OpenStackViewSet,
+                        base_name="tenants-os",
+                        parents_query_lookups=["tenant"])
 
 urlpatterns = router.urls
