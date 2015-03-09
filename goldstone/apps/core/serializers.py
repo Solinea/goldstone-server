@@ -140,7 +140,7 @@ class ArrowCompatibleField(serializers.CharField):
     """Field that holds Arrow friendly datetime expressions"""
 
     def to_internal_value(self, data):
-        """Return an arrow date or for raise a ValidationError"""
+        """Return an arrow date or raise a ValidationError"""
 
         try:
             return arrow.get(data)
@@ -158,12 +158,32 @@ class IntervalField(serializers.CharField):
     """Field that holds ES friendly interval expressions"""
 
     def to_internal_value(self, data):
-        """Return validated data for raise a ValidationError"""
-        if data[-1] in ['s', 'm', 'h', 'd']:
-            try:
-                float(data[:-1])
-                return data
-            except Exception:
-                raise serializers.ValidationError(
-                    'Interval should be a number followed by one of '
-                    '[s, m, h, d].')
+        """Return validated data or raise a ValidationError"""
+        try:
+            if data[-1] not in ['s', 'm', 'h', 'd']:
+                raise ValueError
+
+            float(data[:-1])
+            return data
+        except Exception:
+            raise serializers.ValidationError(
+                'Interval should be a number followed by one of '
+                '[s, m, h, d].')
+
+
+class CSVField(serializers.CharField):
+    """Ensures that the form of a field is suitable to be represented as a list
+
+    Valid form is anything that can be deserialized to a JSON list or a single
+    token that will be put inside a list for internal representation.
+    """
+
+    def to_internal_value(self, data):
+        """Return a list object or raise a ValidationError"""
+        import json
+
+        try:
+            return data.split(',')
+        except Exception:
+            raise serializers.ValidationError(
+                'The input format was not recognized.')

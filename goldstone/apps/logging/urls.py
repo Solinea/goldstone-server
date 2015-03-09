@@ -14,7 +14,7 @@
 # limitations under the License.
 from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
-from .views import LoggingNodeViewSet, LogDataView
+from .views import LoggingNodeViewSet, LogDataView, LogAggView
 
 router = DefaultRouter(trailing_slash=False)
 
@@ -25,3 +25,5 @@ urlpatterns = router.urls
 
 urlpatterns += patterns('', url(r'logs[/]?$', LogDataView.as_view(),
                         name='log-data-view'))
+urlpatterns += patterns('', url(r'logs/summary?$', LogAggView.as_view(),
+                        name='log-summary-view'))

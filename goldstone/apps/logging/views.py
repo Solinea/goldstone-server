@@ -14,18 +14,21 @@
 # limitations under the License.
 from django.conf import settings
 import arrow
+from rest_framework.fields import BooleanField
+from rest_framework.viewsets import GenericViewSet
 import six
 import logging
 
 from django.http import HttpResponse, Http404
 from rest_framework import serializers, fields, pagination
 from rest_framework.exceptions import NotFound
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 
-from goldstone.apps.core.serializers import IntervalField, ArrowCompatibleField
+from goldstone.apps.core.serializers import IntervalField, \
+    ArrowCompatibleField, CSVField
 from goldstone.apps.logging.models import LogData
 from .serializers import LoggingNodeSerializer
 from rest_framework.response import Response
@@ -130,17 +133,90 @@ class LogDataPagination(pagination.PageNumberPagination):
         return list(self.page)
 
 
-class LogDataSerializer(Serializer):
+class DRFESReadOnlySerializer(Serializer):
+
+    class Meta:
+        exclude = ()
 
     def to_representation(self, instance):
-        return instance.to_dict()
+        """Convert a record to a representation suitable for rendering."""
+
+        obj = instance.to_dict()
+
+        for excl in self.Meta.exclude:
+            try:
+                del obj[excl]
+            except KeyError as exc:
+                logger.exception(exc)
+
+        return obj
+
+
+class LogDataSerializer(DRFESReadOnlySerializer):
+
+    class Meta:
+        exclude = ('@version', 'message', 'syslog_ts', 'received_at', 'sort',
+                   'tags', 'syslog_facility_code', 'syslog_severity_code',
+                   'syslog_pri', 'type')
+
+class LogAggSerializer(DRFESReadOnlySerializer):
+    """Custom serializer to manipulate the aggregation that comes back from ES.
+    """
+
+    def to_representation(self, instance):
+        """Create serialized representation of aggregate log data.
+
+        There will be a summary block that can be used for ranging, legends,
+        etc., then the detailed aggregation data which will be a nested
+        structure.  The number of layers will depend on whether the host
+        aggregation was done.
+        """
+
+        timestamps = [i['key'] for i in instance.per_interval['buckets']]
+        levels = [i['key'] for i in instance.per_level['buckets']]
+        hosts = [i['key'] for i in instance.per_host['buckets']] \
+            if hasattr(instance, 'per_host') else None
+
+        # let's clean up the inner buckets
+        data = []
+        if hosts is None:
+            for interval_bucket in instance.per_interval.buckets:
+                key = interval_bucket.key
+                values = [{item.key: item.doc_count}
+                          for item in interval_bucket.per_level.buckets]
+                data.append({key: values})
+
+        else:
+            for interval_bucket in instance.per_interval.buckets:
+                interval_key = interval_bucket.key
+                interval_values = []
+                for host_bucket in interval_bucket.per_host.buckets:
+                    key = host_bucket.key
+                    values = [{item.key: item.doc_count}
+                              for item in host_bucket.per_level.buckets]
+                    interval_values.append({key: values})
+                data.append({interval_key: interval_values})
+
+        if hosts is not None:
+            return {
+                'timestamps': timestamps,
+                'hosts': hosts,
+                'levels': levels,
+                'data': data
+            }
+        else:
+            return {
+                'timestamps': timestamps,
+                'levels': levels,
+                'data': data
+            }
+
+
 
 
 class LogDataView(ListAPIView):
     """A view that handles requests for Logstash data."""
 
-    validate_params = {}
-    lookup_field = '_id'
     permission_classes = (AllowAny,)
     serializer_class = LogDataSerializer
     pagination_class = LogDataPagination
@@ -157,9 +233,9 @@ class LogDataView(ListAPIView):
         interval = IntervalField(
             required=False,
             allow_blank=True)
-        hosts = serializers.ListField(
-            child=serializers.CharField(),
-            required=False)
+        hosts = CSVField(
+            required=False,
+            allow_blank=True)
 
     def get_queryset(self):
         logger.info("in get_queryset")
@@ -194,9 +270,6 @@ class LogDataView(ListAPIView):
         params = self.ParamValidator(data=request.query_params)
         params.is_valid(raise_exception=True)
         self.validated_params = params.to_internal_value(request.query_params)
-        logger.info("iv = %s", self.validated_params)
-
-        logger.info("data = %s", self.queryset)
 
         queryset = self.filter_queryset(self.get_queryset())
 
@@ -209,3 +282,40 @@ class LogDataView(ListAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
+
+class LogAggView(APIView):
+    """A view that handles requests for Logstash aggregations."""
+
+    permission_classes = (AllowAny,)
+    serializer_class = LogAggSerializer
+
+    class ParamValidator(serializers.Serializer):
+        """An inner class that validates and deserializes the request context.
+        """
+        start = ArrowCompatibleField(
+            required=False,
+            allow_blank=True)
+        end = ArrowCompatibleField(
+            required=False,
+            allow_blank=True)
+        interval = IntervalField(
+            required=False,
+            allow_blank=True)
+        hosts = CSVField(
+            required=False,
+            allow_blank=True),
+        per_host = BooleanField(
+            default=True)
+
+    def _get_data(self):
+        return LogData.ranged_log_agg(**self.validated_params)
+
+    def get(self, request, *args, **kwargs):
+        """Return a response to a GET request."""
+        params = self.ParamValidator(data=request.query_params)
+        params.is_valid(raise_exception=True)
+        self.validated_params = params.to_internal_value(request.query_params)
+
+        data = self._get_data()
+        serializer = self.serializer_class(data)
+        return Response(serializer.data)

@@ -83,11 +83,11 @@ class LogData(DocType):
             search = search.query(query.Terms(host__raw=hosts))
 
         # add an aggregation for time intervals
-        # if interval is not None:
-        #    search.aggs.bucket('by_interval', "date_histogram",
-        #        field="@timestamp",
-        #        interval=interval,
-        #        min_doc_count=0)
+        if interval is not None:
+            search.aggs.bucket('by_interval', "date_histogram",
+                               field="@timestamp",
+                               interval=interval,
+                               min_doc_count=0)
 
         # add an aggregation for loglevels if requested.
         # if by_level and interval is not None:
@@ -100,3 +100,66 @@ class LogData(DocType):
         #                        min_doc_count=0)
 
         return search.sort({"@timestamp": {"order": "desc"}}).using(es_conn())
+
+    @classmethod
+    def ranged_log_agg(cls, start=None, end=None, hosts=[], interval='1d',
+                       per_host=True):
+        """ Returns an aggregations by date histogram and maybe log level.
+
+        :type start: Arrow
+        :param start: start time of query range
+        :type end: Arrow
+        :param end: end time of query range
+        :type hosts: list
+        :param hosts: list of hosts to limit the query
+        :type interval: str
+        :param interval: valid ES time interval such as 1m, 1h, 30s
+        :type per_host: bool
+        :param per_host: aggregate by host inside the time aggregation?
+        :rtype: object
+        :return: the (possibly nested) aggregation
+        """
+
+        assert isinstance(interval, basestring), 'interval must be a string'
+
+        # we are not interested in the actual docs, so use the count search
+        # type.
+        search = cls.ranged_log_search(
+            start, end, hosts).params(search_type="count")
+
+        # add an aggregation for time intervals
+        search.aggs.bucket('per_interval', "date_histogram",
+                           field="@timestamp",
+                           interval=interval,
+                           min_doc_count=0)
+
+        # add a top-level aggregation for levels
+        search.aggs.bucket('per_level', "terms",
+                           field="loglevel",
+                           min_doc_count=0)
+
+        if per_host:
+            # add a top-level aggregation for hosts
+            search.aggs.bucket(
+                'per_host', "terms",
+                field="host.raw",
+                min_doc_count=0)
+
+            # nested aggregation per interval, per host
+            search.aggs['per_interval'].bucket(
+                'per_host', 'terms',
+                field='host.raw',
+                min_doc_count=0)
+
+            search.aggs['per_interval']['per_host'].bucket(
+                'per_level', 'terms',
+                field='loglevel',
+                min_doc_count=0)
+        else:
+            search.aggs['per_interval'].bucket(
+                'per_level', 'terms',
+                field='loglevel',
+                min_doc_count=0)
+
+        response = search.execute().aggregations
+        return response
