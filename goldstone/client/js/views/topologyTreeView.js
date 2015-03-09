@@ -242,7 +242,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                         "columns": columns,
                         "scrollX": true
                     });
-                    $("#multi-rsrc-table tbody").on('click', 'tr', function(event) {
+                    $("#multi-rsrc-table tbody").on('click', 'tr', function() {
                         // we want to identify the row, find the datatable id,
                         // then find the matching element in the full data.s
                         var row = oTable.row(this).data();
