@@ -331,9 +331,6 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
     :type settings: str
 
     """
-    from django.contrib.auth import get_user_model
-    from django.core.exceptions import ObjectDoesNotExist
-    from goldstone.tenants.models import Tenant
 
     # Load the defaults, if the user didn't override them.
     if not tenant:
@@ -352,6 +349,12 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
         proj_settings = _django_settings_module(False)
 
     with _django_env(proj_settings):
+        # It's important to do these imports here, after DJANGO_SETTINGS_MODULE
+        # has been changed!
+        from django.contrib.auth import get_user_model
+        from django.core.exceptions import ObjectDoesNotExist
+        from goldstone.tenants.models import Tenant
+
         # Process the tenant.
         try:
             tenant = Tenant.objects.get(name=tenant)
@@ -360,7 +363,7 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
             tenant = Tenant.objects.create(name=tenant, owner=tenant_owner)
         else:
             # The tenant already exists. Print a message.
-            fastprint("The tenant %s already exists. We will not modify it." %
+            fastprint("Tenant %s already exists. We will not modify it.\n" %
                       tenant)
 
         # Process the tenant admin.
@@ -374,7 +377,7 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
                                                         password=password)
         else:
             # The tenant_admin already exists. Print a message.
-            fastprint("The admin account %s already exists. We will use it." %
+            fastprint("Admin account %s already exists. We will use it.\n" %
                       admin)
 
         # Link the tenant_admin account to this tenant.
