@@ -300,6 +300,12 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
     with _django_env(proj_settings):
         # Process the tenant.
         try:
+            from pprint import pprint
+            print
+            pprint(dict(os.environ))
+            print
+            print Tenant.objects.all()
+            print
             tenant = Tenant.objects.get(name=tenant)
         except ObjectDoesNotExist:
             # The tenant does not already exist. Create it.
