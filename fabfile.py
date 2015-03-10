@@ -139,77 +139,6 @@ def load(proj_settings=DEV_SETTINGS):
         initialize_development()
 
 
-@task
-def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None):
-    """Create a tenant and default_tenant_admin, or use existing ones.
-
-    If the tenant doesn't exist, we create it.  If the admin doesn't exist, we
-    create it as the default_tenant_admin, and the tenant's tenant_admin.
-
-    If the tenant already exists, we print an informational message and leave
-    it alone.
-
-    If the admin already exists, we print an informational message. If he/she
-    is not a tenant admin of the new tenant, we make him/her it. He/she gets
-    made the (a) default_tenant_admin.
-
-    :keyword tenant: The name of the tenant to be created. If not specified, a
-                     default is used
-    :type tenant: str
-    :keyword tenant_owner: The tenant owner. If unspecified, a default is used
-    :type tenant_owner: str
-    :keyword admin: The name of the tenant_admin to be created.  If
-                    unspecified, a default is used
-    :type admin: str
-    :keyword password: The admin account's password, *if* we create it
-    :type passowrd: str
-
-    """
-    from django.contrib.auth import get_user_model
-    from django.core.exceptions import ObjectDoesNotExist
-    from goldstone.tenants.models import Tenant
-
-    # Load the defaults, if the user didn't override them.
-    if not tenant:
-        tenant = DEFAULT_TENANT
-    if not tenant_owner:
-        tenant_owner = DEFAULT_TENANT_OWNER
-    if not admin:
-        admin = DEFAULT_ADMIN
-    if not password:
-        password = DEFAULT_ADMIN_PASSWORD
-
-    # Process the tenant.
-    try:
-        tenant = Tenant.objects.get(name=tenant)
-    except ObjectDoesNotExist:
-        # The tenant does not already exist. Create it.
-        tenant = Tenant.objects.create(name=tenant, owner=tenant_owner)
-    else:
-        # The tenant already exists. Print a message.
-        fastprint("The tenant %s already exists. We will not modify it." %
-                  tenant)
-
-    # Process the tenant admin.
-    try:
-        user = get_user_model().objects.get(username=admin)
-    except ObjectDoesNotExist:
-        fastprint("Creating tenant admin account %s with the password, '%s'." %
-                  (admin, password))
-        user = get_user_model().objects.create_user(username=admin,
-                                                    password=password)
-    else:
-        # The tenant_admin already exists. Print a message.
-        fastprint("The admin account %s already exists. We will use it." %
-                  admin)
-
-    # Link the tenant_admin account to this tenant.
-    user.tenant = tenant
-    user.tenant_admin = True
-    user.default_tenant_admin = True
-    user.save()
-
-
 def _choose_runserver_settings(verbose):
     """Display the available settings files for a "runserver" command, ask the
     user to select one, and return a valid selection.
@@ -314,6 +243,91 @@ def syncmigrate(verbose=False):
     print
     print green("Good! *Now* you can and chould create a superuser here.")
     _django_manage("createsuperuser", proj_settings=settings)
+
+
+@task
+def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
+                settings=None):
+    """Create a tenant and default_tenant_admin, or use existing ones.
+
+    If the tenant doesn't exist, we create it.  If the admin doesn't exist, we
+    create it as the default_tenant_admin, and the tenant's tenant_admin.
+
+    If the tenant already exists, we print an informational message and leave
+    it alone.
+
+    If the admin already exists, we print an informational message. If he/she
+    is not a tenant admin of the new tenant, we make him/her it. He/she gets
+    made the (a) default_tenant_admin.
+
+    :keyword tenant: The name of the tenant to be created. If not specified, a
+                     default is used
+    :type tenant: str
+    :keyword tenant_owner: The tenant owner. If unspecified, a default is used
+    :type tenant_owner: str
+    :keyword admin: The name of the tenant_admin to be created.  If
+                    unspecified, a default is used
+    :type admin: str
+    :keyword password: The admin account's password, *if* we create it
+    :type password: str
+    :keyword settings: If present, the name (not the path) of the Django
+                       settings file to use. It must live in
+                       goldstone/settings. If not present, an interactive
+                       query is made for the user to select one.
+    :type settings: str
+
+    """
+    from django.contrib.auth import get_user_model
+    from django.core.exceptions import ObjectDoesNotExist
+    from goldstone.tenants.models import Tenant
+
+    # Load the defaults, if the user didn't override them.
+    if not tenant:
+        tenant = DEFAULT_TENANT
+    if not tenant_owner:
+        tenant_owner = DEFAULT_TENANT_OWNER
+    if not admin:
+        admin = DEFAULT_ADMIN
+    if not password:
+        password = DEFAULT_ADMIN_PASSWORD
+
+    # Get the settings under which we should execute.
+    if settings:
+        proj_settings = SETTINGS_DIR + ".%s" % settings
+    else:
+        proj_settings = _django_settings_module(False)
+
+    with _django_env(proj_settings):
+        # Process the tenant.
+        try:
+            tenant = Tenant.objects.get(name=tenant)
+        except ObjectDoesNotExist:
+            # The tenant does not already exist. Create it.
+            tenant = Tenant.objects.create(name=tenant, owner=tenant_owner)
+        else:
+            # The tenant already exists. Print a message.
+            fastprint("The tenant %s already exists. We will not modify it." %
+                      tenant)
+
+        # Process the tenant admin.
+        try:
+            user = get_user_model().objects.get(username=admin)
+        except ObjectDoesNotExist:
+            fastprint("Creating tenant admin account %s with the password, "
+                      "'%s'." %
+                      (admin, password))
+            user = get_user_model().objects.create_user(username=admin,
+                                                        password=password)
+        else:
+            # The tenant_admin already exists. Print a message.
+            fastprint("The admin account %s already exists. We will use it." %
+                      admin)
+
+        # Link the tenant_admin account to this tenant.
+        user.tenant = tenant
+        user.tenant_admin = True
+        user.default_tenant_admin = True
+        user.save()
 
 
 @task
