@@ -47,7 +47,7 @@ class Cloud(models.Model):
     Goldstone tenant."""
 
     openstack_tenant_name = \
-        models.CharField(max_length=settings.OS_TENANT_NAME_MAX_LENGTH)
+        models.CharField(max_length=settings.OS_NAME_MAX_LENGTH)
 
     openstack_username = \
         models.CharField(max_length=settings.OS_USERNAME_MAX_LENGTH)
