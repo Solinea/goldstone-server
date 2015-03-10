@@ -20,12 +20,22 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
     initialize: function(options) {
 
+        // options.node_uuid passed in during View instantiation on node_report.html
+        // var node_uuid = "{{ node_uuid | escapejs }}";
         this.node_uuid = options.node_uuid;
+
+        // invoke the 'superclass'
         NodeReportView.__super__.initialize.apply(this, arguments);
+
+        // and also invoke the local method initializeChartButtons();
         this.initializeChartButtons();
     },
 
     triggerChange: function() {
+
+        // triggerChange event triggered by changing the global range selector
+        // or by clicking on the (services|reports|events) tab buttons.
+
         if (this.visiblePanel.Services) {
             this.serviceStatusChartView.trigger('lookbackSelectorChanged');
             this.cpuUsageView.trigger('lookbackSelectorChanged');
@@ -44,23 +54,28 @@ var NodeReportView = GoldstoneBasePageView.extend({
     },
 
     setGlobalLookbackRefreshTriggers: function() {
+        // sets listeners on global selectors
+
         var self = this;
-        // wire up listeners between global selectors and charts
-        // change listeners for global selectors
+
         $('#global-lookback-range').on('change', function() {
             self.getGlobalLookbackRefresh();
             self.triggerChange();
+
+            // changing the lookback also resets the setInterval counter
             self.clearScheduledInterval();
             self.scheduleInterval();
         });
         $('#global-refresh-range').on('change', function() {
             self.getGlobalLookbackRefresh();
+
+            // reset the setInterval counter
             self.clearScheduledInterval();
             self.scheduleInterval();
         });
     },
 
-    // record of active tab
+    // simple model to record which tab is currently visible
     visiblePanel: {
         Services: true,
         Reports: false,
@@ -82,8 +97,12 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
     initializeChartButtons: function() {
         var self = this;
+
+        // initially hide the reports and events tab, displaying only 'Services'
         $("#reportsReport").hide();
         $("#eventsReport").hide();
+
+        // Initialize click listener on services|reports|events tabs
         $("button#headerBar").click(function() {
 
             // sets key corresponding to active tab to 'true'
@@ -93,8 +112,14 @@ var NodeReportView = GoldstoneBasePageView.extend({
             // and triggers change
             self.triggerChange();
 
+            // unstyle formerly 'active' button to appear 'unpressed'
             $("button#headerBar.active").toggleClass("active");
+
+            // style 'active' button to appear 'pressed'
             $(this).toggleClass("active");
+
+            // pass the textual content of button to _.each to
+            // show/hide the correct report section
             var selectedButton = ($(this).context.innerHTML.toLowerCase());
             _.each($("button#headerBar"), function(item) {
                 $("#node-report-panel").find('#' + item.innerHTML + 'Report').hide();
@@ -104,6 +129,13 @@ var NodeReportView = GoldstoneBasePageView.extend({
     },
 
     constructHostName: function(loc) {
+
+        // example usage:
+        // constructHostName(controller-01.lab.solinea.com) ===> controller-01
+        // CAUTION:
+        // if a node is keyed WITH a '.' in the name, api call
+        // will return [], due to improper lookup
+
         locEnd = loc.slice(loc.lastIndexOf('/') + 1);
         if (locEnd.indexOf('.') === -1) {
             return locEnd;
@@ -115,6 +147,8 @@ var NodeReportView = GoldstoneBasePageView.extend({
     renderCharts: function() {
 
         var ns = this.defaults;
+
+        // ChartHeaderViews frame out chart header bars and populate info buttons
 
         new ChartHeaderView({
             el: '#service-status-title-bar',
@@ -137,6 +171,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         // construct api calls from url component
         // between the last '/' and the following '.'
+        // IMPORTANT: see caveat on node naming in constructHostName function
         var hostName = this.constructHostName(location.pathname);
 
         //----------------------------

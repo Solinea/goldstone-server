@@ -199,8 +199,8 @@ FINISHED !
 
 Now that everything has been configured, point your browser to the Goldstone server IP address or name and begin using Goldstone.
 
-The installation created a system administrator account with the credentials, "admin" / "changeme".  It also created a default tenant and tenant administrator.
+The installation created a system administrator account with the credentials, "admin" / "changeme".
 
-Your first tasks are to change your admin account password and e-mail address. You can do this from the account settings page.
+Your first task is to change your admin account password and e-mail address. You can do this from the account settings page.
 
-After that, you may wish to change the default tenant's name, which is "tenant 0", enter the tenant owner's name and contact information, create more tenant admins for the "tenant 0" tenant, or change tenant 0's admin's name and password, which is "tenant 0 admin" / "changeme".
+The installation also created an initial tenant, with a tenant administrator. The tenant administrator is also Goldstone's default tenant administrator. You may wish to change this tenant's name, enter the tenant owner's name and contact information, create more tenant admins for it, or change the tenant admin's name or password, which is "gsadmin" / "changeme".
