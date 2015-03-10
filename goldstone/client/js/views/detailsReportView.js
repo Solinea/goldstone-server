@@ -39,7 +39,11 @@ var DetailsReportView = GoldstoneBaseView.extend({
         // TODO: after utilizing the stored data, clear it
         // from localStorage
 
-        this.drawSingleRsrcInfoTable(data);
+        if(data){
+            this.drawSingleRsrcInfoTable(data);
+        } else {
+            $('#details-single-rsrc-table').text('empty');
+        }
     },
 
     drawSingleRsrcInfoTable: function(json) {
