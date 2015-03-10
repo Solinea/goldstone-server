@@ -305,6 +305,7 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
             pprint(dict(os.environ))
             print
             print Tenant.objects.all()
+            print tenant
             print
             tenant = Tenant.objects.get(name=tenant)
         except ObjectDoesNotExist:
