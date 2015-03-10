@@ -189,6 +189,13 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // spinner from the chart.
 
         $.get(dataUrl, function() {}).success(function(payload) {
+
+            // a click listener shall be appended below which
+            // will determine if the data associated with the
+            // leaf contains "hypervisor_hostname" or "host_name"
+            // and if so, a click will redirect, instead of
+            // merely appending a resource info chart popup
+
             // clear any existing error message
             self.clearDataErrorMessage(ns.multiRsrcViewEl);
 
@@ -263,13 +270,11 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                             _.each(_.keys(data[0]), function(item) {
                                 if (item.indexOf('hypervisor_hostname') !== -1) {
                                     storeDataLocally(data[0]);
-                                    console.log(localStorage);
                                     self.reportRedirect(data[0], item);
                                     supress = true;
                                 }
                                 if (item.indexOf('host_name') !== -1) {
                                     storeDataLocally(data[0]);
-                                    console.log(localStorage);
                                     self.reportRedirect(data[0], item);
                                     supress = true;
                                 }

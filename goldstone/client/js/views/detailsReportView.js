@@ -55,7 +55,6 @@ var DetailsReportView = GoldstoneBaseView.extend({
                 return [k, json[k]];
             }
         });
-        console.log(data);
 
         if ($.fn.dataTable.isDataTable(location)) {
             oTable = $(location).DataTable();
