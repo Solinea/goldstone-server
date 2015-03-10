@@ -26,7 +26,6 @@ describe('eventsReportView.js spec', function() {
             el: '.testContainer',
             width: 800,
             nodeName: 'testNode-01'
-
         });
 
     });
@@ -54,6 +53,24 @@ describe('eventsReportView.js spec', function() {
         });
         it('should default to showing 10 records per page', function() {
             expect($('select.form-control').val()).to.equal('10');
+        });
+        it('properly constructs lookup urls', function() {
+            var now = +new Date();
+            this.testView.defaults.globalLookback = 10;
+            var lookback = now - (1000 * 60 * this.testView.defaults.globalLookback);
+            this.testView.urlGen();
+            expect(this.testView.defaults.globalLookback).to.equal(10);
+            expect(this.testView.defaults.hostName).to.equal('testNode-01');
+            expect(this.testView.defaults.url).to.equal("/core/events?source_name=testNode-01&created__lte=" + now + "&created__gte=" + lookback);
+
+            // one more time for Ringo
+            now = +new Date();
+            this.testView.defaults.globalLookback = 100;
+            lookback = now - (1000 * 60 * this.testView.defaults.globalLookback);
+            this.testView.urlGen();
+            expect(this.testView.defaults.globalLookback).to.equal(100);
+            expect(this.testView.defaults.hostName).to.equal('testNode-01');
+            expect(this.testView.defaults.url).to.equal("/core/events?source_name=testNode-01&created__lte=" + now + "&created__gte=" + lookback);
         });
         it('should know what to do with received data', function() {
             expect(this.testView.dataPrep(this.dummyData)).to.be.an('object');

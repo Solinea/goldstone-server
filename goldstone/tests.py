@@ -43,7 +43,14 @@ from fabfile import tenant_init, DEFAULT_TENANT, DEFAULT_TENANT_OWNER, \
 
 
 class TenantInit(Setup):
-    """Test the fabfile's tenant_init task."""
+    """Test the fabfile's tenant_init task.
+
+    We call tenant_init() with the settings file being used by the unittest
+    testrunner.
+
+    """
+
+    settings = os.environ["DJANGO_SETTINGS_MODULE"].split('.')[2]
 
     def _evaluate(self, tenant, tenant_owner, admin):
         """Evaluate the test results."""
@@ -64,7 +71,7 @@ class TenantInit(Setup):
     def test_happy(self):
         "Create tenant and tenant_admin."""
 
-        tenant_init()
+        tenant_init(settings=self.settings)
         self._evaluate(DEFAULT_TENANT, DEFAULT_TENANT_OWNER, DEFAULT_ADMIN)
 
     def test_tenant_exists(self):
@@ -87,7 +94,8 @@ class TenantInit(Setup):
         tenant_init(tenant="Traci",
                     tenant_owner="Jordan",
                     admin="john",
-                    password="Michelle")
+                    password="Michelle",
+                    settings=self.settings)
 
         self._evaluate("Traci", "Jordan", "john")
 
@@ -98,7 +106,7 @@ class TenantInit(Setup):
         Tenant.objects.create(name="bob", owner="bahb")
         get_user_model().objects.create_user(username="bahhb", password='b')
 
-        tenant_init("bob", "bahb", "bahhb")
+        tenant_init("bob", "bahb", "bahhb", settings=self.settings)
         self._evaluate("bob", "bahb", "bahhb")
 
 

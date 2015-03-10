@@ -137,7 +137,7 @@ EOF
 # is also the system's default tenant admin for all new tenants.
 python manage.py shell <<EOF
 from fabfile import tenant_init
-tenant_init()
+tenant_init(settings="production")
 EOF
 
 
