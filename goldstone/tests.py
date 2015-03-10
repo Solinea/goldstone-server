@@ -51,7 +51,7 @@ class TenantInit(Setup):
     """
 
     settings = os.environ["DJANGO_SETTINGS_MODULE"].split('.')[2]
-        
+
     def _evaluate(self, tenant, tenant_owner, admin):
         """Evaluate the test results."""
 

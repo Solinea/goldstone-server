@@ -293,7 +293,7 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
 
     # Get the settings under which we should execute.
     if settings:
-        proj_settings = SETTINGS_DIR + ".%s" % settings
+        proj_settings = SETTINGS_DIR + '.' + settings
     else:
         proj_settings = _django_settings_module(False)
 
