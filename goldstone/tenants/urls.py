@@ -14,12 +14,12 @@
 # limitations under the License.
 
 from rest_framework_extensions.routers import ExtendedDefaultRouter
-from .views import TenantsViewSet, UserViewSet
+from .views import TenantsViewSet, UserViewSet, OpenStackViewSet
 
 # Views handled by DjangoRestFramework ViewSets, with drf-extensions help.
 router = ExtendedDefaultRouter(trailing_slash=False)
 
-tenants_routes = router.register(r'tenants[/]?',
+tenants_routes = router.register(r'tenants[/]?',        # pylint: disable=C0103
                                  TenantsViewSet,
                                  base_name="tenants")
 tenants_routes.register(r'users[/]?',

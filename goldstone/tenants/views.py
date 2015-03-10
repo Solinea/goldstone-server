@@ -23,7 +23,8 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from goldstone.utils import django_admin_only
-from .models import Tenant
+from goldstone.user.views import UserSerializer
+from .models import Tenant, Cloud
 
 logger = logging.getLogger(__name__)
 
@@ -37,38 +38,16 @@ class TenantSerializer(ModelSerializer):
         read_only_fields = ('uuid', )
 
 
-class UserSerializer(ModelSerializer):
-    """This is identical to the user.views.UserSerializer, except that it
-    exposes the Tenant relationship.
-
-    This is ugly.
-
-    We can't subclass part of the Meta sub-class, so we need to duplicate
-    the entire serializer class.
-
-    TODO: Find a way to delete this.
-
-    """
+class CloudSerializer(ModelSerializer):
+    """The cloud model serializer."""
 
     class Meta:                        # pylint: disable=C0111,W0232,C1001
-        model = get_user_model()
+        model = Cloud
 
-        # We use exclude, so that as per-user settings are defined, the code
-        # will do the right thing with them by default.
-        exclude = ("id",
-                   "user_permissions",
-                   "groups",
-                   "is_staff",
-                   "is_active",
-                   "is_superuser",
-                   "password",
-                   )
-        read_only_fields = ("tenant_admin",
-                            "default_tenant_admin",
-                            "uuid",
-                            "date_joined",
-                            "last_login",
-                            )
+        # We use exclude, so the code will do the right thing when new
+        # per-OpenStack settings are defined,
+        exclude = ("id", "tenant")
+        read_only_fields = ("uuid", )
 
 
 class DjangoOrTenantAdminPermission(BasePermission):
@@ -88,7 +67,7 @@ class DjangoOrTenantAdminPermission(BasePermission):
 
 
 class BaseViewSet(NestedViewSetMixin, SendEmailViewMixin, ModelViewSet):
-    """A base class for this app's Tenant and User ViewSets."""
+    """A base class for this app's Tenant, User, and OpenStack ViewSets."""
 
     lookup_field = "uuid"
 
@@ -347,5 +326,71 @@ class UserViewSet(BaseViewSet):
            not instance.is_superuser and \
            instance != self.request.user:
             super(UserViewSet, self).perform_destroy(instance)
+        else:
+            raise PermissionDenied
+
+
+class OpenStackViewSet(BaseViewSet):
+    """A ViewSet for the Cloud table."""
+
+    serializer_class = CloudSerializer
+
+    def _get_tenant(self):
+        """Return the underlying Tenant row, or raise a
+        PermissionDenied exception."""
+
+        target_uuid = self.get_parents_query_dict()["tenant"]
+
+        try:
+            return Tenant.objects.get(uuid=target_uuid)
+        except ObjectDoesNotExist:
+            raise PermissionDenied
+
+    def get_queryset(self):
+        """Return the queryset for list views iff the user is a tenant_admin of
+        the underlying tenant."""
+
+        # Get the underlying Tenant row.
+        tenant = self._get_tenant()
+
+        # N.B. User.is_authenticated() filters out the AnonymousUser object.
+        if self.request.user.is_authenticated() and \
+           self.request.user.tenant == tenant and \
+           self.request.user.tenant_admin:
+            return Cloud.objects.filter(tenant=tenant)
+        else:
+            raise PermissionDenied
+
+    def perform_create(self, serializer):
+        """Create an OpenStack cloud in the underlying Tenant."""
+
+        # Get the underlying Tenant row.
+        tenant = self._get_tenant()
+
+        # N.B. User.is_authenticated() filters out the AnonymousUser object.
+        if self.request.user.is_authenticated() and \
+           self.request.user.tenant == tenant and \
+           self.request.user.tenant_admin:
+            # We are clear to create a new OpenStack cloud, as a member of this
+            # tenant.  Do what the superclass' perform_create() does, to get
+            # the newly created row.
+            cloud = serializer.save()
+            cloud.tenant = tenant
+            cloud.save()
+        else:
+            raise PermissionDenied
+
+    def perform_destroy(self, instance):
+        """Delete an OpenStack cloud in the underlying Tenant, if permissions
+        and delete restrictions are met."""
+
+        # Get the underlying Tenant row.
+        tenant = self._get_tenant()
+
+        # N.B. User.is_authenticated() filters out the AnonymousUser object.
+        if self.request.user.is_authenticated() and \
+           self.request.user.tenant == instance.tenant == tenant and \
+           self.request.user.tenant_admin:
+            super(OpenStackViewSet, self).perform_destroy(instance)
         else:
             raise PermissionDenied

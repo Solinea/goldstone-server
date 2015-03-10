@@ -887,9 +887,6 @@ class TenantsIdUsers(Setup):
             del entry["date_joined"]
             del entry["last_login"]
 
-        for entry in expected_result:
-            entry["tenant"] = tenant.pk
-
         self.assertItemsEqual(response_content["results"], expected_result)
 
     @patch("djoser.utils.send_email")
@@ -953,9 +950,6 @@ class TenantsIdUsers(Setup):
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
                                        owner_contact='206.867.5309')
-
-        expected_result[0]["tenant"] = tenant.pk
-        expected_result[1]["tenant"] = tenant.pk
 
         # Create a user who's the tenant_admin of this tenant, and log him in.
         token = create_and_login()
@@ -1154,8 +1148,6 @@ class TenantsIdUsersId(Setup):
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
                                        owner_contact='206.867.5309')
-        expected_results[0]["tenant"] = tenant.pk
-        expected_results[1]["tenant"] = tenant.pk
 
         # Create a tenant_admin of the tenant.
         token = create_and_login()
@@ -1246,9 +1238,6 @@ class TenantsIdUsersId(Setup):
                                        owner='John',
                                        owner_contact='206.867.5309')
 
-        expected_responses[0]["tenant"] = tenant.pk
-        expected_responses[1]["tenant"] = tenant.pk
-
         # Create a tenant_admin of the tenant, and a normal user of the tenant.
         token = create_and_login()
 
@@ -1322,8 +1311,6 @@ class TenantsIdUsersId(Setup):
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
                                        owner_contact='206.867.5309')
-
-        expected_response["tenant"] = tenant.pk
 
         # Create a tenant_admin of the tenant, and a normal user of the tenant.
         token = create_and_login()
