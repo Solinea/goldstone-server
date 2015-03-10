@@ -254,14 +254,22 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                             delete singleRsrcData.datatableRecId;
 
                             var supress;
+
+                            var storeDataLocally = function(data) {
+                                localStorage.setItem('detailsTabData', JSON.stringify(data));
+                            };
                             // if hypervisor or instance with hypervisor in
                             // the name, redirect to report page
                             _.each(_.keys(data[0]), function(item) {
                                 if (item.indexOf('hypervisor_hostname') !== -1) {
+                                    storeDataLocally(data[0]);
+                                    console.log(localStorage);
                                     self.reportRedirect(data[0], item);
                                     supress = true;
                                 }
                                 if (item.indexOf('host_name') !== -1) {
+                                    storeDataLocally(data[0]);
+                                    console.log(localStorage);
                                     self.reportRedirect(data[0], item);
                                     supress = true;
                                 }
