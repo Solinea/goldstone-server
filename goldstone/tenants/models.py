@@ -71,5 +71,5 @@ class Cloud(models.Model):
     def __unicode__(self):
         """Return a useful string."""
 
-        return u'%s, contained within %s' % (self.openstack_tenant_name,
-                                             self.tenant.name)
+        return u'%s, contained in %s' % (self.openstack_tenant_name,
+                                         self.tenant.name)
