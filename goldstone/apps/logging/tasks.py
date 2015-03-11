@@ -48,8 +48,8 @@ def process_host_stream(host):
         logger.exception('unidentified exception in process_host_stream')
 
 
-@celery_app.task(bind=True, rate_limit='100/s', expires=5, time_limit=1)
-def process_event_stream(self, timestamp, host, event_type, message):
+@celery_app.task(rate_limit='100/s', expires=5, time_limit=1)
+def process_event_stream(timestamp, host, event_type, message):
     """
     This task handles events coming from the log stream.  Specific handling
     can be implemented based on the event type.  Currently know event types
@@ -87,8 +87,8 @@ def _create_event(timestamp, host, event_type, message):
         return event
 
 
-@celery_app.task(bind=True)
-def ping(self, node):
+@celery_app.task()
+def ping(node):
     from datetime import datetime
     import subprocess
     import pytz
@@ -109,8 +109,8 @@ def ping(self, node):
         return False
 
 
-@celery_app.task(bind=True)
-def check_host_avail(self, offset=settings.HOST_AVAILABLE_PING_THRESHOLD):
+@celery_app.task()
+def check_host_avail(offset=settings.HOST_AVAILABLE_PING_THRESHOLD):
     """
     Inspect the hosts in the store, and initiate a ping task for
     ones that have not been seen within the configured window.

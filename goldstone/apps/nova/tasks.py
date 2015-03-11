@@ -23,7 +23,6 @@ from __future__ import absolute_import
 from datetime import datetime
 import logging
 
-from django.conf import settings
 from goldstone.apps.api_perf.utils import stack_api_request_base, \
     time_api_call
 
@@ -32,8 +31,7 @@ from goldstone.apps.nova.models import HypervisorStatsData, \
     FloatingIpPoolsData, HostsData, HypervisorsData, NetworksData, \
     SecGroupsData, ServersData, ServicesData
 from goldstone.celery import app as celery_app
-from goldstone.utils import to_es_date, \
-    get_region_for_nova_client
+from goldstone.utils import get_cloud
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +40,13 @@ logger = logging.getLogger(__name__)
 def nova_hypervisors_stats(self):
     from novaclient.v1_1 import client
 
-    novaclient = client.Client(settings.OS_USERNAME,
-                               settings.OS_PASSWORD,
-                               settings.OS_TENANT_NAME,
-                               settings.OS_AUTH_URL,
+    # Get the system's sole OpenStack cloud record.
+    cloud = get_cloud()
+
+    novaclient = client.Client(cloud.openstack_username,
+                               cloud.openstack_password,
+                               cloud.openstack_tenant_name,
+                               cloud.openstack_auth_url,
                                service_type="compute")
     response = \
         novaclient.hypervisors.statistics()._info     # pylint: disable=W0212
@@ -72,13 +73,24 @@ def time_hypervisor_list_api():
     in the DB.
     """
 
-    precursor = stack_api_request_base("compute", "/os-hypervisors")
+    # Get the system's sole OpenStack cloud record.
+    cloud = get_cloud()
+
+    precursor = stack_api_request_base("compute",
+                                       "/os-hypervisors",
+                                       cloud.openstack_username,
+                                       cloud.openstack_password,
+                                       cloud.openstack_tenant_name,
+                                       cloud.openstack_auth_url)
+
     return time_api_call('nova',
                          precursor['url'],
                          headers=precursor['headers'])
 
 
 def _update_nova_records(rec_type, region, db, items):
+
+    from goldstone.utils import to_es_date
     import pytz
 
     # image list is a generator, so we need to make it not sol lazy it...
@@ -91,17 +103,23 @@ def _update_nova_records(rec_type, region, db, items):
         logging.exception("failed to index nova %s", rec_type)
 
 
-@celery_app.task(bind=True)
-def discover_nova_topology(self):
+@celery_app.task()
+def discover_nova_topology():
     """Contacts the configured OpenStack API endpoint and gathers Nova resource
     information.  Information is written to the daily goldstone index.
 
     :return: None
 
     """
-    from goldstone.utils import get_nova_client
+    from goldstone.utils import get_nova_client, get_region_for_nova_client
 
-    nova_access = get_nova_client()
+    # Get the system's sole OpenStack cloud.
+    cloud = get_cloud()
+
+    nova_access = get_nova_client(cloud.os_username,
+                                  cloud.os_password,
+                                  cloud.os_tenant_name,
+                                  cloud.os_auth_url)
 
     nova_client = nova_access['client']
     nova_client.client.authenticate()

@@ -26,9 +26,17 @@ class DiscoverTree(TopologyMixin):
         return set([s['region'] for s in self.images])
 
     def get_regions(self):
-        from goldstone.utils import get_client
+        from goldstone.utils import get_client, get_cloud
 
-        keystone = get_client(service='keystone')['client']
+        # Get the system's sole OpenStack cloud.
+        cloud = get_cloud()
+
+        keystone = get_client('keystone',
+                              cloud.os_username,
+                              cloud.os_password,
+                              cloud.os_tenant_name,
+                              cloud.os_auth_url)['client']
+
         return [{"rsrcType": "region",
                  "label": _get_region_for_glance_client(keystone)}]
 

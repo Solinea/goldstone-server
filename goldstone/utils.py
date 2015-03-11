@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import arrow
-from django.conf import settings
 import cinderclient.v2.services
 from keystoneclient.v2_0 import client as ksclient
 from novaclient.v1_1 import client as nvclient
@@ -64,11 +63,13 @@ def utc_now():
     """Convenient, and possibly necessary.
 
     :return: timezone aware current UTC datetime
+
     """
     return arrow.utcnow().datetime
 
 
 def to_es_date(date_object):
+    """Return the string version of a datetime object."""
 
     result = date_object.strftime('%Y-%m-%dT%H:%M:%S.')
     result += '%03d' % int(round(date_object.microsecond / 1000.0))
@@ -77,10 +78,9 @@ def to_es_date(date_object):
 
 
 def _get_region_for_client(catalog, management_url, service_type):
-    """
-    returns the region for a management url and service type given the service
-    catalog.
-    """
+    """Return the region for a management url and service type, given the
+    service catalog."""
+
     candidates = [svc for svc in catalog if svc['type'] == service_type]
 
     matches = [
@@ -92,7 +92,7 @@ def _get_region_for_client(catalog, management_url, service_type):
         or ep['adminURL'] == management_url
     ]
 
-    if len(matches) < 1:
+    if not matches:
         raise GoldstoneBaseException(
             "no matching region found for management url [" +
             management_url + "]")
@@ -103,17 +103,24 @@ def _get_region_for_client(catalog, management_url, service_type):
     return matches[0]['region']
 
 
-def _get_region_for_cinder_client(client):
+def _get_region_for_cinder_client(client, os_username, os_password,
+                                  os_tenant_name, os_auth_url):
 
     # force authentication to populate management url
     client.authenticate()
+
     mgmt_url = client.client.management_url
-    keystoneclient = get_keystone_client()['client']
+    keystoneclient = get_keystone_client(os_username,
+                                         os_password,
+                                         os_tenant_name,
+                                         os_auth_url)['client']
     catalog = keystoneclient.service_catalog.catalog['serviceCatalog']
+
     return _get_region_for_client(catalog, mgmt_url, 'volume')
 
 
 def _get_region_for_glance_client(client):
+
     mgmt_url = client.endpoints.find(service_id=client.services.
                                      find(name='glance').id).internalurl
     catalog = client.service_catalog.catalog['serviceCatalog']
@@ -121,21 +128,40 @@ def _get_region_for_glance_client(client):
 
 
 def get_region_for_nova_client(client):
+
     mgmt_url = client.client.management_url
     catalog = client.client.service_catalog.catalog['access']['serviceCatalog']
     return _get_region_for_client(catalog, mgmt_url, 'compute')
 
 
 def get_region_for_keystone_client(client):
+
     mgmt_url = client.management_url
     catalog = client.service_catalog.catalog['serviceCatalog']
     return _get_region_for_client(catalog, mgmt_url, 'identity')
 
 
-def get_client(service, user=settings.OS_USERNAME,
-               passwd=settings.OS_PASSWORD,
-               tenant=settings.OS_TENANT_NAME,
-               auth_url=settings.OS_AUTH_URL):
+def get_cloud():
+    """Return an OpenStack cloud object.
+
+    Today, we can rely on the system containing one and only one Goldstone
+    tenant. That tenant will contain one and only one OpenStack cloud.
+
+    When these constraints are relaxed in the future, the codebase will need
+    to change, and this function will need to evolve. The most likely outcome
+    that it becomes a generator that returns the next OpenStack cloud within a
+    tenant.
+
+    :return: OpenStack credentials
+    :rtype: Cloud
+
+    """
+    from goldstone.tenants.models import Cloud
+
+    return Cloud.objects.all()[0]
+
+
+def get_client(service, os_username, os_password, os_tenant_name, os_auth_url):
 
     # Error message template.
     NO_AUTH = "%s client failed to authorize. Check credentials in" \
@@ -143,10 +169,10 @@ def get_client(service, user=settings.OS_USERNAME,
 
     if service == 'keystone':
         try:
-            client = ksclient.Client(username=user,
-                                     password=passwd,
-                                     tenant_name=tenant,
-                                     auth_url=auth_url)
+            client = ksclient.Client(username=os_username,
+                                     password=os_password,
+                                     tenant_name=os_tenant_name,
+                                     auth_url=os_auth_url)
             if client.auth_token is None:
                 raise GoldstoneAuthError("Keystone client call succeeded, but "
                                          "auth token was not returned.  Check "
@@ -158,7 +184,10 @@ def get_client(service, user=settings.OS_USERNAME,
 
     elif service == 'nova':
         try:
-            client = nvclient.Client(user, passwd, tenant, auth_url,
+            client = nvclient.Client(os_username,
+                                     os_password,
+                                     os_tenant_name,
+                                     os_auth_url,
                                      service_type='compute')
             client.authenticate()
             return {'client': client, 'hex_token': client.client.auth_token}
@@ -169,23 +198,37 @@ def get_client(service, user=settings.OS_USERNAME,
         try:
             cinderclient.v2.services.Service.__repr__ = \
                 _patched_cinder_service_repr
-            client = ciclient.Client(user, passwd, tenant, auth_url,
+            client = ciclient.Client(os_username,
+                                     os_password,
+                                     os_tenant_name,
+                                     os_auth_url,
                                      service_type='volume')
-            region = _get_region_for_cinder_client(client)
+            region = _get_region_for_cinder_client(client,
+                                                   os_username,
+                                                   os_password,
+                                                   os_tenant_name,
+                                                   os_auth_url)
             return {'client': client, 'region': region}
         except CinderUnauthorized:
             raise GoldstoneAuthError(NO_AUTH % "Cinder")
 
     elif service == 'neutron':
         try:
-            client = neclient.Client(user, passwd, tenant, auth_url)
+            client = neclient.Client(username=os_username,
+                                     password=os_password,
+                                     tenant_id=os_tenant_name,
+                                     auth_url=os_auth_url)
             return {'client': client}
         except NeutronUnauthorized:
             raise GoldstoneAuthError(NO_AUTH % "Neutron")
 
     elif service == 'glance':
         try:
-            keystoneclient = get_client(service='keystone')['client']
+            keystoneclient = get_client("keystone",
+                                        os_username,
+                                        os_password,
+                                        os_tenant_name,
+                                        os_auth_url)['client']
             mgmt_url = keystoneclient.endpoints.find(
                 service_id=keystoneclient.services.find(name='glance').id)\
                 .internalurl

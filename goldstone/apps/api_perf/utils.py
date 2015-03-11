@@ -17,34 +17,33 @@ from django.conf import settings
 from goldstone.utils import GoldstoneAuthError
 
 
-def stack_api_request_base(endpoint, path,
-                           user=settings.OS_USERNAME,
-                           passwd=settings.OS_PASSWORD,
-                           tenant=settings.OS_TENANT_NAME,
-                           auth_url=settings.OS_AUTH_URL):
-    """Look up the openstack endpoint for a component, and build up the url
-    and auth headers that can be used for a request.
+def stack_api_request_base(endpoint, path, os_username, os_password, os_tenant,
+                           os_auth_url):
+    """Look up the openstack endpoint for a component, and return the URL and
+    authorization headers that can be used for a request.
 
     :param endpoint:
     :param path:
-    :param user:
-    :param passwd:
-    :param tenant:
-    :param auth_url:
+    :param os_username:
+    :param os_password:
+    :param os_tenant:
+    :param os_auth_url:
     :return: dict of url and headers
 
     """
-    from goldstone.utils import get_keystone_client
+    from goldstone.utils import get_keystone_client, get_cloud
 
     try:
-        keystone_client = get_keystone_client(user=user,
-                                              passwd=passwd,
-                                              tenant=tenant,
-                                              auth_url=auth_url)
+        keystone_client = get_keystone_client(os_username,
+                                              os_password,
+                                              os_tenant,
+                                              os_auth_url)
+
         url = keystone_client['client'].service_catalog.\
             get_endpoints()[endpoint][0]['publicURL'] + path
         headers = {'x-auth-token': keystone_client['hex_token'],
                    'content-type': 'application/json'}
+
         return {'url': url, 'headers': headers}
 
     except GoldstoneAuthError:
