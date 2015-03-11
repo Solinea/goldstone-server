@@ -8,30 +8,59 @@ casper.test.tearDown(function() {
     casper.echo('end of test');
 });
 
-casper.test.begin('Login Page is loading properly', 9, function suite(test) {
-    casper.start('http://localhost:8000/newhomepage', function() {
-        //title
-        test.assertTitle("goldstone", "Page title is 'goldstone'");
+/*
+Must authorize prior to continuing to test:
+*/
 
-        // navbar
-        test.assertExists('div.navbar', 'Navbar should load');
-        test.assertSelectorHasText('div.navbar', 'Report');
-        test.assertSelectorHasText('div.navbar', 'Logging');
+casper.test.begin('Login Page loads and I can log in', 5, function suite(test) {
 
-        // icons on right
-        test.assertExists('.fa-envelope-o', 'Contact icon should exist');
-        test.assertExists('.fa-bug', 'Feedback icon should exist');
-        test.assertExists('.fa-question', 'Help icon should exist');
-        test.assertExists('.fa-sign-out', 'Logout icon should exist');
+    casper.start('http://localhost:8000/login', function() {
+        test.assertTitle("goldstone", "title is goldstone");
+        test.assertExists('form [name="username"]', "username login field is found");
+        test.assertExists('form [name="password"]', "password field on login form is found");
 
-        //footer loads and is visible
-        test.assertVisible('div#footer', 'Footer showing');
+        this.echo('form val pre: ' + this.evaluate(function() {
+            return $('form [name="username"]').val() +
+                ' ' +
+                $('form [name="password"]').val();
+        }));
+
+        this.fill('form.login-form', {
+            'username': "alex",
+            'password': "a"
+        }, true);
+
+        this.echo('form val post: ' + this.evaluate(function() {
+            return $('form [name="username"]').val() +
+                ' ' +
+                $('form [name="password"]').val();
+        }));
+
+    });
+
+    casper.waitForResource(function testResource(resource) {
+        return resource.url.indexOf("discover") > -1;
+    }, function onReceived() {
+        this.echo('you are now in discover land!');
+        this.echo('page title after submit is: ' + this.evaluate(function() {
+            return document.location.href;
+        }));
+
+    });
+
+    casper.then(function() {
+        test.assertTitle("goldstone", "title is goldstone");
+        test.assertUrlMatch(/discover/, "Redirected to discover page post-login");
     });
 
     casper.run(function() {
         test.done();
     });
 });
+
+/*
+Continue post-auth with previous tests:
+*/
 
 casper.test.begin('Node Report Page is loading properly', 82, function suite(test) {
     casper.start('http://localhost:8000/report/node/ctrl-01', function() {
