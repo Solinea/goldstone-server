@@ -27,7 +27,7 @@ django-filter==0.9.1
 django-polymorphic==0.6.1
 django-rest-params==1.0.0
 django-uuidfield==0.5.0
-djangorestframework
+djangorestframework==3.1.0
 -e git+https://github.com/sunscrapers/djoser.git#egg=djoser
 # djoser
 drf-extensions==0.2.7

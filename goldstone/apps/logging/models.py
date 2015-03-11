@@ -89,16 +89,6 @@ class LogData(DocType):
                                interval=interval,
                                min_doc_count=0)
 
-        # add an aggregation for loglevels if requested.
-        # if by_level and interval is not None:
-        #    search.aggs['by_interval'].bucket('by_level', 'terms',
-        #                                      field='loglevel',
-        #                                      min_doc_count=0)
-        # elif by_level:
-        #     search.aggs.bucket('by_level', 'terms',
-        #                        field='loglevel',
-        #                        min_doc_count=0)
-
         return search.sort({"@timestamp": {"order": "desc"}}).using(es_conn())
 
     @classmethod
@@ -163,3 +153,26 @@ class LogData(DocType):
 
         response = search.execute().aggregations
         return response
+
+    def get_field_mapping(self, index, field):
+
+        conn = es_conn()
+        return conn.indices.get_field_mapping(
+            field, index, self.Meta.doc_type,
+            include_defaults=True, allow_no_indices=False)
+
+    def field_has_raw(self, field):
+        """Looks up the ES mapping for a field and determines if it has a 'raw'
+        representation.
+
+        :param field: the field name in ES
+        :return: Boolean
+        """
+
+        index = es_indices(self._INDEX_PREFIX).sort()[-1]
+        mapping = self.get_field_mapping(index, field)
+        try:
+            return 'raw' in \
+                mapping[index]['mappings'][self.Meta.doc_type][field]['mapping'][field]['fields']
+        except KeyError:
+            return False

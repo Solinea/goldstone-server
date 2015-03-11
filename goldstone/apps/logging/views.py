@@ -15,6 +15,7 @@
 from django.conf import settings
 import arrow
 from rest_framework.fields import BooleanField
+from rest_framework.filters import BaseFilterBackend
 from rest_framework.viewsets import GenericViewSet
 import six
 import logging
@@ -212,6 +213,75 @@ class LogAggSerializer(DRFESReadOnlySerializer):
             }
 
 
+class LogDataFilter(BaseFilterBackend):
+    """A basic query filter for ES query and filter specification.
+
+    Initially, this will support some very limited expressions like:
+
+        field=value (equivalent to a term filter)
+        field__prefix=value
+        field__regex=value
+        field__gt=value
+        field__lt=value
+        field__gte=value
+        field__lte=value
+
+    These will all be treated as query enhancements (rather than filters) from
+    an ES perspective.  If we run into the need for supporting filters, we can
+    augment/change the specification to add another term such as:
+
+        f__field=value or q__field=value
+
+    However, that may expose too much detail about the backend, so we should
+    think carefully about it.
+
+    We also do not currently support conditionals other than AND.  If we get
+    to that point, we probably need ot use a body to express the query.
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        """Enhance the queryset with additional specificity, then return it.
+
+        :param request: the HTTP request
+        :param queryset: the original queryset
+        :param view: the view
+        :rtype: Search
+        :return: the updated queryset
+        """
+
+        from django.db.models.constants import LOOKUP_SEP
+        from goldstone.models import es_indices
+
+        # some conditions to consider:
+        #   * using raw fields if available
+        #   * lists of things like hosts (host=[host1,host2])
+        #   * ranges (is @timestamp gt and @timestamp lt worse than range?)
+        #   * conditionals other than AND
+
+        # we'll need to look up the mapping for the index associated with this
+        # request.  The assumption we'll make is that the most recent index
+        # matching the index prefix has an acceptable mapping.
+        model_class = view.Meta.model
+
+        for param in request.query_params:
+            value = request.query_params.get(param)
+            split_param = param.split(LOOKUP_SEP)
+            if len(split_param) == 1:
+                # standard term query
+                param = param if model_class.field_has_raw(param) \
+                    else param + '.raw'
+                queryset = queryset.query("match",  ** {param: value})
+            else:
+                # first term is the field, second term is the query operation
+                param = split_param[0] \
+                    if model_class.field_has_raw(split_param[0]) \
+                    else split_param[0] + '.raw'
+                queryset = queryset.query(split_param[1],
+                                          ** {param: value})
+
+        logger.info("queryset: %s", queryset.to_dict())
+
+        return queryset
 
 
 class LogDataView(ListAPIView):
@@ -220,6 +290,10 @@ class LogDataView(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = LogDataSerializer
     pagination_class = LogDataPagination
+    filter_backends = (LogDataFilter,)
+
+    class Meta:
+        model = LogData
 
     class ParamValidator(serializers.Serializer):
         """An inner class that validates and deserializes the request context.
