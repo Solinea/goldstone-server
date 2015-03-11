@@ -114,7 +114,7 @@ class TenantsIdUsers(Setup):
         doesn't exist."""
 
         # Create a Django admin user.
-        token = create_and_login(True)
+        token = create_and_login(is_superuser=True)
 
         # Make a tenant, save its uuid, then delete it.
         tenant = Tenant.objects.create(name='tenant',
@@ -282,11 +282,7 @@ class TenantsIdUsers(Setup):
                                        owner_contact='206.867.5309')
 
         # Create a user who's the tenant_admin of this tenant, and log him in.
-        token = create_and_login()
-        user = get_user_model().objects.get(username=TEST_USER[0])
-        user.tenant = tenant
-        user.tenant_admin = True
-        user.save()
+        token = create_and_login(tenant=tenant)
 
         # Create one user in this empty tenant and check the result.
         create(0)
@@ -403,11 +399,8 @@ class TenantsIdUsersId(Setup):
                                        owner_contact='206.867.5309')
 
         # Create a tenant_admin of the tenant.
-        token = create_and_login()
+        token = create_and_login(tenant=tenant)
         user = get_user_model().objects.get(username=TEST_USER[0])
-        user.tenant = tenant
-        user.tenant_admin = True
-        user.save()
 
         # Try GET, PUT, and DELETE to a nonexistent tenant.
         responses = [
@@ -440,11 +433,7 @@ class TenantsIdUsersId(Setup):
                                        owner_contact='206.867.5309')
 
         # Create a tenant_admin of the tenant.
-        token = create_and_login()
-        user = get_user_model().objects.get(username=TEST_USER[0])
-        user.tenant = tenant
-        user.tenant_admin = True
-        user.save()
+        token = create_and_login(tenant=tenant)
 
         # Try GETing a nonexistent user from this tenant.
         response = self.client.get(
@@ -480,11 +469,8 @@ class TenantsIdUsersId(Setup):
                                        owner_contact='206.867.5309')
 
         # Create a tenant_admin of the tenant.
-        token = create_and_login()
+        token = create_and_login(tenant=tenant)
         user = get_user_model().objects.get(username=TEST_USER[0])
-        user.tenant = tenant
-        user.tenant_admin = True
-        user.save()
 
         # Try GETing the tenant admin.
         response = self.client.get(
@@ -523,11 +509,7 @@ class TenantsIdUsersId(Setup):
                                        owner_contact='206.867.5309')
 
         # Create a tenant_admin of the tenant.
-        token = create_and_login()
-        user = get_user_model().objects.get(username=TEST_USER[0])
-        user.tenant = tenant
-        user.tenant_admin = True
-        user.save()
+        token = create_and_login(tenant=tenant)
 
         # Try PUTing to a nonexistent user in this tenant.
         response = self.client.put(
@@ -569,12 +551,7 @@ class TenantsIdUsersId(Setup):
                                        owner_contact='206.867.5309')
 
         # Create a tenant_admin of the tenant, and a normal user of the tenant.
-        token = create_and_login()
-
-        admin_user = get_user_model().objects.get(username=TEST_USER[0])
-        admin_user.tenant = tenant
-        admin_user.tenant_admin = True
-        admin_user.save()
+        token = create_and_login(tenant=tenant)
 
         user = get_user_model().objects.create_user(username="Beth",
                                                     password='x')
@@ -643,12 +620,7 @@ class TenantsIdUsersId(Setup):
                                        owner_contact='206.867.5309')
 
         # Create a tenant_admin of the tenant, and a normal user of the tenant.
-        token = create_and_login()
-
-        admin_user = get_user_model().objects.get(username=TEST_USER[0])
-        admin_user.tenant = tenant
-        admin_user.tenant_admin = True
-        admin_user.save()
+        token = create_and_login(tenant=tenant)
 
         user = get_user_model().objects.create_user(username="Beth",
                                                     password='x')
@@ -678,13 +650,8 @@ class TenantsIdUsersId(Setup):
                                        owner='John',
                                        owner_contact='206.867.5309')
 
-        # Create a default_tenant_admin, a tenant_admin, and a normal user.
-        token = create_and_login()
-
-        admin_user = get_user_model().objects.get(username=TEST_USER[0])
-        admin_user.tenant = tenant
-        admin_user.tenant_admin = True
-        admin_user.save()
+        # Create a tenant_admin, default_tenant_admin, and a normal user.
+        token = create_and_login(tenant=tenant)
 
         default_tenant_admin = \
             get_user_model().objects.create_user(username="Amber",
@@ -693,12 +660,11 @@ class TenantsIdUsersId(Setup):
         default_tenant_admin.default_tenant_admin = True
         default_tenant_admin.save()
 
-        user = get_user_model().objects.create_user(username="Beth",
-                                                    password='x')
-        user.tenant = tenant
-        user.save()
+        get_user_model().objects.create_user(username="Beth",
+                                             password='x',
+                                             tenant=tenant)
 
-        # Try DELETE on the default_admin_user.
+        # Try to DELETE the default_admin_user.
         response = self.client.delete(
             TENANTS_ID_USERS_ID_URL %
             (tenant.uuid.hex, default_tenant_admin.uuid.hex),
@@ -720,12 +686,8 @@ class TenantsIdUsersId(Setup):
                                        owner_contact='206.867.5309')
 
         # Create a tenant_admin.
-        token = create_and_login()
-
+        token = create_and_login(tenant=tenant)
         admin_user = get_user_model().objects.get(username=TEST_USER[0])
-        admin_user.tenant = tenant
-        admin_user.tenant_admin = True
-        admin_user.save()
 
         # Try DELETE on oneself.
         response = self.client.delete(
@@ -750,14 +712,9 @@ class TenantsIdUsersId(Setup):
                                          owner='John',
                                          owner_contact='206.867.5309')
 
-        # Create a default_tenant_admin, a tenant_admin, and a normal user of
+        # Create a tenant_admin, default_tenant_admin, and a normal user of
         # another tenant.
-        token = create_and_login()
-
-        admin_user = get_user_model().objects.get(username=TEST_USER[0])
-        admin_user.tenant = tenant
-        admin_user.tenant_admin = True
-        admin_user.save()
+        token = create_and_login(tenant=tenant)
 
         default_tenant_admin = \
             get_user_model().objects.create_user(username="Amber",
@@ -767,9 +724,8 @@ class TenantsIdUsersId(Setup):
         default_tenant_admin.save()
 
         user = get_user_model().objects.create_user(username="Beth",
-                                                    password='x')
-        user.tenant = tenant_2
-        user.save()
+                                                    password='x',
+                                                    tenant=tenant_2)
 
         # Try DELETE on the normal user.
         response = self.client.delete(
@@ -792,12 +748,7 @@ class TenantsIdUsersId(Setup):
                                        owner_contact='206.867.5309')
 
         # Log in as the tenant admin.
-        token = create_and_login()
-
-        admin_user = get_user_model().objects.get(username=TEST_USER[0])
-        admin_user.tenant = tenant
-        admin_user.tenant_admin = True
-        admin_user.save()
+        token = create_and_login(tenant=tenant)
 
         # Create a Django admin who's a member of the tenant.
         django_admin = \
@@ -826,13 +777,8 @@ class TenantsIdUsersId(Setup):
                                        owner='John',
                                        owner_contact='206.867.5309')
 
-        # Create a default_tenant_admin, a tenant_admin, and a normal user.
-        token = create_and_login()
-
-        admin_user = get_user_model().objects.get(username=TEST_USER[0])
-        admin_user.tenant = tenant
-        admin_user.tenant_admin = True
-        admin_user.save()
+        # Create a tenant_admin, default_tenant_admin, and a normal user.
+        token = create_and_login(tenant=tenant)
 
         default_tenant_admin = \
             get_user_model().objects.create_user(username="Amber",
@@ -842,11 +788,10 @@ class TenantsIdUsersId(Setup):
         default_tenant_admin.save()
 
         user = get_user_model().objects.create_user(username="Beth",
-                                                    password='x')
-        user.tenant = tenant
-        user.save()
+                                                    password='x',
+                                                    tenant=tenant)
 
-        # Try DELETE on the normal user.
+        # Try to DELETE the normal user.
         response = self.client.delete(
             TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -945,7 +890,7 @@ class TenantsIdOpenstack(Setup):
         doesn't exist."""
 
         # Create a Django admin user.
-        token = create_and_login(True)
+        token = create_and_login(is_superuser=True)
 
         # Make a tenant, save its uuid, then delete it.
         tenant = Tenant.objects.create(name='tenant',
@@ -988,7 +933,7 @@ class TenantsIdOpenstack(Setup):
                              "openstack_username": "YOLO",
                              "openstack_password": "ZOMG",
                              "openstack_auth_url": "http://lol.com"},
-                             ]
+                            ]
 
         OTHER_OPENSTACK = [{"openstack_tenant_name": "lisa",
                             "openstack_username": "sad lisa lisa",
@@ -1009,8 +954,7 @@ class TenantsIdOpenstack(Setup):
 
         # Create clouds in this tenant.
         for entry in TENANT_OPENSTACK:
-            entry["tenant"] = tenant
-            Cloud.objects.create(**entry)
+            Cloud.objects.create(tenant=tenant, **entry)
 
         # Create clouds that don't belong to the tenant.
         tenant_2 = Tenant.objects.create(name='boris',
@@ -1022,11 +966,7 @@ class TenantsIdOpenstack(Setup):
             Cloud.objects.create(**entry)
 
         # Log in as the tenant_admin.
-        token = create_and_login()
-        user = get_user_model().objects.get(username=TEST_USER[0])
-        user.tenant = tenant
-        user.tenant_admin = True
-        user.save()
+        token = create_and_login(tenant=tenant)
 
         # Get the tenant's cloud list and check the response. We do a partial
         # check of the uuid key. It must exist, and its value must be a string
@@ -1047,62 +987,21 @@ class TenantsIdOpenstack(Setup):
 
         self.assertItemsEqual(response_content["results"], EXPECTED_RESULT)
 
-    @patch("djoser.utils.send_email")
-    def test_post(self, send_email):
-        """Create a user in a tenant."""
+    def test_post(self):
+        """Create an OpenStack cloud in a tenant."""
 
-        # The accounts in this test.
-        TENANT_OPENSTACK = [{"username": "a", "email": "a@b.com", "password": "a"},
-                        {"username": "b", "email": "b@b.com", "password": "b"}]
+        # The clouds in this test.
+        TENANT_OPENSTACK = [{"openstack_tenant_name": 'a',
+                             "openstack_username": 'b',
+                             "openstack_password": 'c',
+                             "openstack_auth_url": "http://d.com"},
+                            {"openstack_tenant_name": "ee",
+                             "openstack_username": "ffffffffuuuuu",
+                             "openstack_password": "gah",
+                             "openstack_auth_url": "http://route66.com"},
+                            ]
 
-        def create(user_number):
-            """Create one user in the tenant.
-
-            :param user_number: The TENANT_OPENSTACK index to use
-            :type user_number: int
-
-            """
-
-            response = self.client.post(
-                TENANTS_ID_OPENSTACK_URL % tenant.uuid.hex,
-                json.dumps(TENANT_OPENSTACK[user_number]),
-                content_type="application/json",
-                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-            check_response_without_uuid(response,
-                                        HTTP_201_CREATED,
-                                        expected_result[user_number],
-                                        extra_keys=["last_login",
-                                                    "date_joined"])
-
-            # Was email send to the new user?
-            self.assertEqual(send_email.call_count, 1)
-
-            # Did the e-mail seem to have the correct content?
-            self.assertEqual(send_email.call_args[0][0],
-                             TENANT_OPENSTACK[user_number]["email"])
-            self.assertEqual(send_email.call_args[0][1],
-                             "webmaster@localhost")  # from
-            self.assertEqual(send_email.call_args[0][2]["site_name"],
-                             "YOUR_EMAIL_SITE_NAME")  # The site name
-            self.assertIn("tenant", send_email.call_args[0][2]["tenant_name"])
-            self.assertEqual(send_email.call_args[1],
-                             {'plain_body_template_name':
-                              'new_tenant_body.txt',
-                              'subject_template_name': 'new_tenant.txt'})
-
-        expected_result = [{"username": "a",
-                            "first_name": '',
-                            "last_name": '',
-                            "email": "a@b.com",
-                            "tenant_admin": False,
-                            "default_tenant_admin": False},
-                           {"username": "b",
-                            "first_name": '',
-                            "last_name": '',
-                            "email": "b@b.com",
-                            "tenant_admin": False,
-                            "default_tenant_admin": False}]
+        EXPECTED_RESULT = TENANT_OPENSTACK
 
         # Make a tenant
         tenant = Tenant.objects.create(name='tenant',
@@ -1110,18 +1009,17 @@ class TenantsIdOpenstack(Setup):
                                        owner_contact='206.867.5309')
 
         # Create a user who's the tenant_admin of this tenant, and log him in.
-        token = create_and_login()
-        user = get_user_model().objects.get(username=TEST_USER[0])
-        user.tenant = tenant
-        user.tenant_admin = True
-        user.save()
+        token = create_and_login(tenant=tenant)
 
-        # Create one user in this empty tenant and check the result.
-        create(0)
+        # Create OpenStack clouds in this tenant, and check the results.
+        for entry in TENANT_OPENSTACK:
+            response = self.client.post(
+                TENANTS_ID_OPENSTACK_URL % tenant.uuid.hex,
+                json.dumps(entry),
+                content_type="application/json",
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        # Now try it again.
-        send_email.reset_mock()
-        create(1)
+            check_response_without_uuid(response, HTTP_201_CREATED, entry)
 
 
 class TenantsIdOpenstackId(Setup):
