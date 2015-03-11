@@ -14,6 +14,7 @@
 # limitations under the License.
 from django.conf import settings
 import arrow
+from elasticsearch_dsl import Q
 from rest_framework.fields import BooleanField
 from rest_framework.filters import BaseFilterBackend
 from rest_framework.viewsets import GenericViewSet
@@ -147,8 +148,9 @@ class DRFESReadOnlySerializer(Serializer):
         for excl in self.Meta.exclude:
             try:
                 del obj[excl]
-            except KeyError as exc:
-                logger.exception(exc)
+            except KeyError:
+                # dynamic docs may not have all fields.
+                pass
 
         return obj
 
@@ -158,7 +160,8 @@ class LogDataSerializer(DRFESReadOnlySerializer):
     class Meta:
         exclude = ('@version', 'message', 'syslog_ts', 'received_at', 'sort',
                    'tags', 'syslog_facility_code', 'syslog_severity_code',
-                   'syslog_pri', 'type')
+                   'syslog_pri', 'syslog5424_pri', 'syslog5424_host', 'type')
+
 
 class LogAggSerializer(DRFESReadOnlySerializer):
     """Custom serializer to manipulate the aggregation that comes back from ES.
@@ -212,7 +215,6 @@ class LogAggSerializer(DRFESReadOnlySerializer):
                 'data': data
             }
 
-
 class LogDataFilter(BaseFilterBackend):
     """A basic query filter for ES query and filter specification.
 
@@ -239,6 +241,33 @@ class LogDataFilter(BaseFilterBackend):
     to that point, we probably need ot use a body to express the query.
     """
 
+    def _update_queryset(self, param, value, view, queryset, op='match'):
+        """Builds a query, prefering the raw version of the field if available.
+
+        :param param: the field name in ES
+        :param value: the field value
+        :param view: the calling view
+        :param queryset: the base queryset
+        :param op: the query operation
+        :rtype Search
+        :return: the update Search object
+        """
+
+        model_class = view.Meta.model
+        param = param if not model_class.field_has_raw(param) \
+            else param + '.raw'
+        return queryset.query(op,  ** {param: value})
+
+    def _coerce_value(self, value):
+        """If its a convertible type, do it, otherwise return original."""
+        import ast
+
+        try:
+            return ast.literal_eval(value)
+        except (ValueError, SyntaxError):
+            # treat these as strings
+            return value
+
     def filter_queryset(self, request, queryset, view):
         """Enhance the queryset with additional specificity, then return it.
 
@@ -249,38 +278,35 @@ class LogDataFilter(BaseFilterBackend):
         :return: the updated queryset
         """
 
+        import ast
         from django.db.models.constants import LOOKUP_SEP
-        from goldstone.models import es_indices
 
-        # some conditions to consider:
-        #   * using raw fields if available
-        #   * lists of things like hosts (host=[host1,host2])
+        reserved_params = [view.pagination_class.page_query_param,
+                           view.pagination_class.page_size_query_param]
+
+        # some conditions for future consideration:
         #   * ranges (is @timestamp gt and @timestamp lt worse than range?)
-        #   * conditionals other than AND
-
-        # we'll need to look up the mapping for the index associated with this
-        # request.  The assumption we'll make is that the most recent index
-        # matching the index prefix has an acceptable mapping.
-        model_class = view.Meta.model
+        #   * conditionals other than AND (later)
 
         for param in request.query_params:
-            value = request.query_params.get(param)
+            # don't want these in our queryset
+            if param in reserved_params:
+                continue
+
+            value = self._coerce_value(request.query_params.get(param))
             split_param = param.split(LOOKUP_SEP)
+
             if len(split_param) == 1:
-                # standard term query
-                param = param if model_class.field_has_raw(param) \
-                    else param + '.raw'
-                queryset = queryset.query("match",  ** {param: value})
+                # standard match query
+                queryset = self._update_queryset(param, value, view, queryset)
             else:
                 # first term is the field, second term is the query operation
-                param = split_param[0] \
-                    if model_class.field_has_raw(split_param[0]) \
-                    else split_param[0] + '.raw'
-                queryset = queryset.query(split_param[1],
-                                          ** {param: value})
+                param = split_param[0]
+                op = split_param[1]
+                queryset = self._update_queryset(param, value, view,
+                                                 queryset, op)
 
-        logger.info("queryset: %s", queryset.to_dict())
-
+        logger.info('queryset=%s', queryset.to_dict())
         return queryset
 
 
@@ -295,25 +321,26 @@ class LogDataView(ListAPIView):
     class Meta:
         model = LogData
 
-    class ParamValidator(serializers.Serializer):
-        """An inner class that validates and deserializes the request context.
-        """
-        start = ArrowCompatibleField(
-            required=False,
-            allow_blank=True)
-        end = ArrowCompatibleField(
-            required=False,
-            allow_blank=True)
-        interval = IntervalField(
-            required=False,
-            allow_blank=True)
-        hosts = CSVField(
-            required=False,
-            allow_blank=True)
+    # class ParamValidator(serializers.Serializer):
+    #     """An inner class that validates and deserializes the request context.
+    #     """
+    #     start = ArrowCompatibleField(
+    #         required=False,
+    #         allow_blank=True)
+    #     end = ArrowCompatibleField(
+    #         required=False,
+    #         allow_blank=True)
+    #     interval = IntervalField(
+    #         required=False,
+    #         allow_blank=True)
+    #     hosts = CSVField(
+    #         required=False,
+    #         allow_blank=True)
 
     def get_queryset(self):
         logger.info("in get_queryset")
-        return LogData.ranged_log_search(**self.validated_params)
+        # return LogData.ranged_log_search(**self.validated_params)
+        return LogData.search()
 
     def get_object(self):
 
@@ -336,14 +363,14 @@ class LogDataView(ListAPIView):
         else:
             raise Http404
 
-    def _get_data(self, data):
-        return LogData.ranged_log_search(**data)
+    # def _get_data(self, data):
+    #     return LogData.ranged_log_search(**data)
 
     def get(self, request, *args, **kwargs):
         """Return a response to a GET request."""
-        params = self.ParamValidator(data=request.query_params)
-        params.is_valid(raise_exception=True)
-        self.validated_params = params.to_internal_value(request.query_params)
+        # params = self.ParamValidator(data=request.query_params)
+        # params.is_valid(raise_exception=True)
+        # self.validated_params = params.to_internal_value(request.query_params)
 
         queryset = self.filter_queryset(self.get_queryset())
 

@@ -61,6 +61,18 @@ def es_indices(prefix="", conn=None):
         return "_all"
 
 
+def most_recent_index(prefix=""):
+    """Find the index matching the prefix that has the most recent datestamp.
+
+    :param prefix: index prefix
+    :return: the last index of a sorted list
+    """
+
+    all_indices = es_indices(prefix)
+    all_indices.sort()
+    return all_indices[-1]
+
+
 def daily_index(prefix=""):
     """
     Generate a daily index name of the form prefix-yyyy.mm.dd.  When
