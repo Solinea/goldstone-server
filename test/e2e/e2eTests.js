@@ -18,7 +18,10 @@ WARN_BAR: white text on orange background
 Continue post-auth with additional tests:
 */
 
-// print delimiting text between tests
+/*
+print delimiting text between tests
+*/
+
 casper.test.setUp(function() {
     casper.echo('beginning of test', "WARNING");
 });
@@ -27,6 +30,96 @@ casper.test.tearDown(function() {
     casper.echo('end of test', "WARNING");
 });
 
+/*
+begin tests
+*/
+
+casper.test.begin('/settings page updates user personal settings / password', 8, function suite(test) {
+
+    casper.start('http://localhost:8000/settings', function() {
+        this.echo("Update Personal Settings form", "GREEN_BAR");
+        test.assertExists("form.settings-form");
+        test.assertSelectorHasText("form.settings-form h3", "Update Personal Settings");
+
+        // what does the Update Personal Settings form say?
+        this.echo('update personal settings form values: ', "GREEN_BAR");
+        this.echo('username: ' + this.getFormValues('form.settings-form').username, "INFO");
+        this.echo('first name: ' + this.getFormValues('form.settings-form').first_name, "INFO");
+        this.echo('last name: ' + this.getFormValues('form.settings-form').last_name, "INFO");
+        this.echo('email: ' + this.getFormValues('form.settings-form').email, "INFO");
+
+        // fill out new personal settings
+        var randomDetails = ['Marvin', 'Martian', 'Bond', 'Calvin', 'Hobbes', 'Bill', 'Watterson'];
+        var randomEmails = ['a@a.com', 'b@b.com', 'c@c.com', 'd@d.com', 'e@e.com', 'f@f.com'];
+
+        var returnRandomItem = function(list) {
+            var i = Math.floor(Math.random() * list.length);
+            return list[i];
+        };
+
+        // submit out new personal settings
+        this.fill('form.settings-form', {
+            'first_name': returnRandomItem(randomDetails),
+            'last_name': returnRandomItem(randomDetails),
+            'email': returnRandomItem(randomEmails)
+        }, true);
+
+        // what does the Update Personal Settings form say now?
+        this.echo('personal settings submitted with: ', "GREEN_BAR");
+        this.echo('username: ' + this.getFormValues('form.settings-form').username, "INFO");
+        this.echo('first name: ' + this.getFormValues('form.settings-form').first_name, "INFO");
+        this.echo('last name: ' + this.getFormValues('form.settings-form').last_name, "INFO");
+        this.echo('email: ' + this.getFormValues('form.settings-form').email, "INFO");
+    });
+
+    casper.waitForSelectorTextChange('.alert.alert-info', function() {
+        this.echo('Text in .alert-info has changed', "GREEN_BAR");
+    });
+
+    casper.then(function() {
+        // alert-info bar should not empty
+        test.assertExists('.alert.alert-info', 'alert info exists');
+        test.assertSelectorHasText('.alert.alert-info', 'Settings update successful');
+    });
+
+    casper.then(function() {
+        test.assertExists('form.password-reset-form');
+        test.assertSelectorHasText("form.password-reset-form h3", "Change Password");
+
+        // what does the Change Password form say?
+        this.echo('update personal settings form values: ', "GREEN_BAR");
+        this.echo('current password: ' + this.getFormValues('form.password-reset-form').current_password, "INFO");
+        this.echo('new password: ' + this.getFormValues('form.password-reset-form').new_password, "INFO");
+
+        // submit new password (use same one, tho)
+        this.fill('form.password-reset-form', {
+            'current_password': 'casper',
+            'new_password': 'casper'
+        }, true);
+
+        // what does the Change Password form say post-submit?
+        this.echo('update personal settings form values: ', "GREEN_BAR");
+        this.echo('current password: ' + this.getFormValues('form.password-reset-form').current_password, "INFO");
+        this.echo('new password: ' + this.getFormValues('form.password-reset-form').new_password, "INFO");
+
+        // wait for successful update message
+        casper.waitForSelectorTextChange('.alert.alert-info', function() {
+            this.echo('Text in .alert-info has changed', "GREEN_BAR");
+        });
+    });
+
+    casper.then(function() {
+        // alert-info bar should not empty
+        test.assertExists('.alert.alert-info', 'alert info exists');
+        test.assertSelectorHasText('.alert.alert-info', 'Password update successful');
+    });
+
+    casper.run(function() {
+        test.done();
+    });
+
+    // end of settings page e2e tests
+});
 
 casper.test.begin('Node Report Page is loading properly', 82, function suite(test) {
     casper.start('http://localhost:8000/report/node/ctrl-01', function() {
