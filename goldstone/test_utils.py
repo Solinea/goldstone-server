@@ -86,12 +86,14 @@ def login(username, password):
     return response.data["auth_token"]      # pylint: disable=E1101
 
 
-def create_and_login(is_superuser=False):
+def create_and_login(is_superuser=False, tenant=None):
     """Create a user and log them in.
 
     :keyword is_superuser: Set the is_superuser flag in the User record?
                            (A.k.a. create a Django admin account?)
     :type is_superuser: bool
+    :keyword tenant: If not None, make the user a tenant_admin of this tenant
+    :type tenant: Tenant
     :return: The authorization token's value
     :rtype: str
 
@@ -99,7 +101,13 @@ def create_and_login(is_superuser=False):
 
     # Create a user
     user = get_user_model().objects.create_user(*TEST_USER)
+
     user.is_superuser = is_superuser
+
+    if tenant:
+        user.tenant = tenant
+        user.tenant_admin = True
+
     user.save()
 
     return login(TEST_USER[0], TEST_USER[2])

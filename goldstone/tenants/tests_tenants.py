@@ -124,7 +124,7 @@ class Tenants(Setup):
 
         # Create a user, save the authorization token, and make the user a
         # Django admin.
-        token = create_and_login(True)
+        token = create_and_login(is_superuser=True)
 
         # Try getting the list.
         response = self.client.get(
@@ -152,7 +152,7 @@ class Tenants(Setup):
 
         # Create a user, save the authorization token, and make the user a
         # Django admin.
-        token = create_and_login(True)
+        token = create_and_login(is_superuser=True)
 
         # Make two tenants.
         Tenant.objects.create(name=EXPECTED_CONTENT["results"][0]["name"],
@@ -201,7 +201,7 @@ class Tenants(Setup):
 
         # Create a user, save the authorization token, and make the user a
         # Django admin.
-        token = create_and_login(True)
+        token = create_and_login(is_superuser=True)
 
         # Create the desired number of default_tenant_admins.
         if number_tenant_admins == 0:
@@ -282,7 +282,7 @@ class Tenants(Setup):
 
         # Create a user, save the authorization token, and make the user a
         # Django admin.
-        token = create_and_login(True)
+        token = create_and_login(is_superuser=True)
 
         # Create another user, and make them the default_tenant_admin.
         get_user_model().objects.create_user("Julianne",
@@ -312,7 +312,7 @@ class Tenants(Setup):
 
         # Create a user, save the authorization token, and make the user a
         # Django admin.
-        token = create_and_login(True)
+        token = create_and_login(is_superuser=True)
 
         # Create a default_tenant_admins
         get_user_model().objects.create_user("Julianne",
@@ -458,7 +458,7 @@ class TenantsId(Setup):
         tenant, when the tenant doesn't exist."""
 
         # Create a Django admin user.
-        token = create_and_login(True)
+        token = create_and_login(is_superuser=True)
 
         # Make a tenant, save its uuid, then delete it.
         tenant = Tenant.objects.create(name='tenant',
@@ -511,7 +511,7 @@ class TenantsId(Setup):
 
         # Create a Django admin user, and a normal user who's a tenant_admin of
         # the tenant.
-        token = create_and_login(True)
+        token = create_and_login(is_superuser=True)
         get_user_model().objects.create_user("a",
                                              "a@b.com",
                                              "a",
@@ -549,7 +549,7 @@ class TenantsId(Setup):
 
         # Create a Django admin user, and a normal user who's a tenant_admin of
         # the tenant.
-        token = create_and_login(True)
+        token = create_and_login(is_superuser=True)
         get_user_model().objects.create_user("a",
                                              "a@b.com",
                                              "a",
@@ -581,7 +581,7 @@ class TenantsId(Setup):
         """Delete a tenant, Django admin is not in the tenant."""
 
         # Create a Django admin user, and a tenant, and a tenant_admin.
-        token = create_and_login(True)
+        token = create_and_login(is_superuser=True)
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
                                        owner_contact='206.867.5309')
@@ -616,7 +616,7 @@ class TenantsId(Setup):
         """
 
         # Create a Django admin user and a tenant.
-        token = create_and_login(True)
+        token = create_and_login(is_superuser=True)
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
                                        owner_contact='206.867.5309')
@@ -663,7 +663,7 @@ class TenantsId(Setup):
         """
 
         # Create a Django admin user and a tenant.
-        token = create_and_login(True)
+        token = create_and_login(is_superuser=True)
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
                                        owner_contact='206.867.5309')

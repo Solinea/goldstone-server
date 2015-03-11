@@ -296,11 +296,7 @@ class UserViewSet(BaseViewSet):
            self.request.user.tenant == tenant and \
            self.request.user.tenant_admin:
             # We are clear to create a new user, as a member of this tenant.
-            # Do what the superclass' perform_create() does, to get the newly
-            # created row.
-            user = serializer.save()
-            user.tenant = tenant
-            user.save()
+            user = serializer.save(tenant=tenant)
 
             # Notify the new user that he/she's created, and a member of this
             # tenant. We tack the tenant's name to the User object so that our
@@ -372,11 +368,8 @@ class OpenStackViewSet(BaseViewSet):
            self.request.user.tenant == tenant and \
            self.request.user.tenant_admin:
             # We are clear to create a new OpenStack cloud, as a member of this
-            # tenant.  Do what the superclass' perform_create() does, to get
-            # the newly created row.
-            cloud = serializer.save()
-            cloud.tenant = tenant
-            cloud.save()
+            # tenant.  Save this row with a relation to the underlying tenant.
+            serializer.save(tenant=tenant)
         else:
             raise PermissionDenied
 
