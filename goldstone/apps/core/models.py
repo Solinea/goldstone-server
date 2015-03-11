@@ -24,7 +24,10 @@ from elasticutils.contrib.django import MappingType, Indexable
 import logging
 from django.conf import settings
 from polymorphic import PolymorphicModel
+from goldstone.apps.logging.models import LogData
 from goldstone.utils import utc_now
+
+from elasticsearch_dsl.query import Q, QueryString, Terms
 
 logger = logging.getLogger(__name__)
 
@@ -410,9 +413,6 @@ class PolyResource(PolymorphicModel):
         editable=True,
         blank=True)
 
-    class Meta:
-        abstract = True
-
     def _hashable(self):
         from rest_framework.renderers import JSONRenderer
         from .serializers import PolyResourceSerializer
@@ -423,13 +423,17 @@ class PolyResource(PolymorphicModel):
         """Retrieve logs related to this resource.
 
         The default implementation just looks for the name of the resource
-        in the raw message from logstash.
+        in any of the fields.
         """
-
-
-
+        query = Q(QueryString(query=self.name))
+        return LogData.search().query(query)
 
     def events(self, *args, **kwargs):
-        """Retrieve events related to this resource."""
-        # TODO implement generic
-        pass
+        """Retrieve events related to this resource.
+
+        The default implementation looks for logging event types with this
+        resource name appearing in any field."""
+
+        event_type_query = Q(Terms(event_type=LogData.LOG_EVENT_TYPES))
+        name_query = Q(QueryString(query=self.name))
+        return LogData.search().query(event_type_query).query(name_query)

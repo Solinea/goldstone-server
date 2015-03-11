@@ -456,4 +456,6 @@ class ServicesData(TopologyData):
 # This is the beginning of the new polymorphic resource model support
 #
 class Host(PolyResource):
-    pass
+
+    def __init__(self, *args, **kwargs):
+        super(Host, self).__init__(self, *args, **kwargs)
