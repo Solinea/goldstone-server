@@ -102,8 +102,8 @@ casper.test.begin('Login Page loads and I can log in', 11, function suite(test) 
         // fills in form with "field: value"
         // 'true/false' is whether to submit form
         this.fill('form.login-form', {
-            'username': "alex",
-            'password': "a"
+            'username': "casper",
+            'password': "casper"
         }, true);
 
         // what does the form say after submission?
