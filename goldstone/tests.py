@@ -287,10 +287,10 @@ class UtilsTests(SimpleTestCase):
 
         type(client.return_value).auth_token = \
             PropertyMock(return_value='mocked_token')
-        reply = get_keystone_client(settings.OS_USERNAME,
-                                    settings.OS_PASSWORD,
-                                    settings.OS_TENANT_NAME,
-                                    settings.OS_AUTH_URL)
+        reply = get_keystone_client(os_username=settings.OS_USERNAME,
+                                    os_password=settings.OS_PASSWORD,
+                                    os_tenant_name=settings.OS_TENANT_NAME,
+                                    os_auth_url=settings.OS_AUTH_URL)
         self.assertIn('client', reply)
         self.assertIn('hex_token', reply)
 
