@@ -532,7 +532,6 @@ class TenantsIdUsersId(Setup):
                             CONTENT_PERMISSION_DENIED,
                             status_code=HTTP_403_FORBIDDEN)
 
-
     def test_put_bad_fields(self):
         """Update a user with missing required fields, or unrecognized
         fields, or a field that's not allowed to be changed by the
@@ -1012,8 +1011,6 @@ class TenantsIdOpenstack(Setup):
                              "openstack_auth_url": "http://route66.com"},
                             ]
 
-        EXPECTED_RESULT = TENANT_OPENSTACK
-
         # Make a tenant
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
@@ -1034,9 +1031,8 @@ class TenantsIdOpenstack(Setup):
 
 
 class TenantsIdOpenstackId(Setup):
-    """Retrieving a particular OpenStack cloud from a tenant, updating an
-    OpenStack cloud in a tenant, and deleting an OpenStack cloud from a 
-    tenant."""
+    """Retrieve a particular OpenStack cloud from a tenant, update an OpenStack
+    cloud in a tenant, and delete an OpenStack cloud from a tenant."""
 
     def test_not_logged_in(self):
         """The client is not logged in."""
@@ -1256,26 +1252,17 @@ class TenantsIdOpenstackId(Setup):
         """Update an OpenStack cloud with missing fields, unrecognized fields,
         or a field that's not allowed to be changed by the tenant_admin."""
 
-        # The clouds in this test.
-        TENANT_OPENSTACK = [{"openstack_tenant_name": 'a',
-                             "openstack_username": 'b',
-                             "openstack_password": 'c',
-                             "openstack_auth_url": "http://d.com"},
-                            {"openstack_tenant_name": "ee",
-                             "openstack_username": "ffffffffuuuuu",
-                             "openstack_password": "gah",
-                             "openstack_auth_url": "http://route66.com"},
-                            {"openstack_tenant_name": "Manfred",
-                             "openstack_username": "Mann's",
-                             "openstack_password": "Earth",
-                             "openstack_auth_url": "http://Band.com"},
-                            ]
+        # The cloud in this test.
+        TENANT_OPENSTACK = {"openstack_tenant_name": 'a',
+                            "openstack_username": 'b',
+                            "openstack_password": 'c',
+                            "openstack_auth_url": "http://d.com"}
 
         # Make a tenant, put an OpenStack cloud in it.
         tenant = Tenant.objects.create(name='tenant 1',
                                        owner='John',
                                        owner_contact='206.867.5309')
-        cloud = Cloud.objects.create(tenant=tenant, **TENANT_OPENSTACK[0])
+        cloud = Cloud.objects.create(tenant=tenant, **TENANT_OPENSTACK)
 
         # Create a tenant_admin of the tenant.
         token = create_and_login(tenant=tenant)
@@ -1291,268 +1278,156 @@ class TenantsIdOpenstackId(Setup):
                                 content,
                                 status_code=HTTP_400_BAD_REQUEST)
 
-        # Try PUTing to the user with no changes, and with a change to an
+        # Try PUTing to the cloud with no change, and with a change to an
         # unrecognized field.
-        for i, entry in enumerate([{"username": "Beth"},
-                                   {"username": "Beth",
-                                    "billybopfoo": "blaRGH",
-                                    "first_name": "Michelle"},
-                                   ]):
-            response = self.client.put(
-                TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, user.uuid.hex),
-                json.dumps(entry),
-                content_type="application/json",
-                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-            check_response_without_uuid(response,
-                                        HTTP_200_OK,
-                                        expected_responses[i],
-                                        extra_keys=["last_login",
-                                                    "date_joined"])
-
-        # Try PUTing to the user on a field that's not allowed to be changed.
-        # The response should be the same as the "unrecognized field" case.
         response = self.client.put(
-            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, user.uuid.hex),
-            json.dumps({"username": "Beth",
-                        "billybopfoo": "blaRGH",
-                        "tenant_admin": True,
-                        "default_tenant_admin": True,
-                        "first_name": "Michelle"}),
+            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            json.dumps(TENANT_OPENSTACK),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        check_response_without_uuid(response,
-                                    HTTP_200_OK,
-                                    expected_responses[1],
-                                    extra_keys=["last_login", "date_joined"])
+        check_response_without_uuid(response, HTTP_200_OK, TENANT_OPENSTACK)
+
+        bad_field = TENANT_OPENSTACK.copy()
+        bad_field["forkintheroad"] = "Traci"
+
+        response = self.client.put(
+            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            json.dumps(bad_field),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        check_response_without_uuid(response, HTTP_200_OK, TENANT_OPENSTACK)
+
+        # Try PUTing to a cloud on a field that's not allowed to be changed.
+        # The response should be the same as the "unrecognized field" case.
+        bad_field = TENANT_OPENSTACK.copy()
+        bad_field["uuid"] = BAD_UUID
+
+        response = self.client.put(
+            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            json.dumps(bad_field),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        check_response_without_uuid(response, HTTP_200_OK, TENANT_OPENSTACK)
 
     def test_put(self):
-        """Update a user in a tenant."""
+        """Update an Openstack cloud in a tenant."""
 
-        # Expected response, sans uuid and tenant.
-        expected_response = {"username": "Beth",
-                             "first_name": "1",
-                             "last_name": "2",
-                             "email": "x@y.com",
-                             "tenant_admin": False,
-                             "default_tenant_admin": False}
+        # The cloud in this test.
+        TENANT_OPENSTACK = {"openstack_tenant_name": 'a',
+                            "openstack_username": 'b',
+                            "openstack_password": 'c',
+                            "openstack_auth_url": "http://d.com"}
 
-        # Make a tenant.
-        tenant = Tenant.objects.create(name='tenant',
+        EXPECTED_RESPONSE = TENANT_OPENSTACK.copy()
+        EXPECTED_RESPONSE["openstack_password"] = "fffffffffuuuuuuu"
+
+        # Make a tenant, put an OpenStack cloud in it.
+        tenant = Tenant.objects.create(name='tenant 1',
                                        owner='John',
                                        owner_contact='206.867.5309')
+        cloud = Cloud.objects.create(tenant=tenant, **TENANT_OPENSTACK)
 
-        # Create a tenant_admin of the tenant, and a normal user of the tenant.
-        token = create_and_login()
+        # Create a tenant_admin of the tenant.
+        token = create_and_login(tenant=tenant)
 
-        admin_user = get_user_model().objects.get(username=TEST_USER[0])
-        admin_user.tenant = tenant
-        admin_user.tenant_admin = True
-        admin_user.save()
-
-        user = get_user_model().objects.create_user(username="Beth",
-                                                    password='x')
-        user.tenant = tenant
-        user.save()
-
-        # Try PUTing to the user.
+        # Try PUTing to the cloud.
         response = self.client.put(
-            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, user.uuid.hex),
-            json.dumps({"username": "Beth",
-                        "first_name": '1',
-                        "last_name": '2',
-                        "email": "x@y.com"}),
+            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            json.dumps(EXPECTED_RESPONSE),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        check_response_without_uuid(response,
-                                    HTTP_200_OK,
-                                    expected_response,
-                                    extra_keys=["last_login", "date_joined"])
+        check_response_without_uuid(response, HTTP_200_OK, EXPECTED_RESPONSE)
 
-    def test_delete_default_tnnt_admin(self):
-        """Try deleting the system's default tenant admin."""
-
-        # Make a tenant.
-        tenant = Tenant.objects.create(name='tenant',
-                                       owner='John',
-                                       owner_contact='206.867.5309')
-
-        # Create a default_tenant_admin, a tenant_admin, and a normal user.
-        token = create_and_login()
-
-        admin_user = get_user_model().objects.get(username=TEST_USER[0])
-        admin_user.tenant = tenant
-        admin_user.tenant_admin = True
-        admin_user.save()
-
-        default_tenant_admin = \
-            get_user_model().objects.create_user(username="Amber",
-                                                 password="xxx")
-        default_tenant_admin.tenant = tenant
-        default_tenant_admin.default_tenant_admin = True
-        default_tenant_admin.save()
-
-        user = get_user_model().objects.create_user(username="Beth",
-                                                    password='x')
-        user.tenant = tenant
-        user.save()
-
-        # Try DELETE on the default_admin_user.
-        response = self.client.delete(
-            TENANTS_ID_OPENSTACK_ID_URL %
-            (tenant.uuid.hex, default_tenant_admin.uuid.hex),
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-        self.assertContains(response,
-                            CONTENT_PERMISSION_DENIED,
-                            status_code=HTTP_403_FORBIDDEN)
-
-        # Ensure we have the right number of user accounts
-        self.assertEqual(get_user_model().objects.count(), 3)
-
-    def test_delete_self(self):
-        """Try deleting oneself."""
-
-        # Make a tenant.
-        tenant = Tenant.objects.create(name='tenant',
-                                       owner='John',
-                                       owner_contact='206.867.5309')
-
-        # Create a tenant_admin.
-        token = create_and_login()
-
-        admin_user = get_user_model().objects.get(username=TEST_USER[0])
-        admin_user.tenant = tenant
-        admin_user.tenant_admin = True
-        admin_user.save()
-
-        # Try DELETE on oneself.
-        response = self.client.delete(
-            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, admin_user.uuid.hex),
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-        self.assertContains(response,
-                            CONTENT_PERMISSION_DENIED,
-                            status_code=HTTP_403_FORBIDDEN)
-
-        # Ensure we have the right number of user accounts
-        self.assertEqual(get_user_model().objects.count(), 1)
+        # Double-check that the Cloud row was updated.
+        self.assertEqual(Cloud.objects.count(), 1)
+        self.assertEqual(Cloud.objects.all()[0].openstack_password,
+                         EXPECTED_RESPONSE["openstack_password"])
 
     def test_delete_not_member(self):
-        """Try deleting a user of another tenant."""
+        """Try deleting a cloud of another tenant."""
 
-        # Make two tenants.
+        # The clouds in this test.
+        TENANT_OPENSTACK = [{"openstack_tenant_name": 'a',
+                             "openstack_username": 'b',
+                             "openstack_password": 'c',
+                             "openstack_auth_url": "http://d.com"},
+                            {"openstack_tenant_name": "ee",
+                             "openstack_username": "ffffffffuuuuu",
+                             "openstack_password": "gah",
+                             "openstack_auth_url": "http://route66.com"},
+                            ]
+
+        # Make two tenant+cloud pairs
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
                                        owner_contact='206.867.5309')
         tenant_2 = Tenant.objects.create(name='tenant_2',
                                          owner='John',
                                          owner_contact='206.867.5309')
+        Cloud.objects.create(tenant=tenant, **TENANT_OPENSTACK[0])
+        cloud_2 = Cloud.objects.create(tenant=tenant_2, **TENANT_OPENSTACK[1])
 
-        # Create a default_tenant_admin, a tenant_admin, and a normal user of
-        # another tenant.
-        token = create_and_login()
+        # Create a tenant_admin of the first tenant.
+        token = create_and_login(tenant=tenant)
 
-        admin_user = get_user_model().objects.get(username=TEST_USER[0])
-        admin_user.tenant = tenant
-        admin_user.tenant_admin = True
-        admin_user.save()
-
-        default_tenant_admin = \
-            get_user_model().objects.create_user(username="Amber",
-                                                 password="xxx")
-        default_tenant_admin.tenant = tenant
-        default_tenant_admin.default_tenant_admin = True
-        default_tenant_admin.save()
-
-        user = get_user_model().objects.create_user(username="Beth",
-                                                    password='x')
-        user.tenant = tenant_2
-        user.save()
-
-        # Try DELETE on the normal user.
+        # Try DELETE on the second (other) tenant's cloud.
         response = self.client.delete(
-            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+            TENANTS_ID_OPENSTACK_ID_URL %
+            (tenant_2.uuid.hex, cloud_2.uuid.hex),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
                             CONTENT_PERMISSION_DENIED,
                             status_code=HTTP_403_FORBIDDEN)
 
-        # Ensure we have the right number of user accounts
-        self.assertEqual(get_user_model().objects.count(), 3)
-
-    def test_delete_django_admin(self):
-        """Try deleting a Django admin, a.k.a. Goldstone system admin."""
-
-        # Make a tenant.
-        tenant = Tenant.objects.create(name='tenant',
-                                       owner='John',
-                                       owner_contact='206.867.5309')
-
-        # Log in as the tenant admin.
-        token = create_and_login()
-
-        admin_user = get_user_model().objects.get(username=TEST_USER[0])
-        admin_user.tenant = tenant
-        admin_user.tenant_admin = True
-        admin_user.save()
-
-        # Create a Django admin who's a member of the tenant.
-        django_admin = \
-            get_user_model().objects.create_superuser("Amber",
-                                                      "a@b.com",
-                                                      "xxx",
-                                                      tenant=tenant)
-
-        # Try DELETE on the Django admin.
-        response = self.client.delete(
-            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, django_admin.uuid.hex),
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-        self.assertContains(response,
-                            CONTENT_PERMISSION_DENIED,
-                            status_code=HTTP_403_FORBIDDEN)
-
-        # Ensure we have the right number of user accounts
-        self.assertEqual(get_user_model().objects.count(), 2)
+        # Ensure we have the right number of OpenStack clouds.
+        self.assertEqual(Cloud.objects.count(), 2)
 
     def test_delete(self):
-        """Delete a user in a tenant."""
+        """Delete an OpenStack cloud from a tenant."""
 
-        # Make a tenant.
+        # The clouds in this test.
+        TENANT_OPENSTACK = [{"openstack_tenant_name": 'a',
+                             "openstack_username": 'b',
+                             "openstack_password": 'c',
+                             "openstack_auth_url": "http://d.com"},
+                            {"openstack_tenant_name": "ee",
+                             "openstack_username": "ffffffffuuuuu",
+                             "openstack_password": "gah",
+                             "openstack_auth_url": "http://route66.com"},
+                            ]
+
+        # Make a tenant with two clouds.
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
                                        owner_contact='206.867.5309')
+        cloud = Cloud.objects.create(tenant=tenant, **TENANT_OPENSTACK[0])
+        cloud_2 = Cloud.objects.create(tenant=tenant, **TENANT_OPENSTACK[1])
 
-        # Create a default_tenant_admin, a tenant_admin, and a normal user.
-        token = create_and_login()
+        # Create a tenant_admin.
+        token = create_and_login(tenant=tenant)
 
-        admin_user = get_user_model().objects.get(username=TEST_USER[0])
-        admin_user.tenant = tenant
-        admin_user.tenant_admin = True
-        admin_user.save()
-
-        default_tenant_admin = \
-            get_user_model().objects.create_user(username="Amber",
-                                                 password="xxx")
-        default_tenant_admin.tenant = tenant
-        default_tenant_admin.default_tenant_admin = True
-        default_tenant_admin.save()
-
-        user = get_user_model().objects.create_user(username="Beth",
-                                                    password='x')
-        user.tenant = tenant
-        user.save()
-
-        # Try DELETE on the normal user.
+        # DELETE one cloud, check, DELETE the other cloud, check.
         response = self.client.delete(
-            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, cloud_2.uuid.hex),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response, '', status_code=HTTP_204_NO_CONTENT)
 
-        # Ensure we have the right number of user accounts
-        self.assertEqual(get_user_model().objects.count(), 2)
+        # Ensure we have the right number of Clouds.
+        self.assertEqual(Cloud.objects.count(), 1)
+        self.assertEqual(Cloud.objects.all()[0].openstack_tenant_name,
+                         TENANT_OPENSTACK[0]["openstack_tenant_name"])
+
+        response = self.client.delete(
+            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertContains(response, '', status_code=HTTP_204_NO_CONTENT)
+
+        # Ensure we have the right number of Clouds.
+        self.assertEqual(Cloud.objects.count(), 0)
