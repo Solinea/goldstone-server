@@ -86,12 +86,12 @@ def login(username, password):
     return response.data["auth_token"]      # pylint: disable=E1101
 
 
-def create_and_login(is_staff=False):
+def create_and_login(is_superuser=False):
     """Create a user and log them in.
 
-    :keyword is_staff: Set the is_staff flag in the User record? (A.k.a.
-                       create a Django admin user?)
-    :type is_staff: bool
+    :keyword is_superuser: Set the is_superuser flag in the User record?
+                           (A.k.a. create a Django admin account?)
+    :type is_superuser: bool
     :return: The authorization token's value
     :rtype: str
 
@@ -99,7 +99,7 @@ def create_and_login(is_staff=False):
 
     # Create a user
     user = get_user_model().objects.create_user(*TEST_USER)
-    user.is_staff = is_staff
+    user.is_superuser = is_superuser
     user.save()
 
     return login(TEST_USER[0], TEST_USER[2])

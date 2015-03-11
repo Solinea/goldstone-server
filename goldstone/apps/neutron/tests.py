@@ -27,8 +27,10 @@ class TaskTests(SimpleTestCase):
     def test_time_agent_list_api(self, m_base, m_time_api_call):
 
         response = requests.Response()
+        # pylint: disable=W0212
         response._content = '{"agents": [{"id": 1}]}'
-        response.status_code = requests.codes.ok
+        response.status_code = requests.codes.ok  # pylint: disable=E1101
+
         m_base.return_value = {'url': 'http://url', 'headers': {}}
         m_time_api_call.return_value = {'created': True, 'response': response}
         result = time_agent_list_api()
@@ -42,7 +44,8 @@ class ViewTests(SimpleTestCase):
 
     def test_report_view(self):
 
-        uri = '/neutron/report'
-        response = self.client.get(uri)
+        URI = '/neutron/report'
+
+        response = self.client.get(URI)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'neutron_report.html')
