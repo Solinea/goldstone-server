@@ -30,13 +30,21 @@ SETTINGS_DIR = "goldstone.settings"
 # The default settings are to run Elasticsearch and PostgreSQL locally.
 DEV_SETTINGS = SETTINGS_DIR + ".test_oak_c2"
 
-# Default values for the default tenant and default_tenant_admin that are
-# created when Goldstone is installed. These are defined at the module level so
-# that our unit tests can get at them.
+# Values for the default tenant and default_tenant_admin that are created when
+# Goldstone is installed. These are defined at the module level so that our
+# unit tests can get at them.
 DEFAULT_TENANT = "default"
 DEFAULT_TENANT_OWNER = "None"
 DEFAULT_ADMIN = "gsadmin"
 DEFAULT_ADMIN_PASSWORD = "changeme"
+
+# Values for the default OpenStack cloud that's created under the default
+# tenant. These are defined at the module level so that our unit tests can get
+# at them.
+DEFAULT_OS_TENANT = "admin"
+DEFAULT_OS_USERNAME = "admin"
+DEFAULT_OS_PASSWORD = "2caa6a4d9c9d49ce"
+DEFAULT_OS_AUTH_URL = "http://10.10.20.10:5000/v2.0/"
 
 
 def _django_manage(command, target='', proj_settings=None, daemon=False):
@@ -205,18 +213,23 @@ def _django_settings_module(verbose):
 
 
 @task
-def syncmigrate(verbose=False):
+def syncmigrate(settings=None, verbose=False):
     """Do a /manage.py syncdb and migrate.
 
     This is the last installation step before execution a load command.
 
+    :keyword settings: A settings file to use. If not specified, we will ask
+                       user to select one
+    :type settings: str
     :keyword verbose: Display detail about each settings choice?
     :type verbose: bool
 
     """
 
     print "doing a syncdb and migrate ..."
-    settings = _django_settings_module(verbose)
+
+    if not settings:
+        settings = _django_settings_module(verbose)
 
     print
     print red("Django's script will announce that you don't have any "
@@ -245,7 +258,8 @@ def syncmigrate(verbose=False):
 @task
 def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
                 settings=None):
-    """Create a tenant and default_tenant_admin, or use existing ones.
+    """Create a tenant and default_tenant_admin, or use existing ones; and
+    create an OpenStack cloud under the tenant.
 
     If the tenant doesn't exist, we create it.  If the admin doesn't exist, we
     create it as the default_tenant_admin, and the tenant's tenant_admin.
@@ -267,13 +281,13 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
     :type admin: str
     :keyword password: The admin account's password, *if* we create it
     :type password: str
-    :keyword settings: If present, the name (not the path) of the Django
-                       settings file to use. It must live in
-                       goldstone/settings. If not present, an interactive
-                       query is made for the user to select one.
+    :keyword settings: If present, the path of the Django settings file to use.
+                       Otherwise, we will ask the user to select one.
     :type settings: str
 
     """
+
+    print "initializing the Goldstone tenant and OpenStack cloud entry ..."
 
     # Load the defaults, if the user didn't override them.
     if not tenant:
@@ -286,17 +300,15 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
         password = DEFAULT_ADMIN_PASSWORD
 
     # Get the settings under which we should execute.
-    if settings:
-        proj_settings = SETTINGS_DIR + '.' + settings
-    else:
-        proj_settings = _django_settings_module(False)
+    if not settings:
+        settings = _django_settings_module(False)
 
-    with _django_env(proj_settings):
+    with _django_env(settings):
         # It's important to do these imports here, after DJANGO_SETTINGS_MODULE
         # has been changed!
         from django.contrib.auth import get_user_model
         from django.core.exceptions import ObjectDoesNotExist
-        from goldstone.tenants.models import Tenant
+        from goldstone.tenants.models import Tenant, Cloud
 
         # Process the tenant.
         try:
@@ -314,10 +326,11 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
             user = get_user_model().objects.get(username=admin)
         except ObjectDoesNotExist:
             fastprint("Creating tenant admin account %s with the password, "
-                      "'%s'." %
+                      "'%s' ..." %
                       (admin, password))
             user = get_user_model().objects.create_user(username=admin,
                                                         password=password)
+            fastprint("done.\n")
         else:
             # The tenant_admin already exists. Print a message.
             fastprint("Admin account %s already exists. We will use it.\n" %
@@ -329,64 +342,43 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
         user.default_tenant_admin = True
         user.save()
 
+        # Now create a single OpenStack cloud under the tenant. Give the user
+        # an opportunity to override the defaults.
+        fastprint("\nAn OpenStack cloud entry will now be created under the "
+                  "default tenant.\n")
+        os_tenant_name = prompt("OpenStack cloud name?",
+                                default=DEFAULT_OS_TENANT)
+        os_username = prompt("OpenStack username?",
+                             default=DEFAULT_OS_USERNAME)
+        os_password = prompt("Password for %s?" % os_username,
+                             default=DEFAULT_OS_PASSWORD)
+        os_auth_url = prompt("OpenStack authorization server URL?",
+                             default=DEFAULT_OS_AUTH_URL)
+
+        Cloud.objects.create(tenant=tenant,
+                             openstack_tenant_name=os_tenant_name,
+                             openstack_username=os_username,
+                             openstack_password=os_password,
+                             openstack_auth_url=os_auth_url)
+
 
 @task
-def openstack_init(tenant, os_tenant_name=None, os_username=None,
-                   os_password=None, os_auth_url=None):
-    """Create an entry for an OpenStack cloud under a tenant.
+def goldstone_init(verbose=False):
+    """Do a syncmigrate, tenant_init, and load.
 
-    If any of the os_* parameters are not specified, the missing value is
-    sought from an environment variable.
-
-    :param tenant: The name of the tenant in which the OpenStack credentials
-                   should be created
-    :type tenant: str
-    :keyword os_tenant_name: The name of the OpenStack tenant. If unspecified,
-                             we read the OS_TENANT_NAME environment variable
-    :type tenant: str
-    :keyword os_username: The OpenStack username. If unspecified, we read the
-                          OS_USERNAME environment variable
-    :type os_username: str
-    :keyword os_password: The password of the OpenStack username account. If
-                          unspecified, we read the OS_PASSWORD environment
-                          variable
-    :type os_password: str
-    :keyword os_auth_url: The OpenStack authorization server's URL. If
-                          unspecified, we read the OS_AUTH_URL environment
-                          variable
-    :type os_auth_url: str
+    :keyword verbose: Display detail about each settings choice?
+    :type verbose: bool
 
     """
-    from goldstone.tenants.models import Tenant, Cloud
 
-    # Get the Tenant row
-    tenant_row = Tenant.objects.get(name=tenant)
+    print "Goldstone database and Elasticsearch initialization ..."
+    settings = _django_settings_module(verbose)
 
-    # Get the keyword arguments from the execution environment, if necessary.
-    environment = os.environ
-    if not os_tenant_name:
-        os_tenant_name = environment.get("OS_TENANT_NAME")
-    if not os_username:
-        os_username = environment.get("OS_USERNAME")
-    if not os_password:
-        os_password = environment.get("OS_PASSWORD")
-    if not os_auth_url:
-        os_auth_url = environment.get("OS_AUTH_URL")
+    syncmigrate(settings=settings)
+    tenant_init(settings=settings)
+    load()
 
-    # If we're missing any information, raise an exception.
-    if not bool(os_tenant_name and os_username and os_password and
-                os_auth_url):
-        raise NameError("Missing OpenStack tenant name, username, password, "
-                        "or authorization URL.")
-
-    # Create the OpenStack cloud entry.
-    Cloud.objects.create(tenant=tenant_row,
-                         openstack_tenant_name=os_tenant_name,
-                         openstack_username=os_username,
-                         openstack_password=os_password,
-                         openstack_auth_url=os_auth_url)
-
-
+    
 @task
 def runserver(verbose=False):
 
