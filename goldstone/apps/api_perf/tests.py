@@ -68,6 +68,7 @@ class UtilsTests(SimpleTestCase):
     @patch('keystoneclient.v2_0.client.Client')
     @patch('goldstone.utils.get_keystone_client')
     def test_openstack_api_request_base_success(self, m_get, m_client):
+        from django.conf import settings
 
         m_client.service_catalog.get_endpoints.return_value = {
             'endpoint': [{'publicURL': "http://endpoint"}]
@@ -80,7 +81,12 @@ class UtilsTests(SimpleTestCase):
         #              'x-auth-token': 'token'}
         # }
 
-        result = stack_api_request_base("endpoint", "/path")
+        result = stack_api_request_base("endpoint",
+                                        "/path",
+                                        settings.OS_USERNAME,
+                                        settings.OS_PASSWORD,
+                                        settings.OS_TENANT_NAME,
+                                        settings.OS_AUTH_URL)
         self.assertIn('url', result)
         self.assertIn('x-auth-token', result['headers'])
         self.assertIn('content-type', result['headers'])
@@ -88,7 +94,7 @@ class UtilsTests(SimpleTestCase):
         self.assertEquals(result['url'], "http://endpoint/path")
 
     @patch('goldstone.utils.get_keystone_client')
-    def test_openstack_api_request_base_exceptions(self, m_get):
+    def test_os_api_request_base_exc(self, m_get):
 
         m_get.side_effect = GoldstoneAuthError
         self.assertRaises(GoldstoneAuthError, stack_api_request_base,

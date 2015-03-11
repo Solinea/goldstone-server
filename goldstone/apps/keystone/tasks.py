@@ -29,7 +29,6 @@ def time_token_post_api():
     This will make things easier to model.
 
     """
-    from django.conf import settings
     from goldstone.apps.api_perf.utils import time_api_call
     import json
 
