@@ -31,7 +31,7 @@ def stack_api_request_base(endpoint, path, os_username, os_password, os_tenant,
     :return: dict of url and headers
 
     """
-    from goldstone.utils import get_keystone_client, get_cloud
+    from goldstone.utils import get_keystone_client
 
     try:
         keystone_client = get_keystone_client(os_username,
