@@ -52,17 +52,23 @@ def _update_cinder_records(rec_type, region, database, items):
         logger.exception("failed to index cinder %s", rec_type)
 
 
-@celery_app.task(bind=True)
-def discover_cinder_topology(self):  # pylint: disable=W0613
+@celery_app.task()
+def discover_cinder_topology():
     """Interrogate the OpenStack API for config info about cinder
 
     Get each of the resource types and call a method to index
     the documents into ES.
 
     """
-    from goldstone.utils import get_cinder_client
+    from goldstone.utils import get_cinder_client, get_cloud
 
-    cinder_access = get_cinder_client()
+    # Get the system's sole OpenStack cloud.
+    cloud = get_cloud()
+    cinder_access = get_cinder_client(cloud.os_username,
+                                      cloud.os_password,
+                                      cloud.os_tenant_name,
+                                      cloud.os_auth_url)
+
     cinderclient = cinder_access['client']
     reg = cinder_access['region']
 
