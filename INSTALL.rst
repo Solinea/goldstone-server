@@ -74,17 +74,6 @@ Next, enable the elasticsearch and logstash repositories:
     enabled=1
     EOF
 
-Set OpenStack-related environment variables.  This will enable the RPM installer to 
-configure Goldstone without a reboot. 
-
-  .. code:: bash
-
-    # run as root
-    export OS_USERNAME=admin
-    export OS_TENANT_NAME=admin
-    export OS_PASSWORD=password
-    export OS_AUTH_URL=http://10.10.10.10::5000/v2.0/
-
 Create a Postgres Goldstone user, and initialize the database. 
       
   .. code:: bash
@@ -108,28 +97,24 @@ Reload the postgres configuration.
 
   .. code:: bash
 
-    # run as root
-    su - postgres -c 'pg_ctl reload'
+    $ # run as root
+    $ su - postgres -c 'pg_ctl reload'
 
 
 Install the Goldstone application: 
 
   .. code:: bash
 
-    # run as root
-    yum localinstall -y goldstone-server-{version}.rpm
+    $ # run as root
+    $ yum localinstall -y goldstone-server-{version}.rpm
 
 This package installation may take up to 30 minutes to run, as it needs to compile a number of libraries.
 
-If you did not set the OpenStack envrironment variables, you can configure Goldstone by editing
-``/opt/goldstone/goldstone/settings/production.py`` to add required OpenStack settings.  Example: ::
+To finish initializing the Goldstone installation:
 
-    OS_USERNAME = 'admin'
-    OS_TENANT_NAME = 'admin'
-    OS_PASSWORD = 'password'
-    OS_AUTH_URL = 'http://10.10.10.10:5000/v2.0'
+  .. code:: bash
 
-The Goldstone application will be started at the next boot. 
+    $ fab goldstone_init
 
 
 DIRECT LOGS TO GOLDSTONE SERVER

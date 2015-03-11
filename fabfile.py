@@ -378,7 +378,7 @@ def goldstone_init(verbose=False):
     tenant_init(settings=settings)
     load()
 
-    
+
 @task
 def runserver(verbose=False):
 
