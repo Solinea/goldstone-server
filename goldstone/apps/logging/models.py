@@ -1,3 +1,4 @@
+"""Logging models."""
 # Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -15,7 +16,7 @@
 import logging
 from arrow import Arrow
 from elasticsearch_dsl import DocType, Search, query
-from goldstone.models import es_indices, es_conn
+from goldstone.models import es_indices, es_conn, most_recent_index
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,6 @@ class LogData(DocType):
         """
 
         return Search(
-            using=cls._doc_type.using,
             index=es_indices(cls._INDEX_PREFIX),
             doc_type={cls._doc_type.name: cls.from_es},
         ).using(es_conn())
@@ -154,14 +154,17 @@ class LogData(DocType):
         response = search.execute().aggregations
         return response
 
-    def get_field_mapping(self, index, field):
+    @classmethod
+    def get_field_mapping(cls, field):
 
         conn = es_conn()
+        index = most_recent_index(cls._INDEX_PREFIX)
         return conn.indices.get_field_mapping(
-            field, index, self.Meta.doc_type,
+            field, index, cls._doc_type.name,
             include_defaults=True, allow_no_indices=False)
 
-    def field_has_raw(self, field):
+    @classmethod
+    def field_has_raw(cls, field):
         """Looks up the ES mapping for a field and determines if it has a 'raw'
         representation.
 
@@ -169,10 +172,10 @@ class LogData(DocType):
         :return: Boolean
         """
 
-        index = es_indices(self._INDEX_PREFIX).sort()[-1]
-        mapping = self.get_field_mapping(index, field)
+        index = most_recent_index(cls._INDEX_PREFIX)
+        mapping = cls.get_field_mapping(field)
         try:
             return 'raw' in \
-                mapping[index]['mappings'][self.Meta.doc_type][field]['mapping'][field]['fields']
+                mapping[index]['mappings'][cls._doc_type.name][field]['mapping'][field]['fields']
         except KeyError:
             return False

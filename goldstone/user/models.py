@@ -37,9 +37,9 @@ class User(AbstractUser):
     # If true, this is the default tenant_admin for new tenants. If more than
     # one row in the table has this set, a random one is used as the default
     # tenant_admin.
-    default_tenant_admin = \
-        models.BooleanField(default=False,
-                            help_text="This is the default tenant_admin")
+    default_tenant_admin = models.BooleanField(
+        default=False,
+        help_text="The default tenant admin for new tenants")
 
     # This allows URLs to identify a row using a UUID value.
     uuid = UUIDField(auto=True)

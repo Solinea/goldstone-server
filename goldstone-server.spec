@@ -138,8 +138,17 @@ from django.contrib.auth import get_user_model
 get_user_model().objects.create_superuser('admin', 'a@b.com', 'changeme')
 EOF
 
-# get all the ownerships back in shape.  No guarantee that we can su to apache, and running python
-# during install may set some ownerships to root. This seems like the best approach.
+# Create the default (only) Goldstone tenant, and a tenant_admin account that
+# is also the system's default tenant admin for all new tenants.
+python manage.py shell <<EOF
+from fabfile import tenant_init
+tenant_init(settings="production")
+EOF
+
+
+# Get all the ownerships back in shape.  No guarantee that we can su to apache,
+# and running python during install may set some ownerships to root. This seems
+# like the best approach.
 chown -R apache:apache /opt/goldstone
 
 
@@ -255,6 +264,7 @@ install -m 640 %{_sourcedir}/goldstone/settings/base.py %{buildroot}/opt/goldsto
 install -m 640 %{_sourcedir}/goldstone/settings/production.py %{buildroot}/opt/goldstone/goldstone/settings/production.py
 
 # handle the rest
+install -m 750 %{_sourcedir}/fabfile.py %{buildroot}/opt/goldstone/fabfile.py
 install -m 640 %{_sourcedir}/requirements.txt %{buildroot}/opt/goldstone/requirements.txt
 install -m 640 %{_sourcedir}/setup.cfg %{buildroot}/opt/goldstone/setup.cfg
 install -m 750 %{_sourcedir}/setup.py %{buildroot}/opt/goldstone/setup.py
@@ -285,6 +295,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-, apache, apache)
+/opt/goldstone/fabfile.py
 /opt/goldstone/requirements.txt
 /opt/goldstone/setup.cfg
 /opt/goldstone/setup.py

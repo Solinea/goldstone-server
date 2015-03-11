@@ -585,7 +585,7 @@ class TenantsId(Setup):
         get_tenant(token, NEW_TENANT)
 
     def test_delete(self):
-        """Delete a tenant."""
+        """Delete a tenant, Django admin is not in the tenant."""
 
         # Create a Django admin user, and a tenant, and a tenant_admin.
         token = create_and_login(True)
@@ -607,9 +607,103 @@ class TenantsId(Setup):
 
         self.assertEqual(response.status_code, HTTP_204_NO_CONTENT)
 
-        # Make sure the tenant and tenant_admin no longer exist.
+        # Make sure the tenant and tenant_admin no longer exist, and the Django
+        # admin still does.
         self.assertEqual(Tenant.objects.count(), 0)
-        self.assertFalse(get_user_model().objects.filter(username="Traci"))
+        self.assertFalse(get_user_model().objects
+                         .filter(username="Traci").exists())
+        self.assertTrue(get_user_model().objects
+                        .filter(username=TEST_USER[0]).exists())
+
+    def test_delete_django_admin(self):
+        """Delete a tenant, where the Django admin belongs to the tenant.
+
+        The Django admin account should not be deleted.
+
+        """
+
+        # Create a Django admin user and a tenant.
+        token = create_and_login(True)
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        # Make the Django admin a tenant member.
+        user = get_user_model().objects.get(username=TEST_USER[0])
+        user.tenant = tenant
+        user.save()
+
+        # Make a user who's a tenant member, and one who's not.
+        get_user_model().objects.create_user(username="John",
+                                             password="xxx",
+                                             tenant=tenant)
+        get_user_model().objects.create_user(username="B", password="x")
+
+        # Delete the tenant.  This should delete the users who belong to the
+        # tenant, but not the Django admin.
+        response = self.client.delete(
+            TENANTS_ID_URL % tenant.uuid.hex,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code, HTTP_204_NO_CONTENT)
+
+        # Make sure the tenant and non-Django admin tenant members are gone,
+        # and the Django admin and non-members are still here. The Django admin
+        # should belong to no tenant.
+        self.assertEqual(Tenant.objects.count(), 0)
+        self.assertEqual(get_user_model().objects.count(), 2)
+
+        self.assertTrue(get_user_model().objects
+                        .filter(username=TEST_USER[0]).exists())
+        self.assertIsNone(get_user_model().objects
+                          .get(username=TEST_USER[0]).tenant)
+        self.assertTrue(get_user_model().objects.filter(username="B").exists())
+        self.assertFalse(get_user_model().objects
+                         .filter(username="John").exists())
+
+    def test_delete_default_tenant(self):
+        """Delete a tenant, when the default_tenant_admin belongs to the
+        tenant.
+
+        The default_tenant_admin should not be deleted.
+
+        """
+
+        # Create a Django admin user and a tenant.
+        token = create_and_login(True)
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        # Make a user who's a tenant member and default_tenant_admin, and one
+        # who's not.
+        get_user_model().objects.create_user(username="John",
+                                             password="xxx",
+                                             tenant=tenant,
+                                             default_tenant_admin=True,
+                                             tenant_admin=True)
+        get_user_model().objects.create_user(username="B", password="x")
+
+        # Delete the tenant.  This should delete the users who belong to the
+        # tenant, but not the default_tenant_admin.
+        response = self.client.delete(
+            TENANTS_ID_URL % tenant.uuid.hex,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertEqual(response.status_code, HTTP_204_NO_CONTENT)
+
+        # Check who's still here.
+        self.assertEqual(Tenant.objects.count(), 0)
+        self.assertEqual(get_user_model().objects.count(), 3)
+
+        self.assertTrue(get_user_model().objects
+                        .filter(username=TEST_USER[0]).exists())
+        self.assertIsNone(get_user_model().objects
+                          .get(username=TEST_USER[0]).tenant)
+        self.assertTrue(get_user_model().objects.filter(username="B").exists())
+        self.assertIsNone(get_user_model().objects.get(username="B").tenant)
+        self.assertTrue(get_user_model().objects
+                        .filter(username="John").exists())
 
 
 class TenantsIdUsers(Setup):
@@ -1375,6 +1469,41 @@ class TenantsIdUsersId(Setup):
 
         # Ensure we have the right number of user accounts
         self.assertEqual(get_user_model().objects.count(), 3)
+
+    def test_delete_django_admin(self):
+        """Try deleting a Django admin, a.k.a. Goldstone system admin."""
+
+        # Make a tenant.
+        tenant = Tenant.objects.create(name='tenant',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        # Log in as the tenant admin.
+        token = create_and_login()
+
+        admin_user = get_user_model().objects.get(username=TEST_USER[0])
+        admin_user.tenant = tenant
+        admin_user.tenant_admin = True
+        admin_user.save()
+
+        # Create a Django admin who's a member of the tenant.
+        django_admin = \
+            get_user_model().objects.create_superuser("Amber",
+                                                      "a@b.com",
+                                                      "xxx",
+                                                      tenant=tenant)
+
+        # Try DELETE on the Django admin.
+        response = self.client.delete(
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, django_admin.uuid.hex),
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertContains(response,
+                            CONTENT_PERMISSION_DENIED,
+                            status_code=HTTP_403_FORBIDDEN)
+
+        # Ensure we have the right number of user accounts
+        self.assertEqual(get_user_model().objects.count(), 2)
 
     def test_delete(self):
         """Delete a user in a tenant."""
