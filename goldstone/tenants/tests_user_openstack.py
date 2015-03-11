@@ -25,6 +25,16 @@ from goldstone.test_utils import Setup, create_and_login, login, \
 from .models import Tenant, Cloud
 from .tests_tenants import TENANTS_ID_URL
 
+# HTTP response content.
+CONTENT_MISSING_OS_USERNAME = \
+    '"openstack_username":["This field may not be blank."]'
+CONTENT_MISSING_OS_NAME = \
+    '"openstack_tenant_name":["This field may not be blank."]'
+CONTENT_MISSING_OS_PASSWORD = \
+    '"openstack_password":["This field may not be blank."]'
+CONTENT_MISSING_OS_URL = \
+    '"openstack_auth_url":["This field may not be blank."]'
+
 # URLs used by this module.
 TENANTS_ID_USERS_URL = TENANTS_ID_URL + "/users"
 TENANTS_ID_USERS_ID_URL = TENANTS_ID_USERS_URL + "/%s"
@@ -501,7 +511,7 @@ class TenantsIdUsersId(Setup):
                                     extra_keys=["last_login", "date_joined"])
 
     def test_put_no_user(self):
-        """Update a user of an empty tenant, or a user that does not exist."""
+        """Update a non-existent user of a tenant."""
 
         # Make a tenant.
         tenant = Tenant.objects.create(name='tenant',
@@ -521,6 +531,7 @@ class TenantsIdUsersId(Setup):
         self.assertContains(response,
                             CONTENT_PERMISSION_DENIED,
                             status_code=HTTP_403_FORBIDDEN)
+
 
     def test_put_bad_fields(self):
         """Update a user with missing required fields, or unrecognized
@@ -1220,8 +1231,7 @@ class TenantsIdOpenstackId(Setup):
             check_response_without_uuid(response, HTTP_200_OK, entry)
 
     def test_put_no_cloud(self):
-        """Update an OpenStack cloud of an empty tenant, or a cloud user that
-        doesn't exist."""
+        """Update a non-existent OpenStack cloud of a tenant."""
 
         # Make a tenant.
         tenant = Tenant.objects.create(name='tenant',
@@ -1231,10 +1241,10 @@ class TenantsIdOpenstackId(Setup):
         # Create a tenant_admin of the tenant.
         token = create_and_login(tenant=tenant)
 
-        # Try PUTing to a nonexistent user in this tenant.
+        # Try PUTing to a nonexistent OpenStack cloud in this tenant.
         response = self.client.put(
             TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, BAD_UUID),
-            json.dumps({"username": "fool", "email": "a@b.com"}),
+            json.dumps({"openstack_tenant_name": "fool"}),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
@@ -1243,54 +1253,43 @@ class TenantsIdOpenstackId(Setup):
                             status_code=HTTP_403_FORBIDDEN)
 
     def test_put_bad_fields(self):
-        """Update a user with missing required fields, or unrecognized
-        fields, or a field that's not allowed to be changed by the
-        tenant_admin."""
+        """Update an OpenStack cloud with missing fields, unrecognized fields,
+        or a field that's not allowed to be changed by the tenant_admin."""
 
-        # Expected responses, sans uuid and tenant fields.
-        expected_responses = [
-            # PUTting no changes.
-            {"username": "Beth",
-             "first_name": "",
-             "last_name": "",
-             "email": "",
-             "tenant_admin": False,
-             "default_tenant_admin": False},
-            # PUTting to an unrecognized field.
-            {"username": "Beth",
-             "first_name": "Michelle",
-             "last_name": "",
-             "email": "",
-             "tenant_admin": False,
-             "default_tenant_admin": False},
-        ]
+        # The clouds in this test.
+        TENANT_OPENSTACK = [{"openstack_tenant_name": 'a',
+                             "openstack_username": 'b',
+                             "openstack_password": 'c',
+                             "openstack_auth_url": "http://d.com"},
+                            {"openstack_tenant_name": "ee",
+                             "openstack_username": "ffffffffuuuuu",
+                             "openstack_password": "gah",
+                             "openstack_auth_url": "http://route66.com"},
+                            {"openstack_tenant_name": "Manfred",
+                             "openstack_username": "Mann's",
+                             "openstack_password": "Earth",
+                             "openstack_auth_url": "http://Band.com"},
+                            ]
 
-        # Make a tenant.
-        tenant = Tenant.objects.create(name='tenant',
+        # Make a tenant, put an OpenStack cloud in it.
+        tenant = Tenant.objects.create(name='tenant 1',
                                        owner='John',
                                        owner_contact='206.867.5309')
+        cloud = Cloud.objects.create(tenant=tenant, **TENANT_OPENSTACK[0])
 
-        # Create a tenant_admin of the tenant, and a normal user of the tenant.
-        token = create_and_login()
+        # Create a tenant_admin of the tenant.
+        token = create_and_login(tenant=tenant)
 
-        admin_user = get_user_model().objects.get(username=TEST_USER[0])
-        admin_user.tenant = tenant
-        admin_user.tenant_admin = True
-        admin_user.save()
-
-        user = get_user_model().objects.create_user(username="Beth",
-                                                    password='x')
-        user.tenant = tenant
-        user.save()
-
-        # Try PUTing to the user with no username.
+        # Try PUTing to the cloud with no fields.
         response = self.client.put(
-            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        self.assertContains(response,
-                            CONTENT_NOT_BLANK_USERNAME,
-                            status_code=HTTP_400_BAD_REQUEST)
+        for content in [CONTENT_MISSING_OS_USERNAME, CONTENT_MISSING_OS_NAME,
+                        CONTENT_MISSING_OS_PASSWORD, CONTENT_MISSING_OS_URL]:
+            self.assertContains(response,
+                                content,
+                                status_code=HTTP_400_BAD_REQUEST)
 
         # Try PUTing to the user with no changes, and with a change to an
         # unrecognized field.
