@@ -19,9 +19,12 @@ from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from goldstone.test_utils import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_MISSING_USERNAME, CONTENT_BAD_TOKEN, \
-    CONTENT_MISSING_PASSWORD, CONTENT_UNIQUE_USERNAME, \
     CONTENT_NO_CREDENTIALS, CONTENT_NON_FIELD_ERRORS, LOGIN_URL, USER_URL, \
     TEST_USER
+
+# Http response content.
+CONTENT_MISSING_PASSWORD = '"password":["This field is required."]'
+CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
 
 # URLs used by this module.
 REGISTRATION_URL = "/accounts/register"
