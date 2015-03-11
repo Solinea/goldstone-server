@@ -434,6 +434,6 @@ class PolyResource(PolymorphicModel):
         The default implementation looks for logging event types with this
         resource name appearing in any field."""
 
-        event_type_query = Q(Terms(event_type=LogData.LOG_EVENT_TYPES))
+        event_type_query = Q(Terms(event_type__raw=LogData.LOG_EVENT_TYPES))
         name_query = Q(QueryString(query=self.name))
         return LogData.search().query(event_type_query).query(name_query)

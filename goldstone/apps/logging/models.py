@@ -25,6 +25,7 @@ class LogData(DocType):
     """Logstash log entry model (intended to be read-only)."""
 
     _INDEX_PREFIX = 'logstash-'
+    LOG_EVENT_TYPES = ['OpenStackSyslogError', 'GenericSyslogError']
 
     class Meta:
         doc_type = 'syslog'
