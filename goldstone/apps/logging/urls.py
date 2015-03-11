@@ -23,7 +23,7 @@ router.register(r'nodes', LoggingNodeViewSet, base_name='node')
 
 urlpatterns = router.urls
 
-urlpatterns += patterns('', url(r'logs[/]?$', LogDataView.as_view(),
+urlpatterns += patterns('', url(r'search[/]?$', LogDataView.as_view(),
                         name='log-data-view'))
-urlpatterns += patterns('', url(r'logs/summary?$', LogAggView.as_view(),
+urlpatterns += patterns('', url(r'summarize[/]?$', LogAggView.as_view(),
                         name='log-summary-view'))
