@@ -90,6 +90,7 @@ INSTALLED_APPS = (
     'goldstone.apps.logging',
     'goldstone.tenants',
     'goldstone.user',
+    'goldstone.apps.drfes'
 )
 
 MIDDLEWARE_CLASSES = (

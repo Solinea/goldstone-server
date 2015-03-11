@@ -14,27 +14,22 @@
 # limitations under the License.
 from django.conf import settings
 import arrow
-from elasticsearch_dsl import Q
 from rest_framework.fields import BooleanField
-from rest_framework.filters import BaseFilterBackend
-from rest_framework.viewsets import GenericViewSet
-import six
 import logging
 
-from django.http import HttpResponse, Http404
-from rest_framework import serializers, fields, pagination
-from rest_framework.exceptions import NotFound
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework import serializers
+from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny
-from rest_framework.serializers import Serializer
 from rest_framework.views import APIView
 
 from goldstone.apps.core.serializers import IntervalField, \
     ArrowCompatibleField, CSVField
+from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
+from goldstone.apps.drfes.views import ElasticListAPIView
 from goldstone.apps.logging.models import LogData
 from .serializers import LoggingNodeSerializer
 from rest_framework.response import Response
-from goldstone.apps.core.views import NodeViewSet, ReadOnlyElasticViewSet
+from goldstone.apps.core.views import NodeViewSet
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +67,7 @@ class LoggingNodeViewSet(NodeViewSet):
 
     def list(self, request, *args, **kwargs):
 
-        time_range = self.get_request_time_range(request.QUERY_PARAMS.dict())
+        time_range = self.get_request_time_range(request.query_params.dict())
         instance = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(instance)
 
@@ -96,66 +91,7 @@ class LoggingNodeViewSet(NodeViewSet):
         return self._add_headers(Response(serializer.data), time_range)
 
 
-class LogDataPagination(pagination.PageNumberPagination):
-
-    def paginate_queryset(self, queryset, request, view=None):
-        """
-        Paginate a queryset if required, either returning a
-        page object, or `None` if pagination is not configured for this view.
-        """
-        from django.core.paginator import InvalidPage, \
-            Paginator as DjangoPaginator
-
-        self._handle_backwards_compat(view)
-
-        page_size = self.get_page_size(request)
-        if not page_size:
-            return None
-
-        paginator = DjangoPaginator(queryset, page_size)
-        page_number = request.query_params.get(self.page_query_param, 1)
-        if page_number in self.last_page_strings:
-            page_number = paginator.num_pages
-
-        try:
-            self.page = paginator.page(page_number)
-            # we need to execute the query to resolve the page of objects
-            self.page.object_list = self.page.object_list.execute()
-        except InvalidPage as exc:
-            msg = self.invalid_page_message.format(
-                page_number=page_number, message=six.text_type(exc)
-            )
-            raise NotFound(msg)
-
-        if paginator.count > 1 and self.template is not None:
-            # The browsable API should display pagination controls.
-            self.display_page_controls = True
-
-        self.request = request
-        return list(self.page)
-
-
-class DRFESReadOnlySerializer(Serializer):
-
-    class Meta:
-        exclude = ()
-
-    def to_representation(self, instance):
-        """Convert a record to a representation suitable for rendering."""
-
-        obj = instance.to_dict()
-
-        for excl in self.Meta.exclude:
-            try:
-                del obj[excl]
-            except KeyError:
-                # dynamic docs may not have all fields.
-                pass
-
-        return obj
-
-
-class LogDataSerializer(DRFESReadOnlySerializer):
+class LogDataSerializer(ReadOnlyElasticSerializer):
 
     class Meta:
         exclude = ('@version', 'message', 'syslog_ts', 'received_at', 'sort',
@@ -163,7 +99,7 @@ class LogDataSerializer(DRFESReadOnlySerializer):
                    'syslog_pri', 'syslog5424_pri', 'syslog5424_host', 'type')
 
 
-class LogAggSerializer(DRFESReadOnlySerializer):
+class LogAggSerializer(ReadOnlyElasticSerializer):
     """Custom serializer to manipulate the aggregation that comes back from ES.
     """
 
@@ -215,173 +151,15 @@ class LogAggSerializer(DRFESReadOnlySerializer):
                 'data': data
             }
 
-class LogDataFilter(BaseFilterBackend):
-    """A basic query filter for ES query and filter specification.
 
-    Initially, this will support some very limited expressions like:
-
-        field=value (equivalent to a term filter)
-        field__prefix=value
-        field__regex=value
-        field__gt=value
-        field__lt=value
-        field__gte=value
-        field__lte=value
-
-    These will all be treated as query enhancements (rather than filters) from
-    an ES perspective.  If we run into the need for supporting filters, we can
-    augment/change the specification to add another term such as:
-
-        f__field=value or q__field=value
-
-    However, that may expose too much detail about the backend, so we should
-    think carefully about it.
-
-    We also do not currently support conditionals other than AND.  If we get
-    to that point, we probably need ot use a body to express the query.
-    """
-
-    def _update_queryset(self, param, value, view, queryset, op='match'):
-        """Builds a query, prefering the raw version of the field if available.
-
-        :param param: the field name in ES
-        :param value: the field value
-        :param view: the calling view
-        :param queryset: the base queryset
-        :param op: the query operation
-        :rtype Search
-        :return: the update Search object
-        """
-
-        model_class = view.Meta.model
-        param = param if not model_class.field_has_raw(param) \
-            else param + '.raw'
-        return queryset.query(op,  ** {param: value})
-
-    def _coerce_value(self, value):
-        """If its a convertible type, do it, otherwise return original."""
-        import ast
-
-        try:
-            return ast.literal_eval(value)
-        except (ValueError, SyntaxError):
-            # treat these as strings
-            return value
-
-    def filter_queryset(self, request, queryset, view):
-        """Enhance the queryset with additional specificity, then return it.
-
-        :param request: the HTTP request
-        :param queryset: the original queryset
-        :param view: the view
-        :rtype: Search
-        :return: the updated queryset
-        """
-
-        import ast
-        from django.db.models.constants import LOOKUP_SEP
-
-        reserved_params = [view.pagination_class.page_query_param,
-                           view.pagination_class.page_size_query_param]
-
-        # some conditions for future consideration:
-        #   * ranges (is @timestamp gt and @timestamp lt worse than range?)
-        #   * conditionals other than AND (later)
-
-        for param in request.query_params:
-            # don't want these in our queryset
-            if param in reserved_params:
-                continue
-
-            value = self._coerce_value(request.query_params.get(param))
-            split_param = param.split(LOOKUP_SEP)
-
-            if len(split_param) == 1:
-                # standard match query
-                queryset = self._update_queryset(param, value, view, queryset)
-            else:
-                # first term is the field, second term is the query operation
-                param = split_param[0]
-                op = split_param[1]
-                queryset = self._update_queryset(param, value, view,
-                                                 queryset, op)
-
-        logger.info('queryset=%s', queryset.to_dict())
-        return queryset
-
-
-class LogDataView(ListAPIView):
+class LogDataView(ElasticListAPIView):
     """A view that handles requests for Logstash data."""
 
     permission_classes = (AllowAny,)
     serializer_class = LogDataSerializer
-    pagination_class = LogDataPagination
-    filter_backends = (LogDataFilter,)
 
     class Meta:
         model = LogData
-
-    # class ParamValidator(serializers.Serializer):
-    #     """An inner class that validates and deserializes the request context.
-    #     """
-    #     start = ArrowCompatibleField(
-    #         required=False,
-    #         allow_blank=True)
-    #     end = ArrowCompatibleField(
-    #         required=False,
-    #         allow_blank=True)
-    #     interval = IntervalField(
-    #         required=False,
-    #         allow_blank=True)
-    #     hosts = CSVField(
-    #         required=False,
-    #         allow_blank=True)
-
-    def get_queryset(self):
-        logger.info("in get_queryset")
-        # return LogData.ranged_log_search(**self.validated_params)
-        return LogData.search()
-
-    def get_object(self):
-
-        queryset = self.get_queryset()
-
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-        lookup = self.kwargs.get(lookup_url_kwarg, None)
-
-        if lookup is not None:
-            filter_kwargs = {self.lookup_field: lookup}
-
-        queryset_result = queryset.filter(**filter_kwargs)[:1].execute()
-
-        if queryset_result.count > 1:
-            logger.warning("multiple objects with %s = %s, only returning "
-                           "first one.", lookup_url_kwarg, lookup)
-
-        if queryset_result.count > 0:
-            return queryset_result.objects[0].get_object()
-        else:
-            raise Http404
-
-    # def _get_data(self, data):
-    #     return LogData.ranged_log_search(**data)
-
-    def get(self, request, *args, **kwargs):
-        """Return a response to a GET request."""
-        # params = self.ParamValidator(data=request.query_params)
-        # params.is_valid(raise_exception=True)
-        # self.validated_params = params.to_internal_value(request.query_params)
-
-        queryset = self.filter_queryset(self.get_queryset())
-
-        page = self.paginate_queryset(queryset)
-
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
 
 
 class LogAggView(APIView):
