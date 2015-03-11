@@ -162,13 +162,18 @@ def get_cloud():
 
 
 def get_client(service, os_username, os_password, os_tenant_name, os_auth_url):
+    """Return a client object and authorization token.
+
+    :rtype: dict
+
+    """
 
     # Error message template.
     NO_AUTH = "%s client failed to authorize. Check credentials in" \
               " goldstone settings."
 
-    if service == 'keystone':
-        try:
+    try:
+        if service == 'keystone':
             client = ksclient.Client(username=os_username,
                                      password=os_password,
                                      tenant_name=os_tenant_name,
@@ -179,11 +184,8 @@ def get_client(service, os_username, os_password, os_tenant_name, os_auth_url):
                                          "credentials in goldstone settings.")
             else:
                 return {'client': client, 'hex_token': client.auth_token}
-        except KeystoneUnauthorized:
-            raise GoldstoneAuthError(NO_AUTH % "Keystone")
 
-    elif service == 'nova':
-        try:
+        elif service == 'nova':
             client = nvclient.Client(os_username,
                                      os_password,
                                      os_tenant_name,
@@ -191,11 +193,8 @@ def get_client(service, os_username, os_password, os_tenant_name, os_auth_url):
                                      service_type='compute')
             client.authenticate()
             return {'client': client, 'hex_token': client.client.auth_token}
-        except NovaUnauthorized:
-            raise GoldstoneAuthError(NO_AUTH % "Nova")
 
-    elif service == 'cinder':
-        try:
+        elif service == 'cinder':
             cinderclient.v2.services.Service.__repr__ = \
                 _patched_cinder_service_repr
             client = ciclient.Client(os_username,
@@ -209,21 +208,15 @@ def get_client(service, os_username, os_password, os_tenant_name, os_auth_url):
                                                    os_tenant_name,
                                                    os_auth_url)
             return {'client': client, 'region': region}
-        except CinderUnauthorized:
-            raise GoldstoneAuthError(NO_AUTH % "Cinder")
 
-    elif service == 'neutron':
-        try:
+        elif service == 'neutron':
             client = neclient.Client(username=os_username,
                                      password=os_password,
                                      tenant_id=os_tenant_name,
                                      auth_url=os_auth_url)
             return {'client': client}
-        except NeutronUnauthorized:
-            raise GoldstoneAuthError(NO_AUTH % "Neutron")
 
-    elif service == 'glance':
-        try:
+        elif service == 'glance':
             keystoneclient = get_client("keystone",
                                         os_username,
                                         os_password,
@@ -237,11 +230,13 @@ def get_client(service, os_username, os_password, os_tenant_name, os_auth_url):
                                      token=keystoneclient.auth_token)
             return {'client': client, 'region': region}
 
-        except KeystoneUnauthorized:
-            raise GoldstoneAuthError(NO_AUTH % "Glance")
+        else:
+            raise GoldstoneAuthError("Unknown service")
 
-    else:
-        raise GoldstoneAuthError("Unknown service")
+    except (KeystoneUnauthorized, NovaUnauthorized, CinderUnauthorized,
+            NeutronUnauthorized):
+        raise GoldstoneAuthError(NO_AUTH % service.capitalize())
+
 
 # These must be defined here, because they're based on get_client.
 # pylint: disable=C0103
