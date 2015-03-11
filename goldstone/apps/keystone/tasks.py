@@ -18,6 +18,9 @@ from goldstone.celery import app as celery_app
 import logging
 from .models import EndpointsData, RolesData, ServicesData, \
     TenantsData, UsersData
+
+# This must be at the module level, for a unit-test mock.
+from goldstone.apps.api_perf.utils import time_api_call
 from goldstone.utils import get_cloud
 
 
@@ -29,7 +32,6 @@ def time_token_post_api():
     This will make things easier to model.
 
     """
-    from goldstone.apps.api_perf.utils import time_api_call
     import json
 
     # Get the system's sole OpenStack cloud record.
