@@ -248,26 +248,49 @@ class UtilsTests(SimpleTestCase):
     @patch('keystoneclient.v2_0.client.Client')
     def test_get_keystone_client(self, client):
 
+        # Test calling with one bad argument.
         client.side_effect = ClientException
         self.assertRaises(ClientException,
-                          get_keystone_client, user='abc')
-        self.assertRaises(ClientException,
-                          get_keystone_client, passwd='abc')
-        self.assertRaises(ClientException,
-                          get_keystone_client, tenant='no-tenant')
+                          get_keystone_client,
+                          os_username='abc',
+                          os_password=settings.OS_PASSWORD,
+                          os_tenant_name=settings.OS_TENANT_NAME,
+                          os_auth_url=settings.OS_AUTH_URL)
         self.assertRaises(ClientException,
                           get_keystone_client,
-                          auth_url='http://www.solinea.com')
+                          os_username=settings.OS_USERNAME,
+                          os_password='abc',
+                          os_tenant_name=settings.OS_TENANT_NAME,
+                          os_auth_url=settings.OS_AUTH_URL)
+        self.assertRaises(ClientException,
+                          get_keystone_client,
+                          os_username=settings.OS_USERNAME,
+                          os_password=settings.OS_PASSWORD,
+                          os_tenant_name='no-tenant',
+                          os_auth_url=settings.OS_AUTH_URL)
+        self.assertRaises(ClientException,
+                          get_keystone_client,
+                          os_username=settings.OS_USERNAME,
+                          os_password=settings.OS_PASSWORD,
+                          os_tenant_name=settings.OS_TENANT_NAME,
+                          os_auth_url='http://www.solinea.com')
 
         client.side_effect = None
         client.auth_token = None
-        type(client.return_value).auth_token = \
-            PropertyMock(return_value=None)
-        self.assertRaises(GoldstoneAuthError, get_keystone_client)
+        type(client.return_value).auth_token = PropertyMock(return_value=None)
+        self.assertRaises(GoldstoneAuthError,
+                          get_keystone_client,
+                          os_username=settings.OS_USERNAME,
+                          os_password=settings.OS_PASSWORD,
+                          os_tenant_name=settings.OS_TENANT_NAME,
+                          os_auth_url=settings.OS_AUTH_URL)
 
         type(client.return_value).auth_token = \
             PropertyMock(return_value='mocked_token')
-        reply = get_keystone_client()
+        reply = get_keystone_client(settings.OS_USERNAME,
+                                    settings.OS_PASSWORD,
+                                    settings.OS_TENANT_NAME,
+                                    settings.OS_AUTH_URL)
         self.assertIn('client', reply)
         self.assertIn('hex_token', reply)
 

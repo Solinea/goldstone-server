@@ -95,14 +95,24 @@ class UtilsTests(SimpleTestCase):
 
     @patch('goldstone.utils.get_keystone_client')
     def test_os_api_request_base_exc(self, m_get):
+        """Stack_api_request_base correctly propagates exceptions."""
 
-        m_get.side_effect = GoldstoneAuthError
-        self.assertRaises(GoldstoneAuthError, stack_api_request_base,
-                          "", "", "")
+        # For each pair of get_keystone_client raised exception, and the
+        # exception that it should propagate...
+        for (generated, propagated) in \
+            [(GoldstoneAuthError, GoldstoneAuthError),
+             (Exception, LookupError)]:
+            # Mock the generated exception.
+            m_get.side_effect = generated
 
-        m_get.side_effect = Exception
-        self.assertRaises(LookupError, stack_api_request_base,
-                          "", "", "")
+            # Check that the propagated exception matches.
+            self.assertRaises(propagated, stack_api_request_base,
+                              '',
+                              '',
+                              '',
+                              '',
+                              '',
+                              '')
 
 
 class ApiPerfTests(SimpleTestCase):

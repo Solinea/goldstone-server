@@ -28,6 +28,18 @@ class TaskTests(SimpleTestCase):
 
     @patch('goldstone.apps.keystone.tasks.time_api_call')
     def test_time_token_post_api(self, m_time_api_call):
+        from django.conf import settings
+        from goldstone.tenants.models import Tenant, Cloud
+
+        # Set up the Cloud table for get_cloud, which is called by the celery
+        # task.
+        Tenant.objects.all().delete()
+        tenant = Tenant.objects.create(name="Good", owner="Bar")
+        Cloud.objects.create(openstack_tenant_name=settings.OS_TENANT_NAME,
+                             openstack_username=settings.OS_USERNAME,
+                             openstack_password=settings.OS_PASSWORD,
+                             openstack_auth_url=settings.OS_AUTH_URL,
+                             tenant=tenant)
 
         m_time_api_call.return_value = True
         result = time_token_post_api()
