@@ -12,15 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from django.test import TestCase, SimpleTestCase
+import arrow
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.test import TestCase, SimpleTestCase
 from elasticsearch import Elasticsearch
 import gzip
 import os
 import json
-import logging
-import arrow
+import sys
 
 # This is needed here for mock to work.
 from elasticsearch.client import IndicesClient
@@ -33,9 +33,81 @@ from goldstone.models import ESData, es_conn, daily_index, es_indices, \
     TopologyData
 from goldstone.apps.core.models import Node
 from goldstone.apps.core.tasks import create_daily_index
+from goldstone.tenants.models import Tenant
+from goldstone.test_utils import Setup
 from goldstone.utils import get_keystone_client, GoldstoneAuthError
 
-logger = logging.getLogger(__name__)
+sys.path.append("..")      # For importing tenant_init.
+from fabfile import tenant_init, DEFAULT_TENANT, DEFAULT_TENANT_OWNER, \
+    DEFAULT_ADMIN, DEFAULT_ADMIN_PASSWORD
+
+
+class TenantInit(Setup):
+    """Test the fabfile's tenant_init task.
+
+    We call tenant_init() with the settings file being used by the unittest
+    testrunner.
+
+    """
+
+    settings = os.environ["DJANGO_SETTINGS_MODULE"].split('.')[2]
+
+    def _evaluate(self, tenant, tenant_owner, admin):
+        """Evaluate the test results."""
+
+        # Test that the tenant exists.
+        self.assertEqual(Tenant.objects.count(), 1)
+        tenant = Tenant.objects.get(name=tenant)
+        self.assertEqual(tenant.owner, tenant_owner)
+        self.assertEqual(tenant.owner_contact, '')
+
+        # Test that the user exists.
+        self.assertEqual(get_user_model().objects.count(), 1)
+        user = get_user_model().objects.get(username=admin)
+        self.assertEqual(user.tenant, tenant)
+        self.assertTrue(user.tenant_admin)
+        self.assertTrue(user.default_tenant_admin)
+
+    def test_happy(self):
+        "Create tenant and tenant_admin."""
+
+        tenant_init(settings=self.settings)
+        self._evaluate(DEFAULT_TENANT, DEFAULT_TENANT_OWNER, DEFAULT_ADMIN)
+
+    def test_tenant_exists(self):
+        "Tenant already exists."""
+
+        Tenant.objects.create(name=DEFAULT_TENANT, owner=DEFAULT_TENANT_OWNER)
+        self.test_happy()
+
+    def test_admin_exists(self):
+        """Admin account already exists, but isn't a tenant_admin or
+        default_tenant_admin."""
+
+        get_user_model().objects.create_user(username=DEFAULT_ADMIN,
+                                             password=DEFAULT_ADMIN_PASSWORD)
+        self.test_happy()
+
+    def test_arguments(self):
+        "Caller supplies arguments."""
+
+        tenant_init(tenant="Traci",
+                    tenant_owner="Jordan",
+                    admin="john",
+                    password="Michelle",
+                    settings=self.settings)
+
+        self._evaluate("Traci", "Jordan", "john")
+
+    def test_arguments_exists(self):
+        """Caller supplies arguments, tenant and admin already exist, use
+        positional parameter passing, and don't supply an admin password."""
+
+        Tenant.objects.create(name="bob", owner="bahb")
+        get_user_model().objects.create_user(username="bahhb", password='b')
+
+        tenant_init("bob", "bahb", "bahhb", settings=self.settings)
+        self._evaluate("bob", "bahb", "bahhb")
 
 
 class PrimeData(TestCase):

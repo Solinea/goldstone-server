@@ -140,6 +140,10 @@ commands::
 
     $ fab syncmigrate
 
+Create the default user and tenant::
+
+    $ fab tenant_init
+
 Set up the elasticsearch templates for test running (repeat with other settings as required)::
 
     $ fab load
