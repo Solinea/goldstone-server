@@ -114,6 +114,7 @@ To finish initializing the Goldstone installation:
 
   .. code:: bash
 
+    $ cd /opt/goldstone
     $ fab goldstone_init
 
 

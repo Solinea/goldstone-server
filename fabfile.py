@@ -160,8 +160,9 @@ def _choose_runserver_settings(verbose):
     from importlib import import_module
 
     # Bash command to locate the candidate settings files, from results piped
-    # in. The results will be in alphabetical order by default.
-    CANDIDATES = 'egrep "dev_|test_" | egrep -v "pyc|~"'
+    # in. Production is included because this command is used by the external
+    # installation script. The results will be in alphabetical order.
+    CANDIDATES = 'egrep "production|dev_|test_" | egrep -v "pyc|~"'
 
     # Make a list of all the candidate settings file.
     candidates = local("ls goldstone/settings | %s" % CANDIDATES, capture=True)
