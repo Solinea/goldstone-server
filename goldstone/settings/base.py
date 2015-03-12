@@ -22,6 +22,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # limitations under the License.
 from datetime import timedelta
 import os
+from socket import getfqdn
 
 from celery.schedules import crontab
 from kombu import Exchange, Queue
@@ -260,11 +261,15 @@ OS_AUTH_URL_MAX_LENGTH = 80
 TENANT_NAME_MAX_LENGTH = 80
 TENANT_OWNER_MAX_LENGTH = 80
 
-# Settings for the Djoser package. We login and activate after registration.
-DJOSER = {'DOMAIN': 'YOUR_EMAIL_DOMAIN_NAME.com',
-          'SITE_NAME': 'YOUR_EMAIL_SITE_NAME',
+# Settings for the Djoser package, which is used for login and
+# password-resetting. We automatically login and activate after registration.
+#
+# Please ensure the DOMAIN value is correct.
+# Please set the value for SITE_NAME.
+DJOSER = {'DOMAIN': getfqdn(),
+          'SITE_NAME': 'NAME_OF_YOUR_SITE',
           'PASSWORD_RESET_CONFIRM_URL':
-          '#/password/reset/confirm/{uid}/{token}',
+          'accounts/password/reset/confirm/{uid}/{token}',
           'ACTIVATION_URL': '#/activate/{uid}/{token}',
           'LOGIN_AFTER_REGISTRATION': True,
           }
