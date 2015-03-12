@@ -1,4 +1,4 @@
-"""Tenant and tenant setting models."""
+"""Tenant and Cloud models."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -43,20 +43,14 @@ class Tenant(models.Model):
 
 
 class Cloud(models.Model):
-    """An OpenStack cloud, a.k.a. OpenStack tenant, which is contained within a
+    """Information about clouds, e.g., OpenStack, which are contained within a
     Goldstone tenant."""
 
-    openstack_tenant_name = \
-        models.CharField(max_length=settings.OS_NAME_MAX_LENGTH)
-
-    openstack_username = \
-        models.CharField(max_length=settings.OS_USERNAME_MAX_LENGTH)
-
-    openstack_password = \
-        models.CharField(max_length=settings.OS_PASSWORD_MAX_LENGTH)
-
-    openstack_auth_url = \
-        models.CharField(max_length=settings.OS_AUTH_URL_MAX_LENGTH)
+    # This is the cloud's name, not the name of the owning Goldstone tenant!
+    tenant_name = models.CharField(max_length=settings.OS_NAME_MAX_LENGTH)
+    username = models.CharField(max_length=settings.OS_USERNAME_MAX_LENGTH)
+    password = models.CharField(max_length=settings.OS_PASSWORD_MAX_LENGTH)
+    auth_url = models.CharField(max_length=settings.OS_AUTH_URL_MAX_LENGTH)
 
     tenant = models.ForeignKey(Tenant)
 
@@ -64,12 +58,9 @@ class Cloud(models.Model):
     uuid = UUIDField(auto=True)
 
     class Meta:             # pylint: disable=C1001,C0111,W0232
-        unique_together = ("openstack_tenant_name",
-                           "openstack_username",
-                           "tenant")
+        unique_together = ("tenant_name", "username", "tenant")
 
     def __unicode__(self):
         """Return a useful string."""
 
-        return u'%s, contained in %s' % (self.openstack_tenant_name,
-                                         self.tenant.name)
+        return u'%s, contained in %s' % (self.tenant_name, self.tenant.name)

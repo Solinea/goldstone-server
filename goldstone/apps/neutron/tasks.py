@@ -35,10 +35,10 @@ def time_agent_list_api():
 
     precursor = stack_api_request_base("network",
                                        "v2.0/agents",
-                                       cloud.openstack_username,
-                                       cloud.openstack_password,
-                                       cloud.openstack_tenant_name,
-                                       cloud.openstack_auth_url)
+                                       cloud.username,
+                                       cloud.password,
+                                       cloud.tenant_name,
+                                       cloud.auth_url)
 
     return time_api_call('neutron',
                          precursor['url'],

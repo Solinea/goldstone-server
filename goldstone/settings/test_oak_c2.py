@@ -22,7 +22,7 @@ from .test import *                  # pylint: disable=W0614,W0401
 #
 # Configure OpenStack access information.
 #
-OS_USERNAME = 'admin'
-OS_TENANT_NAME = 'admin'
-OS_PASSWORD = '2caa6a4d9c9d49ce'
-OS_AUTH_URL = 'http://10.10.20.10:5000/v2.0/'
+CLOUD_USERNAME = 'admin'
+CLOUD_TENANT_NAME = 'admin'
+CLOUD_PASSWORD = '2caa6a4d9c9d49ce'
+CLOUD_AUTH_URL = 'http://10.10.20.10:5000/v2.0/'
