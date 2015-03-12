@@ -36,12 +36,12 @@ def time_token_post_api():
 
     # Get the system's sole OpenStack cloud record.
     cloud = get_cloud()
-    os_user = cloud.openstack_username
-    os_password = cloud.openstack_password
-    url = cloud.openstack_auth_url + "/tokens"
+    cloud_user = cloud.username
+    cloud_password = cloud.password
+    url = cloud.auth_url + "/tokens"
 
-    payload = {"auth": {"passwordCredentials": {"username": os_user,
-                                                "password": os_password}}}
+    payload = {"auth": {"passwordCredentials": {"username": cloud_user,
+                                                "password": cloud_password}}}
     headers = {'content-type': 'application/json'}
 
     return time_api_call('keystone',
@@ -74,10 +74,10 @@ def discover_keystone_topology():
     # Get the system's sole OpenStack cloud.
     cloud = get_cloud()
 
-    access = get_keystone_client(cloud.os_username,
-                                 cloud.os_password,
-                                 cloud.os_tenant_name,
-                                 cloud.os_auth_url)
+    access = get_keystone_client(cloud.username,
+                                 cloud.password,
+                                 cloud.tenant_name,
+                                 cloud.auth_url)
 
     client = access['client']
     reg = get_region_for_keystone_client(client)

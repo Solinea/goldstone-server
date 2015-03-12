@@ -34,10 +34,10 @@ class TaskTests(SimpleTestCase):
         # task.
         Tenant.objects.all().delete()
         tenant = Tenant.objects.create(name="Good", owner="Bar")
-        Cloud.objects.create(openstack_tenant_name=settings.OS_TENANT_NAME,
-                             openstack_username=settings.OS_USERNAME,
-                             openstack_password=settings.OS_PASSWORD,
-                             openstack_auth_url=settings.OS_AUTH_URL,
+        Cloud.objects.create(tenant_name=settings.CLOUD_TENANT_NAME,
+                             username=settings.CLOUD_USERNAME,
+                             password=settings.CLOUD_PASSWORD,
+                             auth_url=settings.CLOUD_AUTH_URL,
                              tenant=tenant)
 
         response = Response()

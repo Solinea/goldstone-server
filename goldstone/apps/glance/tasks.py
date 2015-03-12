@@ -44,10 +44,10 @@ def time_image_list_api():
 
     precursor = stack_api_request_base("image",
                                        "/v2/images",
-                                       cloud.openstack_username,
-                                       cloud.openstack_password,
-                                       cloud.openstack_tenant_name,
-                                       cloud.openstack_auth_url)
+                                       cloud.username,
+                                       cloud.password,
+                                       cloud.tenant_name,
+                                       cloud.auth_url)
 
     return time_api_call('glance',
                          precursor['url'],
@@ -76,10 +76,10 @@ def discover_glance_topology():
 
     # Get the system's sole OpenStack cloud.
     cloud = get_cloud()
-    glance_access = get_glance_client(cloud.os_username,
-                                      cloud.os_password,
-                                      cloud.os_tenant_name,
-                                      cloud.os_auth_url)
+    glance_access = get_glance_client(cloud.username,
+                                      cloud.password,
+                                      cloud.tenant_name,
+                                      cloud.auth_url)
 
     _update_glance_image_records(glance_access['client'],
                                  glance_access['region'])

@@ -1,4 +1,4 @@
-"""Unit tests for /tenants/<id>/users and /tenants/<id>/openstack endpoints."""
+"""Unit tests for /tenants/<id>/users and /tenants/<id>/cloud endpoints."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -26,20 +26,16 @@ from .models import Tenant, Cloud
 from .tests_tenants import TENANTS_ID_URL
 
 # HTTP response content.
-CONTENT_MISSING_OS_USERNAME = \
-    '"openstack_username":["This field may not be blank."]'
-CONTENT_MISSING_OS_NAME = \
-    '"openstack_tenant_name":["This field may not be blank."]'
-CONTENT_MISSING_OS_PASSWORD = \
-    '"openstack_password":["This field may not be blank."]'
-CONTENT_MISSING_OS_URL = \
-    '"openstack_auth_url":["This field may not be blank."]'
+CONTENT_MISSING_OS_USERNAME = '"username":["This field may not be blank."]'
+CONTENT_MISSING_OS_NAME = '"tenant_name":["This field may not be blank."]'
+CONTENT_MISSING_OS_PASSWORD = '"password":["This field may not be blank."]'
+CONTENT_MISSING_OS_URL = '"auth_url":["This field may not be blank."]'
 
 # URLs used by this module.
 TENANTS_ID_USERS_URL = TENANTS_ID_URL + "/users"
 TENANTS_ID_USERS_ID_URL = TENANTS_ID_USERS_URL + "/%s"
-TENANTS_ID_OPENSTACK_URL = TENANTS_ID_URL + "/openstack"
-TENANTS_ID_OPENSTACK_ID_URL = TENANTS_ID_OPENSTACK_URL + "/%s"
+TENANTS_ID_CLOUD_URL = TENANTS_ID_URL + "/cloud"
+TENANTS_ID_CLOUD_ID_URL = TENANTS_ID_CLOUD_URL + "/%s"
 
 
 class TenantsIdUsers(Setup):
@@ -812,7 +808,7 @@ class TenantsIdUsersId(Setup):
         self.assertEqual(get_user_model().objects.count(), 2)
 
 
-class TenantsIdOpenstack(Setup):
+class TenantsIdCloud(Setup):
     """Listing the OpenStack clouds of a tenant, and creating a new OpenStack
     cloud in a tenant."""
 
@@ -827,12 +823,12 @@ class TenantsIdOpenstack(Setup):
 
         # Try the GET and POST without an authorization token.
         responses = \
-            [self.client.get(TENANTS_ID_OPENSTACK_URL % tenant.uuid.hex),
-             self.client.post(TENANTS_ID_OPENSTACK_URL % tenant.uuid.hex,
-                              json.dumps({"openstack_tenant_name": 'a',
-                                          "openstack_username": 'b',
-                                          "openstack_password": 'c',
-                                          "openstack_auth_url":
+            [self.client.get(TENANTS_ID_CLOUD_URL % tenant.uuid.hex),
+             self.client.post(TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
+                              json.dumps({"tenant_name": 'a',
+                                          "username": 'b',
+                                          "password": 'c',
+                                          "auth_url":
                                           "http://d.com"}),
                               content_type="application/json")]
 
@@ -844,14 +840,14 @@ class TenantsIdOpenstack(Setup):
         # Try the GET and POST with a bad authorization token.
         responses = [
             self.client.get(
-                TENANTS_ID_OPENSTACK_URL % tenant.uuid.hex,
+                TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
             self.client.post(
-                TENANTS_ID_OPENSTACK_URL % tenant.uuid.hex,
-                json.dumps({"openstack_tenant_name": 'a',
-                            "openstack_username": 'b',
-                            "openstack_password": 'c',
-                            "openstack_auth_url": "http://d.com"}),
+                TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
+                json.dumps({"tenant_name": 'a',
+                            "username": 'b',
+                            "password": 'c',
+                            "auth_url": "http://d.com"}),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)]
 
@@ -879,14 +875,14 @@ class TenantsIdOpenstack(Setup):
         # Try the GET and POST.
         responses = [
             self.client.get(
-                TENANTS_ID_OPENSTACK_URL % tenant.uuid.hex,
+                TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.post(
-                TENANTS_ID_OPENSTACK_URL % tenant.uuid.hex,
-                json.dumps({"openstack_tenant_name": 'a',
-                            "openstack_username": 'b',
-                            "openstack_password": 'c',
-                            "openstack_auth_url": "http://d.com"}),
+                TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
+                json.dumps({"tenant_name": 'a',
+                            "username": 'b',
+                            "password": 'c',
+                            "auth_url": "http://d.com"}),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
 
@@ -911,14 +907,14 @@ class TenantsIdOpenstack(Setup):
         # Try the GET and POST to a tenant that doesn't exist.
         responses = [
             self.client.get(
-                TENANTS_ID_OPENSTACK_URL % tenant.uuid.hex,
+                TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.post(
-                TENANTS_ID_OPENSTACK_URL % tenant.uuid.hex,
-                json.dumps({"openstack_tenant_name": 'a',
-                            "openstack_username": 'b',
-                            "openstack_password": 'c',
-                            "openstack_auth_url": "http://d.com"}),
+                TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
+                json.dumps({"tenant_name": 'a',
+                            "username": 'b',
+                            "password": 'c',
+                            "auth_url": "http://d.com"}),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)]
 
@@ -931,31 +927,31 @@ class TenantsIdOpenstack(Setup):
         """List a tenant's clouds."""
 
         # The clouds in this test.
-        TENANT_OPENSTACK = [{"openstack_tenant_name": 'a',
-                             "openstack_username": 'b',
-                             "openstack_password": 'c',
-                             "openstack_auth_url": "http://d.com"},
-                            {"openstack_tenant_name": "ee",
-                             "openstack_username": "ffffffffuuuuu",
-                             "openstack_password": "gah",
-                             "openstack_auth_url": "http://route66.com"},
-                            {"openstack_tenant_name": "YUNO",
-                             "openstack_username": "YOLO",
-                             "openstack_password": "ZOMG",
-                             "openstack_auth_url": "http://lol.com"},
-                            ]
+        TENANT_CLOUD = [{"tenant_name": 'a',
+                         "username": 'b',
+                         "password": 'c',
+                         "auth_url": "http://d.com"},
+                        {"tenant_name": "ee",
+                         "username": "ffffffffuuuuu",
+                         "password": "gah",
+                         "auth_url": "http://route66.com"},
+                        {"tenant_name": "YUNO",
+                         "username": "YOLO",
+                         "password": "ZOMG",
+                         "auth_url": "http://lol.com"},
+        ]
 
-        OTHER_OPENSTACK = [{"openstack_tenant_name": "lisa",
-                            "openstack_username": "sad lisa lisa",
-                            "openstack_password": "on the road",
-                            "openstack_auth_url": "http://tofindout.com"},
-                           {"openstack_tenant_name": "left",
-                            "openstack_username": "right",
-                            "openstack_password": "center",
-                            "openstack_auth_url": "http://down.com"},
-                           ]
+        OTHER_CLOUD = [{"tenant_name": "lisa",
+                        "username": "sad lisa lisa",
+                        "password": "on the road",
+                        "auth_url": "http://tofindout.com"},
+                       {"tenant_name": "left",
+                        "username": "right",
+                        "password": "center",
+                        "auth_url": "http://down.com"},
+        ]
 
-        EXPECTED_RESULT = TENANT_OPENSTACK
+        EXPECTED_RESULT = TENANT_CLOUD
 
         # Make a tenant
         tenant = Tenant.objects.create(name='tenant',
@@ -963,7 +959,7 @@ class TenantsIdOpenstack(Setup):
                                        owner_contact='206.867.5309')
 
         # Create clouds in this tenant.
-        for entry in TENANT_OPENSTACK:
+        for entry in TENANT_CLOUD:
             Cloud.objects.create(tenant=tenant, **entry)
 
         # Create clouds that don't belong to the tenant.
@@ -971,7 +967,7 @@ class TenantsIdOpenstack(Setup):
                                          owner='John',
                                          owner_contact='206.867.5309')
 
-        for entry in OTHER_OPENSTACK:
+        for entry in OTHER_CLOUD:
             entry["tenant"] = tenant_2
             Cloud.objects.create(**entry)
 
@@ -982,7 +978,7 @@ class TenantsIdOpenstack(Setup):
         # check of the uuid key. It must exist, and its value must be a string
         # that's >= 32 characters.
         response = self.client.get(
-            TENANTS_ID_OPENSTACK_URL % tenant.uuid.hex,
+            TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertEqual(response.status_code, HTTP_200_OK)
@@ -1001,15 +997,15 @@ class TenantsIdOpenstack(Setup):
         """Create an OpenStack cloud in a tenant."""
 
         # The clouds in this test.
-        TENANT_OPENSTACK = [{"openstack_tenant_name": 'a',
-                             "openstack_username": 'b',
-                             "openstack_password": 'c',
-                             "openstack_auth_url": "http://d.com"},
-                            {"openstack_tenant_name": "ee",
-                             "openstack_username": "ffffffffuuuuu",
-                             "openstack_password": "gah",
-                             "openstack_auth_url": "http://route66.com"},
-                            ]
+        TENANT_CLOUD = [{"tenant_name": 'a',
+                         "username": 'b',
+                         "password": 'c',
+                         "auth_url": "http://d.com"},
+                        {"tenant_name": "ee",
+                         "username": "ffffffffuuuuu",
+                         "password": "gah",
+                         "auth_url": "http://route66.com"},
+        ]
 
         # Make a tenant
         tenant = Tenant.objects.create(name='tenant',
@@ -1020,9 +1016,9 @@ class TenantsIdOpenstack(Setup):
         token = create_and_login(tenant=tenant)
 
         # Create OpenStack clouds in this tenant, and check the results.
-        for entry in TENANT_OPENSTACK:
+        for entry in TENANT_CLOUD:
             response = self.client.post(
-                TENANTS_ID_OPENSTACK_URL % tenant.uuid.hex,
+                TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
                 json.dumps(entry),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -1030,7 +1026,7 @@ class TenantsIdOpenstack(Setup):
             check_response_without_uuid(response, HTTP_201_CREATED, entry)
 
 
-class TenantsIdOpenstackId(Setup):
+class TenantsIdCloudId(Setup):
     """Retrieve a particular OpenStack cloud from a tenant, update an OpenStack
     cloud in a tenant, and delete an OpenStack cloud from a tenant."""
 
@@ -1041,21 +1037,20 @@ class TenantsIdOpenstackId(Setup):
         tenant = Tenant.objects.create(name='tenant 1',
                                        owner='John',
                                        owner_contact='206.867.5309')
-        cloud = Cloud.objects.create(openstack_tenant_name="ee",
-                                     openstack_username="ffffffffuuuuu",
-                                     openstack_password="gah",
-                                     openstack_auth_url="http://route66.com",
+        cloud = Cloud.objects.create(tenant_name="ee",
+                                     username="ffffffffuuuuu",
+                                     password="gah",
+                                     auth_url="http://route66.com",
                                      tenant=tenant)
 
         # Try GET, PUT, and DELETE without an authorization token.
-        responses = [self.client.get(TENANTS_ID_OPENSTACK_ID_URL %
+        responses = [self.client.get(TENANTS_ID_CLOUD_ID_URL %
                                      (tenant.uuid.hex, cloud.uuid.hex)),
-                     self.client.put(TENANTS_ID_OPENSTACK_ID_URL %
+                     self.client.put(TENANTS_ID_CLOUD_ID_URL %
                                      (tenant.uuid.hex, cloud.uuid.hex),
-                                     json.dumps({"openstack_username":
-                                                 "fool"}),
+                                     json.dumps({"username": "fool"}),
                                      content_type="application/json"),
-                     self.client.delete(TENANTS_ID_OPENSTACK_ID_URL %
+                     self.client.delete(TENANTS_ID_CLOUD_ID_URL %
                                         (tenant.uuid.hex, cloud.uuid.hex)),
                      ]
 
@@ -1067,17 +1062,17 @@ class TenantsIdOpenstackId(Setup):
         # Try again with a bad authorization token.
         responses = [
             self.client.get(
-                TENANTS_ID_OPENSTACK_ID_URL %
+                TENANTS_ID_CLOUD_ID_URL %
                 (tenant.uuid.hex, cloud.uuid.hex),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
             self.client.put(
-                TENANTS_ID_OPENSTACK_ID_URL %
+                TENANTS_ID_CLOUD_ID_URL %
                 (tenant.uuid.hex, cloud.uuid.hex),
-                json.dumps({"openstack_username": "fool"}),
+                json.dumps({"username": "fool"}),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
             self.client.delete(
-                TENANTS_ID_OPENSTACK_ID_URL %
+                TENANTS_ID_CLOUD_ID_URL %
                 (tenant.uuid.hex, cloud.uuid.hex),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
         ]
@@ -1094,10 +1089,10 @@ class TenantsIdOpenstackId(Setup):
         tenant = Tenant.objects.create(name='tenant 1',
                                        owner='John',
                                        owner_contact='206.867.5309')
-        cloud = Cloud.objects.create(openstack_tenant_name="ee",
-                                     openstack_username="ffffffffuuuuu",
-                                     openstack_password="gah",
-                                     openstack_auth_url="http://route66.com",
+        cloud = Cloud.objects.create(tenant_name="ee",
+                                     username="ffffffffuuuuu",
+                                     password="gah",
+                                     auth_url="http://route66.com",
                                      tenant=tenant)
 
         # Create a normal user who's a member of the tenant, but *not* a
@@ -1110,17 +1105,17 @@ class TenantsIdOpenstackId(Setup):
         # Try GET, PUT, and DELETE.
         responses = [
             self.client.get(
-                TENANTS_ID_OPENSTACK_ID_URL %
+                TENANTS_ID_CLOUD_ID_URL %
                 (tenant.uuid.hex, cloud.uuid.hex),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.put(
-                TENANTS_ID_OPENSTACK_ID_URL %
+                TENANTS_ID_CLOUD_ID_URL %
                 (tenant.uuid.hex, cloud.uuid.hex),
-                json.dumps({"openstack_username": "fool"}),
+                json.dumps({"username": "fool"}),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.delete(
-                TENANTS_ID_OPENSTACK_ID_URL %
+                TENANTS_ID_CLOUD_ID_URL %
                 (tenant.uuid.hex, cloud.uuid.hex),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
         ]
@@ -1141,10 +1136,10 @@ class TenantsIdOpenstackId(Setup):
         tenant = Tenant.objects.create(name='tenant 1',
                                        owner='John',
                                        owner_contact='206.867.5309')
-        cloud = Cloud.objects.create(openstack_tenant_name="ee",
-                                     openstack_username="ffffffffuuuuu",
-                                     openstack_password="gah",
-                                     openstack_auth_url="http://route66.com",
+        cloud = Cloud.objects.create(tenant_name="ee",
+                                     username="ffffffffuuuuu",
+                                     password="gah",
+                                     auth_url="http://route66.com",
                                      tenant=tenant)
 
         # Create a tenant_admin of the tenant.
@@ -1153,15 +1148,15 @@ class TenantsIdOpenstackId(Setup):
         # Try GET, PUT, and DELETE to a nonexistent tenant.
         responses = [
             self.client.get(
-                TENANTS_ID_OPENSTACK_ID_URL % (BAD_UUID, cloud.uuid.hex),
+                TENANTS_ID_CLOUD_ID_URL % (BAD_UUID, cloud.uuid.hex),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.put(
-                TENANTS_ID_OPENSTACK_ID_URL % (BAD_UUID, cloud.uuid.hex),
-                json.dumps({"openstack_password": "fool"}),
+                TENANTS_ID_CLOUD_ID_URL % (BAD_UUID, cloud.uuid.hex),
+                json.dumps({"password": "fool"}),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.delete(
-                TENANTS_ID_OPENSTACK_ID_URL % (BAD_UUID, cloud.uuid.hex),
+                TENANTS_ID_CLOUD_ID_URL % (BAD_UUID, cloud.uuid.hex),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
         ]
 
@@ -1183,7 +1178,7 @@ class TenantsIdOpenstackId(Setup):
 
         # Try GETing a nonexisten cloud from this tenant.
         response = self.client.get(
-            TENANTS_ID_OPENSTACK_ID_URL %
+            TENANTS_ID_CLOUD_ID_URL %
             (tenant.uuid.hex, BAD_UUID),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
@@ -1195,15 +1190,15 @@ class TenantsIdOpenstackId(Setup):
         """Get a specific OpenStack cloud from a tenant."""
 
         # The clouds in this test.
-        TENANT_OPENSTACK = [{"openstack_tenant_name": 'a',
-                             "openstack_username": 'b',
-                             "openstack_password": 'c',
-                             "openstack_auth_url": "http://d.com"},
-                            {"openstack_tenant_name": "ee",
-                             "openstack_username": "ffffffffuuuuu",
-                             "openstack_password": "gah",
-                             "openstack_auth_url": "http://route66.com"},
-                            ]
+        TENANT_CLOUD = [{"tenant_name": 'a',
+                         "username": 'b',
+                         "password": 'c',
+                         "auth_url": "http://d.com"},
+                        {"tenant_name": "ee",
+                         "username": "ffffffffuuuuu",
+                         "password": "gah",
+                         "auth_url": "http://route66.com"},
+        ]
 
         # Make a tenant.
         tenant = Tenant.objects.create(name='tenant 1',
@@ -1214,13 +1209,13 @@ class TenantsIdOpenstackId(Setup):
         token = create_and_login(tenant=tenant)
 
         # For every test cloud...
-        for entry in TENANT_OPENSTACK:
+        for entry in TENANT_CLOUD:
             # Make it.
             cloud = Cloud.objects.create(tenant=tenant, **entry)
 
             # Try GETting it.
             response = self.client.get(
-                TENANTS_ID_OPENSTACK_ID_URL %
+                TENANTS_ID_CLOUD_ID_URL %
                 (tenant.uuid.hex, cloud.uuid.hex),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
@@ -1239,8 +1234,8 @@ class TenantsIdOpenstackId(Setup):
 
         # Try PUTing to a nonexistent OpenStack cloud in this tenant.
         response = self.client.put(
-            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, BAD_UUID),
-            json.dumps({"openstack_tenant_name": "fool"}),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, BAD_UUID),
+            json.dumps({"tenant_name": "fool"}),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
@@ -1253,23 +1248,23 @@ class TenantsIdOpenstackId(Setup):
         or a field that's not allowed to be changed by the tenant_admin."""
 
         # The cloud in this test.
-        TENANT_OPENSTACK = {"openstack_tenant_name": 'a',
-                            "openstack_username": 'b',
-                            "openstack_password": 'c',
-                            "openstack_auth_url": "http://d.com"}
+        TENANT_CLOUD = {"tenant_name": 'a',
+                        "username": 'b',
+                        "password": 'c',
+                        "auth_url": "http://d.com"}
 
         # Make a tenant, put an OpenStack cloud in it.
         tenant = Tenant.objects.create(name='tenant 1',
                                        owner='John',
                                        owner_contact='206.867.5309')
-        cloud = Cloud.objects.create(tenant=tenant, **TENANT_OPENSTACK)
+        cloud = Cloud.objects.create(tenant=tenant, **TENANT_CLOUD)
 
         # Create a tenant_admin of the tenant.
         token = create_and_login(tenant=tenant)
 
         # Try PUTing to the cloud with no fields.
         response = self.client.put(
-            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         for content in [CONTENT_MISSING_OS_USERNAME, CONTENT_MISSING_OS_NAME,
@@ -1281,61 +1276,61 @@ class TenantsIdOpenstackId(Setup):
         # Try PUTing to the cloud with no change, and with a change to an
         # unrecognized field.
         response = self.client.put(
-            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
-            json.dumps(TENANT_OPENSTACK),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            json.dumps(TENANT_CLOUD),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        check_response_without_uuid(response, HTTP_200_OK, TENANT_OPENSTACK)
+        check_response_without_uuid(response, HTTP_200_OK, TENANT_CLOUD)
 
-        bad_field = TENANT_OPENSTACK.copy()
+        bad_field = TENANT_CLOUD.copy()
         bad_field["forkintheroad"] = "Traci"
 
         response = self.client.put(
-            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
             json.dumps(bad_field),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        check_response_without_uuid(response, HTTP_200_OK, TENANT_OPENSTACK)
+        check_response_without_uuid(response, HTTP_200_OK, TENANT_CLOUD)
 
         # Try PUTing to a cloud on a field that's not allowed to be changed.
         # The response should be the same as the "unrecognized field" case.
-        bad_field = TENANT_OPENSTACK.copy()
+        bad_field = TENANT_CLOUD.copy()
         bad_field["uuid"] = BAD_UUID
 
         response = self.client.put(
-            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
             json.dumps(bad_field),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        check_response_without_uuid(response, HTTP_200_OK, TENANT_OPENSTACK)
+        check_response_without_uuid(response, HTTP_200_OK, TENANT_CLOUD)
 
     def test_put(self):
         """Update an Openstack cloud in a tenant."""
 
         # The cloud in this test.
-        TENANT_OPENSTACK = {"openstack_tenant_name": 'a',
-                            "openstack_username": 'b',
-                            "openstack_password": 'c',
-                            "openstack_auth_url": "http://d.com"}
+        TENANT_CLOUD = {"tenant_name": 'a',
+                        "username": 'b',
+                        "password": 'c',
+                        "auth_url": "http://d.com"}
 
-        EXPECTED_RESPONSE = TENANT_OPENSTACK.copy()
-        EXPECTED_RESPONSE["openstack_password"] = "fffffffffuuuuuuu"
+        EXPECTED_RESPONSE = TENANT_CLOUD.copy()
+        EXPECTED_RESPONSE["password"] = "fffffffffuuuuuuu"
 
         # Make a tenant, put an OpenStack cloud in it.
         tenant = Tenant.objects.create(name='tenant 1',
                                        owner='John',
                                        owner_contact='206.867.5309')
-        cloud = Cloud.objects.create(tenant=tenant, **TENANT_OPENSTACK)
+        cloud = Cloud.objects.create(tenant=tenant, **TENANT_CLOUD)
 
         # Create a tenant_admin of the tenant.
         token = create_and_login(tenant=tenant)
 
         # Try PUTing to the cloud.
         response = self.client.put(
-            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
             json.dumps(EXPECTED_RESPONSE),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -1344,22 +1339,22 @@ class TenantsIdOpenstackId(Setup):
 
         # Double-check that the Cloud row was updated.
         self.assertEqual(Cloud.objects.count(), 1)
-        self.assertEqual(Cloud.objects.all()[0].openstack_password,
-                         EXPECTED_RESPONSE["openstack_password"])
+        self.assertEqual(Cloud.objects.all()[0].password,
+                         EXPECTED_RESPONSE["password"])
 
     def test_delete_not_member(self):
         """Try deleting a cloud of another tenant."""
 
         # The clouds in this test.
-        TENANT_OPENSTACK = [{"openstack_tenant_name": 'a',
-                             "openstack_username": 'b',
-                             "openstack_password": 'c',
-                             "openstack_auth_url": "http://d.com"},
-                            {"openstack_tenant_name": "ee",
-                             "openstack_username": "ffffffffuuuuu",
-                             "openstack_password": "gah",
-                             "openstack_auth_url": "http://route66.com"},
-                            ]
+        TENANT_CLOUD = [{"tenant_name": 'a',
+                         "username": 'b',
+                         "password": 'c',
+                         "auth_url": "http://d.com"},
+                        {"tenant_name": "ee",
+                         "username": "ffffffffuuuuu",
+                         "password": "gah",
+                         "auth_url": "http://route66.com"},
+                        ]
 
         # Make two tenant+cloud pairs
         tenant = Tenant.objects.create(name='tenant',
@@ -1368,15 +1363,15 @@ class TenantsIdOpenstackId(Setup):
         tenant_2 = Tenant.objects.create(name='tenant_2',
                                          owner='John',
                                          owner_contact='206.867.5309')
-        Cloud.objects.create(tenant=tenant, **TENANT_OPENSTACK[0])
-        cloud_2 = Cloud.objects.create(tenant=tenant_2, **TENANT_OPENSTACK[1])
+        Cloud.objects.create(tenant=tenant, **TENANT_CLOUD[0])
+        cloud_2 = Cloud.objects.create(tenant=tenant_2, **TENANT_CLOUD[1])
 
         # Create a tenant_admin of the first tenant.
         token = create_and_login(tenant=tenant)
 
         # Try DELETE on the second (other) tenant's cloud.
         response = self.client.delete(
-            TENANTS_ID_OPENSTACK_ID_URL %
+            TENANTS_ID_CLOUD_ID_URL %
             (tenant_2.uuid.hex, cloud_2.uuid.hex),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
@@ -1391,40 +1386,40 @@ class TenantsIdOpenstackId(Setup):
         """Delete an OpenStack cloud from a tenant."""
 
         # The clouds in this test.
-        TENANT_OPENSTACK = [{"openstack_tenant_name": 'a',
-                             "openstack_username": 'b',
-                             "openstack_password": 'c',
-                             "openstack_auth_url": "http://d.com"},
-                            {"openstack_tenant_name": "ee",
-                             "openstack_username": "ffffffffuuuuu",
-                             "openstack_password": "gah",
-                             "openstack_auth_url": "http://route66.com"},
-                            ]
+        TENANT_CLOUD = [{"tenant_name": 'a',
+                         "username": 'b',
+                         "password": 'c',
+                         "auth_url": "http://d.com"},
+                        {"tenant_name": "ee",
+                         "username": "ffffffffuuuuu",
+                         "password": "gah",
+                         "auth_url": "http://route66.com"},
+                        ]
 
         # Make a tenant with two clouds.
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
                                        owner_contact='206.867.5309')
-        cloud = Cloud.objects.create(tenant=tenant, **TENANT_OPENSTACK[0])
-        cloud_2 = Cloud.objects.create(tenant=tenant, **TENANT_OPENSTACK[1])
+        cloud = Cloud.objects.create(tenant=tenant, **TENANT_CLOUD[0])
+        cloud_2 = Cloud.objects.create(tenant=tenant, **TENANT_CLOUD[1])
 
         # Create a tenant_admin.
         token = create_and_login(tenant=tenant)
 
         # DELETE one cloud, check, DELETE the other cloud, check.
         response = self.client.delete(
-            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, cloud_2.uuid.hex),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, cloud_2.uuid.hex),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response, '', status_code=HTTP_204_NO_CONTENT)
 
         # Ensure we have the right number of Clouds.
         self.assertEqual(Cloud.objects.count(), 1)
-        self.assertEqual(Cloud.objects.all()[0].openstack_tenant_name,
-                         TENANT_OPENSTACK[0]["openstack_tenant_name"])
+        self.assertEqual(Cloud.objects.all()[0].tenant_name,
+                         TENANT_CLOUD[0]["tenant_name"])
 
         response = self.client.delete(
-            TENANTS_ID_OPENSTACK_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response, '', status_code=HTTP_204_NO_CONTENT)

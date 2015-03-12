@@ -44,8 +44,8 @@ class CloudSerializer(ModelSerializer):
     class Meta:                        # pylint: disable=C0111,W0232,C1001
         model = Cloud
 
-        # We use exclude, so the code will do the right thing when new
-        # per-OpenStack settings are defined,
+        # We use exclude, so the code will do the right thing if per-cloud
+        # settings are defined,
         exclude = ("id", "tenant")
         read_only_fields = ("uuid", )
 
@@ -67,7 +67,7 @@ class DjangoOrTenantAdminPermission(BasePermission):
 
 
 class BaseViewSet(NestedViewSetMixin, SendEmailViewMixin, ModelViewSet):
-    """A base class for this app's Tenant, User, and OpenStack ViewSets."""
+    """A base class for this app's Tenant, User, and Cloud ViewSets."""
 
     lookup_field = "uuid"
 
@@ -335,7 +335,7 @@ class UserViewSet(BaseViewSet):
             raise PermissionDenied
 
 
-class OpenStackViewSet(BaseViewSet):
+class CloudViewSet(BaseViewSet):
     """A ViewSet for the Cloud table."""
 
     serializer_class = CloudSerializer
@@ -367,7 +367,7 @@ class OpenStackViewSet(BaseViewSet):
             raise PermissionDenied
 
     def perform_create(self, serializer):
-        """Create an OpenStack cloud in the underlying Tenant."""
+        """Create a cloud in the underlying Tenant."""
 
         # Get the underlying Tenant row.
         tenant = self._get_tenant()
@@ -376,15 +376,15 @@ class OpenStackViewSet(BaseViewSet):
         if self.request.user.is_authenticated() and \
            self.request.user.tenant == tenant and \
            self.request.user.tenant_admin:
-            # We are clear to create a new OpenStack cloud, as a member of this
-            # tenant.  Save this row with a relation to the underlying tenant.
+            # We are clear to create a new cloud, as a member of this tenant.
+            # Save this row with a relation to the underlying tenant.
             serializer.save(tenant=tenant)
         else:
             raise PermissionDenied
 
     def perform_destroy(self, instance):
-        """Delete an OpenStack cloud in the underlying Tenant, if permissions
-        and delete restrictions are met."""
+        """Delete a cloud in the underlying Tenant, if permissions and delete
+        restrictions are met."""
 
         # Get the underlying Tenant row.
         tenant = self._get_tenant()
@@ -393,6 +393,6 @@ class OpenStackViewSet(BaseViewSet):
         if self.request.user.is_authenticated() and \
            self.request.user.tenant == instance.tenant == tenant and \
            self.request.user.tenant_admin:
-            super(OpenStackViewSet, self).perform_destroy(instance)
+            super(CloudViewSet, self).perform_destroy(instance)
         else:
             raise PermissionDenied

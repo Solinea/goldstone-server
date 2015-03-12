@@ -252,26 +252,26 @@ class UtilsTests(SimpleTestCase):
         self.assertRaises(ClientException,
                           get_keystone_client,
                           os_username='abc',
-                          os_password=settings.OS_PASSWORD,
-                          os_tenant_name=settings.OS_TENANT_NAME,
-                          os_auth_url=settings.OS_AUTH_URL)
+                          os_password=settings.CLOUD_PASSWORD,
+                          os_tenant_name=settings.CLOUD_TENANT_NAME,
+                          os_auth_url=settings.CLOUD_AUTH_URL)
         self.assertRaises(ClientException,
                           get_keystone_client,
-                          os_username=settings.OS_USERNAME,
+                          os_username=settings.CLOUD_USERNAME,
                           os_password='abc',
-                          os_tenant_name=settings.OS_TENANT_NAME,
-                          os_auth_url=settings.OS_AUTH_URL)
+                          os_tenant_name=settings.CLOUD_TENANT_NAME,
+                          os_auth_url=settings.CLOUD_AUTH_URL)
         self.assertRaises(ClientException,
                           get_keystone_client,
-                          os_username=settings.OS_USERNAME,
-                          os_password=settings.OS_PASSWORD,
+                          os_username=settings.CLOUD_USERNAME,
+                          os_password=settings.CLOUD_PASSWORD,
                           os_tenant_name='no-tenant',
-                          os_auth_url=settings.OS_AUTH_URL)
+                          os_auth_url=settings.CLOUD_AUTH_URL)
         self.assertRaises(ClientException,
                           get_keystone_client,
-                          os_username=settings.OS_USERNAME,
-                          os_password=settings.OS_PASSWORD,
-                          os_tenant_name=settings.OS_TENANT_NAME,
+                          os_username=settings.CLOUD_USERNAME,
+                          os_password=settings.CLOUD_PASSWORD,
+                          os_tenant_name=settings.CLOUD_TENANT_NAME,
                           os_auth_url='http://www.solinea.com')
 
         client.side_effect = None
@@ -279,17 +279,17 @@ class UtilsTests(SimpleTestCase):
         type(client.return_value).auth_token = PropertyMock(return_value=None)
         self.assertRaises(GoldstoneAuthError,
                           get_keystone_client,
-                          os_username=settings.OS_USERNAME,
-                          os_password=settings.OS_PASSWORD,
-                          os_tenant_name=settings.OS_TENANT_NAME,
-                          os_auth_url=settings.OS_AUTH_URL)
+                          os_username=settings.CLOUD_USERNAME,
+                          os_password=settings.CLOUD_PASSWORD,
+                          os_tenant_name=settings.CLOUD_TENANT_NAME,
+                          os_auth_url=settings.CLOUD_AUTH_URL)
 
         type(client.return_value).auth_token = \
             PropertyMock(return_value='mocked_token')
-        reply = get_keystone_client(os_username=settings.OS_USERNAME,
-                                    os_password=settings.OS_PASSWORD,
-                                    os_tenant_name=settings.OS_TENANT_NAME,
-                                    os_auth_url=settings.OS_AUTH_URL)
+        reply = get_keystone_client(os_username=settings.CLOUD_USERNAME,
+                                    os_password=settings.CLOUD_PASSWORD,
+                                    os_tenant_name=settings.CLOUD_TENANT_NAME,
+                                    os_auth_url=settings.CLOUD_AUTH_URL)
         self.assertIn('client', reply)
         self.assertIn('hex_token', reply)
 

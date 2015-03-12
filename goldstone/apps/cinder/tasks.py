@@ -34,10 +34,10 @@ def time_service_list():
 
     image_list_precursor = stack_api_request_base("volumev2",
                                                   "/os-services",
-                                                  cloud.openstack_username,
-                                                  cloud.openstack_password,
-                                                  cloud.openstack_tenant_name,
-                                                  cloud.openstack_auth_url)
+                                                  cloud.username,
+                                                  cloud.password,
+                                                  cloud.tenant_name,
+                                                  cloud.auth_url)
     return time_api_call('cinder',
                          image_list_precursor['url'],
                          headers=image_list_precursor['headers'])
@@ -72,10 +72,10 @@ def discover_cinder_topology():
 
     # Get the system's sole OpenStack cloud.
     cloud = get_cloud()
-    cinder_access = get_cinder_client(cloud.openstack_username,
-                                      cloud.openstack_password,
-                                      cloud.openstack_tenant_name,
-                                      cloud.openstack_auth_url)
+    cinder_access = get_cinder_client(cloud.username,
+                                      cloud.password,
+                                      cloud.tenant_name,
+                                      cloud.auth_url)
 
     cinderclient = cinder_access['client']
     reg = cinder_access['region']

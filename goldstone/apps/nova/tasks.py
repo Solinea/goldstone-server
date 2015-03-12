@@ -43,10 +43,10 @@ def nova_hypervisors_stats(self):
     # Get the system's sole OpenStack cloud record.
     cloud = get_cloud()
 
-    novaclient = client.Client(cloud.openstack_username,
-                               cloud.openstack_password,
-                               cloud.openstack_tenant_name,
-                               cloud.openstack_auth_url,
+    novaclient = client.Client(cloud.username,
+                               cloud.password,
+                               cloud.tenant_name,
+                               cloud.auth_url,
                                service_type="compute")
     response = \
         novaclient.hypervisors.statistics()._info     # pylint: disable=W0212
@@ -78,10 +78,10 @@ def time_hypervisor_list_api():
 
     precursor = stack_api_request_base("compute",
                                        "/os-hypervisors",
-                                       cloud.openstack_username,
-                                       cloud.openstack_password,
-                                       cloud.openstack_tenant_name,
-                                       cloud.openstack_auth_url)
+                                       cloud.username,
+                                       cloud.password,
+                                       cloud.tenant_name,
+                                       cloud.auth_url)
 
     return time_api_call('nova',
                          precursor['url'],
@@ -116,10 +116,10 @@ def discover_nova_topology():
     # Get the system's sole OpenStack cloud.
     cloud = get_cloud()
 
-    nova_access = get_nova_client(cloud.os_username,
-                                  cloud.os_password,
-                                  cloud.os_tenant_name,
-                                  cloud.os_auth_url)
+    nova_access = get_nova_client(cloud.username,
+                                  cloud.password,
+                                  cloud.tenant_name,
+                                  cloud.auth_url)
 
     nova_client = nova_access['client']
     nova_client.client.authenticate()

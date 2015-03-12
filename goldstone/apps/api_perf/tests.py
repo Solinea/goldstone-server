@@ -83,10 +83,10 @@ class UtilsTests(SimpleTestCase):
 
         result = stack_api_request_base("endpoint",
                                         "/path",
-                                        settings.OS_USERNAME,
-                                        settings.OS_PASSWORD,
-                                        settings.OS_TENANT_NAME,
-                                        settings.OS_AUTH_URL)
+                                        settings.CLOUD_USERNAME,
+                                        settings.CLOUD_PASSWORD,
+                                        settings.CLOUD_TENANT_NAME,
+                                        settings.CLOUD_AUTH_URL)
         self.assertIn('url', result)
         self.assertIn('x-auth-token', result['headers'])
         self.assertIn('content-type', result['headers'])

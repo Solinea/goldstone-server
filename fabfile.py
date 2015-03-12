@@ -41,10 +41,10 @@ DEFAULT_ADMIN_PASSWORD = "changeme"
 # Values for the default OpenStack cloud that's created under the default
 # tenant. These are defined at the module level so that our unit tests can get
 # at them.
-DEFAULT_OS_TENANT = "admin"
-DEFAULT_OS_USERNAME = "admin"
-DEFAULT_OS_PASSWORD = "2caa6a4d9c9d49ce"
-DEFAULT_OS_AUTH_URL = "http://10.10.20.10:5000/v2.0/"
+DEFAULT_CLOUD_TENANT = "admin"
+DEFAULT_CLOUD_USERNAME = "admin"
+DEFAULT_CLOUD_PASSWORD = "2caa6a4d9c9d49ce"
+DEFAULT_CLOUD_AUTH_URL = "http://10.10.20.10:5000/v2.0/"
 
 
 def _django_manage(command, target='', proj_settings=None, daemon=False):
@@ -332,7 +332,7 @@ def _tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
 def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
                 settings=None):
     """Create a tenant and default_tenant_admin, or use existing ones; and
-    create an OpenStack cloud under the tenant.
+    create a cloud under the tenant.
 
     If the tenant doesn't exist, we create it.  If the admin doesn't exist, we
     create it as the default_tenant_admin, and the tenant's tenant_admin.
@@ -374,20 +374,18 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
 
         fastprint("\nAn OpenStack cloud entry will now be created under the "
                   "default tenant.\n")
-        os_tenant_name = prompt("OpenStack cloud name?",
-                                default=DEFAULT_OS_TENANT)
-        os_username = prompt("OpenStack username?",
-                             default=DEFAULT_OS_USERNAME)
-        os_password = prompt("Password for %s?" % os_username,
-                             default=DEFAULT_OS_PASSWORD)
-        os_auth_url = prompt("OpenStack authorization server URL?",
-                             default=DEFAULT_OS_AUTH_URL)
+        cloud_tenant_name = prompt("Cloud name?", default=DEFAULT_CLOUD_TENANT)
+        cloud_username = prompt("Username?", default=DEFAULT_CLOUD_USERNAME)
+        cloud_password = prompt("Password for %s?" % cloud_username,
+                                default=DEFAULT_CLOUD_PASSWORD)
+        cloud_auth_url = prompt("Cloud authorization server URL?",
+                                default=DEFAULT_CLOUD_AUTH_URL)
 
         Cloud.objects.create(tenant=tenant,
-                             openstack_tenant_name=os_tenant_name,
-                             openstack_username=os_username,
-                             openstack_password=os_password,
-                             openstack_auth_url=os_auth_url)
+                             tenant_name=cloud_tenant_name,
+                             username=cloud_username,
+                             password=cloud_password,
+                             auth_url=cloud_auth_url)
 
 
 @task
