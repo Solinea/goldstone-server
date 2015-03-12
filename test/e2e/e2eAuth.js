@@ -2,7 +2,7 @@
 
 // increase Default timeout for wait* family functions:
 // default = 5000
-casper.options.waitTimeout = 10000;
+casper.options.waitTimeout = 20000;
 
 // default viewportSize inherited from PhantomJS: 400wx300h
 casper.options.viewportSize = {
@@ -25,6 +25,22 @@ WARN_BAR: white text on orange background
 */
 
 /*
+print delimiting text between tests
+*/
+
+casper.test.setUp(function() {
+    casper.echo('beginning of test', "WARNING");
+});
+
+casper.test.tearDown(function() {
+    casper.echo('end of test', "WARNING");
+});
+
+/*
+begin tests
+*/
+
+/*
 Must authorize prior to continuing to test:
 */
 
@@ -32,12 +48,14 @@ casper.test.begin('Login Page loads and I can log in', 11, function suite(test) 
 
     casper.start('http://localhost:8000/login', function() {
         test.assertTitle("goldstone", "title is goldstone");
+    });
+
+    casper.then(function() {
         test.assertExists('#forgotUsername', "Forgot username or password text is present");
 
         // redirect to forgotten password page
         this.click('#forgotUsername a');
     });
-
 
     casper.waitForResource(function testResource(resource) {
         return resource.url.indexOf("password") > -1;
@@ -129,9 +147,9 @@ casper.test.begin('Login Page loads and I can log in', 11, function suite(test) 
     casper.run(function() {
         test.done();
     });
+
 });
 
 /*
 continue on with e2eTests.js
 */
-
