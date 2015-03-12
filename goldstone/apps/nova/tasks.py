@@ -170,13 +170,6 @@ def reconcile_hosts():
     :return: None
 
     """
-    from goldstone.utils import get_nova_client
-
-    nova_access = get_nova_client()
-
-    nova_client = nova_access['client']
-    nova_client.client.authenticate()
-    hosts = nova_client.hosts.list()
 
     # UGLINESS AHEAD
     # Nova has no problem showing you multiple instance of the same host.  If
@@ -192,20 +185,55 @@ def reconcile_hosts():
     #
     # Relations available here are service and zone, both are single values.
 
-    host_names = frozenset([h.host_name for h in hosts])
+    hosts = get_nova_host_list()
+    incoming = frozenset([host.host_name for host in hosts])
+    incoming = frozenset([parse_host_name(name) for name in incoming])
+    incoming_names = frozenset([item[0] for item in incoming])
+    existing_names = frozenset([host.name for host in Host.objects.all()])
 
-    for host_name in host_names:
-        fqdn = None
+    # now let's find out if we have new or missing hosts
+    new = incoming_names.difference(existing_names)
+    missing = existing_names.difference(incoming_names)
 
-        if not is_ip_addr(host_name):
-            parts = partition_hostname(host_name)
+    # delete missing hosts from our model
+    for name in missing:
+        Host.objects.filter(name=name).delete()
+        # TODO generate an event if we don't get one from ceilometer?
 
-            if parts['domainname'] is not None:
-                fqdn = host_name
-                host_name = parts['hostname']
+    # create new hosts in our model
+    for name in new:
+        Host.objects.create(
+            name=name,
+            fqdn=[item[1] for item in incoming_names if item[0] == name][0])
+        # TODO generate an event if we don't get one from ceilometer?
 
-        try:
-            Host.objects.create(name=host_name, fqdn=fqdn)
-        except IntegrityError:
-            # already exists
-            pass
+
+def get_nova_host_list():
+    """Retrieve a list of hosts from nova."""
+
+    from goldstone.utils import get_nova_client
+
+    nova_access = get_nova_client()
+    nova_client = nova_access['client']
+    nova_client.client.authenticate()
+    return nova_client.hosts.list()
+
+
+def parse_host_name(host_name):
+    """Where possible, generate the fqdn and simple hostnames for the param.
+
+    :type host_name: str
+    :param host_name: an ip address, fqdn, or simple host name
+    :rtype tuple
+    :return simple name, fqdn
+    """
+
+    fqdn = None
+    if not is_ip_addr(host_name):
+        parts = partition_hostname(host_name)
+
+        if parts['domainname'] is not None:
+            fqdn = host_name
+            host_name = parts['hostname']
+
+    return host_name, fqdn

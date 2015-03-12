@@ -12,42 +12,65 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from collections import OrderedDict
-from rest_framework import serializers
-from rest_framework.utils import model_meta
-
-from goldstone.apps.core.serializers import NodeSerializer
-
-from rest_framework.fields import CharField, DateTimeField, IntegerField
-from rest_framework.utils.field_mapping import ClassLookupDict
+from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
 
 
-class LoggingNodeSerializer(NodeSerializer):
+class LogDataSerializer(ReadOnlyElasticSerializer):
 
-    def to_representation(self, obj):
-        """Enhance the serialized LoggingNode data with the log count stats"""
+    class Meta:
+        exclude = ('@version', 'message', 'syslog_ts', 'received_at', 'sort',
+                   'tags', 'syslog_facility_code', 'syslog_severity_code',
+                   'syslog_pri', 'syslog5424_pri', 'syslog5424_host', 'type')
 
-        from .utils import log_counts
 
-        result = super(LoggingNodeSerializer, self).to_representation(obj)
+class LogAggSerializer(ReadOnlyElasticSerializer):
+    """Custom serializer to manipulate the aggregation that comes back from ES.
+    """
 
-        counts = log_counts(self.context['start_time'],
-                            self.context['end_time'],
-                            [obj.name])
+    def to_representation(self, instance):
+        """Create serialized representation of aggregate log data.
 
-        if len(counts) == 0:
-            # no results for the node in question
-            result['info_count'] = 0
-            result['audit_count'] = 0
-            result['warning_count'] = 0
-            result['error_count'] = 0
-            result['debug_count'] = 0
+        There will be a summary block that can be used for ranging, legends,
+        etc., then the detailed aggregation data which will be a nested
+        structure.  The number of layers will depend on whether the host
+        aggregation was done.
+        """
+
+        timestamps = [i['key'] for i in instance.per_interval['buckets']]
+        levels = [i['key'] for i in instance.per_level['buckets']]
+        hosts = [i['key'] for i in instance.per_host['buckets']] \
+            if hasattr(instance, 'per_host') else None
+
+        # let's clean up the inner buckets
+        data = []
+        if hosts is None:
+            for interval_bucket in instance.per_interval.buckets:
+                key = interval_bucket.key
+                values = [{item.key: item.doc_count}
+                          for item in interval_bucket.per_level.buckets]
+                data.append({key: values})
+
         else:
-            # the first element should be our host
-            result['info_count'] = counts[0][obj.name].get('info', 0)
-            result['audit_count'] = counts[0][obj.name].get('audit', 0)
-            result['warning_count'] = counts[0][obj.name].get('warning', 0)
-            result['error_count'] = counts[0][obj.name].get('error', 0)
-            result['debug_count'] = counts[0][obj.name].get('debug', 0)
+            for interval_bucket in instance.per_interval.buckets:
+                interval_key = interval_bucket.key
+                interval_values = []
+                for host_bucket in interval_bucket.per_host.buckets:
+                    key = host_bucket.key
+                    values = [{item.key: item.doc_count}
+                              for item in host_bucket.per_level.buckets]
+                    interval_values.append({key: values})
+                data.append({interval_key: interval_values})
 
-        return result
+        if hosts is not None:
+            return {
+                'timestamps': timestamps,
+                'hosts': hosts,
+                'levels': levels,
+                'data': data
+            }
+        else:
+            return {
+                'timestamps': timestamps,
+                'levels': levels,
+                'data': data
+            }

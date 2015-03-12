@@ -14,11 +14,10 @@
 # limitations under the License.
 from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
-from .views import LoggingNodeViewSet, LogDataView, LogAggView
+from .views import LogDataView, LogAggView
 
 router = DefaultRouter(trailing_slash=False)
 
-router.register(r'nodes', LoggingNodeViewSet, base_name='node')
 # router.register(r'events', LoggingEventViewSet, base_name='event')
 
 urlpatterns = router.urls
