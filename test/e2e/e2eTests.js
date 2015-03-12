@@ -93,8 +93,8 @@ casper.test.begin('/settings page updates user personal settings / password', 8,
 
         // submit new password (use same one, tho)
         this.fill('form.password-reset-form', {
-            'current_password': 'casper',
-            'new_password': 'casper'
+            'current_password': 'changeme',
+            'new_password': 'changeme'
         }, true);
 
         // what does the Change Password form say post-submit?
