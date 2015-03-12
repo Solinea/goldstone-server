@@ -51,7 +51,7 @@ module.exports = function(grunt) {
             options: {},
             e2e: {
                 files: {
-                    'results/casper': ['test/e2e/e2eAuth.js', 'test/e2e/e2eTests.js']
+                    'results/casper': ['test/e2e/e2eAuth.js', 'test/e2e/e2eTests.js', 'test/e2e/e2eLogout.js']
                 }
             }
         },
