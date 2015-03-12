@@ -45,18 +45,18 @@ First, enable the CentOS EPEL repositories and install some dependencies:
 
   .. code:: bash
 
-    # run as root
-    yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-    yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
+    $ # run as root
+    $ yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+    $ yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
 
 Next, enable the elasticsearch and logstash repositories:
 
   .. code:: bash
 
-    # run as root
-    rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+    $ # run as root
+    $ rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
 
-    cat > /etc/yum.repos.d/elasticsearch-1.4.repo <<EOF
+    $ cat > /etc/yum.repos.d/elasticsearch-1.4.repo <<EOF
     [elasticsearch-1.4]
     name=Elasticsearch repository for 1.4.x packages
     baseurl=http://packages.elasticsearch.org/elasticsearch/1.4/centos
@@ -65,7 +65,7 @@ Next, enable the elasticsearch and logstash repositories:
     enabled=1
     EOF
 
-    cat > /etc/yum.repos.d/logstash-1.4.repo <<EOF
+    $ cat > /etc/yum.repos.d/logstash-1.4.repo <<EOF
     [logstash-1.4]
     name=logstash repository for 1.4.x packages
     baseurl=http://packages.elasticsearch.org/logstash/1.4/centos
@@ -78,13 +78,13 @@ Create a Postgres Goldstone user, and initialize the database.
       
   .. code:: bash
 
-    # run as root
-    service postgresql initdb
-    chkconfig postgresql on
-    service postgresql start
-    su - postgres -c 'createdb goldstone'
-    su - postgres -c 'createuser goldstone -d'
-    su - postgres -c 'psql -c "alter user goldstone password \'goldstone\'"'
+    $ # run as root
+    $ service postgresql initdb
+    $ chkconfig postgresql on
+    $ service postgresql start
+    $ su - postgres -c 'createdb goldstone'
+    $ su - postgres -c 'createuser goldstone -d'
+    $ su - postgres -c 'psql -c "alter user goldstone password \'goldstone\'"'
 
 Edit ``/var/lib/pgsql/data/pg_hba.conf`` as 'postgres' user, and insert these 
 lines before any other uncommented local or host entries: ::
@@ -189,4 +189,4 @@ The installation created a system administrator account with the credentials, "a
 
 Your first task is to change your admin account password and e-mail address. You can do this from the account settings page.
 
-The installation also created an initial tenant, with a tenant administrator. The tenant administrator is also Goldstone's default tenant administrator. You may wish to change this tenant's name, enter the tenant owner's name and contact information, create more tenant admins for it, or change the tenant admin's name or password, which is "gsadmin" / "changeme".
+The installation also created an initial tenant, with a tenant administrator. The tenant administrator is also Goldstone's default tenant administrator. You may wish to change this tenant's name, owner name, or contact information; change the tenant admin's name or password, which is "gsadmin" / "changeme"; or create more tenant admins.

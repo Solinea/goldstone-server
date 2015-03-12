@@ -135,11 +135,11 @@ Now, install pip prerequesites. These let your run the application on your lapto
 Open a VPN connection to the development Oakland (oak) cloud.
 
 Sync and initialize the database, and initialize Elasticsearch's templates. (You'll need to issue a "fab syncmigrate"
-command if you ever change databases. A simple test is, if you change the value of DJANGO_SETTINGS_MODULE, you'll need to do it.) ::
+command if you ever switch databases. A simple test is, if you change the value of DJANGO_SETTINGS_MODULE, you'll need to do it.) ::
 
     $ fab goldstone_init
 
-Now test out the server::
+Now run the development server::
 
     $ fab runserver
 
