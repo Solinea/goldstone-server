@@ -15,7 +15,6 @@
 import json
 from uuid import uuid4
 import arrow
-from django.core.exceptions import ValidationError
 from django.db.models import CharField, Model, DateTimeField, \
     TextField, DecimalField
 from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
@@ -325,66 +324,6 @@ class Report(Model):
 
     def delete(self, using=None):
         raise NotImplementedError("delete is not implemented for this model")
-
-
-def validate_str_bool(value):
-    if value not in [x[0] for x in Node.MANAGED_CHOICES]:
-        raise ValidationError(u'%s is not "true" or "false"' % value)
-
-
-def validate_method_choices(value):
-    if value not in [x[0] for x in Node.METHOD_CHOICES]:
-        raise ValidationError(u'%s is not a valid method' % value)
-
-
-class Node(Model):
-
-    # there is some strange filtering behavior for booleans, so we'll store
-    # admin_disabled as a string representation of a boolean.  There is a
-    # discussion here:
-    # https://github.com/tomchristie/django-rest-framework/issues/2122
-    MANAGED_CHOICES = (
-        ('true', 'true'),
-        ('false', 'false')
-    )
-
-    METHOD_CHOICES = (
-        ('PING', 'Successful Host Ping'),
-        ('LOGS', 'Log Stream Activity'),
-        ('API', 'Application API Call'),
-        ('AGENT', 'Application Agent'),
-        ('UNKNOWN', 'Not Provided'),
-    )
-
-    id = UUIDField(version=1, auto=True, primary_key=True)
-    name = CharField(max_length=64, unique=True)
-    created = CreationDateTimeField(editable=False, blank=True,
-                                    default=utc_now)
-
-    # updated = ModificationDateTimeField(editable=False, blank=True,
-    #                                     default=utc_now)
-    updated = ModificationDateTimeField(editable=True, blank=True)
-
-    update_method = CharField(max_length=32, choices=METHOD_CHOICES,
-                              null=True, blank=True, default="UNKNOWN",
-                              validators=[validate_method_choices])
-    managed = CharField(max_length=5, choices=MANAGED_CHOICES,
-                        default="true", validators=[validate_str_bool])
-
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        """Overrides the default save to validate model before transaction.
-
-        :param force_insert:
-        :param force_update:
-        :param using:
-        :param update_fields:
-
-        """
-
-        self.full_clean()
-        return super(Node, self).save(force_insert, force_update, using,
-                                      update_fields)
 
 
 #

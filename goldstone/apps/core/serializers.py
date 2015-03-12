@@ -14,7 +14,7 @@
 # limitations under the License.
 import arrow
 from rest_framework import serializers, fields
-from .models import Node, Event, Metric, Report, PolyResource
+from .models import Event, Metric, Report, PolyResource
 import logging
 
 logger = logging.getLogger(__name__)
@@ -62,13 +62,6 @@ class EventSerializer(serializers.ModelSerializer):
         instance.created = validated_data.get('created', instance.created)
         instance.save()
         return instance
-
-
-class NodeSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Node
-        lookup_field = 'id'
 
 
 class MetricSerializer(serializers.ModelSerializer):

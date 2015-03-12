@@ -14,12 +14,11 @@
 # limitations under the License.
 from django.conf.urls import url, patterns
 
-from .views import NodeViewSet, EventViewSet, MetricViewSet, ReportViewSet, \
+from .views import EventViewSet, MetricViewSet, ReportViewSet, \
     ReportListView
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter(trailing_slash=False)
-router.register(r'nodes', NodeViewSet, base_name='node')
 router.register(r'events', EventViewSet, base_name='event')
 router.register(r'metrics', MetricViewSet, base_name='metric')
 router.register(r'reports', ReportViewSet, base_name='report')

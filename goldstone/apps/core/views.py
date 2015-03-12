@@ -22,8 +22,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from .models import Event, Metric, Report, Node
-from .serializers import EventSerializer, NodeSerializer, MetricSerializer, \
+from .models import Event, Metric, Report
+from .serializers import EventSerializer, MetricSerializer, \
     ReportSerializer
 
 logger = logging.getLogger(__name__)
@@ -140,44 +140,6 @@ class EventViewSet(ElasticViewSet):
     lookup_field = '_id'
     lookup_url_kwarg = '_id'
     ordering = '-created'
-
-
-class NodeViewSet(ReadOnlyModelViewSet):
-
-    queryset = Node.objects.all()
-    serializer_class = NodeSerializer
-    lookup_field = 'id'
-    lookup_url_kwarg = 'id'
-    filter_fields = ('id', 'name', 'created', 'updated', 'managed',
-                     'update_method')
-    ordering_fields = '__all__'
-    ordering = '-created'
-
-    @detail_route(methods=['PATCH'])
-    def enable(self, request, *args, **kwargs):
-
-        node = self.get_object()
-
-        if node is None:
-            raise Http404
-        else:
-            node.managed = 'true'
-            node.save()
-            serializer = NodeSerializer(node)
-            return Response(serializer.data)
-
-    @detail_route(methods=['PATCH'])
-    def disable(self, request, *args, **kwargs):
-
-        node = self.get_object()
-
-        if node is None:
-            raise Http404
-        else:
-            node.managed = 'false'
-            node.save()
-            serializer = NodeSerializer(node)
-            return Response(serializer.data)
 
 
 class MetricViewSet(ReadOnlyElasticViewSet):
