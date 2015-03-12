@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import socket
 
 import arrow
 from django.conf import settings
@@ -322,3 +323,49 @@ def django_admin_only(wrapped_function):
             raise PermissionDenied
 
     return _wrapper
+
+def is_ipv4_addr(candidate):
+    """Check a string to see if it is a valid v4 ip address
+
+    :param candidate: string to check
+    :return boolean
+    """
+
+    try:
+        socket.inet_pton(socket.AF_INET, candidate)
+        return True
+    except socket.error:
+        return False
+
+
+def is_ipv6_addr(candidate):
+    """Check a string to see if it is a valid v6 ip address
+
+    :param candidate: string to check
+    :return boolean
+    """
+
+    try:
+        socket.inet_pton(socket.AF_INET6, candidate)
+        return True
+    except socket.error:
+        return False
+
+
+def is_ip_addr(candidate):
+    """Check a string to see if it is a valid v4 or v6 IP address
+
+    :param candidate: string to check
+    :return boolean
+    """
+
+    return is_ipv4_addr(candidate) or is_ipv6_addr(candidate)
+
+
+def partition_hostname(hostname):
+    """Return a hostname separated into host and domain parts."""
+
+    parts = hostname.partition('.')
+    return dict(hostname=parts[0],
+                domainname=parts[2] if parts[1] == '.' else None)
+

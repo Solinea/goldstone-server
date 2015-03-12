@@ -23,6 +23,8 @@ from goldstone.apps.core.models import PolyResource
 
 from goldstone.models import ESData, TopologyData
 
+from django.db.models import CharField
+
 logger = logging.getLogger(__name__)
 
 
@@ -457,5 +459,10 @@ class ServicesData(TopologyData):
 #
 class Host(PolyResource):
 
+    fqdn = CharField(
+        max_length=255,
+        unique=True)
+
     def __init__(self, *args, **kwargs):
         super(Host, self).__init__(*args, **kwargs)
+

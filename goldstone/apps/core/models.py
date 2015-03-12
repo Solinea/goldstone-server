@@ -27,7 +27,7 @@ from polymorphic import PolymorphicModel
 from goldstone.apps.logging.models import LogData
 from goldstone.utils import utc_now
 
-from elasticsearch_dsl.query import Q, QueryString, Terms
+from elasticsearch_dsl.query import Q, QueryString, Terms, Term
 
 logger = logging.getLogger(__name__)
 
@@ -401,7 +401,7 @@ class PolyResource(PolymorphicModel):
         primary_key=True)
 
     name = CharField(
-        max_length=64,
+        max_length=255,
         unique=True)
 
     created = CreationDateTimeField(
@@ -419,8 +419,8 @@ class PolyResource(PolymorphicModel):
 
         return JSONRenderer().render(PolyResourceSerializer(self).data)
 
-    def logs(self, *args, **kwargs):
-        """Retrieve logs related to this resource.
+    def logs(self):
+        """Retrieve a search object for logs related to this resource.
 
         The default implementation just looks for the name of the resource
         in any of the fields.
@@ -428,12 +428,25 @@ class PolyResource(PolymorphicModel):
         query = Q(QueryString(query=self.name))
         return LogData.search().query(query)
 
-    def events(self, *args, **kwargs):
-        """Retrieve events related to this resource.
+    def events(self):
+        """Retrieve a search object for events related to this resource.
 
         The default implementation looks for logging event types with this
         resource name appearing in any field."""
 
+        # this protects our hostname from being tokenized
+        escaped_name = r'"' + self.name + r'"'
         event_type_query = Q(Terms(event_type__raw=LogData.LOG_EVENT_TYPES))
-        name_query = Q(QueryString(query=self.name))
-        return LogData.search().query(event_type_query).query(name_query)
+        name_query = Q(QueryString(query=escaped_name, default_field="_all"))
+        return LogData.search().query(name_query).query(event_type_query)
+
+    def fresh_config(self):
+        """Retrieve configuration from source system for this resource."""
+
+        raise NotImplementedError("Override this method in a subclass")
+
+    def historical_config(self):
+        """Retrieve configuration from ES for this resource."""
+
+        raise NotImplementedError("Override this method in a subclass")
+
