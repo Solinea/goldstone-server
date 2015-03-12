@@ -90,7 +90,7 @@ module.exports = function(grunt) {
     });
 
     // Start watching and run tests when files change
-    grunt.registerTask('default', ['lint', 'test', 'watch']);
+    grunt.registerTask('default', ['lint', 'test']);
     grunt.registerTask('lint', ['jshint']);
     grunt.registerTask('test', ['karma', 'casperjs']);
     grunt.registerTask('lintAndTest', ['lint', 'test']);
