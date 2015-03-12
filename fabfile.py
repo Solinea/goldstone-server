@@ -255,35 +255,17 @@ def syncmigrate(settings=None, verbose=False):
     _django_manage("createsuperuser", proj_settings=settings)
 
 
-@task
-def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
-                settings=None):
-    """Create a tenant and default_tenant_admin, or use existing ones; and
-    create an OpenStack cloud under the tenant.
+def _tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
+                 settings=None):
+    """Create a tenant and default_tenant_admin, or use existing ones.
 
-    If the tenant doesn't exist, we create it.  If the admin doesn't exist, we
-    create it as the default_tenant_admin, and the tenant's tenant_admin.
+    See the tenant_init() docstring for a description of the parameters.
 
-    If the tenant already exists, we print an informational message and leave
-    it alone.
+    This is a separate function in order to facilitate unit testing.
 
-    If the admin already exists, we print an informational message. If he/she
-    is not a tenant admin of the new tenant, we make him/her it. He/she gets
-    made the (a) default_tenant_admin.
-
-    :keyword tenant: The name of the tenant to be created. If not specified, a
-                     default is used
-    :type tenant: str
-    :keyword tenant_owner: The tenant owner. If unspecified, a default is used
-    :type tenant_owner: str
-    :keyword admin: The name of the tenant_admin to be created.  If
-                    unspecified, a default is used
-    :type admin: str
-    :keyword password: The admin account's password, *if* we create it
-    :type password: str
-    :keyword settings: If present, the path of the Django settings file to use.
-                       Otherwise, we will ask the user to select one.
-    :type settings: str
+    :return: The tenant created, and the path to the settings file used when
+             we created the tenant and default_tenant_admin.
+    :rtype: (Tenant, str)
 
     """
 
@@ -308,7 +290,7 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
         # has been changed!
         from django.contrib.auth import get_user_model
         from django.core.exceptions import ObjectDoesNotExist
-        from goldstone.tenants.models import Tenant, Cloud
+        from goldstone.tenants.models import Tenant
 
         # Process the tenant.
         try:
@@ -342,8 +324,53 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
         user.default_tenant_admin = True
         user.save()
 
-        # Now create a single OpenStack cloud under the tenant. Give the user
-        # an opportunity to override the defaults.
+    return (tenant, settings)
+
+
+@task
+def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
+                settings=None):
+    """Create a tenant and default_tenant_admin, or use existing ones; and
+    create an OpenStack cloud under the tenant.
+
+    If the tenant doesn't exist, we create it.  If the admin doesn't exist, we
+    create it as the default_tenant_admin, and the tenant's tenant_admin.
+
+    If the tenant already exists, we print an informational message and leave
+    it alone.
+
+    If the admin already exists, we print an informational message. If he/she
+    is not a tenant admin of the new tenant, we make him/her it. He/she gets
+    made the (a) default_tenant_admin.
+
+    :keyword tenant: The name of the tenant to be created. If not specified, a
+                     default is used
+    :type tenant: str
+    :keyword tenant_owner: The tenant owner. If unspecified, a default is used
+    :type tenant_owner: str
+    :keyword admin: The name of the tenant_admin to be created.  If
+                    unspecified, a default is used
+    :type admin: str
+    :keyword password: The admin account's password, *if* we create it
+    :type password: str
+    :keyword settings: If present, the path of the Django settings file to use.
+                       Otherwise, we will ask the user to select one.
+    :type settings: str
+
+    """
+
+    # Create the tenant and tenant_admin.
+    tenant, settings = _tenant_init(tenant,
+                                    tenant_owner,
+                                    admin,
+                                    password,
+                                    settings)
+
+    # Now create a single OpenStack cloud under the tenant. Give the user
+    # an opportunity to override the defaults.
+    with _django_env(settings):
+        from goldstone.tenants.models import Cloud
+
         fastprint("\nAn OpenStack cloud entry will now be created under the "
                   "default tenant.\n")
         os_tenant_name = prompt("OpenStack cloud name?",
