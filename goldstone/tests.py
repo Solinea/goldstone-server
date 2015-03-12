@@ -37,16 +37,15 @@ from goldstone.tenants.models import Tenant
 from goldstone.test_utils import Setup
 from goldstone.utils import get_keystone_client, GoldstoneAuthError
 
-sys.path.append("..")      # For importing tenant_init.
-from fabfile import tenant_init, DEFAULT_TENANT, DEFAULT_TENANT_OWNER, \
+sys.path.append("..")      # For importing from fabfile.
+from fabfile import _tenant_init, DEFAULT_TENANT, DEFAULT_TENANT_OWNER, \
     DEFAULT_ADMIN, DEFAULT_ADMIN_PASSWORD
 
 
 class TenantInit(Setup):
-    """Test the fabfile's tenant_init task.
+    """Test the fabfile's _tenant_init function.
 
-    We call tenant_init() with the settings file being used by the unittest
-    testrunner.
+    We call it with the settings file being used by the unittest testrunner.
 
     """
 
@@ -71,7 +70,7 @@ class TenantInit(Setup):
     def test_happy(self):
         "Create tenant and tenant_admin."""
 
-        tenant_init(settings=self.settings)
+        _tenant_init(settings=self.settings)
         self._evaluate(DEFAULT_TENANT, DEFAULT_TENANT_OWNER, DEFAULT_ADMIN)
 
     def test_tenant_exists(self):
@@ -91,11 +90,11 @@ class TenantInit(Setup):
     def test_arguments(self):
         "Caller supplies arguments."""
 
-        tenant_init(tenant="Traci",
-                    tenant_owner="Jordan",
-                    admin="john",
-                    password="Michelle",
-                    settings=self.settings)
+        _tenant_init(tenant="Traci",
+                     tenant_owner="Jordan",
+                     admin="john",
+                     password="Michelle",
+                     settings=self.settings)
 
         self._evaluate("Traci", "Jordan", "john")
 
@@ -106,7 +105,7 @@ class TenantInit(Setup):
         Tenant.objects.create(name="bob", owner="bahb")
         get_user_model().objects.create_user(username="bahhb", password='b')
 
-        tenant_init("bob", "bahb", "bahhb", settings=self.settings)
+        _tenant_init("bob", "bahb", "bahhb", settings=self.settings)
         self._evaluate("bob", "bahb", "bahhb")
 
 
