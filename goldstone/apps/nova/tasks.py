@@ -24,16 +24,17 @@ from datetime import datetime
 import logging
 
 from django.conf import settings
+from django.db import IntegrityError
 from goldstone.apps.api_perf.utils import stack_api_request_base, \
     time_api_call
 
 from goldstone.apps.nova.models import HypervisorStatsData, \
     AgentsData, AggregatesData, AvailZonesData, CloudpipesData, FlavorsData, \
     FloatingIpPoolsData, HostsData, HypervisorsData, NetworksData, \
-    SecGroupsData, ServersData, ServicesData
+    SecGroupsData, ServersData, ServicesData, Host
 from goldstone.celery import app as celery_app
 from goldstone.utils import to_es_date, \
-    get_region_for_nova_client
+    get_region_for_nova_client, is_ip_addr, partition_hostname
 
 logger = logging.getLogger(__name__)
 
@@ -154,3 +155,57 @@ def discover_nova_topology(self):
                          reg,
                          ServicesData(),
                          nova_client.services.list())
+
+#
+# This is the beginning of the new polymorphic resource model support
+#
+
+
+def reconcile_hosts():
+    """Compares Goldstone's knowledge of nova hosts to source clouds.
+
+    If a new host is found in the cloud, a model instance is created, if a host
+    has been removed from the cloud, the
+
+    :return: None
+
+    """
+    from goldstone.utils import get_nova_client
+
+    nova_access = get_nova_client()
+
+    nova_client = nova_access['client']
+    nova_client.client.authenticate()
+    hosts = nova_client.hosts.list()
+
+    # UGLINESS AHEAD
+    # Nova has no problem showing you multiple instance of the same host.  If
+    # a host shows up multiple times in the list, it probably has multiple
+    # service running on it.  We'll dedup this for them and link back here with
+    # our graph from the value of service.host.
+    #
+    # Rsyslog is really hesitant to allow FQDN to be used in the message, so
+    # all the logs going in to Logstash will only have the short name --
+    # unless it gets configured really badly and only sends the IP address :-(
+    # So, we'll set a short_name field to use for the name, and set an fqdn
+    # field if available.
+    #
+    # Relations available here are service and zone, both are single values.
+
+    host_names = frozenset([h.host_name for h in hosts])
+
+    for host_name in host_names:
+        fqdn = None
+
+        if not is_ip_addr(host_name):
+            parts = partition_hostname(host_name)
+
+            if parts['domainname'] is not None:
+                fqdn = host_name
+                host_name = parts['hostname']
+
+        try:
+            Host.objects.create(name=host_name, fqdn=fqdn)
+        except IntegrityError:
+            # already exists
+            pass

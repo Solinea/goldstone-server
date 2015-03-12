@@ -252,6 +252,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.apps.logging.tasks.check_host_avail',
         'schedule': HOST_AVAILABLE_PING_INTERVAL
     },
+    'reconcile_nova_hosts': {
+        'task': 'goldstone.apps.nova.tasks.reconcile_hosts',
+        'schedule': TOPOLOGY_QUERY_INTERVAL
+    },
 }
 
 # Database row settings.
