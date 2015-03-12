@@ -44,7 +44,7 @@ begin tests
 Must authorize prior to continuing to test:
 */
 
-casper.test.begin('Login Page loads and I can log in', 11, function suite(test) {
+casper.test.begin('Login Page loads and I can use reset password link', 5, function suite(test) {
 
     casper.start('http://localhost:8000/login', function() {
         test.assertTitle("goldstone", "title is goldstone");
@@ -76,34 +76,41 @@ casper.test.begin('Login Page loads and I can log in', 11, function suite(test) 
         this.fill('form.password-reset-form', {
             'email': "wizard@oz.org",
         }, true);
-    });
 
-    // after submitting password reset, wait for success popup
-    casper.waitForSelectorTextChange('.alert.alert-info', function() {
-        this.echo('Text in .alert-info has changed', "GREEN_BAR");
-    });
-
-    casper.then(function() {
-        // alert-info bar should not empty
-        test.assertExists('.alert.alert-info', 'alert info exists');
-        test.assertSelectorHasText('.alert.alert-info', 'Password reset instructions have been emailed to you');
+        // what does the form say after submission?
+        this.echo('password form email value post-submit: ', "GREEN_BAR");
+        this.echo('email: ' + this.getFormValues('form').email, "GREEN_BAR");
     });
 
     casper.then(function() {
-        // redirect back to login page
-        this.click('#cancelReset a');
+        // after submitting password reset, wait for success popup
+        casper.waitForSelectorTextChange('.alert.alert-info', function then() {
+            this.echo('Text in .alert-info has changed', "GREEN_BAR");
+            this.echo('Text in .alert-info says: ' + this.evaluate(function() {
+                return document.getElementsByClassName('alert-info')[0].innerText;
+            }));
+        }, function timeout() {
+            this.echo(".alert.alert-info didn't change within 1000ms", "WARN_BAR");
+        }, 1000);
     });
 
-    casper.waitForResource(function testResource(resource) {
-        return resource.url.indexOf("login") > -1;
-    }, function onReceived() {
-        this.echo('redirect back to /login successful!', "GREEN_BAR");
+    casper.run(function() {
+        test.done();
+    });
+
+
+});
+
+
+casper.test.begin('Back to login page to login', 5, function suite(test) {
+
+    casper.start('http://localhost:8000/login', function() {
+        test.assertTitle("goldstone", "title is goldstone");
         test.assertExists('form.login-form');
         this.echo('page url after redirect: ' + this.evaluate(function() {
             return document.location.href;
         }), "GREEN_BAR");
     });
-
 
     casper.then(function() {
 
@@ -120,8 +127,8 @@ casper.test.begin('Login Page loads and I can log in', 11, function suite(test) 
         // fills in form with "field: value"
         // 'true/false' is whether to submit form
         this.fill('form.login-form', {
-            'username': "casper",
-            'password': "casper"
+            'username': "gsadmin",
+            'password': "changeme"
         }, true);
 
         // what does the form say after submission?
@@ -149,7 +156,6 @@ casper.test.begin('Login Page loads and I can log in', 11, function suite(test) 
     });
 
 });
-
 /*
 continue on with e2eTests.js
 */
