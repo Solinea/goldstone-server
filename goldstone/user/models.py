@@ -28,7 +28,7 @@ from goldstone.tenants.models import Tenant
 class User(AbstractUser):
     """A variant of Django's default User model, with additional fields."""
 
-    # The tenant to which this user belongs.
+    # The tenant to which this user belongs. 1 Tenant: m User.
     tenant = models.ForeignKey(Tenant, null=True, blank=True)
 
     # If true, this user is an administrator of his/her tenant.

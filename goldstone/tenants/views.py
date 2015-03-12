@@ -22,7 +22,7 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from goldstone.utils import django_admin_only
+from goldstone.utils import django_admin_only, django_and_tenant_admins_only
 from goldstone.user.views import UserSerializer
 from .models import Tenant, Cloud
 
@@ -51,8 +51,8 @@ class CloudSerializer(ModelSerializer):
 
 
 class DjangoOrTenantAdminPermission(BasePermission):
-    """A custom permissions class that allows access if the user is a Django
-    Admin, or a tenant_admin for the Tenant row being accessed."""
+    """A custom permissions class that allows single object access to Django
+    Admins, or a tenant_admin for the Tenant object in question."""
 
     def has_object_permission(self, request, view, obj):
         """Override the permissions check for single Tenant row access.
@@ -132,7 +132,6 @@ class TenantsViewSet(BaseViewSet):
                 'new_tenant_body_for_tenant_admin.txt'}
 
     def get_queryset(self):
-
         """Return the queryset for list views."""
 
         return Tenant.objects.all()
@@ -226,13 +225,23 @@ class TenantsViewSet(BaseViewSet):
         # Now do the delete.
         return super(TenantsViewSet, self).perform_destroy(instance)
 
-    @django_admin_only
+    @django_and_tenant_admins_only
     def list(self, request, *args, **kwargs):
-        """Provide a collection-of-objects GET response, for Django admins."""
+        """Provide a collection-of-objects GET response, for Django admins or
+        tenant_admins.
+
+        For Django admins, all the tenants are returned. For tenant_admins,
+        only those tenants that are administered by the user are returned.
+
+        """
         from rest_framework.response import Response
 
-        # Return all the tenants to this Django admin.
-        instance = self.filter_queryset(self.get_queryset())
+        # Create the queryset for this Django admin, or tenant_admin.
+        instance = \
+            self.filter_queryset(self.get_queryset()) \
+            if request.user.is_superuser else \
+            self.filter_queryset(Tenant.objects.filter(user=request.user))
+
         page = self.paginate_queryset(instance)
 
         serializer = \

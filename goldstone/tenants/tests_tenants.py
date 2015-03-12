@@ -75,46 +75,30 @@ class Tenants(Setup):
                             status_code=HTTP_401_UNAUTHORIZED)
 
     def test_no_access(self):
-        """Getting a tenant list, or creating a tenant, without being a Django
-        admin."""
-
-        def get_post():
-            """Try getting and posting, using the default test user."""
-
-            # Try getting a tenant list.
-            response = self.client.get(
-                TENANTS_URL,
-                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-            self.assertContains(response,
-                                CONTENT_NO_PERMISSION,
-                                status_code=HTTP_403_FORBIDDEN)
-
-            # Try creating a tenant.
-            response = self.client.post(
-                TENANTS_URL,
-                json.dumps({"name": "foobar",
-                            "owner": "Debra Winger"}),
-                content_type="application/json",
-                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-            self.assertContains(response,
-                                CONTENT_NO_PERMISSION,
-                                status_code=HTTP_403_FORBIDDEN)
+        """Getting a tenant list, or creating a tenant, as a normal user."""
 
         # Create a user and get the authorization token.
         token = create_and_login()
 
-        # Test for no-access, as a normal user.
-        get_post()
+        # Try getting a tenant list.
+        response = self.client.get(
+            TENANTS_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        # Now do both sub-tests again, this time as a tenant_admin. We should
-        # still have no access.
-        user = get_user_model().objects.get(username=TEST_USER[0])
-        user.tenant_admin = True
-        user.save()
+        self.assertContains(response,
+                            CONTENT_NO_PERMISSION,
+                            status_code=HTTP_403_FORBIDDEN)
 
-        get_post()
+        # Try creating a tenant.
+        response = self.client.post(
+            TENANTS_URL,
+            json.dumps({"name": "foobar", "owner": "Debra Winger"}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        self.assertContains(response,
+                            CONTENT_NO_PERMISSION,
+                            status_code=HTTP_403_FORBIDDEN)
 
     def test_get_no_list(self):
         """Get a tenant list when no tenant yet exists."""
@@ -135,8 +119,8 @@ class Tenants(Setup):
                             EXPECTED_CONTENT,
                             status_code=HTTP_200_OK)
 
-    def test_get(self):
-        """Get a tenant list when tenants exist.."""
+    def test_get_django_admin(self):
+        """Get a tenant list when tenants exist, as a Django admin."""
 
         # The expected content, sans uuids.
         EXPECTED_CONTENT = \
@@ -150,8 +134,7 @@ class Tenants(Setup):
                           'owner': 'Alex',
                           'owner_contact': '867-5309'}]}
 
-        # Create a user, save the authorization token, and make the user a
-        # Django admin.
+        # Create a Django admin user and log her in.
         token = create_and_login(is_superuser=True)
 
         # Make two tenants.
@@ -163,6 +146,44 @@ class Tenants(Setup):
             owner_contact=EXPECTED_CONTENT["results"][1]["owner_contact"])
 
         # Try getting the list, then check the results.
+        response = self.client.get(
+            TENANTS_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        check_response_without_uuid(response,
+                                    HTTP_200_OK,
+                                    EXPECTED_CONTENT,
+                                    True)
+
+    def test_get_tenant_admin(self):
+        """Get a tenant list when tenants exist, as a tenant_admin."""
+
+        # The expected content, sans uuids.
+        EXPECTED_CONTENT = {'count': 1,
+                            'next': None,
+                            'previous': None,
+                            'results': [{'name': 'tenant 1',
+                                         'owner': 'John',
+                                         'owner_contact': ''}],
+                            }
+
+        # The tenants we'll create. The first one will be owned by the
+        # tenant_admin, and the rest will not.
+        TENANTS = [{"name": EXPECTED_CONTENT["results"][0]["name"],
+                    "owner": EXPECTED_CONTENT["results"][0]["owner"]},
+                   {"name": "Mary Louise", "owner": "Parker"},
+                   {"name": "Angelina", "owner": "Jolie"},
+                   {"name": "Debra", "owner": "Winger"},
+                   ]
+
+        # Make four tenants.
+        tenants = [Tenant.objects.create(**x) for x in TENANTS]
+
+        # Create a tenant_admin user and log her in.
+        token = create_and_login(tenant=tenants[0])
+
+        # Get the list of tenants. Only one being adminstered by the
+        # tenant_admin should be in the list.
         response = self.client.get(
             TENANTS_URL,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
