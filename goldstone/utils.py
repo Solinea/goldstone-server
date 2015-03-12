@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import arrow
 import cinderclient.v2.services
 from keystoneclient.v2_0 import client as ksclient
@@ -29,6 +28,7 @@ from novaclient.openstack.common.apiclient.exceptions \
 from cinderclient.openstack.common.apiclient.exceptions \
     import Unauthorized as CinderUnauthorized
 from neutronclient.common.exceptions import Unauthorized as NeutronUnauthorized
+from rest_framework.exceptions import PermissionDenied
 
 logger = logging.getLogger(__name__)
 
@@ -341,8 +341,8 @@ class TopologyMixin(object):
 
 
 def django_admin_only(wrapped_function):
-    """A decorator that raises an exception if self.request.user.is_superuser
-    is False."""
+    """A decorator that raises an exception if self.request.user is not a
+    superuser, i.e., a Django admin."""
 
     @functools.wraps(wrapped_function)
     def _wrapper(*args, **kwargs):
@@ -351,10 +351,32 @@ def django_admin_only(wrapped_function):
         args[0] must be self.
 
         """
-        from rest_framework.exceptions import PermissionDenied
-        print args[0].request.user
 
         if args[0].request.user.is_superuser:
+            return wrapped_function(*args, **kwargs)
+        else:
+            raise PermissionDenied
+
+    return _wrapper
+
+
+def django_and_tenant_admins_only(wrapped_function):
+    """A decorator that raises an exception if self.request.user is not a
+    superuser (i.e., a Django admin), or a tenant_admin."""
+
+    @functools.wraps(wrapped_function)
+    def _wrapper(*args, **kwargs):
+        """Check self.request.user.is_superuser and .tenant_admin.
+
+        args[0] must be self.
+
+        """
+
+        user = args[0].request.user
+
+        # Checking is_authenticated filters out AnonymousUser.
+        if user.is_superuser or \
+           (user.is_authenticated() and user.tenant_admin):
             return wrapped_function(*args, **kwargs)
         else:
             raise PermissionDenied
