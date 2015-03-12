@@ -24,8 +24,8 @@ from django.conf import settings
 from django.http import HttpResponseBadRequest, Http404
 from django.views.generic import TemplateView
 import pytz
-from rest_framework.response import Response
-from rest_framework.views import APIView
+# from rest_framework.response import Response
+# from rest_framework.views import APIView
 
 from goldstone.utils import TopologyMixin
 
@@ -134,7 +134,7 @@ class TopLevelView(TemplateView):
                                                 })
 
 
-class DiscoverView(APIView, TopologyMixin):
+class DiscoverView(TemplateView, TopologyMixin):
     """Return a module topology.
 
     The data structure is a list of resource types.  If the list contains
@@ -156,6 +156,13 @@ class DiscoverView(APIView, TopologyMixin):
      }
 
     """
+
+    # TODO: Remove the Django template once the client implements Backbone
+    # views. To do this, replace TemplateView with APIView, delete the
+    # template_name attribute, .render_to_response, and
+    # templates/goldstone_discover.html. Then, uncomment .get().
+
+    template_name = 'goldstone_discover.html'
 
     def get_regions(self):
         return []
@@ -278,10 +285,50 @@ class DiscoverView(APIView, TopologyMixin):
         else:
             return {"rsrcType": "error", "label": "No data found"}
 
-    def get(self, _):
-        """Return a topology tree."""
+    # def get(self, _):
+    #     """Return a topology tree."""
 
-        return Response(self.build_topology_tree())
+    #     return Response(self.build_topology_tree())
+
+    def render_to_response(self, context, **response_kwargs):
+        """Return the response data."""
+        from rest_framework import status
+        from cinderclient.exceptions import AuthorizationFailure as \
+            CinderAuthException
+        from cinderclient.openstack.common.apiclient.exceptions \
+            import AuthorizationFailure as CinderApiAuthException
+        from novaclient.exceptions import AuthorizationFailure \
+            as NovaAuthException
+        from novaclient.openstack.common.apiclient.exceptions \
+            import AuthorizationFailure as NovaApiAuthException
+        from keystoneclient.openstack.common.apiclient.exceptions \
+            import AuthorizationFailure as KeystoneApiAuthException
+        from goldstone.utils import GoldstoneAuthError
+        from django.http import HttpResponse
+        from elasticsearch import ElasticsearchException
+        from django.shortcuts import render
+
+        try:
+            response = self.build_topology_tree()
+            if isinstance(response, HttpResponseBadRequest):
+                return response
+
+            return TemplateView.render_to_response(
+                self,
+                {'data': json.dumps(response)})
+
+        except (CinderAuthException, CinderApiAuthException, NovaAuthException,
+                NovaApiAuthException, KeystoneApiAuthException,
+                GoldstoneAuthError):
+            logger.exception("Error.")
+
+            return HttpResponse(status=401) if self.template_name is None \
+                else render(self.request, '401.html', status=401)
+
+        except ElasticsearchException:
+            return HttpResponse(content="Could not connect to the "
+                                "search backend",
+                                status=status.HTTP_504_GATEWAY_TIMEOUT)
 
 
 class HelpView(TemplateView):
