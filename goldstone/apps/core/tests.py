@@ -25,14 +25,17 @@ import arrow
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase
+import elasticsearch
 from elasticsearch.client import IndicesClient
 import mock
 from mock import patch
 from rest_framework import status
+import rest_framework
 from rest_framework.renderers import JSONRenderer
 from rest_framework.test import APISimpleTestCase
 
 from goldstone.apps.core import tasks
+from goldstone.apps.core.utils import custom_exception_handler
 from goldstone.apps.core.views import ElasticViewSetMixin
 from goldstone.models import es_conn
 from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
@@ -723,3 +726,73 @@ class PolyResourceModelTests(SimpleTestCase):
         resource = PolyResource(name='polly')
         result = resource.events().to_dict()
         self.assertTrue(expectation in result['query']['bool']['must'])
+
+
+class JsonReadOnlyViewSetTests(SimpleTestCase):
+    """Not testing due to upcoming replacement with PolyResource model."""
+    pass
+
+
+class CustomExceptionHandlerTests(APISimpleTestCase):
+    """Tests for DRF custom exception handling."""
+
+    def test_drf_handled_exception(self):
+        """Test that we pass DRF recognized exceptions through unmodified"""
+        with patch(
+                'goldstone.apps.core.utils.exception_handler') \
+                as exception_handler:
+
+            exception_handler.return_value = "it's handled"
+            result = custom_exception_handler(None, None)
+            self.assertTrue(exception_handler.called)
+            self.assertEqual(result, "it's handled")
+
+    def test_502_error_exceptions(self):
+        """Test ES connection exception is handled"""
+        with patch(
+                'goldstone.apps.core.utils.exception_handler') \
+                as exception_handler:
+
+            exception_handler.return_value = None
+            result = custom_exception_handler(
+                elasticsearch.exceptions.ConnectionError("oops"), None)
+            self.assertTrue(exception_handler.called)
+            self.assertEqual(result.status_code, 502)
+
+    def test_500_error_exceptions(self):
+        """Test ES connection exception is handled"""
+        with patch(
+                'goldstone.apps.core.utils.exception_handler') \
+                as exception_handler:
+
+            exception_handler.return_value = None
+            result = custom_exception_handler(
+                elasticsearch.exceptions.SerializationError("oops"), None)
+            self.assertTrue(exception_handler.called)
+            self.assertEqual(result.status_code, 500)
+
+            result = custom_exception_handler(
+                elasticsearch.exceptions.ImproperlyConfigured("oops"), None)
+            self.assertTrue(exception_handler.called)
+            self.assertEqual(result.status_code, 500)
+
+            result = custom_exception_handler(
+                elasticsearch.exceptions.TransportError("oops"), None)
+            self.assertTrue(exception_handler.called)
+            self.assertEqual(result.status_code, 500)
+
+            exception_handler.return_value = None
+            result = custom_exception_handler(Exception("oops"), None)
+            self.assertTrue(exception_handler.called)
+            self.assertEqual(result.status_code, 500)
+
+    def test_not_exception(self):
+        """Test ES connection exception is handled"""
+        with patch(
+                'goldstone.apps.core.utils.exception_handler') \
+                as exception_handler:
+
+            exception_handler.return_value = None
+            result = custom_exception_handler('what??', None)
+            self.assertTrue(exception_handler.called)
+            self.assertEqual(result, None)

@@ -458,6 +458,7 @@ class ServicesData(TopologyData):
 # This is the beginning of the new polymorphic resource model support
 #
 class Host(PolyResource):
+    """A representation for a Openstack host"""
 
     fqdn = CharField(
         max_length=255,
