@@ -1,1 +1,1 @@
-"""Api_perf application."""
+"""DRFES application."""
