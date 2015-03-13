@@ -12,18 +12,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from django.http import QueryDict
-from elasticsearch_dsl import Search
+
 from rest_framework.test import APITestCase
+
+from elasticsearch_dsl import Search
+from elasticsearch_dsl.result import Response
+
+from goldstone.apps.drfes.views import ElasticListAPIView
 from goldstone.apps.drfes.filters import ElasticFilter
 from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
-from elasticsearch_dsl.result import Response
-from mock import patch, MagicMock
-from goldstone.apps.drfes.views import ElasticListAPIView
-import urllib
 
+from mock import MagicMock
 
 def dummy_response():
+    """Return a document for an Elasticsearch DSL Response object"""
+
     return {
         "_shards": {
             "failed": 0,
@@ -110,6 +115,7 @@ class FilterTests(APITestCase):
 
     def test__coerce_value_list(self):
         """Test that we properly coerce values to native python types"""
+
         expectation = [1426206062000, 1426206062000]
         quoted_value = '[1426206062000, 1426206062000]'
         filter = ElasticFilter()
@@ -117,12 +123,15 @@ class FilterTests(APITestCase):
         self.assertEqual(result, expectation)
 
     def test__coerce_value_exception(self):
+        """Test coercion failure that returns the original string"""
+
         expectation = '2015-03-12T00:12:55.500814+00:00'
         filter = ElasticFilter()
         result = filter._coerce_value(expectation)
         self.assertEqual(result, expectation)
 
     def test_filter_queryset(self):
+        """Test filtering of search objects"""
 
         expectation = {'query': {'bool': {'must':
                         [{'terms': {u'name': ['value1', 'value2']}},
@@ -141,7 +150,20 @@ class FilterTests(APITestCase):
         result = filter.filter_queryset(request, Search(), view)
         self.assertEqual(result.to_dict(), expectation)
 
+class PaginationTests(APITestCase):
+    """Not going to do it.
+
+    The paginator is mostly the same as the Django paginator.  The only
+    difference is that ours executes the search object.
+    """
+    pass
+
+
 class ViewTests(APITestCase):
+    """View testing
+
+    Testing the actual get would take a lot of mocking for little value since
+    it is pretty generic."""
 
     def test_model_not_set(self):
         """Test handling of no model"""
@@ -153,7 +175,7 @@ class ViewTests(APITestCase):
 
     def test_model_set(self):
         """Test handling when model is set"""
-        
+
         expectation = Search().query('match', field='value')
         view = ElasticListAPIView()
         view.Meta.model = MagicMock()
