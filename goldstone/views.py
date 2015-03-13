@@ -87,6 +87,14 @@ def validate(arg_list, context):
             except Exception:       # pylint: disable=W0703
                 validation_errors.append(BAD_PARAMETER % "interval")
 
+    # TODO: Once the render parameter is removed from the rest of the codebase,
+    # this if block can be deleted.
+    if 'render' in arg_list:
+        if context['render'] in ["True", "False"]:
+            context['render'] = bool(context['render'])
+        else:
+            validation_errors.append(BAD_PARAMETER % "render")
+
     # Return HttpResponseBadRequest if there were validation errors,
     # otherwise return the context.
     return \
@@ -141,8 +149,10 @@ class DiscoverView(TemplateView, TopologyMixin):
     only one element, it will be used as the root node, otherwise a "cloud"
     resource will be constructed as the root.
 
-    The caller should define an init function that pulls data from a subclass
-    of model.TopologyData.
+    The caller should:
+       - override "template_name"
+       - define an init function that pulls data from a subclass of
+         model.TopologyData.
 
     A resource has the following structure:
 
@@ -159,7 +169,7 @@ class DiscoverView(TemplateView, TopologyMixin):
 
     # TODO: Remove the Django template once the client implements Backbone
     # views. To do this, replace TemplateView with APIView, delete the
-    # template_name attribute, .render_to_response, and
+    # template_name attribute, get_context_data, .render_to_response, and
     # templates/goldstone_discover.html. Then, uncomment .get().
 
     template_name = 'goldstone_discover.html'
@@ -284,6 +294,21 @@ class DiscoverView(TemplateView, TopologyMixin):
             return rl[0]
         else:
             return {"rsrcType": "error", "label": "No data found"}
+
+    def get_context_data(self, **kwargs):
+        """Return the template context."""
+
+        context = TemplateView.get_context_data(self, **kwargs)
+        context['render'] = self.request.GET.get('render', "True"). \
+            lower().capitalize()
+
+        # If render is true, we will return a full template, otherwise only
+        # a json data payload.
+        if context['render'] != 'True':
+            self.template_name = None
+            TemplateView.content_type = 'application/json'
+
+        return context
 
     # def get(self, _):
     #     """Return a topology tree."""
