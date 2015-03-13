@@ -14,17 +14,19 @@
 # limitations under the License.
 
 from django.http import QueryDict
+import elasticsearch
 
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APISimpleTestCase
 
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.result import Response
+from goldstone.apps.drfes.utils import custom_exception_handler
 
 from goldstone.apps.drfes.views import ElasticListAPIView
 from goldstone.apps.drfes.filters import ElasticFilter
 from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
 
-from mock import MagicMock
+from mock import MagicMock, patch
 
 
 def dummy_response():
@@ -150,8 +152,11 @@ class FilterTests(APITestCase):
         )
         request.query_params = params
 
-        result = filter.filter_queryset(request, Search(), view)
-        self.assertDictEqual(result.to_dict(), expectation)
+        result = filter.filter_queryset(request, Search(), view).to_dict()
+        self.assertTrue({'terms': {u'name': ['value1', 'value2']}} in
+                        result['query']['bool']['must'])
+        self.assertTrue(
+            {'match': {u'name': 'value'}} in result['query']['bool']['must'])
 
 
 class PaginationTests(APITestCase):
@@ -186,3 +191,68 @@ class ViewTests(APITestCase):
         view.Meta.model.return_value = 'Some'
         view.Meta.model.search.return_value = expectation
         self.assertEqual(view.get_queryset(), expectation)
+
+
+class CustomExceptionHandlerTests(APITestCase):
+    """Tests for DRF custom exception handling."""
+
+    def test_drf_handled_exception(self):
+        """Test that we pass DRF recognized exceptions through unmodified"""
+        with patch(
+                'goldstone.apps.drfes.utils.exception_handler') \
+                as exception_handler:
+
+            exception_handler.return_value = "it's handled"
+            result = custom_exception_handler(None, None)
+            self.assertTrue(exception_handler.called)
+            self.assertEqual(result, "it's handled")
+
+    def test_502_error_exceptions(self):
+        """Test ES connection exception is handled"""
+        with patch(
+                'goldstone.apps.drfes.utils.exception_handler') \
+                as exception_handler:
+
+            exception_handler.return_value = None
+            result = custom_exception_handler(
+                elasticsearch.exceptions.ConnectionError("oops"), None)
+            self.assertTrue(exception_handler.called)
+            self.assertEqual(result.status_code, 502)
+
+    def test_500_error_exceptions(self):
+        """Test ES connection exception is handled"""
+        with patch(
+                'goldstone.apps.drfes.utils.exception_handler') \
+                as exception_handler:
+
+            exception_handler.return_value = None
+            result = custom_exception_handler(
+                elasticsearch.exceptions.SerializationError("oops"), None)
+            self.assertTrue(exception_handler.called)
+            self.assertEqual(result.status_code, 500)
+
+            result = custom_exception_handler(
+                elasticsearch.exceptions.ImproperlyConfigured("oops"), None)
+            self.assertTrue(exception_handler.called)
+            self.assertEqual(result.status_code, 500)
+
+            result = custom_exception_handler(
+                elasticsearch.exceptions.TransportError("oops"), None)
+            self.assertTrue(exception_handler.called)
+            self.assertEqual(result.status_code, 500)
+
+            exception_handler.return_value = None
+            result = custom_exception_handler(Exception("oops"), None)
+            self.assertTrue(exception_handler.called)
+            self.assertEqual(result.status_code, 500)
+
+    def test_not_exception(self):
+        """Test ES connection exception is handled"""
+        with patch(
+                'goldstone.apps.drfes.utils.exception_handler') \
+                as exception_handler:
+
+            exception_handler.return_value = None
+            result = custom_exception_handler('what??', None)
+            self.assertTrue(exception_handler.called)
+            self.assertEqual(result, None)
