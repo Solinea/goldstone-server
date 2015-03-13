@@ -94,6 +94,7 @@ class Register(Setup):
                 json.dumps({"username": user, "password": "x"}),
                 content_type="application/json")
 
+            # pylint: disable=E1101
             self.assertEqual(response.status_code, HTTP_201_CREATED)
 
         self.assertEqual(get_user_model().objects.count(), 2)
@@ -131,6 +132,7 @@ class Register(Setup):
                                     content_type="application/json")
 
         # Check the results.
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_201_CREATED)
 
         response_content = json.loads(response.content)
@@ -346,6 +348,7 @@ class Password(Setup):
                                          "new_password": "boom"}),
                              content_type="application/json")
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
 
         # Test logging in using the old password.
@@ -404,6 +407,7 @@ class Password(Setup):
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
         # Test logging in using the old password.
@@ -433,6 +437,7 @@ class Password(Setup):
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
         # Test logging in using the old password.
@@ -461,6 +466,7 @@ class Password(Setup):
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
         # Test logging in using the old password.
@@ -479,6 +485,8 @@ class Password(Setup):
                         "new_password": "boom"}),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Test logging in using the new password.
@@ -578,6 +586,7 @@ class PasswordReset(Setup):
         response = self.client.post(PASSWORD_RESET_URL,
                                     content_type="application/json")
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
         # Test that send_email was not called.
@@ -605,6 +614,7 @@ class PasswordReset(Setup):
                              json.dumps({"email": "zippl@nyahnyah.org"}),
                              content_type="application/json")
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Test that send_email was not called.
