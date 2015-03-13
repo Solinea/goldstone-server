@@ -115,23 +115,6 @@ if [[ $# == 1 && $1 == 1 ]] ; then
     chkconfig --add celeryd-event-stream
     chkconfig celeryd-event-stream on
 
-    if [[ $ENV_NOT_SET != 1 ]] ; then
-        service httpd restart
-        service celerybeat start
-        service celeryd-default start
-        service celeryd-host-stream start
-        service celeryd-event-stream start
-    else 
-        echo "***********************************************************************"
-        echo "*  To configure goldstone, add the following OpenStack parameters to  *"
-        echo "*  /opt/goldstone/goldstone/settings/production.py and reboot after:   *"
-        echo "*  installation has completed:                                        *"
-	    echo "*     OS_USERNAME                                                     *"
-	    echo "*     OS_TENANT_NAME                                                  *"
-	    echo "*     OS_PASSWORD                                                     *"
-	    echo "*     OS_AUTH_URL                                                     *"
-        echo "***********************************************************************"
-    fi
 else
     service httpd restart
     service celerybeat restart
