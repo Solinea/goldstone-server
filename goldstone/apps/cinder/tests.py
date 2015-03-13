@@ -55,8 +55,10 @@ class ViewTests(SimpleTestCase):
     """Test api_perf."""
 
     def test_report_view(self):
-        uri = '/cinder/report'
-        response = self.client.get(uri)
+
+        URI = '/cinder/report'
+
+        response = self.client.get(URI)   # pylint: disable=E1101
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'cinder_report.html')
 

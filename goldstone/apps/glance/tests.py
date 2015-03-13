@@ -61,7 +61,7 @@ class ViewTests(SimpleTestCase):
         URI = '/glance/report'
 
         response = self.client.get(URI)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)   # pylint: disable=E1101
         self.assertTemplateUsed(response, 'glance_report.html')
 
 

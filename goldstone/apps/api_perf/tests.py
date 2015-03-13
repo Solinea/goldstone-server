@@ -135,6 +135,7 @@ class ApiPerfTests(SimpleTestCase):
         for hit in result.hits:
             hit.delete()
 
+        # pylint: disable=W0212
         self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
 
     def test_persist_and_retrieve(self):
@@ -178,6 +179,7 @@ class ApiPerfTests(SimpleTestCase):
         self.assertTrue(created)
 
         # force flush
+        # pylint: disable=W0212
         self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
 
         # test a search with no hits
@@ -253,6 +255,7 @@ class ApiPerfTests(SimpleTestCase):
             self.assertTrue(created)
 
         # force flush
+        # pylint: disable=W0212
         self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
 
         result = ApiPerfData.get_stats(range_begin,
@@ -282,7 +285,8 @@ class ApiPerfTests(SimpleTestCase):
         response = self.client.get(
             uri,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(response.status_code, 200)  # pylint: disable=E1101
 
     def test_api_perf_view_get_data(self):
 

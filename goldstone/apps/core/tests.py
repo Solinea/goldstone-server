@@ -136,6 +136,7 @@ class NodeViewTests(APISimpleTestCase):
             '/core/nodes',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             len(response.data['results']), 4)  # pylint: disable=E1101
@@ -148,8 +149,8 @@ class NodeViewTests(APISimpleTestCase):
             '/core/nodes?managed=true',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'],
                          'true')
@@ -164,8 +165,8 @@ class NodeViewTests(APISimpleTestCase):
             '/core/nodes?managed=false',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'], 'false')
         self.assertEqual(response.data['results'][1]['managed'], 'false')
@@ -178,8 +179,8 @@ class NodeViewTests(APISimpleTestCase):
             '/core/nodes?managed=true',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'],
                          'true')
@@ -205,8 +206,8 @@ class NodeViewTests(APISimpleTestCase):
             '/core/nodes?managed=false',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'], 'false')
 
@@ -232,8 +233,8 @@ class NodeViewTests(APISimpleTestCase):
             '/core/nodes?managed=false',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['managed'], 'false')
 
@@ -264,12 +265,13 @@ class NodeViewTests(APISimpleTestCase):
             '/core/nodes',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 4)
 
         uuid = response.data['results'][0]['id']
         data = response.data['results'][0]
+
         # pylint: enable=E1101
         data['name'] = 'test123123'
         response = self.client.put(
@@ -288,11 +290,12 @@ class NodeViewTests(APISimpleTestCase):
             '/core/nodes',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         # pylint: disable=E1101
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 4)
 
         uuid = response.data['results'][0]['id']
+
         # pylint: enable=E1101
         data = {'name': 'test123'}
         response = self.client.patch(

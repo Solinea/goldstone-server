@@ -336,8 +336,11 @@ class ReportTemplateViewTest(SimpleTestCase):
 class TopologyDataTest(SimpleTestCase):
 
     def test_sort_arg(self):
+
+        # pylint: disable=W0212
         with self.assertRaises(ValueError):
             TopologyData._sort_arg("key", "bad")
+
         self.assertEquals(TopologyData._sort_arg("key", "+"), "key")
         self.assertEquals(TopologyData._sort_arg("key", "asc"), "key")
         self.assertEquals(TopologyData._sort_arg("key", "-"), "-key")

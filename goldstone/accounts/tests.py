@@ -379,6 +379,7 @@ class Password(Setup):
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
 
         # Test logging in using the old password.
