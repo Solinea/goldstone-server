@@ -465,4 +465,3 @@ class Host(PolyResource):
 
     def __init__(self, *args, **kwargs):
         super(Host, self).__init__(*args, **kwargs)
-

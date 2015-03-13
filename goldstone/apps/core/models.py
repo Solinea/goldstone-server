@@ -388,4 +388,3 @@ class PolyResource(PolymorphicModel):
         """Retrieve configuration from ES for this resource."""
 
         raise NotImplementedError("Override this method in a subclass")
-

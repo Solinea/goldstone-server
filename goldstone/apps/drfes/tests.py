@@ -26,6 +26,7 @@ from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
 
 from mock import MagicMock
 
+
 def dummy_response():
     """Return a document for an Elasticsearch DSL Response object"""
 
@@ -133,9 +134,11 @@ class FilterTests(APITestCase):
     def test_filter_queryset(self):
         """Test filtering of search objects"""
 
-        expectation = {'query': {'bool': {'must':
-                        [{'terms': {u'name': ['value1', 'value2']}},
-                         {'match': {u'name': 'value'}}]}}}
+        expectation = {
+            'query': {'bool':
+                      {'must':
+                       [{'terms': {u'name': ['value1', 'value2']}},
+                        {'match': {u'name': 'value'}}]}}}
         view = ElasticListAPIView()
         filter = ElasticFilter()
         request = MagicMock()
@@ -148,7 +151,8 @@ class FilterTests(APITestCase):
         request.query_params = params
 
         result = filter.filter_queryset(request, Search(), view)
-        self.assertEqual(result.to_dict(), expectation)
+        self.assertDictEqual(result.to_dict(), expectation)
+
 
 class PaginationTests(APITestCase):
     """Not going to do it.

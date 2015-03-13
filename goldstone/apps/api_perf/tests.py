@@ -297,4 +297,3 @@ class ApiPerfTests(SimpleTestCase):
         result = perfview._get_data(context)           # pylint: disable=W0212
         self.assertIsInstance(result, DataFrame)
         self.assertNotEqual(len(result), 0)
-

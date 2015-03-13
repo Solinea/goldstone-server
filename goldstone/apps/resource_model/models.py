@@ -84,6 +84,7 @@ class KeystoneProject(PolyResource):
     def __init__(self, *args, **kwargs):
         return super(KeystoneProject, self).__init__(*args, **kwargs)
 
+
 class KeystoneUser(PolyResource):
     """ reflection of a user in keystone"""
 
