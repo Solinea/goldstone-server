@@ -76,9 +76,8 @@ def login(username, password):
     response = client.post(LOGIN_URL,
                            {"username": username, "password": password})
 
-    assert response.status_code == HTTP_200_OK
-
     # pylint: disable=E1101
+    assert response.status_code == HTTP_200_OK
     assert isinstance(response.data["auth_token"], basestring)
 
     return response.data["auth_token"]      # pylint: disable=E1101
