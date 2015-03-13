@@ -261,11 +261,7 @@ OS_AUTH_URL_MAX_LENGTH = 80
 TENANT_NAME_MAX_LENGTH = 80
 TENANT_OWNER_MAX_LENGTH = 80
 
-# Settings for the Djoser package, which is used for login and
-# password-resetting. We automatically login and activate after registration.
-#
-# Please ensure the DOMAIN value is correct.
-# Please set the value for SITE_NAME.
+# Settings for the Djoser package.
 DJOSER = {'DOMAIN': getfqdn(),
           'SITE_NAME': 'NAME_OF_YOUR_SITE',
           'PASSWORD_RESET_CONFIRM_URL':

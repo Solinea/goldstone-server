@@ -204,6 +204,7 @@ class Tenants(Setup):
                                     them when it creates a tenant.
 
         """
+        from django.conf import settings
 
         # The expected content, sans uuids.
         EXPECTED_CONTENT = \
@@ -274,7 +275,7 @@ class Tenants(Setup):
             # site name
             self.assertEqual(
                 send_email.call_args_list[entry][0][2]["site_name"],
-                "YOUR_EMAIL_SITE_NAME")
+                settings.DJOSER["SITE_NAME"])
             # The name of the newly created tenant.
             self.assertEqual(
                 send_email.call_args_list[entry][0][2]["tenant_name"],
