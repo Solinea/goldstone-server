@@ -1,4 +1,4 @@
-"""Custom Django Rest Framework (>3.1) Filters"""
+"""DRFES Filters."""
 # Copyright '2015' Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -24,7 +24,8 @@ class ElasticFilter(BaseFilterBackend):
     supported.
     """
 
-    def _update_queryset(self, param, value, view, queryset, op='match'):
+    @staticmethod
+    def _update_queryset(param, value, view, queryset, op='match'):
         """Builds a query, preferring the raw field if available.
 
         :param param: the field name in ES
