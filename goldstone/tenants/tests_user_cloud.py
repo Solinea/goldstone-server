@@ -208,6 +208,7 @@ class TenantsIdUsers(Setup):
             TENANTS_ID_USERS_URL % tenant.uuid.hex,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         response_content = json.loads(response.content)
@@ -982,6 +983,7 @@ class TenantsIdCloud(Setup):
             TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         response_content = json.loads(response.content)

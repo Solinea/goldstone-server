@@ -349,6 +349,7 @@ class Tenants(Setup):
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_201_CREATED)
         self.assertEqual(send_email.call_count, 1)
 
@@ -620,6 +621,7 @@ class TenantsId(Setup):
             TENANTS_ID_URL % tenant.uuid.hex,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_204_NO_CONTENT)
 
         # Make sure the tenant and tenant_admin no longer exist, and the Django
@@ -660,6 +662,7 @@ class TenantsId(Setup):
             TENANTS_ID_URL % tenant.uuid.hex,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_204_NO_CONTENT)
 
         # Make sure the tenant and non-Django admin tenant members are gone,
@@ -705,6 +708,7 @@ class TenantsId(Setup):
             TENANTS_ID_URL % tenant.uuid.hex,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_204_NO_CONTENT)
 
         # Check who's still here.
