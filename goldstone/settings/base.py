@@ -76,7 +76,6 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'south',
-    'crispy_forms',
     'django.contrib.contenttypes',
     'goldstone.accounts',
     'goldstone.apps.core',
@@ -143,9 +142,6 @@ STATICFILES_ROOT = '/usr/share/nginx/html/static'
 
 # this is sort of a hack until we get our server strategy figured out.
 STATIC_URL = '/static/'
-
-# Crispy Forms
-CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 MAILHOST = 'localhost'
 
