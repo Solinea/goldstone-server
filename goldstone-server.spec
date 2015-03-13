@@ -115,6 +115,12 @@ if [[ $# == 1 && $1 == 1 ]] ; then
     chkconfig --add celeryd-event-stream
     chkconfig celeryd-event-stream on
 
+    # Start Goldstone.
+    service httpd restart
+    service celerybeat start
+    service celeryd-default start
+    service celeryd-host-stream start
+    service celeryd-event-stream start
 else
     service httpd restart
     service celerybeat restart
