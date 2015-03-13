@@ -110,16 +110,25 @@ Install the Goldstone application:
 
 This package installation may take up to 30 minutes to run, as it needs to compile a number of libraries.
 
-If this is a re-install or update of Goldstone, the
-/opt/goldstone/goldstone/settings/production.py file will not have been
-updated. The new version from Solinea will be in
-/opt/goldstone/goldstone/settings/production.py.rpmnew. Compare
-/opt/goldstone/goldstone/settings/production.py with
-/opt/goldstone/goldstone/settings/production.py.rpmnew, and migrate the Solinea
-changes from the .rpmnew file into the .py file. (Or, if you did not previously
-customize production.py, you can simply move
-/opt/goldstone/goldstone/settings/production.py.rpmnew into
-/opt/goldstone/goldstone/settings.production.py.)
+REVIEW PRODUCTION.PY
+********************
+
+If this is a first-time install of Goldstone, skip this section.
+
+If this is a re-install of Goldstone, a
+new ``production.py`` file from Solinea will be in
+``/opt/goldstone/goldstone/settings/production.py.rpmnew``.
+
+Compare ``/opt/goldstone/goldstone/settings/production.py`` to
+``/opt/goldstone/goldstone/settings/production.py.rpmnew``, and migrate any changes from Solinea into the ``.py`` file. If you did not previously customize ``production.py``, you can simply do this:
+
+  .. code:: bash
+
+    $ mv /opt/goldstone/goldstone/settings/production.py.rpmnew /opt/goldstone/goldstone/settings.production.py.
+
+
+INITIALIZE GOLDSTONE
+********************
 
 To finish initializing the Goldstone installation:
 
@@ -134,7 +143,7 @@ TEST PASSWORD RESET
 
 Goldstone's login page includes a password-reset link. Please test it.
 
-If the links in the password-reset e-mail do not work, you'll need to adjust the settings in /opt/goldstone/goldstone/settings/production.py. Look for the, "DJOSER," dictionary.
+If the links in the password-reset e-mail do not work, you'll need to adjust the settings in ``/opt/goldstone/goldstone/settings/production.py``. Look for the ``DJOSER`` dictionary.
 
 
 DIRECT LOGS TO GOLDSTONE SERVER
