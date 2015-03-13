@@ -32,10 +32,10 @@ class DiscoverTree(TopologyMixin):
         cloud = get_cloud()
 
         keystone = get_client('keystone',
-                              cloud.os_username,
-                              cloud.os_password,
-                              cloud.os_tenant_name,
-                              cloud.os_auth_url)['client']
+                              cloud.username,
+                              cloud.password,
+                              cloud.tenant_name,
+                              cloud.auth_url)['client']
 
         return [{"rsrcType": "region",
                  "label": _get_region_for_glance_client(keystone)}]

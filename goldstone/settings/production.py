@@ -54,8 +54,8 @@ STATIC_URL = '/static/'
 # Settings for the Djoser package, which is used for login and
 # password-resetting. We automatically login and activate after registration.
 #
-# Please ensure that the DOMAIN value is correct.
-# Please ensure that the SITE_NAME value is correct.
+# Please review the DOMAIN value.
+# Please review the SITE_NAME value.
 DJOSER = {'DOMAIN': getfqdn(),
           'SITE_NAME': 'Goldstone',
           'PASSWORD_RESET_CONFIRM_URL':

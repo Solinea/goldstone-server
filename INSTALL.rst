@@ -129,6 +129,14 @@ To finish initializing the Goldstone installation:
     $ fab goldstone_init
 
 
+TEST PASSWORD RESET
+*******************
+
+Goldstone's login page includes a password-reset link. Please test it.
+
+If the links in the password-reset e-mail do not work, you'll need to adjust the settings in /opt/goldstone/goldstone/settings/production.py. Look for the, "DJOSER," dictionary.
+
+
 DIRECT LOGS TO GOLDSTONE SERVER
 *******************************
 
