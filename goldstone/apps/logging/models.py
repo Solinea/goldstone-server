@@ -177,6 +177,7 @@ class LogData(DocType):
         mapping = cls.get_field_mapping(field)
         try:
             return 'raw' in \
-                mapping[index]['mappings'][cls._doc_type.name][field]['mapping'][field]['fields']
+                   mapping[index]['mappings'][cls._doc_type.name][field][
+                       'mapping'][field]['fields']
         except KeyError:
             return False

@@ -254,7 +254,6 @@ class TenantsViewSet(BaseViewSet):
         return super(TenantsViewSet, self).list(request, *args, **kwargs)
 
 
-
 class UserViewSet(BaseViewSet):
     """A ViewSet for the User table, which is used only in this app's
     "parent/child" views."""

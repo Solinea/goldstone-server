@@ -324,6 +324,7 @@ def django_admin_only(wrapped_function):
 
     return _wrapper
 
+
 def is_ipv4_addr(candidate):
     """Check a string to see if it is a valid v4 ip address
 
@@ -368,4 +369,3 @@ def partition_hostname(hostname):
     parts = hostname.partition('.')
     return dict(hostname=parts[0],
                 domainname=parts[2] if parts[1] == '.' else None)
-

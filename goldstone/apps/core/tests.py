@@ -36,7 +36,8 @@ from goldstone.apps.core import tasks
 from goldstone.apps.core.views import ElasticViewSetMixin
 from goldstone.models import es_conn
 from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
-from .models import EventType, Event, MetricType, Metric, ReportType, Report
+from .models import EventType, Event, MetricType, Metric, ReportType, Report, \
+    PolyResource
 from .serializers import EventSerializer, ReportSerializer
 
 logger = logging.getLogger(__name__)
@@ -695,3 +696,30 @@ class ReportListViewTests(APISimpleTestCase):
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class PolyResourceModelTests(SimpleTestCase):
+    """Test the PolyResourceModel."""
+
+    def test___hashable(self):
+        """test the hashable representation of a resource."""
+
+        resource = PolyResource(name='polly')._hashable()
+        self.assertTrue('"name":"polly"' in resource)
+
+    def test_logs(self):
+        """test that the logs method returns an appropriate search object."""
+
+        expectation = {'query': {'query_string': {'query': 'polly'}}}
+        resource = PolyResource(name='polly')
+        result = resource.logs().to_dict()
+        self.assertDictEqual(expectation, result)
+
+    def test_events(self):
+        """test that the events method returns an appropriate search object."""
+
+        expectation = {"query_string":
+                       {"query": "\"polly\"", "default_field": "_all"}}
+        resource = PolyResource(name='polly')
+        result = resource.events().to_dict()
+        self.assertTrue(expectation in result['query']['bool']['must'])
