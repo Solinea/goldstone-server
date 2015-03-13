@@ -499,6 +499,7 @@ class PasswordReset(Setup):
 
     def _check_response(self, response, send_email):
         """A simple response checker for this test class."""
+        from django.conf import settings
 
         self.assertEqual(response.status_code, HTTP_200_OK)
 
@@ -509,8 +510,8 @@ class PasswordReset(Setup):
         self.assertEqual(send_email.call_args[0][1],
                          "webmaster@localhost")  # from
         self.assertEqual(send_email.call_args[0][2]["site_name"],
-                         "YOUR_EMAIL_SITE_NAME")  # The site name
-        self.assertIn("#/password/reset/confirm/",
+                         settings.DJOSER["SITE_NAME"])  # The site name
+        self.assertIn("accounts/password/reset/confirm/",
                       send_email.call_args[0][2]["url"])  # The confirm url
 
         # A simple check that the confirmation URL is about the right length.

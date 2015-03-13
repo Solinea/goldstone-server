@@ -240,6 +240,7 @@ class TenantsIdUsers(Setup):
             :type user_number: int
 
             """
+            from django.conf import settings
 
             response = self.client.post(
                 TENANTS_ID_USERS_URL % tenant.uuid.hex,
@@ -262,7 +263,7 @@ class TenantsIdUsers(Setup):
             self.assertEqual(send_email.call_args[0][1],
                              "webmaster@localhost")  # from
             self.assertEqual(send_email.call_args[0][2]["site_name"],
-                             "YOUR_EMAIL_SITE_NAME")  # The site name
+                             settings.DJOSER["SITE_NAME"])  # The site name
             self.assertIn("tenant", send_email.call_args[0][2]["tenant_name"])
             self.assertEqual(send_email.call_args[1],
                              {'plain_body_template_name':
@@ -939,7 +940,7 @@ class TenantsIdCloud(Setup):
                          "username": "YOLO",
                          "password": "ZOMG",
                          "auth_url": "http://lol.com"},
-        ]
+                        ]
 
         OTHER_CLOUD = [{"tenant_name": "lisa",
                         "username": "sad lisa lisa",
@@ -949,7 +950,7 @@ class TenantsIdCloud(Setup):
                         "username": "right",
                         "password": "center",
                         "auth_url": "http://down.com"},
-        ]
+                       ]
 
         EXPECTED_RESULT = TENANT_CLOUD
 
@@ -1005,7 +1006,7 @@ class TenantsIdCloud(Setup):
                          "username": "ffffffffuuuuu",
                          "password": "gah",
                          "auth_url": "http://route66.com"},
-        ]
+                        ]
 
         # Make a tenant
         tenant = Tenant.objects.create(name='tenant',
@@ -1198,7 +1199,7 @@ class TenantsIdCloudId(Setup):
                          "username": "ffffffffuuuuu",
                          "password": "gah",
                          "auth_url": "http://route66.com"},
-        ]
+                        ]
 
         # Make a tenant.
         tenant = Tenant.objects.create(name='tenant 1',
