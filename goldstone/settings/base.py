@@ -263,7 +263,7 @@ TENANT_OWNER_MAX_LENGTH = 80
 
 # Settings for the Djoser package.
 DJOSER = {'DOMAIN': getfqdn(),
-          'SITE_NAME': 'NAME_OF_YOUR_SITE',
+          'SITE_NAME': 'Goldstone',
           'PASSWORD_RESET_CONFIRM_URL':
           'accounts/password/reset/confirm/{uid}/{token}',
           'ACTIVATION_URL': '#/activate/{uid}/{token}',
