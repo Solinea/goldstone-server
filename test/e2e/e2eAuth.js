@@ -2,7 +2,7 @@
 
 // increase Default timeout for wait* family functions:
 // default = 5000
-casper.options.waitTimeout = 20000;
+casper.options.waitTimeout = 30000;
 
 // default viewportSize inherited from PhantomJS: 400wx300h
 casper.options.viewportSize = {
