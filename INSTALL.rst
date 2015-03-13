@@ -110,6 +110,17 @@ Install the Goldstone application:
 
 This package installation may take up to 30 minutes to run, as it needs to compile a number of libraries.
 
+If this is a re-install or update of Goldstone, the
+/opt/goldstone/goldstone/settings/production.py file will not have been
+updated. The new version from Solinea will be in
+/opt/goldstone/goldstone/settings/production.py.rpmnew. Compare
+/opt/goldstone/goldstone/settings/production.py with
+/opt/goldstone/goldstone/settings/production.py.rpmnew, and migrate the Solinea
+changes from the .rpmnew file into the .py file. (Or, if you did not previously
+customize production.py, you can simply move
+/opt/goldstone/goldstone/settings/production.py.rpmnew into
+/opt/goldstone/goldstone/settings.production.py.)
+
 To finish initializing the Goldstone installation:
 
   .. code:: bash
