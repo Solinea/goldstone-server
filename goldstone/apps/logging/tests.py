@@ -94,15 +94,15 @@ class LogDataModelTests(SimpleTestCase):
         with patch.object(Search, 'execute') as execute:
             execute.return_value.aggregations = 'hi there!'
 
-            self.assertEqual(LogData.ranged_log_agg(), 'hi there!')
-            self.assertEqual(LogData.ranged_log_agg(per_host=False),
+            self.assertEqual(LogData.ranged_log_agg(Search()), 'hi there!')
+            self.assertEqual(LogData.ranged_log_agg(Search(), per_host=False),
                              'hi there!')
 
     def test_ranged_log_agg_assertion(self):
         """ranged_log_agg asserts that the interval is a string"""
 
         with self.assertRaises(AssertionError):
-            LogData.ranged_log_agg(interval=1)
+            LogData.ranged_log_agg(Search(), interval=1)
 
     def test_ranged_log_search_start_assertion(self):
         """ranged_log_search asserts that end is an Arrow"""
