@@ -43,11 +43,8 @@ class LogData(DocType):
         ).using(es_conn())
 
     @classmethod
-    def ranged_log_search(cls, start=None, end=None, hosts=[],
-                          interval=None,
-                          by_level=True):
-        """ Returns a search with time range and hosts list terms, and
-        optionally, aggregations by date histogram, then log level."""
+    def ranged_log_search(cls, start=None, end=None, hosts=[]):
+        """ Returns a search with time range and hosts list terms"""
 
         import arrow
 
@@ -82,13 +79,6 @@ class LogData(DocType):
         if len(hosts) != 0:
             # the double underscore is translated to .
             search = search.query(query.Terms(host__raw=hosts))
-
-        # add an aggregation for time intervals
-        if interval is not None:
-            search.aggs.bucket('by_interval', "date_histogram",
-                               field="@timestamp",
-                               interval=interval,
-                               min_doc_count=0)
 
         return search.sort({"@timestamp": {"order": "desc"}}).using(es_conn())
 
@@ -173,9 +163,9 @@ class LogData(DocType):
         :return: Boolean
         """
 
-        index = most_recent_index(cls._INDEX_PREFIX)
-        mapping = cls.get_field_mapping(field)
         try:
+            index = most_recent_index(cls._INDEX_PREFIX)
+            mapping = cls.get_field_mapping(field)
             return 'raw' in \
                    mapping[index]['mappings'][cls._doc_type.name][field][
                        'mapping'][field]['fields']

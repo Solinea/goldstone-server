@@ -50,23 +50,9 @@ class LogAggView(APIView):
     permission_classes = (AllowAny,)
     serializer_class = LogAggSerializer
 
-    class ParamValidator(serializers.Serializer):
-        """An inner class that validates and deserializes the request context.
-        """
-        start = ArrowCompatibleField(
-            required=False,
-            allow_blank=True)
-        end = ArrowCompatibleField(
-            required=False,
-            allow_blank=True)
-        interval = IntervalField(
-            required=False,
-            allow_blank=True)
-        hosts = CSVField(
-            required=False,
-            allow_blank=True),
-        per_host = BooleanField(
-            default=True)
+    class Meta:
+        model = LogData
+        reserved_params = ['interval', 'per_host']
 
     def _get_data(self):
         return LogData.ranged_log_agg(**self.validated_params)

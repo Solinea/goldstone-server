@@ -24,6 +24,9 @@ class ElasticFilter(BaseFilterBackend):
     supported.
     """
 
+    class Meta:
+        reserved_params = []
+
     @staticmethod
     def _update_queryset(param, value, view, queryset, op='match'):
         """Builds a query, preferring the raw field if available.
@@ -72,7 +75,8 @@ class ElasticFilter(BaseFilterBackend):
 
         from django.db.models.constants import LOOKUP_SEP
 
-        reserved_params = [view.pagination_class.page_query_param,
+        reserved_params = self.Meta.reserved_params + \
+                          [view.pagination_class.page_query_param,
                            view.pagination_class.page_size_query_param]
 
         for param in request.query_params:
