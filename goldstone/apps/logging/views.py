@@ -43,7 +43,7 @@ class LogDataView(ElasticListAPIView):
         model = LogData
 
 
-class LogAggView(APIView):
+class LogAggView(ElasticListAPIView):
     """A view that handles requests for Logstash aggregations."""
 
     # TODO fix permission_classes to restrict
@@ -54,15 +54,13 @@ class LogAggView(APIView):
         model = LogData
         reserved_params = ['interval', 'per_host']
 
-    def _get_data(self):
-        return LogData.ranged_log_agg(**self.validated_params)
-
     def get(self, request, *args, **kwargs):
+        import ast
         """Return a response to a GET request."""
-        params = self.ParamValidator(data=request.query_params)
-        params.is_valid(raise_exception=True)
-        self.validated_params = params.to_internal_value(request.query_params)
-
-        data = self._get_data()
+        base_queryset = self.filter_queryset(self.get_queryset())
+        interval = self.request.query_params.get('interval', '1d')
+        per_host = ast.literal_eval(
+            self.request.query_params.get('per_host', 'True'))
+        data = LogData.ranged_log_agg(base_queryset, interval, per_host)
         serializer = self.serializer_class(data)
         return Response(serializer.data)

@@ -83,16 +83,11 @@ class LogData(DocType):
         return search.sort({"@timestamp": {"order": "desc"}}).using(es_conn())
 
     @classmethod
-    def ranged_log_agg(cls, start=None, end=None, hosts=[], interval='1d',
-                       per_host=True):
+    def ranged_log_agg(cls, base_queryset, interval='1d', per_host=True):
         """ Returns an aggregations by date histogram and maybe log level.
 
-        :type start: Arrow
-        :param start: start time of query range
-        :type end: Arrow
-        :param end: end time of query range
-        :type hosts: list
-        :param hosts: list of hosts to limit the query
+        :type base_queryset: Search
+        :param base_queryset: search to use as basis for aggregation
         :type interval: str
         :param interval: valid ES time interval such as 1m, 1h, 30s
         :type per_host: bool
@@ -105,8 +100,7 @@ class LogData(DocType):
 
         # we are not interested in the actual docs, so use the count search
         # type.
-        search = cls.ranged_log_search(
-            start, end, hosts).params(search_type="count")
+        search = base_queryset.params(search_type="count")
 
         # add an aggregation for time intervals
         search.aggs.bucket('per_interval', "date_histogram",
@@ -142,6 +136,8 @@ class LogData(DocType):
                 field='loglevel',
                 min_doc_count=0)
 
+        import json
+        logger.info('search = %s', json.dumps(search.to_dict()))
         response = search.execute().aggregations
         return response
 
