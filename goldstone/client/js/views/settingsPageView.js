@@ -127,7 +127,7 @@ var SettingsPageView = Backbone.View.extend({
         // password reset form
         '<div class="col-md-4">' +
         '<form class="password-reset-form">' +
-        '<h3>Change password</h3>' +
+        '<h3>Change Password</h3>' +
         '<label for="inputCurrentPassword">Current password</label>' +
         '<input name="current_password" type="password" class="form-control" placeholder="Current password" required>' +
         '<label for="inputNewPassword">New password</label>' +
