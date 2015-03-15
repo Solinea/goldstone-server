@@ -1,0 +1,100 @@
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Solinea Software License Agreement (goldstone),
+ * Version 1.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+This view makes up the "Details" tab of nodeReportView.js
+It is sub-classed from GoldstoneBaseView.
+
+Instantiated on nodeReportView as:
+
+this.detailsReport = new DetailsReportView({
+    el: '#node-report-panel #detailsReport'
+});
+*/
+
+var DetailsReportView = GoldstoneBaseView.extend({
+
+    defaults: {},
+
+    initialize: function(options) {
+        this.render();
+
+        // node data was stored in localStorage before the
+        // redirect from the discover page
+        var data = JSON.parse(localStorage.getItem('detailsTabData'));
+
+        // TODO: after utilizing the stored data, clear it
+        // from localStorage
+
+        if(data){
+            this.drawSingleRsrcInfoTable(data);
+        } else {
+            $('#details-single-rsrc-table').text('empty');
+        }
+    },
+
+    drawSingleRsrcInfoTable: function(json) {
+
+        // make a dataTable
+        var location = '#details-single-rsrc-table';
+        var oTable;
+        var keys = Object.keys(json);
+        var data = _.map(keys, function(k) {
+            if (json[k] === Object(json[k])) {
+                return [k, JSON.stringify(json[k])];
+            } else {
+                return [k, json[k]];
+            }
+        });
+
+        if ($.fn.dataTable.isDataTable(location)) {
+            oTable = $(location).DataTable();
+            oTable.clear().rows.add(data).draw();
+        } else {
+            var oTableParams = {
+                "data": data,
+                "autoWidth": true,
+                "info": false,
+                "paging": true,
+                "searching": true,
+                "columns": [{
+                    "title": "Key"
+                }, {
+                    "title": "Value"
+                }]
+            };
+            oTable = $(location).dataTable(oTableParams);
+        }
+    },
+
+    render: function() {
+        $(this.el).append(this.template());
+        return this;
+    },
+
+    template: _.template('' +
+        '<div class="panel panel-primary node_details_panel">' +
+        '<div class="panel-heading">' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> Resource Details' +
+        '</h3>' +
+        '</div>' +
+        '</div>' +
+
+        '<div class="panel-body">' +
+        '<table id="details-single-rsrc-table" class="table"></table>' +
+        '</div>'
+    )
+});
