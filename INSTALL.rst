@@ -45,17 +45,16 @@ First, enable the CentOS EPEL repositories and install some dependencies:
 
   .. code:: bash
 
-    $ # run as root
-    $ yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-    $ yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
+    $ sudo yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+    $ sudo yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
 
 Next, enable the elasticsearch and logstash repositories:
 
   .. code:: bash
 
-    $ # run as root
-    $ rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+    $ sudo rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
 
+    $ sudo bash
     $ cat > /etc/yum.repos.d/elasticsearch-1.4.repo <<EOF
     [elasticsearch-1.4]
     name=Elasticsearch repository for 1.4.x packages
@@ -73,18 +72,20 @@ Next, enable the elasticsearch and logstash repositories:
     gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
     enabled=1
     EOF
+    $ exit
 
 Create a Postgres Goldstone user, and initialize the database. 
       
   .. code:: bash
 
-    $ # run as root
+    $ Sudo bash
     $ service postgresql initdb
     $ chkconfig postgresql on
     $ service postgresql start
     $ su - postgres -c 'createdb goldstone'
     $ su - postgres -c 'createuser goldstone -d'
     $ su - postgres -c 'psql -c "alter user goldstone password \'goldstone\'"'
+    $ exit
 
 Edit ``/var/lib/pgsql/data/pg_hba.conf`` as 'postgres' user, and insert these 
 lines before any other uncommented local or host entries: ::
@@ -97,16 +98,14 @@ Reload the postgres configuration.
 
   .. code:: bash
 
-    $ # run as root
-    $ su - postgres -c 'pg_ctl reload'
+    $ sudo su - postgres -c 'pg_ctl reload'
 
 
 Install the Goldstone application: 
 
   .. code:: bash
 
-    $ # run as root
-    $ yum localinstall -y goldstone-server-{version}.rpm
+    $ sudo yum localinstall -y goldstone-server-{version}.rpm
 
 This package installation may take up to 30 minutes to run, as it needs to compile a number of libraries.
 
