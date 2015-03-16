@@ -1,39 +1,127 @@
-// e2e tests
+// e2eTests.js
+
+/*
+Colors available via 2nd param of casper.echo:
+ERROR: white text on red background
+INFO: green text
+TRACE: green text
+PARAMETER: cyan text
+COMMENT: yellow text
+WARNING: red text
+GREEN_BAR: white text on green background
+RED_BAR: white text on red background
+INFO_BAR: cyan text
+WARN_BAR: white text on orange background
+*/
+
+/*
+Continue post-auth with additional tests:
+*/
+
+/*
+print delimiting text between tests
+*/
 
 casper.test.setUp(function() {
-    casper.echo('beginning of test');
+    casper.echo('beginning of test', "WARNING");
 });
 
 casper.test.tearDown(function() {
-    casper.echo('end of test');
+    casper.echo('end of test', "WARNING");
 });
 
-casper.test.begin('Login Page is loading properly', 9, function suite(test) {
-    casper.start('http://localhost:8000/newhomepage', function() {
-        //title
-        test.assertTitle("goldstone", "Page title is 'goldstone'");
+/*
+begin tests
+*/
 
-        // navbar
-        test.assertExists('div.navbar', 'Navbar should load');
-        test.assertSelectorHasText('div.navbar', 'Report');
-        test.assertSelectorHasText('div.navbar', 'Logging');
+casper.test.begin('/settings page updates user personal settings / password', 8, function suite(test) {
 
-        // icons on right
-        test.assertExists('.fa-envelope-o', 'Contact icon should exist');
-        test.assertExists('.fa-bug', 'Feedback icon should exist');
-        test.assertExists('.fa-question', 'Help icon should exist');
-        test.assertExists('.fa-sign-out', 'Logout icon should exist');
+    casper.start('http://localhost:8000/settings', function() {
+        this.echo("Update Personal Settings form", "GREEN_BAR");
+        test.assertExists("form.settings-form");
+        test.assertSelectorHasText("form.settings-form h3", "Update Personal Settings");
 
-        //footer loads and is visible
-        test.assertVisible('div#footer', 'Footer showing');
+        // what does the Update Personal Settings form say?
+        this.echo('update personal settings form values: ', "GREEN_BAR");
+        this.echo('username: ' + this.getFormValues('form.settings-form').username, "INFO");
+        this.echo('first name: ' + this.getFormValues('form.settings-form').first_name, "INFO");
+        this.echo('last name: ' + this.getFormValues('form.settings-form').last_name, "INFO");
+        this.echo('email: ' + this.getFormValues('form.settings-form').email, "INFO");
+
+        // fill out new personal settings
+        var randomDetails = ['Marvin', 'Martian', 'Bond', 'Calvin', 'Hobbes', 'Bill', 'Watterson'];
+        var randomEmails = ['a@a.com', 'b@b.com', 'c@c.com', 'd@d.com', 'e@e.com', 'f@f.com'];
+
+        var returnRandomItem = function(list) {
+            var i = Math.floor(Math.random() * list.length);
+            return list[i];
+        };
+
+        // submit out new personal settings
+        this.fill('form.settings-form', {
+            'first_name': returnRandomItem(randomDetails),
+            'last_name': returnRandomItem(randomDetails),
+            'email': returnRandomItem(randomEmails)
+        }, true);
+
+        // what does the Update Personal Settings form say now?
+        this.echo('personal settings submitted with: ', "GREEN_BAR");
+        this.echo('username: ' + this.getFormValues('form.settings-form').username, "INFO");
+        this.echo('first name: ' + this.getFormValues('form.settings-form').first_name, "INFO");
+        this.echo('last name: ' + this.getFormValues('form.settings-form').last_name, "INFO");
+        this.echo('email: ' + this.getFormValues('form.settings-form').email, "INFO");
+    });
+
+    casper.waitForSelectorTextChange('.alert.alert-info', function() {
+        this.echo('Text in .alert-info has changed', "GREEN_BAR");
+    });
+
+    casper.then(function() {
+        // alert-info bar should not empty
+        test.assertExists('.alert.alert-info', 'alert info exists');
+        test.assertSelectorHasText('.alert.alert-info', 'Settings update successful');
+    });
+
+    casper.then(function() {
+        test.assertExists('form.password-reset-form');
+        test.assertSelectorHasText("form.password-reset-form h3", "Change Password");
+
+        // what does the Change Password form say?
+        this.echo('update personal settings form values: ', "GREEN_BAR");
+        this.echo('current password: ' + this.getFormValues('form.password-reset-form').current_password, "INFO");
+        this.echo('new password: ' + this.getFormValues('form.password-reset-form').new_password, "INFO");
+
+        // submit new password (use same one, tho)
+        this.fill('form.password-reset-form', {
+            'current_password': 'changeme',
+            'new_password': 'changeme'
+        }, true);
+
+        // what does the Change Password form say post-submit?
+        this.echo('update personal settings form values: ', "GREEN_BAR");
+        this.echo('current password: ' + this.getFormValues('form.password-reset-form').current_password, "INFO");
+        this.echo('new password: ' + this.getFormValues('form.password-reset-form').new_password, "INFO");
+
+        // wait for successful update message
+        casper.waitForSelectorTextChange('.alert.alert-info', function() {
+            this.echo('Text in .alert-info has changed', "GREEN_BAR");
+        });
+    });
+
+    casper.then(function() {
+        // alert-info bar should not empty
+        test.assertExists('.alert.alert-info', 'alert info exists');
+        test.assertSelectorHasText('.alert.alert-info', 'Password update successful');
     });
 
     casper.run(function() {
         test.done();
     });
+
+    // end of settings page e2e tests
 });
 
-casper.test.begin('Node Report Page is loading properly', 82, function suite(test) {
+casper.test.begin('Node Report Page is loading properly', 64, function suite(test) {
     casper.start('http://localhost:8000/report/node/ctrl-01', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -50,38 +138,26 @@ casper.test.begin('Node Report Page is loading properly', 82, function suite(tes
         // Service Status graph loads
         test.assertSelectorHasText('div #service-status-title-bar', 'Service Status Report');
         test.assertExists('div#node-report-r2', 'Service Status Section should load');
-        test.assertExists('.alert-success', 'Service node statuses should load');
-        test.assertSelectorDoesntHaveText('div #service-status-title-bar', 'No Data Returned');
+
+        // service status nodes appear -or- 'no data returned'
+
+        test.assertEval(function() {
+            return $('div#node-report-r2.row .toRemove.alert-success').length > 0 || $('div#node-report-r2.row div.alert.alert-danger.popup-message').text() === 'No Data Returned';
+        }, "Service Status Report renders statuses or 'No Data Returned'");
 
         // Utilization graphs load
         test.assertSelectorHasText('div #utilization-title-bar', 'Utilization');
         test.assertExists('div#node-report-r3', 'Usage Charts should load');
 
         // CPU Usage Chart
+
         test.assertExists('div#node-report-r3-c1 #cpu-usage svg', 'CPU Usage Section svg chart should load');
-        test.assertSelectorHasText('div #node-report-r3-c1 #cpu-usage', 'CPU Usage');
-        test.assertSelectorHasText('div #node-report-r3-c1 #cpu-usage', '0%');
-        test.assertSelectorHasText('div #node-report-r3-c1 #cpu-usage', '100%');
-        test.assertSelectorHasText('div #node-report-r3-c1 #cpu-usage', 'idle');
-        test.assertSelectorHasText('div #node-report-r3-c1 #cpu-usage', 'user');
-        test.assertSelectorHasText('div #node-report-r3-c1 #cpu-usage', 'sys');
-        test.assertSelectorHasText('div #node-report-r3-c1 #cpu-usage', 'wait');
-        test.assertSelectorDoesntHaveText('div #node-report-r3-c1 #cpu-usage', 'No Data Returned');
 
         // Memory Usage Chart
         test.assertExists('div#node-report-r3-c1 #memory-usage svg', 'Network Usage Section svg chart should load');
-        test.assertSelectorHasText('div #node-report-r3-c1 #memory-usage', 'Memory Usage');
-        test.assertSelectorHasText('div #node-report-r3-c1 #memory-usage', 'Total');
-        test.assertSelectorHasText('div #node-report-r3-c1 #memory-usage', 'GB');
-        test.assertSelectorHasText('div #node-report-r3-c1 #memory-usage', '0');
-        test.assertSelectorHasText('div #node-report-r3-c1 #memory-usage', 'used');
 
         // Network Usage Chart
         test.assertExists('div#node-report-r3-c1 #network-usage svg', 'Network Usage Section svg chart should load');
-        test.assertSelectorHasText('div #node-report-r3-c1 #network-usage', 'Network Usage');
-        test.assertSelectorHasText('div #node-report-r3-c1 #network-usage', '0');
-        test.assertSelectorHasText('div #node-report-r3-c1 #network-usage', 'tx');
-        test.assertSelectorHasText('div #node-report-r3-c1 #network-usage', 'rx');
 
         // Hypervisor graphs load
         test.assertSelectorHasText('div #hypervisor-title-bar', 'Hypervisor');
@@ -207,34 +283,11 @@ casper.test.begin('Homepage is loading properly', 64, function suite(test) {
 
         test.assertEval(function() {
             return __utils__.findAll('div #goldstone-discover-r1-c1 g.tick').length > 0 || $('div #goldstone-discover-r1-c1').text().indexOf('No Data Returned') >= 0;
-        }, "Event report renders report results or 'No Data Returned'");
-
-
-        // Event Timeline info button brings up popover
-        test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should not be visible');
-        this.click('#goldstone-event-info.pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should now be visible');
-        this.click('#goldstone-event-info.pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should not be visible');
-        this.click('#goldstone-event-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#goldstone-event-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        }, "Event report renders axis or 'No Data Returned'");
 
         /*
         NODE AVAILABILITY E2E TESTS
         */
-
-        // Node Availability info button brings up popover
-        test.assertNotVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should not be visible');
-        this.click('#goldstone-node-info.pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should now be visible');
-        this.click('#goldstone-node-info.pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should not be visible');
-        this.click('#goldstone-node-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#goldstone-node-panel .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
         // Node Availability graph loads
         test.assertExists('div#goldstone-discover-r1-c2', 'Node Availability Section should load');
@@ -243,7 +296,23 @@ casper.test.begin('Homepage is loading properly', 64, function suite(test) {
         test.assertSelectorHasText('div #goldstone-discover-r1-c2', 'Ping Only');
         test.assertSelectorHasText('div #goldstone-discover-r1-c2', 'Logs');
         test.assertSelectorHasText('div #goldstone-discover-r1-c2', 'Disabled');
-        test.assertSelectorDoesntHaveText('div #goldstone-discover-r1-c2', 'No Data Returned');
+
+        // checks for an axis which means data is received
+        // or checks for 'No Data Returned' otherwise
+
+        casper.echo("need either an axis or 'No Data Returned' - line 303 on e2eTests.js", "PARAMETER");
+
+        casper.echo("$('div #goldstone-discover-r1-c2 g .xping.axis') " + casper.evaluate(function() {
+            return $('div #goldstone-discover-r1-c2 g .xping.axis').length;
+        }));
+
+        casper.echo("$('div #goldstone-discover-r1-c2').text() " + casper.evaluate(function() {
+            return $('div #goldstone-discover-r1-c2').text();
+        }));
+
+        test.assertEval(function() {
+            return $('div #goldstone-discover-r1-c2 g .xping.axis').length > 0 || $('div #goldstone-discover-r1-c2').text().indexOf('No Data Returned') >= 0;
+        }, "Node Availability report renders either an axis or 'No Data Returned'");
 
         /*
         CLOUD TOPOLOGY E2E TESTS
@@ -282,31 +351,53 @@ casper.test.begin('Homepage is loading properly', 64, function suite(test) {
         test.assertSelectorHasText('#goldstone-discover-r2-c1', 'volumes');
         test.assertSelectorHasText('#goldstone-discover-r2-c1', 'backups');
 
-        // Cloud Topology info button brings up popover
-        test.assertNotVisible('#goldstone-discover-r1-c1 div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
-        this.click('#goldstone-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-discover-r1-c1 div.popover.fade.bottom.in', 'cloud topology info popover should now be visible');
-        this.click('#goldstone-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-discover-r1-c1 div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
-        this.click('#goldstone-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-discover-r1-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#goldstone-discover-r1-c1 .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-discover-r1-c1 div.popover.fade.bottom.in', 'service status info popover should now be visible');
-
         /*
-        RESOURCE LIST E2E TESTS
+        discover page info button tests:
         */
 
+        // Event Timeline info button brings up popover
+        test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should not be visible');
+        this.click('#goldstone-event-info.pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should now be visible');
+        this.click('#goldstone-event-info.pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should not be visible');
+        this.click('#goldstone-event-panel .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should now be visible');
+        this.mouseEvent('mouseout', '#goldstone-event-panel .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should now be visible');
+
+        // Node Availability info button brings up popover
+        test.assertNotVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should not be visible');
+        this.click('#goldstone-node-info.pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should now be visible');
+        this.click('#goldstone-node-info.pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should not be visible');
+        this.click('#goldstone-node-panel .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should now be visible');
+        this.mouseEvent('mouseout', '#goldstone-node-panel .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#goldstone-node-panel div.popover.fade.bottom.in', 'node availability info popover should now be visible');
+
+        // Cloud Topology info button brings up popover
+        test.assertNotVisible('#goldstone-discover-r2-c1 div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
+        this.click('#goldstone-discover-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#goldstone-discover-r2-c1 div.popover.fade.bottom.in', 'cloud topology info popover should now be visible');
+        this.click('#goldstone-discover-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#goldstone-discover-r2-c1 div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
+        this.click('#goldstone-discover-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#goldstone-discover-r2-c1 div.popover.fade.bottom.in', 'cloud topology info popover should now be visible');
+        this.mouseEvent('mouseout', '#goldstone-discover-r2-c1 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#goldstone-discover-r2-c1 div.popover.fade.bottom.in', 'cloud topology info popover should now be visible');
+
         // Resource List info button brings up popover
-        test.assertNotVisible('#goldstone-discover-r1-c2 div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
-        this.click('#goldstone-discover-r1-c2 .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-discover-r1-c2 div.popover.fade.bottom.in', 'cloud topology info popover should now be visible');
-        this.click('#goldstone-discover-r1-c2 .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-discover-r1-c2 div.popover.fade.bottom.in', 'cloud topology info popover should not be visible');
-        this.click('#goldstone-discover-r1-c2 .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#goldstone-discover-r1-c2 div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#goldstone-discover-r1-c2 .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#goldstone-discover-r1-c2 div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('#goldstone-discover-r2-c2 div.popover.fade.bottom.in', 'resource list info popover should not be visible');
+        this.click('#goldstone-discover-r2-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#goldstone-discover-r2-c2 div.popover.fade.bottom.in', 'resource list info popover should now be visible');
+        this.click('#goldstone-discover-r2-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#goldstone-discover-r2-c2 div.popover.fade.bottom.in', 'resource list info popover should not be visible');
+        this.click('#goldstone-discover-r2-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertVisible('#goldstone-discover-r2-c2 div.popover.fade.bottom.in', 'resource list info popover should now be visible');
+        this.mouseEvent('mouseout', '#goldstone-discover-r2-c2 .pull-right.fa.fa-info-circle.panel-info');
+        test.assertNotVisible('#goldstone-discover-r2-c2 div.popover.fade.bottom.in', 'resource list info popover should now be visible');
 
         // No resource list is visible prior to clicking on node
         test.assertNotVisible('#goldstone-discover-r1-c2 .dataTables_scrollHead');

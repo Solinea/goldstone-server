@@ -79,7 +79,8 @@ var NodeReportView = GoldstoneBasePageView.extend({
     visiblePanel: {
         Services: true,
         Reports: false,
-        Events: false
+        Events: false,
+        Details: false
     },
 
     // function to toggle key in visiblePanel
@@ -101,6 +102,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         // initially hide the reports and events tab, displaying only 'Services'
         $("#reportsReport").hide();
         $("#eventsReport").hide();
+        $("#detailsReport").hide();
 
         // Initialize click listener on services|reports|events tabs
         $("button#headerBar").click(function() {
@@ -276,7 +278,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         });
 
         //---------------------------
-        // instantiate Reports tab data
+        // instantiate Reports tab
 
         this.reportsReportCollection = new ReportsReportCollection({
             globalLookback: ns.globalLookback,
@@ -291,13 +293,20 @@ var NodeReportView = GoldstoneBasePageView.extend({
         });
 
         //---------------------------
-        // instantiate Events tab data
+        // instantiate Events tab
 
         this.eventsReport = new EventsReportView({
             el: '#node-report-panel #eventsReport',
             width: $('#node-report-panel #eventsReport').width(),
             nodeName: hostName,
             globalLookback: ns.globalLookback
+        });
+
+        //---------------------------
+        // instantiate Details tab
+
+        this.detailsReport = new DetailsReportView({
+            el: '#node-report-panel #detailsReport'
         });
     },
 
@@ -309,18 +318,19 @@ var NodeReportView = GoldstoneBasePageView.extend({
         '</div>' +
         '<div id="node-report-main" class="col-md-12">' +
 
-        '<!-- buttons -->' +
+        // buttons
         '<div class="btn-group" role="group">' +
         '<button type="button" id="headerBar" class="servicesButton active btn btn-default">Services</button>' +
         '<button type="button" id="headerBar" class="reportsButton btn btn-default">Reports</button>' +
         '<button type="button" id="headerBar" class="eventsButton btn btn-default">Events</button>' +
+        '<button type="button" id="headerBar" class="detailsButton btn btn-default">Details</button>' +
         '</div><br><br>' +
 
         '<div id="main-container" class="col-md-12">' +
         '<div id="node-report-panel" class="panel panel-primary">' +
         '<div id="servicesReport">' +
 
-        '<!-- placeholder for title bar and info popover -->' +
+        // placeholder for title bar and info popover
         '<div id="service-status-title-bar"></div>' +
         '<div class="well col-md-12">' +
         '<div style="margin-left: 14px;" id="node-report-r2" class="row">' +
@@ -329,7 +339,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         '<div id="node-report-r3" class="row">' +
         '<div id="node-report-r3-c1" class="col-md-12">' +
 
-        '<!-- placeholder for title bar and info popover -->' +
+        // placeholder for title bar and info popover
         '<div id="utilization-title-bar"></div>' +
         '<div id="node-report-panel" class="panel panel-primary">' +
         '<div class="well col-md-12">' +
@@ -349,7 +359,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         '<div id="node-report-r4" class="row">' +
         '<div id="node-report-r4-c1" class="col-md-12">' +
 
-        '<!-- placeholder for title bar and info popover -->' +
+        // placeholder for title bar and info popover
         '<div id="hypervisor-title-bar"></div>' +
         '<div id="node-report-panel" class="panel panel-primary">' +
         '<div class="well col-md-12">' +
@@ -369,6 +379,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         '</div>' +
         '<div class="col-md-12" id="reportsReport">&nbsp;</div>' +
         '<div class="col-md-12" id="eventsReport">&nbsp;</div>' +
+        '<div class="col-md-12" id="detailsReport">&nbsp;</div>' +
         '</div>' +
         '</div>' +
         '</div>'

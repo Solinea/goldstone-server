@@ -194,6 +194,10 @@ var ZoomablePartitionView = TopologyTreeView.extend({
             });
 
         function click(d) {
+
+            // no d.children signifies a leaf which should
+            // load a table of the data, otherwise zoom in
+
             if (!d.children) {
 
                 // for appending to resource chart header
@@ -231,7 +235,10 @@ var ZoomablePartitionView = TopologyTreeView.extend({
 
                         url = "/" + parentModule + url;
 
+                        // loadLeafData on TopologyTreeView
                         self.loadLeafData(url);
+
+                        // appendLeafNameToResourceHeader on TopologyTreeView
                         self.appendLeafNameToResourceHeader(origClickedLabel);
                     }
 
@@ -240,6 +247,8 @@ var ZoomablePartitionView = TopologyTreeView.extend({
                 d3.event.stopPropagation();
                 return;
             }
+
+            // not a child node, so zoom in:
 
             kx = (d.y ? ns.w - 40 : ns.w) / (1 - d.y);
             ky = ns.h / d.dx;
