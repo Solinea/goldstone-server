@@ -31,6 +31,8 @@ class LogDataView(ElasticListAPIView):
 
     class Meta:
         model = LogData
+        # TODO this should not be necessary if we build a proper meta
+        reserved_params = []
 
 
 class LogAggView(ElasticListAPIView):
@@ -61,4 +63,6 @@ class LogEventView(ElasticListAPIView):
 
     class Meta:
         model = LogEvent
+        # TODO this should not be necessary if we build a proper meta
+        reserved_params = []
 
