@@ -32,18 +32,77 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
 
         // add listener to settings form submission button
         $('.tenant-settings-form').on('submit', function(e) {
+
             e.preventDefault();
+
+
+
+            if ($('#formTenantId').text() === '') {
+                self.dataErrorMessage('Select tenant to edit from list above');
+                return;
+            }
 
             // trim inputs to prevent leading/trailing spaces
             self.trimInputField('[name="name"]');
             self.trimInputField('[name="owner"]');
             self.trimInputField('[name="owner_contact"]');
+            var tenandId = $('#formTenantId').text();
 
             // ('[name="email"]') seems to have native .trim()
             // support based on the type="email"
 
             // 4th argument informs what will be appeneded to screen upon success
-            self.submitRequest('POST', '/tenants', $(this).serialize(), 'Tenant settings');
+            self.submitRequest('PUT', '/tenants/' + tenandId, $(this).serialize(), 'Tenant settings');
+        });
+    },
+
+    drawDataTable: function(json) {
+
+        var self = this;
+
+        // make a dataTable
+        var location = '#tenants-single-rsrc-table';
+        var oTable;
+        var keys = Object.keys(json);
+        var data = _.map(keys, function(k) {
+            var item = json[k];
+            return [item.name, item.owner, item.owner_contact, item.uuid];
+        });
+
+        if ($.fn.dataTable.isDataTable(location)) {
+            oTable = $(location).DataTable();
+            oTable.clear().rows.add(data).draw();
+        } else {
+            var oTableParams = {
+                "data": data,
+                "autoWidth": true,
+                "info": false,
+                "paging": true,
+                "searching": true,
+                "columns": [{
+                    "title": "Tenant"
+                }, {
+                    "title": "Owner"
+                }, {
+                    "title": "Owner Contact"
+                }, {
+                    "title": "Id"
+                }]
+            };
+            oTable = $(location).DataTable(oTableParams);
+        }
+
+        $("#tenants-single-rsrc-table tbody").off();
+
+        $("#tenants-single-rsrc-table tbody").on('click', 'tr', function() {
+            var row = oTable.row(this).data();
+
+            $('[name="name"]').val(row[0]);
+            $('[name="owner"]').val(row[1]);
+            $('[name="owner_contact"]').val(row[2]);
+            $('#formTenantId').text(row[3]);
+
+            self.clearDataErrorMessage();
         });
     },
 
@@ -52,31 +111,17 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
 
         $.get('/tenants')
             .done(function(result) {
-                result = result.results[0];
-                $('[name="name"]').val(result.name);
-                $('[name="owner"]').val(result.owner);
-                $('[name="owner_contact"]').val(result.owner_contact);
+
+                if (result.results) {
+                    self.drawDataTable(result.results);
+                }
             })
             .fail(function(fail) {
-                goldstone.raiseInfo('Could not load user settings', true);
+                goldstone.raiseInfo('Could not load tenant settings', true);
             });
     },
 
-    checkIfTenantAdmin: function(result) {
-        // if true, render link to tenant admin settings page
-        if (result === true) {
-            this.renderTenantSettingsPageLink();
-        } else {
-            return null;
-        }
-    },
-
-    renderTenantSettingsPageLink: function() {
-        $('#tenant-settings-button').append('' +
-            '<a href="/tenant"><button class="btn btn-lg btn-danger btn-block">Modify tenant settings</button></a>');
-    },
-
-    // abstracted to work for both forms, and append the correct
+    // abstracted to work for multiple forms, and append the correct
     // message upon successful form submission
     submitRequest: function(type, url, data, message) {
         var self = this;
@@ -89,20 +134,26 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
             type: type,
             url: url,
             data: data,
-        }).done(function(success) {
-            goldstone.raiseInfo(message + ' update successful', true);
         })
+            .done(function(success) {
+                goldstone.raiseInfo(message + ' update successful');
+            })
             .fail(function(fail) {
                 try {
                     goldstone.raiseInfo(fail.responseJSON.non_field_errors[0], true);
                 } catch (e) {
                     goldstone.raiseInfo(fail.responseText + e, true);
                 }
+            })
+            .always(function() {
+                self.getTenantSettings();
+                self.clearDataErrorMessage();
             });
     },
 
     render: function() {
         this.$el.html(this.template());
+        this.dataErrorMessage('Select Tenant from table above to edit');
         return this;
     },
 
@@ -114,19 +165,35 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
     },
 
     template: _.template('' +
+
+        // dataTable
+        '<div class="panel panel-primary tenant_results_panel">' +
+        '<div class="panel-heading">' +
+        '<h3 class="panel-title"><i class="fa fa-dashboard"></i> Tenants' +
+        '</h3>' +
+        '</div>' +
+        '</div>' +
+
+        '<div class="panel-body">' +
+        '<table id="tenants-single-rsrc-table" class="table"></table>' +
+        '</div>' +
+        // end data table
+
         '<div class="container">' +
         '<div class="row">' +
 
-        // personal settings form
+        // update settings form
         '<div class="col-md-4 col-md-offset-0">' +
         '<form class="tenant-settings-form">' +
         '<h3>Update Tenant Settings</h3>' +
+        '<div class="alert alert-danger popup-message" hidden="true"></div>' +
         '<label for="name">Tenant name</label>' +
-        '<input name="name" type="text" class="form-control" placeholder="Tenant name">' +
+        '<input name="name" type="text" class="form-control" placeholder="Tenant name" required>' +
         '<label for="owner">Owner name</label>' +
-        '<input name="owner" type="text" class="form-control" placeholder="Owner name" autofocus>' +
+        '<input name="owner" type="text" class="form-control" placeholder="Username of owner" required>' +
         '<label for="owner_contact">Owner contact</label>' +
         '<input name="owner_contact" type="email" class="form-control" placeholder="Owner email address">' +
+        '<br><div>Tenant Id: <span id="formTenantId"></span></div>' +
         '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
         '</form>' +
         '</div>' +
