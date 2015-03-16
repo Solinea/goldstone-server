@@ -12,14 +12,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from contextlib import nested
 
 from django.http import QueryDict
 import elasticsearch
+from elasticsearch.client import IndicesClient
 
 from rest_framework.test import APITestCase, APISimpleTestCase
 
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.result import Response
+from goldstone.apps.drfes.models import DailyIndexDocType
 from goldstone.apps.drfes.utils import custom_exception_handler
 
 from goldstone.apps.drfes.views import ElasticListAPIView
@@ -256,3 +259,71 @@ class CustomExceptionHandlerTests(APITestCase):
             result = custom_exception_handler('what??', None)
             self.assertTrue(exception_handler.called)
             self.assertEqual(result, None)
+
+
+class DailyIndexDocTypeTests(APITestCase):
+    """Tests for the LogData model"""
+
+    def test_field_has_raw_true(self):
+        """field_has_raw returns true if mapping has a raw field"""
+        # py26 support
+        with nested(
+                patch("goldstone.apps.drfes.models.most_recent_index"),
+                patch.object(DailyIndexDocType, "get_field_mapping")) \
+                as (mre, gfm):
+
+            field = 'field'
+            mre.return_value = 'index'
+            gfm.return_value = {'index': {'mappings': {
+            'syslog': {field: {'mapping': {field: {'fields': {
+                'raw': True}}}}}}}}
+
+            result = DailyIndexDocType.field_has_raw('field')
+            self.assertTrue(mre.called)
+            self.assertTrue(gfm.called)
+            self.assertTrue(result)
+
+    def test_field_has_raw_false(self):
+        """field_has_raw returns false if mapping doesn't have a raw field"""
+        # py26 support
+        with nested(
+                patch("goldstone.apps.drfes.models.most_recent_index"),
+                patch.object(DailyIndexDocType, "get_field_mapping")) \
+                as (mre, gfm):
+
+            field = 'field'
+            mre.return_value = 'index'
+            gfm.return_value = {'index': {'mappings': {
+            'syslog': {field: {'mapping': {field: {'fields': {
+                'not_raw': True}}}}}}}}
+
+            result = DailyIndexDocType.field_has_raw('field')
+            self.assertTrue(mre.called)
+            self.assertTrue(gfm.called)
+            self.assertFalse(result)
+
+    def test_field_has_raw_key_error(self):
+        """field_has_raw returns false if KeyError raised"""
+        # py26 support
+        with nested(
+                patch("goldstone.apps.drfes.models.most_recent_index"),
+                patch.object(DailyIndexDocType, "get_field_mapping")) \
+                as (mre, gfm):
+
+            field = 'field'
+            mre.return_value = 'index'
+            gfm.side_effect = KeyError
+
+            result = DailyIndexDocType.field_has_raw('field')
+            self.assertTrue(mre.called)
+            self.assertTrue(gfm.called)
+            self.assertFalse(result)
+
+    def test_get_field_mapping(self):
+        """get_field_mapping returns the mapping reported by ES"""
+
+        with patch.object(IndicesClient, "get_field_mapping") as gfm:
+
+            gfm.return_value = 'pass me through'
+            result = DailyIndexDocType.get_field_mapping('field')
+            self.assertEqual(result, 'pass me through')
