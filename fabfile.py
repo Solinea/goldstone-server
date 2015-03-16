@@ -38,14 +38,6 @@ DEFAULT_TENANT_OWNER = "None"
 DEFAULT_ADMIN = "gsadmin"
 DEFAULT_ADMIN_PASSWORD = "changeme"
 
-# Values for the default OpenStack cloud that's created under the default
-# tenant. These are defined at the module level so that our unit tests can get
-# at them.
-DEFAULT_CLOUD_TENANT = "admin"
-DEFAULT_CLOUD_USERNAME = "admin"
-DEFAULT_CLOUD_PASSWORD = "2caa6a4d9c9d49ce"
-DEFAULT_CLOUD_AUTH_URL = "http://10.10.20.10:5000/v2.0/"
-
 
 def _django_manage(command, target='', proj_settings=None, daemon=False):
     """Run manage.py <command>.
@@ -359,6 +351,16 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
     :type settings: str
 
     """
+
+    # Values for the default OpenStack cloud that we will create under the
+    # default tenant. These come from environment variables, if present;
+    # otherwise a sensible default.
+    DEFAULT_CLOUD_TENANT = os.environ.get('DEFAULT_CLOUD_TENANT', "admin")
+    DEFAULT_CLOUD_USERNAME = os.environ.get("DEFAULT_CLOUD_USERNAME", "admin")
+    DEFAULT_CLOUD_PASSWORD = os.environ.get("DEFAULT_CLOUD_PASSWORD",
+                                            "changeme")
+    DEFAULT_CLOUD_AUTH_URL = os.environ.get("DEFAULT_CLOUD_AUTH_URL",
+                                            "http://127.0.0.1:5000/v2.0/")
 
     # Create the tenant and tenant_admin.
     tenant, settings = _tenant_init(tenant,
