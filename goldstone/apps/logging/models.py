@@ -29,12 +29,6 @@ class LogData(DailyIndexDocType):
         doc_type = 'syslog'
 
     @classmethod
-    def search(cls):
-        """Gets a generic Log search object."""
-
-        return super(LogData, cls).search().using(es_conn())
-
-    @classmethod
     def ranged_log_search(cls, start=None, end=None, hosts=[]):
         """ Returns a search with time range and hosts list terms"""
 

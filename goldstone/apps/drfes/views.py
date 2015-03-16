@@ -26,10 +26,11 @@ class ElasticListAPIView(ListAPIView):
     serializer_class = ReadOnlyElasticSerializer
     pagination_class = ElasticPageNumberPagination
     filter_backends = (ElasticFilter,)
+    reserved_params = []
 
     class Meta:
         model = None
-        reserved_params = []
+
 
     def get_queryset(self):
         """Gets a search object from the model."""

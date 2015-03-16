@@ -75,7 +75,7 @@ class ElasticFilter(BaseFilterBackend):
 
         from django.db.models.constants import LOOKUP_SEP
 
-        reserved_params = view.Meta.reserved_params + \
+        reserved_params = view.reserved_params + \
                           [view.pagination_class.page_query_param,
                            view.pagination_class.page_size_query_param]
 

@@ -31,18 +31,16 @@ class LogDataView(ElasticListAPIView):
 
     class Meta:
         model = LogData
-        # TODO this should not be necessary if we build a proper meta
-        reserved_params = []
 
 
 class LogAggView(ElasticListAPIView):
     """A view that handles requests for Logstash aggregations."""
 
     serializer_class = LogAggSerializer
+    reserved_params = ['interval', 'per_host']
 
     class Meta:
         model = LogData
-        reserved_params = ['interval', 'per_host']
 
     def get(self, request, *args, **kwargs):
         import ast
@@ -63,6 +61,5 @@ class LogEventView(ElasticListAPIView):
 
     class Meta:
         model = LogEvent
-        # TODO this should not be necessary if we build a proper meta
-        reserved_params = []
+
 
