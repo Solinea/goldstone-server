@@ -13,5 +13,3 @@ ES_HOST = "10.10.20.201"
 ES_PORT = "9200"
 ES_SERVER = {'hosts': [ES_HOST + ":" + ES_PORT]}
 
-# ElasticUtils Settings
-ES_URLS = [ES_HOST + ":" + ES_PORT]
