@@ -51,7 +51,22 @@ module.exports = function(grunt) {
             options: {},
             e2e: {
                 files: {
-                    'results/casper': 'test/e2e/*.js'
+                    'results/casper': ['test/e2e/e2eAuth.js', 'test/e2e/e2eTests.js', 'test/e2e/e2eLogout.js']
+                }
+            },
+            skipLogout: {
+                files: {
+                    'results/casper': ['test/e2e/e2eAuth.js', 'test/e2e/e2eTests.js']
+                }
+            },
+            logoutOnly: {
+                files: {
+                    'results/casper': ['test/e2e/e2eLogout.js']
+                }
+            },
+            skipAuth: {
+                files: {
+                    'results/casper': ['test/e2e/e2eTests.js']
                 }
             }
         },
@@ -90,11 +105,14 @@ module.exports = function(grunt) {
     });
 
     // Start watching and run tests when files change
-    grunt.registerTask('default', ['lint', 'test', 'watch']);
+    grunt.registerTask('default', ['lint', 'test']);
     grunt.registerTask('lint', ['jshint']);
-    grunt.registerTask('test', ['karma', 'casperjs']);
+    grunt.registerTask('test', ['karma', 'casperjs:e2e']);
     grunt.registerTask('lintAndTest', ['lint', 'test']);
     grunt.registerTask('testDev', ['lint', 'karma', 'focus:dev']);
-    grunt.registerTask('casper', ['casperjs']);
-    grunt.registerTask('e', ['casperjs']);
+    grunt.registerTask('casper', ['casperjs:e2e']);
+    grunt.registerTask('e', ['casperjs:e2e']);
+    grunt.registerTask('eNoLogout', ['casperjs:skipLogout']);
+    grunt.registerTask('eLogout', ['casperjs:logoutOnly']);
+    grunt.registerTask('eNoAuth', ['casperjs:skipAuth']);
 };
