@@ -21,9 +21,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from .models import Event, Metric, Report
-from .serializers import EventSerializer, MetricSerializer, \
-    ReportSerializer
+from .models import Metric, Report
+from .serializers import MetricSerializer, ReportSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -130,15 +129,6 @@ class ElasticViewSet(ElasticViewSetMixin, ModelViewSet):
 
 class ReadOnlyElasticViewSet(ElasticViewSetMixin, ReadOnlyModelViewSet):
     pass
-
-
-class EventViewSet(ElasticViewSet):
-
-    model = Event
-    serializer_class = EventSerializer
-    lookup_field = '_id'
-    lookup_url_kwarg = '_id'
-    ordering = '-created'
 
 
 class MetricViewSet(ReadOnlyElasticViewSet):

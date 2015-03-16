@@ -12,56 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import arrow
-from rest_framework import serializers, fields
-from .models import Event, Metric, Report, PolyResource
+
+from rest_framework import serializers
+from .models import Metric, Report, PolyResource
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-class EventSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(read_only=True)
-    event_type = serializers.CharField(max_length=64)
-    source_id = serializers.CharField(max_length=36,
-                                      required=False,
-                                      default="")
-    source_name = serializers.CharField(max_length=64,
-                                        required=False,
-                                        default="")
-    message = serializers.CharField(max_length=1024)
-    created = serializers.DateTimeField(required=False)
-
-    class Meta:
-        model = Event
-        lookup_field = '_id'
-
-    def to_representation(self, instance):
-        return {
-            'id': instance.id,
-            'event_type': instance.event_type,
-            'source_id': instance.source_id,
-            'source_name': instance.source_name,
-            'message': instance.message,
-            'created': arrow.get(instance.created).isoformat()
-        }
-
-    def create(self, validated_data):
-        event = Event(**validated_data)
-        event.save()
-        return event
-
-    def update(self, instance, validated_data):
-        instance.event_type = validated_data.get('event_type',
-                                                 instance.event_type)
-        instance.message = validated_data.get('message', instance.message)
-        instance.source_id = validated_data.get('source_id',
-                                                instance.source_id)
-        instance.source_name = validated_data.get('source_name',
-                                                  instance.source_name)
-        instance.created = validated_data.get('created', instance.created)
-        instance.save()
-        return instance
 
 
 class MetricSerializer(serializers.ModelSerializer):

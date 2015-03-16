@@ -48,15 +48,12 @@ filter {
                 # if it happened earlier, this filter would end up processing each of the clones regardless
                 # of their type.
                 clone {
-                    clones => ["event_stream", "nova_claims_resub", "nova_spawns_resub", "api_stats_resub"]
+                    clones => ["nova_claims_resub", "nova_spawns_resub", "api_stats_resub"]
                 }
             } else {
                 mutate {
                     add_tag => ["filter_34_fail"]
                     remove_tag => ["_grokparsefailure"]
-                }
-                clone {
-                    clones => ["event_stream"]
                 }
             }
         }
