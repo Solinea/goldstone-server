@@ -68,6 +68,7 @@ class UtilsTests(SimpleTestCase):
     @patch('keystoneclient.v2_0.client.Client')
     @patch('goldstone.utils.get_keystone_client')
     def test_openstack_api_request_base_success(self, m_get, m_client):
+        from django.conf import settings
 
         m_client.service_catalog.get_endpoints.return_value = {
             'endpoint': [{'publicURL': "http://endpoint"}]
@@ -80,7 +81,12 @@ class UtilsTests(SimpleTestCase):
         #              'x-auth-token': 'token'}
         # }
 
-        result = stack_api_request_base("endpoint", "/path")
+        result = stack_api_request_base("endpoint",
+                                        "/path",
+                                        settings.CLOUD_USERNAME,
+                                        settings.CLOUD_PASSWORD,
+                                        settings.CLOUD_TENANT_NAME,
+                                        settings.CLOUD_AUTH_URL)
         self.assertIn('url', result)
         self.assertIn('x-auth-token', result['headers'])
         self.assertIn('content-type', result['headers'])
@@ -88,15 +94,25 @@ class UtilsTests(SimpleTestCase):
         self.assertEquals(result['url'], "http://endpoint/path")
 
     @patch('goldstone.utils.get_keystone_client')
-    def test_openstack_api_request_base_exceptions(self, m_get):
+    def test_os_api_request_base_exc(self, m_get):
+        """Stack_api_request_base correctly propagates exceptions."""
 
-        m_get.side_effect = GoldstoneAuthError
-        self.assertRaises(GoldstoneAuthError, stack_api_request_base,
-                          "", "", "")
+        # For each pair of get_keystone_client raised exception, and the
+        # exception that it should propagate...
+        for (generated, propagated) in \
+            [(GoldstoneAuthError, GoldstoneAuthError),
+             (Exception, LookupError)]:
+            # Mock the generated exception.
+            m_get.side_effect = generated
 
-        m_get.side_effect = Exception
-        self.assertRaises(LookupError, stack_api_request_base,
-                          "", "", "")
+            # Check that the propagated exception matches.
+            self.assertRaises(propagated, stack_api_request_base,
+                              '',
+                              '',
+                              '',
+                              '',
+                              '',
+                              '')
 
 
 class ApiPerfTests(SimpleTestCase):
@@ -119,6 +135,7 @@ class ApiPerfTests(SimpleTestCase):
         for hit in result.hits:
             hit.delete()
 
+        # pylint: disable=W0212
         self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
 
     def test_persist_and_retrieve(self):
@@ -162,6 +179,7 @@ class ApiPerfTests(SimpleTestCase):
         self.assertTrue(created)
 
         # force flush
+        # pylint: disable=W0212
         self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
 
         # test a search with no hits
@@ -237,6 +255,7 @@ class ApiPerfTests(SimpleTestCase):
             self.assertTrue(created)
 
         # force flush
+        # pylint: disable=W0212
         self.conn.indices.refresh(daily_index(ApiPerfData._INDEX_PREFIX))
 
         result = ApiPerfData.get_stats(range_begin,
@@ -266,7 +285,8 @@ class ApiPerfTests(SimpleTestCase):
         response = self.client.get(
             uri,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(response.status_code, 200)  # pylint: disable=E1101
 
     def test_api_perf_view_get_data(self):
 

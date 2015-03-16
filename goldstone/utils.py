@@ -12,9 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import arrow
-from django.conf import settings
 import cinderclient.v2.services
 from keystoneclient.v2_0 import client as ksclient
 from novaclient.v1_1 import client as nvclient
@@ -30,6 +28,7 @@ from novaclient.openstack.common.apiclient.exceptions \
 from cinderclient.openstack.common.apiclient.exceptions \
     import Unauthorized as CinderUnauthorized
 from neutronclient.common.exceptions import Unauthorized as NeutronUnauthorized
+from rest_framework.exceptions import PermissionDenied
 
 logger = logging.getLogger(__name__)
 
@@ -64,11 +63,13 @@ def utc_now():
     """Convenient, and possibly necessary.
 
     :return: timezone aware current UTC datetime
+
     """
     return arrow.utcnow().datetime
 
 
 def to_es_date(date_object):
+    """Return the string version of a datetime object."""
 
     result = date_object.strftime('%Y-%m-%dT%H:%M:%S.')
     result += '%03d' % int(round(date_object.microsecond / 1000.0))
@@ -77,10 +78,9 @@ def to_es_date(date_object):
 
 
 def _get_region_for_client(catalog, management_url, service_type):
-    """
-    returns the region for a management url and service type given the service
-    catalog.
-    """
+    """Return the region for a management url and service type, given the
+    service catalog."""
+
     candidates = [svc for svc in catalog if svc['type'] == service_type]
 
     matches = [
@@ -92,7 +92,7 @@ def _get_region_for_client(catalog, management_url, service_type):
         or ep['adminURL'] == management_url
     ]
 
-    if len(matches) < 1:
+    if not matches:
         raise GoldstoneBaseException(
             "no matching region found for management url [" +
             management_url + "]")
@@ -103,17 +103,24 @@ def _get_region_for_client(catalog, management_url, service_type):
     return matches[0]['region']
 
 
-def _get_region_for_cinder_client(client):
+def _get_region_for_cinder_client(client, os_username, os_password,
+                                  os_tenant_name, os_auth_url):
 
     # force authentication to populate management url
     client.authenticate()
+
     mgmt_url = client.client.management_url
-    keystoneclient = get_keystone_client()['client']
+    keystoneclient = get_keystone_client(os_username,
+                                         os_password,
+                                         os_tenant_name,
+                                         os_auth_url)['client']
     catalog = keystoneclient.service_catalog.catalog['serviceCatalog']
+
     return _get_region_for_client(catalog, mgmt_url, 'volume')
 
 
 def _get_region_for_glance_client(client):
+
     mgmt_url = client.endpoints.find(service_id=client.services.
                                      find(name='glance').id).internalurl
     catalog = client.service_catalog.catalog['serviceCatalog']
@@ -121,71 +128,100 @@ def _get_region_for_glance_client(client):
 
 
 def get_region_for_nova_client(client):
+
     mgmt_url = client.client.management_url
     catalog = client.client.service_catalog.catalog['access']['serviceCatalog']
     return _get_region_for_client(catalog, mgmt_url, 'compute')
 
 
 def get_region_for_keystone_client(client):
+
     mgmt_url = client.management_url
     catalog = client.service_catalog.catalog['serviceCatalog']
     return _get_region_for_client(catalog, mgmt_url, 'identity')
 
 
-def get_client(service, user=settings.OS_USERNAME,
-               passwd=settings.OS_PASSWORD,
-               tenant=settings.OS_TENANT_NAME,
-               auth_url=settings.OS_AUTH_URL):
+def get_cloud():
+    """Return an OpenStack cloud object.
+
+    Today, we can rely on the system containing one and only one Goldstone
+    tenant. That tenant will contain one and only one OpenStack cloud.
+
+    When these constraints are relaxed in the future, the codebase will need
+    to change, and this function will need to evolve. The most likely outcome
+    that it becomes a generator that returns the next OpenStack cloud within a
+    tenant.
+
+    :return: OpenStack credentials
+    :rtype: Cloud
+
+    """
+    from goldstone.tenants.models import Cloud
+
+    return Cloud.objects.all()[0]
+
+
+def get_client(service, os_username, os_password, os_tenant_name, os_auth_url):
+    """Return a client object and authorization token.
+
+    :rtype: dict
+
+    """
 
     # Error message template.
     NO_AUTH = "%s client failed to authorize. Check credentials in" \
               " goldstone settings."
 
-    if service == 'keystone':
-        try:
-            client = ksclient.Client(username=user,
-                                     password=passwd,
-                                     tenant_name=tenant,
-                                     auth_url=auth_url)
+    try:
+        if service == 'keystone':
+            client = ksclient.Client(username=os_username,
+                                     password=os_password,
+                                     tenant_name=os_tenant_name,
+                                     auth_url=os_auth_url)
             if client.auth_token is None:
                 raise GoldstoneAuthError("Keystone client call succeeded, but "
                                          "auth token was not returned.  Check "
                                          "credentials in goldstone settings.")
             else:
                 return {'client': client, 'hex_token': client.auth_token}
-        except KeystoneUnauthorized:
-            raise GoldstoneAuthError(NO_AUTH % "Keystone")
 
-    elif service == 'nova':
-        try:
-            client = nvclient.Client(user, passwd, tenant, auth_url,
+        elif service == 'nova':
+            client = nvclient.Client(os_username,
+                                     os_password,
+                                     os_tenant_name,
+                                     os_auth_url,
                                      service_type='compute')
             client.authenticate()
             return {'client': client, 'hex_token': client.client.auth_token}
-        except NovaUnauthorized:
-            raise GoldstoneAuthError(NO_AUTH % "Nova")
 
-    elif service == 'cinder':
-        try:
+        elif service == 'cinder':
             cinderclient.v2.services.Service.__repr__ = \
                 _patched_cinder_service_repr
-            client = ciclient.Client(user, passwd, tenant, auth_url,
+            client = ciclient.Client(os_username,
+                                     os_password,
+                                     os_tenant_name,
+                                     os_auth_url,
                                      service_type='volume')
-            region = _get_region_for_cinder_client(client)
+            region = _get_region_for_cinder_client(client,
+                                                   os_username,
+                                                   os_password,
+                                                   os_tenant_name,
+                                                   os_auth_url)
             return {'client': client, 'region': region}
-        except CinderUnauthorized:
-            raise GoldstoneAuthError(NO_AUTH % "Cinder")
 
-    elif service == 'neutron':
-        try:
-            client = neclient.Client(user, passwd, tenant, auth_url)
+        elif service == 'neutron':
+            client = neclient.Client(username=os_username,
+                                     password=os_password,
+                                     tenant_id=os_tenant_name,
+                                     auth_url=os_auth_url)
             return {'client': client}
-        except NeutronUnauthorized:
-            raise GoldstoneAuthError(NO_AUTH % "Neutron")
 
-    elif service == 'glance':
-        try:
-            keystoneclient = get_client(service='keystone')['client']
+        elif service == 'glance':
+            keystoneclient = get_client("keystone",
+                                        os_username,
+                                        os_password,
+                                        os_tenant_name,
+                                        os_auth_url)['client']
             mgmt_url = keystoneclient.endpoints.find(
                 service_id=keystoneclient.services.find(name='glance').id)\
                 .internalurl
@@ -194,11 +230,13 @@ def get_client(service, user=settings.OS_USERNAME,
                                      token=keystoneclient.auth_token)
             return {'client': client, 'region': region}
 
-        except KeystoneUnauthorized:
-            raise GoldstoneAuthError(NO_AUTH % "Glance")
+        else:
+            raise GoldstoneAuthError("Unknown service")
 
-    else:
-        raise GoldstoneAuthError("Unknown service")
+    except (KeystoneUnauthorized, NovaUnauthorized, CinderUnauthorized,
+            NeutronUnauthorized):
+        raise GoldstoneAuthError(NO_AUTH % service.capitalize())
+
 
 # These must be defined here, because they're based on get_client.
 # pylint: disable=C0103
@@ -303,8 +341,8 @@ class TopologyMixin(object):
 
 
 def django_admin_only(wrapped_function):
-    """A decorator that raises an exception if self.request.user.is_superuser
-    is False."""
+    """A decorator that raises an exception if self.request.user is not a
+    superuser, i.e., a Django admin."""
 
     @functools.wraps(wrapped_function)
     def _wrapper(*args, **kwargs):
@@ -313,10 +351,32 @@ def django_admin_only(wrapped_function):
         args[0] must be self.
 
         """
-        from rest_framework.exceptions import PermissionDenied
-        print args[0].request.user
 
         if args[0].request.user.is_superuser:
+            return wrapped_function(*args, **kwargs)
+        else:
+            raise PermissionDenied
+
+    return _wrapper
+
+
+def django_and_tenant_admins_only(wrapped_function):
+    """A decorator that raises an exception if self.request.user is not a
+    superuser (i.e., a Django admin), or a tenant_admin."""
+
+    @functools.wraps(wrapped_function)
+    def _wrapper(*args, **kwargs):
+        """Check self.request.user.is_superuser and .tenant_admin.
+
+        args[0] must be self.
+
+        """
+
+        user = args[0].request.user
+
+        # Checking is_authenticated filters out AnonymousUser.
+        if user.is_superuser or \
+           (user.is_authenticated() and user.tenant_admin):
             return wrapped_function(*args, **kwargs)
         else:
             raise PermissionDenied

@@ -92,16 +92,16 @@ class ElasticViewSetMixin(object):
 
         params = self._process_params(self.request.QUERY_PARAMS.dict())
 
-        if self.model is not None:
+        if self.model is None:
+            logger.error("No model set in ViewSet class")
+            return None
+        else:
             queryset = self.model.es_objects. \
                 query(**params['query_kwargs']). \
                 filter(**params['filter_kwargs'])
             if 'order_by' in params:
                 queryset = queryset.order_by(params['order_by'])
             return queryset
-        else:
-            logger.error("No model set in ViewSet class")
-            return None
 
     def get_object(self):
 

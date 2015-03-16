@@ -84,67 +84,11 @@ else
 
 fi
 
-# if credentials are set in the local environment, put them into the goldstone configuration
-if [[ $# == 1 && $1 == 1 ]] ; then
-    if [[ "X$OS_USERNAME" != "X" ]] ; then
-        echo "OS_USERNAME = \"$OS_USERNAME\"" >> /opt/goldstone/goldstone/settings/production.py
-    else
-        ENV_NOT_SET=1
-    fi
-
-    if [[ "X$OS_PASSWORD" != "X" ]] ; then
-        echo "OS_PASSWORD = \"$OS_PASSWORD\"" >> /opt/goldstone/goldstone/settings/production.py
-    else
-        ENV_NOT_SET=1
-    fi
-
-    if [[ "X$OS_TENANT_NAME" != "X" ]] ; then
-        echo "OS_TENANT_NAME = \"$OS_TENANT_NAME\"" >> /opt/goldstone/goldstone/settings/production.py
-    else
-        ENV_NOT_SET=1
-    fi
-
-    if [[ "X$OS_AUTH_URL" != "X" ]] ; then
-        echo "OS_AUTH_URL = \"$OS_AUTH_URL\"" >> /opt/goldstone/goldstone/settings/production.py
-    else
-        ENV_NOT_SET=1
-    fi
-fi
-
 cd /opt/goldstone
 pip install -r requirements.txt
 export DJANGO_SETTINGS_MODULE=goldstone.settings.production
 
-# Initialize agent and model templates. We'll use the lower-level functions,
-# for maximum future flexibility.
-python manage.py shell <<EOF
-from goldstone.initial_load import _put_all_templates, _create_agent_index, _create_model_index
-from goldstone.apps.core.tasks import create_daily_index 
-_put_all_templates()
-create_daily_index()
-_create_agent_index()
-_create_model_index()
-EOF
-
 python manage.py collectstatic --noinput
-python manage.py syncdb <<EOF
-no
-EOF
-python manage.py migrate
-
-# Create a Django superuser, a.k.a. Goldstone system administrator.
-python manage.py shell <<EOF
-from django.contrib.auth import get_user_model
-get_user_model().objects.create_superuser('admin', 'a@b.com', 'changeme')
-EOF
-
-# Create the default (only) Goldstone tenant, and a tenant_admin account that
-# is also the system's default tenant admin for all new tenants.
-python manage.py shell <<EOF
-from fabfile import tenant_init
-tenant_init(settings="production")
-EOF
-
 
 # Get all the ownerships back in shape.  No guarantee that we can su to apache,
 # and running python during install may set some ownerships to root. This seems
@@ -171,23 +115,12 @@ if [[ $# == 1 && $1 == 1 ]] ; then
     chkconfig --add celeryd-event-stream
     chkconfig celeryd-event-stream on
 
-    if [[ $ENV_NOT_SET != 1 ]] ; then
-        service httpd restart
-        service celerybeat start
-        service celeryd-default start
-        service celeryd-host-stream start
-        service celeryd-event-stream start
-    else 
-        echo "***********************************************************************"
-        echo "*  To configure goldstone, add the following OpenStack parameters to  *"
-        echo "*  /opt/goldstone/goldstone/settings/production.py and reboot after:   *"
-        echo "*  installation has completed:                                        *"
-	    echo "*     OS_USERNAME                                                     *"
-	    echo "*     OS_TENANT_NAME                                                  *"
-	    echo "*     OS_PASSWORD                                                     *"
-	    echo "*     OS_AUTH_URL                                                     *"
-        echo "***********************************************************************"
-    fi
+    # Start Goldstone.
+    service httpd restart
+    service celerybeat start
+    service celeryd-default start
+    service celeryd-host-stream start
+    service celeryd-event-stream start
 else
     service httpd restart
     service celerybeat restart
