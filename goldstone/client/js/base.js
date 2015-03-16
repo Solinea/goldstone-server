@@ -70,7 +70,12 @@ goldstone.raiseAlert = function(selector, message, persist) {
     if (persist) {
         $(selector).html(message);
     } else {
-        $(selector).html(message + '<a href="#" class="close" data-dismiss="alert">&times;</a>');
+        // commenting out the ability to dismiss the alert, which destroys the
+        // element and prevents additional renderings.
+
+        // $(selector).html(message + '<a href="#" class="close"
+        // data-dismiss="alert">&times;</a>');
+        $(selector).html(message + '<a href="#" class="close" data-dismiss="alert"></a>');
     }
 
     $(selector).fadeIn("slow");
