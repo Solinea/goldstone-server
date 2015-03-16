@@ -296,7 +296,8 @@ rm -rf %{buildroot}
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/20-basic-syslog
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/34-filter-opestack-syslog
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/38-filter-goldstone-nodeinfo
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/67-output-es-goldstone-agent
+%attr(-, goldstone, logstash) /etc/logstash/conf.d/66-output-es-goldstone-metrics
+%attr(-, goldstone, logstash) /etc/logstash/conf.d/67-output-es-goldstone-reports
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/68-output-es-logstash
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/69-output-es-goldstone
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/70-output-resubs

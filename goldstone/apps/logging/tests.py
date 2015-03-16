@@ -12,10 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from contextlib import nested
+
 import arrow
 from django.test import SimpleTestCase
-from elasticsearch.client import IndicesClient
 from elasticsearch_dsl import Search
 from mock import patch
 from rest_framework.test import APITestCase

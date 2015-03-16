@@ -17,7 +17,6 @@ import logging
 from arrow import Arrow
 from elasticsearch_dsl import Search, query
 from goldstone.apps.drfes.models import DailyIndexDocType
-from goldstone.models import es_indices, es_conn, most_recent_index
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +65,7 @@ class LogData(DailyIndexDocType):
             # the double underscore is translated to .
             search = search.query(query.Terms(host__raw=hosts))
 
-        return search.sort({"@timestamp": {"order": "desc"}}).using(es_conn())
+        return search
 
     @classmethod
     def ranged_log_agg(cls, base_queryset, interval='1d', per_host=True):

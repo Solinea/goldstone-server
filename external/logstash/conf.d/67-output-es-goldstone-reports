@@ -16,13 +16,13 @@
 # push processed agent reports/metrics to elasticsearch
 # 
 output {
-    if [type] in ["core_metric", "core_report"] {
+    if [type] in ["core_report"] {
         # stdout { codec => "rubydebug" }
         elasticsearch {
             host => localhost
             port => 9200
             protocol => http
-            index => "goldstone_agent-%{+YYYY.MM.dd}"
+            index => "goldstone_reports-%{+YYYY.MM.dd}"
         }
     }
 }

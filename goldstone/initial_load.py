@@ -42,18 +42,30 @@ def _put_es_template(template_file, template_name, server=settings.ES_SERVER):
         raise
 
 
-def _put_agent_template(server=settings.ES_SERVER):
+def _put_metrics_template(server=settings.ES_SERVER):
     """Load the ES template for the agent index."""
 
     try:
         f = open(os.path.join(os.path.dirname(__file__),
-                              "goldstone_agent_template.json"), 'rb')
-        _put_es_template(f, "goldstone_agent", server=server)
+                              "goldstone_metrics_template.json"), 'rb')
+        _put_es_template(f, "goldstone_metrics", server=server)
     except Exception:         # pylint: disable=W0703
-        print "?ERROR: Failed to create/update the goldstone_agent template. " \
+        print "?ERROR: Failed to create/update the goldstone_metrics template. " \
               "Please report this!"
         raise
 
+
+def _put_reports_template(server=settings.ES_SERVER):
+    """Load the ES template for the agent index."""
+
+    try:
+        f = open(os.path.join(os.path.dirname(__file__),
+                              "goldstone_reports_template.json"), 'rb')
+        _put_es_template(f, "goldstone_reports", server=server)
+    except Exception:         # pylint: disable=W0703
+        print "?ERROR: Failed to create/update the goldstone_reports template. " \
+              "Please report this!"
+        raise
 
 def _put_goldstone_daily_template(server=settings.ES_SERVER):
     """Load the ES template for the goldstone index."""
@@ -72,7 +84,8 @@ def _put_all_templates(server=settings.ES_SERVER):
     """Install or update all goldstone templates."""
 
     _put_goldstone_daily_template(server=server)
-    _put_agent_template(server=server)
+    _put_reports_template(server=server)
+    _put_metrics_template(server=server)
 
 
 def initialize_development():

@@ -44,3 +44,31 @@ class ReadOnlyElasticSerializer(Serializer):
                 pass
 
         return obj
+
+
+class SimpleAggSerializer(ReadOnlyElasticSerializer):
+    """Custom serializer to manipulate the aggregation that comes back from ES.
+    """
+
+    AGG_NAME = None
+
+    def to_representation(self, instance):
+        """Create serialized representation of a single top-level aggregation.
+
+        :param instance: the result from the Model.simple_agg call
+        :return:
+        """
+        assert self.AGG_NAME is not None, (
+            "'%s' should set the `AGG_NAME` attribute."
+            % self.__class__.__name__
+        )
+
+        agg_base = getattr(instance, self.AGG_NAME, None)
+        assert agg_base is not None, (
+            "AGG_NAME must exist in the instance passed to %s."
+            % self.__class__.__name__
+        )
+
+        data = [{bucket.key: bucket.doc_count} for bucket in agg_base.buckets]
+
+        return {self.AGG_NAME: data}

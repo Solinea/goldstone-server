@@ -15,10 +15,11 @@
 import logging
 
 from rest_framework.permissions import AllowAny
-from goldstone.apps.drfes.views import ElasticListAPIView
+from goldstone.apps.drfes.views import ElasticListAPIView, SimpleAggView
 
 from .models import MetricData, ReportData
-from .serializers import MetricDataSerializer, ReportDataSerializer
+from .serializers import MetricDataSerializer, ReportDataSerializer, \
+    MetricNamesAggSerializer, ReportNamesAggSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,6 @@ class MetricDataListView(ElasticListAPIView):
     """A view that handles requests for events from Logstash data."""
 
     serializer_class = MetricDataSerializer
-    permission_classes = (AllowAny,)
 
     class Meta:
         model = MetricData
@@ -37,42 +37,47 @@ class ReportDataListView(ElasticListAPIView):
     """A view that handles requests for events from Logstash data."""
 
     serializer_class = ReportDataSerializer
-    permission_classes = (AllowAny,)
 
     class Meta:
         model = ReportData
 
 
-# class ReportListView(ElasticViewSetMixin, APIView):
-#
-#     def get(self, request, *args, **kwargs):
-#         """Return a list of reports in the system."""
-#         from django.conf import settings
-#
-#         try:
-#             params = self._process_params(request.QUERY_PARAMS.dict())
-#
-#             query = elasticutils.S().es(urls=settings.ES_URLS,
-#                                         timeout=2,
-#                                         max_retries=1,
-#                                         sniff_on_start=False)
-#             query = query. \
-#                 indexes('goldstone_agent'). \
-#                 doctypes('core_report'). \
-#                 query(name__prefix='os.service', must_not=True). \
-#                 query(**params['query_kwargs']). \
-#                 filter(**params['filter_kwargs'])
-#
-#             if 'order_by' in params:
-#                 query = query.order_by(params['order_by'])
-#
-#             # add the term facet clause
-#             query = query.facet("name", filtered=True, size=100)
-#             result = query.execute().facets
-#             result = result['name'].terms
-#
-#             return Response([entry['term'] for entry in result],
-#                             status=status.HTTP_200_OK)
-#
-#         except AttributeError:
-#             return Response([], status=status.HTTP_200_OK)
+class ReportNamesAggView(SimpleAggView):
+    """A view that handles requests for Report name aggregations.
+
+    Currently it support a top-level report name aggregation only.  The
+    scope can be limited to a specific host, time range, etc. by using
+    query params such has host=xyz or @timestamp__range={'gt': 0}"""
+
+    serializer_class = ReportNamesAggSerializer
+    permission_classes = (AllowAny,)
+    AGG_FIELD = 'name'
+    AGG_NAME = 'per_name'
+
+    class Meta:
+        model = ReportData
+
+    def get_queryset(self):
+        from elasticsearch_dsl.query import Q, Prefix
+        queryset = super(ReportNamesAggView, self).get_queryset()
+        return queryset.query(~Q(Prefix(name='os.service')))
+
+class MetricNamesAggView(SimpleAggView):
+    """A view that handles requests for Report name aggregations.
+
+    Currently it support a top-level report name aggregation only.  The
+    scope can be limited to a specific host, time range, etc. by using
+    query params such has host=xyz or @timestamp__range={'gt': 0}"""
+
+    serializer_class = MetricNamesAggSerializer
+    permission_classes = (AllowAny,)
+    AGG_FIELD = 'name'
+    AGG_NAME = 'per_name'
+
+    class Meta:
+        model = MetricData
+
+    def get_queryset(self):
+        from elasticsearch_dsl.query import Q, Prefix
+        queryset = super(ReportNamesAggView, self).get_queryset()
+        return queryset.query(~Q(Prefix(name='os.service')))

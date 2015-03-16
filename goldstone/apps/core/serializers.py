@@ -14,7 +14,8 @@
 # limitations under the License.
 
 from rest_framework import serializers
-from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
+from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer, \
+    SimpleAggSerializer
 from .models import PolyResource
 import logging
 
@@ -33,6 +34,16 @@ class ReportDataSerializer(ReadOnlyElasticSerializer):
 
     class Meta:
         exclude = ('@version','sort', 'tags', 'type')
+
+
+class MetricNamesAggSerializer(SimpleAggSerializer):
+
+    AGG_NAME = 'per_name'
+
+
+class ReportNamesAggSerializer(SimpleAggSerializer):
+
+    AGG_NAME = 'per_name'
 
 
 #

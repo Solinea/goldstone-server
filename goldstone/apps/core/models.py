@@ -34,14 +34,15 @@ logger = logging.getLogger(__name__)
 class MetricData(DailyIndexDocType):
     """Search interface for an agent generated metric."""
 
-    INDEX_PREFIX = 'goldstone_agent-'
+    INDEX_PREFIX = 'goldstone_metric-'
 
     class Meta:
         doc_type = 'core_metric'
 
+
 class ReportData(DailyIndexDocType):
 
-    INDEX_PREFIX = 'goldstone_agent-'
+    INDEX_PREFIX = 'goldstone_report-'
 
     class Meta:
         doc_type = 'core_report'

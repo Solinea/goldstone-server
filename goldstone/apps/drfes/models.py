@@ -21,6 +21,7 @@ class DailyIndexDocType(DocType):
     read-only)."""
 
     INDEX_PREFIX = 'logstash-'
+    SORT = '-@timestamp'
 
     class Meta:
         doc_type = 'syslog'
@@ -35,7 +36,36 @@ class DailyIndexDocType(DocType):
         return Search(
             index=es_indices(cls.INDEX_PREFIX),
             doc_type={cls._doc_type.name: cls.from_es},
-        ).using(es_conn())
+        ).sort(cls.SORT).using(es_conn())
+
+    @classmethod
+    def simple_agg(cls, field, agg_name, base_queryset):
+        """ Returns an aggregations by date histogram and maybe log level.
+
+        :type field: str
+        :param field: The field to aggregate
+        :type base_queryset: Search
+        :param base_queryset: The queryset on which to attach this aggregation
+        :rtype: object
+        :return: the (possibly nested) aggregation
+        """
+
+        # we are not interested in the actual docs, so use the count search
+        # type.
+        search = base_queryset.params(search_type="count")
+
+        # add a top-level aggregation for the field
+        search.aggs.bucket(agg_name, "terms",
+                           field=field,
+                           min_doc_count=0,
+                           size=0)
+
+        import json
+        print json.dumps(search.to_dict())
+
+        response = search.execute().aggregations
+        return response
+
 
     @classmethod
     def get_field_mapping(cls, field):
