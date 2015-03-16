@@ -15,31 +15,24 @@
 
 import logging
 from arrow import Arrow
-from elasticsearch_dsl import DocType, Search, query
+from elasticsearch_dsl import Search, query
+from goldstone.apps.drfes.models import DailyIndexDocType
 from goldstone.models import es_indices, es_conn, most_recent_index
 
 logger = logging.getLogger(__name__)
 
 
-class LogData(DocType):
+class LogData(DailyIndexDocType):
     """Logstash log entry model (intended to be read-only)."""
-
-    _INDEX_PREFIX = 'logstash-'
 
     class Meta:
         doc_type = 'syslog'
 
     @classmethod
     def search(cls):
-        """Gets a generic Log search object.
+        """Gets a generic Log search object."""
 
-        See elasticsearch-dsl for parameter information.
-        """
-
-        return Search(
-            index=es_indices(cls._INDEX_PREFIX),
-            doc_type={cls._doc_type.name: cls.from_es},
-        ).using(es_conn())
+        return super(LogData, cls).search().using(es_conn())
 
     @classmethod
     def ranged_log_search(cls, start=None, end=None, hosts=[]):
@@ -138,33 +131,6 @@ class LogData(DocType):
         response = search.execute().aggregations
         return response
 
-    @classmethod
-    def get_field_mapping(cls, field):
-
-        conn = es_conn()
-        index = most_recent_index(cls._INDEX_PREFIX)
-        return conn.indices.get_field_mapping(
-            field, index, cls._doc_type.name,
-            include_defaults=True, allow_no_indices=False)
-
-    @classmethod
-    def field_has_raw(cls, field):
-        """Looks up the ES mapping for a field and determines if it has a 'raw'
-        representation.
-
-        :param field: the field name in ES
-        :return: Boolean
-        """
-
-        try:
-            index = most_recent_index(cls._INDEX_PREFIX)
-            mapping = cls.get_field_mapping(field)
-            return 'raw' in \
-                   mapping[index]['mappings'][cls._doc_type.name][field][
-                       'mapping'][field]['fields']
-        except KeyError:
-            return False
-
 
 class LogEvent(LogData):
     """Logstash log entry model (intended to be read-only)."""
@@ -181,7 +147,7 @@ class LogEvent(LogData):
         from elasticsearch_dsl import Q
         from elasticsearch_dsl.query import Terms
 
-        event_type_query = Q(Terms(event_type__raw=cls.LOG_EVENT_TYPES))
         search = super(LogEvent, cls).search()
+        event_type_query = Q(Terms(event_type__raw=cls.LOG_EVENT_TYPES))
 
         return search.query(event_type_query)
