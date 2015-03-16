@@ -18,6 +18,8 @@ from django.test import SimpleTestCase
 from elasticsearch.client import IndicesClient
 from elasticsearch_dsl import Search
 from mock import patch
+from rest_framework.test import APITestCase
+from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
 from .models import LogData
 
 
@@ -175,3 +177,41 @@ class LogEventModelTests(SimpleTestCase):
         result = LogEvent.search().to_dict()
         self.assertDictContainsSubset(expectation, result['query'])
 
+
+class LogAggViewTests(APITestCase):
+
+    def setUp(self):
+        self.token = create_and_login()
+
+    def test_agg_view_with_params(self):
+        import arrow
+
+        start = arrow.get(0).timestamp * 1000
+        end = arrow.utcnow().timestamp * 1000
+        range = '@timestamp__range={"gte":"' + \
+                str(start) + '", "lte": "' + str(end) + '"}'
+        interval = "interval=1d"
+        url = '/logging/summarize?' + range + '&' + interval
+        response = self.client.get(
+            url,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+        self.assertEqual(response.status_code, 200)
+
+
+class LogEventViewTests(APITestCase):
+
+    def setUp(self):
+        self.token = create_and_login()
+
+    def test_event_view(self):
+        import arrow
+
+        start = arrow.get(0).timestamp * 1000
+        end = arrow.utcnow().timestamp * 1000
+        range = '@timestamp__range={"gte":"' + \
+                str(start) + '", "lte": "' + str(end) + '"}'
+        url = '/logging/events?' + range
+        response = self.client.get(
+            url,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+        self.assertEqual(response.status_code, 200)
