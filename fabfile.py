@@ -374,12 +374,11 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
 
         fastprint("\nAn OpenStack cloud entry will now be created under the "
                   "default tenant.\n")
-        cloud_tenant_name = prompt("Cloud name?", default=DEFAULT_CLOUD_TENANT)
-        cloud_username = prompt("Username?", default=DEFAULT_CLOUD_USERNAME)
-        cloud_password = prompt("Password for %s?" % cloud_username,
-                                default=DEFAULT_CLOUD_PASSWORD)
-        cloud_auth_url = prompt("Cloud authorization server URL?",
-                                default=DEFAULT_CLOUD_AUTH_URL)
+        cloud_tenant_name = prompt("OS_TENANT_NAME?",
+                                   default=DEFAULT_CLOUD_TENANT)
+        cloud_username = prompt("OS_USERNAME?", default=DEFAULT_CLOUD_USERNAME)
+        cloud_password = prompt("OS_PASSWORD?", default=DEFAULT_CLOUD_PASSWORD)
+        cloud_auth_url = prompt("OS_AUTH_URL?", default=DEFAULT_CLOUD_AUTH_URL)
 
         Cloud.objects.create(tenant=tenant,
                              tenant_name=cloud_tenant_name,
