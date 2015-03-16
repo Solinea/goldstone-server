@@ -13,14 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from django.db.models import CharField, Model, DateTimeField, \
-    TextField, DecimalField
+from django.db.models import CharField
 from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
     ModificationDateTimeField
-from elasticutils.contrib.django import MappingType, Indexable
 import logging
-from django.conf import settings
 from polymorphic import PolymorphicModel
+from goldstone.apps.drfes.models import DailyIndexDocType
 from goldstone.apps.logging.models import LogData, LogEvent
 from goldstone.utils import utc_now
 
@@ -32,175 +30,26 @@ logger = logging.getLogger(__name__)
 #
 # Goldstone Agent Metrics and Reports
 #
-class MetricType(MappingType, Indexable):
 
-    @classmethod
-    def search(cls):
-        return super(MetricType, cls).search().es(urls=settings.ES_URLS,
-                                                  timeout=2,
-                                                  max_retries=1,
-                                                  sniff_on_start=False)
+class MetricData(DailyIndexDocType):
+    """Search interface for an agent generated metric."""
 
-    @classmethod
-    def get_model(cls):
+    INDEX_PREFIX = 'goldstone_agent-'
 
-        return Metric
+    class Meta:
+        doc_type = 'core_metric'
 
-    @classmethod
-    def get_mapping(cls):
-        """Returns an Elasticsearch mapping for this MappingType"""
+class ReportData(DailyIndexDocType):
 
-        return {
-            'properties': {
-                'timestamp': {'type': 'date'},
-                'name': {'type': 'string'},
-                'metric_type': {'type': 'string'},
-                'value': {'type': 'double'},
-                'unit': {'type': 'string'},
-                'node': {'type': 'string'}
-            }
-        }
+    INDEX_PREFIX = 'goldstone_agent-'
 
-    def get_object(self):
-
-        return Metric.reconstitute(
-            timestamp=self._results_dict['timestamp'],
-            name=self._results_dict['name'],
-            metric_type=self._results_dict['metric_type'],
-            value=self._results_dict['value'],
-            unit=self._results_dict['unit'],
-            node=self._results_dict['node']
-        )
-
-
-class Metric(Model):
-    id = CharField(max_length=36, primary_key=True)
-    timestamp = DateTimeField(auto_now=False)
-    name = CharField(max_length=128)
-    metric_type = CharField(max_length=36)
-    value = DecimalField(max_digits=30, decimal_places=8)
-    unit = CharField(max_length=36)
-    node = CharField(max_length=36)
-
-    _mt = MetricType()
-    es_objects = MetricType.search()
-
-    @classmethod
-    def reconstitute(cls, **kwargs):
-        """Allow the mapping type to create an object from ES data."""
-        return cls(**kwargs)
-
-    @classmethod
-    def get(cls, **kwargs):
-        try:
-            return cls.es_objects.filter(**kwargs)[0].get_object()
-        except Exception:       # pylint: disable=W0703
-            return None
-
-    def save(self, force_insert=False, force_update=False):
-        """
-        An override to save the object to ES via elasticutils.  This will be
-        a noop for now.  Saving occurs from the logstash processing directly
-        to ES.
-        """
-        raise NotImplementedError("save is not implemented for this model")
-
-    def delete(self, using=None):
-        raise NotImplementedError("delete is not implemented for this model")
-
-
-class ReportType(MappingType, Indexable):
-
-    @classmethod
-    def search(cls):
-        return super(ReportType, cls).search().es(urls=settings.ES_URLS,
-                                                  timeout=2,
-                                                  max_retries=1,
-                                                  sniff_on_start=False)
-
-    @classmethod
-    def get_model(cls):
-
-        return Report
-
-    @classmethod
-    def get_mapping(cls):
-        """Returns an Elasticsearch mapping for this MappingType"""
-
-        return {
-            'properties': {
-                'timestamp': {'type': 'date'},
-                'name': {'type': 'string'},
-                'value': {'type': 'string'},
-                'node': {'type': 'string'}
-            }
-        }
-
-    def get_object(self):
-
-        return Report.reconstitute(
-            timestamp=self._results_dict['timestamp'],
-            name=self._results_dict['name'],
-            value=self._results_dict['value'],
-            node=self._results_dict['node']
-        )
-
-
-class Report(Model):
-    id = CharField(max_length=36, primary_key=True)
-    timestamp = DateTimeField(auto_now=False)
-    name = CharField(max_length=128)
-    value = TextField(max_length=65535)
-    node = CharField(max_length=36)
-
-    _mt = ReportType()
-    es_objects = ReportType.search()
-
-    @classmethod
-    def reconstitute(cls, **kwargs):
-        """Allows the mapping type to create an object from ES data."""
-
-        # reports could be stringified JSON, so let's find out
-        if "value" in kwargs and type(kwargs["value"]) is list:
-            new_val = []
-
-            for item in kwargs["value"]:
-                try:
-                    new_val.append(json.loads(item))
-                except Exception:       # pylint: disable=W0703
-                    new_val.append(item)
-
-            kwargs['value'] = new_val
-
-        else:
-            logger.debug("no value present in kwargs, or value not a list")
-
-        return cls(**kwargs)
-
-    @classmethod
-    def get(cls, **kwargs):
-
-        try:
-            return cls.es_objects.filter(**kwargs)[0].get_object()
-        except Exception:       # pylint: disable=W0703
-            return None
-
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        """
-        An override to save the object to ES via elasticutils.  This will be
-        a noop for now.  Saving occurs from the logstash processing directly
-        to ES.
-        """
-        raise NotImplementedError("save is not implemented for this model")
-
-    def delete(self, using=None):
-        raise NotImplementedError("delete is not implemented for this model")
-
+    class Meta:
+        doc_type = 'core_report'
 
 #
 # This is the beginning of the new polymorphic resource model support
 #
+
 
 class PolyResource(PolymorphicModel):
     """

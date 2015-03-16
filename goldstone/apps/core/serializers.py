@@ -14,60 +14,25 @@
 # limitations under the License.
 
 from rest_framework import serializers
-from .models import Metric, Report, PolyResource
+from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
+from .models import PolyResource
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class MetricSerializer(serializers.ModelSerializer):
+class MetricDataSerializer(ReadOnlyElasticSerializer):
+    """Serializer for agent metrics."""
 
     class Meta:
-        model = Metric
-        exclude = ['id']
-
-    def to_representation(self, instance):
-        return {
-            'timestamp': instance.timestamp,
-            'name': instance.name,
-            'node': instance.node,
-            'value': instance.value
-        }
+        exclude = ('@version','sort', 'tags', 'type')
 
 
-class ReportSerializer(serializers.ModelSerializer):
+class ReportDataSerializer(ReadOnlyElasticSerializer):
+    """Serializer for agent metrics."""
 
     class Meta:
-        model = Report
-        exclude = ['id']
-
-    @staticmethod
-    def _transform_value(field_value):
-        """
-        Values for reports can a list of simple types or objects.  Try to
-        load them as objects first, then fall back to dumping their values
-        into a list.
-        """
-        import json
-
-        if isinstance(field_value, list):
-            new_val = []
-            for item in field_value:
-                try:
-                    new_val.append(json.loads(item))
-                except Exception:          # pylint: disable=W0703
-                    new_val.append(item)
-            return new_val
-        else:
-            return field_value
-
-    def to_representation(self, instance):
-
-        return {'timestamp': instance.timestamp,
-                'name': instance.name,
-                'node': instance.node,
-                'value': self._transform_value(instance.value)
-                }
+        exclude = ('@version','sort', 'tags', 'type')
 
 
 #
