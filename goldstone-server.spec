@@ -115,8 +115,7 @@ cd /opt/goldstone
 pip install -r requirements.txt
 export DJANGO_SETTINGS_MODULE=goldstone.settings.production
 
-# Initialize agent and model templates. We'll use the lower-level functions,
-# for maximum future flexibility.
+# Initialize ES templates.
 python manage.py shell <<EOF
 from goldstone.initial_load import _put_all_templates
 from goldstone.apps.core.tasks import create_daily_index 
