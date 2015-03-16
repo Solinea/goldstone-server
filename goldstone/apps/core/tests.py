@@ -18,20 +18,16 @@ This module demonstrates no less than 3 strategies for mocking ES.
 # limitations under the License.
 
 import logging
-from time import sleep
 from uuid import uuid4
 
 import arrow
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase
 import elasticsearch
 from elasticsearch.client import IndicesClient
 import mock
 from mock import patch
 from rest_framework import status
-import rest_framework
-from rest_framework.renderers import JSONRenderer
 from rest_framework.test import APISimpleTestCase
 
 from goldstone.apps.core import tasks
@@ -39,9 +35,9 @@ from goldstone.apps.core.utils import custom_exception_handler
 from goldstone.apps.core.views import ElasticViewSetMixin
 from goldstone.models import es_conn
 from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
-from .models import EventType, Event, MetricType, Metric, ReportType, Report, \
+from .models import MetricType, Metric, ReportType, Report, \
     PolyResource
-from .serializers import EventSerializer, ReportSerializer
+from .serializers import ReportSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -74,339 +70,6 @@ class TaskTests(SimpleTestCase):
         put_alias.return_value = None
 
         self.assertIsNone(tasks.create_daily_index('abc'))
-
-
-class EventModelTests(SimpleTestCase):
-
-    def setUp(self):
-
-        server = es_conn()
-
-        if server.indices.exists('goldstone_model'):
-            server.indices.delete('goldstone_model')
-
-        server.indices.create('goldstone_model')
-
-    def test_create_model(self):
-
-        event = Event(event_type='test_event', message='this is a test event')
-
-        self.assertIsNotNone(event.id)
-        self.assertEqual(event.source_id, "")
-        self.assertEqual(event.source_name, "")
-        self.assertNotEqual(event.id, "")
-        self.assertIsNotNone(event.created)
-
-    def test_index_model(self):
-
-        event = Event(event_type='test_event', message='this is a test event')
-        event.save()
-
-        EventType.refresh_index()
-
-        # pylint: disable=W0212
-        self.assertEqual(event._mt.search().query().count(), 1)
-
-        stored = event._mt.search().query(). \
-            filter(_id=event.id)[:1]. \
-            execute(). \
-            objects[0]. \
-            get_object()
-
-        self.assertEqual(stored.id, event.id)
-        self.assertEqual(stored.event_type, event.event_type)
-        self.assertEqual(stored.message, event.message)
-        self.assertEqual(stored.created, event.created)
-
-    def test_unindex_model(self):
-
-        event = Event(event_type='test_event', message='this is a test event')
-        event.save()
-
-        EventType.refresh_index()
-        # pylint: disable=W0212
-        self.assertEqual(event._mt.search().query().count(), 1)
-
-        event.delete()
-        EventType.refresh_index()
-        self.assertEqual(EventType().search().query().count(), 0)
-
-
-class EventTypeTests(SimpleTestCase):
-
-    def test_get_mapping(self):
-
-        result = EventType.get_mapping()
-        self.assertIs(type(result), dict)
-
-
-class EventSerializerTests(SimpleTestCase):
-
-    event1 = Event(event_type='test_serializer',
-                   message='testing serialization')
-
-    def setUp(self):
-
-        server = es_conn()
-
-        if server.indices.exists('goldstone_model'):
-            server.indices.delete('goldstone_model')
-
-        server.indices.create('goldstone_model')
-
-        self.event1.save()
-
-    def test_serialize(self):
-
-        ser = EventSerializer(self.event1)
-        extract = EventType.extract_document(self.event1.id, self.event1)
-
-        # date serialization is awkward wrt +00:00 (gets converted to Z), and
-        # resolution is a mismatch from arrow, so need to compare field by
-        # field
-        self.assertEqual(ser.data['id'], extract['id'])
-        self.assertEqual(ser.data['event_type'],
-                         extract['event_type'])
-        self.assertEqual(ser.data['message'], extract['message'])
-        self.assertEqual(ser.data['source_id'], extract['source_id'])
-        self.assertEqual(arrow.get(ser.data['created']),
-                         arrow.get(extract['created']))
-
-    def test_deserialize(self):
-        pass
-
-
-class EventViewTests(APISimpleTestCase):
-
-    def setUp(self):
-        """Run before every test."""
-
-        server = es_conn()
-
-        if server.indices.exists('goldstone_model'):
-            server.indices.delete('goldstone_model')
-
-        server.indices.create('goldstone_model')
-
-        # Needed for DRF's token authentication.
-        get_user_model().objects.all().delete()
-        self.token = create_and_login()
-
-    def test_post(self):
-
-        data = {'event_type': "test event", 'message': "test message"}
-        response = self.client.post(
-            '/core/events',
-            data=data,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-
-        EventType.refresh_index()
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-    def test_list(self):
-        """Record two events, then GET them."""
-
-        data1 = {"event_type": "test event", "message": "test message 1"}
-        data2 = {"event_type": "test event", "message": "test message 2"}
-
-        for data in [data1, data2]:
-            response = self.client.post(
-                '/core/events',
-                data=data,
-                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        EventType.refresh_index()
-        response = self.client.get(
-            '/core/events',
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 2)  # pylint: disable=E1101
-
-    def test_get(self):
-
-        data = {"event_type": "test event", "message": "test message"}
-
-        response = self.client.post(
-            '/core/events',
-            data=data,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-
-        EventType.refresh_index()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        response = self.client.get(
-            '/core/events',
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # pylint: disable=E1101
-        self.assertEqual(response.data['count'], 1)
-
-        list_response_data = response.data['results'][0]
-        # pylint: enable=E1101
-        self.assertDictContainsSubset(data, list_response_data)
-
-        response = self.client.get(
-            '/core/events/' + list_response_data['id'],
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-
-        d1_created = list_response_data['created']
-        # pylint: disable=E1101
-        d2_created = response.data['created']
-        del list_response_data['created']
-        del response.data['created']
-        self.assertDictEqual(list_response_data, response.data)
-        # pylint: enable=E1101
-        self.assertEqual(arrow.get(d1_created), arrow.get(d2_created))
-
-    def test_delete(self):
-
-        data = {"event_type": "test event", "message": "test message"}
-
-        response = self.client.post(
-            '/core/events',
-            data=data,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-
-        EventType.refresh_index()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # pylint: disable=E1101
-        list_response_data = response.data
-        self.assertDictContainsSubset(data, list_response_data)
-
-        # pylint: enable=E1101
-        response = self.client.delete(
-            '/core/events/' + list_response_data['id'],
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        EventType.refresh_index()
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-        response = self.client.get(
-            '/core/events/' + list_response_data['id'],
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_create_fail_date_format(self):
-
-        data = {"created": "xyzabc123",
-                "event_type": "external created event",
-                "message": "I am your creator"
-                }
-
-        response = self.client.post(
-            '/core/events',
-            data=data,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_get_list_with_start(self):
-
-        start_time = arrow.utcnow().replace(minutes=-15)
-
-        data1 = {"event_type": "test event", "message": "test message"}
-        data2 = {"event_type": "test event",
-                 "message": "test message",
-                 "created": start_time.replace(minutes=-2).isoformat()
-                 }
-
-        response = self.client.post(
-            '/core/events',
-            data=data1,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        data1_id = response.data['id']  # pylint: disable=E1101
-
-        response = self.client.post(
-            '/core/events',
-            data=data2,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        data2_id = response.data['id']  # pylint: disable=E1101
-        EventType.refresh_index()
-        response = self.client.get(
-            '/core/events',
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 2)  # pylint: disable=E1101
-
-        # make sure that data2 has the proper created time
-        response = self.client.get(
-            '/core/events/' + data2_id,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        d2_created = arrow.get(
-            response.data['created'])  # pylint: disable=E1101
-        self.assertEqual(d2_created, start_time.replace(minutes=-2))
-
-        response = self.client.get(
-            '/core/events?created__gte=' + str(start_time.timestamp * 1000),
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # pylint: disable=E1101
-        self.assertEqual(response.data['count'], 1)
-        self.assertEqual(response.data['results'][0]['id'], data1_id)
-
-    def test_get_list_start_and_end(self):
-
-        end_time = arrow.utcnow().replace(minutes=-14)
-        start_time = end_time.replace(minutes=-2)
-
-        data1 = {"event_type": "test event", "message": "test message 1"}
-        data2 = {"event_type": "test event",
-                 "message": "test message 2",
-                 "created": end_time.replace(minutes=-1).isoformat()
-                 }
-
-        response = self.client.post(
-            '/core/events',
-            data=data1,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        response = self.client.post(
-            '/core/events',
-            data=data2,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        data2_id = response.data['id']  # pylint: disable=E1101
-        EventType.refresh_index()
-        response = self.client.get(
-            '/core/events',
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 2)  # pylint: disable=E1101
-
-        response = self.client.get(
-            '/core/events?created__gte=' + str(start_time.timestamp * 1000) +
-            '&created__lte=' + str(end_time.timestamp * 1000),
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # pylint: disable=E1101
-        self.assertEqual(response.data['count'], 1)
-        self.assertEqual(response.data['results'][0]['id'], data2_id)
-
-    def test_not_in_db(self):
-
-        data = {"event_type": "test event", "message": "test message"}
-
-        response = self.client.post(
-            '/core/events',
-            data=data,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-
-        EventType.refresh_index()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        shapes = Event.objects.raw('SELECT * FROM core_event')
-        self.assertEqual(len(list(shapes)), 0)
 
 
 class MetricTypeTests(SimpleTestCase):
@@ -662,29 +325,6 @@ class ReportViewTests(APISimpleTestCase):
 
         self.assertEqual(response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
-
-
-class ElasticViewSetMixinTests(APISimpleTestCase):
-
-    def test_process_params(self):
-
-        # Test parameters.
-        PARAMS = {'name': 'test_param', 'name__fuzzy': 'xyz',
-                  'name__gte': '123', 'must_not': "True",
-                  "ordering": "-source_name"}
-
-        mixin = ElasticViewSetMixin()
-
-        # Support the ordering lookup with a known model type.
-        mixin.model = EventType
-        result = mixin._process_params(PARAMS)      # pylint: disable=W0212
-
-        self.assertEqual(result,
-                         {'query_kwargs': {'name__fuzzy': 'xyz',
-                                           'must_not': 'True',
-                                           'name__gte': '123'},
-                          'filter_kwargs': {'name': 'test_param'},
-                          'order_by': '-source_name.raw'})
 
 
 class ReportListViewTests(APISimpleTestCase):

@@ -172,16 +172,7 @@ BROKER_TRANSPORT_OPTIONS = {
 CELERY_DEFAULT_QUEUE = 'default'
 CELERY_QUEUES = (
     Queue('default', Exchange('default'), routing_key='default'),
-    Queue('host_stream', Exchange('default'), routing_key='host_stream.#'),
-    Queue('amqp_stream', Exchange('default'), routing_key='amqp_stream.#'),
 )
-
-CELERY_ROUTES = {
-    'goldstone.apps.logging.tasks.process_host_stream': {
-        'queue': 'host_stream'},
-    'goldstone.apps.logging.tasks.process_event_stream': {
-        'queue': 'event_stream'},
-}
 
 DAILY_INDEX_CURATION_SCHEDULE = crontab(minute='0', hour='0', day_of_week='*')
 ES_GOLDSTONE_RETENTION = 30
@@ -248,10 +239,6 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.apps.nova.tasks.discover_nova_topology',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
-    'logging_node_avail_test': {
-        'task': 'goldstone.apps.logging.tasks.check_host_avail',
-        'schedule': HOST_AVAILABLE_PING_INTERVAL
-    },
     'reconcile_nova_hosts': {
         'task': 'goldstone.apps.nova.tasks.reconcile_hosts',
         'schedule': TOPOLOGY_QUERY_INTERVAL
@@ -301,13 +288,6 @@ REST_FRAMEWORK = {
     'MAX_PAGINATE_BY': 1000,
     'EXCEPTION_HANDLER': 'goldstone.apps.core.utils.custom_exception_handler'
 }
-
-# controls the time examined for the log volume stats included in the
-# LoggingNode object.
-LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES = 15
-
-# controls the default lookback for /core/events calls
-EVENT_LOOKBACK_MINUTES = 60
 
 # Goldstone config settings
 DEFAULT_LOOKBACK_DAYS = 7
