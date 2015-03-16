@@ -124,7 +124,8 @@ def custom_exception_handler(exc, context):
         elif isinstance(exc, Exception):
             data = {'detail': "There was an error processing this request. "
                               "Please file a ticket with support.",
-                    'message': exc.message}
+                    'message': str(exc)}
+            logger.exception(exc)
             response = Response(data,
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
