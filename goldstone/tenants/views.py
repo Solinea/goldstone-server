@@ -109,7 +109,8 @@ class BaseViewSet(NestedViewSetMixin, SendEmailViewMixin, ModelViewSet):
         return {'domain': settings.get('DOMAIN'),
                 'site_name': settings.get('SITE_NAME'),
                 'protocol': 'https' if self.request.is_secure() else 'http',
-                "tenant_name": user.perform_create_tenant_name
+                "tenant_name": user.perform_create_tenant_name,
+                "username": user.username
                 }
 
 
