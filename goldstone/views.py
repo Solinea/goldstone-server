@@ -375,9 +375,14 @@ class PasswordView(TemplateView):
 
 
 class SettingsPageView(TemplateView):
-    """Return the Goldstone user/tenant settings page."""
+    """Return the Goldstone user settings page."""
 
     template_name = 'settings.html'
+
+class TenantSettingsPageView(TemplateView):
+    """Return the Goldstone tenant/user settings page."""
+
+    template_name = 'tenant.html'
 
 
 class NodeReportView(TemplateView):

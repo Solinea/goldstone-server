@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-var SettingsPageView = GoldstoneBaseView.extend({
+var TenantSettingsPageView = GoldstoneBaseView.extend({
 
     defaults: {},
 
@@ -23,7 +23,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
         this.defaults = _.clone(this.defaults);
         this.el = options.el;
         this.render();
-        this.getUserSettings();
+        this.getTenantSettings();
         this.addHandlers();
     },
 
@@ -31,47 +31,31 @@ var SettingsPageView = GoldstoneBaseView.extend({
         var self = this;
 
         // add listener to settings form submission button
-        $('.settings-form').on('submit', function(e) {
+        $('.tenant-settings-form').on('submit', function(e) {
             e.preventDefault();
 
             // trim inputs to prevent leading/trailing spaces
-            self.trimInputField('[name="username"]');
-            self.trimInputField('[name="first_name"]');
-            self.trimInputField('[name="last_name"]');
+            self.trimInputField('[name="name"]');
+            self.trimInputField('[name="owner"]');
+            self.trimInputField('[name="owner_contact"]');
 
             // ('[name="email"]') seems to have native .trim()
             // support based on the type="email"
 
             // 4th argument informs what will be appeneded to screen upon success
-            self.submitRequest('PUT', '/user', $(this).serialize(), 'Settings');
-        });
-
-        // add listener to password form submission button
-        $('.password-reset-form').on('submit', function(e) {
-            e.preventDefault();
-            self.submitRequest('POST', '/accounts/password', $(this).serialize(), 'Password');
-
-            // clear password form after submission, success or not
-            $('.password-reset-form').find('[name="current_password"]').val('');
-            $('.password-reset-form').find('[name="new_password"]').val('');
+            self.submitRequest('POST', '/tenants', $(this).serialize(), 'Tenant settings');
         });
     },
 
-    getUserSettings: function() {
+    getTenantSettings: function() {
         var self = this;
 
-        $.get('/user')
+        $.get('/tenants')
             .done(function(result) {
-                $('[name="username"]').val(result.username);
-                $('[name="first_name"]').val(result.first_name);
-                $('[name="last_name"]').val(result.last_name);
-                $('[name="email"]').val(result.email);
-
-                // result object contains tenant_admin field (true|false)
-                if (result.tenant_admin) {
-                    self.checkIfTenantAdmin(result.tenant_admin);
-                }
-
+                result = result.results[0];
+                $('[name="name"]').val(result.name);
+                $('[name="owner"]').val(result.owner);
+                $('[name="owner_contact"]').val(result.owner_contact);
             })
             .fail(function(fail) {
                 goldstone.raiseInfo('Could not load user settings', true);
@@ -89,11 +73,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
 
     renderTenantSettingsPageLink: function() {
         $('#tenant-settings-button').append('' +
-            '<button class="btn btn-lg btn-danger btn-block modify">Modify tenant settings</button>');
-
-        $('button.modify').on('click', function() {
-            window.location.href = "/tenant";
-        });
+            '<a href="/tenant"><button class="btn btn-lg btn-danger btn-block">Modify tenant settings</button></a>');
     },
 
     // abstracted to work for both forms, and append the correct
@@ -138,35 +118,17 @@ var SettingsPageView = GoldstoneBaseView.extend({
         '<div class="row">' +
 
         // personal settings form
-        '<div class="col-md-4 col-md-offset-2">' +
-        '<form class="settings-form">' +
-        '<h3>Update Personal Settings</h3>' +
-        '<label for="inputUsername">Username</label>' +
-        '<input name="username" type="text" class="form-control" placeholder="username" required>' +
-        '<label for="inputFirstname">First name</label>' +
-        '<input name="first_name" type="text" class="form-control" placeholder="First name" autofocus>' +
-        '<label for="inputLastname">Last name</label>' +
-        '<input name="last_name" type="text" class="form-control" placeholder="Last name">' +
-        '<label for="inputEmail">Email</label>' +
-        '<input name="email" type="email" class="form-control" placeholder="Email">' +
+        '<div class="col-md-4 col-md-offset-0">' +
+        '<form class="tenant-settings-form">' +
+        '<h3>Update Tenant Settings</h3>' +
+        '<label for="name">Tenant name</label>' +
+        '<input name="name" type="text" class="form-control" placeholder="Tenant name">' +
+        '<label for="owner">Owner name</label>' +
+        '<input name="owner" type="text" class="form-control" placeholder="Owner name" autofocus>' +
+        '<label for="owner_contact">Owner contact</label>' +
+        '<input name="owner_contact" type="email" class="form-control" placeholder="Owner email address">' +
         '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
         '</form>' +
-        '</div>' +
-
-        // password reset form
-        '<div class="col-md-4">' +
-        '<form class="password-reset-form">' +
-        '<h3>Change Password</h3>' +
-        '<label for="inputCurrentPassword">Current password</label>' +
-        '<input name="current_password" type="password" class="form-control" placeholder="Current password" required>' +
-        '<label for="inputNewPassword">New password</label>' +
-        '<input name="new_password" type="password" class="form-control" placeholder="New password" required><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Change password</button>' +
-        '</form>' +
-        '</div>' +
-
-        // tenant settings link
-        '<div class="col-md-4" id="tenant-settings-button">' +
         '</div>' +
 
         // close divs for row/container
