@@ -76,7 +76,7 @@ var DetailsReportView = GoldstoneBaseView.extend({
                     "title": "Value"
                 }]
             };
-            oTable = $(location).dataTable(oTableParams);
+            oTable = $(location).DataTable(oTableParams);
         }
     },
 
