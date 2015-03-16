@@ -25,7 +25,6 @@ class LogData(DocType):
     """Logstash log entry model (intended to be read-only)."""
 
     _INDEX_PREFIX = 'logstash-'
-    LOG_EVENT_TYPES = ['OpenStackSyslogError', 'GenericSyslogError']
 
     class Meta:
         doc_type = 'syslog'
@@ -136,8 +135,6 @@ class LogData(DocType):
                 field='loglevel',
                 min_doc_count=0)
 
-        import json
-        logger.info('search = %s', json.dumps(search.to_dict()))
         response = search.execute().aggregations
         return response
 
@@ -167,3 +164,24 @@ class LogData(DocType):
                        'mapping'][field]['fields']
         except KeyError:
             return False
+
+
+class LogEvent(LogData):
+    """Logstash log entry model (intended to be read-only)."""
+
+    LOG_EVENT_TYPES = ['OpenStackSyslogError', 'GenericSyslogError']
+
+    class Meta:
+        doc_type = 'syslog'
+
+    @classmethod
+    def search(cls):
+        """Return a search object with a log event query clause. """
+
+        from elasticsearch_dsl import Q
+        from elasticsearch_dsl.query import Terms
+
+        event_type_query = Q(Terms(event_type__raw=cls.LOG_EVENT_TYPES))
+        search = super(LogEvent, cls).search()
+
+        return search.query(event_type_query)

@@ -12,19 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.conf import settings
-import arrow
-from rest_framework.fields import BooleanField
+
 import logging
 
-from rest_framework import serializers
-from rest_framework.permissions import AllowAny
-from rest_framework.views import APIView
-
-from goldstone.apps.core.serializers import IntervalField, \
-    ArrowCompatibleField, CSVField
 from goldstone.apps.drfes.views import ElasticListAPIView
-from goldstone.apps.logging.models import LogData
+from goldstone.apps.logging.models import LogData, LogEvent
 from rest_framework.response import Response
 from goldstone.apps.logging.serializers import LogDataSerializer, \
     LogAggSerializer
@@ -35,8 +27,6 @@ logger = logging.getLogger(__name__)
 class LogDataView(ElasticListAPIView):
     """A view that handles requests for Logstash data."""
 
-    # TODO fix permission_classes to restrict
-    permission_classes = (AllowAny,)
     serializer_class = LogDataSerializer
 
     class Meta:
@@ -46,8 +36,6 @@ class LogDataView(ElasticListAPIView):
 class LogAggView(ElasticListAPIView):
     """A view that handles requests for Logstash aggregations."""
 
-    # TODO fix permission_classes to restrict
-    permission_classes = (AllowAny,)
     serializer_class = LogAggSerializer
 
     class Meta:
@@ -64,3 +52,13 @@ class LogAggView(ElasticListAPIView):
         data = LogData.ranged_log_agg(base_queryset, interval, per_host)
         serializer = self.serializer_class(data)
         return Response(serializer.data)
+
+
+class LogEventView(ElasticListAPIView):
+    """A view that handles requests for events from Logstash data."""
+
+    serializer_class = LogDataSerializer
+
+    class Meta:
+        model = LogEvent
+
