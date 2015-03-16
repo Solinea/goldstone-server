@@ -30,9 +30,9 @@ SETTINGS_DIR = "goldstone.settings"
 # The default settings are to run Elasticsearch and PostgreSQL locally.
 DEV_SETTINGS = SETTINGS_DIR + ".test_oak_c2"
 
-# Default values for the default tenant and default_tenant_admin that are
-# created when Goldstone is installed. These are defined at the module level so
-# that our unit tests can get at them.
+# Values for the default tenant and default_tenant_admin that are created when
+# Goldstone is installed. These are defined at the module level so that our
+# unit tests can get at them.
 DEFAULT_TENANT = "default"
 DEFAULT_TENANT_OWNER = "None"
 DEFAULT_ADMIN = "gsadmin"
@@ -123,20 +123,17 @@ def _choose(choices):
 
 @task
 def load(proj_settings=DEV_SETTINGS):
-    """Do an initialize_development().
+    """Initialize the system's Elasticsearch templates.
 
     This is the last installation step before executing a runserver command.
 
     """
 
-    print "initializing goldstone ..."
+    print "initializing goldstone's elasticsearch templates ..."
     with _django_env(proj_settings):
-        # We have the desired Django settings now. Import the initialization
-        # code.
-        from goldstone.initial_load import initialize_development
+        from goldstone.initial_load import initialize_elasticsearch
 
-        # Initialize the world.
-        initialize_development()
+        initialize_elasticsearch()
 
 
 def _choose_runserver_settings(verbose):
@@ -155,8 +152,9 @@ def _choose_runserver_settings(verbose):
     from importlib import import_module
 
     # Bash command to locate the candidate settings files, from results piped
-    # in. The results will be in alphabetical order by default.
-    CANDIDATES = 'egrep "dev_|test_" | egrep -v "pyc|~"'
+    # in. Production is included because this command is used by the external
+    # installation script. The results will be in alphabetical order.
+    CANDIDATES = 'egrep "production|dev_|test_" | egrep -v "pyc|~"'
 
     # Make a list of all the candidate settings file.
     candidates = local("ls goldstone/settings | %s" % CANDIDATES, capture=True)
@@ -208,18 +206,23 @@ def _django_settings_module(verbose):
 
 
 @task
-def syncmigrate(verbose=False):
+def syncmigrate(settings=None, verbose=False):
     """Do a /manage.py syncdb and migrate.
 
     This is the last installation step before execution a load command.
 
+    :keyword settings: A settings file to use. If not specified, we will ask
+                       user to select one
+    :type settings: str
     :keyword verbose: Display detail about each settings choice?
     :type verbose: bool
 
     """
 
     print "doing a syncdb and migrate ..."
-    settings = _django_settings_module(verbose)
+
+    if not settings:
+        settings = _django_settings_module(verbose)
 
     print
     print red("Django's script will announce that you don't have any "
@@ -245,38 +248,21 @@ def syncmigrate(verbose=False):
     _django_manage("createsuperuser", proj_settings=settings)
 
 
-@task
-def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
-                settings=None):
+def _tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
+                 settings=None):
     """Create a tenant and default_tenant_admin, or use existing ones.
 
-    If the tenant doesn't exist, we create it.  If the admin doesn't exist, we
-    create it as the default_tenant_admin, and the tenant's tenant_admin.
+    See the tenant_init() docstring for a description of the parameters.
 
-    If the tenant already exists, we print an informational message and leave
-    it alone.
+    This is a separate function in order to facilitate unit testing.
 
-    If the admin already exists, we print an informational message. If he/she
-    is not a tenant admin of the new tenant, we make him/her it. He/she gets
-    made the (a) default_tenant_admin.
-
-    :keyword tenant: The name of the tenant to be created. If not specified, a
-                     default is used
-    :type tenant: str
-    :keyword tenant_owner: The tenant owner. If unspecified, a default is used
-    :type tenant_owner: str
-    :keyword admin: The name of the tenant_admin to be created.  If
-                    unspecified, a default is used
-    :type admin: str
-    :keyword password: The admin account's password, *if* we create it
-    :type password: str
-    :keyword settings: If present, the name (not the path) of the Django
-                       settings file to use. It must live in
-                       goldstone/settings. If not present, an interactive
-                       query is made for the user to select one.
-    :type settings: str
+    :return: The tenant created, and the path to the settings file used when
+             we created the tenant and default_tenant_admin.
+    :rtype: (Tenant, str)
 
     """
+
+    print "initializing the Goldstone tenant and OpenStack cloud entry ..."
 
     # Load the defaults, if the user didn't override them.
     if not tenant:
@@ -289,12 +275,10 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
         password = DEFAULT_ADMIN_PASSWORD
 
     # Get the settings under which we should execute.
-    if settings:
-        proj_settings = SETTINGS_DIR + '.' + settings
-    else:
-        proj_settings = _django_settings_module(False)
+    if not settings:
+        settings = _django_settings_module(False)
 
-    with _django_env(proj_settings):
+    with _django_env(settings):
         # It's important to do these imports here, after DJANGO_SETTINGS_MODULE
         # has been changed!
         from django.contrib.auth import get_user_model
@@ -317,10 +301,11 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
             user = get_user_model().objects.get(username=admin)
         except ObjectDoesNotExist:
             fastprint("Creating tenant admin account %s with the password, "
-                      "'%s'." %
+                      "'%s' ..." %
                       (admin, password))
             user = get_user_model().objects.create_user(username=admin,
                                                         password=password)
+            fastprint("done.\n")
         else:
             # The tenant_admin already exists. Print a message.
             fastprint("Admin account %s already exists. We will use it.\n" %
@@ -331,6 +316,94 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
         user.tenant_admin = True
         user.default_tenant_admin = True
         user.save()
+
+    return (tenant, settings)
+
+
+@task
+def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
+                settings=None):
+    """Create a tenant and default_tenant_admin, or use existing ones; and
+    create a cloud under the tenant.
+
+    If the tenant doesn't exist, we create it.  If the admin doesn't exist, we
+    create it as the default_tenant_admin, and the tenant's tenant_admin.
+
+    If the tenant already exists, we print an informational message and leave
+    it alone.
+
+    If the admin already exists, we print an informational message. If he/she
+    is not a tenant admin of the new tenant, we make him/her it. He/she gets
+    made the (a) default_tenant_admin.
+
+    :keyword tenant: The name of the tenant to be created. If not specified, a
+                     default is used
+    :type tenant: str
+    :keyword tenant_owner: The tenant owner. If unspecified, a default is used
+    :type tenant_owner: str
+    :keyword admin: The name of the tenant_admin to be created.  If
+                    unspecified, a default is used
+    :type admin: str
+    :keyword password: The admin account's password, *if* we create it
+    :type password: str
+    :keyword settings: If present, the path of the Django settings file to use.
+                       Otherwise, we will ask the user to select one.
+    :type settings: str
+
+    """
+
+    # Values for the default OpenStack cloud that we will create under the
+    # default tenant. These come from environment variables, if present;
+    # otherwise a sensible default.
+    DEFAULT_CLOUD_TENANT = os.environ.get('DEFAULT_CLOUD_TENANT', "default")
+    DEFAULT_CLOUD_USERNAME = os.environ.get("DEFAULT_CLOUD_USERNAME", "admin")
+    DEFAULT_CLOUD_PASSWORD = os.environ.get("DEFAULT_CLOUD_PASSWORD",
+                                            "changeme")
+    DEFAULT_CLOUD_AUTH_URL = os.environ.get("DEFAULT_CLOUD_AUTH_URL",
+                                            "http://127.0.0.1:5000/v2.0/")
+
+    # Create the tenant and tenant_admin.
+    tenant, settings = _tenant_init(tenant,
+                                    tenant_owner,
+                                    admin,
+                                    password,
+                                    settings)
+
+    # Now create a single OpenStack cloud under the tenant. Give the user
+    # an opportunity to override the defaults.
+    with _django_env(settings):
+        from goldstone.tenants.models import Cloud
+
+        fastprint("\nAn OpenStack cloud entry will now be created under the "
+                  "default tenant.\n")
+        cloud_tenant_name = prompt("OS_TENANT_NAME?",
+                                   default=DEFAULT_CLOUD_TENANT)
+        cloud_username = prompt("OS_USERNAME?", default=DEFAULT_CLOUD_USERNAME)
+        cloud_password = prompt("OS_PASSWORD?", default=DEFAULT_CLOUD_PASSWORD)
+        cloud_auth_url = prompt("OS_AUTH_URL?", default=DEFAULT_CLOUD_AUTH_URL)
+
+        Cloud.objects.create(tenant=tenant,
+                             tenant_name=cloud_tenant_name,
+                             username=cloud_username,
+                             password=cloud_password,
+                             auth_url=cloud_auth_url)
+
+
+@task
+def goldstone_init(verbose=False):
+    """Do a syncmigrate, tenant_init, and load.
+
+    :keyword verbose: Display detail about each settings choice?
+    :type verbose: bool
+
+    """
+
+    print "Goldstone database and Elasticsearch initialization ..."
+    settings = _django_settings_module(verbose)
+
+    syncmigrate(settings=settings)
+    tenant_init(settings=settings)
+    load()
 
 
 @task

@@ -28,6 +28,18 @@ class TaskTests(SimpleTestCase):
 
     @patch('goldstone.apps.keystone.tasks.time_api_call')
     def test_time_token_post_api(self, m_time_api_call):
+        from django.conf import settings
+        from goldstone.tenants.models import Tenant, Cloud
+
+        # Set up the Cloud table for get_cloud, which is called by the celery
+        # task.
+        Tenant.objects.all().delete()
+        tenant = Tenant.objects.create(name="Good", owner="Bar")
+        Cloud.objects.create(tenant_name=settings.CLOUD_TENANT_NAME,
+                             username=settings.CLOUD_USERNAME,
+                             password=settings.CLOUD_PASSWORD,
+                             auth_url=settings.CLOUD_AUTH_URL,
+                             tenant=tenant)
 
         m_time_api_call.return_value = True
         result = time_token_post_api()
@@ -38,9 +50,11 @@ class TaskTests(SimpleTestCase):
 class ViewTests(SimpleTestCase):
 
     def test_report_view(self):
-        uri = '/keystone/report'
-        response = self.client.get(uri)
-        self.assertEqual(response.status_code, 200)
+
+        URI = '/keystone/report'
+
+        response = self.client.get(URI)
+        self.assertEqual(response.status_code, 200)    # pylint: disable=E1101-
         self.assertTemplateUsed(response, 'keystone_report.html')
 
 

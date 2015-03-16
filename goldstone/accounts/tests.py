@@ -19,9 +19,12 @@ from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from goldstone.test_utils import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_MISSING_USERNAME, CONTENT_BAD_TOKEN, \
-    CONTENT_MISSING_PASSWORD, CONTENT_UNIQUE_USERNAME, \
     CONTENT_NO_CREDENTIALS, CONTENT_NON_FIELD_ERRORS, LOGIN_URL, USER_URL, \
     TEST_USER
+
+# Http response content.
+CONTENT_MISSING_PASSWORD = '"password":["This field is required."]'
+CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
 
 # URLs used by this module.
 REGISTRATION_URL = "/accounts/register"
@@ -91,6 +94,7 @@ class Register(Setup):
                 json.dumps({"username": user, "password": "x"}),
                 content_type="application/json")
 
+            # pylint: disable=E1101
             self.assertEqual(response.status_code, HTTP_201_CREATED)
 
         self.assertEqual(get_user_model().objects.count(), 2)
@@ -128,6 +132,7 @@ class Register(Setup):
                                     content_type="application/json")
 
         # Check the results.
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_201_CREATED)
 
         response_content = json.loads(response.content)
@@ -343,6 +348,7 @@ class Password(Setup):
                                          "new_password": "boom"}),
                              content_type="application/json")
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
 
         # Test logging in using the old password.
@@ -373,6 +379,7 @@ class Password(Setup):
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
 
         # Test logging in using the old password.
@@ -401,6 +408,7 @@ class Password(Setup):
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
         # Test logging in using the old password.
@@ -430,6 +438,7 @@ class Password(Setup):
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
         # Test logging in using the old password.
@@ -458,6 +467,7 @@ class Password(Setup):
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
         # Test logging in using the old password.
@@ -476,6 +486,8 @@ class Password(Setup):
                         "new_password": "boom"}),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Test logging in using the new password.
@@ -496,6 +508,7 @@ class PasswordReset(Setup):
 
     def _check_response(self, response, send_email):
         """A simple response checker for this test class."""
+        from django.conf import settings
 
         self.assertEqual(response.status_code, HTTP_200_OK)
 
@@ -506,8 +519,8 @@ class PasswordReset(Setup):
         self.assertEqual(send_email.call_args[0][1],
                          "webmaster@localhost")  # from
         self.assertEqual(send_email.call_args[0][2]["site_name"],
-                         "YOUR_EMAIL_SITE_NAME")  # The site name
-        self.assertIn("#/password/reset/confirm/",
+                         settings.DJOSER["SITE_NAME"])  # The site name
+        self.assertIn("accounts/password/reset/confirm/",
                       send_email.call_args[0][2]["url"])  # The confirm url
 
         # A simple check that the confirmation URL is about the right length.
@@ -574,6 +587,7 @@ class PasswordReset(Setup):
         response = self.client.post(PASSWORD_RESET_URL,
                                     content_type="application/json")
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
 
         # Test that send_email was not called.
@@ -601,6 +615,7 @@ class PasswordReset(Setup):
                              json.dumps({"email": "zippl@nyahnyah.org"}),
                              content_type="application/json")
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Test that send_email was not called.

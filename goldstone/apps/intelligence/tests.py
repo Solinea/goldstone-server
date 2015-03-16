@@ -234,6 +234,7 @@ class LogDataModel(SimpleTestCase):
             lev_filts = []
 
             for lev in [k for k in level_filters.keys() if level_filters[k]]:
+                # pylint: disable=E1101
                 lev_filts.append(self._term_filter('loglevel', lev))
 
             if lev_filts:
@@ -338,8 +339,9 @@ class IntelViewTest(SimpleTestCase):
     """Lease list view tests"""
 
     def test_search_template(self):
+
         response = self.client.get('/intelligence/search')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)    # pylint: disable=E1101
         self.assertTemplateUsed(response, 'search.html')
 
     def test_log_cockpit_summary(self):
@@ -354,4 +356,4 @@ class IntelViewTest(SimpleTestCase):
             '/intelligence/log/cockpit/data?start_time=' +
             str(start_ts) + "&end_time=" + str(end_ts))
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)    # pylint: disable=E1101

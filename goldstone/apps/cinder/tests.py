@@ -25,9 +25,20 @@ class TaskTests(SimpleTestCase):
     @patch('goldstone.apps.cinder.tasks.time_api_call')
     @patch('goldstone.apps.cinder.tasks.stack_api_request_base')
     def test_time_image_list_api(self, m_base, m_time_api_call):
-
+        from django.conf import settings
+        from goldstone.tenants.models import Tenant, Cloud
         import requests
         from requests import Response
+
+        # Set up the Cloud table for get_cloud, which is called by the celery
+        # task.
+        Tenant.objects.all().delete()
+        tenant = Tenant.objects.create(name="Good", owner="Bar")
+        Cloud.objects.create(tenant_name=settings.CLOUD_TENANT_NAME,
+                             username=settings.CLOUD_USERNAME,
+                             password=settings.CLOUD_PASSWORD,
+                             auth_url=settings.CLOUD_AUTH_URL,
+                             tenant=tenant)
 
         response = Response()
         response._content = '{"services": [{"id": 1}]}'
@@ -44,8 +55,10 @@ class ViewTests(SimpleTestCase):
     """Test api_perf."""
 
     def test_report_view(self):
-        uri = '/cinder/report'
-        response = self.client.get(uri)
+
+        URI = '/cinder/report'
+
+        response = self.client.get(URI)   # pylint: disable=E1101
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'cinder_report.html')
 

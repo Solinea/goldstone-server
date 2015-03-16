@@ -117,8 +117,8 @@ def _create_model_index():
         raise
 
 
-def initialize_development():
-    """Set up Elasticsearch templates for test running."""
+def initialize_elasticsearch():
+    """Set up the Elasticsearch templates."""
 
     _put_all_templates()
     create_daily_index()

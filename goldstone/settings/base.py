@@ -22,6 +22,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # limitations under the License.
 from datetime import timedelta
 import os
+from socket import getfqdn
 
 from celery.schedules import crontab
 from kombu import Exchange, Queue
@@ -75,7 +76,6 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'south',
-    'crispy_forms',
     'django.contrib.contenttypes',
     'goldstone.accounts',
     'goldstone.apps.core',
@@ -142,9 +142,6 @@ STATICFILES_ROOT = '/usr/share/nginx/html/static'
 
 # this is sort of a hack until we get our server strategy figured out.
 STATIC_URL = '/static/'
-
-# Crispy Forms
-CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 MAILHOST = 'localhost'
 
@@ -253,14 +250,18 @@ CELERYBEAT_SCHEDULE = {
 }
 
 # Database row settings.
+OS_NAME_MAX_LENGTH = 60
+OS_USERNAME_MAX_LENGTH = 60
+OS_PASSWORD_MAX_LENGTH = 60
+OS_AUTH_URL_MAX_LENGTH = 80
 TENANT_NAME_MAX_LENGTH = 80
 TENANT_OWNER_MAX_LENGTH = 80
 
-# Settings for the Djoser package. We login and activate after registration.
-DJOSER = {'DOMAIN': 'YOUR_EMAIL_DOMAIN_NAME.com',
-          'SITE_NAME': 'YOUR_EMAIL_SITE_NAME',
+# Settings for the Djoser package.
+DJOSER = {'DOMAIN': getfqdn(),
+          'SITE_NAME': 'Goldstone',
           'PASSWORD_RESET_CONFIRM_URL':
-          '#/password/reset/confirm/{uid}/{token}',
+          'accounts/password/reset/confirm/{uid}/{token}',
           'ACTIVATION_URL': '#/activate/{uid}/{token}',
           'LOGIN_AFTER_REGISTRATION': True,
           }
@@ -306,11 +307,6 @@ EVENT_LOOKBACK_MINUTES = 60
 # Goldstone config settings
 DEFAULT_LOOKBACK_DAYS = 7
 DEFAULT_CHART_BUCKETS = 7*24
-
-OS_USERNAME = 'admin'
-OS_PASSWORD = ''
-OS_TENANT_NAME = 'admin'
-OS_AUTH_URL = ''
 
 ES_HOST = "127.0.0.1"
 ES_PORT = "9200"

@@ -21,23 +21,13 @@ import json
 import logging
 
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseBadRequest, Http404
-from django.shortcuts import render
+from django.http import HttpResponseBadRequest, Http404
 from django.views.generic import TemplateView
-from elasticsearch import ElasticsearchException
 import pytz
-from rest_framework import status
+# from rest_framework.response import Response
+# from rest_framework.views import APIView
 
-from cinderclient.exceptions import AuthorizationFailure as CinderAuthException
-from cinderclient.openstack.common.apiclient.exceptions \
-    import AuthorizationFailure as CinderApiAuthException
-from novaclient.exceptions import AuthorizationFailure \
-    as NovaAuthException
-from novaclient.openstack.common.apiclient.exceptions \
-    import AuthorizationFailure as NovaApiAuthException
-from keystoneclient.openstack.common.apiclient.exceptions \
-    import AuthorizationFailure as KeystoneApiAuthException
-from goldstone.utils import GoldstoneAuthError, TopologyMixin
+from goldstone.utils import TopologyMixin
 
 logger = logging.getLogger(__name__)
 
@@ -153,14 +143,16 @@ class TopLevelView(TemplateView):
 
 
 class DiscoverView(TemplateView, TopologyMixin):
-    """
-    Produces a view of a module topology (or json data if render=false).
+    """Return a module topology.
+
     The data structure is a list of resource types.  If the list contains
     only one element, it will be used as the root node, otherwise a "cloud"
     resource will be constructed as the root.
 
-    caller should override "template_name" and define an init function
-    that pulls data from a subclass of model.TopologyData.
+    The caller should:
+       - override "template_name"
+       - define an init function that pulls data from a subclass of
+         model.TopologyData.
 
     A resource has the following structure:
 
@@ -174,6 +166,11 @@ class DiscoverView(TemplateView, TopologyMixin):
      }
 
     """
+
+    # TODO: Remove the Django template once the client implements Backbone
+    # views. To do this, replace TemplateView with APIView, delete the
+    # template_name attribute, get_context_data, .render_to_response, and
+    # templates/goldstone_discover.html. Then, uncomment .get().
 
     template_name = 'goldstone_discover.html'
 
@@ -201,6 +198,7 @@ class DiscoverView(TemplateView, TopologyMixin):
             return [tree]
 
     def build_topology_tree(self):
+        """Return the topology tree that is displayed by this view."""
 
         # this is going to be a little clunky until we find a good way
         # to register modules.  Looking at iPOPO/Pelix as one option, but
@@ -298,33 +296,47 @@ class DiscoverView(TemplateView, TopologyMixin):
             return {"rsrcType": "error", "label": "No data found"}
 
     def get_context_data(self, **kwargs):
+        """Return the template context."""
+
         context = TemplateView.get_context_data(self, **kwargs)
         context['render'] = self.request.GET.get('render', "True"). \
             lower().capitalize()
 
-        # if render is true, we will return a full template, otherwise only
-        # a json data payload
+        # If render is true, we will return a full template, otherwise only
+        # a json data payload.
         if context['render'] != 'True':
             self.template_name = None
             TemplateView.content_type = 'application/json'
 
         return context
 
+    # def get(self, _):
+    #     """Return a topology tree."""
+
+    #     return Response(self.build_topology_tree())
+
     def render_to_response(self, context, **response_kwargs):
-        """Overridden to handle case of a data-only request (render=False).
-
-        In which case, an application/json data payload is returned.
-
-        """
+        """Return the response data."""
+        from rest_framework import status
+        from cinderclient.exceptions import AuthorizationFailure as \
+            CinderAuthException
+        from cinderclient.openstack.common.apiclient.exceptions \
+            import AuthorizationFailure as CinderApiAuthException
+        from novaclient.exceptions import AuthorizationFailure \
+            as NovaAuthException
+        from novaclient.openstack.common.apiclient.exceptions \
+            import AuthorizationFailure as NovaApiAuthException
+        from keystoneclient.openstack.common.apiclient.exceptions \
+            import AuthorizationFailure as KeystoneApiAuthException
+        from goldstone.utils import GoldstoneAuthError
+        from django.http import HttpResponse
+        from elasticsearch import ElasticsearchException
+        from django.shortcuts import render
 
         try:
             response = self.build_topology_tree()
             if isinstance(response, HttpResponseBadRequest):
                 return response
-
-            if self.template_name is None:
-                return HttpResponse(json.dumps(response),
-                                    content_type="application/json")
 
             return TemplateView.render_to_response(
                 self,

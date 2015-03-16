@@ -25,6 +25,18 @@ class TaskTests(SimpleTestCase):
     @patch('goldstone.apps.neutron.tasks.time_api_call')
     @patch('goldstone.apps.neutron.tasks.stack_api_request_base')
     def test_time_agent_list_api(self, m_base, m_time_api_call):
+        from django.conf import settings
+        from goldstone.tenants.models import Tenant, Cloud
+
+        # Set up the Cloud table for get_cloud, which is called by the celery
+        # task.
+        Tenant.objects.all().delete()
+        tenant = Tenant.objects.create(name="Good", owner="Bar")
+        Cloud.objects.create(tenant_name=settings.CLOUD_TENANT_NAME,
+                             username=settings.CLOUD_USERNAME,
+                             password=settings.CLOUD_PASSWORD,
+                             auth_url=settings.CLOUD_AUTH_URL,
+                             tenant=tenant)
 
         response = requests.Response()
         # pylint: disable=W0212

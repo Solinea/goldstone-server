@@ -22,7 +22,6 @@ USER_URL = "/user"
 
 # Http response content used by multiple tests.
 CONTENT_BAD_TOKEN = '{"detail":"Invalid token"}'
-CONTENT_MISSING_PASSWORD = '"password":["This field is required."]'
 CONTENT_MISSING_USERNAME = '"username":["This field is required."]'
 CONTENT_NO_CREDENTIALS = \
     '{"detail":"Authentication credentials were not provided."}'
@@ -32,7 +31,6 @@ CONTENT_NON_FIELD_ERRORS = \
     '{"non_field_errors":["Unable to login with provided credentials."]}'
 CONTENT_NOT_BLANK_USERNAME = '"username":["This field may not be blank."]'
 CONTENT_PERMISSION_DENIED = '{"detail":"Permission denied"}'
-CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
 CONTENT_UNIQUE_NAME = '{"name":["This field must be unique."]}'
 
 # The payload string for the HTTP Authorization header.
@@ -78,20 +76,21 @@ def login(username, password):
     response = client.post(LOGIN_URL,
                            {"username": username, "password": password})
 
-    assert response.status_code == HTTP_200_OK
-
     # pylint: disable=E1101
+    assert response.status_code == HTTP_200_OK
     assert isinstance(response.data["auth_token"], basestring)
 
     return response.data["auth_token"]      # pylint: disable=E1101
 
 
-def create_and_login(is_superuser=False):
+def create_and_login(is_superuser=False, tenant=None):
     """Create a user and log them in.
 
     :keyword is_superuser: Set the is_superuser flag in the User record?
                            (A.k.a. create a Django admin account?)
     :type is_superuser: bool
+    :keyword tenant: If not None, make the user a tenant_admin of this tenant
+    :type tenant: Tenant
     :return: The authorization token's value
     :rtype: str
 
@@ -99,7 +98,13 @@ def create_and_login(is_superuser=False):
 
     # Create a user
     user = get_user_model().objects.create_user(*TEST_USER)
+
     user.is_superuser = is_superuser
+
+    if tenant:
+        user.tenant = tenant
+        user.tenant_admin = True
+
     user.save()
 
     return login(TEST_USER[0], TEST_USER[2])
