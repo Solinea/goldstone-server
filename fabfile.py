@@ -355,7 +355,7 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
     # Values for the default OpenStack cloud that we will create under the
     # default tenant. These come from environment variables, if present;
     # otherwise a sensible default.
-    DEFAULT_CLOUD_TENANT = os.environ.get('DEFAULT_CLOUD_TENANT', "admin")
+    DEFAULT_CLOUD_TENANT = os.environ.get('DEFAULT_CLOUD_TENANT', "default")
     DEFAULT_CLOUD_USERNAME = os.environ.get("DEFAULT_CLOUD_USERNAME", "admin")
     DEFAULT_CLOUD_PASSWORD = os.environ.get("DEFAULT_CLOUD_PASSWORD",
                                             "changeme")
