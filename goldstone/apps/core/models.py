@@ -23,10 +23,10 @@ from elasticutils.contrib.django import MappingType, Indexable
 import logging
 from django.conf import settings
 from polymorphic import PolymorphicModel
-from goldstone.apps.logging.models import LogData
+from goldstone.apps.logging.models import LogData, LogEvent
 from goldstone.utils import utc_now
 
-from elasticsearch_dsl.query import Q, QueryString, Terms, Term
+from elasticsearch_dsl.query import Q, QueryString
 
 logger = logging.getLogger(__name__)
 
@@ -375,9 +375,8 @@ class PolyResource(PolymorphicModel):
 
         # this protects our hostname from being tokenized
         escaped_name = r'"' + self.name + r'"'
-        event_type_query = Q(Terms(event_type__raw=LogData.LOG_EVENT_TYPES))
         name_query = Q(QueryString(query=escaped_name, default_field="_all"))
-        return LogData.search().query(name_query).query(event_type_query)
+        return LogEvent.search().query(name_query)
 
     def fresh_config(self):
         """Retrieve configuration from source system for this resource."""

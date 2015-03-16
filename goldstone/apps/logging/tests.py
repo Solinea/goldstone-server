@@ -164,5 +164,14 @@ class LogDataModelTests(SimpleTestCase):
         self.assertListEqual(result['sort'], expectation)
 
 
-class LogAggModelTests(SimpleTestCase):
-    """Tests for the LogData model"""
+class LogEventModelTests(SimpleTestCase):
+    """Tests for the LogEvent model"""
+
+    def test_search(self):
+        from .models import LogEvent
+
+        expectation = {'terms': {u'event_type.raw': ['OpenStackSyslogError',
+                       'GenericSyslogError']}}
+        result = LogEvent.search().to_dict()
+        self.assertDictContainsSubset(expectation, result['query'])
+
