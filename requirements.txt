@@ -23,6 +23,7 @@ celery[redis]==3.1.17
 django-admin-bootstrapped==2.3.3
 django-extensions==1.5.1
 django-filter==0.9.2
+django-polymorphic
 django-rest-params==1.0.2
 django-uuidfield==0.5.0
 djangorestframework==3.1.0
