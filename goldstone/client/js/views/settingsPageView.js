@@ -38,6 +38,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
 
     renderTenantSettingsPageLink: function() {
         $('#tenant-settings-button').append('' +
+            '<h3>Additional actions</h3>' +
             '<button class="btn btn-lg btn-danger btn-block modify">Modify tenant settings</button>');
 
         $('button.modify').on('click', function() {
@@ -166,13 +167,18 @@ var SettingsPageView = GoldstoneBaseView.extend({
         '</form>' +
         '</div>' +
 
-        // tenant settings link
-        '<div class="col-md-4" id="tenant-settings-button">' +
-        '</div>' +
-
         // close divs for row/container
         '</div>' +
+        '</div>' +
+
+        // tenant settings link
+        '<div class="container">' +
+        '<div class="row"><hr>' +
+        '<div class="col-md-4 col-md-offset-2" id="tenant-settings-button">' +
+        '</div>' +
+        '</div>' +
         '</div>'
+
 
     )
 
