@@ -1,4 +1,4 @@
-"""Tenant models."""
+"""Tenant and Cloud models."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -26,8 +26,7 @@ class Tenant(models.Model):
     """
 
     name = models.CharField(max_length=settings.TENANT_NAME_MAX_LENGTH,
-                            unique=True,
-                            help_text="The tenant's name")
+                            unique=True)
     owner = models.CharField(max_length=settings.TENANT_OWNER_MAX_LENGTH,
                              help_text="The name of the tenant's owner")
     owner_contact = \
@@ -41,3 +40,27 @@ class Tenant(models.Model):
         """Return a useful string."""
 
         return u'%s owned by %s' % (self.name, self.owner)
+
+
+class Cloud(models.Model):
+    """Information about clouds, e.g., OpenStack, which are contained within a
+    Goldstone tenant."""
+
+    # This is the cloud's name, not the name of the owning Goldstone tenant!
+    tenant_name = models.CharField(max_length=settings.OS_NAME_MAX_LENGTH)
+    username = models.CharField(max_length=settings.OS_USERNAME_MAX_LENGTH)
+    password = models.CharField(max_length=settings.OS_PASSWORD_MAX_LENGTH)
+    auth_url = models.CharField(max_length=settings.OS_AUTH_URL_MAX_LENGTH)
+
+    tenant = models.ForeignKey(Tenant)
+
+    # This allows URLs to identify a row using a UUID value.
+    uuid = UUIDField(auto=True)
+
+    class Meta:             # pylint: disable=C1001,C0111,W0232
+        unique_together = ("tenant_name", "username", "tenant")
+
+    def __unicode__(self):
+        """Return a useful string."""
+
+        return u'%s, contained in %s' % (self.tenant_name, self.tenant.name)

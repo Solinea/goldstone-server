@@ -88,8 +88,8 @@ def _put_all_templates(server=settings.ES_SERVER):
     _put_metrics_template(server=server)
 
 
-def initialize_development():
-    """Set up Elasticsearch templates for test running."""
+def initialize_elasticsearch():
+    """Set up the Elasticsearch templates."""
 
     _put_all_templates()
     create_daily_index()

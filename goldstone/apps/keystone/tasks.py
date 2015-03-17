@@ -13,34 +13,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import absolute_import
-from goldstone.apps.api_perf.utils import time_api_call
 
 from goldstone.celery import app as celery_app
 import logging
-from datetime import datetime
 from .models import EndpointsData, RolesData, ServicesData, \
     TenantsData, UsersData
-from goldstone.utils import get_keystone_client, to_es_date, \
-    get_region_for_keystone_client
 
-logger = logging.getLogger(__name__)
+# This must be at the module level, for a unit-test mock.
+from goldstone.apps.api_perf.utils import time_api_call
+from goldstone.utils import get_cloud
 
 
 @celery_app.task()
 def time_token_post_api():
+    """Call a token URL via http rather than the Python client, so we can get
+    a full set of data for the record in the DB.
+
+    This will make things easier to model.
+
     """
-    Call the token url via http rather than the python client so we can get
-    a full set of data for the record in the DB.  This will make things
-    easier to model.
-    """
-    from django.conf import settings
     import json
 
-    user = settings.OS_USERNAME
-    passwd = settings.OS_PASSWORD
-    url = settings.OS_AUTH_URL + "/tokens"
-    payload = {"auth": {"passwordCredentials": {"username": user,
-                                                "password": passwd}}}
+    # Get the system's sole OpenStack cloud record.
+    cloud = get_cloud()
+    cloud_user = cloud.username
+    cloud_password = cloud.password
+    url = cloud.auth_url + "/tokens"
+
+    payload = {"auth": {"passwordCredentials": {"username": cloud_user,
+                                                "password": cloud_password}}}
     headers = {'content-type': 'application/json'}
 
     return time_api_call('keystone',
@@ -51,6 +52,8 @@ def time_token_post_api():
 
 
 def _update_keystone_records(rec_type, region, database, items):
+    from datetime import datetime
+    from goldstone.utils import to_es_date
     import pytz
 
     # image list is a generator, so we need to make it not sol lazy it...
@@ -63,10 +66,19 @@ def _update_keystone_records(rec_type, region, database, items):
         logging.exception("failed to index keystone %s", rec_type)
 
 
-@celery_app.task(bind=True)
-def discover_keystone_topology(self):
+@celery_app.task()
+def discover_keystone_topology():
+    from goldstone.utils import get_keystone_client, \
+        get_region_for_keystone_client
 
-    access = get_keystone_client()
+    # Get the system's sole OpenStack cloud.
+    cloud = get_cloud()
+
+    access = get_keystone_client(cloud.username,
+                                 cloud.password,
+                                 cloud.tenant_name,
+                                 cloud.auth_url)
+
     client = access['client']
     reg = get_region_for_keystone_client(client)
 

@@ -159,6 +159,7 @@ class GetPut(Setup):
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Now get the account attributes and see if they've changed.
@@ -194,6 +195,7 @@ class GetPut(Setup):
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Now get the account attributes and see if they've changed.
@@ -231,6 +233,7 @@ class GetPut(Setup):
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Now get the account attributes and see if they've changed.
