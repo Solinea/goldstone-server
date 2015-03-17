@@ -12,7 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .models import Tenant
+from .models import Tenant, Cloud
 from django.contrib import admin
 
+admin.site.register(Cloud)
 admin.site.register(Tenant)
