@@ -174,10 +174,5 @@ def check_response_without_uuid(response, expected_status_code,
             assert isinstance(response_content[key], basestring)
             del response_content[key]
 
-    print "**************************************************************************************"
-    print json.dumps(response_content)
-    print json.dumps(expected_content)
-    print "**************************************************************************************"
-
     # Now check that every other key is in the response.
     assert response_content == expected_content
