@@ -55,6 +55,7 @@ class User(PolyResource):
 
     pass
 
+
 class Domain(PolyResource):
     """An OpenStack domain."""
 
