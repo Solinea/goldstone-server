@@ -154,7 +154,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
 
     render: function() {
         this.$el.html(this.template());
-        this.dataErrorMessage('Select Tenant from table above to edit');
+        this.dataErrorMessage('Click row above to edit');
         return this;
     },
 
