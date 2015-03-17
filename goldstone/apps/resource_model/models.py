@@ -76,35 +76,42 @@ class KeystoneDomain(PolyResource):
 
     pass
 
+
 class KeystoneProject(PolyResource):
     """ reflection of a project in keystone"""
 
     pass
+
 
 class KeystoneUser(PolyResource):
     """ reflection of a user in keystone"""
 
     pass
 
+
 class KeystoneRole(PolyResource):
     """ reflection of a project in keystone"""
 
     pass
+
 
 class NovaRegion(PolyResource):
     """ reflection of a hypervisor in nova"""
 
     pass
 
+
 class NovaHost(PolyResource):
     """ reflection of a hypervisor in nova"""
 
     pass
 
+
 class NovaHypervisor(PolyResource):
     """ reflection of a hypervisor in nova"""
 
     pass
+
 
 class NovaServer(PolyResource):
     """ reflection of a server (VM) in nova"""
