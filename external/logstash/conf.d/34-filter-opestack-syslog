@@ -39,6 +39,11 @@ filter {
                         add_field => {"loglevel" => "AUDIT"}
                     }
                 }
+                if [syslog_severity] in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"] {
+                    mutate {
+                        replace => ["event_type", "OpenStackSyslogError"]
+                    }
+                }
                 mutate {
                     replace => [ "host", "%{syslog5424_host}" ]
                     add_tag => ["openstack_syslog", "filter_34_pass"]

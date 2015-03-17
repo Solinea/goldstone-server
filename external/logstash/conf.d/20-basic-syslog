@@ -29,6 +29,13 @@ filter {
                     severity_labels => ["EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG"]
                     syslog_pri_field_name => "syslog5424_pri"
                 }
+                # set the event_stream type for the highest severities.  Can
+                # be overridden in future rules occurring before the clone.
+                if [syslog_severity] in ["EMERGENCY", "ALERT", "CRITICAL", "ERROR"] {
+                    mutate {
+                        add_field => ["event_type", "GenericSyslogError"]
+                    }
+                }
                 date {
                     match => [ "syslog_ts", "ISO8601", "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZ", "MMM dd HH:mm:ss" ]
                 }
