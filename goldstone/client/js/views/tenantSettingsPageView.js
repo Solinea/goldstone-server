@@ -32,13 +32,12 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
 
         // add listener to settings form submission button
         $('.tenant-settings-form').on('submit', function(e) {
-
+            // prevens page jump upon pressing submit button
             e.preventDefault();
 
-
-
+            // if there is no selected tenant, prevent ability to submit form
             if ($('#formTenantId').text() === '') {
-                self.dataErrorMessage('Select tenant to edit from list above');
+                self.dataErrorMessage('Must select tenant from list above');
                 return;
             }
 
@@ -48,8 +47,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
             self.trimInputField('[name="owner_contact"]');
             var tenandId = $('#formTenantId').text();
 
-            // ('[name="email"]') seems to have native .trim()
-            // support based on the type="email"
+            // email fields seem to have native .trim() support
 
             // 4th argument informs what will be appeneded to screen upon success
             self.submitRequest('PUT', '/tenants/' + tenandId, $(this).serialize(), 'Tenant settings');
@@ -82,25 +80,28 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
                 "columns": [{
                     "title": "Tenant"
                 }, {
-                    "title": "Owner"
+                    "title": "Owner's Username"
                 }, {
                     "title": "Owner Contact"
                 }, {
-                    "title": "Id"
+                    "title": "Tenant Id"
                 }]
             };
             oTable = $(location).DataTable(oTableParams);
         }
 
+        // IMPORTANT: failure to remove click listeners before appending new ones
+        // will continue to create additional listeners and memory leaks.
         $("#tenants-single-rsrc-table tbody").off();
 
+        // add click listeners to pass data values to Update Tenant Settings form.
         $("#tenants-single-rsrc-table tbody").on('click', 'tr', function() {
             var row = oTable.row(this).data();
 
-            $('[name="name"]').val(row[0]);
-            $('[name="owner"]').val(row[1]);
-            $('[name="owner_contact"]').val(row[2]);
-            $('#formTenantId').text(row[3]);
+            $(self.el).find('[name="name"]').val(row[0]);
+            $(self.el).find('[name="owner"]').val(row[1]);
+            $(self.el).find('[name="owner_contact"]').val(row[2]);
+            $(self.el).find('#formTenantId').text(row[3]);
 
             self.clearDataErrorMessage();
         });
@@ -193,7 +194,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
         '<input name="owner" type="text" class="form-control" placeholder="Username of owner" required>' +
         '<label for="owner_contact">Owner contact</label>' +
         '<input name="owner_contact" type="email" class="form-control" placeholder="Owner email address">' +
-        '<br><div>Tenant Id: <span id="formTenantId"></span></div>' +
+        '<br><div>Tenant Id: <span id="formTenantId">select from above</span></div>' +
         '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
         '</form>' +
         '</div>' +

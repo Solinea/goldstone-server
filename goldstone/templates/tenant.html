@@ -30,7 +30,7 @@
             // page's unique HTML and JavaScript are encapsulated
             // in the following backbone view:
             new TenantSettingsPageView({
-                el: ".settings-page-container"
+                el: ".tenant-settings-page-container"
             });
         };
         $(document).ready(function () {
@@ -39,5 +39,5 @@
     </script>
 {% endblock %}
 {% block content %}
-    <div class="settings-page-container"></div>
+    <div class="tenant-settings-page-container"></div>
 {% endblock %}

@@ -80,10 +80,10 @@ var SettingsPageView = GoldstoneBaseView.extend({
 
         $.get('/user')
             .done(function(result) {
-                $('[name="username"]').val(result.username);
-                $('[name="first_name"]').val(result.first_name);
-                $('[name="last_name"]').val(result.last_name);
-                $('[name="email"]').val(result.email);
+                $(self.el).find('[name="username"]').val(result.username);
+                $(self.el).find('[name="first_name"]').val(result.first_name);
+                $(self.el).find('[name="last_name"]').val(result.last_name);
+                $(self.el).find('[name="email"]').val(result.email);
 
                 // result object contains tenant_admin field (true|false)
                 if (result.tenant_admin) {
