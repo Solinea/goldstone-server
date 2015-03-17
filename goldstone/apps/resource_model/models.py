@@ -74,54 +74,39 @@ class Hypervisor(PolyResource):
 class KeystoneDomain(PolyResource):
     """ reflection of a domain in keystone"""
 
-    def __init__(self, *args, **kwargs):
-        return super(KeystoneDomain, self).__init__(*args, **kwargs)
-
+    pass
 
 class KeystoneProject(PolyResource):
     """ reflection of a project in keystone"""
 
-    def __init__(self, *args, **kwargs):
-        return super(KeystoneProject, self).__init__(*args, **kwargs)
-
+    pass
 
 class KeystoneUser(PolyResource):
     """ reflection of a user in keystone"""
 
-    def __init__(self, *args, **kwargs):
-        return super(KeystoneUser, self).__init__(*args, **kwargs)
-
+    pass
 
 class KeystoneRole(PolyResource):
     """ reflection of a project in keystone"""
 
-    def __init__(self, *args, **kwargs):
-        return super(KeystoneRole, self).__init__(*args, **kwargs)
-
+    pass
 
 class NovaRegion(PolyResource):
     """ reflection of a hypervisor in nova"""
 
-    def __init__(self, *args, **kwargs):
-        return super(NovaRegion, self).__init__(*args, **kwargs)
-
+    pass
 
 class NovaHost(PolyResource):
     """ reflection of a hypervisor in nova"""
 
-    def __init__(self, *args, **kwargs):
-        return super(NovaHost, self).__init__(*args, **kwargs)
-
+    pass
 
 class NovaHypervisor(PolyResource):
     """ reflection of a hypervisor in nova"""
 
-    def __init__(self, *args, **kwargs):
-        return super(NovaHypervisor, self).__init__(*args, **kwargs)
-
+    pass
 
 class NovaServer(PolyResource):
     """ reflection of a server (VM) in nova"""
 
-    def __init__(self, *args, **kwargs):
-        return super(NovaServer, self).__init__(*args, **kwargs)
+    pass
