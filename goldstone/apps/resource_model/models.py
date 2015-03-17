@@ -1,5 +1,5 @@
-"""Models for researching hierarchical trees of resources in Goldstone"""
-# Copyright '2015' Solinea, Inc.
+"""Models for implementing directed resource graphs in Goldstone."""
+# Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -12,8 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
 from django.db import models
 from django.utils.encoding import force_str
 from mptt.models import MPTTModel, TreeForeignKey
@@ -25,33 +23,26 @@ from goldstone.utils import utc_now
 
 
 class PolyResource(PolymorphicModel):
-    """
-    The base type for resources in Goldstone.
-    """
-    id = UUIDField(
-        version=1,
-        auto=True,
-        primary_key=True)
+    """The base type for resources in Goldstone."""
 
-    name = CharField(
-        max_length=64,
-        unique=True)
-
-    created = CreationDateTimeField(
-        editable=False,
-        blank=True,
-        default=utc_now)
-
-    updated = ModificationDateTimeField(
-        editable=True,
-        blank=True)
+    id = UUIDField(version=1, auto=True, primary_key=True)
+    name = CharField(max_length=64, unique=True)
+    created = CreationDateTimeField(editable=False,
+                                    blank=True,
+                                    default=utc_now)
+    updated = ModificationDateTimeField(editable=True, blank=True)
 
     def _hashable(self):
+        """Return a JSON representation of this row."""
         from rest_framework.renderers import JSONRenderer
         from .serializers import PolyResourceSerializer
 
         return JSONRenderer().render(PolyResourceSerializer(self).data)
 
+
+#
+# These nodes are for the Resource Instance graph.
+#
 
 class Agent(PolyResource):
     port = IntegerField(
@@ -117,3 +108,9 @@ class NovaServer(PolyResource):
     """ reflection of a server (VM) in nova"""
 
     pass
+
+
+#
+# These nodes are for the Resource Type graph.
+#
+
