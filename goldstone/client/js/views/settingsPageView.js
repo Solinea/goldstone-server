@@ -27,15 +27,6 @@ var SettingsPageView = GoldstoneBaseView.extend({
         this.addHandlers();
     },
 
-    checkIfTenantAdmin: function(result) {
-        // if true, render link to tenant admin settings page
-        if (result === true) {
-            this.renderTenantSettingsPageLink();
-        } else {
-            return null;
-        }
-    },
-
     renderTenantSettingsPageLink: function() {
         $('#tenant-settings-button').append('' +
             '<h3>Additional actions</h3>' +
@@ -88,9 +79,12 @@ var SettingsPageView = GoldstoneBaseView.extend({
 
                 // result object contains tenant_admin field (true|false)
                 if (result.tenant_admin) {
-                    self.checkIfTenantAdmin(result.tenant_admin);
-                }
 
+                    // if true, render link to tenant admin settings page
+                    if (result.tenant_admin === true) {
+                        self.renderTenantSettingsPageLink();
+                    }
+                }
             })
             .fail(function(fail) {
                 goldstone.raiseInfo('Could not load user settings', true);
