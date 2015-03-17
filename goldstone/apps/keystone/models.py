@@ -42,3 +42,68 @@ class TenantsData(TopologyData):
 class UsersData(TopologyData):
     _DOC_TYPE = 'keystone_user_list'
     _INDEX_PREFIX = 'goldstone-'
+
+
+#
+# This is the beginning of the new polymorphic resource model support
+#
+# These classes represent entities within a Keystone service.
+#
+
+class User(PolyResource):
+    """An OpenStack user."""
+
+    pass
+
+class Domain(PolyResource):
+    """An OpenStack domain."""
+
+    pass
+
+
+class Group(PolyResource):
+    """An OpenStack group."""
+
+    pass
+
+
+class Token(PolyResource):
+    """An OpenStack token."""
+
+    pass
+
+
+class Credential(PolyResource):
+    """An OpenStack credential."""
+
+    pass
+
+
+class Role(PolyResource):
+    """An OpenStack role."""
+
+    pass
+
+
+class Region(PolyResource):
+    """An OpenStack region."""
+
+    pass
+
+
+class Endpoint(PolyResource):
+    """An OpenStack endpoint."""
+
+    pass
+
+
+class Service(PolyResource):
+    """An OpenStack service."""
+
+    pass
+
+
+class Project(PolyResource):
+    """An OpenStack project."""
+
+    pass
