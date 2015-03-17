@@ -137,18 +137,18 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
             data: data,
         })
             .done(function(success) {
-                goldstone.raiseInfo(message + ' update successful');
+                self.dataErrorMessage(message + ' update successful');
             })
             .fail(function(fail) {
                 try {
-                    goldstone.raiseInfo(fail.responseJSON.non_field_errors[0], true);
+                    self.dataErrorMessage(fail.responseJSON.non_field_errors[0]);
                 } catch (e) {
-                    goldstone.raiseInfo(fail.responseText + e, true);
+                    self.dataErrorMessage(fail.responseText + e);
                 }
+                self.clearDataErrorMessage();
             })
             .always(function() {
                 self.getTenantSettings();
-                self.clearDataErrorMessage();
             });
     },
 
