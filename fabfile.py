@@ -94,11 +94,14 @@ def _choose(choices):
 
     # If there are choices from which to choose...
     if choices:
+        if len(choices) == 1:
+            # only one choice, let's use it.
+            return choices[0]
+
         choice_in = None
 
         # Tell the user what the nummeric selection range is.
-        choice_range = \
-            "0" if len(choices) == 1 else "0-%s" % (len(choices) - 1)
+        choice_range = "0-%s" % (len(choices) - 1)
 
         # While we don't have a valid selection...
         while choice is None or choice < 0 or choice >= len(choices):
@@ -225,27 +228,15 @@ def syncmigrate(settings=None, verbose=False):
         settings = _django_settings_module(verbose)
 
     print
-    print red("Django's script will announce that you don't have any "
-              "superusers defined.")
-    print red("It will ask you, 'Would you like to create one now? (yes/no)'")
-    print
-    print red("==> Answer no to that question!")
-    print
-    print red("You will be given the chance to properly create a superuser in "
-              "just a few")
-    print red("moments.  If you do it when Django wants you to, the system "
-              "won't start correctly.")
-    print
 
-    _django_manage("syncdb", proj_settings=settings)
-    _django_manage("migrate", proj_settings=settings)
+    _django_manage("syncdb --noinput --migrate", proj_settings=settings)
 
     # We must create the superuser separately because of an interaction between
     # DRF and Django signals. See
     # https://github.com/tomchristie/django-rest-framework/issues/987.
     print
     print green("Good! *Now* you can and chould create a superuser here.")
-    _django_manage("createsuperuser", proj_settings=settings)
+    _django_manage("createsuperuser --username=admin", proj_settings=settings)
 
 
 def _tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
@@ -355,7 +346,7 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
     # Values for the default OpenStack cloud that we will create under the
     # default tenant. These come from environment variables, if present;
     # otherwise a sensible default.
-    DEFAULT_CLOUD_TENANT = os.environ.get('DEFAULT_CLOUD_TENANT', "default")
+    DEFAULT_CLOUD_TENANT = os.environ.get('DEFAULT_CLOUD_TENANT', "admin")
     DEFAULT_CLOUD_USERNAME = os.environ.get("DEFAULT_CLOUD_USERNAME", "admin")
     DEFAULT_CLOUD_PASSWORD = os.environ.get("DEFAULT_CLOUD_PASSWORD",
                                             "changeme")

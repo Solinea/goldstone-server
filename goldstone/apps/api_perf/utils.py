@@ -49,7 +49,7 @@ def stack_api_request_base(endpoint, path, os_username, os_password, os_tenant,
 
     except GoldstoneAuthError:
         raise
-    except:  # pylint: disable=W0703
+    except Exception:  # pylint: disable=W0703
         raise LookupError("Could not find a public URL endpoint for %s" %
                           endpoint)
 
