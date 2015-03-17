@@ -28,8 +28,18 @@ def time_agent_list_api():
     in the DB.
 
     """
+    from goldstone.utils import get_cloud
 
-    precursor = stack_api_request_base("network", "v2.0/agents")
+    # Get the system's sole OpenStack cloud record.
+    cloud = get_cloud()
+
+    precursor = stack_api_request_base("network",
+                                       "v2.0/agents",
+                                       cloud.username,
+                                       cloud.password,
+                                       cloud.tenant_name,
+                                       cloud.auth_url)
+
     return time_api_call('neutron',
                          precursor['url'],
                          headers=precursor['headers'])

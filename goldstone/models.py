@@ -375,8 +375,9 @@ class TopologyData(object):
         self.conn = es_conn()
         self.search = Search(self.conn)
 
-        # using the private setters over methods simplifies mocking for
+        # Using the private setters over methods simplifies mocking for
         # unit tests.
+        # pylint: disable=W0212
         self.search._doc_type = self._DOC_TYPE
         self.search._index = es_indices(self._INDEX_PREFIX, self.conn)
 
@@ -398,6 +399,7 @@ class TopologyData(object):
             # only interested in one record
             self.search = self.search[0:1]
             logger.debug("[get] search = %s", self.search.to_dict())
+            # pylint: disable=W0212
             logger.debug("[get] index = %s", self.search._index)
             logger.debug("[get] doc_type = %s", self._DOC_TYPE)
 

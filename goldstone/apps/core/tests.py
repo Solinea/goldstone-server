@@ -148,6 +148,7 @@ class CustomExceptionHandlerTests(APISimpleTestCase):
             self.assertTrue(exception_handler.called)
             self.assertEqual(result.status_code, 500)
 
+
     def test_not_exception(self):
         """Test ES connection exception is handled"""
         with patch(
@@ -158,3 +159,4 @@ class CustomExceptionHandlerTests(APISimpleTestCase):
             result = custom_exception_handler('what??', None)
             self.assertTrue(exception_handler.called)
             self.assertEqual(result, None)
+

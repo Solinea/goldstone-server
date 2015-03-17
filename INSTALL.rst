@@ -45,18 +45,17 @@ First, enable the CentOS EPEL repositories and install some dependencies:
 
   .. code:: bash
 
-    # run as root
-    yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-    yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
+    $ sudo yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+    $ sudo yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
 
 Next, enable the elasticsearch and logstash repositories:
 
   .. code:: bash
 
-    # run as root
-    rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+    $ sudo rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
 
-    cat > /etc/yum.repos.d/elasticsearch-1.4.repo <<EOF
+    $ sudo bash
+    $ cat > /etc/yum.repos.d/elasticsearch-1.4.repo <<EOF
     [elasticsearch-1.4]
     name=Elasticsearch repository for 1.4.x packages
     baseurl=http://packages.elasticsearch.org/elasticsearch/1.4/centos
@@ -65,7 +64,7 @@ Next, enable the elasticsearch and logstash repositories:
     enabled=1
     EOF
 
-    cat > /etc/yum.repos.d/logstash-1.4.repo <<EOF
+    $ cat > /etc/yum.repos.d/logstash-1.4.repo <<EOF
     [logstash-1.4]
     name=logstash repository for 1.4.x packages
     baseurl=http://packages.elasticsearch.org/logstash/1.4/centos
@@ -73,29 +72,20 @@ Next, enable the elasticsearch and logstash repositories:
     gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
     enabled=1
     EOF
-
-Set OpenStack-related environment variables.  This will enable the RPM installer to 
-configure Goldstone without a reboot. 
-
-  .. code:: bash
-
-    # run as root
-    export OS_USERNAME=admin
-    export OS_TENANT_NAME=admin
-    export OS_PASSWORD=password
-    export OS_AUTH_URL=http://10.10.10.10::5000/v2.0/
+    $ exit
 
 Create a Postgres Goldstone user, and initialize the database. 
       
   .. code:: bash
 
-    # run as root
-    service postgresql initdb
-    chkconfig postgresql on
-    service postgresql start
-    su - postgres -c 'createdb goldstone'
-    su - postgres -c 'createuser goldstone -d'
-    su - postgres -c 'psql -c "alter user goldstone password \'goldstone\'"'
+    $ Sudo bash
+    $ service postgresql initdb
+    $ chkconfig postgresql on
+    $ service postgresql start
+    $ su - postgres -c 'createdb goldstone'
+    $ su - postgres -c 'createuser goldstone -d'
+    $ su - postgres -c 'psql -c "alter user goldstone password \'goldstone\'"'
+    $ exit
 
 Edit ``/var/lib/pgsql/data/pg_hba.conf`` as 'postgres' user, and insert these 
 lines before any other uncommented local or host entries: ::
@@ -108,28 +98,51 @@ Reload the postgres configuration.
 
   .. code:: bash
 
-    # run as root
-    su - postgres -c 'pg_ctl reload'
+    $ sudo su - postgres -c 'pg_ctl reload'
 
 
 Install the Goldstone application: 
 
   .. code:: bash
 
-    # run as root
-    yum localinstall -y goldstone-server-{version}.rpm
+    $ sudo yum localinstall -y goldstone-server-{version}.rpm
 
 This package installation may take up to 30 minutes to run, as it needs to compile a number of libraries.
 
-If you did not set the OpenStack envrironment variables, you can configure Goldstone by editing
-``/opt/goldstone/goldstone/settings/production.py`` to add required OpenStack settings.  Example: ::
+REVIEW PRODUCTION.PY
+********************
 
-    OS_USERNAME = 'admin'
-    OS_TENANT_NAME = 'admin'
-    OS_PASSWORD = 'password'
-    OS_AUTH_URL = 'http://10.10.10.10:5000/v2.0'
+If this is a first-time install of Goldstone, skip this section.
 
-The Goldstone application will be started at the next boot. 
+If this is a re-install of Goldstone, a
+new ``production.py`` file from Solinea will be in
+``/opt/goldstone/goldstone/settings/production.py.rpmnew``.
+
+Compare ``/opt/goldstone/goldstone/settings/production.py`` to
+``/opt/goldstone/goldstone/settings/production.py.rpmnew``, and migrate any changes from Solinea into the ``.py`` file. If you did not previously customize ``production.py``, you can simply do this:
+
+  .. code:: bash
+
+    $ mv /opt/goldstone/goldstone/settings/production.py.rpmnew /opt/goldstone/goldstone/settings.production.py.
+
+
+INITIALIZE GOLDSTONE
+********************
+
+To finish initializing the Goldstone installation:
+
+  .. code:: bash
+
+    $ cd /opt/goldstone
+    $ fab goldstone_init
+
+
+TEST PASSWORD RESET
+*******************
+
+Goldstone's login page includes a password-reset link. Please test it.
+
+If the links in the password-reset e-mail do not work, you'll need to adjust the settings in ``/opt/goldstone/goldstone/settings/production.py``. Look for the ``DJOSER`` dictionary.
 
 
 DIRECT LOGS TO GOLDSTONE SERVER
@@ -203,4 +216,4 @@ The installation created a system administrator account with the credentials, "a
 
 Your first task is to change your admin account password and e-mail address. You can do this from the account settings page.
 
-The installation also created an initial tenant, with a tenant administrator. The tenant administrator is also Goldstone's default tenant administrator. You may wish to change this tenant's name, enter the tenant owner's name and contact information, create more tenant admins for it, or change the tenant admin's name or password, which is "gsadmin" / "changeme".
+The installation also created an initial tenant, with a tenant administrator. The tenant administrator is also Goldstone's default tenant administrator. You may wish to change this tenant's name, owner name, or contact information; change the tenant admin's name or password, which is "gsadmin" / "changeme"; or create more tenant admins.

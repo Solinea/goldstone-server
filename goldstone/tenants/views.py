@@ -22,8 +22,9 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from goldstone.utils import django_admin_only
-from .models import Tenant
+from goldstone.utils import django_admin_only, django_and_tenant_admins_only
+from goldstone.user.views import UserSerializer
+from .models import Tenant, Cloud
 
 logger = logging.getLogger(__name__)
 
@@ -37,43 +38,21 @@ class TenantSerializer(ModelSerializer):
         read_only_fields = ('uuid', )
 
 
-class UserSerializer(ModelSerializer):
-    """This is identical to the user.views.UserSerializer, except that it
-    exposes the Tenant relationship.
-
-    This is ugly.
-
-    We can't subclass part of the Meta sub-class, so we need to duplicate
-    the entire serializer class.
-
-    TODO: Find a way to delete this.
-
-    """
+class CloudSerializer(ModelSerializer):
+    """The cloud model serializer."""
 
     class Meta:                        # pylint: disable=C0111,W0232,C1001
-        model = get_user_model()
+        model = Cloud
 
-        # We use exclude, so that as per-user settings are defined, the code
-        # will do the right thing with them by default.
-        exclude = ("id",
-                   "user_permissions",
-                   "groups",
-                   "is_staff",
-                   "is_active",
-                   "is_superuser",
-                   "password",
-                   )
-        read_only_fields = ("tenant_admin",
-                            "default_tenant_admin",
-                            "uuid",
-                            "date_joined",
-                            "last_login",
-                            )
+        # We use exclude, so the code will do the right thing if per-cloud
+        # settings are defined,
+        exclude = ("id", "tenant")
+        read_only_fields = ("uuid", )
 
 
 class DjangoOrTenantAdminPermission(BasePermission):
-    """A custom permissions class that allows access if the user is a Django
-    Admin, or a tenant_admin for the Tenant row being accessed."""
+    """A custom permissions class that allows single object access to Django
+    Admins, or a tenant_admin for the Tenant object in question."""
 
     def has_object_permission(self, request, view, obj):
         """Override the permissions check for single Tenant row access.
@@ -88,7 +67,7 @@ class DjangoOrTenantAdminPermission(BasePermission):
 
 
 class BaseViewSet(NestedViewSetMixin, SendEmailViewMixin, ModelViewSet):
-    """A base class for this app's Tenant and User ViewSets."""
+    """A base class for this app's Tenant, User, and Cloud ViewSets."""
 
     lookup_field = "uuid"
 
@@ -130,7 +109,8 @@ class BaseViewSet(NestedViewSetMixin, SendEmailViewMixin, ModelViewSet):
         return {'domain': settings.get('DOMAIN'),
                 'site_name': settings.get('SITE_NAME'),
                 'protocol': 'https' if self.request.is_secure() else 'http',
-                "tenant_name": user.perform_create_tenant_name
+                "tenant_name": user.perform_create_tenant_name,
+                "username": user.username
                 }
 
 
@@ -153,7 +133,6 @@ class TenantsViewSet(BaseViewSet):
                 'new_tenant_body_for_tenant_admin.txt'}
 
     def get_queryset(self):
-
         """Return the queryset for list views."""
 
         return Tenant.objects.all()
@@ -247,11 +226,34 @@ class TenantsViewSet(BaseViewSet):
         # Now do the delete.
         return super(TenantsViewSet, self).perform_destroy(instance)
 
-    @django_admin_only
+    @django_and_tenant_admins_only
     def list(self, request, *args, **kwargs):
-        """Provide a collection-of-objects GET response, for Django admins."""
+        """Provide a collection-of-objects GET response, for Django admins or
+        tenant_admins.
 
-        return super(TenantsViewSet, self).list(request, *args, **kwargs)
+        For Django admins, all the tenants are returned. For tenant_admins,
+        only those tenants that are administered by the user are returned.
+
+        """
+
+        # return super(TenantsViewSet, self).list(request, *args, **kwargs)
+
+        from rest_framework.response import Response
+
+        # Create the queryset for this Django admin, or tenant_admin.
+        instance = \
+            self.filter_queryset(self.get_queryset()) \
+            if request.user.is_superuser else \
+            self.filter_queryset(Tenant.objects.filter(user=request.user))
+
+        page = self.paginate_queryset(instance)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(instance, many=True)
+
+        return Response(serializer.data)
 
 
 class UserViewSet(BaseViewSet):
@@ -308,11 +310,7 @@ class UserViewSet(BaseViewSet):
            self.request.user.tenant == tenant and \
            self.request.user.tenant_admin:
             # We are clear to create a new user, as a member of this tenant.
-            # Do what the superclass' perform_create() does, to get the newly
-            # created row.
-            user = serializer.save()
-            user.tenant = tenant
-            user.save()
+            user = serializer.save(tenant=tenant)
 
             # Notify the new user that he/she's created, and a member of this
             # tenant. We tack the tenant's name to the User object so that our
@@ -338,5 +336,68 @@ class UserViewSet(BaseViewSet):
            not instance.is_superuser and \
            instance != self.request.user:
             super(UserViewSet, self).perform_destroy(instance)
+        else:
+            raise PermissionDenied
+
+
+class CloudViewSet(BaseViewSet):
+    """A ViewSet for the Cloud table."""
+
+    serializer_class = CloudSerializer
+
+    def _get_tenant(self):
+        """Return the underlying Tenant row, or raise a
+        PermissionDenied exception."""
+
+        target_uuid = self.get_parents_query_dict()["tenant"]
+
+        try:
+            return Tenant.objects.get(uuid=target_uuid)
+        except ObjectDoesNotExist:
+            raise PermissionDenied
+
+    def get_queryset(self):
+        """Return the queryset for list views iff the user is a tenant_admin of
+        the underlying tenant."""
+
+        # Get the underlying Tenant row.
+        tenant = self._get_tenant()
+
+        # N.B. User.is_authenticated() filters out the AnonymousUser object.
+        if self.request.user.is_authenticated() and \
+           self.request.user.tenant == tenant and \
+           self.request.user.tenant_admin:
+            return Cloud.objects.filter(tenant=tenant)
+        else:
+            raise PermissionDenied
+
+    def perform_create(self, serializer):
+        """Create a cloud in the underlying Tenant."""
+
+        # Get the underlying Tenant row.
+        tenant = self._get_tenant()
+
+        # N.B. User.is_authenticated() filters out the AnonymousUser object.
+        if self.request.user.is_authenticated() and \
+           self.request.user.tenant == tenant and \
+           self.request.user.tenant_admin:
+            # We are clear to create a new cloud, as a member of this tenant.
+            # Save this row with a relation to the underlying tenant.
+            serializer.save(tenant=tenant)
+        else:
+            raise PermissionDenied
+
+    def perform_destroy(self, instance):
+        """Delete a cloud in the underlying Tenant, if permissions and delete
+        restrictions are met."""
+
+        # Get the underlying Tenant row.
+        tenant = self._get_tenant()
+
+        # N.B. User.is_authenticated() filters out the AnonymousUser object.
+        if self.request.user.is_authenticated() and \
+           self.request.user.tenant == instance.tenant == tenant and \
+           self.request.user.tenant_admin:
+            super(CloudViewSet, self).perform_destroy(instance)
         else:
             raise PermissionDenied
