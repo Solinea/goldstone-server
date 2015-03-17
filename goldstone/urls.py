@@ -53,7 +53,7 @@ urlpatterns = patterns(
     # TODO: Remove the settings entry, and settings.html, after the client
     # switches to Backbone routing.
     url(r'^settings[/]?$', SettingsPageView.as_view()),
-    url(r'^tenant[/]?$', TenantSettingsPageView.as_view()),
+    url(r'^settings/tenants[/]?$', TenantSettingsPageView.as_view()),
     url(r'^$', RedirectView.as_view(url='/discover'), name='home'),
 )
 

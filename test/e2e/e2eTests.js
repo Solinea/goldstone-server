@@ -127,9 +127,9 @@ casper.test.begin('/settings page updates user personal settings / password', 10
     // end of settings page e2e tests
 });
 
-casper.test.begin('/tenant page updates user personal settings / password', 2, function suite(test) {
+casper.test.begin('/settings/tenants page updates user personal settings / password', 2, function suite(test) {
 
-    casper.start('http://localhost:8000/tenant', function() {
+    casper.start('http://localhost:8000/settings/tenants', function() {
         this.echo("Update Tenant Settings", "GREEN_BAR");
         test.assertExists("form.tenant-settings-form");
         test.assertSelectorHasText("form.tenant-settings-form h3", "Update Tenant Settings");
