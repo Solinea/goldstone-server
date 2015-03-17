@@ -379,6 +379,7 @@ class SettingsPageView(TemplateView):
 
     template_name = 'settings.html'
 
+
 class TenantSettingsPageView(TemplateView):
     """Return the Goldstone tenant/user settings page."""
 
