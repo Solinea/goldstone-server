@@ -28,6 +28,22 @@ class LogData(DailyIndexDocType):
         doc_type = 'syslog'
 
     @classmethod
+    def search(cls):
+        """Gets a generic Log search object.
+
+        See elasticsearch-dsl for parameter information.
+        """
+        from goldstone.apps.drfes.models import es_conn, es_indices
+        from elasticsearch_dsl.query import Q
+
+        search = super(LogData, cls).search()
+
+        # omitting logs with AUDIT loglevel since they are logged as WARNING
+        # in icehouse and juno.
+        return search.query(~Q('term', loglevel__raw='AUDIT'))
+
+    
+    @classmethod
     def ranged_log_search(cls, start=None, end=None, hosts=[]):
         """ Returns a search with time range and hosts list terms"""
 

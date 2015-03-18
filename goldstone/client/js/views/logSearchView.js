@@ -108,7 +108,7 @@ var LogSearchView = GoldstoneBasePageView.extend({
         '<thead>' +
         '<tr class="header">' +
         '<th>Timestamp</th>' +
-        '<th>Level</th>' +
+        '<th>Syslog_Severity</th>' +
         '<th>Component</th>' +
         '<th>Host</th>' +
         '<th>Message</th>' +
