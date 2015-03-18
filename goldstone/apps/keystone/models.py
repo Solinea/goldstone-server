@@ -116,32 +116,53 @@ CONTAINS = settings.RT_EDGE.CONTAINS
 ASSIGNED_TO = settings.RT_EDGE.ASSIGNED_TO
 APPLIES_TO = settings.RT_EDGE.APPLIES_TO
 
-# Keystone Resource Type definition.
-#
-# This defines the types of resources within a Keystone service.
-#
-# The "nodes" value is a list of nodes. Each entry should be a type.l
-#
-# The "edges" value is a list of 3-tuples. Each (f, t, d) tuple is:
-#   - f is the "from" node
-#   - t is the "to" node
-#   - d is the attribute dictionary.
-KEYSTONE_RESOURCE_TYPES = {
-    "nodes": [User, Domain, Group, Token, Credential, Role, Region, Endpoint,
-              Service, Project],
-    "edges":
-    [(Domain, User, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
-     (Domain, Group, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
-     (Domain, Project, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
-     (User, Group, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
-     (User, Project, {TYPE: ASSIGNED_TO, MIN: 0, MAX: 1}),
-     (User, Credential, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
-     (Token, User, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
-     (Credential, Project, {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}),
-     (Role, User, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
-     (Role, Group, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
-     (Role, Domain, {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}),
-     (Role, Project, {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}),
-     (Region, Endpoint, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
-     (Endpoint, Service, {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}),
+class KeystoneResourceTypes(object):
+    """A class of the directed graph of resources used within a Keystone
+    service."""
+
+    # This defines the types of resources within Keystone.
+    #
+    # "nodes": A list of nodes. Each entry should be a type.
+    #
+    # "edges": A list of 3-tuples. Each (f, t, d) tuple is:
+    #   - f is the "from" node
+    #   - t is the "to" node
+    #   - d is the attribute dictionary.
+    RESOURCE_TYPES = {
+        "nodes": [User, Domain, Group, Token, Credential, Role, Region,
+                  Endpoint, Service, Project],
+        "edges":
+        [(Domain, User, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
+         (Domain, Group, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
+         (Domain, Project, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
+         (User, Group, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
+         (User, Project, {TYPE: ASSIGNED_TO, MIN: 0, MAX: 1}),
+         (User, Credential, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
+         (Token, User, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
+         (Credential, Project, {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}),
+         (Role, User, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
+         (Role, Group, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
+         (Role, Domain, {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}),
+         (Role, Project, {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}),
+         (Region, Endpoint, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
+         (Endpoint, Service, {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}),
      ]}
+
+    def __init__(self):
+        """Initialize the object.
+
+        self.graph = a graph of the types of resources within a Keystone
+        service.
+
+        """
+        import networkx
+
+        self.graph = networkx.DiGraph()
+
+        # Add the nodes
+        for entry in self.RESOURCE_TYPES["nodes"]:
+            self.graph.add_node(entry)
+
+        # Add the edges.
+        for source, dest, attribute in self.RESOURCE_TYPES["edges"]:
+            self.graph.add_edge(source, dest, attribute)
