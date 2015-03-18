@@ -219,12 +219,63 @@ var LogAnalysisView = UtilizationCpuView.extend({
     },
 
     collectionPrep: function() {
+
         var ns = this.defaults;
         var self = this;
 
-        var data = this.collection.toJSON()[0].data;
+        // this.collection.toJSON() returns an object
+        // with keys: timestamps, levels, data.
+        var collectionDataPayload = this.collection.toJSON()[0];
 
+        // We will store the levels for the loglevel construction
+        // and add it back in before returning
+
+        var logLevels = collectionDataPayload.levels;
+
+        // we use only the 'data' for the construction of the chart
+        var data = collectionDataPayload.data;
+
+        // prepare empty array to return at end
         finalData = [];
+
+        // 3 layers of nested _.each calls
+        // the first one iterates through each object
+        // in the 'data' array as 'item':
+        // {
+        //     "1426640040000": [
+        //         {
+        //             "audit": 7
+        //         },
+        //         {
+        //             "info": 0
+        //         },
+        //         {
+        //             "warning": 0
+        //         }
+        //     ]
+        // }
+
+        // the next _.each iterates through the array of
+        // nested objects that are keyed to the timestamp
+        // as 'subItem'
+        // [
+        //     {
+        //         "audit": 7
+        //     },
+        //     {
+        //         "info": 0
+        //     },
+        //     {
+        //         "warning": 0
+        //     }
+        // ]
+
+        // and finally, the last _.each iterates through
+        // the most deeply nested objects as 'subSubItem'
+        // such as:
+        //  {
+        //      "audit": 7
+        //  }
 
         _.each(data, function(item) {
 
@@ -232,23 +283,37 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
             _.each(item, function(subItem) {
                 _.each(subItem, function(subSubItem) {
+
+                    // each key/value pair of the subSubItems is added to tempObject
                     var key = _.keys(subSubItem)[0];
                     var value = _.values(subSubItem)[0];
                     tempObject[key] = value;
                 });
             });
 
+            // and then after tempObject is populated
+            // it is standardized for chart consumption
+            // by making sure to add '0' for unreported
+            // values, and adding the timestamp
             tempObject.debug = tempObject.debug || 0;
             tempObject.audit = tempObject.audit || 0;
             tempObject.info = tempObject.info || 0;
             tempObject.warning = tempObject.warning || 0;
             tempObject.error = tempObject.error || 0;
             tempObject.date = _.keys(item)[0];
+
+            // and the array is built up of these
+            // individual objects for the viz
             finalData.push(tempObject);
 
         });
 
-        return finalData;
+        // and finally return the massaged data and the
+        // levels to the superclass 'update' function
+        return {
+            finalData: finalData,
+            logLevels: logLevels
+        };
 
     },
 

@@ -205,6 +205,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         ns.data = allthelogs;
 
         if (ns.featureSet === 'logEvents') {
+            ns.data = allthelogs.finalData;
             ns.loglevel = d3.scale.ordinal()
                 .domain(["debug", "audit", "info", "warning", "error"])
                 .range(ns.colorArray.distinct[5]);
