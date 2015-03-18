@@ -43,14 +43,20 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         // populated dynamically by
         // returned levels param of data
-        filter: {
-            error: true,
-            warning: true,
-            audit: true,
-            info: true,
-            debug: true
-        },
+        // in this.collectionPrep
+        // and will look something like this:
 
+        // filter: {
+        //     error: true,
+        //     warning: true,
+        //     audit: true,
+        //     info: true,
+        //     critical: true
+        // },
+
+        filter: null,
+
+        // will prevent updating when zoom is active
         isZoomed: false
 
     },
@@ -77,7 +83,8 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var seconds = (ns.end - ns.start) / 1000;
         var interval = Math.max(1, Math.floor((seconds / (ns.width / 10))));
 
-        this.collection.url = ns.urlRoot + 'start_time=' + Math.floor(ns.start / 1000) + '&end_time=' + Math.floor(ns.end / 1000) + '&interval=' + interval + 's';
+        this.collection.url = ns.urlRoot + 'per_host=False&@timestamp__range={' +
+            '"gte":' + ns.start + ',"lte":' + ns.end + '}&interval=' + interval + 's';
     },
 
     startEndToGlobalLookback: function() {
@@ -218,27 +225,117 @@ var LogAnalysisView = UtilizationCpuView.extend({
     },
 
     collectionPrep: function() {
+
         var ns = this.defaults;
         var self = this;
 
-        var data = this.collection.toJSON();
+        // this.collection.toJSON() returns an object
+        // with keys: timestamps, levels, data.
+        var collectionDataPayload = this.collection.toJSON()[0];
 
+        // We will store the levels for the loglevel
+        // construction and add it back in before returning
+        var logLevels = collectionDataPayload.levels;
+
+        // if ns.filter isn't defined yet, only do
+        // this once
+        if (ns.filter === null) {
+            ns.filter = {};
+            _.each(logLevels, function(item) {
+                ns.filter[item] = true;
+            });
+        }
+
+        // we use only the 'data' for the construction of the chart
+        var data = collectionDataPayload.data;
+
+        // prepare empty array to return at end
         finalData = [];
+
+        // 3 layers of nested _.each calls
+        // the first one iterates through each object
+        // in the 'data' array as 'item':
+        // {
+        //     "1426640040000": [
+        //         {
+        //             "audit": 7
+        //         },
+        //         {
+        //             "info": 0
+        //         },
+        //         {
+        //             "warning": 0
+        //         }
+        //     ]
+        // }
+
+        // the next _.each iterates through the array of
+        // nested objects that are keyed to the timestamp
+        // as 'subItem'
+        // [
+        //     {
+        //         "audit": 7
+        //     },
+        //     {
+        //         "info": 0
+        //     },
+        //     {
+        //         "warning": 0
+        //     }
+        // ]
+
+        // and finally, the last _.each iterates through
+        // the most deeply nested objects as 'subSubItem'
+        // such as:
+        //  {
+        //      "audit": 7
+        //  }
 
         _.each(data, function(item) {
 
-            finalData.push({
-                debug: item.debug || 0,
-                audit: item.audit || 0,
-                info: item.info || 0,
-                warning: item.warning || 0,
-                error: item.error || 0,
-                date: item.time,
+            var tempObject = {};
+
+            _.each(item, function(subItem) {
+                _.each(subItem, function(subSubItem) {
+
+                    // each key/value pair of the subSubItems is added to tempObject
+                    var key = _.keys(subSubItem)[0];
+                    var value = _.values(subSubItem)[0];
+                    tempObject[key] = value;
+                });
             });
+
+            // and then after tempObject is populated
+            // it is standardized for chart consumption
+            // by making sure to add '0' for unreported
+            // values, and adding the timestamp
+
+            _.each(ns.filter, function(item, i) {
+                tempObject[i] = tempObject[i] || 0;
+            });
+            tempObject.date = _.keys(item)[0];
+
+            // which is the equivalent of doing this:
+
+            // tempObject.debug = tempObject.debug || 0;
+            // tempObject.audit = tempObject.audit || 0;
+            // tempObject.info = tempObject.info || 0;
+            // tempObject.warning = tempObject.warning || 0;
+            // tempObject.error = tempObject.error || 0;
+            // tempObject.date = _.keys(item)[0];
+
+            // and the final array is built up of these
+            // individual objects for the viz
+            finalData.push(tempObject);
 
         });
 
-        return finalData;
+        // and finally return the massaged data and the
+        // levels to the superclass 'update' function
+        return {
+            finalData: finalData,
+            logLevels: logLevels
+        };
 
     },
 
