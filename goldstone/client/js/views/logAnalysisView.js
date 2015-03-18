@@ -43,14 +43,20 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         // populated dynamically by
         // returned levels param of data
-        filter: {
-            error: true,
-            warning: true,
-            audit: true,
-            info: true,
-            debug: true
-        },
+        // in this.collectionPrep
+        // and will look something like this:
 
+        // filter: {
+        //     error: true,
+        //     warning: true,
+        //     audit: true,
+        //     info: true,
+        //     critical: true
+        // },
+
+        filter: null,
+
+        // will prevent updating when zoom is active
         isZoomed: false
 
     },
@@ -227,10 +233,18 @@ var LogAnalysisView = UtilizationCpuView.extend({
         // with keys: timestamps, levels, data.
         var collectionDataPayload = this.collection.toJSON()[0];
 
-        // We will store the levels for the loglevel construction
-        // and add it back in before returning
-
+        // We will store the levels for the loglevel
+        // construction and add it back in before returning
         var logLevels = collectionDataPayload.levels;
+
+        // if ns.filter isn't defined yet, only do
+        // this once
+        if (ns.filter === null) {
+            ns.filter = {};
+            _.each(logLevels, function(item) {
+                ns.filter[item] = true;
+            });
+        }
 
         // we use only the 'data' for the construction of the chart
         var data = collectionDataPayload.data;
@@ -295,14 +309,22 @@ var LogAnalysisView = UtilizationCpuView.extend({
             // it is standardized for chart consumption
             // by making sure to add '0' for unreported
             // values, and adding the timestamp
-            tempObject.debug = tempObject.debug || 0;
-            tempObject.audit = tempObject.audit || 0;
-            tempObject.info = tempObject.info || 0;
-            tempObject.warning = tempObject.warning || 0;
-            tempObject.error = tempObject.error || 0;
+
+            _.each(ns.filter, function(item, i) {
+                tempObject[i] = tempObject[i] || 0;
+            });
             tempObject.date = _.keys(item)[0];
 
-            // and the array is built up of these
+            // which is the equivalent of doing this:
+
+            // tempObject.debug = tempObject.debug || 0;
+            // tempObject.audit = tempObject.audit || 0;
+            // tempObject.info = tempObject.info || 0;
+            // tempObject.warning = tempObject.warning || 0;
+            // tempObject.error = tempObject.error || 0;
+            // tempObject.date = _.keys(item)[0];
+
+            // and the final array is built up of these
             // individual objects for the viz
             finalData.push(tempObject);
 
