@@ -154,20 +154,22 @@ var EventTimelineView = GoldstoneBaseView.extend({
             })
             .html(function(d) {
 
-                d.id = d.id || '';
-                d.message = d.message || 'No message logged';
+                d.host = d.host || '';
+                d.log_message = d.log_message || 'No message logged';
 
-                if (d.message.length > 280) {
-                    d.message = d.message.slice(0, 300) + "...";
+                if (d.log_message.length > 280) {
+                    d.log_message = d.log_message.slice(0, 300) + "...";
                 }
 
                 d.event_type = d.event_type || 'No event type logged';
-                d.created = d.created || 'No date logged';
+                d['@timestamp'] = d['@timestamp'] || 'No date logged';
 
-                return d.event_type + " (click event line to persist popup info)<br>" +
-                    "uuid: " + d.id + "<br>" +
-                    "Created: " + d.created + "<br>" +
-                    "Message: " + d.message + "<br>";
+                return "" +
+                    "Host: " + d.host + "<br>" +
+                    d.event_type + " (click event line to persist popup info)<br>" +
+                    // "uuid: " + d.id + "<br>" +
+                    "Created: " + d['@timestamp'] + "<br>" +
+                    "Message: " + d.log_message + "<br>";
             });
 
         ns.graph.call(ns.tooltip);
