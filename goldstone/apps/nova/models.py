@@ -460,9 +460,6 @@ class ServicesData(TopologyData):
 class Host(PolyResource):
     """A representation for a Openstack host"""
 
-    fqdn = CharField(
-        max_length=255,
-        unique=True)
-
-    def __init__(self, *args, **kwargs):
-        super(Host, self).__init__(*args, **kwargs)
+    fqdn = CharField(max_length=255,
+                     unique=True,
+                     help_text="A fully-qualified domain name")

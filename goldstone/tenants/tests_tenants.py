@@ -380,11 +380,11 @@ class TenantsId(Setup):
                                        owner_contact='206.867.5309')
 
         # Try getting, putting, and deleting a tenant without a token.
-        responses = [self.client.get(TENANTS_ID_URL % tenant.uuid.hex),
-                     self.client.put(TENANTS_ID_URL % tenant.uuid.hex,
+        responses = [self.client.get(TENANTS_ID_URL % tenant.uuid),
+                     self.client.put(TENANTS_ID_URL % tenant.uuid,
                                      json.dumps({"name": "foobar"}),
                                      content_type="application/json"),
-                     self.client.delete(TENANTS_ID_URL % tenant.uuid.hex)]
+                     self.client.delete(TENANTS_ID_URL % tenant.uuid)]
 
         for response in responses:
             self.assertContains(response,
@@ -394,15 +394,15 @@ class TenantsId(Setup):
         # Try getting, putting, and deleting a tenant with a bad token.
         responses = [
             self.client.get(
-                TENANTS_ID_URL % tenant.uuid.hex,
+                TENANTS_ID_URL % tenant.uuid,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
             self.client.put(
-                TENANTS_ID_URL % tenant.uuid.hex,
+                TENANTS_ID_URL % tenant.uuid,
                 json.dumps({"name": "foobar"}),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
             self.client.delete(
-                TENANTS_ID_URL % tenant.uuid.hex,
+                TENANTS_ID_URL % tenant.uuid,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
         ]
 
@@ -434,15 +434,15 @@ class TenantsId(Setup):
         # Try getting, putting, and deleting a tenant as a normal user.
         responses = [
             self.client.get(
-                TENANTS_ID_URL % tenants[0].uuid.hex,
+                TENANTS_ID_URL % tenants[0].uuid,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.put(
-                TENANTS_ID_URL % tenants[0].uuid.hex,
+                TENANTS_ID_URL % tenants[0].uuid,
                 json.dumps({"name": "foobar"}),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.delete(
-                TENANTS_ID_URL % tenants[0].uuid.hex,
+                TENANTS_ID_URL % tenants[0].uuid,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
         ]
 
@@ -457,7 +457,7 @@ class TenantsId(Setup):
         user.save()
 
         response = self.client.delete(
-            TENANTS_ID_URL % tenants[0].uuid.hex,
+            TENANTS_ID_URL % tenants[0].uuid,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
@@ -469,7 +469,7 @@ class TenantsId(Setup):
         user.save()
 
         response = self.client.delete(
-            TENANTS_ID_URL % tenants[0].uuid.hex,
+            TENANTS_ID_URL % tenants[0].uuid,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
@@ -487,7 +487,7 @@ class TenantsId(Setup):
         tenant = Tenant.objects.create(name='tenant',
                                        owner='John',
                                        owner_contact='206.867.5309')
-        uuid = tenant.uuid.hex
+        uuid = tenant.uuid
         tenant.delete()
 
         # Try getting, putting, and deleting a tenant that doesn't exist.
@@ -522,7 +522,7 @@ class TenantsId(Setup):
             """Get the tenant using the token, and check the response."""
 
             response = self.client.get(
-                TENANTS_ID_URL % tenant.uuid.hex,
+                TENANTS_ID_URL % tenant.uuid,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
             check_response_without_uuid(response, HTTP_200_OK, EXPECTED_RESULT)
@@ -562,7 +562,7 @@ class TenantsId(Setup):
             """Get the tenant using the token and check the response."""
 
             response = self.client.get(
-                TENANTS_ID_URL % tenant.uuid.hex,
+                TENANTS_ID_URL % tenant.uuid,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
             check_response_without_uuid(response, HTTP_200_OK, expected)
@@ -581,7 +581,7 @@ class TenantsId(Setup):
 
         # Test changing the tenant as a Django admin.
         response = self.client.put(
-            TENANTS_ID_URL % tenant.uuid.hex,
+            TENANTS_ID_URL % tenant.uuid,
             json.dumps(NEW_TENANT),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -592,7 +592,7 @@ class TenantsId(Setup):
         # Test changing the tenant as a tenant admin.
         token = login('a', 'a')
         response = self.client.put(
-            TENANTS_ID_URL % tenant.uuid.hex,
+            TENANTS_ID_URL % tenant.uuid,
             json.dumps(NEW_TENANT),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -618,7 +618,7 @@ class TenantsId(Setup):
         # Delete the tenant.  This will also delete the users who belong to the
         # tenant.
         response = self.client.delete(
-            TENANTS_ID_URL % tenant.uuid.hex,
+            TENANTS_ID_URL % tenant.uuid,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         # pylint: disable=E1101
@@ -659,7 +659,7 @@ class TenantsId(Setup):
         # Delete the tenant.  This should delete the users who belong to the
         # tenant, but not the Django admin.
         response = self.client.delete(
-            TENANTS_ID_URL % tenant.uuid.hex,
+            TENANTS_ID_URL % tenant.uuid,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         # pylint: disable=E1101
@@ -705,7 +705,7 @@ class TenantsId(Setup):
         # Delete the tenant.  This should delete the users who belong to the
         # tenant, but not the default_tenant_admin.
         response = self.client.delete(
-            TENANTS_ID_URL % tenant.uuid.hex,
+            TENANTS_ID_URL % tenant.uuid,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         # pylint: disable=E1101

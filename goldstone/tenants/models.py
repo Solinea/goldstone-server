@@ -14,7 +14,7 @@
 # limitations under the License.
 from django.conf import settings
 from django.db import models
-from uuidfield import UUIDField
+from django_extensions.db.fields import UUIDField
 
 
 class Tenant(models.Model):
