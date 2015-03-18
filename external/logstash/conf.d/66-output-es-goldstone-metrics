@@ -16,7 +16,7 @@
 # push processed agent reports/metrics to elasticsearch
 # 
 output {
-    if [type] in ["core_metric"] {
+    if [type] == "core_metric" {
         # stdout { codec => "rubydebug" }
         elasticsearch {
             host => localhost
