@@ -537,7 +537,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
                         return moment(data).format();
                     }
                 }, {
-                    "name": "loglevel",
+                    "name": "syslog_severity",
                     "targets": 1
                 }, {
                     "name": "component",
