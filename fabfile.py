@@ -235,7 +235,7 @@ def syncmigrate(settings=None, verbose=False):
     # DRF and Django signals. See
     # https://github.com/tomchristie/django-rest-framework/issues/987.
     print
-    print green("Good! *Now* you can and chould create a superuser here.")
+    print green("Create a Django superuser here.")
     _django_manage("createsuperuser --username=admin", proj_settings=settings)
 
 
@@ -379,16 +379,16 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
                              password=cloud_password,
                              auth_url=cloud_auth_url)
 
-def _migrate_static(settings=None):
-    """migrate static files if STATIC_ROOT is set in the settings file"""
+def _collect_static(proj_settings=None):
+    """collect static files if STATIC_ROOT is set in the settings file"""
 
-    with _django_env(settings):
+    with _django_env(proj_settings):
         from django.conf import settings
 
         if settings.STATIC_ROOT is not None:
             print "collecting the static files under the web server ..."
             print
-            _django_manage("collectstatic", proj_settings=settings)
+            _django_manage("collectstatic", proj_settings=proj_settings)
 
 
 @task
@@ -405,7 +405,7 @@ def goldstone_init(verbose=False):
 
     syncmigrate(settings=settings)
     tenant_init(settings=settings)
-    _migrate_static(settings=settings)
+    _collect_static(proj_settings=settings)
     load()
 
 
