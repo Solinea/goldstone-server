@@ -464,17 +464,22 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        var oTable,
-            startTs = Math.floor(start / 1000),
-            endTs = Math.floor(end / 1000),
-            uri = '/intelligence/log/search/data'.concat(
-                "?start_time=", startTs,
-                "&end_time=", endTs);
+        var oTable;
+
+        var uri = '/logging/search?@timestamp__range={"gte":' +
+            start +
+            ',"lte":' +
+            end +
+            '}&loglevel__terms=[';
 
         levels = ns.filter || {};
         for (var k in levels) {
-            uri = uri.concat("&", k, "=", levels[k]);
+            if (levels[k]) {
+                uri = uri.concat('"', k.toUpperCase(), '",');
+            }
         }
+        uri += "]";
+        console.log('basic uri', uri);
 
         if ($.fn.dataTable.isDataTable("#log-search-table")) {
             oTable = $("#log-search-table").DataTable();
@@ -485,24 +490,26 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
     drawSearchTable: function(location, start, end) {
         var self = this;
+        var ns = this.defaults;
 
         $("#log-table-loading-indicator").show();
 
-        end = typeof end !== 'undefined' ?
-            new Date(Number(end)) :
-            new Date();
+        var oTable;
 
-        if (typeof start !== 'undefined') {
-            start = new Date(Number(start));
-        } else {
-            start = new Date(Number(start));
-            start.addWeeks(-1);
+        var uri = '/logging/search?@timestamp__range={"gte":' +
+            start +
+            ',"lte":' +
+            end +
+            '}&loglevel__terms=[';
+
+        levels = ns.filter || {};
+        for (var k in levels) {
+            if (levels[k]) {
+                uri = uri.concat('"', k.toUpperCase(), '",');
+            }
         }
-
-        var oTable,
-            uri = '/intelligence/log/search/data'.concat(
-                "?start_time=", String(Math.round(start.getTime() / 1000)),
-                "&end_time=", String(Math.round(end.getTime() / 1000)));
+        uri += "]";
+        console.log('first basic uri', uri);
 
         if ($.fn.dataTable.isDataTable(location)) {
             oTable = $(location).DataTable();
@@ -520,6 +527,12 @@ var LogAnalysisView = UtilizationCpuView.extend({
                 "ordering": true,
                 "serverSide": true,
                 "ajax": {
+                    beforeSend: function(obj, settings) {
+                        console.log('in beforeSend obj, settings', obj, settings);
+
+                        settings.url = settings.url.slice(0, settings.url.indexOf(',]'));
+                        settings.url += "]";
+                    },
                     url: uri,
                     error: function(data) {
                         self.searchDataErrorMessage(null, data, '.search-popup-message');
