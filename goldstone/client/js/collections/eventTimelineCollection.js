@@ -17,7 +17,7 @@
 // define collection and link to model
 
 var EventTimelineModel = GoldstoneBaseModel.extend({
-    idAttribute: 'id'
+    idAttribute: '@timestamp'
 });
 
 var EventTimelineCollection = Backbone.Collection.extend({
