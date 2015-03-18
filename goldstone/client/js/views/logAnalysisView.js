@@ -527,6 +527,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
                 "ordering": true,
                 "serverSide": true,
                 "ajax": {
+                    dataSrc: "results",
                     beforeSend: function(obj, settings) {
                         console.log('in beforeSend obj, settings', obj, settings);
 
@@ -539,10 +540,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
                     }
                 },
                 "columnDefs": [{
-                    "visible": false,
-                    "targets": [5, 6, 7, 8, 9, 10]
-                }, {
-                    "name": "timestamp",
+                    "data": "@timestamp",
                     "type": "date",
                     "targets": 0,
                     "render": function(data, type, full, meta) {
@@ -550,36 +548,17 @@ var LogAnalysisView = UtilizationCpuView.extend({
                         return moment(data).format();
                     }
                 }, {
-                    "name": "syslog_severity",
+                    "data": "syslog_severity",
                     "targets": 1
                 }, {
-                    "name": "component",
+                    "data": "component",
                     "targets": 2
                 }, {
-                    "name": "host",
+                    "data": "host",
                     "targets": 3
                 }, {
-                    "name": "message",
+                    "data": "log_message",
                     "targets": 4
-                }, {
-                    "name": "location",
-                    "targets": 5
-                }, {
-                    "name": "pid",
-                    "targets": 6
-                }, {
-                    "name": "source",
-                    "targets": 7
-                }, {
-                    "name": "request_id",
-                    "targets": 8
-                }, {
-                    "name": "type",
-                    "targets": 9
-                }, {
-                    "name": "received",
-                    "type": "date",
-                    "targets": 10
                 }]
             };
             oTable = $(location).DataTable(oTableParams);
