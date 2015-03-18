@@ -117,11 +117,15 @@ ASSIGNED_TO = settings.RT_EDGE.ASSIGNED_TO
 APPLIES_TO = settings.RT_EDGE.APPLIES_TO
 
 
-class KeystoneResourceTypes(object):
-    """A class of the directed graph of resources used within a Keystone
-    service."""
+class KeystoneResources(object):
+    """A directed graph of resources used within a Keystone service.
 
-    # This defines the resource types within Keystone.
+    I.e., a Keystone resource type is comprised of all of these resource
+    types.
+
+    """
+
+    # Define the resource types within Keystone.
     #
     # "nodes": A list of nodes. Each entry is a type.
     #
