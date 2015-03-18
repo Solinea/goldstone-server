@@ -15,6 +15,18 @@
  */
 
 /*
+openstack syslog severity levels:
+0       EMERGENCY: system is unusable
+1       ALERT: action must be taken immediately
+2       CRITICAL: critical conditions
+3       ERROR: error conditions
+4       WARNING: warning conditions
+5       NOTICE: normal but significant condition
+6       INFO: informational messages
+7       DEBUG: debug-level messages
+/*
+
+/*
 instantiated in logSearchView.js as:
 
     this.logAnalysisCollection = new LogAnalysisCollection({});
@@ -46,15 +58,23 @@ var LogAnalysisView = UtilizationCpuView.extend({
         // in this.collectionPrep
         // and will look something like this:
 
-        // filter: {
-        //     error: true,
-        //     warning: true,
-        //     audit: true,
-        //     info: true,
-        //     critical: true
-        // },
+        // IMPORTANT: the order of the entries in the
+        // Log Severity Filters modal is set by the order
+        // of the event types in ns.filter
 
-        filter: null,
+
+        filter: {
+            emergency: true,
+            alert: true,
+            critical: true,
+            error: true,
+            warning: true,
+            notice: true,
+            info: true,
+            debug: true
+        },
+
+        // filter: null,
 
         // will prevent updating when zoom is active
         isZoomed: false
@@ -360,6 +380,10 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         var ns = this.defaults;
         var self = this;
+
+        // IMPORTANT: the order of the entries in the
+        // Log Severity Filters modal is set by the order
+        // of the event types in ns.filter
 
         // populate the modal based on the event types.
         // clear out the modal and reapply based on the unique events
