@@ -108,16 +108,16 @@ var LogSearchView = GoldstoneBasePageView.extend({
         '<thead>' +
         '<tr class="header">' +
         '<th>Timestamp</th>' +
-        '<th>Syslog_Severity</th>' +
+        '<th>Syslog Severity</th>' +
         '<th>Component</th>' +
         '<th>Host</th>' +
         '<th>Message</th>' +
-        '<th>Log Location</th>' +
-        '<th>Process ID</th>' +
-        '<th>Source</th>' +
-        '<th>Request ID</th>' +
-        '<th>Log Type</th>' +
-        '<th>Processed At</th>' +
+        // '<th>Log Location</th>' +
+        // '<th>Process ID</th>' +
+        // '<th>Source</th>' +
+        // '<th>Request ID</th>' +
+        // '<th>Log Type</th>' +
+        // '<th>Processed At</th>' +
         '</tr>' +
         '</thead>' +
         '</table>' +
