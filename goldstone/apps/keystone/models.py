@@ -121,14 +121,14 @@ class KeystoneResourceTypes(object):
     """A class of the directed graph of resources used within a Keystone
     service."""
 
-    # This defines the types of resources within Keystone.
+    # This defines the resource types within Keystone.
     #
     # "nodes": A list of nodes. Each entry should be a type.
     #
     # "edges": A list of 3-tuples. Each (f, t, d) tuple is:
-    #   - f is the "from" node
-    #   - t is the "to" node
-    #   - d is the attribute dictionary.
+    #   - f: The "from" node
+    #   - t: The "to" node
+    #   - d: The attribute dictionary.
     RESOURCE_TYPES = {
         "nodes": [User, Domain, Group, Token, Credential, Role, Region,
                   Endpoint, Service, Project],
@@ -152,8 +152,7 @@ class KeystoneResourceTypes(object):
     def __init__(self):
         """Initialize the object.
 
-        self.graph = a graph of the types of resources within a Keystone
-        service.
+        :return: self.graph: A graph of the resource types within Keystone
 
         """
         import networkx
