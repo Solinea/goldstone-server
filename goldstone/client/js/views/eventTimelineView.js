@@ -341,6 +341,11 @@ var EventTimelineView = GoldstoneBaseView.extend({
          */
 
         var rectangle = ns.graph.selectAll("rect")
+
+            // bind data to d3 nodes and create uniqueness based on
+            // the @timestamp param. This could possibly create some
+            // issues due to duplication of a supposedly unique
+            // param, but has not yet been a problem in practice.
             .data(ns.dataset, function(d) {
                 return d['@timestamp'];
             });

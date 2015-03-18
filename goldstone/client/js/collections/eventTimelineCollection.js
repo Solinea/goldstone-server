@@ -17,6 +17,8 @@
 // define collection and link to model
 
 var EventTimelineModel = GoldstoneBaseModel.extend({
+    // sort by @timestamp. Used to be id, but that has been
+    // removed as of v3 api.
     idAttribute: '@timestamp'
 });
 
@@ -28,6 +30,8 @@ var EventTimelineCollection = Backbone.Collection.extend({
         // in the case that there are additional paged server responses
         if (data.next && data.next !== null) {
             var dN = data.next;
+
+            // if url params change, be sure to update this:
             nextUrl = dN.slice(dN.indexOf('/logging'));
 
             // fetch and add to collection without deleting existing data
