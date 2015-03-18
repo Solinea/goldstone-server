@@ -107,7 +107,8 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         }
 
         if (ns.featureSet === 'logEvents') {
-            ns.color = d3.scale.ordinal().domain(["debug", "audit", "info", "warning", "error"]).range(ns.colorArray.distinct[5]);
+
+            ns.color = d3.scale.ordinal().domain(["critical", "audit", "info", "warning", "error"]).range(ns.colorArray.distinct[5]);
         } else {
             ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
         }
@@ -205,8 +206,9 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         ns.data = allthelogs;
 
         if (ns.featureSet === 'logEvents') {
+            ns.data = allthelogs.finalData;
             ns.loglevel = d3.scale.ordinal()
-                .domain(["debug", "audit", "info", "warning", "error"])
+                .domain(["critical", "audit", "info", "warning", "error"])
                 .range(ns.colorArray.distinct[5]);
         }
 

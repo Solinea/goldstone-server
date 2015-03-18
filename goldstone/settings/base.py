@@ -140,9 +140,8 @@ STATICFILES_FINDERS = (
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),
                     os.path.join(BASE_DIR, 'client'),)
 
-STATICFILES_ROOT = '/usr/share/nginx/html/static'
-
 # this is sort of a hack until we get our server strategy figured out.
+# STATICFILES_ROOT = '/usr/share/nginx/html/static'
 STATIC_URL = '/static/'
 
 MAILHOST = 'localhost'

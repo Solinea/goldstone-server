@@ -17,7 +17,7 @@ import sys
 
 from contextlib import contextmanager
 from fabric.api import task, local, warn, prompt
-from fabric.colors import red, green
+from fabric.colors import green
 from fabric.utils import fastprint
 
 # Add the current directory to the module search path.
@@ -379,6 +379,17 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
                              password=cloud_password,
                              auth_url=cloud_auth_url)
 
+def _migrate_static(settings=None):
+    """migrate static files if STATIC_ROOT is set in the settings file"""
+
+    with _django_env(settings):
+        from django.conf import settings
+
+        if settings.STATIC_ROOT is not None:
+            print "collecting the static files under the web server ..."
+            print
+            _django_manage("collectstatic", proj_settings=settings)
+
 
 @task
 def goldstone_init(verbose=False):
@@ -394,6 +405,7 @@ def goldstone_init(verbose=False):
 
     syncmigrate(settings=settings)
     tenant_init(settings=settings)
+    _migrate_static(settings=settings)
     load()
 
 
