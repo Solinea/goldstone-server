@@ -191,6 +191,16 @@ CELERYBEAT_SCHEDULE = {
         'schedule': DAILY_INDEX_CURATION_SCHEDULE,
         'args': ('logstash-', ES_LOGSTASH_RETENTION)
     },
+    'delete_goldstone_reports_indices': {
+        'task': 'goldstone.apps.core.tasks.delete_indices',
+        'schedule': DAILY_INDEX_CURATION_SCHEDULE,
+        'args': ('goldstone_reports-', ES_LOGSTASH_RETENTION)
+    },
+    'delete_goldstone_metrics_indices': {
+        'task': 'goldstone.apps.core.tasks.delete_indices',
+        'schedule': DAILY_INDEX_CURATION_SCHEDULE,
+        'args': ('goldstone_metrics-', ES_LOGSTASH_RETENTION)
+    },
     'create_daily_index': {
         'task': 'goldstone.apps.core.tasks.create_daily_index',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE
