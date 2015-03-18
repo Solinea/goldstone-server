@@ -78,7 +78,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var interval = Math.max(1, Math.floor((seconds / (ns.width / 10))));
 
         this.collection.url = ns.urlRoot + 'per_host=False&@timestamp__range={' +
-            '"gte":' + ns.start + ',"lte":' + ns.end + '}&interval=' + Math.max(1, Math.floor(interval / 60)) + 'm';
+            '"gte":' + ns.start + ',"lte":' + ns.end + '}&interval=' + interval + 's';
     },
 
     startEndToGlobalLookback: function() {
