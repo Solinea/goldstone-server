@@ -116,6 +116,7 @@ CONTAINS = settings.RT_EDGE.CONTAINS
 ASSIGNED_TO = settings.RT_EDGE.ASSIGNED_TO
 APPLIES_TO = settings.RT_EDGE.APPLIES_TO
 
+
 class KeystoneResourceTypes(object):
     """A class of the directed graph of resources used within a Keystone
     service."""
@@ -146,7 +147,7 @@ class KeystoneResourceTypes(object):
          (Role, Project, {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}),
          (Region, Endpoint, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
          (Endpoint, Service, {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}),
-     ]}
+         ]}
 
     def __init__(self):
         """Initialize the object.
