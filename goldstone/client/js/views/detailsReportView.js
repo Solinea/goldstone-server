@@ -35,6 +35,7 @@ var DetailsReportView = GoldstoneBaseView.extend({
         // node data was stored in localStorage before the
         // redirect from the discover page
         var data = JSON.parse(localStorage.getItem('detailsTabData'));
+        localStorage.removeItem('detailsTabData');
 
         // TODO: after utilizing the stored data, clear it
         // from localStorage
@@ -42,7 +43,7 @@ var DetailsReportView = GoldstoneBaseView.extend({
         if(data){
             this.drawSingleRsrcInfoTable(data);
         } else {
-            $('#details-single-rsrc-table').text('empty');
+            $('#details-single-rsrc-table').text('No additional details available');
         }
     },
 
@@ -76,7 +77,7 @@ var DetailsReportView = GoldstoneBaseView.extend({
                     "title": "Value"
                 }]
             };
-            oTable = $(location).dataTable(oTableParams);
+            oTable = $(location).DataTable(oTableParams);
         }
     },
 
