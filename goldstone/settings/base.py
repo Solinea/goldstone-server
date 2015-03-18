@@ -376,17 +376,16 @@ RT_EDGE = RTEdge()
 
 
 class RTAttribute(ConstantDict):
-    """The attribute names (keys in the attribute dict) used in Resource Type
-    nodes or edges.
+    """The names of attributes on Resource Type nodes or edges.
 
     Today, there appears to be no need to partition these into "node
-    attributes" and "edge attributes" classes.
+    attributes" and "edge attributes."
 
     """
 
     # Enumerations (should be the only UPPER_CASE members of ConstantDict).
-    MIN = "min"     # The minimum number of this edge a node may have
-    MAX = "max"     # The maximum number of this edge a node may have
-    TYPE = "type"   # The type of edge or node
+    MIN = "min"     # A node may have this minimum number of this edge.
+    MAX = "max"     # A node may have this maximum number of this edge.
+    TYPE = "type"   # The type of this edge or node.
 
 RT_ATTRIBUTE = RTAttribute()
