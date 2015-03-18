@@ -77,7 +77,7 @@ var LogSearchView = GoldstoneBasePageView.extend({
             el: '.log-analysis-container',
             featureSet: 'logEvents',
             chartTitle: 'Log Analysis',
-            urlRoot: "/intelligence/log/cockpit/data?",
+            urlRoot: "/logging/summarize?",
 
         });
     },
