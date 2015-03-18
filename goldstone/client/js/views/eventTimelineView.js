@@ -228,11 +228,11 @@ var EventTimelineView = GoldstoneBaseView.extend({
         var allthelogs = (this.collection.toJSON());
 
         var xEnd = moment(d3.min(_.map(allthelogs, function(evt) {
-            return evt.created;
+            return evt['@timestamp'];
         })));
 
         var xStart = moment(d3.max(_.map(allthelogs, function(evt) {
-            return evt.created;
+            return evt['@timestamp'];
         })));
 
         ns.xScale = ns.xScale.domain([xEnd._d, xStart._d]);
@@ -249,7 +249,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
          */
         ns.dataset = allthelogs
             .map(function(d) {
-                d.created = moment(d.created)._d;
+                d['@timestamp'] = moment(d['@timestamp'])._d;
                 return d;
             });
 
@@ -340,7 +340,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
 
         var rectangle = ns.graph.selectAll("rect")
             .data(ns.dataset, function(d) {
-                return d.id;
+                return d['@timestamp'];
             });
 
         // enters at wider width and transitions to lesser width for a
@@ -384,7 +384,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
             .transition()
             .attr("width", 2)
             .attr("x", function(d) {
-                return ns.xScale(d.created);
+                return ns.xScale(d['@timestamp']);
             });
 
         rectangle.exit().remove();
@@ -399,7 +399,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
         ns.graph.selectAll("rect")
             .transition().duration(500)
             .attr("x", function(d) {
-                return ns.xScale(d.created);
+                return ns.xScale(d['@timestamp']);
             })
             .style("opacity", function(d) {
                 return self.opacityByFilter(d);
