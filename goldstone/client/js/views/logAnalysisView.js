@@ -464,17 +464,22 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        var oTable,
-            startTs = Math.floor(start / 1000),
-            endTs = Math.floor(end / 1000),
-            uri = '/intelligence/log/search/data'.concat(
-                "?start_time=", startTs,
-                "&end_time=", endTs);
+        var oTable;
+
+        var uri = '/logging/search?@timestamp__range={"gte":' +
+            start +
+            ',"lte":' +
+            end +
+            '}&loglevel__terms=[';
 
         levels = ns.filter || {};
         for (var k in levels) {
-            uri = uri.concat("&", k, "=", levels[k]);
+            if (levels[k]) {
+                uri = uri.concat('"', k.toUpperCase(), '",');
+            }
         }
+        uri += "]";
+        console.log('basic uri', uri);
 
         if ($.fn.dataTable.isDataTable("#log-search-table")) {
             oTable = $("#log-search-table").DataTable();
@@ -485,24 +490,26 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
     drawSearchTable: function(location, start, end) {
         var self = this;
+        var ns = this.defaults;
 
         $("#log-table-loading-indicator").show();
 
-        end = typeof end !== 'undefined' ?
-            new Date(Number(end)) :
-            new Date();
+        var oTable;
 
-        if (typeof start !== 'undefined') {
-            start = new Date(Number(start));
-        } else {
-            start = new Date(Number(start));
-            start.addWeeks(-1);
+        var uri = '/logging/search?@timestamp__range={"gte":' +
+            start +
+            ',"lte":' +
+            end +
+            '}&loglevel__terms=[';
+
+        levels = ns.filter || {};
+        for (var k in levels) {
+            if (levels[k]) {
+                uri = uri.concat('"', k.toUpperCase(), '",');
+            }
         }
-
-        var oTable,
-            uri = '/intelligence/log/search/data'.concat(
-                "?start_time=", String(Math.round(start.getTime() / 1000)),
-                "&end_time=", String(Math.round(end.getTime() / 1000)));
+        uri += "]";
+        console.log('first basic uri', uri);
 
         if ($.fn.dataTable.isDataTable(location)) {
             oTable = $(location).DataTable();
@@ -520,16 +527,20 @@ var LogAnalysisView = UtilizationCpuView.extend({
                 "ordering": true,
                 "serverSide": true,
                 "ajax": {
+                    dataSrc: "results",
+                    beforeSend: function(obj, settings) {
+                        console.log('in beforeSend obj, settings', obj, settings);
+
+                        settings.url = settings.url.slice(0, settings.url.indexOf(',]'));
+                        settings.url += "]";
+                    },
                     url: uri,
                     error: function(data) {
                         self.searchDataErrorMessage(null, data, '.search-popup-message');
                     }
                 },
                 "columnDefs": [{
-                    "visible": false,
-                    "targets": [5, 6, 7, 8, 9, 10]
-                }, {
-                    "name": "timestamp",
+                    "data": "@timestamp",
                     "type": "date",
                     "targets": 0,
                     "render": function(data, type, full, meta) {
@@ -537,36 +548,17 @@ var LogAnalysisView = UtilizationCpuView.extend({
                         return moment(data).format();
                     }
                 }, {
-                    "name": "syslog_severity",
+                    "data": "syslog_severity",
                     "targets": 1
                 }, {
-                    "name": "component",
+                    "data": "component",
                     "targets": 2
                 }, {
-                    "name": "host",
+                    "data": "host",
                     "targets": 3
                 }, {
-                    "name": "message",
+                    "data": "log_message",
                     "targets": 4
-                }, {
-                    "name": "location",
-                    "targets": 5
-                }, {
-                    "name": "pid",
-                    "targets": 6
-                }, {
-                    "name": "source",
-                    "targets": 7
-                }, {
-                    "name": "request_id",
-                    "targets": 8
-                }, {
-                    "name": "type",
-                    "targets": 9
-                }, {
-                    "name": "received",
-                    "type": "date",
-                    "targets": 10
                 }]
             };
             oTable = $(location).DataTable(oTableParams);
