@@ -111,6 +111,23 @@ class NovaServer(PolyResource):
 
 
 #
-# These nodes are for the Resource Type graph.
+# These are the types of edges between Resource Type nodes.
+#
+# These could be created dynamically from a list of strings, but this is
+# simpler and allows us to easily customize an edge, if it becomes necessary.
 #
 
+class RTEdge(PolyResource):
+    """The base class for all Resource Type edges.
+
+    This allows us to recognize an object as some kind of edge, filter all
+    edges in the graph, etc.
+
+    """
+
+    pass
+
+class RTEdgeContains(RTEdge):
+RT_EDGE_TYPES = ["Contains", "AppliesTo", "AssignedTo", "Manages"]
+for entry in RT_EDGE_TYPES:
+    entry = type(entry, (), {})

@@ -212,7 +212,7 @@ def _django_settings_module(verbose):
 def syncmigrate(settings=None, verbose=False):
     """Do a /manage.py syncdb and migrate.
 
-    This is the last installation step before execution a load command.
+    This is the last installation step before executing a load command.
 
     :keyword settings: A settings file to use. If not specified, we will ask
                        user to select one
