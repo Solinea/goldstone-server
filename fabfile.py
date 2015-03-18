@@ -235,7 +235,7 @@ def syncmigrate(settings=None, verbose=False):
     # DRF and Django signals. See
     # https://github.com/tomchristie/django-rest-framework/issues/987.
     print
-    print green("Good! *Now* you can and chould create a superuser here.")
+    print green("Good! Now you can and should create a superuser here.")
     _django_manage("createsuperuser --username=admin", proj_settings=settings)
 
 
