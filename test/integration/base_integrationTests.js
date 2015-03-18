@@ -28,7 +28,7 @@ describe('base.js spec', function() {
             expect($('.test-container').text()).to.include('bye');
             message = 'asdflkjasdflkjsadflkjdsaflkjdsaflkjdsaflkjdsflkjdsflkjdsaflkjdsaflkjdsaflkjdsaflkjsdlakfjfdsasdflkjasdflkjsadflkjdsaflkjdsaflkjdsaflkjdsflkjdsflkjdsaflkjdsaflkjdsaflkjdsaflkjsdlakfjfdslkjdsaflkjdsaflkdjfslklkdsajfldksajflsdakjflkdsafj';
             goldstone.raiseAlert('.test-container', message);
-            expect($('.test-container').text().length).to.equal(204);
+            expect($('.test-container').text().length).to.equal(203);
         });
         it('properly cascades alerts', function() {
             this.raiseError_spy = sinon.spy(goldstone, "raiseError");

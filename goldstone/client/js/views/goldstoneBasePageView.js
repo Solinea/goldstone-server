@@ -28,7 +28,7 @@ selectors can be customized on the page's correspoinding django HTML template,
 by modifying the parameters of the globalLookbackRefreshButtonsView
 */
 
-var GoldstoneBasePageView = Backbone.View.extend({
+var GoldstoneBasePageView = GoldstoneBaseView.extend({
 
     defaults: {},
 
