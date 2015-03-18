@@ -12,8 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from django.conf import settings
 from goldstone.apps.core.models import PolyResource
 from goldstone.models import TopologyData
+import sys
 
 
 class EndpointsData(TopologyData):
@@ -105,3 +107,41 @@ class Project(PolyResource):
     """An OpenStack project."""
 
     pass
+
+# Aliases to make the Resource Graph definitions, below, less verbose.
+TYPE = settings.RT_ATTRIBUTE.TYPE
+MIN = settings.RT_ATTRIBUTE.MIN
+MAX = settings.RT_ATTRIBUTE.MAX
+CONTAINS = settings.RT_EDGE.CONTAINS
+ASSIGNED_TO = settings.RT_EDGE.ASSIGNED_TO
+APPLIES_TO = settings.RT_EDGE.APPLIES_TO
+
+# Keystone Resource Type definition.
+#
+# This defines the types of resources within a Keystone service.
+#
+# The "nodes" value is a list of nodes. Each entry should be a type.l
+#
+# The "edges" value is a list of 3-tuples. Each (f, t, d) tuple is:
+#   - f is the "from" node
+#   - t is the "to" node
+#   - d is the attribute dictionary.
+KEYSTONE_RESOURCE_TYPES = {
+    "nodes": [User, Domain, Group, Token, Credential, Role, Region, Endpoint,
+              Service, Project],
+    "edges":
+    [(Domain, User, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
+     (Domain, Group, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
+     (Domain, Project, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
+     (User, Group, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
+     (User, Project, {TYPE: ASSIGNED_TO, MIN: 0, MAX: 1}),
+     (User, Credential, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
+     (Token, User, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
+     (Credential, Project, {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}),
+     (Role, User, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
+     (Role, Group, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
+     (Role, Domain, {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}),
+     (Role, Project, {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}),
+     (Region, Endpoint, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
+     (Endpoint, Service, {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}),
+     ]}

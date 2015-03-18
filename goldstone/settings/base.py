@@ -306,3 +306,87 @@ DEFAULT_CHART_BUCKETS = 7*24
 ES_HOST = "127.0.0.1"
 ES_PORT = "9200"
 ES_SERVER = {'hosts': [ES_HOST + ":" + ES_PORT]}
+
+
+class ConstantDict(object):
+    """An enumeration class with 'real' members and testing methods.
+
+    Reflects on class and creates dictionary of all upper-case class
+    members.
+
+    To use, simply subclass and add "constant-case" class members like:
+
+        class MyEnum(ConstantDict):
+            '''My enumeration.'''
+            FOO = 'the foo member'
+            BAR = 'the bar member'
+
+    Then you can do thinks like::
+
+        print('FOO' in MyEnum.dict())  # True
+        print('FOO' in MyEnum.keys())  # True
+        print(MyEnum.FOO in MyEnum.values())  # True
+        print('the foo member' in MyEnum.values())  # True
+        print('no match' in MyEnum.values())  # False
+
+    """
+
+    __dict = None
+    __keys = None
+    __values = None
+
+    @classmethod
+    def dict(cls):
+        """Dictionary of all upper-case constants."""
+
+        if cls.__dict is None:
+            val = lambda x: getattr(cls, x)
+            # Create the dictionary in a Python 2.6-compatible way.
+            cls.__dict = dict(((c, val(c)) for c in dir(cls)
+                               if c == c.upper()))
+        return cls.__dict
+
+    @classmethod
+    def keys(cls):
+        """Class constant key set."""
+
+        if cls.__keys is None:
+            cls.__keys = set(cls.dict().keys())
+        return cls.__keys
+
+    @classmethod
+    def values(cls):
+        """Class constant value set."""
+
+        if cls.__values is None:
+            cls.__values = set(cls.dict().values())
+        return cls.__values
+
+
+class RTEdge(ConstantDict):
+    """The types of edges in the Resource Type graph."""
+
+    # Enumerations (should be the only UPPER_CASE members of ConstantDict).
+    CONTAINS = "contains"        # A <<contains>> edge
+    APPLIES_TO = "appliesto"     # An <<applies to>> edge
+    ASSIGNED_TO = "assignedto"   # An <<assigned to>> edge
+    MANAGES = "manages"          # A <<manages>> edge
+
+RT_EDGE = RTEdge()
+
+
+class RTAttribute(ConstantDict):
+    """The attribute names (keys in the attribute dict) used in Resource Type
+    nodes or edges.
+
+    Today, there appears to be no need to partition these into "node
+    attributes" and "edge attributes" classes.
+
+    """
+
+    # Enumerations (should be the only UPPER_CASE members of ConstantDict).
+    MIN = "min"     # The minimum number of this edge a node may have
+    MAX = "max"     # The maximum number of this edge a node may have
+    TYPE = "type"   # The type of edge or node
+
+RT_ATTRIBUTE = RTAttribute()
