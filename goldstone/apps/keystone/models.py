@@ -123,13 +123,13 @@ class KeystoneResourceTypes(object):
 
     # This defines the resource types within Keystone.
     #
-    # "nodes": A list of nodes. Each entry should be a type.
+    # "nodes": A list of nodes. Each entry is a type.
     #
     # "edges": A list of 3-tuples. Each (f, t, d) tuple is:
     #   - f: The "from" node
     #   - t: The "to" node
     #   - d: The attribute dictionary.
-    RESOURCE_TYPES = {
+    RESOURCES = {
         "nodes": [User, Domain, Group, Token, Credential, Role, Region,
                   Endpoint, Service, Project],
         "edges":
@@ -160,9 +160,9 @@ class KeystoneResourceTypes(object):
         self.graph = networkx.DiGraph()
 
         # Add the nodes
-        for entry in self.RESOURCE_TYPES["nodes"]:
+        for entry in self.RESOURCES["nodes"]:
             self.graph.add_node(entry)
 
         # Add the edges.
-        for source, dest, attribute in self.RESOURCE_TYPES["edges"]:
+        for source, dest, attribute in self.RESOURCES["edges"]:
             self.graph.add_edge(source, dest, attribute)
