@@ -77,7 +77,8 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var seconds = (ns.end - ns.start) / 1000;
         var interval = Math.max(1, Math.floor((seconds / (ns.width / 10))));
 
-        this.collection.url = ns.urlRoot + 'start_time=' + Math.floor(ns.start / 1000) + '&end_time=' + Math.floor(ns.end / 1000) + '&interval=' + interval + 's';
+        this.collection.url = ns.urlRoot + 'per_host=False&@timestamp__range={' +
+            '"gte":' + ns.start + ',"lte":' + ns.end + '}&interval=' + Math.max(1, Math.floor(interval / 60)) + 'm';
     },
 
     startEndToGlobalLookback: function() {
@@ -221,20 +222,29 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        var data = this.collection.toJSON();
+        var data = this.collection.toJSON()[0].data;
 
         finalData = [];
 
         _.each(data, function(item) {
 
-            finalData.push({
-                debug: item.debug || 0,
-                audit: item.audit || 0,
-                info: item.info || 0,
-                warning: item.warning || 0,
-                error: item.error || 0,
-                date: item.time,
+            var tempObject = {};
+
+            _.each(item, function(subItem) {
+                _.each(subItem, function(subSubItem) {
+                    var key = _.keys(subSubItem)[0];
+                    var value = _.values(subSubItem)[0];
+                    tempObject[key] = value;
+                });
             });
+
+            tempObject.debug = tempObject.debug || 0;
+            tempObject.audit = tempObject.audit || 0;
+            tempObject.info = tempObject.info || 0;
+            tempObject.warning = tempObject.warning || 0;
+            tempObject.error = tempObject.error || 0;
+            tempObject.date = _.keys(item)[0];
+            finalData.push(tempObject);
 
         });
 
