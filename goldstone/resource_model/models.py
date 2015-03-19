@@ -26,16 +26,20 @@ MAX = settings.RT_ATTRIBUTE.MAX
 MIN = settings.RT_ATTRIBUTE.MIN
 TYPE = settings.RT_ATTRIBUTE.TYPE
 
+ALLOCATED_TO = settings.RT_EDGE.ALLOCATED_TO
 APPLIES_TO = settings.RT_EDGE.APPLIES_TO
 ASSIGNED_TO = settings.RT_EDGE.ASSIGNED_TO
 ATTACHED_TO = settings.RT_EDGE.ATTACHED_TO
+CONSUMES = settings.RT_EDGE.CONSUMES
 CONTAINS = settings.RT_EDGE.CONTAINS
 DEFINES = settings.RT_EDGE.DEFINES
 INSTANCE_OF = settings.RT_EDGE.INSTANCE_OF
 MANAGES = settings.RT_EDGE.MANAGES
 MEMBER_OF = settings.RT_EDGE.MEMBER_OF
 OWNS = settings.RT_EDGE.OWNS
+ROUTES_TO = settings.RT_EDGE.ROUTES_TO
 SUBSCRIBED_TO = settings.RT_EDGE.SUBSCRIBED_TO
+USES = settings.RT_EDGE.USES
 
 
 class PolyResource(PolymorphicModel):
@@ -144,7 +148,7 @@ class DirectedGraph(object):
 
 class Agent(PolyResource):
 
-    port = IntegerField( editable=True, blank=True, default=5514)
+    port = IntegerField(editable=True, blank=True, default=5514)
 
 
 class KeystoneDomain(PolyResource):
@@ -378,6 +382,112 @@ class Image(PolyResource):
     pass
 
 
+#
+# These classes represent entities within a Neutron service.
+#
+
+class MeteringLableRule(PolyResource):
+    """An OpenStack Metering Lable Rule."""
+
+    pass
+
+
+class MeteringLabel(PolyResource):
+    """An OpenStack Metering Label."""
+
+    pass
+
+
+class NeutronQuota(PolyResource):
+    """An OpenStack Neutron Quota."""
+
+    pass
+
+
+class RemoteGroup(PolyResource):
+    """An OpenStack Remote Group."""
+
+    pass
+
+
+class SecurityRules(PolyResource):
+    """An OpenStack Security Rules."""
+
+    pass
+
+
+class SecurityGroup(PolyResource):
+    """An OpenStack Security Group."""
+
+    pass
+
+
+class Port(PolyResource):
+    """An OpenStack Port."""
+
+    pass
+
+
+class LBVIP(PolyResource):
+    """An OpenStack load balancer VIP address."""
+
+    pass
+
+
+class LBPool(PolyResource):
+    """An OpenStack load balancer pool."""
+
+    pass
+
+
+class HealthMonitor(PolyResource):
+    """An OpenStack Health Monitor."""
+
+    pass
+
+
+class FloatingIP(PolyResource):
+    """An OpenStack Floating IP address."""
+
+    pass
+
+
+class FloatingIPPool(PolyResource):
+    """An OpenStack Floating IP address pool."""
+
+    pass
+
+
+class FixedIP(PolyResource):
+    """An OpenStack Fixed IP address."""
+
+    pass
+
+
+class LBMember(PolyResource):
+    """An OpenStack load balancer member."""
+
+    pass
+
+
+class Subnet(PolyResource):
+    """An OpenStack subnet."""
+
+    pass
+
+
+class Network(PolyResource):
+    """An OpenStack network."""
+
+    pass
+
+
+class Router(PolyResource):
+    """An OpenStack router."""
+
+    pass
+
+
 class ResourceTypes(DirectedGraph):
     """A directed graph of the resource types used within an OpenStack
     cloud."""
@@ -406,6 +516,16 @@ class ResourceTypes(DirectedGraph):
                                  MAX: sys.maxint}),
         (Project, RootCert, {TYPE: OWNS, MIN: 0, MAX: 1}),
         (Project, Server, {TYPE: OWNS, MIN: 1, MAX: sys.maxint}),
+        (Project, MeteringLabel, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
+        (Project, NeutronQuota, {TYPE: SUBSCRIBED_TO, MIN: 1, MAX: 1}),
+        (Project, Network, {TYPE: USES, MIN: 0, MAX: sys.maxint}),
+        (Project, Network, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
+        (Project, Subnet, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
+        (Project, LBMember, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
+        (Project, HealthMonitor, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
+        (Project, LBVIP, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
+        (Project, Port, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
+        (Project, SecurityRules, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
         (Region, AvailabilityZone, {TYPE: OWNS, MIN: 1, MAX: sys.maxint}),
         (Region, Endpoint, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
         (Role, Domain, {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}),
@@ -426,6 +546,7 @@ class ResourceTypes(DirectedGraph):
         (Host, Aggregate, {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}),
         (Host, Hypervisor, {TYPE: OWNS, MIN: 0, MAX: 1}),
         (Hypervisor, Server, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
+        (Interface, Port, {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}),
         (Keypair, Server, {TYPE: ATTACHED_TO, MIN: 0, MAX: sys.maxint}),
         (NovaQuotaClass, NovaQuotaSet, {TYPE: DEFINES,
                                         MIN: 0,
@@ -435,6 +556,25 @@ class ResourceTypes(DirectedGraph):
         (Server, ServerMetadata, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
         # From Glance nodes
         (Image, Server, {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}),
+        # From Neutron nodes
+        (FloatingIPPool, FixedIP, {TYPE: ROUTES_TO, MIN: 0, MAX: sys.maxint}),
+        (FloatingIPPool, FloatingIP, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
+        (HealthMonitor, LBPool, {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}),
+        (LBMember, LBPool, {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}),
+        (LBMember, Subnet, {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}),
+        (LBVIP, LBPool, {TYPE: MEMBER_OF, MIN: 0, MAX: 1}),
+        (LBVIP, Port, {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}),
+        (LBVIP, Subnet, {TYPE: ALLOCATED_TO, MIN: 0, MAX: 1}),
+        (MeteringLableRule, MeteringLabel, {TYPE: APPLIES_TO, MIN: 1, MAX: 1}),
+        (Port, FixedIP, {TYPE: CONSUMES, MIN: 0, MAX: sys.maxint}),
+        (Port, FloatingIP, {TYPE: CONSUMES, MIN: 0, MAX: sys.maxint}),
+        (Port, SecurityGroup, {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}),
+        (Router, Network, {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}),
+        (Router, Port, {TYPE: ATTACHED_TO, MIN: 0, MAX: sys.maxint}),
+        (SecurityRules, RemoteGroup, {TYPE: APPLIES_TO, MIN: 0, MAX: 1}),
+        (SecurityRules, SecurityGroup, {TYPE: MEMBER_OF, MIN: 1, MAX: 1}),
+        (Subnet, FixedIP, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
+        (Subnet, Network, {TYPE: MEMBER_OF, MIN: 1, MAX: 1}),
         ]
 
     def __init__(self):
