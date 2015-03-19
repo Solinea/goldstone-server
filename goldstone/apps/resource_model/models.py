@@ -12,11 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.db import models
-from django.utils.encoding import force_str
-from mptt.models import MPTTModel, TreeForeignKey
+from django.conf import settings
 from polymorphic import PolymorphicModel
-from django.db.models import CharField, IntegerField, Model, TextField
+from django.db.models import CharField, IntegerField
 from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
     ModificationDateTimeField
 from goldstone.utils import utc_now
@@ -30,15 +28,20 @@ TYPE = settings.RT_ATTRIBUTE.TYPE
 
 APPLIES_TO = settings.RT_EDGE.APPLIES_TO
 ASSIGNED_TO = settings.RT_EDGE.ASSIGNED_TO
+ATTACHED_TO = settings.RT_EDGE.ATTACHED_TO
 CONTAINS = settings.RT_EDGE.CONTAINS
+DEFINES = settings.RT_EDGE.DEFINES
+INSTANCE_OF = settings.RT_EDGE.INSTANCE_OF
+MANAGES = settings.RT_EDGE.MANAGES
 MEMBER_OF = settings.RT_EDGE.MEMBER_OF
 OWNS = settings.RT_EDGE.OWNS
+SUBSCRIBED_TO = settings.RT_EDGE.SUBSCRIBED_TO
 
 
 class PolyResource(PolymorphicModel):
     """The base type for resources in Goldstone."""
 
-    id = UUIDField(version=1, auto=True, primary_key=True)
+    uuid = UUIDField(version=1, auto=True, primary_key=True)
     name = CharField(max_length=64, unique=True)
     created = CreationDateTimeField(editable=False,
                                     blank=True,
@@ -96,17 +99,6 @@ class Agent(PolyResource):
         editable=True,
         blank=True,
         default=5514)
-
-
-class Hypervisor(PolyResource):
-    vcpus = IntegerField(
-        editable=True,
-        blank=True,
-        default=8)
-    mem = IntegerField(
-        editable=True,
-        blank=True,
-        default=8192)
 
 
 class KeystoneDomain(PolyResource):
@@ -215,6 +207,12 @@ class Service(PolyResource):
     pass
 
 
+class AdminProject(PolyResource):
+    """An OpenStack Admin project."""
+
+    pass
+
+
 class Project(PolyResource):
     """An OpenStack project."""
 
@@ -272,7 +270,8 @@ class Host(PolyResource):
 class Hypervisor(PolyResource):
     """An OpenStack Hypervisor."""
 
-    pass
+    virt_cpus = IntegerField(editable=True, blank=True, default=8)
+    memory = IntegerField(editable=True, blank=True, default=8192)
 
 
 class Cloudpipe(PolyResource):
@@ -301,6 +300,24 @@ class ServerMetadata(PolyResource):
 
 class Interface(PolyResource):
     """An OpenStack Interface."""
+
+    pass
+
+
+class NovaQuotaClass(PolyResource):
+    """An OpenStack Quota Class within a Nova service."""
+
+    pass
+
+
+class NovaQuotaSet(PolyResource):
+    """An OpenStack Quota Set within a Nova service."""
+
+    pass
+
+
+class NovaLimits(PolyResource):
+    """An OpenStack Limits within a Nova service."""
 
     pass
 
