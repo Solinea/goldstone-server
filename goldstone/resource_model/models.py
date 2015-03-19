@@ -1,4 +1,4 @@
-"""Models for implementing directed resource graphs in Goldstone."""
+"""Models for implementing Goldstone resource graphs."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -60,7 +60,7 @@ class PolyResource(PolymorphicModel):
         return JSONRenderer().render(PolyResourceSerializer(self).data)
 
 
-class DirectedGraph(object):
+class Graph(object):
     """The base class for Resource Type and Resource Instance graphs.
 
     This defines the navigational methods needed by the child classes. Some
@@ -75,7 +75,7 @@ class DirectedGraph(object):
 
         """
 
-        self.graph = networkx.DiGraph()
+        self.graph = networkx.MultiDiGraph()
 
     def out_edges(self, nbunch):
         """Return the outgoing edges from a node or nodes.
@@ -488,9 +488,8 @@ class Router(PolyResource):
     pass
 
 
-class ResourceTypes(DirectedGraph):
-    """A directed graph of the resource types used within an OpenStack
-    cloud."""
+class ResourceTypes(Graph):
+    """A graph of the resource types used within an OpenStack cloud."""
 
     # These are the edges in the graph. If an edge connects nodes not yet in
     # the graph, the nodes are automatically added.
@@ -589,7 +588,7 @@ class ResourceTypes(DirectedGraph):
 
         # Add the nodes and edges.
         for source, dest, attribute in self.EDGES:
-            self.graph.add_edge(source, dest, attribute)
+            self.graph.add_edge(source, dest, attr_dict=attribute)
 
     @property
     def edgetypes(self):
@@ -598,9 +597,8 @@ class ResourceTypes(DirectedGraph):
         return settings.RT_EDGE.keys()
 
 
-class ResourceInstances(DirectedGraph):
-    """A directed graph of the resources used within a specific OpenStack
-    cloud."""
+class ResourceInstances(Graph):
+    """A graph of the resources used within a specific OpenStack cloud."""
 
     def __init__(self):
         """Initialize the object."""
@@ -626,3 +624,11 @@ class ResourceInstances(DirectedGraph):
         """Return a list of the graph's edge types."""
 
         return settings.RI_EDGE.keys()
+
+
+
+# # For drawing experiments.
+# import sys, inspect
+# clsmembers = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+# # The python 2.6 way
+# result = dict([[v,k] for k,v in clsmembers])

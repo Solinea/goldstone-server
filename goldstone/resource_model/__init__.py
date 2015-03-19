@@ -1,4 +1,4 @@
-"""Goldstone Resource Type and Resource instance graph app."""
+"""Goldstone Resource Type and Resource Instance graphs."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
