@@ -618,7 +618,8 @@ class ResourceInstances(DirectedGraph):
 
         """
 
-        pass
+        return [x for x in self.graph.nodes(data=True)
+                if isinstance(x[0], nodetype)]
 
     @property
     def edgetypes(self):
