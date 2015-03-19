@@ -17,7 +17,9 @@
 // define collection and link to model
 
 var EventTimelineModel = GoldstoneBaseModel.extend({
-    idAttribute: 'id'
+    // sort by @timestamp. Used to be id, but that has been
+    // removed as of v3 api.
+    idAttribute: '@timestamp'
 });
 
 var EventTimelineCollection = Backbone.Collection.extend({
@@ -28,7 +30,9 @@ var EventTimelineCollection = Backbone.Collection.extend({
         // in the case that there are additional paged server responses
         if (data.next && data.next !== null) {
             var dN = data.next;
-            nextUrl = dN.slice(dN.indexOf('/core'));
+
+            // if url params change, be sure to update this:
+            nextUrl = dN.slice(dN.indexOf('/logging'));
 
             // fetch and add to collection without deleting existing data
             this.fetch({
@@ -47,10 +51,10 @@ var EventTimelineCollection = Backbone.Collection.extend({
 
         this.defaults = _.clone(this.defaults); 
 
-        this.url = options.url || "/core/events?created__gt=" + this.computeLookback() + "&page_size=1000";
+        this.url = options.url || '/logging/events?@timestamp__range={"gte":' + this.computeLookback() + '}&page_size=1000';
 
         // creates a url similar to:
-        // /core/events?created__gt=1423678864754&page_size=1000
+        // /logging/events?@timestamp__range={"gte":1426698303974}&page_size=1000"
 
         // don't add {remove:false} to the initial fetch
         // as it will introduce an artifact that will
@@ -93,6 +97,8 @@ var EventTimelineCollection = Backbone.Collection.extend({
 
     urlUpdate: function(val) {
         var lookback = +new Date() - (val * 60 * 1000);
-        this.url = "/core/events?created__gt=" + lookback + "&page_size=1000";
+        this.url = '/logging/events?@timestamp__range={"gte":' +
+            lookback + '}&page_size=1000';
+
     }
 });
