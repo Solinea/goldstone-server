@@ -19,11 +19,8 @@ import pandas as pd
 # TODO replace pyes
 from pyes import BoolQuery, RangeQuery, ESRangeOp, TermQuery
 from types import StringType
-from goldstone.apps.core.models import PolyResource
 
 from goldstone.models import ESData, TopologyData
-
-from django.db.models import CharField
 
 logger = logging.getLogger(__name__)
 
@@ -452,14 +449,3 @@ class ServersData(TopologyData):
 class ServicesData(TopologyData):
     _DOC_TYPE = 'nova_services_list'
     _INDEX_PREFIX = 'goldstone-'
-
-
-#
-# This is the beginning of the new polymorphic resource model support
-#
-class Host(PolyResource):
-    """A representation for a Openstack host"""
-
-    fqdn = CharField(max_length=255,
-                     unique=True,
-                     help_text="A fully-qualified domain name")

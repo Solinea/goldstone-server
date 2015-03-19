@@ -88,6 +88,7 @@ INSTALLED_APPS = (
     'goldstone.apps.glance',
     'goldstone.apps.api_perf',
     'goldstone.apps.logging',
+    'goldstone.apps.resource_model',
     'goldstone.tenants',
     'goldstone.user',
     'goldstone.apps.drfes'
@@ -371,6 +372,9 @@ class RTEdge(ConstantDict):
     APPLIES_TO = "appliesto"     # An <<applies to>> edge
     ASSIGNED_TO = "assignedto"   # An <<assigned to>> edge
     MANAGES = "manages"          # A <<manages>> edge
+    OWNS = "owns"                # An <<owns>> edge
+    MEMBER_OF = "memberof"       # A <<member of>> edge
+    ATTACHED_TO = "attachedto"   # An <<attached to>> edge
 
 RT_EDGE = RTEdge()
 
