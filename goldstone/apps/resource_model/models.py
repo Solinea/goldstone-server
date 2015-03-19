@@ -344,6 +344,8 @@ class ResourceTypes(DirectedGraph):
         AvailabilityZone, FlavorExtraSpec, RootCert, Aggregate, Flavor,
         Keypair, Host, Hypervisor, Cloudpipe, ServerGroup, Server,
         ServerMetadata, Interface,
+        # Glance
+        Image,
         ]
 
     # These are the edges in the graph. Each one is an (f, t, d) 3-tuple:
