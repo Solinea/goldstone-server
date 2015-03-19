@@ -368,16 +368,20 @@ class RTEdge(ConstantDict):
     """The types of edges in the Resource Type graph."""
 
     # Enumerations (should be the only UPPER_CASE members of ConstantDict).
+    ALLOCATED_TO = "allocatedto"      # An <<allocated to>> edge
     APPLIES_TO = "appliesto"          # An <<applies to>> edge
     ASSIGNED_TO = "assignedto"        # An <<assigned to>> edge
     ATTACHED_TO = "attachedto"        # An <<attached to>> edge
+    CONSUMES = "consumes"             # A <<consumes>> edge
     CONTAINS = "contains"             # A <<contains>> edge
     DEFINES = "defines"               # A <<defines>> edge
     INSTANCE_OF = "instanceof"        # An <<instance of>> edge
     MANAGES = "manages"               # A <<manages>> edge
     MEMBER_OF = "memberof"            # A <<member of>> edge
     OWNS = "owns"                     # An <<owns>> edge
+    ROUTES_TO = "routesto"            # A <<routes to>> edge
     SUBSCRIBED_TO = "subscribedto"    # A <<subscribed to>> edge
+    USES = "uses"                     # A <<uses>> edge
 
 RT_EDGE = RTEdge()
 
