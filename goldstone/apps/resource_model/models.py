@@ -335,20 +335,10 @@ class Image(PolyResource):
 class ResourceTypes(DirectedGraph):
     """A directed graph of the resources used within an OpenStack cloud."""
 
-    # These are the nodes in the graph. Each entry is a type.
-    NODES = [
-        # Keystone
-        User, Domain, Group, Token, Credential, Role, Region, Endpoint,
-        Service, Project,
-        # Nova
-        AvailabilityZone, FlavorExtraSpec, RootCert, Aggregate, Flavor,
-        Keypair, Host, Hypervisor, Cloudpipe, ServerGroup, Server,
-        ServerMetadata, Interface,
-        # Glance
-        Image,
-        ]
-
-    # These are the edges in the graph. Each one is an (f, t, d) 3-tuple:
+    # These are the edges in the graph. If an edge connects nodes not yet in
+    # the graph, the nodes are automatically added.
+    #
+    # Each one is an (f, t, d) 3-tuple:
     #   - f: The "from" node
     #   - t: The "to" node
     #   - d: The attribute dictionary.
@@ -410,10 +400,6 @@ class ResourceTypes(DirectedGraph):
 
         super(ResourceTypes, self).__init__()
 
-        # Add the nodes
-        for entry in self.NODES:
-            self.graph.add_node(entry)
-
-        # Add the edges.
+        # Add the nodes and edges.
         for source, dest, attribute in self.EDGES:
             self.graph.add_edge(source, dest, attribute)
