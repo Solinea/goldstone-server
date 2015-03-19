@@ -626,7 +626,6 @@ class ResourceInstances(Graph):
         return settings.RI_EDGE.keys()
 
 
-
 # # For drawing experiments.
 # import sys, inspect
 # clsmembers = inspect.getmembers(sys.modules[__name__], inspect.isclass)
