@@ -64,34 +64,34 @@ ALLOWED_HOSTS = ['*', ]
 # Application definition.
 
 INSTALLED_APPS = (
-    'django_admin_bootstrapped',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.sessions',
+    'django.contrib.contenttypes',
     'django.contrib.messages',
+    'django.contrib.sessions',
     'django.contrib.staticfiles',
+    'django_admin_bootstrapped',
     'django_extensions',
     'djoser',
     'polymorphic',
     'rest_framework',
     'rest_framework.authtoken',
     'south',
-    'django.contrib.contenttypes',
     'goldstone.accounts',
-    'goldstone.apps.core',
-    'goldstone.apps.intelligence',
-    'goldstone.apps.nova',
-    'goldstone.apps.keystone',
-    'goldstone.apps.cinder',
-    'goldstone.apps.neutron',
-    'goldstone.apps.glance',
     'goldstone.apps.api_perf',
+    'goldstone.apps.cinder',
+    'goldstone.apps.core',
+    'goldstone.apps.drfes',
+    'goldstone.apps.glance',
+    'goldstone.apps.intelligence',
+    'goldstone.apps.keystone',
     'goldstone.apps.logging',
-    'goldstone.apps.resource_model',
+    'goldstone.apps.neutron',
+    'goldstone.apps.nova',
+    'goldstone.resource_model',
     'goldstone.tenants',
     'goldstone.user',
-    'goldstone.apps.drfes'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -396,3 +396,30 @@ class RTAttribute(ConstantDict):
     TYPE = "type"   # The type of this edge or node.
 
 RT_ATTRIBUTE = RTAttribute()
+
+
+class RIEdge(ConstantDict):
+    """The types of edges in a Resource Instance graph.
+
+    TODO: Do we need this?
+
+    """
+
+    # Enumerations (should be the only UPPER_CASE members of ConstantDict).
+    TODO = "todo"
+
+RI_EDGE = RIEdge()
+
+
+class RIAttribute(ConstantDict):
+    """The names of attributes on Resource Instance nodes or edges.
+
+    TODO: Do we need this? Maybe, network bandwidth, disk size, memory size,
+    etc.?
+
+    """
+
+    # Enumerations (should be the only UPPER_CASE members of ConstantDict).
+    TODO = "todo"
+
+RI_ATTRIBUTE = RIAttribute()

@@ -60,34 +60,82 @@ class DirectedGraph(object):
     """The base class for Resource Type and Resource Instance graphs.
 
     This defines the navigational methods needed by the child classes. Some
-    of these may simply be convenience methods for calling underlying networkx
-    methods.
+    of these may simply be convenience methods for calling networkx methods.
 
     """
 
     def __init__(self):
         """Initialize the object.
 
-        We expect the child classes will load self.graph.
+        The child classes must call this before its initialization.
 
         """
 
         self.graph = networkx.DiGraph()
 
-    def out_edges(self):
-        pass
+    def out_edges(self, nbunch):
+        """Return the outgoing edges from a node or nodes.
 
-    def in_edges(self):
-        pass
+        :param nbunch: Graph node(s)
+        :type nbunch: A node in the graph, or list of nodes
+        :return: All the outgoing edges from the node(s)
+        :rtype: list of (from, to, attributes)
 
-    def neighbors(self):
-        pass
+        """
 
-    def predecessors(self):
-        pass
+        return self.graph.out_edges(nbunch, data=True)
 
-    def successors(self):
-        pass
+    def in_edges(self, nbunch):
+        """Return the incoming edges to a node or nodes.
+
+        :param nbunch: Graph node(s)
+        :type nbunch: A node in the graph, or list of nodes
+        :return: All the incoming edges to the node(s)
+        :rtype: list of (from, to, attributes)
+
+        """
+
+        return self.graph.in_edges(nbunch, data=True)
+
+    def successors(self, node):
+        """Return the adjacent sucessor nodes of a node.
+
+        :param node: A graph node
+        :return: All of the immediately adjacent successor nodes
+        :rtype: list of nodes
+
+        """
+
+        return self.graph.successors(node)
+
+    def predecessors(self, node):
+        """Return the adjacent predecessor nodes of a node.
+
+        :param node: A graph node
+        :return: All of the immediately adjacent predecessor nodes
+        :rtype: list of nodes
+
+        """
+
+        return self.graph.predecessors(node)
+
+    def edges(self, edgetype):
+        """Return all of the edges that are of type <edgetype>.
+
+        :param edgetype: A type of edge
+        :type edgetype: For Resource Type graphs, RT_EDGE. For Resource
+                        Instance graphs, ??????
+        :return: A list of edges, all of which will be of type <edgetype>.
+        :rtype: list of (from, to, attributes)
+
+        """
+
+        # We do the list comprehension this way so that the right thing happens
+        # if the attribute dict doesn't have a "type" key.
+
+        return \
+            [x for x in self.graph.edges(data=True)
+             if x[2].get(TYPE) == edgetype]
 
 
 #
@@ -95,10 +143,8 @@ class DirectedGraph(object):
 #
 
 class Agent(PolyResource):
-    port = IntegerField(
-        editable=True,
-        blank=True,
-        default=5514)
+
+    port = IntegerField( editable=True, blank=True, default=5514)
 
 
 class KeystoneDomain(PolyResource):
@@ -333,7 +379,8 @@ class Image(PolyResource):
 
 
 class ResourceTypes(DirectedGraph):
-    """A directed graph of the resources used within an OpenStack cloud."""
+    """A directed graph of the resource types used within an OpenStack
+    cloud."""
 
     # These are the edges in the graph. If an edge connects nodes not yet in
     # the graph, the nodes are automatically added.
@@ -403,3 +450,38 @@ class ResourceTypes(DirectedGraph):
         # Add the nodes and edges.
         for source, dest, attribute in self.EDGES:
             self.graph.add_edge(source, dest, attribute)
+
+    @property
+    def edgetypes(self):
+        """Return a list of the graph's edge types."""
+
+        return settings.RT_EDGE.keys()
+
+
+class ResourceInstances(DirectedGraph):
+    """A directed graph of the resources used within a specific OpenStack
+    cloud."""
+
+    def __init__(self):
+        """Initialize the object."""
+
+        super(ResourceInstances, self).__init__()
+
+    def instances(self, nodetype):
+        """Return all the instances that are of type <nodetype>.
+
+        :param nodetype: The Resource Type that is desired
+        :type nodetype: A node in ResourceTypes
+        :return: All the nodes in the Resource Instances graph that have a type
+                 type equal to <nodetype>
+        :rtype: list of ResourceInstances nodes
+
+        """
+
+        pass
+
+    @property
+    def edgetypes(self):
+        """Return a list of the graph's edge types."""
+
+        return settings.RI_EDGE.keys()
