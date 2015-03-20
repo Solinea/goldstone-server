@@ -89,7 +89,6 @@ INSTALLED_APPS = (
     'goldstone.apps.neutron',
     'goldstone.apps.nova',
     'goldstone.core',
-    'goldstone.resource_model',
     'goldstone.tenants',
     'goldstone.user',
 )
