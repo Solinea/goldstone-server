@@ -26,7 +26,8 @@ import logging
 from goldstone.apps.nova.models import HypervisorStatsData, \
     AgentsData, AggregatesData, AvailZonesData, CloudpipesData, FlavorsData, \
     FloatingIpPoolsData, HostsData, HypervisorsData, NetworksData, \
-    SecGroupsData, ServersData, ServicesData, Host
+    SecGroupsData, ServersData, ServicesData
+from goldstone.core.models import Host
 from goldstone.celery import app as celery_app
 from goldstone.utils import get_cloud
 
@@ -36,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 @celery_app.task(bind=True)
 def nova_hypervisors_stats(self):
-    from novaclient.v2 import client
+    from novaclient.v3 import client
 
     # Get the system's sole OpenStack cloud record.
     cloud = get_cloud()
