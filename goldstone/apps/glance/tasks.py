@@ -13,24 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import absolute_import
-from datetime import datetime
-import logging
-import pytz
-from .models import ImagesData
 from goldstone.celery import app as celery_app
-from goldstone.utils import get_cloud
 
 
 def _update_glance_image_records(client, region):
+    from datetime import datetime
     from goldstone.utils import to_es_date
+    from .models import ImagesData
+    import logging
+    import pytz
 
-    data = ImagesData()
     images_list = client.images.list()
 
     # Image list is a generator, so we need to make it not sol lazy it...
     body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
             "region": region,
             "images": [i for i in images_list]}
+
+    data = ImagesData()
+
     try:
         data.post(body)
     except Exception:          # pylint: disable=W0703
@@ -39,7 +40,8 @@ def _update_glance_image_records(client, region):
 
 @celery_app.task()
 def discover_glance_topology():
-    from goldstone.utils import get_glance_client
+    """Update Goldstone's glance data."""
+    from goldstone.utils import get_glance_client, get_cloud
 
     # Get the system's sole OpenStack cloud.
     cloud = get_cloud()

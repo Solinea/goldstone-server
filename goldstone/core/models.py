@@ -520,6 +520,9 @@ class ResourceTypes(Graph):
     #   - t: The "to" node
     #   - d: The attribute dictionary.
     EDGES = [
+        # From Glance nodes
+        (Image, Server, {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}),
+
         # From Keystone nodes
         (AdminProject, NovaQuotaClass, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
         (AdminProject, Project, {TYPE: INSTANCE_OF, MIN: 1, MAX: 1}),
@@ -557,25 +560,7 @@ class ResourceTypes(Graph):
         (User, Group, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
         (User, NovaQuotaSet, {TYPE: SUBSCRIBED_TO, MIN: 0, MAX: sys.maxint}),
         (User, Project, {TYPE: ASSIGNED_TO, MIN: 0, MAX: 1}),
-        # From Nova nodes
-        (AvailabilityZone, Aggregate, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (AvailabilityZone, Host, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Cloudpipe, Server, {TYPE: INSTANCE_OF, MIN: 1, MAX: 1}),
-        (Flavor, FlavorExtraSpec, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Flavor, Server, {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}),
-        (Host, Aggregate, {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}),
-        (Host, Hypervisor, {TYPE: OWNS, MIN: 0, MAX: 1}),
-        (Hypervisor, Server, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Interface, Port, {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}),
-        (Keypair, Server, {TYPE: ATTACHED_TO, MIN: 0, MAX: sys.maxint}),
-        (NovaQuotaClass, NovaQuotaSet, {TYPE: DEFINES,
-                                        MIN: 0,
-                                        MAX: sys.maxint}),
-        (Server, Interface, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Server, ServerGroup, {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}),
-        (Server, ServerMetadata, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        # From Glance nodes
-        (Image, Server, {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}),
+
         # From Neutron nodes
         (FloatingIPPool, FixedIP, {TYPE: ROUTES_TO, MIN: 0, MAX: sys.maxint}),
         (FloatingIPPool, FloatingIP, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
@@ -595,6 +580,24 @@ class ResourceTypes(Graph):
         (SecurityRules, SecurityGroup, {TYPE: MEMBER_OF, MIN: 1, MAX: 1}),
         (Subnet, FixedIP, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
         (Subnet, Network, {TYPE: MEMBER_OF, MIN: 1, MAX: 1}),
+
+        # From Nova nodes
+        (AvailabilityZone, Aggregate, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
+        (AvailabilityZone, Host, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
+        (Cloudpipe, Server, {TYPE: INSTANCE_OF, MIN: 1, MAX: 1}),
+        (Flavor, FlavorExtraSpec, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
+        (Flavor, Server, {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}),
+        (Host, Aggregate, {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}),
+        (Host, Hypervisor, {TYPE: OWNS, MIN: 0, MAX: 1}),
+        (Hypervisor, Server, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
+        (Interface, Port, {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}),
+        (Keypair, Server, {TYPE: ATTACHED_TO, MIN: 0, MAX: sys.maxint}),
+        (NovaQuotaClass, NovaQuotaSet, {TYPE: DEFINES,
+                                        MIN: 0,
+                                        MAX: sys.maxint}),
+        (Server, Interface, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
+        (Server, ServerGroup, {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}),
+        (Server, ServerMetadata, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
         ]
 
     def __init__(self):
