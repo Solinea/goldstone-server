@@ -42,7 +42,6 @@ class LogData(DailyIndexDocType):
         # in icehouse and juno.
         return search.query(~Q('term', loglevel__raw='AUDIT'))
 
-    
     @classmethod
     def ranged_log_search(cls, start=None, end=None, hosts=[]):
         """ Returns a search with time range and hosts list terms"""

@@ -93,4 +93,3 @@ def es_custom_exception_handler(exc):
         data['detail'] = "An ES exception has occurred that's we're not " \
                          "familiar with."
         return Response(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-

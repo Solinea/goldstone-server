@@ -275,8 +275,8 @@ class DailyIndexDocTypeTests(APITestCase):
             field = 'field'
             mre.return_value = 'index'
             gfm.return_value = {'index': {'mappings': {
-            'syslog': {field: {'mapping': {field: {'fields': {
-                'raw': True}}}}}}}}
+                'syslog': {field: {'mapping': {field: {'fields': {
+                    'raw': True}}}}}}}}
 
             result = DailyIndexDocType.field_has_raw('field')
             self.assertTrue(mre.called)
@@ -294,8 +294,8 @@ class DailyIndexDocTypeTests(APITestCase):
             field = 'field'
             mre.return_value = 'index'
             gfm.return_value = {'index': {'mappings': {
-            'syslog': {field: {'mapping': {field: {'fields': {
-                'not_raw': True}}}}}}}}
+                'syslog': {field: {'mapping': {field: {'fields': {
+                    'not_raw': True}}}}}}}}
 
             result = DailyIndexDocType.field_has_raw('field')
             self.assertTrue(mre.called)

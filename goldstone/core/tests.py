@@ -74,11 +74,16 @@ class PolyResourceModelTests(SimpleTestCase):
     def test_logs(self):
         """test that the logs method returns an appropriate search object."""
 
-        expectation = {'query': {'query_string': {'query': 'polly'}},
-                       'sort': [{'@timestamp': {'order': 'desc'}}]}
+        expectation = {'bool': {
+            'must': [{'query_string': {'query': 'polly'}}],
+            'must_not': [{'term': {u'loglevel.raw': 'AUDIT'}}]}}
+
         resource = PolyResource(name='polly')
         result = resource.logs().to_dict()
-        self.assertDictEqual(expectation, result)
+        self.assertDictEqual(expectation, result['query'])
+
+        expectation = [{'@timestamp': {'order': 'desc'}}]
+        self.assertListEqual(expectation, result['sort'])
 
     def test_events(self):
         """test that the events method returns an appropriate search object."""

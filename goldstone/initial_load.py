@@ -67,6 +67,7 @@ def _put_reports_template(server=settings.ES_SERVER):
               "Please report this!"
         raise
 
+
 def _put_goldstone_daily_template(server=settings.ES_SERVER):
     """Load the ES template for the goldstone index."""
 
