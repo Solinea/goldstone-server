@@ -32,7 +32,6 @@ class ElasticListAPIView(ListAPIView):
     class Meta:
         model = None
 
-
     def get_queryset(self):
         """Gets a search object from the model."""
 

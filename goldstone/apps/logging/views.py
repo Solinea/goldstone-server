@@ -61,5 +61,3 @@ class LogEventView(ElasticListAPIView):
 
     class Meta:
         model = LogEvent
-
-
