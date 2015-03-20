@@ -44,9 +44,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Node Availability chart
 
-        this.nodeAvailChart = new NodeAvailCollection({
-            url: "/logging/nodes?page_size=100"
-        });
+        this.nodeAvailChart = new NodeAvailCollection({});
 
         this.nodeAvailChartView = new NodeAvailView({
             chartTitle: 'Node Availability',

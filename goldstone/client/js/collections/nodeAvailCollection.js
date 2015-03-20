@@ -36,27 +36,31 @@ var NodeAvailCollection = Backbone.Collection.extend({
                 remove: false
             });
         }
-        return data.results;
+        return data;
     },
 
     model: NodeAvailModel,
 
     initialize: function(options) {
-        this.url = options.url;
-        // url string similar to: /logging/nodes?page_size=100
-
-        this.initXhr();
+        this.url = options.url || "/logging/summarize";
+        this.fetchWithReset();
     },
 
-    thisXhr: null,
+    fetchWithReset: function() {
 
-    initXhr: function() {
-        this.thisXhr = this.fetch();
-    },
-
-    setXhr: function() {
-        this.thisXhr = this.fetch({
+        // used when you want to delete existing data in collection
+        // such as changing the global-lookback period
+        this.fetch({
             remove: true
         });
-    }
+    },
+
+    fetchNoReset: function() {
+
+        // used when you want to retain existing data in collection
+        // such as a global-refresh-triggered update to the Event Timeline viz
+        this.fetch({
+            remove: false
+        });
+    },
 });
