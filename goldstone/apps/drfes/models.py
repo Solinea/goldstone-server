@@ -60,9 +60,6 @@ class DailyIndexDocType(DocType):
                            min_doc_count=0,
                            size=0)
 
-        import json
-        print json.dumps(search.to_dict())
-
         response = search.execute().aggregations
         return response
 
