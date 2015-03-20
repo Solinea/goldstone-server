@@ -46,7 +46,6 @@ class ReportNamesAggView(SimpleAggView):
     query params such has host=xyz or @timestamp__range={'gt': 0}"""
 
     serializer_class = ReportNamesAggSerializer
-    permission_classes = (AllowAny,)
     AGG_FIELD = 'name'
     AGG_NAME = 'per_name'
 
@@ -59,6 +58,7 @@ class ReportNamesAggView(SimpleAggView):
         queryset = super(ReportNamesAggView, self).get_queryset()
         return queryset.query(~Q(Prefix(name='os.service')))
 
+
 class MetricNamesAggView(SimpleAggView):
     """A view that handles requests for Report name aggregations.
 
@@ -67,15 +67,8 @@ class MetricNamesAggView(SimpleAggView):
     query params such has host=xyz or @timestamp__range={'gt': 0}"""
 
     serializer_class = MetricNamesAggSerializer
-    permission_classes = (AllowAny,)
     AGG_FIELD = 'name'
     AGG_NAME = 'per_name'
 
     class Meta:
         model = MetricData
-
-    def get_queryset(self):
-        from elasticsearch_dsl.query import Q, Prefix
-
-        queryset = super(MetricNamesAggView, self).get_queryset()
-        return queryset.query(~Q(Prefix(name='os.service')))

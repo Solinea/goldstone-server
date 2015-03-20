@@ -242,58 +242,6 @@ class ESConnectionTests(SimpleTestCase):
         self.assertNotIn('not_index1', result)
 
 
-class UtilsTests(SimpleTestCase):
-
-    @patch('keystoneclient.v3.client.Client')
-    def test_get_keystone_client(self, client):
-
-        # Test calling with one bad argument.
-        client.side_effect = ClientException
-        self.assertRaises(ClientException,
-                          get_keystone_client,
-                          os_username='abc',
-                          os_password=settings.CLOUD_PASSWORD,
-                          os_tenant_name=settings.CLOUD_TENANT_NAME,
-                          os_auth_url=settings.CLOUD_AUTH_URL)
-        self.assertRaises(ClientException,
-                          get_keystone_client,
-                          os_username=settings.CLOUD_USERNAME,
-                          os_password='abc',
-                          os_tenant_name=settings.CLOUD_TENANT_NAME,
-                          os_auth_url=settings.CLOUD_AUTH_URL)
-        self.assertRaises(ClientException,
-                          get_keystone_client,
-                          os_username=settings.CLOUD_USERNAME,
-                          os_password=settings.CLOUD_PASSWORD,
-                          os_tenant_name='no-tenant',
-                          os_auth_url=settings.CLOUD_AUTH_URL)
-        self.assertRaises(ClientException,
-                          get_keystone_client,
-                          os_username=settings.CLOUD_USERNAME,
-                          os_password=settings.CLOUD_PASSWORD,
-                          os_tenant_name=settings.CLOUD_TENANT_NAME,
-                          os_auth_url='http://www.solinea.com')
-
-        client.side_effect = None
-        client.auth_token = None
-        type(client.return_value).auth_token = PropertyMock(return_value=None)
-        self.assertRaises(GoldstoneAuthError,
-                          get_keystone_client,
-                          os_username=settings.CLOUD_USERNAME,
-                          os_password=settings.CLOUD_PASSWORD,
-                          os_tenant_name=settings.CLOUD_TENANT_NAME,
-                          os_auth_url=settings.CLOUD_AUTH_URL)
-
-        type(client.return_value).auth_token = \
-            PropertyMock(return_value='mocked_token')
-        reply = get_keystone_client(os_username=settings.CLOUD_USERNAME,
-                                    os_password=settings.CLOUD_PASSWORD,
-                                    os_tenant_name=settings.CLOUD_TENANT_NAME,
-                                    os_auth_url=settings.CLOUD_AUTH_URL)
-        self.assertIn('client', reply)
-        self.assertIn('hex_token', reply)
-
-
 class ReportTemplateViewTest(SimpleTestCase):
 
     node1 = Host(name="test_node_123")
