@@ -41,7 +41,7 @@ var NodeAvailCollection = Backbone.Collection.extend({
     model: NodeAvailModel,
 
     initialize: function(options) {
-        this.url = options.url || "/logging/summarize";
+        this.url = options.url || "/logging/summarize?interval=15m";
         this.fetchWithReset();
     },
 
