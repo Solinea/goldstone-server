@@ -123,14 +123,8 @@ var NodeAvailView = GoldstoneBaseView.extend({
         // reported at 'actualZero'
         .range(ns.colorArray.distinct[8].concat(['#A9A9A9']));
 
-        // for 'ping only' axis
-        // ns.pingAxis = d3.svg.axis()
-        //     .orient("top")
-        //     .ticks(5)
-        //     .tickFormat(d3.time.format("%H:%M:%S"));
-
         // for 'disabled' axis
-        ns.unadminAxis = d3.svg.axis()
+        ns.xAxis = d3.svg.axis()
             .orient("bottom")
             .ticks(5)
             .tickFormat(d3.time.format("%H:%M:%S"));
@@ -493,13 +487,13 @@ var NodeAvailView = GoldstoneBaseView.extend({
          */
 
         // ns.pingAxis.scale(ns.xScale);
-        ns.unadminAxis.scale(ns.xScale);
+        ns.xAxis.scale(ns.xScale);
 
         // ns.svg.select(".xping.axis")
         //     .call(ns.pingAxis);
 
         ns.svg.select(".xunadmin.axis")
-            .call(ns.unadminAxis);
+            .call(ns.xAxis);
 
         ns.yAxis.scale(ns.yLogs);
 
