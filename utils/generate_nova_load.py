@@ -18,7 +18,7 @@ from datetime import datetime
 import pytz
 import string
 import random
-import novaclient.v3.client as nvclient
+import novaclient.v2.client as nvclient
 
 os_params = {'username': 'admin',
              'api_key': 'fe67c09d85041ae383c66a83e362f566',
