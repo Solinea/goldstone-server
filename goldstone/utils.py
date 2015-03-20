@@ -163,7 +163,7 @@ def get_cloud():
     return Cloud.objects.all()[0]
 
 
-def get_client(service, os_username, os_password, os_tenant_name, os_auth_url):
+def get_client(os_username, os_password, os_tenant_name, os_auth_url, service):
     """Return a client object and authorization token.
 
     :rtype: dict
@@ -219,11 +219,11 @@ def get_client(service, os_username, os_password, os_tenant_name, os_auth_url):
             return {'client': client}
 
         elif service == 'glance':
-            keystoneclient = get_client("keystone",
-                                        os_username,
+            keystoneclient = get_client(os_username,
                                         os_password,
                                         os_tenant_name,
-                                        os_auth_url)['client']
+                                        os_auth_url,
+                                        "keystone")['client']
             mgmt_url = keystoneclient.endpoints.find(
                 service_id=keystoneclient.services.find(name='glance').id)\
                 .internalurl
