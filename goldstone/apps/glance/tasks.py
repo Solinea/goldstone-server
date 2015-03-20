@@ -13,45 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import absolute_import
-
 from datetime import datetime
 import logging
-
 import pytz
-from goldstone.apps.api_perf.utils import stack_api_request_base, \
-    time_api_call
-
 from .models import ImagesData
-
 from goldstone.celery import app as celery_app
 from goldstone.utils import get_cloud
-
-
-@celery_app.task()
-def time_image_list_api():
-    """Call the image list command for the test tenant.
-
-    This retrieves the endpoint from keystone and constructs the URL to call.
-
-    If there are images returned, then calls the image-show command on the
-    first one, otherwise uses the results from image list to inserts a record
-    in the DB.
-
-    """
-
-    # Get the system's sole OpenStack cloud record.
-    cloud = get_cloud()
-
-    precursor = stack_api_request_base("image",
-                                       "/v2/images",
-                                       cloud.username,
-                                       cloud.password,
-                                       cloud.tenant_name,
-                                       cloud.auth_url)
-
-    return time_api_call('glance',
-                         precursor['url'],
-                         headers=precursor['headers'])
 
 
 def _update_glance_image_records(client, region):

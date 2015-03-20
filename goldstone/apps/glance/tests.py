@@ -13,43 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-
 from django.http import HttpResponse
 from django.test import SimpleTestCase
-from mock import patch
-import requests
-from requests import Response
-
-from .tasks import time_image_list_api
-
-
-class TaskTests(SimpleTestCase):
-
-    @patch('goldstone.apps.glance.tasks.time_api_call')
-    @patch('goldstone.apps.glance.tasks.stack_api_request_base')
-    def test_time_image_list_api(self, m_base, m_time_api_call):
-        from django.conf import settings
-        from goldstone.tenants.models import Tenant, Cloud
-
-        # Set up the Cloud table for get_cloud, which is called by the celery
-        # task.
-        Tenant.objects.all().delete()
-        tenant = Tenant.objects.create(name="Good", owner="Bar")
-        Cloud.objects.create(tenant_name=settings.CLOUD_TENANT_NAME,
-                             username=settings.CLOUD_USERNAME,
-                             password=settings.CLOUD_PASSWORD,
-                             auth_url=settings.CLOUD_AUTH_URL,
-                             tenant=tenant)
-
-        response = Response()
-        response._content = '{"images": [{"id": 1}]}'   # pylint: disable=W0212
-        response.status_code = requests.codes.ok
-        m_base.return_value = {'url': 'http://url', 'headers': {}}
-        m_time_api_call.return_value = {'created': True, 'response': response}
-        result = time_image_list_api()
-
-        self.assertEqual(m_time_api_call.call_count, 1)
-        self.assertEqual(result, m_time_api_call.return_value)
 
 
 class ViewTests(SimpleTestCase):

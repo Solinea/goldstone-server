@@ -13,11 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import arrow
-from django.conf import settings
-from goldstone.utils import GoldstoneAuthError
-
-
 def stack_api_request_base(endpoint, path, os_username, os_password, os_tenant,
                            os_auth_url):
     """Look up the openstack endpoint for a component, and return the URL and
@@ -32,7 +27,7 @@ def stack_api_request_base(endpoint, path, os_username, os_password, os_tenant,
     :return: dict of url and headers
 
     """
-    from goldstone.utils import get_keystone_client
+    from goldstone.utils import get_keystone_client, GoldstoneAuthError
 
     try:
         keystone_client = get_keystone_client(os_username,
@@ -52,36 +47,3 @@ def stack_api_request_base(endpoint, path, os_username, os_password, os_tenant,
     except Exception:  # pylint: disable=W0703
         raise LookupError("Could not find a public URL endpoint for %s" %
                           endpoint)
-
-
-def time_api_call(component, url, method='GET', **kwargs):
-    """Call an API endpoint and persist the result.
-
-    :param component: the api component
-    :type component: str
-    :param url: the endpoint to request
-    :type url: str
-    :param method: get, put, post, delete, patch, head
-    :type method: str
-    :param kwargs: optional arguments to pass to the request (ex: header, data)
-
-    """
-    from .models import ApiPerfData
-    import requests
-    from urlparse import urlparse
-
-    reply = requests.request(method, url, **kwargs)
-
-    if reply is None:
-        now = arrow.utcnow()
-        rec = ApiPerfData(component=component,
-                          uri=urlparse(url).path,
-                          creation_time=now.datetime,
-                          response_time=settings.API_PERF_QUERY_TIMEOUT*1000,
-                          response_status=504,
-                          response_length=0)
-
-        created = rec.save()
-        return {'created': created, 'response': reply}
-
-    return None
