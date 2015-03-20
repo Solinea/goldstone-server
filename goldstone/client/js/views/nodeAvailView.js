@@ -413,11 +413,12 @@ var NodeAvailView = GoldstoneBaseView.extend({
         // includes timestamps, levels, hosts, data
         var allthelogs = this.collection.toJSON()[0];
 
-        var xStart = +new Date();
+        // get the currrent lookback to set the domain of the xAxis
+        this.updateSettings();
+        xEnd = +new Date();
+        xStart = xEnd - (1000 * 60 * ns.lookbackRange);
 
-        var xEnd = xStart - (1000 * 60 * 15);
-
-        ns.xScale = ns.xScale.domain([xEnd, xStart]);
+        ns.xScale = ns.xScale.domain([xStart, xEnd]);
 
         // If we didn't receive any valid files, append "No Data Returned"
         if (this.checkReturnedDataSet(allthelogs.data) === false) {
