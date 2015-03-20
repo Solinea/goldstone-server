@@ -612,7 +612,7 @@ class ResourceInstances(Graph):
         :type nodetype: A node in ResourceTypes
         :return: All the nodes in the Resource Instances graph that have a type
                  type equal to <nodetype>
-        :rtype: list of ResourceInstances nodes
+        :rtype: list of (ResourceInstances nodes, attribute)
 
         """
 
