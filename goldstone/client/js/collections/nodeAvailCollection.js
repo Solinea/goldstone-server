@@ -22,7 +22,6 @@ var nodeAvailChart = new NodeAvailCollection({
 */
 
 var NodeAvailModel = GoldstoneBaseModel.extend({
-    idAttribute: "id"
 });
 
 var NodeAvailCollection = Backbone.Collection.extend({
