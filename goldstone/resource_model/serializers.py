@@ -1,5 +1,5 @@
-"""Sample resource model serializers."""
-# Copyright '2015' Solinea, Inc.
+"""Resource Type/Instance graph serializers."""
+# Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -17,8 +17,9 @@ from goldstone.apps.resource_model.models import PolyResource
 
 
 class PolyResourceSerializer(serializers.ModelSerializer):
+    """The PolyResource class serializer."""
 
-    class Meta:
+    class Meta:             # pylint: disable=C1001,C0111,W0232
         model = PolyResource
-        lookup_field = 'id'
+        lookup_field = 'uuid'
         exclude = ['polymorphic_ctype']
