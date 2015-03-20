@@ -57,8 +57,7 @@ class DailyIndexDocType(DocType):
         # add a top-level aggregation for the field
         search.aggs.bucket(agg_name, "terms",
                            field=field,
-                           min_doc_count=0,
-                           size=0)
+                           min_doc_count=0)
 
         response = search.execute().aggregations
         return response
