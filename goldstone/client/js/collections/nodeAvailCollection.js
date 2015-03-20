@@ -43,7 +43,7 @@ var NodeAvailCollection = Backbone.Collection.extend({
 
         var fifteenAgo = (+new Date()) - (1000 * 60 * 15);
 
-        this.url = '/logging/summarize?interval=1m' +
+        this.url = '/logging/summarize?interval=15m' +
             '&@timestamp__range={"gte":' + fifteenAgo + '}';
     },
 
