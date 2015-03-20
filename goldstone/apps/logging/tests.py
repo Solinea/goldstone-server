@@ -56,25 +56,32 @@ class LogDataModelTests(SimpleTestCase):
     def test_ranged_log_search_start_end_provided(self):
         """ranged_log_search returns a query with range including start/end"""
         now = arrow.utcnow()
-        expectation = {'range': {'@timestamp': {
-            'gte': now.isoformat(),
-            'lte': now.isoformat()}}}
+        expectation = {'bool': {
+            'must': [{'range': {'@timestamp': {
+                'gte': now.isoformat(),
+                'lte': now.isoformat()}}}],
+            'must_not': [{'term': {u'loglevel.raw': 'AUDIT'}}]}}
+
         result = LogData.ranged_log_search(start=now, end=now).to_dict()
         self.assertDictEqual(result['query'], expectation)
 
     def test_ranged_log_search_start_provided(self):
         """ranged_log_search returns a query with range including start"""
         now = arrow.utcnow()
-        expectation = {'range': {'@timestamp': {
-            'gte': now.isoformat()}}}
+        expectation = {'bool': {
+            'must': [{'range': {'@timestamp': {'gte': now.isoformat()}}}],
+            'must_not': [{'term': {u'loglevel.raw': 'AUDIT'}}]}}
         result = LogData.ranged_log_search(start=now).to_dict()
         self.assertDictEqual(result['query'], expectation)
 
     def test_ranged_log_search_end_provided(self):
         """ranged_log_search returns a query with range including end"""
         now = arrow.utcnow()
-        expectation = {'range': {'@timestamp': {
-            'lte': now.isoformat()}}}
+        expectation = {'bool': {
+            'must': [{'range': {'@timestamp': {
+                'lte': now.isoformat()}}}],
+            'must_not': [{'term': {u'loglevel.raw': 'AUDIT'}}]}}
+
         result = LogData.ranged_log_search(end=now).to_dict()
         self.assertDictEqual(result['query'], expectation)
 
@@ -82,14 +89,18 @@ class LogDataModelTests(SimpleTestCase):
         """ranged_log_search returns a match_all query when no time is
         provided"""
         now = arrow.utcnow()
-        expectation = {'match_all': {}}
+        expectation = {'bool': {
+            'must_not': [{'term': {u'loglevel.raw': 'AUDIT'}}]}}
         result = LogData.ranged_log_search().to_dict()
         self.assertDictEqual(result['query'], expectation)
 
     def test_ranged_log_search_host_provided(self):
         """ranged_log_search returns a query with terms clause"""
-        now = arrow.utcnow()
-        expectation = {'terms': {u'host.raw': ['h1']}}
+
+        expectation = {'bool': {
+            'must': [{'terms': {u'host.raw': ['h1']}}],
+            'must_not': [{'term': {u'loglevel.raw': 'AUDIT'}}]}}
+
         result = LogData.ranged_log_search(hosts=['h1']).to_dict()
         self.assertDictEqual(result['query'], expectation)
 
@@ -107,10 +118,13 @@ class LogEventModelTests(SimpleTestCase):
     def test_search(self):
         from .models import LogEvent
 
-        expectation = {'terms': {u'event_type.raw': ['OpenStackSyslogError',
-                       'GenericSyslogError']}}
+        expectation = {'bool': {
+            'must': [{'terms': {u'event_type.raw': ['OpenStackSyslogError',
+                       'GenericSyslogError']}}],
+            'must_not': [{'term': {u'loglevel.raw': 'AUDIT'}}]}}
+
         result = LogEvent.search().to_dict()
-        self.assertDictContainsSubset(expectation, result['query'])
+        self.assertDictEqual(expectation, result['query'])
 
 
 class LogAggViewTests(APITestCase):

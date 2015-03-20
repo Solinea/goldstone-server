@@ -66,7 +66,6 @@ class DailyIndexDocType(DocType):
         response = search.execute().aggregations
         return response
 
-
     @classmethod
     def get_field_mapping(cls, field):
 
@@ -93,5 +92,3 @@ class DailyIndexDocType(DocType):
                        'mapping'][field]['fields']
         except KeyError:
             return False
-
-

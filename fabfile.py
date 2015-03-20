@@ -379,6 +379,7 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
                              password=cloud_password,
                              auth_url=cloud_auth_url)
 
+
 def _collect_static(proj_settings=None):
     """collect static files if STATIC_ROOT is set in the settings file"""
 
