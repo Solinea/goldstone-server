@@ -331,6 +331,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
         // sets up an iteration that will break as soon as every
         // host value is no longer set to null, or else gets
         // through the entire data set
+        data.data.reverse();
         _.every(data.data, function(item) {
 
             // iterate through the timestamp
