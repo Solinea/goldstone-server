@@ -351,7 +351,7 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
     DEFAULT_CLOUD_PASSWORD = os.environ.get("DEFAULT_CLOUD_PASSWORD",
                                             "changeme")
     DEFAULT_CLOUD_AUTH_URL = os.environ.get("DEFAULT_CLOUD_AUTH_URL",
-                                            "http://127.0.0.1:5000/v2.0/")
+                                            "http://127.0.0.1:5000/v3/")
 
     # Create the tenant and tenant_admin.
     tenant, settings = _tenant_init(tenant,
