@@ -55,7 +55,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
             top: 18,
             bottom: 25,
             right: 40,
-            left: 60
+            left: 10
         },
 
         filter: {
@@ -124,10 +124,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
         .range(ns.colorArray.distinct[8].concat(['#A9A9A9']));
 
         // for 'ping only' axis
-        ns.pingAxis = d3.svg.axis()
-            .orient("top")
-            .ticks(5)
-            .tickFormat(d3.time.format("%H:%M:%S"));
+        // ns.pingAxis = d3.svg.axis()
+        //     .orient("top")
+        //     .ticks(5)
+        //     .tickFormat(d3.time.format("%H:%M:%S"));
 
         // for 'disabled' axis
         ns.unadminAxis = d3.svg.axis()
@@ -150,7 +150,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
             .domain(["unadmin"].concat(ns.loglevel
                 .domain()
                 .concat(["padding1", "padding2", "ping"])))
-            .rangeRoundBands([ns.height.main, 0], 0.1);
+            .rangeRoundBands([ns.height.main, 0]);
 
         ns.yLogs = d3.scale.linear()
             .range([
@@ -173,10 +173,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         // Visual swim lanes
         ns.swimlanes = {
-            ping: {
-                label: "Ping Only",
-                offset: -(ns.ySwimLane.rangeBand() / 2)
-            },
+            // ping: {
+            //     label: "Ping Only",
+            //     offset: -(ns.ySwimLane.rangeBand() / 2)
+            // },
             unadmin: {
                 label: "Disabled",
                 offset: ns.ySwimLane.rangeBand() / 2
@@ -196,9 +196,9 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 return "translate(0," + ns.ySwimLane(d) + ")";
             });
 
-        ns.graph.append("g")
-            .attr("class", "xping axis")
-            .attr("transform", "translate(0," + (ns.ySwimLane.rangeBand()) + ")");
+        // ns.graph.append("g")
+        //     .attr("class", "xping axis")
+        //     .attr("transform", "translate(0," + (ns.ySwimLane.rangeBand()) + ")");
 
         ns.graph.append("g")
             .attr("class", "xunadmin axis")
@@ -216,9 +216,9 @@ var NodeAvailView = GoldstoneBaseView.extend({
         ns.tooltip = d3.tip()
             .attr('class', 'd3-tip')
             .direction(function(e) {
-                if (e.update_method === 'PING') {
-                    return 's';
-                }
+                // if (e.update_method === 'PING') {
+                //     return 's';
+                // }
                 if (this.getBBox().y < 130) {
                     return 's';
                 } else {
@@ -240,7 +240,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 return [0, leftOffset];
             })
             .html(function(d) {
-                return d.name + "<br/>" +
+                return "Host: " +d.name + "<br/>" +
                     // "(" + d.id + ")" + "<br/>" +
                     "Emergency: " + d.emergency_count + "<br>" +
                     "Alert: " + d.alert_count + "<br>" +
@@ -259,11 +259,11 @@ var NodeAvailView = GoldstoneBaseView.extend({
             .tickFormat(function(d) {
                 // Visual swim lanes
                 var swimlanes = {
-                    ping: "Ping Only",
-                    unadmin: "Disabled",
+                    // ping: "Ping Only",
+                    unadmin: "",
                 };
                 var middle = ns.ySwimLane.domain()[Math.floor(ns.ySwimLane.domain().length / 2)];
-                swimlanes[middle] = "Logs";
+                swimlanes[middle] = "";
                 if (swimlanes[d]) {
                     return swimlanes[d];
                 } else {
@@ -295,11 +295,12 @@ var NodeAvailView = GoldstoneBaseView.extend({
     },
 
     sums: function(datum) {
+        // console.log('sums data', datum);
         var ns = this.defaults;
         // Return the sums for the filters that are on
         return d3.sum(ns.loglevel.domain().map(function(k) {
 
-            if (ns.filter[k]) {
+            if (ns.filter[k] && datum[k + "_count"]) {
                 return datum[k + "_count"];
             } else {
                 return 0;
@@ -309,8 +310,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
     },
 
     collectionPrep: function(data) {
-        var finalData = [];
+        var ns = this.defaults;
+        var self = this;
 
+        var finalData = [];
 
         // data.levels will equal all hosts
         // make an object to keep track of whether each one has been
@@ -352,6 +355,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
                         // add in params that are expected by current viz:
                         hostResultObject.id = hostName;
                         hostResultObject.name = hostName;
+                        hostResultObject.created = +timestamp;
                         hostResultObject.updated = +timestamp;
                         hostResultObject.managed = true;
                         hostResultObject.update_method = "LOGS";
@@ -361,6 +365,11 @@ var NodeAvailView = GoldstoneBaseView.extend({
                             _.each(levels, function(oneLevel) {
                                 hostResultObject[_.keys(oneLevel) + '_count'] = _.values(oneLevel)[0];
                             });
+                        });
+
+                        // set each alert level to 0 if still undefined
+                        _.each(ns.loglevel.domain(), function(level) {
+                            hostResultObject[level + '_count'] = hostResultObject[level + '_count'] || 0;
                         });
 
                         finalData.push(hostResultObject);
@@ -380,7 +389,6 @@ var NodeAvailView = GoldstoneBaseView.extend({
         // once each host has been found, quit the iteration and
         // return the record as final data;
 
-        console.log('finaldata', finalData);
         return finalData;
     },
 
@@ -397,7 +405,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         var xEnd = xStart - (1000 * 60 * 15);
 
-        ns.xScale = ns.xScale.domain([xStart, xEnd]);
+        ns.xScale = ns.xScale.domain([xEnd, xStart]);
 
         // If we didn't receive any valid files, append "No Data Returned"
         if (this.checkReturnedDataSet(allthelogs.data) === false) {
@@ -484,11 +492,11 @@ var NodeAvailView = GoldstoneBaseView.extend({
          *   - adjust each axis to its new scale.
          */
 
-        ns.pingAxis.scale(ns.xScale);
+        // ns.pingAxis.scale(ns.xScale);
         ns.unadminAxis.scale(ns.xScale);
 
-        ns.svg.select(".xping.axis")
-            .call(ns.pingAxis);
+        // ns.svg.select(".xping.axis")
+        //     .call(ns.pingAxis);
 
         ns.svg.select(".xunadmin.axis")
             .call(ns.unadminAxis);
@@ -624,7 +632,7 @@ TODO: probably change this to d.timestamp
                         // multiple items reporting the same numbers
                         logs: ns.yLogs(self.sums(d) - (i * 2)),
 
-                        ping: ns.ySwimLane(d.swimlane) - 15,
+                        // ping: ns.ySwimLane(d.swimlane) - 15,
                         unadmin: ns.ySwimLane(d.swimlane) + ns.ySwimLane.rangeBand() + 15
                     }[d.swimlane];
 
