@@ -394,7 +394,7 @@ class NodeReportView(TemplateView):
 
     def get(self, request, node_uuid, **kwargs):
         from django.core.exceptions import ObjectDoesNotExist
-        from goldstone.apps.nova.models import Host
+        from goldstone.core.models import Host
 
         try:
             Host.objects.get(name=node_uuid)
