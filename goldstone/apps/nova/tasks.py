@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 @celery_app.task(bind=True)
 def nova_hypervisors_stats(self):
-    from novaclient.v1_1 import client
+    from novaclient.v2 import client
 
     # Get the system's sole OpenStack cloud record.
     cloud = get_cloud()

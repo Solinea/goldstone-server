@@ -244,7 +244,7 @@ class ESConnectionTests(SimpleTestCase):
 
 class UtilsTests(SimpleTestCase):
 
-    @patch('keystoneclient.v2_0.client.Client')
+    @patch('keystoneclient.v3.client.Client')
     def test_get_keystone_client(self, client):
 
         # Test calling with one bad argument.
