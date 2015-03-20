@@ -51,15 +51,10 @@ var EventTimelineCollection = Backbone.Collection.extend({
 
         this.defaults = _.clone(this.defaults); 
 
-        this.url = options.url || '/logging/events?@timestamp__range={"gte":' + this.computeLookback() + '}&page_size=1000';
-
-        // creates a url similar to:
-        // /logging/events?@timestamp__range={"gte":1426698303974}&page_size=1000"
-
+        this.urlUpdate(this.computeLookback());
         // don't add {remove:false} to the initial fetch
         // as it will introduce an artifact that will
         // render via d3
-
         this.fetchWithReset();
     },
 
@@ -74,7 +69,7 @@ var EventTimelineCollection = Backbone.Collection.extend({
             // otherwise, default to 1 hour:
             lookbackMinutes = 60;
         }
-        return (+new Date() - (1000 * 60 * lookbackMinutes));
+        return lookbackMinutes;
     },
 
     fetchWithReset: function() {
@@ -96,6 +91,9 @@ var EventTimelineCollection = Backbone.Collection.extend({
     },
 
     urlUpdate: function(val) {
+        // creates a url similar to:
+        // /logging/events?@timestamp__range={"gte":1426698303974}&page_size=1000"
+
         var lookback = +new Date() - (val * 60 * 1000);
         this.url = '/logging/events?@timestamp__range={"gte":' +
             lookback + '}&page_size=1000';

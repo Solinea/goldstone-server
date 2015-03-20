@@ -31,11 +31,11 @@ class DiscoverTree(TopologyMixin):
         # Get the system's sole OpenStack cloud.
         cloud = get_cloud()
 
-        keystone = get_client('keystone',
-                              cloud.username,
+        keystone = get_client(cloud.username,
                               cloud.password,
                               cloud.tenant_name,
-                              cloud.auth_url)['client']
+                              cloud.auth_url,
+                              'keystone')['client']
 
         return [{"rsrcType": "region",
                  "label": _get_region_for_glance_client(keystone)}]
