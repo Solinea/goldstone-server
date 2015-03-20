@@ -53,8 +53,6 @@ var DiscoverView = GoldstoneBasePageView.extend({
             h: {
                 "main": 150,
                 "swim": 50
-                // "main": 450,
-                // "swim": 50
             },
             width: $('#goldstone-discover-r2-c2').width()
         });
