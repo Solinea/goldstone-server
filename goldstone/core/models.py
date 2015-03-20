@@ -1,5 +1,5 @@
-"""Models for implementing Goldstone resource graphs."""
-# Copyright 2015 Solinea, Inc.
+"""Core models."""
+# Copyright 2014 - 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -12,14 +12,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.conf import settings
-from polymorphic import PolymorphicModel
-from django.db.models import CharField, IntegerField
+import json
+from django.db.models import CharField
 from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
     ModificationDateTimeField
+import logging
+from polymorphic import PolymorphicModel
+from goldstone.apps.drfes.models import DailyIndexDocType
+from goldstone.apps.logging.models import LogData, LogEvent
 from goldstone.utils import utc_now
-import sys
-import networkx
+
+from elasticsearch_dsl.query import Q, QueryString
+# from django.conf import settings
+# from polymorphic import PolymorphicModel
+# from django.db.models import CharField, IntegerField
+# from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
+#     ModificationDateTimeField
+# from goldstone.utils import utc_now
+# import sys
+# import networkx
+
+logger = logging.getLogger(__name__)
 
 # Aliases to make the Resource Graph definitions less verbose.
 MAX = settings.RT_ATTRIBUTE.MAX
@@ -41,6 +54,26 @@ ROUTES_TO = settings.RT_EDGE.ROUTES_TO
 SUBSCRIBED_TO = settings.RT_EDGE.SUBSCRIBED_TO
 USES = settings.RT_EDGE.USES
 
+#
+# Goldstone Agent Metrics and Reports
+#
+
+class MetricData(DailyIndexDocType):
+    """Search interface for an agent generated metric."""
+
+    INDEX_PREFIX = 'goldstone_metric-'
+
+    class Meta:
+        doc_type = 'core_metric'
+
+
+class ReportData(DailyIndexDocType):
+
+    INDEX_PREFIX = 'goldstone_report-'
+
+    class Meta:
+        doc_type = 'core_report'
+
 
 class PolyResource(PolymorphicModel):
     """The base type for resources in Goldstone."""
@@ -59,6 +92,40 @@ class PolyResource(PolymorphicModel):
 
         return JSONRenderer().render(PolyResourceSerializer(self).data)
 
+    def logs(self):
+        """Return a search object for logs related to this resource.
+
+        The default implementation just looks for the name of the resource
+        in any of the fields.
+
+        """
+
+        query = Q(QueryString(query=self.name))
+        return LogData.search().query(query)
+
+    def events(self):
+        """Return a search object for events related to this resource.
+
+        The default implementation looks for logging event types with this
+        resource name appearing in any field.
+
+        """
+
+        # this protects our hostname from being tokenized
+        escaped_name = r'"' + self.name + r'"'
+
+        name_query = Q(QueryString(query=escaped_name, default_field="_all"))
+        return LogEvent.search().query(name_query)
+
+    def fresh_config(self):
+        """Return configuration from source system for this resource."""
+
+        raise NotImplementedError("Override this method in a subclass")
+
+    def historical_config(self):
+        """Return configuration from ES for this resource."""
+
+        raise NotImplementedError("Override this method in a subclass")
 
 class Graph(object):
     """The base class for Resource Type and Resource Instance graphs.
@@ -149,54 +216,6 @@ class Graph(object):
 class Agent(PolyResource):
 
     port = IntegerField(editable=True, blank=True, default=5514)
-
-
-class KeystoneDomain(PolyResource):
-    """ reflection of a domain in keystone"""
-
-    pass
-
-
-class KeystoneProject(PolyResource):
-    """ reflection of a project in keystone"""
-
-    pass
-
-
-class KeystoneUser(PolyResource):
-    """ reflection of a user in keystone"""
-
-    pass
-
-
-class KeystoneRole(PolyResource):
-    """ reflection of a project in keystone"""
-
-    pass
-
-
-class NovaRegion(PolyResource):
-    """ reflection of a hypervisor in nova"""
-
-    pass
-
-
-class NovaHost(PolyResource):
-    """ reflection of a hypervisor in nova"""
-
-    pass
-
-
-class NovaHypervisor(PolyResource):
-    """ reflection of a hypervisor in nova"""
-
-    pass
-
-
-class NovaServer(PolyResource):
-    """ reflection of a server (VM) in nova"""
-
-    pass
 
 
 #
@@ -624,10 +643,3 @@ class ResourceInstances(Graph):
         """Return a list of the graph's edge types."""
 
         return settings.RI_EDGE.keys()
-
-
-# # For drawing experiments.
-# import sys, inspect
-# clsmembers = inspect.getmembers(sys.modules[__name__], inspect.isclass)
-# # The python 2.6 way
-# result = dict([[v,k] for k,v in clsmembers])

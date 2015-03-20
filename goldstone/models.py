@@ -19,7 +19,7 @@ import redis
 
 import json
 import logging
-from goldstone.apps.core.tasks import create_daily_index
+from goldstone.core.tasks import create_daily_index
 from goldstone.utils import NoDailyIndex
 
 logger = logging.getLogger(__name__)

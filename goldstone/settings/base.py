@@ -81,7 +81,6 @@ INSTALLED_APPS = (
     'goldstone.accounts',
     'goldstone.apps.api_perf',
     'goldstone.apps.cinder',
-    'goldstone.apps.core',
     'goldstone.apps.drfes',
     'goldstone.apps.glance',
     'goldstone.apps.intelligence',
@@ -89,6 +88,7 @@ INSTALLED_APPS = (
     'goldstone.apps.logging',
     'goldstone.apps.neutron',
     'goldstone.apps.nova',
+    'goldstone.core',
     'goldstone.resource_model',
     'goldstone.tenants',
     'goldstone.user',
@@ -183,27 +183,27 @@ HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/1')
 
 CELERYBEAT_SCHEDULE = {
     'delete_goldstone_indices': {
-        'task': 'goldstone.apps.core.tasks.delete_indices',
+        'task': 'goldstone.core.tasks.delete_indices',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE,
         'args': ('goldstone-', ES_GOLDSTONE_RETENTION)
     },
     'delete_logstash_indices': {
-        'task': 'goldstone.apps.core.tasks.delete_indices',
+        'task': 'goldstone.core.tasks.delete_indices',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE,
         'args': ('logstash-', ES_LOGSTASH_RETENTION)
     },
     'delete_goldstone_reports_indices': {
-        'task': 'goldstone.apps.core.tasks.delete_indices',
+        'task': 'goldstone.core.tasks.delete_indices',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE,
         'args': ('goldstone_reports-', ES_LOGSTASH_RETENTION)
     },
     'delete_goldstone_metrics_indices': {
-        'task': 'goldstone.apps.core.tasks.delete_indices',
+        'task': 'goldstone.core.tasks.delete_indices',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE,
         'args': ('goldstone_metrics-', ES_LOGSTASH_RETENTION)
     },
     'create_daily_index': {
-        'task': 'goldstone.apps.core.tasks.create_daily_index',
+        'task': 'goldstone.core.tasks.create_daily_index',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE
     },
     'nova-hypervisors-stats': {
@@ -297,7 +297,7 @@ REST_FRAMEWORK = {
     'PAGINATE_BY': 10,
     'PAGINATE_BY_PARAM': 'page_size',
     'MAX_PAGINATE_BY': 1000,
-    'EXCEPTION_HANDLER': 'goldstone.apps.core.utils.custom_exception_handler'
+    'EXCEPTION_HANDLER': 'goldstone.core.utils.custom_exception_handler'
 }
 
 # Goldstone config settings
