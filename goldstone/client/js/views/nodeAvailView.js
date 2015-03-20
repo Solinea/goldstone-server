@@ -77,7 +77,6 @@ var NodeAvailView = GoldstoneBaseView.extend({
     initialize: function(options) {
         NodeAvailView.__super__.initialize.apply(this, arguments);
         this.setInfoButtonPopover();
-        this.scheduleFetch();
     },
 
     processOptions: function() {
@@ -91,8 +90,20 @@ var NodeAvailView = GoldstoneBaseView.extend({
     },
 
     processListeners: function() {
+        var self = this;
+
         this.collection.on('sync', this.update, this);
         this.collection.on('error', this.dataErrorMessage, this);
+
+        this.on('lookbackSelectorChanged', function() {
+            self.updateSettings();
+            self.fetchNowWithReset();
+        });
+
+        this.on('lookbackIntervalReached', function() {
+            self.updateSettings();
+            self.fetchNowWithReset();
+        });
     },
 
     showSpinner: function() {
@@ -234,7 +245,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 return [0, leftOffset];
             })
             .html(function(d) {
-                return "Host: " +d.name + "<br/>" +
+                return "Host: " + d.name + "<br/>" +
                     // "(" + d.id + ")" + "<br/>" +
                     "Emergency: " + d.emergency_count + "<br>" +
                     "Alert: " + d.alert_count + "<br>" +
@@ -276,16 +287,22 @@ var NodeAvailView = GoldstoneBaseView.extend({
             .style('font-weight', 'bold');
     },
 
-    scheduleFetch: function() {
+    lookbackRange: function() {
+        var lookbackMinutes;
+        lookbackMinutes = $('.global-lookback-selector .form-control').val();
+        return parseInt(lookbackMinutes, 10);
+    },
+
+    updateSettings: function() {
         var ns = this.defaults;
-        var self = this;
+        ns.lookbackRange = this.lookbackRange();
+    },
 
-        var timeoutDelay = 30000;
-
-        ns.scheduleTimeout = setInterval(function() {
-            self.showSpinner();
-            self.collection.fetchWithReset();
-        }, timeoutDelay);
+    fetchNowWithReset: function() {
+        var ns = this.defaults;
+        this.showSpinner();
+        this.collection.urlUpdate(ns.lookbackRange);
+        this.collection.fetchWithReset();
     },
 
     sums: function(datum) {
