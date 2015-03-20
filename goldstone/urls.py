@@ -22,7 +22,6 @@ from goldstone.tenants.urls import urlpatterns as tenants_urlpatterns
 from goldstone.views import DiscoverView, HelpView, NodeReportView, \
     LoginPageView, PasswordView, SettingsPageView, TenantSettingsPageView
 
-
 logger = logging.getLogger(__name__)
 
 admin.autodiscover()
