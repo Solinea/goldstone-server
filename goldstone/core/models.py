@@ -70,8 +70,14 @@ class ReportData(DailyIndexDocType):
 class PolyResource(PolymorphicModel):
     """The base type for resources in Goldstone."""
 
+    # This object's unique identifier within Goldstone
     uuid = UUIDField(version=1, auto=True, primary_key=True)
-    name = CharField(max_length=64, unique=True)
+
+    # This object's unique identifier with OpenStack
+    cloud_id = CharField(max_length=128, unique=True)
+
+    name = CharField(max_length=64)
+
     created = CreationDateTimeField(editable=False,
                                     blank=True,
                                     default=utc_now)
