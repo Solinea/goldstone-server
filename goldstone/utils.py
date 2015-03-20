@@ -16,8 +16,8 @@ import socket
 
 import arrow
 import cinderclient.v2.services
-from keystoneclient.v2_0 import client as ksclient
-from novaclient.v1_1 import client as nvclient
+from keystoneclient.v3 import client as ksclient
+from novaclient.v2 import client as nvclient
 from cinderclient.v2 import client as ciclient
 from neutronclient.v2_0 import client as neclient
 from glanceclient.v2 import client as glclient

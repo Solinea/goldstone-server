@@ -38,7 +38,7 @@ class ViewTests(SimpleTestCase):
 
 class UtilsTests(SimpleTestCase):
 
-    @patch('keystoneclient.v2_0.client.Client')
+    @patch('keystoneclient.v3.client.Client')
     @patch('goldstone.utils.get_keystone_client')
     def test_openstack_api_request_base_success(self, m_get, m_client):
         from django.conf import settings
