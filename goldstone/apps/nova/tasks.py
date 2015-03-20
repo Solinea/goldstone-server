@@ -23,10 +23,6 @@ from __future__ import absolute_import
 from datetime import datetime
 import logging
 
-from django.db import IntegrityError
-from goldstone.apps.api_perf.utils import stack_api_request_base, \
-    time_api_call
-
 from goldstone.apps.nova.models import HypervisorStatsData, \
     AgentsData, AggregatesData, AvailZonesData, CloudpipesData, FlavorsData, \
     FloatingIpPoolsData, HostsData, HypervisorsData, NetworksData, \
@@ -63,31 +59,6 @@ def nova_hypervisors_stats(self):
     hvdbid = hvdb.post(response)
 
     logger.debug("[hypervisor_stats] id = %s", hvdbid)
-
-
-@celery_app.task()
-def time_hypervisor_list_api():
-    """
-    Call the hypervisor list command for the test tenant.  Retrieves the
-    endpoint from keystone, then constructs the URL to call.  If there are
-    hypervisors returned, then calls the hypervisor-show command on the first
-    one, otherwise uses the results from hypervisor list to inserts a record
-    in the DB.
-    """
-
-    # Get the system's sole OpenStack cloud record.
-    cloud = get_cloud()
-
-    precursor = stack_api_request_base("compute",
-                                       "/os-hypervisors",
-                                       cloud.username,
-                                       cloud.password,
-                                       cloud.tenant_name,
-                                       cloud.auth_url)
-
-    return time_api_call('nova',
-                         precursor['url'],
-                         headers=precursor['headers'])
 
 
 def _update_nova_records(rec_type, region, db, items):

@@ -17,10 +17,9 @@ from django.test import SimpleTestCase
 from elasticsearch_dsl import Search, Q
 from mock import patch
 from pandas import DataFrame
-from requests import Response
 from uuid import uuid1
 
-from goldstone.apps.api_perf.utils import time_api_call, stack_api_request_base
+from goldstone.apps.api_perf.utils import stack_api_request_base
 from goldstone.apps.api_perf.views import ApiPerfView
 from goldstone.models import daily_index, es_conn
 from goldstone.utils import GoldstoneAuthError
@@ -38,32 +37,6 @@ class ViewTests(SimpleTestCase):
 
 
 class UtilsTests(SimpleTestCase):
-
-    @patch('requests.request')
-    @patch.object(ApiPerfData, 'save')
-    def test_time_api_call_succeed(self, m_save, m_request):
-
-        fake_response = Response()
-        fake_response.status_code = 200
-        fake_response._content = '{"a":1,"b":2}'       # pylint: disable=W0212
-        m_request.return_value = fake_response
-        result = time_api_call('test', 'GET', 'http://test')
-        self.assertTrue(m_request.called)
-        self.assertFalse(m_save.called)
-
-        # we should get a None
-        self.assertEqual(result, None)
-
-    @patch('requests.request')
-    @patch.object(ApiPerfData, 'save')
-    def test_time_api_call_fail(self, m_save, m_request):
-
-        m_request.return_value = None
-        m_save.return_value = True
-        result = time_api_call('test', 'GET', 'http://test')
-        self.assertEqual(result,
-                         {'created': m_save.return_value,
-                          'response': m_request.return_value})
 
     @patch('keystoneclient.v2_0.client.Client')
     @patch('goldstone.utils.get_keystone_client')
