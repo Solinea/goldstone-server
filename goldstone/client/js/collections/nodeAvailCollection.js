@@ -21,8 +21,7 @@ var nodeAvailChart = new NodeAvailCollection({
 });
 */
 
-var NodeAvailModel = GoldstoneBaseModel.extend({
-});
+var NodeAvailModel = GoldstoneBaseModel.extend({});
 
 var NodeAvailCollection = Backbone.Collection.extend({
 
@@ -40,12 +39,20 @@ var NodeAvailCollection = Backbone.Collection.extend({
 
     model: NodeAvailModel,
 
+    updateUrl: function() {
+
+        var fifteenAgo = (+new Date()) - (1000 * 60 * 15);
+
+        this.url = '/logging/summarize?interval=1m' +
+            '&@timestamp__range={"gte":' + fifteenAgo + '}';
+    },
+
     initialize: function(options) {
-        this.url = options.url || "/logging/summarize?interval=15m";
         this.fetchWithReset();
     },
 
     fetchWithReset: function() {
+        this.updateUrl();
 
         // used when you want to delete existing data in collection
         // such as changing the global-lookback period
