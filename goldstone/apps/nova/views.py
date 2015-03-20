@@ -34,7 +34,7 @@ from .models import HypervisorStatsData, SpawnData, \
     ResourceData, AgentsData, AggregatesData, AvailZonesData, CloudpipesData, \
     FlavorsData, FloatingIpPoolsData, HostsData, HypervisorsData, \
     NetworksData, SecGroupsData, ServersData, ServicesData
-from goldstone.apps.core.utils import JsonReadOnlyViewSet
+from goldstone.core.utils import JsonReadOnlyViewSet
 from goldstone.views import TopLevelView, validate
 
 logger = logging.getLogger(__name__)

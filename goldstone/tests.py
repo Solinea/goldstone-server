@@ -32,7 +32,7 @@ from goldstone.apps.nova.models import Host
 
 from goldstone.models import ESData, es_conn, daily_index, es_indices, \
     TopologyData
-from goldstone.apps.core.tasks import create_daily_index
+from goldstone.core.tasks import create_daily_index
 from goldstone.tenants.models import Tenant
 from goldstone.test_utils import Setup
 from goldstone.utils import get_keystone_client, GoldstoneAuthError
