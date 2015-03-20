@@ -44,9 +44,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Node Availability chart
 
-        this.nodeAvailChart = new NodeAvailCollection({
-            url: "/logging/nodes?page_size=100"
-        });
+        this.nodeAvailChart = new NodeAvailCollection({});
 
         this.nodeAvailChartView = new NodeAvailView({
             chartTitle: 'Node Availability',
@@ -55,8 +53,6 @@ var DiscoverView = GoldstoneBasePageView.extend({
             h: {
                 "main": 150,
                 "swim": 50
-                // "main": 450,
-                // "swim": 50
             },
             width: $('#goldstone-discover-r2-c2').width()
         });

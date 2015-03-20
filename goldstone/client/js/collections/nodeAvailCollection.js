@@ -21,9 +21,7 @@ var nodeAvailChart = new NodeAvailCollection({
 });
 */
 
-var NodeAvailModel = GoldstoneBaseModel.extend({
-    idAttribute: "id"
-});
+var NodeAvailModel = GoldstoneBaseModel.extend({});
 
 var NodeAvailCollection = Backbone.Collection.extend({
 
@@ -36,27 +34,39 @@ var NodeAvailCollection = Backbone.Collection.extend({
                 remove: false
             });
         }
-        return data.results;
+        return data;
     },
 
     model: NodeAvailModel,
 
+    updateUrl: function() {
+
+        var fifteenAgo = (+new Date()) - (1000 * 60 * 15);
+
+        this.url = '/logging/summarize?interval=15m' +
+            '&@timestamp__range={"gte":' + fifteenAgo + '}';
+    },
+
     initialize: function(options) {
-        this.url = options.url;
-        // url string similar to: /logging/nodes?page_size=100
-
-        this.initXhr();
+        this.fetchWithReset();
     },
 
-    thisXhr: null,
+    fetchWithReset: function() {
+        this.updateUrl();
 
-    initXhr: function() {
-        this.thisXhr = this.fetch();
-    },
-
-    setXhr: function() {
-        this.thisXhr = this.fetch({
+        // used when you want to delete existing data in collection
+        // such as changing the global-lookback period
+        this.fetch({
             remove: true
         });
-    }
+    },
+
+    fetchNoReset: function() {
+
+        // used when you want to retain existing data in collection
+        // such as a global-refresh-triggered update to the Event Timeline viz
+        this.fetch({
+            remove: false
+        });
+    },
 });
