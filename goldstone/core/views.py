@@ -12,16 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import logging
-
 from rest_framework.permissions import AllowAny
 from goldstone.apps.drfes.views import ElasticListAPIView, SimpleAggView
 
 from .models import MetricData, ReportData
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
     MetricNamesAggSerializer, ReportNamesAggSerializer
-
-logger = logging.getLogger(__name__)
 
 
 class MetricDataListView(ElasticListAPIView):
@@ -59,6 +55,7 @@ class ReportNamesAggView(SimpleAggView):
 
     def get_queryset(self):
         from elasticsearch_dsl.query import Q, Prefix
+
         queryset = super(ReportNamesAggView, self).get_queryset()
         return queryset.query(~Q(Prefix(name='os.service')))
 
@@ -79,5 +76,6 @@ class MetricNamesAggView(SimpleAggView):
 
     def get_queryset(self):
         from elasticsearch_dsl.query import Q, Prefix
-        queryset = super(ReportNamesAggView, self).get_queryset()
+
+        queryset = super(MetricNamesAggView, self).get_queryset()
         return queryset.query(~Q(Prefix(name='os.service')))
