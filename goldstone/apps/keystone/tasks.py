@@ -71,13 +71,7 @@ def discover_keystone_topology():
     from goldstone.utils import get_keystone_client, \
         get_region_for_keystone_client
 
-    # Get the system's sole OpenStack cloud.
-    cloud = get_cloud()
-
-    access = get_keystone_client(cloud.username,
-                                 cloud.password,
-                                 cloud.tenant_name,
-                                 cloud.auth_url)
+    access = get_keystone_client()
 
     client = access['client']
     reg = get_region_for_keystone_client(client)

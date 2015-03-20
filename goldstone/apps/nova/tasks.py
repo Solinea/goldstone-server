@@ -115,13 +115,7 @@ def discover_nova_topology():
     """
     from goldstone.utils import get_nova_client, get_region_for_nova_client
 
-    # Get the system's sole OpenStack cloud.
-    cloud = get_cloud()
-
-    nova_access = get_nova_client(cloud.username,
-                                  cloud.password,
-                                  cloud.tenant_name,
-                                  cloud.auth_url)
+    nova_access = get_nova_client()
 
     nova_client = nova_access['client']
     nova_client.client.authenticate()
@@ -223,7 +217,7 @@ def reconcile_hosts():
     for name in new:
         Host.objects.create(
             name=name,
-            fqdn=[item[1] for item in incoming_names if item[0] == name][0])
+            fqdn=[item[1] for item in incoming if item[0] == name][0])
         # TODO generate an event if we don't get one from ceilometer?
 
 
