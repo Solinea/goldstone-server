@@ -112,10 +112,7 @@ def _get_region_for_cinder_client(client, os_username, os_password,
     client.authenticate()
 
     mgmt_url = client.client.management_url
-    keystoneclient = get_keystone_client(os_username,
-                                         os_password,
-                                         os_tenant_name,
-                                         os_auth_url)['client']
+    keystoneclient = get_keystone_client()['client']
     catalog = keystoneclient.service_catalog.catalog['serviceCatalog']
 
     return _get_region_for_client(catalog, mgmt_url, 'volume')
@@ -163,7 +160,7 @@ def get_cloud():
     return Cloud.objects.all()[0]
 
 
-def get_client(os_username, os_password, os_tenant_name, os_auth_url, service):
+def get_client(service):
     """Return a client object and authorization token.
 
     :rtype: dict
@@ -174,7 +171,15 @@ def get_client(os_username, os_password, os_tenant_name, os_auth_url, service):
     NO_AUTH = "%s client failed to authorize. Check credentials in" \
               " goldstone settings."
 
+
+
     try:
+        cloud = get_cloud()
+        os_username = cloud.username
+        os_password = cloud.password
+        os_tenant_name = cloud.tenant_name
+        os_auth_url = cloud.auth_url
+
         if service == 'keystone':
             client = ksclient.Client(username=os_username,
                                      password=os_password,
@@ -219,11 +224,7 @@ def get_client(os_username, os_password, os_tenant_name, os_auth_url, service):
             return {'client': client}
 
         elif service == 'glance':
-            keystoneclient = get_client(os_username,
-                                        os_password,
-                                        os_tenant_name,
-                                        os_auth_url,
-                                        "keystone")['client']
+            keystoneclient = get_client("keystone")['client']
             mgmt_url = keystoneclient.endpoints.find(
                 service_id=keystoneclient.services.find(name='glance').id)\
                 .internalurl
@@ -242,10 +243,10 @@ def get_client(os_username, os_password, os_tenant_name, os_auth_url, service):
 
 # These must be defined here, because they're based on get_client.
 # pylint: disable=C0103
-get_cinder_client = functools.partial(get_client, service='cinder')
-get_glance_client = functools.partial(get_client, service='glance')
-get_keystone_client = functools.partial(get_client, service='keystone')
-get_nova_client = functools.partial(get_client, service='nova')
+get_cinder_client = functools.partial(get_client, 'cinder')
+get_glance_client = functools.partial(get_client, 'glance')
+get_keystone_client = functools.partial(get_client, 'keystone')
+get_nova_client = functools.partial(get_client, 'nova')
 
 # pylint: enable=C0103
 

@@ -39,7 +39,7 @@ var ReportsReportCollection = Backbone.Collection.extend({
     retrieveData: function() {
         var self = this;
 
-        this.url = "/core/report_list?node=" +
+        this.url = "/core/report_names?node=" +
             this.defaults.nodeName +
             "&timestamp__gte=" + (+new Date() - this.defaults.globalLookback * 1000 * 60);
 

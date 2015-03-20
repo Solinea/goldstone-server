@@ -44,11 +44,7 @@ def discover_glance_topology():
     from goldstone.utils import get_glance_client, get_cloud
 
     # Get the system's sole OpenStack cloud.
-    cloud = get_cloud()
-    glance_access = get_glance_client(cloud.username,
-                                      cloud.password,
-                                      cloud.tenant_name,
-                                      cloud.auth_url)
+    glance_access = get_glance_client()
 
     _update_glance_image_records(glance_access['client'],
                                  glance_access['region'])

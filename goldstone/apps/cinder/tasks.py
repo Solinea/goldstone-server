@@ -50,12 +50,7 @@ def discover_cinder_topology():
     """
     from goldstone.utils import get_cinder_client
 
-    # Get the system's sole OpenStack cloud.
-    cloud = get_cloud()
-    cinder_access = get_cinder_client(cloud.username,
-                                      cloud.password,
-                                      cloud.tenant_name,
-                                      cloud.auth_url)
+    cinder_access = get_cinder_client()
 
     cinderclient = cinder_access['client']
     reg = cinder_access['region']

@@ -30,10 +30,7 @@ def stack_api_request_base(endpoint, path, os_username, os_password, os_tenant,
     from goldstone.utils import get_keystone_client, GoldstoneAuthError
 
     try:
-        keystone_client = get_keystone_client(os_username,
-                                              os_password,
-                                              os_tenant,
-                                              os_auth_url)
+        keystone_client = get_keystone_client()
 
         url = keystone_client['client'].service_catalog.\
             get_endpoints()[endpoint][0]['publicURL'] + path
