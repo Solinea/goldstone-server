@@ -25,6 +25,8 @@ var NodeAvailModel = GoldstoneBaseModel.extend({});
 
 var NodeAvailCollection = Backbone.Collection.extend({
 
+    defaults: {},
+
     parse: function(data) {
         if (data.next && data.next !== null) {
             var dp = data.next;
@@ -39,20 +41,35 @@ var NodeAvailCollection = Backbone.Collection.extend({
 
     model: NodeAvailModel,
 
-    updateUrl: function() {
+    initialize: function(options) {
+        this.defaults = _.clone(this.defaults); 
 
-        var fifteenAgo = (+new Date()) - (1000 * 60 * 15);
+        this.urlUpdate(this.computeLookback());
 
-        this.url = '/logging/summarize?interval=15m' +
-            '&@timestamp__range={"gte":' + fifteenAgo + '}';
+        // don't add {remove:false} to the initial fetch
+        // as it will introduce an artifact that will
+        // render via d3
+        this.defaults.fetchInProgress = false;
+        this.defaults.urlCollectionCountOrig = 2;
+        this.defaults.urlCollectionCount = 2;
+
+        this.fetchWithReset();
+
     },
 
-    initialize: function(options) {
-        this.fetchWithReset();
+    computeLookback: function() {
+        var lookbackMinutes;
+        if ($('.global-lookback-selector .form-control').length) {
+            // global lookback is available:
+            lookbackMinutes = parseInt($('.global-lookback-selector .form-control').val(), 10);
+        } else {
+            // otherwise, default to 1 hour:
+            lookbackMinutes = 60;
+        }
+        return lookbackMinutes;
     },
 
     fetchWithReset: function() {
-        this.updateUrl();
 
         // used when you want to delete existing data in collection
         // such as changing the global-lookback period
@@ -69,4 +86,15 @@ var NodeAvailCollection = Backbone.Collection.extend({
             remove: false
         });
     },
+
+    urlUpdate: function(val) {
+
+        var now = (+new Date());
+        var lookback = now - (1000 * 60 * val);
+
+        // remove interval to get a count summary for the full time range
+        this.url = '/logging/summarize?interval=1d&@timestamp__range={"gte":' +
+            lookback + '}';
+
+    }
 });
