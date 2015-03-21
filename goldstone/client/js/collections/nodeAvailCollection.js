@@ -35,6 +35,8 @@ var NodeAvailCollection = Backbone.Collection.extend({
                 url: nextUrl,
                 remove: false
             });
+        } else {
+            this.defaults.urlCollectionCount--;
         }
         return data;
     },
@@ -44,16 +46,11 @@ var NodeAvailCollection = Backbone.Collection.extend({
     initialize: function(options) {
         this.defaults = _.clone(this.defaults); 
 
-        this.urlUpdate(this.computeLookback());
-
-        // don't add {remove:false} to the initial fetch
-        // as it will introduce an artifact that will
-        // render via d3
         this.defaults.fetchInProgress = false;
         this.defaults.urlCollectionCountOrig = 2;
         this.defaults.urlCollectionCount = 2;
 
-        this.fetchWithReset();
+        this.fetchMultipleUrls();
 
     },
 
@@ -69,32 +66,42 @@ var NodeAvailCollection = Backbone.Collection.extend({
         return lookbackMinutes;
     },
 
-    fetchWithReset: function() {
+    fetchMultipleUrls: function() {
+        var self = this;
 
-        // used when you want to delete existing data in collection
-        // such as changing the global-lookback period
+        if (this.defaults.fetchInProgress) {
+            return null;
+        }
+
+        this.defaults.fetchInProgress = true;
+        this.defaults.urlsToFetch = [];
+
+        var lookbackSeconds = (this.computeLookback() * 60);
+
+        this.defaults.urlsToFetch[0] = '' +
+            '/logging/summarize?timestamp__range={"gte":' +
+            (+new Date() - (lookbackSeconds * 1000)) +
+            '}&interval=' + (lookbackSeconds / 60 / 4) + 'm';
+
+        // this is the call with the 1d lookback to bucket ALL
+        // the values into a single return value per alert level.
+        this.defaults.urlsToFetch[1] = '' +
+            '/logging/summarize?timestamp__range={"gte":' +
+            (+new Date() - (lookbackSeconds * 1000)) +
+            '}&interval=1d';
+
+        // don't add {remove:false} to the initial fetch
+        // as it will introduce an artifact that will
+        // render via d3
         this.fetch({
-            remove: true
+            remove: true,
+            url: this.defaults.urlsToFetch[0],
+            success: function() {
+                self.fetch({
+                    url: self.defaults.urlsToFetch[1],
+                    remove: true
+                });
+            }
         });
-    },
-
-    fetchNoReset: function() {
-
-        // used when you want to retain existing data in collection
-        // such as a global-refresh-triggered update to the Event Timeline viz
-        this.fetch({
-            remove: false
-        });
-    },
-
-    urlUpdate: function(val) {
-
-        var now = (+new Date());
-        var lookback = now - (1000 * 60 * val);
-
-        // remove interval to get a count summary for the full time range
-        this.url = '/logging/summarize?interval=1d&@timestamp__range={"gte":' +
-            lookback + '}';
-
     }
 });
