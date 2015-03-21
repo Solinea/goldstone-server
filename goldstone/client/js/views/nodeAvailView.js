@@ -86,6 +86,9 @@ var NodeAvailView = GoldstoneBaseView.extend({
         this.defaults.height = this.options.h;
         this.defaults.r = d3.scale.sqrt();
         this.defaults.colorArray = new GoldstoneColors().get('colorSets');
+
+        // this will contain the results of the two seperate fetches
+        // before they are zipped together in this.combineDatasets
         this.defaults.dataToCombine = [];
 
     },
@@ -97,27 +100,33 @@ var NodeAvailView = GoldstoneBaseView.extend({
         this.collection.on('sync', function() {
             if (self.collection.defaults.urlCollectionCount === 0) {
 
+                // if the 2nd fetch is done, store the 2nd dataset
+                // in dataToCombine
                 ns.dataToCombine[1] = self.collectionPrep(self.collection.toJSON()[0]);
 
+                // restore the fetch count
                 self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
+
+                // reset fetchInProgress so further fetches can
+                // be initiated
                 self.collection.defaults.fetchInProgress = false;
+
+                // update the view
                 self.update();
             } else if (self.collection.defaults.urlCollectionCount === 1) {
+                // if the 1st of 2 fetches are done, store the
+                // first dataset in dataToCombine
                 ns.dataToCombine[0] = self.collectionPrep(self.collection.toJSON()[0]);
             }
-
-
         });
 
         this.collection.on('error', this.dataErrorMessage, this);
 
         this.on('lookbackSelectorChanged', function() {
-            self.updateSettings();
             self.fetchNowWithReset();
         });
 
         this.on('lookbackIntervalReached', function() {
-            self.updateSettings();
             self.fetchNowWithReset();
         });
     },
@@ -139,21 +148,9 @@ var NodeAvailView = GoldstoneBaseView.extend({
         });
     },
 
-    lookbackRange: function() {
-        var lookbackMinutes;
-        lookbackMinutes = $('.global-lookback-selector .form-control').val();
-        return parseInt(lookbackMinutes, 10);
-    },
-
-    updateSettings: function() {
-        var ns = this.defaults;
-        ns.lookbackRange = this.lookbackRange();
-    },
-
     fetchNowWithReset: function() {
         var ns = this.defaults;
         this.showSpinner();
-        // this.collection.urlUpdate(ns.lookbackRange);
         this.collection.fetchMultipleUrls();
     },
 
@@ -341,8 +338,12 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         var finalData = [];
 
-        // data.levels will equal all hosts
+        // data.hosts will equal all hosts, so
         // make an object to keep track of whether each one has been
+        // found in the data.data array, and record the levels
+        // and timestamp for that occurance.
+        // once each host has been found, quit the iteration and
+        // return the record as final data;
         var setOfHosts = {}; // ['rsrc-01', 'ctrl-01', ....]
 
         // prime setOfHosts object. keyed to data.hosts
@@ -360,10 +361,13 @@ var NodeAvailView = GoldstoneBaseView.extend({
             });
         };
 
+        // reverse the data in order to encounter the
+        // most recent timestamps first
+        data.data.reverse();
+
         // sets up an iteration that will break as soon as every
         // host value is no longer set to null, or else gets
         // through the entire data set
-        data.data.reverse();
         _.every(data.data, function(item) {
 
             // iterate through the timestamp
@@ -407,21 +411,19 @@ var NodeAvailView = GoldstoneBaseView.extend({
             });
 
             // if there are any remaining hosts that are set to null
-            // then this retrun value will be true and the iteration
+            // then this return value will be true and the iteration
             // will continue. but if this returns false, it stops
             return checkIfAnyNull(setOfHosts);
         });
-
-
-        // found in the data.data array, and record the levels
-        // and timestamp for that occurance.
-        // once each host has been found, quit the iteration and
-        // return the record as final data;
 
         return finalData;
     },
 
     combineDatasets: function(dataArray) {
+
+        // take the two datasets and iterate through the first one
+        // looking for '_count' attributes, and then copy them over
+        // from the 2nd dataset which contains the accurate counts
         _.each(dataArray[0], function(item, i) {
             for (var k in item) {
                 if (k.indexOf('_count') > -1) {
@@ -430,7 +432,21 @@ var NodeAvailView = GoldstoneBaseView.extend({
             }
         });
 
+        // after they are zipped together, the final result will
+        // be contained in array index 0.
         return dataArray[0];
+    },
+
+    lookbackRange: function() {
+        var lookbackMinutes;
+        lookbackMinutes = $('.global-lookback-selector .form-control').val();
+        return parseInt(lookbackMinutes, 10);
+        // returns only the numerical value of the lookback range
+    },
+
+    updateLookbackMinutes: function() {
+        var ns = this.defaults;
+        ns.lookbackRange = this.lookbackRange();
     },
 
     update: function() {
@@ -443,7 +459,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
         var allthelogs = this.collection.toJSON()[0];
 
         // get the currrent lookback to set the domain of the xAxis
-        this.updateSettings();
+        this.updateLookbackMinutes();
         xEnd = +new Date();
         xStart = xEnd - (1000 * 60 * ns.lookbackRange);
 
@@ -454,12 +470,12 @@ var NodeAvailView = GoldstoneBaseView.extend({
             return;
         }
 
-        // populate the modal based on the event types.
         // clear out the modal and reapply based on the unique events
         if ($(this.el).find('#populateEventFilters').length) {
             $(this.el).find('#populateEventFilters').empty();
         }
 
+        // populate the modal based on the event types.
         _.each(_.keys(ns.filter), function(item) {
 
             // don't put type 'none' or 'actualZero'
@@ -468,6 +484,8 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 return null;
             }
 
+            // function to determine if the html should format
+            // a check box for the filter button in the modal
             var addCheckIfActive = function(item) {
                 if (ns.filter[item]) {
                     return 'checked';
@@ -495,6 +513,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
             );
         });
 
+        // click listerner for check box to redraw the viz upon change
         $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
             var checkboxId = this.id;
             ns.filter[checkboxId] = !ns.filter[checkboxId];
