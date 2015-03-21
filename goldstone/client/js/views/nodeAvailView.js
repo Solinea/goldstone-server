@@ -142,7 +142,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
-                'margin-top': -(ns.height.main * 0.7),
+                'margin-top': -(ns.height.main * 0.4),
                 'display': ns.spinnerDisplay
             });
         });
