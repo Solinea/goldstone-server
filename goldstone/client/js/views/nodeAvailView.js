@@ -86,13 +86,29 @@ var NodeAvailView = GoldstoneBaseView.extend({
         this.defaults.height = this.options.h;
         this.defaults.r = d3.scale.sqrt();
         this.defaults.colorArray = new GoldstoneColors().get('colorSets');
+        this.defaults.dataToCombine = [];
 
     },
 
     processListeners: function() {
         var self = this;
+        var ns = this.defaults;
 
-        this.collection.on('sync', this.update, this);
+        this.collection.on('sync', function() {
+            if (self.collection.defaults.urlCollectionCount === 0) {
+
+                ns.dataToCombine[1] = self.collectionPrep(self.collection.toJSON()[0]);
+
+                self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
+                self.collection.defaults.fetchInProgress = false;
+                self.update();
+            } else if (self.collection.defaults.urlCollectionCount === 1) {
+                ns.dataToCombine[0] = self.collectionPrep(self.collection.toJSON()[0]);
+            }
+
+
+        });
+
         this.collection.on('error', this.dataErrorMessage, this);
 
         this.on('lookbackSelectorChanged', function() {
@@ -121,6 +137,24 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 'display': ns.spinnerDisplay
             });
         });
+    },
+
+    lookbackRange: function() {
+        var lookbackMinutes;
+        lookbackMinutes = $('.global-lookback-selector .form-control').val();
+        return parseInt(lookbackMinutes, 10);
+    },
+
+    updateSettings: function() {
+        var ns = this.defaults;
+        ns.lookbackRange = this.lookbackRange();
+    },
+
+    fetchNowWithReset: function() {
+        var ns = this.defaults;
+        this.showSpinner();
+        // this.collection.urlUpdate(ns.lookbackRange);
+        this.collection.fetchMultipleUrls();
     },
 
     standardInit: function() {
@@ -287,26 +321,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
             .style('font-weight', 'bold');
     },
 
-    lookbackRange: function() {
-        var lookbackMinutes;
-        lookbackMinutes = $('.global-lookback-selector .form-control').val();
-        return parseInt(lookbackMinutes, 10);
-    },
-
-    updateSettings: function() {
-        var ns = this.defaults;
-        ns.lookbackRange = this.lookbackRange();
-    },
-
-    fetchNowWithReset: function() {
-        var ns = this.defaults;
-        this.showSpinner();
-        this.collection.urlUpdate(ns.lookbackRange);
-        this.collection.fetchWithReset();
-    },
-
     sums: function(datum) {
-        // console.log('sums data', datum);
         var ns = this.defaults;
         // Return the sums for the filters that are on
         return d3.sum(ns.loglevel.domain().map(function(k) {
@@ -380,7 +395,9 @@ var NodeAvailView = GoldstoneBaseView.extend({
                         });
 
                         // set each alert level to 0 if still undefined
-                        _.each(ns.loglevel.domain(), function(level) {
+                        _.each(ns.loglevel.domain().filter(function(item) {
+                            return item !== 'actualZero';
+                        }), function(level) {
                             hostResultObject[level + '_count'] = hostResultObject[level + '_count'] || 0;
                         });
 
@@ -402,6 +419,18 @@ var NodeAvailView = GoldstoneBaseView.extend({
         // return the record as final data;
 
         return finalData;
+    },
+
+    combineDatasets: function(dataArray) {
+        _.each(dataArray[0], function(item, i) {
+            for (var k in item) {
+                if (k.indexOf('_count') > -1) {
+                    item[k] = dataArray[1][i][k];
+                }
+            }
+        });
+
+        return dataArray[0];
     },
 
     update: function() {
@@ -480,7 +509,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
          *   - Sort by last seen (from most to least recent)
          */
 
-        ns.dataset = this.collectionPrep(allthelogs)
+        ns.dataset = this.combineDatasets(ns.dataToCombine)
             .map(function(d) {
                 d.created = moment(d.created);
                 d.updated = moment(d.updated);
