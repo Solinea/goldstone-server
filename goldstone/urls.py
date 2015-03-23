@@ -35,7 +35,7 @@ urlpatterns = patterns(
                                namespace='rest_framework')),
     url(r'^api_perf/', include('goldstone.apps.api_perf.urls')),
     url(r'^cinder/', include('goldstone.apps.cinder.urls')),
-    url(r'^core/', include('goldstone.apps.core.urls')),
+    url(r'^core/', include('goldstone.core.urls')),
     url(r'^discover[/]?$', DiscoverView.as_view()),
     url(r'^glance/', include('goldstone.apps.glance.urls')),
     url(r'^help[/]?$', HelpView.as_view()),

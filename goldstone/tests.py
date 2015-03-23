@@ -25,17 +25,15 @@ import sys
 # This is needed here for mock to work.
 from elasticsearch.client import IndicesClient
 from elasticsearch_dsl.connections import connections, Connections
-from keystoneclient.exceptions import ClientException
-from mock import patch, PropertyMock
+from mock import patch
 import mock
-from goldstone.apps.nova.models import Host
 
+from goldstone.core.models import Host
+from goldstone.core.tasks import create_daily_index
 from goldstone.models import ESData, es_conn, daily_index, es_indices, \
     TopologyData
-from goldstone.apps.core.tasks import create_daily_index
 from goldstone.tenants.models import Tenant
 from goldstone.test_utils import Setup
-from goldstone.utils import get_keystone_client, GoldstoneAuthError
 
 sys.path.append("..")      # For importing from fabfile.
 from fabfile import _tenant_init, DEFAULT_TENANT, DEFAULT_TENANT_OWNER, \
@@ -243,12 +241,12 @@ class ESConnectionTests(SimpleTestCase):
 
 
 class ReportTemplateViewTest(SimpleTestCase):
+
     node1 = Host(name="test_node_123")
 
     def setUp(self):
-        Host.objects.all().delete()
+        """Run before every test."""
 
-    def tearDown(self):
         Host.objects.all().delete()
 
     def test_good_request(self):

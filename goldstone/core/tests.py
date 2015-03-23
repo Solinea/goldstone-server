@@ -25,8 +25,8 @@ import mock
 from mock import patch
 from rest_framework.test import APISimpleTestCase
 
-from goldstone.apps.core import tasks
-from goldstone.apps.core.utils import custom_exception_handler
+from . import tasks
+from .utils import custom_exception_handler
 from .models import PolyResource
 
 logger = logging.getLogger(__name__)
@@ -68,6 +68,7 @@ class PolyResourceModelTests(SimpleTestCase):
     def test___hashable(self):
         """test the hashable representation of a resource."""
 
+        # pylint: disable=W0212
         resource = PolyResource(name='polly')._hashable()
         self.assertTrue('"name":"polly"' in resource)
 
@@ -106,7 +107,7 @@ class CustomExceptionHandlerTests(APISimpleTestCase):
     def test_drf_handled_exception(self):
         """Test that we pass DRF recognized exceptions through unmodified"""
         with patch(
-                'goldstone.apps.core.utils.exception_handler') \
+                'goldstone.core.utils.exception_handler') \
                 as exception_handler:
 
             exception_handler.return_value = "it's handled"
@@ -117,7 +118,7 @@ class CustomExceptionHandlerTests(APISimpleTestCase):
     def test_502_error_exceptions(self):
         """Test ES connection exception is handled"""
         with patch(
-                'goldstone.apps.core.utils.exception_handler') \
+                'goldstone.core.utils.exception_handler') \
                 as exception_handler:
 
             exception_handler.return_value = None
@@ -129,7 +130,7 @@ class CustomExceptionHandlerTests(APISimpleTestCase):
     def test_500_error_exceptions(self):
         """Test ES connection exception is handled"""
         with patch(
-                'goldstone.apps.core.utils.exception_handler') \
+                'goldstone.core.utils.exception_handler') \
                 as exception_handler:
 
             exception_handler.return_value = None
@@ -153,15 +154,13 @@ class CustomExceptionHandlerTests(APISimpleTestCase):
             self.assertTrue(exception_handler.called)
             self.assertEqual(result.status_code, 500)
 
-
     def test_not_exception(self):
         """Test ES connection exception is handled"""
         with patch(
-                'goldstone.apps.core.utils.exception_handler') \
+                'goldstone.core.utils.exception_handler') \
                 as exception_handler:
 
             exception_handler.return_value = None
             result = custom_exception_handler('what??', None)
             self.assertTrue(exception_handler.called)
             self.assertEqual(result, None)
-
