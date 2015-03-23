@@ -25,8 +25,7 @@ import sys
 # This is needed here for mock to work.
 from elasticsearch.client import IndicesClient
 from elasticsearch_dsl.connections import connections, Connections
-from keystoneclient.exceptions import ClientException
-from mock import patch, PropertyMock
+from mock import patch
 import mock
 
 from goldstone.core.models import Host
@@ -35,7 +34,6 @@ from goldstone.models import ESData, es_conn, daily_index, es_indices, \
     TopologyData
 from goldstone.tenants.models import Tenant
 from goldstone.test_utils import Setup
-from goldstone.utils import get_keystone_client, GoldstoneAuthError
 
 sys.path.append("..")      # For importing from fabfile.
 from fabfile import _tenant_init, DEFAULT_TENANT, DEFAULT_TENANT_OWNER, \

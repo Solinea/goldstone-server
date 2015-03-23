@@ -15,14 +15,11 @@
 import arrow
 from django.test import SimpleTestCase
 from elasticsearch_dsl import Search, Q
-from mock import patch
 from pandas import DataFrame
 from uuid import uuid1
 
-from goldstone.apps.api_perf.utils import stack_api_request_base
 from goldstone.apps.api_perf.views import ApiPerfView
 from goldstone.models import daily_index, es_conn
-from goldstone.utils import GoldstoneAuthError
 from .models import ApiPerfData
 
 
@@ -34,58 +31,6 @@ class ViewTests(SimpleTestCase):
         response = self.client.get(uri)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'api_perf_report.html')
-
-
-class UtilsTests(SimpleTestCase):
-
-    @patch('keystoneclient.v3.client.Client')
-    @patch('goldstone.utils.get_keystone_client')
-    def test_openstack_api_request_base_success(self, m_get, m_client):
-        from django.conf import settings
-
-        m_client.service_catalog.get_endpoints.return_value = {
-            'endpoint': [{'publicURL': "http://endpoint"}]
-        }
-        m_client.hex_token = 'token'
-        m_get.return_value = {'client': m_client, 'hex_token': 'token'}
-
-        # {'url': 'http://endpoint/path',
-        #  'headers': {'content-type': 'application/json',
-        #              'x-auth-token': 'token'}
-        # }
-
-        result = stack_api_request_base("endpoint",
-                                        "/path",
-                                        settings.CLOUD_USERNAME,
-                                        settings.CLOUD_PASSWORD,
-                                        settings.CLOUD_TENANT_NAME,
-                                        settings.CLOUD_AUTH_URL)
-        self.assertIn('url', result)
-        self.assertIn('x-auth-token', result['headers'])
-        self.assertIn('content-type', result['headers'])
-        self.assertEquals(result['headers']['x-auth-token'], 'token')
-        self.assertEquals(result['url'], "http://endpoint/path")
-
-    @patch('goldstone.utils.get_keystone_client')
-    def test_os_api_request_base_exc(self, m_get):
-        """Stack_api_request_base correctly propagates exceptions."""
-
-        # For each pair of get_keystone_client raised exception, and the
-        # exception that it should propagate...
-        for (generated, propagated) in \
-            [(GoldstoneAuthError, GoldstoneAuthError),
-             (Exception, LookupError)]:
-            # Mock the generated exception.
-            m_get.side_effect = generated
-
-            # Check that the propagated exception matches.
-            self.assertRaises(propagated, stack_api_request_base,
-                              '',
-                              '',
-                              '',
-                              '',
-                              '',
-                              '')
 
 
 class ApiPerfTests(SimpleTestCase):

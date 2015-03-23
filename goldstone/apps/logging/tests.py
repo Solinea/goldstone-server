@@ -133,7 +133,6 @@ class LogAggViewTests(APITestCase):
         self.token = create_and_login()
 
     def test_agg_view_with_params(self):
-        import arrow
 
         start = arrow.get(0).timestamp * 1000
         end = arrow.utcnow().timestamp * 1000
@@ -153,7 +152,6 @@ class LogEventViewTests(APITestCase):
         self.token = create_and_login()
 
     def test_event_view(self):
-        import arrow
 
         start = arrow.get(0).timestamp * 1000
         end = arrow.utcnow().timestamp * 1000
