@@ -424,10 +424,21 @@ var NodeAvailView = GoldstoneBaseView.extend({
         // take the two datasets and iterate through the first one
         // looking for '_count' attributes, and then copy them over
         // from the 2nd dataset which contains the accurate counts
+
+        // function to locate an object in a dataset that contains a name property with the passed in name
+        var findNodeToCopyFrom = function(data, name) {
+            return _.find(data, function(item) {
+                return item.name === name;
+            });
+        };
+
         _.each(dataArray[0], function(item, i) {
             for (var k in item) {
                 if (k.indexOf('_count') > -1) {
-                    item[k] = dataArray[1][i][k];
+                    var itemToCopyFrom = findNodeToCopyFrom(dataArray[1], item.name);
+                    console.log('item was and from',item[k], itemToCopyFrom[k]);
+                    item[k] = itemToCopyFrom[k];
+                    console.log('item is and from',item[k], itemToCopyFrom[k]);
                 }
             }
         });
