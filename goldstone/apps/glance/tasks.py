@@ -16,35 +16,47 @@ from __future__ import absolute_import
 from goldstone.celery import app as celery_app
 
 
-def _update_glance_image_records(client, region):
-    from datetime import datetime
-    from goldstone.utils import to_es_date
-    from .models import ImagesData
-    import logging
-    import pytz
-
-    images_list = client.images.list()
-
-    # Image list is a generator, so we need to make it not sol lazy it...
-    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
-            "region": region,
-            "images": [i for i in images_list]}
-
-    data = ImagesData()
-
-    try:
-        data.post(body)
-    except Exception:          # pylint: disable=W0703
-        logging.exception("failed to index glance images")
-
-
 @celery_app.task()
 def discover_glance_topology():
-    """Update Goldstone's glance data."""
+    """Update the Glance nodes in the Resource Instance graph."""
+    from datetime import datetime
+    from goldstone.core.models import resources, Image
     from goldstone.utils import get_glance_client
+    import pytz
 
-    # Get the system's sole OpenStack cloud.
-    glance_access = get_glance_client()
+    # Collect the glance images that exist in the OpenStack cloud, the region,
+    # and the current date/time.
+    client_access = get_glance_client()
+    region = client_access["region"]
+    actual_images = [x for x in client_access["client"].images.list()]
+    now = datetime.now(tz=pytz.utc)
 
-    _update_glance_image_records(glance_access['client'],
-                                 glance_access['region'])
+    # First, we will remove nodes from the Resource Instance graph
+    # that no longer exist.
+    resources = resources.nodes_of_type(Image)
+
+    import pdb; pdb.set_trace()
+    for node in resources:
+        if node.attributes not in actual_images:
+            # No Glance service has this resource node's attributes. Therefore,
+            # this resource node no longer exists.  Delete it from the resource
+            # graph and the db.
+            resource_instances.graph.remove_node(node)
+            node.delete()
+
+    # Now, for every node in the OpenStack cloud, add it to the Resource
+    # Instasnce graph (if it doesn't exist) or update its information (if it
+    # does.)
+    resources = resources.nodes_of_type(Image)
+
+    import pdb; pdb.set_trace()
+    for image in actual_images:
+        if image in resources:
+            # This Glance node still exists in our resource graph. Update its
+            # attributes.
+            resources.graph[node]["attributes"] = image
+        else:
+            # This is a new Glance node. Add it.
+            resources.add_node(image)
+
+        # Now update, or connect, this node's edges

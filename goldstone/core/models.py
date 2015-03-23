@@ -613,15 +613,15 @@ class ResourceTypes(Graph):
         return settings.RT_EDGE.keys()
 
 
-class ResourceInstances(Graph):
+class Resources(Graph):
     """A graph of the resources used within a specific OpenStack cloud."""
 
     def __init__(self):
         """Initialize the object."""
 
-        super(ResourceInstances, self).__init__()
+        super(Resources, self).__init__()
 
-    def instances(self, nodetype):
+    def nodes_of_type(self, nodetype):
         """Return all the instances that are of type <nodetype>.
 
         :param nodetype: The Resource Type that is desired
@@ -640,3 +640,7 @@ class ResourceInstances(Graph):
         """Return a list of the graph's edge types."""
 
         return settings.RI_EDGE.keys()
+
+
+# Here's Goldstone's Resource Instance graph.
+resources = Resources()
