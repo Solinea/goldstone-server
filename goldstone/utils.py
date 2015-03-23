@@ -105,8 +105,7 @@ def _get_region_for_client(catalog, management_url, service_type):
     return matches[0]['region']
 
 
-def _get_region_for_cinder_client(client, os_username, os_password,
-                                  os_tenant_name, os_auth_url):
+def _get_region_for_cinder_client(client):
 
     # force authentication to populate management url
     client.authenticate()
@@ -207,11 +206,7 @@ def get_client(service):
                                      os_tenant_name,
                                      os_auth_url,
                                      service_type='volume')
-            region = _get_region_for_cinder_client(client,
-                                                   os_username,
-                                                   os_password,
-                                                   os_tenant_name,
-                                                   os_auth_url)
+            region = _get_region_for_cinder_client(client)
             return {'client': client, 'region': region}
 
         elif service == 'neutron':
