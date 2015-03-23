@@ -343,6 +343,8 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
 
     """
 
+    # pylint: disable=R0914
+
     # Values for the default OpenStack cloud that we will create under the
     # default tenant. These come from environment variables, if present;
     # otherwise a sensible default.
@@ -351,7 +353,12 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
     DEFAULT_CLOUD_PASSWORD = os.environ.get("DEFAULT_CLOUD_PASSWORD",
                                             "changeme")
     DEFAULT_CLOUD_AUTH_URL = os.environ.get("DEFAULT_CLOUD_AUTH_URL",
-                                            "http://127.0.0.1:5000/v3/")
+                                            "http://127.0.0.1:5000/")
+
+    # The OpenStack identity authorization URL has a version number segment.
+    # This is the authorization version we use. It should end with a slash, but
+    # maybe that's not necessary.
+    CLOUD_AUTH_URL_VERSION = "v3/"
 
     # Create the tenant and tenant_admin.
     tenant, settings = _tenant_init(tenant,
@@ -372,6 +379,8 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
         cloud_username = prompt("OS_USERNAME?", default=DEFAULT_CLOUD_USERNAME)
         cloud_password = prompt("OS_PASSWORD?", default=DEFAULT_CLOUD_PASSWORD)
         cloud_auth_url = prompt("OS_AUTH_URL?", default=DEFAULT_CLOUD_AUTH_URL)
+
+        cloud_auth_url = os.path.join(cloud_auth_url, CLOUD_AUTH_URL_VERSION)
 
         Cloud.objects.create(tenant=tenant,
                              tenant_name=cloud_tenant_name,
