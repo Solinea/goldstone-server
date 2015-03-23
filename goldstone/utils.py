@@ -89,9 +89,7 @@ def _get_region_for_client(catalog, management_url, service_type):
         ep
         for cand in candidates
         for ep in cand['endpoints']
-        if ep['internalURL'] == management_url
-        or ep['publicURL'] == management_url
-        or ep['adminURL'] == management_url
+        if ep['url'] == management_url
     ]
 
     if not matches:
@@ -112,16 +110,17 @@ def _get_region_for_cinder_client(client):
 
     mgmt_url = client.client.management_url
     keystoneclient = get_keystone_client()['client']
-    catalog = keystoneclient.service_catalog.catalog['serviceCatalog']
+    catalog = keystoneclient.service_catalog.catalog['catalog']
 
     return _get_region_for_client(catalog, mgmt_url, 'volume')
 
 
 def _get_region_for_glance_client(client):
 
-    mgmt_url = client.endpoints.find(service_id=client.services.
-                                     find(name='glance').id).internalurl
-    catalog = client.service_catalog.catalog['serviceCatalog']
+    mgmt_url = client.endpoints.find(interface='internal',
+                                     service_id=client.services.
+                                     find(type='image').id).url
+    catalog = client.service_catalog.catalog['catalog']
     return _get_region_for_client(catalog, mgmt_url, 'image')
 
 
