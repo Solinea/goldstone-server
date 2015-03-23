@@ -64,33 +64,33 @@ ALLOWED_HOSTS = ['*', ]
 # Application definition.
 
 INSTALLED_APPS = (
-    'django_admin_bootstrapped',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.sessions',
+    'django.contrib.contenttypes',
     'django.contrib.messages',
+    'django.contrib.sessions',
     'django.contrib.staticfiles',
+    'django_admin_bootstrapped',
     'django_extensions',
     'djoser',
     'polymorphic',
     'rest_framework',
     'rest_framework.authtoken',
     'south',
-    'django.contrib.contenttypes',
     'goldstone.accounts',
-    'goldstone.apps.core',
-    'goldstone.apps.intelligence',
-    'goldstone.apps.nova',
-    'goldstone.apps.keystone',
-    'goldstone.apps.cinder',
-    'goldstone.apps.neutron',
-    'goldstone.apps.glance',
     'goldstone.apps.api_perf',
+    'goldstone.apps.cinder',
+    'goldstone.apps.drfes',
+    'goldstone.apps.glance',
+    'goldstone.apps.intelligence',
+    'goldstone.apps.keystone',
     'goldstone.apps.logging',
+    'goldstone.apps.neutron',
+    'goldstone.apps.nova',
+    'goldstone.core',
     'goldstone.tenants',
     'goldstone.user',
-    'goldstone.apps.drfes'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -182,52 +182,32 @@ HOST_AVAILABLE_PING_INTERVAL = crontab(minute='*/1')
 
 CELERYBEAT_SCHEDULE = {
     'delete_goldstone_indices': {
-        'task': 'goldstone.apps.core.tasks.delete_indices',
+        'task': 'goldstone.core.tasks.delete_indices',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE,
         'args': ('goldstone-', ES_GOLDSTONE_RETENTION)
     },
     'delete_logstash_indices': {
-        'task': 'goldstone.apps.core.tasks.delete_indices',
+        'task': 'goldstone.core.tasks.delete_indices',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE,
         'args': ('logstash-', ES_LOGSTASH_RETENTION)
     },
     'delete_goldstone_reports_indices': {
-        'task': 'goldstone.apps.core.tasks.delete_indices',
+        'task': 'goldstone.core.tasks.delete_indices',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE,
         'args': ('goldstone_reports-', ES_LOGSTASH_RETENTION)
     },
     'delete_goldstone_metrics_indices': {
-        'task': 'goldstone.apps.core.tasks.delete_indices',
+        'task': 'goldstone.core.tasks.delete_indices',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE,
         'args': ('goldstone_metrics-', ES_LOGSTASH_RETENTION)
     },
     'create_daily_index': {
-        'task': 'goldstone.apps.core.tasks.create_daily_index',
+        'task': 'goldstone.core.tasks.create_daily_index',
         'schedule': DAILY_INDEX_CURATION_SCHEDULE
     },
     'nova-hypervisors-stats': {
         'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
         'schedule': RESOURCE_QUERY_INTERVAL,
-    },
-    'time_keystone_token_post_api': {
-        'task': 'goldstone.apps.keystone.tasks.time_token_post_api',
-        'schedule': API_PERF_QUERY_INTERVAL,
-    },
-    'time_nova_hypervisor_list_api': {
-        'task': 'goldstone.apps.nova.tasks.time_hypervisor_list_api',
-        'schedule': API_PERF_QUERY_INTERVAL
-    },
-    'time_cinder_service_api': {
-        'task': 'goldstone.apps.cinder.tasks.time_service_list',
-        'schedule': API_PERF_QUERY_INTERVAL
-    },
-    'time_neutron_agent_list_api': {
-        'task': 'goldstone.apps.neutron.tasks.time_agent_list_api',
-        'schedule': API_PERF_QUERY_INTERVAL
-    },
-    'time_glance_image_api': {
-        'task': 'goldstone.apps.glance.tasks.time_image_list_api',
-        'schedule': API_PERF_QUERY_INTERVAL
     },
     'discover_keystone_topology': {
         'task': 'goldstone.apps.keystone.tasks.discover_keystone_topology',
@@ -296,7 +276,7 @@ REST_FRAMEWORK = {
     'PAGINATE_BY': 10,
     'PAGINATE_BY_PARAM': 'page_size',
     'MAX_PAGINATE_BY': 1000,
-    'EXCEPTION_HANDLER': 'goldstone.apps.core.utils.custom_exception_handler'
+    'EXCEPTION_HANDLER': 'goldstone.core.utils.custom_exception_handler'
 }
 
 # Goldstone config settings
@@ -306,3 +286,123 @@ DEFAULT_CHART_BUCKETS = 7*24
 ES_HOST = "127.0.0.1"
 ES_PORT = "9200"
 ES_SERVER = {'hosts': [ES_HOST + ":" + ES_PORT]}
+
+
+class ConstantDict(object):
+    """An enumeration class with 'real' members and testing methods.
+
+    Reflects on class and creates dictionary of all upper-case class
+    members.
+
+    To use, simply subclass and add "constant-case" class members like:
+
+        class MyEnum(ConstantDict):
+            '''My enumeration.'''
+            FOO = 'the foo member'
+            BAR = 'the bar member'
+
+    Then you can do thinks like::
+
+        print('FOO' in MyEnum.dict())  # True
+        print('FOO' in MyEnum.keys())  # True
+        print(MyEnum.FOO in MyEnum.values())  # True
+        print('the foo member' in MyEnum.values())  # True
+        print('no match' in MyEnum.values())  # False
+
+    """
+
+    __dict = None
+    __keys = None
+    __values = None
+
+    @classmethod
+    def dict(cls):
+        """Dictionary of all upper-case constants."""
+
+        if cls.__dict is None:
+            val = lambda x: getattr(cls, x)
+            # Create the dictionary in a Python 2.6-compatible way.
+            cls.__dict = dict(((c, val(c)) for c in dir(cls)
+                               if c == c.upper()))
+        return cls.__dict
+
+    @classmethod
+    def keys(cls):
+        """Class constant key set."""
+
+        if cls.__keys is None:
+            cls.__keys = set(cls.dict().keys())
+        return cls.__keys
+
+    @classmethod
+    def values(cls):
+        """Class constant value set."""
+
+        if cls.__values is None:
+            cls.__values = set(cls.dict().values())
+        return cls.__values
+
+
+class RTEdge(ConstantDict):
+    """The types of edges in the Resource Type graph."""
+
+    # Enumerations (should be the only UPPER_CASE members of ConstantDict).
+    ALLOCATED_TO = "allocatedto"      # An <<allocated to>> edge
+    APPLIES_TO = "appliesto"          # An <<applies to>> edge
+    ASSIGNED_TO = "assignedto"        # An <<assigned to>> edge
+    ATTACHED_TO = "attachedto"        # An <<attached to>> edge
+    CONSUMES = "consumes"             # A <<consumes>> edge
+    CONTAINS = "contains"             # A <<contains>> edge
+    DEFINES = "defines"               # A <<defines>> edge
+    INSTANCE_OF = "instanceof"        # An <<instance of>> edge
+    MANAGES = "manages"               # A <<manages>> edge
+    MEMBER_OF = "memberof"            # A <<member of>> edge
+    OWNS = "owns"                     # An <<owns>> edge
+    ROUTES_TO = "routesto"            # A <<routes to>> edge
+    SUBSCRIBED_TO = "subscribedto"    # A <<subscribed to>> edge
+    USES = "uses"                     # A <<uses>> edge
+
+RT_EDGE = RTEdge()
+
+
+class RTAttribute(ConstantDict):
+    """The names of attributes on Resource Type nodes or edges.
+
+    Today, there appears to be no need to partition these into "node
+    attributes" and "edge attributes."
+
+    """
+
+    # Enumerations (should be the only UPPER_CASE members of ConstantDict).
+    MIN = "min"     # A node may have this minimum number of this edge.
+    MAX = "max"     # A node may have this maximum number of this edge.
+    TYPE = "type"   # The type of this edge or node.
+
+RT_ATTRIBUTE = RTAttribute()
+
+
+class RIEdge(ConstantDict):
+    """The types of edges in a Resource Instance graph.
+
+    TODO: Do we need this?
+
+    """
+
+    # Enumerations (should be the only UPPER_CASE members of ConstantDict).
+    TODO = "todo"
+
+RI_EDGE = RIEdge()
+
+
+class RIAttribute(ConstantDict):
+    """The names of attributes on Resource Instance nodes or edges.
+
+    TODO: Do we need this? Maybe, network bandwidth, disk size, memory size,
+    etc.?
+
+    """
+
+    # Enumerations (should be the only UPPER_CASE members of ConstantDict).
+    TODO = "todo"
+
+RI_ATTRIBUTE = RIAttribute()

@@ -16,8 +16,8 @@ import socket
 
 import arrow
 import cinderclient.v2.services
-from keystoneclient.v2_0 import client as ksclient
-from novaclient.v1_1 import client as nvclient
+from keystoneclient.v3 import client as ksclient
+from novaclient.v2 import client as nvclient
 from cinderclient.v2 import client as ciclient
 from neutronclient.v2_0 import client as neclient
 from glanceclient.v2 import client as glclient
@@ -89,9 +89,7 @@ def _get_region_for_client(catalog, management_url, service_type):
         ep
         for cand in candidates
         for ep in cand['endpoints']
-        if ep['internalURL'] == management_url
-        or ep['publicURL'] == management_url
-        or ep['adminURL'] == management_url
+        if ep['url'] == management_url
     ]
 
     if not matches:
@@ -105,24 +103,24 @@ def _get_region_for_client(catalog, management_url, service_type):
     return matches[0]['region']
 
 
-def _get_region_for_cinder_client(client, os_username, os_password,
-                                  os_tenant_name, os_auth_url):
+def _get_region_for_cinder_client(client):
 
     # force authentication to populate management url
     client.authenticate()
 
     mgmt_url = client.client.management_url
     keystoneclient = get_keystone_client()['client']
-    catalog = keystoneclient.service_catalog.catalog['serviceCatalog']
+    catalog = keystoneclient.service_catalog.catalog['catalog']
 
     return _get_region_for_client(catalog, mgmt_url, 'volume')
 
 
 def _get_region_for_glance_client(client):
 
-    mgmt_url = client.endpoints.find(service_id=client.services.
-                                     find(name='glance').id).internalurl
-    catalog = client.service_catalog.catalog['serviceCatalog']
+    mgmt_url = client.endpoints.find(interface='internal',
+                                     service_id=client.services.
+                                     find(type='image').id).url
+    catalog = client.service_catalog.catalog['catalog']
     return _get_region_for_client(catalog, mgmt_url, 'image')
 
 
@@ -171,8 +169,6 @@ def get_client(service):
     NO_AUTH = "%s client failed to authorize. Check credentials in" \
               " goldstone settings."
 
-
-
     try:
         cloud = get_cloud()
         os_username = cloud.username
@@ -209,11 +205,7 @@ def get_client(service):
                                      os_tenant_name,
                                      os_auth_url,
                                      service_type='volume')
-            region = _get_region_for_cinder_client(client,
-                                                   os_username,
-                                                   os_password,
-                                                   os_tenant_name,
-                                                   os_auth_url)
+            region = _get_region_for_cinder_client(client)
             return {'client': client, 'region': region}
 
         elif service == 'neutron':

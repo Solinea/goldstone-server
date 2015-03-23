@@ -19,7 +19,7 @@ import redis
 
 import json
 import logging
-from goldstone.apps.core.tasks import create_daily_index
+from goldstone.core.tasks import create_daily_index
 from goldstone.utils import NoDailyIndex
 
 logger = logging.getLogger(__name__)
@@ -105,10 +105,6 @@ class RedisConnection(object):
 class ESData(object):
 
     _conn = es_conn()
-
-    def __init__(self):
-        """Initialize the object, to keep pylint happy."""
-        pass
 
     def get_index_names(self, prefix=None):
         """
