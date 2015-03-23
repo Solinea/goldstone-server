@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from rest_framework.permissions import AllowAny
 from goldstone.apps.drfes.views import ElasticListAPIView, SimpleAggView
 
 from .models import MetricData, ReportData

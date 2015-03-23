@@ -132,6 +132,7 @@ class SpawnData(ESData):
     _DOC_TYPE = 'nova_spawns'
 
     def __init__(self, start, end, interval):
+
         self.start = start
         self.end = end
         self.interval = interval

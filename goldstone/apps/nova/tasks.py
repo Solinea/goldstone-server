@@ -141,6 +141,7 @@ def discover_nova_topology():
                          ServicesData(),
                          nova_client.services.list())
 
+
 #
 # This is the beginning of the new polymorphic resource model support
 #

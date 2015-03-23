@@ -12,10 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import logging
 from arrow import Arrow
-from elasticsearch_dsl import Search, query
+from elasticsearch_dsl import query
 from goldstone.apps.drfes.models import DailyIndexDocType
 
 logger = logging.getLogger(__name__)
@@ -33,7 +32,6 @@ class LogData(DailyIndexDocType):
 
         See elasticsearch-dsl for parameter information.
         """
-        from goldstone.apps.drfes.models import es_conn, es_indices
         from elasticsearch_dsl.query import Q
 
         search = super(LogData, cls).search()
