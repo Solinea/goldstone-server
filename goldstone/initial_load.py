@@ -50,8 +50,8 @@ def _put_metrics_template(server=settings.ES_SERVER):
                               "goldstone_metrics_template.json"), 'rb')
         _put_es_template(f, "goldstone_metrics", server=server)
     except Exception:         # pylint: disable=W0703
-        print "?ERROR: Failed to create/update the goldstone_metrics template. " \
-              "Please report this!"
+        print "?ERROR: Failed to create/update the goldstone_metrics " \
+              "template.  Please report this!"
         raise
 
 
@@ -63,8 +63,8 @@ def _put_reports_template(server=settings.ES_SERVER):
                               "goldstone_reports_template.json"), 'rb')
         _put_es_template(f, "goldstone_reports", server=server)
     except Exception:         # pylint: disable=W0703
-        print "?ERROR: Failed to create/update the goldstone_reports template. " \
-              "Please report this!"
+        print "?ERROR: Failed to create/update the goldstone_reports " \
+              "template.  Please report this!"
         raise
 
 

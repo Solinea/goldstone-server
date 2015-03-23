@@ -171,8 +171,6 @@ def get_client(service):
     NO_AUTH = "%s client failed to authorize. Check credentials in" \
               " goldstone settings."
 
-
-
     try:
         cloud = get_cloud()
         os_username = cloud.username

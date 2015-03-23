@@ -68,6 +68,7 @@ class PolyResourceModelTests(SimpleTestCase):
     def test___hashable(self):
         """test the hashable representation of a resource."""
 
+        # pylint: disable=W0212
         resource = PolyResource(name='polly')._hashable()
         self.assertTrue('"name":"polly"' in resource)
 
@@ -153,7 +154,6 @@ class CustomExceptionHandlerTests(APISimpleTestCase):
             self.assertTrue(exception_handler.called)
             self.assertEqual(result.status_code, 500)
 
-
     def test_not_exception(self):
         """Test ES connection exception is handled"""
         with patch(
@@ -164,4 +164,3 @@ class CustomExceptionHandlerTests(APISimpleTestCase):
             result = custom_exception_handler('what??', None)
             self.assertTrue(exception_handler.called)
             self.assertEqual(result, None)
-

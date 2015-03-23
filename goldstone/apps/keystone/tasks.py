@@ -19,8 +19,6 @@ import logging
 from .models import EndpointsData, RolesData, ServicesData, \
     TenantsData, UsersData
 
-from goldstone.utils import get_cloud
-
 
 def _update_keystone_records(rec_type, region, database, items):
     from datetime import datetime

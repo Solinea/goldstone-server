@@ -106,10 +106,6 @@ class ESData(object):
 
     _conn = es_conn()
 
-    def __init__(self):
-        """Initialize the object, to keep pylint happy."""
-        pass
-
     def get_index_names(self, prefix=None):
         """
 

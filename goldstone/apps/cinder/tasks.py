@@ -18,7 +18,6 @@ from goldstone.celery import app as celery_app
 from goldstone.utils import to_es_date
 from .models import ServicesData, VolumesData, BackupsData, SnapshotsData, \
     VolTypesData, EncryptionTypesData, TransfersData
-from goldstone.utils import get_cloud
 
 logger = logging.getLogger(__name__)
 
