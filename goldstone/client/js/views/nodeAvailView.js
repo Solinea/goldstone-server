@@ -142,7 +142,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
-                'margin-top': -(ns.height.main * 0.4),
+                'margin-top': -(ns.height.main * 0.55),
                 'display': ns.spinnerDisplay
             });
         });
@@ -436,9 +436,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
             for (var k in item) {
                 if (k.indexOf('_count') > -1) {
                     var itemToCopyFrom = findNodeToCopyFrom(dataArray[1], item.name);
-                    console.log('item was and from',item[k], itemToCopyFrom[k]);
                     item[k] = itemToCopyFrom[k];
-                    console.log('item is and from',item[k], itemToCopyFrom[k]);
                 }
             }
         });
