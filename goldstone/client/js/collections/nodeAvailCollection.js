@@ -35,6 +35,11 @@ var NodeAvailCollection = Backbone.Collection.extend({
                 url: nextUrl,
                 remove: false
             });
+        } else {
+            // there will be multiple fetches arriving and until
+            // they are done, no new fetches can be initiated
+            // decrement the count and return the data so far
+            this.defaults.urlCollectionCount--;
         }
         return data;
     },
@@ -44,16 +49,16 @@ var NodeAvailCollection = Backbone.Collection.extend({
     initialize: function(options) {
         this.defaults = _.clone(this.defaults); 
 
-        this.urlUpdate(this.computeLookback());
-
-        // don't add {remove:false} to the initial fetch
-        // as it will introduce an artifact that will
-        // render via d3
+        // fetchInProgress = true will block further fetches
         this.defaults.fetchInProgress = false;
-        this.defaults.urlCollectionCountOrig = 2;
-        this.defaults.urlCollectionCount = 2;
 
-        this.fetchWithReset();
+        // one small interval for more accurate timestamp
+        // and one large interval for more accurate event counts
+        this.defaults.urlCollectionCount = 2;
+        this.defaults.urlCollectionCountOrig = 2;
+
+        // kick off the process of fetching the two data payloads
+        this.fetchMultipleUrls();
 
     },
 
@@ -66,35 +71,54 @@ var NodeAvailCollection = Backbone.Collection.extend({
             // otherwise, default to 1 hour:
             lookbackMinutes = 60;
         }
+
+        // returns the number of minutes corresponding
+        // to the global lookback selector
         return lookbackMinutes;
     },
 
-    fetchWithReset: function() {
+    fetchMultipleUrls: function() {
+        var self = this;
 
-        // used when you want to delete existing data in collection
-        // such as changing the global-lookback period
+        if (this.defaults.fetchInProgress) {
+            return null;
+        }
+
+        this.defaults.fetchInProgress = true;
+        this.defaults.urlsToFetch = [];
+
+        var lookbackSeconds = (this.computeLookback() * 60);
+
+        // this is the url with the small interval to gather a more
+        // accurate assessment of the time the node was last seen
+        this.defaults.urlsToFetch[0] = '' +
+            '/logging/summarize?timestamp__range={"gte":' +
+            (+new Date() - (lookbackSeconds * 1000)) +
+            '}&interval=' + (lookbackSeconds / 60) + 'm';
+
+        // this is the url with the 1d lookback to bucket ALL
+        // the values into a single return value per alert level.
+        this.defaults.urlsToFetch[1] = '' +
+            '/logging/summarize?timestamp__range={"gte":' +
+            (+new Date() - (lookbackSeconds * 1000)) +
+            '}&interval=1d';
+
+        // don't add {remove:false} to the initial fetch
+        // as it will introduce an artifact that will
+        // render via d3
         this.fetch({
-            remove: true
+            // clear out the previous results
+            remove: true,
+            url: this.defaults.urlsToFetch[0],
+            // upon successful first fetch, kick off the second
+            success: function() {
+                self.fetch({
+                    url: self.defaults.urlsToFetch[1],
+                    // clear out the previous result, it's already been
+                    // stored in the view for zipping the 2 together
+                    remove: true
+                });
+            }
         });
-    },
-
-    fetchNoReset: function() {
-
-        // used when you want to retain existing data in collection
-        // such as a global-refresh-triggered update to the Event Timeline viz
-        this.fetch({
-            remove: false
-        });
-    },
-
-    urlUpdate: function(val) {
-
-        var now = (+new Date());
-        var lookback = now - (1000 * 60 * val);
-
-        // remove interval to get a count summary for the full time range
-        this.url = '/logging/summarize?interval=1d&@timestamp__range={"gte":' +
-            lookback + '}';
-
     }
 });

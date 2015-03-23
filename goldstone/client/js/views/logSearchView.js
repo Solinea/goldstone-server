@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
+/*
+instantiated in search.html as
+    new LogSearchView({
+        el: ".log-search-container"
+    });
+*/
+
 var LogSearchView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
