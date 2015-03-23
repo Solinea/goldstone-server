@@ -53,7 +53,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
             collection: this.nodeAvailChart,
             el: '#goldstone-discover-r1-c2',
             h: {
-                "main": 150,
+                "main": 210,
                 "swim": 50
             },
             width: $('#goldstone-discover-r2-c2').width()

@@ -479,7 +479,12 @@ var LogAnalysisView = UtilizationCpuView.extend({
             }
         }
         uri += "]";
-        console.log('basic uri', uri);
+
+        /*
+        makes a url such as:
+        /logging/search?@timestamp__range={%22gte%22:1426981050017,%22lte%22:1426984650017}&loglevel__terms=[%22EMERGENCY%22,%22ALERT%22,%22CRITICAL%22,%22ERROR%22,%22WARNING%22,%22NOTICE%22,%22INFO%22,%22DEBUG%22]
+        */
+
 
         if ($.fn.dataTable.isDataTable("#log-search-table")) {
             oTable = $("#log-search-table").DataTable();
@@ -509,7 +514,11 @@ var LogAnalysisView = UtilizationCpuView.extend({
             }
         }
         uri += "]";
-        console.log('first basic uri', uri);
+
+        /*
+        makes a url such as:
+        /logging/search?@timestamp__range={"gte":1426981050017,"lte":1426984650017}&loglevel__terms=["EMERGENCY","ALERT","CRITICAL","ERROR","WARNING","NOTICE","INFO","DEBUG"]
+        */
 
         if ($.fn.dataTable.isDataTable(location)) {
             oTable = $(location).DataTable();
@@ -529,10 +538,20 @@ var LogAnalysisView = UtilizationCpuView.extend({
                 "ajax": {
                     dataSrc: "results",
                     beforeSend: function(obj, settings) {
-                        console.log('in beforeSend obj, settings', obj, settings);
+                        var searchQuery = $('.log-search-container').find('input.form-control').val();
 
                         settings.url = settings.url.slice(0, settings.url.indexOf(',]'));
                         settings.url += "]";
+
+                        if (searchQuery) {
+                            console.log('searchquery in process of being hooked up. query: ', searchQuery);
+                            /*TODO: change this to the correct
+                            es param for searching the log string
+
+                            settings.url += "&log_message=" +
+                            searchQuery;*/
+                        }
+
                     },
                     url: uri,
                     error: function(data) {
