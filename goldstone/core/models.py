@@ -278,12 +278,6 @@ class Service(PolyResource):
     pass
 
 
-class AdminProject(PolyResource):
-    """An OpenStack Admin project."""
-
-    pass
-
-
 class Project(PolyResource):
     """An OpenStack project."""
 
@@ -524,8 +518,6 @@ class ResourceTypes(Graph):
         (Image, Server, {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}),
 
         # From Keystone nodes
-        (AdminProject, NovaQuotaClass, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (AdminProject, Project, {TYPE: INSTANCE_OF, MIN: 1, MAX: 1}),
         (Credential, Project, {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}),
         (Domain, Group, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
         (Domain, Project, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
