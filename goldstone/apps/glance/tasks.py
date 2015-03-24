@@ -19,8 +19,41 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def _update_glance_image_records(client, region):
+    from datetime import datetime
+    from goldstone.utils import to_es_date
+    from .models import ImagesData
+    import pytz
+
+    images_list = client.images.list()
+
+    # Image list is a generator, so we need to make it not sol lazy it...
+    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+            "region": region,
+            "images": [i for i in images_list]}
+
+    data = ImagesData()
+
+    try:
+        data.post(body)
+    except Exception:          # pylint: disable=W0703
+        logging.exception("failed to index glance images")
+
+
 @celery_app.task()
 def discover_glance_topology():
+    """Update Goldstone's glance data."""
+    from goldstone.utils import get_glance_client
+
+    # Get the system's sole OpenStack cloud.
+    glance_access = get_glance_client()
+
+    _update_glance_image_records(glance_access['client'],
+                                 glance_access['region'])
+
+
+@celery_app.task()
+def new_discover_glance_topology():
     """Update the Glance nodes in the Resource graph.
 
     Resource graph nodes are deleted if they are no longer in the OpenStack
