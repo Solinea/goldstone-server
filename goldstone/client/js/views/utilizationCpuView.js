@@ -109,7 +109,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         if (ns.featureSet === 'logEvents') {
 
             ns.color = d3.scale.ordinal().domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
-                .range(ns.colorArray.distinct[8]);
+                .range(ns.colorArray.distinct.openStackSeverity8);
         } else {
             ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
         }
@@ -210,7 +210,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
             ns.data = allthelogs.finalData;
             ns.loglevel = d3.scale.ordinal()
                 .domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
-                .range(ns.colorArray.distinct[8]);
+                .range(ns.colorArray.distinct.openStackSeverity8);
         }
 
         // If we didn't receive any valid files, append "No Data Returned" and halt
