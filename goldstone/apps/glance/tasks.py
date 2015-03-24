@@ -44,7 +44,7 @@ def discover_glance_topology():
 
             # # TODO: Do we need to delete it (and, conversely, store it) in
             # # the db?
-            # node.delete()
+            # node[0].delete()
 
     # Now, for every node in the OpenStack cloud, add it to the Resource graph
     # if it doesn't exist, or update its information if it does. Since we may
@@ -52,6 +52,7 @@ def discover_glance_topology():
     resources = resources.nodes_of_type(Image)
 
     for cloud_id in actual_image_ids:
+        node = resources.cloud_id_in(cloud_id, resources)
         if image in resources:
             # This Glance node still exists in our resource graph. Update its
             # attributes.
