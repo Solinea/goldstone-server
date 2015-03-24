@@ -29,28 +29,29 @@ def discover_glance_topology():
     client_access = get_glance_client()
     region = client_access["region"]
     actual_images = [x for x in client_access["client"].images.list()]
+    actual_images_ids = set([x["id"] for x in actual_images])
     now = datetime.now(tz=pytz.utc)
 
-    # First, we will remove nodes from the Resource Instance graph
-    # that no longer exist.
+    # First, we remove Resource graph nodesf that no longer exist.
     resources = resources.nodes_of_type(Image)
 
-    import pdb; pdb.set_trace()
     for node in resources:
-        if node.attributes not in actual_images:
-            # No Glance service has this resource node's attributes. Therefore,
+        if node[0].cloud_id not in actual_images_ids:
+            # No Glance service has this resource node's cloud_id. Therefore,
             # this resource node no longer exists.  Delete it from the resource
-            # graph and the db.
-            resource_instances.graph.remove_node(node)
-            node.delete()
+            # graph.
+            resource_instances.graph.remove_node(node[0])
 
-    # Now, for every node in the OpenStack cloud, add it to the Resource
-    # Instasnce graph (if it doesn't exist) or update its information (if it
-    # does.)
+            # # TODO: Do we need to delete it (and, conversely, store it) in
+            # # the db?
+            # node.delete()
+
+    # Now, for every node in the OpenStack cloud, add it to the Resource graph
+    # if it doesn't exist, or update its information if it does. Since we may
+    # have just deleted some nodes, refresh the existing node list.
     resources = resources.nodes_of_type(Image)
 
-    import pdb; pdb.set_trace()
-    for image in actual_images:
+    for cloud_id in actual_image_ids:
         if image in resources:
             # This Glance node still exists in our resource graph. Update its
             # attributes.
@@ -60,3 +61,4 @@ def discover_glance_topology():
             resources.add_node(image)
 
         # Now update, or connect, this node's edges
+        pass

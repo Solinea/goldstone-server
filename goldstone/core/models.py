@@ -626,9 +626,9 @@ class Resources(Graph):
 
         :param nodetype: The Resource Type that is desired
         :type nodetype: A node in ResourceTypes
-        :return: All the nodes in the Resource Instances graph that have a type
-                 type equal to <nodetype>
-        :rtype: list of (ResourceInstances nodes, attribute)
+        :return: All the nodes in the Resources graph that have a type equal to
+                 <nodetype>
+        :rtype: list of (node, attributes_dict)
 
         """
 
