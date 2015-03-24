@@ -44,7 +44,6 @@ def _update_glance_image_records(client, region):
 @celery_app.task()
 def discover_glance_topology():
     """Update Goldstone's glance data."""
-    from goldstone.utils import get_glance_client
 
     # Get the system's sole OpenStack cloud.
     glance_access = get_glance_client()
@@ -63,8 +62,7 @@ def new_discover_glance_topology():
     """
     from goldstone.core.models import resources, Image
 
-    # Collect the glance images that exist in the OpenStack cloud, the region,
-    # and the current date/time.
+    # Collect the glance images that exist in the OpenStack cloud.
     client_access = get_glance_client()
     # region = client_access["region"]
 
