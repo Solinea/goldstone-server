@@ -73,9 +73,9 @@ class PolyResource(PolymorphicModel):
     # This object's unique identifier within Goldstone
     uuid = UUIDField(version=1, auto=True, primary_key=True)
 
-    # This object's unique identifier with OpenStack
-    # [JS] removed the unique constraint
-    cloud_id = CharField(max_length=128)
+    # This object's identifier within OpenStack. It may be missing, and it may
+    # not be unique in the system.
+    cloud_id = CharField(max_length=128, blank=True)
 
     name = CharField(max_length=64)
 
@@ -638,7 +638,7 @@ class Resources(Graph):
 
     @staticmethod
     def cloud_id_in(cloud_id, nodelist):
-        """Return the node in nodelist whose cloud_id field matches cloud_id.
+        """Return the nodelist entry whose cloud_id field matches cloud_id.
 
         :param cloud_id: A cloud id. E.g., from an OpenStack "id" field.
         :type cloud_id: str
@@ -663,4 +663,4 @@ class Resources(Graph):
 
 
 # Here's Goldstone's Resource Instance graph.
-resources = Resources()
+resources = Resources()       # pylint: disable=C0103
