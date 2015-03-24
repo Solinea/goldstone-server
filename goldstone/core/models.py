@@ -637,21 +637,26 @@ class Resources(Graph):
                 if isinstance(x[0], nodetype)]
 
     @staticmethod
-    def cloud_id_in(cloud_id, nodelist):
-        """Return the nodelist entry whose cloud_id field matches cloud_id.
+    def locate(nodelist, **kwargs):
+        """Return the nodelist entry whose identity matches one of the kwargs.
 
-        :param cloud_id: A cloud id. E.g., from an OpenStack "id" field.
-        :type cloud_id: str
         :param nodelist: The nodes through which to search
         :type nodelist: Iterable of Resources node
-        :return: The matching node from the list, or None
-        :rtype: Resources node or None
+        :keyword kwargs: keyword arguments.
+        :type kwargs: dict
+        :return: A node from nodelist that has one attribute that matches one
+                 of the kwargs
+        :rtype: Resources node, or None
 
         """
 
-        for node in nodelist:
-            if cloud_id == node.cloud_id:
-                return node
+        # For every keyword argument pair...
+        for k, v in kwargs.iteritems():
+            # Is there nodelist entry with this attribute value?
+            for node in nodelist:
+                if getattr(node, k) == v:
+                    # Yes!
+                    return node
 
         return None
 

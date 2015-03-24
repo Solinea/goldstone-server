@@ -36,13 +36,11 @@ def discover_glance_topology():
     # and the current date/time.
     client_access = get_glance_client()
     # region = client_access["region"]
-    # actual_images = [x for x in client_access["client"].images.list()]
-    # actual_images_ids = set([x["id"] for x in actual_images])
 
     # Create a set of Image nodes, each one representing a Glance service.
     actual_images = set()
 
-    # For every OpenStack glance service that was found...
+    # For every found OpenStack glance service...
     for entry in client_access["client"].images.list():
         cloud_id = entry.get("id")
         name = entry.get("file")
@@ -55,45 +53,50 @@ def discover_glance_topology():
                             entry)
             continue
 
-        # The entirety of the information returned about this glance service
-        # will be preserved in an "attributes" attribute attached to the
-        # object.
+        # The entirety of this glance service's information will be preserved
+        # in an "attributes" attribute attached to the object.
         image = Image(cloud_id=cloud_id, name=name)
         image.attributes = entry
         actual_images.add(image)
 
     actual_images_ids = set([x["id"] for x in actual_images])
+    actual_images_names = set([x["name"] for x in actual_images])
 
-    resources = resources.nodes_of_type(Image)
+    glance_tuples = resources.nodes_of_type(Image)
 
     # Remove Resource graph nodes that no longer exist. For every glance node
     # in the resource graph...
-    for node in resources:
-        if node[0].cloud_id not in actual_images_ids:
-            # No Glance service has this resource node's cloud_id. Therefore,
-            # this resource node no longer exists.  Delete it from the resource
-            # graph.
-            resources.graph.remove_node(node[0])
+    for entry in glance_tuples:
+        if entry[0].cloud_id not in actual_images_ids and \
+           entry[0].name not in actual_images_names:
+            # No Glance service has this resource node's cloud_id, or its
+            # name. Therefore, this resource node no longer exists.  Delete it.
+            resources.graph.remove_node(entry[0])
 
             # # TODO: Do we need to delete it (and, conversely, store it) in
             # # the db?
-            # node[0].delete()
+            # entry[0].delete()
 
     # Now, for every OpenStack cloud service, add it to the Resource graph if
     # not present, or update its information if it is. Since we may have just
     # deleted some nodes, refresh the existing node list.
 
     # TODO: strictly necessary?
-    resources = resources.nodes_of_type(Image)
+    glance_nodes = [x[0] for x in resources.nodes_of_type(Image)]
 
     # For every service in the OpenStack cloud...
-    for cloud_id in actual_image_ids:
-        node = resources.cloud_id_in(cloud_id, resources)
+    for image in actual_images:
+        # Collect its cloud id and name, and try to find it.
+        node = resources.locate(glance_nodes,
+                                **{"cloud_id": image["id"],
+                                   "name": image["name"]})
 
         if node:
-            # This node corresponds this OpenStack service. Update its
+            # This node corresponds to this OpenStack service. Update its
             # attributes.
-            resources.graph[node]["attributes"] = image
+            resources.graph[node]["cloud_id"] = image["cloud_id"]
+            resources.graph[node]["name"] = image["name"]
+            resources.graph[node]["attributes"] = image.attributes
         else:
             # This is a new Glance node. Add it.
             resources.add_node(image)
