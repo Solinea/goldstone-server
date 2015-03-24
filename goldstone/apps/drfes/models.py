@@ -39,7 +39,8 @@ class DailyIndexDocType(DocType):
         ).sort(cls.SORT).using(es_conn())
 
     @classmethod
-    def simple_agg(cls, field, agg_name, base_queryset):
+    def simple_agg(cls, field, agg_name, base_queryset, size=0,
+                   min_doc_count=1):
         """ Returns an aggregations by date histogram and maybe log level.
 
         :type field: str
@@ -57,7 +58,8 @@ class DailyIndexDocType(DocType):
         # add a top-level aggregation for the field
         search.aggs.bucket(agg_name, "terms",
                            field=field,
-                           min_doc_count=0)
+                           min_doc_count=min_doc_count,
+                           size=size)
 
         response = search.execute().aggregations
         return response
