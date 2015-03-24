@@ -15,9 +15,7 @@
 import json
 from django.http import HttpResponse
 from django.test import SimpleTestCase
-from goldstone.core.models import Resources, resources, Image, ServerGroup, \
-    NovaLimits
-from goldstone.utils import get_glance_client
+from goldstone.core.models import resources, Image, ServerGroup, NovaLimits
 from goldstone.apps.glance.tasks import new_discover_glance_topology
 from mock import patch
 
@@ -72,17 +70,21 @@ class DiscoverGlanceTopology(SimpleTestCase):
     """Test glance.tasks.discover_glance_topology."""
 
     class EmptyClientObject(object):
-        """A simple class off of which we can hang attributes."""
+        """A class that simulates one of the get_glance_client() return
+        values."""
+
+        images_list = []
 
         class Images(object):
 
+            def __init__(self, val):
+                self.val = val
+
             def list(self):
 
-                return []
+                return self.val
 
-
-        images = Images()
-
+        images = Images(images_list)
 
     def setUp(self):
         """Run before every test."""
@@ -91,15 +93,15 @@ class DiscoverGlanceTopology(SimpleTestCase):
 
     @patch('goldstone.apps.glance.tasks.get_glance_client')
     def test_empty_rg_empty_cloud(self, ggc):
-        """Nothing in the cloud, nothing in the resource graph.
+        """Nothing in the resource graph, nothing in the cloud.
 
         Nothing should be done.
 
         """
 
         # Set up get_glance_client to return an empty OpenStack cloud.
-        empty = {"client": self.EmptyClientObject(), "region": "Siberia"}
-        ggc.return_value = empty
+        ggc.return_value = {"client": self.EmptyClientObject(),
+                            "region": "Siberia"}
 
         new_discover_glance_topology()
 
@@ -107,9 +109,9 @@ class DiscoverGlanceTopology(SimpleTestCase):
         self.assertEqual(resources.graph.number_of_edges(), 0)
 
     @patch('goldstone.apps.glance.tasks.get_glance_client')
-    def test_rg_empty_cloud_image(self):
-        """Nothing in the cloud, something in the resource graph, which are
-        only Image instances.
+    def test_rg_empty_cloud_image(self, ggc):
+        """Something in the resource graph, which are only Image instances;
+        nothing in the cloud.
 
         All of the resource graph nodes should be deleted.
 
@@ -127,39 +129,37 @@ class DiscoverGlanceTopology(SimpleTestCase):
                  ((Image, "foobar"), (Image, "foo")),
                  ]
 
-        import pdb; pdb.set_trace()
         # Create some nodes and edges in the resource graph.
         resources.graph.add_nodes_from(NODES)
         for source, dest in EDGES:
             # Find the from node.
             fromnodes = resources.nodes_of_type(source[0])
-            fromnode = [x for x in fromnodes if x.name == source[1]][0]
+            fromnode = [x[0] for x in fromnodes if x[0].name == source[1]][0]
 
             # Find the to node.
             tonodes = resources.nodes_of_type(dest[0])
-            tonode = [x for x in tonodes if x.name == dest[1]][0]
+            tonode = [x[0] for x in tonodes if x[0].name == dest[1]][0]
 
             # Add the edge
             resources.graph.add_edge(fromnode, tonode)
 
         # Sanity check
-        self.assertEqual(resources.graph.number_of_nodes, len(NODES))
-        self.assertEqual(resources.graph.number_of_edges, len(EDGES))
+        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
+        self.assertEqual(resources.graph.number_of_edges(), len(EDGES))
 
         # Set up get_glance_client to return an empty OpenStack cloud.
-        empty = {"client": self.EmptyClientObject(), "region": "Siberia"}
-        ggc.return_value = empty
+        ggc.return_value = {"client": self.EmptyClientObject(),
+                            "region": "Siberia"}
 
         new_discover_glance_topology()
 
-        self.assertEqual(resources.graph.number_of_nodes, 2)
-        self.assertEqual(resources.graph.number_of_edges, 2)
-        self.assertEqual(resources.nodes_of_type(Image), [])
+        self.assertEqual(resources.graph.number_of_nodes(), 0)
+        self.assertEqual(resources.graph.number_of_edges(), 0)
 
     @patch('goldstone.apps.glance.tasks.get_glance_client')
     def test_rg_other_empty_cloud(self, ggc):
-        """Nothing in the cloud, something in the resource graph, including
-        non-Image instances.
+        """Something in the resource graph, some of which are non-Image
+        instances; nothing in the cloud.
 
         The Image resource graph nodes should be deleted.
 
@@ -184,45 +184,61 @@ class DiscoverGlanceTopology(SimpleTestCase):
                  ((Image, "foo"), (ServerGroup, "server")),
                  ]
 
-        import pdb; pdb.set_trace()
         # Create some nodes and edges in the resource graph.
         resources.graph.add_nodes_from(NODES)
         for source, dest in EDGES:
             # Find the from node.
             fromnodes = resources.nodes_of_type(source[0])
-            fromnode = [x for x in fromnodes if x.name == source[1]][0]
+            fromnode = [x[0] for x in fromnodes if x[0].name == source[1]][0]
 
             # Find the to node.
             tonodes = resources.nodes_of_type(dest[0])
-            tonode = [x for x in tonodes if x.name == dest[1]][0]
+            tonode = [x[0] for x in tonodes if x[0].name == dest[1]][0]
 
             # Add the edge
             resources.graph.add_edge(fromnode, tonode)
 
         # Sanity check
-        self.assertEqual(resources.graph.number_of_nodes, len(NODES))
-        self.assertEqual(resources.graph.number_of_edges, len(EDGES))
+        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
+        self.assertEqual(resources.graph.number_of_edges(), len(EDGES))
 
         # Set up get_glance_client to return an empty OpenStack cloud.
-        empty = {"client": self.EmptyClientObject(), "region": "Siberia"}
-        ggc.return_value = empty
+        ggc.return_value = {"client": self.EmptyClientObject(),
+                            "region": "Siberia"}
 
         new_discover_glance_topology()
 
-        self.assertEqual(resources.graph.number_of_nodes, 2)
-        self.assertEqual(resources.graph.number_of_edges, 2)
+        self.assertEqual(resources.graph.number_of_nodes(), 2)
+        self.assertEqual(resources.graph.number_of_edges(), 2)
         self.assertEqual(resources.nodes_of_type(Image), [])
 
-    def test_empty_rg_cloud_multi_noid(self):
-        """Nothing in the resource graph, something in the cloud, some glance
-        nodes don't have a cloud_id.
+    @patch('goldstone.apps.glance.tasks.logger')
+    @patch('goldstone.apps.glance.tasks.get_glance_client')
+    def test_empty_rg_cloud_multi_noid(self, ggc, log):
+        """Nothing in the resource graph; something in the cloud, and some the
+        glance services don't have cloud_id.
 
-        The ones without an id should be logged as errors, and the other ones
+        The ones without an id should be logged as errors, and the others
         should be added to the resource graph.
 
         """
 
-        pass
+        # Set up get_glance_client to return some glance services and other
+        # services; some of the glance services won't have an id.
+        cloud = self.EmptyClientObject()
+        charlie = Image(name="charlie")
+        jablowme = Image(name="jablowme")
+        cloud.images_list = [charlie,
+                             Image(name="foobar", cloud_id="5"),
+                             Image(name="heywood", cloud_id="42"),
+                             jablowme,
+                             ]
+        ggc.return_value = {"client": cloud, "region": "Siberia"}
+
+        new_discover_glance_topology()
+
+        self.assertEqual(resources.graph.number_of_nodes(), 2)
+        self.assertEqual(log.call_args_list, [charlie, jablowme])
 
     def test_rg_cloud(self):
         """Cloud services exist, something in the graph, but the intersection
@@ -238,7 +254,7 @@ class DiscoverGlanceTopology(SimpleTestCase):
     def test_rg_cloud_by_name(self):
         """Cloud services exist, something in the graph, but the intersection
         is null, using name.
-
+s
         The resource graph nodes should be deleted, and the new cloud services
         added.
 
