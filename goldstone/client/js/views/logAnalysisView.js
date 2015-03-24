@@ -544,12 +544,8 @@ var LogAnalysisView = UtilizationCpuView.extend({
                         settings.url += "]";
 
                         if (searchQuery) {
-                            console.log('searchquery in process of being hooked up. query: ', searchQuery);
-                            /*TODO: change this to the correct
-                            es param for searching the log string
-
-                            settings.url += "&log_message=" +
-                            searchQuery;*/
+                            settings.url += "&log_message__regexp=.*" +
+                            searchQuery + ".*";
                         }
 
                     },
