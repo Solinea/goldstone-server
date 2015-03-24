@@ -12,13 +12,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import print_function
+
 import os
 import sys
+import platform
+import subprocess
 
 from contextlib import contextmanager
 from fabric.api import task, local, warn, prompt
-from fabric.colors import green
-from fabric.utils import fastprint
+from fabric.colors import green, cyan
+from fabric.utils import fastprint, abort
 
 # Add the current directory to the module search path.
 sys.path.append('')
@@ -38,6 +42,28 @@ DEFAULT_TENANT_OWNER = "None"
 DEFAULT_ADMIN = "gsadmin"
 DEFAULT_ADMIN_PASSWORD = "changeme"
 
+ES_REPO_FILENAME = "/etc/yum.repos.d/elasticsearch-1.4.repo"
+
+ES_REPO_TEXT = "[elasticsearch-1.4]\n" + \
+    "name=Elasticsearch repository for 1.4.x packages\n" + \
+    "baseurl=http://packages.elasticsearch.org/" + \
+    "elasticsearch/1.4/centos\n" + \
+    "gpgcheck=1\n" + \
+    "gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch\n" + \
+    "enabled=1\n"
+
+LOGSTASH_REPO_FILENAME = "/etc/yum.repos.d/logstash-1.4.repo"
+
+LOGSTASH_REPO_TEXT = "[logstash-1.4]\n" + \
+    "name=Logstash repository for 1.4.x packages\n" + \
+    "baseurl=http://packages.elasticsearch.org/" + \
+    "logstash/1.4/centos\n" + \
+    "gpgcheck=1\n" + \
+    "gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch\n" + \
+    "enabled=1\n"
+
+BREW_PGDATA = '/usr/local/var/postgres'
+CENTOS_PGDATA = '/var/lib/pgsql/data'
 
 def _django_manage(command, target='', proj_settings=None, daemon=False):
     """Run manage.py <command>.
@@ -110,7 +136,7 @@ def _choose(choices):
 
             # Display the choices.
             for i, entry in enumerate(choices):
-                print "[%s] %s" % (i, entry)
+                print("[%s] %s" % (i, entry))
 
             # Get the user's selection.
             try:
@@ -132,7 +158,7 @@ def load(proj_settings=DEV_SETTINGS):
 
     """
 
-    print "initializing goldstone's elasticsearch templates ..."
+    print("initializing goldstone's elasticsearch templates ...")
     with _django_env(proj_settings):
         from goldstone.initial_load import initialize_elasticsearch
 
@@ -188,7 +214,7 @@ def _choose_runserver_settings(verbose):
 
     # Return the user's selection. If they asked for a verbose listing, we have
     # to strip the extra detail off the choice before returning it.
-    print "\nchoose a settings file to use:"
+    print("\nchoose a settings file to use:")
     return _choose(candidates).split(' ')[0] if verbose \
         else _choose(candidates)
 
@@ -222,7 +248,7 @@ def syncmigrate(settings=None, verbose=False):
 
     """
 
-    print "doing a syncdb and migrate ..."
+    print("doing a syncdb and migrate ...")
 
     if not settings:
         settings = _django_settings_module(verbose)
@@ -235,7 +261,7 @@ def syncmigrate(settings=None, verbose=False):
     # DRF and Django signals. See
     # https://github.com/tomchristie/django-rest-framework/issues/987.
     print
-    print green('Please create a Django superuser, username "admin" ...')
+    print(green('Please create a Django superuser, username "admin" ...'))
     _django_manage("createsuperuser --username=admin", proj_settings=settings)
 
 
@@ -253,7 +279,7 @@ def _tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
 
     """
 
-    print "initializing the Goldstone tenant and OpenStack cloud entry ..."
+    print("initializing the Goldstone tenant and OpenStack cloud entry ...")
 
     # Load the defaults, if the user didn't override them.
     if not tenant:
@@ -396,7 +422,7 @@ def _collect_static(proj_settings=None):
         from django.conf import settings
 
         if settings.STATIC_ROOT is not None:
-            print "collecting the static files under the web server ..."
+            print("collecting the static files under the web server ...")
             print
             _django_manage("collectstatic", proj_settings=proj_settings)
 
@@ -416,7 +442,7 @@ def goldstone_init(verbose=False):
 
     """
 
-    print "Goldstone database and Elasticsearch initialization ..."
+    print("Goldstone database and Elasticsearch initialization ...")
     settings = _django_settings_module(verbose)
 
     syncmigrate(settings=settings)
@@ -449,3 +475,156 @@ def test(target=''):
     """
 
     _django_manage("test", target=target, proj_settings=DEV_SETTINGS)
+
+
+def _is_supported_centos6():
+    """Is this a CentOS 6.5 or 6.6 server"""
+
+    try:
+        dist = platform.linux_distribution()
+        if dist[0] == 'CentOS' and dist[1] in ['6.5', '6.6']:
+            return True
+        else:
+            return False
+    except Exception:
+        return False
+
+def _is_development_mac():
+    """Is this a mac?"""
+    try:
+        dist = platform.mac_ver()
+        if dist[2] == 'x86_64':
+            return True
+        else:
+            return False
+    except Exception:
+        return False
+
+
+def _is_rpm_installed(name):
+    """Check to see of an RPM is installed."""
+    cmd = 'yum list installed ' + name
+    return not subprocess.call(cmd.split())
+
+
+def _verify_required_rpms(rpms):
+    """Verify that a list of RPMs is installed on the system.
+
+    Returns the list of missing dependencies (empty list if all satisfied)."""
+
+    print()
+    print(green("Checking for prerequisite RPMs."))
+    missing = []
+    for name in rpms:
+        if not _is_rpm_installed(name):
+            missing.append(name)
+    print()
+    print(green("Checking for prerequisite RPMs completed."))
+    return missing
+
+
+def _install_additional_repos():
+
+    print()
+    print(green("Installing epel, logstash, and elasticsearch repos..."))
+
+    if not _is_rpm_installed('epel-release'):
+        local('yum install -y  '
+              'http://dl.fedoraproject.org/pub/epel/6/'
+              'x86_64/epel-release-6-8.noarch.rpm')
+
+    local('rpm --import http://packages.elasticsearch.org/'
+          'GPG-KEY-elasticsearch')
+
+    if not os.path.isfile(ES_REPO_FILENAME):
+        es_repo = open(ES_REPO_FILENAME, 'w')
+        print(ES_REPO_TEXT, file=es_repo)
+        es_repo.close()
+
+    if not os.path.isfile(LOGSTASH_REPO_FILENAME):
+        logstash_repo = open(LOGSTASH_REPO_FILENAME, 'w')
+        print(LOGSTASH_REPO_TEXT, file=logstash_repo)
+        logstash_repo.close()
+
+
+def _centos6_setup_postgres():
+    """Configure postgresql on a CentOS system."""
+
+    print()
+    print("Configuring PostgreSQL...")
+
+    if not os.path.exists(CENTOS_PGDATA):
+        subprocess.call('service postgresql initdb'.split())
+
+    subprocess.call('chkconfig postgresql on'.split())
+    subprocess.call('service postgresql start'.split())
+    subprocess.call('su - postgres -c "createdb goldstone"', shell=True)
+
+    # TODO this prompts for password, then complains if the user exists
+    subprocess.call('su - postgres -c "createuser goldstone -s -d -P"',
+                    shell=True)
+
+
+def _is_root_user():
+    import getpass
+
+    if getpass.getuser() != 'root':
+        return False
+    else:
+        return True
+
+
+def _centos6_preinstall():
+    """Perform the pre-installation steps on CentOS."""
+
+    REQUIRED_RPMS = ['gcc', 'gcc-c++', 'java-1.7.0-openjdk',
+                     'postgresql-server', 'postgresql-devel', 'git']
+
+    if not _is_root_user():
+        print()
+        abort('This task must be run as root. Exiting...')
+
+    missing = _verify_required_rpms(REQUIRED_RPMS)
+    if missing:
+        abort("Please rerun this task after the following RPMs are "
+              "installed: %s" % str(missing))
+
+    _install_additional_repos()
+    _centos6_setup_postgres()
+
+
+def _development_mac_preinstall():
+    pass
+
+
+def _license_accepted():
+    """Present license information and ask user to confirm acceptance."""
+
+    print(cyan("Goldstone is licensed under the terms of the Solinea Software "
+               "License Agreement, which can be downloaded here:\n\n"
+               "\thttp://www.solinea.com/goldstone/LICENSE.pdf\n\n"
+               "To continue, please confirm that you have read and accept the "
+               "license.\n"))
+    result = prompt('Accept license [y/n]?', validate="""[yn]""")
+    if result == 'y':
+        return True
+    else:
+        return False
+
+
+@task
+def preinstall():
+    """Handle Goldstone prerequisite steps prior to intallation."""
+
+    if not _license_accepted():
+        abort("Installation can't continue without accepting the license.")
+
+    if _is_supported_centos6():
+        _centos6_preinstall()
+
+    elif _is_development_mac():
+        _development_mac_preinstall()
+
+    else:
+        print()
+        abort('This appears to be an unsupported platform. Exiting...')
