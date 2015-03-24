@@ -19,7 +19,7 @@ from goldstone.apps.drfes.views import ElasticListAPIView
 from goldstone.apps.logging.models import LogData, LogEvent
 from rest_framework.response import Response
 from goldstone.apps.logging.serializers import LogDataSerializer, \
-    LogAggSerializer
+    LogAggSerializer, LogEventAggSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -61,3 +61,24 @@ class LogEventView(ElasticListAPIView):
 
     class Meta:
         model = LogEvent
+
+
+class LogEventAggView(ElasticListAPIView):
+    """A view that handles requests for Logstash aggregations."""
+
+    serializer_class = LogEventAggSerializer
+    reserved_params = ['interval', 'per_host']
+
+    class Meta:
+        model = LogEvent
+
+    def get(self, request, *args, **kwargs):
+        import ast
+        """Return a response to a GET request."""
+        base_queryset = self.filter_queryset(self.get_queryset())
+        interval = self.request.query_params.get('interval', '1d')
+        per_host = ast.literal_eval(
+            self.request.query_params.get('per_host', 'True'))
+        data = LogEvent.ranged_event_agg(base_queryset, interval, per_host)
+        serializer = self.serializer_class(data)
+        return Response(serializer.data)
