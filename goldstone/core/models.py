@@ -636,6 +636,25 @@ class Resources(Graph):
         return [x for x in self.graph.nodes(data=True)
                 if isinstance(x[0], nodetype)]
 
+    @staticmethod
+    def cloud_id_in(cloud_id, nodelist):
+        """Return the node in nodelist whose cloud_id field matches cloud_id.
+
+        :param cloud_id: A cloud id. E.g., from an OpenStack "id" field.
+        :type cloud_id: str
+        :param nodelist: The nodes through which to search
+        :type nodelist: Iterable of Resources node
+        :return: The matching node from the list, or None
+        :rtype: Resources node or None
+
+        """
+
+        for node in nodelist:
+            if cloud_id == node.cloud_id:
+                return node
+
+        return None
+
     @property
     def edgetypes(self):
         """Return a list of the graph's edge types."""
