@@ -378,7 +378,8 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
                                    default=DEFAULT_CLOUD_TENANT)
         cloud_username = prompt("OS_USERNAME?", default=DEFAULT_CLOUD_USERNAME)
         cloud_password = prompt("OS_PASSWORD?", default=DEFAULT_CLOUD_PASSWORD)
-        cloud_auth_url = prompt("OS_AUTH_URL_BASE?", default=DEFAULT_CLOUD_AUTH_URL)
+        cloud_auth_url = prompt("OS_AUTH_URL_BASE?",
+                                default=DEFAULT_CLOUD_AUTH_URL)
 
         cloud_auth_url = os.path.join(cloud_auth_url, CLOUD_AUTH_URL_VERSION)
 
