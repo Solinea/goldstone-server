@@ -61,7 +61,7 @@ def discover_glance_topology():
         image = Image(cloud_id=cloud_id, name=name)
         image.attributes = entry
         actual_images.add(image)
-        
+
     actual_images_ids = set([x["id"] for x in actual_images])
 
     resources = resources.nodes_of_type(Image)
