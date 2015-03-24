@@ -232,8 +232,8 @@ var ReportsReportView = GoldstoneBaseView.extend({
         var ns = this.defaults;
         var self = this;
 
-        _.each(self.collection.models[0].attributes.result, function(item) {
-            $(self.el).find('.reports-available-dropdown-menu').append('<li style="cursor: context-menu;" id="report-result">' + item + "</li>");
+        _.each(self.collection.toJSON()[0].result, function(item) {
+            $(self.el).find('.reports-available-dropdown-menu').append('<li style="cursor: context-menu;" id="report-result">' + _.keys(item)[0] + "</li>");
         });
 
         // add click listeners to dropdown entries
