@@ -69,8 +69,8 @@ var UtilizationNetCollection = Backbone.Collection.extend({
 
         _.each(self.defaults.urlPrefixes, function(prefix) {
             self.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.net." + prefix + "&node=" +
-                self.defaults.nodeName + "&timestamp__gte=" +
-                lookback + "&page_size=1000");
+                self.defaults.nodeName + "&timestamp__range={'gte':" +
+                lookback + "}&page_size=1000");
         });
 
 
