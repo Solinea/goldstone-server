@@ -378,7 +378,7 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
                                    default=DEFAULT_CLOUD_TENANT)
         cloud_username = prompt("OS_USERNAME?", default=DEFAULT_CLOUD_USERNAME)
         cloud_password = prompt("OS_PASSWORD?", default=DEFAULT_CLOUD_PASSWORD)
-        cloud_auth_url = prompt("OS_AUTH_URL?", default=DEFAULT_CLOUD_AUTH_URL)
+        cloud_auth_url = prompt("OS_AUTH_URL_BASE?", default=DEFAULT_CLOUD_AUTH_URL)
 
         cloud_auth_url = os.path.join(cloud_auth_url, CLOUD_AUTH_URL_VERSION)
 
@@ -401,6 +401,12 @@ def _collect_static(proj_settings=None):
             _django_manage("collectstatic", proj_settings=proj_settings)
 
 
+def _reconcile_hosts(proj_settings=None):
+    with _django_env(proj_settings):
+        from goldstone.apps.nova.tasks import reconcile_hosts
+        reconcile_hosts()
+
+
 @task
 def goldstone_init(verbose=False):
     """Do a syncmigrate, tenant_init, and load.
@@ -416,6 +422,7 @@ def goldstone_init(verbose=False):
     syncmigrate(settings=settings)
     tenant_init(settings=settings)
     _collect_static(proj_settings=settings)
+    _reconcile_hosts(proj_settings=settings)
     load()
 
 

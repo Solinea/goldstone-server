@@ -112,7 +112,7 @@ def _get_region_for_cinder_client(client):
     keystoneclient = get_keystone_client()['client']
     catalog = keystoneclient.service_catalog.catalog['catalog']
 
-    return _get_region_for_client(catalog, mgmt_url, 'volume')
+    return _get_region_for_client(catalog, mgmt_url, 'volumev2')
 
 
 def _get_region_for_glance_client(client):
@@ -164,6 +164,7 @@ def get_client(service):
     :rtype: dict
 
     """
+    import os.path
 
     # Error message template.
     NO_AUTH = "%s client failed to authorize. Check credentials in" \
@@ -189,11 +190,11 @@ def get_client(service):
                 return {'client': client, 'hex_token': client.auth_token}
 
         elif service == 'nova':
+            # TODO should probably store the v2 and v3 auth urls in cloud obj
             client = nvclient.Client(os_username,
                                      os_password,
                                      os_tenant_name,
-                                     os_auth_url,
-                                     service_type='compute')
+                                     os_auth_url.replace('/v3/', '/v2.0/'))
             client.authenticate()
             return {'client': client, 'hex_token': client.client.auth_token}
 
@@ -203,8 +204,7 @@ def get_client(service):
             client = ciclient.Client(os_username,
                                      os_password,
                                      os_tenant_name,
-                                     os_auth_url,
-                                     service_type='volume')
+                                     os_auth_url.replace('/v3/', '/v2.0/'))
             region = _get_region_for_cinder_client(client)
             return {'client': client, 'region': region}
 

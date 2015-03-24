@@ -74,7 +74,8 @@ class PolyResource(PolymorphicModel):
     uuid = UUIDField(version=1, auto=True, primary_key=True)
 
     # This object's unique identifier with OpenStack
-    cloud_id = CharField(max_length=128, unique=True)
+    # [JS] removed the unique constraint
+    cloud_id = CharField(max_length=128)
 
     name = CharField(max_length=64)
 
