@@ -141,7 +141,7 @@ class Graph(object):
     def __init__(self):
         """Initialize the object.
 
-        The child classes must call this before its initialization.
+        A child class must call this before its initialization.
 
         """
 
@@ -615,7 +615,7 @@ class ResourceTypes(Graph):
 
 
 class Resources(Graph):
-    """A graph of the resources used within a specific OpenStack cloud."""
+    """A graph of the resources used within an OpenStack cloud."""
 
     def __init__(self):
         """Initialize the object."""

@@ -110,8 +110,8 @@ class DiscoverGlanceTopology(SimpleTestCase):
 
     @patch('goldstone.apps.glance.tasks.get_glance_client')
     def test_rg_empty_cloud_image(self, ggc):
-        """Something in the resource graph, which are only Image instances;
-        nothing in the cloud.
+        """The resource graph contains only Image instances; nothing in the
+        cloud.
 
         All of the resource graph nodes should be deleted.
 
@@ -130,6 +130,7 @@ class DiscoverGlanceTopology(SimpleTestCase):
                  ]
 
         # Create some nodes and edges in the resource graph.
+        import pdb; pdb.set_trace()
         resources.graph.add_nodes_from(NODES)
         for source, dest in EDGES:
             # Find the from node.
