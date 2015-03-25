@@ -66,9 +66,8 @@ def new_discover_glance_topology():
     client_access = get_glance_client()
     # region = client_access["region"]
 
-    # Create a set of glance service attribute dicts, each one representing a
-    # current Glance service.
-    actual = set()
+    # Gather the current glance services from the cloud. Each one is a dict.
+    actual = []
 
     # For every found OpenStack glance service...
     for entry in client_access["client"].images.list():
@@ -81,7 +80,7 @@ def new_discover_glance_topology():
 
         # The entirety of this glance service's information will be preserved
         # in an "attributes" attribute attached to the object.
-        actual.add(entry)
+        actual.append(entry)
 
     resource_glance_nodes = resources.nodes_of_type(Image)
     actual_cloud_ids = set([x["id"] for x in actual])
@@ -98,8 +97,8 @@ def new_discover_glance_topology():
             resources.graph.remove_node(entry)
             db_node.delete()
 
-    # Now, for every OpenStack cloud service, add it to the Resource graph if
-    # not present, or update its information if it is. Since we may have just
+    # For every OpenStack cloud service, add it to the Resource graph if not
+    # present, or update its information if it is. Since we may have just
     # deleted some nodes, refresh the existing node list.
 
     # N.B. We could reuse this iterable, but this is a little cleaner.
