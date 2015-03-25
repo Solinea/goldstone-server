@@ -218,9 +218,9 @@ def get_client(service):
         elif service == 'glance':
             keystoneclient = get_client("keystone")['client']
 
-            # This had used a "name='glance'" qualifier, but the find method
-            # raised a NoUniqueMatch exception. Keystone appears to no longer
-            # accept 'name' as a qualifier. 'Type', however, works.
+            # This had used a "name='glance'" qualifier, but the V3 find method
+            # raised a NoUniqueMatch exception. Keystone no longer accepts
+            # 'name' as a qualifier, so use 'type'.
             service_id = keystoneclient.services.find(type="image").id
 
             mgmt_url = \

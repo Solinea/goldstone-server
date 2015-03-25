@@ -73,9 +73,9 @@ class PolyResource(PolymorphicModel):
     # This object's unique identifier within Goldstone
     uuid = UUIDField(version=1, auto=True, primary_key=True)
 
-    # This object's unique identifier with OpenStack
-    # [JS] removed the unique constraint
-    cloud_id = CharField(max_length=128)
+    # This object's identifier within OpenStack. It may be missing, and it may
+    # not be unique in the system.
+    cloud_id = CharField(max_length=128, blank=True)
 
     name = CharField(max_length=64)
 
@@ -636,6 +636,30 @@ class Resources(Graph):
         return [x for x in self.graph.nodes(data=True)
                 if isinstance(x[0], nodetype)]
 
+    @staticmethod
+    def locate(nodelist, **kwargs):
+        """Return the nodelist entry whose identity matches one of the kwargs.
+
+        :param nodelist: The nodes through which to search
+        :type nodelist: Iterable of Resources node
+        :keyword kwargs: keyword arguments.
+        :type kwargs: dict
+        :return: A node from nodelist that has one attribute that matches one
+                 of the kwargs
+        :rtype: Resources node, or None
+
+        """
+
+        # For every keyword argument pair...
+        for k, v in kwargs.iteritems():
+            # Is there nodelist entry with this attribute value?
+            for node in nodelist:
+                if getattr(node, k) == v:
+                    # Yes!
+                    return node
+
+        return None
+
     @property
     def edgetypes(self):
         """Return a list of the graph's edge types."""
@@ -644,4 +668,4 @@ class Resources(Graph):
 
 
 # Here's Goldstone's Resource Instance graph.
-resources = Resources()
+resources = Resources()       # pylint: disable=C0103
