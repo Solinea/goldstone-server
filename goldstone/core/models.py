@@ -68,7 +68,11 @@ class ReportData(DailyIndexDocType):
 
 
 class PolyResource(PolymorphicModel):
-    """The base type for resources in Goldstone."""
+    """The base type for resources.
+
+    These are stored in the database.
+
+    """
 
     # This object's unique identifier within Goldstone
     uuid = UUIDField(version=1, auto=True, primary_key=True)
@@ -84,12 +88,12 @@ class PolyResource(PolymorphicModel):
                                     default=utc_now)
     updated = ModificationDateTimeField(editable=True, blank=True)
 
-    def _hashable(self):
-        """Return a JSON representation of this row."""
-        from rest_framework.renderers import JSONRenderer
-        from .serializers import PolyResourceSerializer
+    # def _hashable(self):
+    #     """Return a JSON representation of this row."""
+    #     from rest_framework.renderers import JSONRenderer
+    #     from .serializers import PolyResourceSerializer
 
-        return JSONRenderer().render(PolyResourceSerializer(self).data)
+    #     return JSONRenderer().render(PolyResourceSerializer(self).data)
 
     def logs(self):
         """Return a search object for logs related to this resource.
@@ -130,8 +134,21 @@ class PolyResource(PolymorphicModel):
     #     raise NotImplementedError("Override this method in a subclass")
 
 
+class GraphNode(object):
+    """Nodes within Resource Type and Resource graphs."""
+
+    # The Goldstone UUID of the database table row represented by this node.
+    uuid = None
+
+    # The Resource Type of this node.
+    resourcetype = None
+
+    # The attributes (e.g., from a get_xxxxx_client() call) of this node.
+    attributes = {}
+
+    
 class Graph(object):
-    """The base class for Resource Type and Resource Instance graphs.
+    """The base class for Resource Type and Resource graphs.
 
     This defines the navigational methods needed by the child classes. Some
     of these may simply be convenience methods for calling networkx methods.
@@ -513,7 +530,7 @@ class ResourceTypes(Graph):
     # Each one is an (f, t, d) 3-tuple:
     #   - f: The "from" node
     #   - t: The "to" node
-    #   - d: The attribute dictionary.
+    #   - d: The edge's attribute dictionary
     EDGES = [
         # From Glance nodes
         (Image, Server, {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}),
@@ -629,24 +646,26 @@ class Resources(Graph):
         :type nodetype: A node in ResourceTypes
         :return: All the nodes in the Resources graph that have a type equal to
                  <nodetype>
-        :rtype: list of (node, attributes_dict)
+        :rtype: list of node
 
         """
 
-        return [x for x in self.graph.nodes(data=True)
-                if isinstance(x[0], nodetype)]
+        return [x for x in self.graph.nodes() if x.resourcetype == nodetype]
 
     @staticmethod
     def locate(nodelist, **kwargs):
-        """Return the nodelist entry whose identity matches one of the kwargs.
+        """Return the nodelist entry whose attributes match one of the kwargs.
+
+        N.B. This returns the first node found that matches one of the keyword
+        args. It does not check for nor return multiple matches.
 
         :param nodelist: The nodes through which to search
-        :type nodelist: Iterable of Resources node
+        :type nodelist: Iterable of GraphNode
         :keyword kwargs: keyword arguments.
         :type kwargs: dict
-        :return: A node from nodelist that has one attribute that matches one
-                 of the kwargs
-        :rtype: Resources node, or None
+        :return: A node from nodelist that has an "attributes" key that
+                 matches one of the kwargs key-value pairs
+        :rtype: GraphNode or None
 
         """
 
@@ -654,7 +673,7 @@ class Resources(Graph):
         for k, v in kwargs.iteritems():
             # Is there nodelist entry with this attribute value?
             for node in nodelist:
-                if getattr(node, k) == v:
+                if node.attributes.get(k) == v:
                     # Yes!
                     return node
 
