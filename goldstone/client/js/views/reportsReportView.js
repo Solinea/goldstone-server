@@ -187,6 +187,10 @@ var ReportsReportView = GoldstoneBaseView.extend({
 
     drawSearchTable: function(location, data) {
 
+        if(data === null) {
+            data = ['No results within selected time range'];
+        }
+
         var ns = this.defaults;
         var self = this;
         var oTable;
