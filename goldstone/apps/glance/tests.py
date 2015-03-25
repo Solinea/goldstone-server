@@ -118,8 +118,7 @@ class DiscoverGlanceTopology(SimpleTestCase):
 
         """
 
-        # The number of initial resource graph nodes, as (Type, cloud_id)
-        # tuples.
+        # The initial resource graph nodes, as (Type, cloud_id) tuples.
         NODES = [(Image, "a"), (Image, "ab"), (Image, "abc")]
 
         # The initial resource graph edges. Each entry is ((from_type,
@@ -171,42 +170,55 @@ class DiscoverGlanceTopology(SimpleTestCase):
 
         """
 
-        # The initial resource graph nodes. The names must be unique within
-        # a node type.
-        NODES = [GraphNode(name="foobar", cloud_id="ab"),
-                 GraphNode(name="foo", cloud_id="abcd"),
-                 GraphNode(name="bar", cloud_id="abcde"),
-                 ServerGroup(name="server"),
-                 NovaLimits(name="nova", cloud_id="dddd"),
-                 ]
+        # The initial resource graph nodes, as (Type, cloud_id) tuples.  The
+        # cloud_id's must be unique within a node type.
+        NODES = [(Image, "a"),
+                 (Image, "ab"),
+                 (Image, "abc"),
+                 (Image, "0001"),
+                 (Image, "0002"),
+                 (ServerGroup, "0"),
+                 (ServerGroup, "ab"),
+                 (NovaLimits, "0")]
+
         # The initial resource graph edges. Each entry is ((from_type,
-        # from_name), (to_type, to_name)).
-        EDGES = [((Image, "foo"), (NovaLimits, "nova")),
-                 ((Image, "foobar"), (ServerGroup, "server")),
-                 ((NovaLimits, "nova"), (ServerGroup, "server")),
-                 ((Image, "bar"), (Image, "foobar")),
-                 ((ServerGroup, "server"), (Image, "bar")),
-                 ((ServerGroup, "server"), (NovaLimits, "nova")),
-                 ((Image, "foo"), (ServerGroup, "server")),
+        # cloud_id), (to_type, cloud_id)).  The cloud_id's must be unique
+        # within a node type.
+        EDGES = [((Image, "a"), (Image, "ab")),
+                 ((Image, "0001"), (Image, "0002")),
+                 ((Image, "a"), (ServerGroup, "0")),
+                 ((Image, "ab"), (ServerGroup, "ab")),
+                 ((Image, "abc"), (Image, "a")),
+                 ((NovaLimits, "0"), (ServerGroup, "ab")),
+                 ((NovaLimits, "0"), (Image, "a")),
+                 ((ServerGroup, "0"), (Image, "0001")),
+                 ((ServerGroup, "0"), (NovaLimits, "0")),
                  ]
 
-        # Create some nodes and edges in the resource graph.
-        import pdb; pdb.set_trace()
-        resources.graph.add_nodes_from(NODES)
-        for source, dest in EDGES:
-            # Find the from node.
-            fromnodes = resources.nodes_of_type(source[0])
-            fromnode = [x[0] for x in fromnodes if x[0].name == source[1]][0]
+        # Create the PolyResource database rows, and the corresponding
+        # Resource graph nodes.
+        for nodetype, cloud_id in NODES:
+            row = nodetype.objects.create(cloud_id=cloud_id, name="foobar")
+            resources.graph.add_node(GraphNode(uuid=row.uuid,
+                                               resourcetype=nodetype))
 
-            # Find the to node.
-            tonodes = resources.nodes_of_type(dest[0])
-            tonode = [x[0] for x in tonodes if x[0].name == dest[1]][0]
+        # Create the resource graph edges.
+        for source, dest in EDGES:
+            # Find the from and to nodes.
+            nodes = resources.nodes_of_type(source[0])
+            row = source[0].objects.get(cloud_id=source[1])
+            fromnode = [x for x in nodes if x.uuid == row.uuid][0]
+
+            nodes = resources.nodes_of_type(dest[0])
+            row = dest[0].objects.get(cloud_id=dest[1])
+            tonode = [x for x in nodes if x.uuid == row.uuid][0]
 
             # Add the edge
             resources.graph.add_edge(fromnode, tonode)
 
         # Sanity check
         self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
+        self.assertEqual(PolyResource.objects.count(), len(NODES))
         self.assertEqual(resources.graph.number_of_edges(), len(EDGES))
 
         # Set up get_glance_client to return an empty OpenStack cloud.
@@ -215,7 +227,8 @@ class DiscoverGlanceTopology(SimpleTestCase):
 
         new_discover_glance_topology()
 
-        self.assertEqual(resources.graph.number_of_nodes(), 2)
+        self.assertEqual(resources.graph.number_of_nodes(), 3)
+        self.assertEqual(PolyResource.objects.count(), 3)
         self.assertEqual(resources.graph.number_of_edges(), 2)
         self.assertEqual(resources.nodes_of_type(Image), [])
 
@@ -232,6 +245,8 @@ class DiscoverGlanceTopology(SimpleTestCase):
 
         # Set up get_glance_client to return some glance services and other
         # services; some of the glance services won't have an id.
+        import pdb; pdb.set_trace()
+
         cloud = self.EmptyClientObject()
         charlie = Image(name="charlie")
         jablowme = Image(name="jablowme")
