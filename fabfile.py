@@ -16,13 +16,11 @@ from __future__ import print_function
 
 import os
 import sys
-import platform
-import subprocess
 
 from contextlib import contextmanager
-from fabric.api import task, local, warn, prompt
-from fabric.colors import green, cyan
-from fabric.utils import fastprint, abort
+from fabric.api import task, local, warn
+from fabric.colors import green
+from fabric.utils import fastprint
 
 # Add the current directory to the module search path.
 sys.path.append('')
@@ -64,6 +62,7 @@ LOGSTASH_REPO_TEXT = "[logstash-1.4]\n" + \
 
 BREW_PGDATA = '/usr/local/var/postgres'
 CENTOS_PGDATA = '/var/lib/pgsql/data'
+
 
 def _django_manage(command, target='', proj_settings=None, daemon=False):
     """Run manage.py <command>.
@@ -404,7 +403,8 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
                                    default=DEFAULT_CLOUD_TENANT)
         cloud_username = prompt("OS_USERNAME?", default=DEFAULT_CLOUD_USERNAME)
         cloud_password = prompt("OS_PASSWORD?", default=DEFAULT_CLOUD_PASSWORD)
-        cloud_auth_url = prompt("OS_AUTH_URL_BASE?", default=DEFAULT_CLOUD_AUTH_URL)
+        cloud_auth_url = prompt("OS_AUTH_URL_BASE?",
+                                default=DEFAULT_CLOUD_AUTH_URL)
 
         cloud_auth_url = os.path.join(cloud_auth_url, CLOUD_AUTH_URL_VERSION)
 
@@ -475,156 +475,3 @@ def test(target=''):
     """
 
     _django_manage("test", target=target, proj_settings=DEV_SETTINGS)
-
-
-def _is_supported_centos6():
-    """Is this a CentOS 6.5 or 6.6 server"""
-
-    try:
-        dist = platform.linux_distribution()
-        if dist[0] == 'CentOS' and dist[1] in ['6.5', '6.6']:
-            return True
-        else:
-            return False
-    except Exception:
-        return False
-
-def _is_development_mac():
-    """Is this a mac?"""
-    try:
-        dist = platform.mac_ver()
-        if dist[2] == 'x86_64':
-            return True
-        else:
-            return False
-    except Exception:
-        return False
-
-
-def _is_rpm_installed(name):
-    """Check to see of an RPM is installed."""
-    cmd = 'yum list installed ' + name
-    return not subprocess.call(cmd.split())
-
-
-def _verify_required_rpms(rpms):
-    """Verify that a list of RPMs is installed on the system.
-
-    Returns the list of missing dependencies (empty list if all satisfied)."""
-
-    print()
-    print(green("Checking for prerequisite RPMs."))
-    missing = []
-    for name in rpms:
-        if not _is_rpm_installed(name):
-            missing.append(name)
-    print()
-    print(green("Checking for prerequisite RPMs completed."))
-    return missing
-
-
-def _install_additional_repos():
-
-    print()
-    print(green("Installing epel, logstash, and elasticsearch repos..."))
-
-    if not _is_rpm_installed('epel-release'):
-        local('yum install -y  '
-              'http://dl.fedoraproject.org/pub/epel/6/'
-              'x86_64/epel-release-6-8.noarch.rpm')
-
-    local('rpm --import http://packages.elasticsearch.org/'
-          'GPG-KEY-elasticsearch')
-
-    if not os.path.isfile(ES_REPO_FILENAME):
-        es_repo = open(ES_REPO_FILENAME, 'w')
-        print(ES_REPO_TEXT, file=es_repo)
-        es_repo.close()
-
-    if not os.path.isfile(LOGSTASH_REPO_FILENAME):
-        logstash_repo = open(LOGSTASH_REPO_FILENAME, 'w')
-        print(LOGSTASH_REPO_TEXT, file=logstash_repo)
-        logstash_repo.close()
-
-
-def _centos6_setup_postgres():
-    """Configure postgresql on a CentOS system."""
-
-    print()
-    print("Configuring PostgreSQL...")
-
-    if not os.path.exists(CENTOS_PGDATA):
-        subprocess.call('service postgresql initdb'.split())
-
-    subprocess.call('chkconfig postgresql on'.split())
-    subprocess.call('service postgresql start'.split())
-    subprocess.call('su - postgres -c "createdb goldstone"', shell=True)
-
-    # TODO this prompts for password, then complains if the user exists
-    subprocess.call('su - postgres -c "createuser goldstone -s -d -P"',
-                    shell=True)
-
-
-def _is_root_user():
-    import getpass
-
-    if getpass.getuser() != 'root':
-        return False
-    else:
-        return True
-
-
-def _centos6_preinstall():
-    """Perform the pre-installation steps on CentOS."""
-
-    REQUIRED_RPMS = ['gcc', 'gcc-c++', 'java-1.7.0-openjdk',
-                     'postgresql-server', 'postgresql-devel', 'git']
-
-    if not _is_root_user():
-        print()
-        abort('This task must be run as root. Exiting...')
-
-    missing = _verify_required_rpms(REQUIRED_RPMS)
-    if missing:
-        abort("Please rerun this task after the following RPMs are "
-              "installed: %s" % str(missing))
-
-    _install_additional_repos()
-    _centos6_setup_postgres()
-
-
-def _development_mac_preinstall():
-    pass
-
-
-def _license_accepted():
-    """Present license information and ask user to confirm acceptance."""
-
-    print(cyan("Goldstone is licensed under the terms of the Solinea Software "
-               "License Agreement, which can be downloaded here:\n\n"
-               "\thttp://www.solinea.com/goldstone/LICENSE.pdf\n\n"
-               "To continue, please confirm that you have read and accept the "
-               "license.\n"))
-    result = prompt('Accept license [y/n]?', validate="""[yn]""")
-    if result == 'y':
-        return True
-    else:
-        return False
-
-
-@task
-def preinstall():
-    """Handle Goldstone prerequisite steps prior to intallation."""
-
-    if not _license_accepted():
-        abort("Installation can't continue without accepting the license.")
-
-    if _is_supported_centos6():
-        _centos6_preinstall()
-
-    elif _is_development_mac():
-        _development_mac_preinstall()
-
-    else:
-        print()
-        abort('This appears to be an unsupported platform. Exiting...')

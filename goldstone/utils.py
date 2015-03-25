@@ -221,7 +221,7 @@ def get_client(service):
             # This had used a "name='glance'" qualifier, but the find method
             # raised a NoUniqueMatch exception. Keystone appears to no longer
             # accept 'name' as a qualifier. 'Type', however, works.
-            service_id=keystoneclient.services.find(type="image").id
+            service_id = keystoneclient.services.find(type="image").id
 
             mgmt_url = \
                 keystoneclient.endpoints.find(service_id=service_id,
