@@ -157,7 +157,7 @@ class LogEventViewTests(APITestCase):
         end = arrow.utcnow().timestamp * 1000
         range = '@timestamp__range={"gte":"' + \
                 str(start) + '", "lte": "' + str(end) + '"}'
-        url = '/logging/events?' + range
+        url = '/logging/events/search?' + range
         response = self.client.get(
             url,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
