@@ -60,7 +60,7 @@ def new_discover_glance_topology():
     cloud.
 
     """
-    from goldstone.core.models import resources, Image
+    from goldstone.core.models import resources, Image, GraphNode
 
     # Collect the glance images that exist in the OpenStack cloud.
     client_access = get_glance_client()
@@ -85,12 +85,12 @@ def new_discover_glance_topology():
 
     resource_glance_nodes = resources.nodes_of_type(Image)
     actual_cloud_ids = set([x["id"] for x in actual])
-    db_nodes = PolyResource.objects.instance_of(Image)
+    db_nodes = Image.objects.all()
 
     # Remove Resource graph nodes that no longer exist. For every glance node
     # in the resource graph...
     for entry in resource_glance_nodes:
-        # Use this node's Goldstone uuid to get its the cloud_id.
+        # Use this node's Goldstone uuid to get its cloud_id.
         db_node = db_nodes.get(uuid=entry.uuid)
 
         if db_node.cloud_id not in actual_cloud_ids:
@@ -106,19 +106,22 @@ def new_discover_glance_topology():
     resource_glance_nodes = resources.nodes_of_type(Image)
 
     # For every current glance service...
-    for cloud_id in actual_cloud_ids:
-        # Try to find its corresponding node in the Resource graph.
-        node = resources.locate(resource_glance_nodes, **{"id": image["id"]})
+    for glance in actual:
+        # Try to find its corresponding Resource graph node.
+        node = resources.locate(resource_glance_nodes, **{"id": glance["id"]})
 
         if node:
-            # This node corresponds to this OpenStack service. Update its
+            # This node corresponds to this glance service. Update its
             # information in the Resource graph and database.
-            resources.graph[node]["attributes"] = image.attributes
-            database update.
+            node.attributes = glance
+            db_node = db_nodes.get(cloud_id=glance["id"])
+            db_node.attributes = glance
+            db_node.save()
         else:
-            # This is a new Glance node. Add it.
-            db_node = add to db, get uuid
-            resources.graph.add_node(GraphNode(
-
-        # Now update, or connect, this node's edges
-        # TODO: How?
+            # This is a new Glance node. Add it to the Resource graph and
+            # database.
+            db_node = Image.objects.create(cloud_id=glance["id"],
+                                           name=glance.get("name", ''))
+            resources.graph.add_node(GraphNode(uuid=db_node.uuid,
+                                               resourcetype=Image,
+                                               attributes=glance))

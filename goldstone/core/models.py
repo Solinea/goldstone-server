@@ -74,11 +74,11 @@ class PolyResource(PolymorphicModel):
 
     """
 
-    # This object's unique identifier within Goldstone
+    # This object's Goldstone UUID.
     uuid = UUIDField(version=1, auto=True, primary_key=True)
 
-    # This object's identifier within OpenStack. It may be missing, and it may
-    # not be unique in the system.
+    # This object's OpenStack UUID. Depending upon the service, it may be
+    # missing, or not unique.
     cloud_id = CharField(max_length=128, blank=True)
 
     name = CharField(max_length=64)
@@ -146,7 +146,14 @@ class GraphNode(object):
     # The attributes (e.g., from a get_xxxxx_client() call) of this node.
     attributes = {}
 
-    
+    def __init__(self, **kwargs):
+        """Initialize the object."""
+
+        self.uuid = kwargs.get("uuid")
+        self.resourcetype = kwargs.get("resourcetype")
+        self.attributes = kwargs.get("attributes", {})
+
+
 class Graph(object):
     """The base class for Resource Type and Resource graphs.
 
