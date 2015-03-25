@@ -40,7 +40,7 @@ var UtilizationMemCollection = Backbone.Collection.extend({
 
     // will impose an order based on 'timestamp' for
     // the models as they are put into the collection
-    comparator: 'timestamp',
+    comparator: '@timestamp',
 
     initialize: function(options) {
         this.options = options || {};
