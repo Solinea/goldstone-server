@@ -240,9 +240,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
         ns.xScale = ns.xScale.domain([xEnd._d, xStart._d]);
 
         // If we didn't receive any valid files, append "No Data Returned"
-        if (this.checkReturnedDataSet(allthelogs) === false) {
-            return;
-        }
+        this.checkReturnedDataSet(allthelogs);
 
         /*
          * Shape the dataset

@@ -46,8 +46,17 @@ var EventsReportView = GoldstoneBaseView.extend({
         var now = +new Date();
         // subtracts correct ms from current time
         var lookback = now - (1000 * 60 * this.defaults.globalLookback);
-        var urlRouteConstruction = '/core/events?source_name=' +
-            this.defaults.hostName + '&created__lte=' + now + '&created__gte=' + lookback;
+
+        var urlRouteConstruction = '/logging/events/search?host=' +
+            this.defaults.hostName +
+            '&@timestamp__range={"gte":' + lookback + ',"lte":' + now + '}';
+
+        // makes a route similar to:
+        // /logging/events/search?host=rsrc-01&@timestamp__range={"gte":1426019353333,"lte":1427245753333}
+
+        // this will be added by the dataTables beforeSend section:
+        // &page_size=10&page=1&log_message__regexp=.*blah.*
+
         this.defaults.url = urlRouteConstruction;
     },
 
@@ -100,14 +109,14 @@ var EventsReportView = GoldstoneBaseView.extend({
 
             // if any field is undefined, dataTables throws an alert
             // so set to empty string if otherwise undefined
-            item.id = item.id || '';
+            item['@timestamp'] = item['@timestamp'] || '';
             item.event_type = item.event_type || '';
-            item.source_id = item.source_id || '';
-            item.source_name = item.source_name || '';
-            item.message = item.message || '';
-            item.created = item.created || '';
+            item.log_message = item.log_message || '';
+            item.syslog_severity = item.syslog_severity || '';
+            item.host = item.host || '';
+            item.syslog_facility = item.syslog_facility || '';
 
-            finalResults.push([item.created, item.event_type, item.message, item.id, item.source_id, item.source_name]);
+            finalResults.push([item['@timestamp'], item.event_type, item.log_message, item.syslog_severity, item.host, item.syslog_facility]);
         });
 
         // total/filtered/result feeds the dataTables
@@ -165,7 +174,8 @@ var EventsReportView = GoldstoneBaseView.extend({
                     settings.url = self.defaults.url + "&page_size=" + pageSize + "&page=" + computeStartPage;
 
                     if (searchQuery) {
-                        settings.url = settings.url + "&message__prefix=" + searchQuery;
+                        settings.url = settings.url + "&log_message__regexp=.*" + searchQuery +
+                            ".*";
                     }
 
                     // if no interesting sort, ignore it
@@ -175,9 +185,9 @@ var EventsReportView = GoldstoneBaseView.extend({
                         // column to sort by, and the sort direction
 
                         var columnLabelHash = {
-                            0: 'created',
+                            0: '@timestamp',
                             1: 'event_type',
-                            2: 'message'
+                            2: 'log_message'
                         };
 
                         var orderByColumn = urlColumnOrdering[0].slice(urlColumnOrdering[0].indexOf('=') + 1);
@@ -238,13 +248,13 @@ var EventsReportView = GoldstoneBaseView.extend({
                 "name": "message",
                 "targets": 2
             }, {
-                "name": "id",
+                "name": "syslog_severity",
                 "targets": 3
             }, {
-                "name": "source_id",
+                "name": "host",
                 "targets": 4
             }, {
-                "name": "source_name",
+                "name": "syslog_facility",
                 "targets": 5
             }, {
                 "visible": false,

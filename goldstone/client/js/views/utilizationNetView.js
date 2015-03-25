@@ -51,8 +51,13 @@ var UtilizationNetView = UtilizationCpuView.extend({
 
         var data = allthelogs;
 
+        _.each(data, function(item) {
+            item['@timestamp'] = moment(item['@timestamp']).unix() * 1000;
+        });
+
+
         var dataUniqTimes = _.uniq(_.map(data, function(item) {
-            return item.timestamp;
+            return item['@timestamp'];
         }));
 
 
@@ -80,7 +85,7 @@ var UtilizationNetView = UtilizationCpuView.extend({
                 } else {}
             }
 
-            newData[item.timestamp][metric] += item.value;
+            newData[item['@timestamp']][metric] += item.value;
 
         });
 

@@ -61,15 +61,15 @@ var NodeAvailView = GoldstoneBaseView.extend({
         filter: {
             // none must be set to false in order to not display
             // nodes that have zero associated events.
-            none: false,
-            debug: true,
-            info: true,
-            notice: true,
-            warning: true,
-            error: true,
-            critical: true,
-            alert: true,
             emergency: true,
+            alert: true,
+            critical: true,
+            error: true,
+            warning: true,
+            notice: true,
+            info: true,
+            debug: true,
+            none: false,
             actualZero: true
         }
     },
@@ -163,7 +163,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
             .domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug", "actualZero"])
         // concats darkgrey as a color for nodes
         // reported at 'actualZero'
-        .range(ns.colorArray.distinct[8].concat(['#A9A9A9']));
+        .range(ns.colorArray.distinct.openStackSeverity8.concat(['#A9A9A9']));
 
         // for 'disabled' axis
         ns.xAxis = d3.svg.axis()
