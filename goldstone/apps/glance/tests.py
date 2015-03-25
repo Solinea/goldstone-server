@@ -71,17 +71,19 @@ class DiscoverGlanceTopology(SimpleTestCase):
     """Test glance.tasks.discover_glance_topology."""
 
     class EmptyClientObject(object):
-        """A class that simulates one of the get_glance_client() return
+        """A class that simulates one of get_glance_client's return
         values."""
 
         images_list = []
 
         class Images(object):
+            """This is used to construct the images class symbol."""
 
             def __init__(self, val):
                 self.val = val
 
             def list(self):
+                """Mock the list() method."""
 
                 return self.val
 
@@ -91,6 +93,7 @@ class DiscoverGlanceTopology(SimpleTestCase):
         """Run before every test."""
 
         resources.graph.clear()
+        PolyResource.objects.all().delete()
 
     @patch('goldstone.apps.glance.tasks.get_glance_client')
     def test_empty_rg_empty_cloud(self, ggc):
@@ -131,7 +134,7 @@ class DiscoverGlanceTopology(SimpleTestCase):
             row = Image.objects.create(cloud_id=cloud_id, name="foobar")
             resources.graph.add_node(GraphNode(uuid=row.uuid,
                                                resourcetype=Image))
-                                 
+
         # Create the resource graph edges.
         for source, dest in EDGES:
             # Find the from and to nodes.
@@ -229,14 +232,14 @@ class DiscoverGlanceTopology(SimpleTestCase):
 
         self.assertEqual(resources.graph.number_of_nodes(), 3)
         self.assertEqual(PolyResource.objects.count(), 3)
-        self.assertEqual(resources.graph.number_of_edges(), 2)
         self.assertEqual(resources.nodes_of_type(Image), [])
+        self.assertEqual(resources.graph.number_of_edges(), 2)
 
     @patch('goldstone.apps.glance.tasks.logger')
     @patch('goldstone.apps.glance.tasks.get_glance_client')
     def test_empty_rg_cloud_multi_noid(self, ggc, log):
-        """Nothing in the resource graph; something in the cloud, and some the
-        glance services don't have cloud_id.
+        """Nothing in the resource graph; something in the cloud, and some of
+        the glance services don't have cloud_id.
 
         The ones without an id should be logged as errors, and the others
         should be added to the resource graph.
@@ -244,23 +247,45 @@ class DiscoverGlanceTopology(SimpleTestCase):
         """
 
         # Set up get_glance_client to return some glance services and other
-        # services; some of the glance services won't have an id.
-        import pdb; pdb.set_trace()
-
+        # services. Some of the glance services won't have a cloud_id.
         cloud = self.EmptyClientObject()
-        charlie = Image(name="charlie")
-        jablowme = Image(name="jablowme")
-        cloud.images_list = [charlie,
-                             Image(name="foobar", cloud_id="5"),
-                             Image(name="heywood", cloud_id="42"),
-                             jablowme,
-                             ]
+
+        bad_image_0 = {"checksum": "aw1234234234234234",
+                       "container_format": "bare",
+                       "disk_format": "FAT",
+                       "name": "botchegaloot",
+                       "status": "oh mama"}
+        bad_image_1 = bad_image_0.copy()
+        bad_image_1["owner"] = "Mike Hunt"
+
+        good_image_0 = {"checksum": "aw1234234234234234",
+                        "container_format": "bare",
+                        "disk_format": "FAT",
+                        "name": "botchegaloot",
+                        "status": "oh mama",
+                        "id": "123123233333"}
+        good_image_1 = good_image_0.copy()
+        good_image_1["owner"] = "Mike Hunt"
+        good_image_1["id"] = "156"
+
+        cloud.images_list = [bad_image_0,
+                             good_image_1,
+                             good_image_0,
+                             bad_image_1]
+        cloud.images = cloud.Images(cloud.images_list)
+
         ggc.return_value = {"client": cloud, "region": "Siberia"}
 
         new_discover_glance_topology()
 
         self.assertEqual(resources.graph.number_of_nodes(), 2)
-        self.assertEqual(log.call_args_list, [charlie, jablowme])
+        self.assertEqual(PolyResource.objects.count(), 2)
+        self.assertEqual(len(resources.nodes_of_type(Image)), 2)
+
+        # Extract the glance service dict from the logger calls, and then
+        # check them.
+        logger_arguments = [x[0][1] for x in log.critical.call_args_list]
+        self.assertEqual(logger_arguments, [bad_image_0, bad_image_1])
 
     def test_rg_cloud(self):
         """Cloud services exist, something in the graph, but the intersection
@@ -276,7 +301,7 @@ class DiscoverGlanceTopology(SimpleTestCase):
     def test_rg_cloud_by_name(self):
         """Cloud services exist, something in the graph, but the intersection
         is null, using name.
-s
+
         The resource graph nodes should be deleted, and the new cloud services
         added.
 

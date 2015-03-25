@@ -678,7 +678,7 @@ class Resources(Graph):
 
         # For every keyword argument pair...
         for k, v in kwargs.iteritems():
-            # Is there nodelist entry with this attribute value?
+            # Is there a nodelist entry with this attribute value?
             for node in nodelist:
                 if node.attributes.get(k) == v:
                     # Yes!
