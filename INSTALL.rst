@@ -22,10 +22,9 @@ limitations under the License.
 INSTALLING GOLDSTONE
 *********************
 
-Installing Goldstone is a two step process:
-
-1. Install Goldstone packages
-2. Direct OpenStack server logs to Goldstone server
+1. Install prerequisites
+2. Run the Goldstone installer
+3. Direct OpenStack server logs to Goldstone server
 
 Before installing Goldstone, your server needs to meet the following prerequesites:
 
@@ -38,74 +37,27 @@ To view and use Goldstone, you will need a recent version of the `Google Chrome 
 
 .. _Google Chrome browser: https://www.google.com/intl/en-US/chrome/browser/
 
-INSTALL GOLDSTONE PACKAGES
-**************************
-
-First, enable the CentOS EPEL repositories and install some dependencies:
+INSTALL PREREQUISITES (AS ROOT)
+*******************************
 
   .. code:: bash
 
-    $ sudo yum install -y  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-    $ sudo yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
+    # yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
+    # yum install -y python-devel python-setuptools
+    # easy_install pip
+    # pip install paramiko==1.10
+    # pip install fabric==1.10.1    
 
-Next, enable the elasticsearch and logstash repositories:
 
-  .. code:: bash
+RUN THE GOLDSTONE INSTALLER (AS ROOT)
+*************************************
 
-    $ sudo rpm --import http://packages.elasticsearch.org/GPG-KEY-elasticsearch
-
-    $ sudo bash
-    $ cat > /etc/yum.repos.d/elasticsearch-1.4.repo <<EOF
-    [elasticsearch-1.4]
-    name=Elasticsearch repository for 1.4.x packages
-    baseurl=http://packages.elasticsearch.org/elasticsearch/1.4/centos
-    gpgcheck=1
-    gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
-    enabled=1
-    EOF
-
-    $ cat > /etc/yum.repos.d/logstash-1.4.repo <<EOF
-    [logstash-1.4]
-    name=logstash repository for 1.4.x packages
-    baseurl=http://packages.elasticsearch.org/logstash/1.4/centos
-    gpgcheck=1
-    gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
-    enabled=1
-    EOF
-    $ exit
-
-Create a Postgres Goldstone user, and initialize the database. 
-      
-  .. code:: bash
-
-    $ Sudo bash
-    $ service postgresql initdb
-    $ chkconfig postgresql on
-    $ service postgresql start
-    $ su - postgres -c 'createdb goldstone'
-    $ su - postgres -c 'createuser goldstone -d'
-    $ su - postgres -c 'psql -c "alter user goldstone password \'goldstone\'"'
-    $ exit
-
-Edit ``/var/lib/pgsql/data/pg_hba.conf`` as 'postgres' user, and insert these 
-lines before any other uncommented local or host entries: ::
-
-    local   all         goldstone                         password
-    host    all         goldstone   127.0.0.1/32          password
-    host    all         goldstone   ::1/128               password
-
-Reload the postgres configuration.
+The following command should be initiated from the same directory as this file and the associated fabfile.py.
 
   .. code:: bash
 
-    $ sudo su - postgres -c 'pg_ctl reload'
+    # fab -f installer_fabfile.py install
 
-
-Install the Goldstone application: 
-
-  .. code:: bash
-
-    $ sudo yum localinstall -y goldstone-server-{version}.rpm
 
 This package installation may take up to 30 minutes to run, as it needs to compile a number of libraries.
 
@@ -123,18 +75,9 @@ Compare ``/opt/goldstone/goldstone/settings/production.py`` to
 
   .. code:: bash
 
-    $ mv /opt/goldstone/goldstone/settings/production.py.rpmnew /opt/goldstone/goldstone/settings.production.py.
+    # mv /opt/goldstone/goldstone/settings/production.py.rpmnew /opt/goldstone/goldstone/settings.production.py.
 
-
-INITIALIZE GOLDSTONE
-********************
-
-To finish initializing the Goldstone installation:
-
-  .. code:: bash
-
-    $ cd /opt/goldstone
-    $ fab goldstone_init
+Then restart the server.
 
 
 TEST PASSWORD RESET

@@ -12,11 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import print_function
+
 import os
 import sys
 
 from contextlib import contextmanager
-from fabric.api import task, local, warn, prompt
+from fabric.api import task, local, warn
 from fabric.colors import green
 from fabric.utils import fastprint
 
@@ -37,6 +39,29 @@ DEFAULT_TENANT = "default"
 DEFAULT_TENANT_OWNER = "None"
 DEFAULT_ADMIN = "gsadmin"
 DEFAULT_ADMIN_PASSWORD = "changeme"
+
+ES_REPO_FILENAME = "/etc/yum.repos.d/elasticsearch-1.4.repo"
+
+ES_REPO_TEXT = "[elasticsearch-1.4]\n" + \
+    "name=Elasticsearch repository for 1.4.x packages\n" + \
+    "baseurl=http://packages.elasticsearch.org/" + \
+    "elasticsearch/1.4/centos\n" + \
+    "gpgcheck=1\n" + \
+    "gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch\n" + \
+    "enabled=1\n"
+
+LOGSTASH_REPO_FILENAME = "/etc/yum.repos.d/logstash-1.4.repo"
+
+LOGSTASH_REPO_TEXT = "[logstash-1.4]\n" + \
+    "name=Logstash repository for 1.4.x packages\n" + \
+    "baseurl=http://packages.elasticsearch.org/" + \
+    "logstash/1.4/centos\n" + \
+    "gpgcheck=1\n" + \
+    "gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch\n" + \
+    "enabled=1\n"
+
+BREW_PGDATA = '/usr/local/var/postgres'
+CENTOS_PGDATA = '/var/lib/pgsql/data'
 
 
 def _django_manage(command, target='', proj_settings=None, daemon=False):
@@ -110,7 +135,7 @@ def _choose(choices):
 
             # Display the choices.
             for i, entry in enumerate(choices):
-                print "[%s] %s" % (i, entry)
+                print("[%s] %s" % (i, entry))
 
             # Get the user's selection.
             try:
@@ -132,7 +157,7 @@ def load(proj_settings=DEV_SETTINGS):
 
     """
 
-    print "initializing goldstone's elasticsearch templates ..."
+    print("initializing goldstone's elasticsearch templates ...")
     with _django_env(proj_settings):
         from goldstone.initial_load import initialize_elasticsearch
 
@@ -188,7 +213,7 @@ def _choose_runserver_settings(verbose):
 
     # Return the user's selection. If they asked for a verbose listing, we have
     # to strip the extra detail off the choice before returning it.
-    print "\nchoose a settings file to use:"
+    print("\nchoose a settings file to use:")
     return _choose(candidates).split(' ')[0] if verbose \
         else _choose(candidates)
 
@@ -222,7 +247,7 @@ def syncmigrate(settings=None, verbose=False):
 
     """
 
-    print "doing a syncdb and migrate ..."
+    print("doing a syncdb and migrate ...")
 
     if not settings:
         settings = _django_settings_module(verbose)
@@ -235,7 +260,7 @@ def syncmigrate(settings=None, verbose=False):
     # DRF and Django signals. See
     # https://github.com/tomchristie/django-rest-framework/issues/987.
     print
-    print green('Please create a Django superuser, username "admin" ...')
+    print(green('Please create a Django superuser, username "admin" ...'))
     _django_manage("createsuperuser --username=admin", proj_settings=settings)
 
 
@@ -253,7 +278,7 @@ def _tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
 
     """
 
-    print "initializing the Goldstone tenant and OpenStack cloud entry ..."
+    print("initializing the Goldstone tenant and OpenStack cloud entry ...")
 
     # Load the defaults, if the user didn't override them.
     if not tenant:
@@ -397,7 +422,7 @@ def _collect_static(proj_settings=None):
         from django.conf import settings
 
         if settings.STATIC_ROOT is not None:
-            print "collecting the static files under the web server ..."
+            print("collecting the static files under the web server ...")
             print
             _django_manage("collectstatic", proj_settings=proj_settings)
 
@@ -417,7 +442,7 @@ def goldstone_init(verbose=False):
 
     """
 
-    print "Goldstone database and Elasticsearch initialization ..."
+    print("Goldstone database and Elasticsearch initialization ...")
     settings = _django_settings_module(verbose)
 
     syncmigrate(settings=settings)
