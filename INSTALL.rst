@@ -45,7 +45,8 @@ INSTALL PREREQUISITES (AS ROOT)
     # yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
     # yum install -y python-devel python-setuptools
     # easy_install pip
-    # pip install fabric=1.10.1    
+    # pip install paramiko==1.10
+    # pip install fabric==1.10.1    
 
 
 RUN THE GOLDSTONE INSTALLER (AS ROOT)
@@ -55,7 +56,7 @@ The following command should be initiated from the same directory as this file a
 
   .. code:: bash
 
-    # fab install
+    # fab -f installer_fabfile.py install
 
 
 This package installation may take up to 30 minutes to run, as it needs to compile a number of libraries.
@@ -75,6 +76,8 @@ Compare ``/opt/goldstone/goldstone/settings/production.py`` to
   .. code:: bash
 
     # mv /opt/goldstone/goldstone/settings/production.py.rpmnew /opt/goldstone/goldstone/settings.production.py.
+
+Then restart the server.
 
 
 TEST PASSWORD RESET

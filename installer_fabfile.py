@@ -152,7 +152,7 @@ def _centos6_setup_postgres():
             pg_hba_fd.write(infile.read())
 
     # reload the config
-    subprocess.call('postgres -c "pg_ctl reload"', shell=True)
+    subprocess.call('service postgresql restart'.split())
 
 
 def _is_root_user():
