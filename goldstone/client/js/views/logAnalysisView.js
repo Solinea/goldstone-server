@@ -551,6 +551,17 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
                         self.clearSearchDataErrorMessage('.search-popup-message');
 
+                        _.each(data, function(item) {
+
+                            // if any field is undefined, dataTables throws an alert
+                            // so set to empty string if otherwise undefined
+                            item['@timestamp'] = item['@timestamp'] || '';
+                            item.syslog_severity = item.syslog_severity || '';
+                            item.component = item.component || '';
+                            item.log_message = item.log_message || '';
+                            item.host = item.host || '';
+                        });
+
                         return data;
 
                     },
