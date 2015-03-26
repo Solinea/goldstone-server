@@ -539,7 +539,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
             oTable.ajax.reload();
         } else {
             var oTableParams = {
-                "info": false,
+                "info": true,
                 "bAutoWidth": false,
                 "autoWidth": true,
                 "processing": true,
