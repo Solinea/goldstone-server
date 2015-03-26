@@ -429,7 +429,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
             self.update();
         });
 
-        this.refreshSearchTable(ns.start, ns.end, ns.filter);
+        this.refreshSearchTable(ns.start, ns.end);
         this.redraw();
 
     },
@@ -459,11 +459,9 @@ var LogAnalysisView = UtilizationCpuView.extend({
         }
     },
 
-    refreshSearchTable: function(start, end, levels) {
+    urlGen: function(start, end) {
         var ns = this.defaults;
         var self = this;
-
-        var oTable;
 
         var uri = '/logging/search?@timestamp__range={"gte":' +
             start +
@@ -479,11 +477,21 @@ var LogAnalysisView = UtilizationCpuView.extend({
         }
         uri += "]";
 
+        return uri;
+
         /*
         makes a url such as:
         /logging/search?@timestamp__range={%22gte%22:1426981050017,%22lte%22:1426984650017}&loglevel__terms=[%22EMERGENCY%22,%22ALERT%22,%22CRITICAL%22,%22ERROR%22,%22WARNING%22,%22NOTICE%22,%22INFO%22,%22DEBUG%22]
         */
+    },
 
+    refreshSearchTable: function(start, end) {
+        var ns = this.defaults;
+        var self = this;
+
+        var oTable;
+
+        var uri = this.urlGen(start, end);
 
         if ($.fn.dataTable.isDataTable("#log-search-table")) {
             oTable = $("#log-search-table").DataTable();
@@ -500,24 +508,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         var oTable;
 
-        var uri = '/logging/search?@timestamp__range={"gte":' +
-            start +
-            ',"lte":' +
-            end +
-            '}&loglevel__terms=[';
-
-        levels = ns.filter || {};
-        for (var k in levels) {
-            if (levels[k]) {
-                uri = uri.concat('"', k.toUpperCase(), '",');
-            }
-        }
-        uri += "]";
-
-        /*
-        makes a url such as:
-        /logging/search?@timestamp__range={"gte":1426981050017,"lte":1426984650017}&loglevel__terms=["EMERGENCY","ALERT","CRITICAL","ERROR","WARNING","NOTICE","INFO","DEBUG"]
-        */
+        var uri = this.urlGen(start, end);
 
         if ($.fn.dataTable.isDataTable(location)) {
             oTable = $(location).DataTable();
