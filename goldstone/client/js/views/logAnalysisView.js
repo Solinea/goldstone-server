@@ -543,6 +543,17 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
                     },
                     url: uri,
+                    dataFilter: function(data) {
+
+                        /* dataFilter is analagous to the purpose of ajax 'success',
+                        but you can't also use 'success' as then dataFilter
+                        will not be triggered */
+
+                        self.clearSearchDataErrorMessage('.search-popup-message');
+
+                        return data;
+
+                    },
                     error: function(data) {
                         self.searchDataErrorMessage(null, data, '.search-popup-message');
                     }
@@ -552,7 +563,6 @@ var LogAnalysisView = UtilizationCpuView.extend({
                     "type": "date",
                     "targets": 0,
                     "render": function(data, type, full, meta) {
-                        self.clearSearchDataErrorMessage('.search-popup-message');
                         return moment(data).format();
                     }
                 }, {
