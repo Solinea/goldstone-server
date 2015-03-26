@@ -56,7 +56,7 @@ def _is_supported_centos6():
     try:
         dist = platform.linux_distribution()
         return dist[0] == 'CentOS' and dist[1] in ['6.5', '6.6']
-    except Exception:
+    except Exception:  # pylint: disable=W0703
         return False
 
 
@@ -64,11 +64,8 @@ def _is_development_mac():
     """Is this a mac?"""
     try:
         dist = platform.mac_ver()
-        if dist[2] == 'x86_64':
-            return True
-        else:
-            return False
-    except Exception:
+        return dist[2] == 'x86_64'
+    except Exception:  # pylint: disable=W0703
         return False
 
 
@@ -85,16 +82,14 @@ def _verify_required_rpms(rpms):
 
     print()
     print(green("Checking for prerequisite RPMs."))
-    missing = []
-    for name in rpms:
-        if not _is_rpm_installed(name):
-            missing.append(name)
+    missing = [name for name in rpms if not _is_rpm_installed(name)]
     print()
     print(green("Checking for prerequisite RPMs completed."))
     return missing
 
 
 def _install_additional_repos():
+    """Sets up yum repos used by goldstone installer."""
 
     print()
     print(green("Installing epel, logstash, and elasticsearch repos..."))
@@ -147,19 +142,18 @@ def _centos6_setup_postgres():
 
     # now tack on the original file
     with open(CENTOS_PG_HBA_BACKUP) as infile:
-            pg_hba_fd.write(infile.read())
+        pg_hba_fd.write(infile.read())
 
     # reload the config
     subprocess.call('service postgresql restart'.split())
 
 
 def _is_root_user():
+    """Is this running as root?"""
+
     import getpass
 
-    if getpass.getuser() != 'root':
-        return False
-    else:
-        return True
+    return getpass.getuser() == "root"
 
 
 def _centos6_preinstall():
@@ -182,6 +176,7 @@ def _centos6_preinstall():
 
 
 def _development_mac_preinstall():
+    """Verify/set up Goldstone dev environment on MacOS."""
     pass
 
 
@@ -194,13 +189,11 @@ def _license_accepted():
                "To continue, please confirm that you have read and accept the "
                "license.\n"))
     result = prompt('Accept license [y/n]?', validate="""[yn]""")
-    if result == 'y':
-        return True
-    else:
-        return False
+    return result == 'y'
 
 
 def _validate_path(path):
+    """Check for existence of a filesystem path."""
     if not os.path.exists(path):
         raise ValueError("File does not exist.")
 
