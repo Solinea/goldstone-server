@@ -23,6 +23,7 @@ from .models import LogData
 
 # pylint: disable=C0103
 
+
 class LogDataModelTests(SimpleTestCase):
     """Tests for the LogData model"""
 
@@ -155,7 +156,6 @@ class LogAggViewTests(APITestCase):
 
 class LogEventViewTests(APITestCase):
     """Test log event views."""
-
 
     def setUp(self):
         """set up for each test."""
