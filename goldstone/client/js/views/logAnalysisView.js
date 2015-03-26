@@ -485,6 +485,29 @@ var LogAnalysisView = UtilizationCpuView.extend({
         */
     },
 
+    dataPrep: function(data) {
+        var ns = this.defaults;
+        var self = this;
+
+        data = JSON.parse(data);
+        _.each(data.results, function(item) {
+
+            // if any field is undefined, dataTables throws an alert
+            // so set to empty string if otherwise undefined
+            item['@timestamp'] = item['@timestamp'] || '';
+            item.syslog_severity = item.syslog_severity || '';
+            item.component = item.component || '';
+            item.log_message = item.log_message || '';
+            item.host = item.host || '';
+        });
+
+        return {
+            recordsTotal: data.count,
+            recordsFiltered: data.count,
+            result: data.results
+        };
+    },
+
     refreshSearchTable: function(start, end) {
         var ns = this.defaults;
         var self = this;
@@ -529,7 +552,6 @@ var LogAnalysisView = UtilizationCpuView.extend({
                 ],
                 "serverSide": true,
                 "ajax": {
-                    dataSrc: "results",
                     beforeSend: function(obj, settings) {
                         var searchQuery = $('.log-search-container').find('input.form-control').val();
 
@@ -540,7 +562,6 @@ var LogAnalysisView = UtilizationCpuView.extend({
                             settings.url += "&log_message__regexp=.*" +
                                 searchQuery + ".*";
                         }
-
                     },
                     url: uri,
                     dataFilter: function(data) {
@@ -549,25 +570,20 @@ var LogAnalysisView = UtilizationCpuView.extend({
                         but you can't also use 'success' as then dataFilter
                         will not be triggered */
 
+                        // clear any error messages when data begins to flow again
                         self.clearSearchDataErrorMessage('.search-popup-message');
 
-                        _.each(data, function(item) {
+                        var result = self.dataPrep(data);
 
-                            // if any field is undefined, dataTables throws an alert
-                            // so set to empty string if otherwise undefined
-                            item['@timestamp'] = item['@timestamp'] || '';
-                            item.syslog_severity = item.syslog_severity || '';
-                            item.component = item.component || '';
-                            item.log_message = item.log_message || '';
-                            item.host = item.host || '';
-                        });
-
-                        return data;
+                        // dataTables expects JSON encoded result
+                        // return result;
+                        return JSON.stringify(result);
 
                     },
                     error: function(data) {
                         self.searchDataErrorMessage(null, data, '.search-popup-message');
-                    }
+                    },
+                    dataSrc: "result"
                 },
                 "columnDefs": [{
                     "data": "@timestamp",
