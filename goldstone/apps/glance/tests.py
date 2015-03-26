@@ -354,10 +354,12 @@ class DiscoverGlanceTopology(SimpleTestCase):
 
         resource_node_attributes = [x.attributes
                                     for x in resources.nodes_of_type(Image)]
-        self.assertEqual(resource_node_attributes,
-                         [good_image_0, good_image_1, good_image_2])
+        expected = [good_image_0, good_image_1, good_image_2]
+        resource_node_attributes.sort()
+        expected.sort()
+        self.assertEqual(resource_node_attributes, expected)
 
-        self.assertEqual(resources.graph.number_of_edges(), 3)
+        self.assertEqual(resources.graph.number_of_edges(), 2)
 
     def test_rg_cloud_by_name(self):
         """Cloud services exist, something in the graph, but the intersection

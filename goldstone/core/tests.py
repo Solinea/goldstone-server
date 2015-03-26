@@ -65,13 +65,6 @@ class TaskTests(SimpleTestCase):
 class PolyResourceModelTests(SimpleTestCase):
     """Test the PolyResourceModel."""
 
-    def test___hashable(self):
-        """test the hashable representation of a resource."""
-
-        # pylint: disable=W0212
-        resource = PolyResource(name='polly')._hashable()
-        self.assertTrue('"name":"polly"' in resource)
-
     def test_logs(self):
         """test that the logs method returns an appropriate search object."""
 
