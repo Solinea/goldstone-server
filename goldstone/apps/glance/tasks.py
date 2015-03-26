@@ -64,9 +64,6 @@ def new_discover_glance_topology():
 
     # Collect the glance images that exist in the OpenStack cloud.
     client_access = get_glance_client()
-    # region = client_access["region"]
-
-    # Gather the current glance services from the cloud. Each one is a dict.
     actual = []
 
     # For every found OpenStack glance service...
