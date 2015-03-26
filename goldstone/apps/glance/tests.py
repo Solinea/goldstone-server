@@ -124,7 +124,13 @@ class DiscoverGlanceTopology(SimpleTestCase):
         """Run before every test."""
 
         resources.graph.clear()
-        PolyResource.objects.all().delete()
+
+        # Doing a PolyResource.objects.all().delete() here, with the latest
+        # version of django-polymorphic, throws an IntegrityError
+        # exception. So we'll individually delete each subclass.
+        Image.objects.all().delete()
+        ServerGroup.objects.all().delete()
+        NovaLimits.objects.all().delete()
 
     @patch('goldstone.apps.glance.tasks.get_glance_client')
     def test_empty_rg_empty_cloud(self, ggc):
@@ -286,12 +292,11 @@ class DiscoverGlanceTopology(SimpleTestCase):
 
     @patch('goldstone.apps.glance.tasks.get_glance_client')
     def test_rg_cloud(self, ggc):
-        """Something in the graph, and cloud services exist.
+        """Something is in the graph, and cloud services exist; but their
+        intersection is null.
 
-        But the intersection of the two is null.
-
-        All of the existing resource graph Image nodes should be deleted, and
-        the new cloud services added.
+        All of the existing resource graph glance (Image) nodes should be
+        deleted, and the new cloud services added.
 
         """
 
@@ -316,24 +321,43 @@ class DiscoverGlanceTopology(SimpleTestCase):
 
         # Create the PolyResource database rows, and the corresponding
         # Resource graph nodes.
-        import pdb; pdb.set_trace()
         self.load_rg_and_db(NODES, EDGES)
 
-        # # Sanity check
-        # self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
-        # self.assertEqual(PolyResource.objects.count(), len(NODES))
-        # self.assertEqual(resources.graph.number_of_edges(), len(EDGES))
+        # Sanity check
+        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
+        self.assertEqual(PolyResource.objects.count(), len(NODES))
+        self.assertEqual(resources.graph.number_of_edges(), len(EDGES))
 
-        # # Set up get_glance_client to return an empty OpenStack cloud.
-        # ggc.return_value = {"client": self.EmptyClientObject(),
-        #                     "region": "Siberia"}
+        # Set up get_glance_client to return some glance and other services.
+        cloud = self.EmptyClientObject()
 
-        # new_discover_glance_topology()
+        good_image_0 = {"checksum": "aw1234234234234234",
+                        "container_format": "bare",
+                        "disk_format": "FAT",
+                        "name": "botchegaloot",
+                        "status": "oh mama",
+                        "id": "123123233333"}
+        good_image_1 = good_image_0.copy()
+        good_image_1["id"] = "156"
+        good_image_2 = good_image_0.copy()
+        good_image_2["id"] = "157"
 
-        # self.assertEqual(resources.graph.number_of_nodes(), 3)
-        # self.assertEqual(PolyResource.objects.count(), 3)
-        # self.assertEqual(resources.nodes_of_type(Image), [])
-        # self.assertEqual(resources.graph.number_of_edges(), 2)
+        cloud.images_list = [good_image_0, good_image_1, good_image_2]
+        cloud.images = cloud.Images(cloud.images_list)
+
+        ggc.return_value = {"client": cloud, "region": "Siberia"}
+
+        new_discover_glance_topology()
+
+        self.assertEqual(resources.graph.number_of_nodes(), 6)
+        self.assertEqual(PolyResource.objects.count(), 6)
+
+        resource_node_attributes = [x.attributes
+                                    for x in resources.nodes_of_type(Image)]
+        self.assertEqual(resource_node_attributes,
+                         [good_image_0, good_image_1, good_image_2])
+
+        self.assertEqual(resources.graph.number_of_edges(), 3)
 
     def test_rg_cloud_by_name(self):
         """Cloud services exist, something in the graph, but the intersection
