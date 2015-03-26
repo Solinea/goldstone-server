@@ -18,9 +18,10 @@ import os
 import platform
 import subprocess
 
-from fabric.api import task, local, prompt
+from fabric.api import task, local
 from fabric.colors import green, cyan, red
 from fabric.utils import abort
+from fabric.operations import prompt
 
 
 ES_REPO_FILENAME = "/etc/yum.repos.d/elasticsearch-1.4.repo"
@@ -54,10 +55,7 @@ def _is_supported_centos6():
 
     try:
         dist = platform.linux_distribution()
-        if dist[0] == 'CentOS' and dist[1] in ['6.5', '6.6']:
-            return True
-        else:
-            return False
+        return dist[0] == 'CentOS' and dist[1] in ['6.5', '6.6']
     except Exception:
         return False
 
