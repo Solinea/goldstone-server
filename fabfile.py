@@ -18,7 +18,7 @@ import os
 import sys
 
 from contextlib import contextmanager
-from fabric.api import task, local, warn
+from fabric.api import task, local, warn, prompt
 from fabric.colors import green
 from fabric.utils import fastprint
 from fabric.operations import prompt
@@ -253,14 +253,14 @@ def syncmigrate(settings=None, verbose=False):
     if not settings:
         settings = _django_settings_module(verbose)
 
-    print
+    print()
 
     _django_manage("syncdb --noinput --migrate", proj_settings=settings)
 
     # We must create the superuser separately because of an interaction between
     # DRF and Django signals. See
     # https://github.com/tomchristie/django-rest-framework/issues/987.
-    print
+    print()
     print(green('Please create a Django superuser, username "admin" ...'))
     _django_manage("createsuperuser --username=admin", proj_settings=settings)
 
@@ -424,11 +424,12 @@ def _collect_static(proj_settings=None):
 
         if settings.STATIC_ROOT is not None:
             print("collecting the static files under the web server ...")
-            print
+            print()
             _django_manage("collectstatic", proj_settings=proj_settings)
 
 
 def _reconcile_hosts(proj_settings=None):
+    """Builds the initial entries in the Hosts table from agg of loggers."""
     with _django_env(proj_settings):
         from goldstone.apps.nova.tasks import reconcile_hosts
         reconcile_hosts()
