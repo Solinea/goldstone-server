@@ -21,6 +21,8 @@ from rest_framework.test import APITestCase
 from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
 from .models import LogData
 
+# pylint: disable=C0103
+
 
 class LogDataModelTests(SimpleTestCase):
     """Tests for the LogData model"""
@@ -116,6 +118,8 @@ class LogEventModelTests(SimpleTestCase):
     """Tests for the LogEvent model"""
 
     def test_search(self):
+        """Assert that the search object has the correct basic form."""
+
         from .models import LogEvent
 
         expectation = {'bool': {
@@ -128,11 +132,15 @@ class LogEventModelTests(SimpleTestCase):
 
 
 class LogAggViewTests(APITestCase):
+    """Test log aggregation views."""
+    # pylint: exclude=C0103
 
     def setUp(self):
+        """set up for each test."""
         self.token = create_and_login()
 
     def test_agg_view_with_params(self):
+        """Test parameter handling for an aggregation view."""
 
         start = arrow.get(0).timestamp * 1000
         end = arrow.utcnow().timestamp * 1000
@@ -147,12 +155,14 @@ class LogAggViewTests(APITestCase):
 
 
 class LogEventViewTests(APITestCase):
+    """Test log event views."""
 
     def setUp(self):
+        """set up for each test."""
         self.token = create_and_login()
 
     def test_event_view(self):
-
+        """Assert that the event view returns a 200."""
         start = arrow.get(0).timestamp * 1000
         end = arrow.utcnow().timestamp * 1000
         range = '@timestamp__range={"gte":"' + \

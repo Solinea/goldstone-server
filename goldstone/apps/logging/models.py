@@ -158,7 +158,6 @@ class LogEvent(LogData):
 
         return search.query(event_type_query)
 
-
     @classmethod
     def ranged_event_agg(cls, base_queryset, interval='1d', per_host=True):
         """ Returns an aggregations by date histogram and maybe event type.
@@ -215,4 +214,3 @@ class LogEvent(LogData):
 
         response = search.execute().aggregations
         return response
-

@@ -24,20 +24,23 @@ logger = logging.getLogger(__name__)
 
 
 class ReportView(TopLevelView):
+    """Template view for api perf report page."""
     template_name = 'api_perf_report.html'
 
 
 class ApiPerfView(APIView):
     """The base class for all app "ApiPerfView" views."""
 
-    def _get_data(self, context):
+    @staticmethod
+    def _get_data(context):
+        """Retrieve perf data from ES."""
         import arrow
         return ApiPerfData.get_stats(arrow.get(context['start_dt']),
                                      arrow.get(context['end_dt']),
                                      context['interval'],
                                      context['component'],)
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         """Return a response to a GET request."""
 
         # Fetch and enhance this request's context.
@@ -45,7 +48,6 @@ class ApiPerfView(APIView):
             # Use "now" if not provided. Validate() will calculate the start
             # and interval. Arguments missing from the request are set to None.
 
-            # TODO convert this calendar stuff to arrow
             'end':
             request.query_params.get(
                 'end',
@@ -55,7 +57,6 @@ class ApiPerfView(APIView):
             'component': request.query_params.get('component'),
             }
 
-        # TODO user DRF validation instead of custom.
         context = validate(['start', 'end', 'interval'], context)
 
         if isinstance(context, HttpResponseBadRequest):
