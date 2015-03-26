@@ -16,6 +16,26 @@
 
 // define collection and link to model
 
+/*
+instantiated in logSearchView.js as:
+
+    this.logAnalysisCollection = new LogAnalysisCollection({});
+
+    ** and the view as:
+
+    this.logAnalysisView = new LogAnalysisView({
+        collection: this.logAnalysisCollection,
+        width: $('.log-analysis-container').width(),
+        height: 300,
+        el: '.log-analysis-container',
+        featureSet: 'logEvents',
+        chartTitle: 'Log Analysis',
+        urlRoot: "/logging/summarize?",
+
+    });
+
+*/
+
 var LogAnalysisCollection = Backbone.Collection.extend({
 
     defaults: {},
@@ -24,7 +44,7 @@ var LogAnalysisCollection = Backbone.Collection.extend({
 
         if (data.next && data.next !== null) {
             var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/data'));
+            nextUrl = dp.slice(dp.indexOf('/logging'));
             this.fetch({
                 url: nextUrl,
                 remove: false,
@@ -38,7 +58,7 @@ var LogAnalysisCollection = Backbone.Collection.extend({
 
     // will impose an order based on 'time' for
     // the models as they are put into the collection
-    comparator: 'time',
+    // comparator: '@timestamp',
 
     initialize: function(options) {
         this.options = options || {};
