@@ -26,8 +26,7 @@ openstack syslog severity levels:
 7       DEBUG: debug-level messages
 /*
 
-/*
-instantiated in logSearchView.js as:
+/* instantiated in logSearchView.js as:
 
     this.logAnalysisCollection = new LogAnalysisCollection({});
 
@@ -38,9 +37,9 @@ instantiated in logSearchView.js as:
         el: '.log-analysis-container',
         featureSet: 'logEvents',
         chartTitle: 'Log Analysis',
-        urlRoot: "/intelligence/log/cockpit/data?",
-    });
+        urlRoot: "/logging/summarize?",
 
+    });
 */
 
 // extends UtilizationCpuView
@@ -534,6 +533,9 @@ var LogAnalysisView = UtilizationCpuView.extend({
                 "paging": true,
                 "searching": true,
                 "ordering": true,
+                "order": [
+                    [0, 'desc']
+                ],
                 "serverSide": true,
                 "ajax": {
                     dataSrc: "results",
@@ -545,7 +547,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
                         if (searchQuery) {
                             settings.url += "&log_message__regexp=.*" +
-                            searchQuery + ".*";
+                                searchQuery + ".*";
                         }
 
                     },
