@@ -101,10 +101,18 @@ class DiscoverGlanceTopology(SimpleTestCase):
 
         """
 
+        nameindex = 0
+
+        # Create the resource nodes. Each will have a unique name. Note that
+        # the cloud_id is stored in the .attributes attribute.
         for nodetype, cloud_id in startnodes:
-            row = nodetype.objects.create(cloud_id=cloud_id, name="foobar")
+            row = nodetype.objects.create(cloud_id=cloud_id,
+                                          name="name_%d" % nameindex)
+            nameindex += 1
+
             resources.graph.add_node(GraphNode(uuid=row.uuid,
-                                               resourcetype=nodetype))
+                                               resourcetype=nodetype,
+                                               attributes={"id": cloud_id}))
 
         # Create the resource graph edges.
         for source, dest in startedges:
@@ -361,35 +369,82 @@ class DiscoverGlanceTopology(SimpleTestCase):
 
         self.assertEqual(resources.graph.number_of_edges(), 2)
 
-    def test_rg_cloud_by_name(self):
-        """Cloud services exist, something in the graph, but the intersection
-        is null, using name.
-
-        The resource graph nodes should be deleted, and the new cloud services
-        added.
-
-        """
-
-        pass
-
-    def test_rg_cloud_hit(self):
-        """Cloud services exist, something in the graph, and the intersection
-        is not null, using cloud_id.
+    @patch('goldstone.apps.glance.tasks.get_glance_client')
+    def test_rg_cloud_hit(self, ggc):
+        """Something is in the graph, and cloud services exist; and the
+        intersection is not null.
 
         Some of the resource graph nodes should be deleted, some should be
-        updated, and new cloud services added.
+        updated, some should be added.
 
         """
 
-        pass
+        # The initial resource graph nodes, as (Type, cloud_id) tuples.  The
+        # cloud_id's must be unique within a node type.
+        NODES = [(Image, "a"),
+                 (Image, "ab"),
+                 (Image, "abc"),
+                 (ServerGroup, "0"),
+                 (ServerGroup, "ab"),
+                 (NovaLimits, "0")]
 
-    def test_rg_cloud_hit_by_name(self):
-        """Cloud services exist, something in the graph, and the intersection
-        is not null, using name.
+        # The initial resource graph edges. Each entry is ((from_type,
+        # cloud_id), (to_type, cloud_id)).  The cloud_id's must be unique
+        # within a node type.
+        EDGES = [((Image, "a"), (Image, "ab")),
+                 ((Image, "a"), (ServerGroup, "0")),
+                 ((Image, "ab"), (ServerGroup, "ab")),
+                 ((Image, "ab"), (Image, "abc")),
+                 ((NovaLimits, "0"), (ServerGroup, "ab")),
+                 ((NovaLimits, "0"), (Image, "a")),
+                 ((ServerGroup, "0"), (NovaLimits, "0")),
+                 ]
 
-        Some of the resource graph nodes should be deleted, some should be
-        updated, and the new cloud services added.
+        # Create the PolyResource database rows, and the corresponding
+        # Resource graph nodes.
+        self.load_rg_and_db(NODES, EDGES)
 
-        """
+        # Sanity check
+        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
+        self.assertEqual(PolyResource.objects.count(), len(NODES))
+        self.assertEqual(resources.graph.number_of_edges(), len(EDGES))
 
-        pass
+        # Set up get_glance_client to return some glance and other services.
+        cloud = self.EmptyClientObject()
+
+        # Hits in the resource graph, but has new info.
+        good_image_0 = {"checksum": "aw1234234234234234",
+                        "container_format": "bare",
+                        "disk_format": "FAT",
+                        "name": "botchegaloot",
+                        "status": "oh mama",
+                        "id": "ab",
+                        "name": "Jolly Roger"}
+
+        # A new node. This will have a duplicate name, which should not matter.
+        good_image_1 = good_image_0.copy()
+        good_image_1["id"] = "156"
+
+        # Hits in the resource graph, but has new info.
+        good_image_2 = good_image_0.copy()
+        good_image_2["id"] = "abc"
+        good_image_2["name"] = "Amber Waves"
+
+        cloud.images_list = [good_image_0, good_image_1, good_image_2]
+        cloud.images = cloud.Images(cloud.images_list)
+
+        ggc.return_value = {"client": cloud, "region": "Siberia"}
+
+        new_discover_glance_topology()
+
+        self.assertEqual(resources.graph.number_of_nodes(), 6)
+        self.assertEqual(PolyResource.objects.count(), 6)
+
+        resource_node_attributes = [x.attributes
+                                    for x in resources.nodes_of_type(Image)]
+        expected = [good_image_0, good_image_1, good_image_2]
+        resource_node_attributes.sort()
+        expected.sort()
+        self.assertEqual(resource_node_attributes, expected)
+
+        self.assertEqual(resources.graph.number_of_edges(), 4)
