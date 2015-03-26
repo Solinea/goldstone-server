@@ -54,10 +54,13 @@ def discover_glance_topology():
 
 @celery_app.task()
 def new_discover_glance_topology():
-    """Update the Glance nodes in the Resource graph.
+    """Update the Resource graph Glance nodes and edges from the current
+    OpenStack cloud state.
 
-    Resource graph nodes are deleted if they are no longer in the OpenStack
-    cloud.
+    Resource graph nodes are:
+       - deleted if they are no longer in the OpenStack cloud.
+       - added if they are in the OpenStack cloud, but not in the graph.
+       - updated from the cloud if they are already in the graph.
 
     """
     from goldstone.core.models import resources, Image, GraphNode

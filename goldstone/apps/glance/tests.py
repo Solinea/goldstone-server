@@ -418,8 +418,7 @@ class DiscoverGlanceTopology(SimpleTestCase):
                         "disk_format": "FAT",
                         "name": "botchegaloot",
                         "status": "oh mama",
-                        "id": "ab",
-                        "name": "Jolly Roger"}
+                        "id": "ab"]
 
         # A new node. This will have a duplicate name, which should not matter.
         good_image_1 = good_image_0.copy()
