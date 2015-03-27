@@ -34,7 +34,7 @@ casper.test.tearDown(function() {
 begin tests
 */
 
-casper.test.begin('/settings page updates user personal settings / password', 8, function suite(test) {
+casper.test.begin('/settings page updates user personal settings / password', 10, function suite(test) {
 
     casper.start('http://localhost:8000/settings', function() {
         this.echo("Update Personal Settings form", "GREEN_BAR");
@@ -112,6 +112,65 @@ casper.test.begin('/settings page updates user personal settings / password', 8,
         // alert-info bar should not empty
         test.assertExists('.alert.alert-info', 'alert info exists');
         test.assertSelectorHasText('.alert.alert-info', 'Password update successful');
+    });
+
+    casper.then(function() {
+        // there should be an additional actions section for tenant_admins
+        test.assertSelectorHasText('div#tenant-settings-button', 'Additional actions');
+        test.assertSelectorHasText('button.modify', 'Modify tenant settings');
+    });
+
+    casper.run(function() {
+        test.done();
+    });
+
+    // end of settings page e2e tests
+});
+
+casper.test.begin('/settings/tenants page updates user personal settings / password', 2, function suite(test) {
+
+    casper.start('http://localhost:8000/settings/tenants', function() {
+        this.echo("Update Tenant Settings", "GREEN_BAR");
+        test.assertExists("form.tenant-settings-form");
+        test.assertSelectorHasText("form.tenant-settings-form h3", "Update Tenant Settings");
+
+        // what does the Update Tenant Settings form say?
+        this.echo('update tenant settings form values: ', "GREEN_BAR");
+        this.echo('Tenant name: ' + this.getFormValues('form.tenant-settings-form').name, "INFO");
+        this.echo('first name: ' + this.getFormValues('form.tenant-settings-form').owner, "INFO");
+        this.echo('last name: ' + this.getFormValues('form.tenant-settings-form').owner_contact, "INFO");
+
+        // don't actually submit new settings
+        this.click('#tenants-single-rsrc-table td.sorting_1');
+
+        // what does the Update tenant Settings form say now?
+        this.echo('update tenant settings form values: ', "GREEN_BAR");
+        this.echo('Tenant name: ' + this.getFormValues('form.tenant-settings-form').name, "INFO");
+        this.echo('first name: ' + this.getFormValues('form.tenant-settings-form').owner, "INFO");
+        this.echo('last name: ' + this.getFormValues('form.tenant-settings-form').owner_contact, "INFO");
+
+        // fill out new personal settings
+        var randomDetails = ['Marvin', 'Martian', 'Bond', 'Calvin', 'Hobbes', 'Bill', 'Watterson'];
+        var randomEmails = ['a@a.com', 'b@b.com', 'c@c.com', 'd@d.com', 'e@e.com', 'f@f.com'];
+
+        var returnRandomItem = function(list) {
+            var i = Math.floor(Math.random() * list.length);
+            return list[i];
+        };
+
+        // fill out new personal settings
+        // don't actually submit new settings
+        this.fill('form.tenant-settings-form', {
+            'name': returnRandomItem(randomDetails),
+            'owner': returnRandomItem(randomDetails),
+            'owner_contact': returnRandomItem(randomEmails)
+        }, false);
+
+        // what does the Update Personal Settings form say now?
+        this.echo('tenant settings filled but not submitted with: ', "GREEN_BAR");
+        this.echo('Tenant name: ' + this.getFormValues('form.tenant-settings-form').name, "INFO");
+        this.echo('first name: ' + this.getFormValues('form.tenant-settings-form').owner, "INFO");
+        this.echo('last name: ' + this.getFormValues('form.tenant-settings-form').owner_contact, "INFO");
     });
 
     casper.run(function() {

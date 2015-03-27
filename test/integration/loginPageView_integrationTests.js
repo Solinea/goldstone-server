@@ -8,9 +8,7 @@ describe('loginPageView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "accounts/login", [200, {
-            "Content-Type": "application/json"
-        }, '[]']);
+        this.server.respondWith(404, '{auth_token: 12345}');
         data = [];
 
         this.testView = new LoginPageView({
@@ -34,6 +32,7 @@ describe('loginPageView.js spec', function() {
             $('input.form-control').val('a');
             $('input.form-control').next().val('a');
             $('form.login-form').submit();
+            this.server.respond();
         });
     });
 });

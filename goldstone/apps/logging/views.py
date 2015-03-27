@@ -30,6 +30,7 @@ class LogDataView(ElasticListAPIView):
     serializer_class = LogDataSerializer
 
     class Meta:
+        """Meta"""
         model = LogData
 
 
@@ -40,11 +41,12 @@ class LogAggView(ElasticListAPIView):
     reserved_params = ['interval', 'per_host']
 
     class Meta:
+        """Meta"""
         model = LogData
 
     def get(self, request, *args, **kwargs):
-        import ast
         """Return a response to a GET request."""
+        import ast
         base_queryset = self.filter_queryset(self.get_queryset())
         interval = self.request.query_params.get('interval', '1d')
         per_host = ast.literal_eval(
@@ -60,6 +62,7 @@ class LogEventView(ElasticListAPIView):
     serializer_class = LogDataSerializer
 
     class Meta:
+        """Meta"""
         model = LogEvent
 
 
@@ -70,11 +73,12 @@ class LogEventAggView(ElasticListAPIView):
     reserved_params = ['interval', 'per_host']
 
     class Meta:
+        """Meta"""
         model = LogEvent
 
     def get(self, request, *args, **kwargs):
-        import ast
         """Return a response to a GET request."""
+        import ast
         base_queryset = self.filter_queryset(self.get_queryset())
         interval = self.request.query_params.get('interval', '1d')
         per_host = ast.literal_eval(

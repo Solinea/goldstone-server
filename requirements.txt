@@ -18,6 +18,7 @@
 
 Django==1.6.10
 South==1.0.2
+pbr==0.10.8  # one of the libs before "p" has a problem with dependencies
 arrow==0.4.4
 celery[redis]==3.1.17
 django-admin-bootstrapped==2.3.3
@@ -35,7 +36,6 @@ fabric==1.10.1
 lockfile==0.9.1
 networkx==1.9.1
 pandas==0.13.1
-pbr==0.10.8
 psycopg2==2.5.4
 pyes==0.99.5
 python-cinderclient==1.1.1

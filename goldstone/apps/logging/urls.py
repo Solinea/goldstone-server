@@ -13,14 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf.urls import patterns, url
-from rest_framework.routers import DefaultRouter
 from .views import LogDataView, LogAggView, LogEventView, LogEventAggView
 
-router = DefaultRouter(trailing_slash=False)
-
-urlpatterns = router.urls
-
-urlpatterns += patterns(
+urlpatterns = patterns(
     '',
     url(r'^search[/]?$', LogDataView.as_view()),
     url(r'^summarize[/]?$', LogAggView.as_view()),
