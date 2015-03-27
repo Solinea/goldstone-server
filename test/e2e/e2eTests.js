@@ -318,7 +318,7 @@ casper.test.begin('Node Report Page is loading properly', 64, function suite(tes
     });
 });
 
-casper.test.begin('Homepage is loading properly', 64, function suite(test) {
+casper.test.begin('Homepage is loading properly', 61, function suite(test) {
     casper.start('http://localhost:8000/', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
@@ -352,26 +352,19 @@ casper.test.begin('Homepage is loading properly', 64, function suite(test) {
         test.assertExists('div#goldstone-discover-r1-c2', 'Node Availability Section should load');
         test.assertExists('div#goldstone-discover-r1-c2 svg', 'Node Availability svg chart should load');
         test.assertSelectorHasText('div #goldstone-discover-r1-c2', 'Node Availability');
-        test.assertSelectorHasText('div #goldstone-discover-r1-c2', 'Ping Only');
-        test.assertSelectorHasText('div #goldstone-discover-r1-c2', 'Logs');
-        test.assertSelectorHasText('div #goldstone-discover-r1-c2', 'Disabled');
 
         // checks for an axis which means data is received
         // or checks for 'No Data Returned' otherwise
 
-        casper.echo("need either an axis or 'No Data Returned' - line 303 on e2eTests.js", "PARAMETER");
-
-        casper.echo("$('div #goldstone-discover-r1-c2 g .xping.axis') " + casper.evaluate(function() {
-            return $('div #goldstone-discover-r1-c2 g .xping.axis').length;
-        }));
+        casper.echo("need either a time delimeter (:) or 'No Data Returned' - line 359 on e2eTests.js", "PARAMETER");
 
         casper.echo("$('div #goldstone-discover-r1-c2').text() " + casper.evaluate(function() {
             return $('div #goldstone-discover-r1-c2').text();
         }));
 
         test.assertEval(function() {
-            return $('div #goldstone-discover-r1-c2 g .xping.axis').length > 0 || $('div #goldstone-discover-r1-c2').text().indexOf('No Data Returned') >= 0;
-        }, "Node Availability report renders either an axis or 'No Data Returned'");
+            return $('div #goldstone-discover-r1-c2').text().indexOf(':') >= 0 || $('div #goldstone-discover-r1-c2').text().indexOf('No Data Returned') >= 0;
+        }, "Node Availability report renders either a time delimter (:) or 'No Data Returned'");
 
         /*
         CLOUD TOPOLOGY E2E TESTS
