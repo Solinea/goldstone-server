@@ -15,13 +15,23 @@
  */
 
 /*
+openstack syslog severity levels:
+0       EMERGENCY: system is unusable
+1       ALERT: action must be taken immediately
+2       CRITICAL: critical conditions
+3       ERROR: error conditions
+4       WARNING: warning conditions
+5       NOTICE: normal but significant condition
+6       INFO: informational messages
+7       DEBUG: debug-level messages
+/*
+
+/*
 View is linked to collection when instantiated
 
 Instantiated on discoverView as:
 
-var nodeAvailChart = new NodeAvailCollection({
-    url: "/logging/nodes?page_size=100"
-});
+var nodeAvailChart = new NodeAvailCollection({});
 
 var nodeAvailChartView = new NodeAvailView({
     collection: nodeAvailChart,
@@ -45,26 +55,28 @@ var NodeAvailView = GoldstoneBaseView.extend({
             top: 18,
             bottom: 25,
             right: 40,
-            left: 60
+            left: 10
         },
 
         filter: {
             // none must be set to false in order to not display
             // nodes that have zero associated events.
-            none: false,
-            debug: true,
-            audit: true,
-            info: true,
-            warning: true,
+            emergency: true,
+            alert: true,
+            critical: true,
             error: true,
-            actualZero: true,
+            warning: true,
+            notice: true,
+            info: true,
+            debug: true,
+            none: false,
+            actualZero: true
         }
     },
 
     initialize: function(options) {
         NodeAvailView.__super__.initialize.apply(this, arguments);
         this.setInfoButtonPopover();
-        this.scheduleFetch();
     },
 
     processOptions: function() {
@@ -75,11 +87,48 @@ var NodeAvailView = GoldstoneBaseView.extend({
         this.defaults.r = d3.scale.sqrt();
         this.defaults.colorArray = new GoldstoneColors().get('colorSets');
 
+        // this will contain the results of the two seperate fetches
+        // before they are zipped together in this.combineDatasets
+        this.defaults.dataToCombine = [];
+
     },
 
     processListeners: function() {
-        this.collection.on('sync', this.update, this);
+        var self = this;
+        var ns = this.defaults;
+
+        this.collection.on('sync', function() {
+            if (self.collection.defaults.urlCollectionCount === 0) {
+
+                // if the 2nd fetch is done, store the 2nd dataset
+                // in dataToCombine
+                ns.dataToCombine[1] = self.collectionPrep(self.collection.toJSON()[0]);
+
+                // restore the fetch count
+                self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
+
+                // reset fetchInProgress so further fetches can
+                // be initiated
+                self.collection.defaults.fetchInProgress = false;
+
+                // update the view
+                self.update();
+            } else if (self.collection.defaults.urlCollectionCount === 1) {
+                // if the 1st of 2 fetches are done, store the
+                // first dataset in dataToCombine
+                ns.dataToCombine[0] = self.collectionPrep(self.collection.toJSON()[0]);
+            }
+        });
+
         this.collection.on('error', this.dataErrorMessage, this);
+
+        this.on('lookbackSelectorChanged', function() {
+            self.fetchNowWithReset();
+        });
+
+        this.on('lookbackIntervalReached', function() {
+            self.fetchNowWithReset();
+        });
     },
 
     showSpinner: function() {
@@ -93,10 +142,16 @@ var NodeAvailView = GoldstoneBaseView.extend({
             $(this).appendTo(appendSpinnerLocation).css({
                 'position': 'relative',
                 'margin-left': (ns.width / 2),
-                'margin-top': -(ns.height.main * 0.7),
+                'margin-top': -(ns.height.main * 0.55),
                 'display': ns.spinnerDisplay
             });
         });
+    },
+
+    fetchNowWithReset: function() {
+        var ns = this.defaults;
+        this.showSpinner();
+        this.collection.fetchMultipleUrls();
     },
 
     standardInit: function() {
@@ -105,19 +160,13 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         // maps between input label domain and output color range for circles
         ns.loglevel = d3.scale.ordinal()
-            .domain(["debug", "audit", "info", "warning", "error", "actualZero"])
+            .domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug", "actualZero"])
         // concats darkgrey as a color for nodes
         // reported at 'actualZero'
-        .range(ns.colorArray.distinct[5].concat(['#A9A9A9']));
-
-        // for 'ping only' axis
-        ns.pingAxis = d3.svg.axis()
-            .orient("top")
-            .ticks(5)
-            .tickFormat(d3.time.format("%H:%M:%S"));
+        .range(ns.colorArray.distinct.openStackSeverity8.concat(['#A9A9A9']));
 
         // for 'disabled' axis
-        ns.unadminAxis = d3.svg.axis()
+        ns.xAxis = d3.svg.axis()
             .orient("bottom")
             .ticks(5)
             .tickFormat(d3.time.format("%H:%M:%S"));
@@ -137,7 +186,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
             .domain(["unadmin"].concat(ns.loglevel
                 .domain()
                 .concat(["padding1", "padding2", "ping"])))
-            .rangeRoundBands([ns.height.main, 0], 0.1);
+            .rangeRoundBands([ns.height.main, 0]);
 
         ns.yLogs = d3.scale.linear()
             .range([
@@ -160,10 +209,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         // Visual swim lanes
         ns.swimlanes = {
-            ping: {
-                label: "Ping Only",
-                offset: -(ns.ySwimLane.rangeBand() / 2)
-            },
+            // ping: {
+            //     label: "Ping Only",
+            //     offset: -(ns.ySwimLane.rangeBand() / 2)
+            // },
             unadmin: {
                 label: "Disabled",
                 offset: ns.ySwimLane.rangeBand() / 2
@@ -183,9 +232,9 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 return "translate(0," + ns.ySwimLane(d) + ")";
             });
 
-        ns.graph.append("g")
-            .attr("class", "xping axis")
-            .attr("transform", "translate(0," + (ns.ySwimLane.rangeBand()) + ")");
+        // ns.graph.append("g")
+        //     .attr("class", "xping axis")
+        //     .attr("transform", "translate(0," + (ns.ySwimLane.rangeBand()) + ")");
 
         ns.graph.append("g")
             .attr("class", "xunadmin axis")
@@ -203,9 +252,9 @@ var NodeAvailView = GoldstoneBaseView.extend({
         ns.tooltip = d3.tip()
             .attr('class', 'd3-tip')
             .direction(function(e) {
-                if (e.update_method === 'PING') {
-                    return 's';
-                }
+                // if (e.update_method === 'PING') {
+                //     return 's';
+                // }
                 if (this.getBBox().y < 130) {
                     return 's';
                 } else {
@@ -227,13 +276,16 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 return [0, leftOffset];
             })
             .html(function(d) {
-                return d.name + "<br/>" +
-                    "(" + d.id + ")" + "<br/>" +
-                    "Error: " + d.error_count + "<br/>" +
-                    "Warning: " + d.warning_count + "<br/>" +
-                    "Info: " + d.info_count + "<br/>" +
-                    "Audit: " + d.audit_count + "<br/>" +
-                    "Debug: " + d.debug_count + "<br/>";
+                return "Host: " + d.name + "<br/>" +
+                    // "(" + d.id + ")" + "<br/>" +
+                    "Emergency: " + d.emergency_count + "<br>" +
+                    "Alert: " + d.alert_count + "<br>" +
+                    "Critical: " + d.critical_count + "<br>" +
+                    "Error: " + d.error_count + "<br>" +
+                    "Warning: " + d.warning_count + "<br>" +
+                    "Notice: " + d.notice_count + "<br>" +
+                    "Info: " + d.info_count + "<br>" +
+                    "Debug: " + d.debug_count + "<br>";
             });
 
         ns.graph.call(ns.tooltip);
@@ -243,11 +295,11 @@ var NodeAvailView = GoldstoneBaseView.extend({
             .tickFormat(function(d) {
                 // Visual swim lanes
                 var swimlanes = {
-                    ping: "Ping Only",
-                    unadmin: "Disabled",
+                    // ping: "Ping Only",
+                    unadmin: "",
                 };
                 var middle = ns.ySwimLane.domain()[Math.floor(ns.ySwimLane.domain().length / 2)];
-                swimlanes[middle] = "Logs";
+                swimlanes[middle] = "";
                 if (swimlanes[d]) {
                     return swimlanes[d];
                 } else {
@@ -266,24 +318,12 @@ var NodeAvailView = GoldstoneBaseView.extend({
             .style('font-weight', 'bold');
     },
 
-    scheduleFetch: function() {
-        var ns = this.defaults;
-        var self = this;
-
-        var timeoutDelay = 30000;
-
-        ns.scheduleTimeout = setInterval(function() {
-            self.showSpinner();
-            self.collection.setXhr();
-        }, timeoutDelay);
-    },
-
     sums: function(datum) {
         var ns = this.defaults;
         // Return the sums for the filters that are on
         return d3.sum(ns.loglevel.domain().map(function(k) {
 
-            if (ns.filter[k]) {
+            if (ns.filter[k] && datum[k + "_count"]) {
                 return datum[k + "_count"];
             } else {
                 return 0;
@@ -292,36 +332,159 @@ var NodeAvailView = GoldstoneBaseView.extend({
         }));
     },
 
+    collectionPrep: function(data) {
+        var ns = this.defaults;
+        var self = this;
+
+        var finalData = [];
+
+        // data.hosts will equal all hosts, so
+        // make an object to keep track of whether each one has been
+        // found in the data.data array, and record the levels
+        // and timestamp for that occurance.
+        // once each host has been found, quit the iteration and
+        // return the record as final data;
+        var setOfHosts = {}; // ['rsrc-01', 'ctrl-01', ....]
+
+        // prime setOfHosts object. keyed to data.hosts
+        // and value all initially set to null
+        _.each(data.hosts, function(item) {
+            setOfHosts[item] = null;
+        }); // {'rsrc-01: null, 'ctrl-01': null, ...}
+
+        // function to return if there are any keys that have
+        // a value of null in the passed in object
+        // (which will be used with setOfHosts)
+        var checkIfAnyNull = function(obj) {
+            return _.any(obj, function(item) {
+                return item === null;
+            });
+        };
+
+        // reverse the data in order to encounter the
+        // most recent timestamps first
+        data.data.reverse();
+
+        // sets up an iteration that will break as soon as every
+        // host value is no longer set to null, or else gets
+        // through the entire data set
+        _.every(data.data, function(item) {
+
+            // iterate through the timestamp
+            _.each(item, function(hostsInTimestamp, timestamp) {
+
+                // iterate through the host
+                _.each(hostsInTimestamp, function(hostObject) {
+
+                    var hostName = _.keys(hostObject)[0];
+                    if (setOfHosts[hostName] === null) {
+
+                        // don't run through this host again
+                        setOfHosts[hostName] = true;
+                        hostResultObject = {};
+
+                        // add in params that are expected by current viz:
+                        hostResultObject.id = hostName;
+                        hostResultObject.name = hostName;
+                        hostResultObject.created = +timestamp;
+                        hostResultObject.updated = +timestamp;
+                        hostResultObject.managed = true;
+                        hostResultObject.update_method = "LOGS";
+
+                        // iterate through host and record the values
+                        _.each(hostObject, function(levels) {
+                            _.each(levels, function(oneLevel) {
+                                hostResultObject[_.keys(oneLevel) + '_count'] = _.values(oneLevel)[0];
+                            });
+                        });
+
+                        // set each alert level to 0 if still undefined
+                        _.each(ns.loglevel.domain().filter(function(item) {
+                            return item !== 'actualZero';
+                        }), function(level) {
+                            hostResultObject[level + '_count'] = hostResultObject[level + '_count'] || 0;
+                        });
+
+                        finalData.push(hostResultObject);
+                    }
+                });
+            });
+
+            // if there are any remaining hosts that are set to null
+            // then this return value will be true and the iteration
+            // will continue. but if this returns false, it stops
+            return checkIfAnyNull(setOfHosts);
+        });
+
+        return finalData;
+    },
+
+    combineDatasets: function(dataArray) {
+
+        // take the two datasets and iterate through the first one
+        // looking for '_count' attributes, and then copy them over
+        // from the 2nd dataset which contains the accurate counts
+
+        // function to locate an object in a dataset that contains a name property with the passed in name
+        var findNodeToCopyFrom = function(data, name) {
+            return _.find(data, function(item) {
+                return item.name === name;
+            });
+        };
+
+        _.each(dataArray[0], function(item, i) {
+            for (var k in item) {
+                if (k.indexOf('_count') > -1) {
+                    var itemToCopyFrom = findNodeToCopyFrom(dataArray[1], item.name);
+                    item[k] = itemToCopyFrom[k];
+                }
+            }
+        });
+
+        // after they are zipped together, the final result will
+        // be contained in array index 0.
+        return dataArray[0];
+    },
+
+    lookbackRange: function() {
+        var lookbackMinutes;
+        lookbackMinutes = $('.global-lookback-selector .form-control').val();
+        return parseInt(lookbackMinutes, 10);
+        // returns only the numerical value of the lookback range
+    },
+
+    updateLookbackMinutes: function() {
+        var ns = this.defaults;
+        ns.lookbackRange = this.lookbackRange();
+    },
+
     update: function() {
         var ns = this.defaults;
         var self = this;
 
         this.hideSpinner();
 
-        // prevent updating when fetch is in process
-        if (!this.collection.thisXhr.getResponseHeader('LogCountStart') || this.collection.thisXhr.getResponseHeader('LogCountEnd') === null) {
-            // to be removed when server supports timestamped data retrieval
-        }
+        // includes timestamps, levels, hosts, data
+        var allthelogs = this.collection.toJSON()[0];
 
-        // var allthelogs = JSON.parse(response.responseText);
-        var allthelogs = (this.collection.toJSON());
-        // var xStart = moment(response.getResponseHeader('LogCountStart'));
-        var xStart = moment(this.collection.thisXhr.getResponseHeader('LogCountStart'));
-        var xEnd = moment(this.collection.thisXhr.getResponseHeader('LogCountEnd'));
+        // get the currrent lookback to set the domain of the xAxis
+        this.updateLookbackMinutes();
+        xEnd = +new Date();
+        xStart = xEnd - (1000 * 60 * ns.lookbackRange);
 
         ns.xScale = ns.xScale.domain([xStart, xEnd]);
 
         // If we didn't receive any valid files, append "No Data Returned"
-        if (this.checkReturnedDataSet(allthelogs) === false) {
+        if (this.checkReturnedDataSet(allthelogs.data) === false) {
             return;
         }
 
-        // populate the modal based on the event types.
         // clear out the modal and reapply based on the unique events
         if ($(this.el).find('#populateEventFilters').length) {
             $(this.el).find('#populateEventFilters').empty();
         }
 
+        // populate the modal based on the event types.
         _.each(_.keys(ns.filter), function(item) {
 
             // don't put type 'none' or 'actualZero'
@@ -330,6 +493,8 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 return null;
             }
 
+            // function to determine if the html should format
+            // a check box for the filter button in the modal
             var addCheckIfActive = function(item) {
                 if (ns.filter[item]) {
                     return 'checked';
@@ -357,6 +522,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
             );
         });
 
+        // click listerner for check box to redraw the viz upon change
         $(this.el).find('#populateEventFilters :checkbox').on('click', function() {
             var checkboxId = this.id;
             ns.filter[checkboxId] = !ns.filter[checkboxId];
@@ -371,7 +537,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
          *   - Sort by last seen (from most to least recent)
          */
 
-        ns.dataset = allthelogs
+        ns.dataset = this.combineDatasets(ns.dataToCombine)
             .map(function(d) {
                 d.created = moment(d.created);
                 d.updated = moment(d.updated);
@@ -396,14 +562,14 @@ var NodeAvailView = GoldstoneBaseView.extend({
          *   - adjust each axis to its new scale.
          */
 
-        ns.pingAxis.scale(ns.xScale);
-        ns.unadminAxis.scale(ns.xScale);
+        // ns.pingAxis.scale(ns.xScale);
+        ns.xAxis.scale(ns.xScale);
 
-        ns.svg.select(".xping.axis")
-            .call(ns.pingAxis);
+        // ns.svg.select(".xping.axis")
+        //     .call(ns.pingAxis);
 
         ns.svg.select(".xunadmin.axis")
-            .call(ns.unadminAxis);
+            .call(ns.xAxis);
 
         ns.yAxis.scale(ns.yLogs);
 
@@ -418,6 +584,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
             .data(ns.dataset, function(d) {
                 // if changing this, also must
                 // change idAttribute in backbone model
+
+                /*
+TODO: probably change this to d.timestamp
+*/
                 return d.id;
             });
 
@@ -468,7 +638,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
                     return ns.filter[level[0]] && (level[1] > 0);
                 });
 
-            // the .level paramater will determing visibility
+            // the .level paramater will determine visibility
             // and styling of the sphere
 
             // if the array is empty:
@@ -532,7 +702,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
                         // multiple items reporting the same numbers
                         logs: ns.yLogs(self.sums(d) - (i * 2)),
 
-                        ping: ns.ySwimLane(d.swimlane) - 15,
+                        // ping: ns.ySwimLane(d.swimlane) - 15,
                         unadmin: ns.ySwimLane(d.swimlane) + ns.ySwimLane.rangeBand() + 15
                     }[d.swimlane];
 

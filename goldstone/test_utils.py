@@ -21,7 +21,8 @@ LOGIN_URL = "/accounts/login"
 USER_URL = "/user"
 
 # Http response content used by multiple tests.
-CONTENT_BAD_TOKEN = '{"detail":"Invalid token"}'
+CONTENT_BAD_TOKEN = '{"detail":"Invalid token."}'
+CONTENT_MISSING_PASSWORD = '"password":["This field is required."]'
 CONTENT_MISSING_USERNAME = '"username":["This field is required."]'
 CONTENT_NO_CREDENTIALS = \
     '{"detail":"Authentication credentials were not provided."}'
@@ -29,8 +30,9 @@ CONTENT_NO_PERMISSION = \
     '{"detail":"You do not have permission to perform this action."}'
 CONTENT_NON_FIELD_ERRORS = \
     '{"non_field_errors":["Unable to login with provided credentials."]}'
-CONTENT_NOT_BLANK_USERNAME = '"username":["This field may not be blank."]'
-CONTENT_PERMISSION_DENIED = '{"detail":"Permission denied"}'
+CONTENT_NOT_BLANK_USERNAME = '"username":["This field is required."]'
+CONTENT_PERMISSION_DENIED = '{"detail":"Permission denied."}'
+CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
 CONTENT_UNIQUE_NAME = '{"name":["This field must be unique."]}'
 
 # The payload string for the HTTP Authorization header.

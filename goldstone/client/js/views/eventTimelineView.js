@@ -154,20 +154,22 @@ var EventTimelineView = GoldstoneBaseView.extend({
             })
             .html(function(d) {
 
-                d.id = d.id || '';
-                d.message = d.message || 'No message logged';
+                d.host = d.host || '';
+                d.log_message = d.log_message || 'No message logged';
 
-                if (d.message.length > 280) {
-                    d.message = d.message.slice(0, 300) + "...";
+                if (d.log_message.length > 280) {
+                    d.log_message = d.log_message.slice(0, 300) + "...";
                 }
 
                 d.event_type = d.event_type || 'No event type logged';
-                d.created = d.created || 'No date logged';
+                d['@timestamp'] = d['@timestamp'] || 'No date logged';
 
-                return d.event_type + " (click event line to persist popup info)<br>" +
-                    "uuid: " + d.id + "<br>" +
-                    "Created: " + d.created + "<br>" +
-                    "Message: " + d.message + "<br>";
+                return "" +
+                    "Host: " + d.host + "<br>" +
+                    d.event_type + " (click event line to persist popup info)<br>" +
+                    // "uuid: " + d.id + "<br>" +
+                    "Created: " + d['@timestamp'] + "<br>" +
+                    "Message: " + d.log_message + "<br>";
             });
 
         ns.graph.call(ns.tooltip);
@@ -228,19 +230,17 @@ var EventTimelineView = GoldstoneBaseView.extend({
         var allthelogs = (this.collection.toJSON());
 
         var xEnd = moment(d3.min(_.map(allthelogs, function(evt) {
-            return evt.created;
+            return evt['@timestamp'];
         })));
 
         var xStart = moment(d3.max(_.map(allthelogs, function(evt) {
-            return evt.created;
+            return evt['@timestamp'];
         })));
 
         ns.xScale = ns.xScale.domain([xEnd._d, xStart._d]);
 
         // If we didn't receive any valid files, append "No Data Returned"
-        if (this.checkReturnedDataSet(allthelogs) === false) {
-            return;
-        }
+        this.checkReturnedDataSet(allthelogs);
 
         /*
          * Shape the dataset
@@ -249,7 +249,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
          */
         ns.dataset = allthelogs
             .map(function(d) {
-                d.created = moment(d.created)._d;
+                d['@timestamp'] = moment(d['@timestamp'])._d;
                 return d;
             });
 
@@ -339,8 +339,13 @@ var EventTimelineView = GoldstoneBaseView.extend({
          */
 
         var rectangle = ns.graph.selectAll("rect")
+
+            // bind data to d3 nodes and create uniqueness based on
+            // the @timestamp param. This could possibly create some
+            // issues due to duplication of a supposedly unique
+            // param, but has not yet been a problem in practice.
             .data(ns.dataset, function(d) {
-                return d.id;
+                return d['@timestamp'];
             });
 
         // enters at wider width and transitions to lesser width for a
@@ -384,7 +389,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
             .transition()
             .attr("width", 2)
             .attr("x", function(d) {
-                return ns.xScale(d.created);
+                return ns.xScale(d['@timestamp']);
             });
 
         rectangle.exit().remove();
@@ -399,7 +404,7 @@ var EventTimelineView = GoldstoneBaseView.extend({
         ns.graph.selectAll("rect")
             .transition().duration(500)
             .attr("x", function(d) {
-                return ns.xScale(d.created);
+                return ns.xScale(d['@timestamp']);
             })
             .style("opacity", function(d) {
                 return self.opacityByFilter(d);

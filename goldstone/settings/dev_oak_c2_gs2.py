@@ -1,3 +1,8 @@
+"""Use the gs2 server, which is running a non-master branch, like GOLD-686.
+
+Elasticsearch is remote and PostgreSQL is local.
+
+"""
 from .development import *       # pylint: disable=W0614,W0401
 
 #

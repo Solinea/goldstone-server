@@ -386,6 +386,7 @@ class TenantSettingsPageView(TemplateView):
     template_name = 'tenant.html'
 
 
+# TODO refresh NodeReportView.  It should be a method of Nova Host resource.
 class NodeReportView(TemplateView):
     """Return a Node Report page if node exists."""
 
@@ -393,13 +394,10 @@ class NodeReportView(TemplateView):
 
     def get(self, request, node_uuid, **kwargs):
         from django.core.exceptions import ObjectDoesNotExist
-        from goldstone.apps.core.models import Node
+        from goldstone.core.models import Host
 
-        # TODO query should look for node id rather than name.
-        # But this will probably require that we model/shadow the resources in
-        # OpenStack so we can map the name to one of our IDs consistently.
         try:
-            Node.objects.get(name=node_uuid)
+            Host.objects.get(name=node_uuid)
             return super(NodeReportView, self).get(request,
                                                    node_uuid=node_uuid)
         except ObjectDoesNotExist:

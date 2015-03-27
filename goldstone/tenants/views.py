@@ -235,6 +235,9 @@ class TenantsViewSet(BaseViewSet):
         only those tenants that are administered by the user are returned.
 
         """
+
+        # return super(TenantsViewSet, self).list(request, *args, **kwargs)
+
         from rest_framework.response import Response
 
         # Create the queryset for this Django admin, or tenant_admin.
@@ -244,10 +247,11 @@ class TenantsViewSet(BaseViewSet):
             self.filter_queryset(Tenant.objects.filter(user=request.user))
 
         page = self.paginate_queryset(instance)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
-        serializer = \
-            self.get_serializer(instance, many=True) if page is None else \
-            self.get_pagination_serializer(page)
+        serializer = self.get_serializer(instance, many=True)
 
         return Response(serializer.data)
 

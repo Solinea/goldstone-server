@@ -12,68 +12,77 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.conf import settings
-import arrow
-from .serializers import LoggingNodeSerializer
+
 import logging
+
+from goldstone.apps.drfes.views import ElasticListAPIView
+from goldstone.apps.logging.models import LogData, LogEvent
 from rest_framework.response import Response
-from goldstone.apps.core.views import NodeViewSet
+from goldstone.apps.logging.serializers import LogDataSerializer, \
+    LogAggSerializer, LogEventAggSerializer
 
 logger = logging.getLogger(__name__)
 
 
-class LoggingNodeViewSet(NodeViewSet):
+class LogDataView(ElasticListAPIView):
+    """A view that handles requests for Logstash data."""
 
-    serializer_class = LoggingNodeSerializer
+    serializer_class = LogDataSerializer
 
-    @staticmethod
-    def get_request_time_range(params_dict):
+    class Meta:
+        """Meta"""
+        model = LogData
 
-        end_time = \
-            arrow.get(params_dict['end_time']) if 'end_time' in params_dict \
-            else arrow.utcnow()
 
-        start_time = \
-            arrow.get(params_dict['start_time']) \
-            if 'start_time' in params_dict \
-            else end_time.replace(
-                minutes=(-1 * settings.LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES))
+class LogAggView(ElasticListAPIView):
+    """A view that handles requests for Logstash aggregations."""
 
-        return {'start_time': start_time, 'end_time': end_time}
+    serializer_class = LogAggSerializer
+    reserved_params = ['interval', 'per_host']
 
-    @staticmethod
-    def _add_headers(response, time_range):
-        """Add time logging to a response's header."""
+    class Meta:
+        """Meta"""
+        model = LogData
 
-        # pylint: disable=W0212
-        response._headers['LogCountEnd'] = \
-            ('LogCountEnd', time_range['end_time'].isoformat())
-        response._headers['LogCountStart'] = \
-            ('LogCountStart', time_range['start_time'].isoformat())
+    def get(self, request, *args, **kwargs):
+        """Return a response to a GET request."""
+        import ast
+        base_queryset = self.filter_queryset(self.get_queryset())
+        interval = self.request.query_params.get('interval', '1d')
+        per_host = ast.literal_eval(
+            self.request.query_params.get('per_host', 'True'))
+        data = LogData.ranged_log_agg(base_queryset, interval, per_host)
+        serializer = self.serializer_class(data)
+        return Response(serializer.data)
 
-        return response
 
-    def list(self, request, *args, **kwargs):
+class LogEventView(ElasticListAPIView):
+    """A view that handles requests for events from Logstash data."""
 
-        time_range = self.get_request_time_range(request.QUERY_PARAMS.dict())
-        instance = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(instance)
+    serializer_class = LogDataSerializer
 
-        serializer = self.get_pagination_serializer(page) if page is not None \
-            else self.get_serializer(instance, many=True)
+    class Meta:
+        """Meta"""
+        model = LogEvent
 
-        serializer.context['start_time'] = time_range['start_time']
-        serializer.context['end_time'] = time_range['end_time']
 
-        return self._add_headers(Response(serializer.data), time_range)
+class LogEventAggView(ElasticListAPIView):
+    """A view that handles requests for Logstash aggregations."""
 
-    def retrieve(self, request, *args, **kwargs):
+    serializer_class = LogEventAggSerializer
+    reserved_params = ['interval', 'per_host']
 
-        time_range = self.get_request_time_range(request.QUERY_PARAMS.dict())
+    class Meta:
+        """Meta"""
+        model = LogEvent
 
-        serializer = self.serializer_class(
-            self.get_object(),
-            context={'start_time': time_range['start_time'],
-                     'end_time': time_range['end_time']})
-
-        return self._add_headers(Response(serializer.data), time_range)
+    def get(self, request, *args, **kwargs):
+        """Return a response to a GET request."""
+        import ast
+        base_queryset = self.filter_queryset(self.get_queryset())
+        interval = self.request.query_params.get('interval', '1d')
+        per_host = ast.literal_eval(
+            self.request.query_params.get('per_host', 'True'))
+        data = LogEvent.ranged_event_agg(base_queryset, interval, per_host)
+        serializer = self.serializer_class(data)
+        return Response(serializer.data)

@@ -18,12 +18,12 @@ from datetime import datetime
 import pytz
 import string
 import random
-import novaclient.v1_1.client as nvclient
+import novaclient.v2.client as nvclient
 
 os_params = {'username': 'admin',
              'api_key': 'fe67c09d85041ae383c66a83e362f566',
              'project_id': 'admin',
-             'auth_url': 'http://10.10.11.230:5000/v2.0'
+             'auth_url': 'http://10.10.11.230:5000/v3'
              }
 
 

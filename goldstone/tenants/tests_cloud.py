@@ -25,10 +25,10 @@ from .models import Tenant, Cloud
 from .tests_tenants import TENANTS_ID_URL
 
 # HTTP response content.
-CONTENT_MISSING_OS_USERNAME = '"username":["This field may not be blank."]'
-CONTENT_MISSING_OS_NAME = '"tenant_name":["This field may not be blank."]'
-CONTENT_MISSING_OS_PASSWORD = '"password":["This field may not be blank."]'
-CONTENT_MISSING_OS_URL = '"auth_url":["This field may not be blank."]'
+CONTENT_MISSING_OS_USERNAME = '"username":["This field is required."]'
+CONTENT_MISSING_OS_NAME = '"tenant_name":["This field is required."]'
+CONTENT_MISSING_OS_PASSWORD = '"password":["This field is required."]'
+CONTENT_MISSING_OS_URL = '"auth_url":["This field is required."]'
 
 # URLs used by this module.
 TENANTS_ID_CLOUD_URL = TENANTS_ID_URL + "/cloud"
@@ -50,8 +50,8 @@ class TenantsIdCloud(Setup):
 
         # Try the GET and POST without an authorization token.
         responses = \
-            [self.client.get(TENANTS_ID_CLOUD_URL % tenant.uuid.hex),
-             self.client.post(TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
+            [self.client.get(TENANTS_ID_CLOUD_URL % tenant.uuid),
+             self.client.post(TENANTS_ID_CLOUD_URL % tenant.uuid,
                               json.dumps({"tenant_name": 'a',
                                           "username": 'b',
                                           "password": 'c',
@@ -67,10 +67,10 @@ class TenantsIdCloud(Setup):
         # Try the GET and POST with a bad authorization token.
         responses = [
             self.client.get(
-                TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
+                TENANTS_ID_CLOUD_URL % tenant.uuid,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
             self.client.post(
-                TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
+                TENANTS_ID_CLOUD_URL % tenant.uuid,
                 json.dumps({"tenant_name": 'a',
                             "username": 'b',
                             "password": 'c',
@@ -102,10 +102,10 @@ class TenantsIdCloud(Setup):
         # Try the GET and POST.
         responses = [
             self.client.get(
-                TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
+                TENANTS_ID_CLOUD_URL % tenant.uuid,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.post(
-                TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
+                TENANTS_ID_CLOUD_URL % tenant.uuid,
                 json.dumps({"tenant_name": 'a',
                             "username": 'b',
                             "password": 'c',
@@ -134,10 +134,10 @@ class TenantsIdCloud(Setup):
         # Try the GET and POST to a tenant that doesn't exist.
         responses = [
             self.client.get(
-                TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
+                TENANTS_ID_CLOUD_URL % tenant.uuid,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.post(
-                TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
+                TENANTS_ID_CLOUD_URL % tenant.uuid,
                 json.dumps({"tenant_name": 'a',
                             "username": 'b',
                             "password": 'c',
@@ -205,7 +205,7 @@ class TenantsIdCloud(Setup):
         # check of the uuid key. It must exist, and its value must be a string
         # that's >= 32 characters.
         response = self.client.get(
-            TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
+            TENANTS_ID_CLOUD_URL % tenant.uuid,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         # pylint: disable=E1101
@@ -246,7 +246,7 @@ class TenantsIdCloud(Setup):
         # Create OpenStack clouds in this tenant, and check the results.
         for entry in TENANT_CLOUD:
             response = self.client.post(
-                TENANTS_ID_CLOUD_URL % tenant.uuid.hex,
+                TENANTS_ID_CLOUD_URL % tenant.uuid,
                 json.dumps(entry),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -273,13 +273,13 @@ class TenantsIdCloudId(Setup):
 
         # Try GET, PUT, and DELETE without an authorization token.
         responses = [self.client.get(TENANTS_ID_CLOUD_ID_URL %
-                                     (tenant.uuid.hex, cloud.uuid.hex)),
+                                     (tenant.uuid, cloud.uuid)),
                      self.client.put(TENANTS_ID_CLOUD_ID_URL %
-                                     (tenant.uuid.hex, cloud.uuid.hex),
+                                     (tenant.uuid, cloud.uuid),
                                      json.dumps({"username": "fool"}),
                                      content_type="application/json"),
                      self.client.delete(TENANTS_ID_CLOUD_ID_URL %
-                                        (tenant.uuid.hex, cloud.uuid.hex)),
+                                        (tenant.uuid, cloud.uuid)),
                      ]
 
         for response in responses:
@@ -291,17 +291,17 @@ class TenantsIdCloudId(Setup):
         responses = [
             self.client.get(
                 TENANTS_ID_CLOUD_ID_URL %
-                (tenant.uuid.hex, cloud.uuid.hex),
+                (tenant.uuid, cloud.uuid),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
             self.client.put(
                 TENANTS_ID_CLOUD_ID_URL %
-                (tenant.uuid.hex, cloud.uuid.hex),
+                (tenant.uuid, cloud.uuid),
                 json.dumps({"username": "fool"}),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
             self.client.delete(
                 TENANTS_ID_CLOUD_ID_URL %
-                (tenant.uuid.hex, cloud.uuid.hex),
+                (tenant.uuid, cloud.uuid),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
         ]
 
@@ -334,17 +334,17 @@ class TenantsIdCloudId(Setup):
         responses = [
             self.client.get(
                 TENANTS_ID_CLOUD_ID_URL %
-                (tenant.uuid.hex, cloud.uuid.hex),
+                (tenant.uuid, cloud.uuid),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.put(
                 TENANTS_ID_CLOUD_ID_URL %
-                (tenant.uuid.hex, cloud.uuid.hex),
+                (tenant.uuid, cloud.uuid),
                 json.dumps({"username": "fool"}),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.delete(
                 TENANTS_ID_CLOUD_ID_URL %
-                (tenant.uuid.hex, cloud.uuid.hex),
+                (tenant.uuid, cloud.uuid),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
         ]
 
@@ -376,15 +376,15 @@ class TenantsIdCloudId(Setup):
         # Try GET, PUT, and DELETE to a nonexistent tenant.
         responses = [
             self.client.get(
-                TENANTS_ID_CLOUD_ID_URL % (BAD_UUID, cloud.uuid.hex),
+                TENANTS_ID_CLOUD_ID_URL % (BAD_UUID, cloud.uuid),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.put(
-                TENANTS_ID_CLOUD_ID_URL % (BAD_UUID, cloud.uuid.hex),
+                TENANTS_ID_CLOUD_ID_URL % (BAD_UUID, cloud.uuid),
                 json.dumps({"password": "fool"}),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.delete(
-                TENANTS_ID_CLOUD_ID_URL % (BAD_UUID, cloud.uuid.hex),
+                TENANTS_ID_CLOUD_ID_URL % (BAD_UUID, cloud.uuid),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
         ]
 
@@ -407,7 +407,7 @@ class TenantsIdCloudId(Setup):
         # Try GETing a nonexisten cloud from this tenant.
         response = self.client.get(
             TENANTS_ID_CLOUD_ID_URL %
-            (tenant.uuid.hex, BAD_UUID),
+            (tenant.uuid, BAD_UUID),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
@@ -444,7 +444,7 @@ class TenantsIdCloudId(Setup):
             # Try GETting it.
             response = self.client.get(
                 TENANTS_ID_CLOUD_ID_URL %
-                (tenant.uuid.hex, cloud.uuid.hex),
+                (tenant.uuid, cloud.uuid),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
             check_response_without_uuid(response, HTTP_200_OK, entry)
@@ -462,7 +462,7 @@ class TenantsIdCloudId(Setup):
 
         # Try PUTing to a nonexistent OpenStack cloud in this tenant.
         response = self.client.put(
-            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, BAD_UUID),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid, BAD_UUID),
             json.dumps({"tenant_name": "fool"}),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -492,7 +492,7 @@ class TenantsIdCloudId(Setup):
 
         # Try PUTing to the cloud with no fields.
         response = self.client.put(
-            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid, cloud.uuid),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         for content in [CONTENT_MISSING_OS_USERNAME, CONTENT_MISSING_OS_NAME,
@@ -504,7 +504,7 @@ class TenantsIdCloudId(Setup):
         # Try PUTing to the cloud with no change, and with a change to an
         # unrecognized field.
         response = self.client.put(
-            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid, cloud.uuid),
             json.dumps(TENANT_CLOUD),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -515,7 +515,7 @@ class TenantsIdCloudId(Setup):
         bad_field["forkintheroad"] = "Traci"
 
         response = self.client.put(
-            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid, cloud.uuid),
             json.dumps(bad_field),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -528,7 +528,7 @@ class TenantsIdCloudId(Setup):
         bad_field["uuid"] = BAD_UUID
 
         response = self.client.put(
-            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid, cloud.uuid),
             json.dumps(bad_field),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -558,7 +558,7 @@ class TenantsIdCloudId(Setup):
 
         # Try PUTing to the cloud.
         response = self.client.put(
-            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid, cloud.uuid),
             json.dumps(EXPECTED_RESPONSE),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -600,7 +600,7 @@ class TenantsIdCloudId(Setup):
         # Try DELETE on the second (other) tenant's cloud.
         response = self.client.delete(
             TENANTS_ID_CLOUD_ID_URL %
-            (tenant_2.uuid.hex, cloud_2.uuid.hex),
+            (tenant_2.uuid, cloud_2.uuid),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
@@ -636,7 +636,7 @@ class TenantsIdCloudId(Setup):
 
         # DELETE one cloud, check, DELETE the other cloud, check.
         response = self.client.delete(
-            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, cloud_2.uuid.hex),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid, cloud_2.uuid),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response, '', status_code=HTTP_204_NO_CONTENT)
@@ -647,7 +647,7 @@ class TenantsIdCloudId(Setup):
                          TENANT_CLOUD[0]["tenant_name"])
 
         response = self.client.delete(
-            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid.hex, cloud.uuid.hex),
+            TENANTS_ID_CLOUD_ID_URL % (tenant.uuid, cloud.uuid),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response, '', status_code=HTTP_204_NO_CONTENT)

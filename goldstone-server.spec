@@ -29,7 +29,7 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires(pre): /usr/sbin/useradd, /usr/bin/getent, elasticsearch == 1.4.3, gcc, gcc-c++, redis, logstash == 1.4.2, logstash-contrib == 1.4.2, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, wget, python-pip, unzip, zip
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent, elasticsearch >= 1.4, gcc, gcc-c++, redis, logstash == 1.4.2, logstash-contrib == 1.4.2, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, wget, python-pip, unzip, zip
 Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre
@@ -84,12 +84,12 @@ else
 
 fi
 
+
 cd /opt/goldstone
 pip install -r requirements.txt
 export DJANGO_SETTINGS_MODULE=goldstone.settings.production
 
 python manage.py collectstatic --noinput
-
 # Get all the ownerships back in shape.  No guarantee that we can su to apache,
 # and running python during install may set some ownerships to root. This seems
 # like the best approach.
@@ -98,8 +98,6 @@ chown -R apache:apache /opt/goldstone
 
 if [[ $# == 1 && $1 == 1 ]] ; then
     ln -s /opt/goldstone /usr/lib/python2.6/site-packages/goldstone
-    ln -s /etc/init.d/celeryd-default /etc/init.d/celeryd-host-stream
-    ln -s /etc/init.d/celeryd-default /etc/init.d/celeryd-event-stream
 
     chkconfig httpd on
 
@@ -109,24 +107,15 @@ if [[ $# == 1 && $1 == 1 ]] ; then
     chkconfig --add celeryd-default
     chkconfig celeryd-default on
 
-    chkconfig --add celeryd-host-stream
-    chkconfig celeryd-host-stream on
-
-    chkconfig --add celeryd-event-stream
-    chkconfig celeryd-event-stream on
-
     # Start Goldstone.
     service httpd restart
     service celerybeat start
     service celeryd-default start
-    service celeryd-host-stream start
-    service celeryd-event-stream start
+
 else
     service httpd restart
     service celerybeat restart
     service celeryd-default restart
-    service celeryd-host-stream restart
-    service celeryd-event-stream restart
 fi
 
 %preun
@@ -134,15 +123,9 @@ if [[ $# == 1 && $1 == 0 ]] ; then
     service httpd stop
     service celerybeat stop
     service celeryd-default stop
-    service celeryd-host-stream stop
-    service celeryd-event-stream stop
     chkconfig --del celerybeat
     chkconfig --del celeryd-default
-    chkconfig --del celeryd-host-stream
-    chkconfig --del celeryd-event-stream
-    rm -f /usr/lib/python2.6/site-packages/goldstone 
-    rm -f /etc/init.d/celeryd-host-stream
-    rm -f /etc/init.d/celeryd-event-stream
+    rm -rf /usr/lib/python2.6/site-packages/goldstone
 fi
 
 %postun
@@ -178,7 +161,6 @@ install -d -m 750 %{buildroot}/etc/sysconfig/
 install -d -m 750 %{buildroot}/etc/httpd/conf.d/
 install -d -m 750 %{buildroot}/var/log/goldstone/
 install -d -m 750 %{buildroot}/var/www/goldstone/static/
-install -d -m 750 %{buildroot}/opt/logstash/lib/logstash/outputs/
 install -d -m 750 %{buildroot}/opt/logstash/patterns/
 install -d -m 750 %{buildroot}/etc/logstash/conf.d/
 
@@ -186,7 +168,6 @@ install -d -m 750 %{buildroot}/etc/logstash/conf.d/
 touch %{buildroot}/var/log/goldstone/goldstone.log
 cp -R %{_sourcedir}/goldstone %{buildroot}/opt/goldstone
 cp -R %{_sourcedir}/external/rsyslog %{buildroot}/opt/goldstone/external
-cp -R %{_sourcedir}/external/logstash/outputs/* %{buildroot}/opt/logstash/lib/logstash/outputs
 cp -R %{_sourcedir}/external/logstash/conf.d/* %{buildroot}/etc/logstash/conf.d
 
 # fix up the settings folder contents
@@ -211,8 +192,6 @@ install -m 750 %{_sourcedir}/external/init.d/celerybeat %{buildroot}/etc/init.d/
 install -m 750 %{_sourcedir}/external/init.d/celeryd-default %{buildroot}/etc/init.d/celeryd-default
 install -m 640 %{_sourcedir}/external/sysconfig/celerybeat %{buildroot}/etc/sysconfig/celerybeat
 install -m 640 %{_sourcedir}/external/sysconfig/celeryd-default %{buildroot}/etc/sysconfig/celeryd-default
-install -m 640 %{_sourcedir}/external/sysconfig/celeryd-host-stream %{buildroot}/etc/sysconfig/celeryd-host-stream
-install -m 640 %{_sourcedir}/external/sysconfig/celeryd-event-stream %{buildroot}/etc/sysconfig/celeryd-event-stream
 install -m 640 %{_sourcedir}/external/logstash/patterns/goldstone %{buildroot}/opt/logstash/patterns/goldstone
 
 echo -n "buildroot = "
@@ -254,20 +233,16 @@ rm -rf %{buildroot}
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/20-basic-syslog
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/34-filter-opestack-syslog
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/38-filter-goldstone-nodeinfo
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/60-output-host-stream
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/61-output-event-stream
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/67-output-es-goldstone-agent
+%attr(-, goldstone, logstash) /etc/logstash/conf.d/66-output-es-goldstone-metrics
+%attr(-, goldstone, logstash) /etc/logstash/conf.d/67-output-es-goldstone-reports
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/68-output-es-logstash
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/69-output-es-goldstone
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/70-output-resubs
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/99-filter-last-stop
 %attr(-, goldstone, logstash) /opt/logstash/patterns/goldstone
-%attr(-, goldstone, logstash) /opt/logstash/lib/logstash/outputs/celery_redis_task.rb
 %config /etc/httpd/conf.d/zgoldstone.conf
 %attr(-, goldstone, goldstone) %config /etc/sysconfig/celerybeat
 %attr(-, goldstone, goldstone) %config /etc/sysconfig/celeryd-default
-%attr(-, goldstone, goldstone) %config /etc/sysconfig/celeryd-host-stream
-%attr(-, goldstone, goldstone) %config /etc/sysconfig/celeryd-event-stream
 
 
 %changelog

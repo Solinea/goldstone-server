@@ -42,6 +42,10 @@ var UtilizationMemView = UtilizationCpuView.extend({
 
         var data = allthelogs;
 
+        _.each(data, function(item) {
+            item['@timestamp'] = moment(item['@timestamp']).unix() * 1000;
+        });
+
         for (var i = data.length - 1; i >= 0; i--) {
             if (data[i].name === 'os.mem.total') {
                 ns.memTotal = data[i];
@@ -52,7 +56,7 @@ var UtilizationMemView = UtilizationCpuView.extend({
 
 
         var dataUniqTimes = _.map(data, function(item) {
-            return item.timestamp;
+            return item['@timestamp'];
         });
 
 
@@ -69,7 +73,7 @@ var UtilizationMemView = UtilizationCpuView.extend({
 
             var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
 
-            newData[item.timestamp][metric] = item.value;
+            newData[item['@timestamp']][metric] = item.value;
 
         });
 

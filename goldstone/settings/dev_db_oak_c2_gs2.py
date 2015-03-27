@@ -1,7 +1,6 @@
-"""Development settings, with Elasticsearch remote and PostgreSQL remote,
-server running some non-master branch.
+"""Use the gs2 server, which is running a non-master branch, like GOLD-686.
 
-E.g., GOLD-639.
+Elasticsearch is remote and PostgreSQL is remote.
 
 """
 from .development import *                # pylint: disable=W0614,W0401
@@ -23,6 +22,3 @@ DATABASES = {
 ES_HOST = "10.10.20.202"
 ES_PORT = "9200"
 ES_SERVER = {'hosts': [ES_HOST + ":" + ES_PORT]}
-
-# ElasticUtils Settings
-ES_URLS = [ES_HOST + ":" + ES_PORT]

@@ -13,34 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import absolute_import
-
 import logging
-
 from goldstone.celery import app as celery_app
 from goldstone.utils import to_es_date
-from .models import ServicesData, VolumesData, BackupsData, \
-    SnapshotsData, VolTypesData, EncryptionTypesData, TransfersData
-from goldstone.apps.api_perf.utils import stack_api_request_base, time_api_call
-from goldstone.utils import get_cloud
+from .models import ServicesData, VolumesData, BackupsData, SnapshotsData, \
+    VolTypesData, EncryptionTypesData, TransfersData
 
 logger = logging.getLogger(__name__)
-
-
-@celery_app.task()
-def time_service_list():
-
-    # Get the system's sole OpenStack cloud.
-    cloud = get_cloud()
-
-    image_list_precursor = stack_api_request_base("volumev2",
-                                                  "/os-services",
-                                                  cloud.username,
-                                                  cloud.password,
-                                                  cloud.tenant_name,
-                                                  cloud.auth_url)
-    return time_api_call('cinder',
-                         image_list_precursor['url'],
-                         headers=image_list_precursor['headers'])
 
 
 def _update_cinder_records(rec_type, region, database, items):
@@ -70,12 +49,7 @@ def discover_cinder_topology():
     """
     from goldstone.utils import get_cinder_client
 
-    # Get the system's sole OpenStack cloud.
-    cloud = get_cloud()
-    cinder_access = get_cinder_client(cloud.username,
-                                      cloud.password,
-                                      cloud.tenant_name,
-                                      cloud.auth_url)
+    cinder_access = get_cinder_client()
 
     cinderclient = cinder_access['client']
     reg = cinder_access['region']

@@ -12,24 +12,120 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.apps.core.serializers import NodeSerializer
+from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
 
 
-class LoggingNodeSerializer(NodeSerializer):
+class LogDataSerializer(ReadOnlyElasticSerializer):
+    """Serializer for ES log data. Excludes several uninteresting fields."""
 
-    def to_representation(self, obj):
-        from goldstone.apps.logging.models import LoggingNodeStats
+    class Meta:
+        """Meta"""
+        exclude = ('@version', 'message', 'syslog_ts', 'received_at', 'sort',
+                   'tags', 'syslog_facility_code', 'syslog_severity_code',
+                   'syslog_pri', 'syslog5424_pri', 'syslog5424_host', 'type')
 
-        result = super(LoggingNodeSerializer, self).to_representation(obj)
 
-        lns = LoggingNodeStats(
-            self.context['start_time'],
-            self.context['end_time']).for_node(obj.name)
+class LogAggSerializer(ReadOnlyElasticSerializer):
+    """Custom serializer to manipulate the aggregation that comes back from ES.
+    """
 
-        result['info_count'] = lns.get('info', 0)
-        result['audit_count'] = lns.get('audit', 0)
-        result['warning_count'] = lns.get('warning', 0)
-        result['error_count'] = lns.get('error', 0)
-        result['debug_count'] = lns.get('debug', 0)
+    def to_representation(self, instance):
+        """Create serialized representation of aggregate log data.
 
-        return result
+        There will be a summary block that can be used for ranging, legends,
+        etc., then the detailed aggregation data which will be a nested
+        structure.  The number of layers will depend on whether the host
+        aggregation was done.
+        """
+
+        timestamps = [i['key'] for i in instance.per_interval['buckets']]
+        levels = [i['key'] for i in instance.per_level['buckets']]
+        hosts = [i['key'] for i in instance.per_host['buckets']] \
+            if hasattr(instance, 'per_host') else None
+
+        # let's clean up the inner buckets
+        data = []
+        if hosts is None:
+            for interval_bucket in instance.per_interval.buckets:
+                key = interval_bucket.key
+                values = [{item.key: item.doc_count}
+                          for item in interval_bucket.per_level.buckets]
+                data.append({key: values})
+
+        else:
+            for interval_bucket in instance.per_interval.buckets:
+                interval_key = interval_bucket.key
+                interval_values = []
+                for host_bucket in interval_bucket.per_host.buckets:
+                    key = host_bucket.key
+                    values = [{item.key: item.doc_count}
+                              for item in host_bucket.per_level.buckets]
+                    interval_values.append({key: values})
+                data.append({interval_key: interval_values})
+
+        if hosts is not None:
+            return {
+                'timestamps': timestamps,
+                'hosts': hosts,
+                'levels': levels,
+                'data': data
+            }
+        else:
+            return {
+                'timestamps': timestamps,
+                'levels': levels,
+                'data': data
+            }
+
+
+class LogEventAggSerializer(ReadOnlyElasticSerializer):
+    """Custom serializer to manipulate the aggregation that comes back from ES.
+    """
+
+    def to_representation(self, instance):
+        """Create serialized representation of aggregate log data.
+
+        There will be a summary block that can be used for ranging, legends,
+        etc., then the detailed aggregation data which will be a nested
+        structure.  The number of layers will depend on whether the host
+        aggregation was done.
+        """
+
+        timestamps = [i['key'] for i in instance.per_interval['buckets']]
+        event_types = [i['key'] for i in instance.per_type['buckets']]
+        hosts = [i['key'] for i in instance.per_host['buckets']] \
+            if hasattr(instance, 'per_host') else None
+
+        # let's clean up the inner buckets
+        data = []
+        if hosts is None:
+            for interval_bucket in instance.per_interval.buckets:
+                key = interval_bucket.key
+                values = [{item.key: item.doc_count}
+                          for item in interval_bucket.per_type.buckets]
+                data.append({key: values})
+
+        else:
+            for interval_bucket in instance.per_interval.buckets:
+                interval_key = interval_bucket.key
+                interval_values = []
+                for host_bucket in interval_bucket.per_host.buckets:
+                    key = host_bucket.key
+                    values = [{item.key: item.doc_count}
+                              for item in host_bucket.per_type.buckets]
+                    interval_values.append({key: values})
+                data.append({interval_key: interval_values})
+
+        if hosts is not None:
+            return {
+                'timestamps': timestamps,
+                'hosts': hosts,
+                'types': event_types,
+                'data': data
+            }
+        else:
+            return {
+                'timestamps': timestamps,
+                'types': event_types,
+                'data': data
+            }

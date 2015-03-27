@@ -54,53 +54,61 @@ describe('eventTimeline.js spec', function() {
 
         this.testCollection = new EventTimelineCollection({});
         this.testCollection.add([{
-            "id": "045ab8d4-1fe8-421b-90fe-6097ecb35465",
-            "event_type": "OpenStackSyslogError",
-            "source_id": "46b24373-eedc-43d5-9543-19dea317d88f",
-            "message": "2014-10-28 22:11:11.485 2783 ... [instance: a28776ec-15e6-4913-b4db-d23c1da57b40] ",
-            "created": "2014-10-28T22:11:11.000487+00:00"
-        }, {
-            "id": "a05c6600-a9bc-4b1c-a8ad-b4d1979ef6bc",
-            "event_type": "OpenStackSyslogError",
-            "source_id": "46b24373-eedc-43d5-9543-19dea317d88f",
-            "message": "2014-10-28 22:11:10.826 2783 ERROR ... nova.compute.manager [instance: a28776ec-15e6-4913-b4db-d23c1da57b40] ",
-            "created": "2014-10-28T22:11:10.000827+00:00"
-        }, {
-            "id": "ba20ff69-2b76-4501-905a-4f988db03531",
-            "event_type": "OpenStackSyslogError",
-            "source_id": "46b24373-eedc-43d5-9543-19dea317d88f",
-            "message": "2014-10-28 22:11:10.822 2783 ERROR ...e6-4913-b4db-d23c1da57b40] ",
-            "created": "2014-10-28T22:11:10.000823+00:00"
-        }, {
-            "id": "08881714-2447-4bce-b8c2-84fefd4b0716",
-            "event_type": "OpenStackSyslogError",
-            "source_id": "46b24373-eedc-43d5-9543-19dea317d88f",
-            "message": "2014-10-28 22:11:10.824 2783...t#0122014-10-28 22:11:10.824 2783 TRACE nova.compute.manager ",
-            "created": "2014-10-28T22:11:10.000824+00:00"
-        }, {
-            "id": "a21b6bdb-a505-42cd-856f-72c445af9790",
-            "event_type": "OpenStackSyslogError",
-            "source_id": "46b24373-eedc-43d5-9543-19dea317d88f",
-            "message": "2014-10-28 22:11:10.989 2783 ERROR nova.virt.libvirt.driver destroy, instance disappeared.",
-            "created": "2014-10-28T22:11:10.000989+00:00"
-        }, {
-            "id": "22dd3391-33b2-4878-be94-310e3cde5c00",
             "event_type": "GenericSyslogError",
-            "source_id": "adf65eb9-88d9-418a-b100-0cf020d55867",
-            "message": "kernel: kvm: 13513: cpu0 unhandled wrmsr: 0x6c0 data 0",
-            "created": "2014-10-28T22:10:43.000096+00:00"
+            "@timestamp": "2015-03-18T18:04:24.921Z",
+            "syslog_facility": "daemon",
+            "syslog_severity": "ERROR",
+            "host": "rsrc-01",
+            "log_message": "abrtd: Init complete, entering main loop"
         }, {
-            "id": "b6ba37b1-5d0e-4046-bfbe-5a6672999975",
             "event_type": "GenericSyslogError",
-            "source_id": "adf65eb9-88d9-418a-b100-0cf020d55867",
-            "message": "kernel: kvm: 13513: cpu0 unhandled wrmsr: 0x6c3 data 0",
-            "created": "2014-10-28T22:10:43.000096+00:00"
+            "@timestamp": "2015-03-18T18:04:23.921Z",
+            "syslog_facility": "daemon",
+            "syslog_severity": "ERROR",
+            "host": "rsrc-01",
+            "log_message": "abrtd: Init complete, entering main loop"
         }, {
-            "id": "a36dfdfc-b15a-45b7-98a3-b288b653a339",
             "event_type": "GenericSyslogError",
-            "source_id": "adf65eb9-88d9-418a-b100-0cf020d55867",
-            "message": "kernel: kvm: 13513: cpu0 unhandled wrmsr: 0x6c2 data 0",
-            "created": "2014-10-28T22:10:43.000096+00:00"
+            "@timestamp": "2015-03-18T18:04:22.921Z",
+            "syslog_facility": "daemon",
+            "syslog_severity": "ERROR",
+            "host": "rsrc-01",
+            "log_message": "abrtd: Init complete, entering main loop"
+        }, {
+            "event_type": "GenericSyslogError",
+            "@timestamp": "2015-03-18T18:04:21.921Z",
+            "syslog_facility": "daemon",
+            "syslog_severity": "ERROR",
+            "host": "rsrc-01",
+            "log_message": "abrtd: Init complete, entering main loop"
+        }, {
+            "event_type": "GenericSyslogError",
+            "@timestamp": "2015-03-18T18:04:20.921Z",
+            "syslog_facility": "daemon",
+            "syslog_severity": "ERROR",
+            "host": "rsrc-01",
+            "log_message": "abrtd: Init complete, entering main loop"
+        }, {
+            "event_type": "GenericSyslogError",
+            "@timestamp": "2015-03-18T18:04:17.460Z",
+            "syslog_facility": "kernel",
+            "syslog_severity": "CRITICAL",
+            "host": "rsrc-01",
+            "log_message": "kernel: STARTING CRC_T10DIF"
+        }, {
+            "event_type": "GenericSyslogError",
+            "@timestamp": "2015-03-18T18:03:05.401Z",
+            "syslog_facility": "daemon",
+            "syslog_severity": "ERROR",
+            "host": "rsrc-01",
+            "log_message": "rpcbind: rpcbind terminating on signal. Restart with \"rpcbind -w\""
+        }, {
+            "event_type": "GenericSyslogError",
+            "@timestamp": "2015-03-18T18:03:03.193Z",
+            "syslog_facility": "daemon",
+            "syslog_severity": "ERROR",
+            "host": "rsrc-01",
+            "log_message": "abrtd: Got signal 15, exiting"
         }]);
 
         blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
@@ -192,11 +200,12 @@ describe('eventTimeline.js spec', function() {
         it('can handle events without an event_type', function() {
             this.testCollection.reset();
             this.testCollection.add({
-                "id": "a05c6600-a9bc-4b1c-a8ad-b4d1979ef6bc",
                 "event_type": undefined,
-                "source_id": "46b24373-eedc-43d5-9543-19dea317d88f",
-                "message": "2014-10-28 22:11:10.826 2783 ERROR ... nova.compute.manager [instance: a28776ec-15e6-4913-b4db-d23c1da57b40] ",
-                "created": "2014-10-28T22:11:10.000827+00:00"
+                "@timestamp": "2015-03-18T18:04:21.921Z",
+                "syslog_facility": "daemon",
+                "syslog_severity": "WARNING",
+                "host": "rsrc-01",
+                "log_message": "abrtd: Init complete, entering main loop"
             });
             this.testView.update();
             expect($('.form-control').text()).to.equal("Unspecified Error Typerefresh 15srefresh 30srefresh 1mrefresh 5mrefresh offlookback 15mlookback 1hlookback 6hlookback 1d");
@@ -215,11 +224,12 @@ describe('eventTimeline.js spec', function() {
             expect($('.popup-message').text()).to.equal('No Data Returned');
             // it REMOVES 'No Data Returned' if data starts flowing again:
             this.testCollection.add({
-                "id": "a05c6600-a9bc-4b1c-a8ad-b4d1979ef6bc",
-                "event_type": "OpenStackSyslogError",
-                "source_id": "46b24373-eedc-43d5-9543-19dea317d88f",
-                "message": "2014-10-28 22:11:10.826 2783 ERROR ... nova.compute.manager [instance: a28776ec-15e6-4913-b4db-d23c1da57b40] ",
-                "created": "2014-10-28T22:11:10.000827+00:00"
+                "event_type": "GenericSyslogError",
+                "@timestamp": "2015-03-18T18:04:21.921Z",
+                "syslog_facility": "daemon",
+                "syslog_severity": "ERROR",
+                "host": "rsrc-01",
+                "log_message": "abrtd: Init complete, entering main loop"
             });
             this.testView.update();
             this.testView.redraw();
@@ -241,31 +251,34 @@ describe('eventTimeline.js spec', function() {
             expect($('svg').find('rect').length).to.equal(0);
             this.testCollection.reset();
             this.testCollection.add({
-                "id": "b6ba37b1-5d0e-4046-bfbe-5a6672999975",
                 "event_type": "GenericSyslogError",
-                "source_id": "adf65eb9-88d9-418a-b100-0cf020d55867",
-                "message": "kernel: kvm: 13513: cpu0 unhandled wrmsr: 0x6c3 data 0",
-                "created": "2014-10-28T22:10:43.000096+00:00"
+                "@timestamp": "2015-03-18T18:04:21.921Z",
+                "syslog_facility": "daemon",
+                "syslog_severity": "ERROR",
+                "host": "rsrc-01",
+                "log_message": "abrtd: Init complete, entering main loop"
             });
             this.testView.update();
             expect($('svg').find('rect').length).to.equal(1);
             // adding the same item
             this.testCollection.add({
-                "id": "b6ba37b1-5d0e-4046-bfbe-5a6672999975",
                 "event_type": "GenericSyslogError",
-                "source_id": "adf65eb9-88d9-418a-b100-0cf020d55867",
-                "message": "kernel: kvm: 13513: cpu0 unhandled wrmsr: 0x6c3 data 0",
-                "created": "2014-10-28T22:10:43.000096+00:00"
+                "@timestamp": "2015-03-18T18:04:21.921Z",
+                "syslog_facility": "daemon",
+                "syslog_severity": "ERROR",
+                "host": "rsrc-01",
+                "log_message": "abrtd: Init complete, entering main loop"
             });
             // should be the same count
             expect($('svg').find('rect').length).to.equal(1);
             // adding a different item
             this.testCollection.add({
-                "id": "b6ba37b1-5d0e-5046-bfbe-5a6672999975",
                 "event_type": "GenericSyslogError",
-                "source_id": "3df65eb9-88d9-418a-b100-0cf020d55867",
-                "message": "kernel: kvm: 13513: cpu0 unhandled wrmsr: 0x6c3 data 0",
-                "created": "2014-10-28T22:10:42.000096+00:00"
+                "@timestamp": "2015-03-18T18:04:22.921Z",
+                "syslog_facility": "daemon",
+                "syslog_severity": "NOTICE",
+                "host": "rsrc-02",
+                "log_message": "abrtd: Init complete, entering main loop"
             });
             this.testView.update();
             // should NOT be the same count

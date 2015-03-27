@@ -31,7 +31,7 @@ var LogAnalysisCollection = Backbone.Collection.extend({
             });
         }
 
-        return data.data;
+        return data;
     },
 
     model: GoldstoneBaseModel,
