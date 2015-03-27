@@ -25,6 +25,14 @@ class ReadOnlyElasticSerializer(Serializer):
     class Meta:
         exclude = ()
 
+    def create(self, validated_data):
+        """Don't call create.  Here to satisfy abstract definition."""
+        raise NotImplementedError('Not used.')
+
+    def update(self, instance, validated_data):
+        """Don't call update.  Here to satisfy abstract definition."""
+        raise NotImplementedError('Not used.')
+
     def to_representation(self, instance):
         """Convert a record to a representation suitable for rendering.
 

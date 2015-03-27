@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-var PasswordResetView = Backbone.View.extend({
+var PasswordResetView = GoldstoneBaseView.extend({
+
+    defaults: {},
 
     initialize: function(options) {
         this.options = options || {};
