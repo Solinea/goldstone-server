@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json
 from django.http import HttpResponse
 from django.test import SimpleTestCase
 from goldstone.core.models import resources, Image, ServerGroup, NovaLimits, \
@@ -39,6 +38,7 @@ class DataViewTests(SimpleTestCase):
 
     def _evaluate(self, response):
         """Check the response."""
+        import json
 
         self.assertIsInstance(response, HttpResponse)
         self.assertIsNotNone(response.content)
@@ -447,3 +447,69 @@ class DiscoverGlanceTopology(SimpleTestCase):
         self.assertEqual(resource_node_attributes, expected)
 
         self.assertEqual(resources.graph.number_of_edges(), 4)
+
+    @patch('goldstone.apps.glance.tasks.logger')
+    @patch('goldstone.apps.glance.tasks.get_glance_client')
+    def test_duplicate_cloud_ids(self, ggc, log):
+        """Something in the resource graph, and some glance services in the
+        cloud; and some of the cloud's glance services have duplicate
+        cloud_ids."""
+
+        # The initial resource graph nodes, as (Type, cloud_id) tuples.  The
+        # cloud_id's must be unique within a node type.
+        NODES = [(Image, "a"),
+                 (Image, "ab"),
+                 (ServerGroup, "0"),
+                 (NovaLimits, "0")]
+
+        # The initial resource graph edges. Each entry is ((from_type,
+        # cloud_id), (to_type, cloud_id)).  The cloud_id's must be unique
+        # within a node type.
+        EDGES = [((Image, "a"), (Image, "ab")),
+                 ((Image, "a"), (ServerGroup, "0")),
+                 ((NovaLimits, "0"), (Image, "a")),
+                 ((ServerGroup, "0"), (NovaLimits, "0")),
+                 ]
+
+        # Create the PolyResource database rows, and the corresponding
+        # Resource graph nodes.
+        self.load_rg_and_db(NODES, EDGES)
+
+        # Sanity check.
+        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
+        self.assertEqual(PolyResource.objects.count(), len(NODES))
+        self.assertEqual(resources.graph.number_of_edges(), len(EDGES))
+
+        # Set up get_glance_client to return some glance services, two of
+        # which have duplicate OpenStack ids.
+        cloud = self.EmptyClientObject()
+
+        good_image_0 = {"checksum": "aw1234234234234234",
+                        "container_format": "bare",
+                        "disk_format": "FAT",
+                        "name": "botchegaloot",
+                        "status": "oh mama",
+                        "id": "deadbeef"}
+        good_image_1 = good_image_0.copy()
+        good_image_1["owner"] = "Mike Hunt"
+        good_image_1["id"] = "beef"
+        good_image_2 = good_image_1.copy()
+        good_image_1["owner"] = "I.P. Daily"
+        good_image_2["id"] = "deadbeef"
+
+        cloud.images_list = [good_image_0, good_image_1, good_image_2]
+        cloud.images = cloud.Images(cloud.images_list)
+
+        ggc.return_value = {"client": cloud, "region": "Siberia"}
+
+        new_discover_glance_topology()
+
+        self.assertEqual(resources.graph.number_of_nodes(), 5)
+        self.assertEqual(PolyResource.objects.count(), 5)
+        self.assertEqual(len(resources.nodes_of_type(Image)), 3)
+
+        # Extract the glance service dict from the logger calls, and then
+        # check them.
+        logger_arguments = [x[0][1] for x in log.critical.call_args_list]
+        expected = [[good_image_2]]
+        self.assertEqual(logger_arguments, expected)
