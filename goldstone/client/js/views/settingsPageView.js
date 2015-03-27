@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-var SettingsPageView = Backbone.View.extend({
+var SettingsPageView = GoldstoneBaseView.extend({
+
+    defaults: {},
 
     initialize: function(options) {
         this.options = options || {};
@@ -25,46 +27,14 @@ var SettingsPageView = Backbone.View.extend({
         this.addHandlers();
     },
 
-    addHandlers: function() {
-        var self = this;
+    renderTenantSettingsPageLink: function() {
+        $('#tenant-settings-button').append('' +
+            '<h3>Additional actions</h3>' +
+            '<button class="btn btn-lg btn-danger btn-block modify">Modify tenant settings</button>');
 
-        // add listener to settings form submission button
-        $('.settings-form').on('submit', function(e) {
-            e.preventDefault();
-
-            // trim inputs to prevent leading/trailing spaces
-            self.trimInputField('[name="username"]');
-            self.trimInputField('[name="first_name"]');
-            self.trimInputField('[name="last_name"]');
-
-            // ('[name="email"]') seems to have native .trim()
-            // support based on the type="email"
-
-            self.submitRequest('PUT', '/user', $(this).serialize(), 'Settings');
+        $('button.modify').on('click', function() {
+            window.location.href = "settings/tenants";
         });
-
-        // add listener to password form submission button
-        $('.password-reset-form').on('submit', function(e) {
-            e.preventDefault();
-            self.submitRequest('POST', '/accounts/password', $(this).serialize(), 'Password');
-
-            // clear password form after submission, success or not
-            $('.password-reset-form').find('[name="current_password"]').val('');
-            $('.password-reset-form').find('[name="new_password"]').val('');
-        });
-    },
-
-    getUserSettings: function() {
-        $.get('/user')
-            .done(function(result) {
-                $('[name="username"]').val(result.username);
-                $('[name="first_name"]').val(result.first_name);
-                $('[name="last_name"]').val(result.last_name);
-                $('[name="email"]').val(result.email);
-            })
-            .fail(function(fail) {
-                goldstone.raiseInfo('Could not load user settings', true);
-            });
     },
 
     // abstracted to work for both forms, and append the correct
@@ -81,13 +51,13 @@ var SettingsPageView = Backbone.View.extend({
             url: url,
             data: data,
         }).done(function(success) {
-            goldstone.raiseInfo(message + ' update successful', true);
+            goldstone.raiseInfo(message + ' update successful');
         })
             .fail(function(fail) {
                 try {
-                    goldstone.raiseInfo(fail.responseJSON.non_field_errors[0], true);
+                    goldstone.raiseInfo(fail.responseJSON.non_field_errors[0]);
                 } catch (e) {
-                    goldstone.raiseInfo(fail.responseText + e, true);
+                    goldstone.raiseInfo(fail.responseText + e);
                 }
             });
     },
@@ -95,6 +65,61 @@ var SettingsPageView = Backbone.View.extend({
     render: function() {
         this.$el.html(this.template());
         return this;
+    },
+
+    getUserSettings: function() {
+        var self = this;
+
+        $.get('/user')
+            .done(function(result) {
+                $(self.el).find('[name="username"]').val(result.username);
+                $(self.el).find('[name="first_name"]').val(result.first_name);
+                $(self.el).find('[name="last_name"]').val(result.last_name);
+                $(self.el).find('[name="email"]').val(result.email);
+
+                // result object contains tenant_admin field (true|false)
+                if (result.tenant_admin) {
+
+                    // if true, render link to tenant admin settings page
+                    if (result.tenant_admin === true) {
+                        self.renderTenantSettingsPageLink();
+                    }
+                }
+            })
+            .fail(function(fail) {
+                goldstone.raiseInfo('Could not load user settings', true);
+            });
+    },
+
+
+    addHandlers: function() {
+        var self = this;
+
+        // add listener to settings form submission button
+        $('.settings-form').on('submit', function(e) {
+            e.preventDefault();
+
+            // trim inputs to prevent leading/trailing spaces
+            self.trimInputField('[name="username"]');
+            self.trimInputField('[name="first_name"]');
+            self.trimInputField('[name="last_name"]');
+
+            // ('[name="email"]') seems to have native .trim()
+            // support based on the type="email"
+
+            // 4th argument informs what will be appeneded to screen upon success
+            self.submitRequest('PUT', '/user', $(this).serialize(), 'Settings');
+        });
+
+        // add listener to password form submission button
+        $('.password-reset-form').on('submit', function(e) {
+            e.preventDefault();
+            self.submitRequest('POST', '/accounts/password', $(this).serialize(), 'Password');
+
+            // clear password form after submission, success or not
+            $('.password-reset-form').find('[name="current_password"]').val('');
+            $('.password-reset-form').find('[name="new_password"]').val('');
+        });
     },
 
     trimInputField: function(selector) {
@@ -119,8 +144,8 @@ var SettingsPageView = Backbone.View.extend({
         '<label for="inputLastname">Last name</label>' +
         '<input name="last_name" type="text" class="form-control" placeholder="Last name">' +
         '<label for="inputEmail">Email</label>' +
-        '<input name="email" type="email" class="form-control" placeholder="Email"><br>' +
-        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
+        '<input name="email" type="email" class="form-control" placeholder="Email">' +
+        '<br><button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Update</button>' +
         '</form>' +
         '</div>' +
 
@@ -136,8 +161,19 @@ var SettingsPageView = Backbone.View.extend({
         '</form>' +
         '</div>' +
 
+        // close divs for row/container
+        '</div>' +
+        '</div>' +
+
+        // tenant settings link
+        '<div class="container">' +
+        '<div class="row"><hr>' +
+        '<div class="col-md-4 col-md-offset-2" id="tenant-settings-button">' +
+        '</div>' +
         '</div>' +
         '</div>'
+
+
     )
 
 });

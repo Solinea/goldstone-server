@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-var LoginPageView = Backbone.View.extend({
+var LoginPageView = GoldstoneBaseView.extend({
+
+    defaults: {},
 
     initialize: function(options) {
         this.options = options || {};
