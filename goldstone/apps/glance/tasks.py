@@ -82,9 +82,9 @@ def new_discover_glance_topology():
         # in an "attributes" attribute attached to the object.
         actual.append(entry)
 
-    # Check for glance services with duplicate OpenStack ids,
-    # a.k.a. cloud_id's. This should never happen. We'll log these, but won't
-    # filter them out, in case they do in fact contain useful information.
+    # Check for glance services having duplicate OpenStack ids, a.k.a.
+    # cloud_ids. This should never happen. We'll log these, but won't filter
+    # them out, in case they contain useful information.
     #
     # N.B. Python 2.6 doesn't have collections.Counter, so do it the hard way.
     # duplicates = [x for x, y in collections.Counter(actual).items() if y > 1]
@@ -98,8 +98,7 @@ def new_discover_glance_topology():
 
     if duplicates:
         logger.critical("These glance services' OpenStack UUIDs are duplicates"
-                        " of other glance service. This shouldn't be "
-                        "possible: %s",
+                        " of other glance services. This shouldn't happen: %s",
                         duplicates)
 
     resource_glance_nodes = resources.nodes_of_type(Image)
@@ -146,4 +145,3 @@ def new_discover_glance_topology():
                                                attributes=glance))
 
     # Now, evaluate the edges that exist in the cloud.
-    # TODO: CONTINUE HERE
