@@ -25,17 +25,15 @@ import sys
 # This is needed here for mock to work.
 from elasticsearch.client import IndicesClient
 from elasticsearch_dsl.connections import connections, Connections
-from keystoneclient.exceptions import ClientException
-from mock import patch, PropertyMock
+from mock import patch
 import mock
 
+from goldstone.core.models import Host
+from goldstone.core.tasks import create_daily_index
 from goldstone.models import ESData, es_conn, daily_index, es_indices, \
     TopologyData
-from goldstone.apps.core.models import Node
-from goldstone.apps.core.tasks import create_daily_index
 from goldstone.tenants.models import Tenant
 from goldstone.test_utils import Setup
-from goldstone.utils import get_keystone_client, GoldstoneAuthError
 
 sys.path.append("..")      # For importing from fabfile.
 from fabfile import _tenant_init, DEFAULT_TENANT, DEFAULT_TENANT_OWNER, \
@@ -242,66 +240,14 @@ class ESConnectionTests(SimpleTestCase):
         self.assertNotIn('not_index1', result)
 
 
-class UtilsTests(SimpleTestCase):
-
-    @patch('keystoneclient.v2_0.client.Client')
-    def test_get_keystone_client(self, client):
-
-        # Test calling with one bad argument.
-        client.side_effect = ClientException
-        self.assertRaises(ClientException,
-                          get_keystone_client,
-                          os_username='abc',
-                          os_password=settings.CLOUD_PASSWORD,
-                          os_tenant_name=settings.CLOUD_TENANT_NAME,
-                          os_auth_url=settings.CLOUD_AUTH_URL)
-        self.assertRaises(ClientException,
-                          get_keystone_client,
-                          os_username=settings.CLOUD_USERNAME,
-                          os_password='abc',
-                          os_tenant_name=settings.CLOUD_TENANT_NAME,
-                          os_auth_url=settings.CLOUD_AUTH_URL)
-        self.assertRaises(ClientException,
-                          get_keystone_client,
-                          os_username=settings.CLOUD_USERNAME,
-                          os_password=settings.CLOUD_PASSWORD,
-                          os_tenant_name='no-tenant',
-                          os_auth_url=settings.CLOUD_AUTH_URL)
-        self.assertRaises(ClientException,
-                          get_keystone_client,
-                          os_username=settings.CLOUD_USERNAME,
-                          os_password=settings.CLOUD_PASSWORD,
-                          os_tenant_name=settings.CLOUD_TENANT_NAME,
-                          os_auth_url='http://www.solinea.com')
-
-        client.side_effect = None
-        client.auth_token = None
-        type(client.return_value).auth_token = PropertyMock(return_value=None)
-        self.assertRaises(GoldstoneAuthError,
-                          get_keystone_client,
-                          os_username=settings.CLOUD_USERNAME,
-                          os_password=settings.CLOUD_PASSWORD,
-                          os_tenant_name=settings.CLOUD_TENANT_NAME,
-                          os_auth_url=settings.CLOUD_AUTH_URL)
-
-        type(client.return_value).auth_token = \
-            PropertyMock(return_value='mocked_token')
-        reply = get_keystone_client(os_username=settings.CLOUD_USERNAME,
-                                    os_password=settings.CLOUD_PASSWORD,
-                                    os_tenant_name=settings.CLOUD_TENANT_NAME,
-                                    os_auth_url=settings.CLOUD_AUTH_URL)
-        self.assertIn('client', reply)
-        self.assertIn('hex_token', reply)
-
-
 class ReportTemplateViewTest(SimpleTestCase):
-    node1 = Node(name="test_node_123")
+
+    node1 = Host(name="test_node_123")
 
     def setUp(self):
-        Node.objects.all().delete()
+        """Run before every test."""
 
-    def tearDown(self):
-        Node.objects.all().delete()
+        Host.objects.all().delete()
 
     def test_good_request(self):
 

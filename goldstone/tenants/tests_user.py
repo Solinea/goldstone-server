@@ -49,8 +49,8 @@ class TenantsIdUsers(Setup):
                                        owner_contact='206.867.5309')
 
         # Try the GET and POST without an authorization token.
-        responses = [self.client.get(TENANTS_ID_USERS_URL % tenant.uuid.hex),
-                     self.client.post(TENANTS_ID_USERS_URL % tenant.uuid.hex,
+        responses = [self.client.get(TENANTS_ID_USERS_URL % tenant.uuid),
+                     self.client.post(TENANTS_ID_USERS_URL % tenant.uuid,
                                       json.dumps({"username": "fool",
                                                   "password": "fooll",
                                                   "email": "a@b.com"}),
@@ -64,10 +64,10 @@ class TenantsIdUsers(Setup):
         # Try the GET and POST with a bad authorization token.
         responses = [
             self.client.get(
-                TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                TENANTS_ID_USERS_URL % tenant.uuid,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
             self.client.post(
-                TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                TENANTS_ID_USERS_URL % tenant.uuid,
                 json.dumps({"username": "fool",
                             "password": "fooll",
                             "email": "a@b.com"}),
@@ -98,10 +98,10 @@ class TenantsIdUsers(Setup):
         # Try the GET and POST.
         responses = [
             self.client.get(
-                TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                TENANTS_ID_USERS_URL % tenant.uuid,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.post(
-                TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                TENANTS_ID_USERS_URL % tenant.uuid,
                 json.dumps({"username": "fool",
                             "password": "fooll",
                             "email": "a@b.com"}),
@@ -129,10 +129,10 @@ class TenantsIdUsers(Setup):
         # Try the GET and POST to a tenant that doesn't exist.
         responses = [
             self.client.get(
-                TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                TENANTS_ID_USERS_URL % tenant.uuid,
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.post(
-                TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                TENANTS_ID_USERS_URL % tenant.uuid,
                 json.dumps({"username": "fool",
                             "password": "fooll",
                             "email": "a@b.com"}),
@@ -203,7 +203,7 @@ class TenantsIdUsers(Setup):
         # and their values must be strings, and the UUID ought to be >= 32
         # characters.
         response = self.client.get(
-            TENANTS_ID_USERS_URL % tenant.uuid.hex,
+            TENANTS_ID_USERS_URL % tenant.uuid,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         # pylint: disable=E1101
@@ -242,7 +242,7 @@ class TenantsIdUsers(Setup):
             from django.conf import settings
 
             response = self.client.post(
-                TENANTS_ID_USERS_URL % tenant.uuid.hex,
+                TENANTS_ID_USERS_URL % tenant.uuid,
                 json.dumps(TENANT_USERS[user_number]),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -317,15 +317,15 @@ class TenantsIdUsersId(Setup):
 
         # Try GET, PUT, and DELETE without an authorization token.
         responses = [self.client.get(TENANTS_ID_USERS_ID_URL %
-                                     (tenant.uuid.hex, user.uuid.hex)),
+                                     (tenant.uuid, user.uuid)),
                      self.client.put(TENANTS_ID_USERS_ID_URL %
-                                     (tenant.uuid.hex, user.uuid.hex),
+                                     (tenant.uuid, user.uuid),
                                      json.dumps({"username": "fool",
                                                  "password": "fooll",
                                                  "email": "a@b.com"}),
                                      content_type="application/json"),
                      self.client.delete(TENANTS_ID_USERS_ID_URL %
-                                        (tenant.uuid.hex, user.uuid.hex)),
+                                        (tenant.uuid, user.uuid)),
                      ]
 
         for response in responses:
@@ -336,17 +336,17 @@ class TenantsIdUsersId(Setup):
         # Try again with a bad authorization token.
         responses = [
             self.client.get(
-                TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+                TENANTS_ID_USERS_ID_URL % (tenant.uuid, user.uuid),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
             self.client.put(
-                TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+                TENANTS_ID_USERS_ID_URL % (tenant.uuid, user.uuid),
                 json.dumps({"username": "fool",
                             "password": "fooll",
                             "email": "a@b.com"}),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
             self.client.delete(
-                TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+                TENANTS_ID_USERS_ID_URL % (tenant.uuid, user.uuid),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN),
         ]
 
@@ -373,17 +373,17 @@ class TenantsIdUsersId(Setup):
         # Try GET, PUT, and DELETE.
         responses = [
             self.client.get(
-                TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+                TENANTS_ID_USERS_ID_URL % (tenant.uuid, user.uuid),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.put(
-                TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+                TENANTS_ID_USERS_ID_URL % (tenant.uuid, user.uuid),
                 json.dumps({"username": "fool",
                             "password": "fooll",
                             "email": "a@b.com"}),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.delete(
-                TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+                TENANTS_ID_USERS_ID_URL % (tenant.uuid, user.uuid),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
         ]
 
@@ -411,17 +411,17 @@ class TenantsIdUsersId(Setup):
         # Try GET, PUT, and DELETE to a nonexistent tenant.
         responses = [
             self.client.get(
-                TENANTS_ID_USERS_ID_URL % (BAD_UUID, user.uuid.hex),
+                TENANTS_ID_USERS_ID_URL % (BAD_UUID, user.uuid),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.put(
-                TENANTS_ID_USERS_ID_URL % (BAD_UUID, user.uuid.hex),
+                TENANTS_ID_USERS_ID_URL % (BAD_UUID, user.uuid),
                 json.dumps({"username": "fool",
                             "password": "fooll",
                             "email": "a@b.com"}),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
             self.client.delete(
-                TENANTS_ID_USERS_ID_URL % (BAD_UUID, user.uuid.hex),
+                TENANTS_ID_USERS_ID_URL % (BAD_UUID, user.uuid),
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token),
         ]
 
@@ -444,7 +444,7 @@ class TenantsIdUsersId(Setup):
         # Try GETing a nonexistent user from this tenant.
         response = self.client.get(
             TENANTS_ID_USERS_ID_URL %
-            (tenant.uuid.hex, BAD_UUID),
+            (tenant.uuid, BAD_UUID),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
@@ -481,7 +481,7 @@ class TenantsIdUsersId(Setup):
         # Try GETing the tenant admin.
         response = self.client.get(
             TENANTS_ID_USERS_ID_URL %
-            (tenant.uuid.hex, user.uuid.hex),
+            (tenant.uuid, user.uuid),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         check_response_without_uuid(response,
@@ -498,7 +498,7 @@ class TenantsIdUsersId(Setup):
         # Try GETing the second user.
         response = self.client.get(
             TENANTS_ID_USERS_ID_URL %
-            (tenant.uuid.hex, user.uuid.hex),
+            (tenant.uuid, user.uuid),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         check_response_without_uuid(response,
@@ -519,7 +519,7 @@ class TenantsIdUsersId(Setup):
 
         # Try PUTing to a nonexistent user in this tenant.
         response = self.client.put(
-            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, BAD_UUID),
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid, BAD_UUID),
             json.dumps({"username": "fool", "email": "a@b.com"}),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -566,7 +566,7 @@ class TenantsIdUsersId(Setup):
 
         # Try PUTing to the user with no username.
         response = self.client.put(
-            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid, user.uuid),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
@@ -581,7 +581,7 @@ class TenantsIdUsersId(Setup):
                                     "first_name": "Michelle"},
                                    ]):
             response = self.client.put(
-                TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+                TENANTS_ID_USERS_ID_URL % (tenant.uuid, user.uuid),
                 json.dumps(entry),
                 content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
@@ -595,7 +595,7 @@ class TenantsIdUsersId(Setup):
         # Try PUTing to the user on a field that's not allowed to be changed.
         # The response should be the same as the "unrecognized field" case.
         response = self.client.put(
-            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid, user.uuid),
             json.dumps({"username": "Beth",
                         "billybopfoo": "blaRGH",
                         "tenant_admin": True,
@@ -635,7 +635,7 @@ class TenantsIdUsersId(Setup):
 
         # Try PUTing to the user.
         response = self.client.put(
-            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid, user.uuid),
             json.dumps({"username": "Beth",
                         "first_name": '1',
                         "last_name": '2',
@@ -673,7 +673,7 @@ class TenantsIdUsersId(Setup):
         # Try to DELETE the default_admin_user.
         response = self.client.delete(
             TENANTS_ID_USERS_ID_URL %
-            (tenant.uuid.hex, default_tenant_admin.uuid.hex),
+            (tenant.uuid, default_tenant_admin.uuid),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
@@ -697,7 +697,7 @@ class TenantsIdUsersId(Setup):
 
         # Try DELETE on oneself.
         response = self.client.delete(
-            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, admin_user.uuid.hex),
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid, admin_user.uuid),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
@@ -735,7 +735,7 @@ class TenantsIdUsersId(Setup):
 
         # Try DELETE on the normal user.
         response = self.client.delete(
-            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid, user.uuid),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
@@ -765,7 +765,7 @@ class TenantsIdUsersId(Setup):
 
         # Try DELETE on the Django admin.
         response = self.client.delete(
-            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, django_admin.uuid.hex),
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid, django_admin.uuid),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
@@ -799,7 +799,7 @@ class TenantsIdUsersId(Setup):
 
         # Try to DELETE the normal user.
         response = self.client.delete(
-            TENANTS_ID_USERS_ID_URL % (tenant.uuid.hex, user.uuid.hex),
+            TENANTS_ID_USERS_ID_URL % (tenant.uuid, user.uuid),
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response, '', status_code=HTTP_204_NO_CONTENT)

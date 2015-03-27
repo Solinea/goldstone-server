@@ -20,7 +20,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db.models.signals import post_save
 from django.db import models
 from django.dispatch import receiver
-from uuidfield import UUIDField
+from django_extensions.db.fields import UUIDField
 
 from goldstone.tenants.models import Tenant
 

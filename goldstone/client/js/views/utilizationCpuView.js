@@ -107,7 +107,9 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         }
 
         if (ns.featureSet === 'logEvents') {
-            ns.color = d3.scale.ordinal().domain(["debug", "audit", "info", "warning", "error"]).range(ns.colorArray.distinct[5]);
+
+            ns.color = d3.scale.ordinal().domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
+                .range(ns.colorArray.distinct.openStackSeverity8);
         } else {
             ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
         }
@@ -136,8 +138,12 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
 
         var data = allthelogs;
 
+        _.each(data, function(item) {
+            item['@timestamp'] = moment(item['@timestamp']).unix() * 1000;
+        });
+
         var dataUniqTimes = _.uniq(_.map(data, function(item) {
-            return item.timestamp;
+            return item['@timestamp'];
         }));
 
 
@@ -156,7 +162,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
 
             var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
 
-            newData[item.timestamp][metric] = item.value;
+            newData[item['@timestamp']][metric] = item.value;
 
         });
 
@@ -205,9 +211,10 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         ns.data = allthelogs;
 
         if (ns.featureSet === 'logEvents') {
+            ns.data = allthelogs.finalData;
             ns.loglevel = d3.scale.ordinal()
-                .domain(["debug", "audit", "info", "warning", "error"])
-                .range(ns.colorArray.distinct[5]);
+                .domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
+                .range(ns.colorArray.distinct.openStackSeverity8);
         }
 
         // If we didn't receive any valid files, append "No Data Returned" and halt

@@ -12,13 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import print_function
+
 import os
 import sys
 
 from contextlib import contextmanager
 from fabric.api import task, local, warn, prompt
-from fabric.colors import red, green
+from fabric.colors import green
 from fabric.utils import fastprint
+from fabric.operations import prompt
 
 # Add the current directory to the module search path.
 sys.path.append('')
@@ -37,6 +40,29 @@ DEFAULT_TENANT = "default"
 DEFAULT_TENANT_OWNER = "None"
 DEFAULT_ADMIN = "gsadmin"
 DEFAULT_ADMIN_PASSWORD = "changeme"
+
+ES_REPO_FILENAME = "/etc/yum.repos.d/elasticsearch-1.4.repo"
+
+ES_REPO_TEXT = "[elasticsearch-1.4]\n" + \
+    "name=Elasticsearch repository for 1.4.x packages\n" + \
+    "baseurl=http://packages.elasticsearch.org/" + \
+    "elasticsearch/1.4/centos\n" + \
+    "gpgcheck=1\n" + \
+    "gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch\n" + \
+    "enabled=1\n"
+
+LOGSTASH_REPO_FILENAME = "/etc/yum.repos.d/logstash-1.4.repo"
+
+LOGSTASH_REPO_TEXT = "[logstash-1.4]\n" + \
+    "name=Logstash repository for 1.4.x packages\n" + \
+    "baseurl=http://packages.elasticsearch.org/" + \
+    "logstash/1.4/centos\n" + \
+    "gpgcheck=1\n" + \
+    "gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch\n" + \
+    "enabled=1\n"
+
+BREW_PGDATA = '/usr/local/var/postgres'
+CENTOS_PGDATA = '/var/lib/pgsql/data'
 
 
 def _django_manage(command, target='', proj_settings=None, daemon=False):
@@ -94,11 +120,14 @@ def _choose(choices):
 
     # If there are choices from which to choose...
     if choices:
+        if len(choices) == 1:
+            # only one choice, let's use it.
+            return choices[0]
+
         choice_in = None
 
         # Tell the user what the nummeric selection range is.
-        choice_range = \
-            "0" if len(choices) == 1 else "0-%s" % (len(choices) - 1)
+        choice_range = "0-%s" % (len(choices) - 1)
 
         # While we don't have a valid selection...
         while choice is None or choice < 0 or choice >= len(choices):
@@ -107,7 +136,7 @@ def _choose(choices):
 
             # Display the choices.
             for i, entry in enumerate(choices):
-                print "[%s] %s" % (i, entry)
+                print("[%s] %s" % (i, entry))
 
             # Get the user's selection.
             try:
@@ -129,7 +158,7 @@ def load(proj_settings=DEV_SETTINGS):
 
     """
 
-    print "initializing goldstone's elasticsearch templates ..."
+    print("initializing goldstone's elasticsearch templates ...")
     with _django_env(proj_settings):
         from goldstone.initial_load import initialize_elasticsearch
 
@@ -185,7 +214,7 @@ def _choose_runserver_settings(verbose):
 
     # Return the user's selection. If they asked for a verbose listing, we have
     # to strip the extra detail off the choice before returning it.
-    print "\nchoose a settings file to use:"
+    print("\nchoose a settings file to use:")
     return _choose(candidates).split(' ')[0] if verbose \
         else _choose(candidates)
 
@@ -209,7 +238,7 @@ def _django_settings_module(verbose):
 def syncmigrate(settings=None, verbose=False):
     """Do a /manage.py syncdb and migrate.
 
-    This is the last installation step before execution a load command.
+    This is the last installation step before executing a load command.
 
     :keyword settings: A settings file to use. If not specified, we will ask
                        user to select one
@@ -219,33 +248,21 @@ def syncmigrate(settings=None, verbose=False):
 
     """
 
-    print "doing a syncdb and migrate ..."
+    print("doing a syncdb and migrate ...")
 
     if not settings:
         settings = _django_settings_module(verbose)
 
-    print
-    print red("Django's script will announce that you don't have any "
-              "superusers defined.")
-    print red("It will ask you, 'Would you like to create one now? (yes/no)'")
-    print
-    print red("==> Answer no to that question!")
-    print
-    print red("You will be given the chance to properly create a superuser in "
-              "just a few")
-    print red("moments.  If you do it when Django wants you to, the system "
-              "won't start correctly.")
-    print
+    print()
 
-    _django_manage("syncdb", proj_settings=settings)
-    _django_manage("migrate", proj_settings=settings)
+    _django_manage("syncdb --noinput --migrate", proj_settings=settings)
 
     # We must create the superuser separately because of an interaction between
     # DRF and Django signals. See
     # https://github.com/tomchristie/django-rest-framework/issues/987.
-    print
-    print green("Good! *Now* you can and chould create a superuser here.")
-    _django_manage("createsuperuser", proj_settings=settings)
+    print()
+    print(green('Please create a Django superuser, username "admin" ...'))
+    _django_manage("createsuperuser --username=admin", proj_settings=settings)
 
 
 def _tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
@@ -262,7 +279,7 @@ def _tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
 
     """
 
-    print "initializing the Goldstone tenant and OpenStack cloud entry ..."
+    print("initializing the Goldstone tenant and OpenStack cloud entry ...")
 
     # Load the defaults, if the user didn't override them.
     if not tenant:
@@ -352,15 +369,22 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
 
     """
 
+    # pylint: disable=R0914
+
     # Values for the default OpenStack cloud that we will create under the
     # default tenant. These come from environment variables, if present;
     # otherwise a sensible default.
-    DEFAULT_CLOUD_TENANT = os.environ.get('DEFAULT_CLOUD_TENANT', "default")
+    DEFAULT_CLOUD_TENANT = os.environ.get('DEFAULT_CLOUD_TENANT', "admin")
     DEFAULT_CLOUD_USERNAME = os.environ.get("DEFAULT_CLOUD_USERNAME", "admin")
     DEFAULT_CLOUD_PASSWORD = os.environ.get("DEFAULT_CLOUD_PASSWORD",
                                             "changeme")
     DEFAULT_CLOUD_AUTH_URL = os.environ.get("DEFAULT_CLOUD_AUTH_URL",
-                                            "http://127.0.0.1:5000/v2.0/")
+                                            "http://127.0.0.1:5000/")
+
+    # The OpenStack identity authorization URL has a version number segment.
+    # This is the authorization version we use. It should end with a slash, but
+    # maybe that's not necessary.
+    CLOUD_AUTH_URL_VERSION = "v3/"
 
     # Create the tenant and tenant_admin.
     tenant, settings = _tenant_init(tenant,
@@ -380,13 +404,35 @@ def tenant_init(tenant=None, tenant_owner=None, admin=None, password=None,
                                    default=DEFAULT_CLOUD_TENANT)
         cloud_username = prompt("OS_USERNAME?", default=DEFAULT_CLOUD_USERNAME)
         cloud_password = prompt("OS_PASSWORD?", default=DEFAULT_CLOUD_PASSWORD)
-        cloud_auth_url = prompt("OS_AUTH_URL?", default=DEFAULT_CLOUD_AUTH_URL)
+        cloud_auth_url = prompt("OS_AUTH_URL_BASE?",
+                                default=DEFAULT_CLOUD_AUTH_URL)
+
+        cloud_auth_url = os.path.join(cloud_auth_url, CLOUD_AUTH_URL_VERSION)
 
         Cloud.objects.create(tenant=tenant,
                              tenant_name=cloud_tenant_name,
                              username=cloud_username,
                              password=cloud_password,
                              auth_url=cloud_auth_url)
+
+
+def _collect_static(proj_settings=None):
+    """collect static files if STATIC_ROOT is set in the settings file"""
+
+    with _django_env(proj_settings):
+        from django.conf import settings
+
+        if settings.STATIC_ROOT is not None:
+            print("collecting the static files under the web server ...")
+            print()
+            _django_manage("collectstatic", proj_settings=proj_settings)
+
+
+def _reconcile_hosts(proj_settings=None):
+    """Builds the initial entries in the Hosts table from agg of loggers."""
+    with _django_env(proj_settings):
+        from goldstone.apps.nova.tasks import reconcile_hosts
+        reconcile_hosts()
 
 
 @task
@@ -398,11 +444,13 @@ def goldstone_init(verbose=False):
 
     """
 
-    print "Goldstone database and Elasticsearch initialization ..."
+    print("Goldstone database and Elasticsearch initialization ...")
     settings = _django_settings_module(verbose)
 
     syncmigrate(settings=settings)
     tenant_init(settings=settings)
+    _collect_static(proj_settings=settings)
+    _reconcile_hosts(proj_settings=settings)
     load()
 
 

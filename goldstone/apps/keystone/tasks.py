@@ -19,37 +19,6 @@ import logging
 from .models import EndpointsData, RolesData, ServicesData, \
     TenantsData, UsersData
 
-# This must be at the module level, for a unit-test mock.
-from goldstone.apps.api_perf.utils import time_api_call
-from goldstone.utils import get_cloud
-
-
-@celery_app.task()
-def time_token_post_api():
-    """Call a token URL via http rather than the Python client, so we can get
-    a full set of data for the record in the DB.
-
-    This will make things easier to model.
-
-    """
-    import json
-
-    # Get the system's sole OpenStack cloud record.
-    cloud = get_cloud()
-    cloud_user = cloud.username
-    cloud_password = cloud.password
-    url = cloud.auth_url + "/tokens"
-
-    payload = {"auth": {"passwordCredentials": {"username": cloud_user,
-                                                "password": cloud_password}}}
-    headers = {'content-type': 'application/json'}
-
-    return time_api_call('keystone',
-                         url,
-                         method='POST',
-                         data=json.dumps(payload),
-                         headers=headers)
-
 
 def _update_keystone_records(rec_type, region, database, items):
     from datetime import datetime
@@ -71,13 +40,7 @@ def discover_keystone_topology():
     from goldstone.utils import get_keystone_client, \
         get_region_for_keystone_client
 
-    # Get the system's sole OpenStack cloud.
-    cloud = get_cloud()
-
-    access = get_keystone_client(cloud.username,
-                                 cloud.password,
-                                 cloud.tenant_name,
-                                 cloud.auth_url)
+    access = get_keystone_client()
 
     client = access['client']
     reg = get_region_for_keystone_client(client)

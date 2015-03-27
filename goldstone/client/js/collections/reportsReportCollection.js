@@ -22,7 +22,7 @@ var ReportsReportCollection = Backbone.Collection.extend({
 
     parse: function(data) {
         return {
-            result: data
+            result: data.per_name
         };
     },
 
@@ -39,11 +39,12 @@ var ReportsReportCollection = Backbone.Collection.extend({
     retrieveData: function() {
         var self = this;
 
-        this.url = "/core/report_list?node=" +
+        this.url = "/core/report_names?node=" +
             this.defaults.nodeName +
-            "&timestamp__gte=" + (+new Date() - this.defaults.globalLookback * 1000 * 60);
+            "&timestamp__range={'gte':" + (+new Date() - this.defaults.globalLookback * 1000 * 60) +
+            "}";
 
-        // this.url similar to: /core/report_list?node=rsrc-01&timestamp__gte=1423679057543
+        // /core/report_names?node=ctrl-01&timestamp__range={%27gte%27:1427189954471}
 
         this.fetch();
     }

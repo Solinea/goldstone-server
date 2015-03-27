@@ -13,79 +13,204 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from goldstone.models import ESData
+from arrow import Arrow
+from elasticsearch_dsl import query
+from goldstone.apps.drfes.models import DailyIndexDocType
 
 logger = logging.getLogger(__name__)
 
 
-class LoggingNodeStats(ESData):
+class LogData(DailyIndexDocType):
+    """Logstash log entry model (intended to be read-only)."""
 
-    _stats = None
+    class Meta:
+        doc_type = 'syslog'
 
-    def __init__(self, start_time=None, end_time=None):
+    @classmethod
+    def search(cls):
+        """Gets a generic Log search object.
+
+        See elasticsearch-dsl for parameter information.
         """
-        Prime the statistics for all known nodes in the time range
-        :param start_time: arrow time
-        :param end_time: arrow time
-        :return:
-        """
+        from elasticsearch_dsl.query import Q
+
+        search = super(LogData, cls).search()
+
+        # omitting logs with AUDIT loglevel since they are logged as WARNING
+        # in icehouse and juno.
+        return search.query(~Q('term', loglevel__raw='AUDIT'))
+
+    @classmethod
+    def ranged_log_search(cls, start=None, end=None, hosts=[]):
+        """ Returns a search with time range and hosts list terms"""
+
         import arrow
-        import json
-        from django.conf import settings
-        from elasticsearch import ElasticsearchException
-        from pyes import BoolQuery, RangeQuery, ESRangeOp
 
-        self.end_time = arrow.utcnow() if end_time is None else end_time
+        start = arrow.get(0) if start == '' else start
+        end = arrow.utcnow() if end == '' else end
 
-        self.start_time = self.end_time.replace(
-            minutes=(-1 * settings.LOGGING_NODE_LOGSTATS_LOOKBACK_MINUTES)) \
-            if start_time is None else start_time
+        if end is not None:
+            assert isinstance(end, Arrow), "end is not an Arrow object"
 
-        _query_value = BoolQuery(must=[
-            RangeQuery(qrange=ESRangeOp(
-                "@timestamp",
-                "gte", self.start_time.isoformat(),
-                "lte", self.end_time.isoformat())),
-        ]).serialize()
+        if start is not None:
+            assert isinstance(start, Arrow), "start is not an Arrow object"
 
-        aggs_value = {
-            "by_host": {
-                "terms": {
-                    "field": "host.raw"
-                },
-                "aggregations": {
-                    "by_level": {
-                        "terms": {
-                            "field": "loglevel",
-                            "min_doc_count": 0
-                        }
-                    }
-                }
-            }
-        }
+        search = cls.search()
 
-        query = {"query": _query_value, "aggs": aggs_value}
+        if start is not None and end is not None:
+            search = search.query(
+                'range',
+                ** {'@timestamp':
+                    {'lte': end.isoformat(),
+                     'gte': start.isoformat()}})
 
-        logger.debug("query = %s", json.dumps(query))
+        elif start is not None and end is None:
+            search = search.query(
+                'range',
+                ** {'@timestamp': {'gte': start.isoformat()}})
 
-        try:
-            result = self._conn.search(index=self.get_index_names('logstash-'),
-                                       doc_type="syslog",
-                                       body=query,
-                                       size=0)
+        elif start is None and end is not None:
+            search = search.query(
+                'range',
+                ** {'@timestamp': {'lte': end.isoformat()}})
 
-            self._stats = result["aggregations"]["by_host"]["buckets"]
+        if len(hosts) != 0:
+            # the double underscore is translated to .
+            search = search.query(query.Terms(host__raw=hosts))
 
-        except ElasticsearchException:
-            logger.exception("error connecting to ES")
-            raise
+        return search
 
-    def for_node(self, name):
+    @classmethod
+    def ranged_log_agg(cls, base_queryset, interval='1d', per_host=True):
+        """ Returns an aggregations by date histogram and maybe log level.
 
-        nodes = [x for x in self._stats if x['key'] == name]
+        :type base_queryset: Search
+        :param base_queryset: search to use as basis for aggregation
+        :type interval: str
+        :param interval: valid ES time interval such as 1m, 1h, 30s
+        :type per_host: bool
+        :param per_host: aggregate by host inside the time aggregation?
+        :rtype: object
+        :return: the (possibly nested) aggregation
+        """
 
-        # N.B. Dictionary comprehensions do not exist in Python 2.6, so we must
-        # use the old-fashioned technique.
-        return dict((bucket['key'], bucket['doc_count'])
-                    for bucket in nodes[0]['by_level']['buckets']) \
-            if nodes else {}
+        assert isinstance(interval, basestring), 'interval must be a string'
+
+        # we are not interested in the actual docs, so use the count search
+        # type.
+        search = base_queryset.params(search_type="count")
+
+        # add an aggregation for time intervals
+        search.aggs.bucket('per_interval', "date_histogram",
+                           field="@timestamp",
+                           interval=interval,
+                           min_doc_count=0)
+
+        # add a top-level aggregation for levels
+        search.aggs.bucket('per_level', "terms",
+                           field="syslog_severity",
+                           min_doc_count=0)
+
+        if per_host:
+            # add a top-level aggregation for hosts
+            search.aggs.bucket(
+                'per_host', "terms",
+                field="host.raw",
+                min_doc_count=0)
+
+            # nested aggregation per interval, per host
+            search.aggs['per_interval'].bucket(
+                'per_host', 'terms',
+                field='host.raw',
+                min_doc_count=0)
+
+            search.aggs['per_interval']['per_host'].bucket(
+                'per_level', 'terms',
+                field='syslog_severity',
+                min_doc_count=0)
+        else:
+            search.aggs['per_interval'].bucket(
+                'per_level', 'terms',
+                field='syslog_severity',
+                min_doc_count=0)
+
+        response = search.execute().aggregations
+        return response
+
+
+class LogEvent(LogData):
+    """Logstash log entry model (intended to be read-only)."""
+
+    LOG_EVENT_TYPES = ['OpenStackSyslogError', 'GenericSyslogError']
+
+    class Meta:
+        doc_type = 'syslog'
+
+    @classmethod
+    def search(cls):
+        """Return a search object with a log event query clause. """
+
+        from elasticsearch_dsl import Q
+        from elasticsearch_dsl.query import Terms
+
+        search = super(LogEvent, cls).search()
+        event_type_query = Q(Terms(event_type__raw=cls.LOG_EVENT_TYPES))
+
+        return search.query(event_type_query)
+
+    @classmethod
+    def ranged_event_agg(cls, base_queryset, interval='1d', per_host=True):
+        """ Returns an aggregations by date histogram and maybe event type.
+
+        :type base_queryset: Search
+        :param base_queryset: search to use as basis for aggregation
+        :type interval: str
+        :param interval: valid ES time interval such as 1m, 1h, 30s
+        :type per_host: bool
+        :param per_host: aggregate by host inside the time aggregation?
+        :rtype: object
+        :return: the (possibly nested) aggregation
+        """
+
+        assert isinstance(interval, basestring), 'interval must be a string'
+
+        # we are not interested in the actual docs, so use the count search
+        # type.
+        search = base_queryset.params(search_type="count")
+
+        # add an aggregation for time intervals
+        search.aggs.bucket('per_interval', "date_histogram",
+                           field="@timestamp",
+                           interval=interval,
+                           min_doc_count=0)
+
+        # add a top-level aggregation for types
+        search.aggs.bucket('per_type', "terms",
+                           field="event_type",
+                           min_doc_count=0)
+
+        if per_host:
+            # add a top-level aggregation for hosts
+            search.aggs.bucket(
+                'per_host', "terms",
+                field="host.raw",
+                min_doc_count=0)
+
+            # nested aggregation per interval, per host
+            search.aggs['per_interval'].bucket(
+                'per_host', 'terms',
+                field='host.raw',
+                min_doc_count=0)
+
+            search.aggs['per_interval']['per_host'].bucket(
+                'per_type', 'terms',
+                field='event_type',
+                min_doc_count=0)
+        else:
+            search.aggs['per_interval'].bucket(
+                'per_type', 'terms',
+                field='event_type',
+                min_doc_count=0)
+
+        response = search.execute().aggregations
+        return response

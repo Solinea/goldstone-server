@@ -12,10 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import socket
+
 import arrow
 import cinderclient.v2.services
-from keystoneclient.v2_0 import client as ksclient
-from novaclient.v1_1 import client as nvclient
+from keystoneclient.v3 import client as ksclient
+from novaclient.v2 import client as nvclient
 from cinderclient.v2 import client as ciclient
 from neutronclient.v2_0 import client as neclient
 from glanceclient.v2 import client as glclient
@@ -87,9 +89,7 @@ def _get_region_for_client(catalog, management_url, service_type):
         ep
         for cand in candidates
         for ep in cand['endpoints']
-        if ep['internalURL'] == management_url
-        or ep['publicURL'] == management_url
-        or ep['adminURL'] == management_url
+        if ep['url'] == management_url
     ]
 
     if not matches:
@@ -103,27 +103,24 @@ def _get_region_for_client(catalog, management_url, service_type):
     return matches[0]['region']
 
 
-def _get_region_for_cinder_client(client, os_username, os_password,
-                                  os_tenant_name, os_auth_url):
+def _get_region_for_cinder_client(client):
 
     # force authentication to populate management url
     client.authenticate()
 
     mgmt_url = client.client.management_url
-    keystoneclient = get_keystone_client(os_username,
-                                         os_password,
-                                         os_tenant_name,
-                                         os_auth_url)['client']
-    catalog = keystoneclient.service_catalog.catalog['serviceCatalog']
+    keystoneclient = get_keystone_client()['client']
+    catalog = keystoneclient.service_catalog.catalog['catalog']
 
-    return _get_region_for_client(catalog, mgmt_url, 'volume')
+    return _get_region_for_client(catalog, mgmt_url, 'volumev2')
 
 
 def _get_region_for_glance_client(client):
 
-    mgmt_url = client.endpoints.find(service_id=client.services.
-                                     find(name='glance').id).internalurl
-    catalog = client.service_catalog.catalog['serviceCatalog']
+    mgmt_url = client.endpoints.find(interface='internal',
+                                     service_id=client.services.
+                                     find(type='image').id).url
+    catalog = client.service_catalog.catalog['catalog']
     return _get_region_for_client(catalog, mgmt_url, 'image')
 
 
@@ -161,18 +158,25 @@ def get_cloud():
     return Cloud.objects.all()[0]
 
 
-def get_client(service, os_username, os_password, os_tenant_name, os_auth_url):
+def get_client(service):
     """Return a client object and authorization token.
 
     :rtype: dict
 
     """
+    import os.path
 
     # Error message template.
     NO_AUTH = "%s client failed to authorize. Check credentials in" \
               " goldstone settings."
 
     try:
+        cloud = get_cloud()
+        os_username = cloud.username
+        os_password = cloud.password
+        os_tenant_name = cloud.tenant_name
+        os_auth_url = cloud.auth_url
+
         if service == 'keystone':
             client = ksclient.Client(username=os_username,
                                      password=os_password,
@@ -186,11 +190,11 @@ def get_client(service, os_username, os_password, os_tenant_name, os_auth_url):
                 return {'client': client, 'hex_token': client.auth_token}
 
         elif service == 'nova':
+            # TODO should probably store the v2 and v3 auth urls in cloud obj
             client = nvclient.Client(os_username,
                                      os_password,
                                      os_tenant_name,
-                                     os_auth_url,
-                                     service_type='compute')
+                                     os_auth_url.replace('/v3/', '/v2.0/'))
             client.authenticate()
             return {'client': client, 'hex_token': client.client.auth_token}
 
@@ -200,13 +204,8 @@ def get_client(service, os_username, os_password, os_tenant_name, os_auth_url):
             client = ciclient.Client(os_username,
                                      os_password,
                                      os_tenant_name,
-                                     os_auth_url,
-                                     service_type='volume')
-            region = _get_region_for_cinder_client(client,
-                                                   os_username,
-                                                   os_password,
-                                                   os_tenant_name,
-                                                   os_auth_url)
+                                     os_auth_url.replace('/v3/', '/v2.0/'))
+            region = _get_region_for_cinder_client(client)
             return {'client': client, 'region': region}
 
         elif service == 'neutron':
@@ -217,14 +216,17 @@ def get_client(service, os_username, os_password, os_tenant_name, os_auth_url):
             return {'client': client}
 
         elif service == 'glance':
-            keystoneclient = get_client("keystone",
-                                        os_username,
-                                        os_password,
-                                        os_tenant_name,
-                                        os_auth_url)['client']
-            mgmt_url = keystoneclient.endpoints.find(
-                service_id=keystoneclient.services.find(name='glance').id)\
-                .internalurl
+            keystoneclient = get_client("keystone")['client']
+
+            # This had used a "name='glance'" qualifier, but the V3 find method
+            # raised a NoUniqueMatch exception. Keystone no longer accepts
+            # 'name' as a qualifier, so use 'type'.
+            service_id = keystoneclient.services.find(type="image").id
+
+            mgmt_url = \
+                keystoneclient.endpoints.find(service_id=service_id,
+                                              interface="admin").url
+
             region = _get_region_for_glance_client(keystoneclient)
             client = glclient.Client(endpoint=mgmt_url,
                                      token=keystoneclient.auth_token)
@@ -240,10 +242,10 @@ def get_client(service, os_username, os_password, os_tenant_name, os_auth_url):
 
 # These must be defined here, because they're based on get_client.
 # pylint: disable=C0103
-get_cinder_client = functools.partial(get_client, service='cinder')
-get_glance_client = functools.partial(get_client, service='glance')
-get_keystone_client = functools.partial(get_client, service='keystone')
-get_nova_client = functools.partial(get_client, service='nova')
+get_cinder_client = functools.partial(get_client, 'cinder')
+get_glance_client = functools.partial(get_client, 'glance')
+get_keystone_client = functools.partial(get_client, 'keystone')
+get_nova_client = functools.partial(get_client, 'nova')
 
 # pylint: enable=C0103
 
@@ -382,3 +384,49 @@ def django_and_tenant_admins_only(wrapped_function):
             raise PermissionDenied
 
     return _wrapper
+
+
+def is_ipv4_addr(candidate):
+    """Check a string to see if it is a valid v4 ip address
+
+    :param candidate: string to check
+    :return boolean
+    """
+
+    try:
+        socket.inet_pton(socket.AF_INET, candidate)
+        return True
+    except socket.error:
+        return False
+
+
+def is_ipv6_addr(candidate):
+    """Check a string to see if it is a valid v6 ip address
+
+    :param candidate: string to check
+    :return boolean
+    """
+
+    try:
+        socket.inet_pton(socket.AF_INET6, candidate)
+        return True
+    except socket.error:
+        return False
+
+
+def is_ip_addr(candidate):
+    """Check a string to see if it is a valid v4 or v6 IP address
+
+    :param candidate: string to check
+    :return boolean
+    """
+
+    return is_ipv4_addr(candidate) or is_ipv6_addr(candidate)
+
+
+def partition_hostname(hostname):
+    """Return a hostname separated into host and domain parts."""
+
+    parts = hostname.partition('.')
+    return dict(hostname=parts[0],
+                domainname=parts[2] if parts[1] == '.' else None)

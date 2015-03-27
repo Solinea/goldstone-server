@@ -1,4 +1,4 @@
-# Copyright 2014 Solinea, Inc.
+# Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#
+# push processed agent reports/metrics to elasticsearch
+# 
 output {
-    if [type] == "event_stream" and [event_type] {
-        # stdout { codec => rubydebug }
-        celery_redis_task {
-            name => "event_stream"
-            redis_host => ["127.0.0.1"]
-            key => "event_stream"
-            celery_task => "goldstone.apps.logging.tasks.process_event_stream"
-            celery_routing_key => "event_stream.#"
-            celery_task_args => ["@timestamp", "syslog5424_host", "event_type", "log_message"]
+    if [type] == "core_report" {
+        # stdout { codec => "rubydebug" }
+        elasticsearch {
+            host => localhost
+            port => 9200
+            protocol => http
+            index => "goldstone_reports-%{+YYYY.MM.dd}"
         }
     }
 }

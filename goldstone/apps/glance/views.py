@@ -14,7 +14,7 @@
 # limitations under the License.
 import logging
 
-from goldstone.apps.core.utils import JsonReadOnlyViewSet
+from goldstone.core.utils import JsonReadOnlyViewSet
 from goldstone.views import TopLevelView
 from .models import ImagesData
 
