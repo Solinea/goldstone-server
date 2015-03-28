@@ -136,6 +136,10 @@ The following service mapping is used for syslog_log_facility:
 * keystone => LOG_LOCAL6
 
 
+OpenStack Ceilometer Integration
+--------------------------------
+
+
 Rsyslog Forwarding
 -------------------
 
