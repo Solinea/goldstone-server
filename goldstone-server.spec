@@ -89,7 +89,6 @@ cd /opt/goldstone
 pip install -r requirements.txt
 export DJANGO_SETTINGS_MODULE=goldstone.settings.production
 
-python manage.py collectstatic --noinput
 # Get all the ownerships back in shape.  No guarantee that we can su to apache,
 # and running python during install may set some ownerships to root. This seems
 # like the best approach.

@@ -40,7 +40,7 @@ psycopg2==2.5.4
 pyes==0.99.5
 python-cinderclient==1.1.1
 python-glanceclient==0.17.0
-python-keystoneclient==1.3.0
+python-keystoneclient==1.2.0  # v1.3.0 conflicts with cinderclient 1.1.1
 python-neutronclient==2.3.11
 python-novaclient==2.23.0
 pytz==2014.2

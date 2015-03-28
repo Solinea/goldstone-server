@@ -423,7 +423,8 @@ def _collect_static(proj_settings=None):
         from django.conf import settings
 
         if settings.STATIC_ROOT is not None:
-            print("collecting the static files under the web server ...")
+            print(green("collecting the static files under the web server ..."))
+            print(cyan("Enter 'yes' if prompted to confirm.")
             print()
             _django_manage("collectstatic", proj_settings=proj_settings)
 
@@ -438,10 +439,10 @@ def _reconcile_hosts(proj_settings=None):
 def _fix_setuptools(proj_settings=None):
    """Workaround for https://bugs.launchpad.net/pbr/+bug/1369179"""
    with _django_env(proj_settings):
-    print()
-    print(green("Updating distribute pip module."))
+       print()
+       print(green("Updating distribute pip module."))
 
-    subprocess.call('pip install --upgrade distribute'.split())
+       local('pip install --upgrade distribute')
 
 
 @task
