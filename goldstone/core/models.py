@@ -30,7 +30,6 @@ MAX = settings.R_ATTRIBUTE.MAX
 MIN = settings.R_ATTRIBUTE.MIN
 TO = settings.R_ATTRIBUTE.TO
 TYPE = settings.R_ATTRIBUTE.TYPE
-USE_CLIENT = settings.R_ATTRIBUTE.USE_CLIENT
 MATCHING_ATTRIBUTES = settings.R_ATTRIBUTE.MATCHING_ATTRIBUTES
 EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
 
@@ -167,52 +166,6 @@ class Graph(object):
         """
 
         self.graph = networkx.MultiDiGraph()
-
-    def out_edges(self, nbunch):
-        """Return the outgoing edges from a node or nodes.
-
-        :param nbunch: Graph node(s)
-        :type nbunch: A node in the graph, or list of nodes
-        :return: All the outgoing edges from the node(s)
-        :rtype: list of (from, to, attributes)
-
-        """
-
-        return self.graph.out_edges(nbunch, data=True)
-
-    def in_edges(self, nbunch):
-        """Return the incoming edges to a node or nodes.
-
-        :param nbunch: Graph node(s)
-        :type nbunch: A node in the graph, or list of nodes
-        :return: All the incoming edges to the node(s)
-        :rtype: list of (from, to, attributes)
-
-        """
-
-        return self.graph.in_edges(nbunch, data=True)
-
-    def successors(self, node):
-        """Return the adjacent sucessor nodes of a node.
-
-        :param node: A graph node
-        :return: All of the immediately adjacent successor nodes
-        :rtype: list of nodes
-
-        """
-
-        return self.graph.successors(node)
-
-    def predecessors(self, node):
-        """Return the adjacent predecessor nodes of a node.
-
-        :param node: A graph node
-        :return: All of the immediately adjacent predecessor nodes
-        :rtype: list of nodes
-
-        """
-
-        return self.graph.predecessors(node)
 
     def edges(self, edgetype):
         """Return all of the edges that are of type <edgetype>.
@@ -533,9 +486,8 @@ class ResourceTypes(Graph):
     #       TYPE: The type of this edge
     #       MIN: An instance must have a minimum number of this edge type
     #       MAX: An instance must have a maximum number of this edge type
-    #       USE_CLIENT: Use this callable to get cloud information.
-    #       MATCHING_ATTRIBUTES: A list of keys to match in the results from
-    #                            USE_CLIENT(), in descending priority order.
+    #       MATCHING_ATTRIBUTES: A list of keys to match in target node's
+    #                            attributes, in descending priority order.
     EDGES = {
         # From Glance nodes
         Image: [{TO: Server,
@@ -556,40 +508,82 @@ class ResourceTypes(Graph):
                    EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     USE_CLIENT: get_keystone_client,
                                      MATCHING_ATTRIBUTES: ["id"]}},
                   {TO: Keypair,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                   EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                     MIN: 0,
+                                     MAX: sys.maxint,
+                                     MATCHING_ATTRIBUTES: ["id"]}},
                   {TO: NovaLimits,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: 1}},
+                   EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                     MIN: 1,
+                                     MAX: 1,
+                                     MATCHING_ATTRIBUTES: ["id"]}},
                   {TO: NovaQuotaSet,
                    EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO,
                                      MIN: 0,
-                                     MAX: sys.maxint}},
+                                     MAX: sys.maxint,
+                                     MATCHING_ATTRIBUTES: ["id"]}},
                   {TO: RootCert,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: 1}},
+                   EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                     MIN: 0,
+                                     MAX: 1,
+                                     MATCHING_ATTRIBUTES: ["id"]}},
                   {TO: Server,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
+                   EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                     MIN: 1,
+                                     MAX: sys.maxint,
+                                     MATCHING_ATTRIBUTES: ["id"]}},
                   {TO: MeteringLabel,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                   EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                     MIN: 0,
+                                     MAX: sys.maxint,
+                                     MATCHING_ATTRIBUTES: ["id"]}},
                   {TO: NeutronQuota,
-                   EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO, MIN: 1, MAX: 1}},
+                   EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO,
+                                     MIN: 1,
+                                     MAX: 1,
+                                     MATCHING_ATTRIBUTES: ["id"]}},
                   {TO: Network,
-                   EDGE_ATTRIBUTES: {TYPE: USES, MIN: 0, MAX: sys.maxint}},
+                   EDGE_ATTRIBUTES: {TYPE: USES,
+                                     MIN: 0,
+                                     MAX: sys.maxint,
+                                     MATCHING_ATTRIBUTES: ["id"]}},
                   {TO: Network,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                   EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                     MIN: 0,
+                                     MAX: sys.maxint,
+                                     MATCHING_ATTRIBUTES: ["id"]}},
                   {TO: Subnet,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                   EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                     MIN: 0,
+                                     MAX: sys.maxint,
+                                     MATCHING_ATTRIBUTES: ["id"]}},
                   {TO: LBMember,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                   EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                     MIN: 0,
+                                     MAX: sys.maxint,
+                                     MATCHING_ATTRIBUTES: ["id"]}},
                   {TO: HealthMonitor,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                   EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                     MIN: 0,
+                                     MAX: sys.maxint,
+                                     MATCHING_ATTRIBUTES: ["id"]}},
                   {TO: LBVIP,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                   EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                     MIN: 0,
+                                     MAX: sys.maxint,
+                                     MATCHING_ATTRIBUTES: ["id"]}},
                   {TO: Port,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                   EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                     MIN: 0,
+                                     MAX: sys.maxint,
+                                     MATCHING_ATTRIBUTES: ["id"]}},
                   {TO: SecurityRules,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}}],
+                   EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                     MIN: 0,
+                                     MAX: sys.maxint,
+                                     MATCHING_ATTRIBUTES: ["id"]}}],
         Region: [{TO: AvailabilityZone,
                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
                  {TO: Endpoint,
@@ -685,9 +679,15 @@ class ResourceTypes(Graph):
                  {TO: Server,
                   EDGE_ATTRIBUTES: {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}}],
         Host: [{TO: Aggregate,
-                EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}},
+                EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
+                                  MIN: 0,
+                                  MAX: sys.maxint,
+                                  MATCHING_ATTRIBUTES: ["id"]}},
                {TO: Hypervisor,
-                EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: 1}}],
+                EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                  MIN: 0,
+                                  MAX: 1,
+                                  MATCHING_ATTRIBUTES: ["id"]}}],
         Hypervisor: [{TO: Server,
                       EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}}],
         Interface: [{TO: Port,
@@ -704,7 +704,6 @@ class ResourceTypes(Graph):
                   EDGE_ATTRIBUTES: {TYPE: OWNS,
                                     MIN: 0,
                                     MAX: sys.maxint,
-                                    USE_CLIENT: get_nova_client,
                                     MATCHING_ATTRIBUTES: ["id"]}},
                  {TO: ServerGroup,
                   EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}},

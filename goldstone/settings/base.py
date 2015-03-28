@@ -381,12 +381,9 @@ class ResourceAttribute(ConstantDict):
     MAX = "max"     # A node may have this maximum number of this edge.
     TO = "to"       # This control_dict is for a "to" type/node of this value.
     TYPE = "type"   # The type of this edge or node.
-    # The callable that will return a list of OpenStack cloud data that will
-    # include this resource type.
-    USE_CLIENT = "associatedclient"
-    # A list of str. To find an edge this starting node to this destination
-    # node, call USE_CLIENT() and look for a key that matches a entry from list
-    # list, starting at the [0] index.
+    # A list of str. To find an edge from this starting node to a destination
+    # node, look for a node attribute kay matching an entry from here,
+    # starting at the [0] index.
     MATCHING_ATTRIBUTES = "matchingattributes"
 
 R_ATTRIBUTE = ResourceAttribute()
