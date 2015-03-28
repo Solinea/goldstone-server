@@ -26,24 +26,24 @@ import networkx
 import sys
 
 # Aliases to make the Resource Graph definitions less verbose.
-MAX = settings.RT_ATTRIBUTE.MAX
-MIN = settings.RT_ATTRIBUTE.MIN
-TYPE = settings.RT_ATTRIBUTE.TYPE
+MAX = settings.R_ATTRIBUTE.MAX
+MIN = settings.R_ATTRIBUTE.MIN
+TYPE = settings.R_ATTRIBUTE.TYPE
 
-ALLOCATED_TO = settings.RT_EDGE.ALLOCATED_TO
-APPLIES_TO = settings.RT_EDGE.APPLIES_TO
-ASSIGNED_TO = settings.RT_EDGE.ASSIGNED_TO
-ATTACHED_TO = settings.RT_EDGE.ATTACHED_TO
-CONSUMES = settings.RT_EDGE.CONSUMES
-CONTAINS = settings.RT_EDGE.CONTAINS
-DEFINES = settings.RT_EDGE.DEFINES
-INSTANCE_OF = settings.RT_EDGE.INSTANCE_OF
-MANAGES = settings.RT_EDGE.MANAGES
-MEMBER_OF = settings.RT_EDGE.MEMBER_OF
-OWNS = settings.RT_EDGE.OWNS
-ROUTES_TO = settings.RT_EDGE.ROUTES_TO
-SUBSCRIBED_TO = settings.RT_EDGE.SUBSCRIBED_TO
-USES = settings.RT_EDGE.USES
+ALLOCATED_TO = settings.R_EDGE.ALLOCATED_TO
+APPLIES_TO = settings.R_EDGE.APPLIES_TO
+ASSIGNED_TO = settings.R_EDGE.ASSIGNED_TO
+ATTACHED_TO = settings.R_EDGE.ATTACHED_TO
+CONSUMES = settings.R_EDGE.CONSUMES
+CONTAINS = settings.R_EDGE.CONTAINS
+DEFINES = settings.R_EDGE.DEFINES
+INSTANCE_OF = settings.R_EDGE.INSTANCE_OF
+MANAGES = settings.R_EDGE.MANAGES
+MEMBER_OF = settings.R_EDGE.MEMBER_OF
+OWNS = settings.R_EDGE.OWNS
+ROUTES_TO = settings.R_EDGE.ROUTES_TO
+SUBSCRIBED_TO = settings.R_EDGE.SUBSCRIBED_TO
+USES = settings.R_EDGE.USES
 
 
 #
@@ -214,7 +214,7 @@ class Graph(object):
         """Return all of the edges that are of type <edgetype>.
 
         :param edgetype: A type of edge
-        :type edgetype: For Resource Type graphs, RT_EDGE. For Resource
+        :type edgetype: For Resource Type graphs, R_EDGE. For Resource
                         Instance graphs, ??????
         :return: A list of edges, all of which will be of type <edgetype>.
         :rtype: list of (from, to, attributes)
@@ -658,7 +658,7 @@ class ResourceTypes(Graph):
     def edgetypes(self):
         """Return a list of the graph's edge types."""
 
-        return settings.RT_EDGE.keys()
+        return settings.R_EDGE.keys()
 
 resource_types = ResourceTypes()
 
