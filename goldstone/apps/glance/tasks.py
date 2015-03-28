@@ -14,6 +14,7 @@
 # limitations under the License.
 from __future__ import absolute_import
 from goldstone.celery import app as celery_app
+from goldstone.core.models import resources, resource_types
 from goldstone.utils import get_glance_client
 import logging
 
@@ -53,60 +54,56 @@ def discover_glance_topology():
 
 
 def _add_edges(node):
-    """Add all the edges to/from this resource graph node that we can find in
-    the current OpenStack cloud.
+    """Add all the edges from (i.e., outgoing edges) this resource graph node
+    that are found in the current OpenStack cloud.
 
     :param node: A Resource graph node
     :type node: GraphNode
 
     """
+    from django.conf import settings
 
-    # This maps the neighbor's index in an edge tuple to the kind of edge we're
-    # evaluating. (The neighbor is [0] for incoming edges and [1] for outoing
-    # edges.)
-    NEIGHBOR_MAP = [(resource_types.in_edges, 0),
-                    (resource_types.out_edges, 1)]
+    def find_match():
+        """Find the first matching attribute in the attribute list, and process
+        the associated node.
 
-    # For incoming and outgoing edges...
-    for edge_fn, neighbor_index in NEIGHBOR_MAP:
-        # For every type of edge to/from this node...
-        for edge in edge_fn(node):
-            # The neighbor node's type.
-            neighbor_type = edge[neighbor_index]
+        :return: An indication of success (True) or failure (False)
+        :rtype: bool
 
-            # Get the matching attribute we're to look for.
-            for matchtype, attribute in \
-                    neighbor_type.EdgeNavigation.matching_attributes:
-                if matchtype == neighbor_type:
-                    break
-            else:
-                logger.critical("No edge matching attribute found for the "
-                                "destination node. Skipping...: "
-                                "%s, %s, %s, %s",
-                                node,
-                                resource_glance_nodes,
-                                edge,
-                                neighbor_type)
-                continue
+        """
 
+        # Is there a Resource node that's a match?
+        for candidate in resources.nodes_of_type(neighbor_type):
+            candidate_attribute_value = candidate.attributes.get(attribute)
+
+            if candidate_attribute_value == node_attribute_value:
+                # We have a match! Create the edge from the node to this
+                # candidate.
+                resources.graph.add_edge(
+                    node,
+                    candidate,
+                    attr_dict={settings.R_ATTRIBUTE.TYPE:
+                               edge[2][settings.R_ATTRIBUTE.TYPE]})
+                # Success return
+                return True
+
+        return False
+
+    # For every possible edge from this node...
+    for edge in resource_types.graph.out_edges(node.resourcetype):
+        # For this edge, this is the neighbor's type.
+        neighbor_type = edge[1]
+
+        # Get the list of matching attributes we're to look for. We will use
+        # the first one that works.
+        for attribute in edge[2][settings.MATCHING_ATTRIBUTES]:
             # Get the attribute's value for this node.
             node_attribute_value = node.attributes.get(attribute)
 
-            # Now, find the Resource node that's a match.
-            for candidate in resource.nodes_of_type(neighbor_type):
-                # Get the candidate's match attribute's value.
-                candidate_attribute_value = candidate.attributes.get(attribute)
-
-                if candidate_attribute_value == node_attribute_value:
-                    # We have a match! Create the edge from the node to this
-                    # candidate.
-                    resource.graph.add_edge(
-                        node,
-                        candidate,
-                        attr_dict={R_ATTRIBUTE.TYPE:
-                                   edge[2][R_ATTRIBUTE.TYPE]})
-                    # Iterate to the next edge.
-                    break
+            # Find the first resource node that's a match.
+            if find_match():
+                # Success. Iterate to the next edge.
+                break
 
 
 @celery_app.task()
@@ -121,7 +118,7 @@ def new_discover_glance_topology():
        - updated from the cloud if they are already in the graph.
 
     """
-    from goldstone.core.models import resources, Image, GraphNode
+    from goldstone.core.models import Image, GraphNode
 
     # Collect the glance images that exist in the OpenStack cloud.
     client_access = get_glance_client()

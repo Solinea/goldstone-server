@@ -366,16 +366,27 @@ R_EDGE = ResourceEdge()
 
 
 class ResourceAttribute(ConstantDict):
-    """The names of attributes on Resource Type or Resource nodes or edges.
+    """The names of attributes on Resource Type or Resource, nodes or edges.
 
-    Today, there appears to be no need to partition these into "node
-    attributes" and "edge attributes."
+    There appears to be no need to partition these into "node attributes" and
+    "edge attributes."
 
     """
 
     # Enumerations (should be the only UPPER_CASE members of ConstantDict).
+
+    # The attributes to attache (that are attached) to an edge.
+    EDGE_ATTRIBUTES = "edgeattributes"
     MIN = "min"     # A node may have this minimum number of this edge.
     MAX = "max"     # A node may have this maximum number of this edge.
+    TO = "to"       # This control_dict is for a "to" type/node of this value.
     TYPE = "type"   # The type of this edge or node.
+    # The callable that will return a list of OpenStack cloud data that will
+    # include this resource type.
+    USE_CLIENT = "associatedclient"
+    # A list of str. To find an edge this starting node to this destination
+    # node, call USE_CLIENT() and look for a key that matches a entry from list
+    # list, starting at the [0] index.
+    MATCHING_ATTRIBUTES = "matchingattributes"
 
 R_ATTRIBUTE = ResourceAttribute()
