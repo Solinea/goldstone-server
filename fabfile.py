@@ -158,7 +158,7 @@ def load(proj_settings=DEV_SETTINGS):
 
     """
 
-    print("initializing goldstone's elasticsearch templates ...")
+    print(green("initializing goldstone's elasticsearch templates ..."))
     with _django_env(proj_settings):
         from goldstone.initial_load import initialize_elasticsearch
 
@@ -423,7 +423,7 @@ def _collect_static(proj_settings=None):
         from django.conf import settings
 
         if settings.STATIC_ROOT is not None:
-            print(green("collecting the static files under the web server ..."))
+            print(green("Collecting the static files under the web server ..."))
             print(cyan("Enter 'yes' if prompted to confirm.")
             print()
             _django_manage("collectstatic", proj_settings=proj_settings)
@@ -432,6 +432,7 @@ def _collect_static(proj_settings=None):
 def _reconcile_hosts(proj_settings=None):
     """Builds the initial entries in the Hosts table from agg of loggers."""
     with _django_env(proj_settings):
+        print(green("Collecting information about Openstack resources."))
         from goldstone.apps.nova.tasks import reconcile_hosts
         reconcile_hosts()
 
