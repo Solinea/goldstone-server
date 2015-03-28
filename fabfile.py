@@ -424,7 +424,7 @@ def _collect_static(proj_settings=None):
 
         if settings.STATIC_ROOT is not None:
             print(green("Collecting the static files under the web server ..."))
-            print(cyan("Enter 'yes' if prompted to confirm.")
+            print(cyan("Enter 'yes' if prompted to confirm."))
             print()
             _django_manage("collectstatic", proj_settings=proj_settings)
 
