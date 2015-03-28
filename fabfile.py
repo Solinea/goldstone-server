@@ -19,7 +19,7 @@ import sys
 
 from contextlib import contextmanager
 from fabric.api import task, local, warn, prompt
-from fabric.colors import green
+from fabric.colors import green, cyan
 from fabric.utils import fastprint
 from fabric.operations import prompt
 
