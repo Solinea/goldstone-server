@@ -437,15 +437,6 @@ def _reconcile_hosts(proj_settings=None):
         reconcile_hosts()
 
 
-def _fix_setuptools(proj_settings=None):
-   """Workaround for https://bugs.launchpad.net/pbr/+bug/1369179"""
-   with _django_env(proj_settings):
-       print()
-       print(green("Updating distribute pip module."))
-
-       local('pip install --upgrade distribute')
-
-
 @task
 def goldstone_init(verbose=False):
     """Do a syncmigrate, tenant_init, and load.
@@ -458,7 +449,6 @@ def goldstone_init(verbose=False):
     print("Goldstone database and Elasticsearch initialization ...")
     settings = _django_settings_module(verbose)
 
-    _fix_setuptools(proj_settings=settings)
     syncmigrate(settings=settings)
     tenant_init(settings=settings)
     _collect_static(proj_settings=settings)
