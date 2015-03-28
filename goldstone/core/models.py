@@ -28,7 +28,11 @@ import sys
 # Aliases to make the Resource Graph definitions less verbose.
 MAX = settings.R_ATTRIBUTE.MAX
 MIN = settings.R_ATTRIBUTE.MIN
+TO = settings.R_ATTRIBUTE.TO
 TYPE = settings.R_ATTRIBUTE.TYPE
+USE_CLIENT = settings.R_ATTRIBUTE.USE_CLIENT
+MATCHING_ATTRIBUTES = settings.R_ATTRIBUTE.MATCHING_ATTRIBUTES
+EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
 
 ALLOCATED_TO = settings.R_EDGE.ALLOCATED_TO
 APPLIES_TO = settings.R_EDGE.APPLIES_TO
@@ -245,18 +249,6 @@ class Agent(PolyResource):
 class User(PolyResource):
     """An OpenStack user."""
 
-    class EdgeNavigation(object):
-        """Directives for dynamically navigating the resource graph's edges."""
-
-        # The callable that will return a list of cloud data that includes this
-        # resource type.
-        associated_client = None
-
-        # An iterable of (PolyResource_subclass, key) entries. To find an edge
-        # from/to PolyResource_subclass, we will call its associated_client and
-        # look for a match on key's value.
-        matching_attributes = []
-
 
 class Domain(PolyResource):
     """An OpenStack domain."""
@@ -308,18 +300,6 @@ class Service(PolyResource):
 
 class Project(PolyResource):
     """An OpenStack project."""
-
-    class EdgeNavigation(object):
-        """Directives for dynamically navigating the resource graph's edges."""
-
-        # The callable that will return a list of cloud data that includes this
-        # resource type.
-        associated_client = get_keystone_client
-
-        # An iterable of (PolyResource_subclass, key) entries. To find an edge
-        # from/to PolyResource_subclass, we will call its associated_client and
-        # look for a match on key's value.
-        matching_attributes = [(Image, "id")]
 
 
 #
@@ -385,18 +365,6 @@ class Cloudpipe(PolyResource):
 
 class ServerGroup(PolyResource):
     """An OpenStack Server Group."""
-
-    class EdgeNavigation(object):
-        """Directives for dynamically navigating the resource graph's edges."""
-
-        # The callable that will return a list of cloud data that includes this
-        # resource type.
-        associated_client = get_nova_client
-
-        # An iterable of (PolyResource_subclass, key) entries. To find an edge
-        # from/to PolyResource_subclass, we will call its associated_client and
-        # look for a match on key's value.
-        matching_attributes = [(Image, "id")]
 
 
 class Server(PolyResource):
@@ -554,91 +522,195 @@ class Router(PolyResource):
 class ResourceTypes(Graph):
     """A graph of the resource types used within an OpenStack cloud."""
 
-    # These are the edges in the graph. If an edge connects nodes not yet in
-    # the graph, the nodes are automatically added.
+    # These are the graph edges. (If an edge connects nodes not yet in the
+    # graph, the nodes are automatically added.)
     #
-    # Each one is an (f, t, d) 3-tuple:
-    #   - f: The "from" node
-    #   - t: The "to" node
-    #   - d: The edge's attribute dictionary
-    EDGES = [
+    # Each entry is from_type: control_list.
+    # Each control_list is [control_dict, control_dict, ... ].
+    # Each control_dict is:
+    #   TO: The destination type
+    #   EDGE_ATTTRIBUTES: This edge's attributes:
+    #       TYPE: The type of this edge
+    #       MIN: An instance must have a minimum number of this edge type
+    #       MAX: An instance must have a maximum number of this edge type
+    #       USE_CLIENT: Use this callable to get cloud information.
+    #       MATCHING_ATTRIBUTES: A list of keys to match in the results from
+    #                            USE_CLIENT(), in descending priority order.
+    EDGES = {
         # From Glance nodes
-        (Image, Server, {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}),
+        Image: [{TO: Server,
+                 EDGE_ATTRIBUTES: {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}}],
 
         # From Keystone nodes
-        (Credential, Project, {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}),
-        (Domain, Group, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
-        (Domain, Project, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
-        (Domain, User, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
-        (Endpoint, Service, {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}),
-        (Project, Image, {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}),
-        (Project, Keypair, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Project, NovaLimits, {TYPE: OWNS, MIN: 1, MAX: 1}),
-        (Project, NovaQuotaSet, {TYPE: SUBSCRIBED_TO,
-                                 MIN: 0,
-                                 MAX: sys.maxint}),
-        (Project, RootCert, {TYPE: OWNS, MIN: 0, MAX: 1}),
-        (Project, Server, {TYPE: OWNS, MIN: 1, MAX: sys.maxint}),
-        (Project, MeteringLabel, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Project, NeutronQuota, {TYPE: SUBSCRIBED_TO, MIN: 1, MAX: 1}),
-        (Project, Network, {TYPE: USES, MIN: 0, MAX: sys.maxint}),
-        (Project, Network, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Project, Subnet, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Project, LBMember, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Project, HealthMonitor, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Project, LBVIP, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Project, Port, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Project, SecurityRules, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Region, AvailabilityZone, {TYPE: OWNS, MIN: 1, MAX: sys.maxint}),
-        (Region, Endpoint, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
-        (Role, Domain, {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}),
-        (Role, Group, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
-        (Role, Project, {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}),
-        (Role, User, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
-        (Token, User, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
-        (User, Credential, {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}),
-        (User, Group, {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}),
-        (User, NovaQuotaSet, {TYPE: SUBSCRIBED_TO, MIN: 0, MAX: sys.maxint}),
-        (User, Project, {TYPE: ASSIGNED_TO, MIN: 0, MAX: 1}),
+        Credential: [{TO: Project,
+                      EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}}],
+        Domain: [{TO: Group,
+                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
+                 {TO: Project,
+                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
+                 {TO: User,
+                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}}],
+        Endpoint: [{TO: Service,
+                    EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}}],
+        Project: [{TO: Image,
+                   EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
+                                     MIN: 0,
+                                     MAX: sys.maxint,
+                                     USE_CLIENT: get_keystone_client,
+                                     MATCHING_ATTRIBUTES: ["id"]}},
+                  {TO: Keypair,
+                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                  {TO: NovaLimits,
+                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: 1}},
+                  {TO: NovaQuotaSet,
+                   EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO,
+                                     MIN: 0,
+                                     MAX: sys.maxint}},
+                  {TO: RootCert,
+                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: 1}},
+                  {TO: Server,
+                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
+                  {TO: MeteringLabel,
+                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                  {TO: NeutronQuota,
+                   EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO, MIN: 1, MAX: 1}},
+                  {TO: Network,
+                   EDGE_ATTRIBUTES: {TYPE: USES, MIN: 0, MAX: sys.maxint}},
+                  {TO: Network,
+                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                  {TO: Subnet,
+                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                  {TO: LBMember,
+                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                  {TO: HealthMonitor,
+                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                  {TO: LBVIP,
+                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                  {TO: Port,
+                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                  {TO: SecurityRules,
+                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}}],
+        Region: [{TO: AvailabilityZone,
+                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
+                 {TO: Endpoint,
+                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}}],
+        Role: [{TO: Domain,
+                EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}},
+               {TO: Group,
+                EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}},
+               {TO: Project,
+                EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}},
+               {TO: User,
+                EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO,
+                                  MIN: 0,
+                                  MAX: sys.maxint}}],
+        Token: [{TO: User,
+                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO,
+                                   MIN: 0,
+                                   MAX: sys.maxint}}],
+        User: [{TO: Credential,
+                EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
+               {TO: Group,
+                EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}},
+               {TO: NovaQuotaSet,
+                EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO,
+                                  MIN: 0,
+                                  MAX: sys.maxint}},
+               {TO: Project,
+                EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: 1}}],
 
         # From Neutron nodes
-        (FloatingIPPool, FixedIP, {TYPE: ROUTES_TO, MIN: 0, MAX: sys.maxint}),
-        (FloatingIPPool, FloatingIP, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (HealthMonitor, LBPool, {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}),
-        (LBMember, LBPool, {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}),
-        (LBMember, Subnet, {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}),
-        (LBVIP, LBPool, {TYPE: MEMBER_OF, MIN: 0, MAX: 1}),
-        (LBVIP, Port, {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}),
-        (LBVIP, Subnet, {TYPE: ALLOCATED_TO, MIN: 0, MAX: 1}),
-        (MeteringLableRule, MeteringLabel, {TYPE: APPLIES_TO, MIN: 1, MAX: 1}),
-        (Port, FixedIP, {TYPE: CONSUMES, MIN: 0, MAX: sys.maxint}),
-        (Port, FloatingIP, {TYPE: CONSUMES, MIN: 0, MAX: sys.maxint}),
-        (Port, SecurityGroup, {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}),
-        (Router, Network, {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}),
-        (Router, Port, {TYPE: ATTACHED_TO, MIN: 0, MAX: sys.maxint}),
-        (SecurityRules, RemoteGroup, {TYPE: APPLIES_TO, MIN: 0, MAX: 1}),
-        (SecurityRules, SecurityGroup, {TYPE: MEMBER_OF, MIN: 1, MAX: 1}),
-        (Subnet, FixedIP, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Subnet, Network, {TYPE: MEMBER_OF, MIN: 1, MAX: 1}),
+        FloatingIPPool: [{TO: FixedIP,
+                          EDGE_ATTRIBUTES: {TYPE: ROUTES_TO,
+                                            MIN: 0,
+                                            MAX: sys.maxint}},
+                         {TO: FloatingIP,
+                          EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                            MIN: 0,
+                                            MAX: sys.maxint}}],
+        HealthMonitor: [{TO: LBPool,
+                         EDGE_ATTRIBUTES: {TYPE: APPLIES_TO,
+                                           MIN: 0,
+                                           MAX: sys.maxint}}],
+        LBMember: [{TO: LBPool,
+                    EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
+                                      MIN: 0,
+                                      MAX: sys.maxint}},
+                   {TO: Subnet,
+                    EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}}],
+        LBVIP: [{TO: LBPool,
+                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: 1}},
+                {TO: Port,
+                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
+                {TO: Subnet,
+                 EDGE_ATTRIBUTES: {TYPE: ALLOCATED_TO, MIN: 0, MAX: 1}}],
+        MeteringLableRule: [{TO: MeteringLabel,
+                             EDGE_ATTRIBUTES: {TYPE: APPLIES_TO,
+                                               MIN: 1,
+                                               MAX: 1}}],
+        Port: [{TO: FixedIP,
+                EDGE_ATTRIBUTES: {TYPE: CONSUMES, MIN: 0, MAX: sys.maxint}},
+               {TO: FloatingIP,
+                EDGE_ATTRIBUTES: {TYPE: CONSUMES, MIN: 0, MAX: sys.maxint}},
+               {TO: SecurityGroup,
+                EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}}],
+        Router: [{TO: Network,
+                  EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
+                 {TO: Port,
+                  EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
+                                    MIN: 0,
+                                    MAX: sys.maxint}}],
+        SecurityRules: [{TO: RemoteGroup,
+                         EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: 1}},
+                        {TO: SecurityGroup,
+                         EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 1, MAX: 1}}],
+        Subnet: [{TO: FixedIP,
+                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                 {TO: Network,
+                  EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 1, MAX: 1}}],
 
         # From Nova nodes
-        (AvailabilityZone, Aggregate, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (AvailabilityZone, Host, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Cloudpipe, Server, {TYPE: INSTANCE_OF, MIN: 1, MAX: 1}),
-        (Flavor, FlavorExtraSpec, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Flavor, Server, {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}),
-        (Host, Aggregate, {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}),
-        (Host, Hypervisor, {TYPE: OWNS, MIN: 0, MAX: 1}),
-        (Hypervisor, Server, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Interface, Port, {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}),
-        (Keypair, Server, {TYPE: ATTACHED_TO, MIN: 0, MAX: sys.maxint}),
-        (NovaQuotaClass, NovaQuotaSet, {TYPE: DEFINES,
-                                        MIN: 0,
-                                        MAX: sys.maxint}),
-        (Server, Interface, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        (Server, ServerGroup, {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}),
-        (Server, ServerMetadata, {TYPE: OWNS, MIN: 0, MAX: sys.maxint}),
-        ]
+        AvailabilityZone: [{TO: Aggregate,
+                            EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                              MIN: 0,
+                                              MAX: sys.maxint}},
+                           {TO: Host,
+                            EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                              MIN: 0,
+                                              MAX: sys.maxint}}],
+        Cloudpipe: [{TO: Server,
+                     EDGE_ATTRIBUTES: {TYPE: INSTANCE_OF, MIN: 1, MAX: 1}}],
+        Flavor: [{TO: FlavorExtraSpec,
+                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                 {TO: Server,
+                  EDGE_ATTRIBUTES: {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}}],
+        Host: [{TO: Aggregate,
+                EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}},
+               {TO: Hypervisor,
+                EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: 1}}],
+        Hypervisor: [{TO: Server,
+                      EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}}],
+        Interface: [{TO: Port,
+                     EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}}],
+        Keypair: [{TO: Server,
+                   EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
+                                     MIN: 0,
+                                     MAX: sys.maxint}}],
+        NovaQuotaClass: [{TO: NovaQuotaSet,
+                          EDGE_ATTRIBUTES: {TYPE: DEFINES,
+                                            MIN: 0,
+                                            MAX: sys.maxint}}],
+        Server: [{TO: Interface,
+                  EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                    MIN: 0,
+                                    MAX: sys.maxint,
+                                    USE_CLIENT: get_nova_client,
+                                    MATCHING_ATTRIBUTES: ["id"]}},
+                 {TO: ServerGroup,
+                  EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}},
+                 {TO: ServerMetadata,
+                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}}],
+        }
 
     def __init__(self):
         """Initialize the object.
@@ -650,9 +722,12 @@ class ResourceTypes(Graph):
 
         super(ResourceTypes, self).__init__()
 
-        # Add the nodes and edges.
-        for source, dest, attribute in self.EDGES:
-            self.graph.add_edge(source, dest, attr_dict=attribute)
+        # For every control_dict for every "from" type...
+        for source, control_list in self.EDGES.iteritems():
+            for control_dict in control_list:
+                self.graph.add_edge(source,
+                                    control_dict[TO],
+                                    attr_dict=control_dict[EDGE_ATTRIBUTES])
 
     @property
     def edgetypes(self):
@@ -660,7 +735,7 @@ class ResourceTypes(Graph):
 
         return settings.R_EDGE.keys()
 
-resource_types = ResourceTypes()
+resource_types = ResourceTypes()          # pylint: disable=C0103
 
 
 class Resources(Graph):
