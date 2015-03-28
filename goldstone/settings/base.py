@@ -343,8 +343,8 @@ class ConstantDict(object):
         return cls.__values
 
 
-class RTEdge(ConstantDict):
-    """The types of edges in the Resource Type graph."""
+class ResourceEdge(ConstantDict):
+    """The types of edges in the Resource Type and Resource graphs."""
 
     # Enumerations (should be the only UPPER_CASE members of ConstantDict).
     ALLOCATED_TO = "allocatedto"      # An <<allocated to>> edge
@@ -362,11 +362,11 @@ class RTEdge(ConstantDict):
     SUBSCRIBED_TO = "subscribedto"    # A <<subscribed to>> edge
     USES = "uses"                     # A <<uses>> edge
 
-RT_EDGE = RTEdge()
+R_EDGE = ResourceEdge()
 
 
-class RTAttribute(ConstantDict):
-    """The names of attributes on Resource Type nodes or edges.
+class ResourceAttribute(ConstantDict):
+    """The names of attributes on Resource Type or Resource nodes or edges.
 
     Today, there appears to be no need to partition these into "node
     attributes" and "edge attributes."
@@ -378,31 +378,4 @@ class RTAttribute(ConstantDict):
     MAX = "max"     # A node may have this maximum number of this edge.
     TYPE = "type"   # The type of this edge or node.
 
-RT_ATTRIBUTE = RTAttribute()
-
-
-class RIEdge(ConstantDict):
-    """The types of edges in a Resource Instance graph.
-
-    TODO: Do we need this?
-
-    """
-
-    # Enumerations (should be the only UPPER_CASE members of ConstantDict).
-    TODO = "todo"
-
-RI_EDGE = RIEdge()
-
-
-class RIAttribute(ConstantDict):
-    """The names of attributes on Resource Instance nodes or edges.
-
-    TODO: Do we need this? Maybe, network bandwidth, disk size, memory size,
-    etc.?
-
-    """
-
-    # Enumerations (should be the only UPPER_CASE members of ConstantDict).
-    TODO = "todo"
-
-RI_ATTRIBUTE = RIAttribute()
+R_ATTRIBUTE = ResourceAttribute()

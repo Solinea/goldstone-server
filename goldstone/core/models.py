@@ -19,7 +19,7 @@ from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
 from polymorphic import PolymorphicModel
 from goldstone.apps.drfes.models import DailyIndexDocType
 from goldstone.apps.logging.models import LogData, LogEvent
-from goldstone.utils import utc_now
+from goldstone.utils import utc_now, get_keystone_client, get_nova_client
 
 from elasticsearch_dsl.query import Q, QueryString
 import networkx
@@ -87,13 +87,6 @@ class PolyResource(PolymorphicModel):
                                     blank=True,
                                     default=utc_now)
     updated = ModificationDateTimeField(editable=True, blank=True)
-
-    # def _hashable(self):
-    #     """Return a JSON representation of this row."""
-    #     from rest_framework.renderers import JSONRenderer
-    #     from .serializers import PolyResourceSerializer
-
-    #     return JSONRenderer().render(PolyResourceSerializer(self).data)
 
     def logs(self):
         """Return a search object for logs related to this resource.
@@ -252,7 +245,17 @@ class Agent(PolyResource):
 class User(PolyResource):
     """An OpenStack user."""
 
-    pass
+    class EdgeNavigation(object):
+        """Directives for dynamically navigating the resource graph's edges."""
+
+        # The callable that will return a list of cloud data that includes this
+        # resource type.
+        associated_client = None
+
+        # An iterable of (PolyResource_subclass, key) entries. To find an edge
+        # from/to PolyResource_subclass, we will call its associated_client and
+        # look for a match on key's value.
+        matching_attributes = []
 
 
 class Domain(PolyResource):
@@ -306,7 +309,17 @@ class Service(PolyResource):
 class Project(PolyResource):
     """An OpenStack project."""
 
-    pass
+    class EdgeNavigation(object):
+        """Directives for dynamically navigating the resource graph's edges."""
+
+        # The callable that will return a list of cloud data that includes this
+        # resource type.
+        associated_client = get_keystone_client
+
+        # An iterable of (PolyResource_subclass, key) entries. To find an edge
+        # from/to PolyResource_subclass, we will call its associated_client and
+        # look for a match on key's value.
+        matching_attributes = [(Image, "id")]
 
 
 #
@@ -373,7 +386,17 @@ class Cloudpipe(PolyResource):
 class ServerGroup(PolyResource):
     """An OpenStack Server Group."""
 
-    pass
+    class EdgeNavigation(object):
+        """Directives for dynamically navigating the resource graph's edges."""
+
+        # The callable that will return a list of cloud data that includes this
+        # resource type.
+        associated_client = get_nova_client
+
+        # An iterable of (PolyResource_subclass, key) entries. To find an edge
+        # from/to PolyResource_subclass, we will call its associated_client and
+        # look for a match on key's value.
+        matching_attributes = [(Image, "id")]
 
 
 class Server(PolyResource):
@@ -636,6 +659,8 @@ class ResourceTypes(Graph):
         """Return a list of the graph's edge types."""
 
         return settings.RT_EDGE.keys()
+
+resource_types = ResourceTypes()
 
 
 class Resources(Graph):
