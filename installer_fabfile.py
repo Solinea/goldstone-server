@@ -160,7 +160,7 @@ def _is_root_user():
 def _fix_setuptools():
    """Workaround for https://bugs.launchpad.net/pbr/+bug/1369179"""
    print()
-   print(green("Updating distribute pip module."))
+   print(green("Updating the 'distribute' pip module."))
 
    subprocess.call('pip install --upgrade distribute'.split())
 
@@ -214,7 +214,7 @@ def _centos6_install():
     """Install the downloaded RPM."""
 
     print()
-    print(green("Installing the Goldstone server RPM.  This could take"
+    print(green("Installing the Goldstone server RPM.  This could take "
                 "a while."))
     user_input = prompt('Location Goldstone RPM?',
                         default='./goldstone-server.rpm',
