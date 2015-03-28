@@ -157,6 +157,14 @@ def _is_root_user():
     return getpass.getuser() == "root"
 
 
+def _fix_setuptools():
+   """Workaround for https://bugs.launchpad.net/pbr/+bug/1369179"""
+   print()
+   print(green("Updating distribute pip module."))
+
+   subprocess.call('pip install --upgrade distribute'.split())
+
+
 def _centos6_preinstall():
     """Perform the pre-installation steps on CentOS."""
 
@@ -174,6 +182,7 @@ def _centos6_preinstall():
 
     _install_additional_repos()
     _centos6_setup_postgres()
+    _fix_setuptools()
 
 
 def _development_mac_preinstall():
