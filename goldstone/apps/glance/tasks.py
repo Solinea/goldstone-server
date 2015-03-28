@@ -63,10 +63,18 @@ def _add_edges(node):
     """
     from django.conf import settings
 
-    def find_match():
+    # Aliases to make the code less verbose
+    MATCHING_ATTRIBUTES = settings.R_ATTRIBUTE.MATCHING_ATTRIBUTES
+    TYPE = settings.R_ATTRIBUTE.TYPE
+    
+    def find_match(edge, neighbor_type):
         """Find the first matching attribute in the attribute list, and process
         the associated node.
 
+        :param edge: An edge, as returned from the resource graph
+        :type edge: 3-tuple
+        :param neighbor_type: The type of the desired destination node
+        :type neighbor_type: PolyResource subclass
         :return: An indication of success (True) or failure (False)
         :rtype: bool
 
@@ -82,26 +90,25 @@ def _add_edges(node):
                 resources.graph.add_edge(
                     node,
                     candidate,
-                    attr_dict={settings.R_ATTRIBUTE.TYPE:
-                               edge[2][settings.R_ATTRIBUTE.TYPE]})
+                    attr_dict={TYPE: edge[2][TYPE]})
                 # Success return
                 return True
 
         return False
 
     # For every possible edge from this node...
-    for edge in resource_types.graph.out_edges(node.resourcetype):
+    for edge in resource_types.graph.out_edges(node.resourcetype, data=True):
         # For this edge, this is the neighbor's type.
         neighbor_type = edge[1]
 
         # Get the list of matching attributes we're to look for. We will use
         # the first one that works.
-        for attribute in edge[2][settings.MATCHING_ATTRIBUTES]:
+        for attribute in edge[2][MATCHING_ATTRIBUTES]:
             # Get the attribute's value for this node.
             node_attribute_value = node.attributes.get(attribute)
 
             # Find the first resource node that's a match.
-            if find_match():
+            if find_match(edge, neighbor_type):
                 # Success. Iterate to the next edge.
                 break
 
