@@ -423,10 +423,11 @@ def _collect_static(proj_settings=None):
         from django.conf import settings
 
         if settings.STATIC_ROOT is not None:
-            print(green("Collecting the static files under the web server ..."))
+            print(green("Collecting the static files under the web server."))
             print(cyan("Enter 'yes' if prompted to confirm."))
             print()
-            _django_manage("collectstatic", proj_settings=proj_settings)
+            _django_manage("collectstatic --noinput",
+                           proj_settings=proj_settings)
 
 
 def _reconcile_hosts(proj_settings=None):
