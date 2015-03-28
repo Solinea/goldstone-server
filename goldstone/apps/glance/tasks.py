@@ -52,8 +52,66 @@ def discover_glance_topology():
                                  glance_access['region'])
 
 
+def _add_edges(node):
+    """Add all the edges to/from this resource graph node that we can find in
+    the current OpenStack cloud.
+
+    :param node: A Resource graph node
+    :type node: GraphNode
+
+    """
+
+    # This maps the neighbor's index in an edge tuple to the kind of edge we're
+    # evaluating. (The neighbor is [0] for incoming edges and [1] for outoing
+    # edges.)
+    NEIGHBOR_MAP = [(resource_types.in_edges, 0),
+                    (resource_types.out_edges, 1)]
+
+    # For incoming and outgoing edges...
+    for edge_fn, neighbor_index in NEIGHBOR_MAP:
+        # For every type of edge to/from this node...
+        for edge in edge_fn(node):
+            # The neighbor node's type.
+            neighbor_type = edge[neighbor_index]
+
+            # Get the matching attribute we're to look for.
+            for matchtype, attribute in \
+                    neighbor_type.EdgeNavigation.matching_attributes:
+                if matchtype == neighbor_type:
+                    break
+            else:
+                logger.critical("No edge matching attribute found for the "
+                                "destination node. Skipping...: "
+                                "%s, %s, %s, %s",
+                                node,
+                                resource_glance_nodes,
+                                edge,
+                                neighbor_type)
+                continue
+
+            # Get the attribute's value for this node.
+            node_attribute_value = node.attributes.get(attribute)
+
+            # Now, find the Resource node that's a match.
+            for candidate in resource.nodes_of_type(neighbor_type):
+                # Get the candidate's match attribute's value.
+                candidate_attribute_value = candidate.attributes.get(attribute)
+
+                if candidate_attribute_value == node_attribute_value:
+                    # We have a match! Create the edge from the node to this
+                    # candidate.
+                    resource.graph.add_edge(
+                        node,
+                        candidate,
+                        attr_dict={R_ATTRIBUTE.TYPE:
+                                   edge[2][R_ATTRIBUTE.TYPE]})
+                    # Iterate to the next edge.
+                    break
+
+
 @celery_app.task()
 def new_discover_glance_topology():
+
     """Update the Resource graph Glance nodes and edges from the current
     OpenStack cloud state.
 
@@ -144,4 +202,12 @@ def new_discover_glance_topology():
                                                resourcetype=Image,
                                                attributes=glance))
 
-    # Now, evaluate the edges that exist in the cloud.
+    # Now, update the edges of every glance node in the resource graph.
+    for node in resource_glance_nodes:
+        # Delete the existing edges. It's simpler to delete them and
+        # potentially add them back, than to check whether an existing edge
+        # matches what's currently in the cloud.
+        for edge in resources.graph.edges(node):
+            resources.graph.remove_edges(edge[0], edge[1])
+
+        _add_edges(node)
