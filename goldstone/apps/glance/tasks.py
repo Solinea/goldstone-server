@@ -54,8 +54,8 @@ def discover_glance_topology():
 
 
 def _add_edges(node):
-    """Add all the edges from (i.e., outgoing edges) this resource graph node
-    that are found in the current OpenStack cloud.
+    """Add edges from this resource grph node to neighbors, as defined by its
+    type.
 
     :param node: A Resource graph node
     :type node: GraphNode
@@ -66,10 +66,10 @@ def _add_edges(node):
     # Aliases to make the code less verbose
     MATCHING_ATTRIBUTES = settings.R_ATTRIBUTE.MATCHING_ATTRIBUTES
     TYPE = settings.R_ATTRIBUTE.TYPE
-    
+
     def find_match(edge, neighbor_type):
-        """Find the first matching attribute in the attribute list, and process
-        the associated node.
+        """Find the one node that matches the desired attribute, and add an
+        edge to it from the source node.
 
         :param edge: An edge, as returned from the resource graph
         :type edge: 3-tuple
@@ -80,7 +80,7 @@ def _add_edges(node):
 
         """
 
-        # Is there a Resource node that's a match?
+        # For all nodes that are of the desired type...
         for candidate in resources.nodes_of_type(neighbor_type):
             candidate_attribute_value = candidate.attributes.get(attribute)
 

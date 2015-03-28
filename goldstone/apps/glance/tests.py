@@ -30,8 +30,8 @@ NODE_TYPES = [Image, ServerGroup, NovaLimits, Host, Aggregate, Cloudpipe, Port,
               Hypervisor, Project, Network]
 
 # Aliases to make the code less verbose
-EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
 TYPE = settings.R_ATTRIBUTE.TYPE
+
 
 class ViewTests(SimpleTestCase):
     """Test the report view."""
@@ -79,6 +79,7 @@ class DataViewTests(SimpleTestCase):
             self.client.get("/glance/images",
                             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token))
 
+
 def _load_rg_and_db(startnodes, startedges):
     """Create PolyResource database rows, and their corresponding Resource
     graph nodes.
@@ -117,6 +118,7 @@ def _load_rg_and_db(startnodes, startedges):
         # Add the edge
         resources.graph.add_edge(fromnode, tonode)
 
+
 class AddEdges(SimpleTestCase):
     """Test glance.tasks._add_edges."""
 
@@ -141,14 +143,14 @@ class AddEdges(SimpleTestCase):
         NODES = [(Host, "deadbeef")]
 
         _load_rg_and_db(NODES, [])
-        
+
         # Mock out the resource_types object so that the Host entry has no
         # edges.
         node = resources.graph.nodes()[0]
         mock_rt_graph = ResourceTypes()
         mock_rt_graph.graph.remove_edges_from(
             mock_rt_graph.graph.out_edges(node.resourcetype))
-        
+
         with patch("goldstone.apps.glance.tasks.resource_types",
                    mock_rt_graph):
             _add_edges(node)
@@ -173,14 +175,14 @@ class AddEdges(SimpleTestCase):
                  (Hypervisor, "2")]
 
         _load_rg_and_db(NODES, [])
-        
+
         # Modify the candidate destination nodes' attributes so that they do
         # not have the desired match key.
         for nodetype in (Aggregate, Hypervisor):
             for node in resources.nodes_of_type(nodetype):
                 node.attributes = {"silly": "putty",
                                    "emacs": "the sacred editor"}
-            
+
         node = resources.nodes_of_type(Host)[0]
 
         _add_edges(node)
@@ -205,7 +207,7 @@ class AddEdges(SimpleTestCase):
                  (Hypervisor, "2")]
 
         _load_rg_and_db(NODES, [])
-        
+
         node = resources.nodes_of_type(Host)[0]
 
         _add_edges(node)
@@ -213,7 +215,7 @@ class AddEdges(SimpleTestCase):
         self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
         self.assertEqual(resources.graph.number_of_edges(), 0)
 
-    def test_no_matching_neighbor_instance(self):
+    def test_no_matching_nghbr_types(self):
         """No instance matches the desired type for the neighbor, although
         they happen to have matching match_attributes.
 
@@ -230,7 +232,7 @@ class AddEdges(SimpleTestCase):
                  (Port, "deadbeef")]
 
         _load_rg_and_db(NODES, [])
-        
+
         node = resources.nodes_of_type(Host)[0]
 
         _add_edges(node)
@@ -256,7 +258,7 @@ class AddEdges(SimpleTestCase):
                  (Network, "cad")]
 
         _load_rg_and_db(NODES, [])
-        
+
         node = resources.nodes_of_type(Project)[0]
 
         _add_edges(node)
@@ -266,112 +268,31 @@ class AddEdges(SimpleTestCase):
         self.assertEqual(resources.graph.number_of_edges(), 4)
 
         # Test the types of edges created.
-        edges = resources.graph.out_edges(node)
+        edges = resources.graph.out_edges(node, data=True)
         self.assertEqual(len(edges), 4)
 
         project_type_edges = resource_types.graph.out_edges(Project, data=True)
 
-        import pdb; pdb.set_trace()
         # For every resource graph edge...
         for edge in edges:
             self.assertEqual(edge[0].resourcetype, Project)
+
             to_type = edge[1].resourcetype
             rt_edges = [x for x in project_type_edges if x[1] == to_type]
 
             # A Project Node should have two edges to each Network node. So we
             # have to special-case the Network nodes.
             if len(rt_edges) == 2:
-                # Project => Network
+                # Project => Network.
                 self.assertEqual(to_type, Network)
-                expected_attr_dicts = \
-                    [{TYPE: rt_edges[0][EDGE_ATTRIBUTES][TYPE]},
-                     {TYPE: rt_edges[1][EDGE_ATTRIBUTES][TYPE]}]
+                expected_attr_dicts = [{TYPE: rt_edges[0][2][TYPE]},
+                                       {TYPE: rt_edges[1][2][TYPE]}]
                 self.assertIn(edge[2], expected_attr_dicts)
             else:
-                # Project => any other type
+                # Project => other types.
                 self.assertIn(to_type, (Port, Image))
-                expected_attr_dict = {TYPE: rt_edges[0][EDGE_ATTRIBUTES][TYPE]}
+                expected_attr_dict = {TYPE: rt_edges[0][2][TYPE]}
                 self.assertEqual(edge[2], expected_attr_dict)
-                                  
-
-    @patch('goldstone.apps.glance.tasks.get_glance_client')
-    def test_multiple_edges(self, ggc):
-        """Multiple edges on the node, a couple of neighbors cannot be found.
-        intersection is not null.
-
-        Some of the resource graph nodes should be deleted, some should be
-        updated, some should be added.
-
-        """
-
-        # The initial resource graph nodes, as (Type, cloud_id) tuples.  The
-        # cloud_id's must be unique within a node type.
-        NODES = [(Image, "a"),
-                 (Image, "ab"),
-                 (Image, "abc"),
-                 (ServerGroup, "0"),
-                 (ServerGroup, "ab"),
-                 (NovaLimits, "0")]
-
-        # The initial resource graph edges. Each entry is ((from_type,
-        # cloud_id), (to_type, cloud_id)).  The cloud_id's must be unique
-        # within a node type.
-        EDGES = [((Image, "a"), (Image, "ab")),
-                 ((Image, "a"), (ServerGroup, "0")),
-                 ((Image, "ab"), (ServerGroup, "ab")),
-                 ((Image, "ab"), (Image, "abc")),
-                 ((NovaLimits, "0"), (ServerGroup, "ab")),
-                 ((NovaLimits, "0"), (Image, "a")),
-                 ((ServerGroup, "0"), (NovaLimits, "0")),
-                 ]
-
-        # Create the PolyResource database rows, and the corresponding
-        # Resource graph nodes.
-        _load_rg_and_db(NODES, EDGES)
-
-        # Sanity check
-        self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
-        self.assertEqual(PolyResource.objects.count(), len(NODES))
-        self.assertEqual(resources.graph.number_of_edges(), len(EDGES))
-
-        # Set up get_glance_client to return some glance and other services.
-        cloud = self.EmptyClientObject()
-
-        # Hits in the resource graph, but has new info.
-        good_image_0 = {"checksum": "aw1234234234234234",
-                        "container_format": "bare",
-                        "disk_format": "FAT",
-                        "name": "botchegaloot",
-                        "status": "oh mama",
-                        "id": "ab"}
-
-        # A new node. This will have a duplicate name, which should not matter.
-        good_image_1 = good_image_0.copy()
-        good_image_1["id"] = "156"
-
-        # Hits in the resource graph, but has new info.
-        good_image_2 = good_image_0.copy()
-        good_image_2["id"] = "abc"
-        good_image_2["name"] = "Amber Waves"
-
-        cloud.images_list = [good_image_0, good_image_1, good_image_2]
-        cloud.images = cloud.Images(cloud.images_list)
-
-        ggc.return_value = {"client": cloud, "region": "Siberia"}
-
-        new_discover_glance_topology()
-
-        self.assertEqual(resources.graph.number_of_nodes(), 6)
-        self.assertEqual(PolyResource.objects.count(), 6)
-
-        resource_node_attributes = [x.attributes
-                                    for x in resources.nodes_of_type(Image)]
-        expected = [good_image_0, good_image_1, good_image_2]
-        resource_node_attributes.sort()
-        expected.sort()
-        self.assertEqual(resource_node_attributes, expected)
-
-        self.assertEqual(resources.graph.number_of_edges(), 4)
 
 
 class DiscoverGlanceTopology(SimpleTestCase):
