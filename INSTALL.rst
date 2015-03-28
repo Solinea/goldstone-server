@@ -44,8 +44,9 @@ INSTALL PREREQUISITES (AS ROOT)
 
     # yum update ; reboot
     # yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
-    # yum install -y python-devel python-setuptools libffi-devel
-    # easy_install pip
+    # yum install -y python-devel python-setuptools libffi-devel wget
+    # wget https://bootstrap.pypa.io/get-pip.py
+    # python get-pip.py
     # pip install paramiko==1.10
     # pip install fabric==1.10.1    
 
