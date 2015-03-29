@@ -163,6 +163,7 @@ def _fix_setuptools():
    print(green("Updating the 'distribute' pip module."))
 
    subprocess.call('pip install --upgrade distribute'.split())
+   subprocess.call('pip install --upgrade setuptools'.split())
 
 
 def _centos6_preinstall():
