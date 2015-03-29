@@ -491,7 +491,10 @@ class ResourceTypes(Graph):
     EDGES = {
         # From Glance nodes
         Image: [{TO: Server,
-                 EDGE_ATTRIBUTES: {TYPE: DEFINES, MIN: 0, MAX: sys.maxint}}],
+                 EDGE_ATTRIBUTES: {TYPE: DEFINES,
+                                   MIN: 0,
+                                   MAX: sys.maxint,
+                                   MATCHING_ATTRIBUTES: ["id"]}}],
 
         # From Keystone nodes
         Credential: [{TO: Project,
