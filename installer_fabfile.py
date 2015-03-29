@@ -129,7 +129,8 @@ def _centos6_setup_postgres():
     sleep(10)
     subprocess.call('su - postgres -c "createdb goldstone"', shell=True)
 
-    print(cyan("creating the PostgreSQL goldstone user.  Please enter a password..."))
+    print(cyan("creating the PostgreSQL goldstone user.  "
+               "Please enter a password..."))
     # TODO this prompts for password, then complains if the user exists
     subprocess.call('su - postgres -c "createuser goldstone -s -d -P"',
                     shell=True)
@@ -158,12 +159,12 @@ def _is_root_user():
 
 
 def _fix_setuptools():
-   """Workaround for https://bugs.launchpad.net/pbr/+bug/1369179"""
-   print()
-   print(green("Updating the 'distribute' pip module."))
+    """Workaround for https://bugs.launchpad.net/pbr/+bug/1369179"""
+    print()
+    print(green("Updating the 'distribute' pip module."))
 
-   subprocess.call('pip install --upgrade distribute'.split())
-   subprocess.call('pip install --upgrade setuptools'.split())
+    subprocess.call('pip install --upgrade distribute'.split())
+    subprocess.call('pip install --upgrade setuptools'.split())
 
 
 def _centos6_preinstall():
