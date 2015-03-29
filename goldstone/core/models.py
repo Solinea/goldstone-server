@@ -732,7 +732,7 @@ class ResourceTypes(Graph):
                                     attr_dict=control_dict[EDGE_ATTRIBUTES])
 
     @property
-    def edgetypes(self):
+    def edgetypes(self):       # pylint: disable=R0201
         """Return a list of the graph's edge types."""
 
         return settings.R_EDGE.keys()
@@ -789,7 +789,7 @@ class Resources(Graph):
         return None
 
     @property
-    def edgetypes(self):
+    def edgetypes(self):         # pylint: disable=R0201
         """Return a list of the graph's edge types."""
 
         return settings.RI_EDGE.keys()
