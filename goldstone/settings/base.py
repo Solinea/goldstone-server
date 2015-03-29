@@ -86,9 +86,9 @@ INSTALLED_APPS = (
     'goldstone.apps.intelligence',
     'goldstone.apps.keystone',
     'goldstone.apps.logging',
-    'goldstone.apps.neutron',
     'goldstone.apps.nova',
     'goldstone.core',
+    'goldstone.neutron',
     'goldstone.tenants',
     'goldstone.user',
 )
