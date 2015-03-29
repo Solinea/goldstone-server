@@ -17,7 +17,7 @@ from django.http import HttpResponse
 from django.test import SimpleTestCase
 from goldstone.core.models import resources, Image, ServerGroup, NovaLimits, \
     GraphNode, PolyResource, Host, resource_types, Aggregate, Hypervisor, \
-    Port, Cloudpipe, Network, Project
+    Port, Cloudpipe, Network, Project, Server
 from goldstone.apps.glance.tasks import new_discover_glance_topology, \
     _add_edges
 from mock import patch
@@ -27,7 +27,7 @@ from mock import patch
 # when we need to clear the PolyResource table, we'll individually delete each
 # subclass.
 NODE_TYPES = [Image, ServerGroup, NovaLimits, Host, Aggregate, Cloudpipe, Port,
-              Hypervisor, Project, Network]
+              Hypervisor, Project, Network, Server]
 
 # Aliases to make the code less verbose
 TYPE = settings.R_ATTRIBUTE.TYPE
@@ -569,13 +569,15 @@ class DiscoverGlanceTopology(SimpleTestCase):
         NODES = [(Image, "a"),
                  (Image, "ab"),
                  (Image, "abc"),
+                 (Server, "ab"),
                  (ServerGroup, "0"),
                  (ServerGroup, "ab"),
                  (NovaLimits, "0")]
 
         # The initial resource graph edges. Each entry is ((from_type,
         # cloud_id), (to_type, cloud_id)).  The cloud_id's must be unique
-        # within a node type.
+        # within a node type. N.B. Some of these edges would not exist in a
+        # running system, because they're not defined in ResourceTypes.
         EDGES = [((Image, "a"), (Image, "ab")),
                  ((Image, "a"), (ServerGroup, "0")),
                  ((Image, "ab"), (ServerGroup, "ab")),
@@ -605,7 +607,7 @@ class DiscoverGlanceTopology(SimpleTestCase):
                         "status": "oh mama",
                         "id": "ab"}
 
-        # A new node. This will have a duplicate name, which should not matter.
+        # A new node. This will have a duplicate name, which shouldn't matter.
         good_image_1 = good_image_0.copy()
         good_image_1["id"] = "156"
 
@@ -621,8 +623,8 @@ class DiscoverGlanceTopology(SimpleTestCase):
 
         new_discover_glance_topology()
 
-        self.assertEqual(resources.graph.number_of_nodes(), 6)
-        self.assertEqual(PolyResource.objects.count(), 6)
+        self.assertEqual(resources.graph.number_of_nodes(), 7 + 1 - 1)
+        self.assertEqual(PolyResource.objects.count(), 7 + 1 - 1)
 
         resource_node_attributes = [x.attributes
                                     for x in resources.nodes_of_type(Image)]
@@ -631,7 +633,9 @@ class DiscoverGlanceTopology(SimpleTestCase):
         expected.sort()
         self.assertEqual(resource_node_attributes, expected)
 
-        self.assertEqual(resources.graph.number_of_edges(), 4)
+        # The edges are: ((NovaLimits, "0"), (ServerGroup, "ab")),
+        # ((NovaLimits, "0"), (Image, "a")), ((Image, "ab"), (Server, "ab")).
+        self.assertEqual(resources.graph.number_of_edges(), 3)
 
     @patch('goldstone.apps.glance.tasks.logger')
     @patch('goldstone.apps.glance.tasks.get_glance_client')

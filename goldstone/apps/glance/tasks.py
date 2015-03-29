@@ -208,10 +208,9 @@ def new_discover_glance_topology():
 
     # Now, update the edges of every glance node in the resource graph.
     for node in resource_glance_nodes:
-        # Delete the existing edges. It's simpler to delete them and
-        # potentially add them back, than to check whether an existing edge
-        # matches what's currently in the cloud.
-        for edge in resources.graph.edges(node):
-            resources.graph.remove_edges(edge[0], edge[1])
+        # Delete the existing edges. It's simpler to do this and potentially
+        # add them back, than to check whether an existing edge matches what's
+        # currently in the cloud.
+        resources.graph.remove_edges_from(resources.graph.edges(node))
 
         _add_edges(node)
