@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import arrow
 from django.test import SimpleTestCase
 from elasticsearch_dsl import Search
@@ -90,7 +89,7 @@ class LogDataModelTests(SimpleTestCase):
     def test_ranged_log_search_no_times_provided(self):
         """ranged_log_search returns a match_all query when no time is
         provided"""
-        now = arrow.utcnow()
+
         expectation = {'bool': {
             'must_not': [{'term': {u'loglevel.raw': 'AUDIT'}}]}}
         result = LogData.ranged_log_search().to_dict()
@@ -108,7 +107,7 @@ class LogDataModelTests(SimpleTestCase):
 
     def test_ranged_log_search_sort_clause(self):
         """ranged_log_search returns a query with interval in clause"""
-        now = arrow.utcnow()
+
         expectation = [{'@timestamp': {'order': 'desc'}}]
         result = LogData.ranged_log_search(hosts=['h1']).to_dict()
         self.assertListEqual(result['sort'], expectation)

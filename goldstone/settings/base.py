@@ -225,8 +225,8 @@ CELERYBEAT_SCHEDULE = {
         'task': 'goldstone.apps.nova.tasks.discover_nova_topology',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
-    'reconcile_nova_hosts': {
-        'task': 'goldstone.apps.nova.tasks.reconcile_hosts',
+    'reconcile_hosts': {
+        'task': 'goldstone.core.tasks.reconcile_hosts',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
 }
