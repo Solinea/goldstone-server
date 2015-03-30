@@ -202,6 +202,8 @@ class Agent(PolyResource):
 class User(PolyResource):
     """An OpenStack user."""
 
+    pass
+
 
 class Domain(PolyResource):
     """An OpenStack domain."""
@@ -253,6 +255,8 @@ class Service(PolyResource):
 
 class Project(PolyResource):
     """An OpenStack project."""
+
+    pass
 
 
 #
@@ -318,6 +322,8 @@ class Cloudpipe(PolyResource):
 
 class ServerGroup(PolyResource):
     """An OpenStack Server Group."""
+
+    pass
 
 
 class Server(PolyResource):
