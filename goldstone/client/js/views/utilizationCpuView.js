@@ -139,7 +139,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         var data = allthelogs;
 
         _.each(data, function(item) {
-            item['@timestamp'] = moment(item['@timestamp']).unix() * 1000;
+            item['@timestamp'] = moment(item['@timestamp']).valueOf();
         });
 
         var dataUniqTimes = _.uniq(_.map(data, function(item) {
@@ -178,7 +178,6 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
                 date: i
             });
         });
-
 
         return finalData;
 

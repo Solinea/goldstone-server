@@ -34,30 +34,35 @@ describe('UtilizationMem.js spec', function() {
         this.testCollection.reset();
         this.testCollection.add([
 
-        {metric_type: "gauge",
-        name: "os.mem.total",
-        node: "compute-02",
-        timestamp: 1415149850560,
-        unit: "bytes",
-        value: 33658171392},
-        {metric_type: "gauge",
-        name: "os.mem.free",
-        node: "compute-02",
-        timestamp: 1415072630561,
-        unit: "bytes",
-        value: 31947091968},
-        {metric_type: "gauge",
-        name: "os.mem.free",
-        node: "compute-02",
-        timestamp: 1415072690561,
-        unit: "bytes",
-        value: 31945719808},
-        {metric_type: "gauge",
-        name: "os.mem.free",
-        node: "compute-02",
-        timestamp: 1415072750561,
-        unit: "bytes",
-        value: 31947214848}
+            {
+                "metric_type": "gauge",
+                "name": "os.mem.total",
+                "node": "compute-02",
+                "@timestamp": 1415149850560,
+                "unit": "bytes",
+                "value": 33658171392
+            }, {
+                "metric_type": "gauge",
+                "name": "os.mem.free",
+                "node": "compute-02",
+                "@timestamp": 1415072630561,
+                "unit": "bytes",
+                "value": 31947091968
+            }, {
+                "metric_type": "gauge",
+                "name": "os.mem.free",
+                "node": "compute-02",
+                "@timestamp": 1415072690561,
+                "unit": "bytes",
+                "value": 31945719808
+            }, {
+                "metric_type": "gauge",
+                "name": "os.mem.free",
+                "node": "compute-02",
+                "@timestamp": 1415072750561,
+                "unit": "bytes",
+                "value": 31947214848
+            }
         ]);
 
     });
@@ -78,7 +83,8 @@ describe('UtilizationMem.js spec', function() {
                 node: "compute-02",
                 timestamp: 1415072450561,
                 unit: "bytes",
-                value: 31947214848});
+                value: 31947214848
+            });
             expect(this.testCollection.length).to.equal(5);
             this.testCollection.parse(dataTest);
             if (this.testCollection.dummyGen) {
@@ -119,7 +125,22 @@ describe('UtilizationMem.js spec', function() {
         it('should exist', function() {
             assert.isDefined(this.testView.collectionPrep, 'this.testCollection.collectionPrep has been defined');
             var test1 = this.testView.collectionPrep();
-            expect(test1).to.deep.equal([{used: 1.59356689453125, free: 29.753047943115234, total: 0.1, date: '1415072630561'}, {used: 1.5948448181152344, free: 29.75177001953125, total: 0.1, date: '1415072690561'}, {used: 1.5934524536132812, free: 29.753162384033203, total: 0.1, date: '1415072750561'}]);
+            expect(test1).to.deep.equal([{
+                used: 1.59356689453125,
+                free: 29.753047943115234,
+                total: 0.1,
+                date: '1415072630561'
+            }, {
+                used: 1.5948448181152344,
+                free: 29.75177001953125,
+                total: 0.1,
+                date: '1415072690561'
+            }, {
+                used: 1.5934524536132812,
+                free: 29.753162384033203,
+                total: 0.1,
+                date: '1415072750561'
+            }]);
         });
     });
 
@@ -144,18 +165,21 @@ describe('UtilizationMem.js spec', function() {
             this.testView.update();
             this.testView.update();
             expect($('.popup-message').text()).to.equal('No Data Returned');
-            this.testCollection.add([{metric_type: "gauge",
-                name: "os.mem.total",
-                node: "compute-02",
-                timestamp: 1415149850560,
-                unit: "bytes",
-                value: 33658171392},
-                {metric_type: "gauge",
-                name: "os.mem.free",
-                node: "compute-02",
-                timestamp: 1415072630561,
-                unit: "bytes",
-                value: 31947091968}]);
+            this.testCollection.add([{
+                "metric_type": "gauge",
+                "name": "os.mem.total",
+                "node": "compute-02",
+                "@timestamp": 1415149850560,
+                "unit": "bytes",
+                "value": 33658171392
+            }, {
+                "metric_type": "gauge",
+                "name": "os.mem.free",
+                "node": "compute-02",
+                "@timestamp": 1415072630561,
+                "unit": "bytes",
+                "value": 31947091968
+            }]);
             this.testCollection.defaults.urlCollectionCount = 0;
             this.testView.update();
             this.testCollection.trigger('sync');

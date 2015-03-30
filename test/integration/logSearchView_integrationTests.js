@@ -65,7 +65,7 @@ describe('logSearchView.js spec', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.testContainer');
-            expect($(this.testView.el).text()).to.equal(' Log Analysis×CloseLog Severity FiltersUncheck log-type to hide from displayExitLog Events Search Results102550100 records per pageSearch:Processing...TimestampLevelComponentHostMessage');
+            expect($(this.testView.el).text()).to.equal(' Log Analysis×CloseLog Severity FiltersUncheck log-type to hide from displayExitLog Events Search Results102550100 records per pageSearch:Processing...TimestampSyslog SeverityComponentHostMessage');
         });
         it('view responds to global selector changes', function() {
             this.getGlobalLookbackRefresh_spy = sinon.spy(this.testView, "getGlobalLookbackRefresh");

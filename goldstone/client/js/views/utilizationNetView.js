@@ -52,7 +52,7 @@ var UtilizationNetView = UtilizationCpuView.extend({
         var data = allthelogs;
 
         _.each(data, function(item) {
-            item['@timestamp'] = moment(item['@timestamp']).unix() * 1000;
+            item['@timestamp'] = moment(item['@timestamp']).valueOf();
         });
 
 

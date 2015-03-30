@@ -43,7 +43,7 @@ var UtilizationMemView = UtilizationCpuView.extend({
         var data = allthelogs;
 
         _.each(data, function(item) {
-            item['@timestamp'] = moment(item['@timestamp']).unix() * 1000;
+            item['@timestamp'] = moment(item['@timestamp']).valueOf();
         });
 
         for (var i = data.length - 1; i >= 0; i--) {
