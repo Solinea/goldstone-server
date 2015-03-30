@@ -4,7 +4,26 @@
 describe('eventsReportView.js spec', function() {
     beforeEach(function() {
 
-        this.dummyData = '{ "count": 30, "next": "http://localhost:8000/core/events?source_name=compute-01&created__gte=1415673772907&page_size=10&created__lte=1415760172907&message__prefix=26&page=2", "previous": null, "results": [ { "id": "2aa3b533-094d-4f82-8543-8add8bad6552", "event_type": "GenericSyslogError", "source_id": "f8ccefbb-f969-4aff-9d59-ff4b457e8259", "source_name": "compute-01", "message": "kernel: kvm: 26303: cpu0 unhandled rdmsr: 0x345", "created": "2014-11-11T19:15:23.000135+00:00" },{"id": "e982a3bf-4c33-4fde-b2b3-93d6d64d0654", "event_type": "GenericSyslogError", "source_id": "f8ccefbb-f969-4aff-9d59-ff4b457e8259", "source_name": "compute-01", "message": "kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c3 data 0", "created": "2014-11-11T19:15:23.000140+00:00" }, {"id": "f54ae0ed-a446-47a6-a021-cfdb6cd357ad", "event_type": "GenericSyslogError", "source_id": "f8ccefbb-f969-4aff-9d59-ff4b457e8259", "source_name": "compute-01", "message": "kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x684 data 0", "created": "2014-11-11T19:15:23.000140+00:00"}, {"id": "3bdba2e2-af0c-4be0-b90b-63fb5df89d57", "event_type": "GenericSyslogError", "source_id": "f8ccefbb-f969-4aff-9d59-ff4b457e8259", "source_name": "compute-01", "message": "kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x681 data 0", "created": "2014-11-11T19:15:23.000139+00:00"}, {"id": "3b6759e2-f273-4d1e-be88-91aaa0456474", "event_type": "GenericSyslogError", "source_id": "f8ccefbb-f969-4aff-9d59-ff4b457e8259", "source_name": "compute-01", "message": "kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c0 data 0", "created": "2014-11-11T19:15:23.000139+00:00"}, {"id": "95f78aaa-a90f-4538-9b4e-455cd15e4bdd", "event_type": "GenericSyslogError", "source_id": "f8ccefbb-f969-4aff-9d59-ff4b457e8259", "source_name": "compute-01", "message": "kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x683 data 0", "created": "2014-11-11T19:15:23.000140+00:00"}, {"id": "79ff4e7e-77b0-460d-8086-a013af73297a", "event_type": "GenericSyslogError", "source_id": "f8ccefbb-f969-4aff-9d59-ff4b457e8259", "source_name": "compute-01", "message": "kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c2 data 0", "created": "2014-11-11T19:15:23.000139+00:00"}, {"id": "2339a2e7-e491-4d5f-b280-ed8789ffe201", "event_type": "GenericSyslogError", "source_id": "f8ccefbb-f969-4aff-9d59-ff4b457e8259", "source_name": "compute-01", "message": "kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c1 data 0", "created": "2014-11-11T19:15:23.000139+00:00"}, {"id": "dd187053-c314-4cf8-9854-bfa82fe1ee35", "event_type": "GenericSyslogError", "source_id": "f8ccefbb-f969-4aff-9d59-ff4b457e8259", "source_name": "compute-01", "message": "kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x682 data 0", "created": "2014-11-11T19:15:23.000139+00:00"}, {"id": "53d8a33f-e870-4b07-9f43-545f5b10e057", "event_type": "GenericSyslogError", "source_id": "f8ccefbb-f969-4aff-9d59-ff4b457e8259", "source_name": "compute-01", "message": "kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x680 data 0", "created": "2014-11-11T19:15:23.000139+00:00"}            ]}';
+        this.dummyData = JSON.stringify({
+            "count": 2,
+            "next": null,
+            "previous": null,
+            "results": [{
+                "event_type": "GenericSyslogError",
+                "@timestamp": "2015-03-26T23:19:31.381Z",
+                "syslog_facility": "kernel",
+                "syslog_severity": "ERROR",
+                "host": "rsrc-01",
+                "log_message": "kernel: kvm: 5222: cpu0 unhandled rdmsr: 0x345"
+            }, {
+                "event_type": "GenericSyslogError",
+                "@timestamp": "2015-03-26T23:19:01.006Z",
+                "syslog_facility": "kernel",
+                "syslog_severity": "ERROR",
+                "host": "rsrc-01",
+                "log_message": "kernel: kvm: 4103: cpu0 unhandled rdmsr: 0x345"
+            }]
+        });
 
         $('body').html('<div class="testContainer"></div>');
 
@@ -61,7 +80,7 @@ describe('eventsReportView.js spec', function() {
             this.testView.urlGen();
             expect(this.testView.defaults.globalLookback).to.equal(10);
             expect(this.testView.defaults.hostName).to.equal('testNode-01');
-            expect(this.testView.defaults.url).to.equal("/core/events?source_name=testNode-01&created__lte=" + now + "&created__gte=" + lookback);
+            expect(this.testView.defaults.url).to.equal('/logging/events/search?host=testNode-01&@timestamp__range={"gte":' + lookback + ',"lte":' + now + '}');
 
             // one more time for Ringo
             now = +new Date();
@@ -70,24 +89,16 @@ describe('eventsReportView.js spec', function() {
             this.testView.urlGen();
             expect(this.testView.defaults.globalLookback).to.equal(100);
             expect(this.testView.defaults.hostName).to.equal('testNode-01');
-            expect(this.testView.defaults.url).to.equal("/core/events?source_name=testNode-01&created__lte=" + now + "&created__gte=" + lookback);
+            expect(this.testView.defaults.url).to.equal('/logging/events/search?host=testNode-01&@timestamp__range={"gte":' + lookback + ',"lte":' + now + '}');
         });
         it('should know what to do with received data', function() {
             expect(this.testView.dataPrep(this.dummyData)).to.be.an('object');
             expect(this.testView.dataPrep(this.dummyData)).to.deep.equal({
-                recordsTotal: 30,
-                recordsFiltered: 30,
+                recordsTotal: 2,
+                recordsFiltered: 2,
                 result: [
-                    ['2014-11-11T19:15:23.000135+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled rdmsr: 0x345', '2aa3b533-094d-4f82-8543-8add8bad6552', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
-                    ['2014-11-11T19:15:23.000140+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c3 data 0', 'e982a3bf-4c33-4fde-b2b3-93d6d64d0654', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
-                    ['2014-11-11T19:15:23.000140+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x684 data 0', 'f54ae0ed-a446-47a6-a021-cfdb6cd357ad', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
-                    ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x681 data 0', '3bdba2e2-af0c-4be0-b90b-63fb5df89d57', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
-                    ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c0 data 0', '3b6759e2-f273-4d1e-be88-91aaa0456474', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
-                    ['2014-11-11T19:15:23.000140+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x683 data 0', '95f78aaa-a90f-4538-9b4e-455cd15e4bdd', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
-                    ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c2 data 0', '79ff4e7e-77b0-460d-8086-a013af73297a', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
-                    ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x6c1 data 0', '2339a2e7-e491-4d5f-b280-ed8789ffe201', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
-                    ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x682 data 0', 'dd187053-c314-4cf8-9854-bfa82fe1ee35', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01'],
-                    ['2014-11-11T19:15:23.000139+00:00', 'GenericSyslogError', 'kernel: kvm: 26303: cpu0 unhandled wrmsr: 0x680 data 0', '53d8a33f-e870-4b07-9f43-545f5b10e057', 'f8ccefbb-f969-4aff-9d59-ff4b457e8259', 'compute-01']
+                    ["2015-03-26T23:19:31.381Z", "GenericSyslogError", "kernel: kvm: 5222: cpu0 unhandled rdmsr: 0x345", "ERROR", "rsrc-01", "kernel"],
+                    ["2015-03-26T23:19:01.006Z", "GenericSyslogError", "kernel: kvm: 4103: cpu0 unhandled rdmsr: 0x345", "ERROR", "rsrc-01", "kernel"]
                 ]
             });
         });
