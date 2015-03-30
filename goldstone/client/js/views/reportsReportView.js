@@ -77,7 +77,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
             $(self.el).find('.reports-available-dropdown-menu > li').remove();
 
             // if no reports available, appends 'No reports available'
-            if (self.collection.toJSON()[0].result.length === 0) {
+            if (self.collection.toJSON()[0] === undefined || self.collection.toJSON()[0].result.length === 0) {
 
                 $(self.el).find('.reports-available-dropdown-menu').append('<li id="report-result">No reports available</li>');
 

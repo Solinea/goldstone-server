@@ -78,7 +78,9 @@ describe('reportsReportView.js spec', function() {
     });
     describe('collection parses correctly', function() {
         it('returns an object', function() {
-            var test1 = this.testCollection.parse([1, 2, 3]);
+            var test1 = this.testCollection.parse({
+                per_name: [1, 2, 3]
+            });
             expect(test1).to.deep.equal({
                 result: [1, 2, 3]
             });
@@ -93,7 +95,9 @@ describe('reportsReportView.js spec', function() {
             this.populateReportsDropdownSpy = sinon.spy(this.testView, "populateReportsDropdown");
             expect(this.populateReportsDropdownSpy.callCount).to.equal(0);
             expect($('.reports-available-dropdown-menu').text()).to.equal('Reports list loading or not available');
+            // can sync with an emptied out collection
             this.testCollection.reset();
+            this.testCollection.trigger('sync');
             this.testCollection.add({
                 result: []
             });
@@ -102,7 +106,13 @@ describe('reportsReportView.js spec', function() {
             expect(this.populateReportsDropdownSpy.callCount).to.equal(0);
             this.testCollection.reset();
             this.testCollection.add({
-                result: ['bimbo', 'limbo', 'spam']
+                result: [{
+                    'bimbo': 1
+                }, {
+                    'limbo': 1
+                }, {
+                    'spam': 1
+                }]
             });
             this.testCollection.trigger('sync');
             expect($('.reports-available-dropdown-menu').text()).to.equal('bimbolimbospam');
@@ -116,14 +126,26 @@ describe('reportsReportView.js spec', function() {
             expect(this.populateReportsDropdownSpy.callCount).to.equal(1);
             this.testCollection.reset();
             this.testCollection.add({
-                result: ['inky', 'blinky', 'clyde']
+                result: [{
+                    'inky': 0
+                }, {
+                    'blinky': 1
+                }, {
+                    'clyde': 2
+                }]
             });
             this.testCollection.trigger('sync');
             expect($('.reports-available-dropdown-menu').text()).to.equal('inkyblinkyclyde');
             expect(this.populateReportsDropdownSpy.callCount).to.equal(2);
             this.testCollection.reset();
             this.testCollection.add({
-                result: ['one', 'two', 'three']
+                result: [{
+                    'one': 1
+                }, {
+                    'two': 2
+                }, {
+                    'three': 3
+                }]
             });
             this.testCollection.trigger('sync');
             expect($('.reports-available-dropdown-menu').text()).to.equal('onetwothree');
