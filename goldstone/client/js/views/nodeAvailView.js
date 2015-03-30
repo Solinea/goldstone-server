@@ -169,7 +169,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
         ns.xAxis = d3.svg.axis()
             .orient("bottom")
             .ticks(5)
-            .tickFormat(d3.time.format("%H:%M:%S"));
+            .tickFormat(d3.time.format("%m/%d/%y %H:%M:%S"));
 
         ns.xScale = d3.time.scale()
             .range([ns.margin.left, ns.mw - ns.margin.right])
@@ -473,6 +473,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
         xStart = xEnd - (1000 * 60 * ns.lookbackRange);
 
         ns.xScale = ns.xScale.domain([xStart, xEnd]);
+
+        // if no response from server, need to assign allthelogs.data
+        allthelogs = allthelogs || {};
+        allthelogs.data = allthelogs.data || [];
 
         // If we didn't receive any valid files, append "No Data Returned"
         if (this.checkReturnedDataSet(allthelogs.data) === false) {
