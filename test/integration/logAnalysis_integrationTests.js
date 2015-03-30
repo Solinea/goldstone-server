@@ -37,30 +37,38 @@ describe('logAnalysis.js spec', function() {
         });
 
         this.testCollection.reset();
-        this.testCollection.add([{
-            audit: 10,
-            time: 1421085130000
-        }, {
-            info: 32,
-            time: 1421085140000
-        }, {
-            warning: 30,
-            time: 1421085150000
-        }, {
-            debug: 30,
-            time: 1421085160000
-        }, {
-            error: 30,
-            time: 1421085170000
-        }, {
-            audit: 30,
-            error: 20,
-            time: 1421085180000
-        }, {
-            audit: 30,
-            warning: 10,
-            time: 1421085190000
-        }]);
+        this.testCollection.add({
+            "timestamps": [1427474584000, 1427474585000],
+            "levels": ["info", "warning", "alert", "critical", "error", "notice"],
+            "data": [{
+                    "1427474584000": [{
+                        "info": 100
+                    }, {
+                        "notice": 50
+                    }, {
+                        "warning": 20
+                    }]
+                }, {
+                    "1427474585000": [{
+                        "warning": 20
+                    }, {
+                        "info": 30
+                    }, {
+                        "notice": 40
+                    }]
+                }, {
+                    "1427474586000": [{
+                        "error": 20
+                    }, {
+                        "debug": 30
+                    }, {
+                        "critical": 40
+                    }]
+                }
+
+
+            ]
+        });
 
     });
     afterEach(function() {
@@ -73,11 +81,11 @@ describe('logAnalysis.js spec', function() {
             var dataTest = JSON.stringify('hello');
             assert.isDefined(this.testCollection, 'this.testCollection has been defined');
             expect(this.testCollection.parse).to.be.a('function');
-            expect(this.testCollection.length).to.equal(7);
+            expect(this.testCollection.length).to.equal(1);
             this.testCollection.add({
                 test1: 'test1'
             });
-            expect(this.testCollection.length).to.equal(8);
+            expect(this.testCollection.length).to.equal(2);
             this.testCollection.parse(dataTest);
             if (this.testCollection.dummyGen) {
                 this.testCollection.dummyGen();
@@ -92,14 +100,22 @@ describe('logAnalysis.js spec', function() {
             };
             var test1 = this.testCollection.parse(testObj);
             expect(this.protoFetchSpy.callCount).to.equal(2);
-            expect(test1).to.deep.equal([1, 2, 3]);
+            expect(test1).to.deep.equal({
+                monkeys: 'bananas',
+                next: 'rotten/core/apples/llamas.html',
+                data: [1, 2, 3]
+            });
             testObj = {
                 monkeys: 'bananas',
                 next: null,
                 data: [1, 2, 3]
             };
             var test2 = this.testCollection.parse(testObj);
-            expect(test2).to.deep.equal([1, 2, 3]);
+            expect(test2).to.deep.equal({
+                monkeys: 'bananas',
+                next: null,
+                data: [1, 2, 3]
+            });
             expect(this.protoFetchSpy.callCount).to.equal(2);
         });
     });
@@ -107,59 +123,40 @@ describe('logAnalysis.js spec', function() {
         it('should exist', function() {
             assert.isDefined(this.testView.collectionPrep, 'this.testCollection.collectionPrep has been defined');
             var test1 = this.testView.collectionPrep();
-            expect(test1).to.deep.equal(
-
-                [{
-                    debug: 0,
-                    audit: 10,
-                    info: 0,
-                    warning: 0,
-                    error: 0,
-                    date: 1421085130000
+            expect(test1).to.deep.equal({
+                "finalData": [{
+                    "info": 100,
+                    "notice": 50,
+                    "warning": 20,
+                    "emergency": 0,
+                    "alert": 0,
+                    "critical": 0,
+                    "error": 0,
+                    "debug": 0,
+                    "date": "1427474584000"
                 }, {
-                    debug: 0,
-                    audit: 0,
-                    info: 32,
-                    warning: 0,
-                    error: 0,
-                    date: 1421085140000
+                    "warning": 20,
+                    "info": 30,
+                    "notice": 40,
+                    "emergency": 0,
+                    "alert": 0,
+                    "critical": 0,
+                    "error": 0,
+                    "debug": 0,
+                    "date": "1427474585000"
                 }, {
-                    debug: 0,
-                    audit: 0,
-                    info: 0,
-                    warning: 30,
-                    error: 0,
-                    date: 1421085150000
-                }, {
-                    debug: 30,
-                    audit: 0,
-                    info: 0,
-                    warning: 0,
-                    error: 0,
-                    date: 1421085160000
-                }, {
-                    debug: 0,
-                    audit: 0,
-                    info: 0,
-                    warning: 0,
-                    error: 30,
-                    date: 1421085170000
-                }, {
-                    debug: 0,
-                    audit: 30,
-                    info: 0,
-                    warning: 0,
-                    error: 20,
-                    date: 1421085180000
-                }, {
-                    debug: 0,
-                    audit: 30,
-                    info: 0,
-                    warning: 10,
-                    error: 0,
-                    date: 1421085190000
-                }]
-            );
+                    "warning": 0,
+                    "info": 0,
+                    "notice": 0,
+                    "emergency": 0,
+                    "alert": 0,
+                    "critical": 40,
+                    "error": 20,
+                    "debug": 30,
+                    "date": "1427474586000"
+                }],
+                "logLevels": ["info", "warning", "alert", "critical", "error", "notice"]
+            });
         });
     });
 
@@ -233,11 +230,11 @@ describe('logAnalysis.js spec', function() {
             this.constructUrl_spy = sinon.spy(this.testView, "constructUrl");
             expect(this.constructUrl_spy.callCount).to.equal(0);
             // should construct url
-            expect(this.testCollection.url).to.include('/intelligence/log/cockpit/data?start_time=NaN&end_time=');
+            expect(this.testCollection.url).to.include('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":NaN,"lte"');
             this.testView.trigger('lookbackIntervalReached', [1000, 2000]);
-            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?start_time=1&end_time=2&interval=1s');
+            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":1000,"lte":2000}&interval=1s');
             this.testView.trigger('lookbackIntervalReached', [1421428385868, 1421438385868]);
-            expect(this.testCollection.url).to.contain('/intelligence/log/cockpit/data?start_time=');
+            expect(this.testCollection.url).to.contain('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":');
             expect(this.testCollection.url).to.contain('&interval=');
             expect(this.constructUrl_spy.callCount).to.equal(2);
             // should not construct url
@@ -262,13 +259,13 @@ describe('logAnalysis.js spec', function() {
             this.testView.update();
             // no mult
             this.testView.paintNewChart([time1, time2]);
-            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?start_time=1421085174&end_time=1421085204&interval=1s');
+            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":1427474584493,"lte":1427474587493}&interval=1s');
             // mult >= 1
             this.testView.paintNewChart([time1, time2], 10);
-            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?start_time=1421085183&end_time=1421085195&interval=1s');
+            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":1427474584793,"lte":1427474587193}&interval=1s');
             // mult < 1
             this.testView.paintNewChart([time1, time2], 0.5);
-            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?start_time=1421085069&end_time=1421085309&interval=2s');
+            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":1427474581993,"lte":1427474589993}&interval=1s');
         });
     });
 });

@@ -474,6 +474,10 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         ns.xScale = ns.xScale.domain([xStart, xEnd]);
 
+        // if no response from server, need to assign allthelogs.data
+        allthelogs = allthelogs || {};
+        allthelogs.data = allthelogs.data || [];
+
         // If we didn't receive any valid files, append "No Data Returned"
         if (this.checkReturnedDataSet(allthelogs.data) === false) {
             return;
