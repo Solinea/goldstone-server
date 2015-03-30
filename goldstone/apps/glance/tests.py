@@ -12,8 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json
-from django.http import HttpResponse
 from django.test import SimpleTestCase
 
 
@@ -35,6 +33,8 @@ class DataViewTests(SimpleTestCase):
 
     def _evaluate(self, response):
         """Check the response."""
+        import json
+        from django.http import HttpResponse
 
         self.assertIsInstance(response, HttpResponse)
         self.assertIsNotNone(response.content)
