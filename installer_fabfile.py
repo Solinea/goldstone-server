@@ -129,6 +129,8 @@ def _centos6_setup_postgres():
     sleep(10)
     subprocess.call('su - postgres -c "createdb goldstone"', shell=True)
 
+    print(cyan("creating the PostgreSQL goldstone user.  "
+               "Please enter a password..."))
     # TODO this prompts for password, then complains if the user exists
     subprocess.call('su - postgres -c "createuser goldstone -s -d -P"',
                     shell=True)
@@ -156,6 +158,15 @@ def _is_root_user():
     return getpass.getuser() == "root"
 
 
+def _fix_setuptools():
+    """Workaround for https://bugs.launchpad.net/pbr/+bug/1369179"""
+    print()
+    print(green("Updating the 'distribute' pip module."))
+
+    subprocess.call('pip install --upgrade distribute'.split())
+    subprocess.call('pip install --upgrade setuptools'.split())
+
+
 def _centos6_preinstall():
     """Perform the pre-installation steps on CentOS."""
 
@@ -173,6 +184,7 @@ def _centos6_preinstall():
 
     _install_additional_repos()
     _centos6_setup_postgres()
+    _fix_setuptools()
 
 
 def _development_mac_preinstall():
@@ -204,7 +216,7 @@ def _centos6_install():
     """Install the downloaded RPM."""
 
     print()
-    print(green("Installing the Goldstone server RPM.  This could take"
+    print(green("Installing the Goldstone server RPM.  This could take "
                 "a while."))
     user_input = prompt('Location Goldstone RPM?',
                         default='./goldstone-server.rpm',

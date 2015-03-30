@@ -29,7 +29,7 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires(pre): /usr/sbin/useradd, /usr/bin/getent, elasticsearch >= 1.4, gcc, gcc-c++, redis, logstash == 1.4.2, logstash-contrib == 1.4.2, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, wget, python-pip, unzip, zip
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent, elasticsearch >= 1.4, gcc, gcc-c++, redis, logstash == 1.4.2, logstash-contrib == 1.4.2, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, wget, unzip, zip
 Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre
@@ -89,7 +89,6 @@ cd /opt/goldstone
 pip install -r requirements.txt
 export DJANGO_SETTINGS_MODULE=goldstone.settings.production
 
-python manage.py collectstatic --noinput
 # Get all the ownerships back in shape.  No guarantee that we can su to apache,
 # and running python during install may set some ownerships to root. This seems
 # like the best approach.
