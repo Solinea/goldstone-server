@@ -17,7 +17,8 @@ from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST
 from goldstone.test_utils import create_and_login, Setup, USER_URL, \
     AUTHORIZATION_PAYLOAD, CONTENT_NO_CREDENTIALS, CONTENT_BAD_TOKEN, \
-    CONTENT_MISSING_USERNAME, TEST_USER, check_response_without_uuid
+    CONTENT_MISSING_USERNAME, TEST_USER, check_response_without_uuid, \
+    BAD_TOKEN
 
 
 class NoAccess(Setup):
@@ -36,8 +37,6 @@ class NoAccess(Setup):
     def test_get_badtoken(self):
         """Getting while not logged in, using any token."""
 
-        BAD_TOKEN = "2f7306baced9dddd2c50071d25c6d7f2a46cbfd7"
-
         response = self.client.get(
             USER_URL,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
@@ -49,14 +48,12 @@ class NoAccess(Setup):
     def test_loggedin_get_badtoken(self):
         """Getting while logged in, using a bad token."""
 
-        # Create a user, and create a bad authorization token.  (This test will
-        # erroneously fail if the good token doesn't contain any 9 or 1
-        # characters, which is unlikely.)
-        bad_token = create_and_login().replace('9', '8').replace('1', '2')
+        # Create a user.
+        create_and_login()
 
         response = self.client.get(
             USER_URL,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
 
         self.assertContains(response,
                             CONTENT_BAD_TOKEN,
@@ -81,14 +78,14 @@ class BadPut(Setup):
         """Putting (trying to change user attributes) while logged in, but
         using a bad token."""
 
-        # Create a user, and create a bad authorization token.
-        bad_token = create_and_login().replace('9', '8').replace('1', '2')
+        # Create a user.
+        create_and_login()
 
         response = self.client.put(
             USER_URL,
             json.dumps({"first_name": "Dirk"}),
             content_type="application/json",
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
 
         self.assertContains(response,
                             CONTENT_BAD_TOKEN,

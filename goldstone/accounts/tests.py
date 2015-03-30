@@ -20,7 +20,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
 from goldstone.test_utils import Setup, create_and_login, login, \
     AUTHORIZATION_PAYLOAD, CONTENT_MISSING_USERNAME, CONTENT_BAD_TOKEN, \
     CONTENT_NO_CREDENTIALS, CONTENT_NON_FIELD_ERRORS, LOGIN_URL, USER_URL, \
-    TEST_USER
+    TEST_USER, BAD_TOKEN
 
 # Http response content.
 CONTENT_MISSING_PASSWORD = '"password":["This field is required."]'
@@ -367,7 +367,7 @@ class Password(Setup):
         """The change password request has a bad authentication token."""
 
         # Create a user and log them in.
-        bad_token = create_and_login().replace('9', '8').replace('4', '3')
+        create_and_login()
 
         # Try changing the password.
         response = \
@@ -377,7 +377,7 @@ class Password(Setup):
                             "current_password": TEST_USER[2],
                             "new_password": "boom"}),
                 content_type="application/json",
-                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % bad_token)
+                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % BAD_TOKEN)
 
         # pylint: disable=E1101
         self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
@@ -386,9 +386,9 @@ class Password(Setup):
         login(TEST_USER[0], TEST_USER[2])
 
         # Verify that we can't log in using the new password.
-        response = self.client.post(
-            LOGIN_URL,
-            {"username": TEST_USER[0], "password": "boom"})
+        response = self.client.post(LOGIN_URL,
+                                    {"username": TEST_USER[0],
+                                     "password": "boom"})
 
         self.assertContains(response,
                             CONTENT_NON_FIELD_ERRORS,
