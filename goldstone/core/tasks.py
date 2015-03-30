@@ -106,8 +106,9 @@ def create_daily_index(basename='goldstone'):
 
 
 def _add_edges(node):
-    """Add edges from this resource grph node to neighbors, as defined by its
-    type.
+    """Add edges from this resource graph node to its neighbors.
+
+    This is driven by the node's type information in resource_types.
 
     :param node: A Resource graph node
     :type node: GraphNode
