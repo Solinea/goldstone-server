@@ -146,7 +146,6 @@ def discover_nova_topology():
 # This is the beginning of the new polymorphic resource model support
 #
 
-@celery_app.task()
 def reconcile_hosts():
     """Compares Goldstone's knowledge of nova hosts to source clouds.
 

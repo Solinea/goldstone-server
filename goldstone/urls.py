@@ -42,7 +42,7 @@ urlpatterns = patterns(
     url(r'^intelligence/', include('goldstone.apps.intelligence.urls')),
     url(r'^keystone/', include('goldstone.apps.keystone.urls')),
     url(r'^logging/', include('goldstone.apps.logging.urls')),
-    url(r'^neutron/', include('goldstone.apps.neutron.urls')),
+    url(r'^neutron/', include('goldstone.neutron.urls')),
     url(r'^nova/', include('goldstone.apps.nova.urls')),
     url(r'^report/node/(?P<node_uuid>[^/]+)[/]?$',
         NodeReportView.as_view(),

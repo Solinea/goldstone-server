@@ -19,7 +19,6 @@ import redis
 
 import json
 import logging
-from goldstone.core.tasks import create_daily_index
 from goldstone.utils import NoDailyIndex
 
 logger = logging.getLogger(__name__)
@@ -119,9 +118,9 @@ class ESData(object):
             return all_indices
 
     def _get_latest_index(self, prefix):
-        """
-        Get an index based on a prefix filter and simple list sort.  assumes
-        that sorting the list of indexes with matching prefix will
+        """Return an index based on a prefix filter and simple list sort.
+
+        This assumes sorting the list of indexes with matching prefix will
         result in the most current one at the end of the list.  Works for
         typical datestamp index names like logstash-2014.03.27.  If you know
         your index names have homogeneous, should work without the prefix, but
@@ -131,6 +130,7 @@ class ESData(object):
         :returns: index name
 
         """
+        from goldstone.core.tasks import create_daily_index
 
         candidates = []
 
