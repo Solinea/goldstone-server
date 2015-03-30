@@ -146,81 +146,80 @@ def discover_nova_topology():
 # This is the beginning of the new polymorphic resource model support
 #
 
-# @celery_app.task()
-# def reconcile_hosts():
-#     """Compares Goldstone's knowledge of nova hosts to source clouds.
+def reconcile_hosts():
+    """Compares Goldstone's knowledge of nova hosts to source clouds.
 
-#     If a new host is found in the cloud, a model instance is created, if a host
-#     has been removed from the cloud, the
+    If a new host is found in the cloud, a model instance is created, if a host
+    has been removed from the cloud, the
 
-#     :return: None
+    :return: None
 
-#     """
+    """
 
-#     # UGLINESS AHEAD
-#     # Nova has no problem showing you multiple instance of the same host.  If
-#     # a host shows up multiple times in the list, it probably has multiple
-#     # service running on it.  We'll dedup this for them and link back here with
-#     # our graph from the value of service.host.
-#     #
-#     # Rsyslog is really hesitant to allow FQDN to be used in the message, so
-#     # all the logs going in to Logstash will only have the short name --
-#     # unless it gets configured really badly and only sends the IP address :-(
-#     # So, we'll set a short_name field to use for the name, and set an fqdn
-#     # field if available.
-#     #
-#     # Relations available here are service and zone, both are single values.
+    # UGLINESS AHEAD
+    # Nova has no problem showing you multiple instance of the same host.  If
+    # a host shows up multiple times in the list, it probably has multiple
+    # service running on it.  We'll dedup this for them and link back here with
+    # our graph from the value of service.host.
+    #
+    # Rsyslog is really hesitant to allow FQDN to be used in the message, so
+    # all the logs going in to Logstash will only have the short name --
+    # unless it gets configured really badly and only sends the IP address :-(
+    # So, we'll set a short_name field to use for the name, and set an fqdn
+    # field if available.
+    #
+    # Relations available here are service and zone, both are single values.
 
-#     hosts = get_nova_host_list()
-#     incoming = frozenset([host.host_name for host in hosts])
-#     incoming = frozenset([parse_host_name(name) for name in incoming])
-#     incoming_names = frozenset([item[0] for item in incoming])
-#     existing_names = frozenset([host.name for host in Host.objects.all()])
+    hosts = get_nova_host_list()
+    incoming = frozenset([host.host_name for host in hosts])
+    incoming = frozenset([parse_host_name(name) for name in incoming])
+    incoming_names = frozenset([item[0] for item in incoming])
+    existing_names = frozenset([host.name for host in Host.objects.all()])
 
-#     # now let's find out if we have new or missing hosts
-#     new = incoming_names.difference(existing_names)
-#     missing = existing_names.difference(incoming_names)
+    # now let's find out if we have new or missing hosts
+    new = incoming_names.difference(existing_names)
+    missing = existing_names.difference(incoming_names)
 
-#     # delete missing hosts from our model
-#     for name in missing:
-#         Host.objects.filter(name=name).delete()
-#         # TODO generate an event if we don't get one from ceilometer?
+    # delete missing hosts from our model
+    for name in missing:
+        Host.objects.filter(name=name).delete()
+        # TODO generate an event if we don't get one from ceilometer?
 
-#     # create new hosts in our model
-#     for name in new:
-#         Host.objects.create(
-#             name=name,
-#             fqdn=[item[1] for item in incoming if item[0] == name][0])
-#         # TODO generate an event if we don't get one from ceilometer?
-
-
-# def get_nova_host_list():
-#     """Retrieve a list of hosts from nova."""
-
-#     from goldstone.utils import get_nova_client
-
-#     nova_access = get_nova_client()
-#     nova_client = nova_access['client']
-#     nova_client.client.authenticate()
-#     return nova_client.hosts.list()
+    # create new hosts in our model
+    for name in new:
+        Host.objects.create(
+            name=name,
+            fqdn=[item[1] for item in incoming if item[0] == name][0])
+        # TODO generate an event if we don't get one from ceilometer?
 
 
-# def parse_host_name(host_name):
-#     """Where possible, generate the fqdn and simple hostnames for the param.
+def get_nova_host_list():
+    """Retrieve a list of hosts from nova."""
 
-#     :type host_name: str
-#     :param host_name: an ip address, fqdn, or simple host name
-#     :rtype tuple
-#     :return simple name, fqdn
-#     """
+    from goldstone.utils import get_nova_client
 
-#     from goldstone.utils import is_ip_addr, partition_hostname
-#     fqdn = None
-#     if not is_ip_addr(host_name):
-#         parts = partition_hostname(host_name)
+    nova_access = get_nova_client()
+    nova_client = nova_access['client']
+    nova_client.client.authenticate()
+    return nova_client.hosts.list()
 
-#         if parts['domainname'] is not None:
-#             fqdn = host_name
-#             host_name = parts['hostname']
 
-#     return host_name, fqdn
+def parse_host_name(host_name):
+    """Where possible, generate the fqdn and simple hostnames for the param.
+
+    :type host_name: str
+    :param host_name: an ip address, fqdn, or simple host name
+    :rtype tuple
+    :return simple name, fqdn
+    """
+
+    from goldstone.utils import is_ip_addr, partition_hostname
+    fqdn = None
+    if not is_ip_addr(host_name):
+        parts = partition_hostname(host_name)
+
+        if parts['domainname'] is not None:
+            fqdn = host_name
+            host_name = parts['hostname']
+
+    return host_name, fqdn
