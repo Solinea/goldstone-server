@@ -42,9 +42,11 @@ INSTALL PREREQUISITES (AS ROOT)
 
   .. code:: bash
 
+    # yum update ; reboot
     # yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
-    # yum install -y python-devel python-setuptools
-    # easy_install pip
+    # yum install -y python-devel python-setuptools libffi-devel wget
+    # wget https://bootstrap.pypa.io/get-pip.py
+    # python get-pip.py
     # pip install paramiko==1.10
     # pip install fabric==1.10.1    
 
@@ -132,6 +134,10 @@ The following service mapping is used for syslog_log_facility:
 * swift => LOG_LOCAL4
 * cinder => LOG_LOCAL5
 * keystone => LOG_LOCAL6
+
+
+OpenStack Ceilometer Integration
+--------------------------------
 
 
 Rsyslog Forwarding
