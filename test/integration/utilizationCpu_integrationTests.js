@@ -33,42 +33,42 @@ describe('utilizationCpu.js spec', function() {
 
         this.testCollection.reset();
         this.testCollection.add([{
-            "timestamp": 1415148790577,
+            "@timestamp": 1415148790577,
             "name": "os.cpu.sys",
             "metric_type": "gauge",
             "value": 0.12160618725179,
             "unit": "percent",
             "node": "compute-02"
         }, {
-            "timestamp": 1415148790577,
+            "@timestamp": 1415148790577,
             "name": "os.cpu.wait",
             "metric_type": "gauge",
             "value": 0.12160618725179,
             "unit": "percent",
             "node": "compute-02"
         }, {
-            "timestamp": 1415148790577,
+            "@timestamp": 1415148790577,
             "name": "os.cpu.user",
             "metric_type": "gauge",
             "value": 0.12160618725179,
             "unit": "percent",
             "node": "compute-02"
         }, {
-            "timestamp": 1415149790577,
+            "@timestamp": 1415149790577,
             "name": "os.cpu.sys",
             "metric_type": "gauge",
             "value": 0.12160618725179,
             "unit": "percent",
             "node": "compute-02"
         }, {
-            "timestamp": 1415149790577,
+            "@timestamp": 1415149790577,
             "name": "os.cpu.wait",
             "metric_type": "gauge",
             "value": 0.12160618725179,
             "unit": "percent",
             "node": "compute-02"
         }, {
-            "timestamp": 1415149790577,
+            "@timestamp": 1415149790577,
             "name": "os.cpu.user",
             "metric_type": "gauge",
             "value": 0.12160618725179,
@@ -135,42 +135,42 @@ describe('utilizationCpu.js spec', function() {
             assert.isDefined(this.testView.collectionPrep, 'this.testCollection.collectionPrep has been defined');
             this.testCollection.reset();
             this.testCollection.add([{
-                "timestamp": 1415148790577,
+                "@timestamp": 1415148790577,
                 "name": "os.cpu.sys",
                 "metric_type": "gauge",
                 "value": 0.2,
                 "unit": "percent",
                 "node": "compute-02"
             }, {
-                "timestamp": 1415148790577,
+                "@timestamp": 1415148790577,
                 "name": "os.cpu.wait",
                 "metric_type": "gauge",
                 "value": 0.2,
                 "unit": "percent",
                 "node": "compute-02"
             }, {
-                "timestamp": 1415148790577,
+                "@timestamp": 1415148790577,
                 "name": "os.cpu.user",
                 "metric_type": "gauge",
                 "value": 0.2,
                 "unit": "percent",
                 "node": "compute-02"
             }, {
-                "timestamp": 1415149790577,
+                "@timestamp": 1415149790577,
                 "name": "os.cpu.sys",
                 "metric_type": "gauge",
                 "value": 0.3,
                 "unit": "percent",
                 "node": "compute-02"
             }, {
-                "timestamp": 1415149790577,
+                "@timestamp": 1415149790577,
                 "name": "os.cpu.wait",
                 "metric_type": "gauge",
                 "value": 0.3,
                 "unit": "percent",
                 "node": "compute-02"
             }, {
-                "timestamp": 1415149790577,
+                "@timestamp": 1415149790577,
                 "name": "os.cpu.user",
                 "metric_type": "gauge",
                 "value": 0.3,
@@ -218,7 +218,7 @@ describe('utilizationCpu.js spec', function() {
             this.testView.update();
             expect($('.popup-message').text()).to.equal('No Data Returned');
             this.testCollection.add({
-                "timestamp": 1415148790577,
+                "@timestamp": 1415148790577,
                 "name": "os.cpu.sys",
                 "metric_type": "gauge",
                 "value": 0.12160618725179,
