@@ -132,7 +132,7 @@ class LogEventModelTests(SimpleTestCase):
 
 class LogAggViewTests(APITestCase):
     """Test log aggregation views."""
-    # pylint:disable=C0103
+    # pylint: disable=C0103
 
     def setUp(self):
         """set up for each test."""
