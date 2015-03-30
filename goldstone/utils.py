@@ -79,63 +79,45 @@ def to_es_date(date_object):
     return result
 
 
-def _get_region_for_client(catalog, management_url, service_type):
-    """Return the region for a management url and service type, given the
+def _get_region_for_client(catalog, service_type):
+    """Return the region for a service type, given the
     service catalog."""
 
     candidates = [svc for svc in catalog if svc['type'] == service_type]
 
-    matches = [
-        ep
-        for cand in candidates
-        for ep in cand['endpoints']
-        if ep['url'] == management_url
-    ]
-
-    if not matches:
-        raise GoldstoneBaseException(
-            "no matching region found for management url [" +
-            management_url + "]")
-    elif len(matches) > 1:
-        logger.warn("multiple endpoints have matching management urls,"
-                    "using first one.")
-
-    return matches[0]['region']
+    # lots of bumps with Keystone v3 client implementation, including that
+    # it doesn't have an endpoint for the v3 version of itself!  We have
+    # to assume that all endpoints for a service are in the same Region, so
+    # we'll just take the region from the first one.
+    return candidates[0]['endpoints'][0]['region']
 
 
 def _get_region_for_cinder_client(client):
+    """Return the region for a cinder client."""
 
     # force authentication to populate management url
     client.authenticate()
-
-    mgmt_url = client.client.management_url
     keystoneclient = get_keystone_client()['client']
     catalog = keystoneclient.service_catalog.catalog['catalog']
-
-    return _get_region_for_client(catalog, mgmt_url, 'volumev2')
+    return _get_region_for_client(catalog, 'volumev2')
 
 
 def _get_region_for_glance_client(client):
-
-    mgmt_url = client.endpoints.find(interface='internal',
-                                     service_id=client.services.
-                                     find(type='image').id).url
+    """Return the region for a glance client."""
     catalog = client.service_catalog.catalog['catalog']
-    return _get_region_for_client(catalog, mgmt_url, 'image')
+    return _get_region_for_client(catalog, 'image')
 
 
 def get_region_for_nova_client(client):
-
-    mgmt_url = client.client.management_url
+    """Return the region for nova client."""
     catalog = client.client.service_catalog.catalog['access']['serviceCatalog']
-    return _get_region_for_client(catalog, mgmt_url, 'compute')
+    return _get_region_for_client(catalog, 'compute')
 
 
 def get_region_for_keystone_client(client):
-
-    mgmt_url = client.management_url
-    catalog = client.service_catalog.catalog['serviceCatalog']
-    return _get_region_for_client(catalog, mgmt_url, 'identity')
+    """Return the region for keystone client."""
+    catalog = client.service_catalog.catalog['catalog']
+    return _get_region_for_client(catalog, 'identity')
 
 
 def get_cloud():

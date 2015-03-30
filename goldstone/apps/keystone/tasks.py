@@ -57,5 +57,5 @@ def discover_keystone_topology():
     _update_keystone_records("tenants",
                              reg,
                              TenantsData(),
-                             client.tenants.list())
+                             client.projects.list())
     _update_keystone_records("users", reg, UsersData(), client.users.list())
