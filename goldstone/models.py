@@ -379,6 +379,7 @@ class TopologyData(object):
 
     @classmethod
     def _sort_arg(cls, key, order):
+
         if order in ["+", "asc"]:
             return key              # translates to [{key: {'order': 'asc'}}]
         elif order in ["-", "desc"]:

@@ -14,14 +14,21 @@
 # limitations under the License.
 import logging
 
+from django.conf import settings
 import elasticsearch
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from goldstone.apps.drfes.utils import es_custom_exception_handler
+from .models import resources, resource_types
 
 logger = logging.getLogger(__name__)
+
+# Aliases to make the code less verbose.
+EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
+MATCHING_ATTRIBUTES = settings.R_ATTRIBUTE.MATCHING_ATTRIBUTES
+TYPE = settings.R_ATTRIBUTE.TYPE
 
 
 # TODO remove JsonReadOnlyViewSet after poly resource model in place.
@@ -133,3 +140,160 @@ def custom_exception_handler(exc, context):
             return None
 
     return response
+
+
+def _add_edges(node):
+    """Add edges from this resource graph node to its neighbors.
+
+    This is driven by the node's type information in resource_types.
+
+    :param node: A Resource graph node
+    :type node: GraphNode
+
+    """
+
+    def find_match(edge, neighbor_type):
+        """Find the one node that matches the desired attribute, and add an
+        edge to it from the source node.
+
+        :param edge: An edge, as returned from the resource graph
+        :type edge: 3-tuple
+        :param neighbor_type: The type of the desired destination node
+        :type neighbor_type: PolyResource subclass
+        :return: An indication of success (True) or failure (False)
+        :rtype: bool
+
+        """
+
+        # For all nodes that are of the desired type...
+        for candidate in resources.nodes_of_type(neighbor_type):
+            candidate_attribute_value = candidate.attributes.get(attribute)
+
+            if candidate_attribute_value == node_attribute_value:
+                # We have a match! Create the edge from the node to this
+                # candidate.
+                resources.graph.add_edge(
+                    node,
+                    candidate,
+                    attr_dict={TYPE: edge[2][TYPE]})
+                # Success return
+                return True
+
+        return False
+
+    # For every possible edge from this node...
+    for edge in resource_types.graph.out_edges(node.resourcetype, data=True):
+        # For this edge, this is the neighbor's type.
+        neighbor_type = edge[1]
+
+        # Get the list of matching attributes we're to look for. We will use
+        # the first one that works.
+        for attribute in edge[2][MATCHING_ATTRIBUTES]:
+            # Get the attribute's value for this node.
+            node_attribute_value = node.attributes.get(attribute)
+
+            # Find the first resource node that's a match.
+            if find_match(edge, neighbor_type):
+                # Success. Iterate to the next edge.
+                break
+
+
+def process_resource_type(nodetype):
+    """Update the Resource graph nodes that are of, and the outgoing edges
+    from, this type.
+
+    Nodes are:
+       - deleted if they are no longer in the OpenStack cloud.
+       - added if they are in the OpenStack cloud, but not in the graph.
+       - updated from the cloud if they are already in the graph.
+
+    :param nodetype: A type of Resource graph node, i.e., a node in the
+                     Resource Type graph.
+    :type nodetype: PolyResource subclass
+
+    """
+    from goldstone.core.models import GraphNode
+
+    # Collect every cloud instance that's of the "nodetype" type.
+    actual = [x for x in nodetype.clouddata()]
+
+    # # Check for glance services having duplicate OpenStack ids, a.k.a.
+    # # cloud_ids. This should never happen. We'll log these, but won't filter
+    # # them out, in case they contain useful information.
+    # #
+    # # N.B. Python 2.6 doesn't have collections.Counter, so do it the hard
+    # # way.
+    # # duplicates = [x for x, y in collections.Counter(actual).items()
+    # #     if y > 1]
+    # seen_cloud_ids = set()
+    # duplicates = []
+    # for entry in actual:
+    #     if entry["id"] in seen_cloud_ids:
+    #         duplicates.append(entry)
+    #     else:
+    #         seen_cloud_ids.add(entry["id"])
+
+    # if duplicates:
+    #     logger.critical("These glance services' OpenStack UUIDs are "
+    #                      "duplicates"
+    #                     " of other glance services. This shouldn't happen: "
+    #                     "%s",
+    #                     duplicates)
+
+    # Remove Resource graph nodes that no longer exist. To do this, we use the
+    # resource_type graph. We use the first edge's destination node's
+    # matching_attributes' source key value, and look for a match in the
+    # resource graph.
+    resource_nodes = resources.nodes_of_type(nodetype)
+    source_key = \
+        resource_types[nodetype][0][EDGE_ATTRIBUTES][MATCHING_ATTRIBUTES][0]
+    actual_cloud_instances = set([x.get(source_key) for x in actual])
+
+    # For every node of this type that's currently in the resource graph...
+    for entry in resource_nodes:
+        # Get this node's identifying attribute value.
+        node_value = entry.attributes.get(source_key)
+
+        if node_value not in actual_cloud_instances:
+            # This node does not appear to be in the cloud anymore. Delete it.
+            resources.graph.remove_node(entry)
+            nodetype.objects.get(uuid=entry.uuid).delete()
+
+    # Now, for every node of this type in the OpenStack cloud service, add it
+    # to the Resource graph if it's not present, or update its information if
+    # it is. Since we may have just deleted some nodes, refresh the existing
+    # node list.
+
+    # N.B. We could reuse this iterable, but this is a little cleaner.
+    resource_nodes = resources.nodes_of_type(nodetype)
+
+    # For every current glance service...
+    for entry in actual:
+        # Try to find its corresponding Resource graph node.
+        node = resources.locate(resource_nodes,
+                                **{source_key: entry[source_key]})
+
+        if node:
+            # This resource node corresponds to this cloud service. Update its
+            # information in the graph and database.
+            node.attributes = entry
+            db_node = nodetype.objects.get(uuid=node.uuid)
+            db_node.attributes = entry
+            db_node.save()
+        else:
+            # This is a new node. Add it to the Resource graph and database.
+            db_node = nodetype.objects.create(cloud_id=entry.get("id"),
+                                              name=entry.get("name", ''))
+            resources.graph.add_node(GraphNode(uuid=db_node.uuid,
+                                               resourcetype=nodetype,
+                                               attributes=entry))
+
+    # Now, update the outgoing edges of every node of this type in the resource
+    # graph.
+    for node in resource_nodes:
+        # Delete the existing edges. It's simpler to do this and potentially
+        # add them back, than to check whether an existing edge matches what's
+        # currently in the cloud.
+        resources.graph.remove_edges_from(resources.graph.edges(node))
+
+        _add_edges(node)

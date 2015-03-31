@@ -23,8 +23,6 @@ import logging
 from subprocess import check_call
 
 from goldstone.celery import app as celery_app
-from goldstone.utils import get_glance_client   # Defined here for easy mocking
-from .models import resources, resource_types
 
 logger = logging.getLogger(__name__)
 
@@ -103,66 +101,6 @@ def create_daily_index(basename='goldstone'):
         logger.error("Failed to create the daily goldstone index and/or"
                      "alias.  Please report this.")
         raise
-
-
-def _add_edges(node):
-    """Add edges from this resource graph node to its neighbors.
-
-    This is driven by the node's type information in resource_types.
-
-    :param node: A Resource graph node
-    :type node: GraphNode
-
-    """
-
-    # Aliases to make the code less verbose
-    MATCHING_ATTRIBUTES = settings.R_ATTRIBUTE.MATCHING_ATTRIBUTES
-    TYPE = settings.R_ATTRIBUTE.TYPE
-
-    def find_match(edge, neighbor_type):
-        """Find the one node that matches the desired attribute, and add an
-        edge to it from the source node.
-
-        :param edge: An edge, as returned from the resource graph
-        :type edge: 3-tuple
-        :param neighbor_type: The type of the desired destination node
-        :type neighbor_type: PolyResource subclass
-        :return: An indication of success (True) or failure (False)
-        :rtype: bool
-
-        """
-
-        # For all nodes that are of the desired type...
-        for candidate in resources.nodes_of_type(neighbor_type):
-            candidate_attribute_value = candidate.attributes.get(attribute)
-
-            if candidate_attribute_value == node_attribute_value:
-                # We have a match! Create the edge from the node to this
-                # candidate.
-                resources.graph.add_edge(
-                    node,
-                    candidate,
-                    attr_dict={TYPE: edge[2][TYPE]})
-                # Success return
-                return True
-
-        return False
-
-    # For every possible edge from this node...
-    for edge in resource_types.graph.out_edges(node.resourcetype, data=True):
-        # For this edge, this is the neighbor's type.
-        neighbor_type = edge[1]
-
-        # Get the list of matching attributes we're to look for. We will use
-        # the first one that works.
-        for attribute in edge[2][MATCHING_ATTRIBUTES]:
-            # Get the attribute's value for this node.
-            node_attribute_value = node.attributes.get(attribute)
-
-            # Find the first resource node that's a match.
-            if find_match(edge, neighbor_type):
-                # Success. Iterate to the next edge.
-                break
 
 
 @celery_app.task()

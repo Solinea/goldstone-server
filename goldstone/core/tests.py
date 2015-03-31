@@ -29,8 +29,8 @@ from .models import resources, Image, ServerGroup, NovaLimits, GraphNode, \
     PolyResource, Host, resource_types, Aggregate, Hypervisor, Port, \
     Cloudpipe, Network, Project, Server
 from . import tasks
-from .tasks import reconcile_hosts, _add_edges
-from .utils import custom_exception_handler
+from .tasks import reconcile_hosts
+from .utils import custom_exception_handler, _add_edges
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
