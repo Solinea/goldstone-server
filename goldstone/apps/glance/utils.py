@@ -12,21 +12,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.apps.glance.models import ImagesData
-from goldstone.utils import _get_region_for_glance_client, NoResourceFound, \
-    TopologyMixin
+from goldstone.utils import TopologyMixin
 
 
 class DiscoverTree(TopologyMixin):
 
     def __init__(self):
+        from goldstone.apps.glance.models import ImagesData
+
         self.images = ImagesData().get()
 
     def _get_image_regions(self):
         return set([s['region'] for s in self.images])
 
     def get_regions(self):
-        from goldstone.utils import get_client
+        from goldstone.utils import _get_region_for_glance_client, get_client
 
         keystone = get_client('keystone')['client']
 
@@ -58,6 +58,7 @@ class DiscoverTree(TopologyMixin):
         return result
 
     def build_topology_tree(self):
+        from goldstone.utils import NoResourceFound
 
         try:
             if self.images is None or len(self.images.hits) == 0:
