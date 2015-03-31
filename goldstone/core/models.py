@@ -19,7 +19,9 @@ from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
 from polymorphic import PolymorphicModel
 from goldstone.apps.drfes.models import DailyIndexDocType
 from goldstone.apps.logging.models import LogData, LogEvent
-from goldstone.utils import utc_now
+
+# Get_glance_client is defined here for easy unit test mocking.
+from goldstone.utils import utc_now, get_glance_client
 
 from elasticsearch_dsl.query import Q, QueryString
 import networkx
@@ -381,7 +383,6 @@ class Image(PolyResource):
         :rtype: Iterable or generator of dict
 
         """
-        from goldstone.utils import get_glance_client
 
         return get_glance_client()["client"].images.list()
 
