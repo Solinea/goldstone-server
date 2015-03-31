@@ -704,6 +704,11 @@ class ResourceTypes(Graph):
                                   MIN: 0,
                                   MAX: sys.maxint,
                                   MATCHING_ATTRIBUTES: ["id"]}},
+               # Look for match between:
+               # nova_client.hypervisors.list(): __dict__, "_info" key.
+               # [x.__dict__["hypervisor_hostname"] for x in nova_client.hypervisors.list()]
+               #
+               #  pp [x.__dict__["host_name"] for x in nova_client.hosts.list()]
                {TO: Hypervisor,
                 EDGE_ATTRIBUTES: {TYPE: OWNS,
                                   MIN: 0,
