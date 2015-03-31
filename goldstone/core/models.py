@@ -369,7 +369,21 @@ class NovaLimits(PolyResource):
 class Image(PolyResource):
     """An OpenStack Image."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call from here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+        from goldstone.utils import get_glance_client
+
+        return get_glance_client()["client"].images.list()
 
 
 #
@@ -492,15 +506,16 @@ class ResourceTypes(Graph):
     #       TYPE: The type of this edge
     #       MIN: An instance must have a minimum number of this edge type
     #       MAX: An instance must have a maximum number of this edge type
-    #       MATCHING_ATTRIBUTES: A list of keys to match in target node's
-    #                            attributes, in descending priority order.
+    #       MATCHING_ATTRIBUTES: (str, str) tuple. These are (from, to) keys to
+    #                            match in the from_type's and to_type's
+    #                            attributes.
     EDGES = {
         # From Glance nodes
         Image: [{TO: Server,
                  EDGE_ATTRIBUTES: {TYPE: DEFINES,
                                    MIN: 0,
                                    MAX: sys.maxint,
-                                   MATCHING_ATTRIBUTES: ["id"]}}],
+                                   MATCHING_ATTRIBUTES: ("id", "id")}}],
 
         # From Keystone nodes
         Credential: [{TO: Project,
@@ -704,11 +719,6 @@ class ResourceTypes(Graph):
                                   MIN: 0,
                                   MAX: sys.maxint,
                                   MATCHING_ATTRIBUTES: ["id"]}},
-               # Look for match between:
-               # nova_client.hypervisors.list(): __dict__, "_info" key.
-               # [x.__dict__["hypervisor_hostname"] for x in nova_client.hypervisors.list()]
-               #
-               #  pp [x.__dict__["host_name"] for x in nova_client.hosts.list()]
                {TO: Hypervisor,
                 EDGE_ATTRIBUTES: {TYPE: OWNS,
                                   MIN: 0,
