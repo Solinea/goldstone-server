@@ -246,8 +246,10 @@ def process_resource_type(nodetype):
     # resource graph.
     resource_nodes = resources.nodes_of_type(nodetype)
     source_key = \
-        resource_types[nodetype][0][EDGE_ATTRIBUTES][MATCHING_ATTRIBUTES][0]
-    actual_cloud_instances = set([x.get(source_key) for x in actual])
+        resource_types.graph.out_edges(nodetype,
+                                       data=True)[0][2][MATCHING_ATTRIBUTES][0]
+    actual_cloud_instances = set([x.get(source_key) for x in actual
+                                  if x is not None])
 
     # For every node of this type that's currently in the resource graph...
     for entry in resource_nodes:
@@ -267,26 +269,31 @@ def process_resource_type(nodetype):
     # N.B. We could reuse this iterable, but this is a little cleaner.
     resource_nodes = resources.nodes_of_type(nodetype)
 
-    # For every current glance service...
+    # For every current node of the desired nodetype, having an indentifying
+    # attribute that's present...
     for entry in actual:
-        # Try to find its corresponding Resource graph node.
-        node = resources.locate(resource_nodes,
-                                **{source_key: entry[source_key]})
+        source_key_value = entry.get(source_key)
 
-        if node:
-            # This resource node corresponds to this cloud service. Update its
-            # information in the graph and database.
-            node.attributes = entry
-            db_node = nodetype.objects.get(uuid=node.uuid)
-            db_node.attributes = entry
-            db_node.save()
-        else:
-            # This is a new node. Add it to the Resource graph and database.
-            db_node = nodetype.objects.create(cloud_id=entry.get("id"),
-                                              name=entry.get("name", ''))
-            resources.graph.add_node(GraphNode(uuid=db_node.uuid,
-                                               resourcetype=nodetype,
-                                               attributes=entry))
+        if source_key_value:
+            # Try to find its corresponding Resource graph node.
+            node = resources.locate(resource_nodes,
+                                    **{source_key: source_key_value})
+
+            if node:
+                # This resource node corresponds to this cloud service. Update
+                # its information in the graph and database.
+                node.attributes = entry
+                db_node = nodetype.objects.get(uuid=node.uuid)
+                db_node.attributes = entry
+                db_node.save()
+            else:
+                # This is a new node. Add it to the Resource graph and database
+                # table.
+                db_node = nodetype.objects.create(cloud_id=entry.get("id"),
+                                                  name=entry.get("name", ''))
+                resources.graph.add_node(GraphNode(uuid=db_node.uuid,
+                                                   resourcetype=nodetype,
+                                                   attributes=entry))
 
     # Now, update the outgoing edges of every node of this type in the resource
     # graph.
