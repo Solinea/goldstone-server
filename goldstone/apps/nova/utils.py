@@ -13,12 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from goldstone.utils import TopologyMixin, NoResourceFound, GoldstoneAuthError
-from .models import AvailZonesData
 
 
 class DiscoverTree(TopologyMixin):
 
     def __init__(self):
+        from .models import AvailZonesData
+
         self.azs = AvailZonesData().get()
 
     def _get_region_names(self):
