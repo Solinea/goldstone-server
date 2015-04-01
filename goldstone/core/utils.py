@@ -170,16 +170,12 @@ def _add_edges(node):
 
         # For all nodes that are of the desired type...
         for candidate in resources.nodes_of_type(neighbor_type):
-            candidate_attribute_value = to_fn(candidate.attributes)
-
-            if candidate_attribute_value == node_attribute_value:
+            if to_fn(candidate.attributes) == node_attribute_value:
                 # We have a match! Create the edge from the node to this
-                # candidate.
-                resources.graph.add_edge(
-                    node,
-                    candidate,
-                    attr_dict={TYPE: edge[2][TYPE]})
-                # Success return
+                # candidate, and return Success.
+                resources.graph.add_edge(node,
+                                         candidate,
+                                         attr_dict={TYPE: edge[2][TYPE]})
                 return True
 
         return False
@@ -219,33 +215,9 @@ def process_resource_type(nodetype):
     # Get the cloud instances that are of the "nodetype" type.
     actual = nodetype.clouddata()
 
-    # # Check for glance services having duplicate OpenStack ids, a.k.a.
-    # # cloud_ids. This should never happen. We'll log these, but won't filter
-    # # them out, in case they contain useful information.
-    # #
-    # # N.B. Python 2.6 doesn't have collections.Counter, so do it the hard
-    # # way.
-    # # duplicates = [x for x, y in collections.Counter(actual).items()
-    # #     if y > 1]
-    # seen_cloud_ids = set()
-    # duplicates = []
-    # for entry in actual:
-    #     if entry["id"] in seen_cloud_ids:
-    #         duplicates.append(entry)
-    #     else:
-    #         seen_cloud_ids.add(entry["id"])
-
-    # if duplicates:
-    #     logger.critical("These glance services' OpenStack UUIDs are "
-    #                      "duplicates"
-    #                     " of other glance services. This shouldn't happen: "
-    #                     "%s",
-    #                     duplicates)
-
-    # Remove Resource graph nodes that no longer exist. To do this, we use the
-    # resource_type graph. We use the first edge's destination node's
-    # matching_attributes' source key value, and look for a match in the
-    # resource graph.
+    # Remove Resource graph nodes that no longer exist.  We use the first
+    # edge's destination node's matching_attributes' source key value, and look
+    # for a match in the resource graph.
     resource_nodes = resources.nodes_of_type(nodetype)
     source_fn = \
         resource_types.graph.out_edges(nodetype,
@@ -265,10 +237,10 @@ def process_resource_type(nodetype):
     # it is. Since we may have just deleted some nodes, refresh the existing
     # node list.
 
-    # N.B. We could reuse this iterable, but this is a little cleaner.
+    # N.B. We could reuse resource_nodes as-is, but this is a little cleaner.
     resource_nodes = resources.nodes_of_type(nodetype)
 
-    # For every current node of the desired nodetype, having an indentifying
+    # For every current node of the desired nodetype, having an identifying
     # attribute that's present...
     for entry in actual:
         source_value = source_fn(entry)

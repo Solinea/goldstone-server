@@ -133,15 +133,15 @@ class PolyResource(PolymorphicModel):
 
 
 class GraphNode(object):
-    """Nodes within Resource Type and Resource graphs."""
+    """Resource graph nodes."""
 
-    # The Goldstone UUID of the database table row represented by this node.
+    # The Goldstone UUID of the table row represented by this node.
     uuid = None
 
-    # The Resource Type of this node.
+    # This node's Resource Type.
     resourcetype = None
 
-    # The attributes (e.g., from a get_xxxxx_client() call) of this node.
+    # This node's attributes (e.g., from a get_xxxxx_client() call).
     attributes = {}
 
     def __init__(self, **kwargs):
@@ -180,9 +180,8 @@ class Graph(object):
 
         """
 
-        # We do the list comprehension this way so that the right thing happens
-        # if the attribute dict doesn't have a "type" key.
-
+        # We do the list comprehension this way so that we don't throw an
+        # exception if the attribute dict doesn't have a "type" key.
         return \
             [x for x in self.graph.edges(data=True)
              if x[2].get(TYPE) == edgetype]
@@ -289,13 +288,45 @@ class AvailabilityZone(PolyResource):
 class FlavorExtraSpec(PolyResource):
     """An OpenStack Flavor ExtraSpec."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+
+        return [x.to_dict() for x in nova_client.flavors.list()]
 
 
 class RootCert(PolyResource):
     """An OpenStack RootCert."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+
+        return [x.to_dict() for x in nova_client.certs.list()]
 
 
 class Aggregate(PolyResource):
@@ -316,6 +347,7 @@ class Aggregate(PolyResource):
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
+
         return [x.to_dict() for x in nova_client.aggregates.list()]
 
 
@@ -344,7 +376,21 @@ class Flavor(PolyResource):
 class Keypair(PolyResource):
     """An OpenStack Keypair."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        # .list() may be a generator, so convert it to a list.
+        return [x for x in get_glance_client()["client"].keypairs.list()]
 
 
 class Host(PolyResource):
@@ -379,6 +425,24 @@ class Hypervisor(PolyResource):
     virt_cpus = IntegerField(editable=True, blank=True, default=8)
     memory = IntegerField(editable=True, blank=True, default=8192)
 
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+
+        return [x.to_dict() for x in nova_client.hypervisors.list()]
+
 
 class Cloudpipe(PolyResource):
     """An OpenStack Cloudpipe."""
@@ -405,7 +469,23 @@ class Cloudpipe(PolyResource):
 class ServerGroup(PolyResource):
     """An OpenStack Server Group."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+
+        return [x.to_dict() for x in nova_client.server_groups.list()]
 
 
 class Server(PolyResource):
@@ -435,31 +515,111 @@ class Server(PolyResource):
 class ServerMetadata(PolyResource):
     """An OpenStack Server Metadata."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+
+        return [x.to_dict() for x in nova_client.servers.list()]
 
 
 class Interface(PolyResource):
     """An OpenStack Interface."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+
+        return [x.to_dict() for x in nova_client.interfaces.list()]
 
 
 class NovaQuotaClass(PolyResource):
     """An OpenStack Quota Class within a Nova service."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+
+        return [x.to_dict() for x in nova_client.quota_classes.list()]
 
 
 class NovaQuotaSet(PolyResource):
     """An OpenStack Quota Set within a Nova service."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+
+        return [x.to_dict() for x in nova_client.quotas.list()]
 
 
 class NovaLimits(PolyResource):
     """An OpenStack Limits within a Nova service."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+
+        return [x.to_dict() for x in nova_client.limits.list()]
 
 
 #
@@ -529,7 +689,21 @@ class SecurityGroup(PolyResource):
 class Port(PolyResource):
     """An OpenStack Port."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        # .list() may be a generator, so convert it to a list.
+        return [x for x in get_glance_client()["client"].port.list()]
 
 
 class LBVIP(PolyResource):
@@ -883,7 +1057,7 @@ class ResourceTypes(Graph):
                                         MAX: sys.maxint,
                                         MATCHING_ATTRIBUTES:
                                         (lambda x: x.get("id"),
-                                         lambda x: x.get("id"))}}],
+                                         lambda x: x.get("host_id"))}}],
         Interface: [{TO: Port,
                      EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
                                        MIN: 0,
