@@ -304,7 +304,7 @@ class FlavorExtraSpec(PolyResource):
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
-        return [x.to_dict() for x in nova_client.flavors.list()]
+        return [x.get_keys() for x in nova_client.flavors.list()]
 
 
 class RootCert(PolyResource):
@@ -401,6 +401,31 @@ class Host(PolyResource):
                      help_text="A fully-qualified domain name")
 
     @staticmethod
+    def _parse_host_name(host_name):
+    """Where possible, generate the fqdn and simple hostnames for host.
+
+    TODO: Do we still need the fqdn?
+
+    :param host_name: An IP address, fqdn, or simple host name
+    :type host_name: str
+    :return: (simple name, fqdn)
+    :rtype: tuple
+
+    """
+    from goldstone.utils import is_ip_addr, partition_hostname
+
+    fqdn = None
+
+    if not is_ip_addr(host_name):
+        parts = partition_hostname(host_name)
+
+        if parts['domainname'] is not None:
+            fqdn = host_name
+            host_name = parts['hostname']
+
+    return host_name, fqdn
+
+    @staticmethod
     def clouddata():
         """Return information on this resource type's cloud instances.
 
@@ -415,8 +440,24 @@ class Host(PolyResource):
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
+        hosts = [x.to_dict() for x in nova_client.hosts.list()]
 
-        return [x.to_dict() for x in nova_client.hosts.list()]
+        # Nova has no problem showing you multiple instance of the same host.
+        # If a host shows up multiple times in the list, it probably has
+        # multiple service running on it.  We'll de-dupe this, and preserve the
+        # Availability Zone for each one.
+        result = []
+
+        for host in hosts:
+            parsed_name = self._parse_host_name(host["host_name"])[0]
+
+            if all(x["host_name"] != parsed_name for x in result):
+                # This is a new entry for the result set.
+                host["host_name"] = parsed_name
+                del host["service"]
+                result.append(host)
+                
+        return result
 
 
 class Hypervisor(PolyResource):
@@ -999,19 +1040,20 @@ class ResourceTypes(Graph):
 
         # From Nova nodes
         AvailabilityZone: [{TO: Aggregate,
-                            EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                              MIN: 0,
-                                              MAX: sys.maxint,
-                                              MATCHING_ATTRIBUTES:
-                                              (lambda x: x.get("zoneName"),
-                                               lambda x: x.get("zoneName"))}},
+                            EDGE_ATTRIBUTES:
+                            {TYPE: OWNS,
+                             MIN: 0,
+                             MAX: sys.maxint,
+                             MATCHING_ATTRIBUTES:
+                             (lambda x: x.get("zoneName"),
+                              lambda x: x.get("availability_zone"))}},
                            {TO: Host,
                             EDGE_ATTRIBUTES: {TYPE: OWNS,
                                               MIN: 0,
                                               MAX: sys.maxint,
                                               MATCHING_ATTRIBUTES:
                                               (lambda x: x.get("zoneName"),
-                                               lambda x: x.get("zoneName"))}}],
+                                               lambda x: x.get("zone"))}}],
         Cloudpipe: [{TO: Server,
                      EDGE_ATTRIBUTES: {TYPE: INSTANCE_OF,
                                        MIN: 1,
@@ -1024,10 +1066,9 @@ class ResourceTypes(Graph):
                                     MIN: 0,
                                     MAX: sys.maxint,
                                     MATCHING_ATTRIBUTES:
-                                    (lambda x: x.get("id"),
-                                     lambda x: x.get("id"))}},
+                                    (lambda x: x.get("name"),
+                                     lambda x: x.get("name"))}},
                  {TO: Server,
-
                   EDGE_ATTRIBUTES:
                   {TYPE: DEFINES,
                    MIN: 0,
@@ -1042,7 +1083,7 @@ class ResourceTypes(Graph):
                                   MAX: sys.maxint,
                                   MATCHING_ATTRIBUTES:
                                   (lambda x: x.get("id"),
-                                   lambda x: x.get("id"))}},
+                                   lambda x: x.get("nae"))}},
                {TO: Hypervisor,
                 EDGE_ATTRIBUTES: {TYPE: OWNS,
                                   MIN: 0,
