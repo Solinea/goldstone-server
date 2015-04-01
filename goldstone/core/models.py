@@ -21,7 +21,7 @@ from goldstone.apps.drfes.models import DailyIndexDocType
 from goldstone.apps.logging.models import LogData, LogEvent
 
 # Get_glance_client is defined here for easy unit test mocking.
-from goldstone.utils import utc_now, get_glance_client
+from goldstone.utils import utc_now, get_glance_client, get_nova_client
 
 from elasticsearch_dsl.query import Q, QueryString
 import networkx
@@ -268,7 +268,22 @@ class Project(PolyResource):
 class AvailabilityZone(PolyResource):
     """An OpenStack Availability Zone."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+        return [x.to_dict() for x in nova_client.availability_zones.list()]
 
 
 class FlavorExtraSpec(PolyResource):
@@ -286,13 +301,44 @@ class RootCert(PolyResource):
 class Aggregate(PolyResource):
     """An OpenStack Aggregate."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+        return [x.to_dict() for x in nova_client.aggregates.list()]
 
 
 class Flavor(PolyResource):
     """An OpenStack Flavor."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+
+        return [x.to_dict() for x in nova_client.flavors.list()]
 
 
 class Keypair(PolyResource):
@@ -308,6 +354,24 @@ class Host(PolyResource):
                      unique=True,
                      help_text="A fully-qualified domain name")
 
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+
+        return [x.to_dict() for x in nova_client.hosts.list()]
+
 
 class Hypervisor(PolyResource):
     """An OpenStack Hypervisor."""
@@ -319,7 +383,23 @@ class Hypervisor(PolyResource):
 class Cloudpipe(PolyResource):
     """An OpenStack Cloudpipe."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+
+        return [x.to_dict() for x in nova_client.cloudpipe.list()]
 
 
 class ServerGroup(PolyResource):
@@ -331,7 +411,25 @@ class ServerGroup(PolyResource):
 class Server(PolyResource):
     """An OpenStack Server."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+
+        return [x.to_dict()
+                for x in
+                nova_client.servers.list(search_opts={"all_tenants": 1})]
 
 
 class ServerMetadata(PolyResource):
@@ -376,7 +474,7 @@ class Image(PolyResource):
         """Return information on this resource type's cloud instances.
 
         N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call from here.
+        make the complete call here.
 
         :return: One or more infomration collections about cloud instances of
                  this type
@@ -384,7 +482,8 @@ class Image(PolyResource):
 
         """
 
-        return get_glance_client()["client"].images.list()
+        # .list() may be a generator, so convert it to a list.
+        return [x for x in get_glance_client()["client"].images.list()]
 
 
 #
@@ -507,16 +606,22 @@ class ResourceTypes(Graph):
     #       TYPE: The type of this edge
     #       MIN: An instance must have a minimum number of this edge type
     #       MAX: An instance must have a maximum number of this edge type
-    #       MATCHING_ATTRIBUTES: (str, str) tuple. These are (from, to) keys to
-    #                            match in the from_type's and to_type's
-    #                            attributes.
+    #       MATCHING_ATTRIBUTES: (from_attr, to_attr) tuple. From_attr and
+    #                            to_attr are both callables that take one
+    #                            argument, which will be the attributes dict.
+    #                            These are from_fn and to_fn that are applied
+    #                            to the attributes. If there's a match between
+    #                            the from_type's and to_type's values, we draw
+    #                            an edge in the resource graph.
     EDGES = {
         # From Glance nodes
         Image: [{TO: Server,
                  EDGE_ATTRIBUTES: {TYPE: DEFINES,
                                    MIN: 0,
                                    MAX: sys.maxint,
-                                   MATCHING_ATTRIBUTES: ("id", "id")}}],
+                                   MATCHING_ATTRIBUTES:
+                                   (lambda x: x.get("id"),
+                                    lambda x: x.get("id"))}}],
 
         # From Keystone nodes
         Credential: [{TO: Project,
@@ -693,28 +798,41 @@ class ResourceTypes(Graph):
                             EDGE_ATTRIBUTES: {TYPE: OWNS,
                                               MIN: 0,
                                               MAX: sys.maxint,
-                                              MATCHING_ATTRIBUTES: ["id"]}},
+                                              MATCHING_ATTRIBUTES:
+                                              (lambda x: x.get("zoneName"),
+                                               lambda x: x.get("zoneName"))}},
                            {TO: Host,
                             EDGE_ATTRIBUTES: {TYPE: OWNS,
                                               MIN: 0,
                                               MAX: sys.maxint,
-                                              MATCHING_ATTRIBUTES: ["id"]}}],
+                                              MATCHING_ATTRIBUTES:
+                                              (lambda x: x.get("zoneName"),
+                                               lambda x: x.get("zoneName"))}}],
         Cloudpipe: [{TO: Server,
-                     EDGE_ATTRIBUTES: {TYPE:
-                                       INSTANCE_OF,
+                     EDGE_ATTRIBUTES: {TYPE: INSTANCE_OF,
                                        MIN: 1,
                                        MAX: 1,
-                                       MATCHING_ATTRIBUTES: ["id"]}}],
+                                       MATCHING_ATTRIBUTES:
+                                       (lambda x: x.get("id"),
+                                        lambda x: x.get("id"))}}],
         Flavor: [{TO: FlavorExtraSpec,
                   EDGE_ATTRIBUTES: {TYPE: OWNS,
                                     MIN: 0,
                                     MAX: sys.maxint,
-                                    MATCHING_ATTRIBUTES: ["id"]}},
+                                    MATCHING_ATTRIBUTES:
+                                    (lambda x: x.get("id"),
+                                     lambda x: x.get("id"))}},
                  {TO: Server,
-                  EDGE_ATTRIBUTES: {TYPE: DEFINES,
-                                    MIN: 0,
-                                    MAX: sys.maxint,
-                                    MATCHING_ATTRIBUTES: ["id"]}}],
+                  EDGE_ATTRIBUTES:
+                  {TYPE: DEFINES,
+                   MIN: 0,
+                   MAX: sys.maxint,
+                   MATCHING_ATTRIBUTES:
+                   (lambda x: x.get("id"),
+                    lambda x: x.get("flavor", {}).get("id"))}}],
+
+        # CONTINUE HERE
+
         Host: [{TO: Aggregate,
                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
                                   MIN: 0,

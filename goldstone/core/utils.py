@@ -152,7 +152,7 @@ def _add_edges(node):
 
     """
 
-    def find_match(edge, neighbor_type):
+    def find_match(edge, neighbor_type, to_fn):
         """Find the one node that matches the desired attribute, and add an
         edge to it from the source node.
 
@@ -160,6 +160,9 @@ def _add_edges(node):
         :type edge: 3-tuple
         :param neighbor_type: The type of the desired destination node
         :type neighbor_type: PolyResource subclass
+        :param to_fn: The matching attribute function for the "to" node we're
+                      hunting
+        :type to_fn: Callable with one parameter
         :return: An indication of success (True) or failure (False)
         :rtype: bool
 
@@ -167,7 +170,7 @@ def _add_edges(node):
 
         # For all nodes that are of the desired type...
         for candidate in resources.nodes_of_type(neighbor_type):
-            candidate_attribute_value = candidate.attributes.get(attribute)
+            candidate_attribute_value = to_fn(candidate.attributes)
 
             if candidate_attribute_value == node_attribute_value:
                 # We have a match! Create the edge from the node to this
@@ -186,16 +189,15 @@ def _add_edges(node):
         # For this edge, this is the neighbor's type.
         neighbor_type = edge[1]
 
-        # Get the list of matching attributes we're to look for. We will use
-        # the first one that works.
-        for attribute in edge[2][MATCHING_ATTRIBUTES]:
-            # Get the attribute's value for this node.
-            node_attribute_value = node.attributes.get(attribute)
+        from_fn, to_fn = edge[2][MATCHING_ATTRIBUTES]
 
-            # Find the first resource node that's a match.
-            if find_match(edge, neighbor_type):
-                # Success. Iterate to the next edge.
-                break
+        # Get this (a "from") node's matching attribute that we're to look for.
+        node_attribute_value = from_fn(node.attributes)
+
+        # Find the first resource node that's a match.
+        if find_match(edge, neighbor_type, to_fn):
+            # Success! Iterate to the next edge.
+            break
 
 
 def process_resource_type(nodetype):
@@ -214,8 +216,8 @@ def process_resource_type(nodetype):
     """
     from goldstone.core.models import GraphNode
 
-    # Collect every cloud instance that's of the "nodetype" type.
-    actual = [x for x in nodetype.clouddata()]
+    # Get the cloud instances that are of the "nodetype" type.
+    actual = nodetype.clouddata()
 
     # # Check for glance services having duplicate OpenStack ids, a.k.a.
     # # cloud_ids. This should never happen. We'll log these, but won't filter
@@ -245,18 +247,15 @@ def process_resource_type(nodetype):
     # matching_attributes' source key value, and look for a match in the
     # resource graph.
     resource_nodes = resources.nodes_of_type(nodetype)
-    source_key = \
+    source_fn = \
         resource_types.graph.out_edges(nodetype,
                                        data=True)[0][2][MATCHING_ATTRIBUTES][0]
-    actual_cloud_instances = set([x.get(source_key) for x in actual
-                                  if x is not None])
+    actual_cloud_instances = set([source_fn(x) for x in actual if x])
 
-    # For every node of this type that's currently in the resource graph...
+    # For every node of this type in the resource graph...
     for entry in resource_nodes:
-        # Get this node's identifying attribute value.
-        node_value = entry.attributes.get(source_key)
-
-        if node_value not in actual_cloud_instances:
+        # Check this node's identifying attribute value.
+        if source_fn(entry.attributes) not in actual_cloud_instances:
             # This node does not appear to be in the cloud anymore. Delete it.
             resources.graph.remove_node(entry)
             nodetype.objects.get(uuid=entry.uuid).delete()
@@ -272,7 +271,7 @@ def process_resource_type(nodetype):
     # For every current node of the desired nodetype, having an indentifying
     # attribute that's present...
     for entry in actual:
-        source_key_value = entry.get(source_key)
+        source_key_value = source_fn(entry)
 
         if source_key_value:
             # Try to find its corresponding Resource graph node.
