@@ -180,11 +180,10 @@ class Graph(object):
 
         """
 
-        # We do the list comprehension this way so that we don't throw an
-        # exception if the attribute dict doesn't have a "type" key.
-        return \
-            [x for x in self.graph.edges(data=True)
-             if x[2].get(TYPE) == edgetype]
+        # N.B. We don't want to throw an exception if the attribute dict
+        # doesn't have a "type" key.
+        return [x for x in self.graph.edges(data=True)
+                if x[2].get(TYPE) == edgetype]
 
 
 #
@@ -282,6 +281,7 @@ class AvailabilityZone(PolyResource):
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
+
         return [x.to_dict() for x in nova_client.availability_zones.list()]
 
 
@@ -778,15 +778,13 @@ class ResourceTypes(Graph):
     #   TO: The destination type
     #   EDGE_ATTTRIBUTES: This edge's attributes:
     #       TYPE: The type of this edge
-    #       MIN: An instance must have a minimum number of this edge type
-    #       MAX: An instance must have a maximum number of this edge type
+    #       MIN: A resource graph node has a minimum number of this edge type
+    #       MAX: A resource graph node has a maximum number of this edge type
     #       MATCHING_ATTRIBUTES: (from_attr, to_attr) tuple. From_attr and
-    #                            to_attr are both callables that take one
-    #                            argument, which will be the attributes dict.
-    #                            These are from_fn and to_fn that are applied
-    #                            to the attributes. If there's a match between
-    #                            the from_type's and to_type's values, we draw
-    #                            an edge in the resource graph.
+    #                            to_attr are callables with one parameter,
+    #                            which is an attributes dict.  If there's a
+    #                            match between the from_node's and to_node's
+    #                            values, we draw a Resource graph edge.
     EDGES = {
         # From Glance nodes
         Image: [{TO: Server,
@@ -1029,6 +1027,7 @@ class ResourceTypes(Graph):
                                     (lambda x: x.get("id"),
                                      lambda x: x.get("id"))}},
                  {TO: Server,
+
                   EDGE_ATTRIBUTES:
                   {TYPE: DEFINES,
                    MIN: 0,
