@@ -638,82 +638,114 @@ class ResourceTypes(Graph):
                    EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES: ["id"]}},
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}},
                   {TO: Keypair,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES: ["id"]}},
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}},
                   {TO: NovaLimits,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 1,
                                      MAX: 1,
-                                     MATCHING_ATTRIBUTES: ["id"]}},
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}},
                   {TO: NovaQuotaSet,
                    EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES: ["id"]}},
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}},
                   {TO: RootCert,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: 1,
-                                     MATCHING_ATTRIBUTES: ["id"]}},
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}},
                   {TO: Server,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 1,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES: ["id"]}},
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}},
                   {TO: MeteringLabel,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES: ["id"]}},
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}},
                   {TO: NeutronQuota,
                    EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO,
                                      MIN: 1,
                                      MAX: 1,
-                                     MATCHING_ATTRIBUTES: ["id"]}},
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}},
                   {TO: Network,
                    EDGE_ATTRIBUTES: {TYPE: USES,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES: ["id"]}},
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}},
                   {TO: Network,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES: ["id"]}},
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}},
                   {TO: Subnet,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES: ["id"]}},
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}},
                   {TO: LBMember,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES: ["id"]}},
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}},
                   {TO: HealthMonitor,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES: ["id"]}},
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}},
                   {TO: LBVIP,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES: ["id"]}},
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}},
                   {TO: Port,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES: ["id"]}},
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}},
                   {TO: SecurityRules,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES: ["id"]}}],
+                                     MATCHING_ATTRIBUTES:
+                                     (lambda x: x.get("id"),
+                                      lambda x: x.get("id"))}}],
         Region: [{TO: AvailabilityZone,
                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
                  {TO: Endpoint,
@@ -831,23 +863,27 @@ class ResourceTypes(Graph):
                    (lambda x: x.get("id"),
                     lambda x: x.get("flavor", {}).get("id"))}}],
 
-        # CONTINUE HERE
-
         Host: [{TO: Aggregate,
                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
                                   MIN: 0,
                                   MAX: sys.maxint,
-                                  MATCHING_ATTRIBUTES: ["id"]}},
+                                  MATCHING_ATTRIBUTES:
+                                  (lambda x: x.get("id"),
+                                   lambda x: x.get("id"))}},
                {TO: Hypervisor,
                 EDGE_ATTRIBUTES: {TYPE: OWNS,
                                   MIN: 0,
                                   MAX: 1,
-                                  MATCHING_ATTRIBUTES: ["id"]}}],
+                                  MATCHING_ATTRIBUTES:
+                                  (lambda x: x.get("id"),
+                                   lambda x: x.get("id"))}}],
         Hypervisor: [{TO: Server,
                       EDGE_ATTRIBUTES: {TYPE: OWNS,
                                         MIN: 0,
                                         MAX: sys.maxint,
-                                        MATCHING_ATTRIBUTES: ["id"]}}],
+                                        MATCHING_ATTRIBUTES:
+                                        (lambda x: x.get("id"),
+                                         lambda x: x.get("id"))}}],
         Interface: [{TO: Port,
                      EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
                                        MIN: 0,
@@ -928,29 +964,27 @@ class Resources(Graph):
         return [x for x in self.graph.nodes() if x.resourcetype == nodetype]
 
     @staticmethod
-    def locate(nodelist, **kwargs):
-        """Return the nodelist entry whose attributes match one of the kwargs.
+    def locate(nodelist, source_fn, source_value):
+        """Return a nodelist entry whose source_fn value matches source_value.
 
-        N.B. This returns the first node found that matches one of the keyword
-        args. It does not check for nor return multiple matches.
+        N.B. This returns the first node found that matches. It does not check
+        for nor return multiple matches.
 
         :param nodelist: The nodes through which to search
         :type nodelist: Iterable of GraphNode
-        :keyword kwargs: keyword arguments.
-        :type kwargs: dict
-        :return: A node from nodelist that has an "attributes" key that
-                 matches one of the kwargs key-value pairs
+        :keyword source_fn: A function that takes one parameter, which is
+                            to a node's attributes
+        :type source_fn: Callable
+        :keyword source_value: A value to match against.
+        :type source_value: Anything. But probably a str
+        :return: A nodelist entry that matched
         :rtype: GraphNode or None
 
         """
 
-        # For every keyword argument pair...
-        for key, value in kwargs.iteritems():
-            # Is there a nodelist entry with this attribute value?
-            for node in nodelist:
-                if node.attributes.get(key) == value:
-                    # Yes!
-                    return node
+        for node in nodelist:
+            if source_fn(node.attributes) == source_value:
+                return node
 
         return None
 

@@ -197,7 +197,7 @@ def _add_edges(node):
         # Find the first resource node that's a match.
         if find_match(edge, neighbor_type, to_fn):
             # Success! Iterate to the next edge.
-            break
+            continue
 
 
 def process_resource_type(nodetype):
@@ -271,12 +271,11 @@ def process_resource_type(nodetype):
     # For every current node of the desired nodetype, having an indentifying
     # attribute that's present...
     for entry in actual:
-        source_key_value = source_fn(entry)
+        source_value = source_fn(entry)
 
-        if source_key_value:
+        if source_value:
             # Try to find its corresponding Resource graph node.
-            node = resources.locate(resource_nodes,
-                                    **{source_key: source_key_value})
+            node = resources.locate(resource_nodes, source_fn, source_value)
 
             if node:
                 # This resource node corresponds to this cloud service. Update
