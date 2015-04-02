@@ -32,7 +32,7 @@ MAX = settings.R_ATTRIBUTE.MAX
 MIN = settings.R_ATTRIBUTE.MIN
 TO = settings.R_ATTRIBUTE.TO
 TYPE = settings.R_ATTRIBUTE.TYPE
-MATCHING_ATTRIBUTES = settings.R_ATTRIBUTE.MATCHING_ATTRIBUTES
+MATCHING_FN = settings.R_ATTRIBUTE.MATCHING_FN
 EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
 
 ALLOCATED_TO = settings.R_EDGE.ALLOCATED_TO
@@ -389,8 +389,10 @@ class Keypair(PolyResource):
 
         """
 
-        # .list() may be a generator, so convert it to a list.
-        return [x for x in get_glance_client()["client"].keypairs.list()]
+        nova_client = get_nova_client()["client"]
+        nova_client.client.authenticate()
+
+        return [x.to_dict() for x in nova_client()["client"].keypairs.list()]
 
 
 class Host(PolyResource):
@@ -402,28 +404,28 @@ class Host(PolyResource):
 
     @staticmethod
     def _parse_host_name(host_name):
-    """Where possible, generate the fqdn and simple hostnames for host.
+        """Where possible, generate the fqdn and simple hostnames for host.
 
-    TODO: Do we still need the fqdn?
+        TODO: Do we still need the fqdn?
 
-    :param host_name: An IP address, fqdn, or simple host name
-    :type host_name: str
-    :return: (simple name, fqdn)
-    :rtype: tuple
+        :param host_name: An IP address, fqdn, or simple host name
+        :type host_name: str
+        :return: (simple name, fqdn)
+        :rtype: tuple
 
-    """
-    from goldstone.utils import is_ip_addr, partition_hostname
+        """
+        from goldstone.utils import is_ip_addr, partition_hostname
 
-    fqdn = None
+        fqdn = None
 
-    if not is_ip_addr(host_name):
-        parts = partition_hostname(host_name)
+        if not is_ip_addr(host_name):
+            parts = partition_hostname(host_name)
 
-        if parts['domainname'] is not None:
-            fqdn = host_name
-            host_name = parts['hostname']
+            if parts['domainname'] is not None:
+                fqdn = host_name
+                host_name = parts['hostname']
 
-    return host_name, fqdn
+        return host_name, fqdn
 
     @staticmethod
     def clouddata():
@@ -456,7 +458,7 @@ class Host(PolyResource):
                 host["host_name"] = parsed_name
                 del host["service"]
                 result.append(host)
-                
+
         return result
 
 
@@ -572,7 +574,9 @@ class ServerMetadata(PolyResource):
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
-        return [x.to_dict() for x in nova_client.servers.list()]
+        return [x.metadata
+                for x in
+                nova_client.servers.list(search_opts={"all_tenants": 1})]
 
 
 class Interface(PolyResource):
@@ -594,7 +598,9 @@ class Interface(PolyResource):
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
-        return [x.to_dict() for x in nova_client.interfaces.list()]
+        return [x.interface_list()
+                for x in
+                nova_client.servers.list(search_opts={"all_tenants": 1})]
 
 
 class NovaQuotaClass(PolyResource):
@@ -613,10 +619,8 @@ class NovaQuotaClass(PolyResource):
 
         """
 
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
-
-        return [x.to_dict() for x in nova_client.quota_classes.list()]
+        # Getting at these is not so obvious. I'll come back to these later.
+        return []
 
 
 class NovaQuotaSet(PolyResource):
@@ -635,10 +639,8 @@ class NovaQuotaSet(PolyResource):
 
         """
 
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
-
-        return [x.to_dict() for x in nova_client.quotas.list()]
+        # Getting at these is not so obvious. I'll come back to these later.
+        return []
 
 
 class NovaLimits(PolyResource):
@@ -742,9 +744,14 @@ class Port(PolyResource):
         :rtype: Iterable or generator of dict
 
         """
+        from neutronclient.v2_0 import client as neclient
 
-        # .list() may be a generator, so convert it to a list.
-        return [x for x in get_glance_client()["client"].port.list()]
+        client = neclient.Client(username=os_username,
+                                 password=os_password,
+                                 tenant_name=os_tenant_name,
+                                 auth_url=os_auth_url)
+
+        return client.list_ports()["ports"]
 
 
 class LBVIP(PolyResource):
@@ -821,20 +828,17 @@ class ResourceTypes(Graph):
     #       TYPE: The type of this edge
     #       MIN: A resource graph node has a minimum number of this edge type
     #       MAX: A resource graph node has a maximum number of this edge type
-    #       MATCHING_ATTRIBUTES: (from_attr, to_attr) tuple. From_attr and
-    #                            to_attr are callables with one parameter,
-    #                            which is an attributes dict.  If there's a
-    #                            match between the from_node's and to_node's
-    #                            values, we draw a Resource graph edge.
+    #       MATCHING_FN: Callable(from_attr_dict, to_attr_dict).  If there's a
+    #                    match between the from_node's and to_node's attribute
+    #                    dicts, we draw a Resource graph edge.
     EDGES = {
         # From Glance nodes
         Image: [{TO: Server,
                  EDGE_ATTRIBUTES: {TYPE: DEFINES,
                                    MIN: 0,
                                    MAX: sys.maxint,
-                                   MATCHING_ATTRIBUTES:
-                                   (lambda x: x.get("id"),
-                                    lambda x: x.get("id"))}}],
+                                   MATCHING_FN:
+                                   lambda f, t: f.get("id") == t.get("id")}}],
 
         # From Keystone nodes
         Credential: [{TO: Project,
@@ -851,114 +855,99 @@ class ResourceTypes(Graph):
                    EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}},
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
                   {TO: Keypair,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}},
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
                   {TO: NovaLimits,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 1,
                                      MAX: 1,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}},
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
                   {TO: NovaQuotaSet,
                    EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}},
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
                   {TO: RootCert,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: 1,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}},
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
                   {TO: Server,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 1,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}},
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
                   {TO: MeteringLabel,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}},
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
                   {TO: NeutronQuota,
                    EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO,
                                      MIN: 1,
                                      MAX: 1,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}},
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
                   {TO: Network,
                    EDGE_ATTRIBUTES: {TYPE: USES,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}},
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
                   {TO: Network,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}},
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
                   {TO: Subnet,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}},
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
                   {TO: LBMember,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}},
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
                   {TO: HealthMonitor,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}},
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
                   {TO: LBVIP,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}},
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
                   {TO: Port,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}},
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
                   {TO: SecurityRules,
                    EDGE_ATTRIBUTES: {TYPE: OWNS,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES:
-                                     (lambda x: x.get("id"),
-                                      lambda x: x.get("id"))}}],
+                                     MATCHING_FN:
+                                     lambda f, t: f.get("id") == t.get("id")}},
+                  ],
         Region: [{TO: AvailabilityZone,
                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
                  {TO: Endpoint,
@@ -1039,95 +1028,116 @@ class ResourceTypes(Graph):
                   EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 1, MAX: 1}}],
 
         # From Nova nodes
-        AvailabilityZone: [{TO: Aggregate,
-                            EDGE_ATTRIBUTES:
-                            {TYPE: OWNS,
-                             MIN: 0,
-                             MAX: sys.maxint,
-                             MATCHING_ATTRIBUTES:
-                             (lambda x: x.get("zoneName"),
-                              lambda x: x.get("availability_zone"))}},
-                           {TO: Host,
-                            EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                              MIN: 0,
-                                              MAX: sys.maxint,
-                                              MATCHING_ATTRIBUTES:
-                                              (lambda x: x.get("zoneName"),
-                                               lambda x: x.get("zone"))}}],
+        AvailabilityZone: [
+            {TO: Aggregate,
+             EDGE_ATTRIBUTES:
+             {TYPE: OWNS,
+              MIN: 0,
+              MAX: sys.maxint,
+              MATCHING_FN:
+              lambda f, t: f.get("zoneName") == t.get("availability_zone")}},
+            {TO: Host,
+             EDGE_ATTRIBUTES:
+             {TYPE: OWNS,
+              MIN: 0,
+              MAX: sys.maxint,
+              MATCHING_FN:
+              lambda f, t: f.get("zoneName") == t.get("zone")}}],
         Cloudpipe: [{TO: Server,
-                     EDGE_ATTRIBUTES: {TYPE: INSTANCE_OF,
-                                       MIN: 1,
-                                       MAX: 1,
-                                       MATCHING_ATTRIBUTES:
-                                       (lambda x: x.get("id"),
-                                        lambda x: x.get("id"))}}],
+                     EDGE_ATTRIBUTES:
+                     {TYPE: INSTANCE_OF,
+                      MIN: 1,
+                      MAX: 1,
+                      MATCHING_FN:
+                      lambda f, t: f.get("id") == t.get("id")}}],
         Flavor: [{TO: FlavorExtraSpec,
-                  EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                    MIN: 0,
-                                    MAX: sys.maxint,
-                                    MATCHING_ATTRIBUTES:
-                                    (lambda x: x.get("name"),
-                                     lambda x: x.get("name"))}},
+                  EDGE_ATTRIBUTES:
+                  {TYPE: OWNS,
+                   MIN: 0,
+                   MAX: sys.maxint,
+                   MATCHING_FN:
+                   lambda f, t: f.get("name") == t.get("name")}},
                  {TO: Server,
                   EDGE_ATTRIBUTES:
                   {TYPE: DEFINES,
                    MIN: 0,
                    MAX: sys.maxint,
-                   MATCHING_ATTRIBUTES:
-                   (lambda x: x.get("id"),
-                    lambda x: x.get("flavor", {}).get("id"))}}],
+                   MATCHING_FN:
+                   lambda f, t: f.get("id") == t.get("flavor",
+                                                     {}).get("id")}}],
 
         Host: [{TO: Aggregate,
-                EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
-                                  MIN: 0,
-                                  MAX: sys.maxint,
-                                  MATCHING_ATTRIBUTES:
-                                  (lambda x: x.get("id"),
-                                   lambda x: x.get("nae"))}},
+                EDGE_ATTRIBUTES:
+                {TYPE: MEMBER_OF,
+                 MIN: 0,
+                 MAX: sys.maxint,
+                 MATCHING_FN:
+                 lambda f, t: f.get("host_name") in t.get("name", [])}},
                {TO: Hypervisor,
-                EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                  MIN: 0,
-                                  MAX: 1,
-                                  MATCHING_ATTRIBUTES:
-                                  (lambda x: x.get("id"),
-                                   lambda x: x.get("id"))}}],
-        Hypervisor: [{TO: Server,
-                      EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                        MIN: 0,
-                                        MAX: sys.maxint,
-                                        MATCHING_ATTRIBUTES:
-                                        (lambda x: x.get("id"),
-                                         lambda x: x.get("host_id"))}}],
+                EDGE_ATTRIBUTES:
+                {TYPE: OWNS,
+                 MIN: 0,
+                 MAX: 1,
+                 MATCHING_FN:
+                 lambda f, t:
+                 f.get("host_name") == t.get("hypervisor_hostname")}}],
+        Hypervisor: [
+            {TO: Server,
+             EDGE_ATTRIBUTES:
+             {TYPE: OWNS,
+              MIN: 0,
+              MAX: sys.maxint,
+              MATCHING_FN:
+              lambda f, t:
+              f.get("id") == t.get("OS-EXT-SRV-ATTR:hypervisor_hostname")}},
+        ],
         Interface: [{TO: Port,
                      EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
                                        MIN: 0,
                                        MAX: 1,
-                                       MATCHING_ATTRIBUTES: ["id"]}}],
+                                       MATCHING_FN:
+                                       lambda f, t:
+                                       any(entry.to_dict().get("net_id") ==
+                                           t["network_id"]
+                                           for entry in f)}}],
         Keypair: [{TO: Server,
                    EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
                                      MIN: 0,
                                      MAX: sys.maxint,
-                                     MATCHING_ATTRIBUTES: ["id"]}}],
+                                     # Any keypair can be used on any server.
+                                     MATCHING_FN: lambda f, t: True}}],
         NovaQuotaClass: [{TO: NovaQuotaSet,
                           EDGE_ATTRIBUTES: {TYPE: DEFINES,
                                             MIN: 0,
                                             MAX: sys.maxint,
-                                            MATCHING_ATTRIBUTES: ["id"]}}],
+                                            # We aren't sure what to do. Stub
+                                            # this out for now.
+                                            MATCHING_FN: lambda f, t: False}}],
         Server: [{TO: Interface,
                   EDGE_ATTRIBUTES: {TYPE: OWNS,
                                     MIN: 0,
                                     MAX: sys.maxint,
-                                    MATCHING_ATTRIBUTES: ["id"]}},
+                                    # Deferred for now. Suspect some code will
+                                    # need to be ripped up to find this edge,
+                                    # because interfaces hang off of server
+                                    # objects.
+                                    MATCHING_FN: lambda f, t: False}},
                  {TO: ServerGroup,
                   EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
                                     MIN: 0,
                                     MAX: sys.maxint,
-                                    MATCHING_ATTRIBUTES: ["id"]}},
+                                    MATCHING_FN: lambda f, t:
+                                    f.get("id") in t["members"]}},
                  {TO: ServerMetadata,
                   EDGE_ATTRIBUTES: {TYPE: OWNS,
                                     MIN: 0,
                                     MAX: sys.maxint,
-                                    MATCHING_ATTRIBUTES: ["id"]}}],
+                                    MATCHING_FN:
+                                    # Deferred for now. Suspect some code will
+                                    # need to be ripped up to find this edge,
+                                    # because metadata hang off of server
+                                    # objects.
+                                    MATCHING_FN: lambda f, t: False}}],
         }
 
     def __init__(self):
