@@ -208,33 +208,99 @@ class ResourceTypesTests(SimpleTestCase):
 
         # Test edge discovery.
         edges = resource_types.graph.out_edges(AvailabilityZone, data=True)
-        edge = [x for x in edges if x[1] == Aggregate][0]
+        edge = [x for x in edges if x[1] == Aggregate][0][2]
 
         # Test both being None
-        IMAGE["id"] = None
-        SERVER["id"] = None
-        self.assertFalse(edge[MATCHING_FN](IMAGE, SERVER))
+        AVAILABILITY_ZONE["zoneName"] = None
+        AGGREGATE["availability_zone"] = None
+        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, AGGREGATE))
 
         # Test one missing
-        IMAGE["id"] = "42"
-        del SERVER["id"]
-        self.assertFalse(edge[MATCHING_FN](IMAGE, SERVER))
+        AVAILABILITY_ZONE["zoneName"] = "42"
+        del AGGREGATE["availability_zone"]
+        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, AGGREGATE))
 
-        del IMAGE["id"]
-        SERVER["id"] = "42"
-        self.assertFalse(edge[MATCHING_FN](IMAGE, SERVER))
+        del AVAILABILITY_ZONE["zoneName"]
+        AGGREGATE["availability_zone"] = "42"
+        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, AGGREGATE))
 
         # Test both missing
-        del SERVER["id"]
-        self.assertFalse(edge[MATCHING_FN](IMAGE, SERVER))
+        del AGGREGATE["availability_zone"]
+        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, AGGREGATE))
 
         # Test no match
-        IMAGE["id"] = "4445"
-        SERVER["id"] = "4444"
-        self.assertFalse(edge[MATCHING_FN](IMAGE, SERVER))
+        AVAILABILITY_ZONE["zoneName"] = "4445"
+        AGGREGATE["availability_zone"] = "4444"
+        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, AGGREGATE))
 
         # Test match
-        IMAGE["id"] = "4445"
-        SERVER["id"] = "4445"
-        self.assertTrue(edge[MATCHING_FN](IMAGE, SERVER))
+        AVAILABILITY_ZONE["zoneName"] = "4445"
+        AGGREGATE["availability_zone"] = "4445"
+        self.assertTrue(edge[MATCHING_FN](AVAILABILITY_ZONE, AGGREGATE))
+
+    def test_availability_zone_host(self):
+        """Test the AvailabilityZone - Host entry."""
+
+        # Test data.
+        AVAILABILITY_ZONE = {
+            u'hosts':
+            {u'ctrl-john.solinea.com':
+             {u'nova-cert': {u'active': True,
+                             u'available': True,
+                             u'updated_at':
+                             u'2015-04-02T18:46:27.000000'},
+              u'nova-conductor': {u'active': True,
+                                  u'available': True,
+                                  u'updated_at':
+                                  u'2015-04-02T18:46:20.000000'},
+              u'nova-consoleauth': {u'active': True,
+                                    u'available': True,
+                                    u'updated_at':
+                                    u'2015-04-02T18:46:27.000000'},
+              u'nova-scheduler': {u'active': True,
+                                  u'available': True,
+                                  u'updated_at':
+                                  u'2015-04-02T18:46:27.000000'}}},
+            u'zoneName': u'internal',
+            u'zoneState': {u'available': True}
+            }
+
+        HOST = {u'host_name': u'ctrl-01', u'zone': u'internal'}
+
+        # Test identity method.
+        self.assertEqual(AvailabilityZone.identity(AVAILABILITY_ZONE),
+                         "internal")
+        self.assertEqual(Host.identity(HOST), 'ctrl-01')
+
+        # Test edge discovery.
+        edges = resource_types.graph.out_edges(AvailabilityZone, data=True)
+        edge = [x for x in edges if x[1] == Host][0][2]
+
+        # Test both being None
+        AVAILABILITY_ZONE["zoneName"] = None
+        HOST["zone"] = None
+        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, HOST))
+
+        # Test one missing
+        AVAILABILITY_ZONE["zoneName"] = "42"
+        del HOST["zone"]
+        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, HOST))
+
+        del AVAILABILITY_ZONE["zoneName"]
+        HOST["zone"] = "42"
+        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, HOST))
+
+        # Test both missing
+        del HOST["zone"]
+        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, HOST))
+
+        # Test no match
+        AVAILABILITY_ZONE["zoneName"] = "4445"
+        HOST["zone"] = "4444"
+        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, HOST))
+
+        # Test match
+        AVAILABILITY_ZONE["zoneName"] = "4445"
+        HOST["zone"] = "4445"
+        self.assertTrue(edge[MATCHING_FN](AVAILABILITY_ZONE, HOST))
 
