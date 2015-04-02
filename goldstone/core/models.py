@@ -862,8 +862,8 @@ class Interface(PolyResource):
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
-        return [x.interface_list()
-                for x in
+        return [[x.to_dict() for x in y.interface_list()]
+                for y in
                 nova_client.servers.list(search_opts={"all_tenants": 1})]
 
     @staticmethod
