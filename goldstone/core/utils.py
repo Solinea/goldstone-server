@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 # Aliases to make the code less verbose.
 EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
-MATCHING_ATTRIBUTES = settings.R_ATTRIBUTE.MATCHING_ATTRIBUTES
+MATCHING_FN = settings.R_ATTRIBUTE.MATCHING_FN
 TYPE = settings.R_ATTRIBUTE.TYPE
 
 
@@ -185,7 +185,7 @@ def _add_edges(node):
         # For this edge, this is the neighbor's type.
         neighbor_type = edge[1]
 
-        from_fn, to_fn = edge[2][MATCHING_ATTRIBUTES]
+        from_fn, to_fn = edge[2][MATCHING_FN]
 
         # Get this (a "from") node's matching attribute that we're to look for.
         node_attribute_value = from_fn(node.attributes)
@@ -221,7 +221,7 @@ def process_resource_type(nodetype):
     resource_nodes = resources.nodes_of_type(nodetype)
     source_fn = \
         resource_types.graph.out_edges(nodetype,
-                                       data=True)[0][2][MATCHING_ATTRIBUTES][0]
+                                       data=True)[0][2][MATCHING_FN][0]
     actual_cloud_instances = set([source_fn(x) for x in actual if x])
 
     # For every node of this type in the resource graph...
