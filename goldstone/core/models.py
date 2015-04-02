@@ -1037,8 +1037,7 @@ class Image(PolyResource):
 
         """
 
-        # .list() may be a generator, so convert it to a list.
-        return [x for x in get_glance_client()["client"].images.list()]
+        return list(get_glance_client()["client"].images.list())
 
     @staticmethod
     def identity(thing):
