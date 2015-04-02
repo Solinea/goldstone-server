@@ -14,19 +14,11 @@
 # limitations under the License.
 from django.conf import settings
 from django.test import SimpleTestCase
-import elasticsearch
-from elasticsearch.client import IndicesClient
 from functools import partial
-import mock
-from mock import patch
-from rest_framework.test import APISimpleTestCase
 
-from .models import resources, Image, ServerGroup, NovaLimits, GraphNode, \
-    PolyResource, Host, resource_types, Aggregate, Hypervisor, Port, \
-    Cloudpipe, Network, Project, Server, AvailabilityZone, Flavor, \
-    FlavorExtraSpec
-from . import tasks
-from .utils import custom_exception_handler, _add_edges, process_resource_type
+from .models import Image, ServerGroup, NovaLimits, Host, resource_types, \
+    Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server, \
+    AvailabilityZone, Flavor, FlavorExtraSpec, Interface
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
@@ -569,3 +561,133 @@ class ResourceTypesTests(SimpleTestCase):
               HYPERVISOR,
               1,
               partial(_dictassign, HYPERVISOR, "hypervisor_hostname"))
+
+    def test_hypervisor_server(self):
+        """Test the Hypervisor - Server entry."""
+
+        # Test data.
+        HYPERVISOR = {u'cpu_info':
+                      u'{"vendor": "Intel", "model": "Westmere", '
+                      u'"arch": "x86_64", '
+                      u'"features": ["tsc-deadline", "dtes64", "vmx", "erms", '
+                      u'"xtpr", "smep", "est", "monitor", "3dnowprefetch", '
+                      u'"tm", "pclmuldq", "acpi", "vme", "tm2", "ht", "pdcm", '
+                      u'"ds", "invtsc", "rdtscp", "ss", "pbe", "ds_cpl", '
+                      u'"movbe", "rdrand"], "topology": {"cores": 8, '
+                      u'"threads": 1, "sockets": 1}}',
+                      u'current_workload': 0,
+                      u'disk_available_least': 1,
+                      u'free_disk_gb': 7,
+                      u'free_ram_mb': 10304,
+                      u'host_ip': u'10.10.20.21',
+                      u'hypervisor_hostname': u'john.solinea.com',
+                      u'hypervisor_type': u'QEMU',
+                      u'hypervisor_version': 12001,
+                      u'id': 1,
+                      u'local_gb': 49,
+                      u'local_gb_used': 42,
+                      u'memory_mb': 15936,
+                      u'memory_mb_used': 5632,
+                      u'running_vms': 4,
+                      u'service': {u'host': u'rsrc-02.c2.oak.solinea.com',
+                                   u'id': 5},
+                      u'vcpus': 8,
+                      u'vcpus_used': 4}
+
+        SERVER = {u'OS-DCF:diskConfig': u'MANUAL',
+                  u'OS-EXT-AZ:availability_zone': u'nova',
+                  u'OS-EXT-SRV-ATTR:host': u'john.oak.solinea.com',
+                  u'OS-EXT-SRV-ATTR:hypervisor_hostname':
+                  u'john.oak.solinea.com',
+                  u'OS-EXT-SRV-ATTR:instance_name': u'instance-00000001',
+                  u'OS-EXT-STS:power_state': 4,
+                  u'OS-EXT-STS:task_state': None,
+                  u'OS-EXT-STS:vm_state': u'stopped',
+                  u'OS-SRV-USG:launched_at': u'2015-01-26T14:01:37.000000',
+                  u'OS-SRV-USG:terminated_at': None,
+                  u'accessIPv4': u'',
+                  u'accessIPv6': u'',
+                  u'addresses':
+                  {u'demo-net':
+                   [{u'OS-EXT-IPS-MAC:mac_addr': u'fa:00:00:7f:2a:00',
+                     u'OS-EXT-IPS:type': u'fixed',
+                     u'addr': u'192.168.1.1',
+                     u'version': 4},
+                    {u'OS-EXT-IPS-MAC:mac_addr': u'fa:00:00:7f:2a:00',
+                     u'OS-EXT-IPS:type': u'floating',
+                     u'addr': u'10.11.12.13',
+                     u'version': 4}]},
+                  u'config_drive': u'',
+                  u'created': u'2015-01-26T14:00:42Z',
+                  u'flavor': {u'id': u'1',
+                              u'links':
+                              [{u'href':
+                                u'http://10.11.12.13:8774/'
+                                u'7077765ed0df43b1b23d43c9c290daf9/flavors/1',
+                                u'rel': u'bookmark'}]},
+                  u'hostId':
+                  u'78f689fe281dbb1deb8e42ac188a9734faf430ddc905b556b74f6144',
+                  u'id': u'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+                  u'image': {u'id': u'0ae46ce1-80e5-447e-b0e8-9eeec81af920',
+                             u'links':
+                             [{u'href':
+                               u'http://10.11.12.13:8774/'
+                               u'7077765ed0df43b1b23d43c9c290daf9/'
+                               u'images/0ae46ce1-80e5-447e-b0e8-9eeec81af920',
+                               u'rel': u'bookmark'}]},
+                  u'key_name': None,
+                  u'links':
+                  [{u'href':
+                    u'http://10.10.20.10:8774/v2/7077765ed0df43b1b23d'
+                    u'43c9c290daf9/servers/'
+                    u'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+                    u'rel': u'self'},
+                   {u'href':
+                    u'http://10.10.20.10:8774/7077765ed0df43'
+                    u'b1b23d43c9c290daf9/servers/ee662ff5-3de6-46cb-'
+                    u'8b85-4eb4317beb7c',
+                    u'rel': u'bookmark'}],
+                  u'metadata': {},
+                  u'name': u'instance2',
+                  u'os-extended-volumes:volumes_attached': [],
+                  u'security_groups': [{u'name': u'default'}],
+                  u'status': u'SHUTOFF',
+                  u'tenant_id': u'56762288eea24ab08a3b6d06f5a37c14',
+                  u'updated': u'2015-03-04T01:27:22Z',
+                  u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
+
+        _test(Hypervisor,
+              HYPERVISOR,
+              1,
+              partial(_dictassign, HYPERVISOR, "id"),
+              Server,
+              SERVER,
+              'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+              partial(_dictassign,
+                      SERVER,
+                      "OS-EXT-SRV-ATTR:hypervisor_hostname"))
+
+    def test_interface_port(self):
+        """Test the Interface - Port entry."""
+
+        # Test data.
+        INTERFACE = {u'fixed_ips':
+                     [{u'ip_address': u'192.168.1.111',
+                       u'subnet_id': u'623ed5a0-785b-4a8a-94a1-a96dd8679f1c'}],
+                     u'mac_addr': u'fa:16:3e:00:11:22',
+                     u'net_id': u'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
+                     u'port_id': u'f3f6cd1a-b199-4d67-9266-8d69ac1fb46b',
+                     u'port_state': u'ACTIVE'}
+
+        PORT = {}
+
+        _test(Interface,
+              INTERFACE,
+              1,
+              partial(_dictassign, INTERFACE, "id"),
+              Port,
+              PORT,
+              'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+              partial(_dictassign,
+                      PORT,
+                      "OS-EXT-SRV-ATTR:hypervisor_hostname"))
