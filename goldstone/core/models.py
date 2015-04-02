@@ -451,7 +451,7 @@ class Host(PolyResource):
         result = []
 
         for host in hosts:
-            parsed_name = self._parse_host_name(host["host_name"])[0]
+            parsed_name = Host._parse_host_name(host["host_name"])[0]
 
             if all(x["host_name"] != parsed_name for x in result):
                 # This is a new entry for the result set.
@@ -1132,7 +1132,6 @@ class ResourceTypes(Graph):
                   EDGE_ATTRIBUTES: {TYPE: OWNS,
                                     MIN: 0,
                                     MAX: sys.maxint,
-                                    MATCHING_FN:
                                     # Deferred for now. Suspect some code will
                                     # need to be ripped up to find this edge,
                                     # because metadata hang off of server
