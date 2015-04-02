@@ -38,6 +38,68 @@ TYPE = settings.R_ATTRIBUTE.TYPE
 MATCHING_FN = settings.R_ATTRIBUTE.MATCHING_FN
 
 
+def _test(type_from, data_from, identity_from, key_from,
+          type_to, data_to, identity_to, key_to):
+    """Test two resource_types nodes.
+
+    This function modifies data_from and to_from.
+
+    :param type_from: The type of the "from" node in the resource_types graph
+    :type type_from: PolyResource subclass
+    :param data_from: Type_from's initial test data.
+    :type data_from: dict
+    :param identity_from: The identity() value against which to test
+    :type identity_from: str
+    :param key_from: The key to modify for the matching_fn tests
+    :type key_from: str
+    :param type_to: The type of the "to" node in the resource_types graph
+    :type type_to: PolyResource subclass
+    :param data_to: Type_to's initial test data.
+    :type data_to: dict
+    :param identity_to: The identity() value against which to test
+    :type identity_to: str
+    :param key_to: The key to modify for the matching_fn tests
+    :type key_to: str
+
+    """
+
+    # Test identity method.
+    assert type_from.identity(data_from) == identity_from
+    assert type_to.identity(data_to) == identity_to
+
+    # Test edge discovery.
+    edges = resource_types.graph.out_edges(type_from, data=True)
+    edge = [x for x in edges if x[1] == type_to][0][2]
+
+    # Test both being None
+    data_from[key_from] = None
+    data_to[key_to] = None
+    assert not edge[MATCHING_FN](data_from, data_to)
+
+    # Test one missing
+    data_from[key_from] = "42"
+    del data_to[key_to]
+    assert not edge[MATCHING_FN](data_from, data_to)
+
+    del data_from[key_from]
+    data_to[key_to] = "42"
+    assert not edge[MATCHING_FN](data_from, data_to)
+
+    # Test both missing
+    del data_to[key_to]
+    assert not edge[MATCHING_FN](data_from, data_to)
+
+    # Test no match
+    data_from[key_from] = "4445"
+    data_to[key_to] = "4444"
+    assert not edge[MATCHING_FN](data_from, data_to)
+
+    # Test match
+    data_from[key_from] = "4445"
+    data_to[key_to] = "4445"
+    assert edge[MATCHING_FN](data_from, data_to)
+
+
 class ResourceTypesTests(SimpleTestCase):
     """Test each entry in ResourceTypes.EDGES, in particular the matching_fn
     functions."""
@@ -127,42 +189,14 @@ class ResourceTypesTests(SimpleTestCase):
                   u'updated': u'2015-03-04T01:27:22Z',
                   u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
 
-        # Test identity method.
-        self.assertEqual(Image.identity(IMAGE),
-                         '0ae46ce1-80e5-447e-b0e8-9eeec81af920')
-        self.assertEqual(Image.identity(SERVER),
-                         'ee662ff5-3de6-46cb-8b85-4eb4317beb7c')
-
-        # Test edge discovery.
-        edge = resource_types.graph.out_edges(Image, data=True)[0][2]
-        
-        # Test both being None
-        IMAGE["id"] = None
-        SERVER["id"] = None
-        self.assertFalse(edge[MATCHING_FN](IMAGE, SERVER))
-
-        # Test one missing
-        IMAGE["id"] = "42"
-        del SERVER["id"]
-        self.assertFalse(edge[MATCHING_FN](IMAGE, SERVER))
-
-        del IMAGE["id"]
-        SERVER["id"] = "42"
-        self.assertFalse(edge[MATCHING_FN](IMAGE, SERVER))
-
-        # Test both missing
-        del SERVER["id"]
-        self.assertFalse(edge[MATCHING_FN](IMAGE, SERVER))
-
-        # Test no match
-        IMAGE["id"] = "4445"
-        SERVER["id"] = "4444"
-        self.assertFalse(edge[MATCHING_FN](IMAGE, SERVER))
-
-        # Test match
-        IMAGE["id"] = "4445"
-        SERVER["id"] = "4445"
-        self.assertTrue(edge[MATCHING_FN](IMAGE, SERVER))
+        _test(Image,
+              IMAGE,
+              '0ae46ce1-80e5-447e-b0e8-9eeec81af920',
+              "id",
+              Server,
+              SERVER,
+              'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+              "id")
 
     def test_availability_zone_aggregate(self):
         """Test the AvailabilityZone - Aggregate entry."""
@@ -201,42 +235,14 @@ class ResourceTypesTests(SimpleTestCase):
                      u'name': u'test-aggregate1',
                      u'updated_at': None}
 
-        # Test identity method.
-        self.assertEqual(AvailabilityZone.identity(AVAILABILITY_ZONE),
-                         "internal")
-        self.assertEqual(Aggregate.identity(AGGREGATE), 'test-aggregate1')
-
-        # Test edge discovery.
-        edges = resource_types.graph.out_edges(AvailabilityZone, data=True)
-        edge = [x for x in edges if x[1] == Aggregate][0][2]
-
-        # Test both being None
-        AVAILABILITY_ZONE["zoneName"] = None
-        AGGREGATE["availability_zone"] = None
-        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, AGGREGATE))
-
-        # Test one missing
-        AVAILABILITY_ZONE["zoneName"] = "42"
-        del AGGREGATE["availability_zone"]
-        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, AGGREGATE))
-
-        del AVAILABILITY_ZONE["zoneName"]
-        AGGREGATE["availability_zone"] = "42"
-        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, AGGREGATE))
-
-        # Test both missing
-        del AGGREGATE["availability_zone"]
-        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, AGGREGATE))
-
-        # Test no match
-        AVAILABILITY_ZONE["zoneName"] = "4445"
-        AGGREGATE["availability_zone"] = "4444"
-        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, AGGREGATE))
-
-        # Test match
-        AVAILABILITY_ZONE["zoneName"] = "4445"
-        AGGREGATE["availability_zone"] = "4445"
-        self.assertTrue(edge[MATCHING_FN](AVAILABILITY_ZONE, AGGREGATE))
+        _test(AvailabilityZone,
+              AVAILABILITY_ZONE,
+              "internal",
+              "zoneName",
+              Aggregate,
+              AGGREGATE,
+              'test-aggregate1',
+              "availability_zone")
 
     def test_availability_zone_host(self):
         """Test the AvailabilityZone - Host entry."""
@@ -267,40 +273,11 @@ class ResourceTypesTests(SimpleTestCase):
 
         HOST = {u'host_name': u'ctrl-01', u'zone': u'internal'}
 
-        # Test identity method.
-        self.assertEqual(AvailabilityZone.identity(AVAILABILITY_ZONE),
-                         "internal")
-        self.assertEqual(Host.identity(HOST), 'ctrl-01')
-
-        # Test edge discovery.
-        edges = resource_types.graph.out_edges(AvailabilityZone, data=True)
-        edge = [x for x in edges if x[1] == Host][0][2]
-
-        # Test both being None
-        AVAILABILITY_ZONE["zoneName"] = None
-        HOST["zone"] = None
-        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, HOST))
-
-        # Test one missing
-        AVAILABILITY_ZONE["zoneName"] = "42"
-        del HOST["zone"]
-        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, HOST))
-
-        del AVAILABILITY_ZONE["zoneName"]
-        HOST["zone"] = "42"
-        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, HOST))
-
-        # Test both missing
-        del HOST["zone"]
-        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, HOST))
-
-        # Test no match
-        AVAILABILITY_ZONE["zoneName"] = "4445"
-        HOST["zone"] = "4444"
-        self.assertFalse(edge[MATCHING_FN](AVAILABILITY_ZONE, HOST))
-
-        # Test match
-        AVAILABILITY_ZONE["zoneName"] = "4445"
-        HOST["zone"] = "4445"
-        self.assertTrue(edge[MATCHING_FN](AVAILABILITY_ZONE, HOST))
-
+        _test(AvailabilityZone,
+              AVAILABILITY_ZONE,
+              "internal",
+              "zoneName",
+              Host,
+              HOST,
+              'ctrl-01',
+              "zone")
