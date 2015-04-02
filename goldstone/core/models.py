@@ -1230,15 +1230,18 @@ class ResourceTypes(Graph):
     #       MAX: A resource graph node has a maximum number of this edge type
     #       MATCHING_FN: Callable(from_attr_dict, to_attr_dict).  If there's a
     #                    match between the from_node's and to_node's attribute
-    #                    dicts, we draw a Resource graph edge.
+    #                    dicts, we draw a Resource graph edge. Note: This
+    #                    must be prepared for absent keys, and not throw
+    #                    exceptions.
     EDGES = {
         # From Glance nodes
         Image: [{TO: Server,
-                 EDGE_ATTRIBUTES: {TYPE: DEFINES,
-                                   MIN: 0,
-                                   MAX: sys.maxint,
-                                   MATCHING_FN:
-                                   lambda f, t: f.get("id") == t.get("id")}}],
+                 EDGE_ATTRIBUTES:
+                 {TYPE: DEFINES,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}}],
 
         # From Keystone nodes
         Credential: [{TO: Project,
@@ -1252,101 +1255,117 @@ class ResourceTypes(Graph):
         Endpoint: [{TO: Service,
                     EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}}],
         Project: [{TO: Image,
-                   EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
-                                     MIN: 0,
-                                     MAX: sys.maxint,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: MEMBER_OF,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   {TO: Keypair,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                     MIN: 0,
-                                     MAX: sys.maxint,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   {TO: NovaLimits,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                     MIN: 1,
-                                     MAX: 1,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 1,
+                    MAX: 1,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   {TO: NovaQuotaSet,
-                   EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO,
-                                     MIN: 0,
-                                     MAX: sys.maxint,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: SUBSCRIBED_TO,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   {TO: RootCert,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                     MIN: 0,
-                                     MAX: 1,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: 1,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   {TO: Server,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                     MIN: 1,
-                                     MAX: sys.maxint,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 1,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   {TO: MeteringLabel,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                     MIN: 0,
-                                     MAX: sys.maxint,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   {TO: NeutronQuota,
-                   EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO,
-                                     MIN: 1,
-                                     MAX: 1,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: SUBSCRIBED_TO,
+                    MIN: 1,
+                    MAX: 1,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   {TO: Network,
-                   EDGE_ATTRIBUTES: {TYPE: USES,
-                                     MIN: 0,
-                                     MAX: sys.maxint,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: USES,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   {TO: Network,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                     MIN: 0,
-                                     MAX: sys.maxint,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   {TO: Subnet,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                     MIN: 0,
-                                     MAX: sys.maxint,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   {TO: LBMember,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                     MIN: 0,
-                                     MAX: sys.maxint,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   {TO: HealthMonitor,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                     MIN: 0,
-                                     MAX: sys.maxint,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   {TO: LBVIP,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                     MIN: 0,
-                                     MAX: sys.maxint,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   {TO: Port,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                     MIN: 0,
-                                     MAX: sys.maxint,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   {TO: SecurityRules,
-                   EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                     MIN: 0,
-                                     MAX: sys.maxint,
-                                     MATCHING_FN:
-                                     lambda f, t: f.get("id") == t.get("id")}},
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   ],
         Region: [{TO: AvailabilityZone,
                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
@@ -1435,52 +1454,59 @@ class ResourceTypes(Graph):
               MIN: 0,
               MAX: sys.maxint,
               MATCHING_FN:
-              lambda f, t: f.get("zoneName") == t.get("availability_zone")}},
+              lambda f, t:
+              f.get("zoneName") and
+              f.get("zoneName") == t.get("availability_zone")}},
             {TO: Host,
              EDGE_ATTRIBUTES:
              {TYPE: OWNS,
               MIN: 0,
               MAX: sys.maxint,
               MATCHING_FN:
-              lambda f, t: f.get("zoneName") == t.get("zone")}}],
-        Cloudpipe: [{TO: Server,
-                     EDGE_ATTRIBUTES:
-                     {TYPE: INSTANCE_OF,
-                      MIN: 1,
-                      MAX: 1,
-                      MATCHING_FN:
-                      lambda f, t: f.get("id") == t.get("id")}}],
-        Flavor: [{TO: FlavorExtraSpec,
-                  EDGE_ATTRIBUTES:
-                  {TYPE: OWNS,
-                   MIN: 0,
-                   MAX: sys.maxint,
-                   MATCHING_FN:
-                   lambda f, t: f.get("name") == t.get("name")}},
-                 {TO: Server,
-                  EDGE_ATTRIBUTES:
-                  {TYPE: DEFINES,
-                   MIN: 0,
-                   MAX: sys.maxint,
-                   MATCHING_FN:
-                   lambda f, t: f.get("id") == t.get("flavor",
-                                                     {}).get("id")}}],
-
-        Host: [{TO: Aggregate,
-                EDGE_ATTRIBUTES:
-                {TYPE: MEMBER_OF,
-                 MIN: 0,
-                 MAX: sys.maxint,
-                 MATCHING_FN:
-                 lambda f, t: f.get("host_name") in t.get("name", [])}},
-               {TO: Hypervisor,
-                EDGE_ATTRIBUTES:
-                {TYPE: OWNS,
-                 MIN: 0,
-                 MAX: 1,
-                 MATCHING_FN:
-                 lambda f, t:
-                 f.get("host_name") == t.get("hypervisor_hostname")}}],
+              lambda f, t:
+              f.get("zoneName") and f.get("zoneName") == t.get("zone")}}],
+        Cloudpipe: [
+            {TO: Server,
+             EDGE_ATTRIBUTES:
+             {TYPE: INSTANCE_OF,
+              MIN: 1,
+              MAX: 1,
+              MATCHING_FN:
+              lambda f, t: f.get("id") and f.get("id") == t.get("id")}}],
+        Flavor: [
+            {TO: FlavorExtraSpec,
+             EDGE_ATTRIBUTES:
+             {TYPE: OWNS,
+              MIN: 0,
+              MAX: sys.maxint,
+              MATCHING_FN:
+              lambda f, t:
+              f.get("name") and f.get("name") == t.get("name")}},
+            {TO: Server,
+             EDGE_ATTRIBUTES:
+             {TYPE: DEFINES,
+              MIN: 0,
+              MAX: sys.maxint,
+              MATCHING_FN:
+              lambda f, t:
+              f.get("id") and f.get("id") == t.get("flavor", {}).get("id")}}],
+        Host: [
+            {TO: Aggregate,
+             EDGE_ATTRIBUTES:
+             {TYPE: MEMBER_OF,
+              MIN: 0,
+              MAX: sys.maxint,
+              MATCHING_FN:
+              lambda f, t: f.get("host_name") in t.get("name", [])}},
+            {TO: Hypervisor,
+             EDGE_ATTRIBUTES:
+             {TYPE: OWNS,
+              MIN: 0,
+              MAX: 1,
+              MATCHING_FN:
+              lambda f, t:
+              f.get("host_name") and
+              f.get("host_name") == t.get("hypervisor_hostname")}}],
         Hypervisor: [
             {TO: Server,
              EDGE_ATTRIBUTES:
@@ -1489,17 +1515,20 @@ class ResourceTypes(Graph):
               MAX: sys.maxint,
               MATCHING_FN:
               lambda f, t:
+              f.get("id") and
               f.get("id") == t.get("OS-EXT-SRV-ATTR:hypervisor_hostname")}},
         ],
-        Interface: [{TO: Port,
-                     EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
-                                       MIN: 0,
-                                       MAX: 1,
-                                       MATCHING_FN:
-                                       lambda f, t:
-                                       any(entry.to_dict().get("net_id") ==
-                                           t["network_id"]
-                                           for entry in f)}}],
+        Interface: [
+            {TO: Port,
+             EDGE_ATTRIBUTES:
+             {TYPE: ATTACHED_TO,
+              MIN: 0,
+              MAX: 1,
+              MATCHING_FN:
+              lambda f, t:
+              t["network_id"] and
+              any(entry.to_dict().get("net_id") == t["network_id"]
+                  for entry in f)}}],
         Keypair: [{TO: Server,
                    EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
                                      MIN: 0,
