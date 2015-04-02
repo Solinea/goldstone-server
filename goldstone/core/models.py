@@ -660,7 +660,7 @@ class Hypervisor(PolyResource):
 
         """
 
-        return thing.get("hypervisor_hostname")
+        return thing.get("id")
 
 
 class Cloudpipe(PolyResource):
@@ -1496,7 +1496,8 @@ class ResourceTypes(Graph):
               MIN: 0,
               MAX: sys.maxint,
               MATCHING_FN:
-              lambda f, t: f.get("host_name") in t.get("name", [])}},
+              lambda f, t: f.get("host_name") and
+              f.get("host_name") in t.get("hosts", [])}},
             {TO: Hypervisor,
              EDGE_ATTRIBUTES:
              {TYPE: OWNS,
