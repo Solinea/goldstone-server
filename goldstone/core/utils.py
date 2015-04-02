@@ -152,48 +152,21 @@ def _add_edges(node):
 
     """
 
-    def find_match(edge, neighbor_type, to_fn):
-        """Find the one node that matches the desired attribute, and add an
-        edge to it from the source node.
-
-        :param edge: An edge, as returned from the resource graph
-        :type edge: 3-tuple
-        :param neighbor_type: The type of the desired destination node
-        :type neighbor_type: PolyResource subclass
-        :param to_fn: The matching attribute function for the "to" node we're
-                      hunting
-        :type to_fn: Callable with one parameter
-        :return: An indication of success (True) or failure (False)
-        :rtype: bool
-
-        """
+    # For every possible edge from this node...
+    for edge in resource_types.graph.out_edges(node.resourcetype, data=True):
+        # This is the desired neighbor's type and matching function for this
+        # edge.
+        neighbor_type = edge[1]
+        match_fn = edge[2][MATCHING_FN]
 
         # For all nodes that are of the desired type...
         for candidate in resources.nodes_of_type(neighbor_type):
-            if to_fn(candidate.attributes) == node_attribute_value:
+            if match_fn(node.attributes, candidate.attributes):
                 # We have a match! Create the edge from the node to this
-                # candidate, and return Success.
+                # candidate.
                 resources.graph.add_edge(node,
                                          candidate,
                                          attr_dict={TYPE: edge[2][TYPE]})
-                return True
-
-        return False
-
-    # For every possible edge from this node...
-    for edge in resource_types.graph.out_edges(node.resourcetype, data=True):
-        # For this edge, this is the neighbor's type.
-        neighbor_type = edge[1]
-
-        from_fn, to_fn = edge[2][MATCHING_FN]
-
-        # Get this (a "from") node's matching attribute that we're to look for.
-        node_attribute_value = from_fn(node.attributes)
-
-        # Find the first resource node that's a match.
-        if find_match(edge, neighbor_type, to_fn):
-            # Success! Iterate to the next edge.
-            continue
 
 
 def process_resource_type(nodetype):
@@ -219,15 +192,12 @@ def process_resource_type(nodetype):
     # edge's destination node's matching_attributes' source key value, and look
     # for a match in the resource graph.
     resource_nodes = resources.nodes_of_type(nodetype)
-    source_fn = \
-        resource_types.graph.out_edges(nodetype,
-                                       data=True)[0][2][MATCHING_FN][0]
-    actual_cloud_instances = set([source_fn(x) for x in actual if x])
+    actual_cloud_instances = set([nodetype.identity(x) for x in actual if x])
 
     # For every node of this type in the resource graph...
     for entry in resource_nodes:
         # Check this node's identifying attribute value.
-        if source_fn(entry.attributes) not in actual_cloud_instances:
+        if nodetype.identity(entry.attributes) not in actual_cloud_instances:
             # This node does not appear to be in the cloud anymore. Delete it.
             resources.graph.remove_node(entry)
             nodetype.objects.get(uuid=entry.uuid).delete()
@@ -243,11 +213,13 @@ def process_resource_type(nodetype):
     # For every current node of the desired nodetype, having an identifying
     # attribute that's present...
     for entry in actual:
-        source_value = source_fn(entry)
+        source_value = nodetype.identity(entry)
 
         if source_value:
             # Try to find its corresponding Resource graph node.
-            node = resources.locate(resource_nodes, source_fn, source_value)
+            node = resources.locate(resource_nodes,
+                                    nodetype.identity,
+                                    source_value)
 
             if node:
                 # This resource node corresponds to this cloud service. Update
