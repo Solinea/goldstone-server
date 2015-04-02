@@ -744,12 +744,16 @@ class Port(PolyResource):
         :rtype: Iterable or generator of dict
 
         """
+        from goldstone.utils import get_cloud
         from neutronclient.v2_0 import client as neclient
 
-        client = neclient.Client(username=os_username,
-                                 password=os_password,
-                                 tenant_name=os_tenant_name,
-                                 auth_url=os_auth_url)
+        # Get the one and only one Cloud row in the system
+        row = get_cloud()
+
+        client = neclient.Client(username=row.username,
+                                 password=row.password,
+                                 tenant_name=row.tenant_name,
+                                 auth_url=row.auth_url)
 
         return client.list_ports()["ports"]
 
