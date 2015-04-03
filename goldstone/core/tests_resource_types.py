@@ -18,7 +18,8 @@ from functools import partial
 
 from .models import Image, ServerGroup, NovaLimits, Host, resource_types, \
     Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server, \
-    AvailabilityZone, Flavor, FlavorExtraSpec, Interface, Keypair
+    AvailabilityZone, Flavor, FlavorExtraSpec, Interface, Keypair, \
+    NovaQuotaClass, NovaQuotaSet
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
@@ -352,7 +353,6 @@ class ResourceTypesTests(SimpleTestCase):
 
         # TODO: Write this test. Couldn't make a cloudpipe today, for some odd
         # reason.
-        pass
 
     def test_flavor_flavorextraspec(self):
         """Test the Flavor - FlavorExtraSpec entry."""
@@ -474,8 +474,8 @@ class ResourceTypesTests(SimpleTestCase):
                   u'updated': u'2015-03-04T01:27:22Z',
                   u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
 
-        def _serverassign(value):
-            """A callable that loads a server dict's identity with value."""
+        def serverassign(value):
+            """Store value into the server dict's matching attribute."""
 
             SERVER["flavor"]["id"] = value
 
@@ -486,7 +486,7 @@ class ResourceTypesTests(SimpleTestCase):
               Server,
               SERVER,
               'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-              _serverassign)
+              serverassign)
 
     def test_host_aggregate(self):
         """Test the Host - Aggregate entry."""
@@ -504,9 +504,8 @@ class ResourceTypesTests(SimpleTestCase):
                      u'name': u'test-aggregate1',
                      u'updated_at': None}
 
-        def _aggregateassign(value):
-            """A callable that loads an aggregate dict's identity with
-            value."""
+        def aggregateassign(value):
+            """Load value into the aggregate dict's matching attribute."""
 
             AGGREGATE["hosts"] = ["bob", "marley", value]
 
@@ -517,7 +516,7 @@ class ResourceTypesTests(SimpleTestCase):
               Aggregate,
               AGGREGATE,
               'test-aggregate1',
-              _aggregateassign)
+              aggregateassign)
 
     def test_host_hypervisor(self):
         """Test the Host - Hypervisor entry."""
@@ -791,8 +790,8 @@ class ResourceTypesTests(SimpleTestCase):
         # I think any public keypair can be used on any server. So, _test()
         # will fail on the "no match" test. So, we'll do all the testing here,
         # except for the no-match test.
-
-        #Test identity method.
+        #
+        # Test identity method.
         self.assertEqual(Keypair.identity(KEYPAIR),
                          'fa:73:23:78:1f:8c:10:bb:25:0f:6f:5e:25:62:14:c7')
         self.assertEqual(Server.identity(SERVER),
@@ -814,3 +813,254 @@ class ResourceTypesTests(SimpleTestCase):
         _dictassign(KEYPAIR, "fingerprint", "4445")
         _dictassign(SERVER, "OS-EXT-SRV-ATTR:hypervisor_hostname", "4445")
         self.assertTrue(edge[MATCHING_FN](KEYPAIR, SERVER))
+
+    def test_quotaclass_quotaset(self):
+        """Test the NovaQuotaClass - NovaQuotaSet entry."""
+
+        # TODO: Fill in after the classes are definecd.
+        pass
+
+    def test_server_interface(self):
+        """Test the Server - Interface entry."""
+
+        # Test data.
+        SERVER = {u'OS-DCF:diskConfig': u'MANUAL',
+                  u'OS-EXT-AZ:availability_zone': u'nova',
+                  u'OS-EXT-SRV-ATTR:host': u'john.oak.solinea.com',
+                  u'OS-EXT-SRV-ATTR:hypervisor_hostname':
+                  u'john.oak.solinea.com',
+                  u'OS-EXT-SRV-ATTR:instance_name': u'instance-00000001',
+                  u'OS-EXT-STS:power_state': 4,
+                  u'OS-EXT-STS:task_state': None,
+                  u'OS-EXT-STS:vm_state': u'stopped',
+                  u'OS-SRV-USG:launched_at': u'2015-01-26T14:01:37.000000',
+                  u'OS-SRV-USG:terminated_at': None,
+                  u'accessIPv4': u'',
+                  u'accessIPv6': u'',
+                  u'addresses':
+                  {u'demo-net':
+                   [{u'OS-EXT-IPS-MAC:mac_addr': u'fa:00:00:7f:2a:00',
+                     u'OS-EXT-IPS:type': u'fixed',
+                     u'addr': u'192.168.1.1',
+                     u'version': 4},
+                    {u'OS-EXT-IPS-MAC:mac_addr': u'fa:00:00:7f:2a:00',
+                     u'OS-EXT-IPS:type': u'floating',
+                     u'addr': u'10.11.12.13',
+                     u'version': 4}]},
+                  u'config_drive': u'',
+                  u'created': u'2015-01-26T14:00:42Z',
+                  u'flavor': {u'id': u'1',
+                              u'links':
+                              [{u'href':
+                                u'http://10.11.12.13:8774/'
+                                u'7077765ed0df43b1b23d43c9c290daf9/flavors/1',
+                                u'rel': u'bookmark'}]},
+                  u'hostId':
+                  u'78f689fe281dbb1deb8e42ac188a9734faf430ddc905b556b74f6144',
+                  u'id': u'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+                  u'image': {u'id': u'0ae46ce1-80e5-447e-b0e8-9eeec81af920',
+                             u'links':
+                             [{u'href':
+                               u'http://10.11.12.13:8774/'
+                               u'7077765ed0df43b1b23d43c9c290daf9/'
+                               u'images/0ae46ce1-80e5-447e-b0e8-9eeec81af920',
+                               u'rel': u'bookmark'}]},
+                  u'key_name': None,
+                  u'links':
+                  [{u'href':
+                    u'http://10.10.20.10:8774/v2/7077765ed0df43b1b23d'
+                    u'43c9c290daf9/servers/'
+                    u'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+                    u'rel': u'self'},
+                   {u'href':
+                    u'http://10.10.20.10:8774/7077765ed0df43'
+                    u'b1b23d43c9c290daf9/servers/ee662ff5-3de6-46cb-'
+                    u'8b85-4eb4317beb7c',
+                    u'rel': u'bookmark'}],
+                  u'metadata': {},
+                  u'name': u'instance2',
+                  u'os-extended-volumes:volumes_attached': [],
+                  u'security_groups': [{u'name': u'default'}],
+                  u'status': u'SHUTOFF',
+                  u'tenant_id': u'56762288eea24ab08a3b6d06f5a37c14',
+                  u'updated': u'2015-03-04T01:27:22Z',
+                  u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
+
+        INTERFACE = {u'fixed_ips':
+                     [{u'ip_address': u'192.168.1.111',
+                       u'subnet_id': u'623ed5a0-785b-4a8a-94a1-a96dd8679f1c'}],
+                     u'mac_addr': u'fa:16:3e:00:11:22',
+                     u'net_id': u'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
+                     u'port_id': u'f3f6cd1a-b199-4d67-9266-8d69ac1fb46b',
+                     u'port_state': u'ACTIVE'}
+
+        def serverassign(value):
+            """Store value into the server dict's matching attribute."""
+
+            SERVER["addresses"]["demo-net"][0]["OS-EXT-IPS-MAC:mac_addr"] = \
+                value
+
+        _test(Server,
+              SERVER,
+              'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+              serverassign,
+              Interface,
+              INTERFACE,
+              'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
+              partial(_dictassign, INTERFACE, "mac_addr"))
+
+    def test_server_servergroup(self):
+        """Test the Server - ServerGroup entry."""
+
+        # Test data.
+        SERVER = {u'OS-DCF:diskConfig': u'MANUAL',
+                  u'OS-EXT-AZ:availability_zone': u'nova',
+                  u'OS-EXT-SRV-ATTR:host': u'john.oak.solinea.com',
+                  u'OS-EXT-SRV-ATTR:hypervisor_hostname':
+                  u'john.oak.solinea.com',
+                  u'OS-EXT-SRV-ATTR:instance_name': u'instance-00000001',
+                  u'OS-EXT-STS:power_state': 4,
+                  u'OS-EXT-STS:task_state': None,
+                  u'OS-EXT-STS:vm_state': u'stopped',
+                  u'OS-SRV-USG:launched_at': u'2015-01-26T14:01:37.000000',
+                  u'OS-SRV-USG:terminated_at': None,
+                  u'accessIPv4': u'',
+                  u'accessIPv6': u'',
+                  u'addresses':
+                  {u'demo-net':
+                   [{u'OS-EXT-IPS-MAC:mac_addr': u'fa:00:00:7f:2a:00',
+                     u'OS-EXT-IPS:type': u'fixed',
+                     u'addr': u'192.168.1.1',
+                     u'version': 4},
+                    {u'OS-EXT-IPS-MAC:mac_addr': u'fa:00:00:7f:2a:00',
+                     u'OS-EXT-IPS:type': u'floating',
+                     u'addr': u'10.11.12.13',
+                     u'version': 4}]},
+                  u'config_drive': u'',
+                  u'created': u'2015-01-26T14:00:42Z',
+                  u'flavor': {u'id': u'1',
+                              u'links':
+                              [{u'href':
+                                u'http://10.11.12.13:8774/'
+                                u'7077765ed0df43b1b23d43c9c290daf9/flavors/1',
+                                u'rel': u'bookmark'}]},
+                  u'hostId':
+                  u'78f689fe281dbb1deb8e42ac188a9734faf430ddc905b556b74f6144',
+                  u'id': u'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+                  u'image': {u'id': u'0ae46ce1-80e5-447e-b0e8-9eeec81af920',
+                             u'links':
+                             [{u'href':
+                               u'http://10.11.12.13:8774/'
+                               u'7077765ed0df43b1b23d43c9c290daf9/'
+                               u'images/0ae46ce1-80e5-447e-b0e8-9eeec81af920',
+                               u'rel': u'bookmark'}]},
+                  u'key_name': None,
+                  u'links':
+                  [{u'href':
+                    u'http://10.10.20.10:8774/v2/7077765ed0df43b1b23d'
+                    u'43c9c290daf9/servers/'
+                    u'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+                    u'rel': u'self'},
+                   {u'href':
+                    u'http://10.10.20.10:8774/7077765ed0df43'
+                    u'b1b23d43c9c290daf9/servers/ee662ff5-3de6-46cb-'
+                    u'8b85-4eb4317beb7c',
+                    u'rel': u'bookmark'}],
+                  u'metadata': {},
+                  u'name': u'instance2',
+                  u'os-extended-volumes:volumes_attached': [],
+                  u'security_groups': [{u'name': u'default'}],
+                  u'status': u'SHUTOFF',
+                  u'tenant_id': u'56762288eea24ab08a3b6d06f5a37c14',
+                  u'updated': u'2015-03-04T01:27:22Z',
+                  u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
+
+        SERVERGROUP = {u'id': u'ef50ce1c-01a9-4b41-a1cb-3a60c84ae1dd',
+                       u'members': [],
+                       u'metadata': {},
+                       u'name': u'derosa',
+                       u'policies': [u'affinity']}
+
+        def servergroupassign(value):
+            """Store value into the servergroup dict's matching attribute."""
+
+            SERVERGROUP["members"].append(value)
+
+        _test(Server,
+              SERVER,
+              'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+              partial(_dictassign, SERVER, "hostId"),
+              ServerGroup,
+              SERVERGROUP,
+              'ef50ce1c-01a9-4b41-a1cb-3a60c84ae1dd',
+              servergroupassign)
+
+    def test_server_servermetadata(self):
+        """Test the Server - ServerMetadata entry."""
+
+        # Test data.
+        SERVER = {u'OS-DCF:diskConfig': u'MANUAL',
+                  u'OS-EXT-AZ:availability_zone': u'nova',
+                  u'OS-EXT-SRV-ATTR:host': u'john.oak.solinea.com',
+                  u'OS-EXT-SRV-ATTR:hypervisor_hostname':
+                  u'john.oak.solinea.com',
+                  u'OS-EXT-SRV-ATTR:instance_name': u'instance-00000001',
+                  u'OS-EXT-STS:power_state': 4,
+                  u'OS-EXT-STS:task_state': None,
+                  u'OS-EXT-STS:vm_state': u'stopped',
+                  u'OS-SRV-USG:launched_at': u'2015-01-26T14:01:37.000000',
+                  u'OS-SRV-USG:terminated_at': None,
+                  u'accessIPv4': u'',
+                  u'accessIPv6': u'',
+                  u'addresses':
+                  {u'demo-net':
+                   [{u'OS-EXT-IPS-MAC:mac_addr': u'fa:00:00:7f:2a:00',
+                     u'OS-EXT-IPS:type': u'fixed',
+                     u'addr': u'192.168.1.1',
+                     u'version': 4},
+                    {u'OS-EXT-IPS-MAC:mac_addr': u'fa:00:00:7f:2a:00',
+                     u'OS-EXT-IPS:type': u'floating',
+                     u'addr': u'10.11.12.13',
+                     u'version': 4}]},
+                  u'config_drive': u'',
+                  u'created': u'2015-01-26T14:00:42Z',
+                  u'flavor': {u'id': u'1',
+                              u'links':
+                              [{u'href':
+                                u'http://10.11.12.13:8774/'
+                                u'7077765ed0df43b1b23d43c9c290daf9/flavors/1',
+                                u'rel': u'bookmark'}]},
+                  u'hostId':
+                  u'78f689fe281dbb1deb8e42ac188a9734faf430ddc905b556b74f6144',
+                  u'id': u'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+                  u'image': {u'id': u'0ae46ce1-80e5-447e-b0e8-9eeec81af920',
+                             u'links':
+                             [{u'href':
+                               u'http://10.11.12.13:8774/'
+                               u'7077765ed0df43b1b23d43c9c290daf9/'
+                               u'images/0ae46ce1-80e5-447e-b0e8-9eeec81af920',
+                               u'rel': u'bookmark'}]},
+                  u'key_name': None,
+                  u'links':
+                  [{u'href':
+                    u'http://10.10.20.10:8774/v2/7077765ed0df43b1b23d'
+                    u'43c9c290daf9/servers/'
+                    u'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+                    u'rel': u'self'},
+                   {u'href':
+                    u'http://10.10.20.10:8774/7077765ed0df43'
+                    u'b1b23d43c9c290daf9/servers/ee662ff5-3de6-46cb-'
+                    u'8b85-4eb4317beb7c',
+                    u'rel': u'bookmark'}],
+                  u'metadata': {},
+                  u'name': u'instance2',
+                  u'os-extended-volumes:volumes_attached': [],
+                  u'security_groups': [{u'name': u'default'}],
+                  u'status': u'SHUTOFF',
+                  u'tenant_id': u'56762288eea24ab08a3b6d06f5a37c14',
+                  u'updated': u'2015-03-04T01:27:22Z',
+                  u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
+
+        SERVER_METADATA = {}
+
+        # TODO: Write this test after the ServerMetadata class is finished.
