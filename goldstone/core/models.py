@@ -273,7 +273,7 @@ class AvailabilityZone(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -317,7 +317,7 @@ class FlavorExtraSpec(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -361,7 +361,7 @@ class RootCert(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -405,7 +405,7 @@ class Aggregate(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -449,7 +449,7 @@ class Flavor(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -493,7 +493,7 @@ class Keypair(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -564,7 +564,7 @@ class Host(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -627,7 +627,7 @@ class Hypervisor(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -671,7 +671,7 @@ class Cloudpipe(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -715,7 +715,7 @@ class ServerGroup(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -759,7 +759,7 @@ class Server(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -805,7 +805,7 @@ class ServerMetadata(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -851,7 +851,7 @@ class Interface(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -911,7 +911,7 @@ class NovaQuotaClass(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -953,7 +953,7 @@ class NovaQuotaSet(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -995,7 +995,7 @@ class NovaLimits(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -1043,7 +1043,7 @@ class Image(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
@@ -1124,7 +1124,7 @@ class Port(PolyResource):
         N.B. We can't know when nested client methods are evaluated, so we
         make the complete call here.
 
-        :return: One or more infomration collections about cloud instances of
+        :return: One or more information collections about cloud instances of
                  this type
         :rtype: Iterable or generator of dict
 
