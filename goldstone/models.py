@@ -60,10 +60,11 @@ def es_indices(prefix="", conn=None):
 
 
 def most_recent_index(prefix=""):
-    """Find the index matching the prefix that has the most recent datestamp.
+    """Return the index matching the prefix that has the most recent datestamp.
 
     :param prefix: index prefix
     :return: the last index of a sorted list
+
     """
 
     all_indices = es_indices(prefix)
@@ -439,7 +440,7 @@ class TopologyData(object):
         else:
             raise ValueError("Valid order values are in [+, -, asc, desc]")
 
-    def get(self, count=1, sort_key="@timestamp", sort_order="desc"):
+    def get(self, _, sort_key="@timestamp", sort_order="desc"):
         """Return the latest n instances from ES or None if not found."""
         from elasticsearch import ElasticsearchException
 

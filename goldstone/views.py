@@ -177,7 +177,8 @@ class DiscoverView(TemplateView, TopologyMixin):
     def get_regions(self):
         return []
 
-    def _rescope_module_tree(self, tree, module_name):
+    @staticmethod
+    def _rescope_module_tree(tree, module_name):
         """
         Returns a tree that is ready to merge with the global tree.  Uses
         a rsrc_type of module, and a label of the module name.  If cloud
@@ -273,7 +274,7 @@ class DiscoverView(TemplateView, TopologyMixin):
         rl = self._attach_resource(ad, new_nl, rl)
 
         # bind glance region to region, but rename glance
-        gl = self._rescope_module_tree(
+        gl = DiscoverView._rescope_module_tree(
             glance_topo.build_topology_tree(), "glance")
         ad = {'sourceRsrcType': 'module',
               'targetRsrcType': 'region',
@@ -281,7 +282,7 @@ class DiscoverView(TemplateView, TopologyMixin):
         rl = self._attach_resource(ad, gl, rl)
 
         # bind keystone region to region, but rename keystone
-        kl = self._rescope_module_tree(
+        kl = DiscoverView._rescope_module_tree(
             keystone_topo.build_topology_tree(), "keystone")
         ad = {'sourceRsrcType': 'module',
               'targetRsrcType': 'region',

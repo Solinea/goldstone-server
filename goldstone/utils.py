@@ -146,7 +146,6 @@ def get_client(service):
     :rtype: dict
 
     """
-    import os.path
 
     # Error message template.
     NO_AUTH = "%s client failed to authorize. Check credentials in" \

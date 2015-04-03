@@ -24,7 +24,7 @@ class LogDataView(ElasticListAPIView):
 
     serializer_class = LogDataSerializer
 
-    class Meta:
+    class Meta:       # pylint: disable=C1001,W0232
         """Meta"""
         model = LogData
 
@@ -35,7 +35,7 @@ class LogAggView(ElasticListAPIView):
     serializer_class = LogAggSerializer
     reserved_params = ['interval', 'per_host']
 
-    class Meta:
+    class Meta:     # pylint: disable=C1001,W0232
         """Meta"""
         model = LogData
 
@@ -56,7 +56,7 @@ class LogEventView(ElasticListAPIView):
 
     serializer_class = LogDataSerializer
 
-    class Meta:
+    class Meta:     # pylint: disable=C1001,W0232
         """Meta"""
         model = LogEvent
 
@@ -67,7 +67,7 @@ class LogEventAggView(ElasticListAPIView):
     serializer_class = LogEventAggSerializer
     reserved_params = ['interval', 'per_host']
 
-    class Meta:
+    class Meta:     # pylint: disable=C1001,W0232
         """Meta"""
         model = LogEvent
 
