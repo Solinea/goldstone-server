@@ -15,12 +15,12 @@
 from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
 
-from .views import ReportView, SpawnsViewSet, CpuViewSet, MemoryViewSet, \
+from .views import ReportView, CpuViewSet, MemoryViewSet, \
     DiskViewSet, LatestStatsView, AgentsDataViewSet, \
     AggregatesDataViewSet, AvailZonesDataViewSet, CloudpipesDataViewSet, \
     FlavorsDataViewSet, FloatingIpPoolsDataViewSet, HostsDataViewSet, \
     HypervisorsDataViewSet, NetworksDataViewSet, SecGroupsDataViewSet, \
-    ServersDataViewSet, ServicesDataViewSet
+    ServersDataViewSet, ServicesDataViewSet, GetSpawnsAggView
 
 # Views handled by DjangoRestFramework ViewSets.
 router = DefaultRouter(trailing_slash=False)
@@ -47,9 +47,6 @@ router.register(r'^hypervisor/disk[/]?$',
 router.register(r'^hypervisor/mem[/]?$',
                 MemoryViewSet,
                 base_name='nova-hypervisor-mem')
-router.register(r'^hypervisor/spawns[/]?$',
-                SpawnsViewSet,
-                base_name='nova-spawn-view')
 router.register(r'^hosts[/]?$', HostsDataViewSet, base_name='nova-hosts')
 router.register(r'^hypervisors[/]?$',
                 HypervisorsDataViewSet,
@@ -74,4 +71,5 @@ urlpatterns += patterns(
         name='nova-report-view'),
     url(r'^hypervisor/latest-stats[/]?$', LatestStatsView.as_view(),
         name='nova-hypervisor-latest-stats'),
+    url(r'^hypervisor/spawns[/]?$', GetSpawnsAggView.as_view()),
     )

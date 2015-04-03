@@ -23,14 +23,17 @@ import calendar
 from datetime import datetime
 import logging
 
-from django.http import HttpResponseBadRequest, HttpResponseNotAllowed
+from django.http import HttpResponseBadRequest
 import pandas as pd
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
+from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet
+from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
 
-from .models import HypervisorStatsData, SpawnData, \
+from .models import HypervisorStatsData, SpawnsData, \
     ResourceData, AgentsData, AggregatesData, AvailZonesData, CloudpipesData, \
     FlavorsData, FloatingIpPoolsData, HostsData, HypervisorsData, \
     NetworksData, SecGroupsData, ServersData, ServicesData
@@ -293,67 +296,45 @@ class ServicesDataViewSet(JsonReadOnlyViewSet):
     zone_key = 'zone'
 
 
-class SpawnsViewSet(ReadOnlyModelViewSet):
-    """The /hypervisor/spawns views."""
+class GetSpawnsAggView(APIView):
 
-    def list(self, request):
-        """The collection-of-objects GET handler for spawns."""
-
+    def get(self, request):
+        """Handle get request."""
         import arrow
+        import ast
 
-        # Fetch and enhance this request's context.
-        context = {
-            # Use "now" if not provided. Validate() will calculate the start
-            # and interval. Arguments missing from the request are set to None.
-            'end': request.query_params.get(
-                'end', str(arrow.utcnow().timestamp)),
-            'start': request.query_params.get('start'),
-            'interval': request.query_params.get('interval'),
-            }
-
-        context = validate(['start', 'end', 'interval'], context)
-
-        # If the context is bad, the request is bad.
-        if isinstance(context, HttpResponseBadRequest):
-            return context
-
-        logger.debug("[_handle_request] start_dt = %s", context['start_dt'])
-
-        spawndata = SpawnData(context['start_dt'],
-                              context['end_dt'],
-                              context['interval'])
-        success_data = spawndata.get_spawn_success()
-        failure_data = spawndata.get_spawn_failure()
-
-        if success_data.empty and not failure_data.empty:
-            # Success_data is empty. Return zero-filled column in a non-empty
-            # dataframe.
-            failure_data['successes'] = 0
-            data = failure_data
-
-        elif failure_data.empty and not success_data.empty:
-            # Failure_data is empty. Return zero-filled column in a
-            # non-empty dataframe.
-            success_data['failures'] = 0
-            data = success_data
-
-        elif not success_data.empty and not failure_data.empty:
-            # Neither are empty. Merge them on the "key" field.
-            data = pd.ordered_merge(success_data, failure_data, on='timestamp')
+        self.interval = request.query_params.get('interval')
+        if self.interval is None:
+            raise ValidationError("Parameter 'interval' is required.")
         else:
-            # Both are empty. Return an empty frame.
-            data = pd.DataFrame()
-            logger.debug("[_handle_request] data is empty")
+            try:
+                postfix = self.interval[-1]
+                base = self.interval[0:-1]
+                if postfix not in ['s', 'm', 'h', 'w', 'd']:
+                    raise
+                if type(ast.literal_eval(base)) not in [int, float]:
+                    raise
+            except Exception:
+                raise ValidationError("Parameter 'interval' is malformed.")
 
-        # If the data isn't empty, log its payload and massage it.
-        if not data.empty:
-            logger.debug("[_handle_request] data = %s", data)
-            data = data[['timestamp', 'successes', 'failures']]
-            data = data.set_index('timestamp').fillna(0)
+        self.start_str = request.query_params.get('start')
+        if self.start_str is None:
+            raise ValidationError("Parameter 'start' is required.")
 
-        return Response(data.transpose().to_dict(outtype='list'))
+        try:
+            self.start = arrow.get(self.start_str)
+        except Exception:
+            raise ValidationError("Parameter 'start' "
+                                  "must be a unix timestamp or "
+                                  "ISO format string.")
+        try:
+            self.end = arrow.get(request.query_params.get(
+                'end', arrow.utcnow().timestamp))
+        except Exception:
+            raise ValidationError("Parameter 'end' must be a unix "
+                                  "timestamp or ISO format string.")
 
-    def retrieve(self, request, *args, **kwargs):
-        """We do not implement single object GET."""
-
-        return HttpResponseNotAllowed
+        data = SpawnsData().get_spawn_finish(self.start, self.end,
+                                             self.interval)
+        serializer = ReadOnlyElasticSerializer(data, many=False)
+        return Response(serializer.data)
