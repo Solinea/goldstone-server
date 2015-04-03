@@ -949,38 +949,34 @@ class ResourceTypes(Graph):
     #                    exceptions.
     EDGES = {
         # From Cinder nodes
-        QuotaClass: [{TO: Project,
-                      EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}}],
-        QOSSpec: [{TO: Group,
-                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
-                 {TO: Project,
-                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
-                 {TO: User,
-                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}}],
-        VolumeType: [{TO: Service,
-                    EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}}],
-        Snapshot: [{TO: Image,
+        QuotaClass: [{TO: QuotaSet,
+                      EDGE_ATTRIBUTES:
+                      {TYPE: DEFINES,
+                       MIN: 1,
+                       MAX: 1,
+                       MATCHING_FN:
+                       lambda f, t: False}}],
+        QOSSpec: [{TO: VolumeType,
+                   EDGE_ATTRIBUTES:
+                   {TYPE: APPLIES_TO,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    lambda f, t: False}}],
+        VolumeType: [{TO: Volume,
+                    EDGE_ATTRIBUTES:
+                      {TYPE:
+                       APPLIES_TO,
+                       MIN: 1,
+                       MAX: 1,
+                    lambda f, t: False}}],
+        Snapshot: [{TO: Volume,
                    EDGE_ATTRIBUTES:
                    {TYPE: MEMBER_OF,
                     MIN: 0,
                     MAX: sys.maxint,
                     MATCHING_FN:
                     lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: Keypair,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: NovaLimits,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 1,
-                    MAX: 1,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                   ],
+                   ]
 
         # From Glance nodes
         Image: [{TO: Server,
