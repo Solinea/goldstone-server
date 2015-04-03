@@ -376,9 +376,8 @@ class ResourceTypesTests(SimpleTestCase):
                   u'swap': u'',
                   u'vcpus': 4}
 
-        # TODO: Find out what this payload really looks like.
         FLAVOR_EXTRA_SPEC = {u'name': u'm1.large',
-                             u'were': u'making this up',
+                             u'we are': u'making this up',
                              }
 
         _test(Flavor,
@@ -1063,4 +1062,5 @@ class ResourceTypesTests(SimpleTestCase):
 
         SERVER_METADATA = {}
 
-        # TODO: Write this test after the ServerMetadata class is finished.
+        # TODO: Write this test after the ServerMetadata class is defined.
+
