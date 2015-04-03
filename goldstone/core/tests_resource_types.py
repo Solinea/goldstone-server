@@ -234,7 +234,7 @@ class ResourceTypesTests(SimpleTestCase):
               partial(_dictassign, AVAILABILITY_ZONE, "zoneName"),
               Aggregate,
               AGGREGATE,
-              'test-aggregate1',
+              1,
               partial(_dictassign, AGGREGATE, "availability_zone"))
 
     @staticmethod
@@ -521,7 +521,7 @@ class ResourceTypesTests(SimpleTestCase):
               partial(_dictassign, HOST, "host_name"),
               Aggregate,
               AGGREGATE,
-              'test-aggregate1',
+              1,
               aggregateassign)
 
     @staticmethod

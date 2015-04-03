@@ -436,7 +436,7 @@ class Aggregate(PolyResource):
 
         """
 
-        return thing.get("name")
+        return thing.get("id")
 
 
 class Flavor(PolyResource):
