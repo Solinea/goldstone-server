@@ -24,7 +24,7 @@ from .models import LogData
 
 
 class LogDataModelTests(SimpleTestCase):
-    """Tests for the LogData model"""
+    """Tests for the LogData model."""
 
     def test_ranged_log_agg(self):
         """ranged_log_agg should return the aggregation from the execution"""
@@ -118,7 +118,6 @@ class LogEventModelTests(SimpleTestCase):
 
     def test_search(self):
         """Assert that the search object has the correct basic form."""
-
         from .models import LogEvent
 
         expectation = {'bool': {
@@ -143,13 +142,16 @@ class LogAggViewTests(APITestCase):
 
         start = arrow.get(0).timestamp * 1000
         end = arrow.utcnow().timestamp * 1000
-        range = '@timestamp__range={"gte":"' + \
-                str(start) + '", "lte": "' + str(end) + '"}'
+        timestamp_range = \
+            '@timestamp__range={"gte":"' + str(start) + '", "lte": "' + \
+            str(end) + '"}'
         interval = "interval=1d"
-        url = '/logging/summarize?' + range + '&' + interval
+        url = '/logging/summarize?' + timestamp_range + '&' + interval
+
         response = self.client.get(
             url,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, 200)
 
 
@@ -162,12 +164,16 @@ class LogEventViewTests(APITestCase):
 
     def test_event_view(self):
         """Assert that the event view returns a 200."""
+
         start = arrow.get(0).timestamp * 1000
         end = arrow.utcnow().timestamp * 1000
-        range = '@timestamp__range={"gte":"' + \
-                str(start) + '", "lte": "' + str(end) + '"}'
-        url = '/logging/events/search?' + range
+        timestamp_range = \
+            '@timestamp__range={"gte":"' + str(start) + '", "lte": "' + \
+            str(end) + '"}'
+        url = '/logging/events/search?' + timestamp_range
+
         response = self.client.get(
             url,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
+
         self.assertEqual(response.status_code, 200)

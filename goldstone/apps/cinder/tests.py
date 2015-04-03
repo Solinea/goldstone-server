@@ -23,7 +23,8 @@ class ViewTests(SimpleTestCase):
 
         URI = '/cinder/report'
 
-        response = self.client.get(URI)   # pylint: disable=E1101
+        # pylint: disable=E1101
+        response = self.client.get(URI)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'cinder_report.html')
 

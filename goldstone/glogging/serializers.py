@@ -18,7 +18,7 @@ from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
 class LogDataSerializer(ReadOnlyElasticSerializer):
     """Serializer for ES log data. Excludes several uninteresting fields."""
 
-    class Meta:
+    class Meta:        # pylint: disable=C1001,W0232
         """Meta"""
         exclude = ('@version', 'message', 'syslog_ts', 'received_at', 'sort',
                    'tags', 'syslog_facility_code', 'syslog_severity_code',

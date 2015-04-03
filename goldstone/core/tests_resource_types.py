@@ -95,7 +95,8 @@ class ResourceTypesTests(SimpleTestCase):
     """Test each entry in ResourceTypes.EDGES, in particular the matching_fn
     functions."""
 
-    def test_image(self):
+    @staticmethod
+    def test_image():
         """Test the Image entry."""
 
         # Test data.
@@ -189,7 +190,8 @@ class ResourceTypesTests(SimpleTestCase):
               'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
               partial(_dictassign, SERVER, "id"))
 
-    def test_availability_zone_aggregate(self):
+    @staticmethod
+    def test_availability_zone_agg():
         """Test the AvailabilityZone - Aggregate entry."""
 
         # Test data.
@@ -235,7 +237,8 @@ class ResourceTypesTests(SimpleTestCase):
               'test-aggregate1',
               partial(_dictassign, AGGREGATE, "availability_zone"))
 
-    def test_availability_zone_host(self):
+    @staticmethod
+    def test_availability_zone_host():
         """Test the AvailabilityZone - Host entry."""
 
         # Test data.
@@ -273,10 +276,12 @@ class ResourceTypesTests(SimpleTestCase):
               'ctrl-01',
               partial(_dictassign, HOST, "zone"))
 
-    def test_cloudpipe(self):
+    @staticmethod
+    def test_cloudpipe():
         """Test the Cloudpipe entry."""
 
         # Test data.
+        # pylint: disable=W0612
         CLOUDPIPE = {}
 
         SERVER = {u'OS-DCF:diskConfig': u'MANUAL',
@@ -353,7 +358,8 @@ class ResourceTypesTests(SimpleTestCase):
         # TODO: Write this test. Couldn't make a cloudpipe today, for some odd
         # reason.
 
-    def test_flavor_flavorextraspec(self):
+    @staticmethod
+    def test_flavor_flavorextraspec():
         """Test the Flavor - FlavorExtraSpec entry."""
 
         # Test data.
@@ -388,7 +394,8 @@ class ResourceTypesTests(SimpleTestCase):
               'm1.large',
               partial(_dictassign, FLAVOR_EXTRA_SPEC, "name"))
 
-    def test_flavor_server(self):
+    @staticmethod
+    def test_flavor_server():
         """Test the Flavor - Server entry."""
 
         # Test data.
@@ -486,7 +493,8 @@ class ResourceTypesTests(SimpleTestCase):
               'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
               serverassign)
 
-    def test_host_aggregate(self):
+    @staticmethod
+    def test_host_aggregate():
         """Test the Host - Aggregate entry."""
 
         # Test data.
@@ -516,7 +524,8 @@ class ResourceTypesTests(SimpleTestCase):
               'test-aggregate1',
               aggregateassign)
 
-    def test_host_hypervisor(self):
+    @staticmethod
+    def test_host_hypervisor():
         """Test the Host - Hypervisor entry."""
 
         # Test data.
@@ -559,7 +568,8 @@ class ResourceTypesTests(SimpleTestCase):
               1,
               partial(_dictassign, HYPERVISOR, "hypervisor_hostname"))
 
-    def test_hypervisor_server(self):
+    @staticmethod
+    def test_hypervisor_server():
         """Test the Hypervisor - Server entry."""
 
         # Test data.
@@ -664,7 +674,8 @@ class ResourceTypesTests(SimpleTestCase):
                       SERVER,
                       "OS-EXT-SRV-ATTR:hypervisor_hostname"))
 
-    def test_interface_port(self):
+    @staticmethod
+    def test_interface_port():
         """Test the Interface - Port entry."""
 
         # Test data.
@@ -812,13 +823,15 @@ class ResourceTypesTests(SimpleTestCase):
         _dictassign(SERVER, "OS-EXT-SRV-ATTR:hypervisor_hostname", "4445")
         self.assertTrue(edge[MATCHING_FN](KEYPAIR, SERVER))
 
-    def test_quotaclass_quotaset(self):
+    @staticmethod
+    def test_quotaclass_quotaset():
         """Test the NovaQuotaClass - NovaQuotaSet entry."""
 
         # TODO: Fill in after the classes are definecd.
         pass
 
-    def test_server_interface(self):
+    @staticmethod
+    def test_server_interface():
         """Test the Server - Interface entry."""
 
         # Test data.
@@ -907,7 +920,8 @@ class ResourceTypesTests(SimpleTestCase):
               'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
               partial(_dictassign, INTERFACE, "mac_addr"))
 
-    def test_server_servergroup(self):
+    @staticmethod
+    def test_server_servergroup():
         """Test the Server - ServerGroup entry."""
 
         # Test data.
@@ -993,11 +1007,12 @@ class ResourceTypesTests(SimpleTestCase):
               'ef50ce1c-01a9-4b41-a1cb-3a60c84ae1dd',
               servergroupassign)
 
-    def test_server_servermetadata(self):
+    @staticmethod
+    def test_server_servermetadata():
         """Test the Server - ServerMetadata entry."""
 
         # Test data.
-        # pylint: disable=W0611
+        # pylint: disable=W0612
         SERVER = {u'OS-DCF:diskConfig': u'MANUAL',
                   u'OS-EXT-AZ:availability_zone': u'nova',
                   u'OS-EXT-SRV-ATTR:host': u'john.oak.solinea.com',
