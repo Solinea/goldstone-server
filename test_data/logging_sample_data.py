@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf import settings
-from goldstone.apps.logging.models import LoggingNode
-from goldstone.apps.logging.serializers import LoggingNodeSerializer
+from goldstone.glogging.models import LoggingNode
+from goldstone.glogging.serializers import LoggingNodeSerializer
 from rest_framework.renderers import JSONRenderer
 import logging
 import random

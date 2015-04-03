@@ -90,8 +90,4 @@ def reconcile_glance_hosts():
     from goldstone.core.models import Image
     from goldstone.core.utils import process_resource_type
 
-    # The resource type "from" nodes.
-    FROM_TYPES = [Image]
-
-    for nodetype in FROM_TYPES:
-        process_resource_type(nodetype)
+    process_resource_type(Image)
