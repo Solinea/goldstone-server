@@ -39,30 +39,81 @@ class DailyIndexDocType(DocType):
         ).sort(cls.SORT).using(es_conn())
 
     @classmethod
-    def simple_agg(cls, field, agg_name, base_queryset, size=0,
-                   min_doc_count=1):
-        """ Returns an aggregations by date histogram and maybe log level.
+    def bounded_search(cls, start=None, end=None, key_field='@timestamp'):
+        """ Returns a search with time range."""
 
-        :type field: str
-        :param field: The field to aggregate
+        import arrow
+        from arrow import Arrow
+
+        start = arrow.get(0) if start == '' else start
+        end = arrow.utcnow() if end == '' else end
+
+        if end is not None:
+            assert isinstance(end, Arrow), "end is not an Arrow object"
+
+        if start is not None:
+            assert isinstance(start, Arrow), "start is not an Arrow object"
+
+        search = cls.search()
+
+        if start is not None and end is not None:
+            search = search.query(
+                'range',
+                ** {key_field:
+                    {'lte': end.isoformat(),
+                     'gte': start.isoformat()}})
+
+        elif start is not None and end is None:
+            search = search.query(
+                'range',
+                ** {key_field: {'gte': start.isoformat()}})
+
+        elif start is None and end is not None:
+            search = search.query(
+                'range',
+                ** {key_field: {'lte': end.isoformat()}})
+
+        return search
+
+    @classmethod
+    def simple_datehistogram_agg(cls, base_queryset, interval,
+                            field='@timestamp',
+                            agg_name='per_interval', size=0,
+                            min_doc_count=1):
+        """ Returns a date histogram aggregations.
+
         :type base_queryset: Search
         :param base_queryset: The queryset on which to attach this aggregation
+        :type interval: str
+        :param interval: The time interval to use for agg bucket size
+        :type field: str
+        :param field: The field to aggregate
+        :type agg_name: str
+        :param agg_name: the name to give the aggregration
+        :type size: int
+        :param size: passed to ES
+        :type min_doc_count: int
+        :param min_doc_count: passed to ES
         :rtype: object
         :return: the (possibly nested) aggregation
         """
 
+        # aggregations mutate the search, so let's be nice to our caller
+        # and work on a clone.
+        search = base_queryset._clone()
+
         # we are not interested in the actual docs, so use the count search
         # type.
-        search = base_queryset.params(search_type="count")
+        search = search.params(search_type="count")
 
         # add a top-level aggregation for the field
-        search.aggs.bucket(agg_name, "terms",
+        search.aggs.bucket(agg_name, "date_histogram",
                            field=field,
+                           interval=interval,
                            min_doc_count=min_doc_count,
                            size=size)
 
-        response = search.execute().aggregations
-        return response
+        return search
 
     @classmethod
     def get_field_mapping(cls, field):
