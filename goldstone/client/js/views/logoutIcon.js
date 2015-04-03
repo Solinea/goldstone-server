@@ -69,7 +69,7 @@ var LogoutIcon = Backbone.View.extend({
         $doc.ajaxError(function(event, xhr) {
             if (xhr.status === 401) {
                 localStorage.removeItem('userToken');
-                self.redirectToLoginWithHash();
+                self.redirectToLogin();
             }
         });
     },
@@ -96,7 +96,7 @@ var LogoutIcon = Backbone.View.extend({
                 .fail(function() {})
                 .always(function() {
                     self.clearToken();
-                    self.redirectToLoginNoHash();
+                    self.redirectToLogin();
                 });
         });
     },
@@ -105,17 +105,8 @@ var LogoutIcon = Backbone.View.extend({
         localStorage.removeItem('userToken');
     },
 
-    redirectToLoginNoHash: function() {
-        location.href = "/login";
-    },
-
-    redirectToLoginWithHash: function() {
-
-        // this sets a hash (#) to the url that will be used post-auth to
-        // return the user to the page they were previously redirected from
-        var locationhref = "/login";
-        var currentPage = location.pathname.slice(1);
-        location.href = locationhref + '#' + currentPage;
+    redirectToLogin: function() {
+        location.href = "#/login";
     },
 
     render: function() {
