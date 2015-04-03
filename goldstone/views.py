@@ -374,6 +374,12 @@ class PasswordView(TemplateView):
     template_name = 'password.html'
 
 
+class RouterView(TemplateView):
+    """Return the Goldstone Router page."""
+
+    template_name = 'router.html'
+
+
 class SettingsPageView(TemplateView):
     """Return the Goldstone user settings page."""
 
