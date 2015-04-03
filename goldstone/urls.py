@@ -20,7 +20,8 @@ import logging
 
 from goldstone.tenants.urls import urlpatterns as tenants_urlpatterns
 from goldstone.views import DiscoverView, HelpView, NodeReportView, \
-    LoginPageView, PasswordView, SettingsPageView, TenantSettingsPageView
+    LoginPageView, PasswordView, RouterView, SettingsPageView, \
+    TenantSettingsPageView
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,7 @@ urlpatterns = patterns(
     # switches to Backbone routing.
     url(r'^settings[/]?$', SettingsPageView.as_view()),
     url(r'^settings/tenants[/]?$', TenantSettingsPageView.as_view()),
-    url(r'^$', RedirectView.as_view(url='/discover'), name='home'),
+    url(r'^$', RouterView.as_view()),
 )
 
 # Add the tenants' URL patterns directly, so that we don't have to over-root
