@@ -18,8 +18,7 @@ from functools import partial
 
 from .models import Image, ServerGroup, NovaLimits, Host, resource_types, \
     Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server, \
-    AvailabilityZone, Flavor, FlavorExtraSpec, Interface, Keypair, \
-    NovaQuotaClass, NovaQuotaSet
+    AvailabilityZone, Flavor, FlavorExtraSpec, Interface, Keypair
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
@@ -998,6 +997,7 @@ class ResourceTypesTests(SimpleTestCase):
         """Test the Server - ServerMetadata entry."""
 
         # Test data.
+        # pylint: disable=W0611
         SERVER = {u'OS-DCF:diskConfig': u'MANUAL',
                   u'OS-EXT-AZ:availability_zone': u'nova',
                   u'OS-EXT-SRV-ATTR:host': u'john.oak.solinea.com',
@@ -1063,4 +1063,3 @@ class ResourceTypesTests(SimpleTestCase):
         SERVER_METADATA = {}
 
         # TODO: Write this test after the ServerMetadata class is defined.
-

@@ -18,7 +18,7 @@ from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
     ModificationDateTimeField
 from polymorphic import PolymorphicModel
 from goldstone.apps.drfes.models import DailyIndexDocType
-from goldstone.apps.logging.models import LogData, LogEvent
+from goldstone.glogging.models import LogData, LogEvent
 
 # Get_glance_client is defined here for easy unit test mocking.
 from goldstone.utils import utc_now, get_glance_client, get_nova_client
@@ -373,7 +373,7 @@ class RootCert(PolyResource):
         return [x.to_dict() for x in nova_client.certs.list()]
 
     @staticmethod
-    def identity(thing):
+    def identity(thing):                     # pylint: disable=W0613
         """Return thing's uniquely identifying value.
 
         In order to match a cloud instance with a Resource Graph node, we need
@@ -819,7 +819,7 @@ class ServerMetadata(PolyResource):
                 nova_client.servers.list(search_opts={"all_tenants": 1})]
 
     @staticmethod
-    def identity(thing):
+    def identity(thing):                  # pylint: disable=W0613
         """Return thing's uniquely identifying value.
 
         In order to match a cloud instance with a Resource Graph node, we need
@@ -921,7 +921,7 @@ class NovaQuotaClass(PolyResource):
         return []
 
     @staticmethod
-    def identity(thing):
+    def identity(thing):                  # pylint: disable=W0613
         """Return thing's uniquely identifying value.
 
         In order to match a cloud instance with a Resource Graph node, we need
@@ -963,7 +963,7 @@ class NovaQuotaSet(PolyResource):
         return []
 
     @staticmethod
-    def identity(thing):
+    def identity(thing):                  # pylint: disable=W0613
         """Return thing's uniquely identifying value.
 
         In order to match a cloud instance with a Resource Graph node, we need
