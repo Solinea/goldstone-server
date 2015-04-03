@@ -21,12 +21,11 @@ from .models import EndpointsData, RolesData, ServicesData, \
 
 
 def _update_keystone_records(rec_type, region, database, items):
-    from datetime import datetime
     from goldstone.utils import to_es_date
-    import pytz
+    import arrow
 
     # image list is a generator, so we need to make it not sol lazy it...
-    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+    body = {"@timestamp": to_es_date(arrow.utcnow().datetime),
             "region": region,
             rec_type: [item.to_dict() for item in items]}
     try:
