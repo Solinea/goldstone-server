@@ -901,6 +901,297 @@ class Image(PolyResource):
 
 
 #
+# These classes represent entities within a Cinder service.
+#
+
+class QuotaClass(PolyResource):
+    """An OpenStack Image."""
+
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        return list(get_glance_client()["client"].images.list())
+
+    @staticmethod
+    def identity(thing):
+        """Return thing's uniquely identifying value.
+
+        In order to match a cloud instance with a Resource Graph node, we need
+        to examine the values that uniquely identify them, for a given
+        PolyResource subclass.
+
+        :param thing: A representation of a cloud instance, or a resource graph
+                      node.
+        :type thing: Depending upon the PolyResource subclass, this is a dict
+                     or a user-defined object. Usually, it'll be the type of
+                     the entries in the value retured by clouddata().
+        :return: The value of whatever uniquely identifies an instance of this
+                 type.
+        :rtype: Depends on the PolyResource subclass, anything, but probably
+                str
+
+        """
+
+        return thing.get("id")
+
+
+class QuotaSet(PolyResource):
+    """An OpenStack Image."""
+
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        return list(get_glance_client()["client"].images.list())
+
+    @staticmethod
+    def identity(thing):
+        """Return thing's uniquely identifying value.
+
+        In order to match a cloud instance with a Resource Graph node, we need
+        to examine the values that uniquely identify them, for a given
+        PolyResource subclass.
+
+        :param thing: A representation of a cloud instance, or a resource graph
+                      node.
+        :type thing: Depending upon the PolyResource subclass, this is a dict
+                     or a user-defined object. Usually, it'll be the type of
+                     the entries in the value retured by clouddata().
+        :return: The value of whatever uniquely identifies an instance of this
+                 type.
+        :rtype: Depends on the PolyResource subclass, anything, but probably
+                str
+
+        """
+
+        return thing.get("id")
+
+
+class QOSSpec(PolyResource):
+    """An OpenStack Image."""
+
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        return list(get_glance_client()["client"].images.list())
+
+    @staticmethod
+    def identity(thing):
+        """Return thing's uniquely identifying value.
+
+        In order to match a cloud instance with a Resource Graph node, we need
+        to examine the values that uniquely identify them, for a given
+        PolyResource subclass.
+
+        :param thing: A representation of a cloud instance, or a resource graph
+                      node.
+        :type thing: Depending upon the PolyResource subclass, this is a dict
+                     or a user-defined object. Usually, it'll be the type of
+                     the entries in the value retured by clouddata().
+        :return: The value of whatever uniquely identifies an instance of this
+                 type.
+        :rtype: Depends on the PolyResource subclass, anything, but probably
+                str
+
+        """
+
+        return thing.get("id")
+
+
+class Snapshot(PolyResource):
+    """An OpenStack Image."""
+
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        return list(get_glance_client()["client"].images.list())
+
+    @staticmethod
+    def identity(thing):
+        """Return thing's uniquely identifying value.
+
+        In order to match a cloud instance with a Resource Graph node, we need
+        to examine the values that uniquely identify them, for a given
+        PolyResource subclass.
+
+        :param thing: A representation of a cloud instance, or a resource graph
+                      node.
+        :type thing: Depending upon the PolyResource subclass, this is a dict
+                     or a user-defined object. Usually, it'll be the type of
+                     the entries in the value retured by clouddata().
+        :return: The value of whatever uniquely identifies an instance of this
+                 type.
+        :rtype: Depends on the PolyResource subclass, anything, but probably
+                str
+
+        """
+
+        return thing.get("id")
+
+
+class VolumeType(PolyResource):
+    """An OpenStack Image."""
+
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        return list(get_glance_client()["client"].images.list())
+
+    @staticmethod
+    def identity(thing):
+        """Return thing's uniquely identifying value.
+
+        In order to match a cloud instance with a Resource Graph node, we need
+        to examine the values that uniquely identify them, for a given
+        PolyResource subclass.
+
+        :param thing: A representation of a cloud instance, or a resource graph
+                      node.
+        :type thing: Depending upon the PolyResource subclass, this is a dict
+                     or a user-defined object. Usually, it'll be the type of
+                     the entries in the value retured by clouddata().
+        :return: The value of whatever uniquely identifies an instance of this
+                 type.
+        :rtype: Depends on the PolyResource subclass, anything, but probably
+                str
+
+        """
+
+        return thing.get("id")
+
+
+class Volume(PolyResource):
+    """An OpenStack Image."""
+
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        return list(get_glance_client()["client"].images.list())
+
+    @staticmethod
+    def identity(thing):
+        """Return thing's uniquely identifying value.
+
+        In order to match a cloud instance with a Resource Graph node, we need
+        to examine the values that uniquely identify them, for a given
+        PolyResource subclass.
+
+        :param thing: A representation of a cloud instance, or a resource graph
+                      node.
+        :type thing: Depending upon the PolyResource subclass, this is a dict
+                     or a user-defined object. Usually, it'll be the type of
+                     the entries in the value retured by clouddata().
+        :return: The value of whatever uniquely identifies an instance of this
+                 type.
+        :rtype: Depends on the PolyResource subclass, anything, but probably
+                str
+
+        """
+
+        return thing.get("id")
+
+
+class Limits(PolyResource):
+    """An OpenStack Image."""
+
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        return list(get_glance_client()["client"].images.list())
+
+    @staticmethod
+    def identity(thing):
+        """Return thing's uniquely identifying value.
+
+        In order to match a cloud instance with a Resource Graph node, we need
+        to examine the values that uniquely identify them, for a given
+        PolyResource subclass.
+
+        :param thing: A representation of a cloud instance, or a resource graph
+                      node.
+        :type thing: Depending upon the PolyResource subclass, this is a dict
+                     or a user-defined object. Usually, it'll be the type of
+                     the entries in the value retured by clouddata().
+        :return: The value of whatever uniquely identifies an instance of this
+                 type.
+        :rtype: Depends on the PolyResource subclass, anything, but probably
+                str
+
+        """
+
+        return thing.get("id")
+
+
+#
 # These classes represent entities within a Neutron service.
 #
 
@@ -1190,6 +1481,41 @@ class ResourceTypes(Graph):
                     MAX: sys.maxint,
                     MATCHING_FN:
                     lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                  {TO: QuotaSet,
+                   EDGE_ATTRIBUTES:
+                   {TYPE: SUBSCRIBED_TO,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                  {TO: QOSSpec,
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                  {TO: Snapshot,
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                  {TO: Volume,
+                   EDGE_ATTRIBUTES:
+                   {TYPE: MEMBER_OF,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                  {TO: Limits,
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   ],
         Region: [{TO: AvailabilityZone,
                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
@@ -1214,7 +1540,12 @@ class ResourceTypes(Graph):
                {TO: Group,
                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}},
                {TO: Project,
-                EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: 1}}],
+                EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: 1}},
+               {TO: QuotaSet,
+                EDGE_ATTRIBUTES:
+                {TYPE: SUBSCRIBED_TO,
+                 MIN: 0,
+                 MAX: sys.maxint}}],
 
         # From Neutron nodes
         FloatingIPPool: [{TO: FixedIP,
@@ -1376,6 +1707,17 @@ class ResourceTypes(Graph):
                                     MATCHING_FN: lambda f, t:
                                     f.get("hostId") and
                                     f.get("hostId") in t["members"]}},
+                                    MATCHING_FN: lambda f, t: False}},
+                 # TODO: FILL THIS IN FOR THIS TICKET!!!!!!!!
+                 {TO: Volume,
+                  EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
+                                    MIN: 0,
+                                    MAX: sys.maxint,
+                                    # Deferred for now. Suspect some code will
+                                    # need to be ripped up to find this edge,
+                                    # because metadata hang off of server
+                                    # objects.
+                                    MATCHING_FN: lambda f, t: False}},
                  ],
         }
 
