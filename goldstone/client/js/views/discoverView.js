@@ -68,41 +68,44 @@ var DiscoverView = GoldstoneBasePageView.extend({
         // this.zoomableTree = new ZoomablePartitionCollection({
         // });
 
-        this.zoomableTreeView = new ZoomablePartitionView({
-            blueSpinnerGif: blueSpinnerGif,
-            chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverZoomTopology'],
-            // collection: this.zoomableTree,
-            data: data,
-            el: '#goldstone-discover-r2-c1',
-            frontPage: false,
-            h: 600,
-            leafDataUrls: {
-                "services-leaf": "/services",
-                "endpoints-leaf": "/endpoints",
-                "roles-leaf": "/roles",
-                "users-leaf": "/users",
-                "tenants-leaf": "/tenants",
-                "agents-leaf": "/agents",
-                "aggregates-leaf": "/aggregates",
-                "availability-zones-leaf": "/availability_zones",
-                "cloudpipes-leaf": "/cloudpipes",
-                "flavors-leaf": "/flavors",
-                "floating-ip-pools-leaf": "/floating_ip_pools",
-                "hosts-leaf": "/hosts",
-                "hypervisors-leaf": "/hypervisors",
-                "networks-leaf": "/networks",
-                "secgroups-leaf": "/security_groups",
-                "servers-leaf": "/servers",
-                "images-leaf": "/images",
-                "volumes-leaf": "/volumes",
-                "backups-leaf": "/backups",
-                "snapshots-leaf": "/snapshots",
-                "transfers-leaf": "/transfers",
-                "volume-types-leaf": "/volume_types"
-            },
-            multiRsrcViewEl: '#goldstone-discover-r2-c2',
-            width: $('#goldstone-discover-r2-c1').width()
+        $.get('/core/nav_tree', function() {}).success(function(data) {
+            this.zoomableTreeView = new ZoomablePartitionView({
+                blueSpinnerGif: blueSpinnerGif,
+                chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverZoomTopology'],
+                // collection: this.zoomableTree,
+                data: data,
+                el: '#goldstone-discover-r2-c1',
+                frontPage: false,
+                h: 600,
+                leafDataUrls: {
+                    "services-leaf": "/services",
+                    "endpoints-leaf": "/endpoints",
+                    "roles-leaf": "/roles",
+                    "users-leaf": "/users",
+                    "tenants-leaf": "/tenants",
+                    "agents-leaf": "/agents",
+                    "aggregates-leaf": "/aggregates",
+                    "availability-zones-leaf": "/availability_zones",
+                    "cloudpipes-leaf": "/cloudpipes",
+                    "flavors-leaf": "/flavors",
+                    "floating-ip-pools-leaf": "/floating_ip_pools",
+                    "hosts-leaf": "/hosts",
+                    "hypervisors-leaf": "/hypervisors",
+                    "networks-leaf": "/networks",
+                    "secgroups-leaf": "/security_groups",
+                    "servers-leaf": "/servers",
+                    "images-leaf": "/images",
+                    "volumes-leaf": "/volumes",
+                    "backups-leaf": "/backups",
+                    "snapshots-leaf": "/snapshots",
+                    "transfers-leaf": "/transfers",
+                    "volume-types-leaf": "/volume_types"
+                },
+                multiRsrcViewEl: '#goldstone-discover-r2-c2',
+                width: $('#goldstone-discover-r2-c1').width()
+            });
         });
+
     },
 
     template: _.template('' +
