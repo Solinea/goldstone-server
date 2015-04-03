@@ -863,11 +863,22 @@ class Interface(PolyResource):
         nova_client.client.authenticate()
 
         # Each server has an interface list. Since we're interested in the
-        # Interfaces themselves, we flatten the list.
-        # TODO: Do we have to de-dupe this list as well?
-        return [x.to_dict() for x in y.interface_list()
-                for y in
-                nova_client.servers.list(search_opts={"all_tenants": 1})]
+        # Interfaces themselves, we flatten the list, and de-dup it.
+        raw = [x.to_dict() for x in y.interface_list()
+               for y in
+               nova_client.servers.list(search_opts={"all_tenants": 1})]
+
+        mac_addresses = set()
+        result = []
+
+        for entry in result:
+            # This entry is a duplicate of a previous entry if its MAC address
+            # matches.
+            if entry["mac_addr"] not in mac_addresses:
+                result.append(entry)
+                mac_addresses.add(entry["mac_addr"])
+
+        return result
 
     @staticmethod
     def identity(thing):
@@ -1550,17 +1561,21 @@ class ResourceTypes(Graph):
                   EDGE_ATTRIBUTES: {TYPE: OWNS,
                                     MIN: 0,
                                     MAX: sys.maxint,
-                                    # Deferred for now. Suspect some code will
-                                    # need to be ripped up to find this edge,
-                                    # because interfaces hang off of server
-                                    # objects.
-                                    MATCHING_FN: lambda f, t: False}},
+                                    MATCHING_FN:
+                                    lambda f, t:
+                                    f.get("addresses") and
+                                    t.get("mac_addr") and
+                                    t.get("mac_addr") in
+                                    [y["OS-EXT-IPS-MAC:mac_addr"]
+                                     for x in f.get("addresses").values()
+                                     for y in x]}},
                  {TO: ServerGroup,
                   EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
                                     MIN: 0,
                                     MAX: sys.maxint,
                                     MATCHING_FN: lambda f, t:
-                                    f.get("id") in t["members"]}},
+                                    f.get("hostId") and
+                                    f.get("hostId") in t["members"]}},
                  {TO: ServerMetadata,
                   EDGE_ATTRIBUTES: {TYPE: OWNS,
                                     MIN: 0,
