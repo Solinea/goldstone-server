@@ -174,7 +174,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         // construct api calls from url component
         // between the last '/' and the following '.'
         // IMPORTANT: see caveat on node naming in constructHostName function
-        var hostName = this.constructHostName(location.pathname);
+        var hostName = this.constructHostName(location.href);
 
         //----------------------------
         // instantiate charts via
