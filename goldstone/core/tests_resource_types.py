@@ -381,18 +381,18 @@ class ResourceTypesTests(SimpleTestCase):
                   u'swap': u'',
                   u'vcpus': 4}
 
-        FLAVOR_EXTRA_SPEC = {u'name': u'm1.large',
+        FLAVOR_EXTRA_SPEC = {u'id': u'4',
                              u'we are': u'making this up',
                              }
 
         _test(Flavor,
               FLAVOR,
-              "m1.large",
-              partial(_dictassign, FLAVOR, "name"),
+              "4",
+              partial(_dictassign, FLAVOR, "id"),
               FlavorExtraSpec,
               FLAVOR_EXTRA_SPEC,
-              'm1.large',
-              partial(_dictassign, FLAVOR_EXTRA_SPEC, "name"))
+              '4',
+              partial(_dictassign, FLAVOR_EXTRA_SPEC, "id"))
 
     @staticmethod
     def test_flavor_server():
@@ -486,7 +486,7 @@ class ResourceTypesTests(SimpleTestCase):
 
         _test(Flavor,
               FLAVOR,
-              "m1.large",
+              "4",
               partial(_dictassign, FLAVOR, "id"),
               Server,
               SERVER,

@@ -348,7 +348,7 @@ class FlavorExtraSpec(PolyResource):
 
         """
 
-        return thing.get("name")
+        return thing.get("id")
 
 
 class RootCert(PolyResource):
@@ -480,7 +480,7 @@ class Flavor(PolyResource):
 
         """
 
-        return thing.get("name")
+        return thing.get("id")
 
 
 class Keypair(PolyResource):
@@ -1492,7 +1492,7 @@ class ResourceTypes(Graph):
               MAX: sys.maxint,
               MATCHING_FN:
               lambda f, t:
-              f.get("name") and f.get("name") == t.get("name")}},
+              f.get("id") and f.get("id") == t.get("id")}},
             {TO: Server,
              EDGE_ATTRIBUTES:
              {TYPE: DEFINES,
