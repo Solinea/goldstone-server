@@ -168,8 +168,8 @@ var NodeAvailView = GoldstoneBaseView.extend({
         // for 'disabled' axis
         ns.xAxis = d3.svg.axis()
             .orient("bottom")
-            .ticks(5)
-            .tickFormat(d3.time.format("%m/%d/%y %H:%M:%S"));
+            .ticks(3)
+            .tickFormat(d3.time.format("%m/%d %H:%M:%S"));
 
         ns.xScale = d3.time.scale()
             .range([ns.margin.left, ns.mw - ns.margin.right])
@@ -608,7 +608,7 @@ TODO: probably change this to d.timestamp
             .on("mouseover", ns.tooltip.show)
             .on("mouseout", ns.tooltip.hide)
             .on("click", function(d) {
-                window.location.href = '/report/node/' + d.name;
+                window.location.href = '#/report/node/' + d.name;
             });
 
         this.redraw();
