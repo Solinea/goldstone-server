@@ -15,19 +15,13 @@
 from django.conf.urls import url, patterns
 
 from .views import MetricDataListView, ReportDataListView, MetricNamesAggView, \
-    ReportNamesAggView
-from rest_framework.routers import DefaultRouter
+    ReportNamesAggView, NavTreeView
 
-router = DefaultRouter(trailing_slash=False)
-
-urlpatterns = router.urls
-urlpatterns += patterns('', url(r'^reports[/]?$', ReportDataListView.as_view(),
-                        name='reports_view'))
-urlpatterns += patterns('', url(r'^report_names[/]?$',
-                                ReportNamesAggView.as_view(),
-                        name='report_name_agg_view'))
-urlpatterns += patterns('', url(r'^metrics[/]?$', MetricDataListView.as_view(),
-                        name='metrics_view'))
-urlpatterns += patterns('', url(r'^metric_names[/]?$',
-                                MetricNamesAggView.as_view(),
-                        name='metric_name_agg_view'))
+urlpatterns = patterns(
+    '',
+    url(r'^reports[/]?$', ReportDataListView.as_view()),
+    url(r'^report_names[/]?$', ReportNamesAggView.as_view()),
+    url(r'^metrics[/]?$', MetricDataListView.as_view()),
+    url(r'^metric_names[/]?$', MetricNamesAggView.as_view()),
+    url(r'^nav_tree[/]?$', NavTreeView.as_view())
+)
