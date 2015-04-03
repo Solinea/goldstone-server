@@ -13,14 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import arrow
-from elasticsearch_dsl import A, Search
+from copy import deepcopy
 import pandas
 
 from django.test import SimpleTestCase
-from datetime import datetime
-from goldstone.apps.nova.models import HypervisorStatsData, SpawnData, \
+from goldstone.apps.nova.models import HypervisorStatsData, \
     ResourceData, SpawnsData
-from goldstone.models import ESData
 
 
 class HypervisorStatsDataModel(SimpleTestCase):
@@ -58,85 +56,44 @@ class SpawnsDataModelTests(SimpleTestCase):
     end = arrow.utcnow()
     interval = '1h'
 
+    QUERY_BASE = {'bool': {
+        'must': [{'range': {
+            '@timestamp': {'gte': start.isoformat(),
+                           'lte': end.isoformat()}}}]}}
+
+    DATEHIST_AGG = {'date_histogram': {'field': '@timestamp',
+                                       'interval': '1h',
+                                       'min_doc_count': 0,
+                                       'extended_bounds': {
+                                           'max': end.isoformat(),
+                                           'min': start.isoformat()}}}
+
+    TIMESTAMP_SORT = [{'@timestamp': {'order': 'desc'}}]
+
     def test_datehist_agg(self):
         """_datehist_agg should return an A with proper values."""
-        expected = {'date_histogram': {'field': '@timestamp',
-                                       'interval': '1h',
-                                       'min_doc_count': 1,
-                                       'size': 0}}
-        result = SpawnsData._datehist_agg(self.interval)
-        self.assertDictEqual(result.to_dict(), expected)
 
-    def test_spawn_start_query(self):
-        """_spawn_start_query should return a Search with proper values."""
-        expected_aggs = {'per_interval': {'date_histogram': {
-            'field': '@timestamp', 'interval': '1h', 'min_doc_count': 1,
-            'size': 0}}}
-        expected_query = {'bool': {'must': [{'range': {
-            '@timestamp': {'gte': self.start.isoformat(),
-                          'lte': self.end.isoformat()}}},
-            {'term': {'event': 'start'}}]}}
-        expected_sort = [{'@timestamp': {'order': 'desc'}}]
-        result = SpawnsData._spawn_start_query(self.start, self.end,
-                                               self.interval)
-        self.assertDictEqual(result.to_dict()['aggs'], expected_aggs)
-        self.assertDictEqual(result.to_dict()['query'], expected_query)
-        self.assertListEqual(result.to_dict()['sort'], expected_sort)
+        result = SpawnsData._datehist_agg(self.start, self.end, self.interval)
+        self.assertDictEqual(result.to_dict(), self.DATEHIST_AGG)
 
     def test_spawn_finish_query(self):
         """_spawn_finish_query should return a Search with proper values."""
 
-        expected_aggs = {'per_success': {
-            'terms': {'size': 0, 'field': 'success', 'min_doc_count': 1},
-            'aggs': {'per_interval': {'date_histogram': {
-                'field': '@timestamp', 'interval': '1h', 'min_doc_count': 1,
-                'size': 0}}}}}
-        expected_query = {'bool': {'must': [{'range': {
-            '@timestamp': {'gte': self.start.isoformat(),
-                          'lte': self.end.isoformat()}}},
-            {'term': {'event': 'finish'}}]}}
-        expected_sort = [{'@timestamp': {'order': 'desc'}}]
+        expected_aggs = {'per_interval': self.DATEHIST_AGG}
+        expected_aggs['per_interval']['aggs'] = {
+            'per_success': {
+                'terms': {'size': 0, 'field': 'success', 'min_doc_count': 0}}
+        }
+
+        expected_query = deepcopy(self.QUERY_BASE)
+        expected_query['bool']['must'].append({'term': {'event': 'finish'}})
+
         result = SpawnsData._spawn_finish_query(self.start, self.end,
                                                 self.interval)
+
         self.assertDictEqual(result.to_dict()['aggs'], expected_aggs)
         self.assertDictEqual(result.to_dict()['query'], expected_query)
-        self.assertListEqual(result.to_dict()['sort'], expected_sort)
-
-
-class SpawnDataModel(SimpleTestCase):
-
-    start = arrow.get(2014, 3, 12).datetime
-    end = arrow.utcnow().datetime
-    interval = '1h'
-    spawn_data = SpawnData(start, end, interval)
-
-    # pylint: disable=W0212
-
-    def test_spawn_start_query(self):
-
-        query = self.spawn_data._spawn_start_query()
-        self.assertEqual(query['aggs'], ESData._agg_date_hist(self.interval))
-
-    def test_spawn_finish_query(self):
-
-        query = self.spawn_data._spawn_finish_query(True)
-
-        self.assertDictEqual(
-            query['aggs']['success_filter']['aggs'],
-            ESData._agg_date_hist(self.interval))
-
-        self.assertDictEqual(
-            query['aggs']['success_filter']['filter'],
-            ESData._agg_filter_term(
-                "success", "true",
-                "success_filter")['success_filter']['filter'])
-
-        query = self.spawn_data._spawn_finish_query(False)
-        self.assertDictEqual(
-            query['aggs']['success_filter']['filter'],
-            ESData._agg_filter_term(
-                "success", "false",
-                "success_filter")['success_filter']['filter'])
+        self.assertListEqual(result.to_dict()['sort'], self.TIMESTAMP_SORT)
 
 
 class ResourceDataTest(SimpleTestCase):

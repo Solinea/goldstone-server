@@ -15,6 +15,7 @@
 from datetime import datetime
 import json
 import logging
+from arrow import Arrow
 from elasticsearch_dsl import A
 import pandas as pd
 # TODO replace pyes
@@ -141,150 +142,46 @@ class SpawnsData(DailyIndexDocType):
         doc_type = 'nova_spawns'
 
     @staticmethod
-    def _datehist_agg(interval):
+    def _datehist_agg(start, end, interval):
         """Return a date histogram aggregation."""
+        assert isinstance(start, Arrow), 'start must be an Arrow'
+        assert isinstance(end, Arrow), 'end must be an Arrow'
+        assert isinstance(interval, basestring), 'interval must be a string'
+
         return A("date_histogram", field='@timestamp',
-                 interval=interval, min_doc_count=1, size=0)
+                 interval=interval, min_doc_count=0,
+                 extended_bounds = {
+                     "min": start.isoformat(),
+                     "max": end.isoformat()
+                })
 
     @classmethod
-    def _spawn_start_query(cls, start=None, end=None, interval='1d'):
-        """Build the query for spawn start events with date hist agg."""
-
-        search = cls.bounded_search(start, end). \
-            query('term', event='start'). \
-            params(search_type="count")
-        search.aggs.bucket('per_interval', cls._datehist_agg(interval))
-        return search
-
-    @classmethod
-    def _spawn_finish_query(cls, start=None, end=None, interval='1d'):
+    def _spawn_finish_query(cls, start, end, interval):
         """Build the query for spawn finish events with term and
         date hist agg."""
 
         search = cls.bounded_search(start, end).query('term', event='finish')
-        search.aggs.bucket('per_success', A('terms', field='success',
-                                            min_doc_count=1, size=0)). \
-            bucket('per_interval', cls._datehist_agg(interval))
+        search.aggs. \
+            bucket('per_interval',
+                   cls._datehist_agg(start, end, interval)). \
+            bucket('per_success', A('terms', field='success', size=0,
+                                    min_doc_count=0))
+
         return search
 
+    def get_spawn_finish(self, start, end, interval):
+        """Get the aggregated spawn finish results.
 
-
-class SpawnData(ESData):
-    _DOC_TYPE = 'nova_spawns'
-
-    def __init__(self, start, end, interval):
-
-        self.start = start
-        self.end = end
-        self.interval = interval
-
-    def _spawn_start_query(self, agg_name="events_by_date"):
-        """Builds a query for server spawn events with a date histogram
-        aggregation"""
-
-        _query_value = BoolQuery(must=[
-            RangeQuery(qrange=ESRangeOp(
-                "@timestamp",
-                "gte", self.start.isoformat(),
-                "lte", self.end.isoformat())),
-            TermQuery("event", "start")
-        ]).serialize()
-
-        query = {
-            "query": _query_value,
-            "aggs": ESData._agg_date_hist(self.interval, name=agg_name)
-        }
-        return query
-
-    def _spawn_finish_query(self, success):
-        filter_name = "success_filter"
-        agg_name = "events_by_date"
-
-        _query_value = BoolQuery(must=[
-            RangeQuery(qrange=ESRangeOp(
-                "@timestamp",
-                "gte", self.start.isoformat(),
-                "lte", self.end.isoformat())),
-            TermQuery("event", "finish")
-        ]).serialize()
-
-        query = {
-            "query": _query_value,
-            "aggs": ESData._agg_filter_term("success",
-                                            str(success).lower(),
-                                            filter_name)
-        }
-        query['aggs'][filter_name]['aggs'] = ESData._agg_date_hist(
-            self.interval, name=agg_name)
-
-        return query
-
-    def get_spawn_start(self):
-        """Return a pandas dataframe with the results of a query for nova spawn
-        start events"""
-
-        agg_name = "events_by_date"
-
-        query = self._spawn_start_query(agg_name)
-        index = ",".join(self.get_index_names('goldstone-'))
-        logger.debug("[get_spawn_start] calling query with index=%s, "
-                     "doc_type=%s", index, self._DOC_TYPE)
-        response = self._conn.search(
-            index=index, doc_type=self._DOC_TYPE, body=query, size=0)
-        logger.debug("[get_spawn_start] response = %s", json.dumps(response))
-
-        return pd.read_json(json.dumps(
-            response['aggregations'][agg_name]['buckets'])
-        )
-
-    def _get_spawn_finish(self, success):
-
-        fname = "success_filter"
-        aname = "events_by_date"
-        query = self._spawn_finish_query(success)
-        logger.debug("[get_spawn_finish] query = %s", json.dumps(query))
-
-        response = self._conn.search(
-            index=",".join(self.get_index_names('goldstone-')),
-            doc_type=self._DOC_TYPE,
-            body=query,
-            size=0)
-        logger.debug("[get_spawn_finish] response = %s", json.dumps(response))
-
-        data = pd.read_json(json.dumps(
-            response['aggregations'][fname][aname]['buckets']),
-            orient='records')
-
-        if not data.empty:
-            del data['key_as_string']
-            col_name = 'successes' if success else 'failures'
-            data.columns = [col_name, 'timestamp']
-            data = data[['timestamp', col_name]]
-
-        logger.debug("[get_spawn_finish] data = %s", data)
-        return data
-
-    def get_spawn_success(self):
-        """Return a pandas dataframe with the results of a query for nova spawn
-        success events.  The format looks like:
-                   timestamp  successes
-            0  1423165800000          1
-            1  1423166100000          0
-            2  1423166400000          0
-            3  1423166700000          1
+        :type start: Arrow
+        :param start: start time
+        :type end: Arrow
+        :param end: end time
+        :type interval: str
+        :param interval: ES interval specification
+        :return: A dict of results
         """
-        return self._get_spawn_finish(True)
-
-    def get_spawn_failure(self):
-        """Return a pandas dataframe with the results of a query for nova spawn
-        failure events.  The format looks like:
-                   timestamp   failures
-            0  1423165800000          1
-            1  1423166100000          0
-            2  1423166400000          0
-            3  1423166700000          1
-        """
-        return self._get_spawn_finish(False)
+        return self._spawn_finish_query(start, end, interval). \
+            execute().aggregations
 
 
 class ResourceData(ESData):
