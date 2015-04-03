@@ -13,12 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import arrow
-
-# TODO replace pytz and calendar with arrow
-from datetime import datetime
 import json
-import pytz
-import calendar
 import pandas as pd
 
 from django.contrib.auth import get_user_model
@@ -35,13 +30,11 @@ class BaseTest(SimpleTestCase):
     """A base class that provides common attributes and utility methods."""
 
     # Define commonly used date/time and interval values.
-    valid_start = str(calendar.timegm(
-        datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))
-    valid_end = str(calendar.timegm(
-        datetime.now(tz=pytz.utc).utctimetuple()))
+    valid_start = str(arrow.get(2014, 3, 12).timestamp)
+    valid_end = str(arrow.utcnow().timestamp)
     valid_interval = '3600s'
-    invalid_start = '999999999999'
-    invalid_end = '999999999999'
+    invalid_start = 'abc'
+    invalid_end = 'abc'
     invalid_interval = 'abc'
 
     def setUp(self):

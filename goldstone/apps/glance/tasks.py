@@ -21,15 +21,14 @@ logger = logging.getLogger(__name__)
 
 
 def _update_glance_image_records(client, region):
-    from datetime import datetime
     from goldstone.utils import to_es_date
     from .models import ImagesData
-    import pytz
+    import arrow
 
     images_list = client.images.list()
 
     # Image list is a generator, so we need to make it not sol lazy it...
-    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+    body = {"@timestamp": to_es_date(arrow.utcnow().datetime),
             "region": region,
             "images": [i for i in images_list]}
 

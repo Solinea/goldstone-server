@@ -65,10 +65,10 @@ def nova_hypervisors_stats(self):
 def _update_nova_records(rec_type, region, db, items):
 
     from goldstone.utils import to_es_date
-    import pytz
+    import arrow
 
     # image list is a generator, so we need to make it not sol lazy it...
-    body = {"@timestamp": to_es_date(datetime.now(tz=pytz.utc)),
+    body = {"@timestamp": to_es_date(arrow.utcnow().datetime),
             "region": region,
             rec_type: [item.__dict__['_info'] for item in items]}
     try:
