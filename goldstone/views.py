@@ -14,65 +14,50 @@
 # limitations under the License.
 from __future__ import unicode_literals
 
-# TODO replace calendar and datetime with arrow
-import calendar
-from datetime import datetime, timedelta
 import json
 import logging
 
 from django.conf import settings
 from django.http import HttpResponseBadRequest, Http404
 from django.views.generic import TemplateView
-import pytz
-# from rest_framework.response import Response
-# from rest_framework.views import APIView
 
 from goldstone.utils import TopologyMixin
 
 logger = logging.getLogger(__name__)
 
 
-def _parse_timestamp(stamp, zone=pytz.utc):
-
-    try:
-        result = datetime.fromtimestamp(int(stamp), tz=zone)
-        logger.debug("[_parse_timestamp] dt = %s", str(result))
-        return result
-
-    except Exception:                  # pylint: disable=W0703
-        logger.debug("[_parse_timestamp] timestamp creation failed.")
-        return None
-
-
 def validate(arg_list, context):
     """Validate an argument list within a particular context, and return
     an updated context or HttpResponseBadRequest."""
+
+    import arrow
 
     # A "bad parameter" message string.
     BAD_PARAMETER = "malformed parameter [%s]"
 
     context = context.copy()
     validation_errors = []
-
-    context['end_dt'] = _parse_timestamp(context['end'])
-
-    if context['end_dt'] is None:
+    try:
+        end = arrow.get(context['end'])
+        context['end_dt'] = end.datetime
+    except Exception:
         validation_errors.append(BAD_PARAMETER % "end")
-    elif 'start' in arg_list:
+
+    if 'start' in arg_list:
         if context['start'] is None:
-            delta = timedelta(days=settings.DEFAULT_LOOKBACK_DAYS)
-            context['start_dt'] = context['end_dt'] - delta
-            context['start'] = str(calendar.timegm(
-                context['start_dt'].timetuple()))
+            start = end.replace(days=settings.DEFAULT_LOOKBACK_DAYS * -1)
+            context['start_dt'] = start.datetime
+            context['start'] = str(start.timestamp)
         else:
-            context['start_dt'] = _parse_timestamp(context['start'])
-            if context['start_dt'] is None:
+            try:
+                context['start_dt'] = arrow.get(context['start']).datetime
+            except Exception:
                 validation_errors.append(BAD_PARAMETER % "start")
 
     if 'interval' in arg_list:
         if context['interval'] is None:
-            time_delta = (context['end_dt'] - context['start_dt'])
-            # timdelta.total_seconds not available in py26
+            time_delta = context['end_dt'] - context['start_dt']
+            # timedelta.total_seconds not available in py26
             delta_secs = \
                 (time_delta.microseconds +
                  (time_delta.seconds + time_delta.days * 24 * 3600)
@@ -114,14 +99,13 @@ class TopLevelView(TemplateView):
 
     def get_context_data(self, **kwargs):
 
+        import arrow
         context = TemplateView.get_context_data(self, **kwargs)
 
         # Use "now" if not provided. Validate will calculate the start and
         # interval.
         context['end'] = \
-            self.request.GET.get('end',
-                                 str(calendar.timegm(
-                                     datetime.utcnow().timetuple())))
+            self.request.GET.get('end', str(arrow.utcnow().timestamp))
         context['start'] = self.request.GET.get('start', None)
         context['interval'] = self.request.GET.get('interval', None)
 
