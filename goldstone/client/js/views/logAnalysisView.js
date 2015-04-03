@@ -560,8 +560,8 @@ var LogAnalysisView = UtilizationCpuView.extend({
                         self.urlGen();
 
                         // the pageSize and searchQuery are jQuery values
-                        var pageSize = $('.log-search-container').find('select.form-control').val();
-                        var searchQuery = $('.log-search-container').find('input.form-control').val();
+                        var pageSize = $('div#intel-search-data-table').find('select.form-control').val();
+                        var searchQuery = $('div#intel-search-data-table').find('input.form-control').val();
 
                         // the paginationStart is taken from the dataTables
                         // generated serverSide query string that will be
