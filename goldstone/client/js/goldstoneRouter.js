@@ -45,15 +45,37 @@ var GoldstoneRouter = Backbone.Router.extend({
         "report/node/:nodeId": "nodeReport",
         "*default": "redirect"
     },
-    switchView: function(view) {
+    switchView: function(view, nodeId) {
+        // prevent multiple successive calls to the same page
+        if (this.switchTriggeredBy && this.switchTriggeredBy === view) {
+            return;
+        }
+        this.switchTriggeredBy = view;
+
+        // Backbone's remove() calls this.$el.remove() and this.stopListening()
         if (this.currentView) {
+            console.log('current views children: ', this.currentView);
             this.currentView.remove();
         }
-        var launcherView = new LauncherView({});
-        this.currentView = launcherView;
-        $('.router-content-container').append(launcherView.el);
 
-        new view({el: '.launcher-container'});
+        // instantiate wrapper view that can be removed upon page change
+        var launcherView = new LauncherView({});
+        // store it as the current view so it can be remove()'d
+        this.currentView = launcherView;
+        // append it to the page div
+        $('.router-content-container').append(launcherView.el);
+        // instantiate the desired page view
+        // if it's a node report page, add the node_uuid param
+        if (nodeId !== undefined) {
+            new view({
+                el: '.launcher-container',
+                node_uuid: nodeId
+            });
+        } else {
+            new view({
+                el: '.launcher-container'
+            });
+        }
 
     },
     keystoneReport: function() {
@@ -90,11 +112,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(LogSearchView);
     },
     nodeReport: function(nodeId) {
-        app.nodeReportView = new NodeReportView({
-            el: ".router-content-container",
-            node_uuid: nodeId
-        });
-        this.switchView(app.nodeReportView);
+        this.switchView(NodeReportView, nodeId);
     },
     discover: function() {
         this.switchView(DiscoverView);
