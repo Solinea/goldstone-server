@@ -28,7 +28,7 @@ describe('logAnalysis.js spec', function() {
 
         this.testView = new LogAnalysisView({
             collection: this.testCollection,
-            width: $('.testContainer').width(),
+            width: 600,
             height: 300,
             el: '.testContainer',
             featureSet: 'logEvents',
@@ -259,13 +259,16 @@ describe('logAnalysis.js spec', function() {
             this.testView.update();
             // no mult
             this.testView.paintNewChart([time1, time2]);
-            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":1427474584493,"lte":1427474587493}&interval=1s');
+            expect(this.testCollection.url).to.include('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":142747458');
+            expect(this.testCollection.url).to.include('}&interval=1s');
             // mult >= 1
             this.testView.paintNewChart([time1, time2], 10);
-            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":1427474584793,"lte":1427474587193}&interval=1s');
+            expect(this.testCollection.url).to.include('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":1427474584');
+            expect(this.testCollection.url).to.include('}&interval=1s');
             // mult < 1
             this.testView.paintNewChart([time1, time2], 0.5);
-            expect(this.testCollection.url).to.equal('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":1427474581993,"lte":1427474589993}&interval=1s');
+            expect(this.testCollection.url).to.include('/intelligence/log/cockpit/data?per_host=False&@timestamp__range={"gte":142747458');
+            expect(this.testCollection.url).to.include('}&interval=1s');
         });
     });
 });
