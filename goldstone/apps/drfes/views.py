@@ -83,7 +83,13 @@ class SimpleAggView(ElasticListAPIView):
         )
 
         base_queryset = self.filter_queryset(self.get_queryset())
-        data = self.Meta.model.simple_agg(self.AGG_FIELD, self.AGG_NAME,
-                                          base_queryset)
-        serializer = self.serializer_class(data)
+
+        # add a top-level aggregation for the field
+        search = base_queryset.params(search_type="count")
+        search.aggs.bucket(self.AGG_NAME, "terms",
+                           field=self.AGG_FIELD,
+                           min_doc_count=1,
+                           size=0)
+
+        serializer = self.serializer_class(search.execute().aggregations)
         return Response(serializer.data)

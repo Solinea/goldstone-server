@@ -15,10 +15,12 @@
 from datetime import datetime
 import json
 import logging
+from elasticsearch_dsl import A
 import pandas as pd
 # TODO replace pyes
 from pyes import BoolQuery, RangeQuery, ESRangeOp, TermQuery
 from types import StringType
+from goldstone.apps.drfes.models import DailyIndexDocType
 
 from goldstone.models import ESData, TopologyData
 
@@ -128,6 +130,45 @@ class HypervisorStatsData(NovaClientData):
     _DOC_TYPE = 'nova_hypervisor_stats'
 
 
+class SpawnsData(DailyIndexDocType):
+    """A model that searches a set of daily indices (intended to be
+    read-only)."""
+
+    INDEX_PREFIX = 'goldstone-'
+    SORT = '-@timestamp'
+
+    class Meta:
+        doc_type = 'nova_spawns'
+
+    @staticmethod
+    def _datehist_agg(interval):
+        """Return a date histogram aggregation."""
+        return A("date_histogram", field='@timestamp',
+                 interval=interval, min_doc_count=1, size=0)
+
+    @classmethod
+    def _spawn_start_query(cls, start=None, end=None, interval='1d'):
+        """Build the query for spawn start events with date hist agg."""
+
+        search = cls.bounded_search(start, end). \
+            query('term', event='start'). \
+            params(search_type="count")
+        search.aggs.bucket('per_interval', cls._datehist_agg(interval))
+        return search
+
+    @classmethod
+    def _spawn_finish_query(cls, start=None, end=None, interval='1d'):
+        """Build the query for spawn finish events with term and
+        date hist agg."""
+
+        search = cls.bounded_search(start, end).query('term', event='finish')
+        search.aggs.bucket('per_success', A('terms', field='success',
+                                            min_doc_count=1, size=0)). \
+            bucket('per_interval', cls._datehist_agg(interval))
+        return search
+
+
+
 class SpawnData(ESData):
     _DOC_TYPE = 'nova_spawns'
 
@@ -138,6 +179,8 @@ class SpawnData(ESData):
         self.interval = interval
 
     def _spawn_start_query(self, agg_name="events_by_date"):
+        """Builds a query for server spawn events with a date histogram
+        aggregation"""
 
         _query_value = BoolQuery(must=[
             RangeQuery(qrange=ESRangeOp(
