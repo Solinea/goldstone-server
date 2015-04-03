@@ -45,80 +45,49 @@ var GoldstoneRouter = Backbone.Router.extend({
         "report/node/:nodeId": "nodeReport",
         "*default": "redirect"
     },
-    switchView: function(view, launcherView) {
+    switchView: function(view) {
         if (this.currentView) {
             this.currentView.remove();
         }
+        var launcherView = new LauncherView({});
+        this.currentView = launcherView;
+        $('.router-content-container').append(launcherView.el);
 
-        if (launcherView !== undefined) {
-            this.currentView = launcherView;
-            $('.router-content-container').append(launcherView.el);
-        } else {
-            this.currentView = view;
-            $('.router-content-container').append(view.el);
-        }
+        new view({el: '.launcher-container'});
 
     },
     keystoneReport: function() {
-        app.keystoneReportViewLauncher = new LauncherView({});
-        $('.router-content-container').append(app.keystoneReportViewLauncher.el);
-
-        app.keystoneReportView = new KeystoneReportView({
-            el: ".launcher-container"
-        });
-        this.switchView(app.keystoneReportView, app.keystoneReportViewLauncher);
+        this.switchView(KeystoneReportView);
     },
     login: function() {
-        app.loginPageView = new LoginPageView({});
-        this.switchView(app.loginPageView);
+        this.switchView(LoginPageView);
     },
     password: function() {
-        app.passwordResetView = new PasswordResetView({});
-        this.switchView(app.passwordResetView);
+        this.switchView(PasswordResetView);
     },
     settings: function() {
-        app.settingsPageView = new SettingsPageView({});
-        this.switchView(app.settingsPageView);
+        this.switchView(SettingsPageView);
     },
     tenant: function() {
-        app.tenantSettingsPageView = new TenantSettingsPageView({});
-        this.switchView(app.tenantSettingsPageView);
+        this.switchView(TenantSettingsPageView);
     },
     apiPerfReport: function() {
-        app.apiPerfReportView = new ApiPerfReportView({
-            el: ".router-content-container"
-        });
-        this.switchView(app.apiPerfReportView);
+        this.switchView(ApiPerfReportView);
     },
     novaReport: function() {
-        app.novaReportView = new NovaReportView({
-            el: ".router-content-container"
-        });
-        this.switchView(app.novaReportView);
+        this.switchView(NovaReportView);
     },
     neutronReport: function() {
-        app.neutronReportView = new NeutronReportView({
-            el: ".router-content-container"
-        });
-        this.switchView(app.neutronReportView);
+        this.switchView(NeutronReportView);
     },
     cinderReport: function() {
-        app.cinderReportView = new CinderReportView({
-            el: ".router-content-container"
-        });
-        this.switchView(app.cinderReportView);
+        this.switchView(CinderReportView);
     },
     glanceReport: function() {
-        app.glanceReportView = new GlanceReportView({
-            el: ".router-content-container"
-        });
-        this.switchView(app.glanceReportView);
+        this.switchView(GlanceReportView);
     },
     logSearch: function() {
-        app.logSearchView = new LogSearchView({
-            el: ".router-content-container"
-        });
-        this.switchView(app.logSearchView);
+        this.switchView(LogSearchView);
     },
     nodeReport: function(nodeId) {
         app.nodeReportView = new NodeReportView({
@@ -128,10 +97,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(app.nodeReportView);
     },
     discover: function() {
-        app.discoverView = new DiscoverView({
-            el: ".router-content-container"
-        });
-        this.switchView(app.discoverView);
+        this.switchView(DiscoverView);
     },
     redirect: function() {
         location.href = "#/discover";
