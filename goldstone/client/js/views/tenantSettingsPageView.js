@@ -118,7 +118,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
                 }
             })
             .fail(function(fail) {
-                goldstone.raiseInfo('Could not load tenant settings', true);
+                goldstone.raiseInfo('Could not load tenant settings');
             });
     },
 
