@@ -1,4 +1,4 @@
-"""ResourceTypes unit tests."""
+"""ResourceTypes unit tests, part 1."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
@@ -38,8 +38,8 @@ def _dictassign(thedict, key, value):
     thedict[key] = value
 
 
-def _test(type_from, data_from, identity_from, match_from_key_fn,
-          type_to, data_to, identity_to, match_to_key_fn):
+def do_test(type_from, data_from, identity_from, match_from_key_fn,
+            type_to, data_to, identity_to, match_to_key_fn):
     """Test two resource_types nodes.
 
     This function modifies data_from and to_from.
@@ -181,14 +181,14 @@ class ResourceTypesTests(SimpleTestCase):
                   u'updated': u'2015-03-04T01:27:22Z',
                   u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
 
-        _test(Image,
-              IMAGE,
-              '0ae46ce1-80e5-447e-b0e8-9eeec81af920',
-              partial(_dictassign, IMAGE, "id"),
-              Server,
-              SERVER,
-              'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-              partial(_dictassign, SERVER, "id"))
+        do_test(Image,
+                IMAGE,
+                '0ae46ce1-80e5-447e-b0e8-9eeec81af920',
+                partial(_dictassign, IMAGE, "id"),
+                Server,
+                SERVER,
+                'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+                partial(_dictassign, SERVER, "id"))
 
     @staticmethod
     def test_availability_zone_agg():
@@ -228,14 +228,14 @@ class ResourceTypesTests(SimpleTestCase):
                      u'name': u'test-aggregate1',
                      u'updated_at': None}
 
-        _test(AvailabilityZone,
-              AVAILABILITY_ZONE,
-              "internal",
-              partial(_dictassign, AVAILABILITY_ZONE, "zoneName"),
-              Aggregate,
-              AGGREGATE,
-              'test-aggregate1',
-              partial(_dictassign, AGGREGATE, "availability_zone"))
+        do_test(AvailabilityZone,
+                AVAILABILITY_ZONE,
+                "internal",
+                partial(_dictassign, AVAILABILITY_ZONE, "zoneName"),
+                Aggregate,
+                AGGREGATE,
+                'test-aggregate1',
+                partial(_dictassign, AGGREGATE, "availability_zone"))
 
     @staticmethod
     def test_availability_zone_host():
@@ -267,14 +267,14 @@ class ResourceTypesTests(SimpleTestCase):
 
         HOST = {u'host_name': u'ctrl-01', u'zone': u'internal'}
 
-        _test(AvailabilityZone,
-              AVAILABILITY_ZONE,
-              "internal",
-              partial(_dictassign, AVAILABILITY_ZONE, "zoneName"),
-              Host,
-              HOST,
-              'ctrl-01',
-              partial(_dictassign, HOST, "zone"))
+        do_test(AvailabilityZone,
+                AVAILABILITY_ZONE,
+                "internal",
+                partial(_dictassign, AVAILABILITY_ZONE, "zoneName"),
+                Host,
+                HOST,
+                'ctrl-01',
+                partial(_dictassign, HOST, "zone"))
 
     @staticmethod
     def test_cloudpipe():
@@ -346,7 +346,7 @@ class ResourceTypesTests(SimpleTestCase):
                   u'updated': u'2015-03-04T01:27:22Z',
                   u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
 
-        # _test(Cloudpipe,
+        # do_test(Cloudpipe,
         #       CLOUDPIPE,
         #       '0ae46ce1-80e5-447e-b0e8-9eeec81af920',
         #       "id",
@@ -385,14 +385,14 @@ class ResourceTypesTests(SimpleTestCase):
                              u'we are': u'making this up',
                              }
 
-        _test(Flavor,
-              FLAVOR,
-              "m1.large",
-              partial(_dictassign, FLAVOR, "name"),
-              FlavorExtraSpec,
-              FLAVOR_EXTRA_SPEC,
-              'm1.large',
-              partial(_dictassign, FLAVOR_EXTRA_SPEC, "name"))
+        do_test(Flavor,
+                FLAVOR,
+                "m1.large",
+                partial(_dictassign, FLAVOR, "name"),
+                FlavorExtraSpec,
+                FLAVOR_EXTRA_SPEC,
+                'm1.large',
+                partial(_dictassign, FLAVOR_EXTRA_SPEC, "name"))
 
     @staticmethod
     def test_flavor_server():
@@ -484,14 +484,14 @@ class ResourceTypesTests(SimpleTestCase):
 
             SERVER["flavor"]["id"] = value
 
-        _test(Flavor,
-              FLAVOR,
-              "m1.large",
-              partial(_dictassign, FLAVOR, "id"),
-              Server,
-              SERVER,
-              'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-              serverassign)
+        do_test(Flavor,
+                FLAVOR,
+                "m1.large",
+                partial(_dictassign, FLAVOR, "id"),
+                Server,
+                SERVER,
+                'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+                serverassign)
 
     @staticmethod
     def test_host_aggregate():
@@ -515,14 +515,14 @@ class ResourceTypesTests(SimpleTestCase):
 
             AGGREGATE["hosts"] = ["bob", "marley", value]
 
-        _test(Host,
-              HOST,
-              'ctrl-01',
-              partial(_dictassign, HOST, "host_name"),
-              Aggregate,
-              AGGREGATE,
-              'test-aggregate1',
-              aggregateassign)
+        do_test(Host,
+                HOST,
+                'ctrl-01',
+                partial(_dictassign, HOST, "host_name"),
+                Aggregate,
+                AGGREGATE,
+                'test-aggregate1',
+                aggregateassign)
 
     @staticmethod
     def test_host_hypervisor():
@@ -559,14 +559,14 @@ class ResourceTypesTests(SimpleTestCase):
                       u'vcpus': 8,
                       u'vcpus_used': 4}
 
-        _test(Host,
-              HOST,
-              "ctrl-01",
-              partial(_dictassign, HOST, "host_name"),
-              Hypervisor,
-              HYPERVISOR,
-              1,
-              partial(_dictassign, HYPERVISOR, "hypervisor_hostname"))
+        do_test(Host,
+                HOST,
+                "ctrl-01",
+                partial(_dictassign, HOST, "host_name"),
+                Hypervisor,
+                HYPERVISOR,
+                1,
+                partial(_dictassign, HYPERVISOR, "hypervisor_hostname"))
 
     @staticmethod
     def test_hypervisor_server():
@@ -663,16 +663,16 @@ class ResourceTypesTests(SimpleTestCase):
                   u'updated': u'2015-03-04T01:27:22Z',
                   u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
 
-        _test(Hypervisor,
-              HYPERVISOR,
-              1,
-              partial(_dictassign, HYPERVISOR, "id"),
-              Server,
-              SERVER,
-              'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-              partial(_dictassign,
-                      SERVER,
-                      "OS-EXT-SRV-ATTR:hypervisor_hostname"))
+        do_test(Hypervisor,
+                HYPERVISOR,
+                1,
+                partial(_dictassign, HYPERVISOR, "id"),
+                Server,
+                SERVER,
+                'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+                partial(_dictassign,
+                        SERVER,
+                        "OS-EXT-SRV-ATTR:hypervisor_hostname"))
 
     @staticmethod
     def test_interface_port():
@@ -709,14 +709,14 @@ class ResourceTypesTests(SimpleTestCase):
                 u'status': u'ACTIVE',
                 u'tenant_id': u'56762288eea24ab08a3b6d06f5a37c14'}
 
-        _test(Interface,
-              INTERFACE,
-              'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
-              partial(_dictassign, INTERFACE, "net_id"),
-              Port,
-              PORT,
-              'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
-              partial(_dictassign, PORT, "network_id"))
+        do_test(Interface,
+                INTERFACE,
+                'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
+                partial(_dictassign, INTERFACE, "net_id"),
+                Port,
+                PORT,
+                'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
+                partial(_dictassign, PORT, "network_id"))
 
     def test_keypair_server(self):
         """Test the Keypair - Server entry."""
@@ -796,7 +796,7 @@ class ResourceTypesTests(SimpleTestCase):
                   u'updated': u'2015-03-04T01:27:22Z',
                   u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
 
-        # I think any public keypair can be used on any server. So, _test()
+        # I think any public keypair can be used on any server. So, do_test()
         # will fail on the "no match" test. So, we'll do all the testing here,
         # except for the no-match test.
         #
@@ -911,170 +911,11 @@ class ResourceTypesTests(SimpleTestCase):
             SERVER["addresses"]["demo-net"][0]["OS-EXT-IPS-MAC:mac_addr"] = \
                 value
 
-        _test(Server,
-              SERVER,
-              'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-              serverassign,
-              Interface,
-              INTERFACE,
-              'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
-              partial(_dictassign, INTERFACE, "mac_addr"))
-
-    @staticmethod
-    def test_server_servergroup():
-        """Test the Server - ServerGroup entry."""
-
-        # Test data.
-        SERVER = {u'OS-DCF:diskConfig': u'MANUAL',
-                  u'OS-EXT-AZ:availability_zone': u'nova',
-                  u'OS-EXT-SRV-ATTR:host': u'john.oak.solinea.com',
-                  u'OS-EXT-SRV-ATTR:hypervisor_hostname':
-                  u'john.oak.solinea.com',
-                  u'OS-EXT-SRV-ATTR:instance_name': u'instance-00000001',
-                  u'OS-EXT-STS:power_state': 4,
-                  u'OS-EXT-STS:task_state': None,
-                  u'OS-EXT-STS:vm_state': u'stopped',
-                  u'OS-SRV-USG:launched_at': u'2015-01-26T14:01:37.000000',
-                  u'OS-SRV-USG:terminated_at': None,
-                  u'accessIPv4': u'',
-                  u'accessIPv6': u'',
-                  u'addresses':
-                  {u'demo-net':
-                   [{u'OS-EXT-IPS-MAC:mac_addr': u'fa:00:00:7f:2a:00',
-                     u'OS-EXT-IPS:type': u'fixed',
-                     u'addr': u'192.168.1.1',
-                     u'version': 4},
-                    {u'OS-EXT-IPS-MAC:mac_addr': u'fa:00:00:7f:2a:00',
-                     u'OS-EXT-IPS:type': u'floating',
-                     u'addr': u'10.11.12.13',
-                     u'version': 4}]},
-                  u'config_drive': u'',
-                  u'created': u'2015-01-26T14:00:42Z',
-                  u'flavor': {u'id': u'1',
-                              u'links':
-                              [{u'href':
-                                u'http://10.11.12.13:8774/'
-                                u'7077765ed0df43b1b23d43c9c290daf9/flavors/1',
-                                u'rel': u'bookmark'}]},
-                  u'hostId':
-                  u'78f689fe281dbb1deb8e42ac188a9734faf430ddc905b556b74f6144',
-                  u'id': u'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-                  u'image': {u'id': u'0ae46ce1-80e5-447e-b0e8-9eeec81af920',
-                             u'links':
-                             [{u'href':
-                               u'http://10.11.12.13:8774/'
-                               u'7077765ed0df43b1b23d43c9c290daf9/'
-                               u'images/0ae46ce1-80e5-447e-b0e8-9eeec81af920',
-                               u'rel': u'bookmark'}]},
-                  u'key_name': None,
-                  u'links':
-                  [{u'href':
-                    u'http://10.10.20.10:8774/v2/7077765ed0df43b1b23d'
-                    u'43c9c290daf9/servers/'
-                    u'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-                    u'rel': u'self'},
-                   {u'href':
-                    u'http://10.10.20.10:8774/7077765ed0df43'
-                    u'b1b23d43c9c290daf9/servers/ee662ff5-3de6-46cb-'
-                    u'8b85-4eb4317beb7c',
-                    u'rel': u'bookmark'}],
-                  u'metadata': {},
-                  u'name': u'instance2',
-                  u'os-extended-volumes:volumes_attached': [],
-                  u'security_groups': [{u'name': u'default'}],
-                  u'status': u'SHUTOFF',
-                  u'tenant_id': u'56762288eea24ab08a3b6d06f5a37c14',
-                  u'updated': u'2015-03-04T01:27:22Z',
-                  u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
-
-        SERVERGROUP = {u'id': u'ef50ce1c-01a9-4b41-a1cb-3a60c84ae1dd',
-                       u'members': [],
-                       u'metadata': {},
-                       u'name': u'derosa',
-                       u'policies': [u'affinity']}
-
-        def servergroupassign(value):
-            """Store value into the servergroup dict's matching attribute."""
-
-            SERVERGROUP["members"].append(value)
-
-        _test(Server,
-              SERVER,
-              'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-              partial(_dictassign, SERVER, "hostId"),
-              ServerGroup,
-              SERVERGROUP,
-              'ef50ce1c-01a9-4b41-a1cb-3a60c84ae1dd',
-              servergroupassign)
-
-    @staticmethod
-    def test_server_servermetadata():
-        """Test the Server - ServerMetadata entry."""
-
-        # Test data.
-        # pylint: disable=W0612
-        SERVER = {u'OS-DCF:diskConfig': u'MANUAL',
-                  u'OS-EXT-AZ:availability_zone': u'nova',
-                  u'OS-EXT-SRV-ATTR:host': u'john.oak.solinea.com',
-                  u'OS-EXT-SRV-ATTR:hypervisor_hostname':
-                  u'john.oak.solinea.com',
-                  u'OS-EXT-SRV-ATTR:instance_name': u'instance-00000001',
-                  u'OS-EXT-STS:power_state': 4,
-                  u'OS-EXT-STS:task_state': None,
-                  u'OS-EXT-STS:vm_state': u'stopped',
-                  u'OS-SRV-USG:launched_at': u'2015-01-26T14:01:37.000000',
-                  u'OS-SRV-USG:terminated_at': None,
-                  u'accessIPv4': u'',
-                  u'accessIPv6': u'',
-                  u'addresses':
-                  {u'demo-net':
-                   [{u'OS-EXT-IPS-MAC:mac_addr': u'fa:00:00:7f:2a:00',
-                     u'OS-EXT-IPS:type': u'fixed',
-                     u'addr': u'192.168.1.1',
-                     u'version': 4},
-                    {u'OS-EXT-IPS-MAC:mac_addr': u'fa:00:00:7f:2a:00',
-                     u'OS-EXT-IPS:type': u'floating',
-                     u'addr': u'10.11.12.13',
-                     u'version': 4}]},
-                  u'config_drive': u'',
-                  u'created': u'2015-01-26T14:00:42Z',
-                  u'flavor': {u'id': u'1',
-                              u'links':
-                              [{u'href':
-                                u'http://10.11.12.13:8774/'
-                                u'7077765ed0df43b1b23d43c9c290daf9/flavors/1',
-                                u'rel': u'bookmark'}]},
-                  u'hostId':
-                  u'78f689fe281dbb1deb8e42ac188a9734faf430ddc905b556b74f6144',
-                  u'id': u'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-                  u'image': {u'id': u'0ae46ce1-80e5-447e-b0e8-9eeec81af920',
-                             u'links':
-                             [{u'href':
-                               u'http://10.11.12.13:8774/'
-                               u'7077765ed0df43b1b23d43c9c290daf9/'
-                               u'images/0ae46ce1-80e5-447e-b0e8-9eeec81af920',
-                               u'rel': u'bookmark'}]},
-                  u'key_name': None,
-                  u'links':
-                  [{u'href':
-                    u'http://10.10.20.10:8774/v2/7077765ed0df43b1b23d'
-                    u'43c9c290daf9/servers/'
-                    u'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-                    u'rel': u'self'},
-                   {u'href':
-                    u'http://10.10.20.10:8774/7077765ed0df43'
-                    u'b1b23d43c9c290daf9/servers/ee662ff5-3de6-46cb-'
-                    u'8b85-4eb4317beb7c',
-                    u'rel': u'bookmark'}],
-                  u'metadata': {},
-                  u'name': u'instance2',
-                  u'os-extended-volumes:volumes_attached': [],
-                  u'security_groups': [{u'name': u'default'}],
-                  u'status': u'SHUTOFF',
-                  u'tenant_id': u'56762288eea24ab08a3b6d06f5a37c14',
-                  u'updated': u'2015-03-04T01:27:22Z',
-                  u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
-
-        SERVER_METADATA = {}
-
-        # TODO: Write this test after the ServerMetadata class is defined.
+        do_test(Server,
+                SERVER,
+                'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+                serverassign,
+                Interface,
+                INTERFACE,
+                'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
+                partial(_dictassign, INTERFACE, "mac_addr"))
