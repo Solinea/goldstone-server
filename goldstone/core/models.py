@@ -231,6 +231,18 @@ class Agent(PolyResource):
 
     port = IntegerField(editable=True, blank=True, default=5514)
 
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
+
 
 #
 # These classes represent entities within a Keystone service.
@@ -239,61 +251,161 @@ class Agent(PolyResource):
 class User(PolyResource):
     """An OpenStack user."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Domain(PolyResource):
     """An OpenStack domain."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Group(PolyResource):
     """An OpenStack group."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Token(PolyResource):
     """An OpenStack token."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Credential(PolyResource):
     """An OpenStack credential."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Role(PolyResource):
     """An OpenStack role."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Region(PolyResource):
     """An OpenStack region."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Endpoint(PolyResource):
     """An OpenStack endpoint."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Service(PolyResource):
     """An OpenStack service."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Project(PolyResource):
     """An OpenStack project."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 #
@@ -809,37 +921,97 @@ class Limits(PolyResource):
 class MeteringLableRule(PolyResource):
     """An OpenStack Metering Lable Rule."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class MeteringLabel(PolyResource):
     """An OpenStack Metering Label."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class NeutronQuota(PolyResource):
     """An OpenStack Neutron Quota."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class RemoteGroup(PolyResource):
     """An OpenStack Remote Group."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class SecurityRules(PolyResource):
     """An OpenStack Security Rules."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class SecurityGroup(PolyResource):
     """An OpenStack Security Group."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Port(PolyResource):
@@ -871,61 +1043,161 @@ class Port(PolyResource):
 class LBVIP(PolyResource):
     """An OpenStack load balancer VIP address."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class LBPool(PolyResource):
     """An OpenStack load balancer pool."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class HealthMonitor(PolyResource):
     """An OpenStack Health Monitor."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class FloatingIP(PolyResource):
     """An OpenStack Floating IP address."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class FloatingIPPool(PolyResource):
     """An OpenStack Floating IP address pool."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class FixedIP(PolyResource):
     """An OpenStack Fixed IP address."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class LBMember(PolyResource):
     """An OpenStack load balancer member."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Subnet(PolyResource):
     """An OpenStack subnet."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Network(PolyResource):
     """An OpenStack network."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Router(PolyResource):
     """An OpenStack router."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class ResourceTypes(Graph):
@@ -952,8 +1224,8 @@ class ResourceTypes(Graph):
         QuotaClass: [{TO: QuotaSet,
                       EDGE_ATTRIBUTES:
                       {TYPE: DEFINES,
-                       MIN: 1,
-                       MAX: 1,
+                       MIN: 0,
+                       MAX: sys.maxint,
                        MATCHING_FN:
                        lambda f, t: False}}],
         QOSSpec: [{TO: VolumeType,
@@ -961,22 +1233,23 @@ class ResourceTypes(Graph):
                    {TYPE: APPLIES_TO,
                     MIN: 0,
                     MAX: sys.maxint,
+                    MATCHING_FN:
                     lambda f, t: False}}],
         VolumeType: [{TO: Volume,
-                    EDGE_ATTRIBUTES:
-                      {TYPE:
-                       APPLIES_TO,
-                       MIN: 1,
-                       MAX: 1,
-                    lambda f, t: False}}],
+                      EDGE_ATTRIBUTES:
+                      {TYPE: APPLIES_TO,
+                       MIN: 0,
+                       MAX: sys.maxint,
+                       MATCHING_FN:
+                       lambda f, t: False}}],
         Snapshot: [{TO: Volume,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: MEMBER_OF,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                   ]
+                    EDGE_ATTRIBUTES:
+                    {TYPE: APPLIES_TO,
+                     MIN: 1,
+                     MAX: 1,
+                     MATCHING_FN:
+                     lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                   ],
 
         # From Glance nodes
         Image: [{TO: Server,
