@@ -502,7 +502,7 @@ class Keypair(PolyResource):
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
-        return [x.to_dict() for x in nova_client()["client"].keypairs.list()]
+        return [x.to_dict()["keypair"] for x in nova_client.keypairs.list()]
 
     @staticmethod
     def identity(thing):
@@ -524,7 +524,7 @@ class Keypair(PolyResource):
 
         """
 
-        return None            # TODO: Figure this out
+        return thing.get("fingerprint")
 
 
 class Host(PolyResource):
@@ -862,7 +862,10 @@ class Interface(PolyResource):
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
-        return [[x.to_dict() for x in y.interface_list()]
+        # Each server has an interface list. Since we're interested in the
+        # Interfaces themselves, we flatten the list.
+        # TODO: Do we have to de-dupe this list as well?
+        return [x.to_dict() for x in y.interface_list()
                 for y in
                 nova_client.servers.list(search_opts={"all_tenants": 1})]
 
@@ -886,7 +889,7 @@ class Interface(PolyResource):
 
         """
 
-        return thing.to_dict().get("net_id")
+        return thing.get("net_id")
 
 
 class NovaQuotaClass(PolyResource):
@@ -1526,15 +1529,16 @@ class ResourceTypes(Graph):
               MAX: 1,
               MATCHING_FN:
               lambda f, t:
-              t["network_id"] and
-              any(entry.to_dict().get("net_id") == t["network_id"]
-                  for entry in f)}}],
+              f.get("net_id") and f.get("net_id") == t["network_id"]}}],
         Keypair: [{TO: Server,
                    EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
                                      MIN: 0,
                                      MAX: sys.maxint,
                                      # Any keypair can be used on any server.
-                                     MATCHING_FN: lambda f, t: True}}],
+                                     MATCHING_FN:
+                                     lambda f, t:
+                                     f.get("fingerprint") is not None and
+                                     t is not None}}],
         NovaQuotaClass: [{TO: NovaQuotaSet,
                           EDGE_ATTRIBUTES: {TYPE: DEFINES,
                                             MIN: 0,

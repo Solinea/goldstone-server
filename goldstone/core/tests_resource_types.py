@@ -18,7 +18,7 @@ from functools import partial
 
 from .models import Image, ServerGroup, NovaLimits, Host, resource_types, \
     Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server, \
-    AvailabilityZone, Flavor, FlavorExtraSpec, Interface
+    AvailabilityZone, Flavor, FlavorExtraSpec, Interface, Keypair
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
@@ -679,15 +679,138 @@ class ResourceTypesTests(SimpleTestCase):
                      u'port_id': u'f3f6cd1a-b199-4d67-9266-8d69ac1fb46b',
                      u'port_state': u'ACTIVE'}
 
-        PORT = {}
+        PORT = {u'admin_state_up': True,
+                u'allowed_address_pairs': [],
+                u'binding:host_id': u'rsrc-02.c2.oak.solinea.com',
+                u'binding:profile': {},
+                u'binding:vif_details': {u'ovs_hybrid_plug': True,
+                                         u'port_filter': True},
+                u'binding:vif_type': u'ovs',
+                u'binding:vnic_type': u'normal',
+                u'device_id': u'f4091091-ccb9-495a-815d-75de88f82ad2',
+                u'device_owner': u'compute:None',
+                u'extra_dhcp_opts': [],
+                u'fixed_ips':
+                [{u'ip_address': u'192.168.1.201',
+                  u'subnet_id': u'623ed5a0-785b-4a8a-94a1-a96dd8679f1c'}],
+                u'id': u'f3f6cd1a-b199-4d67-9266-8d69ac1fb46b',
+                u'mac_address': u'fa:16:3e:77:7b:9c',
+                u'name': u'',
+                u'network_id': u'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
+                u'security_groups': [u'5d3c6a9f-005c-470e-9cb0-1163f9d222b5'],
+                u'status': u'ACTIVE',
+                u'tenant_id': u'56762288eea24ab08a3b6d06f5a37c14'}
 
         _test(Interface,
               INTERFACE,
-              1,
-              partial(_dictassign, INTERFACE, "id"),
+              'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
+              partial(_dictassign, INTERFACE, "net_id"),
               Port,
               PORT,
-              'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-              partial(_dictassign,
-                      PORT,
-                      "OS-EXT-SRV-ATTR:hypervisor_hostname"))
+              'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
+              partial(_dictassign, PORT, "network_id"))
+
+    def test_keypair_server(self):
+        """Test the Keypair - Server entry."""
+
+        # Test data.
+        KEYPAIR = {u'fingerprint':
+                   u'fa:73:23:78:1f:8c:10:bb:25:0f:6f:5e:25:62:14:c7',
+                   u'name': u'mykey',
+                   u'public_key': u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQAB'
+                   u'AAABAQDMMvo7r4q63rGaWjDhuZFBPMLqDfCY/FcNPK//FArLw8s62Pfh'
+                   u'l4mWdontreadthisp+qOKugkI1oox46OGp4Pvka1qRboomboomxJ95nl'
+                   u'/akk4TgE821KHR2Bl716mXDdlBFlv6K/AkXpr2e2E1R73cGQttuBYwSX'
+                   u'onGJ3+U68iFXxdeadbeefQjkgTy2amqNDaG7qVc3vzDE5j4VH3MAff0H'
+                   u'udqrgqdsq6Hq991G7MAfxom+36pZ8q3p/UY6T7uWoNrvAc3o7kFpppNd'
+                   u'1lPuqnjOD6wPB4vZdDWta/5fVwg+bpWY9qUoDdeadbeef7l7UGgOkkkD'
+                   u'kkkkSq/iDh bob@Siberia.local\n'}
+
+        SERVER = {u'OS-DCF:diskConfig': u'MANUAL',
+                  u'OS-EXT-AZ:availability_zone': u'nova',
+                  u'OS-EXT-SRV-ATTR:host': u'john.oak.solinea.com',
+                  u'OS-EXT-SRV-ATTR:hypervisor_hostname':
+                  u'john.oak.solinea.com',
+                  u'OS-EXT-SRV-ATTR:instance_name': u'instance-00000001',
+                  u'OS-EXT-STS:power_state': 4,
+                  u'OS-EXT-STS:task_state': None,
+                  u'OS-EXT-STS:vm_state': u'stopped',
+                  u'OS-SRV-USG:launched_at': u'2015-01-26T14:01:37.000000',
+                  u'OS-SRV-USG:terminated_at': None,
+                  u'accessIPv4': u'',
+                  u'accessIPv6': u'',
+                  u'addresses':
+                  {u'demo-net':
+                   [{u'OS-EXT-IPS-MAC:mac_addr': u'fa:00:00:7f:2a:00',
+                     u'OS-EXT-IPS:type': u'fixed',
+                     u'addr': u'192.168.1.1',
+                     u'version': 4},
+                    {u'OS-EXT-IPS-MAC:mac_addr': u'fa:00:00:7f:2a:00',
+                     u'OS-EXT-IPS:type': u'floating',
+                     u'addr': u'10.11.12.13',
+                     u'version': 4}]},
+                  u'config_drive': u'',
+                  u'created': u'2015-01-26T14:00:42Z',
+                  u'flavor': {u'id': u'1',
+                              u'links':
+                              [{u'href':
+                                u'http://10.11.12.13:8774/'
+                                u'7077765ed0df43b1b23d43c9c290daf9/flavors/1',
+                                u'rel': u'bookmark'}]},
+                  u'hostId':
+                  u'78f689fe281dbb1deb8e42ac188a9734faf430ddc905b556b74f6144',
+                  u'id': u'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+                  u'image': {u'id': u'0ae46ce1-80e5-447e-b0e8-9eeec81af920',
+                             u'links':
+                             [{u'href':
+                               u'http://10.11.12.13:8774/'
+                               u'7077765ed0df43b1b23d43c9c290daf9/'
+                               u'images/0ae46ce1-80e5-447e-b0e8-9eeec81af920',
+                               u'rel': u'bookmark'}]},
+                  u'key_name': None,
+                  u'links':
+                  [{u'href':
+                    u'http://10.10.20.10:8774/v2/7077765ed0df43b1b23d'
+                    u'43c9c290daf9/servers/'
+                    u'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+                    u'rel': u'self'},
+                   {u'href':
+                    u'http://10.10.20.10:8774/7077765ed0df43'
+                    u'b1b23d43c9c290daf9/servers/ee662ff5-3de6-46cb-'
+                    u'8b85-4eb4317beb7c',
+                    u'rel': u'bookmark'}],
+                  u'metadata': {},
+                  u'name': u'instance2',
+                  u'os-extended-volumes:volumes_attached': [],
+                  u'security_groups': [{u'name': u'default'}],
+                  u'status': u'SHUTOFF',
+                  u'tenant_id': u'56762288eea24ab08a3b6d06f5a37c14',
+                  u'updated': u'2015-03-04T01:27:22Z',
+                  u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
+
+        # I think any public keypair can be used on any server. So, _test()
+        # will fail on the "no match" test. So, we'll do all the testing here,
+        # except for the no-match test.
+
+        #Test identity method.
+        self.assertEqual(Keypair.identity(KEYPAIR),
+                         'fa:73:23:78:1f:8c:10:bb:25:0f:6f:5e:25:62:14:c7')
+        self.assertEqual(Server.identity(SERVER),
+                         'ee662ff5-3de6-46cb-8b85-4eb4317beb7c')
+
+        # Test edge discovery.
+        edges = resource_types.graph.out_edges(Keypair, data=True)
+        edge = [x for x in edges if x[1] == Server][0][2]
+
+        # Test the keypair being None
+        _dictassign(KEYPAIR, "fingerprint", None)
+        self.assertFalse(edge[MATCHING_FN](KEYPAIR, SERVER))
+
+        # Test both being None
+        _dictassign(SERVER, "OS-EXT-SRV-ATTR:hypervisor_hostname", None)
+        self.assertFalse(edge[MATCHING_FN](KEYPAIR, SERVER))
+
+        # Test match
+        _dictassign(KEYPAIR, "fingerprint", "4445")
+        _dictassign(SERVER, "OS-EXT-SRV-ATTR:hypervisor_hostname", "4445")
+        self.assertTrue(edge[MATCHING_FN](KEYPAIR, SERVER))
