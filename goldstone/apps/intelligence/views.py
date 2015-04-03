@@ -14,10 +14,7 @@
 # limitations under the License.
 from __future__ import unicode_literals
 
-import calendar
 from django.views.generic import TemplateView
-from datetime import datetime, timedelta
-import pytz
 import logging
 
 logger = logging.getLogger(__name__)
@@ -27,19 +24,18 @@ class IntelSearchView(TemplateView):
     template_name = 'search.html'
 
     def get_context_data(self, **kwargs):
+        import arrow
 
         context = super(IntelSearchView, self).get_context_data(**kwargs)
         end_time = self.request.GET.get('end_time', None)
         start_time = self.request.GET.get('start_time', None)
 
-        end_dt = datetime.fromtimestamp(int(end_time),
-                                        tz=pytz.utc) \
-            if end_time else datetime.now(tz=pytz.utc)
+        end = arrow.get(int(end_time)) \
+            if end_time else arrow.utcnow()
 
-        start_dt = datetime.\
-            fromtimestamp(int(start_time), tz=pytz.utc) \
-            if start_time else end_dt - timedelta(weeks=1)
+        start = arrow.get(int(start_time)) \
+            if start_time else end.replace(weeks=-1)
 
-        context['end_ts'] = calendar.timegm(end_dt.utctimetuple())
-        context['start_ts'] = calendar.timegm(start_dt.utctimetuple())
+        context['end_ts'] = end.timestamp
+        context['start_ts'] = start.timestamp
         return context

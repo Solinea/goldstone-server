@@ -43,6 +43,5 @@ python-glanceclient==0.17.0
 python-keystoneclient==1.2.0  # v1.3.0 conflicts with cinderclient 1.1.1
 python-neutronclient==2.3.11
 python-novaclient==2.23.0
-pytz==2014.2
 urllib3==1.8
 wsgiref==0.1.2
