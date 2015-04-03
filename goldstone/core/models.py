@@ -538,8 +538,6 @@ class Host(PolyResource):
     def _parse_host_name(host_name):
         """Where possible, generate the fqdn and simple hostnames for host.
 
-        TODO: Do we still need the fqdn?
-
         :param host_name: An IP address, fqdn, or simple host name
         :type host_name: str
         :return: (simple name, fqdn)
