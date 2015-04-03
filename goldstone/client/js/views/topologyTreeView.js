@@ -326,7 +326,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         if (redirectNodeName.indexOf('.') !== -1) {
             redirectNodeName = redirectNodeName.slice(0, redirectNodeName.indexOf('.'));
         }
-        window.location.href = '/report/node/' + redirectNodeName;
+        window.location.href = '#/report/node/' + redirectNodeName;
     },
 
     appendLeafNameToResourceHeader: function(text, location) {
@@ -420,7 +420,8 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                                 url = "/" + parentModule + url;
                                 localStorage.setItem('urlForResourceList', url);
                                 localStorage.setItem('origClickedLabel', origClickedLabel);
-                                window.location.href = parentModule + '/discover';
+                                window.location.href = '#/' +
+                                    parentModule + '/discover';
                             }
                         }
                     }
