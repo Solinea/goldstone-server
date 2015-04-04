@@ -711,12 +711,12 @@ class ResourceTypesTests(SimpleTestCase):
 
         _test(Interface,
               INTERFACE,
-              'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
-              partial(_dictassign, INTERFACE, "net_id"),
+              'fa:16:3e:00:11:22',
+              partial(_dictassign, INTERFACE, "mac_addr"),
               Port,
               PORT,
-              'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
-              partial(_dictassign, PORT, "network_id"))
+              'fa:16:3e:77:7b:9c',
+              partial(_dictassign, PORT, "mac_address"))
 
     def test_keypair_server(self):
         """Test the Keypair - Server entry."""
@@ -910,7 +910,7 @@ class ResourceTypesTests(SimpleTestCase):
               serverassign,
               Interface,
               INTERFACE,
-              'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
+              'fa:16:3e:00:11:22',
               partial(_dictassign, INTERFACE, "mac_addr"))
 
     @staticmethod
