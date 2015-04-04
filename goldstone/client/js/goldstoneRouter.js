@@ -53,26 +53,30 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchTriggeredBy = view;
 
         // Backbone's remove() calls this.$el.remove() and this.stopListening()
-        if (this.currentView) {
-            console.log('current views children: ', this.currentView);
+        if (this.currentLauncherView) {
+
+            // this.currentView is instantiated below
             this.currentView.remove();
+            this.currentLauncherView.remove();
         }
 
         // instantiate wrapper view that can be removed upon page change
         var launcherView = new LauncherView({});
-        // store it as the current view so it can be remove()'d
-        this.currentView = launcherView;
-        // append it to the page div
+        // store the current launcher and view so it can be remove()'d
+        this.currentLauncherView = launcherView;
+
+        // append the launcher to the page div
         $('.router-content-container').append(launcherView.el);
+
         // instantiate the desired page view
         // if it's a node report page, add the node_uuid param
         if (nodeId !== undefined) {
-            new view({
+            this. currentView = new view({
                 el: '.launcher-container',
                 node_uuid: nodeId
             });
         } else {
-            new view({
+            this.currentView = new view({
                 el: '.launcher-container'
             });
         }
