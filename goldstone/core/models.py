@@ -808,7 +808,7 @@ class Interface(PolyResource):
 
         """
 
-        return thing.get("net_id")
+        return thing.get("mac_addr")
 
 
 class NovaLimits(PolyResource):
@@ -988,7 +988,7 @@ class Port(PolyResource):
 
         """
 
-        return thing.get("network_id")
+        return thing.get("mac_address")
 
 
 class LBVIP(PolyResource):
@@ -1346,7 +1346,7 @@ class ResourceTypes(Graph):
               MAX: 1,
               MATCHING_FN:
               lambda f, t:
-              f.get("net_id") and f.get("net_id") == t["network_id"]}}],
+              f.get("mac_addr") and f.get("mac_addr") == t["mac_address"]}}],
         Keypair: [{TO: Server,
                    EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
                                      MIN: 0,
