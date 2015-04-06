@@ -58,6 +58,13 @@ var GoldstoneBaseView = Backbone.View.extend({
         }
     },
 
+    onClose: function() {
+        if (this.defaults.scheduleInterval) {
+            clearInterval(this.defaults.scheduleInterval);
+        }
+        this.off();
+    },
+
     processOptions: function() {
         this.defaults.chartTitle = this.options.chartTitle || null;
         this.defaults.height = this.options.height || null;
@@ -76,8 +83,8 @@ var GoldstoneBaseView = Backbone.View.extend({
 
     processListeners: function() {
         // registers 'sync' event so view 'watches' collection for data update
-        this.collection.on('sync', this.update, this);
-        this.collection.on('error', this.dataErrorMessage, this);
+        this.listenTo(this.collection, 'sync', this.update);
+        this.listenTo(this.collection, 'error', this.dataErrorMessage);
 
         // this is triggered by a listener set on nodeReportView.js
         this.on('lookbackSelectorChanged', function() {

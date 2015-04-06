@@ -125,11 +125,11 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        this.collection.on('sync', function() {
+        this.listenTo(this.collection, 'sync', function() {
             self.update();
         });
 
-        this.collection.on('error', this.dataErrorMessage, this);
+        this.listenTo(this.collection, 'error', this.dataErrorMessage);
 
         this.on('lookbackIntervalReached', function(params) {
 
