@@ -715,7 +715,7 @@ class ResourceTypesTests(SimpleTestCase):
               partial(_dictassign, INTERFACE, "mac_addr"),
               Port,
               PORT,
-              'fa:16:3e:77:7b:9c',
+              'f3f6cd1a-b199-4d67-9266-8d69ac1fb46b',
               partial(_dictassign, PORT, "mac_address"))
 
     def test_keypair_server(self):
