@@ -16,7 +16,6 @@ import arrow
 import pandas
 
 from django.test import SimpleTestCase
-from datetime import datetime
 from goldstone.apps.nova.models import HypervisorStatsData, SpawnData, \
     ResourceData
 from goldstone.models import ESData

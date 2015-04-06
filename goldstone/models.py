@@ -19,7 +19,6 @@ import redis
 
 import json
 import logging
-from goldstone.utils import NoDailyIndex
 
 logger = logging.getLogger(__name__)
 
@@ -61,10 +60,11 @@ def es_indices(prefix="", conn=None):
 
 
 def most_recent_index(prefix=""):
-    """Find the index matching the prefix that has the most recent datestamp.
+    """Return the index matching the prefix that has the most recent datestamp.
 
     :param prefix: index prefix
     :return: the last index of a sorted list
+
     """
 
     all_indices = es_indices(prefix)
@@ -101,6 +101,59 @@ class RedisConnection(object):
         self.conn = redis.StrictRedis(host=host, port=port, db=db)
 
 
+def _create_or_replace_alias(index_name, server=settings.ES_SERVER,
+                             alias='goldstone'):
+    """Manage an alias for an index.
+
+    Takes an index name and an alias name.  If the alias does not exist,
+    it is created and associated with the provided index name.  If the
+    alias already exists, it is repointed at the provided index.
+    """
+    try:
+        conn = es_conn(server)
+        if conn.indices.exists_alias(alias):
+            conn.indices.update_aliases({
+                "actions": [
+                    {"remove": {"index": "_all", "alias": alias}},
+                    {"add": {"index": index_name, "alias": alias}}
+                ]
+            })
+        else:
+            conn.indices.put_alias(alias, index_name)
+    except Exception:         # pylint: disable=W0703
+        logger.warn('Alias creation failed. Please report this.')
+        raise
+
+
+def create_daily_index(basename):
+    """Create a new Elasticsearch index and set up the goldstone alias."""
+    from datetime import date
+    from elasticsearch.exceptions import RequestError
+
+    now = date.today()
+    index_name = basename + "-" + now.strftime("%Y.%m.%d")
+
+    try:
+        conn = es_conn(settings.ES_SERVER)
+        conn.indices.create(index_name, body=None)
+
+        _create_or_replace_alias(index_name)
+
+    except RequestError as exc:
+        # Reraise anything that isn't index already exists
+        if not exc.error.startswith('IndexAlreadyExistsException'):
+            logger.warn('Index creation failed. Please report this error.')
+            raise
+        else:
+            logger.debug('Attempt to create index %s failed. Already exists.',
+                         index_name)
+
+    except Exception:         # pylint: disable=W0703
+        logger.exception("Failed to create the daily goldstone index and/or"
+                         "alias.  Please report this.")
+        raise
+
+
 class ESData(object):
 
     _conn = es_conn()
@@ -130,7 +183,7 @@ class ESData(object):
         :returns: index name
 
         """
-        from goldstone.core.tasks import create_daily_index
+        from goldstone.utils import NoDailyIndex
 
         candidates = []
 
@@ -148,7 +201,7 @@ class ESData(object):
         except IndexError:
             # if we can't find a goldstone index, let's just create one
             if prefix == 'goldstone':
-                create_daily_index()
+                create_daily_index("goldstone")
                 candidates = [k for k in
                               self._conn.indices.status()['indices'].keys() if
                               k.startswith(prefix + "-")]
@@ -379,6 +432,7 @@ class TopologyData(object):
 
     @classmethod
     def _sort_arg(cls, key, order):
+
         if order in ["+", "asc"]:
             return key              # translates to [{key: {'order': 'asc'}}]
         elif order in ["-", "desc"]:
