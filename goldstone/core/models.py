@@ -956,15 +956,16 @@ class Port(PolyResource):
 
         """
         from goldstone.utils import get_cloud
-        from neutronclient.v2_0 import client as neclient
+        from goldstone.neutron.utils import get_neutron_client
+        # from neutronclient.v2_0 import client as neclient
 
         # Get the one and only one Cloud row in the system
         row = get_cloud()
 
-        client = neclient.Client(username=row.username,
-                                 password=row.password,
-                                 tenant_name=row.tenant_name,
-                                 auth_url=row.auth_url)
+        client = get_neutron_client(row.username,
+                                    row.password,
+                                    row.tenant_name,
+                                    row.auth_url)
 
         return client.list_ports()["ports"]
 
