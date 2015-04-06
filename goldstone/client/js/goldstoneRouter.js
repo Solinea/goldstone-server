@@ -47,36 +47,38 @@ var GoldstoneRouter = Backbone.Router.extend({
     },
     switchView: function(view, nodeId) {
         // prevent multiple successive calls to the same page
-        if (this.switchTriggeredBy && this.switchTriggeredBy === view) {
+        if (app.switchTriggeredBy && app.switchTriggeredBy === view) {
             return;
         }
-        this.switchTriggeredBy = view;
+        app.switchTriggeredBy = view;
 
         // Backbone's remove() calls this.$el.remove() and this.stopListening()
-        if (this.currentLauncherView) {
+        if (app.currentLauncherView) {
 
             // this.currentView is instantiated below
-            this.currentView.remove();
-            this.currentLauncherView.remove();
+            if (app.currentView.onClose) {
+                app.currentView.onClose();
+            }
+            app.currentView.remove();
+            app.currentLauncherView.remove();
         }
 
         // instantiate wrapper view that can be removed upon page change
-        var launcherView = new LauncherView({});
         // store the current launcher and view so it can be remove()'d
-        this.currentLauncherView = launcherView;
+        app.currentLauncherView = new LauncherView({});
 
         // append the launcher to the page div
-        $('.router-content-container').append(launcherView.el);
+        $('.router-content-container').append(app.currentLauncherView.el);
 
         // instantiate the desired page view
         // if it's a node report page, add the node_uuid param
         if (nodeId !== undefined) {
-            this. currentView = new view({
+            app.currentView = new view({
                 el: '.launcher-container',
                 node_uuid: nodeId
             });
         } else {
-            this.currentView = new view({
+            app.currentView = new view({
                 el: '.launcher-container'
             });
         }
