@@ -440,7 +440,7 @@ class TopologyData(object):
         else:
             raise ValueError("Valid order values are in [+, -, asc, desc]")
 
-    def get(self, _, sort_key="@timestamp", sort_order="desc"):
+    def get(self, count=1, sort_key="@timestamp", sort_order="desc"):
         """Return the latest n instances from ES or None if not found."""
         from elasticsearch import ElasticsearchException
 
