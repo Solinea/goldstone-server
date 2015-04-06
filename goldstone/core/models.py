@@ -988,7 +988,7 @@ class Port(PolyResource):
 
         """
 
-        return thing.get("mac_address")
+        return thing.get("id")
 
 
 class LBVIP(PolyResource):
