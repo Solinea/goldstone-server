@@ -1,5 +1,5 @@
 """DRFES Filters."""
-# Copyright '2015' Solinea, Inc.
+# Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Solinea Software License Agreement (goldstone),
 # Version 1.0 (the "License"); you may not use this file except in compliance
@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from rest_framework.filters import BaseFilterBackend
 
 
@@ -38,12 +37,13 @@ class ElasticFilter(BaseFilterBackend):
         :param op: the query operation
         :rtype Search
         :return: the update Search object
+
         """
 
         model_class = view.Meta.model
         param = param if not model_class.field_has_raw(param) \
             else param + '.raw'
-        return queryset.query(op,  ** {param: value})
+        return queryset.query(op, **{param: value})
 
     @staticmethod
     def _coerce_value(value):
@@ -52,6 +52,7 @@ class ElasticFilter(BaseFilterBackend):
         :type value: str
         :param value: the value for a query parameter
         :return: the original value, possibly coerced by AST
+
         """
         import ast
 
@@ -71,8 +72,8 @@ class ElasticFilter(BaseFilterBackend):
         :param view: the view
         :rtype: Search
         :return: the updated queryset
-        """
 
+        """
         from django.db.models.constants import LOOKUP_SEP
 
         reserved_params = view.reserved_params + \

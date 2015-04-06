@@ -29,8 +29,7 @@ from .models import resources, Image, ServerGroup, NovaLimits, GraphNode, \
     PolyResource, Host, resource_types, Aggregate, Hypervisor, Port, \
     Cloudpipe, Network, Project, Server
 from . import tasks
-from .tasks import reconcile_hosts, _add_edges
-from .utils import custom_exception_handler
+from .utils import custom_exception_handler, _add_edges, process_resource_type
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
@@ -236,7 +235,7 @@ class AddEdges(SimpleTestCase):
         mock_rt_graph.graph.remove_edges_from(
             mock_rt_graph.graph.out_edges(node.resourcetype))
 
-        with patch("goldstone.core.tasks.resource_types", mock_rt_graph):
+        with patch("goldstone.core.utils.resource_types", mock_rt_graph):
             _add_edges(node)
 
         self.assertEqual(resources.graph.number_of_nodes(), len(NODES))
@@ -379,8 +378,8 @@ class AddEdges(SimpleTestCase):
                 self.assertEqual(edge[2], expected_attr_dict)
 
 
-class ReconcileHosts(SimpleTestCase):
-    """Test tasks.reconcile_hosts."""
+class ProcessResourceType(SimpleTestCase):
+    """Test utiles.process_resource_type."""
 
     class EmptyClientObject(object):
         """A class that simulates one of get_glance_client's return
@@ -409,7 +408,7 @@ class ReconcileHosts(SimpleTestCase):
         for nodetype in NODE_TYPES:
             nodetype.objects.all().delete()
 
-    @patch('goldstone.core.tasks.get_glance_client')
+    @patch('goldstone.core.models.get_glance_client')
     def test_empty_rg_empty_cloud(self, ggc):
         """Nothing in the resource graph, nothing in the cloud.
 
@@ -421,12 +420,12 @@ class ReconcileHosts(SimpleTestCase):
         ggc.return_value = {"client": self.EmptyClientObject(),
                             "region": "Siberia"}
 
-        reconcile_hosts()
+        process_resource_type(Image)
 
         self.assertEqual(resources.graph.number_of_nodes(), 0)
         self.assertEqual(resources.graph.number_of_edges(), 0)
 
-    @patch('goldstone.core.tasks.get_glance_client')
+    @patch('goldstone.core.models.get_glance_client')
     def test_rg_empty_cloud_image(self, ggc):
         """The resource graph contains only Image instances; nothing in the
         cloud.
@@ -455,13 +454,13 @@ class ReconcileHosts(SimpleTestCase):
         ggc.return_value = {"client": self.EmptyClientObject(),
                             "region": "Siberia"}
 
-        reconcile_hosts()
+        process_resource_type(Image)
 
         self.assertEqual(resources.graph.number_of_nodes(), 0)
         self.assertEqual(PolyResource.objects.count(), 0)
         self.assertEqual(resources.graph.number_of_edges(), 0)
 
-    @patch('goldstone.core.tasks.get_glance_client')
+    @patch('goldstone.core.models.get_glance_client')
     def test_rg_other_empty_cloud(self, ggc):
         """Something in the resource graph, some of which are non-Image
         instances; nothing in the cloud.
@@ -508,21 +507,19 @@ class ReconcileHosts(SimpleTestCase):
         ggc.return_value = {"client": self.EmptyClientObject(),
                             "region": "Siberia"}
 
-        reconcile_hosts()
+        process_resource_type(Image)
 
         self.assertEqual(resources.graph.number_of_nodes(), 3)
         self.assertEqual(PolyResource.objects.count(), 3)
         self.assertEqual(resources.nodes_of_type(Image), [])
         self.assertEqual(resources.graph.number_of_edges(), 2)
 
-    @patch('goldstone.core.tasks.logger')
-    @patch('goldstone.core.tasks.get_glance_client')
-    def test_empty_rg_cloud_multi_noid(self, ggc, log):
+    @patch('goldstone.core.models.get_glance_client')
+    def test_empty_rg_cloud_multi_noid(self, ggc):
         """Nothing in the resource graph; something in the cloud, and some of
-        the glance services don't have cloud_id.
+        the glance services don't have a cloud_id.
 
-        The ones without an id should be logged as errors, and the others
-        should be added to the resource graph.
+        Only the ones with an id should be added to the resource graph.
 
         """
 
@@ -556,18 +553,13 @@ class ReconcileHosts(SimpleTestCase):
 
         ggc.return_value = {"client": cloud, "region": "Siberia"}
 
-        reconcile_hosts()
+        process_resource_type(Image)
 
         self.assertEqual(resources.graph.number_of_nodes(), 2)
         self.assertEqual(PolyResource.objects.count(), 2)
         self.assertEqual(len(resources.nodes_of_type(Image)), 2)
 
-        # Extract the glance service dict from the logger calls, and then
-        # check them.
-        logger_arguments = [x[0][1] for x in log.critical.call_args_list]
-        self.assertEqual(logger_arguments, [bad_image_0, bad_image_1])
-
-    @patch('goldstone.core.tasks.get_glance_client')
+    @patch('goldstone.core.models.get_glance_client')
     def test_rg_cloud(self, ggc):
         """Something is in the graph, and cloud services exist; but their
         intersection is null.
@@ -624,7 +616,7 @@ class ReconcileHosts(SimpleTestCase):
 
         ggc.return_value = {"client": cloud, "region": "Siberia"}
 
-        reconcile_hosts()
+        process_resource_type(Image)
 
         self.assertEqual(resources.graph.number_of_nodes(), 6)
         self.assertEqual(PolyResource.objects.count(), 6)
@@ -638,7 +630,7 @@ class ReconcileHosts(SimpleTestCase):
 
         self.assertEqual(resources.graph.number_of_edges(), 2)
 
-    @patch('goldstone.core.tasks.get_glance_client')
+    @patch('goldstone.core.models.get_glance_client')
     def test_rg_cloud_hit(self, ggc):
         """Something is in the graph, and cloud services exist; and the
         intersection is not null.
@@ -705,7 +697,7 @@ class ReconcileHosts(SimpleTestCase):
 
         ggc.return_value = {"client": cloud, "region": "Siberia"}
 
-        reconcile_hosts()
+        process_resource_type(Image)
 
         self.assertEqual(resources.graph.number_of_nodes(), 7 + 1 - 1)
         self.assertEqual(PolyResource.objects.count(), 7 + 1 - 1)
@@ -721,9 +713,8 @@ class ReconcileHosts(SimpleTestCase):
         # ((NovaLimits, "0"), (Image, "a")), ((Image, "ab"), (Server, "ab")).
         self.assertEqual(resources.graph.number_of_edges(), 3)
 
-    @patch('goldstone.core.tasks.logger')
-    @patch('goldstone.core.tasks.get_glance_client')
-    def test_duplicate_cloud_ids(self, ggc, log):
+    @patch('goldstone.core.models.get_glance_client')
+    def test_duplicate_cloud_ids(self, ggc):
         """Something in the resource graph, and some glance services in the
         cloud; and some of the cloud's glance services have duplicate
         cloud_ids."""
@@ -775,14 +766,8 @@ class ReconcileHosts(SimpleTestCase):
 
         ggc.return_value = {"client": cloud, "region": "Siberia"}
 
-        reconcile_hosts()
+        process_resource_type(Image)
 
         self.assertEqual(resources.graph.number_of_nodes(), 5)
         self.assertEqual(PolyResource.objects.count(), 5)
         self.assertEqual(len(resources.nodes_of_type(Image)), 3)
-
-        # Extract the glance service dict from the logger calls, and then
-        # check them.
-        logger_arguments = [x[0][1] for x in log.critical.call_args_list]
-        expected = [[good_image_2]]
-        self.assertEqual(logger_arguments, expected)

@@ -50,7 +50,7 @@ class BaseTest(SimpleTestCase):
             url,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)   # pylint: disable=E1101
 
     def _assert_bad_request(self, url):
         """Do a request that should fail."""
@@ -59,7 +59,7 @@ class BaseTest(SimpleTestCase):
             url,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400)  # pylint: disable=E1101
 
 
 class SpawnsApiPerfViewsTest(BaseTest):
@@ -158,7 +158,9 @@ class SpawnsHandleRequest(APITestCase):
             data,
             format='json',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.data, {})          # pylint: disable=E1101
+
+        # pylint: disable=E1101
+        self.assertEqual(response.data, {})
         self.assertEqual(response.status_code, 200)
 
         # 1 successful spawns, 2 failed
@@ -174,8 +176,9 @@ class SpawnsHandleRequest(APITestCase):
             data,
             format='json',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.data,                # pylint: disable=E1101
-                         {1423165800000: [1, 2]})
+
+        # pylint: disable=E1101
+        self.assertEqual(response.data, {1423165800000: [1, 2]})
         self.assertEqual(response.status_code, 200)
 
         # 0 successful spawns, 2 failed spawns
@@ -185,8 +188,9 @@ class SpawnsHandleRequest(APITestCase):
             data,
             format='json',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.data,                 # pylint: disable=E1101
-                         {1423165800000: [0, 2]})
+
+        # pylint: disable=E1101
+        self.assertEqual(response.data, {1423165800000: [0, 2]})
         self.assertEqual(response.status_code, 200)
 
         # 1 successful spawns, 0 failed spawns
@@ -201,8 +205,9 @@ class SpawnsHandleRequest(APITestCase):
             data,
             format='json',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.data,                 # pylint: disable=E1101
-                         {1423165800000: [1, 0]})
+
+        # pylint: disable=E1101
+        self.assertEqual(response.data, {1423165800000: [1, 0]})
         self.assertEqual(response.status_code, 200)
 
 
