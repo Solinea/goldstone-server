@@ -109,8 +109,8 @@
             // app is a global {} namespace defined in base.html
 
             // append global selectors to page
-            app.lookbackRefresh = new GlobalLookbackRefreshButtonsView({});
-            $('.global-range-refresh-container').append(app.lookbackRefresh.el);
+            app.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
+            $('.global-range-refresh-container').append(app.globalLookbackRefreshSelectors.el);
 
             // kick off the router
             app.gsRouter = new GoldstoneRouter();
