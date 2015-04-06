@@ -234,7 +234,7 @@ class ResourceTypesTests(SimpleTestCase):
                 partial(_dictassign, AVAILABILITY_ZONE, "zoneName"),
                 Aggregate,
                 AGGREGATE,
-                'test-aggregate1',
+                1,
                 partial(_dictassign, AGGREGATE, "availability_zone"))
 
     @staticmethod
@@ -381,18 +381,18 @@ class ResourceTypesTests(SimpleTestCase):
                   u'swap': u'',
                   u'vcpus': 4}
 
-        FLAVOR_EXTRA_SPEC = {u'name': u'm1.large',
+        FLAVOR_EXTRA_SPEC = {u'id': u'4',
                              u'we are': u'making this up',
                              }
 
         do_test(Flavor,
                 FLAVOR,
-                "m1.large",
-                partial(_dictassign, FLAVOR, "name"),
+                "4",
+                partial(_dictassign, FLAVOR, "id"),
                 FlavorExtraSpec,
                 FLAVOR_EXTRA_SPEC,
-                'm1.large',
-                partial(_dictassign, FLAVOR_EXTRA_SPEC, "name"))
+                '4',
+                partial(_dictassign, FLAVOR_EXTRA_SPEC, "id"))
 
     @staticmethod
     def test_flavor_server():
@@ -486,7 +486,7 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(Flavor,
                 FLAVOR,
-                "m1.large",
+                "4",
                 partial(_dictassign, FLAVOR, "id"),
                 Server,
                 SERVER,
@@ -521,7 +521,7 @@ class ResourceTypesTests(SimpleTestCase):
                 partial(_dictassign, HOST, "host_name"),
                 Aggregate,
                 AGGREGATE,
-                'test-aggregate1',
+                1,
                 aggregateassign)
 
     @staticmethod
@@ -711,12 +711,12 @@ class ResourceTypesTests(SimpleTestCase):
 
         do_test(Interface,
                 INTERFACE,
-                'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
-                partial(_dictassign, INTERFACE, "net_id"),
+                'fa:16:3e:00:11:22',
+                partial(_dictassign, INTERFACE, "mac_addr"),
                 Port,
                 PORT,
-                'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
-                partial(_dictassign, PORT, "network_id"))
+                'f3f6cd1a-b199-4d67-9266-8d69ac1fb46b',
+                partial(_dictassign, PORT, "mac_address"))
 
     def test_keypair_server(self):
         """Test the Keypair - Server entry."""
@@ -824,13 +824,6 @@ class ResourceTypesTests(SimpleTestCase):
         self.assertTrue(edge[MATCHING_FN](KEYPAIR, SERVER))
 
     @staticmethod
-    def test_quotaclass_quotaset():
-        """Test the NovaQuotaClass - NovaQuotaSet entry."""
-
-        # TODO: Fill in after the classes are definecd.
-        pass
-
-    @staticmethod
     def test_server_interface():
         """Test the Server - Interface entry."""
 
@@ -917,5 +910,5 @@ class ResourceTypesTests(SimpleTestCase):
                 serverassign,
                 Interface,
                 INTERFACE,
-                'fa4684fa-7243-45bf-aac5-0a3db0c210b1',
+                'fa:16:3e:00:11:22',
                 partial(_dictassign, INTERFACE, "mac_addr"))
