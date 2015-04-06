@@ -97,7 +97,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
         var self = this;
         var ns = this.defaults;
 
-        this.collection.on('sync', function() {
+        this.listenTo(this.collection, 'sync', function() {
             if (self.collection.defaults.urlCollectionCount === 0) {
 
                 // if the 2nd fetch is done, store the 2nd dataset
@@ -120,7 +120,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
             }
         });
 
-        this.collection.on('error', this.dataErrorMessage, this);
+        this.listenTo(this.collection, 'error', this.dataErrorMessage);
 
         this.on('lookbackSelectorChanged', function() {
             self.fetchNowWithReset();
