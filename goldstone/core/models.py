@@ -729,6 +729,22 @@ class Image(PolyResource):
 #
 
 
+class QuotaClass(PolyResource):
+    """An OpenStack Image."""
+
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return list(get_glance_client()["client"].images.list())
+
+    @staticmethod
+    def identity(thing):
+        """See the parent class' method's docstring."""
+
+        return thing.get("id")
+
+
 class QuotaSet(PolyResource):
     """An OpenStack Image."""
 
