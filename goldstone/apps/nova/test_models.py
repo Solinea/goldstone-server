@@ -12,11 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import pytz
+import arrow
 import pandas
 
 from django.test import SimpleTestCase
-from datetime import datetime
 from goldstone.apps.nova.models import HypervisorStatsData, SpawnData, \
     ResourceData
 from goldstone.models import ESData
@@ -24,8 +23,8 @@ from goldstone.models import ESData
 
 class HypervisorStatsDataModel(SimpleTestCase):
 
-    start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
-    end = datetime.now(tz=pytz.utc)
+    start = arrow.get(2014, 3, 12).datetime
+    end = arrow.utcnow().datetime
     hsd = HypervisorStatsData()
     id_to_delete = None
 
@@ -53,8 +52,8 @@ class HypervisorStatsDataModel(SimpleTestCase):
 
 class SpawnDataModel(SimpleTestCase):
 
-    start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
-    end = datetime.now(tz=pytz.utc)
+    start = arrow.get(2014, 3, 12).datetime
+    end = arrow.utcnow().datetime
     interval = '1h'
     spawn_data = SpawnData(start, end, interval)
 
@@ -89,8 +88,8 @@ class SpawnDataModel(SimpleTestCase):
 
 class ResourceDataTest(SimpleTestCase):
 
-    start = datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc)
-    end = datetime.now(tz=pytz.utc)
+    start = arrow.get(2014, 3, 12).datetime
+    end = arrow.utcnow().datetime
     interval = '3600s'
 
     def _test_claims(self, test_params, rd):

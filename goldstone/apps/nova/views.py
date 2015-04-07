@@ -299,14 +299,14 @@ class SpawnsViewSet(ReadOnlyModelViewSet):
     def list(self, request):
         """The collection-of-objects GET handler for spawns."""
 
+        import arrow
+
         # Fetch and enhance this request's context.
         context = {
             # Use "now" if not provided. Validate() will calculate the start
             # and interval. Arguments missing from the request are set to None.
-            'end':
-            request.query_params.get(
-                'end',
-                str(calendar.timegm(datetime.utcnow().timetuple()))),
+            'end': request.query_params.get(
+                'end', str(arrow.utcnow().timestamp)),
             'start': request.query_params.get('start'),
             'interval': request.query_params.get('interval'),
             }

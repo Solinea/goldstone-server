@@ -16,14 +16,11 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.generic import RedirectView
-import logging
 
 from goldstone.tenants.urls import urlpatterns as tenants_urlpatterns
 from goldstone.views import DiscoverView, HelpView, NodeReportView, \
     LoginPageView, PasswordView, RouterView, SettingsPageView, \
     TenantSettingsPageView
-
-logger = logging.getLogger(__name__)
 
 admin.autodiscover()
 
@@ -42,7 +39,7 @@ urlpatterns = patterns(
     url(r'^help[/]?$', HelpView.as_view()),
     url(r'^intelligence/', include('goldstone.apps.intelligence.urls')),
     url(r'^keystone/', include('goldstone.apps.keystone.urls')),
-    url(r'^logging/', include('goldstone.apps.logging.urls')),
+    url(r'^logging/', include('goldstone.glogging.urls')),
     url(r'^neutron/', include('goldstone.neutron.urls')),
     url(r'^nova/', include('goldstone.apps.nova.urls')),
     url(r'^report/node/(?P<node_uuid>[^/]+)[/]?$',
