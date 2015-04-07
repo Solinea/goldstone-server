@@ -18,8 +18,10 @@ describe('keystoneReportView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
+        app = {};
+        app.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
 
+        blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
         this.testView = new KeystoneReportView({
             el: '.test-container',
         });
