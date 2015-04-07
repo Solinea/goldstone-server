@@ -39,7 +39,7 @@ module.exports = function(config) {
             // superclass for other charts, must be declared here
             'goldstone/client/js/views/utilizationCpuView.js'
 
-        ].concat(clientIncludes, testFiles),
+        ].concat(clientIncludes.clientWildcards, testFiles),
 
         exclude: [
             'karma.conf.js'

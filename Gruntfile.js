@@ -21,12 +21,20 @@ module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
 
+        notify: {
+            concat_message: {
+                options: {
+                    message: "Concat is finished"
+                }
+            }
+        },
+
         // what files should be linted
         jshint: {
             gruntfile: 'Gruntfile.js',
             karmaConfig: 'karma.conf.js',
-            client: clientIncludeOrder,
-            test: [testInclude, 'test/e2e/e2eTests.js'],
+            client: clientIncludeOrder.clientWildcards,
+            test: [testInclude, 'test/e2e/*.js'],
             options: {
                 globals: {
                     eqeqeq: true
@@ -75,12 +83,12 @@ module.exports = function(grunt) {
         // any changes to the following files
         watch: {
             client: {
-                files: clientIncludeOrder,
-                tasks: ['lintAndTest']
+                files: clientIncludeOrder.clientWildcards,
+                tasks: ['lint', 'c']
             },
             gruntfile: {
                 files: ['Gruntfile.js', 'karma.conf.js'],
-                tasks: ['jshint:gruntfile', 'jshint:karmaConfig', 'lintAndTest']
+                tasks: ['jshint:gruntfile', 'jshint:karmaConfig', 'lint']
             },
             unitTests: {
                 files: ['test/unit/*.js'],
@@ -92,7 +100,7 @@ module.exports = function(grunt) {
             },
             e2eTests: {
                 files: ['test/e2e/*.js'],
-                tasks: 'lintAndTest'
+                tasks: 'lint'
             }
         },
 
@@ -100,12 +108,31 @@ module.exports = function(grunt) {
             dev: {
                 include: ['unitTests', 'integrationTests']
             }
-        }
+        },
+
+        // configure grunt-concat
+        concat: {
+            options: {
+                separator: ';\n',
+                banner: '/*! goldstone concat on <%= grunt.template.today("yyyy-mm-dd@H:M:s") %> */' + '\n\n'
+            },
+            lib: {
+                nonull: true,
+                src: clientIncludeOrder.lib,
+                dest: 'goldstone/client/js/bundle/libs.js',
+                stripBanners: true
+            },
+            clientjs: {
+                nonull: true,
+                src: clientIncludeOrder.clientWildcards,
+                dest: 'goldstone/client/js/bundle/bundle.js'
+            }
+        },
 
     });
 
     // Start watching and run tests when files change
-    grunt.registerTask('default', ['lint', 'test']);
+    grunt.registerTask('default', ['lint', 'karma', 'watch']);
     grunt.registerTask('lint', ['jshint']);
     grunt.registerTask('test', ['karma', 'casperjs:e2e']);
     grunt.registerTask('lintAndTest', ['lint', 'test']);
@@ -115,4 +142,5 @@ module.exports = function(grunt) {
     grunt.registerTask('eNoLogout', ['casperjs:skipLogout']);
     grunt.registerTask('eLogout', ['casperjs:logoutOnly']);
     grunt.registerTask('eNoAuth', ['casperjs:skipAuth']);
+    grunt.registerTask('c', ['concat', 'notify:concat_message']);
 };
