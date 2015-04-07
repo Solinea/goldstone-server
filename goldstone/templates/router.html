@@ -115,6 +115,15 @@
             // kick off the router
             app.gsRouter = new GoldstoneRouter();
             Backbone.history.start();
+
+            // subscribe the authLogoutIcon to the router
+            // object which will emit a trigger when a
+            // view is switched out.
+            app.authLogoutIcon.listenTo(app.gsRouter, 'switchingView', function() {
+                // viewSwitchTriggered defined
+                // in authLogoutIconView
+                this.viewSwitchTriggered();
+            });
         });
 
     </script>
