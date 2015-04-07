@@ -14,40 +14,9 @@
 # limitations under the License.
 import arrow
 from copy import deepcopy
-import pandas
 
 from django.test import SimpleTestCase
-from goldstone.apps.nova.models import HypervisorStatsData, \
-    ResourceData, SpawnsData
-
-
-class HypervisorStatsDataModel(SimpleTestCase):
-
-    start = arrow.get(2014, 3, 12).datetime
-    end = arrow.utcnow().datetime
-    hsd = HypervisorStatsData()
-    id_to_delete = None
-
-    def setUp(self):
-        """Done before every test."""
-
-        rec = {"@timestamp": self.end.isoformat()}
-        self.id_to_delete = self.hsd.post(rec)
-        self.assertIsNotNone(self.id_to_delete)
-
-    def tearDown(self):
-        """Done after every test."""
-
-        response = self.hsd.delete(self.id_to_delete)
-        self.assertTrue(response)
-
-    def test_get(self):
-        recs = self.hsd.get(1)
-        self.assertEqual(len(recs), 1)
-
-    def test_get_range(self):
-        recs = self.hsd.get_date_range(self.start, self.end)
-        self.assertGreater(len(recs), 0)
+from goldstone.apps.nova.models import SpawnsData
 
 
 class SpawnsDataModelTests(SimpleTestCase):
@@ -94,43 +63,3 @@ class SpawnsDataModelTests(SimpleTestCase):
         self.assertDictEqual(result.to_dict()['aggs'], expected_aggs)
         self.assertDictEqual(result.to_dict()['query'], expected_query)
         self.assertListEqual(result.to_dict()['sort'], self.TIMESTAMP_SORT)
-
-
-class ResourceDataTest(SimpleTestCase):
-
-    start = arrow.get(2014, 3, 12).datetime
-    end = arrow.utcnow().datetime
-    interval = '3600s'
-
-    def _test_claims(self, test_params, rd):
-        """Evaluate the results."""
-
-        for params in test_params:
-            result = getattr(rd, params['function'])()
-            self.assertIsInstance(result, pandas.core.frame.DataFrame)
-
-    def test_virt_resource_data(self):
-        vrd = ResourceData(self.start, self.end, self.interval)
-
-        test_params = [
-            {'type': 'nova_claims_summary_virt', 'resource': 'cpus',
-             'function': 'get_virt_cpu'},
-            {'type': 'nova_claims_summary_virt', 'resource': 'memory',
-             'function': 'get_virt_mem'},
-        ]
-
-        self._test_claims(test_params, vrd)
-
-    def test_phys_resource_data(self):
-        prd = ResourceData(self.start, self.end, self.interval)
-
-        test_params = [
-            {'type': 'nova_claims_summary_phys', 'resource': 'cpus',
-             'function': 'get_phys_cpu'},
-            {'type': 'nova_claims_summary_phys', 'resource': 'memory',
-             'function': 'get_phys_mem'},
-            {'type': 'nova_claims_summary_phys', 'resource': 'disk',
-             'function': 'get_phys_disk'},
-        ]
-
-        self._test_claims(test_params, prd)

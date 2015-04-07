@@ -17,8 +17,7 @@ from goldstone.models import most_recent_index, es_conn, es_indices
 
 
 class DailyIndexDocType(DocType):
-    """A model that searches a set of daily indices (intended to be
-    read-only)."""
+    """A model that searches a set of daily indices."""
 
     INDEX_PREFIX = 'logstash-'
     SORT = '-@timestamp'
@@ -77,9 +76,9 @@ class DailyIndexDocType(DocType):
 
     @classmethod
     def simple_datehistogram_agg(cls, base_queryset, interval,
-                            field='@timestamp',
-                            agg_name='per_interval', size=0,
-                            min_doc_count=1):
+                                 field='@timestamp',
+                                 agg_name='per_interval', size=0,
+                                 min_doc_count=1):
         """ Returns a date histogram aggregations.
 
         :type base_queryset: Search
@@ -114,6 +113,22 @@ class DailyIndexDocType(DocType):
                            size=size)
 
         return search
+
+    @staticmethod
+    def _datehist_agg(start, end, interval):
+        """Return a date histogram aggregation that can be applied to an
+        existing search object."""
+        from arrow import Arrow
+        from elasticsearch_dsl import A
+        assert isinstance(start, Arrow), 'start must be an Arrow'
+        assert isinstance(end, Arrow), 'end must be an Arrow'
+        assert isinstance(interval, basestring), 'interval must be a string'
+
+        return A("date_histogram", field='@timestamp',
+                 interval=interval, min_doc_count=0,
+                 extended_bounds={
+                     "min": start.isoformat(),
+                     "max": end.isoformat()})
 
     @classmethod
     def get_field_mapping(cls, field):

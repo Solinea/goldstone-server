@@ -15,13 +15,10 @@
 from unittest import skip
 import arrow
 import json
-import pandas as pd
 
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.test import SimpleTestCase
-from mock import patch
-from rest_framework.test import APITestCase
 
 from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
 
@@ -128,23 +125,6 @@ class SpawnsViewTests(BaseTest):
                 "&end=" + self.valid_end + \
                 "&interval=" + self.invalid_interval
             self._assert_bad_request(url)
-
-
-class LatestStatsViewTest(SimpleTestCase):
-
-    def test_good_request(self):
-
-        URI = '/nova/hypervisor/latest-stats'
-
-        get_user_model().objects.all().delete()
-        token = create_and_login()
-
-        response = self.client.get(
-            URI,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertNotEqual(json.loads(response.content), [])
 
 
 class DataViewTests(SimpleTestCase):

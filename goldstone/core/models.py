@@ -19,6 +19,7 @@ from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
 from polymorphic import PolymorphicModel
 from goldstone.apps.drfes.models import DailyIndexDocType
 from goldstone.apps.logging.models import LogData, LogEvent
+from goldstone.models import es_conn, daily_index
 from goldstone.utils import utc_now
 
 from elasticsearch_dsl.query import Q, QueryString
