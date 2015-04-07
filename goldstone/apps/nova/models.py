@@ -17,10 +17,6 @@ import json
 import logging
 from arrow import Arrow
 from elasticsearch_dsl import A
-import pandas as pd
-# TODO replace pyes
-from pyes import BoolQuery, RangeQuery, ESRangeOp, TermQuery
-from types import StringType
 from goldstone.apps.drfes.models import DailyIndexDocType
 
 from goldstone.models import ESData, TopologyData
@@ -124,13 +120,6 @@ class NovaClientData(ESData):
                             values()[0]['_shards']['failed'])
 
 
-class HypervisorStatsData(NovaClientData):
-    """The pseudo model for hypervisor statistics."""
-
-    _INDEX_PREFIX = 'goldstone'
-    _DOC_TYPE = 'nova_hypervisor_stats'
-
-
 class SpawnsData(DailyIndexDocType):
     """A model that searches a set of daily indices (intended to be
     read-only)."""
@@ -140,20 +129,6 @@ class SpawnsData(DailyIndexDocType):
 
     class Meta:
         doc_type = 'nova_spawns'
-
-    @staticmethod
-    def _datehist_agg(start, end, interval):
-        """Return a date histogram aggregation."""
-        assert isinstance(start, Arrow), 'start must be an Arrow'
-        assert isinstance(end, Arrow), 'end must be an Arrow'
-        assert isinstance(interval, basestring), 'interval must be a string'
-
-        return A("date_histogram", field='@timestamp',
-                 interval=interval, min_doc_count=0,
-                 extended_bounds = {
-                     "min": start.isoformat(),
-                     "max": end.isoformat()
-                })
 
     @classmethod
     def _spawn_finish_query(cls, start, end, interval):
@@ -182,154 +157,6 @@ class SpawnsData(DailyIndexDocType):
         """
         return self._spawn_finish_query(start, end, interval). \
             execute().aggregations
-
-
-class ResourceData(ESData):
-    _DOC_TYPE = 'nova_claims'
-    _TYPE_FIELDS = {
-        'physical': ['total', 'used'],
-        'virtual': ['limit', 'free']
-    }
-
-    def __init__(self, start, end, interval):
-        """
-        :arg start: datetime used to filter the query range
-        :arg end: datetime used to filter the query range
-        :arg interval: string representation of the time interval to use when
-            aggregating the results.  Form should be something like: '1.5s'.
-            Supported time postfixes are s, m, h, d, w, m.
-        """
-        assert type(start) is datetime, "start is not a datetime: %r" % \
-                                        type(start)
-        assert type(end) is datetime, "end is not a datetime: %r" % type(end)
-        assert type(interval) in [StringType,
-                                  unicode], "interval is not a string: %r" \
-                                            % type(interval)
-        assert interval[-1] in ['s', 'm', 'h', 'd'], \
-            "valid units for interval are ['s', 'm', 'h', 'd']: %r" \
-            % interval
-
-        self.start = start
-        self.end = end
-        self.interval = interval
-
-    def _claims_resource_query(self, resource_type, resource):
-        date_agg_name = "events_by_date"
-        host_agg_name = "events_by_host"
-        max_total_agg = "max_total"
-        used_or_free_agg = self._TYPE_FIELDS[resource_type][1]
-
-        # virtual resource report free instead of used.  We need to find the
-        # min of the bucket rather than the max.
-        max_or_min_aggs_clause = None
-
-        _query_value = BoolQuery(must=[
-            RangeQuery(qrange=ESRangeOp(
-                "@timestamp",
-                "gte", self.start.isoformat(),
-                "lte", self.end.isoformat())),
-            TermQuery("resource", resource),
-            TermQuery("state", resource_type)
-        ]).serialize()
-
-        if used_or_free_agg == 'free':
-            max_or_min_aggs_clause = self._min_aggs_clause(
-                used_or_free_agg, self._TYPE_FIELDS[resource_type][1])
-        else:
-            max_or_min_aggs_clause = self._max_aggs_clause(
-                used_or_free_agg, self._TYPE_FIELDS[resource_type][1])
-
-        tl_aggs_clause = self._agg_date_hist(self.interval, name=date_agg_name)
-        host_aggs_clause = self._agg_clause(host_agg_name,
-                                            self._terms_clause("host"))
-        stats_aggs_clause = dict(
-            self._max_aggs_clause(max_total_agg,
-                                  self._TYPE_FIELDS[resource_type][0]).
-            items() + max_or_min_aggs_clause.items())
-        host_aggs_clause[host_agg_name]['aggs'] = stats_aggs_clause
-        tl_aggs_clause[date_agg_name]['aggs'] = host_aggs_clause
-
-        query = {
-            "query": _query_value,
-            "aggs": tl_aggs_clause
-        }
-
-        logger.debug("[_claims_resource_query] query = %s", json.dumps(query))
-
-        return query
-
-    def _get_resource(self, resource_type, resource, custom_field):
-
-        query = self._claims_resource_query(resource_type, resource)
-        logger.debug('query = %s', json.dumps(query))
-
-        index = ",".join(self.get_index_names('goldstone-'))
-        result = self._conn.search(index=index,
-                                   body=query,
-                                   size=0,
-                                   doc_type=self._DOC_TYPE)
-
-        logger.debug('[_get_resource] search response = %s',
-                     json.dumps(result))
-
-        items = []
-
-        for date_bucket in result['aggregations']['events_by_date']['buckets']:
-            logger.debug("[_get_resource] processing date_bucket: %s",
-                         json.dumps(date_bucket))
-            item = {'@timestamp': date_bucket['key'],
-                    custom_field: 0,
-                    'total': 0}
-
-            for host_bucket in date_bucket['events_by_host']['buckets']:
-                logger.debug("[_get_resource] processing host_bucket: %s",
-                             json.dumps(host_bucket))
-                item['total'] += \
-                    (host_bucket['max_total']).get('value', 0)
-                item[custom_field] += \
-                    (host_bucket[custom_field]).get('value', 0)
-
-            if custom_field is 'free':
-                item['used'] = item['total'] - item['free']
-                del item['free']
-
-            # set zero values to None so we can do a pandas fillna in the view
-            if item['used'] == 0:
-                item['used'] = None
-            if item['total'] == 0:
-                item['total'] = None
-
-            items.append(item)
-
-        logger.debug('[_get_resource] items = %s', json.dumps(items))
-
-        result = pd.read_json(json.dumps(items),
-                              orient='records',
-                              convert_axes=False)
-
-        logger.debug('[_get_resource] pd = %s', result)
-
-        return result
-
-    def get_phys_cpu(self):
-        result = self._get_resource('physical', 'cpus', 'used')
-        return result
-
-    def get_virt_cpu(self):
-        result = self._get_resource('virtual', 'cpus', 'free')
-        return result
-
-    def get_phys_mem(self):
-        result = self._get_resource('physical', 'memory', 'used')
-        return result
-
-    def get_virt_mem(self):
-        result = self._get_resource('virtual', 'memory', 'free')
-        return result
-
-    def get_phys_disk(self):
-        result = self._get_resource('physical', 'disk', 'used')
-        return result
 
 
 class AgentsData(TopologyData):

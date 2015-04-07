@@ -37,7 +37,6 @@ networkx==1.9.1
 pandas==0.13.1
 pbr==0.10.8
 psycopg2==2.5.4
-pyes==0.99.5
 python-cinderclient==1.1.1
 python-glanceclient==0.17.0
 python-keystoneclient==1.2.0  # v1.3.0 conflicts with cinderclient 1.1.1

@@ -23,43 +23,60 @@ from __future__ import absolute_import
 from datetime import datetime
 import logging
 
-from goldstone.apps.nova.models import HypervisorStatsData, \
-    AgentsData, AggregatesData, AvailZonesData, CloudpipesData, FlavorsData, \
+from goldstone.apps.nova.models import AgentsData, AggregatesData, \
+    AvailZonesData, CloudpipesData, FlavorsData, \
     FloatingIpPoolsData, HostsData, HypervisorsData, NetworksData, \
     SecGroupsData, ServersData, ServicesData
-from goldstone.core.models import Host
+from goldstone.core.models import Host, MetricData
 from goldstone.celery import app as celery_app
-from goldstone.utils import get_cloud
+from goldstone.utils import get_region_for_nova_client
 
 
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True)
-def nova_hypervisors_stats(self):
-    from novaclient.v2 import client
+@celery_app.task()
+def nova_hypervisors_stats():
+    """Get stats from the nova API and add them as Goldstone metrics."""
+    from goldstone.utils import get_nova_client
+    from goldstone.models import es_conn, daily_index
+    import arrow
 
-    # Get the system's sole OpenStack cloud record.
-    cloud = get_cloud()
-
-    novaclient = client.Client(cloud.username,
-                               cloud.password,
-                               cloud.tenant_name,
-                               cloud.auth_url,
-                               service_type="compute")
+    novaclient = get_nova_client()['client']
     response = \
         novaclient.hypervisors.statistics()._info     # pylint: disable=W0212
+    region = get_region_for_nova_client(novaclient)
+    metric_prefix = 'nova.hypervisor.'
+    now = arrow.utcnow()
+    conn = es_conn()
+    es_index = daily_index(MetricData.INDEX_PREFIX)
 
-    now = datetime.utcnow()
-    response['@timestamp'] = now.strftime(
-        "%Y-%m-%dT%H:%M:%S." + str(int(round(now.microsecond/1000))) + "Z")
+    # Would like to get this from the MetricData class, but there is something
+    # funky going on with how the Meta class is set up.
+    es_doc_type = 'core_metric'
 
-    response['task_id'] = self.request.id
+    for key, value in response.items():
+        doc = {
+            'type': 'core_metric',
+            'name': metric_prefix + key,
+            'value': value,
+            'metric_type': 'gauge',
+            '@timestamp': now.isoformat(),
+            'region': region
+        }
 
-    hvdb = HypervisorStatsData()
-    hvdbid = hvdb.post(response)
+        unit = None
+        if key in ['disk_available_least', 'free_disk_gb', 'local_gb',
+                   'local_gb_used']:
+            unit = 'GB'
+        elif key in ['free_ram_mb', 'memory_mb', 'memory_mb_used']:
+            unit = 'MB'
+        else:
+            unit = 'count'
 
-    logger.debug("[hypervisor_stats] id = %s", hvdbid)
+        doc['unit'] = unit
+
+        conn.create(es_index, es_doc_type, doc)
 
 
 def _update_nova_records(rec_type, region, db, items):
