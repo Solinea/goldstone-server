@@ -30,8 +30,7 @@ import mock
 
 from goldstone.core.models import Host
 from goldstone.core.tasks import create_daily_index
-from goldstone.models import ESData, es_conn, daily_index, es_indices, \
-    TopologyData
+from goldstone.models import es_conn, daily_index, es_indices, TopologyData
 from goldstone.tenants.models import Tenant
 from goldstone.test_utils import Setup
 
@@ -146,11 +145,11 @@ class PrimeData(TestCase):
     # Index the test data to the appropriate indices.
     # pylint: disable=W0212
     for index, data_f in [
-        (ESData()._get_latest_index('logstash'),
+        (daily_index('logstash-'),
          gzip.open(os.path.join(os.path.dirname(__file__),
                                 "apps", "..", "..", "test_data",
                                 "logstash_data.json.gz"))),
-        (ESData()._get_latest_index('goldstone'),
+        (daily_index('goldstone-'),
          gzip.open(os.path.join(os.path.dirname(__file__),
                                 "apps", "..", "..", "test_data",
                                 "goldstone_data.json.gz"))),
