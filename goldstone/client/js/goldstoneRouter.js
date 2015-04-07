@@ -46,6 +46,13 @@ var GoldstoneRouter = Backbone.Router.extend({
         "*default": "redirect"
     },
     switchView: function(view, nodeId) {
+
+        // as a backbone object, router can emit triggers
+        // this is being listened to by authLogoutView
+        // to determine whether or not to render the
+        // logout icon
+        this.trigger('switchingView');
+
         // prevent multiple successive calls to the same page
         if (app.switchTriggeredBy && app.switchTriggeredBy === view) {
             return;
