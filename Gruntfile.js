@@ -110,7 +110,7 @@ module.exports = function(grunt) {
 
         focus: {
             dev: {
-                include: ['unitTests', 'integrationTests']
+                include: ['unitTests', 'integrationTests', 'client']
             }
         },
 
