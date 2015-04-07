@@ -27,7 +27,7 @@ class MetricDataListView(ElasticListAPIView):
 
     serializer_class = MetricDataSerializer
 
-    class Meta:
+    class Meta:                  # pylint: disable=C0111,C1001,W0232
         model = MetricData
 
 
@@ -36,7 +36,7 @@ class ReportDataListView(ElasticListAPIView):
 
     serializer_class = ReportDataSerializer
 
-    class Meta:
+    class Meta:                  # pylint: disable=C0111,C1001,W0232
         model = ReportData
 
 
@@ -45,13 +45,15 @@ class ReportNamesAggView(SimpleAggView):
 
     Currently it support a top-level report name aggregation only.  The
     scope can be limited to a specific host, time range, etc. by using
-    query params such has host=xyz or @timestamp__range={'gt': 0}"""
+    query params such has host=xyz or @timestamp__range={'gt': 0}.
+
+    """
 
     serializer_class = ReportNamesAggSerializer
     AGG_FIELD = 'name'
     AGG_NAME = 'per_name'
 
-    class Meta:
+    class Meta:                  # pylint: disable=C0111,C1001,W0232
         model = ReportData
 
     def get_queryset(self):
@@ -66,13 +68,15 @@ class MetricNamesAggView(SimpleAggView):
 
     Currently it support a top-level report name aggregation only.  The
     scope can be limited to a specific host, time range, etc. by using
-    query params such has host=xyz or @timestamp__range={'gt': 0}"""
+    query params such has host=xyz or @timestamp__range={'gt': 0}.
+
+    """
 
     serializer_class = MetricNamesAggSerializer
     AGG_FIELD = 'name'
     AGG_NAME = 'per_name'
 
-    class Meta:
+    class Meta:                   # pylint: disable=C0111,C1001,W0232
         model = MetricData
 
 

@@ -85,9 +85,9 @@ INSTALLED_APPS = (
     'goldstone.apps.glance',
     'goldstone.apps.intelligence',
     'goldstone.apps.keystone',
-    'goldstone.apps.logging',
     'goldstone.apps.nova',
     'goldstone.core',
+    'goldstone.glogging',
     'goldstone.neutron',
     'goldstone.tenants',
     'goldstone.user',
@@ -379,11 +379,12 @@ class ResourceAttribute(ConstantDict):
     EDGE_ATTRIBUTES = "edgeattributes"
     MIN = "min"     # A node may have this minimum number of this edge.
     MAX = "max"     # A node may have this maximum number of this edge.
-    TO = "to"       # This control_dict is for a "to" type/node of this value.
+    # This control_dict is for a "to" type/node of this value.
+    TO = "to"       # pylint: disable=C0103
     TYPE = "type"   # The type of this edge or node.
-    # A list of str. To find an edge from this starting node to a destination
-    # node, look for a node attribute kay matching an entry from here,
-    # starting at the [0] index.
-    MATCHING_ATTRIBUTES = "matchingattributes"
+    # A callable(x, y). To find an edge from this starting node to a
+    # destination node, This is called with the from_attr_dict and
+    # to_attr_dict.
+    MATCHING_FN = "matchingattributes"
 
 R_ATTRIBUTE = ResourceAttribute()

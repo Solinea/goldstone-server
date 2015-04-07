@@ -13,12 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import arrow
-
-# TODO replace pytz and calendar with arrow
-from datetime import datetime
 import json
-import pytz
-import calendar
 import pandas as pd
 
 from django.contrib.auth import get_user_model
@@ -35,13 +30,11 @@ class BaseTest(SimpleTestCase):
     """A base class that provides common attributes and utility methods."""
 
     # Define commonly used date/time and interval values.
-    valid_start = str(calendar.timegm(
-        datetime(2014, 3, 12, 0, 0, 0, tzinfo=pytz.utc).utctimetuple()))
-    valid_end = str(calendar.timegm(
-        datetime.now(tz=pytz.utc).utctimetuple()))
+    valid_start = str(arrow.get(2014, 3, 12).timestamp)
+    valid_end = str(arrow.utcnow().timestamp)
     valid_interval = '3600s'
-    invalid_start = '999999999999'
-    invalid_end = '999999999999'
+    invalid_start = 'abc'
+    invalid_end = 'abc'
     invalid_interval = 'abc'
 
     def setUp(self):
@@ -57,7 +50,7 @@ class BaseTest(SimpleTestCase):
             url,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)   # pylint: disable=E1101
 
     def _assert_bad_request(self, url):
         """Do a request that should fail."""
@@ -66,7 +59,7 @@ class BaseTest(SimpleTestCase):
             url,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400)  # pylint: disable=E1101
 
 
 class SpawnsApiPerfViewsTest(BaseTest):
@@ -165,7 +158,9 @@ class SpawnsHandleRequest(APITestCase):
             data,
             format='json',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.data, {})          # pylint: disable=E1101
+
+        # pylint: disable=E1101
+        self.assertEqual(response.data, {})
         self.assertEqual(response.status_code, 200)
 
         # 1 successful spawns, 2 failed
@@ -181,8 +176,9 @@ class SpawnsHandleRequest(APITestCase):
             data,
             format='json',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.data,                # pylint: disable=E1101
-                         {1423165800000: [1, 2]})
+
+        # pylint: disable=E1101
+        self.assertEqual(response.data, {1423165800000: [1, 2]})
         self.assertEqual(response.status_code, 200)
 
         # 0 successful spawns, 2 failed spawns
@@ -192,8 +188,9 @@ class SpawnsHandleRequest(APITestCase):
             data,
             format='json',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.data,                 # pylint: disable=E1101
-                         {1423165800000: [0, 2]})
+
+        # pylint: disable=E1101
+        self.assertEqual(response.data, {1423165800000: [0, 2]})
         self.assertEqual(response.status_code, 200)
 
         # 1 successful spawns, 0 failed spawns
@@ -208,8 +205,9 @@ class SpawnsHandleRequest(APITestCase):
             data,
             format='json',
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
-        self.assertEqual(response.data,                 # pylint: disable=E1101
-                         {1423165800000: [1, 0]})
+
+        # pylint: disable=E1101
+        self.assertEqual(response.data, {1423165800000: [1, 0]})
         self.assertEqual(response.status_code, 200)
 
 
