@@ -86,6 +86,10 @@ module.exports = function(grunt) {
                 files: clientIncludeOrder.clientWildcards,
                 tasks: ['lint', 'c']
             },
+            lib: {
+                files: 'goldstone/client/js/lib/*.js',
+                tasks: ['concat:lib']
+            },
             gruntfile: {
                 files: ['Gruntfile.js', 'karma.conf.js'],
                 tasks: ['jshint:gruntfile', 'jshint:karmaConfig', 'lint']
@@ -142,5 +146,5 @@ module.exports = function(grunt) {
     grunt.registerTask('eNoLogout', ['casperjs:skipLogout']);
     grunt.registerTask('eLogout', ['casperjs:logoutOnly']);
     grunt.registerTask('eNoAuth', ['casperjs:skipAuth']);
-    grunt.registerTask('c', ['concat', 'notify:concat_message']);
+    grunt.registerTask('c', ['concat:clientjs', 'notify:concat_message']);
 };
