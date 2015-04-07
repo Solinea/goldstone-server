@@ -29,23 +29,27 @@ The logout icon will only be rendered in the top-right corner of the page if
 there is a truthy value present in localStorage.userToken
 */
 
-var LogoutIcon = Backbone.View.extend({
+var LogoutIcon = GoldstoneBaseView.extend({
 
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
         this.el = options.el;
-
+        this.render();
         // if auth token present, hijack all subsequent ajax requests
         // with an auth header containing the locally stored token
         this.setAJAXSendRequestHeaderParams();
 
         // only render the logout button if an auth token is present
-        this.renderIfTokenPresent();
+        this.makeVisibleIfTokenPresent();
 
         // clicking logout button > expire token via /accounts/logout
         // then clear token from localStorage and redirect to /login
         this.setLogoutButtonHandler();
+    },
+
+    viewSwitchTriggered: function() {
+        this.makeVisibleIfTokenPresent();
     },
 
     setAJAXSendRequestHeaderParams: function() {
@@ -68,18 +72,20 @@ var LogoutIcon = Backbone.View.extend({
         // redirect to /login with the hash appened to the url
         $doc.ajaxError(function(event, xhr) {
             if (xhr.status === 401) {
-                localStorage.removeItem('userToken');
+                self.clearToken();
                 self.redirectToLogin();
             }
         });
     },
 
-    renderIfTokenPresent: function() {
+    makeVisibleIfTokenPresent: function() {
 
         // only render logout icon if there is a token present
         var authToken = localStorage.getItem('userToken');
         if (authToken) {
-            this.render();
+            $('.fa-sign-out').css('visibility', 'visible');
+        } else {
+            $('.fa-sign-out').css('visibility', 'hidden');
         }
     },
 
@@ -90,13 +96,18 @@ var LogoutIcon = Backbone.View.extend({
             // clicking logout button => submit userToken to
             // remove userToken. Upon success, remove token
             // and redirect to /login
+            // if failed, raise alert and don't redirect
 
             $.post('/accounts/logout')
-                .done(function() {})
-                .fail(function() {})
-                .always(function() {
+                .done(function() {
+                    goldstone.raiseSuccess('Logout Successful');
                     self.clearToken();
+                    self.makeVisibleIfTokenPresent();
                     self.redirectToLogin();
+                })
+                .fail(function() {
+                    goldstone.raiseWarning('Logout Failed');
+                    self.makeVisibleIfTokenPresent();
                 });
         });
     },
