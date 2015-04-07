@@ -274,7 +274,7 @@ var GoldstoneBaseView = Backbone.View.extend({
 
         // calling raiseAlert with the 3rd param of "true" will supress the
         // auto-hiding of the element as defined in goldstone.raiseAlert
-        goldstone.raiseAlert($(this.el).find('.popup-message'), message, true);
+        goldstone.raiseAlert($(this.el).find('.popup-message'), message);
 
         // hide spinner, as appending errorMessage is usually the end of
         // the data fetch process
