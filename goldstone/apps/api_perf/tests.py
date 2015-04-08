@@ -12,9 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from unittest import skip
+
 import arrow
 from django.test import SimpleTestCase
+from django.utils.unittest.case import skip
 from elasticsearch_dsl import Search, Q
 from uuid import uuid1
 
