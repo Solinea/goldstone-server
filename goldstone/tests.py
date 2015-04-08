@@ -240,45 +240,6 @@ class ESConnectionTests(SimpleTestCase):
         self.assertNotIn('not_index1', result)
 
 
-class ReportTemplateViewTest(SimpleTestCase):
-
-    node1 = Host(name="test_node_123")
-
-    def setUp(self):
-        """Run before every test."""
-
-        Host.objects.all().delete()
-
-    def test_good_request(self):
-
-        self.node1.save()
-        url = '/report/node/' + self.node1.name
-
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)   # pylint: disable=E1101
-        self.assertTemplateUsed(response, 'node_report.html')
-
-    def test_bad_get_request(self):
-        url = '/report/node/missing_node'
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 404)  # pylint: disable=E1101
-
-    def test_post_request(self):
-        url = '/report/node/missing_node'
-        response = self.client.post(url, data={})
-        self.assertEqual(response.status_code, 405)  # pylint: disable=E1101
-
-    def test_put_request(self):
-        url = '/report/node/missing_node'
-        response = self.client.put(url, data={})
-        self.assertEqual(response.status_code, 405)  # pylint: disable=E1101
-
-    def test_delete_request(self):
-        url = '/report/node/missing_node'
-        response = self.client.delete(url)
-        self.assertEqual(response.status_code, 405)  # pylint: disable=E1101
-
-
 class TopologyDataTest(SimpleTestCase):
 
     def test_sort_arg(self):
