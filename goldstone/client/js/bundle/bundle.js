@@ -1,4 +1,4 @@
-/*! goldstone concat on 2015-04-08@10:3:1 */
+/*! goldstone concat on 2015-04-08@14:59:1 */
 
 /**
  * Copyright 2014 - 2015 Solinea, Inc.
@@ -693,6 +693,10 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
+// LauncherView is a "wrapper view" that is NOT instantiated with
+// an .el passed into the objects hash.
+// This allows for it to be "apppended" to DOM
+// and removed cleanly when switching views with .remove();
 var LauncherView = Backbone.View.extend({
     initialize: function(options) {
         this.render();
@@ -703,28 +707,42 @@ var LauncherView = Backbone.View.extend({
         return this;
     },
 
+    // inner views will be bound to ".launcher-container" via
+    // their .el property passed into the options hash.
     template: _.template('' +
         '<div class="launcher-container"></div>')
 });
 
 var GoldstoneRouter = Backbone.Router.extend({
     routes: {
+        "api_perf/report": "apiPerfReport",
+        "cinder/report": "cinderReport",
         "discover": "discover",
+        "glance/report": "glanceReport",
+        "help": "help",
+        "intelligence/search": "logSearch",
+        "keystone/report": "keystoneReport",
         "login": "login",
         "password": "password",
         "settings": "settings",
         "settings/tenants": "tenant",
-        "api_perf/report": "apiPerfReport",
-        "nova/report": "novaReport",
         "neutron/report": "neutronReport",
-        "cinder/report": "cinderReport",
-        "glance/report": "glanceReport",
-        "keystone/report": "keystoneReport",
-        "intelligence/search": "logSearch",
+        "nova/report": "novaReport",
         "report/node/:nodeId": "nodeReport",
         "*default": "redirect"
     },
-    switchView: function(view, nodeId) {
+    extendOptions: function(options, args) {
+        _.each(args, function(item) {
+            _.extend(options, item);
+        });
+        return options;
+    },
+    switchView: function(view) {
+
+        // Capture any extra params that are passed in via the
+        // router functions below, such as {node_uuid: nodeId} in
+        // nodeReport.
+        var args = Array.prototype.slice.call(arguments, 1);
 
         // as a backbone object, router can emit triggers
         // this is being listened to by authLogoutView
@@ -738,37 +756,72 @@ var GoldstoneRouter = Backbone.Router.extend({
         }
         app.switchTriggeredBy = view;
 
-        // Backbone's remove() calls this.$el.remove() and this.stopListening()
         if (app.currentLauncherView) {
 
-            // this.currentView is instantiated below
+            // app.currentView is instantiated below
             if (app.currentView.onClose) {
+
+                // this is defined in goldstoneBaseView and
+                // removes any setIntervals which would continue
+                // to trigger events even after removing the view
                 app.currentView.onClose();
             }
+
+            // Backbone's remove() calls this.$el.remove() and
+            // this.stopListening() which removes any events that
+            // are subscribed to with listenTo()
             app.currentView.remove();
             app.currentLauncherView.remove();
         }
 
-        // instantiate wrapper view that can be removed upon page change
-        // store the current launcher and view so it can be remove()'d
+        // instantiate wrapper view that can be removed upon page
+        // change and store the current launcher and view so it
+        // can be remove()'d
         app.currentLauncherView = new LauncherView({});
 
         // append the launcher to the page div
+        // .router-content-container is a div set in router.html
         $('.router-content-container').append(app.currentLauncherView.el);
 
-        // instantiate the desired page view
-        // if it's a node report page, add the node_uuid param
-        if (nodeId !== undefined) {
-            app.currentView = new view({
-                el: '.launcher-container',
-                node_uuid: nodeId
-            });
-        } else {
-            app.currentView = new view({
-                el: '.launcher-container'
-            });
+        // new views will pass 'options' which at least designates
+        // the .el to bind to
+        var options = {
+            el: '.launcher-container'
+        };
+
+        // but if additional objects have been passed in via the
+        // functions below, add those to the options hash
+        /*
+        example: calling nodeReport(nodeId)
+        will call switchView and pass in the NodeReportView,
+        as well as an object similar to:{"node_uuid": "ctrl-01"}.
+        options will be extended to be:
+        {
+            el: ".launcher-container",
+            node_uuid: "ctrl-01"
+        }
+        */
+        if (args.length) {
+            options = this.extendOptions(options, args);
         }
 
+        // instantiate the desired page view
+        app.currentView = new view(options);
+
+    },
+
+    /*
+    Define additional view launching functions below.
+    Additional params that need to be passed to 'options' can
+    be added as an object. The extra options will be extended
+
+
+    */
+
+    nodeReport: function(nodeId) {
+        this.switchView(NodeReportView, {
+            node_uuid: nodeId
+        });
     },
     keystoneReport: function() {
         this.switchView(KeystoneReportView);
@@ -803,11 +856,11 @@ var GoldstoneRouter = Backbone.Router.extend({
     logSearch: function() {
         this.switchView(LogSearchView);
     },
-    nodeReport: function(nodeId) {
-        this.switchView(NodeReportView, nodeId);
-    },
     discover: function() {
         this.switchView(DiscoverView);
+    },
+    help: function() {
+        this.switchView(HelpView);
     },
     redirect: function() {
         location.href = "#/discover";
@@ -4728,8 +4781,8 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="15"selected>lookback 15m</option>' +
-                '<option value="60">lookback 1h</option>' +
+            return '<option value="15">lookback 15m</option>' +
+                '<option value="60" selected>lookback 1h</option>' +
                 '<option value="360">lookback 6h</option>' +
                 '<option value="1440">lookback 1d</option>';
         }
@@ -4747,10 +4800,10 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="30">refresh 30s</option>' +
+            return '<option value="30" selected>refresh 30s</option>' +
                 '<option value="60">refresh 1m</option>' +
                 '<option value="300">refresh 5m</option>' +
-                '<option value="-1"selected>refresh off</option>';
+                '<option value="-1">refresh off</option>';
         }
     },
 
@@ -4791,6 +4844,79 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
         '</div>' +
         '</form>' +
         '</div>')
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Solinea Software License Agreement (goldstone),
+ * Version 1.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var HelpView = GoldstoneBaseView.extend({
+
+    defaults: {},
+
+    initialize: function(options) {
+        this.options = options || {};
+        this.defaults = _.clone(this.defaults);
+        this.el = options.el;
+        this.render();
+    },
+
+    render: function() {
+        this.$el.html(this.template());
+        return this;
+    },
+
+    template: _.template('' +
+        '<h3>Help Topics</h3>' +
+        '<ul>' +
+        '<li><a href="#getting_help">Getting help</a></li>' +
+        '<li><a href="#license">License</a></li>' +
+        '</ul>' +
+
+        '<a name="getting_help"></a><h3>Getting Help</h3>' +
+        'If you would like to contact Solinea regarding issues, feature requests, ' +
+        'or other goldstone related feedback, click the ' +
+        '<a href="http://www.solinea.com/goldstone/feedback" target="_blank">' +
+        '<i class="fa fa-bug" style="color:black"></i>' +
+        '</a> icon here or at the top right corner of the application panel. In the ' +
+        'event that you do not have internet access from the system running the ' +
+        'goldstone interface, you can use the link <b>http://www.solinea.com/' + 'goldstone/feedback</b> ' +
+        'from another system, or provide the following information via email to ' +
+        '<b>goldstone@solinea.com</b>:' +
+        '<ul>' +
+        '<li>Name</li>' +
+        '<li>Company</li>' +
+        '<li>Summary</li>' +
+        '<li>Detailed description of issue</li>' +
+        '<li>Attachments (if appropriate)</li>' +
+        '</ul>' +
+
+        'For general inquiries or to contact our consulting services team, either ' +
+        'click the ' +
+        '<a href="http://www.solinea.com/contact" target="_blank">' +
+        '<i class="fa fa-envelope-o" style="color:black"></i>' +
+        '</a> icon here or at the top right of the application window, or email ' +
+        '<b>info@solinea.com</b>.' +
+
+        '<a name="license"></a><h3>License</h3>' +
+        'Goldstone license information can be found in the file <b>/opt/goldstone' + '/LICENSE.pdf</b> ' +
+        'or on the web at <b>http://www.solinea.com/goldstone/license.pdf</b>. ' + 'Disclosures for ' +
+        '3rd party software used by goldstone can be found in the file <b>/opt/' + 'goldstone/OSS_LICENSE_DISCLOSURE.pdf</b> ' +
+        'or on the web at <b>http://www.solinea.com/goldstone/' + 'OSS_LICENSE_DISCLOSURE.pdf</b>'
+    )
+
 });
 ;
 /**
