@@ -61,6 +61,10 @@ var ZoomablePartitionView = TopologyTreeView.extend({
 
     defaults: {},
 
+    processListeners: function() {
+        this.listenTo(this.collection, 'sync', this.update);
+    },
+
     initSvg: function() {
         var self = this;
         var ns = this.defaults;
@@ -89,9 +93,8 @@ var ZoomablePartitionView = TopologyTreeView.extend({
         var ns = this.defaults;
         var self = this;
 
-        // keep in case data is fed by collection:
-        // var root = this.collection.toJSON()[0];
-        var root = ns.data;
+        var root = this.collection.toJSON()[0];
+        console.log('root?: ', root);
 
         var g = ns.vis.selectAll("g")
             .data(ns.partition.nodes(root))

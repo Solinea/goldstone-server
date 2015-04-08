@@ -48,7 +48,15 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
         this.render();
         this.initSvg();
-        this.update();
+
+        // when extended to zoomablePartitionView, a collection
+        // is used to fetch the data and update will be triggered
+        // by the listener on that subView.
+        if(this.collection === undefined) {
+            this.update();
+        } else {
+            this.processListeners();
+        }
     },
 
     filterMultiRsrcData: function(data) {
