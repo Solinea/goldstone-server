@@ -14,13 +14,12 @@
 from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
 
 
-class ApiPerfAggSerializer(ReadOnlyElasticSerializer):
+class SpawnsAggSerializer(ReadOnlyElasticSerializer):
     """Custom serializer to manipulate the aggregation that comes back from ES.
     """
 
     DATEHIST_AGG_NAME = 'per_interval'
-    STATS_AGG_NAME = 'stats'
-    RANGE_AGG_NAME = 'response_status'
+    SUCCESS_AGG_NAME = 'success'
 
     def to_representation(self, instance):
         """Create serialized representation of a single top-level aggregation.
@@ -37,16 +36,14 @@ class ApiPerfAggSerializer(ReadOnlyElasticSerializer):
         # let's clean up the inner buckets
         data = [{bucket.key: {
             'count': bucket.doc_count,
-            self.RANGE_AGG_NAME: self._process_range(
-                bucket[self.RANGE_AGG_NAME]),
-            self.STATS_AGG_NAME: bucket[self.STATS_AGG_NAME]}}
+            self.SUCCESS_AGG_NAME: self._process_success(
+                bucket[self.SUCCESS_AGG_NAME])}}
             for bucket in datehist_agg_base.buckets]
 
         return {self.DATEHIST_AGG_NAME: data}
 
-
     @staticmethod
-    def _process_range(range):
-        """Reformat the range buckets."""
-        return [{key: value['doc_count']}
-                for key, value in range['buckets'].items()]
+    def _process_success(agg):
+        """Reformat the agg buckets."""
+        return [{bucket['key']: bucket['doc_count']}
+                for bucket in agg['buckets']]

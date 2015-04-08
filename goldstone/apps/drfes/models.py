@@ -183,7 +183,7 @@ class DailyIndexDocType(DocType):
     def get_field_mapping(cls, field):
 
         conn = es_conn()
-        index = most_recent_index(cls.INDEX_PREFIX)
+        index = es_indices(cls.INDEX_PREFIX)
         return conn.indices.get_field_mapping(
             field, index, cls._doc_type.name,
             include_defaults=True, allow_no_indices=False)
@@ -198,10 +198,9 @@ class DailyIndexDocType(DocType):
         """
 
         try:
-            index = most_recent_index(cls.INDEX_PREFIX)
             mapping = cls.get_field_mapping(field)
             return 'raw' in \
-                   mapping[index]['mappings'][cls._doc_type.name][field][
-                       'mapping'][field]['fields']
+                   mapping[mapping.keys()[-1]]['mappings'] \
+                       [cls._doc_type.name][field]['mapping'][field]['fields']
         except KeyError:
             return False

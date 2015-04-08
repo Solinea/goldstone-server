@@ -26,6 +26,8 @@ from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
 from rest_framework.views import APIView
 from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
+from goldstone.apps.drfes.views import DateHistogramAggView
+from goldstone.apps.nova.serializers import SpawnsAggSerializer
 
 from .models import SpawnsData, AgentsData, AggregatesData, AvailZonesData, \
     CloudpipesData, NetworksData, SecGroupsData, ServersData, ServicesData, \
@@ -102,6 +104,26 @@ class ServicesDataViewSet(JsonReadOnlyViewSet):
     model = ServicesData
     key = 'services'
     zone_key = 'zone'
+
+
+class SpawnsAggView(DateHistogramAggView):
+    """The 'get' view for nova spawns aggregate data."""
+
+    serializer_class = SpawnsAggSerializer
+    reserved_params = ['interval']
+    SUCCESS_AGG_NAME = 'success'
+
+
+    class Meta:
+        """Meta"""
+        model = SpawnsData
+
+    def get(self, request):
+        search = self._get_search(request).query('term', event='finish')
+        search.aggs[self.AGG_NAME].bucket(
+            self.SUCCESS_AGG_NAME, self.Meta.model.success_agg())
+        serializer = self.serializer_class(search.execute().aggregations)
+        return Response(serializer.data)
 
 
 class GetSpawnsAggView(APIView):
