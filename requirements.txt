@@ -34,7 +34,6 @@ elasticsearch
 fabric==1.10.1
 lockfile==0.9.1
 networkx==1.9.1
-pandas==0.13.1
 pbr==0.10.8
 psycopg2==2.5.4
 python-cinderclient==1.1.1

@@ -112,7 +112,13 @@ class DateHistogramAggView(ElasticListAPIView):
 
     def get(self, request):
         """Handle get request."""
+        search = self._get_search(request)
+        serializer = self.serializer_class(search.execute().aggregations)
+        return Response(serializer.data)
 
+    def _get_search(self, request):
+        """Return the search object prior to serialization.  Can be used by
+        subclasses that override get."""
         self._validate_params(request)
 
         base_queryset = self.filter_queryset(self.get_queryset())
@@ -124,13 +130,11 @@ class DateHistogramAggView(ElasticListAPIView):
         min, max = (None, None) if range_param is None else \
             self._extract_time_range(range_param)
 
-        search = self.Meta.model.simple_datehistogram_agg(
+        return self.Meta.model.simple_datehistogram_agg(
             base_queryset, self.interval, field=self.AGG_FIELD,
             agg_name=self.AGG_NAME, min_doc_count=0,
             bounds_min=min, bounds_max=max)
 
-        serializer = self.serializer_class(search.execute().aggregations)
-        return Response(serializer.data)
 
     def _validate_params(self, request):
         import ast
