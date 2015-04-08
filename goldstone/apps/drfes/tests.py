@@ -18,7 +18,7 @@ from django.http import QueryDict
 import elasticsearch
 from elasticsearch.client import IndicesClient
 
-from rest_framework.test import APITestCase, APISimpleTestCase
+from rest_framework.test import APITestCase
 
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.result import Response
@@ -97,12 +97,16 @@ class FilterTests(APITestCase):
         """Test proper handling of mapping without raw field"""
 
         expectation = {'query': {'match': {'param1': 'value1'}}}
-        filter = ElasticFilter()
+        elasticfilter = ElasticFilter()
         view = ElasticListAPIView()
         queryset = Search()
         view.Meta.model = MagicMock()
         view.Meta.model.field_has_raw.return_value = False
-        result = filter._update_queryset('param1', 'value1', view, queryset)
+
+        result = elasticfilter._update_queryset('param1',
+                                                'value1',
+                                                view,
+                                                queryset)
         self.assertTrue(view.Meta.model.field_has_raw.called)
         self.assertEqual(result.to_dict(), expectation)
 
@@ -110,12 +114,16 @@ class FilterTests(APITestCase):
         """Test proper handling of mapping with raw field"""
 
         expectation = {'query': {'match': {'param1.raw': 'value1'}}}
-        filter = ElasticFilter()
+        elasticfilter = ElasticFilter()
         view = ElasticListAPIView()
         queryset = Search()
         view.Meta.model = MagicMock()
         view.Meta.model.field_has_raw.return_value = True
-        result = filter._update_queryset('param1', 'value1', view, queryset)
+
+        result = elasticfilter._update_queryset('param1',
+                                                'value1',
+                                                view,
+                                                queryset)
         self.assertTrue(view.Meta.model.field_has_raw.called)
         self.assertEqual(result.to_dict(), expectation)
 
@@ -124,28 +132,25 @@ class FilterTests(APITestCase):
 
         expectation = [1426206062000, 1426206062000]
         quoted_value = '[1426206062000, 1426206062000]'
-        filter = ElasticFilter()
-        result = filter._coerce_value(quoted_value)
+        elasticfilter = ElasticFilter()
+
+        result = elasticfilter._coerce_value(quoted_value)
         self.assertEqual(result, expectation)
 
     def test__coerce_value_exception(self):
         """Test coercion failure that returns the original string"""
 
         expectation = '2015-03-12T00:12:55.500814+00:00'
-        filter = ElasticFilter()
-        result = filter._coerce_value(expectation)
+        elasticfilter = ElasticFilter()
+
+        result = elasticfilter._coerce_value(expectation)
         self.assertEqual(result, expectation)
 
     def test_filter_queryset(self):
         """Test filtering of search objects"""
 
-        expectation = {
-            'query': {'bool':
-                      {'must':
-                       [{'terms': {u'name': ['value1', 'value2']}},
-                        {'match': {u'name': 'value'}}]}}}
         view = ElasticListAPIView()
-        filter = ElasticFilter()
+        elasticfilter = ElasticFilter()
         request = MagicMock()
         params = QueryDict('', mutable=True)
         params.update(
@@ -155,7 +160,9 @@ class FilterTests(APITestCase):
         )
         request.query_params = params
 
-        result = filter.filter_queryset(request, Search(), view).to_dict()
+        result = elasticfilter.filter_queryset(request,
+                                               Search(),
+                                               view).to_dict()
         self.assertTrue({'terms': {u'name': ['value1', 'value2']}} in
                         result['query']['bool']['must'])
         self.assertTrue(
@@ -310,7 +317,6 @@ class DailyIndexDocTypeTests(APITestCase):
                 patch.object(DailyIndexDocType, "get_field_mapping")) \
                 as (mre, gfm):
 
-            field = 'field'
             mre.return_value = 'index'
             gfm.side_effect = KeyError
 

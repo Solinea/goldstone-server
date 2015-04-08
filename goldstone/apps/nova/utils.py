@@ -13,12 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from goldstone.utils import TopologyMixin, NoResourceFound, GoldstoneAuthError
-from .models import AvailZonesData
 
 
 class DiscoverTree(TopologyMixin):
 
     def __init__(self):
+        from .models import AvailZonesData
+
         self.azs = AvailZonesData().get()
 
     def _get_region_names(self):
@@ -158,3 +159,25 @@ class DiscoverTree(TopologyMixin):
 
         except GoldstoneAuthError:
             raise
+
+
+def reconcile_nova_hosts():
+    """Update the Resource graph Nova nodes and edges from the current
+    OpenStack cloud state.
+
+    Nodes are:
+       - deleted if they are no longer in the OpenStack cloud.
+       - added if they are in the OpenStack cloud, but not in the graph.
+       - updated from the cloud if they are already in the graph.
+
+    """
+    from goldstone.core.models import AvailabilityZone, Host, Cloudpipe, \
+        Server, Flavor, Hypervisor, Interface, Keypair, NovaQuotaClass
+    from goldstone.core.utils import process_resource_type
+
+    # The resource type "from" nodes.
+    FROM_TYPES = [AvailabilityZone, Cloudpipe, Flavor, Host, Hypervisor,
+                  Interface, Keypair, NovaQuotaClass, Server]
+
+    for nodetype in FROM_TYPES:
+        process_resource_type(nodetype)

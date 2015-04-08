@@ -12,16 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import logging
-
 from goldstone.apps.drfes.views import ElasticListAPIView
-from goldstone.apps.logging.models import LogData, LogEvent
-from rest_framework.response import Response
-from goldstone.apps.logging.serializers import LogDataSerializer, \
+from goldstone.glogging.models import LogData, LogEvent
+from goldstone.glogging.serializers import LogDataSerializer, \
     LogAggSerializer, LogEventAggSerializer
-
-logger = logging.getLogger(__name__)
+from rest_framework.response import Response
 
 
 class LogDataView(ElasticListAPIView):
@@ -29,7 +24,7 @@ class LogDataView(ElasticListAPIView):
 
     serializer_class = LogDataSerializer
 
-    class Meta:
+    class Meta:       # pylint: disable=C1001,W0232
         """Meta"""
         model = LogData
 
@@ -40,7 +35,7 @@ class LogAggView(ElasticListAPIView):
     serializer_class = LogAggSerializer
     reserved_params = ['interval', 'per_host']
 
-    class Meta:
+    class Meta:     # pylint: disable=C1001,W0232
         """Meta"""
         model = LogData
 
@@ -61,7 +56,7 @@ class LogEventView(ElasticListAPIView):
 
     serializer_class = LogDataSerializer
 
-    class Meta:
+    class Meta:     # pylint: disable=C1001,W0232
         """Meta"""
         model = LogEvent
 
@@ -72,7 +67,7 @@ class LogEventAggView(ElasticListAPIView):
     serializer_class = LogEventAggSerializer
     reserved_params = ['interval', 'per_host']
 
-    class Meta:
+    class Meta:     # pylint: disable=C1001,W0232
         """Meta"""
         model = LogEvent
 

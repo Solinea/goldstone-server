@@ -1,8 +1,7 @@
 """Development settings.
 
-Typically, you would point DJANGO_SETTINGS_MODULE at a file that
-imports this file, and then overrides settings as appropriate for your
-installation.
+You will typically point DJANGO_SETTINGS_MODULE at a file that imports this
+file, and then overrides settings as appropriate for your installation.
 
 """
 # Copyright 2014 - 2015 Solinea, Inc.
