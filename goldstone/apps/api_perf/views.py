@@ -32,7 +32,7 @@ class ApiPerfAggView(DateHistogramAggView):
 
     serializer_class = ApiPerfAggSerializer
     reserved_params = ['interval']
-    RANGE_AGG_NAME = 'response_code'
+    RANGE_AGG_NAME = 'response_status'
     STATS_AGG_NAME = 'stats'
 
     class Meta:
