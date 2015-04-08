@@ -13,7 +13,8 @@
 # limitations under the License.
 
 from elasticsearch_dsl import DocType, Search
-from goldstone.models import most_recent_index, es_conn, es_indices
+from goldstone.models import most_recent_index, es_conn, es_indices, \
+    daily_index
 
 
 class DailyIndexDocType(DocType):
@@ -36,6 +37,40 @@ class DailyIndexDocType(DocType):
             index=es_indices(cls.INDEX_PREFIX),
             doc_type={cls._doc_type.name: cls.from_es},
         ).sort(cls.SORT).using(es_conn())
+
+    def save(self, using=None, index=None, **kwargs):
+        """Posts a record to the database.
+
+        See elasticsearch-dsl for parameter information.
+        """
+
+        if index is None:
+            index = daily_index(self.INDEX_PREFIX)
+
+        return super(DailyIndexDocType, self).save(using, index, **kwargs)
+
+    @classmethod
+    def get(cls, id, using=None, index=None, **kwargs):
+        """Gets a record from the database.
+
+        See elasticsearch-dsl for parameter information.
+        """
+
+        if index is None:
+            index = es_indices(cls.INDEX_PREFIX)
+
+        return super(DailyIndexDocType, cls).get(id, using, index, **kwargs)
+
+    def delete(self, using=None, index=None, **kwargs):
+        """Deletes a record from the database.
+
+        See elasticsearch-dsl for parameter information.
+        """
+
+        if index is None:
+            index = es_indices(self.INDEX_PREFIX)
+
+        return super(DailyIndexDocType, self).delete(using, index, **kwargs)
 
     @classmethod
     def bounded_search(cls, start=None, end=None, key_field='@timestamp'):
