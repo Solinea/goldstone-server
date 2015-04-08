@@ -22,14 +22,12 @@ describe('zoomablePartitionview.js spec', function() {
 
         blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        this.testCollection = new ZoomablePartitionCollection({
-            data: []
-        });
+        this.testCollection = new ZoomablePartitionCollection({});
 
         this.testView = new TopologyTreeView({
             blueSpinnerGif: blueSpinnerGif,
             chartHeader: ['.testContainer', 'Test Topology', 'discoverCloudTopology'],
-            data: JSON.parse(this.dummyData),
+            collection: this.testCollection,
             el: '.testContainer',
             frontPage: false,
             h: 400,
@@ -82,9 +80,9 @@ describe('zoomablePartitionview.js spec', function() {
             $('.servers-leaf-icon').first().d3Click();
 
         });
-        it('parses appropriately', function(){
-            var test1 = this.testCollection.parse();
-            expect(test1).to.deep.equal([]);
+        it('parses appropriately', function() {
+            var test1 = this.testCollection.parse([1,2,3]);
+            expect(test1).to.deep.equal([1,2,3]);
         });
     });
 
