@@ -48,7 +48,15 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 
         this.render();
         this.initSvg();
-        this.update();
+
+        // when extended to zoomablePartitionView, a collection
+        // is used to fetch the data and update will be triggered
+        // by the listener on that subView.
+        if(this.collection === undefined) {
+            this.update();
+        } else {
+            this.processListeners();
+        }
     },
 
     filterMultiRsrcData: function(data) {
@@ -287,7 +295,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                         }
                     });
                 } else {
-                    goldstone.raiseAlert($(ns.multiRsrcViewEl).find('.popup-message'), 'No data', true);
+                    goldstone.raiseAlert($(ns.multiRsrcViewEl).find('.popup-message'), 'No data');
                 }
             }
         }).fail(function(error) {
@@ -326,7 +334,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         if (redirectNodeName.indexOf('.') !== -1) {
             redirectNodeName = redirectNodeName.slice(0, redirectNodeName.indexOf('.'));
         }
-        window.location.href = '/report/node/' + redirectNodeName;
+        window.location.href = '#/report/node/' + redirectNodeName;
     },
 
     appendLeafNameToResourceHeader: function(text, location) {
@@ -420,7 +428,8 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                                 url = "/" + parentModule + url;
                                 localStorage.setItem('urlForResourceList', url);
                                 localStorage.setItem('origClickedLabel', origClickedLabel);
-                                window.location.href = parentModule + '/discover';
+                                window.location.href = '#/' +
+                                    parentModule + '/discover';
                             }
                         }
                     }

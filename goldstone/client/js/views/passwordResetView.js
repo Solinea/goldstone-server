@@ -47,7 +47,7 @@ var PasswordResetView = GoldstoneBaseView.extend({
 
                 // and add a message to the top of the screen that logs what
                 // is returned from the call
-                goldstone.raiseInfo('Password reset instructions have been emailed to you<br>Please click the link in your email', true);
+                goldstone.raiseInfo('Password reset instructions have been emailed to you<br>Please click the link in your email');
             })
             .fail(function(fail) {
                 // and add a message to the top of the screen that logs what
@@ -55,7 +55,7 @@ var PasswordResetView = GoldstoneBaseView.extend({
 
                 // TODO: change this after SMTP handling is set up
                 // to reflect the proper error
-                goldstone.raiseInfo(fail.responseJSON.detail, true);
+                goldstone.raiseInfo(fail.responseJSON.detail);
             });
     },
 
@@ -74,7 +74,7 @@ var PasswordResetView = GoldstoneBaseView.extend({
         '<input name="email" type="email" class="form-control" placeholder="Enter email associated with your account" required autofocus><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Send reset email</button>' +
         '</form>' +
-        '<div id="cancelReset"><a href="/login">Cancel and return to login</a></div>' +
+        '<div id="cancelReset"><a href="#/login">Cancel and return to login</a></div>' +
         '</div>' +
         '</div>' +
         '</div>'

@@ -15,6 +15,11 @@
  */
 
 /*
+The intelligence/search page is composed of a LogAnalysisView on top, contained
+within this LogSearchView. The global lookback/refresh listeners are listenTo()'d
+from this view, and with the triggerChange function, kick off responding
+processes in the LogAnalysisView that is instantiated from within this view.
+
 instantiated in search.html as
     new LogSearchView({
         el: ".log-search-container"
@@ -27,20 +32,21 @@ var LogSearchView = GoldstoneBasePageView.extend({
         this.computeLookback();
         var ns = this.defaults;
 
+        // Pass the start/end params. Must be an array.
         this.logAnalysisView.trigger(change, [ns.start, ns.end]);
     },
 
     setGlobalLookbackRefreshTriggers: function() {
         var self = this;
-        // wire up listeners between global selectors and charts
-        // change listeners for global selectors
-        $('#global-lookback-range').on('change', function() {
+        // wire up listenTo on global selectors
+        // important: use obj.listenTo(obj, change, callback);
+        this.listenTo(app.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
             self.getGlobalLookbackRefresh();
             self.triggerChange('lookbackSelectorChanged');
             self.clearScheduledInterval();
             self.scheduleInterval();
         });
-        $('#global-refresh-range').on('change', function() {
+        this.listenTo(app.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
             self.getGlobalLookbackRefresh();
 
             // also triggers 'lookbackSelectorChanged' in order to reset
