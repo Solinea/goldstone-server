@@ -36,7 +36,7 @@ class SpawnsData(DailyIndexDocType):
         search = cls.bounded_search(start, end).query('term', event='finish')
         search.aggs. \
             bucket('per_interval',
-                   cls._datehist_agg(start, end, interval)). \
+                   cls._datehist_agg(interval, start, end)). \
             bucket('per_success', A('terms', field='success', size=0,
                                     min_doc_count=0))
 

@@ -77,8 +77,9 @@ class DailyIndexDocType(DocType):
     @classmethod
     def simple_datehistogram_agg(cls, base_queryset, interval,
                                  field='@timestamp',
-                                 agg_name='per_interval', size=0,
-                                 min_doc_count=1):
+                                 agg_name='per_interval',
+                                 min_doc_count=1,
+                                 bounds_min=None, bounds_max=None):
         """ Returns a date histogram aggregations.
 
         :type base_queryset: Search
@@ -88,7 +89,7 @@ class DailyIndexDocType(DocType):
         :type field: str
         :param field: The field to aggregate
         :type agg_name: str
-        :param agg_name: the name to give the aggregration
+        :param agg_name: the name to give the aggregation
         :type size: int
         :param size: passed to ES
         :type min_doc_count: int
@@ -106,29 +107,42 @@ class DailyIndexDocType(DocType):
         search = search.params(search_type="count")
 
         # add a top-level aggregation for the field
-        search.aggs.bucket(agg_name, "date_histogram",
-                           field=field,
-                           interval=interval,
-                           min_doc_count=min_doc_count,
-                           size=size)
+        search.aggs.bucket(agg_name, cls._datehist_agg(interval, bounds_min,
+                                                       bounds_max,
+                                                       min_doc_count, field))
 
         return search
 
     @staticmethod
-    def _datehist_agg(start, end, interval):
+    def _datehist_agg(interval, bounds_min=None, bounds_max=None,
+                      min_doc_count=0, field='@timestamp'):
         """Return a date histogram aggregation that can be applied to an
         existing search object."""
         from arrow import Arrow
         from elasticsearch_dsl import A
-        assert isinstance(start, Arrow), 'start must be an Arrow'
-        assert isinstance(end, Arrow), 'end must be an Arrow'
+
         assert isinstance(interval, basestring), 'interval must be a string'
 
-        return A("date_histogram", field='@timestamp',
-                 interval=interval, min_doc_count=0,
-                 extended_bounds={
-                     "min": start.isoformat(),
-                     "max": end.isoformat()})
+        # if start/end were provided, let's put them in the extended bounds
+        # and set min_doc_count to 0
+        extended_bounds = {}
+        if bounds_min is not None:
+            if isinstance(bounds_min, Arrow):
+                extended_bounds['min'] = bounds_min.isoformat()
+            else:
+                extended_bounds['min'] = bounds_min
+
+        if bounds_max is not None:
+            if isinstance(bounds_max, Arrow):
+                extended_bounds['max'] = bounds_max.isoformat()
+            else:
+                extended_bounds['max'] = bounds_max
+        if 'max' in extended_bounds or 'min' in extended_bounds:
+            min_doc_count = 0
+
+        return A("date_histogram", field=field,
+                 interval=interval, min_doc_count=min_doc_count,
+                 extended_bounds=extended_bounds)
 
     @classmethod
     def get_field_mapping(cls, field):
