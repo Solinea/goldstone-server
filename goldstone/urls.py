@@ -15,18 +15,15 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from django.views.generic import RedirectView
+# from django.views.generic import RedirectView
 
 from goldstone.tenants.urls import urlpatterns as tenants_urlpatterns
-from goldstone.views import DiscoverView, HelpView, NodeReportView, \
-    LoginPageView, PasswordView, RouterView, SettingsPageView, \
-    TenantSettingsPageView
+from goldstone.views import RouterView
 
 admin.autodiscover()
 
 urlpatterns = patterns(
     '',
-    # TODO create the main discover page and remove redirect
     url(r'^accounts/', include("goldstone.accounts.urls")),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api-auth/', include('rest_framework.urls',
@@ -34,24 +31,13 @@ urlpatterns = patterns(
     url(r'^api_perf/', include('goldstone.apps.api_perf.urls')),
     url(r'^cinder/', include('goldstone.apps.cinder.urls')),
     url(r'^core/', include('goldstone.core.urls')),
-    url(r'^discover[/]?$', DiscoverView.as_view()),
     url(r'^glance/', include('goldstone.apps.glance.urls')),
-    url(r'^help[/]?$', HelpView.as_view()),
     url(r'^intelligence/', include('goldstone.apps.intelligence.urls')),
     url(r'^keystone/', include('goldstone.apps.keystone.urls')),
     url(r'^logging/', include('goldstone.glogging.urls')),
     url(r'^neutron/', include('goldstone.neutron.urls')),
     url(r'^nova/', include('goldstone.apps.nova.urls')),
-    url(r'^report/node/(?P<node_uuid>[^/]+)[/]?$',
-        NodeReportView.as_view(),
-        name='goldstone-node-report-view'),
     url(r'^user[/]?$', include("goldstone.user.urls")),
-    url(r'^login[/]?$', LoginPageView.as_view()),
-    url(r'^password[/]?$', PasswordView.as_view()),
-    # TODO: Remove the settings entry, and settings.html, after the client
-    # switches to Backbone routing.
-    url(r'^settings[/]?$', SettingsPageView.as_view()),
-    url(r'^settings/tenants[/]?$', TenantSettingsPageView.as_view()),
     url(r'^$', RouterView.as_view()),
 )
 
