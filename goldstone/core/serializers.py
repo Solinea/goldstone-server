@@ -49,3 +49,10 @@ class PolyResourceSerializer(serializers.ModelSerializer):
         model = PolyResource
         lookup_field = 'uuid'
         exclude = ['polymorphic_ctype']
+
+
+class NavTreeSerializer(serializers.BaseSerializer):
+    """The NavTree class serializer."""
+
+    def to_representation(self, obj):
+        return obj

@@ -61,6 +61,40 @@ var ZoomablePartitionView = TopologyTreeView.extend({
 
     defaults: {},
 
+    initialize: function(options) {
+        ZoomablePartitionView.__super__.initialize.apply(this, arguments);
+        this.showSpinner();
+    },
+
+    processListeners: function() {
+        this.listenTo(this.collection, 'sync', this.update);
+    },
+
+    showSpinner: function() {
+
+        // appends spinner with sensitivity to the fact that the View object
+        // may render before the .gif is served by django. If that happens,
+        // the hideSpinner method will set the 'display' css property to
+        // 'none' which will prevent it from appearing on the page
+
+        var ns = this.defaults;
+        var self = this;
+
+        ns.spinnerDisplay = 'inline';
+
+        var appendSpinnerLocation = "#chart-panel-header";
+
+        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
+            $(this).appendTo(appendSpinnerLocation).css({
+                'position': 'relative',
+                'margin-left': (ns.w / 2),
+                'margin-top': 100,
+                'display': ns.spinnerDisplay
+            });
+        });
+
+    },
+
     initSvg: function() {
         var self = this;
         var ns = this.defaults;
@@ -86,12 +120,11 @@ var ZoomablePartitionView = TopologyTreeView.extend({
     },
 
     update: function() {
+        this.hideSpinner();
         var ns = this.defaults;
         var self = this;
 
-        // keep in case data is fed by collection:
-        // var root = this.collection.toJSON()[0];
-        var root = ns.data;
+        var root = this.collection.toJSON()[0];
 
         var g = ns.vis.selectAll("g")
             .data(ns.partition.nodes(root))

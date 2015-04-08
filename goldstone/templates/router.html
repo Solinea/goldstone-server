@@ -13,32 +13,39 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  -->
-
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load custom_filters %}
 {% block localcss %}
 {% endblock %}
 {% block localjs %}
-    <!-- make this the appropriate backbone login view -->
-    <script src="{% static 'js/views/tenantSettingsPageView.js' %}"></script>
-
     <script>
         // assign "ajax-loader-solinea-blue" spinner gif
         var blueSpinnerGif = "{% static 'images/ajax-loader-solinea-blue.gif' %}";
-        var instantiateBackboneView = function(){
 
-            // page's unique HTML and JavaScript are encapsulated
-            // in the following backbone view:
-            new TenantSettingsPageView({
-                el: ".tenant-settings-page-container"
-            });
-        };
         $(document).ready(function () {
-            instantiateBackboneView();
+            // app is a global {} namespace defined in base.html
+
+            // append global selectors to page
+            app.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
+            $('.global-range-refresh-container').append(app.globalLookbackRefreshSelectors.el);
+
+            // kick off the router
+            app.gsRouter = new GoldstoneRouter();
+            Backbone.history.start();
+
+            // subscribe the authLogoutIcon to the router
+            // object which will emit a trigger when a
+            // view is switched out.
+            app.authLogoutIcon.listenTo(app.gsRouter, 'switchingView', function() {
+                // viewSwitchTriggered defined
+                // in authLogoutIconView
+                this.viewSwitchTriggered();
+            });
         });
+
     </script>
 {% endblock %}
 {% block content %}
-    <div class="tenant-settings-page-container"></div>
+    <div class="router-content-container"></div>
 {% endblock %}

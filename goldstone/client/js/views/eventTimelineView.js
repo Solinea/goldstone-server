@@ -58,8 +58,8 @@ var EventTimelineView = GoldstoneBaseView.extend({
     processListeners: function() {
         var self = this;
 
-        this.collection.on('sync', this.update, this);
-        this.collection.on('error', this.dataErrorMessage, this);
+        this.listenTo(this.collection, 'sync', this.update);
+        this.listenTo(this. collection, 'error', this.dataErrorMessage);
 
         this.on('lookbackSelectorChanged', function() {
             self.updateSettings();

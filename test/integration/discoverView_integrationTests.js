@@ -14,6 +14,9 @@ describe('discover.js spec', function() {
 
         data = [];
 
+        app = {};
+        app.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
+
         this.testView = new DiscoverView({
             el: '.test-container'
         });
@@ -24,7 +27,7 @@ describe('discover.js spec', function() {
         this.server.restore();
     });
     describe('basic test for chart triggering', function() {
-        it('triggers discover.js', function(){
+        it('triggers discover.js', function() {
             $('body').append('<div id="goldstone-discover-r1-c1" style="width:500px;"></div>');
             $('body').append('<div id="goldstone-discover-r1-c2" style="width:500px;"></div>');
             $('body').append('<div id="goldstone-discover-r2-c1" style="width:500px;"></div>');
