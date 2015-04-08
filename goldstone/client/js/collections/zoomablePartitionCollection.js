@@ -21,7 +21,6 @@ var ZoomablePartitionCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        console.log('ZoomablePartitionCollection returned: ', data);
         return data;
     },
 
