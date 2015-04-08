@@ -50,14 +50,11 @@ def nova_hypervisors_stats():
     now = arrow.utcnow()
     conn = es_conn()
     es_index = daily_index(MetricData.INDEX_PREFIX)
-
-    # Would like to get this from the MetricData class, but there is something
-    # funky going on with how the Meta class is set up.
-    es_doc_type = 'core_metric'
+    es_doc_type = MetricData._doc_type.name
 
     for key, value in response.items():
         doc = {
-            'type': 'core_metric',
+            'type': es_doc_type,
             'name': metric_prefix + key,
             'value': value,
             'metric_type': 'gauge',

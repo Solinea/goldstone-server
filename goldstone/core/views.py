@@ -12,7 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.apps.drfes.views import ElasticListAPIView, SimpleAggView
+from goldstone.apps.drfes.serializers import DateHistogramAggSerializer
+from goldstone.apps.drfes.views import ElasticListAPIView, SimpleAggView, \
+    DateHistogramAggView
 
 from .models import MetricData, ReportData
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
@@ -71,3 +73,12 @@ class MetricNamesAggView(SimpleAggView):
 
     class Meta:
         model = MetricData
+
+
+class MetricAggView(DateHistogramAggView):
+    """A view that handles requests for Metric aggregations."""
+
+    class Meta:
+        """Meta"""
+        model = MetricData
+

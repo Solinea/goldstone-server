@@ -40,28 +40,6 @@ class ReportView(TopLevelView):
     template_name = 'nova_report.html'
 
 
-class LatestStatsSerializer(BaseSerializer):
-    """The LatestStatsView's serializer class.
-
-    Beacause HypervisorStatsData isn't really a Django model, it doesn't have
-    the necessary _meta hooks to be serialized. And indeed, it doesn't need
-    serialization per se, because a get() call returns a Python object, and not
-    a QuerySet. So this class stubs out the to_serialization() method.
-
-    """
-
-    def to_representation(self, obj):
-        """Return obj serialized.
-
-        :param obj: A Python object
-        :type obj: Any object
-        :return: obj
-
-        """
-
-        return obj
-
-
 class AgentsDataViewSet(JsonReadOnlyViewSet):
     model = AgentsData
     key = 'agents'
