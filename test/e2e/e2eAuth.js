@@ -2,7 +2,7 @@
 
 // increase Default timeout for wait* family functions:
 // default = 5000
-casper.options.waitTimeout = 30000;
+casper.options.waitTimeout = 15000;
 
 // default viewportSize inherited from PhantomJS: 400wx300h
 casper.options.viewportSize = {
@@ -46,7 +46,7 @@ Must authorize prior to continuing to test:
 
 casper.test.begin('Login Page loads and I can use reset password link', 5, function suite(test) {
 
-    casper.start('http://localhost:8000/login', function() {
+    casper.start('http://localhost:8000/#/login', function() {
         test.assertTitle("goldstone", "title is goldstone");
     });
 
@@ -57,8 +57,9 @@ casper.test.begin('Login Page loads and I can use reset password link', 5, funct
         this.click('#forgotUsername a');
     });
 
-    casper.waitForResource(function testResource(resource) {
-        return resource.url.indexOf("password") > -1;
+
+    casper.waitForResource(function testResource() {
+        return casper.getCurrentUrl().indexOf("password") > -1;
     }, function onReceived() {
         this.echo('redirect to /password successful!', "GREEN_BAR");
         test.assertExists('form.password-reset-form');
@@ -66,7 +67,9 @@ casper.test.begin('Login Page loads and I can use reset password link', 5, funct
             return document.location.href;
         }), "GREEN_BAR");
 
-    });
+    }, function timeout(resourced) {
+        this.echo('timed out on redirect to password');
+    }, 5000);
 
     casper.then(function() {
         // alert-info bar should be empty
@@ -104,7 +107,7 @@ casper.test.begin('Login Page loads and I can use reset password link', 5, funct
 
 casper.test.begin('Back to login page to login', 5, function suite(test) {
 
-    casper.start('http://localhost:8000/login', function() {
+    casper.start('http://localhost:8000/#/login', function() {
         test.assertTitle("goldstone", "title is goldstone");
         test.assertExists('form.login-form');
         this.echo('page url after redirect: ' + this.evaluate(function() {
@@ -141,14 +144,21 @@ casper.test.begin('Back to login page to login', 5, function suite(test) {
     // wait for redirect to 'discover' to signify
     // successful login:
     casper.waitForResource(function testResource(resource) {
-        return resource.url.indexOf("discover") > -1;
+        return casper.getCurrentUrl().indexOf("discover") > -1;
     }, function onReceived() {
         this.echo('login and redirect to /discover successful!', "GREEN_BAR");
         this.echo('page url after redirect: ' + this.evaluate(function() {
             return document.location.href;
         }), "GREEN_BAR");
 
+        this.echo('localStorage?: ' + this.evaluate(function() {
+            var a = localStorage.getItem('userToken');
+            return a;
+        }), "WARN_BAR");
+
         test.assertUrlMatch(/discover/, "Redirected to discover page post-login");
+    }, function onTimeout() {
+        this.echo('timed out on redirect to /discover', "WARN_BAR");
     });
 
     casper.run(function() {

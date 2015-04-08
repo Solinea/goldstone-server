@@ -76,6 +76,11 @@ module.exports = function(grunt) {
                 files: {
                     'results/casper': ['test/e2e/e2eTests.js']
                 }
+            },
+            loginOnly: {
+                files: {
+                    'results/casper': ['test/e2e/e2eAuth.js']
+                }
             }
         },
 
@@ -144,6 +149,7 @@ module.exports = function(grunt) {
     grunt.registerTask('casper', ['casperjs:e2e']);
     grunt.registerTask('e', ['casperjs:e2e']);
     grunt.registerTask('eNoLogout', ['casperjs:skipLogout']);
+    grunt.registerTask('eLogin', ['casperjs:loginOnly']);
     grunt.registerTask('eLogout', ['casperjs:logoutOnly']);
     grunt.registerTask('eNoAuth', ['casperjs:skipAuth']);
     grunt.registerTask('c', ['concat:clientjs', 'notify:concat_message']);
