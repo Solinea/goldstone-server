@@ -29,6 +29,11 @@ class SpawnsData(DailyIndexDocType):
         doc_type = 'nova_spawns'
 
     @classmethod
+    def success_agg(cls):
+        return A('terms', field='success', size=0, min_doc_count=0,
+                 shard_min_doc_count=0)
+
+    @classmethod
     def _spawn_finish_query(cls, start, end, interval):
         """Build the query for spawn finish events with term and
         date hist agg."""
@@ -38,7 +43,7 @@ class SpawnsData(DailyIndexDocType):
             bucket('per_interval',
                    cls._datehist_agg(interval, start, end)). \
             bucket('per_success', A('terms', field='success', size=0,
-                                    min_doc_count=0))
+                                    min_doc_count=0, shard_min_doc_count=0))
 
         return search
 

@@ -19,7 +19,7 @@ from .views import ReportView, AgentsDataViewSet, \
     AggregatesDataViewSet, AvailZonesDataViewSet, CloudpipesDataViewSet, \
     FlavorsDataViewSet, FloatingIpPoolsDataViewSet, HostsDataViewSet, \
     HypervisorsDataViewSet, NetworksDataViewSet, SecGroupsDataViewSet, \
-    ServersDataViewSet, ServicesDataViewSet, GetSpawnsAggView
+    ServersDataViewSet, ServicesDataViewSet, GetSpawnsAggView, SpawnsAggView
 
 # Views handled by DjangoRestFramework ViewSets.
 router = DefaultRouter(trailing_slash=False)
@@ -59,5 +59,5 @@ urlpatterns += patterns(
     '',
     url(r'^report[/]?$', ReportView.as_view(),
         name='nova-report-view'),
-    url(r'^hypervisor/spawns[/]?$', GetSpawnsAggView.as_view()),
-    )
+    url(r'^hypervisor/spawns[/]?$', SpawnsAggView.as_view()),
+)
