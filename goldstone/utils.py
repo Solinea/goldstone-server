@@ -19,7 +19,6 @@ import cinderclient.v2.services
 from keystoneclient.v3 import client as ksclient
 from novaclient.v2 import client as nvclient
 from cinderclient.v2 import client as ciclient
-from neutronclient.v2_0 import client as neclient
 from glanceclient.v2 import client as glclient
 import logging
 import functools
@@ -146,7 +145,7 @@ def get_client(service):
     :rtype: dict
 
     """
-    import os.path
+    from goldstone.neutron.utils import get_neutron_client
 
     # Error message template.
     NO_AUTH = "%s client failed to authorize. Check credentials in" \
@@ -191,10 +190,10 @@ def get_client(service):
             return {'client': client, 'region': region}
 
         elif service == 'neutron':
-            client = neclient.Client(username=os_username,
-                                     password=os_password,
-                                     tenant_id=os_tenant_name,
-                                     auth_url=os_auth_url)
+            client = get_neutron_client(os_username,
+                                        os_password,
+                                        os_tenant_name,
+                                        os_auth_url)
             return {'client': client}
 
         elif service == 'glance':

@@ -30,7 +30,7 @@ class ViewTests(SimpleTestCase):
 
         uri = '/api_perf/report'
         response = self.client.get(uri)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)    # pylint: disable=E1101
         self.assertTemplateUsed(response, 'api_perf_report.html')
 
 
@@ -150,6 +150,7 @@ class ApiPerfTests(SimpleTestCase):
             self.assertTrue(created)
 
         # force flush
+        # pylint: disable=W0212
         self.conn.indices.refresh(daily_index(ApiPerfData.INDEX_PREFIX))
 
         result = ApiPerfData._stats_search(range_begin,
@@ -226,6 +227,7 @@ class ApiPerfTests(SimpleTestCase):
         for stat in stats:
             self.assertTrue(stat.save())
 
+        # pylint: disable=W0212
         self.conn.indices.refresh(daily_index(ApiPerfData.INDEX_PREFIX))
 
         perfview = ApiPerfAggView()

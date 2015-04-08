@@ -50,7 +50,7 @@ class BaseTest(SimpleTestCase):
             url,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)   # pylint: disable=E1101
 
     def _assert_bad_request(self, url, code=400):
         """Do a request that should fail."""
@@ -59,7 +59,7 @@ class BaseTest(SimpleTestCase):
             url,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
-        self.assertEqual(response.status_code, code)
+        self.assertEqual(response.status_code, code)  # pylint: disable=E1101
 
 
 class SpawnsViewTests(BaseTest):

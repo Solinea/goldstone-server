@@ -19,7 +19,6 @@ import redis
 
 import json
 import logging
-from goldstone.utils import NoDailyIndex
 
 logger = logging.getLogger(__name__)
 
@@ -61,10 +60,11 @@ def es_indices(prefix="", conn=None):
 
 
 def most_recent_index(prefix=""):
-    """Find the index matching the prefix that has the most recent datestamp.
+    """Return the index matching the prefix that has the most recent datestamp.
 
     :param prefix: index prefix
     :return: the last index of a sorted list
+
     """
 
     all_indices = es_indices(prefix)
@@ -118,6 +118,7 @@ class TopologyData(object):
 
     @classmethod
     def _sort_arg(cls, key, order):
+
         if order in ["+", "asc"]:
             return key              # translates to [{key: {'order': 'asc'}}]
         elif order in ["-", "desc"]:

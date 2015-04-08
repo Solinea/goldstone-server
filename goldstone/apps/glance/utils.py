@@ -12,21 +12,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.apps.glance.models import ImagesData
-from goldstone.utils import _get_region_for_glance_client, NoResourceFound, \
-    TopologyMixin
+from goldstone.utils import TopologyMixin
 
 
 class DiscoverTree(TopologyMixin):
 
     def __init__(self):
+        from goldstone.apps.glance.models import ImagesData
+
         self.images = ImagesData().get()
 
     def _get_image_regions(self):
         return set([s['region'] for s in self.images])
 
     def get_regions(self):
-        from goldstone.utils import get_client
+        from goldstone.utils import _get_region_for_glance_client, get_client
 
         keystone = get_client('keystone')['client']
 
@@ -58,6 +58,7 @@ class DiscoverTree(TopologyMixin):
         return result
 
     def build_topology_tree(self):
+        from goldstone.utils import NoResourceFound
 
         try:
             if self.images is None or len(self.images.hits) == 0:
@@ -74,3 +75,19 @@ class DiscoverTree(TopologyMixin):
 
         except (IndexError, NoResourceFound):
             return {"rsrcType": "error", "label": "No data found"}
+
+
+def reconcile_glance_hosts():
+    """Update the Resource graph Glance nodes and edges from the current
+    OpenStack cloud state.
+
+    Glance nodes are:
+       - deleted if they are no longer in the OpenStack cloud.
+       - added if they are in the OpenStack cloud, but not in the graph.
+       - updated from the cloud if they are already in the graph.
+
+    """
+    from goldstone.core.models import Image
+    from goldstone.core.utils import process_resource_type
+
+    process_resource_type(Image)
