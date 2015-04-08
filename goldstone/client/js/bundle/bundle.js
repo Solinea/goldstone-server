@@ -1,4 +1,4 @@
-/*! goldstone concat on 2015-04-08@9:44:33 */
+/*! goldstone concat on 2015-04-08@10:3:1 */
 
 /**
  * Copyright 2014 - 2015 Solinea, Inc.
@@ -2756,7 +2756,6 @@ var ZoomablePartitionCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        console.log('ZoomablePartitionCollection returned: ', data);
         return data;
     },
 
@@ -9831,7 +9830,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                         }
                     });
                 } else {
-                    goldstone.raiseAlert($(ns.multiRsrcViewEl).find('.popup-message'), 'No data', true);
+                    goldstone.raiseAlert($(ns.multiRsrcViewEl).find('.popup-message'), 'No data');
                 }
             }
         }).fail(function(error) {
@@ -10491,8 +10490,38 @@ var ZoomablePartitionView = TopologyTreeView.extend({
 
     defaults: {},
 
+    initialize: function(options) {
+        ZoomablePartitionView.__super__.initialize.apply(this, arguments);
+        this.showSpinner();
+    },
+
     processListeners: function() {
         this.listenTo(this.collection, 'sync', this.update);
+    },
+
+    showSpinner: function() {
+
+        // appends spinner with sensitivity to the fact that the View object
+        // may render before the .gif is served by django. If that happens,
+        // the hideSpinner method will set the 'display' css property to
+        // 'none' which will prevent it from appearing on the page
+
+        var ns = this.defaults;
+        var self = this;
+
+        ns.spinnerDisplay = 'inline';
+
+        var appendSpinnerLocation = "#chart-panel-header";
+
+        $('<img id="spinner" src="' + blueSpinnerGif + '">').load(function() {
+            $(this).appendTo(appendSpinnerLocation).css({
+                'position': 'relative',
+                'margin-left': (ns.w / 2),
+                'margin-top': 100,
+                'display': ns.spinnerDisplay
+            });
+        });
+
     },
 
     initSvg: function() {
@@ -10520,11 +10549,11 @@ var ZoomablePartitionView = TopologyTreeView.extend({
     },
 
     update: function() {
+        this.hideSpinner();
         var ns = this.defaults;
         var self = this;
 
         var root = this.collection.toJSON()[0];
-        console.log('root?: ', root);
 
         var g = ns.vis.selectAll("g")
             .data(ns.partition.nodes(root))
