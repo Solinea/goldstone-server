@@ -20,7 +20,7 @@ class ApiPerfAggSerializer(ReadOnlyElasticSerializer):
 
     DATEHIST_AGG_NAME = 'per_interval'
     STATS_AGG_NAME = 'stats'
-    RANGE_AGG_NAME = 'response_code'
+    RANGE_AGG_NAME = 'response_status'
 
     def to_representation(self, instance):
         """Create serialized representation of a single top-level aggregation.
@@ -37,8 +37,9 @@ class ApiPerfAggSerializer(ReadOnlyElasticSerializer):
         # let's clean up the inner buckets
         data = [{bucket.key: {
             'count': bucket.doc_count,
-            self.RANGE_AGG_NAME: self._process_range(bucket.range),
-            self.STATS_AGG_NAME: self._process_stats(bucket.stats)}}
+            self.RANGE_AGG_NAME: self._process_range(
+                bucket[self.RANGE_AGG_NAME]),
+            self.STATS_AGG_NAME: bucket[self.STATS_AGG_NAME]}}
             for bucket in datehist_agg_base.buckets]
 
         return {self.DATEHIST_AGG_NAME: data}
@@ -48,9 +49,4 @@ class ApiPerfAggSerializer(ReadOnlyElasticSerializer):
     def _process_range(range):
         """Reformat the range buckets."""
         return [{key: {'count': value['doc_count']}}
-                for key, value in range.buckets.to_dict().items()]
-
-    @staticmethod
-    def _process_stats(stats):
-        """Reformat the range buckets."""
-        return stats.to_dict()
+                for key, value in range['buckets'].items()]
