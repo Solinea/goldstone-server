@@ -31,7 +31,11 @@ var ApiPerfCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        return data.per_interval;
+        if (data && data.per_interval) {
+            return data.per_interval;
+        } else {
+            return [];
+        }
     },
 
     model: ApiPerfModel,
