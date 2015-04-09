@@ -103,17 +103,28 @@ var ApiPerfView = GoldstoneBaseView.extend({
         $(this.el).find('svg').find('.chart').html('');
         $(this.el + '.d3-tip').detach();
 
+        ns.y.domain([0, d3.max(json, function(d) {
+            var key = _.keys(d).toString();
+            return d[key].stats.max;
+        })]);
+
         json.forEach(function(d) {
-            d.time = moment(Number(d.key));
+            // careful as using _.keys after this
+            // will return [timestamp, 'time']
+            d.time = moment(+_.keys(d)[0]);
+
+            // which is why .filter is required here:
+            var key = _.keys(d).filter(function(item){
+                return item !== "time";
+            }).toString();
+            d.min = d[key].stats.min || 0;
+            d.max = d[key].stats.max || 0;
+            d.avg = d[key].stats.avg || 0;
         });
 
         ns.x.domain(d3.extent(json, function(d) {
             return d.time;
         }));
-
-        ns.y.domain([0, d3.max(json, function(d) {
-            return d.max;
-        })]);
 
         var area = d3.svg.area()
             .interpolate("basis")
