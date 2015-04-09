@@ -24,19 +24,14 @@ this.novaApiPerfChart = new ApiPerfCollection({
 
 // define collection and link to model
 
-var ApiPerfModel = GoldstoneBaseModel.extend({
-
-    // sorts colleciton by 'key' which maps to timestamp
-    // in returned data payload
-    idAttribute: 'key'
-});
+var ApiPerfModel = GoldstoneBaseModel.extend({});
 
 var ApiPerfCollection = Backbone.Collection.extend({
 
     defaults: {},
 
     parse: function(data) {
-        return data;
+        return data.per_interval;
     },
 
     model: ApiPerfModel,
@@ -61,9 +56,12 @@ var ApiPerfCollection = Backbone.Collection.extend({
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
-        this.url = '/api_perf/stats?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval + '&component=' + this.defaults.componentParam;
+        this.url = '/api_perf/stats?@timestamp__range={"gte":' + ns.reportParams.start +
+            '}&interval=' + ns.reportParams.interval +
+            '&component=' + this.defaults.componentParam;
 
         // generates url string similar to:
-        // /api_perf/stats?start=1424710116&end=1424713716&interval=60s&component=nova
+        // /api_perf/stats?timestamp__range={%22gte%22:1428556490}&interval=60s&component=glance
+
     }
 });
