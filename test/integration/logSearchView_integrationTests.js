@@ -52,6 +52,9 @@ describe('logSearchView.js spec', function() {
 
         blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
+        app = {};
+        app.globalLookbackRefreshSelectors = new GlobalLookbackRefreshButtonsView({});
+
         this.testView = new LogSearchView({
             el: '.testContainer',
         });
@@ -71,10 +74,10 @@ describe('logSearchView.js spec', function() {
             this.getGlobalLookbackRefresh_spy = sinon.spy(this.testView, "getGlobalLookbackRefresh");
             expect(this.getGlobalLookbackRefresh_spy.callCount).to.equal(0);
 
-            $('#global-lookback-range').trigger('change');
+            app.globalLookbackRefreshSelectors.trigger('globalLookbackChange');
             expect(this.getGlobalLookbackRefresh_spy.callCount).to.equal(1);
 
-            $('#global-refresh-range').trigger('change');
+            app.globalLookbackRefreshSelectors.trigger('globalRefreshChange');
             expect(this.getGlobalLookbackRefresh_spy.callCount).to.equal(2);
 
             $('#global-refresh-range').val('-1');

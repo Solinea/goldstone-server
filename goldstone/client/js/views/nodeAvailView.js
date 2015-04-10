@@ -97,7 +97,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
         var self = this;
         var ns = this.defaults;
 
-        this.collection.on('sync', function() {
+        this.listenTo(this.collection, 'sync', function() {
             if (self.collection.defaults.urlCollectionCount === 0) {
 
                 // if the 2nd fetch is done, store the 2nd dataset
@@ -120,7 +120,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
             }
         });
 
-        this.collection.on('error', this.dataErrorMessage, this);
+        this.listenTo(this.collection, 'error', this.dataErrorMessage);
 
         this.on('lookbackSelectorChanged', function() {
             self.fetchNowWithReset();
@@ -168,8 +168,8 @@ var NodeAvailView = GoldstoneBaseView.extend({
         // for 'disabled' axis
         ns.xAxis = d3.svg.axis()
             .orient("bottom")
-            .ticks(5)
-            .tickFormat(d3.time.format("%m/%d/%y %H:%M:%S"));
+            .ticks(3)
+            .tickFormat(d3.time.format("%m/%d %H:%M:%S"));
 
         ns.xScale = d3.time.scale()
             .range([ns.margin.left, ns.mw - ns.margin.right])
@@ -608,7 +608,7 @@ TODO: probably change this to d.timestamp
             .on("mouseover", ns.tooltip.show)
             .on("mouseout", ns.tooltip.hide)
             .on("click", function(d) {
-                window.location.href = '/report/node/' + d.name;
+                window.location.href = '#/report/node/' + d.name;
             });
 
         this.redraw();
