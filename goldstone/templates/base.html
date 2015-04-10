@@ -14,6 +14,8 @@
  limitations under the License.
 -->
 
+<!-- django will render base.html, and then render router.html into block content  -->
+
 {% load staticfiles %}
 <html>
 <head>
@@ -32,6 +34,9 @@
     rel="stylesheet" media="screen">
     <link href="{% static 'css/dc.css' %}" rel="stylesheet" media="screen"/>
     <link href="{% static 'css/base.css' %}" rel="stylesheet" media="screen">
+    <link rel="stylesheet" href="/static/css/loglevel_buttons.css">
+    <link rel="stylesheet" href="/static/css/hostavail.css">
+    <link rel="stylesheet" href="{% static 'intelligence/css/intelligence.css' %}">
     {% block localcss %}
     {% endblock %}
 </head>
@@ -48,38 +53,38 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="/"><img src="{% static 'images/favicon-32.png' %}"/></a>
+                    <a class="navbar-brand" href="#"><img src="{% static 'images/favicon-32.png' %}"/></a>
                 </div>
                 <div class="collapse navbar-collapse">
                     <ul class="nav navbar-nav">
-                        <li><a href="/" id="goldstone-text"> goldstone</a></li>
+                        <li><a href="#" id="goldstone-text"> goldstone</a></li>
                         <li class="dropdown">
-                            <a href="#report" class="dropdown-toggle"
+                            <a href="#" class="dropdown-toggle"
                                 data-toggle="dropdown"><i
                                 class="fa fa-camera"></i> Report<b
                             class="caret"></b></a>
                             <ul class="dropdown-menu">
-                                <li><a href="/api_perf/report"><i
+                                <li><a href="#/api_perf/report"><i
                                 class="fa fa-puzzle-piece"></i> API Performance</a></li>
-                                <li><a href="/nova/report"><i
+                                <li><a href="#/nova/report"><i
                                 class="fa fa-cloud"></i> Compute</a></li>
-                                <li><a href="/neutron/report"><i
+                                <li><a href="#/neutron/report"><i
                                 class="fa fa-star"></i> Network</a></li>
-                                <li><a href="/cinder/report"><i
+                                <li><a href="#/cinder/report"><i
                                 class="fa fa-hdd-o"></i> Block Storage</a></li>
-                                <li><a href="/glance/report"><i
+                                <li><a href="#/glance/report"><i
                                 class="fa fa-picture-o"></i> Image</a></li>
-                                <li><a href="/keystone/report"><i
+                                <li><a href="#/keystone/report"><i
                                 class="fa fa-key"></i> Identity</a></li>
                             </ul>
                         </li>
                         <li class="dropdown">
-                            <a href="#discover" class="dropdown-toggle"
+                            <a href="#" class="dropdown-toggle"
                                 data-toggle="dropdown"><i
                                 class="fa fa-pencil-square-o"></i> Logging <b
                             class="caret"></b></a>
                             <ul class="dropdown-menu">
-                                <li><a href="/intelligence/search"><i
+                                <li><a href="#/intelligence/search"><i
                                 class="fa fa-search"></i> Log Search </a>
                             </li>
                         </ul>
@@ -88,7 +93,7 @@
                 <!-- logout icon -->
                 <ul class="nav navbar-nav navbar pull-right">
                     <h4>
-                    <a href="#">
+                    <a href="#/login">
                         <div class="logout-icon-container"></div>
                         <!-- this will be appended by logoutIcon view -->
                         <!-- <i class="fa fa-sign-out pull-right"></i> -->
@@ -98,7 +103,7 @@
                 <!-- help icon -->
                 <ul class="nav navbar-nav navbar-right">
                     <h4>
-                    <a href="/help" target="_blank">
+                    <a href="#/help" target="_blank">
                         <i class="fa fa-question pull-right"></i>
                     </a>
                     </h4>
@@ -106,7 +111,7 @@
                 <!-- global settings icon -->
                 <ul class="nav navbar-nav navbar pull-right">
                     <h4>
-                    <a href="/settings">
+                    <a href="#/settings">
                         <i class="fa fa-cog pull-right"></i>
                     </a>
                     </h4>
@@ -149,40 +154,16 @@
             href="http://solinea.com">Solinea, Inc.</a><a class="pull-right" href="http://solinea.com/goldstone/LICENSE.pdf" target="_blank">License</a></p>
         </div>
     </div>
-    <!-- Core Scripts - Include with every page -->
-    <script src="{% static 'js/lib/jquery.js' %}"></script>
-    <script src="{% static 'js/lib/bootstrap.js' %}"></script>
-    <script src="{% static 'js/lib/jquery.dataTables.js' %}"></script>
-    <script src="{% static 'js/lib/dataTables.bootstrap.js' %}"></script>
-    <script src="{% static 'js/lib/jquery.datetimepicker.js' %}"></script>
-    <script src="{% static 'js/lib/colorbrewer.js' %}"></script>
-    <script src="{% static 'js/lib/d3.js' %}"></script>
-    <script src="{% static 'js/lib/d3-tip.js' %}"></script>
-    <script src="{% static 'js/lib/d3-legend.js' %}"></script>
 
-    <!-- backbone depends on underscore/jquery -->
-    <script src="{% static 'js/lib/underscore.js' %}"></script>
-    <script src="{% static 'js/lib/backbone.js' %}"></script>
-    <script src="{% static 'js/lib/moment-with-locales.js' %}"></script>
-    <script src="{% static 'js/lib/moment-timezone-with-data-2010-2020.js' %}"></script>
-    <!-- goldstoneBaseModel can be used as a super class if needed -->
-    <script src="{% static 'js/models/goldstoneBaseModel.js' %}"></script>
+    <!-- script tags are concatenated into the following files -->
+    <!-- which are ordered so that dependencies come first -->
+    <script src="{% static 'js/bundle/libs.js' %}"></script>
+    <script src="{% static 'js/bundle/bundle.js' %}"></script>
 
-    <!-- sets of distinct colors. colorblind-friendly  -->
-    <script src="{% static 'js/models/goldstoneColors.js' %}"></script>
-
-    <!-- all text sets for chart info-buttons -->
-    <script src="{% static 'js/models/infoButtonText.js' %}"></script>
-
-    <!-- loaded globally as it's used in almost every chart -->
-    <script src="{% static 'js/views/chartHeaderView.js' %}"></script>
-    <script src="{% static 'js/base.js' %}"></script>
-
-    <!-- backbone view super class loaded globally -->
-    <script src="{% static 'js/views/goldstoneBaseView.js' %}"></script>
-    <script src="{% static 'js/views/goldstoneBasePageView.js' %}"></script>
-    <script src="{% static 'js/views/logoutIcon.js' %}"></script>
     <script>
+    // the main container for views under the Backbone Router schema
+    app = {};
+
     $(function(){
 
         /*
@@ -191,11 +172,13 @@
         token on all subsequent api calls. It also serves to handle 401 auth
         errors, removing any existing token, and redirecting to the login page.
 
-        Following that, only if there is a token present (expired or not), it
-        will append the logout icon in the top-right corner of the page.
+        authLogoutIcon is subscibed to a trigger emmitted by the gsRouter in
+        router.html. Following that, only if there is a token
+        present (expired or not), it will use css to show/hide the logout icon
+        in the top-right corner of the page.
         */
 
-        new LogoutIcon({
+        app.authLogoutIcon = new LogoutIcon({
             el: ".logout-icon-container"
         });
 

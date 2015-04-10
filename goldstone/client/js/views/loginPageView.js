@@ -53,10 +53,6 @@ var LoginPageView = GoldstoneBaseView.extend({
 
                 // store the auth token
                 self.storeAuthToken(success.auth_token);
-
-                // and add a message to the top of the screen that logs what
-                // is returned from the call
-                goldstone.raiseInfo('Authorization Successful, redirecting to goldstone', true);
                 self.redirectPostSuccessfulAuth();
             })
             .fail(function(fail) {
@@ -64,9 +60,9 @@ var LoginPageView = GoldstoneBaseView.extend({
                 // is returned from the call
 
                 try {
-                    goldstone.raiseInfo(fail.responseJSON.non_field_errors[0], true);
+                    goldstone.raiseInfo(fail.responseJSON.non_field_errors[0]);
                 } catch (e) {
-                    goldstone.raiseInfo(fail.responseText, true);
+                    goldstone.raiseInfo(fail.responseText);
                     console.log(e);
                 }
 
@@ -78,20 +74,7 @@ var LoginPageView = GoldstoneBaseView.extend({
     },
 
     redirectPostSuccessfulAuth: function() {
-
-        // if there was a previously visited page that
-        // had redirected to the login page due to lack
-        // of credentials, redirect back to that page
-        if (location.hash && location.hash.length > 0) {
-            locationhref = '/' + location.hash.slice(1);
-        } else {
-
-            // or just redirect to /discover
-            locationhref = '/';
-        }
-
-        location.href = locationhref;
-
+        location.href = '#';
     },
 
     render: function() {
@@ -111,7 +94,7 @@ var LoginPageView = GoldstoneBaseView.extend({
         '<input name="password" type="password" class="form-control" placeholder="Password" required><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>' +
         '</form>' +
-        '<div id="forgotUsername"><a href="/password">Forgot username or password?</a></div>' +
+        '<div id="forgotUsername"><a href="#/password">Forgot username or password?</a></div>' +
         '</div>' +
         '</div>' +
         '</div>'

@@ -62,7 +62,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         var ns = this.defaults;
         var self = this;
 
-        this.collection.on('sync', function() {
+        this.listenTo(this.collection, 'sync', function() {
             if (self.collection.defaults.urlCollectionCount === 0) {
                 self.update();
                 // the collection count will have to be set back to the original count when re-triggering a fetch.
@@ -71,7 +71,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
             }
         });
 
-        this.collection.on('error', this.dataErrorMessage, this);
+        this.listenTo(this.collection, 'error', this.dataErrorMessage);
 
         this.on('lookbackSelectorChanged', function() {
             this.collection.defaults.globalLookback = $('#global-lookback-range').val();

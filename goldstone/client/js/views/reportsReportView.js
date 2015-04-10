@@ -67,7 +67,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         var self = this;
 
         // triggered whenever this.collection finishes fetching
-        this.collection.on('sync', function() {
+        this.listenTo(this.collection,'sync', function() {
 
             // removes spinner that was appended
             // during chart-load
@@ -88,7 +88,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
             self.clearDataErrorMessage();
         });
 
-        this.collection.on('error', this.dataErrorMessage, this);
+        this.listenTo(this.collection, 'error', this.dataErrorMessage);
 
         // this is triggered by a listener set on nodeReportView.js
         this.on('lookbackSelectorChanged', function() {

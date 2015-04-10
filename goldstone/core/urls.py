@@ -15,7 +15,7 @@
 from django.conf.urls import url, patterns
 
 from .views import MetricDataListView, ReportDataListView, MetricNamesAggView, \
-    ReportNamesAggView, MetricAggView
+    ReportNamesAggView, MetricAggView, NavTreeView
 
 urlpatterns = patterns(
     '',
@@ -23,5 +23,6 @@ urlpatterns = patterns(
     url(r'^report_names[/]?$', ReportNamesAggView.as_view()),
     url(r'^metrics[/]?$', MetricDataListView.as_view()),
     url(r'^metrics/summarize[/]?$', MetricAggView.as_view()),
-    url(r'^metric_names[/]?$', MetricNamesAggView.as_view())
+    url(r'^metric_names[/]?$', MetricNamesAggView.as_view()),
+    url(r'^nav_tree[/]?$', NavTreeView.as_view())
 )
