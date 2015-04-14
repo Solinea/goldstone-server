@@ -68,11 +68,12 @@ var DiscoverView = GoldstoneBasePageView.extend({
         // this.zoomableTree = new ZoomablePartitionCollection({
         // });
 
+        this.zoomableTree = new ZoomablePartitionCollection({});
+
         this.zoomableTreeView = new ZoomablePartitionView({
             blueSpinnerGif: blueSpinnerGif,
             chartHeader: ['#goldstone-discover-r2-c1', 'Cloud Topology', 'discoverZoomTopology'],
-            // collection: this.zoomableTree,
-            data: data,
+            collection: this.zoomableTree,
             el: '#goldstone-discover-r2-c1',
             frontPage: false,
             h: 600,
@@ -103,6 +104,7 @@ var DiscoverView = GoldstoneBasePageView.extend({
             multiRsrcViewEl: '#goldstone-discover-r2-c2',
             width: $('#goldstone-discover-r2-c1').width()
         });
+
     },
 
     template: _.template('' +
