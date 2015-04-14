@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import urllib
 
 import arrow
 import json
@@ -20,18 +21,19 @@ from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.test import SimpleTestCase
 from django.utils.unittest.case import skip
+from rest_framework.test import APITestCase, APISimpleTestCase
 
 from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
 
 
-class BaseTest(SimpleTestCase):
+class BaseTest(APISimpleTestCase):
     """A base class that provides common attributes and utility methods."""
 
     # Define commonly used date/time and interval values.
     end = arrow.utcnow()
     start = end.replace(weeks=-1)
-    valid_end = str(end.timestamp)
-    valid_start = str(start.timestamp)
+    valid_end = end.isoformat().replace('+', '%2b')
+    valid_start = end.isoformat().replace('+', '%2b')
     valid_interval = '3600s'
     invalid_start = 'abc'
     invalid_end = 'abc'
@@ -39,7 +41,6 @@ class BaseTest(SimpleTestCase):
 
     def setUp(self):
         """Run before every test."""
-
         get_user_model().objects.all().delete()
         self.token = create_and_login()
 
@@ -66,66 +67,93 @@ class SpawnsViewTests(BaseTest):
     """Test /nova/hypervisor/spawns and /nova/api_perf views."""
 
     # The test URL bases.
-    URLS_START = ["/nova/hypervisor/spawns?start="]
-    URLS_END = ["/nova/hypervisor/spawns?end="]
+    URLS_START = ["/nova/hypervisor/spawns/"]
+    URLS_END = ["/nova/hypervisor/spawns/"]
 
     @skip('needs refreshed or mocked ES data')
     def test_good_request(self):
         """Well formed call should succeed"""
 
+        timerange = '@timestamp__range={"gte":"%s","lte":"%s"}' % \
+                    (self.valid_start, self.valid_end)
+        interval = "interval=%s" % self.valid_interval
+
         for entry in self.URLS_START:
-            url = entry + self.valid_start + \
-                "&end=" + self.valid_end + \
-                "&interval=" + self.valid_interval
-            self._assert_success(url)
+            url = "%s?%s&%s" % (entry, timerange, interval)
+            url = url.replace('"', '%22')
+            self._assert_success(urllib.quote(url))
 
     @skip('needs refreshed or mocked ES data')
     def test_no_end(self):
         """No end param is ok"""
 
+        timerange = '@timestamp__range={"gte":"%s"}' % \
+                    self.valid_start
+        interval = "interval=%s" % self.valid_interval
+
         for entry in self.URLS_START:
-            url = entry + self.valid_start + "&interval=" + self.valid_interval
-            self._assert_success(url)
+            url = "%s?%s&%s" % (entry, timerange, interval)
+            url = url.replace('"', '%22')
+            self._assert_success(urllib.quote(url))
 
     def test_no_interval(self):
         """No interval param should return a 400"""
 
+        timerange = '@timestamp__range={"gte":"%s","lte":"%s"}' % \
+                    (self.valid_start, self.valid_end)
+
         for entry in self.URLS_START:
-            url = entry + self.valid_start + "&end=" + self.valid_end
-            self._assert_bad_request(url)
+            url = "%s?%s" % (entry, timerange)
+            url = url.replace('"', '%22')
+            self._assert_bad_request(urllib.quote(url))
 
     def test_no_start(self):
         """No start param should return a 400"""
 
+        timerange = '@timestamp__range={"lte":"%s"}' % \
+                    self.valid_end
+        interval = "interval=%s" % self.valid_interval
+
         for entry in self.URLS_END:
-            url = entry + self.valid_end + "&interval=" + self.valid_interval
-            self._assert_bad_request(url)
+            url = "%s?%s&%s" % (entry, timerange, interval)
+            url = url.replace('"', '%22')
+            self._assert_bad_request(urllib.quote(url))
 
     def test_invalid_start(self):
         """Invalid start param should return a 400"""
 
+        timerange = '@timestamp__range={"gte":"%s"}' % \
+                    self.invalid_start
+        interval = "interval=%s" % self.valid_interval
+
         for entry in self.URLS_START:
-            url = entry + self.invalid_start + \
-                "&end=" + self.valid_end + \
-                "&interval=" + self.valid_interval
-            self._assert_bad_request(url)
+            url = "%s?%s&%s" % (entry, timerange, interval)
+            url = url.replace('"', '%22')
+            self._assert_bad_request(urllib.quote(url))
 
     def test_invalid_finish(self):
         """Invalid end param should return a 400"""
 
+        timerange = '@timestamp__range={"gte":"%s","lte":"%s"}' % \
+                    (self.valid_start, self.invalid_end)
+        interval = "interval=%s" % self.valid_interval
+
         for entry in self.URLS_START:
-            url = entry + self.valid_start + \
-                "&end=" + self.invalid_end + \
-                "&interval=" + self.valid_interval
-            self._assert_bad_request(url)
+            url = "%s?%s&%s" % (entry, timerange, interval)
+            url = url.replace('"', '%22')
+            self._assert_bad_request(urllib.quote(url))
 
     def test_invalid_interval(self):
         """Invalid interval param should return a 400"""
+
+        timerange = '@timestamp__range={"gte":"%s","lte":"%s"}' % \
+                    (self.valid_start, self.valid_end)
+        interval = "interval=%s" % self.invalid_interval
+
         for entry in self.URLS_START:
-            url = entry + self.valid_start + \
-                "&end=" + self.valid_end + \
-                "&interval=" + self.invalid_interval
-            self._assert_bad_request(url)
+            url = "%s?%s&%s" % (entry, timerange, interval)
+            url = url.replace('"', '%22')
+            self._assert_bad_request(urllib.quote(url))
 
 
 class DataViewTests(SimpleTestCase):
