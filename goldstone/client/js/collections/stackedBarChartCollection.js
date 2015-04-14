@@ -33,7 +33,11 @@ var StackedBarChartCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        return data;
+        if (data && data.per_interval) {
+            return data.per_interval;
+        } else {
+            return [];
+        }
     },
 
     model: GoldstoneBaseModel,
@@ -59,7 +63,11 @@ var StackedBarChartCollection = Backbone.Collection.extend({
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
-        this.url = ns.urlPrefix + '?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval;
+        this.url = ns.urlPrefix + '?@timestamp__range={"gte":' +
+            ns.reportParams.start + '}&interval=' + ns.reportParams.interval;
     }
+
+    // creates a url similar to:
+    // /nova/hypervisor/spawns?@timestamp__range={"gte":1429027100000}&interval=1h
 
 });
