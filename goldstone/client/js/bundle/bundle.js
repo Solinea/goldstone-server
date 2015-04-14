@@ -1,4 +1,4 @@
-/*! goldstone concat on 2015-04-08@14:59:1 */
+/*! goldstone concat on 2015-04-14@15:11:28 */
 
 /**
  * Copyright 2014 - 2015 Solinea, Inc.
@@ -1532,19 +1532,18 @@ this.novaApiPerfChart = new ApiPerfCollection({
 
 // define collection and link to model
 
-var ApiPerfModel = GoldstoneBaseModel.extend({
-
-    // sorts colleciton by 'key' which maps to timestamp
-    // in returned data payload
-    idAttribute: 'key'
-});
+var ApiPerfModel = GoldstoneBaseModel.extend({});
 
 var ApiPerfCollection = Backbone.Collection.extend({
 
     defaults: {},
 
     parse: function(data) {
-        return data;
+        if (data && data.per_interval) {
+            return data.per_interval;
+        } else {
+            return [];
+        }
     },
 
     model: ApiPerfModel,
@@ -1569,10 +1568,13 @@ var ApiPerfCollection = Backbone.Collection.extend({
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
-        this.url = '/api_perf/stats?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval + '&component=' + this.defaults.componentParam;
+        this.url = '/api_perf/stats?@timestamp__range={"gte":' + ns.reportParams.start +
+            '}&interval=' + ns.reportParams.interval +
+            '&component=' + this.defaults.componentParam;
 
         // generates url string similar to:
-        // /api_perf/stats?start=1424710116&end=1424713716&interval=60s&component=nova
+        // /api_perf/stats?timestamp__range={%22gte%22:1428556490}&interval=60s&component=glance
+
     }
 });
 ;
@@ -2467,7 +2469,11 @@ var StackedBarChartCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        return data;
+        if (data && data.per_interval) {
+            return data.per_interval;
+        } else {
+            return [];
+        }
     },
 
     model: GoldstoneBaseModel,
@@ -2493,8 +2499,12 @@ var StackedBarChartCollection = Backbone.Collection.extend({
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
-        this.url = ns.urlPrefix + '?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval;
+        this.url = ns.urlPrefix + '?@timestamp__range={"gte":' +
+            ns.reportParams.start + '}&interval=' + ns.reportParams.interval;
     }
+
+    // creates a url similar to:
+    // /nova/hypervisor/spawns?@timestamp__range={"gte":1429027100000}&interval=1h
 
 });
 ;
@@ -3085,17 +3095,28 @@ var ApiPerfView = GoldstoneBaseView.extend({
         $(this.el).find('svg').find('.chart').html('');
         $(this.el + '.d3-tip').detach();
 
+        ns.y.domain([0, d3.max(json, function(d) {
+            var key = _.keys(d).toString();
+            return d[key].stats.max;
+        })]);
+
         json.forEach(function(d) {
-            d.time = moment(Number(d.key));
+            // careful as using _.keys after this
+            // will return [timestamp, 'time']
+            d.time = moment(+_.keys(d)[0]);
+
+            // which is why .filter is required here:
+            var key = _.keys(d).filter(function(item){
+                return item !== "time";
+            }).toString();
+            d.min = d[key].stats.min || 0;
+            d.max = d[key].stats.max || 0;
+            d.avg = d[key].stats.avg || 0;
         });
 
         ns.x.domain(d3.extent(json, function(d) {
             return d.time;
         }));
-
-        ns.y.domain([0, d3.max(json, function(d) {
-            return d.max;
-        })]);
 
         var area = d3.svg.area()
             .interpolate("basis")
@@ -9019,17 +9040,44 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         } else {
 
             // Spawns Resources chart data prep
-            // {timestamp: [success, fail]}
-            _.each(data[0], function(item, i) {
+            /*
+            {"1429032900000":
+                {"count":1,
+                "success":
+                    [
+                        {"true":1}
+                    ]
+                }
+            }
+            */
+
+            _.each(data, function(item) {
+                var logTime = _.keys(item)[0];
+                if (item[logTime].success) {
+                    console.log(item[logTime].success);
+                }
+                var success = _.pluck(item[logTime].success, 'true');
+                success = success[0] || 0;
+                var failure = _.pluck(item[logTime].success, 'false');
+                failure = failure[0] || 0;
                 result.push({
-                    "eventTime": "" + i,
-                    "Success": item[0],
-                    "Failure": item[1]
+                    "eventTime": logTime,
+                    "Success": success,
+                    "Failure": failure
                 });
             });
 
-        }
 
+            // _.each(data[0], function(item, i) {
+            //     result.push({
+            //         "eventTime": "" + i,
+            //         "Success": item[0],
+            //         "Failure": item[1]
+            //     });
+            // });
+
+        }
+        console.log('result: ', result);
         return result;
     },
 
@@ -9082,11 +9130,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         this.hideSpinner();
 
-        // if empty set, append info popup and stop
-        if (this.checkReturnedDataSet(data) === false) {
-            return;
-        }
-
         // clear elements from previous render
         $(this.el).find('svg').find('rect').remove();
         $(this.el).find('svg').find('line').remove();
@@ -9095,6 +9138,11 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         $(this.el).find('svg').find('path').remove();
         $(this.el).find('svg').find('circle').remove();
         $(this.el + '.d3-tip').detach();
+
+        // if empty set, append info popup and stop
+        if (this.checkReturnedDataSet(data) === false) {
+            return;
+        }
 
         // maps keys such as "Used / Physical / Virtual" to a color
         // but skips mapping "eventTime" to a color
