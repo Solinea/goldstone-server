@@ -28,8 +28,6 @@ from elasticsearch_dsl.connections import connections, Connections
 from mock import patch
 import mock
 
-from goldstone.core.models import Host
-from goldstone.core.tasks import create_daily_index
 from goldstone.models import es_conn, daily_index, es_indices, TopologyData
 from goldstone.tenants.models import Tenant
 from goldstone.test_utils import Setup
@@ -135,12 +133,6 @@ class PrimeData(TestCase):
     ]:
         template_body = json.load(template_f)
         conn.indices.put_template(template_name, template_body)
-
-    # create daily indices for those who use them
-    create_daily_index(basename='logstash')
-    create_daily_index(basename='goldstone')
-    conn.indices.create('goldstone_agent')
-    conn.indices.create('goldstone_model')
 
     # Index the test data to the appropriate indices.
     # pylint: disable=W0212

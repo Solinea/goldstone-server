@@ -21,8 +21,9 @@ from goldstone.apps.nova.models import SpawnsData
 
 class SpawnsDataModelTests(SimpleTestCase):
     """Test cases for nova spawns model."""
-    start = arrow.get(0)
+
     end = arrow.utcnow()
+    start = end.replace(hours=-1)
     interval = '1h'
 
     QUERY_BASE = {'bool': {
@@ -47,11 +48,12 @@ class SpawnsDataModelTests(SimpleTestCase):
 
     def test_spawn_finish_query(self):
         """_spawn_finish_query should return a Search with proper values."""
-
+        self.maxDiff = None
         expected_aggs = {'per_interval': self.DATEHIST_AGG}
         expected_aggs['per_interval']['aggs'] = {
             'per_success': {
-                'terms': {'size': 0, 'field': 'success', 'min_doc_count': 0}}
+                'terms': {'size': 0, 'field': 'success',
+                          'shard_min_doc_count': 0, 'min_doc_count': 0}}
         }
 
         expected_query = deepcopy(self.QUERY_BASE)
@@ -60,6 +62,7 @@ class SpawnsDataModelTests(SimpleTestCase):
         result = SpawnsData._spawn_finish_query(self.start, self.end,
                                                 self.interval)
 
-        self.assertDictEqual(result.to_dict()['aggs'], expected_aggs)
         self.assertDictEqual(result.to_dict()['query'], expected_query)
         self.assertListEqual(result.to_dict()['sort'], self.TIMESTAMP_SORT)
+        self.assertDictEqual(result.to_dict()['aggs'], expected_aggs)
+

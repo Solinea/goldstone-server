@@ -274,54 +274,39 @@ class DailyIndexDocTypeTests(APITestCase):
     def test_field_has_raw_true(self):
         """field_has_raw returns true if mapping has a raw field"""
         # py26 support
-        with nested(
-                patch("goldstone.apps.drfes.models.most_recent_index"),
-                patch.object(DailyIndexDocType, "get_field_mapping")) \
-                as (mre, gfm):
+        with patch.object(DailyIndexDocType, "get_field_mapping") as gfm:
 
             field = 'field'
-            mre.return_value = 'index'
             gfm.return_value = {'index': {'mappings': {
                 'syslog': {field: {'mapping': {field: {'fields': {
                     'raw': True}}}}}}}}
 
             result = DailyIndexDocType.field_has_raw('field')
-            self.assertTrue(mre.called)
             self.assertTrue(gfm.called)
             self.assertTrue(result)
 
     def test_field_has_raw_false(self):
         """field_has_raw returns false if mapping doesn't have a raw field"""
         # py26 support
-        with nested(
-                patch("goldstone.apps.drfes.models.most_recent_index"),
-                patch.object(DailyIndexDocType, "get_field_mapping")) \
-                as (mre, gfm):
+        with patch.object(DailyIndexDocType, "get_field_mapping") as gfm:
 
             field = 'field'
-            mre.return_value = 'index'
             gfm.return_value = {'index': {'mappings': {
                 'syslog': {field: {'mapping': {field: {'fields': {
                     'not_raw': True}}}}}}}}
 
             result = DailyIndexDocType.field_has_raw('field')
-            self.assertTrue(mre.called)
             self.assertTrue(gfm.called)
             self.assertFalse(result)
 
     def test_field_has_raw_key_error(self):
         """field_has_raw returns false if KeyError raised"""
         # py26 support
-        with nested(
-                patch("goldstone.apps.drfes.models.most_recent_index"),
-                patch.object(DailyIndexDocType, "get_field_mapping")) \
-                as (mre, gfm):
+        with patch.object(DailyIndexDocType, "get_field_mapping") as gfm:
 
-            mre.return_value = 'index'
             gfm.side_effect = KeyError
 
             result = DailyIndexDocType.field_has_raw('field')
-            self.assertTrue(mre.called)
             self.assertTrue(gfm.called)
             self.assertFalse(result)
 

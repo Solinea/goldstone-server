@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from elasticsearch_dsl import DocType, Search
-from goldstone.models import most_recent_index, es_conn, es_indices, \
+from goldstone.models import es_conn, es_indices, \
     daily_index
 
 
