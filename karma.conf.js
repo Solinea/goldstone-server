@@ -25,7 +25,7 @@ module.exports = function(config) {
             'goldstone/client/js/lib/backbone.js',
             'goldstone/client/js/lib/moment-with-locales.js',
             'goldstone/client/js/lib/moment-timezone-with-data-2010-2020.js',
-            'goldstone/client/js/models/goldstoneBaseModel.js',
+            'goldstone/client/js/goldstoneBaseModel.js',
             'goldstone/client/js/models/goldstoneColors.js',
             'goldstone/client/js/models/infoButtonText.js',
             'goldstone/client/js/views/chartHeaderView.js',
@@ -33,13 +33,13 @@ module.exports = function(config) {
 
             // super-classes must be instantiated
             // in the test config file.
-            'goldstone/client/js/views/goldstoneBaseView.js',
-            'goldstone/client/js/views/goldstoneBasePageView.js',
+            'goldstone/client/js/goldstoneBaseView.js',
+            'goldstone/client/js/goldstoneBasePageView.js',
 
             // superclass for other charts, must be declared here
-            'goldstone/client/js/views/utilizationCpuView.js'
+            'goldstone/client/js/utilizationCpuView.js'
 
-        ].concat(clientIncludes, testFiles),
+        ].concat(clientIncludes.clientWildcards, testFiles),
 
         exclude: [
             'karma.conf.js'

@@ -125,11 +125,11 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        this.collection.on('sync', function() {
+        this.listenTo(this.collection, 'sync', function() {
             self.update();
         });
 
-        this.collection.on('error', this.dataErrorMessage, this);
+        this.listenTo(this.collection, 'error', this.dataErrorMessage);
 
         this.on('lookbackIntervalReached', function(params) {
 
@@ -560,8 +560,8 @@ var LogAnalysisView = UtilizationCpuView.extend({
                         self.urlGen();
 
                         // the pageSize and searchQuery are jQuery values
-                        var pageSize = $('.log-search-container').find('select.form-control').val();
-                        var searchQuery = $('.log-search-container').find('input.form-control').val();
+                        var pageSize = $('div#intel-search-data-table').find('select.form-control').val();
+                        var searchQuery = $('div#intel-search-data-table').find('input.form-control').val();
 
                         // the paginationStart is taken from the dataTables
                         // generated serverSide query string that will be

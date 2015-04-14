@@ -45,13 +45,22 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
-        this.el = options.el;
         this.defaults.lookbackValues = options.lookbackValues || null;
 
         var ns = this.defaults;
         var self = this;
 
         this.render();
+
+        this.$el.find('#global-refresh-range').on('change', function() {
+            self.trigger('globalRefreshChange');
+            self.trigger('globalSelectorChange');
+        });
+        this.$el.find('#global-lookback-range').on('change', function() {
+            self.trigger('globalLookbackChange');
+            self.trigger('globalSelectorChange');
+        });
+
 
     },
 

@@ -24,10 +24,14 @@ describe('LogoutIcon.js spec', function() {
         it('renders view', function() {
             this.testView.render();
         });
+        it('logout icon remains hidden when no auth token present', function() {
+            localStorage.clear();
+            expect($('.fa-sign-out').css('visibility')).to.equal('hidden');
+        });
         it('renders view with auth token', function() {
-            this.testView.renderIfTokenPresent();
             localStorage.setItem('userToken', 'here_i_am!');
-            this.testView.renderIfTokenPresent();
+            this.testView.viewSwitchTriggered();
+            expect($('.fa-sign-out').css('visibility')).to.equal('visible');
         });
         it('clears a token', function() {
             localStorage.setItem('userToken', 'fun1with2tokens3');
@@ -36,8 +40,11 @@ describe('LogoutIcon.js spec', function() {
             expect(localStorage.getItem('userToken')).to.equal(null);
         });
         it('sets up request header params', function() {
-            localStorage.setItem('userToken', 'now1i2can3haz4tokens5');
+            localStorage.setItem('userTok   en', 'now1i2can3haz4tokens5');
             this.testView.setAJAXSendRequestHeaderParams();
+        });
+        it('redirects to login', function() {
+            this.testView.redirectToLogin();
         });
 
     });

@@ -110,15 +110,15 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
 
     setGlobalLookbackRefreshTriggers: function() {
         var self = this;
-        // wire up listeners between global selectors and charts
-        // change listeners for global selectors
-        $('#global-lookback-range').on('change', function() {
+        // wire up listenTo on global selectors
+        // important: use obj.listenTo(obj, change, callback);
+        this.listenTo(app.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
             self.getGlobalLookbackRefresh();
             self.triggerChange('lookbackSelectorChanged');
             self.clearScheduledInterval();
             self.scheduleInterval();
         });
-        $('#global-refresh-range').on('change', function() {
+        this.listenTo(app.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
             self.getGlobalLookbackRefresh();
             self.clearScheduledInterval();
             self.scheduleInterval();

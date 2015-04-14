@@ -58,7 +58,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         var self = this;
 
-        $('#global-lookback-range').on('change', function() {
+        this.listenTo(app.globalLookbackRefreshSelectors, 'globalLookbackChange', function() {
             self.getGlobalLookbackRefresh();
             self.triggerChange();
 
@@ -66,7 +66,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
             self.clearScheduledInterval();
             self.scheduleInterval();
         });
-        $('#global-refresh-range').on('change', function() {
+        this.listenTo(app.globalLookbackRefreshSelectors, 'globalRefreshChange', function() {
             self.getGlobalLookbackRefresh();
 
             // reset the setInterval counter
@@ -174,7 +174,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         // construct api calls from url component
         // between the last '/' and the following '.'
         // IMPORTANT: see caveat on node naming in constructHostName function
-        var hostName = this.constructHostName(location.pathname);
+        var hostName = this.constructHostName(location.href);
 
         //----------------------------
         // instantiate charts via
