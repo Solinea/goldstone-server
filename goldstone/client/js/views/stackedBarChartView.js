@@ -138,17 +138,44 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         } else {
 
             // Spawns Resources chart data prep
-            // {timestamp: [success, fail]}
-            _.each(data[0], function(item, i) {
+            /*
+            {"1429032900000":
+                {"count":1,
+                "success":
+                    [
+                        {"true":1}
+                    ]
+                }
+            }
+            */
+
+            _.each(data, function(item) {
+                var logTime = _.keys(item)[0];
+                if (item[logTime].success) {
+                    console.log(item[logTime].success);
+                }
+                var success = _.pluck(item[logTime].success, 'true');
+                success = success[0] || 0;
+                var failure = _.pluck(item[logTime].success, 'false');
+                failure = failure[0] || 0;
                 result.push({
-                    "eventTime": "" + i,
-                    "Success": item[0],
-                    "Failure": item[1]
+                    "eventTime": logTime,
+                    "Success": success,
+                    "Failure": failure
                 });
             });
 
-        }
 
+            // _.each(data[0], function(item, i) {
+            //     result.push({
+            //         "eventTime": "" + i,
+            //         "Success": item[0],
+            //         "Failure": item[1]
+            //     });
+            // });
+
+        }
+        console.log('result: ', result);
         return result;
     },
 
@@ -201,11 +228,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         this.hideSpinner();
 
-        // if empty set, append info popup and stop
-        if (this.checkReturnedDataSet(data) === false) {
-            return;
-        }
-
         // clear elements from previous render
         $(this.el).find('svg').find('rect').remove();
         $(this.el).find('svg').find('line').remove();
@@ -214,6 +236,11 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         $(this.el).find('svg').find('path').remove();
         $(this.el).find('svg').find('circle').remove();
         $(this.el + '.d3-tip').detach();
+
+        // if empty set, append info popup and stop
+        if (this.checkReturnedDataSet(data) === false) {
+            return;
+        }
 
         // maps keys such as "Used / Physical / Virtual" to a color
         // but skips mapping "eventTime" to a color
