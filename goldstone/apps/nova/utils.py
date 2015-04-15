@@ -172,12 +172,12 @@ def reconcile_nova_hosts():
 
     """
     from goldstone.core.models import AvailabilityZone, Host, Cloudpipe, \
-        Server, Flavor, Hypervisor, Interface, Keypair, NovaQuotaClass
+        Server, Flavor, Hypervisor, Interface, Keypair
     from goldstone.core.utils import process_resource_type
 
     # The resource type "from" nodes.
     FROM_TYPES = [AvailabilityZone, Cloudpipe, Flavor, Host, Hypervisor,
-                  Interface, Keypair, NovaQuotaClass, Server]
+                  Interface, Keypair, Server]
 
     for nodetype in FROM_TYPES:
         process_resource_type(nodetype)
