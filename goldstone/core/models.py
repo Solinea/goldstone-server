@@ -21,7 +21,8 @@ from goldstone.apps.drfes.models import DailyIndexDocType
 from goldstone.glogging.models import LogData, LogEvent
 
 # Get_glance_client is defined here for easy unit test mocking.
-from goldstone.utils import utc_now, get_glance_client, get_nova_client
+from goldstone.utils import utc_now, get_glance_client, get_nova_client, \
+    get_cinder_client
 
 from elasticsearch_dsl.query import Q, QueryString
 import networkx
@@ -702,7 +703,7 @@ class Snapshot(PolyResource):
     def clouddata():
         """See the parent class' method's docstring."""
 
-        return list(get_glance_client()["client"].images.list())
+        return list(get_cinder_client()["client"].volume_snapshots.list())
 
 
 class VolumeType(PolyResource):
@@ -1061,7 +1062,8 @@ class ResourceTypes(Graph):
                      MIN: 1,
                      MAX: 1,
                      MATCHING_FN:
-                     lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                     lambda f, t:
+                     f.get("id") and f.get("id") == t.get("snapshot_id")}},
                    ],
 
         # From Glance nodes
