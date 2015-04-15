@@ -53,6 +53,9 @@ def reconcile_hosts():
     """
     from goldstone.apps.glance.utils import reconcile_glance_hosts
     from goldstone.apps.nova.utils import reconcile_nova_hosts
+    from goldstone.cinder.utils import reconcile_cinder_hosts
 
-    for services in [reconcile_glance_hosts, reconcile_nova_hosts]:
+    for services in [reconcile_glance_hosts,
+                     reconcile_nova_hosts,
+                     reconcile_cinder_hosts]:
         services()
