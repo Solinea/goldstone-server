@@ -447,26 +447,7 @@ class FlavorExtraSpec(PolyResource):
     def identity(thing):
         """See the parent class' method's docstring."""
 
-        return thing.get("name")
-
-
-class RootCert(PolyResource):
-    """An OpenStack RootCert."""
-
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
-
-        return [x.to_dict() for x in nova_client.certs.list()]
-
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
-        """See the parent class' method's docstring."""
-
-        return None               # TODO: Figure this out.
+        return thing.get("id")
 
 
 class Aggregate(PolyResource):
@@ -485,7 +466,7 @@ class Aggregate(PolyResource):
     def identity(thing):
         """See the parent class' method's docstring."""
 
-        return thing.get("name")
+        return thing.get("id")
 
 
 class Flavor(PolyResource):
@@ -504,7 +485,7 @@ class Flavor(PolyResource):
     def identity(thing):
         """See the parent class' method's docstring."""
 
-        return thing.get("name")
+        return thing.get("id")
 
 
 class Keypair(PolyResource):
@@ -669,27 +650,6 @@ class Server(PolyResource):
         return thing.get("id")
 
 
-class ServerMetadata(PolyResource):
-    """An OpenStack Server Metadata."""
-
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
-
-        return [x.metadata
-                for x in
-                nova_client.servers.list(search_opts={"all_tenants": 1})]
-
-    @staticmethod
-    def identity(thing):                  # pylint: disable=W0613
-        """See the parent class' method's docstring."""
-
-        return None                       # TODO: Figure this out
-
-
 class Interface(PolyResource):
     """An OpenStack Interface."""
 
@@ -722,41 +682,7 @@ class Interface(PolyResource):
     def identity(thing):
         """See the parent class' method's docstring."""
 
-        return thing.get("net_id")
-
-
-class NovaQuotaClass(PolyResource):
-    """An OpenStack Quota Class within a Nova service."""
-
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        # Getting at these is not so obvious. I'll come back to these later.
-        return []
-
-    @staticmethod
-    def identity(thing):                  # pylint: disable=W0613
-        """See the parent class' method's docstring."""
-
-        return None                     # TODO: Figure this out
-
-
-class NovaQuotaSet(PolyResource):
-    """An OpenStack Quota Set within a Nova service."""
-
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        # Getting at these is not so obvious. I'll come back to these later.
-        return []
-
-    @staticmethod
-    def identity(thing):                  # pylint: disable=W0613
-        """See the parent class' method's docstring."""
-
-        return None                     # TODO: figure this out
+        return thing.get("mac_addr")
 
 
 class NovaLimits(PolyResource):
@@ -802,40 +728,9 @@ class Image(PolyResource):
 # These classes represent entities within a Cinder service.
 #
 
-class QuotaClass(PolyResource):
-    """An OpenStack Image."""
-
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        return list(get_glance_client()["client"].images.list())
-
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
-
-
-class QuotaClass(PolyResource):
-    """An OpenStack Image."""
-
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        return list(get_glance_client()["client"].images.list())
-
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
-
 
 class QuotaSet(PolyResource):
-    """An OpenStack Image."""
+    """An OpenStack Quota Set."""
 
     @staticmethod
     def clouddata():
@@ -851,13 +746,13 @@ class QuotaSet(PolyResource):
 
 
 class QOSSpec(PolyResource):
-    """An OpenStack Image."""
+    """An OpenStack Quality Of Service Specification."""
 
     @staticmethod
     def clouddata():
         """See the parent class' method's docstring."""
 
-        return list(get_glance_client()["client"].images.list())
+        return list(get_cinder_client()["client"].qos_specs.list())
 
     @staticmethod
     def identity(thing):
@@ -867,7 +762,7 @@ class QOSSpec(PolyResource):
 
 
 class Snapshot(PolyResource):
-    """An OpenStack Image."""
+    """An OpenStack Snapshot."""
 
     @staticmethod
     def clouddata():
@@ -883,13 +778,13 @@ class Snapshot(PolyResource):
 
 
 class VolumeType(PolyResource):
-    """An OpenStack Image."""
+    """An OpenStack Volume Type."""
 
     @staticmethod
     def clouddata():
         """See the parent class' method's docstring."""
 
-        return list(get_glance_client()["client"].images.list())
+        return list(get_cinder_client()["client"].volume_types.list())
 
     @staticmethod
     def identity(thing):
@@ -899,13 +794,13 @@ class VolumeType(PolyResource):
 
 
 class Volume(PolyResource):
-    """An OpenStack Image."""
+    """An OpenStack Volume."""
 
     @staticmethod
     def clouddata():
         """See the parent class' method's docstring."""
 
-        return list(get_glance_client()["client"].images.list())
+        return list(get_cinder_client()["client"].volumes.list())
 
     @staticmethod
     def identity(thing):
@@ -915,7 +810,7 @@ class Volume(PolyResource):
 
 
 class Limits(PolyResource):
-    """An OpenStack Image."""
+    """An OpenStack Limit."""
 
     @staticmethod
     def clouddata():
@@ -1037,15 +932,16 @@ class Port(PolyResource):
     def clouddata():
         """See the parent class' method's docstring."""
         from goldstone.utils import get_cloud
-        from neutronclient.v2_0 import client as neclient
+        from goldstone.neutron.utils import get_neutron_client
+        # from neutronclient.v2_0 import client as neclient
 
         # Get the one and only one Cloud row in the system
         row = get_cloud()
 
-        client = neclient.Client(username=row.username,
-                                 password=row.password,
-                                 tenant_name=row.tenant_name,
-                                 auth_url=row.auth_url)
+        client = get_neutron_client(row.username,
+                                    row.password,
+                                    row.tenant_name,
+                                    row.auth_url)
 
         return client.list_ports()["ports"]
 
@@ -1053,7 +949,7 @@ class Port(PolyResource):
     def identity(thing):
         """See the parent class' method's docstring."""
 
-        return thing.get("network_id")
+        return thing.get("id")
 
 
 class LBVIP(PolyResource):
@@ -1237,27 +1133,24 @@ class ResourceTypes(Graph):
     #                    exceptions.
     EDGES = {
         # From Cinder nodes
-        QuotaClass: [{TO: QuotaSet,
-                      EDGE_ATTRIBUTES:
-                      {TYPE: DEFINES,
-                       MIN: 0,
-                       MAX: sys.maxint,
-                       MATCHING_FN:
-                       lambda f, t: False}}],
         QOSSpec: [{TO: VolumeType,
                    EDGE_ATTRIBUTES:
                    {TYPE: APPLIES_TO,
                     MIN: 0,
                     MAX: sys.maxint,
                     MATCHING_FN:
-                    lambda f, t: False}}],
+                    lambda f, t:
+                    f.get("id") and
+                    f.get("id") in
+                    t.get("extra_specs", {}).get("qos", '')}}],
         VolumeType: [{TO: Volume,
                       EDGE_ATTRIBUTES:
                       {TYPE: APPLIES_TO,
                        MIN: 0,
                        MAX: sys.maxint,
                        MATCHING_FN:
-                       lambda f, t: False}}],
+                       lambda f, t:
+                       f.get("id") and f["id"] == t.get("volume_type")}}],
         Snapshot: [{TO: Volume,
                     EDGE_ATTRIBUTES:
                     {TYPE: APPLIES_TO,
@@ -1305,20 +1198,6 @@ class ResourceTypes(Graph):
                    EDGE_ATTRIBUTES:
                    {TYPE: OWNS,
                     MIN: 1,
-                    MAX: 1,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: NovaQuotaSet,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: SUBSCRIBED_TO,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: RootCert,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 0,
                     MAX: 1,
                     MATCHING_FN:
                     lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
@@ -1457,10 +1336,6 @@ class ResourceTypes(Graph):
                 EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
                {TO: Group,
                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}},
-               {TO: NovaQuotaSet,
-                EDGE_ATTRIBUTES: {TYPE: SUBSCRIBED_TO,
-                                  MIN: 0,
-                                  MAX: sys.maxint}},
                {TO: Project,
                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: 1}},
                {TO: QuotaSet,
@@ -1554,7 +1429,7 @@ class ResourceTypes(Graph):
               MAX: sys.maxint,
               MATCHING_FN:
               lambda f, t:
-              f.get("name") and f.get("name") == t.get("name")}},
+              f.get("id") and f.get("id") == t.get("id")}},
             {TO: Server,
              EDGE_ATTRIBUTES:
              {TYPE: DEFINES,
@@ -1600,7 +1475,7 @@ class ResourceTypes(Graph):
               MAX: 1,
               MATCHING_FN:
               lambda f, t:
-              f.get("net_id") and f.get("net_id") == t["network_id"]}}],
+              f.get("mac_addr") and f.get("mac_addr") == t["mac_address"]}}],
         Keypair: [{TO: Server,
                    EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
                                      MIN: 0,
@@ -1610,13 +1485,6 @@ class ResourceTypes(Graph):
                                      lambda f, t:
                                      f.get("fingerprint") is not None and
                                      t is not None}}],
-        NovaQuotaClass: [{TO: NovaQuotaSet,
-                          EDGE_ATTRIBUTES: {TYPE: DEFINES,
-                                            MIN: 0,
-                                            MAX: sys.maxint,
-                                            # We aren't sure what to do. Stub
-                                            # this out for now.
-                                            MATCHING_FN: lambda f, t: False}}],
         Server: [{TO: Interface,
                   EDGE_ATTRIBUTES: {TYPE: OWNS,
                                     MIN: 0,
@@ -1636,25 +1504,16 @@ class ResourceTypes(Graph):
                                     MATCHING_FN: lambda f, t:
                                     f.get("hostId") and
                                     f.get("hostId") in t["members"]}},
-                 {TO: ServerMetadata,
-                  EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                    MIN: 0,
-                                    MAX: sys.maxint,
-                                    # Deferred for now. Suspect some code will
-                                    # need to be ripped up to find this edge,
-                                    # because metadata hang off of server
-                                    # objects.
-                                    MATCHING_FN: lambda f, t: False}},
-                 # TODO: FILL THIS IN FOR THIS TICKET!!!!!!!!
                  {TO: Volume,
                   EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
                                     MIN: 0,
                                     MAX: sys.maxint,
-                                    # Deferred for now. Suspect some code will
-                                    # need to be ripped up to find this edge,
-                                    # because metadata hang off of server
-                                    # objects.
-                                    MATCHING_FN: lambda f, t: False}},
+                                    MATCHING_FN: lambda f, t:
+                                    f.get("links") and t.get("links") and
+                                    any(volentry.get("href") and
+                                        volentry["href"] in
+                                        [x["href"] for x in f["links"]]
+                                        for volentry in t["links"])}},
                  ],
         }
 
