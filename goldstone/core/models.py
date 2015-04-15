@@ -586,6 +586,7 @@ class Cloudpipe(PolyResource):
 
         return thing.get("project_id")
 
+
 class ServerGroup(PolyResource):
     """An OpenStack Server Group."""
 
