@@ -29,7 +29,7 @@ urlpatterns = patterns(
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
     url(r'^api_perf/', include('goldstone.apps.api_perf.urls')),
-    url(r'^cinder/', include('goldstone.apps.cinder.urls')),
+    url(r'^cinder/', include('goldstone.cinder.urls')),
     url(r'^core/', include('goldstone.core.urls')),
     url(r'^glance/', include('goldstone.apps.glance.urls')),
     url(r'^intelligence/', include('goldstone.apps.intelligence.urls')),
