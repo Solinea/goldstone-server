@@ -15,21 +15,15 @@
 from __future__ import unicode_literals
 
 import json
-import logging
 
 from django.conf import settings
-from django.http import HttpResponseBadRequest, Http404
+from django.http import HttpResponseBadRequest
 from django.views.generic import TemplateView
-
-from goldstone.utils import TopologyMixin
-
-logger = logging.getLogger(__name__)
 
 
 def validate(arg_list, context):
     """Validate an argument list within a particular context, and return
     an updated context or HttpResponseBadRequest."""
-
     import arrow
 
     # A "bad parameter" message string.
@@ -40,7 +34,7 @@ def validate(arg_list, context):
     try:
         end = arrow.get(context['end'])
         context['end_dt'] = end.datetime
-    except Exception:
+    except Exception:          # pylint: disable=W0703
         validation_errors.append(BAD_PARAMETER % "end")
 
     if 'start' in arg_list:
@@ -51,7 +45,7 @@ def validate(arg_list, context):
         else:
             try:
                 context['start_dt'] = arrow.get(context['start']).datetime
-            except Exception:
+            except Exception:         # pylint: disable=W0703
                 validation_errors.append(BAD_PARAMETER % "start")
 
     if 'interval' in arg_list:
