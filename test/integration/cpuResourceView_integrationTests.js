@@ -4,6 +4,36 @@
 describe('cpuResourceView.js spec', function() {
     beforeEach(function() {
 
+        this.tesetData = [{
+            "name": "nova.hypervisor.vcpus",
+            "region": "RegionOne",
+            "value": 16,
+            "metric_type": "gauge",
+            "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+            "unit": "count"
+        }, {
+            "name": "nova.hypervisor.vcpus_used",
+            "region": "RegionOne",
+            "value": 7,
+            "metric_type": "gauge",
+            "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+            "unit": "count"
+        }, {
+            "name": "nova.hypervisor.vcpus",
+            "region": "RegionOne",
+            "value": 16,
+            "metric_type": "gauge",
+            "@timestamp": "2015-04-07T17:20:48.087410+00:00",
+            "unit": "count"
+        }, {
+            "name": "nova.hypervisor.vcpus_used",
+            "region": "RegionOne",
+            "value": 7,
+            "metric_type": "gauge",
+            "@timestamp": "2015-04-07T17:20:48.087410+00:00",
+            "unit": "count"
+        }];
+
         $('body').html('<div class="testContainer"></div>');
 
         // to answer GET requests
@@ -36,44 +66,7 @@ describe('cpuResourceView.js spec', function() {
         });
 
         this.testCollection.reset();
-        this.testCollection.add({
-            "1422518400000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422519840000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422535680000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422558720000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422525600000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422557280000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422550080000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422538560000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422528480000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422541440000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422563040000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422531360000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422548640000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422521280000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422534240000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422555840000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422547200000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422561600000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422554400000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422568800000": [31872.0, 3072.0, 47808.0, 3072.0],
-            "1422564480000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422537120000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422527040000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422540000000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422567360000": [15936.0, 1024.0, 23904.0, 1024.0],
-            "1422560160000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422552960000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422522720000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422524160000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422529920000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422542880000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422532800000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422565920000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422551520000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422544320000": [15936.0, 512.0, 23904.0, 512.0],
-            "1422545760000": [15936.0, 512.0, 23904.0, 512.0]
-        });
+        this.testCollection.add(this.tesetData);
     });
     afterEach(function() {
         $('body').html('');
@@ -84,35 +77,19 @@ describe('cpuResourceView.js spec', function() {
         it('prepares JSON payload for rendering', function() {
             // CPU Resources chart data prep
             // {timestamp: [used, phys, virt]}
-            var test1 = this.testView.dataPrep({
-                0: {
-                    "1422564480000": [15936.0, 512.0, 23904.0],
-                    "1422537120000": [25936.0, 512.0, 23904.0],
-                    "1422527040000": [35936.0, 512.0, 23904.0],
-                    "1422540000000": [45936.0, 512.0, 23904.0]
-                }
-            });
+            var test1 = this.testView.dataPrep(this.testCollection.toJSON());
+
             expect(test1).to.deep.equal(
                 [{
-                    "eventTime": '1422564480000',
-                    "Used": 15936,
-                    "Physical": 512,
-                    "Virtual": 23904
+                    "eventTime": 1428427308285,
+                    "Used": 7,
+                    "Physical": 16,
+                    // "Virtual": 23904
                 }, {
-                    "eventTime": '1422537120000',
-                    "Used": 25936,
-                    "Physical": 512,
-                    "Virtual": 23904
-                }, {
-                    "eventTime": '1422527040000',
-                    "Used": 35936,
-                    "Physical": 512,
-                    "Virtual": 23904
-                }, {
-                    "eventTime": '1422540000000',
-                    "Used": 45936,
-                    "Physical": 512,
-                    "Virtual": 23904
+                    "eventTime": 1428427248087,
+                    "Used": 7,
+                    "Physical": 16,
+                    // "Virtual": 23904
                 }]);
         });
     });
@@ -142,18 +119,11 @@ describe('cpuResourceView.js spec', function() {
             this.testView.update();
             this.testView.update();
             expect($('.popup-message').text()).to.equal('No Data Returned');
-            this.testCollection.add({
-                "timestamp": 1415148790577,
-                "name": "os.cpu.sys",
-                "metric_type": "gauge",
-                "value": 0.12160618725179,
-                "unit": "percent",
-                "node": "compute-02"
-            });
+            this.testCollection.add(this.tesetData);
             this.testView.update();
             expect($('.popup-message').text()).to.equal('No Data Returned');
             expect(this.update_spy.callCount).to.equal(3);
-            expect($('g').find('text').text()).to.equal('VirtualPhysicalUsed');
+            expect($('g').find('text').text()).to.equal('10:21:15:30:450246810121416182022PhysicalUsed');
             this.update_spy.restore();
         });
         it('can utilize the dataErrorMessage machinery to append a variety of errors', function() {

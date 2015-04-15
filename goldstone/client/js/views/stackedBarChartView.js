@@ -570,6 +570,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         if (ns.featureSet === 'cpu') {
 
             // generate solid line for Virtual data points
+            // uncomment if supplying virtual stat again
             // lineFunction = lineFunctionGenerator('Virtual');
             // solidPathGenerator('Virtual');
 
@@ -585,6 +586,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         } else if (ns.featureSet === 'mem') {
 
             // generate solid line for Virtual data points
+            // uncomment if supplying virtual stat again
             // lineFunction = lineFunctionGenerator('Virtual');
             // solidPathGenerator('Virtual');
 
@@ -597,11 +599,13 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         // appends chart legends
         var legendSpecs = {
             mem: [
+                // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
                 ['Physical', 1],
                 ['Used', 0]
             ],
             cpu: [
+                // uncomment if supplying virtual stat again
                 // ['Virtual', 2],
                 ['Physical', 1],
                 ['Used', 0]
