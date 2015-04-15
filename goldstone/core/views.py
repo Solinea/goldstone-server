@@ -220,4 +220,3 @@ class NavTreeView(RetrieveAPIView, TopologyMixin):
             return rl[0]
         else:
             return {"rsrcType": "error", "label": "No data found"}
-

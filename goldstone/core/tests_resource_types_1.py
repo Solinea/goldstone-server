@@ -32,7 +32,7 @@ TYPE = settings.R_ATTRIBUTE.TYPE
 MATCHING_FN = settings.R_ATTRIBUTE.MATCHING_FN
 
 
-def _dictassign(thedict, key, value):
+def dictassign(thedict, key, value):
     """A callable that does thedict[key] = value."""
 
     thedict[key] = value
@@ -184,11 +184,11 @@ class ResourceTypesTests(SimpleTestCase):
         do_test(Image,
                 IMAGE,
                 '0ae46ce1-80e5-447e-b0e8-9eeec81af920',
-                partial(_dictassign, IMAGE, "id"),
+                partial(dictassign, IMAGE, "id"),
                 Server,
                 SERVER,
                 'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-                partial(_dictassign, SERVER, "id"))
+                partial(dictassign, SERVER, "id"))
 
     @staticmethod
     def test_availability_zone_agg():
@@ -231,11 +231,11 @@ class ResourceTypesTests(SimpleTestCase):
         do_test(AvailabilityZone,
                 AVAILABILITY_ZONE,
                 "internal",
-                partial(_dictassign, AVAILABILITY_ZONE, "zoneName"),
+                partial(dictassign, AVAILABILITY_ZONE, "zoneName"),
                 Aggregate,
                 AGGREGATE,
                 1,
-                partial(_dictassign, AGGREGATE, "availability_zone"))
+                partial(dictassign, AGGREGATE, "availability_zone"))
 
     @staticmethod
     def test_availability_zone_host():
@@ -270,11 +270,11 @@ class ResourceTypesTests(SimpleTestCase):
         do_test(AvailabilityZone,
                 AVAILABILITY_ZONE,
                 "internal",
-                partial(_dictassign, AVAILABILITY_ZONE, "zoneName"),
+                partial(dictassign, AVAILABILITY_ZONE, "zoneName"),
                 Host,
                 HOST,
                 'ctrl-01',
-                partial(_dictassign, HOST, "zone"))
+                partial(dictassign, HOST, "zone"))
 
     @staticmethod
     def test_cloudpipe():
@@ -388,11 +388,11 @@ class ResourceTypesTests(SimpleTestCase):
         do_test(Flavor,
                 FLAVOR,
                 "4",
-                partial(_dictassign, FLAVOR, "id"),
+                partial(dictassign, FLAVOR, "id"),
                 FlavorExtraSpec,
                 FLAVOR_EXTRA_SPEC,
                 '4',
-                partial(_dictassign, FLAVOR_EXTRA_SPEC, "id"))
+                partial(dictassign, FLAVOR_EXTRA_SPEC, "id"))
 
     @staticmethod
     def test_flavor_server():
@@ -487,7 +487,7 @@ class ResourceTypesTests(SimpleTestCase):
         do_test(Flavor,
                 FLAVOR,
                 "4",
-                partial(_dictassign, FLAVOR, "id"),
+                partial(dictassign, FLAVOR, "id"),
                 Server,
                 SERVER,
                 'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
@@ -518,7 +518,7 @@ class ResourceTypesTests(SimpleTestCase):
         do_test(Host,
                 HOST,
                 'ctrl-01',
-                partial(_dictassign, HOST, "host_name"),
+                partial(dictassign, HOST, "host_name"),
                 Aggregate,
                 AGGREGATE,
                 1,
@@ -562,11 +562,11 @@ class ResourceTypesTests(SimpleTestCase):
         do_test(Host,
                 HOST,
                 "ctrl-01",
-                partial(_dictassign, HOST, "host_name"),
+                partial(dictassign, HOST, "host_name"),
                 Hypervisor,
                 HYPERVISOR,
                 1,
-                partial(_dictassign, HYPERVISOR, "hypervisor_hostname"))
+                partial(dictassign, HYPERVISOR, "hypervisor_hostname"))
 
     @staticmethod
     def test_hypervisor_server():
@@ -666,11 +666,11 @@ class ResourceTypesTests(SimpleTestCase):
         do_test(Hypervisor,
                 HYPERVISOR,
                 1,
-                partial(_dictassign, HYPERVISOR, "id"),
+                partial(dictassign, HYPERVISOR, "id"),
                 Server,
                 SERVER,
                 'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-                partial(_dictassign,
+                partial(dictassign,
                         SERVER,
                         "OS-EXT-SRV-ATTR:hypervisor_hostname"))
 
@@ -712,11 +712,11 @@ class ResourceTypesTests(SimpleTestCase):
         do_test(Interface,
                 INTERFACE,
                 'fa:16:3e:00:11:22',
-                partial(_dictassign, INTERFACE, "mac_addr"),
+                partial(dictassign, INTERFACE, "mac_addr"),
                 Port,
                 PORT,
                 'f3f6cd1a-b199-4d67-9266-8d69ac1fb46b',
-                partial(_dictassign, PORT, "mac_address"))
+                partial(dictassign, PORT, "mac_address"))
 
     def test_keypair_server(self):
         """Test the Keypair - Server entry."""
@@ -811,16 +811,16 @@ class ResourceTypesTests(SimpleTestCase):
         edge = [x for x in edges if x[1] == Server][0][2]
 
         # Test the keypair being None
-        _dictassign(KEYPAIR, "fingerprint", None)
+        dictassign(KEYPAIR, "fingerprint", None)
         self.assertFalse(edge[MATCHING_FN](KEYPAIR, SERVER))
 
         # Test both being None
-        _dictassign(SERVER, "OS-EXT-SRV-ATTR:hypervisor_hostname", None)
+        dictassign(SERVER, "OS-EXT-SRV-ATTR:hypervisor_hostname", None)
         self.assertFalse(edge[MATCHING_FN](KEYPAIR, SERVER))
 
         # Test match
-        _dictassign(KEYPAIR, "fingerprint", "4445")
-        _dictassign(SERVER, "OS-EXT-SRV-ATTR:hypervisor_hostname", "4445")
+        dictassign(KEYPAIR, "fingerprint", "4445")
+        dictassign(SERVER, "OS-EXT-SRV-ATTR:hypervisor_hostname", "4445")
         self.assertTrue(edge[MATCHING_FN](KEYPAIR, SERVER))
 
     @staticmethod
@@ -911,4 +911,4 @@ class ResourceTypesTests(SimpleTestCase):
                 Interface,
                 INTERFACE,
                 'fa:16:3e:00:11:22',
-                partial(_dictassign, INTERFACE, "mac_addr"))
+                partial(dictassign, INTERFACE, "mac_addr"))
