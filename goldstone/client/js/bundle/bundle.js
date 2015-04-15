@@ -1,4 +1,4 @@
-/*! goldstone concat on 2015-04-14@15:11:28 */
+/*! goldstone concat on 2015-04-14@17:31:46 */
 
 /**
  * Copyright 2014 - 2015 Solinea, Inc.
@@ -1613,7 +1613,11 @@ var CpuResourceCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        return data;
+        if (data && data.results) {
+            return data.results;
+        } else {
+            return [];
+        }
     },
 
     model: GoldstoneBaseModel,
@@ -1635,12 +1639,14 @@ var CpuResourceCollection = Backbone.Collection.extend({
         // the number of minutes specified by the selector
 
         var ns = this.defaults;
-        ns.reportParams.end = +new Date();
+
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
-        this.url = ns.urlPrefix + '?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval;
+        this.url = ns.urlPrefix + '?name__prefix=nova.hypervisor.vcpus&@timestamp__range={"gte":' +
+            moment(ns.reportParams.start).valueOf() + '}';
     }
 
+    // creates a url similar to:
+    // /core/metrics?name__prefix=nova.hypervisor.vcpus&@timestamp__range={"gte":1426887188000}
 });
 ;
 /**
@@ -2169,7 +2175,12 @@ var MemResourceCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        return data;
+        console.log('data: ', data);
+        if (data && data.results) {
+            return data.results;
+        } else {
+            return [];
+        }
     },
 
     model: GoldstoneBaseModel,
@@ -2192,11 +2203,13 @@ var MemResourceCollection = Backbone.Collection.extend({
 
         var ns = this.defaults;
 
-        ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
         this.url = ns.urlPrefix + '?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval;
     }
+
+    // creates a url similar to:
+    // /core/metrics?name__prefix=nova.hypervisor.mem&@timestamp__range={"gte":1426887188000}
 
 });
 ;
@@ -4802,8 +4815,8 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="15">lookback 15m</option>' +
-                '<option value="60" selected>lookback 1h</option>' +
+            return '<option value="15" selected>lookback 15m</option>' +
+                '<option value="60">lookback 1h</option>' +
                 '<option value="360">lookback 6h</option>' +
                 '<option value="1440">lookback 1d</option>';
         }
@@ -4821,10 +4834,10 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="30" selected>refresh 30s</option>' +
+            return '<option value="30">refresh 30s</option>' +
                 '<option value="60">refresh 1m</option>' +
                 '<option value="300">refresh 5m</option>' +
-                '<option value="-1">refresh off</option>';
+                '<option value="-1" selected>refresh off</option>';
         }
     },
 
@@ -9002,14 +9015,41 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         if (ns.featureSet === 'cpu') {
 
             // CPU Resources chart data prep
-            // {timestamp: [used, phys, virt]}
-            _.each(data[0], function(item, i) {
+            /*
+            {
+                "name": "nova.hypervisor.vcpus",
+                "region": "RegionOne",
+                "value": 16,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "count"
+            },
+            {
+                "name": "nova.hypervisor.vcpus_used",
+                "region": "RegionOne",
+                "value": 7,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "count"
+            },
+            */
+
+            var uniqTimestamps = _.uniq(_.map(data, function(item) {
+                return item['@timestamp'];
+            }));
+            _.each(uniqTimestamps, function(item, i) {
                 result.push({
-                    "eventTime": "" + i,
-                    "Used": item[0],
-                    "Physical": item[1],
-                    "Virtual": item[2]
+                    eventTime: moment(item).valueOf(),
+                    Used: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.vcpus_used'
+                    })[0].value,
+                    Physical: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.vcpus'
+                    })[0].value
                 });
+
             });
 
         } else if (ns.featureSet === 'disk') {
@@ -9053,9 +9093,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
             _.each(data, function(item) {
                 var logTime = _.keys(item)[0];
-                if (item[logTime].success) {
-                    console.log(item[logTime].success);
-                }
                 var success = _.pluck(item[logTime].success, 'true');
                 success = success[0] || 0;
                 var failure = _.pluck(item[logTime].success, 'false');
@@ -9066,18 +9103,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                     "Failure": failure
                 });
             });
-
-
-            // _.each(data[0], function(item, i) {
-            //     result.push({
-            //         "eventTime": "" + i,
-            //         "Success": item[0],
-            //         "Failure": item[1]
-            //     });
-            // });
-
         }
-        console.log('result: ', result);
         return result;
     },
 
@@ -9399,14 +9425,15 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 .attr("stroke-dasharray", "5, 2");
         };
 
-        // lineFunction must be a named localvariable as it will be called by
+        // lineFunction must be a named local
+        // variable as it will be called by
         // the pathGenerator function that immediately follows
         var lineFunction;
         if (ns.featureSet === 'cpu') {
 
             // generate solid line for Virtual data points
-            lineFunction = lineFunctionGenerator('Virtual');
-            solidPathGenerator('Virtual');
+            // lineFunction = lineFunctionGenerator('Virtual');
+            // solidPathGenerator('Virtual');
 
             // generate dashed line for Physical data points
             lineFunction = lineFunctionGenerator('Physical');
@@ -9437,7 +9464,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 ['Used', 0]
             ],
             cpu: [
-                ['Virtual', 2],
+                // ['Virtual', 2],
                 ['Physical', 1],
                 ['Used', 0]
             ],

@@ -100,14 +100,41 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         if (ns.featureSet === 'cpu') {
 
             // CPU Resources chart data prep
-            // {timestamp: [used, phys, virt]}
-            _.each(data[0], function(item, i) {
+            /*
+            {
+                "name": "nova.hypervisor.vcpus",
+                "region": "RegionOne",
+                "value": 16,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "count"
+            },
+            {
+                "name": "nova.hypervisor.vcpus_used",
+                "region": "RegionOne",
+                "value": 7,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "count"
+            },
+            */
+
+            var uniqTimestamps = _.uniq(_.map(data, function(item) {
+                return item['@timestamp'];
+            }));
+            _.each(uniqTimestamps, function(item, i) {
                 result.push({
-                    "eventTime": "" + i,
-                    "Used": item[0],
-                    "Physical": item[1],
-                    "Virtual": item[2]
+                    eventTime: moment(item).valueOf(),
+                    Used: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.vcpus_used'
+                    })[0].value,
+                    Physical: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.vcpus'
+                    })[0].value
                 });
+
             });
 
         } else if (ns.featureSet === 'disk') {
@@ -151,9 +178,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
             _.each(data, function(item) {
                 var logTime = _.keys(item)[0];
-                if (item[logTime].success) {
-                    console.log(item[logTime].success);
-                }
                 var success = _.pluck(item[logTime].success, 'true');
                 success = success[0] || 0;
                 var failure = _.pluck(item[logTime].success, 'false');
@@ -164,18 +188,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                     "Failure": failure
                 });
             });
-
-
-            // _.each(data[0], function(item, i) {
-            //     result.push({
-            //         "eventTime": "" + i,
-            //         "Success": item[0],
-            //         "Failure": item[1]
-            //     });
-            // });
-
         }
-        console.log('result: ', result);
         return result;
     },
 
@@ -497,14 +510,15 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 .attr("stroke-dasharray", "5, 2");
         };
 
-        // lineFunction must be a named localvariable as it will be called by
+        // lineFunction must be a named local
+        // variable as it will be called by
         // the pathGenerator function that immediately follows
         var lineFunction;
         if (ns.featureSet === 'cpu') {
 
             // generate solid line for Virtual data points
-            lineFunction = lineFunctionGenerator('Virtual');
-            solidPathGenerator('Virtual');
+            // lineFunction = lineFunctionGenerator('Virtual');
+            // solidPathGenerator('Virtual');
 
             // generate dashed line for Physical data points
             lineFunction = lineFunctionGenerator('Physical');
@@ -535,7 +549,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 ['Used', 0]
             ],
             cpu: [
-                ['Virtual', 2],
+                // ['Virtual', 2],
                 ['Physical', 1],
                 ['Used', 0]
             ],
