@@ -166,3 +166,23 @@ class DiscoverTree(TopologyMixin):
 
         except GoldstoneAuthError:
             raise
+
+
+def reconcile_cinder_hosts():
+    """Update the Resource graph Cinder nodes and edges from the current
+    OpenStack cloud state.
+
+    Nodes are:
+       - deleted if they are no longer in the OpenStack cloud.
+       - added if they are in the OpenStack cloud, but not in the graph.
+       - updated from the cloud if they are already in the graph.
+
+    """
+    from goldstone.core.models import QOSSpec, VolumeType, Snapshot
+    from goldstone.core.utils import process_resource_type
+
+    # The resource type "from" nodes.
+    FROM_TYPES = [QOSSpec, VolumeType, Snapshot]
+
+    for nodetype in FROM_TYPES:
+        process_resource_type(nodetype)
