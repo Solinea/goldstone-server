@@ -153,7 +153,7 @@ class PolyResource(PolymorphicModel):
 
         """
 
-        raise NotImplementedError("Override this method in a subclass")
+        return thing.get("id")
 
     # TODO: Uncomment these when they're implemented in the subclasses, or
     # delete them to avoid pylint warnings.
@@ -443,12 +443,6 @@ class FlavorExtraSpec(PolyResource):
 
         return [x.get_keys() for x in nova_client.flavors.list()]
 
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
-
 
 class Aggregate(PolyResource):
     """An OpenStack Aggregate."""
@@ -462,12 +456,6 @@ class Aggregate(PolyResource):
 
         return [x.to_dict() for x in nova_client.aggregates.list()]
 
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
-
 
 class Flavor(PolyResource):
     """An OpenStack Flavor."""
@@ -480,12 +468,6 @@ class Flavor(PolyResource):
         nova_client.client.authenticate()
 
         return [x.to_dict() for x in nova_client.flavors.list()]
-
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
 
 
 class Keypair(PolyResource):
@@ -584,12 +566,6 @@ class Hypervisor(PolyResource):
 
         return [x.to_dict() for x in nova_client.hypervisors.list()]
 
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
-
 
 class Cloudpipe(PolyResource):
     """An OpenStack Cloudpipe."""
@@ -603,12 +579,6 @@ class Cloudpipe(PolyResource):
 
         return [x.to_dict() for x in nova_client.cloudpipe.list()]
 
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
-
 
 class ServerGroup(PolyResource):
     """An OpenStack Server Group."""
@@ -621,12 +591,6 @@ class ServerGroup(PolyResource):
         nova_client.client.authenticate()
 
         return [x.to_dict() for x in nova_client.server_groups.list()]
-
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
 
 
 class Server(PolyResource):
@@ -642,12 +606,6 @@ class Server(PolyResource):
         return [x.to_dict()
                 for x in
                 nova_client.servers.list(search_opts={"all_tenants": 1})]
-
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
 
 
 class Interface(PolyResource):
@@ -697,12 +655,6 @@ class NovaLimits(PolyResource):
 
         return [x.to_dict() for x in nova_client.limits.list()]
 
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
-
 
 #
 # These classes represent entities within a Glance service.
@@ -716,12 +668,6 @@ class Image(PolyResource):
         """See the parent class' method's docstring."""
 
         return list(get_glance_client()["client"].images.list())
-
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
 
 
 #
@@ -738,12 +684,6 @@ class QuotaSet(PolyResource):
 
         return list(get_glance_client()["client"].images.list())
 
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
-
 
 class QOSSpec(PolyResource):
     """An OpenStack Quality Of Service Specification."""
@@ -753,12 +693,6 @@ class QOSSpec(PolyResource):
         """See the parent class' method's docstring."""
 
         return list(get_cinder_client()["client"].qos_specs.list())
-
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
 
 
 class Snapshot(PolyResource):
@@ -770,12 +704,6 @@ class Snapshot(PolyResource):
 
         return list(get_glance_client()["client"].images.list())
 
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
-
 
 class VolumeType(PolyResource):
     """An OpenStack Volume Type."""
@@ -785,12 +713,6 @@ class VolumeType(PolyResource):
         """See the parent class' method's docstring."""
 
         return list(get_cinder_client()["client"].volume_types.list())
-
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
 
 
 class Volume(PolyResource):
@@ -802,12 +724,6 @@ class Volume(PolyResource):
 
         return list(get_cinder_client()["client"].volumes.list())
 
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
-
 
 class Limits(PolyResource):
     """An OpenStack Limit."""
@@ -817,12 +733,6 @@ class Limits(PolyResource):
         """See the parent class' method's docstring."""
 
         return list(get_glance_client()["client"].images.list())
-
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
 
 
 #
@@ -944,12 +854,6 @@ class Port(PolyResource):
                                     row.auth_url)
 
         return client.list_ports()["ports"]
-
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
 
 
 class LBVIP(PolyResource):
