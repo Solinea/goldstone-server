@@ -71,7 +71,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
         */
 
         this.cpuResourcesChart = new CpuResourceCollection({
-            urlPrefix: '/nova/hypervisor/cpu'
+            urlPrefix: '/core/metrics'
         });
 
         this.cpuResourcesChartView = new StackedBarChartView({
@@ -90,7 +90,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
         */
 
         this.memResourcesChart = new MemResourceCollection({
-            urlPrefix: '/nova/hypervisor/mem'
+            urlPrefix: '/core/metrics'
         });
 
         this.memResourcesChartView = new StackedBarChartView({

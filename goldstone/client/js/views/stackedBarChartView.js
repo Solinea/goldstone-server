@@ -94,7 +94,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         */
 
         var ns = this.defaults;
-
+        var uniqTimestamps;
         var result = [];
 
         if (ns.featureSet === 'cpu') {
@@ -119,7 +119,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             },
             */
 
-            var uniqTimestamps = _.uniq(_.map(data, function(item) {
+            uniqTimestamps = _.uniq(_.map(data, function(item) {
                 return item['@timestamp'];
             }));
             _.each(uniqTimestamps, function(item, i) {
@@ -151,16 +151,43 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         } else if (ns.featureSet === 'mem') {
 
-            // Memory Resources chart data prep
-            // {timestamp: [used, phys, virt]}
-            _.each(data[0], function(item, i) {
+            /*
+            {
+                "name": "nova.hypervisor.memory_mb_used",
+                "region": "RegionOne",
+                "value": 10752,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "MB"
+            },
+            {
+                "name": "nova.hypervisor.memory_mb",
+                "region": "RegionOne",
+                "value": 31872,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "MB"
+            },
+            */
+
+            uniqTimestamps = _.uniq(_.map(data, function(item) {
+                return item['@timestamp'];
+            }));
+            _.each(uniqTimestamps, function(item, i) {
                 result.push({
-                    "eventTime": "" + i,
-                    "Used": item[0],
-                    "Physical": item[1],
-                    "Virtual": item[2]
+                    eventTime: moment(item).valueOf(),
+                    Used: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.memory_mb_used'
+                    })[0].value,
+                    Physical: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.memory_mb'
+                    })[0].value
                 });
+
             });
+
 
         } else {
 
@@ -532,8 +559,8 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         } else if (ns.featureSet === 'mem') {
 
             // generate solid line for Virtual data points
-            lineFunction = lineFunctionGenerator('Virtual');
-            solidPathGenerator('Virtual');
+            // lineFunction = lineFunctionGenerator('Virtual');
+            // solidPathGenerator('Virtual');
 
             // generate dashed line for Physical data points
             lineFunction = lineFunctionGenerator('Physical');
@@ -544,7 +571,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         // appends chart legends
         var legendSpecs = {
             mem: [
-                ['Virtual', 2],
+                // ['Virtual', 2],
                 ['Physical', 1],
                 ['Used', 0]
             ],
