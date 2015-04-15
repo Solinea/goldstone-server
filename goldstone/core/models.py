@@ -729,24 +729,8 @@ class Image(PolyResource):
 #
 
 
-class QuotaClass(PolyResource):
-    """An OpenStack Image."""
-
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        return list(get_glance_client()["client"].images.list())
-
-    @staticmethod
-    def identity(thing):
-        """See the parent class' method's docstring."""
-
-        return thing.get("id")
-
-
 class QuotaSet(PolyResource):
-    """An OpenStack Image."""
+    """An OpenStack Quota Set."""
 
     @staticmethod
     def clouddata():
@@ -762,13 +746,13 @@ class QuotaSet(PolyResource):
 
 
 class QOSSpec(PolyResource):
-    """An OpenStack Image."""
+    """An OpenStack Quality Of Service Specification."""
 
     @staticmethod
     def clouddata():
         """See the parent class' method's docstring."""
 
-        return list(get_glance_client()["client"].images.list())
+        return list(get_cinder_client()["client"].qos_specs.list())
 
     @staticmethod
     def identity(thing):
@@ -778,7 +762,7 @@ class QOSSpec(PolyResource):
 
 
 class Snapshot(PolyResource):
-    """An OpenStack Image."""
+    """An OpenStack Snapshot."""
 
     @staticmethod
     def clouddata():
@@ -794,13 +778,13 @@ class Snapshot(PolyResource):
 
 
 class VolumeType(PolyResource):
-    """An OpenStack Image."""
+    """An OpenStack Volume Type."""
 
     @staticmethod
     def clouddata():
         """See the parent class' method's docstring."""
 
-        return list(get_glance_client()["client"].images.list())
+        return list(get_cinder_client()["client"].volume_types.list())
 
     @staticmethod
     def identity(thing):
@@ -810,13 +794,13 @@ class VolumeType(PolyResource):
 
 
 class Volume(PolyResource):
-    """An OpenStack Image."""
+    """An OpenStack Volume."""
 
     @staticmethod
     def clouddata():
         """See the parent class' method's docstring."""
 
-        return list(get_glance_client()["client"].images.list())
+        return list(get_cinder_client()["client"].volumes.list())
 
     @staticmethod
     def identity(thing):
@@ -826,7 +810,7 @@ class Volume(PolyResource):
 
 
 class Limits(PolyResource):
-    """An OpenStack Image."""
+    """An OpenStack Limit."""
 
     @staticmethod
     def clouddata():
@@ -1149,27 +1133,24 @@ class ResourceTypes(Graph):
     #                    exceptions.
     EDGES = {
         # From Cinder nodes
-        QuotaClass: [{TO: QuotaSet,
-                      EDGE_ATTRIBUTES:
-                      {TYPE: DEFINES,
-                       MIN: 0,
-                       MAX: sys.maxint,
-                       MATCHING_FN:
-                       lambda f, t: False}}],
         QOSSpec: [{TO: VolumeType,
                    EDGE_ATTRIBUTES:
                    {TYPE: APPLIES_TO,
                     MIN: 0,
                     MAX: sys.maxint,
                     MATCHING_FN:
-                    lambda f, t: False}}],
+                    lambda f, t:
+                    f.get("id") and
+                    f.get("id") in
+                    t.get("extra_specs", {}).get("qos", '')}}],
         VolumeType: [{TO: Volume,
                       EDGE_ATTRIBUTES:
                       {TYPE: APPLIES_TO,
                        MIN: 0,
                        MAX: sys.maxint,
                        MATCHING_FN:
-                       lambda f, t: False}}],
+                       lambda f, t:
+                       f.get("id") and f["id"] == t.get("volume_type")}}],
         Snapshot: [{TO: Volume,
                     EDGE_ATTRIBUTES:
                     {TYPE: APPLIES_TO,
@@ -1523,16 +1504,16 @@ class ResourceTypes(Graph):
                                     MATCHING_FN: lambda f, t:
                                     f.get("hostId") and
                                     f.get("hostId") in t["members"]}},
-                 # TODO: FILL THIS IN FOR THIS TICKET!!!!!!!!
                  {TO: Volume,
                   EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
                                     MIN: 0,
                                     MAX: sys.maxint,
-                                    # Deferred for now. Suspect some code will
-                                    # need to be ripped up to find this edge,
-                                    # because metadata hang off of server
-                                    # objects.
-                                    MATCHING_FN: lambda f, t: False}},
+                                    MATCHING_FN: lambda f, t:
+                                    f.get("links") and t.get("links") and
+                                    any(volentry.get("href") and
+                                        volentry["href"] in
+                                        [x["href"] for x in f["links"]]
+                                        for volentry in t["links"])}},
                  ],
         }
 
