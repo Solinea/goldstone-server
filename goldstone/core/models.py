@@ -580,6 +580,11 @@ class Cloudpipe(PolyResource):
 
         return [x.to_dict() for x in nova_client.cloudpipe.list()]
 
+    @staticmethod
+    def identity(thing):
+        """See the parent class' method's docstring."""
+
+        return thing.get("project_id")
 
 class ServerGroup(PolyResource):
     """An OpenStack Server Group."""
@@ -1018,7 +1023,7 @@ class Router(PolyResource):
 
 
 class ResourceTypes(Graph):
-    """A graph of the resource types used within an OpenStack cloud."""
+    """A graph of an OpenStack cloud's resource types."""
 
     # These are the graph edges. (If an edge connects nodes not yet in the
     # graph, the nodes are automatically added.)
