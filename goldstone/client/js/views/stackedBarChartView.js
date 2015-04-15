@@ -139,14 +139,40 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         } else if (ns.featureSet === 'disk') {
 
-            // Disk Resources chart data prep
-            // {timestamp: [used, total]}
-            _.each(data[0], function(item, i) {
+            /*
+            {
+                "name": "nova.hypervisor.local_gb_used",
+                "region": "RegionOne",
+                "value": 83,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "GB"
+            },
+            {
+                "name": "nova.hypervisor.local_gb",
+                "region": "RegionOne",
+                "value": 98,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "GB"
+            },
+        */
+            uniqTimestamps = _.uniq(_.map(data, function(item) {
+                return item['@timestamp'];
+            }));
+            _.each(uniqTimestamps, function(item, i) {
                 result.push({
-                    "eventTime": "" + i,
-                    "Used": item[0],
-                    "Total": item[1]
+                    eventTime: moment(item).valueOf(),
+                    Used: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.local_gb_used'
+                    })[0].value,
+                    Total: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.local_gb'
+                    })[0].value
                 });
+
             });
 
         } else if (ns.featureSet === 'mem') {

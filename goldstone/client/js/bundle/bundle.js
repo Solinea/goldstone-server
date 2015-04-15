@@ -1,4 +1,4 @@
-/*! goldstone concat on 2015-04-14@17:47:38 */
+/*! goldstone concat on 2015-04-14@18:1:35 */
 
 /**
  * Copyright 2014 - 2015 Solinea, Inc.
@@ -1641,7 +1641,7 @@ var CpuResourceCollection = Backbone.Collection.extend({
         var ns = this.defaults;
 
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        this.url = ns.urlPrefix + '?name__prefix=nova.hypervisor.vcpus&@timestamp__range={"gte":' +
+        this.url = '/core/metrics?name__prefix=nova.hypervisor.vcpus&@timestamp__range={"gte":' +
             moment(ns.reportParams.start).valueOf() + '}';
     }
 
@@ -1685,7 +1685,11 @@ var DiskResourceCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        return data;
+        if (data && data.results) {
+            return data.results;
+        } else {
+            return [];
+        }
     },
 
     model: GoldstoneBaseModel,
@@ -1708,12 +1712,13 @@ var DiskResourceCollection = Backbone.Collection.extend({
 
         var ns = this.defaults;
 
-        ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
-        this.url = ns.urlPrefix + '?start=' + Math.floor(ns.reportParams.start / 1000) + '&end=' + Math.floor(ns.reportParams.end / 1000) + '&interval=' + ns.reportParams.interval;
+        this.url = '/core/metrics?name__prefix=nova.hypervisor.local_gb&@timestamp__range={"gte":' +
+            moment(ns.reportParams.start).valueOf() + '}';
     }
 
+    // creates a url similar to:
+    // /core/metrics?name__prefix=nova.hypervisor.local_gb&@timestamp__range={"gte":1429058361304}
 });
 ;
 /**
@@ -2203,8 +2208,7 @@ var MemResourceCollection = Backbone.Collection.extend({
         var ns = this.defaults;
 
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        this.url = ns.urlPrefix +
-            '?name__prefix=nova.hypervisor.mem&@timestamp__range={"gte":' +
+        this.url = '/core/metrics?name__prefix=nova.hypervisor.mem&@timestamp__range={"gte":' +
             moment(ns.reportParams.start).valueOf() + '}';
     }
 
@@ -8052,9 +8056,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
         CPU Resources Chart
         */
 
-        this.cpuResourcesChart = new CpuResourceCollection({
-            urlPrefix: '/core/metrics'
-        });
+        this.cpuResourcesChart = new CpuResourceCollection({});
 
         this.cpuResourcesChartView = new StackedBarChartView({
             chartTitle: "CPU Resources",
@@ -8071,9 +8073,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
         Mem Resources Chart
         */
 
-        this.memResourcesChart = new MemResourceCollection({
-            urlPrefix: '/core/metrics'
-        });
+        this.memResourcesChart = new MemResourceCollection({});
 
         this.memResourcesChartView = new StackedBarChartView({
             chartTitle: "Memory Resources",
@@ -8090,9 +8090,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
         Disk Resources Chart
         */
 
-        this.diskResourcesChart = new DiskResourceCollection({
-            urlPrefix: '/nova/hypervisor/disk'
-        });
+        this.diskResourcesChart = new DiskResourceCollection({});
 
         this.diskResourcesChartView = new StackedBarChartView({
             chartTitle: "Disk Resources",
@@ -9054,14 +9052,40 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         } else if (ns.featureSet === 'disk') {
 
-            // Disk Resources chart data prep
-            // {timestamp: [used, total]}
-            _.each(data[0], function(item, i) {
+            /*
+            {
+                "name": "nova.hypervisor.local_gb_used",
+                "region": "RegionOne",
+                "value": 83,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "GB"
+            },
+            {
+                "name": "nova.hypervisor.local_gb",
+                "region": "RegionOne",
+                "value": 98,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "GB"
+            },
+        */
+            uniqTimestamps = _.uniq(_.map(data, function(item) {
+                return item['@timestamp'];
+            }));
+            _.each(uniqTimestamps, function(item, i) {
                 result.push({
-                    "eventTime": "" + i,
-                    "Used": item[0],
-                    "Total": item[1]
+                    eventTime: moment(item).valueOf(),
+                    Used: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.local_gb_used'
+                    })[0].value,
+                    Total: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.local_gb'
+                    })[0].value
                 });
+
             });
 
         } else if (ns.featureSet === 'mem') {
