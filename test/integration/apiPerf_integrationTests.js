@@ -104,6 +104,62 @@ describe('apiPerfView.js spec', function() {
         });
         it('view update appends svg and border elements', function() {
             expect(this.testView.update).to.be.a('function');
+            this.testCollection.reset();
+            this.testCollection.add({
+                "1428278400000": {
+                    "count": 2521,
+                    "response_status": [{
+                        "500.0-599.0": 0
+                    }, {
+                        "400.0-499.0": 0
+                    }, {
+                        "300.0-399.0": 0
+                    }, {
+                        "200.0-299.0": 2521
+                    }],
+                    "stats": {
+                        "count": 2521,
+                        "min": 0.02646,
+                        "sum_of_squares": 133.52903063427792,
+                        "max": 4.436677,
+                        "sum": 192.028544,
+                        "std_deviation": 0.2171740845396112,
+                        "std_deviation_bounds": {
+                            "upper": 0.5105197454378103,
+                            "lower": -0.3581765927206345
+                        },
+                        "variance": 0.047164582995618196,
+                        "avg": 0.07617157635858787
+                    }
+                }
+            }, {
+                "1428364800000": {
+                    "count": 6634,
+                    "response_status": [{
+                        "500.0-599.0": 0
+                    }, {
+                        "400.0-499.0": 0
+                    }, {
+                        "300.0-399.0": 0
+                    }, {
+                        "200.0-299.0": 6634
+                    }],
+                    "stats": {
+                        "count": 6634,
+                        "min": 0.026544,
+                        "sum_of_squares": 136.976272022154,
+                        "max": 2.87089,
+                        "sum": 427.832964,
+                        "std_deviation": 0.12840767674683387,
+                        "std_deviation_bounds": {
+                            "upper": 0.3213063037499234,
+                            "lower": -0.1923244032374121
+                        },
+                        "variance": 0.016488531447519383,
+                        "avg": 0.06449095025625565
+                    }
+                }
+            });
             this.testView.update();
             expect($('svg').length).to.equal(1);
             expect($('g.legend-items').find('text').text()).to.equal('MinMaxAvg');

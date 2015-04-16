@@ -44,38 +44,10 @@ class LogData(DailyIndexDocType):
     def ranged_log_search(cls, start=None, end=None, hosts=[]):
         """ Returns a search with time range and hosts list terms"""
 
-        import arrow
-
-        start = arrow.get(0) if start == '' else start
-        end = arrow.utcnow() if end == '' else end
-
-        if end is not None:
-            assert isinstance(end, Arrow), "end is not an Arrow object"
-
-        if start is not None:
-            assert isinstance(start, Arrow), "start is not an Arrow object"
-
-        search = cls.search()
-
-        if start is not None and end is not None:
-            search = search.query(
-                'range',
-                ** {'@timestamp':
-                    {'lte': end.isoformat(),
-                     'gte': start.isoformat()}})
-
-        elif start is not None and end is None:
-            search = search.query(
-                'range',
-                ** {'@timestamp': {'gte': start.isoformat()}})
-
-        elif start is None and end is not None:
-            search = search.query(
-                'range',
-                ** {'@timestamp': {'lte': end.isoformat()}})
+        search = cls.bounded_search(start, end)
 
         if len(hosts) != 0:
-            # the double underscore is translated to .
+            # double underscore is translated to a '.' in the ES field name.
             search = search.query(query.Terms(host__raw=hosts))
 
         return search

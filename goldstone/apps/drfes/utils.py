@@ -78,9 +78,9 @@ def es_custom_exception_handler(exc):
         return Response(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     elif isinstance(exc, elasticsearch.exceptions.ConnectionError):
-        data['detail'] = "Error raised when there was an exception while " \
-                         "talking to ES. This may be a network problem or " \
-                         "an issue with ES. It may be transient."
+        data['detail'] = "Exception raised while talking to ES. This may be " \
+                         "a network problem or an issue with ES. It may be " \
+                         "transient."
         return Response(data, status=status.HTTP_502_BAD_GATEWAY)
 
     elif isinstance(exc, elasticsearch.exceptions.TransportError):
