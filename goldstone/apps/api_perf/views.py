@@ -14,10 +14,8 @@
 # limitations under the License.
 from rest_framework.response import Response
 from goldstone.apps.api_perf.models import ApiPerfData
-from goldstone.views import validate
-import logging
-
-logger = logging.getLogger(__name__)
+from goldstone.apps.api_perf.serializers import ApiPerfAggSerializer
+from goldstone.apps.drfes.views import DateHistogramAggView
 
 
 class ApiPerfAggView(DateHistogramAggView):

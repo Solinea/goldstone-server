@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from goldstone.core.utils import JsonReadOnlyViewSet
-from goldstone.views import TopLevelView
 from .models import ServicesData, VolumesData, \
     BackupsData, SnapshotsData, VolTypesData, TransfersData
 

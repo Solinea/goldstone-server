@@ -21,7 +21,7 @@ from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.test import SimpleTestCase
 from django.utils.unittest.case import skip
-from rest_framework.test import APITestCase, APISimpleTestCase
+from rest_framework.test import APISimpleTestCase
 
 from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
 
