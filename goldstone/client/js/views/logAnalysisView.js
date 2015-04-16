@@ -73,7 +73,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
             debug: true
         },
 
-        // filter: null,
+        refreshCount: 2,
 
         // will prevent updating when zoom is active
         isZoomed: false
@@ -84,9 +84,15 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         LogAnalysisView.__super__.processOptions.apply(this, arguments);
 
+        var self = this;
         var ns = this.defaults;
         ns.yAxisLabel = 'Log Events';
         ns.urlRoot = this.options.urlRoot;
+
+        // specificHost will only be passed in if instantiated on a node
+        // report page. If null, will be ignored in this.constructUrl
+        // and this.urlGen
+        ns.specificHost = this.options.specificHost || null;
     },
 
     processMargins: function() {
@@ -102,7 +108,11 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var seconds = (ns.end - ns.start) / 1000;
         var interval = Math.max(1, Math.floor((seconds / (ns.width / 10))));
 
-        this.collection.url = ns.urlRoot + 'per_host=False&@timestamp__range={' +
+        this.collection.url = ns.urlRoot;
+        if (ns.specificHost) {
+            this.collection.url += 'host=' + ns.specificHost + '&';
+        }
+        this.collection.url += 'per_host=False&@timestamp__range={' +
             '"gte":' + ns.start + ',"lte":' + ns.end + '}&interval=' + interval + 's';
     },
 
@@ -429,9 +439,19 @@ var LogAnalysisView = UtilizationCpuView.extend({
             self.update();
         });
 
-        this.refreshSearchTable();
+        // eliminates the immediate re-rendering of search table
+        // upon initial chart instantiation
+        this.refreshSearchTableAfterOnce();
         this.redraw();
 
+    },
+
+    refreshSearchTableAfterOnce: function() {
+        var ns = this.defaults;
+        var self = this;
+        if (--ns.refreshCount < 1) {
+            self.refreshSearchTable();
+        }
     },
 
     searchDataErrorMessage: function(message, errorMessage, location) {
@@ -463,7 +483,13 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        var uri = '/logging/search?@timestamp__range={"gte":' +
+        var uri = '/logging/search?';
+
+        if (ns.specificHost) {
+            uri += 'host=' + ns.specificHost + '&';
+        }
+
+        uri += '@timestamp__range={"gte":' +
             ns.start +
             ',"lte":' +
             ns.end +
@@ -485,6 +511,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
         /*
         makes a url such as:
         /logging/search?@timestamp__range={%22gte%22:1426981050017,%22lte%22:1426984650017}&loglevel__terms=[%22EMERGENCY%22,%22ALERT%22,%22CRITICAL%22,%22ERROR%22,%22WARNING%22,%22NOTICE%22,%22INFO%22,%22DEBUG%22]
+        with "&host=node-01" added in if this is a node report page
         */
     },
 
@@ -537,7 +564,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
         if ($.fn.dataTable.isDataTable(location)) {
             oTable = $(location).DataTable();
             // oTable.ajax.url(uri);
-            oTable.ajax.reload();
+            // oTable.ajax.reload();
         } else {
             var oTableParams = {
                 "info": true,

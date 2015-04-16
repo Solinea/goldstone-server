@@ -20,9 +20,9 @@ within this LogSearchView. The global lookback/refresh listeners are listenTo()'
 from this view, and with the triggerChange function, kick off responding
 processes in the LogAnalysisView that is instantiated from within this view.
 
-instantiated in search.html as
+instantiated in goldstoneRouter as
     new LogSearchView({
-        el: ".log-search-container"
+        el: ".launcher-container"
     });
 */
 
@@ -78,9 +78,13 @@ var LogSearchView = GoldstoneBasePageView.extend({
     },
 
     renderCharts: function() {
+        var self = this;
         this.computeLookback();
         var ns = this.defaults;
 
+        // specificHost applies to this chart when instantiated
+        // on a node report page to scope it to that node
+        this.defaults.specificHost = this.options.specificHost || '';
         this.logAnalysisCollection = new LogAnalysisCollection({});
 
         this.logAnalysisView = new LogAnalysisView({
@@ -91,7 +95,7 @@ var LogSearchView = GoldstoneBasePageView.extend({
             featureSet: 'logEvents',
             chartTitle: 'Log Analysis',
             urlRoot: "/logging/summarize?",
-
+            specificHost: ns.specificHost
         });
     },
 
