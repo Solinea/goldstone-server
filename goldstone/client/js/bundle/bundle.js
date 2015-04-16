@@ -1,4 +1,4 @@
-/*! goldstone concat on 2015-04-15@21:05:44 */
+/*! goldstone concat on 2015-04-15@21:34:45 */
 
 /**
  * Copyright 2014 - 2015 Solinea, Inc.
@@ -5572,7 +5572,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
             debug: true
         },
 
-        // filter: null,
+        refreshCount: 2,
 
         // will prevent updating when zoom is active
         isZoomed: false
@@ -5587,6 +5587,10 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         ns.yAxisLabel = 'Log Events';
         ns.urlRoot = this.options.urlRoot;
+
+        // specificHost will only be passed in if instantiated on a node
+        // report page. If null, will be ignored in this.constructUrl
+        // and this.urlGen
         ns.specificHost = this.options.specificHost || null;
     },
 
@@ -5934,9 +5938,19 @@ var LogAnalysisView = UtilizationCpuView.extend({
             self.update();
         });
 
-        this.refreshSearchTable();
+        // eliminates the immediate re-rendering of search table
+        // upon initial chart instantiation
+        this.refreshSearchTableAfterOnce();
         this.redraw();
 
+    },
+
+    refreshSearchTableAfterOnce: function() {
+        var ns = this.defaults;
+        var self = this;
+        if (--ns.refreshCount < 1) {
+            self.refreshSearchTable();
+        }
     },
 
     searchDataErrorMessage: function(message, errorMessage, location) {
@@ -5996,6 +6010,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
         /*
         makes a url such as:
         /logging/search?@timestamp__range={%22gte%22:1426981050017,%22lte%22:1426984650017}&loglevel__terms=[%22EMERGENCY%22,%22ALERT%22,%22CRITICAL%22,%22ERROR%22,%22WARNING%22,%22NOTICE%22,%22INFO%22,%22DEBUG%22]
+        with "&host=node-01" added in if this is a node report page
         */
     },
 
@@ -6271,9 +6286,9 @@ within this LogSearchView. The global lookback/refresh listeners are listenTo()'
 from this view, and with the triggerChange function, kick off responding
 processes in the LogAnalysisView that is instantiated from within this view.
 
-instantiated in search.html as
+instantiated in goldstoneRouter as
     new LogSearchView({
-        el: ".log-search-container"
+        el: ".launcher-container"
     });
 */
 
@@ -6333,6 +6348,8 @@ var LogSearchView = GoldstoneBasePageView.extend({
         this.computeLookback();
         var ns = this.defaults;
 
+        // specificHost applies to this chart when instantiated
+        // on a node report page to scope it to that node
         this.defaults.specificHost = this.options.specificHost || '';
         this.logAnalysisCollection = new LogAnalysisCollection({});
 
