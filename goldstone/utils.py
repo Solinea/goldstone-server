@@ -20,7 +20,6 @@ from keystoneclient.v3 import client as ksclient
 from novaclient.v2 import client as nvclient
 from cinderclient.v2 import client as ciclient
 from glanceclient.v2 import client as glclient
-import logging
 import functools
 from keystoneclient.openstack.common.apiclient.exceptions \
     import Unauthorized as KeystoneUnauthorized
@@ -30,8 +29,6 @@ from cinderclient.openstack.common.apiclient.exceptions \
     import Unauthorized as CinderUnauthorized
 from neutronclient.common.exceptions import Unauthorized as NeutronUnauthorized
 from rest_framework.exceptions import PermissionDenied
-
-logger = logging.getLogger(__name__)
 
 
 def _patched_cinder_service_repr(self):
