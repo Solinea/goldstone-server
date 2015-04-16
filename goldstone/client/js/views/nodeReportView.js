@@ -20,8 +20,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
     initialize: function(options) {
 
-        // options.node_uuid passed in during View instantiation on node_report.html
-        // var node_uuid = "{{ node_uuid | escapejs }}";
+        // options.node_uuid passed in during View instantiation
         this.node_uuid = options.node_uuid;
 
         // invoke the 'superclass'
@@ -32,6 +31,8 @@ var NodeReportView = GoldstoneBasePageView.extend({
     },
 
     triggerChange: function() {
+
+        var ns = this.defaults;
 
         // triggerChange event triggered by changing the global range selector
         // or by clicking on the (services|reports|events) tab buttons.
@@ -51,6 +52,17 @@ var NodeReportView = GoldstoneBasePageView.extend({
         if (this.visiblePanel.Events) {
             this.eventsReport.trigger('lookbackSelectorChanged');
         }
+
+        if (this.visiblePanel.Logs) {
+            this.computeLookback();
+            this.logAnalysisView.trigger('lookbackSelectorChanged', [ns.start, ns.end]);
+        }
+    },
+
+    computeLookback: function() {
+        var ns = this.defaults;
+        ns.end = +new Date();
+        ns.start = ns.end - (ns.globalLookback * 60 * 1000);
     },
 
     setGlobalLookbackRefreshTriggers: function() {
@@ -80,7 +92,8 @@ var NodeReportView = GoldstoneBasePageView.extend({
         Services: true,
         Reports: false,
         Events: false,
-        Details: false
+        Details: false,
+        Logs: false
     },
 
     // function to toggle key in visiblePanel
@@ -99,12 +112,13 @@ var NodeReportView = GoldstoneBasePageView.extend({
     initializeChartButtons: function() {
         var self = this;
 
-        // initially hide the reports and events tab, displaying only 'Services'
+        // initially hide the other tabs, displaying only 'Services'
         $("#reportsReport").hide();
         $("#eventsReport").hide();
         $("#detailsReport").hide();
+        $("#logsReport").hide();
 
-        // Initialize click listener on services|reports|events tabs
+        // Initialize click listener on tab buttons
         $("button#headerBar").click(function() {
 
             // sets key corresponding to active tab to 'true'
@@ -311,6 +325,22 @@ var NodeReportView = GoldstoneBasePageView.extend({
         this.detailsReport = new DetailsReportView({
             el: '#node-report-panel #detailsReport'
         });
+
+        //---------------------------
+        // instantiate Logs tab
+
+        this.logsReportCollection = new LogAnalysisCollection({});
+
+        this.logAnalysisView = new LogSearchView({
+            collection: this.logAnalysisCollection,
+            width: $('#logsReport').width(),
+            height: 300,
+            el: '#logsReport',
+            featureSet: 'logEvents',
+            chartTitle: 'Log Analysis',
+            specificHost: this.node_uuid,
+            urlRoot: "/logging/summarize?",
+        });
     },
 
     template: _.template('' +
@@ -327,6 +357,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         '<button type="button" id="headerBar" class="reportsButton btn btn-default">Reports</button>' +
         '<button type="button" id="headerBar" class="eventsButton btn btn-default">Events</button>' +
         '<button type="button" id="headerBar" class="detailsButton btn btn-default">Details</button>' +
+        '<button type="button" id="headerBar" class="logsButton btn btn-default">Logs</button>' +
         '</div><br><br>' +
 
         '<div id="main-container" class="col-md-12">' +
@@ -383,6 +414,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         '<div class="col-md-12" id="reportsReport">&nbsp;</div>' +
         '<div class="col-md-12" id="eventsReport">&nbsp;</div>' +
         '<div class="col-md-12" id="detailsReport">&nbsp;</div>' +
+        '<div class="col-md-12" id="logsReport">&nbsp;</div>' +
         '</div>' +
         '</div>' +
         '</div>'
