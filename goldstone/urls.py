@@ -32,7 +32,6 @@ urlpatterns = patterns(
     url(r'^cinder/', include('goldstone.cinder.urls')),
     url(r'^core/', include('goldstone.core.urls')),
     url(r'^glance/', include('goldstone.apps.glance.urls')),
-    url(r'^intelligence/', include('goldstone.apps.intelligence.urls')),
     url(r'^keystone/', include('goldstone.apps.keystone.urls')),
     url(r'^logging/', include('goldstone.glogging.urls')),
     url(r'^neutron/', include('goldstone.neutron.urls')),
