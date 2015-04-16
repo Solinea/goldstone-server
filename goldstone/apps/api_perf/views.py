@@ -23,11 +23,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ReportView(TopLevelView):
-    """Template view for api perf report page."""
-    template_name = 'api_perf_report.html'
-
-
 class ApiPerfView(APIView):
     """The base class for all app "ApiPerfView" views."""
 

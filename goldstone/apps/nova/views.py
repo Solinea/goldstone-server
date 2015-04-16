@@ -40,10 +40,6 @@ from goldstone.views import TopLevelView, validate
 logger = logging.getLogger(__name__)
 
 
-class ReportView(TopLevelView):
-    template_name = 'nova_report.html'
-
-
 class LatestStatsSerializer(BaseSerializer):
     """The LatestStatsView's serializer class.
 

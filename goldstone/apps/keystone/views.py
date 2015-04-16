@@ -21,10 +21,6 @@ from .models import EndpointsData, RolesData, ServicesData, TenantsData, \
 logger = logging.getLogger(__name__)
 
 
-class ReportView(TopLevelView):
-    template_name = 'keystone_report.html'
-
-
 class EndpointsDataViewSet(JsonReadOnlyViewSet):
     model = EndpointsData
     key = 'endpoints'
