@@ -13,12 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf.urls import patterns, url
-from .views import ReportView, ApiPerfView
+from .views import ApiPerfView
 
 urlpatterns = patterns(
     '',
-    url(r'^report[/]?$', ReportView.as_view(),
-        name='api-perf-report-view'),
     url(r'^stats[/]?$', ApiPerfView.as_view(),
         name='api-perf-stats-view'),
 

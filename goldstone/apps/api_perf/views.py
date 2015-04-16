@@ -17,7 +17,7 @@ from datetime import datetime
 from django.http import HttpResponseBadRequest, HttpResponse
 from rest_framework.views import APIView
 from goldstone.apps.api_perf.models import ApiPerfData
-from goldstone.views import TopLevelView, validate
+from goldstone.views import validate
 import logging
 
 logger = logging.getLogger(__name__)

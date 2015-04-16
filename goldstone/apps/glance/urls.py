@@ -14,16 +14,10 @@
 # limitations under the License.
 from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
-from .views import ReportView, ImagesDataViewSet
+from .views import ImagesDataViewSet
 
 # Views handled by DjangoRestFramework ViewSets.
 router = DefaultRouter(trailing_slash=False)
 router.register(r'^images[/]?$', ImagesDataViewSet, base_name='glance-images')
 
 urlpatterns = router.urls
-
-# Other views.
-urlpatterns += patterns('',
-                        url(r'^report[/]?$', ReportView.as_view(),
-                            name='glance-report-view'),
-                        )
