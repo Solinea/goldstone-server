@@ -19,7 +19,7 @@ from .views import ReportView, AgentsDataViewSet, \
     AggregatesDataViewSet, AvailZonesDataViewSet, CloudpipesDataViewSet, \
     FlavorsDataViewSet, FloatingIpPoolsDataViewSet, HostsDataViewSet, \
     HypervisorsDataViewSet, NetworksDataViewSet, SecGroupsDataViewSet, \
-    ServersDataViewSet, ServicesDataViewSet, GetSpawnsAggView, SpawnsAggView
+    ServersDataViewSet, ServicesDataViewSet, SpawnsAggView
 
 # Views handled by DjangoRestFramework ViewSets.
 router = DefaultRouter(trailing_slash=False)
