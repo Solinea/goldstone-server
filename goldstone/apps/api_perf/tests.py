@@ -24,16 +24,6 @@ from goldstone.models import daily_index, es_conn
 from .models import ApiPerfData
 
 
-class ViewTests(SimpleTestCase):
-
-    def test_report_view(self):
-
-        uri = '/api_perf/report'
-        response = self.client.get(uri)
-        self.assertEqual(response.status_code, 200)    # pylint: disable=E1101
-        self.assertTemplateUsed(response, 'api_perf_report.html')
-
-
 class ApiPerfTests(SimpleTestCase):
 
     def setUp(self):

@@ -13,10 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from django.conf.urls import patterns, url
-from .views import ReportView, ApiPerfAggView
+from .views import ApiPerfAggView
 
 urlpatterns = patterns(
     '',
-    url(r'^report[/]?$', ReportView.as_view()),
     url(r'^stats[/]?$', ApiPerfAggView.as_view()),
 )

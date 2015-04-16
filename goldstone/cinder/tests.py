@@ -16,19 +16,6 @@ from django.test import SimpleTestCase
 from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
 
 
-class ViewTests(SimpleTestCase):
-    """Test api_perf."""
-
-    def test_report_view(self):
-
-        URI = '/cinder/report'
-
-        # pylint: disable=E1101
-        response = self.client.get(URI)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'cinder_report.html')
-
-
 class DataViewTests(SimpleTestCase):
     """Test a grabbag of cinder API endpoints."""
 

@@ -16,7 +16,6 @@ from rest_framework.exceptions import ValidationError
 
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from goldstone.apps.drfes.filters import ElasticFilter
 from goldstone.apps.drfes.pagination import ElasticPageNumberPagination
 from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer, \

@@ -17,17 +17,6 @@ from django.test import SimpleTestCase
 from goldstone.test_utils import create_and_login, AUTHORIZATION_PAYLOAD
 
 
-class ViewTests(SimpleTestCase):
-
-    def test_report_view(self):
-
-        URI = '/keystone/report'
-
-        response = self.client.get(URI)
-        self.assertEqual(response.status_code, 200)    # pylint: disable=E1101
-        self.assertTemplateUsed(response, 'keystone_report.html')
-
-
 class DataViewTests(SimpleTestCase):
 
     def _evaluate(self, response):

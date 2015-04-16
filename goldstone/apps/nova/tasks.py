@@ -20,7 +20,6 @@ from logstash that writes to redis.
 # limitations under the License.
 from __future__ import absolute_import
 
-from datetime import datetime
 import logging
 
 from goldstone.apps.nova.models import AgentsData, AggregatesData, \
@@ -96,7 +95,7 @@ def discover_nova_topology():
     :return: None
 
     """
-    from goldstone.utils import get_nova_client, get_region_for_nova_client
+    from goldstone.utils import get_nova_client
 
     nova_access = get_nova_client()
 
