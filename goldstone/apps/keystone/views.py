@@ -14,7 +14,6 @@
 # limitations under the License.
 import logging
 from goldstone.core.utils import JsonReadOnlyViewSet
-from goldstone.views import TopLevelView
 from .models import EndpointsData, RolesData, ServicesData, TenantsData, \
     UsersData
 

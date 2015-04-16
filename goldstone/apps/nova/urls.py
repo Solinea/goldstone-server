@@ -15,12 +15,12 @@
 from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
 
-from .views import ReportView, SpawnsViewSet, CpuViewSet, MemoryViewSet, \
-    DiskViewSet, LatestStatsView, AgentsDataViewSet, \
-    AggregatesDataViewSet, AvailZonesDataViewSet, CloudpipesDataViewSet, \
-    FlavorsDataViewSet, FloatingIpPoolsDataViewSet, HostsDataViewSet, \
-    HypervisorsDataViewSet, NetworksDataViewSet, SecGroupsDataViewSet, \
-    ServersDataViewSet, ServicesDataViewSet
+from .views import SpawnsViewSet, CpuViewSet, MemoryViewSet, DiskViewSet, \
+    LatestStatsView, AgentsDataViewSet, AggregatesDataViewSet, \
+    AvailZonesDataViewSet, CloudpipesDataViewSet, FlavorsDataViewSet, \
+    FloatingIpPoolsDataViewSet, HostsDataViewSet, HypervisorsDataViewSet, \
+    NetworksDataViewSet, SecGroupsDataViewSet, ServersDataViewSet, \
+    ServicesDataViewSet
 
 # Views handled by DjangoRestFramework ViewSets.
 router = DefaultRouter(trailing_slash=False)
@@ -70,8 +70,6 @@ urlpatterns = router.urls
 # Other views.
 urlpatterns += patterns(
     '',
-    url(r'^report[/]?$', ReportView.as_view(),
-        name='nova-report-view'),
     url(r'^hypervisor/latest-stats[/]?$', LatestStatsView.as_view(),
         name='nova-hypervisor-latest-stats'),
     )
