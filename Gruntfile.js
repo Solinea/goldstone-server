@@ -123,7 +123,7 @@ module.exports = function(grunt) {
         concat: {
             options: {
                 separator: ';\n',
-                banner: '/*! goldstone concat on <%= grunt.template.today("yyyy-mm-dd@H:M:s") %> */' + '\n\n'
+                banner: '/*! goldstone concat on <%= grunt.template.today("yyyy-mm-dd@HH:MM:ss") %> */' + '\n\n'
             },
             lib: {
                 nonull: true,
