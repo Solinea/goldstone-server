@@ -12,15 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.conf.urls import patterns, url
+from django.conf.urls import url, include
 from rest_framework.routers import DefaultRouter
 
-from .views import SpawnsViewSet, CpuViewSet, MemoryViewSet, DiskViewSet, \
-    LatestStatsView, AgentsDataViewSet, AggregatesDataViewSet, \
-    AvailZonesDataViewSet, CloudpipesDataViewSet, FlavorsDataViewSet, \
-    FloatingIpPoolsDataViewSet, HostsDataViewSet, HypervisorsDataViewSet, \
-    NetworksDataViewSet, SecGroupsDataViewSet, ServersDataViewSet, \
-    ServicesDataViewSet
+from .views import ReportView, AgentsDataViewSet, \
+    AggregatesDataViewSet, AvailZonesDataViewSet, CloudpipesDataViewSet, \
+    FlavorsDataViewSet, FloatingIpPoolsDataViewSet, HostsDataViewSet, \
+    HypervisorsDataViewSet, NetworksDataViewSet, SecGroupsDataViewSet, \
+    ServersDataViewSet, ServicesDataViewSet, SpawnsAggView
 
 # Views handled by DjangoRestFramework ViewSets.
 router = DefaultRouter(trailing_slash=False)
@@ -38,18 +37,6 @@ router.register(r'^flavors[/]?$', FlavorsDataViewSet, base_name='nova-flavors')
 router.register(r'^floating_ip_pools[/]?$',
                 FloatingIpPoolsDataViewSet,
                 base_name='nova-floating-ip-pools')
-router.register(r'^hypervisor/cpu[/]?$',
-                CpuViewSet,
-                base_name='nova-hypervisor-cpu')
-router.register(r'^hypervisor/disk[/]?$',
-                DiskViewSet,
-                base_name='nova-hypervisor-disk')
-router.register(r'^hypervisor/mem[/]?$',
-                MemoryViewSet,
-                base_name='nova-hypervisor-mem')
-router.register(r'^hypervisor/spawns[/]?$',
-                SpawnsViewSet,
-                base_name='nova-spawn-view')
 router.register(r'^hosts[/]?$', HostsDataViewSet, base_name='nova-hosts')
 router.register(r'^hypervisors[/]?$',
                 HypervisorsDataViewSet,
@@ -70,6 +57,5 @@ urlpatterns = router.urls
 # Other views.
 urlpatterns += patterns(
     '',
-    url(r'^hypervisor/latest-stats[/]?$', LatestStatsView.as_view(),
-        name='nova-hypervisor-latest-stats'),
+    url(r'^hypervisor/spawns[/]?$', SpawnsAggView.as_view()),
     )

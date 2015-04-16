@@ -17,7 +17,5 @@ from .views import ApiPerfView
 
 urlpatterns = patterns(
     '',
-    url(r'^stats[/]?$', ApiPerfView.as_view(),
-        name='api-perf-stats-view'),
-
+    url(r'^stats[/]?$', ApiPerfAggView.as_view()),
 )

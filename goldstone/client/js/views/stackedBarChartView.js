@@ -94,61 +94,154 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         */
 
         var ns = this.defaults;
-
+        var uniqTimestamps;
         var result = [];
 
         if (ns.featureSet === 'cpu') {
 
             // CPU Resources chart data prep
-            // {timestamp: [used, phys, virt]}
-            _.each(data[0], function(item, i) {
+            /*
+            {
+                "name": "nova.hypervisor.vcpus",
+                "region": "RegionOne",
+                "value": 16,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "count"
+            },
+            {
+                "name": "nova.hypervisor.vcpus_used",
+                "region": "RegionOne",
+                "value": 7,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "count"
+            },
+            */
+
+            uniqTimestamps = _.uniq(_.map(data, function(item) {
+                return item['@timestamp'];
+            }));
+            _.each(uniqTimestamps, function(item, i) {
                 result.push({
-                    "eventTime": "" + i,
-                    "Used": item[0],
-                    "Physical": item[1],
-                    "Virtual": item[2]
+                    eventTime: moment(item).valueOf(),
+                    Used: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.vcpus_used'
+                    })[0].value,
+                    Physical: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.vcpus'
+                    })[0].value
                 });
+
             });
 
         } else if (ns.featureSet === 'disk') {
 
-            // Disk Resources chart data prep
-            // {timestamp: [used, total]}
-            _.each(data[0], function(item, i) {
+            /*
+            {
+                "name": "nova.hypervisor.local_gb_used",
+                "region": "RegionOne",
+                "value": 83,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "GB"
+            },
+            {
+                "name": "nova.hypervisor.local_gb",
+                "region": "RegionOne",
+                "value": 98,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "GB"
+            },
+        */
+            uniqTimestamps = _.uniq(_.map(data, function(item) {
+                return item['@timestamp'];
+            }));
+            _.each(uniqTimestamps, function(item, i) {
                 result.push({
-                    "eventTime": "" + i,
-                    "Used": item[0],
-                    "Total": item[1]
+                    eventTime: moment(item).valueOf(),
+                    Used: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.local_gb_used'
+                    })[0].value,
+                    Total: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.local_gb'
+                    })[0].value
                 });
+
             });
 
         } else if (ns.featureSet === 'mem') {
 
-            // Memory Resources chart data prep
-            // {timestamp: [used, phys, virt]}
-            _.each(data[0], function(item, i) {
+            /*
+            {
+                "name": "nova.hypervisor.memory_mb_used",
+                "region": "RegionOne",
+                "value": 10752,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "MB"
+            },
+            {
+                "name": "nova.hypervisor.memory_mb",
+                "region": "RegionOne",
+                "value": 31872,
+                "metric_type": "gauge",
+                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
+                "unit": "MB"
+            },
+            */
+
+            uniqTimestamps = _.uniq(_.map(data, function(item) {
+                return item['@timestamp'];
+            }));
+            _.each(uniqTimestamps, function(item, i) {
                 result.push({
-                    "eventTime": "" + i,
-                    "Used": item[0],
-                    "Physical": item[1],
-                    "Virtual": item[2]
+                    eventTime: moment(item).valueOf(),
+                    Used: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.memory_mb_used'
+                    })[0].value,
+                    Physical: _.where(data, {
+                        '@timestamp': item,
+                        'name': 'nova.hypervisor.memory_mb'
+                    })[0].value
                 });
+
             });
+
 
         } else {
 
             // Spawns Resources chart data prep
-            // {timestamp: [success, fail]}
-            _.each(data[0], function(item, i) {
+            /*
+            {"1429032900000":
+                {"count":1,
+                "success":
+                    [
+                        {"true":1}
+                    ]
+                }
+            }
+            */
+
+            _.each(data, function(item) {
+                var logTime = _.keys(item)[0];
+                var success = _.pluck(item[logTime].success, 'true');
+                success = success[0] || 0;
+                var failure = _.pluck(item[logTime].success, 'false');
+                failure = failure[0] || 0;
                 result.push({
-                    "eventTime": "" + i,
-                    "Success": item[0],
-                    "Failure": item[1]
+                    "eventTime": logTime,
+                    "Success": success,
+                    "Failure": failure
                 });
             });
-
         }
-
         return result;
     },
 
@@ -201,11 +294,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         this.hideSpinner();
 
-        // if empty set, append info popup and stop
-        if (this.checkReturnedDataSet(data) === false) {
-            return;
-        }
-
         // clear elements from previous render
         $(this.el).find('svg').find('rect').remove();
         $(this.el).find('svg').find('line').remove();
@@ -214,6 +302,11 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         $(this.el).find('svg').find('path').remove();
         $(this.el).find('svg').find('circle').remove();
         $(this.el + '.d3-tip').detach();
+
+        // if empty set, append info popup and stop
+        if (this.checkReturnedDataSet(data) === false) {
+            return;
+        }
 
         // maps keys such as "Used / Physical / Virtual" to a color
         // but skips mapping "eventTime" to a color
@@ -470,14 +563,16 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 .attr("stroke-dasharray", "5, 2");
         };
 
-        // lineFunction must be a named localvariable as it will be called by
+        // lineFunction must be a named local
+        // variable as it will be called by
         // the pathGenerator function that immediately follows
         var lineFunction;
         if (ns.featureSet === 'cpu') {
 
             // generate solid line for Virtual data points
-            lineFunction = lineFunctionGenerator('Virtual');
-            solidPathGenerator('Virtual');
+            // uncomment if supplying virtual stat again
+            // lineFunction = lineFunctionGenerator('Virtual');
+            // solidPathGenerator('Virtual');
 
             // generate dashed line for Physical data points
             lineFunction = lineFunctionGenerator('Physical');
@@ -491,8 +586,9 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         } else if (ns.featureSet === 'mem') {
 
             // generate solid line for Virtual data points
-            lineFunction = lineFunctionGenerator('Virtual');
-            solidPathGenerator('Virtual');
+            // uncomment if supplying virtual stat again
+            // lineFunction = lineFunctionGenerator('Virtual');
+            // solidPathGenerator('Virtual');
 
             // generate dashed line for Physical data points
             lineFunction = lineFunctionGenerator('Physical');
@@ -503,12 +599,14 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         // appends chart legends
         var legendSpecs = {
             mem: [
-                ['Virtual', 2],
+                // uncomment if supplying virtual stat again
+                // ['Virtual', 2],
                 ['Physical', 1],
                 ['Used', 0]
             ],
             cpu: [
-                ['Virtual', 2],
+                // uncomment if supplying virtual stat again
+                // ['Virtual', 2],
                 ['Physical', 1],
                 ['Used', 0]
             ],

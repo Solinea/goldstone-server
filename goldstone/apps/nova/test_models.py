@@ -13,114 +13,55 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import arrow
-import pandas
+from copy import deepcopy
 
 from django.test import SimpleTestCase
-from goldstone.apps.nova.models import HypervisorStatsData, SpawnData, \
-    ResourceData
-from goldstone.models import ESData
+from goldstone.apps.nova.models import SpawnsData
 
 
-class HypervisorStatsDataModel(SimpleTestCase):
+class SpawnsDataModelTests(SimpleTestCase):
+    """Test cases for nova spawns model."""
 
-    start = arrow.get(2014, 3, 12).datetime
-    end = arrow.utcnow().datetime
-    hsd = HypervisorStatsData()
-    id_to_delete = None
-
-    def setUp(self):
-        """Done before every test."""
-
-        rec = {"@timestamp": self.end.isoformat()}
-        self.id_to_delete = self.hsd.post(rec)
-        self.assertIsNotNone(self.id_to_delete)
-
-    def tearDown(self):
-        """Done after every test."""
-
-        response = self.hsd.delete(self.id_to_delete)
-        self.assertTrue(response)
-
-    def test_get(self):
-        recs = self.hsd.get(1)
-        self.assertEqual(len(recs), 1)
-
-    def test_get_range(self):
-        recs = self.hsd.get_date_range(self.start, self.end)
-        self.assertGreater(len(recs), 0)
-
-
-class SpawnDataModel(SimpleTestCase):
-
-    start = arrow.get(2014, 3, 12).datetime
-    end = arrow.utcnow().datetime
+    end = arrow.utcnow()
+    start = end.replace(hours=-1)
     interval = '1h'
-    spawn_data = SpawnData(start, end, interval)
 
-    # pylint: disable=W0212
+    QUERY_BASE = {'bool': {
+        'must': [{'range': {
+            '@timestamp': {'gte': start.isoformat(),
+                           'lte': end.isoformat()}}}]}}
 
-    def test_spawn_start_query(self):
+    DATEHIST_AGG = {'date_histogram': {'field': '@timestamp',
+                                       'interval': '1h',
+                                       'min_doc_count': 0,
+                                       'extended_bounds': {
+                                           'max': end.isoformat(),
+                                           'min': start.isoformat()}}}
 
-        query = self.spawn_data._spawn_start_query()
-        self.assertEqual(query['aggs'], ESData._agg_date_hist(self.interval))
+    TIMESTAMP_SORT = [{'@timestamp': {'order': 'desc'}}]
+
+    def test_datehist_agg(self):
+        """_datehist_agg should return an A with proper values."""
+
+        result = SpawnsData._datehist_agg(self.interval, self.start, self.end)
+        self.assertDictEqual(result.to_dict(), self.DATEHIST_AGG)
 
     def test_spawn_finish_query(self):
+        """_spawn_finish_query should return a Search with proper values."""
+        self.maxDiff = None
+        expected_aggs = {'per_interval': self.DATEHIST_AGG}
+        expected_aggs['per_interval']['aggs'] = {
+            'per_success': {
+                'terms': {'size': 0, 'field': 'success',
+                          'shard_min_doc_count': 0, 'min_doc_count': 0}}
+        }
 
-        query = self.spawn_data._spawn_finish_query(True)
+        expected_query = deepcopy(self.QUERY_BASE)
+        expected_query['bool']['must'].append({'term': {'event': 'finish'}})
 
-        self.assertDictEqual(
-            query['aggs']['success_filter']['aggs'],
-            ESData._agg_date_hist(self.interval))
+        result = SpawnsData._spawn_finish_query(self.start, self.end,
+                                                self.interval)
 
-        self.assertDictEqual(
-            query['aggs']['success_filter']['filter'],
-            ESData._agg_filter_term(
-                "success", "true",
-                "success_filter")['success_filter']['filter'])
-
-        query = self.spawn_data._spawn_finish_query(False)
-        self.assertDictEqual(
-            query['aggs']['success_filter']['filter'],
-            ESData._agg_filter_term(
-                "success", "false",
-                "success_filter")['success_filter']['filter'])
-
-
-class ResourceDataTest(SimpleTestCase):
-
-    start = arrow.get(2014, 3, 12).datetime
-    end = arrow.utcnow().datetime
-    interval = '3600s'
-
-    def _test_claims(self, test_params, rd):
-        """Evaluate the results."""
-
-        for params in test_params:
-            result = getattr(rd, params['function'])()
-            self.assertIsInstance(result, pandas.core.frame.DataFrame)
-
-    def test_virt_resource_data(self):
-        vrd = ResourceData(self.start, self.end, self.interval)
-
-        test_params = [
-            {'type': 'nova_claims_summary_virt', 'resource': 'cpus',
-             'function': 'get_virt_cpu'},
-            {'type': 'nova_claims_summary_virt', 'resource': 'memory',
-             'function': 'get_virt_mem'},
-        ]
-
-        self._test_claims(test_params, vrd)
-
-    def test_phys_resource_data(self):
-        prd = ResourceData(self.start, self.end, self.interval)
-
-        test_params = [
-            {'type': 'nova_claims_summary_phys', 'resource': 'cpus',
-             'function': 'get_phys_cpu'},
-            {'type': 'nova_claims_summary_phys', 'resource': 'memory',
-             'function': 'get_phys_mem'},
-            {'type': 'nova_claims_summary_phys', 'resource': 'disk',
-             'function': 'get_phys_disk'},
-        ]
-
-        self._test_claims(test_params, prd)
+        self.assertDictEqual(result.to_dict()['query'], expected_query)
+        self.assertListEqual(result.to_dict()['sort'], self.TIMESTAMP_SORT)
+        self.assertDictEqual(result.to_dict()['aggs'], expected_aggs)
