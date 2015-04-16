@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-from arrow import Arrow
 from elasticsearch_dsl import query
 from goldstone.apps.drfes.models import DailyIndexDocType
 

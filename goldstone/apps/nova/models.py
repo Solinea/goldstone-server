@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from arrow import Arrow
 from elasticsearch_dsl import A
 from goldstone.apps.drfes.models import DailyIndexDocType
 from goldstone.models import TopologyData

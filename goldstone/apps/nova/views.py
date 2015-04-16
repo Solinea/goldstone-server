@@ -19,13 +19,7 @@ This module contains all views for the OpenStack Nova application.
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import logging
-
-from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from rest_framework.serializers import BaseSerializer
-from rest_framework.views import APIView
-from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
 from goldstone.apps.drfes.views import DateHistogramAggView
 from goldstone.apps.nova.serializers import SpawnsAggSerializer
 
@@ -33,9 +27,6 @@ from .models import SpawnsData, AgentsData, AggregatesData, AvailZonesData, \
     CloudpipesData, NetworksData, SecGroupsData, ServersData, ServicesData, \
     FlavorsData, FloatingIpPoolsData, HostsData, HypervisorsData
 from goldstone.core.utils import JsonReadOnlyViewSet
-from goldstone.views import validate
-
-logger = logging.getLogger(__name__)
 
 
 class AgentsDataViewSet(JsonReadOnlyViewSet):
