@@ -1,4 +1,4 @@
-/*! goldstone concat on 2015-04-08@14:59:1 */
+/*! goldstone concat on 2015-04-15@21:34:45 */
 
 /**
  * Copyright 2014 - 2015 Solinea, Inc.
@@ -5572,7 +5572,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
             debug: true
         },
 
-        // filter: null,
+        refreshCount: 2,
 
         // will prevent updating when zoom is active
         isZoomed: false
@@ -5583,9 +5583,15 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         LogAnalysisView.__super__.processOptions.apply(this, arguments);
 
+        var self = this;
         var ns = this.defaults;
         ns.yAxisLabel = 'Log Events';
         ns.urlRoot = this.options.urlRoot;
+
+        // specificHost will only be passed in if instantiated on a node
+        // report page. If null, will be ignored in this.constructUrl
+        // and this.urlGen
+        ns.specificHost = this.options.specificHost || null;
     },
 
     processMargins: function() {
@@ -5601,7 +5607,11 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var seconds = (ns.end - ns.start) / 1000;
         var interval = Math.max(1, Math.floor((seconds / (ns.width / 10))));
 
-        this.collection.url = ns.urlRoot + 'per_host=False&@timestamp__range={' +
+        this.collection.url = ns.urlRoot;
+        if (ns.specificHost) {
+            this.collection.url += 'host=' + ns.specificHost + '&';
+        }
+        this.collection.url += 'per_host=False&@timestamp__range={' +
             '"gte":' + ns.start + ',"lte":' + ns.end + '}&interval=' + interval + 's';
     },
 
@@ -5928,9 +5938,19 @@ var LogAnalysisView = UtilizationCpuView.extend({
             self.update();
         });
 
-        this.refreshSearchTable();
+        // eliminates the immediate re-rendering of search table
+        // upon initial chart instantiation
+        this.refreshSearchTableAfterOnce();
         this.redraw();
 
+    },
+
+    refreshSearchTableAfterOnce: function() {
+        var ns = this.defaults;
+        var self = this;
+        if (--ns.refreshCount < 1) {
+            self.refreshSearchTable();
+        }
     },
 
     searchDataErrorMessage: function(message, errorMessage, location) {
@@ -5962,7 +5982,13 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        var uri = '/logging/search?@timestamp__range={"gte":' +
+        var uri = '/logging/search?';
+
+        if (ns.specificHost) {
+            uri += 'host=' + ns.specificHost + '&';
+        }
+
+        uri += '@timestamp__range={"gte":' +
             ns.start +
             ',"lte":' +
             ns.end +
@@ -5984,6 +6010,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
         /*
         makes a url such as:
         /logging/search?@timestamp__range={%22gte%22:1426981050017,%22lte%22:1426984650017}&loglevel__terms=[%22EMERGENCY%22,%22ALERT%22,%22CRITICAL%22,%22ERROR%22,%22WARNING%22,%22NOTICE%22,%22INFO%22,%22DEBUG%22]
+        with "&host=node-01" added in if this is a node report page
         */
     },
 
@@ -6036,7 +6063,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
         if ($.fn.dataTable.isDataTable(location)) {
             oTable = $(location).DataTable();
             // oTable.ajax.url(uri);
-            oTable.ajax.reload();
+            // oTable.ajax.reload();
         } else {
             var oTableParams = {
                 "info": true,
@@ -6259,9 +6286,9 @@ within this LogSearchView. The global lookback/refresh listeners are listenTo()'
 from this view, and with the triggerChange function, kick off responding
 processes in the LogAnalysisView that is instantiated from within this view.
 
-instantiated in search.html as
+instantiated in goldstoneRouter as
     new LogSearchView({
-        el: ".log-search-container"
+        el: ".launcher-container"
     });
 */
 
@@ -6317,9 +6344,13 @@ var LogSearchView = GoldstoneBasePageView.extend({
     },
 
     renderCharts: function() {
+        var self = this;
         this.computeLookback();
         var ns = this.defaults;
 
+        // specificHost applies to this chart when instantiated
+        // on a node report page to scope it to that node
+        this.defaults.specificHost = this.options.specificHost || '';
         this.logAnalysisCollection = new LogAnalysisCollection({});
 
         this.logAnalysisView = new LogAnalysisView({
@@ -6330,7 +6361,7 @@ var LogSearchView = GoldstoneBasePageView.extend({
             featureSet: 'logEvents',
             chartTitle: 'Log Analysis',
             urlRoot: "/logging/summarize?",
-
+            specificHost: ns.specificHost
         });
     },
 
@@ -7579,8 +7610,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
     initialize: function(options) {
 
-        // options.node_uuid passed in during View instantiation on node_report.html
-        // var node_uuid = "{{ node_uuid | escapejs }}";
+        // options.node_uuid passed in during View instantiation
         this.node_uuid = options.node_uuid;
 
         // invoke the 'superclass'
@@ -7591,6 +7621,8 @@ var NodeReportView = GoldstoneBasePageView.extend({
     },
 
     triggerChange: function() {
+
+        var ns = this.defaults;
 
         // triggerChange event triggered by changing the global range selector
         // or by clicking on the (services|reports|events) tab buttons.
@@ -7610,6 +7642,17 @@ var NodeReportView = GoldstoneBasePageView.extend({
         if (this.visiblePanel.Events) {
             this.eventsReport.trigger('lookbackSelectorChanged');
         }
+
+        if (this.visiblePanel.Logs) {
+            this.computeLookback();
+            this.logAnalysisView.trigger('lookbackSelectorChanged', [ns.start, ns.end]);
+        }
+    },
+
+    computeLookback: function() {
+        var ns = this.defaults;
+        ns.end = +new Date();
+        ns.start = ns.end - (ns.globalLookback * 60 * 1000);
     },
 
     setGlobalLookbackRefreshTriggers: function() {
@@ -7639,7 +7682,8 @@ var NodeReportView = GoldstoneBasePageView.extend({
         Services: true,
         Reports: false,
         Events: false,
-        Details: false
+        Details: false,
+        Logs: false
     },
 
     // function to toggle key in visiblePanel
@@ -7658,12 +7702,13 @@ var NodeReportView = GoldstoneBasePageView.extend({
     initializeChartButtons: function() {
         var self = this;
 
-        // initially hide the reports and events tab, displaying only 'Services'
+        // initially hide the other tabs, displaying only 'Services'
         $("#reportsReport").hide();
         $("#eventsReport").hide();
         $("#detailsReport").hide();
+        $("#logsReport").hide();
 
-        // Initialize click listener on services|reports|events tabs
+        // Initialize click listener on tab buttons
         $("button#headerBar").click(function() {
 
             // sets key corresponding to active tab to 'true'
@@ -7867,6 +7912,22 @@ var NodeReportView = GoldstoneBasePageView.extend({
         this.detailsReport = new DetailsReportView({
             el: '#node-report-panel #detailsReport'
         });
+
+        //---------------------------
+        // instantiate Logs tab
+
+        this.logsReportCollection = new LogAnalysisCollection({});
+
+        this.logAnalysisView = new LogSearchView({
+            collection: this.logAnalysisCollection,
+            width: $('#logsReport').width(),
+            height: 300,
+            el: '#logsReport',
+            featureSet: 'logEvents',
+            chartTitle: 'Log Analysis',
+            specificHost: this.node_uuid,
+            urlRoot: "/logging/summarize?",
+        });
     },
 
     template: _.template('' +
@@ -7883,6 +7944,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         '<button type="button" id="headerBar" class="reportsButton btn btn-default">Reports</button>' +
         '<button type="button" id="headerBar" class="eventsButton btn btn-default">Events</button>' +
         '<button type="button" id="headerBar" class="detailsButton btn btn-default">Details</button>' +
+        '<button type="button" id="headerBar" class="logsButton btn btn-default">Logs</button>' +
         '</div><br><br>' +
 
         '<div id="main-container" class="col-md-12">' +
@@ -7939,6 +8001,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         '<div class="col-md-12" id="reportsReport">&nbsp;</div>' +
         '<div class="col-md-12" id="eventsReport">&nbsp;</div>' +
         '<div class="col-md-12" id="detailsReport">&nbsp;</div>' +
+        '<div class="col-md-12" id="logsReport">&nbsp;</div>' +
         '</div>' +
         '</div>' +
         '</div>'
