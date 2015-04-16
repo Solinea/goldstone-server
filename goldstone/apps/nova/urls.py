@@ -58,5 +58,5 @@ router.register(r'^services[/]?$',
 urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^report[/]?$', ReportView.as_view()),
-    url(r'^hypervisor/spawns[/]?', SpawnsAggView.as_view()),
+    url(r'^hypervisor/spawns[/]?$', SpawnsAggView.as_view()),
 ]
