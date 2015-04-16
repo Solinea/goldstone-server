@@ -145,9 +145,13 @@ class DateHistogramAggView(ElasticListAPIView):
                 postfix = self.interval[-1]
                 base = self.interval[0:-1]
                 if postfix not in ['s', 'm', 'h', 'w', 'd']:
-                    raise
+                    raise ValidationError("Parameter 'interval' must be a "
+                                          "number with a postfix in ['s', 'm',"
+                                          " 'h', 'w', 'd'].")
                 if type(ast.literal_eval(base)) not in [int, float]:
-                    raise
+                    raise ValidationError("Parameter 'interval' must be a "
+                                          "number with a postfix in ['s', 'm',"
+                                          " 'h', 'w', 'd'].")
             except Exception:
                 raise ValidationError("Parameter 'interval' is malformed.")
 
