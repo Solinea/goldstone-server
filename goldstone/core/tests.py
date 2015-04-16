@@ -20,7 +20,6 @@ This module demonstrates no less than 3 strategies for mocking ES.
 from django.conf import settings
 from django.test import SimpleTestCase
 import elasticsearch
-from elasticsearch.client import IndicesClient
 import mock
 from mock import patch
 from rest_framework.test import APISimpleTestCase
@@ -89,26 +88,6 @@ class TaskTests(SimpleTestCase):
         tasks.check_call = mock.Mock(return_value='mocked')
         # pylint: disable=W0212
         self.assertEqual(tasks.delete_indices('abc', 10), 'mocked')
-
-    @patch.object(IndicesClient, 'create')
-    @patch.object(IndicesClient, 'exists_alias')
-    @patch.object(IndicesClient, 'update_aliases')
-    @patch.object(IndicesClient, 'put_alias')
-    def test_create_daily_index(self, put_alias, update_aliases, exists_alias,
-                                create):
-
-        create.side_effect = None
-        exists_alias.return_value = True
-        update_aliases.return_value = None
-
-        # pylint: disable=W0212
-        self.assertIsNone(tasks.create_daily_index('abc'))
-        create.assert_called()
-
-        exists_alias.return_value = False
-        put_alias.return_value = None
-
-        self.assertIsNone(tasks.create_daily_index('abc'))
 
 
 class PolyResourceModelTests(SimpleTestCase):

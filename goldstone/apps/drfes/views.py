@@ -12,13 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from rest_framework.exceptions import ValidationError
 
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from goldstone.apps.drfes.filters import ElasticFilter
 from goldstone.apps.drfes.pagination import ElasticPageNumberPagination
 from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer, \
-    SimpleAggSerializer
+    SimpleAggSerializer, DateHistogramAggSerializer
 
 
 class ElasticListAPIView(ListAPIView):
@@ -57,7 +59,7 @@ class ElasticListAPIView(ListAPIView):
 
 
 class SimpleAggView(ElasticListAPIView):
-    """A view that handles requests for Report name aggregations.
+    """A view that handles requests for terms aggregations.
 
     Currently it support a top-level report name aggregation only.  The
     scope can be limited to a specific host, time range, etc. by using
@@ -83,7 +85,92 @@ class SimpleAggView(ElasticListAPIView):
         )
 
         base_queryset = self.filter_queryset(self.get_queryset())
-        data = self.Meta.model.simple_agg(self.AGG_FIELD, self.AGG_NAME,
-                                          base_queryset)
-        serializer = self.serializer_class(data)
+
+        # add a top-level aggregation for the field
+        search = base_queryset.params(search_type="count")
+        search.aggs.bucket(self.AGG_NAME, "terms",
+                           field=self.AGG_FIELD,
+                           min_doc_count=1,
+                           size=0)
+
+        serializer = self.serializer_class(search.execute().aggregations)
         return Response(serializer.data)
+
+
+class DateHistogramAggView(ElasticListAPIView):
+
+    interval = None
+    start = None
+    end = None
+    AGG_FIELD = '@timestamp'
+    AGG_NAME = 'per_interval'
+    reserved_params = ['interval']
+    serializer_class = DateHistogramAggSerializer
+
+    class Meta:
+        model = None
+
+    def get(self, request):
+        """Handle get request."""
+        search = self._get_search(request)
+        serializer = self.serializer_class(search.execute().aggregations)
+        return Response(serializer.data)
+
+    def _get_search(self, request):
+        """Return the search object prior to serialization.  Can be used by
+        subclasses that override get."""
+        self._validate_params(request)
+
+        base_queryset = self.filter_queryset(self.get_queryset())
+
+        # we can also find the start/end from any range param provided.
+        range_param = request.query_params.get(
+            self.AGG_FIELD + "__range", None)
+
+        min, max = (None, None) if range_param is None else \
+            self._extract_time_range(range_param)
+
+        return self.Meta.model.simple_datehistogram_agg(
+            base_queryset, self.interval, field=self.AGG_FIELD,
+            agg_name=self.AGG_NAME, min_doc_count=0,
+            bounds_min=min, bounds_max=max)
+
+    def _validate_params(self, request):
+        import ast
+        self.interval = request.query_params.get('interval')
+        if self.interval is None:
+            raise ValidationError("Parameter 'interval' is required.")
+        else:
+            try:
+                postfix = self.interval[-1]
+                base = self.interval[0:-1]
+                if postfix not in ['s', 'm', 'h', 'w', 'd']:
+                    raise ValidationError("Parameter 'interval' must be a "
+                                          "number with a postfix in ['s', 'm',"
+                                          " 'h', 'w', 'd'].")
+                if type(ast.literal_eval(base)) not in [int, float]:
+                    raise ValidationError("Parameter 'interval' must be a "
+                                          "number with a postfix in ['s', 'm',"
+                                          " 'h', 'w', 'd'].")
+            except Exception:
+                raise ValidationError("Parameter 'interval' is malformed.")
+
+    def _extract_time_range(self, range_spec):
+        """Get the time range out of the query param."""
+        import ast
+        try:
+            range_spec = ast.literal_eval(range_spec)
+            range_min = None
+            range_max = None
+            if 'gte' in range_spec:
+                range_min = range_spec['gte']
+            if 'gt' in range_spec:
+                range_min = range_spec['gt']
+            if 'lte' in range_spec:
+                range_max = range_spec['lte']
+            if 'lt' in range_spec:
+                range_max = range_spec['lt']
+            return range_min, range_max
+        except Exception:
+            param = self.AGG_FIELD + "__range"
+            raise ValidationError("Parameter '%s' is malformed." % param)
