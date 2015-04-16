@@ -28,7 +28,6 @@ from elasticsearch_dsl.connections import connections, Connections
 from mock import patch
 import mock
 
-from goldstone.core.models import Host
 from goldstone.core.tasks import create_daily_index
 from goldstone.models import ESData, es_conn, daily_index, es_indices, \
     TopologyData

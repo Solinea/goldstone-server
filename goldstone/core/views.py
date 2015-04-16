@@ -135,8 +135,7 @@ class NavTreeView(RetrieveAPIView, TopologyMixin):
             as KeystoneDiscoverTree
         from goldstone.apps.glance.utils import DiscoverTree \
             as GlanceDiscoverTree
-        from goldstone.apps.cinder.utils import DiscoverTree \
-            as CinderDiscoverTree
+        from goldstone.cinder.utils import DiscoverTree as CinderDiscoverTree
         from goldstone.apps.nova.utils import DiscoverTree \
             as NovaDiscoverTree
 
@@ -220,4 +219,3 @@ class NavTreeView(RetrieveAPIView, TopologyMixin):
             return rl[0]
         else:
             return {"rsrcType": "error", "label": "No data found"}
-

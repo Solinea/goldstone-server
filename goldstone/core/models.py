@@ -21,7 +21,8 @@ from goldstone.apps.drfes.models import DailyIndexDocType
 from goldstone.glogging.models import LogData, LogEvent
 
 # Get_glance_client is defined here for easy unit test mocking.
-from goldstone.utils import utc_now, get_glance_client, get_nova_client
+from goldstone.utils import utc_now, get_glance_client, get_nova_client, \
+    get_cinder_client
 
 from elasticsearch_dsl.query import Q, QueryString
 import networkx
@@ -118,6 +119,43 @@ class PolyResource(PolymorphicModel):
         name_query = Q(QueryString(query=escaped_name, default_field="_all"))
         return LogEvent.search().query(name_query)
 
+    @staticmethod
+    def clouddata():
+        """Return information on this resource type's cloud instances.
+
+        N.B. We can't know when nested client methods are evaluated, so we
+        make the complete call here.
+
+        :return: One or more infomration collections about cloud instances of
+                 this type
+        :rtype: Iterable or generator of dict
+
+        """
+
+        raise NotImplementedError("Override this method in a subclass")
+
+    @staticmethod
+    def identity(thing):
+        """Return thing's uniquely identifying value.
+
+        In order to match a cloud instance with a Resource Graph node, we need
+        to examine the values that uniquely identify them, for a given
+        PolyResource subclass.
+
+        :param thing: A representation of a cloud instance, or a resource graph
+                      node.
+        :type thing: Depending upon the PolyResource subclass, this is a dict
+                     or a user-defined object. Usually, it'll be the type of
+                     the entries in the value retured by clouddata().
+        :return: The value of whatever uniquely identifies an instance of this
+                 type.
+        :rtype: Depends on the PolyResource subclass, anything, but probably
+                str
+
+        """
+
+        return thing.get("id")
+
     # TODO: Uncomment these when they're implemented in the subclasses, or
     # delete them to avoid pylint warnings.
     #
@@ -194,6 +232,18 @@ class Agent(PolyResource):
 
     port = IntegerField(editable=True, blank=True, default=5514)
 
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
+
 
 #
 # These classes represent entities within a Keystone service.
@@ -202,61 +252,161 @@ class Agent(PolyResource):
 class User(PolyResource):
     """An OpenStack user."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Domain(PolyResource):
     """An OpenStack domain."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Group(PolyResource):
     """An OpenStack group."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Token(PolyResource):
     """An OpenStack token."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Credential(PolyResource):
     """An OpenStack credential."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Role(PolyResource):
     """An OpenStack role."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Region(PolyResource):
     """An OpenStack region."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Endpoint(PolyResource):
     """An OpenStack endpoint."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Service(PolyResource):
     """An OpenStack service."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Project(PolyResource):
     """An OpenStack project."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 #
@@ -268,16 +418,7 @@ class AvailabilityZone(PolyResource):
 
     @staticmethod
     def clouddata():
-        """Return information on this resource type's cloud instances.
-
-        N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call here.
-
-        :return: One or more information collections about cloud instances of
-                 this type
-        :rtype: Iterable or generator of dict
-
-        """
+        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -286,23 +427,7 @@ class AvailabilityZone(PolyResource):
 
     @staticmethod
     def identity(thing):
-        """Return thing's uniquely identifying value.
-
-        In order to match a cloud instance with a Resource Graph node, we need
-        to examine the values that uniquely identify them, for a given
-        PolyResource subclass.
-
-        :param thing: A representation of a cloud instance, or a resource graph
-                      node.
-        :type thing: Depending upon the PolyResource subclass, this is a dict
-                     or a user-defined object. Usually, it'll be the type of
-                     the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies an instance of this
-                 type.
-        :rtype: Depends on the PolyResource subclass, anything, but probably
-                str
-
-        """
+        """See the parent class' method's docstring."""
 
         return thing.get("zoneName")
 
@@ -312,43 +437,12 @@ class FlavorExtraSpec(PolyResource):
 
     @staticmethod
     def clouddata():
-        """Return information on this resource type's cloud instances.
-
-        N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call here.
-
-        :return: One or more information collections about cloud instances of
-                 this type
-        :rtype: Iterable or generator of dict
-
-        """
+        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
         return [x.get_keys() for x in nova_client.flavors.list()]
-
-    @staticmethod
-    def identity(thing):
-        """Return thing's uniquely identifying value.
-
-        In order to match a cloud instance with a Resource Graph node, we need
-        to examine the values that uniquely identify them, for a given
-        PolyResource subclass.
-
-        :param thing: A representation of a cloud instance, or a resource graph
-                      node.
-        :type thing: Depending upon the PolyResource subclass, this is a dict
-                     or a user-defined object. Usually, it'll be the type of
-                     the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies an instance of this
-                 type.
-        :rtype: Depends on the PolyResource subclass, anything, but probably
-                str
-
-        """
-
-        return thing.get("id")
 
 
 class Aggregate(PolyResource):
@@ -356,43 +450,12 @@ class Aggregate(PolyResource):
 
     @staticmethod
     def clouddata():
-        """Return information on this resource type's cloud instances.
-
-        N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call here.
-
-        :return: One or more information collections about cloud instances of
-                 this type
-        :rtype: Iterable or generator of dict
-
-        """
+        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
         return [x.to_dict() for x in nova_client.aggregates.list()]
-
-    @staticmethod
-    def identity(thing):
-        """Return thing's uniquely identifying value.
-
-        In order to match a cloud instance with a Resource Graph node, we need
-        to examine the values that uniquely identify them, for a given
-        PolyResource subclass.
-
-        :param thing: A representation of a cloud instance, or a resource graph
-                      node.
-        :type thing: Depending upon the PolyResource subclass, this is a dict
-                     or a user-defined object. Usually, it'll be the type of
-                     the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies an instance of this
-                 type.
-        :rtype: Depends on the PolyResource subclass, anything, but probably
-                str
-
-        """
-
-        return thing.get("id")
 
 
 class Flavor(PolyResource):
@@ -400,43 +463,12 @@ class Flavor(PolyResource):
 
     @staticmethod
     def clouddata():
-        """Return information on this resource type's cloud instances.
-
-        N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call here.
-
-        :return: One or more information collections about cloud instances of
-                 this type
-        :rtype: Iterable or generator of dict
-
-        """
+        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
         return [x.to_dict() for x in nova_client.flavors.list()]
-
-    @staticmethod
-    def identity(thing):
-        """Return thing's uniquely identifying value.
-
-        In order to match a cloud instance with a Resource Graph node, we need
-        to examine the values that uniquely identify them, for a given
-        PolyResource subclass.
-
-        :param thing: A representation of a cloud instance, or a resource graph
-                      node.
-        :type thing: Depending upon the PolyResource subclass, this is a dict
-                     or a user-defined object. Usually, it'll be the type of
-                     the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies an instance of this
-                 type.
-        :rtype: Depends on the PolyResource subclass, anything, but probably
-                str
-
-        """
-
-        return thing.get("id")
 
 
 class Keypair(PolyResource):
@@ -444,16 +476,7 @@ class Keypair(PolyResource):
 
     @staticmethod
     def clouddata():
-        """Return information on this resource type's cloud instances.
-
-        N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call here.
-
-        :return: One or more information collections about cloud instances of
-                 this type
-        :rtype: Iterable or generator of dict
-
-        """
+        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -462,23 +485,7 @@ class Keypair(PolyResource):
 
     @staticmethod
     def identity(thing):
-        """Return thing's uniquely identifying value.
-
-        In order to match a cloud instance with a Resource Graph node, we need
-        to examine the values that uniquely identify them, for a given
-        PolyResource subclass.
-
-        :param thing: A representation of a cloud instance, or a resource graph
-                      node.
-        :type thing: Depending upon the PolyResource subclass, this is a dict
-                     or a user-defined object. Usually, it'll be the type of
-                     the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies an instance of this
-                 type.
-        :rtype: Depends on the PolyResource subclass, anything, but probably
-                str
-
-        """
+        """See the parent class' method's docstring."""
 
         return thing.get("fingerprint")
 
@@ -515,16 +522,7 @@ class Host(PolyResource):
 
     @staticmethod
     def clouddata():
-        """Return information on this resource type's cloud instances.
-
-        N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call here.
-
-        :return: One or more information collections about cloud instances of
-                 this type
-        :rtype: Iterable or generator of dict
-
-        """
+        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -549,23 +547,7 @@ class Host(PolyResource):
 
     @staticmethod
     def identity(thing):
-        """Return thing's uniquely identifying value.
-
-        In order to match a cloud instance with a Resource Graph node, we need
-        to examine the values that uniquely identify them, for a given
-        PolyResource subclass.
-
-        :param thing: A representation of a cloud instance, or a resource graph
-                      node.
-        :type thing: Depending upon the PolyResource subclass, this is a dict
-                     or a user-defined object. Usually, it'll be the type of
-                     the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies an instance of this
-                 type.
-        :rtype: Depends on the PolyResource subclass, anything, but probably
-                str
-
-        """
+        """See the parent class' method's docstring."""
 
         return thing.get("host_name")
 
@@ -578,43 +560,12 @@ class Hypervisor(PolyResource):
 
     @staticmethod
     def clouddata():
-        """Return information on this resource type's cloud instances.
-
-        N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call here.
-
-        :return: One or more information collections about cloud instances of
-                 this type
-        :rtype: Iterable or generator of dict
-
-        """
+        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
         return [x.to_dict() for x in nova_client.hypervisors.list()]
-
-    @staticmethod
-    def identity(thing):
-        """Return thing's uniquely identifying value.
-
-        In order to match a cloud instance with a Resource Graph node, we need
-        to examine the values that uniquely identify them, for a given
-        PolyResource subclass.
-
-        :param thing: A representation of a cloud instance, or a resource graph
-                      node.
-        :type thing: Depending upon the PolyResource subclass, this is a dict
-                     or a user-defined object. Usually, it'll be the type of
-                     the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies an instance of this
-                 type.
-        :rtype: Depends on the PolyResource subclass, anything, but probably
-                str
-
-        """
-
-        return thing.get("id")
 
 
 class Cloudpipe(PolyResource):
@@ -622,16 +573,7 @@ class Cloudpipe(PolyResource):
 
     @staticmethod
     def clouddata():
-        """Return information on this resource type's cloud instances.
-
-        N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call here.
-
-        :return: One or more information collections about cloud instances of
-                 this type
-        :rtype: Iterable or generator of dict
-
-        """
+        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -640,25 +582,9 @@ class Cloudpipe(PolyResource):
 
     @staticmethod
     def identity(thing):
-        """Return thing's uniquely identifying value.
+        """See the parent class' method's docstring."""
 
-        In order to match a cloud instance with a Resource Graph node, we need
-        to examine the values that uniquely identify them, for a given
-        PolyResource subclass.
-
-        :param thing: A representation of a cloud instance, or a resource graph
-                      node.
-        :type thing: Depending upon the PolyResource subclass, this is a dict
-                     or a user-defined object. Usually, it'll be the type of
-                     the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies an instance of this
-                 type.
-        :rtype: Depends on the PolyResource subclass, anything, but probably
-                str
-
-        """
-
-        return thing.get("id")
+        return thing.get("project_id")
 
 
 class ServerGroup(PolyResource):
@@ -666,43 +592,12 @@ class ServerGroup(PolyResource):
 
     @staticmethod
     def clouddata():
-        """Return information on this resource type's cloud instances.
-
-        N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call here.
-
-        :return: One or more information collections about cloud instances of
-                 this type
-        :rtype: Iterable or generator of dict
-
-        """
+        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
         return [x.to_dict() for x in nova_client.server_groups.list()]
-
-    @staticmethod
-    def identity(thing):
-        """Return thing's uniquely identifying value.
-
-        In order to match a cloud instance with a Resource Graph node, we need
-        to examine the values that uniquely identify them, for a given
-        PolyResource subclass.
-
-        :param thing: A representation of a cloud instance, or a resource graph
-                      node.
-        :type thing: Depending upon the PolyResource subclass, this is a dict
-                     or a user-defined object. Usually, it'll be the type of
-                     the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies an instance of this
-                 type.
-        :rtype: Depends on the PolyResource subclass, anything, but probably
-                str
-
-        """
-
-        return thing.get("id")
 
 
 class Server(PolyResource):
@@ -710,16 +605,7 @@ class Server(PolyResource):
 
     @staticmethod
     def clouddata():
-        """Return information on this resource type's cloud instances.
-
-        N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call here.
-
-        :return: One or more information collections about cloud instances of
-                 this type
-        :rtype: Iterable or generator of dict
-
-        """
+        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -728,44 +614,13 @@ class Server(PolyResource):
                 for x in
                 nova_client.servers.list(search_opts={"all_tenants": 1})]
 
-    @staticmethod
-    def identity(thing):
-        """Return thing's uniquely identifying value.
-
-        In order to match a cloud instance with a Resource Graph node, we need
-        to examine the values that uniquely identify them, for a given
-        PolyResource subclass.
-
-        :param thing: A representation of a cloud instance, or a resource graph
-                      node.
-        :type thing: Depending upon the PolyResource subclass, this is a dict
-                     or a user-defined object. Usually, it'll be the type of
-                     the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies an instance of this
-                 type.
-        :rtype: Depends on the PolyResource subclass, anything, but probably
-                str
-
-        """
-
-        return thing.get("id")
-
 
 class Interface(PolyResource):
     """An OpenStack Interface."""
 
     @staticmethod
     def clouddata():
-        """Return information on this resource type's cloud instances.
-
-        N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call here.
-
-        :return: One or more information collections about cloud instances of
-                 this type
-        :rtype: Iterable or generator of dict
-
-        """
+        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
@@ -790,23 +645,7 @@ class Interface(PolyResource):
 
     @staticmethod
     def identity(thing):
-        """Return thing's uniquely identifying value.
-
-        In order to match a cloud instance with a Resource Graph node, we need
-        to examine the values that uniquely identify them, for a given
-        PolyResource subclass.
-
-        :param thing: A representation of a cloud instance, or a resource graph
-                      node.
-        :type thing: Depending upon the PolyResource subclass, this is a dict
-                     or a user-defined object. Usually, it'll be the type of
-                     the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies an instance of this
-                 type.
-        :rtype: Depends on the PolyResource subclass, anything, but probably
-                str
-
-        """
+        """See the parent class' method's docstring."""
 
         return thing.get("mac_addr")
 
@@ -816,43 +655,12 @@ class NovaLimits(PolyResource):
 
     @staticmethod
     def clouddata():
-        """Return information on this resource type's cloud instances.
-
-        N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call here.
-
-        :return: One or more information collections about cloud instances of
-                 this type
-        :rtype: Iterable or generator of dict
-
-        """
+        """See the parent class' method's docstring."""
 
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
         return [x.to_dict() for x in nova_client.limits.list()]
-
-    @staticmethod
-    def identity(thing):
-        """Return thing's uniquely identifying value.
-
-        In order to match a cloud instance with a Resource Graph node, we need
-        to examine the values that uniquely identify them, for a given
-        PolyResource subclass.
-
-        :param thing: A representation of a cloud instance, or a resource graph
-                      node.
-        :type thing: Depending upon the PolyResource subclass, this is a dict
-                     or a user-defined object. Usually, it'll be the type of
-                     the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies an instance of this
-                 type.
-        :rtype: Depends on the PolyResource subclass, anything, but probably
-                str
-
-        """
-
-        return thing.get("id")
 
 
 #
@@ -864,40 +672,74 @@ class Image(PolyResource):
 
     @staticmethod
     def clouddata():
-        """Return information on this resource type's cloud instances.
-
-        N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call here.
-
-        :return: One or more information collections about cloud instances of
-                 this type
-        :rtype: Iterable or generator of dict
-
-        """
+        """See the parent class' method's docstring."""
 
         return list(get_glance_client()["client"].images.list())
 
+
+#
+# These classes represent entities within a Cinder service.
+#
+
+
+class QuotaSet(PolyResource):
+    """An OpenStack Quota Set."""
+
     @staticmethod
-    def identity(thing):
-        """Return thing's uniquely identifying value.
+    def clouddata():
+        """See the parent class' method's docstring."""
 
-        In order to match a cloud instance with a Resource Graph node, we need
-        to examine the values that uniquely identify them, for a given
-        PolyResource subclass.
+        return list(get_glance_client()["client"].images.list())
 
-        :param thing: A representation of a cloud instance, or a resource graph
-                      node.
-        :type thing: Depending upon the PolyResource subclass, this is a dict
-                     or a user-defined object. Usually, it'll be the type of
-                     the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies an instance of this
-                 type.
-        :rtype: Depends on the PolyResource subclass, anything, but probably
-                str
 
-        """
+class QOSSpec(PolyResource):
+    """An OpenStack Quality Of Service Specification."""
 
-        return thing.get("id")
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return list(get_cinder_client()["client"].qos_specs.list())
+
+
+class Snapshot(PolyResource):
+    """An OpenStack Snapshot."""
+
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return list(get_cinder_client()["client"].volume_snapshots.list())
+
+
+class VolumeType(PolyResource):
+    """An OpenStack Volume Type."""
+
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return list(get_cinder_client()["client"].volume_types.list())
+
+
+class Volume(PolyResource):
+    """An OpenStack Volume."""
+
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return list(get_cinder_client()["client"].volumes.list())
+
+
+class Limits(PolyResource):
+    """An OpenStack Limit."""
+
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return list(get_glance_client()["client"].images.list())
 
 
 #
@@ -907,37 +749,97 @@ class Image(PolyResource):
 class MeteringLableRule(PolyResource):
     """An OpenStack Metering Lable Rule."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class MeteringLabel(PolyResource):
     """An OpenStack Metering Label."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class NeutronQuota(PolyResource):
     """An OpenStack Neutron Quota."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class RemoteGroup(PolyResource):
     """An OpenStack Remote Group."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class SecurityRules(PolyResource):
     """An OpenStack Security Rules."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class SecurityGroup(PolyResource):
     """An OpenStack Security Group."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Port(PolyResource):
@@ -945,16 +847,7 @@ class Port(PolyResource):
 
     @staticmethod
     def clouddata():
-        """Return information on this resource type's cloud instances.
-
-        N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call here.
-
-        :return: One or more information collections about cloud instances of
-                 this type
-        :rtype: Iterable or generator of dict
-
-        """
+        """See the parent class' method's docstring."""
         from goldstone.utils import get_cloud
         from goldstone.neutron.utils import get_neutron_client
         # from neutronclient.v2_0 import client as neclient
@@ -969,91 +862,169 @@ class Port(PolyResource):
 
         return client.list_ports()["ports"]
 
-    @staticmethod
-    def identity(thing):
-        """Return thing's uniquely identifying value.
-
-        In order to match a cloud instance with a Resource Graph node, we need
-        to examine the values that uniquely identify them, for a given
-        PolyResource subclass.
-
-        :param thing: A representation of a cloud instance, or a resource graph
-                      node.
-        :type thing: Depending upon the PolyResource subclass, this is a dict
-                     or a user-defined object. Usually, it'll be the type of
-                     the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies an instance of this
-                 type.
-        :rtype: Depends on the PolyResource subclass, anything, but probably
-                str
-
-        """
-
-        return thing.get("id")
-
 
 class LBVIP(PolyResource):
     """An OpenStack load balancer VIP address."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class LBPool(PolyResource):
     """An OpenStack load balancer pool."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class HealthMonitor(PolyResource):
     """An OpenStack Health Monitor."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class FloatingIP(PolyResource):
     """An OpenStack Floating IP address."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class FloatingIPPool(PolyResource):
     """An OpenStack Floating IP address pool."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class FixedIP(PolyResource):
     """An OpenStack Fixed IP address."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class LBMember(PolyResource):
     """An OpenStack load balancer member."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Subnet(PolyResource):
     """An OpenStack subnet."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Network(PolyResource):
     """An OpenStack network."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class Router(PolyResource):
     """An OpenStack router."""
 
-    pass
+    @staticmethod
+    def clouddata():
+        """See the parent class' method's docstring."""
+
+        return None
+
+    @staticmethod
+    def identity(thing):                     # pylint: disable=W0613
+        """See the parent class' method's docstring."""
+
+        return None
 
 
 class ResourceTypes(Graph):
-    """A graph of the resource types used within an OpenStack cloud."""
+    """A graph of an OpenStack cloud's resource types."""
 
     # These are the graph edges. (If an edge connects nodes not yet in the
     # graph, the nodes are automatically added.)
@@ -1072,6 +1043,35 @@ class ResourceTypes(Graph):
     #                    must be prepared for absent keys, and not throw
     #                    exceptions.
     EDGES = {
+        # From Cinder nodes
+        QOSSpec: [{TO: VolumeType,
+                   EDGE_ATTRIBUTES:
+                   {TYPE: APPLIES_TO,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t:
+                    f.get("id") and
+                    f.get("id") in
+                    t.get("extra_specs", {}).get("qos", '')}}],
+        VolumeType: [{TO: Volume,
+                      EDGE_ATTRIBUTES:
+                      {TYPE: APPLIES_TO,
+                       MIN: 0,
+                       MAX: sys.maxint,
+                       MATCHING_FN:
+                       lambda f, t:
+                       f.get("id") and f["id"] == t.get("volume_type")}}],
+        Snapshot: [{TO: Volume,
+                    EDGE_ATTRIBUTES:
+                    {TYPE: APPLIES_TO,
+                     MIN: 1,
+                     MAX: 1,
+                     MATCHING_FN:
+                     lambda f, t:
+                     f.get("id") and f.get("id") == t.get("snapshot_id")}},
+                   ],
+
         # From Glance nodes
         Image: [{TO: Server,
                  EDGE_ATTRIBUTES:
@@ -1190,6 +1190,41 @@ class ResourceTypes(Graph):
                     MAX: sys.maxint,
                     MATCHING_FN:
                     lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                  {TO: QuotaSet,
+                   EDGE_ATTRIBUTES:
+                   {TYPE: SUBSCRIBED_TO,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                  {TO: QOSSpec,
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                  {TO: Snapshot,
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                  {TO: Volume,
+                   EDGE_ATTRIBUTES:
+                   {TYPE: MEMBER_OF,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                  {TO: Limits,
+                   EDGE_ATTRIBUTES:
+                   {TYPE: OWNS,
+                    MIN: 0,
+                    MAX: sys.maxint,
+                    MATCHING_FN:
+                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
                   ],
         Region: [{TO: AvailabilityZone,
                   EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
@@ -1214,7 +1249,12 @@ class ResourceTypes(Graph):
                {TO: Group,
                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}},
                {TO: Project,
-                EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: 1}}],
+                EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: 1}},
+               {TO: QuotaSet,
+                EDGE_ATTRIBUTES:
+                {TYPE: SUBSCRIBED_TO,
+                 MIN: 0,
+                 MAX: sys.maxint}}],
 
         # From Neutron nodes
         FloatingIPPool: [{TO: FixedIP,
@@ -1376,6 +1416,16 @@ class ResourceTypes(Graph):
                                     MATCHING_FN: lambda f, t:
                                     f.get("hostId") and
                                     f.get("hostId") in t["members"]}},
+                 {TO: Volume,
+                  EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
+                                    MIN: 0,
+                                    MAX: sys.maxint,
+                                    MATCHING_FN: lambda f, t:
+                                    f.get("links") and t.get("links") and
+                                    any(volentry.get("href") and
+                                        volentry["href"] in
+                                        [x["href"] for x in f["links"]]
+                                        for volentry in t["links"])}},
                  ],
         }
 

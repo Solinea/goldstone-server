@@ -80,12 +80,12 @@ INSTALLED_APPS = (
     'south',
     'goldstone.accounts',
     'goldstone.apps.api_perf',
-    'goldstone.apps.cinder',
     'goldstone.apps.drfes',
     'goldstone.apps.glance',
     'goldstone.apps.intelligence',
     'goldstone.apps.keystone',
     'goldstone.apps.nova',
+    'goldstone.cinder',
     'goldstone.core',
     'goldstone.glogging',
     'goldstone.neutron',
@@ -218,7 +218,7 @@ CELERYBEAT_SCHEDULE = {
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
     'discover_cinder_topology': {
-        'task': 'goldstone.apps.cinder.tasks.discover_cinder_topology',
+        'task': 'goldstone.cinder.tasks.discover_cinder_topology',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
     'discover_nova_topology': {
