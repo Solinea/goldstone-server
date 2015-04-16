@@ -16,15 +16,6 @@ from rest_framework.response import Response
 from goldstone.apps.api_perf.models import ApiPerfData
 from goldstone.apps.api_perf.serializers import ApiPerfAggSerializer
 from goldstone.apps.drfes.views import DateHistogramAggView
-from goldstone.views import TopLevelView
-import logging
-
-logger = logging.getLogger(__name__)
-
-
-class ReportView(TopLevelView):
-    """Template view for api perf report page."""
-    template_name = 'api_perf_report.html'
 
 
 class ApiPerfAggView(DateHistogramAggView):

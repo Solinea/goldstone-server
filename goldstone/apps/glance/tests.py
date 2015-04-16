@@ -15,19 +15,6 @@
 from django.test import SimpleTestCase
 
 
-class ViewTests(SimpleTestCase):
-    """Test the report view."""
-
-    def test_report_view(self):
-        """Test /glance/report."""
-
-        URI = '/glance/report'
-
-        response = self.client.get(URI)
-        self.assertEqual(response.status_code, 200)   # pylint: disable=E1101
-        self.assertTemplateUsed(response, 'glance_report.html')
-
-
 class DataViewTests(SimpleTestCase):
     """Test the data view."""
 

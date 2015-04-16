@@ -82,7 +82,6 @@ INSTALLED_APPS = (
     'goldstone.apps.api_perf',
     'goldstone.apps.drfes',
     'goldstone.apps.glance',
-    'goldstone.apps.intelligence',
     'goldstone.apps.keystone',
     'goldstone.apps.nova',
     'goldstone.cinder',

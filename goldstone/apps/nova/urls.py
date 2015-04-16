@@ -12,10 +12,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.conf.urls import url, include
+from django.conf.urls import url, patterns
 from rest_framework.routers import DefaultRouter
 
-from .views import ReportView, AgentsDataViewSet, \
+from .views import AgentsDataViewSet, \
     AggregatesDataViewSet, AvailZonesDataViewSet, CloudpipesDataViewSet, \
     FlavorsDataViewSet, FloatingIpPoolsDataViewSet, HostsDataViewSet, \
     HypervisorsDataViewSet, NetworksDataViewSet, SecGroupsDataViewSet, \
@@ -52,11 +52,10 @@ router.register(r'^services[/]?$',
                 ServicesDataViewSet,
                 base_name='nova-services')
 
+urlpatterns = router.urls
 
 # Other views.
-
-urlpatterns = [
-    url(r'^', include(router.urls)),
-    url(r'^report[/]?$', ReportView.as_view()),
+urlpatterns += patterns(
+    '',
     url(r'^hypervisor/spawns[/]?$', SpawnsAggView.as_view()),
-]
+    )

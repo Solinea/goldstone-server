@@ -12,10 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
-from .views import ReportView, EndpointsDataViewSet, \
-    RolesDataViewSet, ServicesDataViewSet, TenantsDataViewSet, UsersDataViewSet
+from .views import EndpointsDataViewSet, RolesDataViewSet, \
+    ServicesDataViewSet, TenantsDataViewSet, UsersDataViewSet
 
 # Views handled by DjangoRestFramework ViewSets.
 router = DefaultRouter(trailing_slash=False)
@@ -32,10 +31,3 @@ router.register(r'^tenants[/]?$',
 router.register(r'^users[/]?$', UsersDataViewSet, base_name='keystone-users')
 
 urlpatterns = router.urls
-
-# Other views.
-urlpatterns += patterns(
-    '',
-    url(r'^report[/]?$', ReportView.as_view(),
-        name='keystone-report-view'),
-)
