@@ -62,16 +62,13 @@ def nova_hypervisors_stats():
             'region': region
         }
 
-        unit = None
         if key in ['disk_available_least', 'free_disk_gb', 'local_gb',
                    'local_gb_used']:
-            unit = 'GB'
+            doc['unit'] = 'GB'
         elif key in ['free_ram_mb', 'memory_mb', 'memory_mb_used']:
-            unit = 'MB'
+            doc['unit'] = 'MB'
         else:
-            unit = 'count'
-
-        doc['unit'] = unit
+            doc['unit'] = 'count'
 
         conn.create(es_index, es_doc_type, doc)
 
