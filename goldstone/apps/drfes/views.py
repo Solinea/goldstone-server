@@ -135,7 +135,6 @@ class DateHistogramAggView(ElasticListAPIView):
             agg_name=self.AGG_NAME, min_doc_count=0,
             bounds_min=min, bounds_max=max)
 
-
     def _validate_params(self, request):
         import ast
         self.interval = request.query_params.get('interval')

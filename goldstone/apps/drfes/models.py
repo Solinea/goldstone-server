@@ -200,7 +200,7 @@ class DailyIndexDocType(DocType):
         try:
             mapping = cls.get_field_mapping(field)
             return 'raw' in \
-                   mapping[mapping.keys()[-1]]['mappings'] \
-                       [cls._doc_type.name][field]['mapping'][field]['fields']
+                   mapping[mapping.keys()[-1]]['mappings'][cls._doc_type.name][
+                       field]['mapping'][field]['fields']
         except KeyError:
             return False

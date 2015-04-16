@@ -37,8 +37,8 @@ class SpawnsAggSerializer(ReadOnlyElasticSerializer):
         data = [{bucket.key: {
             'count': bucket.doc_count,
             self.SUCCESS_AGG_NAME: self._process_success(
-                bucket[self.SUCCESS_AGG_NAME])}}
-            for bucket in datehist_agg_base.buckets]
+                bucket[self.SUCCESS_AGG_NAME])}} for bucket in
+                datehist_agg_base.buckets]
 
         return {self.DATEHIST_AGG_NAME: data}
 

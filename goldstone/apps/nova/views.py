@@ -113,7 +113,6 @@ class SpawnsAggView(DateHistogramAggView):
     reserved_params = ['interval']
     SUCCESS_AGG_NAME = 'success'
 
-
     class Meta:
         """Meta"""
         model = SpawnsData
