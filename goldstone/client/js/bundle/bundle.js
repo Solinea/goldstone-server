@@ -1,4 +1,4 @@
-/*! goldstone concat on 2015-04-14@18:52:34 */
+/*! goldstone concat on 2015-04-16@10:27:27 */
 
 /**
  * Copyright 2014 - 2015 Solinea, Inc.
@@ -4819,8 +4819,8 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="15" selected>lookback 15m</option>' +
-                '<option value="60">lookback 1h</option>' +
+            return '<option value="15">lookback 15m</option>' +
+                '<option value="60" selected>lookback 1h</option>' +
                 '<option value="360">lookback 6h</option>' +
                 '<option value="1440">lookback 1d</option>';
         }
@@ -4838,10 +4838,10 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="30">refresh 30s</option>' +
+            return '<option value="30" selected>refresh 30s</option>' +
                 '<option value="60">refresh 1m</option>' +
                 '<option value="300">refresh 5m</option>' +
-                '<option value="-1" selected>refresh off</option>';
+                '<option value="-1">refresh off</option>';
         }
     },
 
