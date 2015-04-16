@@ -43,7 +43,7 @@ class SpawnsDataModelTests(SimpleTestCase):
     def test_datehist_agg(self):
         """_datehist_agg should return an A with proper values."""
 
-        result = SpawnsData._datehist_agg( self.interval, self.start, self.end)
+        result = SpawnsData._datehist_agg(self.interval, self.start, self.end)
         self.assertDictEqual(result.to_dict(), self.DATEHIST_AGG)
 
     def test_spawn_finish_query(self):
@@ -65,4 +65,3 @@ class SpawnsDataModelTests(SimpleTestCase):
         self.assertDictEqual(result.to_dict()['query'], expected_query)
         self.assertListEqual(result.to_dict()['sort'], self.TIMESTAMP_SORT)
         self.assertDictEqual(result.to_dict()['aggs'], expected_aggs)
-

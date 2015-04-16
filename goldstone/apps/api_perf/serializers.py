@@ -44,7 +44,6 @@ class ApiPerfAggSerializer(ReadOnlyElasticSerializer):
 
         return {self.DATEHIST_AGG_NAME: data}
 
-
     @staticmethod
     def _process_range(range):
         """Reformat the range buckets."""
