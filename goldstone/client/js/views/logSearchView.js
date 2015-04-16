@@ -78,9 +78,11 @@ var LogSearchView = GoldstoneBasePageView.extend({
     },
 
     renderCharts: function() {
+        var self = this;
         this.computeLookback();
         var ns = this.defaults;
 
+        this.defaults.specificHost = this.options.specificHost || '';
         this.logAnalysisCollection = new LogAnalysisCollection({});
 
         this.logAnalysisView = new LogAnalysisView({
@@ -91,7 +93,7 @@ var LogSearchView = GoldstoneBasePageView.extend({
             featureSet: 'logEvents',
             chartTitle: 'Log Analysis',
             urlRoot: "/logging/summarize?",
-
+            specificHost: ns.specificHost
         });
     },
 
