@@ -73,7 +73,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
             debug: true
         },
 
-        // filter: null,
+        refreshCount: 2,
 
         // will prevent updating when zoom is active
         isZoomed: false
@@ -435,9 +435,19 @@ var LogAnalysisView = UtilizationCpuView.extend({
             self.update();
         });
 
-        this.refreshSearchTable();
+        // eliminates the immediate re-rendering of search table
+        // upon initial chart instantiation
+        this.refreshSearchTableAfterOnce();
         this.redraw();
 
+    },
+
+    refreshSearchTableAfterOnce: function() {
+        var ns = this.defaults;
+        var self = this;
+        if (--ns.refreshCount < 1) {
+            self.refreshSearchTable();
+        }
     },
 
     searchDataErrorMessage: function(message, errorMessage, location) {
