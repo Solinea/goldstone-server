@@ -1,5 +1,3 @@
-/*! goldstone concat on 2015-04-16@10:53:30 */
-
 /**
  * Copyright 2014 - 2015 Solinea, Inc.
  *
