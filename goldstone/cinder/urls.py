@@ -12,9 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from django.conf.urls import patterns, url
 from rest_framework.routers import DefaultRouter
-from .views import ReportView, VolumesDataViewSet, \
+from .views import VolumesDataViewSet, \
     BackupsDataViewSet, SnapshotsDataViewSet, ServicesDataViewSet, \
     VolumeTypesDataViewSet, TransfersDataViewSet
 
@@ -40,10 +39,3 @@ router.register(r'^volume_types[/]?$',
                 base_name='cinder-volume-types')
 
 urlpatterns = router.urls
-
-# Other views.
-urlpatterns += patterns('',
-                        url(r'^report[/]?$',
-                            ReportView.as_view(),
-                            name='cinder-report-view'),
-                        )
