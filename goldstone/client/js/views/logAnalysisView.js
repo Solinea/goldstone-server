@@ -84,9 +84,11 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         LogAnalysisView.__super__.processOptions.apply(this, arguments);
 
+        var self = this;
         var ns = this.defaults;
         ns.yAxisLabel = 'Log Events';
         ns.urlRoot = this.options.urlRoot;
+        ns.specificHost = this.options.specificHost || null;
     },
 
     processMargins: function() {
@@ -102,7 +104,11 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var seconds = (ns.end - ns.start) / 1000;
         var interval = Math.max(1, Math.floor((seconds / (ns.width / 10))));
 
-        this.collection.url = ns.urlRoot + 'per_host=False&@timestamp__range={' +
+        this.collection.url = ns.urlRoot;
+        if (ns.specificHost) {
+            this.collection.url += 'host=' + ns.specificHost + '&';
+        }
+        this.collection.url += 'per_host=False&@timestamp__range={' +
             '"gte":' + ns.start + ',"lte":' + ns.end + '}&interval=' + interval + 's';
     },
 
@@ -463,7 +469,13 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        var uri = '/logging/search?@timestamp__range={"gte":' +
+        var uri = '/logging/search?';
+
+        if (ns.specificHost) {
+            uri += 'host=' + ns.specificHost + '&';
+        }
+
+        uri += '@timestamp__range={"gte":' +
             ns.start +
             ',"lte":' +
             ns.end +
@@ -537,7 +549,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
         if ($.fn.dataTable.isDataTable(location)) {
             oTable = $(location).DataTable();
             // oTable.ajax.url(uri);
-            oTable.ajax.reload();
+            // oTable.ajax.reload();
         } else {
             var oTableParams = {
                 "info": true,
