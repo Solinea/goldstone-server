@@ -156,19 +156,6 @@ class PolyResource(PolymorphicModel):
 
         return thing.get("id")
 
-    # TODO: Uncomment these when they're implemented in the subclasses, or
-    # delete them to avoid pylint warnings.
-    #
-    # def fresh_config(self):
-    #     """Return configuration from source system for this resource."""
-
-    #     raise NotImplementedError("Override this method in a subclass")
-
-    # def historical_config(self):
-    #     """Return configuration from ES for this resource."""
-
-    #     raise NotImplementedError("Override this method in a subclass")
-
 
 class GraphNode(object):
     """Resource graph nodes."""

@@ -66,14 +66,6 @@ def validate(arg_list, context):
             except Exception:       # pylint: disable=W0703
                 validation_errors.append(BAD_PARAMETER % "interval")
 
-    # TODO: Once the render parameter is removed from the rest of the codebase,
-    # this if block can be deleted.
-    if 'render' in arg_list:
-        if context['render'] in ["True", "False"]:
-            context['render'] = bool(context['render'])
-        else:
-            validation_errors.append(BAD_PARAMETER % "render")
-
     # Return HttpResponseBadRequest if there were validation errors,
     # otherwise return the context.
     return \
