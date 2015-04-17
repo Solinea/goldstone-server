@@ -200,7 +200,6 @@ def reconcile_hosts():
         Host.objects.create(
             name=name,
             fqdn=[item[1] for item in incoming if item[0] == name][0])
-        # TODO generate an event if we don't get one from ceilometer?
 
 
 def get_nova_host_list():

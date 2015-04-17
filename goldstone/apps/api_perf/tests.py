@@ -62,10 +62,6 @@ class ApiPerfTests(SimpleTestCase):
         created = data.save()
         self.assertTrue(created)
 
-        # the Date field loses timezone info on retrieval.  We can fork and
-        # fix if it's still a problem when we ship.
-        # filed https://github.com/elasticsearch/elasticsearch-dsl-py/issues/77
-        # TODO ensure that tz support is in place before 3.0
         persisted = ApiPerfData.get(id=uuid)
 
         self.assertEqual(data.response_status, persisted.response_status)
@@ -74,7 +70,6 @@ class ApiPerfTests(SimpleTestCase):
         self.assertEqual(data.response_length, persisted.response_length)
         self.assertEqual(data.response_time, persisted.response_time)
 
-        # TODO uncomment when bug fixed in es-dsl
         self.assertEqual(data.creation_time, persisted.creation_time)
 
         data2 = ApiPerfData(response_status=1000,
