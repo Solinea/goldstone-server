@@ -523,7 +523,6 @@ def clean(verbose=False):
             if verbose:
                 print("deleting %s ..." % filepath)
 
-            import pdb; pdb.set_trace()
-            os.remove(target)
+            os.remove(filepath)
 
     os.path.walk('.', process_files, None)
