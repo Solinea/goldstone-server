@@ -121,11 +121,13 @@ goldstone/.idea/
 
 celerybeat-schedule
 
-# local stuff
+# local settings
 goldstone/settings/js-development.py
 goldstone/settings/local.py
 goldstone/settings/local_dev.py
 goldstone/settings/local_prod.py
+goldstone/settings/dev_*.py
+goldstone/settings/test_*.py
 goldstone/settings/.secret_key_store
 celerybeat-schedule.db
 dump.rdb
@@ -135,6 +137,16 @@ node_modules/
 # vagrant related
 .vagrant/*
 
+dev_db_oak_c2_gs1.py
+dev_db_oak_c2_gs2.py
+dev_db_oak_c2_gs3.py
+dev_oak_c1_gs1.py
+dev_oak_c2_gs1.py
+dev_oak_c2_gs2.py
+dev_oak_c2_gs3.py
+jstanford.py
+test_jenkins.py
+test_oak_c2.py
 goldstone/db.sqlite3.dev
 
 # Emacs backup files, TAGS
