@@ -15,6 +15,7 @@
 from __future__ import print_function
 
 import os
+import os.path
 import sys
 
 from contextlib import contextmanager
@@ -480,3 +481,49 @@ def test(target=''):
     """
 
     _django_manage("test", target=target, proj_settings=DEV_SETTINGS)
+
+
+@task
+def clean(verbose=False):
+    """Delete unnecessary and intermediate files.
+
+    These subdirectories are skipped: .git, .tox.
+
+    The deleted files are: *.orig, *.pyc, *.*~.
+
+    """
+    import re
+
+    # Subdirectories to ignore. These are typically wholly controled by a tool,
+    # and we don't need or want to muck with them.
+    IGNORE = [".git", ".tox"]
+
+    # Files to be deleted. Each entry is a regex.  Combinations of string
+    # operations would be faster, but more cumbersome and harder to maintain.
+
+    DELETE = [re.compile(r'^.*\.orig'),
+              re.compile(r'^.*\.pyc'),
+              re.compile(r'^.*\..*~'),
+              ]
+
+    def process_files(arg, dirname, names):
+        """Fine the unnecessary files in this directory, and delete them."""
+
+        # If we're in a subdirectory that should be skipped, return now.
+        if any(x in dirname for x in IGNORE):
+            return
+
+        # Make a list of the files to delete.
+        targets = [x for x in names if any(y.search(x) for y in DELETE)]
+
+        # Delete every target in this directory.
+        for target in targets:
+            filepath = os.path.join(dirname, target)
+
+            if verbose:
+                print("deleting %s ..." % filepath)
+
+            import pdb; pdb.set_trace()
+            os.remove(target)
+
+    os.path.walk('.', process_files, None)

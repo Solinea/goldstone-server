@@ -31,7 +31,6 @@ MATCHING_FN = settings.R_ATTRIBUTE.MATCHING_FN
 TYPE = settings.R_ATTRIBUTE.TYPE
 
 
-# TODO remove JsonReadOnlyViewSet after poly resource model in place.
 class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
     """A base ViewSet that renders a JSON response for "list" actions; i.e.,
     GET requests for a collection of objects.
