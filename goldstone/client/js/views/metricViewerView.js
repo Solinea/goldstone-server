@@ -15,23 +15,20 @@
  */
 
 /*
-NOTE: This Backbone View is a "superClass" that is extended to at least 2 other chart-types at the time of this documentation.
 
-The method of individuating charts that have particular individual requirements is to instantiate them with the 'featureSet' property within the options hash.
+Instantiated on metricViewerPageView as:
 
-Instantiated on nodeReportView as:
+this.metricViewerChart = new MetricViewerCollection1({});
 
-this.cpuUsageChart = new UtilizationCpuCollection({
-    nodeName: hostName,
-    globalLookback: ns.globalLookback
+// instance variables added in order to create a custom binding
+// between each metricViewerChart and the associated sidr menus
+this.metricViewerChartView = new MetricViewerView({
+        collection: this.metricViewerChart1,
+        width: $('#goldstone-metric-r1-c1').width(),
+        height: $('#goldstone-metric-r1-c1').width(),
+        instance: 1
 });
 
-this.cpuUsageView = new UtilizationCpuView({
-    collection: this.cpuUsageChart,
-    el: '#node-report-r3 #node-report-panel #cpu-usage',
-    width: $('#node-report-r3 #node-report-panel #cpu-usage').width(),
-    featureSet: 'cpuUsage'
-});
 */
 
 var MetricViewerView = GoldstoneBaseView.extend({
@@ -42,7 +39,6 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
     initialize: function(options) {
         this.options = options;
-        console.log(this.options);
     },
 
     processOptions: function() {},
@@ -59,54 +55,68 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
     },
 
-    update: function() {
-        console.log('update triggered');
-    },
+    update: function() {},
 
     template: _.template(
-        '<div class="outer" style="border:solid;height:300px">' +
-        // '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+
+        '<div class="hidden" id="external-content<%= this.options.instance %>">' +
+
+        '<h2>Metric</h2>' +
+        '<select>' +
+        '<option value="" selected>hypervisor.count</option>' +
+        '<option value="">hypervisor.current_workload</option>' +
+        '<option value="">hypervisor.disk_available_least</option>' +
+        '/<select>' +
+
+        '<h2>Resource</h2>' +
+        '<select>' +
+        '<option value="all" selected>all</option>' +
+        '<option value="">ctrl-01</option>' +
+        '<option value="">rsrc-01</option>' +
+        '<option value="">rsrc-02</option>' +
+        '/<select>' +
+
+        '<h2>Interval</h2>' +
+        '<select>' +
+        '<option value="30" selected>30s</option>' +
+        '<option value="60">1m</option>' +
+        '<option value="300">5m</option>' +
+        '/<select>' +
+
+        '<h2>Time range</h2>' +
+        '<select>' +
+        '<option value="15">lookback 15m</option>' +
+        '<option value="60" selected>lookback 1h</option>' +
+        '<option value="360">lookback 6h</option>' +
+        '<option value="1440">lookback 1d</option>' +
+        '/<select>' +
+
+        '<h2>Refresh</h2>' +
+        '<select>' +
+        '<option value="30" selected>30s</option>' +
+        '<option value="60">1m</option>' +
+        '<option value="300">5m</option>' +
+        '/<select>' +
+
+        '<h2>Type</h2>' +
+        '<select>' +
+        '<option value="bar" selected>Bar Chart</option>' +
+        '<option value="line">Line Chart</option>' +
+        '/<select>' +
 
 
-        '<div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar">' +
-        '<div class="list-group">' +
-        '<a href="#/metric" class="list-group-item active">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
+        '<button>Submit</button> ' +
+        ' <button>Cancel</button>' +
+
         '</div>' +
-        '</div>' +
 
-
-        '<div class="stuff" style="background-color:red;margin-top:5px;display:inline-block;vertical-align:top;border:solid;width:50px;height:<%= this.options.height - 20 %>px"></div>'
-
-        // '<input class="menu-trigger" type="button" value="Menu">' +
+        '<i id="menu-trigger<%= this.options.instance %>" class="fa fa-2x fa-bars"</i>' +
+        '<div style="height:<%= this.options.height %>px;width:<%= this.options.width %>px;background-color:lightgray;border:solid;"></div>'
 
     ),
 
     render: function() {
         this.$el.html(this.template());
-
-        $('[data-toggle="offcanvas"]').click(function() {
-            $('.row-offcanvas').toggleClass('active');
-        });
-
-        // var jPM = $.jPanelMenu({
-        //     // clone: false,
-        //     panel: '.wrap',
-        //     // menu: '#menu',
-        //     trigger: '.stuff',
-        //     // animated: true
-        // });
-
-        // jPM.on();
-
         return this;
     }
 

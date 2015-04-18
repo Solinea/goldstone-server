@@ -2243,18 +2243,7 @@ var MetricViewerCollection = Backbone.Collection.extend({
 
     parse: function(data) {
 
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/core'));
-            this.fetch({
-                url: nextUrl,
-                remove: false,
-            });
-        } else {
-            this.defaults.urlCollectionCount--;
-        }
-
-        return data.results;
+        return data;
     },
 
     model: GoldstoneBaseModel,
@@ -2266,50 +2255,8 @@ var MetricViewerCollection = Backbone.Collection.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
-        this.defaults.fetchInProgress = false;
-        this.defaults.urlPrefixes = ['sys', 'user', 'wait'];
-        this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
-        this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
-        // this.fetchMultipleUrls();
     },
 
-    fetchMultipleUrls: function() {
-        var self = this;
-
-        if (this.defaults.fetchInProgress) {
-            return null;
-        }
-
-        this.defaults.fetchInProgress = true;
-        this.defaults.urlsToFetch = [];
-
-        // grabs minutes from global selector option value
-        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
-
-        _.each(self.defaults.urlPrefixes, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.cpu." + prefix + "&node=" +
-                self.defaults.nodeName + "&timestamp__range={'gte':" +
-                lookback + "}&page_size=1000");
-        });
-
-        this.fetch({
-
-            // fetch the first time without remove:false
-            // to clear out the collection
-            url: this.defaults.urlsToFetch[0],
-            success: function() {
-
-                // upon success: further fetches are carried out with
-                // remove: false to build the collection
-                _.each(self.defaults.urlsToFetch.slice(1), function(item) {
-                    self.fetch({
-                        url: item,
-                        remove: false
-                    });
-                });
-            }
-        });
-    }
 });
 ;
 /**
@@ -6675,35 +6622,71 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         }
     },
 
+    onClose: function() {
+        MetricViewerView.__super__.onClose.apply(this, arguments);
+
+        // in order to close sidr menus that have been instantiated with a
+        // 'name' param in the options hash, they need to be closed
+        // individually by name. a '#' will automatically be prepended
+        // to the name, to match an id selector.
+        $.sidr('close', 'sidr-menu-1');
+        $.sidr('close', 'sidr-menu-2');
+        $.sidr('close', 'sidr-menu-3');
+    },
+
     renderCharts: function() {
 
         //---------------------------
         // instantiate metric viewer viz
 
         // fetch url is set in eventTimelineCollection
-        this.metricViewerChart = new MetricViewerCollection({});
+        this.metricViewerChart1 = new MetricViewerCollection({});
+        this.metricViewerChart2 = new MetricViewerCollection({});
+        this.metricViewerChart3 = new MetricViewerCollection({});
 
+        // instance variables added in order to create a custom binding
+        // between each metricViewerChart and the associated sidr menus
         this.metricViewerChartView = new MetricViewerView({
-            collection: this.metricViewerChart,
+            collection: this.metricViewerChart1,
             width: $('#goldstone-metric-r1-c1').width(),
-            height: $('#goldstone-metric-r1-c1').width()
+            height: $('#goldstone-metric-r1-c1').width(),
+            instance: 1
         });
 
-        // this.metricViewerChartView2 = new MetricViewerView({
-        //     collection: this.metricViewerChart,
-        //     width: $('#goldstone-metric-r1-c2').width(),
-        //     height: $('#goldstone-metric-r1-c2').width()
-        // });
+        this.metricViewerChartView2 = new MetricViewerView({
+            collection: this.metricViewerChart2,
+            width: $('#goldstone-metric-r1-c2').width(),
+            height: $('#goldstone-metric-r1-c2').width(),
+            instance: 2
+        });
 
-        // this.metricViewerChartView3 = new MetricViewerView({
-        //     collection: this.metricViewerChart,
-        //     width: $('#goldstone-metric-r1-c3').width(),
-        //     height: $('#goldstone-metric-r1-c3').width()
-        // });
+        this.metricViewerChartView3 = new MetricViewerView({
+            collection: this.metricViewerChart3,
+            width: $('#goldstone-metric-r1-c3').width(),
+            height: $('#goldstone-metric-r1-c3').width(),
+            instance: 3
+        });
 
         $('#goldstone-metric-r1-c1').append(this.metricViewerChartView.render().el);
-        // $('#goldstone-metric-r1-c2').append(this.metricViewerChartView2.render().el);
-        // $('#goldstone-metric-r1-c3').append(this.metricViewerChartView3.render().el);
+        $('#goldstone-metric-r1-c2').append(this.metricViewerChartView2.render().el);
+        $('#goldstone-metric-r1-c3').append(this.metricViewerChartView3.render().el);
+
+        $('#menu-trigger1').sidr({
+            name: 'sidr-menu-1',
+            source: "#external-content1",
+            displace: true,
+        });
+        $('#menu-trigger2').sidr({
+            name: 'sidr-menu-2',
+            source: "#external-content1",
+            displace: true,
+        });
+        $('#menu-trigger3').sidr({
+            name: 'sidr-menu-3',
+            source: "#external-content1",
+            displace: true,
+        });
+
     },
 
     template: _.template('' +
@@ -6733,23 +6716,20 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
  */
 
 /*
-NOTE: This Backbone View is a "superClass" that is extended to at least 2 other chart-types at the time of this documentation.
 
-The method of individuating charts that have particular individual requirements is to instantiate them with the 'featureSet' property within the options hash.
+Instantiated on metricViewerPageView as:
 
-Instantiated on nodeReportView as:
+this.metricViewerChart = new MetricViewerCollection1({});
 
-this.cpuUsageChart = new UtilizationCpuCollection({
-    nodeName: hostName,
-    globalLookback: ns.globalLookback
+// instance variables added in order to create a custom binding
+// between each metricViewerChart and the associated sidr menus
+this.metricViewerChartView = new MetricViewerView({
+        collection: this.metricViewerChart1,
+        width: $('#goldstone-metric-r1-c1').width(),
+        height: $('#goldstone-metric-r1-c1').width(),
+        instance: 1
 });
 
-this.cpuUsageView = new UtilizationCpuView({
-    collection: this.cpuUsageChart,
-    el: '#node-report-r3 #node-report-panel #cpu-usage',
-    width: $('#node-report-r3 #node-report-panel #cpu-usage').width(),
-    featureSet: 'cpuUsage'
-});
 */
 
 var MetricViewerView = GoldstoneBaseView.extend({
@@ -6760,7 +6740,6 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
     initialize: function(options) {
         this.options = options;
-        console.log(this.options);
     },
 
     processOptions: function() {},
@@ -6777,54 +6756,68 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
     },
 
-    update: function() {
-        console.log('update triggered');
-    },
+    update: function() {},
 
     template: _.template(
-        '<div class="outer" style="border:solid;height:300px">' +
-        // '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+
+        '<div class="hidden" id="external-content<%= this.options.instance %>">' +
+
+        '<h2>Metric</h2>' +
+        '<select>' +
+        '<option value="" selected>hypervisor.count</option>' +
+        '<option value="">hypervisor.current_workload</option>' +
+        '<option value="">hypervisor.disk_available_least</option>' +
+        '/<select>' +
+
+        '<h2>Resource</h2>' +
+        '<select>' +
+        '<option value="all" selected>all</option>' +
+        '<option value="">ctrl-01</option>' +
+        '<option value="">rsrc-01</option>' +
+        '<option value="">rsrc-02</option>' +
+        '/<select>' +
+
+        '<h2>Interval</h2>' +
+        '<select>' +
+        '<option value="30" selected>30s</option>' +
+        '<option value="60">1m</option>' +
+        '<option value="300">5m</option>' +
+        '/<select>' +
+
+        '<h2>Time range</h2>' +
+        '<select>' +
+        '<option value="15">lookback 15m</option>' +
+        '<option value="60" selected>lookback 1h</option>' +
+        '<option value="360">lookback 6h</option>' +
+        '<option value="1440">lookback 1d</option>' +
+        '/<select>' +
+
+        '<h2>Refresh</h2>' +
+        '<select>' +
+        '<option value="30" selected>30s</option>' +
+        '<option value="60">1m</option>' +
+        '<option value="300">5m</option>' +
+        '/<select>' +
+
+        '<h2>Type</h2>' +
+        '<select>' +
+        '<option value="bar" selected>Bar Chart</option>' +
+        '<option value="line">Line Chart</option>' +
+        '/<select>' +
 
 
-        '<div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar">' +
-        '<div class="list-group">' +
-        '<a href="#/metric" class="list-group-item active">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
-        '<a href="#/metric" class="list-group-item">Link</a>' +
+        '<button>Submit</button> ' +
+        ' <button>Cancel</button>' +
+
         '</div>' +
-        '</div>' +
 
-
-        '<div class="stuff" style="background-color:red;margin-top:5px;display:inline-block;vertical-align:top;border:solid;width:50px;height:<%= this.options.height - 20 %>px"></div>'
-
-        // '<input class="menu-trigger" type="button" value="Menu">' +
+        '<i id="menu-trigger<%= this.options.instance %>" class="fa fa-2x fa-bars"</i>' +
+        '<div style="height:<%= this.options.height %>px;width:<%= this.options.width %>px;background-color:lightgray;border:solid;"></div>'
 
     ),
 
     render: function() {
         this.$el.html(this.template());
-
-        $('[data-toggle="offcanvas"]').click(function() {
-            $('.row-offcanvas').toggleClass('active');
-        });
-
-        // var jPM = $.jPanelMenu({
-        //     // clone: false,
-        //     panel: '.wrap',
-        //     // menu: '#menu',
-        //     trigger: '.stuff',
-        //     // animated: true
-        // });
-
-        // jPM.on();
-
         return this;
     }
 

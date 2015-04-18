@@ -22,18 +22,7 @@ var MetricViewerCollection = Backbone.Collection.extend({
 
     parse: function(data) {
 
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/core'));
-            this.fetch({
-                url: nextUrl,
-                remove: false,
-            });
-        } else {
-            this.defaults.urlCollectionCount--;
-        }
-
-        return data.results;
+        return data;
     },
 
     model: GoldstoneBaseModel,
@@ -45,48 +34,6 @@ var MetricViewerCollection = Backbone.Collection.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
-        this.defaults.fetchInProgress = false;
-        this.defaults.urlPrefixes = ['sys', 'user', 'wait'];
-        this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
-        this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
-        // this.fetchMultipleUrls();
     },
 
-    fetchMultipleUrls: function() {
-        var self = this;
-
-        if (this.defaults.fetchInProgress) {
-            return null;
-        }
-
-        this.defaults.fetchInProgress = true;
-        this.defaults.urlsToFetch = [];
-
-        // grabs minutes from global selector option value
-        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
-
-        _.each(self.defaults.urlPrefixes, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.cpu." + prefix + "&node=" +
-                self.defaults.nodeName + "&timestamp__range={'gte':" +
-                lookback + "}&page_size=1000");
-        });
-
-        this.fetch({
-
-            // fetch the first time without remove:false
-            // to clear out the collection
-            url: this.defaults.urlsToFetch[0],
-            success: function() {
-
-                // upon success: further fetches are carried out with
-                // remove: false to build the collection
-                _.each(self.defaults.urlsToFetch.slice(1), function(item) {
-                    self.fetch({
-                        url: item,
-                        remove: false
-                    });
-                });
-            }
-        });
-    }
 });
