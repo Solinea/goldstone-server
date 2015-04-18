@@ -1,5 +1,3 @@
-### /Volumes/Data/Users/kpepple/.gitignore-boilerplates/Python.gitignore
-
 *.py[cod]
 
 # C extensions
@@ -43,9 +41,10 @@ reports/
 # SQLdatabases
 #
 db.sqlite3
+db.sqlite3.dev
 
-### /Volumes/Data/Users/kpepple/.gitignore-boilerplates/Ruby.gitignore
-
+# Ruby
+#
 *.gem
 *.rbc
 .bundle
@@ -61,12 +60,13 @@ test/version_tmp
 tmp
 
 # YARD artifacts
+#
 .yardoc
 _yardoc
 
 
-### /Volumes/Data/Users/kpepple/.gitignore-boilerplates/Global/OSX.gitignore
-
+# OSX
+#
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -74,14 +74,14 @@ Icon
 
 
 # Thumbnails
+#
 ._*
 
 # Files that might appear on external disk
+#
 .Spotlight-V100
 .Trashes
 
-
-### /Volumes/Data/Users/kpepple/.gitignore-boilerplates/Global/VirtualEnv.gitignore
 
 # Virtualenv
 # http://iamzed.com/2009/05/07/a-primer-on-virtualenv/
@@ -92,8 +92,8 @@ Icon
 [Ss]cripts
 
 
-### /Volumes/Data/Users/kpepple/.gitignore-boilerplates/Rails.gitignore
-
+# Rails
+#
 *.rbc
 *.sassc
 .sass-cache
@@ -114,7 +114,7 @@ pickle-email-*.html
 .project
 .ropeproject
 
-# JetBrains stuff
+# JetBrains
 /.idea/
 atlassian-ide-plugin.xml
 goldstone/.idea/
@@ -136,18 +136,6 @@ node_modules/
 
 # vagrant related
 .vagrant/*
-
-dev_db_oak_c2_gs1.py
-dev_db_oak_c2_gs2.py
-dev_db_oak_c2_gs3.py
-dev_oak_c1_gs1.py
-dev_oak_c2_gs1.py
-dev_oak_c2_gs2.py
-dev_oak_c2_gs3.py
-jstanford.py
-test_jenkins.py
-test_oak_c2.py
-goldstone/db.sqlite3.dev
 
 # Emacs backup files, TAGS
 *.*~
