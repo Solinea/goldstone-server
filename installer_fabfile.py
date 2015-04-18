@@ -131,7 +131,7 @@ def _centos6_setup_postgres():
 
     print(cyan("creating the PostgreSQL goldstone user.  "
                "Please enter a password..."))
-    # TODO this prompts for password, then complains if the user exists
+
     subprocess.call('su - postgres -c "createuser goldstone -s -d -P"',
                     shell=True)
 

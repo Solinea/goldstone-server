@@ -171,8 +171,6 @@ class NavTreeView(RetrieveAPIView, TopologyMixin):
         # to be able to find a way to order or otherwise express module
         # dependencies.  It will also be helpful to build from the bottom up.
 
-        # TODO devise mechanism for expressing module dependencies
-
         # bind cinder zones to global at region
         cl = [cinder_topo.build_topology_tree()]
 

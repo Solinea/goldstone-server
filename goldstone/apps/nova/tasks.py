@@ -193,7 +193,6 @@ def reconcile_hosts():
     # delete missing hosts from our model
     for name in missing:
         Host.objects.filter(name=name).delete()
-        # TODO generate an event if we don't get one from ceilometer?
 
     # create new hosts in our model
     for name in new:

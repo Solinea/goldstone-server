@@ -56,7 +56,6 @@ class UnexpectedSearchResponse(GoldstoneBaseException):
     pass
 
 
-# TODO remove dependency utc_now and get rid of it
 def utc_now():
     """Convenient, and possibly necessary.
 
