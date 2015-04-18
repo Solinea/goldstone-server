@@ -110,7 +110,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         '</div>' +
 
-        '<i id="menu-trigger<%= this.options.instance %>" class="fa fa-2x fa-bars"</i>' +
+        '<i id="menu-trigger<%= this.options.instance %>" class="fa fa-2x fa-bars"></i>' +
         '<div style="height:<%= this.options.height %>px;width:<%= this.options.width %>px;background-color:lightgray;border:solid;"></div>'
 
     ),
