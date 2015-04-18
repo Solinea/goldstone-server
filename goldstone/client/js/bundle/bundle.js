@@ -721,12 +721,13 @@ var GoldstoneRouter = Backbone.Router.extend({
         "intelligence/search": "logSearch",
         "keystone/report": "keystoneReport",
         "login": "login",
-        "password": "password",
-        "settings": "settings",
-        "settings/tenants": "tenant",
+        "metric": "metricViewer",
         "neutron/report": "neutronReport",
         "nova/report": "novaReport",
+        "password": "password",
         "report/node/:nodeId": "nodeReport",
+        "settings": "settings",
+        "settings/tenants": "tenant",
         "*default": "redirect"
     },
     extendOptions: function(options, args) {
@@ -816,10 +817,20 @@ var GoldstoneRouter = Backbone.Router.extend({
 
     */
 
-    nodeReport: function(nodeId) {
-        this.switchView(NodeReportView, {
-            node_uuid: nodeId
-        });
+    apiPerfReport: function() {
+        this.switchView(ApiPerfReportView);
+    },
+    cinderReport: function() {
+        this.switchView(CinderReportView);
+    },
+    discover: function() {
+        this.switchView(DiscoverView);
+    },
+    glanceReport: function() {
+        this.switchView(GlanceReportView);
+    },
+    help: function() {
+        this.switchView(HelpView);
     },
     keystoneReport: function() {
         this.switchView(KeystoneReportView);
@@ -827,41 +838,34 @@ var GoldstoneRouter = Backbone.Router.extend({
     login: function() {
         this.switchView(LoginPageView);
     },
+    logSearch: function() {
+        this.switchView(LogSearchView);
+    },
+    metricViewer: function() {
+        this.switchView(MetricViewerPageView);
+    },
+    neutronReport: function() {
+        this.switchView(NeutronReportView);
+    },
+    nodeReport: function(nodeId) {
+        this.switchView(NodeReportView, {
+            node_uuid: nodeId
+        });
+    },
+    novaReport: function() {
+        this.switchView(NovaReportView);
+    },
     password: function() {
         this.switchView(PasswordResetView);
+    },
+    redirect: function() {
+        location.href = "#/discover";
     },
     settings: function() {
         this.switchView(SettingsPageView);
     },
     tenant: function() {
         this.switchView(TenantSettingsPageView);
-    },
-    apiPerfReport: function() {
-        this.switchView(ApiPerfReportView);
-    },
-    novaReport: function() {
-        this.switchView(NovaReportView);
-    },
-    neutronReport: function() {
-        this.switchView(NeutronReportView);
-    },
-    cinderReport: function() {
-        this.switchView(CinderReportView);
-    },
-    glanceReport: function() {
-        this.switchView(GlanceReportView);
-    },
-    logSearch: function() {
-        this.switchView(LogSearchView);
-    },
-    discover: function() {
-        this.switchView(DiscoverView);
-    },
-    help: function() {
-        this.switchView(HelpView);
-    },
-    redirect: function() {
-        location.href = "#/discover";
     }
 });
 ;
@@ -2213,6 +2217,99 @@ var MemResourceCollection = Backbone.Collection.extend({
     // creates a url similar to:
     // /core/metrics?name__prefix=nova.hypervisor.mem&@timestamp__range={"gte":1426887188000}
 
+});
+;
+/**
+ * Copyright 2014 Solinea, Inc.
+ *
+ * Licensed under the Solinea Software License Agreement (goldstone),
+ * Version 1.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// define collection and link to model
+
+var MetricViewerCollection = Backbone.Collection.extend({
+
+    defaults: {},
+
+    parse: function(data) {
+
+        if (data.next && data.next !== null) {
+            var dp = data.next;
+            nextUrl = dp.slice(dp.indexOf('/core'));
+            this.fetch({
+                url: nextUrl,
+                remove: false,
+            });
+        } else {
+            this.defaults.urlCollectionCount--;
+        }
+
+        return data.results;
+    },
+
+    model: GoldstoneBaseModel,
+
+    // will impose an order based on 'timestamp' for
+    // the models as they are put into the collection
+    // comparator: '@timestamp',
+
+    initialize: function(options) {
+        this.options = options || {};
+        this.defaults = _.clone(this.defaults);
+        this.defaults.fetchInProgress = false;
+        this.defaults.urlPrefixes = ['sys', 'user', 'wait'];
+        this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
+        this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
+        // this.fetchMultipleUrls();
+    },
+
+    fetchMultipleUrls: function() {
+        var self = this;
+
+        if (this.defaults.fetchInProgress) {
+            return null;
+        }
+
+        this.defaults.fetchInProgress = true;
+        this.defaults.urlsToFetch = [];
+
+        // grabs minutes from global selector option value
+        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
+
+        _.each(self.defaults.urlPrefixes, function(prefix) {
+            self.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.cpu." + prefix + "&node=" +
+                self.defaults.nodeName + "&timestamp__range={'gte':" +
+                lookback + "}&page_size=1000");
+        });
+
+        this.fetch({
+
+            // fetch the first time without remove:false
+            // to clear out the collection
+            url: this.defaults.urlsToFetch[0],
+            success: function() {
+
+                // upon success: further fetches are carried out with
+                // remove: false to build the collection
+                _.each(self.defaults.urlsToFetch.slice(1), function(item) {
+                    self.fetch({
+                        url: item,
+                        remove: false
+                    });
+                });
+            }
+        });
+    }
 });
 ;
 /**
@@ -6545,6 +6642,191 @@ var LoginPageView = GoldstoneBaseView.extend({
         '</div>' +
         '</div>'
     )
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Solinea Software License Agreement (goldstone),
+ * Version 1.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var MetricViewerPageView = GoldstoneBasePageView.extend({
+
+    triggerChange: function(change) {
+        if (change === 'lookbackSelectorChanged') {
+            // this.eventTimelineChartView.trigger('lookbackSelectorChanged');
+            // this.nodeAvailChartView.trigger('lookbackSelectorChanged');
+        }
+
+        if (change === 'lookbackIntervalReached') {
+            // this.eventTimelineChartView.trigger('lookbackIntervalReached');
+            // this.nodeAvailChartView.trigger('lookbackIntervalReached');
+        }
+    },
+
+    renderCharts: function() {
+
+        //---------------------------
+        // instantiate metric viewer viz
+
+        // fetch url is set in eventTimelineCollection
+        this.metricViewerChart = new MetricViewerCollection({});
+
+        this.metricViewerChartView = new MetricViewerView({
+            collection: this.metricViewerChart,
+            width: $('#goldstone-metric-r1-c1').width(),
+            height: $('#goldstone-metric-r1-c1').width()
+        });
+
+        // this.metricViewerChartView2 = new MetricViewerView({
+        //     collection: this.metricViewerChart,
+        //     width: $('#goldstone-metric-r1-c2').width(),
+        //     height: $('#goldstone-metric-r1-c2').width()
+        // });
+
+        // this.metricViewerChartView3 = new MetricViewerView({
+        //     collection: this.metricViewerChart,
+        //     width: $('#goldstone-metric-r1-c3').width(),
+        //     height: $('#goldstone-metric-r1-c3').width()
+        // });
+
+        $('#goldstone-metric-r1-c1').append(this.metricViewerChartView.render().el);
+        // $('#goldstone-metric-r1-c2').append(this.metricViewerChartView2.render().el);
+        // $('#goldstone-metric-r1-c3').append(this.metricViewerChartView3.render().el);
+    },
+
+    template: _.template('' +
+        '<div id="goldstone-metric-r1" class="row">' +
+        '<div id="goldstone-metric-r1-c1" class="col-md-4"></div>' +
+        '<div id="goldstone-metric-r1-c2" class="col-md-4"></div>' +
+        '<div id="goldstone-metric-r1-c3" class="col-md-4"></div>' +
+        '</div>'
+    )
+
+});
+;
+/**
+ * Copyright 2014 - 2015 Solinea, Inc.
+ *
+ * Licensed under the Solinea Software License Agreement (goldstone),
+ * Version 1.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+NOTE: This Backbone View is a "superClass" that is extended to at least 2 other chart-types at the time of this documentation.
+
+The method of individuating charts that have particular individual requirements is to instantiate them with the 'featureSet' property within the options hash.
+
+Instantiated on nodeReportView as:
+
+this.cpuUsageChart = new UtilizationCpuCollection({
+    nodeName: hostName,
+    globalLookback: ns.globalLookback
+});
+
+this.cpuUsageView = new UtilizationCpuView({
+    collection: this.cpuUsageChart,
+    el: '#node-report-r3 #node-report-panel #cpu-usage',
+    width: $('#node-report-r3 #node-report-panel #cpu-usage').width(),
+    featureSet: 'cpuUsage'
+});
+*/
+
+var MetricViewerView = GoldstoneBaseView.extend({
+
+    defaults: {
+        margin: {}
+    },
+
+    initialize: function(options) {
+        this.options = options;
+        console.log(this.options);
+    },
+
+    processOptions: function() {},
+
+    processListeners: function() {},
+
+    processMargins: function() {},
+
+    standardInit: function() {},
+
+    collectionPrep: function() {},
+
+    dataErrorMessage: function(message, errorMessage) {
+
+    },
+
+    update: function() {
+        console.log('update triggered');
+    },
+
+    template: _.template(
+        '<div class="outer" style="border:solid;height:300px">' +
+        // '<div class="alert alert-danger popup-message" hidden="true"></div>' +
+
+
+        '<div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar">' +
+        '<div class="list-group">' +
+        '<a href="#/metric" class="list-group-item active">Link</a>' +
+        '<a href="#/metric" class="list-group-item">Link</a>' +
+        '<a href="#/metric" class="list-group-item">Link</a>' +
+        '<a href="#/metric" class="list-group-item">Link</a>' +
+        '<a href="#/metric" class="list-group-item">Link</a>' +
+        '<a href="#/metric" class="list-group-item">Link</a>' +
+        '<a href="#/metric" class="list-group-item">Link</a>' +
+        '<a href="#/metric" class="list-group-item">Link</a>' +
+        '<a href="#/metric" class="list-group-item">Link</a>' +
+        '<a href="#/metric" class="list-group-item">Link</a>' +
+        '</div>' +
+        '</div>' +
+
+
+        '<div class="stuff" style="background-color:red;margin-top:5px;display:inline-block;vertical-align:top;border:solid;width:50px;height:<%= this.options.height - 20 %>px"></div>'
+
+        // '<input class="menu-trigger" type="button" value="Menu">' +
+
+    ),
+
+    render: function() {
+        this.$el.html(this.template());
+
+        $('[data-toggle="offcanvas"]').click(function() {
+            $('.row-offcanvas').toggleClass('active');
+        });
+
+        // var jPM = $.jPanelMenu({
+        //     // clone: false,
+        //     panel: '.wrap',
+        //     // menu: '#menu',
+        //     trigger: '.stuff',
+        //     // animated: true
+        // });
+
+        // jPM.on();
+
+        return this;
+    }
 
 });
 ;
