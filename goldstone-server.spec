@@ -184,8 +184,7 @@ install -m 750 %{_sourcedir}/setup.py %{buildroot}/opt/goldstone/setup.py
 install -m 750 %{_sourcedir}/manage.py %{buildroot}/opt/goldstone/manage.py
 install -m 640 %{_sourcedir}/README.rst %{buildroot}/opt/goldstone/README.rst
 install -m 640 %{_sourcedir}/INSTALL.rst %{buildroot}/opt/goldstone/INSTALL.rst
-install -m 640 %{_sourcedir}/OSS_LICENSE_DISCLOSURE.pdf %{buildroot}/opt/goldstone/OSS_LICENSE_DISCLOSURE.pdf
-install -m 640 %{_sourcedir}/LICENSE.pdf %{buildroot}/opt/goldstone/LICENSE.pdf
+install -m 640 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
 install -m 640 %{_sourcedir}/external/httpd/zgoldstone.conf %{buildroot}/etc/httpd/conf.d/zgoldstone.conf
 install -m 750 %{_sourcedir}/external/init.d/celerybeat %{buildroot}/etc/init.d/celerybeat
 install -m 750 %{_sourcedir}/external/init.d/celeryd-default %{buildroot}/etc/init.d/celeryd-default
