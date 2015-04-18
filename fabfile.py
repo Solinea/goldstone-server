@@ -506,7 +506,7 @@ def clean(verbose=False):
               re.compile(r'^.*\..*~'),
               ]
 
-    def process_files(arg, dirname, names):
+    def process_files(_, dirname, names):
         """Fine the unnecessary files in this directory, and delete them."""
 
         # If we're in a subdirectory that should be skipped, return now.
