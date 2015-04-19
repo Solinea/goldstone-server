@@ -73,9 +73,9 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
             instance: 3
         });
 
-        $('#goldstone-metric-r1-c1').append(this.metricViewerChartView.render().el);
-        $('#goldstone-metric-r1-c2').append(this.metricViewerChartView2.render().el);
-        $('#goldstone-metric-r1-c3').append(this.metricViewerChartView3.render().el);
+        $('#goldstone-metric-r1-c1').append(this.metricViewerChartView.el);
+        $('#goldstone-metric-r1-c2').append(this.metricViewerChartView2.el);
+        $('#goldstone-metric-r1-c3').append(this.metricViewerChartView3.el);
 
         $('#menu-trigger1').sidr({
             name: 'sidr-menu-1',

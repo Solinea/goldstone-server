@@ -6667,9 +6667,9 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
             instance: 3
         });
 
-        $('#goldstone-metric-r1-c1').append(this.metricViewerChartView.render().el);
-        $('#goldstone-metric-r1-c2').append(this.metricViewerChartView2.render().el);
-        $('#goldstone-metric-r1-c3').append(this.metricViewerChartView3.render().el);
+        $('#goldstone-metric-r1-c1').append(this.metricViewerChartView.el);
+        $('#goldstone-metric-r1-c2').append(this.metricViewerChartView2.el);
+        $('#goldstone-metric-r1-c3').append(this.metricViewerChartView3.el);
 
         $('#menu-trigger1').sidr({
             name: 'sidr-menu-1',
@@ -6735,11 +6735,11 @@ this.metricViewerChartView = new MetricViewerView({
 var MetricViewerView = GoldstoneBaseView.extend({
 
     defaults: {
-        margin: {}
     },
 
     initialize: function(options) {
         this.options = options;
+        this.render();
     },
 
     processOptions: function() {},
@@ -6760,6 +6760,9 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
     template: _.template(
 
+        // formatting of hidden sidr menu:
+        // hard coded for prototype
+        // these options will have to be added programmatically
         '<div class="hidden" id="external-content<%= this.options.instance %>">' +
 
         '<h2>Metric</h2>' +
@@ -6811,13 +6814,40 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         '</div>' +
 
-        '<i id="menu-trigger<%= this.options.instance %>" class="fa fa-2x fa-bars"></i>' +
-        '<div style="height:<%= this.options.height %>px;width:<%= this.options.width %>px;background-color:lightgray;border:solid;"></div>'
+        // end hidden sidr menu options
 
+        // add button that will be bound to $.sidr instance
+        '<i id="menu-trigger<%= this.options.instance %>" class="fa fa-2x fa-bars"></i>' +
+
+        // add div that will contain svg for d3 chart
+        '<div class=metric-chart-instance<%= this.options.instance %> style="height:<%= this.options.height %>px;width:<%= this.options.width %>px;background-color:lightgray;border:solid;"></div>'
     ),
+
+    appendChart: function() {
+        this.neutronApiPerfChart = new ApiPerfCollection({
+            componentParam: 'neutron',
+        });
+
+        this.neutronApiPerfChartView = new ApiPerfView({
+            chartTitle: "Neutron API Performance",
+            collection: this.neutronApiPerfChart,
+            height: 300,
+            infoCustom: [{
+                key: "API Call",
+                value: "All"
+            }],
+            el: '.metric-chart-instance' + this.options.instance,
+            width: $('.metric-chart-instance1' + this.options.instance).width()
+        });
+    },
 
     render: function() {
         this.$el.html(this.template());
+        var self = this;
+        setTimeout(function(){
+            self.appendChart();
+        }, 500);
+
         return this;
     }
 
