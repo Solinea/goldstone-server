@@ -16,11 +16,7 @@
 
 // define collection and link to model
 
-var EventTimelineModel = GoldstoneBaseModel.extend({
-    // sort by @timestamp. Used to be id, but that has been
-    // removed as of v3 api.
-    idAttribute: '@timestamp'
-});
+var model = GoldstoneBaseModel.extend({});
 
 var GoldstoneBaseCollection = Backbone.Collection.extend({
 
@@ -42,7 +38,7 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
         }
 
         // in any case, return the data to the collection
-        return data.results;
+        return data;
     },
 
     defaults: {},
@@ -50,15 +46,12 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     initialize: function(options) {
 
         this.defaults = _.clone(this.defaults); 
-
-        this.urlUpdate(this.computeLookback());
-        // don't add {remove:false} to the initial fetch
-        // as it will introduce an artifact that will
-        // render via d3
+        this.options = options || {};
+        this.url = this.options.url || null;
         this.fetchWithReset();
     },
 
-    model: EventTimelineModel,
+    model: model,
 
     computeLookback: function() {
         var lookbackMinutes;
@@ -73,7 +66,7 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     },
 
     fetchWithReset: function() {
-
+        console.log('url set? ', this.url);
         // used when you want to delete existing data in collection
         // such as changing the global-lookback period
         this.fetch({
@@ -88,15 +81,5 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
         this.fetch({
             remove: false
         });
-    },
-
-    urlUpdate: function(val) {
-        // creates a url similar to:
-        // /logging/events?@timestamp__range={"gte":1426698303974}&page_size=1000"
-
-        var lookback = +new Date() - (val * 60 * 1000);
-        this.url = '/logging/events/search?@timestamp__range={"gte":' +
-            lookback + '}&page_size=1000';
-
     }
 });

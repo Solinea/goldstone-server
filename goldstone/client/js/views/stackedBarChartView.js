@@ -69,6 +69,9 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         // differentiate color sets for mem and cpu charts
         if (ns.featureSet === 'mem' || ns.featureSet === 'cpu') {
             ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
+        }
+        if (ns.featureSet === 'metric') {
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[1]);
         } else {
             // this includes "VM Spawns" and "Disk Resources" chars
             ns.color = d3.scale.ordinal()
@@ -97,7 +100,30 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         var uniqTimestamps;
         var result = [];
 
-        if (ns.featureSet === 'cpu') {
+        if (ns.featureSet === 'metric') {
+            data = data[0].results;
+            /*
+            {
+                @timestamp: "2015-04-20T19:09:08.153Z"
+                host: "10.10.20.21:55199"
+                metric_type: "gauge"
+                name: "os.cpu.idle"
+                node: "rsrc-02"
+                unit: "percent"
+                value: 97.18570476410143
+            }
+            */
+
+            _.each(data, function(item) {
+                var logTime = moment(item['@timestamp']).valueOf();
+                var success = item.value;
+                result.push({
+                    "eventTime": logTime,
+                    "Success": success,
+                });
+            });
+
+        } else if (ns.featureSet === 'cpu') {
 
             // CPU Resources chart data prep
             /*
@@ -598,6 +624,11 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         // appends chart legends
         var legendSpecs = {
+            metric: [
+                // uncomment if supplying virtual stat again
+                // ['Virtual', 2],
+                ['Value', 0],
+            ],
             mem: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],

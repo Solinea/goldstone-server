@@ -691,6 +691,92 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
  * limitations under the License.
  */
 
+// define collection and link to model
+
+var model = GoldstoneBaseModel.extend({});
+
+var GoldstoneBaseCollection = Backbone.Collection.extend({
+
+    parse: function(data) {
+        var nextUrl;
+
+        // in the case that there are additional paged server responses
+        if (data.next && data.next !== null) {
+            var dN = data.next;
+
+            // if url params change, be sure to update this:
+            nextUrl = dN.slice(dN.indexOf('/logging'));
+
+            // fetch and add to collection without deleting existing data
+            this.fetch({
+                url: nextUrl,
+                remove: false
+            });
+        }
+
+        // in any case, return the data to the collection
+        return data;
+    },
+
+    defaults: {},
+
+    initialize: function(options) {
+
+        this.defaults = _.clone(this.defaults); 
+        this.options = options || {};
+        this.url = this.options.url || null;
+        this.fetchWithReset();
+    },
+
+    model: model,
+
+    computeLookback: function() {
+        var lookbackMinutes;
+        if ($('.global-lookback-selector .form-control').length) {
+            // global lookback is available:
+            lookbackMinutes = parseInt($('.global-lookback-selector .form-control').val(), 10);
+        } else {
+            // otherwise, default to 1 hour:
+            lookbackMinutes = 60;
+        }
+        return lookbackMinutes;
+    },
+
+    fetchWithReset: function() {
+        console.log('url set? ', this.url);
+        // used when you want to delete existing data in collection
+        // such as changing the global-lookback period
+        this.fetch({
+            remove: true
+        });
+    },
+
+    fetchNoReset: function() {
+
+        // used when you want to retain existing data in collection
+        // such as a global-refresh-triggered update to the Event Timeline viz
+        this.fetch({
+            remove: false
+        });
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 // LauncherView is a "wrapper view" that is NOT instantiated with
 // an .el passed into the objects hash.
 // This allows for it to be "apppended" to DOM
@@ -2220,17 +2306,17 @@ var MemResourceCollection = Backbone.Collection.extend({
 });
 ;
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
@@ -6602,15 +6688,15 @@ var LoginPageView = GoldstoneBaseView.extend({
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
@@ -6691,17 +6777,17 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
@@ -6838,8 +6924,8 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         '<h2>Resource</h2>' +
         '<select class="resource-dropdown-options">' +
-        '<option value="" selected>all</option>' +
-        '<option value="ctrl-01">ctrl-01</option>' +
+        '<option value="">all</option>' +
+        '<option value="ctrl-01" selected>ctrl-01</option>' +
         '<option value="rsrc-01">rsrc-01</option>' +
         '<option value="rsrc-02">rsrc-02</option>' +
         '/<select>' +
@@ -6894,33 +6980,42 @@ var MetricViewerView = GoldstoneBaseView.extend({
         // http://127.0.0.1:8000/core/metrics?name__prefix=nova.hypervisor&@timestamp__range={"gte":1426887188000}
         console.log('options?', options);
         var url = '/core/metrics?name__prefix=' +
-        options.metric + '&timestamp__range={"gte":' +
-        (+new Date() - (options.lookback * 60 * 1000)) +
-        '}&page_size=1000';
+            options.metric + '&timestamp__range={"gte":' +
+            (+new Date() - (options.lookback * 60 * 1000)) +
+            '}&page_size=1000';
+        if(options.resource !== ''){
+            url += '&node__prefix=' + options.resource;
+        }
         console.log('constructed url: ', url);
+        return url;
     },
 
     appendChart: function() {
 
         var url = this.constructUrlFromParams();
 
-        console.log('append chart triggered');
+        if (this.metricChart) {
+            this.metricChart.url = url;
+            this.metricChart.fetchWithReset();
+        } else {
+            this.metricChart = new GoldstoneBaseCollection({
+                url: url
+            });
 
-        this.neutronApiPerfChart = new ApiPerfCollection({
-            componentParam: 'neutron',
-        });
-
-        this.neutronApiPerfChartView = new ApiPerfView({
-            chartTitle: "Neutron API Performance",
-            collection: this.neutronApiPerfChart,
-            height: 300,
-            infoCustom: [{
-                key: "API Call",
-                value: "All"
-            }],
-            el: '.metric-chart-instance' + this.options.instance,
-            width: $('.metric-chart-instance' + this.options.instance).width()
-        });
+            this.metricChartView = new StackedBarChartView({
+                chartTitle: "Metric Bar Chart",
+                collection: this.metricChart,
+                featureSet: 'metric',
+                height: 300,
+                // infoCustom: [{
+                //     key: "API Call",
+                //     value: "All"
+                // }],
+                el: '.metric-chart-instance' + this.options.instance,
+                width: $('.metric-chart-instance' + this.options.instance).width(),
+                yAxisLabel: ' '
+            });
+        }
     },
 
     render: function() {
@@ -9433,6 +9528,9 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         // differentiate color sets for mem and cpu charts
         if (ns.featureSet === 'mem' || ns.featureSet === 'cpu') {
             ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
+        }
+        if (ns.featureSet === 'metric') {
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[1]);
         } else {
             // this includes "VM Spawns" and "Disk Resources" chars
             ns.color = d3.scale.ordinal()
@@ -9461,7 +9559,30 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         var uniqTimestamps;
         var result = [];
 
-        if (ns.featureSet === 'cpu') {
+        if (ns.featureSet === 'metric') {
+            data = data[0].results;
+            /*
+            {
+                @timestamp: "2015-04-20T19:09:08.153Z"
+                host: "10.10.20.21:55199"
+                metric_type: "gauge"
+                name: "os.cpu.idle"
+                node: "rsrc-02"
+                unit: "percent"
+                value: 97.18570476410143
+            }
+            */
+
+            _.each(data, function(item) {
+                var logTime = moment(item['@timestamp']).valueOf();
+                var success = item.value;
+                result.push({
+                    "eventTime": logTime,
+                    "Success": success,
+                });
+            });
+
+        } else if (ns.featureSet === 'cpu') {
 
             // CPU Resources chart data prep
             /*
@@ -9962,6 +10083,11 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         // appends chart legends
         var legendSpecs = {
+            metric: [
+                // uncomment if supplying virtual stat again
+                // ['Virtual', 2],
+                ['Value', 0],
+            ],
             mem: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],

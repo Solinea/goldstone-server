@@ -146,8 +146,8 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         '<h2>Resource</h2>' +
         '<select class="resource-dropdown-options">' +
-        '<option value="" selected>all</option>' +
-        '<option value="ctrl-01">ctrl-01</option>' +
+        '<option value="">all</option>' +
+        '<option value="ctrl-01" selected>ctrl-01</option>' +
         '<option value="rsrc-01">rsrc-01</option>' +
         '<option value="rsrc-02">rsrc-02</option>' +
         '/<select>' +
@@ -202,33 +202,42 @@ var MetricViewerView = GoldstoneBaseView.extend({
         // http://127.0.0.1:8000/core/metrics?name__prefix=nova.hypervisor&@timestamp__range={"gte":1426887188000}
         console.log('options?', options);
         var url = '/core/metrics?name__prefix=' +
-        options.metric + '&timestamp__range={"gte":' +
-        (+new Date() - (options.lookback * 60 * 1000)) +
-        '}&page_size=1000';
+            options.metric + '&timestamp__range={"gte":' +
+            (+new Date() - (options.lookback * 60 * 1000)) +
+            '}&page_size=1000';
+        if(options.resource !== ''){
+            url += '&node__prefix=' + options.resource;
+        }
         console.log('constructed url: ', url);
+        return url;
     },
 
     appendChart: function() {
 
         var url = this.constructUrlFromParams();
 
-        console.log('append chart triggered');
+        if (this.metricChart) {
+            this.metricChart.url = url;
+            this.metricChart.fetchWithReset();
+        } else {
+            this.metricChart = new GoldstoneBaseCollection({
+                url: url
+            });
 
-        this.neutronApiPerfChart = new ApiPerfCollection({
-            componentParam: 'neutron',
-        });
-
-        this.neutronApiPerfChartView = new ApiPerfView({
-            chartTitle: "Neutron API Performance",
-            collection: this.neutronApiPerfChart,
-            height: 300,
-            infoCustom: [{
-                key: "API Call",
-                value: "All"
-            }],
-            el: '.metric-chart-instance' + this.options.instance,
-            width: $('.metric-chart-instance' + this.options.instance).width()
-        });
+            this.metricChartView = new StackedBarChartView({
+                chartTitle: "Metric Bar Chart",
+                collection: this.metricChart,
+                featureSet: 'metric',
+                height: 300,
+                // infoCustom: [{
+                //     key: "API Call",
+                //     value: "All"
+                // }],
+                el: '.metric-chart-instance' + this.options.instance,
+                width: $('.metric-chart-instance' + this.options.instance).width(),
+                yAxisLabel: ' '
+            });
+        }
     },
 
     render: function() {
