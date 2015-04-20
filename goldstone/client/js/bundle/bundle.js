@@ -6940,9 +6940,9 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         '<h2>Charting Interval</h2>' +
         '<select class="interval-dropdown-options">' +
-        '<option value="1" selected>1m</option>' +
-        '<option value="60">1h</option>' +
-        '<option value="1440">1d</option>' +
+        '<option value="1m" selected>1m</option>' +
+        '<option value="1h">1h</option>' +
+        '<option value="1d">1d</option>' +
         '/<select>' +
 
         // '<h2>Refresh</h2>' +
@@ -6979,12 +6979,12 @@ var MetricViewerView = GoldstoneBaseView.extend({
         var options = this.chartOptions.attributes;
         // http://127.0.0.1:8000/core/metrics?name__prefix=nova.hypervisor&@timestamp__range={"gte":1426887188000}
         console.log('options?', options);
-        var url = '/core/metrics?name__prefix=' +
+        var url = '/core/metrics/summarize?name=' +
             options.metric + '&timestamp__range={"gte":' +
             (+new Date() - (options.lookback * 60 * 1000)) +
-            '}&page_size=1000';
+            '}&interval=' + options.interval;
         if(options.resource !== ''){
-            url += '&node__prefix=' + options.resource;
+            url += '&node=' + options.resource;
         }
         console.log('constructed url: ', url);
         return url;
@@ -9560,7 +9560,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         var result = [];
 
         if (ns.featureSet === 'metric') {
-            data = data[0].results;
+            data = data[0].per_interval;
             /*
             {
                 @timestamp: "2015-04-20T19:09:08.153Z"
@@ -9574,11 +9574,12 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             */
 
             _.each(data, function(item) {
-                var logTime = moment(item['@timestamp']).valueOf();
-                var success = item.value;
+                var logTime = +(_.keys(item)[0]);
+                var value = +(_.values(item)[0]);
+                console.log(item, logTime, value);
                 result.push({
                     "eventTime": logTime,
-                    "Success": success,
+                    "Success": value,
                 });
             });
 
@@ -9731,7 +9732,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
     },
 
     computeHiddenBarText: function(d) {
-
+        var  ns = this.defaults;
         /*
         filter function strips keys that are irrelevant to the d3.tip:
 
@@ -9752,9 +9753,16 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         // matches time formatting of api perf charts
         result += moment(+d.eventTime).format() + '<br>';
 
-        valuesToReport.forEach(function(item) {
-            result += item + ': ' + d[item] + '<br>';
-        });
+        if (ns.featureSet === 'metric') {
+            valuesToReport.forEach(function(item) {
+                result += 'Value: ' + d[item] + '<br>';
+            });
+
+        } else {
+            valuesToReport.forEach(function(item) {
+                result += item + ': ' + d[item] + '<br>';
+            });
+        }
 
         return result;
     },

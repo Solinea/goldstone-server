@@ -101,7 +101,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         var result = [];
 
         if (ns.featureSet === 'metric') {
-            data = data[0].results;
+            data = data[0].per_interval;
             /*
             {
                 @timestamp: "2015-04-20T19:09:08.153Z"
@@ -115,11 +115,12 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             */
 
             _.each(data, function(item) {
-                var logTime = moment(item['@timestamp']).valueOf();
-                var success = item.value;
+                var logTime = +(_.keys(item)[0]);
+                var value = +(_.values(item)[0]);
+                console.log(item, logTime, value);
                 result.push({
                     "eventTime": logTime,
-                    "Success": success,
+                    "Success": value,
                 });
             });
 
@@ -272,7 +273,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
     },
 
     computeHiddenBarText: function(d) {
-
+        var  ns = this.defaults;
         /*
         filter function strips keys that are irrelevant to the d3.tip:
 
@@ -293,9 +294,16 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         // matches time formatting of api perf charts
         result += moment(+d.eventTime).format() + '<br>';
 
-        valuesToReport.forEach(function(item) {
-            result += item + ': ' + d[item] + '<br>';
-        });
+        if (ns.featureSet === 'metric') {
+            valuesToReport.forEach(function(item) {
+                result += 'Value: ' + d[item] + '<br>';
+            });
+
+        } else {
+            valuesToReport.forEach(function(item) {
+                result += item + ': ' + d[item] + '<br>';
+            });
+        }
 
         return result;
     },
