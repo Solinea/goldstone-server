@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.apps.drfes.views import ElasticListAPIView, SimpleAggView, \
+from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
     DateHistogramAggView
 from rest_framework.generics import RetrieveAPIView
 from goldstone.utils import TopologyMixin
@@ -139,14 +139,11 @@ class NavTreeView(RetrieveAPIView, TopologyMixin):
 
     def build_topology_tree(self):
         """Return the topology tree that is displayed by this view."""
-
-        from goldstone.apps.keystone.utils import DiscoverTree \
+        from goldstone.keystone.utils import DiscoverTree \
             as KeystoneDiscoverTree
-        from goldstone.apps.glance.utils import DiscoverTree \
-            as GlanceDiscoverTree
+        from goldstone.glance.utils import DiscoverTree as GlanceDiscoverTree
         from goldstone.cinder.utils import DiscoverTree as CinderDiscoverTree
-        from goldstone.apps.nova.utils import DiscoverTree \
-            as NovaDiscoverTree
+        from goldstone.nova.utils import DiscoverTree as NovaDiscoverTree
 
         # Too many short names here. Disable C0103 for now, just here!
         # pylint: disable=C0103

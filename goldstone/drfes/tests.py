@@ -20,12 +20,12 @@ from rest_framework.test import APITestCase
 
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.result import Response
-from goldstone.apps.drfes.models import DailyIndexDocType
-from goldstone.apps.drfes.utils import custom_exception_handler
+from goldstone.drfes.models import DailyIndexDocType
+from goldstone.drfes.utils import custom_exception_handler
 
-from goldstone.apps.drfes.views import ElasticListAPIView
-from goldstone.apps.drfes.filters import ElasticFilter
-from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
+from goldstone.drfes.views import ElasticListAPIView
+from goldstone.drfes.filters import ElasticFilter
+from goldstone.drfes.serializers import ReadOnlyElasticSerializer
 
 from mock import MagicMock, patch
 
@@ -207,7 +207,7 @@ class CustomExceptionHandlerTests(APITestCase):
     def test_drf_handled_exception(self):
         """Test that we pass DRF recognized exceptions through unmodified"""
         with patch(
-                'goldstone.apps.drfes.utils.exception_handler') \
+                'goldstone.drfes.utils.exception_handler') \
                 as exception_handler:
 
             exception_handler.return_value = "it's handled"
@@ -218,7 +218,7 @@ class CustomExceptionHandlerTests(APITestCase):
     def test_502_error_exceptions(self):
         """Test ES connection exception is handled"""
         with patch(
-                'goldstone.apps.drfes.utils.exception_handler') \
+                'goldstone.drfes.utils.exception_handler') \
                 as exception_handler:
 
             exception_handler.return_value = None
@@ -230,7 +230,7 @@ class CustomExceptionHandlerTests(APITestCase):
     def test_500_error_exceptions(self):
         """Test ES connection exception is handled"""
         with patch(
-                'goldstone.apps.drfes.utils.exception_handler') \
+                'goldstone.drfes.utils.exception_handler') \
                 as exception_handler:
 
             exception_handler.return_value = None
@@ -257,7 +257,7 @@ class CustomExceptionHandlerTests(APITestCase):
     def test_not_exception(self):
         """Test ES connection exception is handled"""
         with patch(
-                'goldstone.apps.drfes.utils.exception_handler') \
+                'goldstone.drfes.utils.exception_handler') \
                 as exception_handler:
 
             exception_handler.return_value = None

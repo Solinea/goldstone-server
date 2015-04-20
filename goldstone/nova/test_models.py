@@ -16,7 +16,7 @@ import arrow
 from copy import deepcopy
 
 from django.test import SimpleTestCase
-from goldstone.apps.nova.models import SpawnsData
+from goldstone.nova.models import SpawnsData
 
 
 class SpawnsDataModelTests(SimpleTestCase):
@@ -43,12 +43,18 @@ class SpawnsDataModelTests(SimpleTestCase):
     def test_datehist_agg(self):
         """_datehist_agg should return an A with proper values."""
 
-        result = SpawnsData._datehist_agg(self.interval, self.start, self.end)
+        # pylint: disable=W0212
+        result = SpawnsData._datehist_agg(self.interval,
+                                          self.start,
+                                          self.end)
+
         self.assertDictEqual(result.to_dict(), self.DATEHIST_AGG)
 
     def test_spawn_finish_query(self):
         """_spawn_finish_query should return a Search with proper values."""
+
         self.maxDiff = None
+
         expected_aggs = {'per_interval': self.DATEHIST_AGG}
         expected_aggs['per_interval']['aggs'] = {
             'per_success': {
@@ -59,7 +65,9 @@ class SpawnsDataModelTests(SimpleTestCase):
         expected_query = deepcopy(self.QUERY_BASE)
         expected_query['bool']['must'].append({'term': {'event': 'finish'}})
 
-        result = SpawnsData._spawn_finish_query(self.start, self.end,
+        # pylint: disable=W0212
+        result = SpawnsData._spawn_finish_query(self.start,
+                                                self.end,
                                                 self.interval)
 
         self.assertDictEqual(result.to_dict()['query'], expected_query)

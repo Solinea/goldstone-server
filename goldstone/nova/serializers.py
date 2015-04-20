@@ -1,4 +1,4 @@
-"""api_perf DRF serializers."""
+"""Nova DRF serializers."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,22 +12,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
+from goldstone.drfes.serializers import ReadOnlyElasticSerializer
 
 
-class ApiPerfAggSerializer(ReadOnlyElasticSerializer):
-    """Custom serializer to manipulate the aggregation that comes back from ES.
-    """
+class SpawnsAggSerializer(ReadOnlyElasticSerializer):
+    """Custom serializer to manipulate the aggregation that comes back from
+    ES."""
 
     DATEHIST_AGG_NAME = 'per_interval'
-    STATS_AGG_NAME = 'stats'
-    RANGE_AGG_NAME = 'response_status'
+    SUCCESS_AGG_NAME = 'success'
 
     def to_representation(self, instance):
         """Create serialized representation of a single top-level aggregation.
 
         :param instance: the result from the Model.simple_agg call
         :return:
+
         """
 
         datehist_agg_base = getattr(instance, self.DATEHIST_AGG_NAME, None)
@@ -35,18 +35,19 @@ class ApiPerfAggSerializer(ReadOnlyElasticSerializer):
             "DATEHIST_AGG_NAME must exist in the instance passed to %s."
             % self.__class__.__name__
         )
+
         # let's clean up the inner buckets
         data = [{bucket.key: {
             'count': bucket.doc_count,
-            self.RANGE_AGG_NAME: self._process_range(
-                bucket[self.RANGE_AGG_NAME]),
-            self.STATS_AGG_NAME: bucket[self.STATS_AGG_NAME]}}
-            for bucket in datehist_agg_base.buckets]
+            self.SUCCESS_AGG_NAME: self._process_success(
+                bucket[self.SUCCESS_AGG_NAME])}} for bucket in
+                datehist_agg_base.buckets]
 
         return {self.DATEHIST_AGG_NAME: data}
 
     @staticmethod
-    def _process_range(range):
-        """Reformat the range buckets."""
-        return [{key: value['doc_count']}
-                for key, value in range['buckets'].items()]
+    def _process_success(agg):
+        """Reformat the agg buckets."""
+
+        return [{bucket['key']: bucket['doc_count']}
+                for bucket in agg['buckets']]

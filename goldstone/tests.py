@@ -116,19 +116,19 @@ class PrimeData(TestCase):
     for template_name, template_f in [
         ('logstash',
          gzip.open(os.path.join(os.path.dirname(__file__),
-                                "apps", "..", "..", "test_data",
+                                "..", "test_data",
                                 "logstash_template.json.gz"))),
         ('goldstone',
          gzip.open(os.path.join(os.path.dirname(__file__),
-                                "apps", "..", "..", "test_data",
+                                "..", "test_data",
                                 "goldstone_template.json.gz"))),
         ('goldstone_agent',
          gzip.open(os.path.join(os.path.dirname(__file__),
-                                "apps", "..", "..", "test_data",
+                                "..", "test_data",
                                 "agent_template.json.gz"))),
         ('goldstone_model',
          gzip.open(os.path.join(os.path.dirname(__file__),
-                                "apps", "..", "..", "test_data",
+                                "..", "test_data",
                                 "model_template.json.gz")))
     ]:
         template_body = json.load(template_f)
@@ -139,19 +139,19 @@ class PrimeData(TestCase):
     for index, data_f in [
         (daily_index('logstash-'),
          gzip.open(os.path.join(os.path.dirname(__file__),
-                                "apps", "..", "..", "test_data",
+                                "..", "test_data",
                                 "logstash_data.json.gz"))),
         (daily_index('goldstone-'),
          gzip.open(os.path.join(os.path.dirname(__file__),
-                                "apps", "..", "..", "test_data",
+                                "..", "test_data",
                                 "goldstone_data.json.gz"))),
         ('goldstone_agent',
          gzip.open(os.path.join(os.path.dirname(__file__),
-                                "apps", "..", "..", "test_data",
+                                "..", "test_data",
                                 "agent_data.json.gz"))),
         ('goldstone_model',
          gzip.open(os.path.join(os.path.dirname(__file__),
-                                "apps", "..", "..", "test_data",
+                                "..", "test_data",
                                 "model_data.json.gz")))
     ]:
         data = json.load(data_f)

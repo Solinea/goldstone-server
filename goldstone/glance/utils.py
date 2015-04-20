@@ -18,7 +18,7 @@ from goldstone.utils import TopologyMixin
 class DiscoverTree(TopologyMixin):
 
     def __init__(self):
-        from goldstone.apps.glance.models import ImagesData
+        from goldstone.glance.models import ImagesData
 
         self.images = ImagesData().get()
 
