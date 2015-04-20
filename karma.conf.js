@@ -35,6 +35,7 @@ module.exports = function(config) {
             // in the test config file.
             'goldstone/client/js/goldstoneBaseView.js',
             'goldstone/client/js/goldstoneBasePageView.js',
+            'goldstone/client/js/goldstoneBaseCollection.js',
 
             // superclass for other charts, must be declared here
             'goldstone/client/js/utilizationCpuView.js'

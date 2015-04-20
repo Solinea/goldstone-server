@@ -23,6 +23,7 @@ module.exports = {
         'goldstone/client/js/goldstoneBaseModel.js',
         'goldstone/client/js/goldstoneBaseView.js',
         'goldstone/client/js/goldstoneBasePageView.js',
+        'goldstone/client/js/goldstoneBaseCollection.js',
         'goldstone/client/js/goldstoneRouter.js',
         'goldstone/client/js/utilizationCpuView.js',
         'goldstone/client/js/models/*.js',
