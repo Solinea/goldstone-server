@@ -93,7 +93,7 @@ module.exports = function(grunt) {
             },
             lib: {
                 files: 'goldstone/client/js/lib/*.js',
-                tasks: ['concat:lib']
+                tasks: ['concat:lib', 'notify:concat_message']
             },
             gruntfile: {
                 files: ['Gruntfile.js', 'karma.conf.js'],
