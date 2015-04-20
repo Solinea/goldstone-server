@@ -1,14 +1,14 @@
-# Copyright 2014 - 2015 Solinea, Inc.
+# Copyright 2015 Solinea, Inc.
 #
-# Licensed under the Solinea Software License Agreement (goldstone),
-# Version 1.0 (the "License"); you may not use this file except in compliance
-# with the License. You may obtain a copy of the License at:
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-#     http://www.solinea.com/goldstone/LICENSE.pdf
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
@@ -184,8 +184,8 @@ install -m 750 %{_sourcedir}/setup.py %{buildroot}/opt/goldstone/setup.py
 install -m 750 %{_sourcedir}/manage.py %{buildroot}/opt/goldstone/manage.py
 install -m 640 %{_sourcedir}/README.rst %{buildroot}/opt/goldstone/README.rst
 install -m 640 %{_sourcedir}/INSTALL.rst %{buildroot}/opt/goldstone/INSTALL.rst
-install -m 640 %{_sourcedir}/OSS_LICENSE_DISCLOSURE.pdf %{buildroot}/opt/goldstone/OSS_LICENSE_DISCLOSURE.pdf
-install -m 640 %{_sourcedir}/LICENSE.pdf %{buildroot}/opt/goldstone/LICENSE.pdf
+install -m 640 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
+install -m 640 %{_sourcedir}/NOTICE %{buildroot}/opt/goldstone/NOTICE
 install -m 640 %{_sourcedir}/external/httpd/zgoldstone.conf %{buildroot}/etc/httpd/conf.d/zgoldstone.conf
 install -m 750 %{_sourcedir}/external/init.d/celerybeat %{buildroot}/etc/init.d/celerybeat
 install -m 750 %{_sourcedir}/external/init.d/celeryd-default %{buildroot}/etc/init.d/celeryd-default
@@ -213,8 +213,8 @@ rm -rf %{buildroot}
 /opt/goldstone/manage.py
 /opt/goldstone/README.rst
 /opt/goldstone/INSTALL.rst
-/opt/goldstone/OSS_LICENSE_DISCLOSURE.pdf
-/opt/goldstone/LICENSE.pdf
+/opt/goldstone/LICENSE
+/opt/goldstone/NOTICE
 /opt/goldstone/goldstone/
 %config /opt/goldstone/goldstone/settings/base.py
 %config(noreplace) /opt/goldstone/goldstone/settings/production.py
