@@ -2,31 +2,8 @@
 Goldstone Installation
 =============================
 
-GOLDSTONE LICENSE
-*********************
 
-Copyright 2014 - 2015 Solinea, Inc.
-
-Licensed under the Solinea Software License Agreement (Goldstone),
-Version 1.0 (the "License"); you may not use this file except in compliance
-with the License. You may obtain a copy of the License at:
-
-    http://www.solinea.com/goldstone/LICENSE.pdf
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-INSTALLING GOLDSTONE
-*********************
-
-1. Install prerequisites
-2. Run the Goldstone installer
-3. Direct OpenStack server logs to Goldstone server
-
-Before installing Goldstone, your server needs to meet the following prerequesites:
+Before installing Goldstone, your server must meet the following prerequisites:
 
 * 4GB RAM
 * x64 CPU (or 4 core VM on x64 host)
@@ -37,7 +14,7 @@ To view and use Goldstone, you will need a recent version of the `Google Chrome 
 
 .. _Google Chrome browser: https://www.google.com/intl/en-US/chrome/browser/
 
-INSTALL PREREQUISITES (AS ROOT)
+Install Prerequisites (as root)
 *******************************
 
   .. code:: bash
@@ -51,7 +28,7 @@ INSTALL PREREQUISITES (AS ROOT)
     # pip install fabric==1.10.1    
 
 
-RUN THE GOLDSTONE INSTALLER (AS ROOT)
+Run the Goldstone installer (as root)
 *************************************
 
 The following command should be initiated from the same directory as this file and the associated fabfile.py.
@@ -63,7 +40,7 @@ The following command should be initiated from the same directory as this file a
 
 This package installation may take up to 30 minutes to run, as it needs to compile a number of libraries.
 
-REVIEW PRODUCTION.PY
+Review production.py
 ********************
 
 If this is a first-time install of Goldstone, skip this section.
@@ -82,7 +59,7 @@ Compare ``/opt/goldstone/goldstone/settings/production.py`` to
 Then restart the server.
 
 
-TEST PASSWORD RESET
+Test password reset
 *******************
 
 Goldstone's login page includes a password-reset link. Please test it.
@@ -90,15 +67,16 @@ Goldstone's login page includes a password-reset link. Please test it.
 If the links in the password-reset e-mail do not work, you'll need to adjust the settings in ``/opt/goldstone/goldstone/settings/production.py``. Look for the ``DJOSER`` dictionary.
 
 
-DIRECT LOGS TO GOLDSTONE SERVER
-*******************************
+Direct logs to the Goldstone server
+****************************************
 
 With Goldstone installed, the only task left is to point the OpenStack server logs to it so that it can begin processing them. There are two tasks in this step:
 
     1. Configure OpenStack services to use syslog
     2. Configure syslog to forward to your Goldstone server
 
-OpenStack Service Logging
+
+OpenStack service logging
 ---------------------------
 
 Each OpenStack service uses one of the local syslog facilities to help with categorization of logs.  There are generally three fields to set in the configuration file for a service (i.e. ``/etc/nova/nova.conf``).  They are:
@@ -136,11 +114,12 @@ The following service mapping is used for syslog_log_facility:
 * keystone => LOG_LOCAL6
 
 
-OpenStack Ceilometer Integration
+OpenStack Ceilometer integration
 --------------------------------
 
+TBS
 
-Rsyslog Forwarding
+Rsyslog forwarding
 -------------------
 
 In the ``/opt/goldstone/external`` folder, there are example configuration files for rsyslog:
@@ -156,13 +135,23 @@ If you run with selinux enabled, you will also need to configure it to allow rsy
 
 Restart the OpenStack services and syslog or reboot the node. Repeat this on all the OpenStack servers (or better include this in your puppet scripts).
 
-FINISHED !
+Finished!
 *********************
 
-Now that everything has been configured, point your browser to the Goldstone server IP address or name and begin using Goldstone.
+Now that everything has been configured, point your browser at the Goldstone server IP address or name and begin using Goldstone.
 
-The installation created a system administrator account with the credentials, "admin" / "changeme".
 
-Your first task is to change your admin account password and e-mail address. You can do this from the account settings page.
+Goldstone license
+*********************
 
-The installation also created an initial tenant, with a tenant administrator. The tenant administrator is also Goldstone's default tenant administrator. You may wish to change this tenant's name, owner name, or contact information; change the tenant admin's name or password, which is "gsadmin" / "changeme"; or create more tenant admins.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
