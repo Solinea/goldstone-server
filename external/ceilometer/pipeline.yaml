@@ -36,9 +36,6 @@ sinks:
       publishers:
           - rpc://
           - udp://10.10.20.201:5516
-          - udp://10.10.20.202:5516
-          - udp://10.10.20.203:5516
-          - udp://10.10.20.204:5516
     - name: cpu_sink
       transformers:
           - name: "rate_of_change"
@@ -51,9 +48,6 @@ sinks:
       publishers:
           - rpc://
           - udp://10.10.20.201:5516
-          - udp://10.10.20.202:5516
-          - udp://10.10.20.203:5516
-          - udp://10.10.20.204:5516
     - name: disk_sink
       transformers:
           - name: "rate_of_change"
@@ -70,9 +64,6 @@ sinks:
       publishers:
           - rpc://
           - udp://10.10.20.201:5516
-          - udp://10.10.20.202:5516
-          - udp://10.10.20.203:5516
-          - udp://10.10.20.204:5516
     - name: network_sink
       transformers:
           - name: "rate_of_change"
@@ -89,6 +80,3 @@ sinks:
       publishers:
           - rpc://
           - udp://10.10.20.201:5516
-          - udp://10.10.20.202:5516
-          - udp://10.10.20.203:5516
-          - udp://10.10.20.204:5516
