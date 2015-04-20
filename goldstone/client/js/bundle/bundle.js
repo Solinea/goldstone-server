@@ -163,11 +163,11 @@ Date.prototype.addWeeks = function(d) {
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -189,13 +189,13 @@ var GoldstoneBaseModel = Backbone.Model.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -507,13 +507,13 @@ var GoldstoneBaseView = Backbone.View.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -678,11 +678,11 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -870,13 +870,13 @@ var GoldstoneRouter = Backbone.Router.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -1326,13 +1326,13 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
 });
 ;
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -1391,13 +1391,13 @@ var GoldstoneColors = GoldstoneBaseModel.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -1509,13 +1509,13 @@ var InfoButtonText = GoldstoneBaseModel.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -1583,11 +1583,11 @@ var ApiPerfCollection = Backbone.Collection.extend({
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -1654,11 +1654,11 @@ var CpuResourceCollection = Backbone.Collection.extend({
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -1724,13 +1724,13 @@ var DiskResourceCollection = Backbone.Collection.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -1827,13 +1827,13 @@ var EventTimelineCollection = Backbone.Collection.extend({
 });
 ;
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -1925,13 +1925,13 @@ var HypervisorCollection = Backbone.Collection.extend({
 });
 ;
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -2074,13 +2074,13 @@ var HypervisorVmCpuCollection = Backbone.Collection.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -2150,11 +2150,11 @@ var LogAnalysisCollection = Backbone.Collection.extend({
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -2268,13 +2268,13 @@ var MetricViewerCollection = Backbone.Collection.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -2393,13 +2393,13 @@ var NodeAvailCollection = Backbone.Collection.extend({
 });
 ;
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -2445,13 +2445,13 @@ var ReportsReportCollection = Backbone.Collection.extend({
 });
 ;
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -2502,13 +2502,13 @@ var ServiceStatusCollection = Backbone.Collection.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -2576,13 +2576,13 @@ var StackedBarChartCollection = Backbone.Collection.extend({
 });
 ;
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -2671,13 +2671,13 @@ var UtilizationCpuCollection = Backbone.Collection.extend({
 });
 ;
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -2768,13 +2768,13 @@ var UtilizationMemCollection = Backbone.Collection.extend({
 });
 ;
 /**
- * Copyright 2014 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -2864,13 +2864,13 @@ var UtilizationNetCollection = Backbone.Collection.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -2900,13 +2900,13 @@ var ZoomablePartitionCollection = Backbone.Collection.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -3058,13 +3058,13 @@ var ApiPerfReportView = GoldstoneBasePageView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -3367,11 +3367,11 @@ var ApiPerfView = GoldstoneBaseView.extend({
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -3498,13 +3498,13 @@ var LogoutIcon = GoldstoneBaseView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -3575,13 +3575,13 @@ var ChartHeaderView = Backbone.View.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -3626,11 +3626,11 @@ var CinderReportView = GoldstoneBasePageView.extend({
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -3726,13 +3726,13 @@ var DetailsReportView = GoldstoneBaseView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -3848,13 +3848,13 @@ var DiscoverView = GoldstoneBasePageView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -4437,13 +4437,13 @@ var EventTimelineView = GoldstoneBaseView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -4738,13 +4738,13 @@ var EventsReportView = GoldstoneBaseView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -4752,7 +4752,6 @@ var EventsReportView = GoldstoneBaseView.extend({
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 var GlanceReportView = GoldstoneBasePageView.extend({
 
     triggerChange: function(change) {
@@ -4787,13 +4786,13 @@ var GlanceReportView = GoldstoneBasePageView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -4937,11 +4936,11 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -5008,13 +5007,13 @@ var HelpView = GoldstoneBaseView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -5239,13 +5238,13 @@ var HypervisorView = Backbone.View.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -5537,13 +5536,13 @@ var HypervisorVmCpuView = Backbone.View.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -5586,13 +5585,13 @@ var KeystoneReportView = GoldstoneBasePageView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -6353,13 +6352,13 @@ var LogAnalysisView = UtilizationCpuView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -6499,11 +6498,11 @@ var LogSearchView = GoldstoneBasePageView.extend({
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -6679,22 +6678,6 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         $('#goldstone-metric-r1-c2').append(this.metricViewerChartView2.el);
         $('#goldstone-metric-r1-c3').append(this.metricViewerChartView3.el);
 
-        // $('#menu-trigger1').sidr({
-        //     name: 'sidr-menu-1',
-        //     source: "#external-content1",
-        //     displace: true,
-        // });
-        // $('#menu-trigger2').sidr({
-        //     name: 'sidr-menu-2',
-        //     source: "#external-content1",
-        //     displace: true,
-        // });
-        // $('#menu-trigger3').sidr({
-        //     name: 'sidr-menu-3',
-        //     source: "#external-content1",
-        //     displace: true,
-        // });
-
     },
 
     template: _.template('' +
@@ -6748,6 +6731,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         this.options = options;
         this.processListeners();
         this.render();
+        this.chartOptions = new Backbone.Model({});
     },
 
     processOptions: function() {},
@@ -6789,13 +6773,35 @@ var MetricViewerView = GoldstoneBaseView.extend({
         // attach listeners to the now-hidden sidr menu
         $('div#sidr-menu-' + this.options.instance).find('.sidr-submit').on('click', function() {
             console.log('clicked submit', 'div#sidr-menu-' + self.options.instance);
-            self.getSidrOptions('div#sidr-menu-' + self.options.instance);
+            self.setChartOptions('div#sidr-menu-' + self.options.instance);
             $.sidr('close', 'sidr-menu-' + self.options.instance);
         });
         $('div#sidr-menu-' + this.options.instance).find('.sidr-cancel').on('click', function() {
             console.log('clicked cancel');
             $.sidr('close', 'sidr-menu-' + self.options.instance);
         });
+
+        // chartOptions will be stored as a Backbone Model
+        // and will be listenTo'd for changes which can
+        // trigger the rendering of a new chart
+        this.listenTo(this.chartOptions, 'change', function() {
+            console.log('chart options changed');
+            this.appendChart();
+        });
+    },
+
+    setChartOptions: function(menu) {
+        // if these options change, a 'change' event will
+        // be emitted, otherwise it will submit silently
+        this.chartOptions.set({
+            'metric': $(menu).find('.metric-dropdown-options').val(),
+            'resource': $(menu).find('.resource-dropdown-options').val(),
+            'lookback': $(menu).find('.lookback-dropdown-options').val(),
+            'interval': $(menu).find('.interval-dropdown-options').val(),
+            'chartType': $(menu).find('.chart-type-dropdown-options').val()
+        });
+
+        console.log(this.chartOptions.attributes);
     },
 
     populateMetrics: function() {
@@ -6831,41 +6837,40 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '/<select>' +
 
         '<h2>Resource</h2>' +
-        '<select>' +
-        '<option value="all" selected>all</option>' +
-        '<option value="">ctrl-01</option>' +
-        '<option value="">rsrc-01</option>' +
-        '<option value="">rsrc-02</option>' +
+        '<select class="resource-dropdown-options">' +
+        '<option value="" selected>all</option>' +
+        '<option value="ctrl-01">ctrl-01</option>' +
+        '<option value="rsrc-01">rsrc-01</option>' +
+        '<option value="rsrc-02">rsrc-02</option>' +
         '/<select>' +
 
         '<h2>Lookback</h2>' +
-        '<select>' +
-        '<option value="15m" selected>lookback 15m</option>' +
-        '<option value="1h">lookback 1h</option>' +
-        '<option value="6h">lookback 6h</option>' +
-        '<option value="1d">lookback 1d</option>' +
+        '<select class="lookback-dropdown-options">' +
+        '<option value="15" selected>lookback 15m</option>' +
+        '<option value="60">lookback 1h</option>' +
+        '<option value="360">lookback 6h</option>' +
+        '<option value="1440">lookback 1d</option>' +
         '/<select>' +
 
         '<h2>Charting Interval</h2>' +
-        '<select>' +
-        '<option value="1m" selected>1m</option>' +
-        '<option value="1h">1h</option>' +
-        '<option value="1d">1d</option>' +
+        '<select class="interval-dropdown-options">' +
+        '<option value="1" selected>1m</option>' +
+        '<option value="60">1h</option>' +
+        '<option value="1440">1d</option>' +
         '/<select>' +
 
         // '<h2>Refresh</h2>' +
-        // '<select>' +
+        // '<select class="refresh-dropdown-options">' +
         // '<option value="30" selected>30s</option>' +
         // '<option value="60">1m</option>' +
         // '<option value="300">5m</option>' +
         // '/<select>' +
 
         '<h2>Chart Type</h2>' +
-        '<select>' +
+        '<select class="chart-type-dropdown-options">' +
         '<option value="bar" selected>Bar Chart</option>' +
         '<option value="line">Line Chart</option>' +
         '/<select>' +
-
 
         '<button class="sidr-submit">Submit</button> ' +
         ' <button class="sidr-cancel">Cancel</button>' +
@@ -6884,7 +6889,23 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '</div>'
     ),
 
+    constructUrlFromParams: function() {
+        var options = this.chartOptions.attributes;
+        // http://127.0.0.1:8000/core/metrics?name__prefix=nova.hypervisor&@timestamp__range={"gte":1426887188000}
+        console.log('options?', options);
+        var url = '/core/metrics?name__prefix=' +
+        options.metric + '&timestamp__range={"gte":' +
+        (+new Date() - (options.lookback * 60 * 1000)) +
+        '}&page_size=1000';
+        console.log('constructed url: ', url);
+    },
+
     appendChart: function() {
+
+        var url = this.constructUrlFromParams();
+
+        console.log('append chart triggered');
+
         this.neutronApiPerfChart = new ApiPerfCollection({
             componentParam: 'neutron',
         });
@@ -6905,9 +6926,9 @@ var MetricViewerView = GoldstoneBaseView.extend({
     render: function() {
         this.$el.html(this.template());
         var self = this;
-        setTimeout(function() {
-            self.appendChart();
-        }, 500);
+        // setTimeout(function() {
+        //     self.appendChart();
+        // }, 500);
 
         return this;
     }
@@ -6915,13 +6936,13 @@ var MetricViewerView = GoldstoneBaseView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -7044,13 +7065,13 @@ var MultiRscsView = GoldstoneBaseView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -7094,13 +7115,13 @@ var NeutronReportView = GoldstoneBasePageView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -7991,13 +8012,13 @@ TODO: probably change this to d.timestamp
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -8415,13 +8436,13 @@ var NodeReportView = GoldstoneBasePageView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -8555,11 +8576,11 @@ var NovaReportView = GoldstoneBasePageView.extend({
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -8637,13 +8658,13 @@ var PasswordResetView = GoldstoneBaseView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -8954,13 +8975,13 @@ var ReportsReportView = GoldstoneBaseView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -9164,11 +9185,11 @@ var ServiceStatusView = GoldstoneBaseView.extend({
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -9342,13 +9363,13 @@ var SettingsPageView = GoldstoneBaseView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -10013,11 +10034,11 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 /**
  * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -10220,13 +10241,13 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -10234,7 +10255,6 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 // view is linked to collection when instantiated in goldstone_discover.html
 
 var TopologyTreeView = GoldstoneBaseView.extend({
@@ -10903,13 +10923,13 @@ var TopologyTreeView = GoldstoneBaseView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -11004,13 +11024,13 @@ var UtilizationMemView = UtilizationCpuView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -11114,13 +11134,13 @@ var UtilizationNetView = UtilizationCpuView.extend({
 });
 ;
 /**
- * Copyright 2014 - 2015 Solinea, Inc.
+ * Copyright 2015 Solinea, Inc.
  *
- * Licensed under the Solinea Software License Agreement (goldstone),
- * Version 1.0 (the "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *     http://www.solinea.com/goldstone/LICENSE.pdf
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,

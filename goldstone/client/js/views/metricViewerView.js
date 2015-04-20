@@ -39,6 +39,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         this.options = options;
         this.processListeners();
         this.render();
+        this.chartOptions = new Backbone.Model({});
     },
 
     processOptions: function() {},
@@ -80,13 +81,35 @@ var MetricViewerView = GoldstoneBaseView.extend({
         // attach listeners to the now-hidden sidr menu
         $('div#sidr-menu-' + this.options.instance).find('.sidr-submit').on('click', function() {
             console.log('clicked submit', 'div#sidr-menu-' + self.options.instance);
-            self.getSidrOptions('div#sidr-menu-' + self.options.instance);
+            self.setChartOptions('div#sidr-menu-' + self.options.instance);
             $.sidr('close', 'sidr-menu-' + self.options.instance);
         });
         $('div#sidr-menu-' + this.options.instance).find('.sidr-cancel').on('click', function() {
             console.log('clicked cancel');
             $.sidr('close', 'sidr-menu-' + self.options.instance);
         });
+
+        // chartOptions will be stored as a Backbone Model
+        // and will be listenTo'd for changes which can
+        // trigger the rendering of a new chart
+        this.listenTo(this.chartOptions, 'change', function() {
+            console.log('chart options changed');
+            this.appendChart();
+        });
+    },
+
+    setChartOptions: function(menu) {
+        // if these options change, a 'change' event will
+        // be emitted, otherwise it will submit silently
+        this.chartOptions.set({
+            'metric': $(menu).find('.metric-dropdown-options').val(),
+            'resource': $(menu).find('.resource-dropdown-options').val(),
+            'lookback': $(menu).find('.lookback-dropdown-options').val(),
+            'interval': $(menu).find('.interval-dropdown-options').val(),
+            'chartType': $(menu).find('.chart-type-dropdown-options').val()
+        });
+
+        console.log(this.chartOptions.attributes);
     },
 
     populateMetrics: function() {
@@ -122,41 +145,40 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '/<select>' +
 
         '<h2>Resource</h2>' +
-        '<select>' +
-        '<option value="all" selected>all</option>' +
-        '<option value="">ctrl-01</option>' +
-        '<option value="">rsrc-01</option>' +
-        '<option value="">rsrc-02</option>' +
+        '<select class="resource-dropdown-options">' +
+        '<option value="" selected>all</option>' +
+        '<option value="ctrl-01">ctrl-01</option>' +
+        '<option value="rsrc-01">rsrc-01</option>' +
+        '<option value="rsrc-02">rsrc-02</option>' +
         '/<select>' +
 
         '<h2>Lookback</h2>' +
-        '<select>' +
-        '<option value="15m" selected>lookback 15m</option>' +
-        '<option value="1h">lookback 1h</option>' +
-        '<option value="6h">lookback 6h</option>' +
-        '<option value="1d">lookback 1d</option>' +
+        '<select class="lookback-dropdown-options">' +
+        '<option value="15" selected>lookback 15m</option>' +
+        '<option value="60">lookback 1h</option>' +
+        '<option value="360">lookback 6h</option>' +
+        '<option value="1440">lookback 1d</option>' +
         '/<select>' +
 
         '<h2>Charting Interval</h2>' +
-        '<select>' +
-        '<option value="1m" selected>1m</option>' +
-        '<option value="1h">1h</option>' +
-        '<option value="1d">1d</option>' +
+        '<select class="interval-dropdown-options">' +
+        '<option value="1" selected>1m</option>' +
+        '<option value="60">1h</option>' +
+        '<option value="1440">1d</option>' +
         '/<select>' +
 
         // '<h2>Refresh</h2>' +
-        // '<select>' +
+        // '<select class="refresh-dropdown-options">' +
         // '<option value="30" selected>30s</option>' +
         // '<option value="60">1m</option>' +
         // '<option value="300">5m</option>' +
         // '/<select>' +
 
         '<h2>Chart Type</h2>' +
-        '<select>' +
+        '<select class="chart-type-dropdown-options">' +
         '<option value="bar" selected>Bar Chart</option>' +
         '<option value="line">Line Chart</option>' +
         '/<select>' +
-
 
         '<button class="sidr-submit">Submit</button> ' +
         ' <button class="sidr-cancel">Cancel</button>' +
@@ -175,7 +197,23 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '</div>'
     ),
 
+    constructUrlFromParams: function() {
+        var options = this.chartOptions.attributes;
+        // http://127.0.0.1:8000/core/metrics?name__prefix=nova.hypervisor&@timestamp__range={"gte":1426887188000}
+        console.log('options?', options);
+        var url = '/core/metrics?name__prefix=' +
+        options.metric + '&timestamp__range={"gte":' +
+        (+new Date() - (options.lookback * 60 * 1000)) +
+        '}&page_size=1000';
+        console.log('constructed url: ', url);
+    },
+
     appendChart: function() {
+
+        var url = this.constructUrlFromParams();
+
+        console.log('append chart triggered');
+
         this.neutronApiPerfChart = new ApiPerfCollection({
             componentParam: 'neutron',
         });
@@ -196,9 +234,9 @@ var MetricViewerView = GoldstoneBaseView.extend({
     render: function() {
         this.$el.html(this.template());
         var self = this;
-        setTimeout(function() {
-            self.appendChart();
-        }, 500);
+        // setTimeout(function() {
+        //     self.appendChart();
+        // }, 500);
 
         return this;
     }

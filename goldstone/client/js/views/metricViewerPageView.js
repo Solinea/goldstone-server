@@ -77,22 +77,6 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         $('#goldstone-metric-r1-c2').append(this.metricViewerChartView2.el);
         $('#goldstone-metric-r1-c3').append(this.metricViewerChartView3.el);
 
-        // $('#menu-trigger1').sidr({
-        //     name: 'sidr-menu-1',
-        //     source: "#external-content1",
-        //     displace: true,
-        // });
-        // $('#menu-trigger2').sidr({
-        //     name: 'sidr-menu-2',
-        //     source: "#external-content1",
-        //     displace: true,
-        // });
-        // $('#menu-trigger3').sidr({
-        //     name: 'sidr-menu-3',
-        //     source: "#external-content1",
-        //     displace: true,
-        // });
-
     },
 
     template: _.template('' +
