@@ -191,7 +191,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '<i id="menu-trigger<%= this.options.instance %>" class="fa fa-2x fa-bars"></i>' +
 
         // add div that will contain svg for d3 chart
-        '<div class=metric-chart-instance<%= this.options.instance %> style="height:<%= this.options.height %>px;width:<%= this.options.width %>px;border:solid;">' +
+        '<div class="well metric-chart-instance<%= this.options.instance %>" style="height:<%= this.options.height %>px;width:<%= this.options.width %>px;">' +
 
         // '<div id="spinner"></div>' +
         '</div>'
@@ -224,18 +224,18 @@ var MetricViewerView = GoldstoneBaseView.extend({
                 url: url
             });
 
-            this.metricChartView = new StackedBarChartView({
-                chartTitle: "Metric Bar Chart",
+            this.metricChartView = new MetricView({
+                supressHeader: true,
+                chartTitle: " ",
                 collection: this.metricChart,
-                featureSet: 'metric',
-                height: 300,
+                height: 320,
                 // infoCustom: [{
                 //     key: "API Call",
                 //     value: "All"
                 // }],
                 el: '.metric-chart-instance' + this.options.instance,
                 width: $('.metric-chart-instance' + this.options.instance).width(),
-                yAxisLabel: ' '
+                yAxisLabel: "Values"
             });
         }
     },

@@ -21,24 +21,11 @@ var model = GoldstoneBaseModel.extend({});
 var GoldstoneBaseCollection = Backbone.Collection.extend({
 
     parse: function(data) {
-        var nextUrl;
-
-        // in the case that there are additional paged server responses
-        if (data.next && data.next !== null) {
-            var dN = data.next;
-
-            // if url params change, be sure to update this:
-            nextUrl = dN.slice(dN.indexOf('/logging'));
-
-            // fetch and add to collection without deleting existing data
-            this.fetch({
-                url: nextUrl,
-                remove: false
-            });
+        if (data && data.per_interval) {
+            return data.per_interval;
+        } else {
+            return [];
         }
-
-        // in any case, return the data to the collection
-        return data;
     },
 
     defaults: {},
@@ -49,6 +36,7 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
         this.options = options || {};
         this.url = this.options.url || null;
         this.fetchWithReset();
+        this.defaults.reportParams = {};
     },
 
     model: model,
