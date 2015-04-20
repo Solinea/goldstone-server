@@ -21,8 +21,8 @@ var MetricViewerCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-
-        return data;
+        console.log('parsing');
+        return data.per_name;
     },
 
     model: GoldstoneBaseModel,
@@ -34,6 +34,14 @@ var MetricViewerCollection = Backbone.Collection.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
+        this.retrieveData();
     },
 
+    retrieveData: function() {
+        var self = this;
+
+        this.url = "/core/metric_names";
+
+        this.fetch();
+    }
 });
