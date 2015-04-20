@@ -167,7 +167,6 @@ def get_client(service):
                 return {'client': client, 'hex_token': client.auth_token}
 
         elif service == 'nova':
-            # TODO should probably store the v2 and v3 auth urls in cloud obj
             client = nvclient.Client(os_username,
                                      os_password,
                                      os_tenant_name,

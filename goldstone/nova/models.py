@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from elasticsearch_dsl import A
-from goldstone.apps.drfes.models import DailyIndexDocType
+from goldstone.drfes.models import DailyIndexDocType
 from goldstone.models import TopologyData
 
 

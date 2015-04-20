@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.apps.drfes.views import ElasticListAPIView
+from goldstone.drfes.views import ElasticListAPIView
 from goldstone.glogging.models import LogData, LogEvent
 from goldstone.glogging.serializers import LogDataSerializer, \
     LogAggSerializer, LogEventAggSerializer
@@ -74,10 +74,13 @@ class LogEventAggView(ElasticListAPIView):
     def get(self, request, *args, **kwargs):
         """Return a response to a GET request."""
         import ast
+
         base_queryset = self.filter_queryset(self.get_queryset())
         interval = self.request.query_params.get('interval', '1d')
         per_host = ast.literal_eval(
             self.request.query_params.get('per_host', 'True'))
+
         data = LogEvent.ranged_event_agg(base_queryset, interval, per_host)
         serializer = self.serializer_class(data)
+
         return Response(serializer.data)

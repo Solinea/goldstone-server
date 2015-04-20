@@ -20,7 +20,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.viewsets import ReadOnlyModelViewSet
-from goldstone.apps.drfes.utils import es_custom_exception_handler
+from goldstone.drfes.utils import es_custom_exception_handler
 from .models import resources, resource_types
 
 logger = logging.getLogger(__name__)

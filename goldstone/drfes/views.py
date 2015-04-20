@@ -16,9 +16,9 @@ from rest_framework.exceptions import ValidationError
 
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
-from goldstone.apps.drfes.filters import ElasticFilter
-from goldstone.apps.drfes.pagination import ElasticPageNumberPagination
-from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer, \
+from goldstone.drfes.filters import ElasticFilter
+from goldstone.drfes.pagination import ElasticPageNumberPagination
+from goldstone.drfes.serializers import ReadOnlyElasticSerializer, \
     SimpleAggSerializer, DateHistogramAggSerializer
 
 
@@ -111,32 +111,43 @@ class DateHistogramAggView(ElasticListAPIView):
 
     def get(self, request):
         """Handle get request."""
+
         search = self._get_search(request)
         serializer = self.serializer_class(search.execute().aggregations)
         return Response(serializer.data)
 
     def _get_search(self, request):
-        """Return the search object prior to serialization.  Can be used by
-        subclasses that override get."""
+        """Return the search object prior to serialization.
+
+        Can be used by subclasses that override get.
+
+        """
+
         self._validate_params(request)
 
         base_queryset = self.filter_queryset(self.get_queryset())
 
         # we can also find the start/end from any range param provided.
-        range_param = request.query_params.get(
-            self.AGG_FIELD + "__range", None)
+        range_param = request.query_params.get(self.AGG_FIELD + "__range",
+                                               None)
 
-        min, max = (None, None) if range_param is None else \
+        bounds_min, bounds_max = (None, None) if range_param is None else \
             self._extract_time_range(range_param)
 
         return self.Meta.model.simple_datehistogram_agg(
-            base_queryset, self.interval, field=self.AGG_FIELD,
-            agg_name=self.AGG_NAME, min_doc_count=0,
-            bounds_min=min, bounds_max=max)
+            base_queryset,
+            self.interval,
+            field=self.AGG_FIELD,
+            agg_name=self.AGG_NAME,
+            min_doc_count=0,
+            bounds_min=bounds_min,
+            bounds_max=bounds_max)
 
     def _validate_params(self, request):
         import ast
+
         self.interval = request.query_params.get('interval')
+
         if self.interval is None:
             raise ValidationError("Parameter 'interval' is required.")
         else:
@@ -155,8 +166,9 @@ class DateHistogramAggView(ElasticListAPIView):
                 raise ValidationError("Parameter 'interval' is malformed.")
 
     def _extract_time_range(self, range_spec):
-        """Get the time range out of the query param."""
+        """Return the time range from the query parameter."""
         import ast
+
         try:
             range_spec = ast.literal_eval(range_spec)
             range_min = None
