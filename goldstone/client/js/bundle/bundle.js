@@ -6837,7 +6837,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
                 value: "All"
             }],
             el: '.metric-chart-instance' + this.options.instance,
-            width: $('.metric-chart-instance1' + this.options.instance).width()
+            width: $('.metric-chart-instance' + this.options.instance).width()
         });
     },
 
