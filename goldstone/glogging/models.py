@@ -12,11 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import logging
 from elasticsearch_dsl import query
-from goldstone.apps.drfes.models import DailyIndexDocType
-
-logger = logging.getLogger(__name__)
+from goldstone.drfes.models import DailyIndexDocType
 
 
 class LogData(DailyIndexDocType):
@@ -30,6 +27,7 @@ class LogData(DailyIndexDocType):
         """Gets a generic Log search object.
 
         See elasticsearch-dsl for parameter information.
+
         """
         from elasticsearch_dsl.query import Q
 
@@ -63,6 +61,7 @@ class LogData(DailyIndexDocType):
         :param per_host: aggregate by host inside the time aggregation?
         :rtype: object
         :return: the (possibly nested) aggregation
+
         """
 
         assert isinstance(interval, basestring), 'interval must be a string'

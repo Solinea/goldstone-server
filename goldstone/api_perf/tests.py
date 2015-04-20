@@ -12,14 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import arrow
 from django.test import SimpleTestCase
 from django.utils.unittest.case import skip
 from elasticsearch_dsl import Search, Q
 from uuid import uuid1
 
-from goldstone.apps.api_perf.views import ApiPerfAggView
+from goldstone.api_perf.views import ApiPerfAggView
 from goldstone.models import daily_index, es_conn
 from .models import ApiPerfData
 
@@ -70,7 +69,6 @@ class ApiPerfTests(SimpleTestCase):
         self.assertEqual(data.response_length, persisted.response_length)
         self.assertEqual(data.response_time, persisted.response_time)
 
-        # TODO uncomment when bug fixed in es-dsl
         self.assertEqual(data.creation_time, persisted.creation_time)
 
         data2 = ApiPerfData(response_status=1000,

@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from rest_framework.response import Response
-from goldstone.apps.api_perf.models import ApiPerfData
-from goldstone.apps.api_perf.serializers import ApiPerfAggSerializer
-from goldstone.apps.drfes.views import DateHistogramAggView
+from goldstone.api_perf.models import ApiPerfData
+from goldstone.api_perf.serializers import ApiPerfAggSerializer
+from goldstone.drfes.views import DateHistogramAggView
 
 
 class ApiPerfAggView(DateHistogramAggView):

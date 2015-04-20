@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer
+from goldstone.drfes.serializers import ReadOnlyElasticSerializer
 
 
 class SpawnsAggSerializer(ReadOnlyElasticSerializer):
-    """Custom serializer to manipulate the aggregation that comes back from ES.
-    """
+    """Custom serializer to manipulate the aggregation that comes back from
+    ES."""
 
     DATEHIST_AGG_NAME = 'per_interval'
     SUCCESS_AGG_NAME = 'success'
@@ -26,6 +26,7 @@ class SpawnsAggSerializer(ReadOnlyElasticSerializer):
 
         :param instance: the result from the Model.simple_agg call
         :return:
+
         """
 
         datehist_agg_base = getattr(instance, self.DATEHIST_AGG_NAME, None)
@@ -33,6 +34,7 @@ class SpawnsAggSerializer(ReadOnlyElasticSerializer):
             "DATEHIST_AGG_NAME must exist in the instance passed to %s."
             % self.__class__.__name__
         )
+
         # let's clean up the inner buckets
         data = [{bucket.key: {
             'count': bucket.doc_count,
@@ -45,5 +47,6 @@ class SpawnsAggSerializer(ReadOnlyElasticSerializer):
     @staticmethod
     def _process_success(agg):
         """Reformat the agg buckets."""
+
         return [{bucket['key']: bucket['doc_count']}
                 for bucket in agg['buckets']]

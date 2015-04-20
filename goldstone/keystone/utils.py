@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from goldstone.apps.keystone.models import EndpointsData
+from goldstone.keystone.models import EndpointsData
 from goldstone.utils import NoResourceFound, TopologyMixin
 
 

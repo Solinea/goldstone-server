@@ -22,7 +22,7 @@ from __future__ import absolute_import
 
 import logging
 
-from goldstone.apps.nova.models import AgentsData, AggregatesData, \
+from goldstone.nova.models import AgentsData, AggregatesData, \
     AvailZonesData, CloudpipesData, FlavorsData, \
     FloatingIpPoolsData, HostsData, HypervisorsData, NetworksData, \
     SecGroupsData, ServersData, ServicesData
@@ -199,12 +199,10 @@ def reconcile_hosts():
         Host.objects.create(
             name=name,
             fqdn=[item[1] for item in incoming if item[0] == name][0])
-        # TODO generate an event if we don't get one from ceilometer?
 
 
 def get_nova_host_list():
     """Retrieve a list of hosts from nova."""
-
     from goldstone.utils import get_nova_client
 
     nova_access = get_nova_client()
@@ -220,10 +218,12 @@ def parse_host_name(host_name):
     :param host_name: an ip address, fqdn, or simple host name
     :rtype tuple
     :return simple name, fqdn
-    """
 
+    """
     from goldstone.utils import is_ip_addr, partition_hostname
+
     fqdn = None
+
     if not is_ip_addr(host_name):
         parts = partition_hostname(host_name)
 

@@ -17,7 +17,7 @@ from django.db.models import CharField, IntegerField
 from django_extensions.db.fields import UUIDField, CreationDateTimeField, \
     ModificationDateTimeField
 from polymorphic import PolymorphicModel
-from goldstone.apps.drfes.models import DailyIndexDocType
+from goldstone.drfes.models import DailyIndexDocType
 from goldstone.glogging.models import LogData, LogEvent
 
 # Get_glance_client is defined here for easy unit test mocking.

@@ -79,15 +79,15 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
     'south',
     'goldstone.accounts',
-    'goldstone.apps.api_perf',
-    'goldstone.apps.drfes',
-    'goldstone.apps.glance',
-    'goldstone.apps.keystone',
-    'goldstone.apps.nova',
+    'goldstone.api_perf',
     'goldstone.cinder',
     'goldstone.core',
+    'goldstone.drfes',
+    'goldstone.glance',
     'goldstone.glogging',
+    'goldstone.keystone',
     'goldstone.neutron',
+    'goldstone.nova',
     'goldstone.tenants',
     'goldstone.user',
 )
@@ -205,15 +205,15 @@ CELERYBEAT_SCHEDULE = {
         'schedule': DAILY_INDEX_CURATION_SCHEDULE
     },
     'nova-hypervisors-stats': {
-        'task': 'goldstone.apps.nova.tasks.nova_hypervisors_stats',
+        'task': 'goldstone.nova.tasks.nova_hypervisors_stats',
         'schedule': RESOURCE_QUERY_INTERVAL,
     },
     'discover_keystone_topology': {
-        'task': 'goldstone.apps.keystone.tasks.discover_keystone_topology',
+        'task': 'goldstone.keystone.tasks.discover_keystone_topology',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
     'discover_glance_topology': {
-        'task': 'goldstone.apps.glance.tasks.discover_glance_topology',
+        'task': 'goldstone.glance.tasks.discover_glance_topology',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
     'discover_cinder_topology': {
@@ -221,7 +221,7 @@ CELERYBEAT_SCHEDULE = {
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
     'discover_nova_topology': {
-        'task': 'goldstone.apps.nova.tasks.discover_nova_topology',
+        'task': 'goldstone.nova.tasks.discover_nova_topology',
         'schedule': TOPOLOGY_QUERY_INTERVAL
     },
     'reconcile_hosts': {

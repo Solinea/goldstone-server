@@ -432,10 +432,11 @@ def _collect_static(proj_settings=None):
 
 
 def _reconcile_hosts(proj_settings=None):
-    """Builds the initial entries in the Hosts table from agg of loggers."""
+    """Build the initial entries in the Hosts table from agg of loggers."""
+
     with _django_env(proj_settings):
         print(green("Collecting information about Openstack resources."))
-        from goldstone.apps.nova.tasks import reconcile_hosts
+        from goldstone.nova.tasks import reconcile_hosts
         reconcile_hosts()
 
 

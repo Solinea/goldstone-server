@@ -51,8 +51,8 @@ def reconcile_hosts():
        - updated from the cloud if they are already in the graph.
 
     """
-    from goldstone.apps.glance.utils import reconcile_glance_hosts
-    from goldstone.apps.nova.utils import reconcile_nova_hosts
+    from goldstone.glance.utils import reconcile_glance_hosts
+    from goldstone.nova.utils import reconcile_nova_hosts
     from goldstone.cinder.utils import reconcile_cinder_hosts
 
     for services in [reconcile_glance_hosts,

@@ -20,8 +20,8 @@ This module contains all views for the OpenStack Nova application.
 from __future__ import unicode_literals
 
 from rest_framework.response import Response
-from goldstone.apps.drfes.views import DateHistogramAggView
-from goldstone.apps.nova.serializers import SpawnsAggSerializer
+from goldstone.drfes.views import DateHistogramAggView
+from goldstone.nova.serializers import SpawnsAggSerializer
 
 from .models import SpawnsData, AgentsData, AggregatesData, AvailZonesData, \
     CloudpipesData, NetworksData, SecGroupsData, ServersData, ServicesData, \

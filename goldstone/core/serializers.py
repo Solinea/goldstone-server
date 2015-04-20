@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from rest_framework import serializers
-from goldstone.apps.drfes.serializers import ReadOnlyElasticSerializer, \
+from goldstone.drfes.serializers import ReadOnlyElasticSerializer, \
     SimpleAggSerializer
 from .models import PolyResource
 
