@@ -95,8 +95,8 @@ var GoldstoneBaseView = Backbone.View.extend({
             this.defaults.end = this.collection.defaults.reportParams.end;
             this.defaults.interval = this.collection.defaults.reportParams.interval;
 
-            if ($(this.el).find('#api-perf-info').length) {
-                $(this.el).find('#api-perf-info').popover({
+            if ($(this.el).find('#chart-button-info').length) {
+                $(this.el).find('#chart-button-info').popover({
                     content: this.htmlGen.apply(this),
                 });
             }
@@ -304,10 +304,10 @@ var GoldstoneBaseView = Backbone.View.extend({
     update: function() {},
 
     template: _.template(
-        '<div id="api-perf-panel-header" class="panel panel-primary">' +
+        '<div id="chart-panel-header" class="panel panel-primary">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
-        '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
+        '<i class="pull-right fa fa-info-circle panel-info"  id="chart-button-info"></i>' +
         '</h3></div><div class="alert alert-danger popup-message" hidden="true"></div>'),
 
     render: function() {
