@@ -9,21 +9,19 @@ Goldstone is the first purpose-built monitoring, management and analytics platfo
 * Analyze and diagnose common issues
 * Automate common cloud management and maintenance tasks
 
-For more information on how to install Goldstone, view the INSTALL.rst file.Copyright 2014 Solinea, Inc.
+For more information on how to install Goldstone, view the INSTALL.rst file.
 
 --------------
 Installation
 --------------
 
-The installation instructions are documented in INSTALL.rst.
+The installation instructions are in INSTALL.rst.
 
 --------------
 Usage
 --------------
 
-The installation created a system administrator account with the credentials, "admin" / "changeme".
-
-Your first task is to change this account's password and e-mail address. You can do this from the account settings page.
+The installation created a system administrator account with the credentials, "admin" / "changeme".  Your first task is to change its password and e-mail address. You can do this from the account settings page.
 
 The installation also created an initial tenant, with a tenant administrator. The tenant administrator is also Goldstone's default tenant administrator. You may wish to change this tenant's name, owner name, or contact information; change the tenant admin's name or password, which is "gsadmin" / "changeme"; or create more tenant admins.
 
@@ -52,7 +50,9 @@ The recommended steps are:
 4. Make your improvements in your fork.
 5. Submit a pull request to us. Be sure to a problem description, overview of your changes, and unit tests.
 
-Please follow the generally accepted practices for Python and OpenStack code, based on these style guidelines:
+Python code
+::::::::::::::::::
+Please follow the generally accepted practices, based on these style guidelines:
 
 * `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_ - Style Guide
 * `PEP 257 <https://www.python.org/dev/peps/pep-0257/>`_ - Docstring conventions
@@ -65,7 +65,9 @@ To test that your code conforms to this project's standards:
    $ tox -e pep8
    $ tox -e pylint
 
-For JavaScript code:
+
+JavaScript code
+:::::::::::::::::::::::
 
 \TBD\
 
@@ -80,6 +82,7 @@ If you need help or have questions, you can submit them as issues in this reposi
 API
 --------------
 
+The Goldstone API is documented in xxxxxxxxxxxxxxxxxxxxxx.
 
 --------------
 License

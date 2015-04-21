@@ -1,36 +1,45 @@
-Copyright 2014 - 2015 Solinea, Inc.
-
-Licensed under the Solinea Software License Agreement (goldstone),
-Version 1.0 (the "License"); you may not use this file except in compliance
-with the License. You may obtain a copy of the License at:
-
-    http://www.solinea.com/goldstone/LICENSE.pdf
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-GOLDSTONE HACKING GUIDE
+Goldstone Hacking Guide
 ========================
 
-Initial Setup
-*************
+This explains how to install and run Goldstone locally, so that you can do code development on it.
+
+Remember that an instance of Goldstone running locally can be used to monitor a
+local *or remote* OpenStack installation. Where Goldstone is running is
+independent from the OpenStack cloud's location.
+
+
+Installation
+-------------------
+
+Preliminaries
+****************
 
 If you're doing this on OS X, you need to install these packages::
 
-    (Install Homebrew, per the instructions at http://brew.sh.)
-
+    # First install Homebrew, per the instructions at http://brew.sh. Then...
     $ brew upgrade
     $ brew doctor            # Resolve any any errors or warnings before continuing.
 
     $ brew install caskroom/cask/brew-cask
     $ brew cask install java
-    $ brew install python    # This puts a Python interpreter where mkvirtualenv expects to find it.
+    $ brew install python    # This puts a Python interpreter where mkvirtualenv expects it.
     
-Create your virtual environment for goldstone. Virtualenvwrapper makes this easy
-(see http://virtualenvwrapper.readthedocs.org/en/latest/install.html)::
+
+Upgrade or install Pip
+*******************************
+
+If your system already has Pip, upgrade it to a recent version.
+
+If your system doesn't have pip installed, install it::
+
+  $ curl https://bootstrap.pypa.io/get-pip.py > get-pip.py
+  $ python get-pip.py
+
+
+Virtualenvwrapper, tox
+*******************************
+
+Create your virtual environment for goldstone.  `Virtualenvwrapper <http://virtualenvwrapper.readthedocs.org/en/latest/install.html>`_ makes this easy::
 
     $ pip install virtualenvwrapper
     $ pip install tox
@@ -56,7 +65,7 @@ Customize your virtualenv postactive script to make it yours. This is a suggeste
     cd ~/devel/goldstone
     export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
 
-    # For example, export DJANGO_SETTINGS_MODULE=goldstone.settings.local_oak_c2
+    # For example, export DJANGO_SETTINGS_MODULE=goldstone.settings.local_ny_cloud2
     export DJANGO_SETTINGS_MODULE=goldstone.settings.local_<datacenter>_<cloud_instance>
 
     redis-server > /dev/null 2>&1 &
@@ -85,24 +94,26 @@ Activating and deactivating the environment can be done with the following comma
     $ workon goldstone
     $ deactivate
 
-Install these packages locally::
+
+Install some packages
+**************************
+
+Install these packages in your goldstone virtualenv::
 
     $ workon goldstone
-    $ brew install elasticsearch
-    $ brew install phantomjs
-    $ brew install redis
-    $ brew install postgresql
+    $ brew install elasticsearch phantomjs redis postgresql
 
-Create development and test databases. Create a user goldstone with the role goldstone
-(or edit your development.py setttings file)::
+Set up your databases
+******************************
+Create your development and test databases, and create a "goldstone" database user::
     
     $ createdb goldstone_dev
     $ createdb goldstone_test
-    $ createdb goldstone
     $ createuser goldstone -d
   
-Edit your pg_hba.conf file.  If you installed with brew, this should be in 
-    ``/usr/local/var/postgres/``.  See INSTALL for the modifications.::
+Edit your pg_hba.conf file.  If you installed with brew, this should be in ``/usr/local/var/postgres/``.  See INSTALL.rst for the modifications.
+
+After you've edited pg_hba.conf, reload postgres::
 
     $ pg_ctl reload
    
@@ -111,7 +122,7 @@ If you want remote access to postgres, you will also need to add an entry to
 
     -A INPUT -p tcp -m state --state NEW -m tcp --dport 5432 -m comment --comment "postgres incoming" -j ACCEPT 
 
-And ``/usr/local/var/postgres/postgresql.conf`` to configure it to listen on 
+And edit ``/usr/local/var/postgres/postgresql.conf`` to configure it to listen on 
 external addresses::
 
     listen_address='*'
@@ -120,41 +131,50 @@ Then restart iptables::
 
     $ service iptables restart
 
-Clone Goldstone from the bitbucket repo::
+Get the code
+*********************
 
-    $ cd $PROJECT_HOME
-    $ git clone git@bitbucket.org:solinea/goldstone.git
+1. On GitHub, fork the Goldstone repository.
+2. Clone your fork to your local machine::
+   
+   $ cd $PROJECT_HOME
+   $ git clone <your clone URL>
 
-Now, install pip prerequesites. These let your run the application on your laptop::
+3. Now, install pip prerequesites::
 
     $ workon goldstone
-    $ cd goldstone                    # If your postactive script doesn't have a cd
+    $ cd goldstone              # If your postactive script doesn't have a cd
     $ pip install -r requirements.txt
     $ pip install -r test-requirements.txt
 
-Open a VPN connection to the development Oakland (oak) cloud.
 
-Sync and initialize the database, and initialize Elasticsearch's templates. (You'll need to issue a "fab syncmigrate"
-command if you ever switch databases. A simple test is, if you change the value of DJANGO_SETTINGS_MODULE, you'll need to do it.) ::
+
+Initialize Goldstone, then login
+*****************************************
+
+Sync and initialize the database, and initialize Elasticsearch's templates.::
 
     $ fab goldstone_init
 
-Now run the development server::
+Now run Django's development server::
 
     $ fab runserver
 
-You should now see the application running at http://localhost:8000/
+You should now see the application running at http://localhost:8000/. Django's admin interface will be at http://localhost:8000/admin. You should be able to login with your "superuser" account.
+
+Congratulations!
 
 
-Goldstone Testing
-*****************
+
+Testing
+--------------
 
 Goldstone uses the standard Django testing tools:
 
 * Tox for test automation. Goldstone's tox setup tests against Python 2.6, Python 2.7 and PEP8 (syntax) by default. Additional jobs for coverage and pyflakes are available.
-* Django TestCase and selenium are used for unit and functional testing respectively.
+* Django TestCase is used for unit testing.
 
-Goldstone strives for 100% code coverage. Code coverage reports can be created through the `tox -e cover` command::
+Code coverage reports can be created through the `tox -e cover` command::
 
     $ tox -e cover
     GLOB sdist-make: /Users/kpepple/Documents/dev/Solinea/goldstone-ui/setup.py
@@ -206,76 +226,70 @@ Front-end testing
 *****************
 
 This information assumes you already have node/npm installed.
-It also assumes you already have phantomjs installed via previous steps in the HACKING.rst file.
-If not, install it via homebrew. At the time of this documentation, the testing environment was compatible with phantomjs 1.9.7
+At the time of this documentation, the testing environment was compatible with phantomjs 1.9.7.::
 
-$ npm install -g grunt-cli
-$ npm install
-$ grunt
-This will kick off the preliminary lint/test/watch routine.
+  $ npm install -g grunt-cli
+  $ npm install
+  $ grunt
 
-In order for the e2e tests to run, you MUST have the server running and access to live data.
+In order for the e2e tests to run, you *must* have the server running and access to live data.
 
-At the time of this documentation, the Gruntfile.js is configured with the following combo tasks:
-grunt (default task): lint / test / watch.
-grunt watch: watch for changes that will trigger unit/integration/e2e tests
-grunt lint: lint only (no watch).
-grunt test: unit/integration/e2e test only (no watch).
-grunt lintAndTest: lint and test only (no watch).
-grunt testDev: lint, followed by unit/integration test (no e2e) and watch that only triggers further unit/integration tests, no e2e tests.
+At the time of this documentation, the Gruntfile.js is configured with the following combo tasks::
+  
+  grunt (default task): lint / test / watch.
+  grunt watch: watch for changes that will trigger unit/integration/e2e tests
+  grunt lint: lint only (no watch).
+  grunt test: unit/integration/e2e test only (no watch).
+  grunt lintAndTest: lint and test only (no watch).
+  grunt testDev: lint, followed by unit/integration test (no e2e) and watch that only triggers further unit/integration tests, no e2e tests.
 
 
 
 Documentation
-=============
+--------------------
 
-To create the product documentation:
+To create the product documentation::
 
-* cd to doc directory - $ cd doc
-* install sphinx - $ sudo pip install sphinx
-* make the documentation - $ make html
+  $ cd doc
+  $ sudo pip install sphinx
+  $ make html
 
 The documentation will be in the doc/build/html directory
 
-Creating Release
-****************
-
-To create a release, follow these steps:
-
-# Bump the version number in the setup.cfg file (if not done already)
-# Tag and sign the commit ($ git tag -s 1.0 -m 'first customer ship') -- PBR requires SIGNED tags to correctly build the version number into the RPM.
-# Push the tags to bitbucket ($ git push origin 1.0)
-# Create the RPM (on CentOS/Red Hat machine with # python setup.py bdist_rpm)
-# SCP the RPM to the repo (# scp dist/goldstone-1.0-1.noarch.rpm repo.solinea.com:/var/www/html/repo/)
-# Update the repo (on repo.solinea.com, run # createrepo /var/www/html/repo/)
-# Have a drink at Eureka and wait for the bitching
-
 
 Major Design Decisions
-**********************
+-----------------------------
 
+* The client code supplied with Goldstone may be used in production, or it may be used as a reference design for your own custom client. Goldstone has been designed to be used entirely via its API, without using Django's authentication or view+template subsystems.
 * Goldstone is currently based on the 1.6 version of `Django`_.
+* Goldstone uses Postgresql for its main database.
 * For database and model migrations, Goldstone uses `South`_.
-* Goldstone has chosen Postgresql as its main database, however MySQL will also be tested against.
+* `Celery`_ is used for asyncronous tasks.
 * The PBR library (created by the OpenStack project) is used for sane and simple setup.py, versioning and setup.cfg values.
-* `Celery`_ and django-celery is used for asyncronous tasks.
 * Goldstone has additional developer tasks augemented by the django_extensions library.
-* The `Twitter Bootstrap 3`_ framework is used for UX. This also means that `jQuery`_ and `jQuery-UI`_ are used in the UX. `Font Awesome`_ has been used for icons instead of the standard icons.
+* `Backbone`_ is the client framework, and `jQuery`_ and `jQuery-UI`_ are used. `Font Awesome`_ has been used for icons instead of the standard icons.
 
 
 .. _Django: http://www.django.com
 .. _South: http:www.FIXME.com
 .. _Celery: http://www.FIXME.com
-.. _`Twitter Bootstrap 3`: http://www.FIXME.com
+.. _Backbone: http://backbonejs.org
 .. _jQuery: http://www.FIXME.com
 .. _jQuery-UI: http://www.FIXME.com
 .. _`Font Awesome`: http://www.FIXME.com
 
 
+License
+-----------------------------
 
-GoldStone Style Commandments
-****************************
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-In general, we follow the `OpenStack style conventions`_ where they are possible and applicable.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-.. _OpenStack style conventions: http://docs.openstack.org/developer/hacking/
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

@@ -19,13 +19,13 @@ Install Prerequisites (as root)
 
   .. code:: bash
 
-    # yum update ; reboot
-    # yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
-    # yum install -y python-devel python-setuptools libffi-devel wget
-    # wget https://bootstrap.pypa.io/get-pip.py
-    # python get-pip.py
-    # pip install paramiko==1.10
-    # pip install fabric==1.10.1    
+    root# yum update ; reboot
+    root# yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
+    root# yum install -y python-devel python-setuptools libffi-devel wget
+    root# wget https://bootstrap.pypa.io/get-pip.py
+    root# python get-pip.py
+    root# pip install paramiko==1.10
+    root# pip install fabric==1.10.1    
 
 
 Run the Goldstone installer (as root)
@@ -35,28 +35,27 @@ The following command should be initiated from the same directory as this file a
 
   .. code:: bash
 
-    # fab -f installer_fabfile.py install
+    root# fab -f installer_fabfile.py install
 
 
 This package installation may take up to 30 minutes to run, as it needs to compile a number of libraries.
 
 Review production.py
-********************
+**********************
 
 If this is a first-time install of Goldstone, skip this section.
 
-If this is a re-install of Goldstone, a
-new ``production.py`` file from Solinea will be in
+If this is a re-install of Goldstone, a new ``production.py`` file from Solinea will be in
 ``/opt/goldstone/goldstone/settings/production.py.rpmnew``.
 
 Compare ``/opt/goldstone/goldstone/settings/production.py`` to
-``/opt/goldstone/goldstone/settings/production.py.rpmnew``, and migrate any changes from Solinea into the ``.py`` file. If you did not previously customize ``production.py``, you can simply do this:
+``/opt/goldstone/goldstone/settings/production.py.rpmnew``, and migrate any changes from the ``.rpmnew`` file into the ``.py`` file. If you did not previously edit ``production.py``, you can simply do this:
 
   .. code:: bash
 
     # mv /opt/goldstone/goldstone/settings/production.py.rpmnew /opt/goldstone/goldstone/settings.production.py.
 
-Then restart the server.
+After you've migrated your custom edits into ``production.py``, restart the server.
 
 
 Test password reset
