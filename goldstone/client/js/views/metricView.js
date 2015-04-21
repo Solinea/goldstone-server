@@ -43,8 +43,8 @@ var MetricView = ApiPerfView.extend({
     defaults: {
         margin: {
             top: 40,
-            right: 30,
-            bottom: 75,
+            right: 15,
+            bottom: 30,
             left: 60
         }
     },
@@ -99,8 +99,8 @@ var MetricView = ApiPerfView.extend({
     update: function() {
         var ns = this.defaults;
         var self = this;
-        var json = this.collection.toJSON();
-        json = this.dataPrep(json);
+        var data = this.collection.toJSON()[0];
+        json = this.dataPrep(data.per_interval);
         var mw = ns.mw;
         var mh = ns.mh;
 
@@ -119,14 +119,16 @@ var MetricView = ApiPerfView.extend({
             .attr("class", "axis.label")
             .attr("transform", "rotate(-90)")
             .attr("x", 0 - (ns.height / 2))
-            .attr("y", -5)
+            .attr("y", -11)
             .attr("dy", "1.5em")
-            .text(ns.yAxisLabel)
+            .text(data.units[0])
             .style("text-anchor", "middle");
 
         ns.y.domain([0, d3.max(json, function(d) {
             var key = _.keys(d).toString();
-            return d[key].stats.max;
+
+            // add 10% breathing room to y axis domain
+            return d[key].stats.max * 1.1;
         })]);
 
         json.forEach(function(d) {
@@ -319,8 +321,6 @@ var MetricView = ApiPerfView.extend({
                 d3.select(id).style("opacity", 0);
                 tip.hide();
             });
-
-
     },
 
     template: _.template(

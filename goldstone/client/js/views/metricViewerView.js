@@ -231,8 +231,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
                 //     value: "All"
                 // }],
                 el: '.metric-chart-instance' + this.options.instance,
-                width: $('.metric-chart-instance' + this.options.instance).width(),
-                yAxisLabel: "Values"
+                width: $('.metric-chart-instance' + this.options.instance).width()
             });
         }
     },

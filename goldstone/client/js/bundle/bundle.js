@@ -285,8 +285,8 @@ var GoldstoneBaseView = Backbone.View.extend({
             this.defaults.end = this.collection.defaults.reportParams.end;
             this.defaults.interval = this.collection.defaults.reportParams.interval;
 
-            if ($(this.el).find('#api-perf-info').length) {
-                $(this.el).find('#api-perf-info').popover({
+            if ($(this.el).find('#chart-button-info').length) {
+                $(this.el).find('#chart-button-info').popover({
                     content: this.htmlGen.apply(this),
                 });
             }
@@ -494,10 +494,10 @@ var GoldstoneBaseView = Backbone.View.extend({
     update: function() {},
 
     template: _.template(
-        '<div id="api-perf-panel-header" class="panel panel-primary">' +
+        '<div id="chart-panel-header" class="panel panel-primary">' +
         '<div class="panel-heading">' +
         '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
-        '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
+        '<i class="pull-right fa fa-info-circle panel-info"  id="chart-button-info"></i>' +
         '</h3></div><div class="alert alert-danger popup-message" hidden="true"></div>'),
 
     render: function() {
@@ -698,11 +698,7 @@ var model = GoldstoneBaseModel.extend({});
 var GoldstoneBaseCollection = Backbone.Collection.extend({
 
     parse: function(data) {
-        if (data && data.per_interval) {
-            return data.per_interval;
-        } else {
-            return [];
-        }
+        return data;
     },
 
     defaults: {},
@@ -911,7 +907,6 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(LogSearchView);
     },
     metricViewer: function(numCharts) {
-        console.log('numCharts? ', numCharts);
         if (numCharts === null || numCharts === undefined) {
             numCharts = 6;
         }
@@ -2316,6 +2311,58 @@ var MemResourceCollection = Backbone.Collection.extend({
 
 // define collection and link to model
 
+var model = GoldstoneBaseModel.extend({});
+
+var MetricViewCollection = GoldstoneBaseCollection.extend({
+
+    computeLookback: function() {
+        var lookbackMinutes;
+        if ($('.global-lookback-selector .form-control').length) {
+            // global lookback is available:
+            lookbackMinutes = parseInt($('.global-lookback-selector .form-control').val(), 10);
+        } else {
+            // otherwise, default to 1 hour:
+            lookbackMinutes = 60;
+        }
+        return lookbackMinutes;
+    },
+
+    fetchWithReset: function() {
+        // used when you want to delete existing data in collection
+        // such as changing the global-lookback period
+        this.fetch({
+            remove: true
+        });
+    },
+
+    fetchNoReset: function() {
+
+        // used when you want to retain existing data in collection
+        // such as a global-refresh-triggered update to the Event Timeline viz
+        this.fetch({
+            remove: false
+        });
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// define collection and link to model
+
 var MetricViewerCollection = Backbone.Collection.extend({
 
     defaults: {},
@@ -3233,7 +3280,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
 
         this.hideSpinner();
 
-        if(this.checkReturnedDataSet(json) === false){
+        if (this.checkReturnedDataSet(json) === false) {
             return;
         }
 
@@ -3251,7 +3298,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
             d.time = moment(+_.keys(d)[0]);
 
             // which is why .filter is required here:
-            var key = _.keys(d).filter(function(item){
+            var key = _.keys(d).filter(function(item) {
                 return item !== "time";
             }).toString();
             d.min = d[key].stats.min || 0;
@@ -3438,7 +3485,14 @@ var ApiPerfView = GoldstoneBaseView.extend({
 
         // EXIT
         // Remove old elements as needed.
-    }
+    },
+
+    template: _.template(
+        '<div id="api-perf-panel-header" class="panel panel-primary">' +
+        '<div class="panel-heading">' +
+        '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
+        '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
+        '</h3></div><div class="alert alert-danger popup-message" hidden="true"></div>'),
 
 });
 ;
@@ -6722,11 +6776,13 @@ var MetricView = ApiPerfView.extend({
     defaults: {
         margin: {
             top: 40,
-            right: 30,
+            right: 15,
             bottom: 30,
             left: 60
         }
     },
+
+
 
     standardInit: function() {
 
@@ -6776,8 +6832,8 @@ var MetricView = ApiPerfView.extend({
     update: function() {
         var ns = this.defaults;
         var self = this;
-        var json = this.collection.toJSON();
-        json = this.dataPrep(json);
+        var data = this.collection.toJSON()[0];
+        json = this.dataPrep(data.per_interval);
         var mw = ns.mw;
         var mh = ns.mh;
 
@@ -6796,14 +6852,16 @@ var MetricView = ApiPerfView.extend({
             .attr("class", "axis.label")
             .attr("transform", "rotate(-90)")
             .attr("x", 0 - (ns.height / 2))
-            .attr("y", -5)
+            .attr("y", -11)
             .attr("dy", "1.5em")
-            .text(ns.yAxisLabel)
+            .text(data.units[0])
             .style("text-anchor", "middle");
 
         ns.y.domain([0, d3.max(json, function(d) {
             var key = _.keys(d).toString();
-            return d[key].stats.max;
+
+            // add 10% breathing room to y axis domain
+            return d[key].stats.max * 1.1;
         })]);
 
         json.forEach(function(d) {
@@ -6996,8 +7054,6 @@ var MetricView = ApiPerfView.extend({
                 d3.select(id).style("opacity", 0);
                 tip.hide();
             });
-
-
     },
 
     template: _.template(
@@ -7055,7 +7111,6 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
     },
 
     renderCharts: function() {
-        console.log('num? ', this.numCharts);
         var num = this.numCharts;
 
         //---------------------------
@@ -7172,10 +7227,14 @@ var MetricViewerView = GoldstoneBaseView.extend({
         var self = this;
 
         // attach listeners to the modal menu buttons
-        $('#external-content' + this.options.instance).find('.modal-submit').on('click', function() {
-            self.setChartOptions('#external-content' + self.options.instance);
+        $('#gear-modal-content' + this.options.instance).find('.modal-submit').on('click', function() {
+            self.setChartOptions('#gear-modal-content' + self.options.instance);
+            $('span.metric-viewer-title' + self.options.instance).text('Metric: ' +
+                self.chartOptions.get('metric') +
+                '. Resource: ' +
+                self.chartOptions.get('resource'));
         });
-        $('#external-content' + this.options.instance).find('.modal-cancel').on('click', function() {});
+        $('#gear-modal-content' + this.options.instance).find('.modal-cancel').on('click', function() {});
 
         // chartOptions will be stored as a Backbone Model
         // and will be listenTo'd for changes which can
@@ -7202,7 +7261,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         var self = this;
 
         _.each(self.collection.toJSON(), function(item) {
-            $('#external-content' + self.options.instance).find('.metric-dropdown-options').append('<option>' + _.keys(item)[0] + "</option>");
+            $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-options').append('<option>' + _.keys(item)[0] + "</option>");
         });
     },
 
@@ -7226,7 +7285,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '<div class="modal-dialog">' +
         '<div class="modal-content">' +
 
-        '<div id="external-content<%= this.options.instance %>">' +
+        '<div id="gear-modal-content<%= this.options.instance %>">' +
 
         '<div class="modal-body">' +
         '<h5>Metric</h5>' +
@@ -7236,7 +7295,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         '<h5>Resource</h5>' +
         '<select class="resource-dropdown-options">' +
-        '<option value="" selected>all</option>' +
+        '<option value="all" selected>all</option>' +
         '<option value="ctrl-01">ctrl-01</option>' +
         '<option value="rsrc-01">rsrc-01</option>' +
         '<option value="rsrc-02">rsrc-02</option>' +
@@ -7281,11 +7340,15 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         // start visible page elements
         // add trigger that will reveal modal
-        '<i id="menu-trigger<%= this.options.instance %>" class="fa fa-2x fa-gear" data-toggle="modal" data-target="#modal-filter-<%= this.options.instance %>" style="position:absolute;margin-top:5px;margin-left:5px;"></i>' +
+
+        '<div id="api-perf-panel-header" class="panel panel-primary">' +
+        '<div class="panel-heading">' +
+        '<h3 class="panel-title"><span class="metric-viewer-title<%= this.options.instance %>">Click gear for config</span>' +
+        '<i id="menu-trigger<%= this.options.instance %>" class="pull-right fa fa-gear" data-toggle="modal" data-target="#modal-filter-<%= this.options.instance %>" ></i>' +
+        '</h3></div>' +
 
         // add div that will contain svg for d3 chart
         '<div class="well metric-chart-instance<%= this.options.instance %>" style="height:<%= this.options.height %>px;width:<%= this.options.width %>px;">' +
-
         '</div>'
     ),
 
@@ -7296,7 +7359,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
             options.metric + '&timestamp__range={"gte":' +
             (+new Date() - (options.lookback * 60 * 1000)) +
             '}&interval=' + options.interval;
-        if (options.resource !== '') {
+        if (options.resource !== 'all') {
             url += '&node=' + options.resource;
         }
         return url;
@@ -7325,8 +7388,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
                 //     value: "All"
                 // }],
                 el: '.metric-chart-instance' + this.options.instance,
-                width: $('.metric-chart-instance' + this.options.instance).width(),
-                yAxisLabel: "Values"
+                width: $('.metric-chart-instance' + this.options.instance).width()
             });
         }
     },

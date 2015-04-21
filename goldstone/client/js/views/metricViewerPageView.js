@@ -48,7 +48,6 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
     },
 
     renderCharts: function() {
-        console.log('num? ', this.numCharts);
         var num = this.numCharts;
 
         //---------------------------
