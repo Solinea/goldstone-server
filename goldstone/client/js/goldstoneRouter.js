@@ -45,6 +45,8 @@ var GoldstoneRouter = Backbone.Router.extend({
         "keystone/report": "keystoneReport",
         "login": "login",
         "metric": "metricViewer",
+        "metric/": "metricViewer",
+        "metric/:numCharts": "metricViewer",
         "neutron/report": "neutronReport",
         "nova/report": "novaReport",
         "password": "password",
@@ -71,12 +73,6 @@ var GoldstoneRouter = Backbone.Router.extend({
         // to determine whether or not to render the
         // logout icon
         this.trigger('switchingView');
-
-        // prevent multiple successive calls to the same page
-        if (app.switchTriggeredBy && app.switchTriggeredBy === view) {
-            return;
-        }
-        app.switchTriggeredBy = view;
 
         if (app.currentLauncherView) {
 
@@ -164,8 +160,18 @@ var GoldstoneRouter = Backbone.Router.extend({
     logSearch: function() {
         this.switchView(LogSearchView);
     },
-    metricViewer: function() {
-        this.switchView(MetricViewerPageView);
+    metricViewer: function(numCharts) {
+        console.log('numCharts? ', numCharts);
+        if (numCharts === null || numCharts === undefined) {
+            numCharts = 6;
+        }
+        numCharts = parseInt(numCharts, 10);
+        if (numCharts > 6 || numCharts < 1) {
+            numCharts = 6;
+        }
+        this.switchView(MetricViewerPageView, {
+            numCharts: numCharts
+        });
     },
     neutronReport: function() {
         this.switchView(NeutronReportView);

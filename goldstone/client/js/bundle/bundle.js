@@ -795,6 +795,8 @@ var GoldstoneRouter = Backbone.Router.extend({
         "keystone/report": "keystoneReport",
         "login": "login",
         "metric": "metricViewer",
+        "metric/": "metricViewer",
+        "metric/:numCharts": "metricViewer",
         "neutron/report": "neutronReport",
         "nova/report": "novaReport",
         "password": "password",
@@ -821,12 +823,6 @@ var GoldstoneRouter = Backbone.Router.extend({
         // to determine whether or not to render the
         // logout icon
         this.trigger('switchingView');
-
-        // prevent multiple successive calls to the same page
-        if (app.switchTriggeredBy && app.switchTriggeredBy === view) {
-            return;
-        }
-        app.switchTriggeredBy = view;
 
         if (app.currentLauncherView) {
 
@@ -914,8 +910,18 @@ var GoldstoneRouter = Backbone.Router.extend({
     logSearch: function() {
         this.switchView(LogSearchView);
     },
-    metricViewer: function() {
-        this.switchView(MetricViewerPageView);
+    metricViewer: function(numCharts) {
+        console.log('numCharts? ', numCharts);
+        if (numCharts === null || numCharts === undefined) {
+            numCharts = 6;
+        }
+        numCharts = parseInt(numCharts, 10);
+        if (numCharts > 6 || numCharts < 1) {
+            numCharts = 6;
+        }
+        this.switchView(MetricViewerPageView, {
+            numCharts: numCharts
+        });
     },
     neutronReport: function() {
         this.switchView(NeutronReportView);
@@ -7015,7 +7021,21 @@ var MetricView = ApiPerfView.extend({
  * limitations under the License.
  */
 
+/*
+At the moment /metric will default to 6 charts.
+/metric/1 will show 1 chart
+/metric/2 will show 2 charts
+/metric/3 will show 3 charts
+...etc, up to a maximum of 6 charts.
+*/
+
 var MetricViewerPageView = GoldstoneBasePageView.extend({
+
+    initialize: function(options) {
+
+        this.numCharts = options.numCharts;
+        MetricViewerPageView.__super__.initialize.apply(this, arguments);
+    },
 
     triggerChange: function(change) {
         if (change === 'lookbackSelectorChanged') {
@@ -7029,49 +7049,40 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         }
     },
 
-    onClose: function() {
-        MetricViewerView.__super__.onClose.apply(this, arguments);
+    metricViewCharts: {
+        view: {},
+        collection: {}
     },
 
     renderCharts: function() {
+        console.log('num? ', this.numCharts);
+        var num = this.numCharts;
 
         //---------------------------
         // instantiate metric viewer viz
 
-        // fetch url is set in eventTimelineCollection
-        this.metricViewerChart1 = new MetricViewerCollection({});
-        this.metricViewerChart2 = new MetricViewerCollection({});
-        this.metricViewerChart3 = new MetricViewerCollection({});
+        var locationHash = {
+            0: '#goldstone-metric-r1-c1',
+            1: '#goldstone-metric-r1-c2',
+            2: '#goldstone-metric-r1-c3',
+            3: '#goldstone-metric-r2-c1',
+            4: '#goldstone-metric-r2-c2',
+            5: '#goldstone-metric-r2-c3'
+        };
 
-        // instance variables added to options hash in order to create a
-        // custom binding between each metricViewerChart and
-        // the associated modal menus
+        for (var i = 0; i < num; i++) {
+            var id = _.uniqueId();
+            this.metricViewCharts.collection[id] = new MetricViewerCollection({});
 
-        this.metricViewerChartView = new MetricViewerView({
-            collection: this.metricViewerChart1,
-            width: $('#goldstone-metric-r1-c1').width(),
-            height: $('#goldstone-metric-r1-c1').width(),
-            instance: 1
-        });
+            this.metricViewCharts.view[id] = new MetricViewerView({
+                collection: this.metricViewCharts.collection[id],
+                width: $(locationHash[i]).width(),
+                height: $(locationHash[i]).width(),
+                instance: id
+            });
 
-        this.metricViewerChartView2 = new MetricViewerView({
-            collection: this.metricViewerChart2,
-            width: $('#goldstone-metric-r1-c2').width(),
-            height: $('#goldstone-metric-r1-c2').width(),
-            instance: 2
-        });
-
-        this.metricViewerChartView3 = new MetricViewerView({
-            collection: this.metricViewerChart3,
-            width: $('#goldstone-metric-r1-c3').width(),
-            height: $('#goldstone-metric-r1-c3').width(),
-            instance: 3
-        });
-
-        $('#goldstone-metric-r1-c1').append(this.metricViewerChartView.el);
-        $('#goldstone-metric-r1-c2').append(this.metricViewerChartView2.el);
-        $('#goldstone-metric-r1-c3').append(this.metricViewerChartView3.el);
-
+            $(locationHash[i]).append(this.metricViewCharts.view[id].el);
+        }
     },
 
     template: _.template('' +
@@ -7079,6 +7090,11 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         '<div id="goldstone-metric-r1-c1" class="col-md-4"></div>' +
         '<div id="goldstone-metric-r1-c2" class="col-md-4"></div>' +
         '<div id="goldstone-metric-r1-c3" class="col-md-4"></div>' +
+        '</div>' +
+        '<div id="goldstone-metric-r2" class="row">' +
+        '<div id="goldstone-metric-r2-c1" class="col-md-4"></div>' +
+        '<div id="goldstone-metric-r2-c2" class="col-md-4"></div>' +
+        '<div id="goldstone-metric-r2-c3" class="col-md-4"></div>' +
         '</div>'
     )
 
