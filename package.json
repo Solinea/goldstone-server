@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Installs grunt and test frameworks.",
   "author": "Solinea, Inc.",
-  "license": "http://www.solinea.com/goldstone/LICENSE.pdf",
+  "license": "http://www.apache.org/licenses/LICENSE-2.0",
   "private": true,
   "devDependencies": {
     "casper": "0.1.1",
