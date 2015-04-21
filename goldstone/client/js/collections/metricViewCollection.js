@@ -18,24 +18,7 @@
 
 var model = GoldstoneBaseModel.extend({});
 
-var GoldstoneBaseCollection = Backbone.Collection.extend({
-
-    parse: function(data) {
-        return data;
-    },
-
-    defaults: {},
-
-    initialize: function(options) {
-
-        this.defaults = _.clone(this.defaults); 
-        this.options = options || {};
-        this.url = this.options.url || null;
-        this.fetchWithReset();
-        this.defaults.reportParams = {};
-    },
-
-    model: model,
+var MetricViewCollection = GoldstoneBaseCollection.extend({
 
     computeLookback: function() {
         var lookbackMinutes;
