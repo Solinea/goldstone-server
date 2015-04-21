@@ -30,14 +30,6 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
 
     onClose: function() {
         MetricViewerView.__super__.onClose.apply(this, arguments);
-
-        // in order to close sidr menus that have been instantiated with a
-        // 'name' param in the options hash, they need to be closed
-        // individually by name. a '#' will automatically be prepended
-        // to the name, to match an id selector.
-        $.sidr('close', 'sidr-menu-1');
-        $.sidr('close', 'sidr-menu-2');
-        $.sidr('close', 'sidr-menu-3');
     },
 
     renderCharts: function() {
@@ -50,8 +42,10 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         this.metricViewerChart2 = new MetricViewerCollection({});
         this.metricViewerChart3 = new MetricViewerCollection({});
 
-        // instance variables added in order to create a custom binding
-        // between each metricViewerChart and the associated sidr menus
+        // instance variables added to options hash in order to create a
+        // custom binding between each metricViewerChart and
+        // the associated modal menus
+
         this.metricViewerChartView = new MetricViewerView({
             collection: this.metricViewerChart1,
             width: $('#goldstone-metric-r1-c1').width(),

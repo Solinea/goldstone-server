@@ -54,7 +54,6 @@ var GoldstoneBaseCollection = Backbone.Collection.extend({
     },
 
     fetchWithReset: function() {
-        console.log('url set? ', this.url);
         // used when you want to delete existing data in collection
         // such as changing the global-lookback period
         this.fetch({

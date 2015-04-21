@@ -70,16 +70,6 @@ var MetricView = ApiPerfView.extend({
             .attr("class", "chart")
             .attr("transform", "translate(" + ns.margin.left + "," + (ns.margin.top + 10) + ")");
 
-        // initialized the axes
-        ns.svg.append("text")
-            .attr("class", "axis.label")
-            .attr("transform", "rotate(-90)")
-            .attr("x", 0 - (ns.height / 2))
-            .attr("y", -5)
-            .attr("dy", "1.5em")
-            .text(ns.yAxisLabel)
-            .style("text-anchor", "middle");
-
         ns.svg.on('dblclick', function() {
             var coord = d3.mouse(this);
             self.dblclicked(coord);
@@ -91,6 +81,7 @@ var MetricView = ApiPerfView.extend({
         ns.y = d3.scale.linear()
             .range([ns.mh, 0]);
 
+        // initialize the axes
         ns.xAxis = d3.svg.axis()
             .scale(ns.x)
             .ticks(5)
@@ -113,12 +104,25 @@ var MetricView = ApiPerfView.extend({
 
         this.hideSpinner();
 
+        console.log($(this.el).find('svg').find('.axis'));
+        $(this.el).find('text').remove();
+        $(this.el).find('svg').find('.chart').html('');
+        // prevents 'stuck' d3-tip on svg element.
+        $('body').find('.d3-tip').remove();
+
         if (this.checkReturnedDataSet(json) === false) {
             return;
         }
 
-        $(this.el).find('svg').find('.chart').html('');
-        $(this.el + '.d3-tip').detach();
+        // append y axis label
+        ns.svg.append("text")
+            .attr("class", "axis.label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", 0 - (ns.height / 2))
+            .attr("y", -5)
+            .attr("dy", "1.5em")
+            .text(ns.yAxisLabel)
+            .style("text-anchor", "middle");
 
         ns.y.domain([0, d3.max(json, function(d) {
             var key = _.keys(d).toString();

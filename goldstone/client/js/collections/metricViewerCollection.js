@@ -21,7 +21,6 @@ var MetricViewerCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
-        console.log('parsing');
         return data.per_name;
     },
 
