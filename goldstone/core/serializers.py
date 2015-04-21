@@ -29,6 +29,7 @@ class MetricAggSerializer(ReadOnlyElasticSerializer):
     """Serializer for agent metrics."""
 
     DATEHIST_AGG_NAME = 'per_interval'
+    UNIT_AGG_NAME = 'units'
     STATS_AGG_NAME = 'stats'
 
     class Meta:
@@ -46,13 +47,22 @@ class MetricAggSerializer(ReadOnlyElasticSerializer):
             "DATEHIST_AGG_NAME must exist in the instance passed to %s."
             % self.__class__.__name__
         )
+
+        unit_agg_base = getattr(instance, self.UNIT_AGG_NAME, None)
+        assert unit_agg_base is not None, (
+            "UNIT_AGG_NAME must exist in the instance passed to %s."
+            % self.__class__.__name__
+        )
+
+        unit_data = [bucket.key for bucket in unit_agg_base.buckets]
         # let's clean up the inner buckets
-        data = [{bucket.key: {
+        datehist_data = [{bucket.key: {
             'count': bucket.doc_count,
             self.STATS_AGG_NAME: bucket[self.STATS_AGG_NAME]}}
             for bucket in datehist_agg_base.buckets]
 
-        return {self.DATEHIST_AGG_NAME: data}
+        return {self.UNIT_AGG_NAME: unit_data,
+                self.DATEHIST_AGG_NAME: datehist_data}
 
 
 class ReportDataSerializer(ReadOnlyElasticSerializer):

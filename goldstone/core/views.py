@@ -89,6 +89,7 @@ class MetricAggView(DateHistogramAggView):
     serializer_class = MetricAggSerializer
     reserved_params = ['interval']
     STATS_AGG_NAME = 'stats'
+    UNIT_AGG_NAME = 'units'
 
     class Meta:
         """Meta"""
@@ -97,6 +98,7 @@ class MetricAggView(DateHistogramAggView):
     def get(self, request):
         """Handle get request. Override default to add nested aggregations."""
         search = self._get_search(request)
+        search.aggs.bucket(self.UNIT_AGG_NAME, self.Meta.model.units_agg())
         search.aggs[self.AGG_NAME]. \
             bucket(self.STATS_AGG_NAME, self.Meta.model.stats_agg())
         serializer = self.serializer_class(search.execute().aggregations)
