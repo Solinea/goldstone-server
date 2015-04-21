@@ -70,10 +70,14 @@ var MetricViewerView = GoldstoneBaseView.extend({
         var self = this;
 
         // attach listeners to the modal menu buttons
-        $('#external-content' + this.options.instance).find('.modal-submit').on('click', function() {
-            self.setChartOptions('#external-content' + self.options.instance);
+        $('#gear-modal-content' + this.options.instance).find('.modal-submit').on('click', function() {
+            self.setChartOptions('#gear-modal-content' + self.options.instance);
+            $('span.metric-viewer-title' + self.options.instance).text('Metric: ' +
+                self.chartOptions.get('metric') +
+                '. Resource: ' +
+                self.chartOptions.get('resource'));
         });
-        $('#external-content' + this.options.instance).find('.modal-cancel').on('click', function() {});
+        $('#gear-modal-content' + this.options.instance).find('.modal-cancel').on('click', function() {});
 
         // chartOptions will be stored as a Backbone Model
         // and will be listenTo'd for changes which can
@@ -100,7 +104,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         var self = this;
 
         _.each(self.collection.toJSON(), function(item) {
-            $('#external-content' + self.options.instance).find('.metric-dropdown-options').append('<option>' + _.keys(item)[0] + "</option>");
+            $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-options').append('<option>' + _.keys(item)[0] + "</option>");
         });
     },
 
@@ -124,7 +128,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '<div class="modal-dialog">' +
         '<div class="modal-content">' +
 
-        '<div id="external-content<%= this.options.instance %>">' +
+        '<div id="gear-modal-content<%= this.options.instance %>">' +
 
         '<div class="modal-body">' +
         '<h5>Metric</h5>' +
@@ -134,7 +138,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         '<h5>Resource</h5>' +
         '<select class="resource-dropdown-options">' +
-        '<option value="" selected>all</option>' +
+        '<option value="all" selected>all</option>' +
         '<option value="ctrl-01">ctrl-01</option>' +
         '<option value="rsrc-01">rsrc-01</option>' +
         '<option value="rsrc-02">rsrc-02</option>' +
@@ -179,11 +183,15 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         // start visible page elements
         // add trigger that will reveal modal
-        '<i id="menu-trigger<%= this.options.instance %>" class="fa fa-2x fa-gear" data-toggle="modal" data-target="#modal-filter-<%= this.options.instance %>" style="position:absolute;margin-top:5px;margin-left:5px;"></i>' +
+
+        '<div id="api-perf-panel-header" class="panel panel-primary">' +
+        '<div class="panel-heading">' +
+        '<h3 class="panel-title"><span class="metric-viewer-title<%= this.options.instance %>">Click gear for config</span>' +
+        '<i id="menu-trigger<%= this.options.instance %>" class="pull-right fa fa-gear" data-toggle="modal" data-target="#modal-filter-<%= this.options.instance %>" ></i>' +
+        '</h3></div>' +
 
         // add div that will contain svg for d3 chart
         '<div class="well metric-chart-instance<%= this.options.instance %>" style="height:<%= this.options.height %>px;width:<%= this.options.width %>px;">' +
-
         '</div>'
     ),
 
@@ -194,7 +202,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
             options.metric + '&timestamp__range={"gte":' +
             (+new Date() - (options.lookback * 60 * 1000)) +
             '}&interval=' + options.interval;
-        if (options.resource !== '') {
+        if (options.resource !== 'all') {
             url += '&node=' + options.resource;
         }
         return url;

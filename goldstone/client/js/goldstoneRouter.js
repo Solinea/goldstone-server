@@ -161,7 +161,6 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(LogSearchView);
     },
     metricViewer: function(numCharts) {
-        console.log('numCharts? ', numCharts);
         if (numCharts === null || numCharts === undefined) {
             numCharts = 6;
         }

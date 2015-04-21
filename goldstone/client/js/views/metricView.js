@@ -44,10 +44,12 @@ var MetricView = ApiPerfView.extend({
         margin: {
             top: 40,
             right: 30,
-            bottom: 30,
+            bottom: 75,
             left: 60
         }
     },
+
+
 
     standardInit: function() {
 
