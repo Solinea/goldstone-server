@@ -6776,12 +6776,10 @@ var MetricView = ApiPerfView.extend({
         var mh = ns.mh;
 
         this.hideSpinner();
-
-        console.log($(this.el).find('svg').find('.axis'));
         $(this.el).find('text').remove();
         $(this.el).find('svg').find('.chart').html('');
         // prevents 'stuck' d3-tip on svg element.
-        $('body').find('.d3-tip').remove();
+        $('body').find('#' + this.el.slice(1) + '.d3-tip').remove();
 
         if (this.checkReturnedDataSet(json) === false) {
             return;
