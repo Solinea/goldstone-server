@@ -30,5 +30,9 @@ module.exports = {
         'goldstone/client/js/collections/*.js',
         'goldstone/client/js/views/*.js'
     ],
-    lib: ['goldstone/client/js/lib/jquery.js', 'goldstone/client/js/lib/bootstrap.js', 'goldstone/client/js/lib/jquery.dataTables.js', 'goldstone/client/js/lib/dataTables.bootstrap.js', 'goldstone/client/js/lib/jquery.datetimepicker.js', 'goldstone/client/js/lib/colorbrewer.js', 'goldstone/client/js/lib/d3.js', 'goldstone/client/js/lib/d3-tip.js', 'goldstone/client/js/lib/d3-legend.js', 'goldstone/client/js/lib/underscore.js', 'goldstone/client/js/lib/backbone.js', 'goldstone/client/js/lib/moment-with-locales.js', 'goldstone/client/js/lib/moment-timezone-with-data-2010-2020.js']
+    lib: ['goldstone/client/js/lib/jquery.js', 'goldstone/client/js/lib/bootstrap.js', 'goldstone/client/js/lib/jquery.dataTables.js', 'goldstone/client/js/lib/dataTables.bootstrap.js', 'goldstone/client/js/lib/jquery.datetimepicker.js', 'goldstone/client/js/lib/colorbrewer.js', 'goldstone/client/js/lib/d3.js', 'goldstone/client/js/lib/d3-tip.js', 'goldstone/client/js/lib/d3-legend.js', 'goldstone/client/js/lib/underscore.js', 'goldstone/client/js/lib/backbone.js', 'goldstone/client/js/lib/moment-with-locales.js', 'goldstone/client/js/lib/moment-timezone-with-data-2010-2020.js'],
+    test: [
+        'test/unit/*.js',
+        'test/integration/*.js'
+    ]
 };

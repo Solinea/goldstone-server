@@ -1,5 +1,5 @@
-var clientIncludes = require('./test/include.conf.js');
-var testFiles = require('./test/tests.conf.js');
+var clientIncludes = require('./test/client-files.conf.js');
+var testFiles = clientIncludes.test;
 
 module.exports = function(config) {
     config.set({
