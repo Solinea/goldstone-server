@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-// define collection and link to model
+/*
+fetches list of metrics availble for metric report viz.
+*/
 
 var MetricViewerCollection = Backbone.Collection.extend({
 
@@ -26,10 +28,6 @@ var MetricViewerCollection = Backbone.Collection.extend({
 
     model: GoldstoneBaseModel,
 
-    // will impose an order based on 'timestamp' for
-    // the models as they are put into the collection
-    // comparator: '@timestamp',
-
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
@@ -37,10 +35,7 @@ var MetricViewerCollection = Backbone.Collection.extend({
     },
 
     retrieveData: function() {
-        var self = this;
-
         this.url = "/core/metric_names";
-
         this.fetch();
     }
 });

@@ -15,24 +15,17 @@
  */
 
 /*
-Instantiated similar to:
+Instantiated in metricViewerView similar to:
 
-this.novaApiPerfChart = new ApiPerfCollection({
-    componentParam: 'nova',
+this.metricChart = new MetricViewCollection({
+    url: url
 });
 
-this.novaApiPerfChartView = new ApiPerfView({
-    chartTitle: "Nova API Performance",
-    collection: this.novaApiPerfChart,
-    height: 300,
-
-    // for info-button text
-    infoCustom: [{
-        key: "API Call",
-        value: "Hypervisor Show"
-    }],
-    el: '#api-perf-report-r1-c1',
-    width: $('#api-perf-report-r1-c1').width()
+this.metricChartView = new MetricView({
+    collection: this.metricChart,
+    height: 320,
+    el: '.metric-chart-instance' + this.options.instance,
+    width: $('.metric-chart-instance' + this.options.instance).width()
 });
 */
 
@@ -48,8 +41,6 @@ var MetricView = ApiPerfView.extend({
             left: 60
         }
     },
-
-
 
     standardInit: function() {
 
@@ -121,6 +112,7 @@ var MetricView = ApiPerfView.extend({
             .attr("x", 0 - (ns.height / 2))
             .attr("y", -11)
             .attr("dy", "1.5em")
+            // returned by metric api call
             .text(data.units[0])
             .style("text-anchor", "middle");
 

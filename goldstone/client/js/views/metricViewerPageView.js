@@ -15,6 +15,13 @@
  */
 
 /*
+
+The nesting of this page is:
+
+| MetricViewerPageView
+|__ MetricViewerView + MetricViewerCollection
+|____ MetricView + MetricViewCollection
+
 At the moment /metric will default to 6 charts.
 /metric/1 will show 1 chart
 /metric/2 will show 2 charts
@@ -26,32 +33,23 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
 
     initialize: function(options) {
 
+        // options.numCharts passed in by goldstoneRouter
+        // and reflects the number n (1-6) following "/metric/n"
         this.numCharts = options.numCharts;
         MetricViewerPageView.__super__.initialize.apply(this, arguments);
     },
 
-    triggerChange: function(change) {
-        if (change === 'lookbackSelectorChanged') {
-            // this.eventTimelineChartView.trigger('lookbackSelectorChanged');
-            // this.nodeAvailChartView.trigger('lookbackSelectorChanged');
-        }
+    metricViewGridContainer: {
 
-        if (change === 'lookbackIntervalReached') {
-            // this.eventTimelineChartView.trigger('lookbackIntervalReached');
-            // this.nodeAvailChartView.trigger('lookbackIntervalReached');
-        }
-    },
-
-    metricViewCharts: {
+        // will be populated during renderCharts()
         view: {},
         collection: {}
     },
 
     renderCharts: function() {
-        var num = this.numCharts;
 
-        //---------------------------
-        // instantiate metric viewer viz
+        // defined in initialize
+        var num = this.numCharts;
 
         var locationHash = {
             0: '#goldstone-metric-r1-c1',
@@ -62,18 +60,27 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
             5: '#goldstone-metric-r2-c3'
         };
 
-        for (var i = 0; i < num; i++) {
-            var id = _.uniqueId();
-            this.metricViewCharts.collection[id] = new MetricViewerCollection({});
+        //---------------------------------------------
+        // instantiate as many metricViews as requested
 
-            this.metricViewCharts.view[id] = new MetricViewerView({
-                collection: this.metricViewCharts.collection[id],
+        for (var i = 0; i < num; i++) {
+
+            // underscore method for producing unique integer
+            var id = _.uniqueId();
+
+            var grid = this.metricViewGridContainer;
+            grid.collection[id] = new MetricViewerCollection({});
+
+            grid.view[id] = new MetricViewerView({
+                collection: grid.collection[id],
                 width: $(locationHash[i]).width(),
-                height: $(locationHash[i]).width(),
+                height: 360,
+                // passing the instance allows for unique
+                // identification of charts and elements
                 instance: id
             });
 
-            $(locationHash[i]).append(this.metricViewCharts.view[id].el);
+            $(locationHash[i]).append(grid.view[id].el);
         }
     },
 

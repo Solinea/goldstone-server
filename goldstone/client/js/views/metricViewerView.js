@@ -44,8 +44,6 @@ var MetricViewerView = GoldstoneBaseView.extend({
         this.chartOptions = new Backbone.Model({});
     },
 
-    processOptions: function() {},
-
     processListeners: function() {
         var ns = this.defaults;
         var self = this;
@@ -54,6 +52,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         this.listenTo(this.collection, 'sync', function() {
 
             if (self.collection.toJSON() === undefined || self.collection.toJSON().length === 0) {
+                $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text('No metric reports available');
                 return;
             } else {
                 self.populateMetrics();
@@ -63,21 +62,23 @@ var MetricViewerView = GoldstoneBaseView.extend({
             // attache button listeners
             this.attachModalTriggers();
         });
-
-
     },
+
     attachModalTriggers: function() {
         var self = this;
 
-        // attach listeners to the modal menu buttons
+        // attach listener to the modal submit button
         $('#gear-modal-content' + this.options.instance).find('.modal-submit').on('click', function() {
+
+            // on submit --> update the chartOptions Model
             self.setChartOptions('#gear-modal-content' + self.options.instance);
+
+            // and append the metric name and resource to the chart header
             $('span.metric-viewer-title' + self.options.instance).text('Metric: ' +
                 self.chartOptions.get('metric') +
                 '. Resource: ' +
                 self.chartOptions.get('resource'));
         });
-        $('#gear-modal-content' + this.options.instance).find('.modal-cancel').on('click', function() {});
 
         // chartOptions will be stored as a Backbone Model
         // and will be listenTo'd for changes which can
@@ -88,8 +89,11 @@ var MetricViewerView = GoldstoneBaseView.extend({
     },
 
     setChartOptions: function(menu) {
+
         // if these options change, a 'change' event will
-        // be emitted, otherwise it will submit silently
+        // be emitted by the Backbone Model and picked up
+        // by the listener in this.attachModalTriggers
+        // otherwise it will be ignored
         this.chartOptions.set({
             'metric': $(menu).find('.metric-dropdown-options').val(),
             'resource': $(menu).find('.resource-dropdown-options').val(),
@@ -103,25 +107,67 @@ var MetricViewerView = GoldstoneBaseView.extend({
     populateMetrics: function() {
         var self = this;
 
+        $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text('');
+
         _.each(self.collection.toJSON(), function(item) {
             $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-options').append('<option>' + _.keys(item)[0] + "</option>");
         });
     },
 
-    processMargins: function() {},
+    constructUrlFromParams: function() {
+        // chartOptions is a backbone Model instantiated in initialize:
+        var options = this.chartOptions.attributes;
 
-    standardInit: function() {},
+        var url = '/core/metrics/summarize?name=' +
+            options.metric + '&timestamp__range={"gte":' +
+            (+new Date() - (options.lookback * 60 * 1000)) +
+            '}&interval=' + options.interval;
+        if (options.resource !== 'all') {
+            url += '&node=' + options.resource;
+        }
+        return url;
 
-    collectionPrep: function() {},
-
-    dataErrorMessage: function(message, errorMessage) {
+        /*
+            constructs a url similar to:
+            /core/metrics/summarize?name=os.cpu.user
+            &timestamp__range={'gte':1429649259172}&interval=1m
+        */
 
     },
 
-    update: function() {},
+    appendChart: function() {
+
+        var url = this.constructUrlFromParams();
+
+        // if there is already a chart populating this div:
+        if (this.metricChart) {
+            this.metricChart.url = url;
+            $(this.metricChartView.el).find('#spinner').show();
+            this.metricChart.fetchWithReset();
+        } else {
+            this.metricChart = new MetricViewCollection({
+                url: url
+            });
+
+            this.metricChartView = new MetricView({
+                collection: this.metricChart,
+                height: 320,
+                el: '.metric-chart-instance' + this.options.instance,
+                width: $('.metric-chart-instance' + this.options.instance).width()
+            });
+        }
+    },
+
+    render: function() {
+        this.$el.html(this.template());
+        var self = this;
+        return this;
+    },
 
     template: _.template(
 
+        //-----------------------
+        // START MODAL FORMATTING
 
         '<div class="modal fade" id="modal-filter-<%= this.options.instance %>' +
         '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
@@ -130,12 +176,20 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         '<div id="gear-modal-content<%= this.options.instance %>">' +
 
+        '<div class="modal-header">' +
+        '<h4 class="modal-title">Select chart parameters</h4>' +
+        '</div>' + // end modal-header
+
         '<div class="modal-body">' +
         '<h5>Metric</h5>' +
         '<select class="metric-dropdown-options">' +
-        // populated by populateMetrics()
+        // options will be populated by populateMetrics()
         '</select>' +
 
+        // loading text will be removed when options are populated
+        '<span class="metric-dropdown-text"> Loading...</span>' +
+
+        // hard coded for now - to become dynamic
         '<h5>Resource</h5>' +
         '<select class="resource-dropdown-options">' +
         '<option value="all" selected>all</option>' +
@@ -152,6 +206,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '<option value="1440">lookback 1d</option>' +
         '</select>' +
 
+        // ES can handle s/m/h/d in the "interval" param
         '<h5>Charting Interval</h5>' +
         '<select class="interval-dropdown-options">' +
         '<option value="1m" selected>1m</option>' +
@@ -159,27 +214,23 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '<option value="1d">1d</option>' +
         '</select>' +
 
-        // '<h5>Chart Type</h5>' +
-        // '<select class="chart-type-dropdown-options">' +
-        // '<option value="bar" selected>Bar Chart</option>' +
-        // '<option value="line">Line Chart</option>' +
-        // '</select>'+
-
-        '<br><br>' +
-        '</div>' +
+        '</div>' + // end modal-body
 
         '<div class="modal-footer">' +
-        '<button data-dismiss="modal" class="btn btn-primary modal-submit">Submit</button> ' +
-        ' <button data-dismiss="modal" class="btn btn-primary modal-cancel">Cancel</button>' +
-        '</div>' +
+        '<button data-dismiss="modal" class="pull-left btn btn-primary modal-submit">Submit</button> ' +
+        '<button data-dismiss="modal" class="pull-left btn btn-primary modal-cancel">Cancel</button>' +
+        '</div>' + // end modal-footer
 
-        '</div>' +
+        '</div>' + // end gear-modal-content
 
-        '</div>' +
-        '</div>' +
-        '</div>' +
+        '</div>' + // end modal-content
+        '</div>' + // end modal-dialog
+        '</div>' + // end modal
 
-        // end modal
+
+        // END MODAL FORMATTING
+        //---------------------
+
 
         // start visible page elements
         // add trigger that will reveal modal
@@ -194,52 +245,5 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '<div class="well metric-chart-instance<%= this.options.instance %>" style="height:<%= this.options.height %>px;width:<%= this.options.width %>px;">' +
         '</div>'
     ),
-
-    constructUrlFromParams: function() {
-        var options = this.chartOptions.attributes;
-        // http://127.0.0.1:8000/core/metrics?name__prefix=nova.hypervisor&@timestamp__range={"gte":1426887188000}
-        var url = '/core/metrics/summarize?name=' +
-            options.metric + '&timestamp__range={"gte":' +
-            (+new Date() - (options.lookback * 60 * 1000)) +
-            '}&interval=' + options.interval;
-        if (options.resource !== 'all') {
-            url += '&node=' + options.resource;
-        }
-        return url;
-    },
-
-    appendChart: function() {
-
-        var url = this.constructUrlFromParams();
-
-        if (this.metricChart) {
-            this.metricChart.url = url;
-            $(this.metricChartView.el).find('#spinner').show();
-            this.metricChart.fetchWithReset();
-        } else {
-            this.metricChart = new GoldstoneBaseCollection({
-                url: url
-            });
-
-            this.metricChartView = new MetricView({
-                supressHeader: true,
-                chartTitle: " ",
-                collection: this.metricChart,
-                height: 320,
-                // infoCustom: [{
-                //     key: "API Call",
-                //     value: "All"
-                // }],
-                el: '.metric-chart-instance' + this.options.instance,
-                width: $('.metric-chart-instance' + this.options.instance).width()
-            });
-        }
-    },
-
-    render: function() {
-        this.$el.html(this.template());
-        var self = this;
-        return this;
-    }
 
 });

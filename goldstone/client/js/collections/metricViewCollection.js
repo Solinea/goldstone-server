@@ -18,34 +18,4 @@
 
 var model = GoldstoneBaseModel.extend({});
 
-var MetricViewCollection = GoldstoneBaseCollection.extend({
-
-    computeLookback: function() {
-        var lookbackMinutes;
-        if ($('.global-lookback-selector .form-control').length) {
-            // global lookback is available:
-            lookbackMinutes = parseInt($('.global-lookback-selector .form-control').val(), 10);
-        } else {
-            // otherwise, default to 1 hour:
-            lookbackMinutes = 60;
-        }
-        return lookbackMinutes;
-    },
-
-    fetchWithReset: function() {
-        // used when you want to delete existing data in collection
-        // such as changing the global-lookback period
-        this.fetch({
-            remove: true
-        });
-    },
-
-    fetchNoReset: function() {
-
-        // used when you want to retain existing data in collection
-        // such as a global-refresh-triggered update to the Event Timeline viz
-        this.fetch({
-            remove: false
-        });
-    }
-});
+var MetricViewCollection = GoldstoneBaseCollection.extend({});
