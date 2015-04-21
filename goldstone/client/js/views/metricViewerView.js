@@ -51,12 +51,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         // triggered whenever this.collection finishes fetching
         this.listenTo(this.collection, 'sync', function() {
 
-            // clears existing 'Reports Available' in dropdown
-            $('.metric-chart-instance' + this.options.instance).find('.metric-dropdown-options > option').remove();
-
-            // if no reports available, appends 'No reports available'
             if (self.collection.toJSON() === undefined || self.collection.toJSON().length === 0) {
-
                 return;
             } else {
                 self.populateMetrics();
@@ -71,20 +66,20 @@ var MetricViewerView = GoldstoneBaseView.extend({
     },
     triggerSidr: function() {
         var self = this;
-        $('#menu-trigger' + this.options.instance).sidr({
-            name: 'sidr-menu-' + this.options.instance,
-            source: "#external-content" + this.options.instance,
-            displace: true,
-            renaming: false
-        });
+        // $('#menu-trigger' + this.options.instance).sidr({
+        //     name: 'sidr-menu-' + this.options.instance,
+        //     source: "#external-content" + this.options.instance,
+        //     displace: true,
+        //     renaming: false
+        // });
 
-        // attach listeners to the now-hidden sidr menu
-        $('div#sidr-menu-' + this.options.instance).find('.sidr-submit').on('click', function() {
-            console.log('clicked submit', 'div#sidr-menu-' + self.options.instance);
-            self.setChartOptions('div#sidr-menu-' + self.options.instance);
+        // attach listeners to the modal menu buttons
+        $('#external-content' + this.options.instance).find('.sidr-submit').on('click', function() {
+            console.log('clicked submit', '#external-content' + self.options.instance);
+            self.setChartOptions('#external-content' + self.options.instance);
             $.sidr('close', 'sidr-menu-' + self.options.instance);
         });
-        $('div#sidr-menu-' + this.options.instance).find('.sidr-cancel').on('click', function() {
+        $('#external-content' + this.options.instance).find('.sidr-cancel').on('click', function() {
             console.log('clicked cancel');
             $.sidr('close', 'sidr-menu-' + self.options.instance);
         });
@@ -134,10 +129,13 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
     template: _.template(
 
-        // formatting of hidden sidr menu:
-        // hard coded for prototype
-        // these options will have to be added programmatically
-        '<div class="hidden" id="external-content<%= this.options.instance %>">' +
+
+        '<div class="modal fade" id="modal-filter-<%= this.options.instance %>' +
+        '" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">' +
+        '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
+
+        '<div id="external-content<%= this.options.instance %>">' +
 
         '<h2>Metric</h2>' +
         '<select class="metric-dropdown-options">' +
@@ -180,15 +178,19 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '<option value="line">Line Chart</option>' +
         '/<select>' +
 
-        '<button class="sidr-submit">Submit</button> ' +
-        ' <button class="sidr-cancel">Cancel</button>' +
+        '<button data-dismiss="modal" class="sidr-submit">Submit</button> ' +
+        ' <button data-dismiss="modal" class="sidr-cancel">Cancel</button>' +
 
+        '</div>' +
+
+        '</div>' +
+        '</div>' +
         '</div>' +
 
         // end hidden sidr menu options
 
         // add button that will be bound to $.sidr instance
-        '<i id="menu-trigger<%= this.options.instance %>" class="fa fa-2x fa-bars"></i>' +
+        '<i id="menu-trigger<%= this.options.instance %>" class="fa fa-2x fa-bars" data-toggle="modal" data-target="#modal-filter-<%= this.options.instance %>"></i>' +
 
         // add div that will contain svg for d3 chart
         '<div class="well metric-chart-instance<%= this.options.instance %>" style="height:<%= this.options.height %>px;width:<%= this.options.width %>px;">' +
@@ -243,10 +245,6 @@ var MetricViewerView = GoldstoneBaseView.extend({
     render: function() {
         this.$el.html(this.template());
         var self = this;
-        // setTimeout(function() {
-        //     self.appendChart();
-        // }, 500);
-
         return this;
     }
 
