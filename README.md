@@ -15,7 +15,7 @@ The installation instructions are in [INSTALL](INSTALL.md).
 
 The installation creates a system administrator account with the credentials, "admin" / "changeme".  Your first task is to change its password and e-mail address. You can do this from the account settings page.
 
-The installation also creates an initial tenant, with a tenant administrator. The tenant administrator is also Goldstone's default tenant administrator. You may wish to:
+The installation also creates an initial tenant, with a tenant administrator. You may wish to:
 * change this tenant's name, owner name, or contact information
 * change the tenant admin's name or password, which is "gsadmin" / "changeme"
 * create more tenant admins
@@ -64,7 +64,7 @@ If you need help or have questions, you can submit them as issues in this reposi
 
 ## API
 
-The Goldstone API is documented in xxxxxxxxxxxxxxxxx.
+The Goldstone API is documented in [API](API.md).
 
 ## License
 

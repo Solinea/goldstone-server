@@ -1,9 +1,9 @@
 # Goldstone Hacking Guide
 
-This explains how to install and run Goldstone locally, so that you can do code development on it.
+This explains how to install and run Goldstone locally, so you can do code development on it.
 
 Remember that an instance of Goldstone running locally can be used to monitor a
-local *or remote* OpenStack installation. The server Goldstone is running on is
+local *or remote* OpenStack installation. The server on which Goldstone runs is
 independent from the OpenStack cloud's location.
 
 
@@ -44,12 +44,14 @@ $ pip install tox
 
 Add the following or similar to your .bash_profile:
 
-    export ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future # for Mavericks
-    export JAVA_HOME="$(/usr/libexec/java_home)"
-    export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
-    export WORKON_HOME=$HOME/.virtualenvs
-    export PROJECT_HOME=$HOME/devel
-    source /usr/local/bin/virtualenvwrapper.sh
+```bash
+export ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future # for Mavericks
+export JAVA_HOME="$(/usr/libexec/java_home)"
+export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
+export WORKON_HOME=$HOME/.virtualenvs
+export PROJECT_HOME=$HOME/devel
+source /usr/local/bin/virtualenvwrapper.sh
+```
 
 Create the virtual environment (this will also install virtualenv):
 

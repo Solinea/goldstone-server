@@ -7,7 +7,7 @@ Before installing Goldstone, your server must meet the following prerequisites:
 * 100 GB free disk space
 * CentOS / RHEL 6.5 or 6.6
 
-To view and use Goldstone, you will need a recent version of the [Google Chrome browser](https://www.google.com/intl/en-US/chrome/browser).
+To view and use Goldstone, you'll need a recent version of [Firefox](https://www.mozilla.org/en-US/firefox/products/), [Safari](https://www.apple.com/safari/), or [Chrome](https://www.google.com/intl/en-US/chrome/browser).
 
 ## Install Prerequisites (as root)
 
@@ -43,7 +43,7 @@ Compare `/opt/goldstone/goldstone/settings/production.py` to
 `/opt/goldstone/goldstone/settings/production.py.rpmnew`, and migrate any changes from the `.rpmnew` file into the `.py` file. If you did not previously edit `production.py`, you can simply do this:
 
 ```bash
-# mv /opt/goldstone/goldstone/settings/production.py.rpmnew /opt/goldstone/goldstone/settings.production.py.
+$ mv /opt/goldstone/goldstone/settings/production.py.rpmnew /opt/goldstone/goldstone/settings.production.py.
 ```
 
 After you've migrated your custom edits into `production.py`, restart the server.
@@ -90,7 +90,7 @@ Swift has a different configuration mechanism, so inserting the following entrie
     set log_facility = LOG_LOCAL4
     set log_level = INFO
 
-The following service mapping is used for syslog_log_facility:
+This service mapping is used for syslog_log_facility:
 
 * nova => LOG_LOCAL0
 * glance => LOG_LOCAL1
@@ -112,7 +112,7 @@ In the `/opt/goldstone/external` folder, there are example configuration files f
 * `/opt/goldstone/external/rsyslog/rsyslog.conf` is an example main rsyslog configuration file. It references the Goldstone specific file below.
 * `/opt/goldstone/external/rsyslog/rsyslog.d/10-goldstone.conf` provides specific mapping. **This file must be modified** to replace the '@@goldstone_ip:5514' in the local0.* to local7.* lines with your Goldstone server IP address or name.
 
-    For example, if your Goldstone server's IP address 10.10.10.1, then your file should be edited to read:
+    For example, if your Goldstone server's IP address is 10.10.10.1, your file should be edited to read:
 
         *.*    @@10.10.10.1:5514    
 
