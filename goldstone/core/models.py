@@ -64,6 +64,16 @@ class MetricData(DailyIndexDocType):
     class Meta:
         doc_type = 'core_metric'
 
+    @classmethod
+    def stats_agg(cls):
+        from elasticsearch_dsl import A
+        return A('extended_stats', field='value')
+
+    @classmethod
+    def units_agg(cls):
+        from elasticsearch_dsl import A
+        return A('terms', field='unit')
+
 
 class ReportData(DailyIndexDocType):
 

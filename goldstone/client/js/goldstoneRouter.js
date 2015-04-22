@@ -44,12 +44,15 @@ var GoldstoneRouter = Backbone.Router.extend({
         "intelligence/search": "logSearch",
         "keystone/report": "keystoneReport",
         "login": "login",
-        "password": "password",
-        "settings": "settings",
-        "settings/tenants": "tenant",
+        "metric": "metricViewer",
+        "metric/": "metricViewer",
+        "metric/:numCharts": "metricViewer",
         "neutron/report": "neutronReport",
         "nova/report": "novaReport",
+        "password": "password",
         "report/node/:nodeId": "nodeReport",
+        "settings": "settings",
+        "settings/tenants": "tenant",
         "*default": "redirect"
     },
     extendOptions: function(options, args) {
@@ -70,12 +73,6 @@ var GoldstoneRouter = Backbone.Router.extend({
         // to determine whether or not to render the
         // logout icon
         this.trigger('switchingView');
-
-        // prevent multiple successive calls to the same page
-        if (app.switchTriggeredBy && app.switchTriggeredBy === view) {
-            return;
-        }
-        app.switchTriggeredBy = view;
 
         if (app.currentLauncherView) {
 
@@ -139,10 +136,20 @@ var GoldstoneRouter = Backbone.Router.extend({
 
     */
 
-    nodeReport: function(nodeId) {
-        this.switchView(NodeReportView, {
-            node_uuid: nodeId
-        });
+    apiPerfReport: function() {
+        this.switchView(ApiPerfReportView);
+    },
+    cinderReport: function() {
+        this.switchView(CinderReportView);
+    },
+    discover: function() {
+        this.switchView(DiscoverView);
+    },
+    glanceReport: function() {
+        this.switchView(GlanceReportView);
+    },
+    help: function() {
+        this.switchView(HelpView);
     },
     keystoneReport: function() {
         this.switchView(KeystoneReportView);
@@ -150,40 +157,42 @@ var GoldstoneRouter = Backbone.Router.extend({
     login: function() {
         this.switchView(LoginPageView);
     },
+    logSearch: function() {
+        this.switchView(LogSearchView);
+    },
+    metricViewer: function(numCharts) {
+        if (numCharts === null || numCharts === undefined) {
+            numCharts = 6;
+        }
+        numCharts = parseInt(numCharts, 10);
+        if (numCharts > 6 || numCharts < 1) {
+            numCharts = 6;
+        }
+        this.switchView(MetricViewerPageView, {
+            numCharts: numCharts
+        });
+    },
+    neutronReport: function() {
+        this.switchView(NeutronReportView);
+    },
+    nodeReport: function(nodeId) {
+        this.switchView(NodeReportView, {
+            node_uuid: nodeId
+        });
+    },
+    novaReport: function() {
+        this.switchView(NovaReportView);
+    },
     password: function() {
         this.switchView(PasswordResetView);
+    },
+    redirect: function() {
+        location.href = "#/discover";
     },
     settings: function() {
         this.switchView(SettingsPageView);
     },
     tenant: function() {
         this.switchView(TenantSettingsPageView);
-    },
-    apiPerfReport: function() {
-        this.switchView(ApiPerfReportView);
-    },
-    novaReport: function() {
-        this.switchView(NovaReportView);
-    },
-    neutronReport: function() {
-        this.switchView(NeutronReportView);
-    },
-    cinderReport: function() {
-        this.switchView(CinderReportView);
-    },
-    glanceReport: function() {
-        this.switchView(GlanceReportView);
-    },
-    logSearch: function() {
-        this.switchView(LogSearchView);
-    },
-    discover: function() {
-        this.switchView(DiscoverView);
-    },
-    help: function() {
-        this.switchView(HelpView);
-    },
-    redirect: function() {
-        location.href = "#/discover";
     }
 });

@@ -14,7 +14,28 @@
  * limitations under the License.
  */
 
-module.exports = [
-    'test/unit/*.js',
-    'test/integration/*.js'
-];
+/*
+fetches list of metrics availble for metric report viz.
+*/
+
+var MetricViewerCollection = Backbone.Collection.extend({
+
+    defaults: {},
+
+    parse: function(data) {
+        return data.per_name;
+    },
+
+    model: GoldstoneBaseModel,
+
+    initialize: function(options) {
+        this.options = options || {};
+        this.defaults = _.clone(this.defaults);
+        this.retrieveData();
+    },
+
+    retrieveData: function() {
+        this.url = "/core/metric_names";
+        this.fetch();
+    }
+});

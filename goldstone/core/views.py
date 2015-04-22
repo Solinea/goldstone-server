@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from rest_framework.response import Response
 from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
     DateHistogramAggView
 from rest_framework.generics import RetrieveAPIView
@@ -20,7 +21,8 @@ from goldstone.utils import TopologyMixin
 
 from .models import MetricData, ReportData
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
-    MetricNamesAggSerializer, ReportNamesAggSerializer, NavTreeSerializer
+    MetricNamesAggSerializer, ReportNamesAggSerializer, NavTreeSerializer, \
+    MetricAggSerializer
 
 
 class MetricDataListView(ElasticListAPIView):
@@ -84,9 +86,23 @@ class MetricNamesAggView(SimpleAggView):
 class MetricAggView(DateHistogramAggView):
     """A view that handles requests for Metric aggregations."""
 
+    serializer_class = MetricAggSerializer
+    reserved_params = ['interval']
+    STATS_AGG_NAME = 'stats'
+    UNIT_AGG_NAME = 'units'
+
     class Meta:
         """Meta"""
         model = MetricData
+
+    def get(self, request):
+        """Handle get request. Override default to add nested aggregations."""
+        search = self._get_search(request)
+        search.aggs.bucket(self.UNIT_AGG_NAME, self.Meta.model.units_agg())
+        search.aggs[self.AGG_NAME]. \
+            bucket(self.STATS_AGG_NAME, self.Meta.model.stats_agg())
+        serializer = self.serializer_class(search.execute().aggregations)
+        return Response(serializer.data)
 
 
 class NavTreeView(RetrieveAPIView, TopologyMixin):

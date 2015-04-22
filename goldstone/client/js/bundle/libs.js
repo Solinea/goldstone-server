@@ -1,5 +1,3 @@
-/*! goldstone concat on 2015-04-07@12:20:22 */
-
 /*!
  * jQuery JavaScript Library v2.1.1
  * http://jquery.com/

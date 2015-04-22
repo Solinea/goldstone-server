@@ -21,12 +21,15 @@ describe('base.js spec', function() {
     beforeEach(function() {
 
         $('body').html('<div class="test-container"></div>');
-
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "/something/fancy", [200, {
+        this.server.respondWith([200, {
             "Content-Type": "application/json"
-        }, '[]']);
+        }, 'OK']);
+
+        this.testCollection = new GoldstoneBaseCollection({
+            url: 'hoo/haw'
+        });
 
     });
     afterEach(function() {
@@ -112,6 +115,25 @@ describe('base.js spec', function() {
             this.raiseSuccess_spy.restore();
             this.raiseInfo_spy.restore();
             this.raiseAlert_spy.restore();
+        });
+    });
+    describe('base collection is tested', function() {
+        it('returns the proper lookback', function() {
+            var test1 = this.testCollection.computeLookback();
+            expect(test1).to.equal(60);
+        });
+        it('returns the proper lookback', function() {
+            $('body').append('<form class="global-lookback-selector role="form"><div class="form-group"><div class="col-xl-1"><div class="input-group"><select class="form-control" id="global-lookback-range"><option value="20"></select></div></div></div></form>');
+            var test2 = this.testCollection.computeLookback();
+            expect(test2).to.equal(20);
+        });
+        it('fetches', function() {
+            this.testCollection.fetchNoReset();
+            this.server.respond();
+        });
+        it('parses', function() {
+            var test1 = this.testCollection.parse([1,2,3]);
+            expect(test1).to.deep.equal([1,2,3]);
         });
     });
 });

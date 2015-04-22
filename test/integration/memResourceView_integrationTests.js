@@ -95,22 +95,29 @@ describe('memResourceView.js spec', function() {
             // {timestamp: [used, phys, virt]}
             var test1 = this.testView.dataPrep(this.testCollection.toJSON());
             expect(test1).to.deep.equal([{
-                    eventTime: 1428427308285,
-                    Used: 10752,
-                    Physical: 31872
-                },
-                {
-                    eventTime: 1428427248087,
-                    Used: 10752,
-                    Physical: 31872
-                }
-            ]);
+                eventTime: 1428427308285,
+                Used: 10752,
+                Physical: 31872
+            }, {
+                eventTime: 1428427248087,
+                Used: 10752,
+                Physical: 31872
+            }]);
         });
     });
     describe('view specialInit', function() {
         it('set Axis', function() {
             this.testView.specialInit();
         });
+        it('should parse appropriately', function() {
+            var test1 = this.testCollection.parse('hi');
+            expect(test1).to.deep.equal([]);
+            var test2 = this.testCollection.parse({
+                results: 'hi'
+            });
+            expect(test2).to.equal('hi');
+        });
+
     });
     describe('view is constructed', function() {
         it('should exist', function() {
