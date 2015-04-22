@@ -511,7 +511,7 @@ class ProcessResourceType(SimpleTestCase):
                        "name": "botchegaloot",
                        "status": "oh mama"}
         bad_image_1 = bad_image_0.copy()
-        bad_image_1["owner"] = "Mike Hunt"
+        bad_image_1["owner"] = "The Dude"
 
         good_image_0 = {"checksum": "aw1234234234234234",
                         "container_format": "bare",
@@ -520,7 +520,7 @@ class ProcessResourceType(SimpleTestCase):
                         "status": "oh mama",
                         "id": "123123233333"}
         good_image_1 = good_image_0.copy()
-        good_image_1["owner"] = "Mike Hunt"
+        good_image_1["owner"] = "The Dude"
         good_image_1["id"] = "156"
 
         cloud.images_list = [bad_image_0,
@@ -733,10 +733,10 @@ class ProcessResourceType(SimpleTestCase):
                         "status": "oh mama",
                         "id": "deadbeef"}
         good_image_1 = good_image_0.copy()
-        good_image_1["owner"] = "Mike Hunt"
+        good_image_1["owner"] = "Donny"
         good_image_1["id"] = "beef"
         good_image_2 = good_image_1.copy()
-        good_image_1["owner"] = "I.P. Daily"
+        good_image_1["owner"] = "Muad'Dib"
         good_image_2["id"] = "deadbeef"
 
         cloud.images_list = [good_image_0, good_image_1, good_image_2]
