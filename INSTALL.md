@@ -12,13 +12,13 @@ To view and use Goldstone, you will need a recent version of the [Google Chrome 
 ## Install Prerequisites (as root)
 
 ```bash
-    root# yum update ; reboot
-    root# yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
-    root# yum install -y python-devel python-setuptools libffi-devel wget
-    root# wget https://bootstrap.pypa.io/get-pip.py
-    root# python get-pip.py
-    root# pip install paramiko==1.10
-    root# pip install fabric==1.10.1    
+root# yum update ; reboot
+root# yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
+root# yum install -y python-devel python-setuptools libffi-devel wget
+root# wget https://bootstrap.pypa.io/get-pip.py
+root# python get-pip.py
+root# pip install paramiko==1.10
+root# pip install fabric==1.10.1    
 ```
 
 ## Run the Goldstone installer (as root)
@@ -26,7 +26,7 @@ To view and use Goldstone, you will need a recent version of the [Google Chrome 
 The following command should be initiated from the same directory as this file and the associated fabfile.py.
 
 ```bash
-    root# fab -f installer_fabfile.py install
+root# fab -f installer_fabfile.py install
 ```
 
 This package installation may take up to 30 minutes to run, as it needs to compile a number of libraries.
@@ -43,7 +43,7 @@ Compare `/opt/goldstone/goldstone/settings/production.py` to
 `/opt/goldstone/goldstone/settings/production.py.rpmnew`, and migrate any changes from the `.rpmnew` file into the `.py` file. If you did not previously edit `production.py`, you can simply do this:
 
 ```bash
-    # mv /opt/goldstone/goldstone/settings/production.py.rpmnew /opt/goldstone/goldstone/settings.production.py.
+# mv /opt/goldstone/goldstone/settings/production.py.rpmnew /opt/goldstone/goldstone/settings.production.py.
 ```
 
 After you've migrated your custom edits into `production.py`, restart the server.
@@ -110,14 +110,16 @@ TBS
 In the `/opt/goldstone/external` folder, there are example configuration files for rsyslog:
 
 * `/opt/goldstone/external/rsyslog/rsyslog.conf` is an example main rsyslog configuration file. It references the Goldstone specific file below.
-* `/opt/goldstone/external/rsyslog/rsyslog.d/10-goldstone.conf` provides specific mapping. **This file needs to be modified** to replace the '@@goldstone_ip:5514' in the local0.* to local7.* lines with your Goldstone server IP address or name. For example, if your Goldstone server's IP address 10.10.10.1, then your file should be edited to read:
+* `/opt/goldstone/external/rsyslog/rsyslog.d/10-goldstone.conf` provides specific mapping. **This file must be modified** to replace the '@@goldstone_ip:5514' in the local0.* to local7.* lines with your Goldstone server IP address or name.
 
-    *.*    @@10.10.10.1:5514    
+    For example, if your Goldstone server's IP address 10.10.10.1, then your file should be edited to read:
+
+        *.*    @@10.10.10.1:5514    
 
 If you run with selinux enabled, you will also need to configure it to allow rsyslog to use this port:
 
 ```bash
-    root# semanage port -a -t syslogd_port_t -p tcp 5514
+root# semanage port -a -t syslogd_port_t -p tcp 5514
 ```
 
 Restart the OpenStack services and syslog or reboot the node. Repeat this on all the OpenStack servers (or better include this in your puppet scripts).
