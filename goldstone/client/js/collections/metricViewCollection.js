@@ -18,4 +18,10 @@
 
 var model = GoldstoneBaseModel.extend({});
 
-var MetricViewCollection = GoldstoneBaseCollection.extend({});
+var MetricViewCollection = GoldstoneBaseCollection.extend({
+    initialize: function(options) {
+        MetricViewCollection.__super__.initialize.apply(this, arguments);
+        this.defaults.statistic = options.statistic;
+        this.defaults.standardDev = options.standardDev;
+    }
+});

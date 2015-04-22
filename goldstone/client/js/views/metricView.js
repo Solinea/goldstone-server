@@ -92,6 +92,8 @@ var MetricView = ApiPerfView.extend({
         var self = this;
         var data = this.collection.toJSON()[0];
         json = this.dataPrep(data.per_interval);
+        ns.statToChart = this.collection.defaults.statistic || 'band';
+        ns.standardDev = this.collection.defaults.standardDev || 0;
         var mw = ns.mw;
         var mh = ns.mh;
 
@@ -112,15 +114,20 @@ var MetricView = ApiPerfView.extend({
             .attr("x", 0 - (ns.height / 2))
             .attr("y", -11)
             .attr("dy", "1.5em")
-            // returned by metric api call
-            .text(data.units[0])
+        // returned by metric api call
+        .text(data.units[0])
             .style("text-anchor", "middle");
 
         ns.y.domain([0, d3.max(json, function(d) {
             var key = _.keys(d).toString();
 
-            // add 10% breathing room to y axis domain
-            return d[key].stats.max * 1.1;
+            if (ns.standardDev === 1) {
+                // add 10% breathing room to y axis domain
+                return d[key].stats.std_deviation_bounds.upper * 1.1;
+            } else {
+                // add 10% breathing room to y axis domain
+                return d[key].stats.max * 1.1;
+            }
         })]);
 
         json.forEach(function(d) {
@@ -135,6 +142,8 @@ var MetricView = ApiPerfView.extend({
             d.min = d[key].stats.min || 0;
             d.max = d[key].stats.max || 0;
             d.avg = d[key].stats.avg || 0;
+            d.stdHigh = d[key].stats.std_deviation_bounds.upper || 0;
+            d.stdLow = d[key].stats.std_deviation_bounds.lower || 0;
         });
 
         ns.x.domain(d3.extent(json, function(d) {
@@ -184,6 +193,26 @@ var MetricView = ApiPerfView.extend({
                 return ns.y(d.avg);
             });
 
+        var stdHigh = d3.svg.line()
+            .interpolate("basis")
+            .tension(0.85)
+            .x(function(d) {
+                return ns.x(d.time);
+            })
+            .y(function(d) {
+                return ns.y(d.stdHigh);
+            });
+
+        var stdLow = d3.svg.line()
+            .interpolate("basis")
+            .tension(0.85)
+            .x(function(d) {
+                return ns.x(d.time);
+            })
+            .y(function(d) {
+                return ns.y(d.stdLow);
+            });
+
         var hiddenBar = ns.chart.selectAll(this.el + ' .hiddenBar')
             .data(json);
 
@@ -203,38 +232,67 @@ var MetricView = ApiPerfView.extend({
 
         // initialize the chart lines
 
-        ns.chart.append("path")
-            .datum(json)
-            .attr("class", "area")
-            .attr("id", "minMaxArea")
-            .attr("d", area)
-            .attr("fill", ns.colorArray.distinct[3][1])
-            .style("opacity", 0.3);
+        if (ns.statToChart === 'band') {
+            ns.chart.append("path")
+                .datum(json)
+                .attr("class", "area")
+                .attr("id", "minMaxArea")
+                .attr("d", area)
+                .attr("fill", ns.colorArray.distinct[3][1])
+                .style("opacity", 0.3);
+        }
 
-        ns.chart.append('path')
-            .attr('class', 'line')
-            .attr('id', 'minLine')
-            .attr('data-legend', "Min")
-            .style("stroke", ns.colorArray.distinct[3][0])
-            .datum(json)
-            .attr('d', minLine);
+        if (ns.statToChart === 'band' || ns.statToChart === 'min') {
+            ns.chart.append('path')
+                .attr('class', 'line')
+                .attr('id', 'minLine')
+                .attr('data-legend', "Min")
+                .style("stroke", ns.colorArray.distinct[3][0])
+                .datum(json)
+                .attr('d', minLine);
+        }
 
-        ns.chart.append('path')
-            .attr('class', 'line')
-            .attr('id', 'maxLine')
-            .attr('data-legend', "Max")
-            .style("stroke", ns.colorArray.distinct[3][2])
-            .datum(json)
-            .attr('d', maxLine);
+        if (ns.statToChart === 'band' || ns.statToChart === 'max') {
+            ns.chart.append('path')
+                .attr('class', 'line')
+                .attr('id', 'maxLine')
+                .attr('data-legend', "Max")
+                .style("stroke", ns.colorArray.distinct[3][2])
+                .datum(json)
+                .attr('d', maxLine);
+        }
 
-        ns.chart.append('path')
-            .attr('class', 'line')
-            .attr('id', 'avgLine')
-            .attr('data-legend', "Avg")
-            .style("stroke-dasharray", ("3, 3"))
-            .style("stroke", ns.colorArray.grey[0][0])
-            .datum(json)
-            .attr('d', avgLine);
+        if (ns.statToChart === 'band' || ns.statToChart === 'avg') {
+            ns.chart.append('path')
+                .attr('class', 'line')
+                .attr('id', 'avgLine')
+                .attr('data-legend', "Avg")
+                .style("stroke-dasharray", ("3, 3"))
+                .style("stroke", ns.colorArray.grey[0][0])
+                .datum(json)
+                .attr('d', avgLine);
+        }
+
+        if (ns.standardDev) {
+
+            ns.chart.append('path')
+                .attr('class', 'line')
+                .attr('id', 'stdDevHigh')
+                .attr('data-legend', "Std Dev High")
+                .style("stroke-dasharray", ("3, 3"))
+                .style("stroke", ns.colorArray.distinct[4][1])
+                .datum(json)
+                .attr('d', stdHigh);
+
+            ns.chart.append('path')
+                .attr('class', 'line')
+                .attr('id', 'stdDevLow')
+                .attr('data-legend', "Std Dev Low")
+                .style("stroke-dasharray", ("3, 3"))
+                .style("stroke", ns.colorArray.distinct[4][1])
+                .datum(json)
+                .attr('d', stdLow);
+        }
 
         ns.chart.append('g')
             .attr('class', 'x axis')
@@ -247,7 +305,7 @@ var MetricView = ApiPerfView.extend({
 
         var legend = ns.chart.append("g")
             .attr("class", "legend")
-            .attr("transform", "translate(20,-35)")
+            .attr("transform", "translate(20,-38)")
             .call(d3.legend);
 
         // UPDATE

@@ -97,11 +97,11 @@ var MetricViewerView = GoldstoneBaseView.extend({
         this.chartOptions.set({
             'metric': $(menu).find('.metric-dropdown-options').val(),
             'resource': $(menu).find('.resource-dropdown-options').val(),
+            'statistic': $(menu).find('.statistic-dropdown-options').val(),
+            'standardDev': $(menu).find('.standard-dev:checked').length,
             'lookback': $(menu).find('.lookback-dropdown-options').val(),
             'interval': $(menu).find('.interval-dropdown-options').val(),
-            'chartType': $(menu).find('.chart-type-dropdown-options').val()
         });
-
     },
 
     populateMetrics: function() {
@@ -138,22 +138,24 @@ var MetricViewerView = GoldstoneBaseView.extend({
     appendChart: function() {
 
         var url = this.constructUrlFromParams();
-
         // if there is already a chart populating this div:
         if (this.metricChart) {
             this.metricChart.url = url;
+            this.metricChart.defaults.statistic = this.chartOptions.get('statistic');
+            this.metricChart.defaults.standardDev = this.chartOptions.get('standardDev');
             $(this.metricChartView.el).find('#spinner').show();
             this.metricChart.fetchWithReset();
         } else {
             this.metricChart = new MetricViewCollection({
-                url: url
+                statistic: this.chartOptions.get('statistic'),
+                url: url,
+                standardDev: this.chartOptions.get('standardDev')
             });
-
             this.metricChartView = new MetricView({
                 collection: this.metricChart,
                 height: 320,
                 el: '.metric-chart-instance' + this.options.instance,
-                width: $('.metric-chart-instance' + this.options.instance).width()
+                width: $('.metric-chart-instance' + this.options.instance).width(),
             });
         }
     },
@@ -197,6 +199,16 @@ var MetricViewerView = GoldstoneBaseView.extend({
         '<option value="rsrc-01">rsrc-01</option>' +
         '<option value="rsrc-02">rsrc-02</option>' +
         '</select>' +
+
+        '<h5>Statistic</h5>' +
+        '<select class="statistic-dropdown-options">' +
+        '<option value="band" selected>band</option>' +
+        '<option value="min">min</option>' +
+        '<option value="max">max</option>' +
+        '<option value="avg">avg</option>' +
+        '</select>' +
+
+        '<h5>Standard Deviation Bands? <input class="standard-dev" type="checkbox"></h5>' +
 
         '<h5>Lookback</h5>' +
         '<select class="lookback-dropdown-options">' +
