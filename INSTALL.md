@@ -1,7 +1,4 @@
-=============================
-Goldstone Installation
-=============================
-
+# Goldstone Installation
 
 Before installing Goldstone, your server must meet the following prerequisites:
 
@@ -10,15 +7,11 @@ Before installing Goldstone, your server must meet the following prerequisites:
 * 100 GB free disk space
 * CentOS / RHEL 6.5 or 6.6
 
-To view and use Goldstone, you will need a recent version of the `Google Chrome browser`_.
+To view and use Goldstone, you will need a recent version of the [Google Chrome browser](https://www.google.com/intl/en-US/chrome/browser).
 
-.. _Google Chrome browser: https://www.google.com/intl/en-US/chrome/browser/
+## Install Prerequisites (as root)
 
-Install Prerequisites (as root)
-*******************************
-
-  .. code:: bash
-
+```bash
     root# yum update ; reboot
     root# yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
     root# yum install -y python-devel python-setuptools libffi-devel wget
@@ -26,48 +19,44 @@ Install Prerequisites (as root)
     root# python get-pip.py
     root# pip install paramiko==1.10
     root# pip install fabric==1.10.1    
+```
 
-
-Run the Goldstone installer (as root)
-*************************************
+## Run the Goldstone installer (as root)
 
 The following command should be initiated from the same directory as this file and the associated fabfile.py.
 
-  .. code:: bash
-
+```bash
     root# fab -f installer_fabfile.py install
-
+```
 
 This package installation may take up to 30 minutes to run, as it needs to compile a number of libraries.
 
-Review production.py
-**********************
+
+## Review production.py
 
 If this is a first-time install of Goldstone, skip this section.
 
-If this is a re-install of Goldstone, a new ``production.py`` file from Solinea will be in
-``/opt/goldstone/goldstone/settings/production.py.rpmnew``.
+If this is a re-install of Goldstone, a new `production.py` file from Solinea will be in
+`/opt/goldstone/goldstone/settings/production.py.rpmnew`.
 
-Compare ``/opt/goldstone/goldstone/settings/production.py`` to
-``/opt/goldstone/goldstone/settings/production.py.rpmnew``, and migrate any changes from the ``.rpmnew`` file into the ``.py`` file. If you did not previously edit ``production.py``, you can simply do this:
+Compare `/opt/goldstone/goldstone/settings/production.py` to
+`/opt/goldstone/goldstone/settings/production.py.rpmnew`, and migrate any changes from the `.rpmnew` file into the `.py` file. If you did not previously edit `production.py`, you can simply do this:
 
-  .. code:: bash
-
+```bash
     # mv /opt/goldstone/goldstone/settings/production.py.rpmnew /opt/goldstone/goldstone/settings.production.py.
+```
 
-After you've migrated your custom edits into ``production.py``, restart the server.
+After you've migrated your custom edits into `production.py`, restart the server.
 
 
-Test password reset
-*******************
+## Test password reset
 
 Goldstone's login page includes a password-reset link. Please test it.
 
-If the links in the password-reset e-mail do not work, you'll need to adjust the settings in ``/opt/goldstone/goldstone/settings/production.py``. Look for the ``DJOSER`` dictionary.
+If the links in the password-reset e-mail do not work, you'll need to adjust the settings in `/opt/goldstone/goldstone/settings/production.py`. Look for the `DJOSER` dictionary.
 
 
-Direct logs to the Goldstone server
-****************************************
+## Direct logs to the Goldstone server
 
 With Goldstone installed, the only task left is to point the OpenStack server logs to it so that it can begin processing them. There are two tasks in this step:
 
@@ -75,16 +64,15 @@ With Goldstone installed, the only task left is to point the OpenStack server lo
     2. Configure syslog to forward to your Goldstone server
 
 
-OpenStack service logging
----------------------------
+### OpenStack service logging
 
-Each OpenStack service uses one of the local syslog facilities to help with categorization of logs.  There are generally three fields to set in the configuration file for a service (i.e. ``/etc/nova/nova.conf``).  They are:
+Each OpenStack service uses one of the local syslog facilities to help with categorization of logs.  There are generally three fields to set in the configuration file for a service (i.e. `/etc/nova/nova.conf`).  They are:
 
-* ``verbose = True``
-* ``use_syslog = True``
-* ``syslog_log_facility = LOG_LOCAL{X}``
+    verbose = True
+    use_syslog = True
+    syslog_log_facility = LOG_LOCAL{X}
 
-Swift has a different configuration mechanism, so inserting the following entries in swift.conf will configure the logging properly: ::
+Swift has a different configuration mechanism, so inserting the following entries in swift.conf will configure the logging properly:
 
     [object-server]
     set log_facility = LOG_LOCAL4
@@ -113,44 +101,36 @@ The following service mapping is used for syslog_log_facility:
 * keystone => LOG_LOCAL6
 
 
-OpenStack Ceilometer integration
---------------------------------
+### OpenStack Ceilometer integration
 
 TBS
 
-Rsyslog forwarding
--------------------
+### Rsyslog forwarding
 
-In the ``/opt/goldstone/external`` folder, there are example configuration files for rsyslog:
+In the `/opt/goldstone/external` folder, there are example configuration files for rsyslog:
 
-* ``/opt/goldstone/external/rsyslog/rsyslog.conf`` is an example main rsyslog configuration file. It references the Goldstone specific file below.
-* ``/opt/goldstone/external/rsyslog/rsyslog.d/10-goldstone.conf`` provides specific mapping. THIS FILE NEEDS TO BE MODIFIED to replace the '@@goldstone_ip:5514' in the local0.* to local7.* lines with your Goldstone server IP address or name. For example, if your Goldstone server's IP address 10.10.10.1, then your file should be edited to read: ::
+* `/opt/goldstone/external/rsyslog/rsyslog.conf` is an example main rsyslog configuration file. It references the Goldstone specific file below.
+* `/opt/goldstone/external/rsyslog/rsyslog.d/10-goldstone.conf` provides specific mapping. **This file needs to be modified** to replace the '@@goldstone_ip:5514' in the local0.* to local7.* lines with your Goldstone server IP address or name. For example, if your Goldstone server's IP address 10.10.10.1, then your file should be edited to read:
 
     *.*    @@10.10.10.1:5514    
 
-If you run with selinux enabled, you will also need to configure it to allow rsyslog to use this port: ::
+If you run with selinux enabled, you will also need to configure it to allow rsyslog to use this port:
 
-    # semanage port -a -t syslogd_port_t -p tcp 5514
+```bash
+    root# semanage port -a -t syslogd_port_t -p tcp 5514
+```
 
 Restart the OpenStack services and syslog or reboot the node. Repeat this on all the OpenStack servers (or better include this in your puppet scripts).
 
-Finished!
-*********************
+
+## Finished!
 
 Now that everything has been configured, point your browser at the Goldstone server IP address or name and begin using Goldstone.
 
 
-Goldstone license
-*********************
+## License
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+This work is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/).
 
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+* [Read the license's summary](http://creativecommons.org/licenses/by-sa/4.0/)
+* [Read the license's full legal text](http://creativecommons.org/licenses/by-sa/4.0/legalcode)
