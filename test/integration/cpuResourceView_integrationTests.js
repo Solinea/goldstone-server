@@ -109,9 +109,15 @@ describe('cpuResourceView.js spec', function() {
                 }]);
         });
     });
-    describe('view specialInit', function() {
+    describe('view specialInit and collection', function() {
         it('set Axis', function() {
             this.testView.specialInit();
+        });
+        it('should parse properly', function() {
+            var test1 = this.testCollection.parse('hi');
+            expect(test1).to.deep.equal([]);
+            var test2 = this.testCollection.parse({results: 'hi'});
+            expect(test2).to.equal('hi');
         });
     });
     describe('view is constructed', function() {

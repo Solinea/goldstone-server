@@ -59,9 +59,9 @@ describe('apiPerfView.js spec', function() {
 
         // to answer GET requests
         this.server = sinon.fakeServer.create();
-        this.server.respondWith("GET", "/something/fancy", [200, {
+        this.server.respondWith([200, {
             "Content-Type": "application/json"
-        }, '[]']);
+        }, 'OK']);
 
         // confirm that dom is clear of view elements before each test:
         expect($('svg').length).to.equal(0);

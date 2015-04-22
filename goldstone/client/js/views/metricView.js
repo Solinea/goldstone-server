@@ -15,97 +15,119 @@
  */
 
 /*
-Instantiated similar to:
+Instantiated in metricViewerView similar to:
 
-this.novaApiPerfChart = new ApiPerfCollection({
-    componentParam: 'nova',
+this.metricChart = new MetricViewCollection({
+    url: url
 });
 
-this.novaApiPerfChartView = new ApiPerfView({
-    chartTitle: "Nova API Performance",
-    collection: this.novaApiPerfChart,
-    height: 300,
-
-    // for info-button text
-    infoCustom: [{
-        key: "API Call",
-        value: "Hypervisor Show"
-    }],
-    el: '#api-perf-report-r1-c1',
-    width: $('#api-perf-report-r1-c1').width()
+this.metricChartView = new MetricView({
+    collection: this.metricChart,
+    height: 320,
+    el: '.metric-chart-instance' + this.options.instance,
+    width: $('.metric-chart-instance' + this.options.instance).width()
 });
 */
 
 // view is linked to collection when instantiated
 
-var ApiPerfView = GoldstoneBaseView.extend({
+var MetricView = ApiPerfView.extend({
 
-    specialInit: function() {
+    defaults: {
+        margin: {
+            top: 40,
+            right: 15,
+            bottom: 30,
+            left: 60
+        }
+    },
+
+    standardInit: function() {
+
+        /*
+        D3.js convention works with the setting of a main svg, a sub-element
+        which we call 'chart' which is reduced in size by the amount of the top
+        and left margins. Also declares the axes, the doubleclick mechanism,
+        and the x and y scales, the axis details, and the chart colors.
+        */
+
         var ns = this.defaults;
         var self = this;
 
-        // chart info button popover generator
-        this.htmlGen = function() {
-            var start = moment(goldstone.time.fromPyTs(ns.start / 1000)).format();
-            var end = moment(goldstone.time.fromPyTs(ns.end / 1000)).format();
-            var custom = _.map(ns.infoCustom, function(e) {
-                return e.key + ": " + e.value + "<br>";
-            });
-            var result = '<div class="infoButton"><br>' + custom +
-                'Start: ' + start + '<br>' +
-                'End: ' + end + '<br>' +
-                'Interval: ' + ns.interval + '<br>' +
-                '<br></div>';
-            return result;
-        };
+        ns.svg = d3.select(this.el).append("svg")
+            .attr("width", ns.width)
+            .attr("height", ns.height);
 
-        $(this.el).find('#api-perf-info').popover({
-            trigger: 'manual',
-            content: function() {
-                return self.htmlGen.apply(this);
-            },
-            placement: 'bottom',
-            html: 'true'
-        })
-            .on("click", function(d) {
-                var targ = "#" + d.target.id;
-                $(self.el).find(targ).popover('toggle');
-            })
-            .on("mouseout", function(d) {
-                var targ = "#" + d.target.id;
-                $(self.el).find(targ).popover('hide');
-            });
+        ns.chart = ns.svg
+            .append("g")
+            .attr("class", "chart")
+            .attr("transform", "translate(" + ns.margin.left + "," + (ns.margin.top + 10) + ")");
 
-    },
+        ns.svg.on('dblclick', function() {
+            var coord = d3.mouse(this);
+            self.dblclicked(coord);
+        });
 
-    processOptions: function() {
-        ApiPerfView.__super__.processOptions.call(this);
+        ns.x = d3.time.scale()
+            .rangeRound([0, ns.mw]);
 
-        this.defaults.start = this.collection.defaults.reportParams.start || null;
-        this.defaults.end = this.collection.defaults.reportParams.end || null;
-        this.defaults.interval = this.collection.defaults.reportParams.interval || null;
+        ns.y = d3.scale.linear()
+            .range([ns.mh, 0]);
+
+        // initialize the axes
+        ns.xAxis = d3.svg.axis()
+            .scale(ns.x)
+            .ticks(5)
+            .orient("bottom");
+
+        ns.yAxis = d3.svg.axis()
+            .scale(ns.y)
+            .orient("left");
+
+        ns.colorArray = new GoldstoneColors().get('colorSets');
     },
 
     update: function() {
         var ns = this.defaults;
         var self = this;
-        var json = this.collection.toJSON();
-        json = this.dataPrep(json);
+        var data = this.collection.toJSON()[0];
+        json = this.dataPrep(data.per_interval);
+        ns.statToChart = this.collection.defaults.statistic || 'band';
+        ns.standardDev = this.collection.defaults.standardDev || 0;
         var mw = ns.mw;
         var mh = ns.mh;
 
         this.hideSpinner();
+        $(this.el).find('text').remove();
+        $(this.el).find('svg').find('.chart').html('');
+        // prevents 'stuck' d3-tip on svg element.
+        $('body').find('#' + this.el.slice(1) + '.d3-tip').remove();
 
         if (this.checkReturnedDataSet(json) === false) {
             return;
         }
 
-        $(this.el).find('svg').find('.chart').html('');
-        $(this.el + '.d3-tip').detach();
+        // append y axis label
+        ns.svg.append("text")
+            .attr("class", "axis.label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", 0 - (ns.height / 2))
+            .attr("y", -11)
+            .attr("dy", "1.5em")
+        // returned by metric api call
+        .text(data.units[0])
+            .style("text-anchor", "middle");
 
         ns.y.domain([0, d3.max(json, function(d) {
             var key = _.keys(d).toString();
-            return d[key].stats.max;
+
+            if (ns.standardDev === 1) {
+                // add 10% breathing room to y axis domain
+                return d[key].stats.std_deviation_bounds.upper * 1.1;
+            } else {
+                // add 10% breathing room to y axis domain
+                return d[key].stats.max * 1.1;
+            }
         })]);
 
         json.forEach(function(d) {
@@ -120,6 +142,8 @@ var ApiPerfView = GoldstoneBaseView.extend({
             d.min = d[key].stats.min || 0;
             d.max = d[key].stats.max || 0;
             d.avg = d[key].stats.avg || 0;
+            d.stdHigh = d[key].stats.std_deviation_bounds.upper || 0;
+            d.stdLow = d[key].stats.std_deviation_bounds.lower || 0;
         });
 
         ns.x.domain(d3.extent(json, function(d) {
@@ -169,6 +193,26 @@ var ApiPerfView = GoldstoneBaseView.extend({
                 return ns.y(d.avg);
             });
 
+        var stdHigh = d3.svg.line()
+            .interpolate("basis")
+            .tension(0.85)
+            .x(function(d) {
+                return ns.x(d.time);
+            })
+            .y(function(d) {
+                return ns.y(d.stdHigh);
+            });
+
+        var stdLow = d3.svg.line()
+            .interpolate("basis")
+            .tension(0.85)
+            .x(function(d) {
+                return ns.x(d.time);
+            })
+            .y(function(d) {
+                return ns.y(d.stdLow);
+            });
+
         var hiddenBar = ns.chart.selectAll(this.el + ' .hiddenBar')
             .data(json);
 
@@ -188,38 +232,67 @@ var ApiPerfView = GoldstoneBaseView.extend({
 
         // initialize the chart lines
 
-        ns.chart.append("path")
-            .datum(json)
-            .attr("class", "area")
-            .attr("id", "minMaxArea")
-            .attr("d", area)
-            .attr("fill", ns.colorArray.distinct[3][1])
-            .style("opacity", 0.3);
+        if (ns.statToChart === 'band') {
+            ns.chart.append("path")
+                .datum(json)
+                .attr("class", "area")
+                .attr("id", "minMaxArea")
+                .attr("d", area)
+                .attr("fill", ns.colorArray.distinct[3][1])
+                .style("opacity", 0.3);
+        }
 
-        ns.chart.append('path')
-            .attr('class', 'line')
-            .attr('id', 'minLine')
-            .attr('data-legend', "Min")
-            .style("stroke", ns.colorArray.distinct[3][0])
-            .datum(json)
-            .attr('d', minLine);
+        if (ns.statToChart === 'band' || ns.statToChart === 'min') {
+            ns.chart.append('path')
+                .attr('class', 'line')
+                .attr('id', 'minLine')
+                .attr('data-legend', "Min")
+                .style("stroke", ns.colorArray.distinct[3][0])
+                .datum(json)
+                .attr('d', minLine);
+        }
 
-        ns.chart.append('path')
-            .attr('class', 'line')
-            .attr('id', 'maxLine')
-            .attr('data-legend', "Max")
-            .style("stroke", ns.colorArray.distinct[3][2])
-            .datum(json)
-            .attr('d', maxLine);
+        if (ns.statToChart === 'band' || ns.statToChart === 'max') {
+            ns.chart.append('path')
+                .attr('class', 'line')
+                .attr('id', 'maxLine')
+                .attr('data-legend', "Max")
+                .style("stroke", ns.colorArray.distinct[3][2])
+                .datum(json)
+                .attr('d', maxLine);
+        }
 
-        ns.chart.append('path')
-            .attr('class', 'line')
-            .attr('id', 'avgLine')
-            .attr('data-legend', "Avg")
-            .style("stroke-dasharray", ("3, 3"))
-            .style("stroke", ns.colorArray.grey[0][0])
-            .datum(json)
-            .attr('d', avgLine);
+        if (ns.statToChart === 'band' || ns.statToChart === 'avg') {
+            ns.chart.append('path')
+                .attr('class', 'line')
+                .attr('id', 'avgLine')
+                .attr('data-legend', "Avg")
+                .style("stroke-dasharray", ("3, 3"))
+                .style("stroke", ns.colorArray.grey[0][0])
+                .datum(json)
+                .attr('d', avgLine);
+        }
+
+        if (ns.standardDev) {
+
+            ns.chart.append('path')
+                .attr('class', 'line')
+                .attr('id', 'stdDevHigh')
+                .attr('data-legend', "Std Dev High")
+                .style("stroke-dasharray", ("3, 3"))
+                .style("stroke", ns.colorArray.distinct[4][1])
+                .datum(json)
+                .attr('d', stdHigh);
+
+            ns.chart.append('path')
+                .attr('class', 'line')
+                .attr('id', 'stdDevLow')
+                .attr('data-legend', "Std Dev Low")
+                .style("stroke-dasharray", ("3, 3"))
+                .style("stroke", ns.colorArray.distinct[4][1])
+                .datum(json)
+                .attr('d', stdLow);
+        }
 
         ns.chart.append('g')
             .attr('class', 'x axis')
@@ -232,7 +305,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
 
         var legend = ns.chart.append("g")
             .attr("class", "legend")
-            .attr("transform", "translate(20,-20)")
+            .attr("transform", "translate(20,-38)")
             .call(d3.legend);
 
         // UPDATE
@@ -298,16 +371,9 @@ var ApiPerfView = GoldstoneBaseView.extend({
                 d3.select(id).style("opacity", 0);
                 tip.hide();
             });
-
-        // EXIT
-        // Remove old elements as needed.
     },
 
     template: _.template(
-        '<div id="api-perf-panel-header" class="panel panel-primary">' +
-        '<div class="panel-heading">' +
-        '<h3 class="panel-title"><i class="fa fa-tasks"></i> <%= this.defaults.chartTitle %>' +
-        '<i class="pull-right fa fa-info-circle panel-info"  id="api-perf-info"></i>' +
-        '</h3></div><div class="alert alert-danger popup-message" hidden="true"></div>'),
+        '<div class="alert alert-danger popup-message" hidden="true"></div>'),
 
 });

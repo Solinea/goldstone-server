@@ -1,3 +1,19 @@
+/*
+If you are new to grunt, be sure to examine the list of grunt.
+registerTasks at the bottom of the page. Once defined, a
+registered tasks can be used within other task definitions.
+
+Many of the grunt tasks (watch/concat/test) rely on an external file that designates the order in which to load files. That is located in test/client-files.conf.js.
+
+When adding a Backbone View that will be extended into other
+views, it must be added to goldstone/client/js/ and explicitly
+added to karma.conf.js. If it is added into goldstone/client/js/
+views it may not be concatenated in the proper order to be
+available for extending. Adding it properly to karma.conf.js is
+also required to make sure it is loaded into memory for the
+headless browser testing.
+*/
+
 module.exports = function(grunt) {
     // load up all of the necessary grunt plugins
     grunt.loadNpmTasks('grunt-casperjs');
@@ -13,9 +29,9 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-mocha');
     grunt.loadNpmTasks('grunt-notify');
 
-    // in what order should the files be concatenated
-    var clientIncludeOrder = require('./test/include.conf.js');
-    var testInclude = require('./test/tests.conf.js');
+    // list of files for concatenation order / watching / linting, etc
+    var clientIncludeOrder = require('./test/client-files.conf.js');
+    var testInclude = clientIncludeOrder.test;
 
     // grunt setup
     grunt.initConfig({
@@ -93,7 +109,7 @@ module.exports = function(grunt) {
             },
             lib: {
                 files: 'goldstone/client/js/lib/*.js',
-                tasks: ['concat:lib']
+                tasks: ['concat:lib', 'notify:concat_message']
             },
             gruntfile: {
                 files: ['Gruntfile.js', 'karma.conf.js'],

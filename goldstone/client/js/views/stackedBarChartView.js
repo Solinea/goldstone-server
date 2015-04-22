@@ -69,6 +69,9 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         // differentiate color sets for mem and cpu charts
         if (ns.featureSet === 'mem' || ns.featureSet === 'cpu') {
             ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
+        }
+        if (ns.featureSet === 'metric') {
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[1]);
         } else {
             // this includes "VM Spawns" and "Disk Resources" chars
             ns.color = d3.scale.ordinal()
@@ -97,7 +100,31 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         var uniqTimestamps;
         var result = [];
 
-        if (ns.featureSet === 'cpu') {
+        if (ns.featureSet === 'metric') {
+            data = data[0].per_interval;
+            /*
+            {
+                @timestamp: "2015-04-20T19:09:08.153Z"
+                host: "10.10.20.21:55199"
+                metric_type: "gauge"
+                name: "os.cpu.idle"
+                node: "rsrc-02"
+                unit: "percent"
+                value: 97.18570476410143
+            }
+            */
+
+            _.each(data, function(item) {
+                var logTime = +(_.keys(item)[0]);
+                var value = +(_.values(item)[0]);
+                console.log(item, logTime, value);
+                result.push({
+                    "eventTime": logTime,
+                    "Success": value,
+                });
+            });
+
+        } else if (ns.featureSet === 'cpu') {
 
             // CPU Resources chart data prep
             /*
@@ -246,7 +273,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
     },
 
     computeHiddenBarText: function(d) {
-
+        var  ns = this.defaults;
         /*
         filter function strips keys that are irrelevant to the d3.tip:
 
@@ -267,9 +294,16 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         // matches time formatting of api perf charts
         result += moment(+d.eventTime).format() + '<br>';
 
-        valuesToReport.forEach(function(item) {
-            result += item + ': ' + d[item] + '<br>';
-        });
+        if (ns.featureSet === 'metric') {
+            valuesToReport.forEach(function(item) {
+                result += 'Value: ' + d[item] + '<br>';
+            });
+
+        } else {
+            valuesToReport.forEach(function(item) {
+                result += item + ': ' + d[item] + '<br>';
+            });
+        }
 
         return result;
     },
@@ -598,6 +632,11 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         // appends chart legends
         var legendSpecs = {
+            metric: [
+                // uncomment if supplying virtual stat again
+                // ['Virtual', 2],
+                ['Value', 0],
+            ],
             mem: [
                 // uncomment if supplying virtual stat again
                 // ['Virtual', 2],

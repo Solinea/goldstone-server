@@ -25,6 +25,46 @@ class MetricDataSerializer(ReadOnlyElasticSerializer):
         exclude = ('@version', 'sort', 'tags', 'type')
 
 
+class MetricAggSerializer(ReadOnlyElasticSerializer):
+    """Serializer for agent metrics."""
+
+    DATEHIST_AGG_NAME = 'per_interval'
+    UNIT_AGG_NAME = 'units'
+    STATS_AGG_NAME = 'stats'
+
+    class Meta:
+        exclude = ('@version', 'sort', 'tags', 'type')
+
+    def to_representation(self, instance):
+        """Create serialized representation of a single top-level aggregation.
+
+        :param instance: the result from the Model.simple_agg call
+        :return:
+        """
+
+        datehist_agg_base = getattr(instance, self.DATEHIST_AGG_NAME, None)
+        assert datehist_agg_base is not None, (
+            "DATEHIST_AGG_NAME must exist in the instance passed to %s."
+            % self.__class__.__name__
+        )
+
+        unit_agg_base = getattr(instance, self.UNIT_AGG_NAME, None)
+        assert unit_agg_base is not None, (
+            "UNIT_AGG_NAME must exist in the instance passed to %s."
+            % self.__class__.__name__
+        )
+
+        unit_data = [bucket.key for bucket in unit_agg_base.buckets]
+        # let's clean up the inner buckets
+        datehist_data = [{bucket.key: {
+            'count': bucket.doc_count,
+            self.STATS_AGG_NAME: bucket[self.STATS_AGG_NAME]}}
+            for bucket in datehist_agg_base.buckets]
+
+        return {self.UNIT_AGG_NAME: unit_data,
+                self.DATEHIST_AGG_NAME: datehist_data}
+
+
 class ReportDataSerializer(ReadOnlyElasticSerializer):
     """Serializer for agent metrics."""
 
