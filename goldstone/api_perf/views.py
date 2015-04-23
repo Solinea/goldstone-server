@@ -19,7 +19,7 @@ from goldstone.drfes.views import DateHistogramAggView
 
 
 class ApiPerfAggView(DateHistogramAggView):
-    """The get view for API perf aggregate data."""
+    """Aggregated API performance data."""
 
     serializer_class = ApiPerfAggSerializer
     reserved_params = ['interval']
@@ -27,14 +27,20 @@ class ApiPerfAggView(DateHistogramAggView):
     STATS_AGG_NAME = 'stats'
 
     class Meta:
-        """Meta"""
+        """Meta."""
         model = ApiPerfData
 
     def get(self, request):
-        """Handle get request. Override default to add nested aggregations."""
+        """Return aggregated API performance data.
+
+        This overrides the Elasticsearch defaults to add nested aggregations.
+
+        """
+
         search = self._get_search(request)
         search.aggs[self.AGG_NAME]. \
             metric(self.STATS_AGG_NAME, self.Meta.model.stats_agg()). \
             bucket(self.RANGE_AGG_NAME, self.Meta.model.range_agg())
+
         serializer = self.serializer_class(search.execute().aggregations)
         return Response(serializer.data)

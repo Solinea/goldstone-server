@@ -18,8 +18,9 @@ from django.conf import settings
 import elasticsearch
 from rest_framework import status, serializers
 from rest_framework.response import Response
+from rest_framework import mixins
 from rest_framework.views import exception_handler
-from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.viewsets import GenericViewSet
 from goldstone.drfes.utils import es_custom_exception_handler
 from .models import resources, resource_types
 
@@ -30,6 +31,7 @@ EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
 MATCHING_FN = settings.R_ATTRIBUTE.MATCHING_FN
 TYPE = settings.R_ATTRIBUTE.TYPE
 
+
 class JsonReadOnlySerializer(serializers.Serializer):
     """Serialize data that's already serialized."""
 
@@ -38,9 +40,9 @@ class JsonReadOnlySerializer(serializers.Serializer):
 
         return instance
 
-class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
-    """A base ViewSet that renders a JSON response for "list" actions; i.e.,
-    GET requests for a collection of objects.
+class JsonReadOnlyViewSet(mixins.ListModelMixin, GenericViewSet):
+    """A base ViewSet that renders a JSON response only for "list" actions;
+    i.e., GET requests for a collection of objects.
 
     This must be subclassed.
 
@@ -108,12 +110,6 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
         request_region = request.query_params.get('region')
 
         return self._get_objects(request_zone, request_region)
-
-    def retrieve(self, request, *args, **kwargs):
-        """We do not implement single-object GET."""
-        from django.http import HttpResponseNotAllowed
-
-        return HttpResponseNotAllowed('')
 
 
 def custom_exception_handler(exc, context):

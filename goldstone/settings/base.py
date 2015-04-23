@@ -279,6 +279,19 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'goldstone.core.utils.custom_exception_handler'
 }
 
+# Settings for Django REST Swagger.
+SWAGGER_SETTINGS = {
+    'api_version': '3',
+    "info": {"title": "Goldstone",
+             "description":
+             "Goldstone is a monitoring, management and analytics platform for"
+             " operating OpenStack clouds.",
+             "contact": "info@solinea.com",
+             "license": "Creative Commons Attribution-ShareAlike 4.0 International",
+             "licenseUrl": "License](http://creativecommons.org/licenses/by-sa/4.0",
+    }
+}
+
 # Goldstone config settings
 DEFAULT_LOOKBACK_DAYS = 7
 DEFAULT_CHART_BUCKETS = 7*24
