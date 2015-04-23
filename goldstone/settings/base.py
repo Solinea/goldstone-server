@@ -76,6 +76,7 @@ INSTALLED_APPS = (
     'djoser',
     'polymorphic',
     'rest_framework',
+    'rest_framework_swagger',
     'rest_framework.authtoken',
     'south',
     'goldstone.accounts',

@@ -16,7 +16,7 @@ import logging
 
 from django.conf import settings
 import elasticsearch
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -30,6 +30,13 @@ EDGE_ATTRIBUTES = settings.R_ATTRIBUTE.EDGE_ATTRIBUTES
 MATCHING_FN = settings.R_ATTRIBUTE.MATCHING_FN
 TYPE = settings.R_ATTRIBUTE.TYPE
 
+class JsonReadOnlySerializer(serializers.Serializer):
+    """Serialize data that's already serialized."""
+
+    def to_representation(self, instance):
+        """Return instance, since it's already serialized."""
+
+        return instance
 
 class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
     """A base ViewSet that renders a JSON response for "list" actions; i.e.,
@@ -47,6 +54,8 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
 
     """
 
+    serializer_class = JsonReadOnlySerializer
+
     # These must be defined by the subclass.
     model = lambda: None
     key = None
@@ -55,7 +64,7 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
     zone_key = None
 
     def _get_objects(self, request_zone, request_region):
-        """Return a collection of objects.
+        """Return a collection of objects as JSON.
 
         :param request_zone: The request's "zone", if present.
         :type request_zone: str or None
@@ -98,8 +107,7 @@ class JsonReadOnlyViewSet(ReadOnlyModelViewSet):
         request_zone = request.query_params.get('zone')
         request_region = request.query_params.get('region')
 
-        # Now fetch the data and return it as JSON.
-        return Response(self._get_objects(request_zone, request_region))
+        return self._get_objects(request_zone, request_region)
 
     def retrieve(self, request, *args, **kwargs):
         """We do not implement single-object GET."""

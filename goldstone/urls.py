@@ -24,6 +24,10 @@ admin.autodiscover()
 
 urlpatterns = patterns(
     '',
+    url(r'^docs/', include("rest_framework_swagger.urls")))
+
+urlpatterns += patterns(
+    '',
     url(r'^accounts/', include("goldstone.accounts.urls")),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api-auth/', include('rest_framework.urls',
