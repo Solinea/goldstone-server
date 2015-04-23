@@ -257,8 +257,7 @@ class TenantsViewSet(BaseViewSet):
 
 
 class UserViewSet(BaseViewSet):
-    """A ViewSet for the User table, which is used only in this app's
-    "parent/child" views."""
+    """Access User resources that are nested under Tenant resources."""
 
     serializer_class = UserSerializer
 
@@ -341,7 +340,7 @@ class UserViewSet(BaseViewSet):
 
 
 class CloudViewSet(BaseViewSet):
-    """A ViewSet for the Cloud table."""
+    """Access Cloud resources that are nested under Tenant resources."""
 
     serializer_class = CloudSerializer
 

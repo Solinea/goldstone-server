@@ -93,7 +93,7 @@ class ServicesDataViewSet(JsonReadOnlyViewSet):
 
 
 class SpawnsAggView(DateHistogramAggView):
-    """The 'get' view for nova spawns aggregate data."""
+    """Aggregated data about nova spawns."""
 
     serializer_class = SpawnsAggSerializer
     reserved_params = ['interval']

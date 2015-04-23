@@ -281,7 +281,7 @@ REST_FRAMEWORK = {
 
 # Settings for Django REST Swagger.
 SWAGGER_SETTINGS = {
-    'api_version': '3',
+    'api_version': "3.0",
     "info": {"title": "Goldstone",
              "description":
              "Goldstone is a monitoring, management and analytics platform for"
