@@ -23,14 +23,13 @@ root# pip install fabric==1.10.1
 
 ## Run the Goldstone installer (as root)
 
-The following command should be initiated from the same directory as this file and the associated fabfile.py.
+Run this command from the same directory as this file and the associated fabfile.py:
 
 ```bash
 root# fab -f installer_fabfile.py install
 ```
 
-This package installation may take up to 30 minutes to run, as it needs to compile a number of libraries.
-
+It will prompt you for the license agreement, and check for supported operating systems. If all checks pass, it will then instruct you how to initialize the Goldstone database.
 
 ## Review production.py
 
