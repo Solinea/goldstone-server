@@ -76,8 +76,8 @@ INSTALLED_APPS = (
     'djoser',
     'polymorphic',
     'rest_framework',
-    'rest_framework_swagger',
     'rest_framework.authtoken',
+    'rest_framework_swagger',
     'south',
     'goldstone.accounts',
     'goldstone.api_perf',
@@ -287,9 +287,11 @@ SWAGGER_SETTINGS = {
              "Goldstone is a monitoring, management and analytics platform for"
              " operating OpenStack clouds.",
              "contact": "info@solinea.com",
-             "license": "Creative Commons Attribution-ShareAlike 4.0 International",
-             "licenseUrl": "License](http://creativecommons.org/licenses/by-sa/4.0",
-    }
+             "license":
+             "Creative Commons Attribution-ShareAlike 4.0 International",
+             "licenseUrl":
+             "License](http://creativecommons.org/licenses/by-sa/4.0",
+             },
 }
 
 # Goldstone config settings

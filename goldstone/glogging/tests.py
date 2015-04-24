@@ -152,7 +152,7 @@ class LogAggViewTests(APITestCase):
             url,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)  # pylint: disable=E1101
 
 
 class LogEventViewTests(APITestCase):
@@ -176,4 +176,4 @@ class LogEventViewTests(APITestCase):
             url,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token)
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)  # pylint: disable=E1101

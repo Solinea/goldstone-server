@@ -40,6 +40,7 @@ class JsonReadOnlySerializer(serializers.Serializer):
 
         return instance
 
+
 class JsonReadOnlyViewSet(mixins.ListModelMixin, GenericViewSet):
     """A base ViewSet that renders a JSON response only for "list" actions;
     i.e., GET requests for a collection of objects.
@@ -109,7 +110,10 @@ class JsonReadOnlyViewSet(mixins.ListModelMixin, GenericViewSet):
         request_zone = request.query_params.get('zone')
         request_region = request.query_params.get('region')
 
-        return self._get_objects(request_zone, request_region)
+        serializer = \
+            self.get_serializer(self._get_objects(request_zone,
+                                                  request_region))
+        return Response(serializer.data)
 
 
 def custom_exception_handler(exc, context):
