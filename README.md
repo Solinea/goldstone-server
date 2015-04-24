@@ -18,15 +18,18 @@ The installation instructions are in [INSTALL](INSTALL.md).
 
 Point your browser to the Goldstone server and login using the "superuser" account you created during the installation.
 
-## API
-
-The client provided by this project is only one possible client. Anyone can create a new and different Goldstone client that uses the Goldstone API, and provide a different user experience.
-
-The Goldstone API is documented in [API](API.md).
-
 ## Code development
 
-[HACKING](HACKING.md) has instructions for setting up a Goldstone development environment.
+[HACKING](HACKING.md) has instructions for installing and using the Goldstone development environment.
+
+### Goldstone API
+
+The client provided by this project is only one possible client. Anyone can create a new and different Goldstone client that uses the Goldstone API, and provideS a different user experience.
+
+The Goldstone API is interactively documented via [swagger-ui](https://github.com/swagger-api/swagger-ui). To access the API documentation:
+
+1. Install the Goldstone development environment.
+2. Using your favorite browser, open the file `goldstone-server/api_docs/index.html`
 
 ## Support and discussion
 
