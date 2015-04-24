@@ -91,8 +91,8 @@ class SerializerTests(APITestCase):
 class FilterTests(APITestCase):
     """Filter tests."""
 
-    def test__update_queryset_without_raw(self):
-        """Test proper handling of mapping without raw field"""
+    def test__update_queryset_no_raw(self):
+        """Test proper handling of mapping without raw field."""
 
         expectation = {'query': {'match': {'param1': 'value1'}}}
         elasticfilter = ElasticFilter()
@@ -101,6 +101,7 @@ class FilterTests(APITestCase):
         view.Meta.model = MagicMock()
         view.Meta.model.field_has_raw.return_value = False
 
+        # pylint: disable=W0212
         result = elasticfilter._update_queryset('param1',
                                                 'value1',
                                                 view,
@@ -109,7 +110,7 @@ class FilterTests(APITestCase):
         self.assertEqual(result.to_dict(), expectation)
 
     def test__update_queryset_with_raw(self):
-        """Test proper handling of mapping with raw field"""
+        """Test proper handling of mapping with raw field."""
 
         expectation = {'query': {'match': {'param1.raw': 'value1'}}}
         elasticfilter = ElasticFilter()
@@ -118,6 +119,7 @@ class FilterTests(APITestCase):
         view.Meta.model = MagicMock()
         view.Meta.model.field_has_raw.return_value = True
 
+        # pylint: disable=W0212
         result = elasticfilter._update_queryset('param1',
                                                 'value1',
                                                 view,
@@ -126,21 +128,23 @@ class FilterTests(APITestCase):
         self.assertEqual(result.to_dict(), expectation)
 
     def test__coerce_value_list(self):
-        """Test that we properly coerce values to native python types"""
+        """Test that we properly coerce values to native python types."""
 
         expectation = [1426206062000, 1426206062000]
         quoted_value = '[1426206062000, 1426206062000]'
         elasticfilter = ElasticFilter()
 
+        # pylint: disable=W0212
         result = elasticfilter._coerce_value(quoted_value)
         self.assertEqual(result, expectation)
 
     def test__coerce_value_exception(self):
-        """Test coercion failure that returns the original string"""
+        """Test coercion failure that returns the original string."""
 
         expectation = '2015-03-12T00:12:55.500814+00:00'
         elasticfilter = ElasticFilter()
 
+        # pylint: disable=W0212
         result = elasticfilter._coerce_value(expectation)
         self.assertEqual(result, expectation)
 
@@ -270,7 +274,8 @@ class DailyIndexDocTypeTests(APITestCase):
     """Tests for the LogData model"""
 
     def test_field_has_raw_true(self):
-        """field_has_raw returns true if mapping has a raw field"""
+        """field_has_raw returns True if mapping has a raw field."""
+
         # py26 support
         with patch.object(DailyIndexDocType, "get_field_mapping") as gfm:
 
@@ -284,7 +289,8 @@ class DailyIndexDocTypeTests(APITestCase):
             self.assertTrue(result)
 
     def test_field_has_raw_false(self):
-        """field_has_raw returns false if mapping doesn't have a raw field"""
+        """field_has_raw returns False if mapping doesn't have a raw field."""
+
         # py26 support
         with patch.object(DailyIndexDocType, "get_field_mapping") as gfm:
 
@@ -298,7 +304,8 @@ class DailyIndexDocTypeTests(APITestCase):
             self.assertFalse(result)
 
     def test_field_has_raw_key_error(self):
-        """field_has_raw returns false if KeyError raised"""
+        """field_has_raw returns False if KeyError raised."""
+
         # py26 support
         with patch.object(DailyIndexDocType, "get_field_mapping") as gfm:
 
@@ -309,7 +316,7 @@ class DailyIndexDocTypeTests(APITestCase):
             self.assertFalse(result)
 
     def test_get_field_mapping(self):
-        """get_field_mapping returns the mapping reported by ES"""
+        """get_field_mapping returns the mapping reported by Elasticsearch."""
 
         with patch.object(IndicesClient, "get_field_mapping") as gfm:
 
