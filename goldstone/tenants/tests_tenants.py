@@ -218,7 +218,7 @@ class Tenants(Setup):
                           'owner': 'Alex',
                           'owner_contact': 'five three oh niiieeiiiin...'},
                          {'name': 'tenant 3',
-                          'owner': 'Heywood Jablowme',
+                          'owner': 'James T. Kirk',
                           'owner_contact': '(666)666-6666'}]}
 
         # Create a user, save the authorization token, and make the user a
