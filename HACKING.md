@@ -2,6 +2,14 @@
 
 This explains how to install and run Goldstone locally, so you can do code development on it.
 
+The recommended steps are:
+
+1. Fork this repository on GitHub.
+2. Follow the "Installation" instructions to set up your development environment.
+3. Verify that you can build a working Goldstone application before you make any edits!
+4. Make your improvements in your fork. Remember to include unit tests, and use tox (with the supplied `tox.ini`) to verify that the codebase still passes pep8, pylint, and all unit tests.
+5. Submit a pull request to us. Be sure to include a problem description and an overview of your solution.
+
 Remember that an instance of Goldstone running locally can be used to monitor a
 local *or remote* OpenStack installation. The server on which Goldstone runs is
 independent from the OpenStack cloud's location.
@@ -35,7 +43,7 @@ $ python get-pip.py
 
 ### Virtualenvwrapper, tox
 
-Create your virtual environment for goldstone.  [Virtualenvwrapper](http://virtualenvwrapper.readthedocs.org/en/latest/install.html) makes this easy:
+Create your virtual environment for Goldstone.  [Virtualenvwrapper](http://virtualenvwrapper.readthedocs.org/en/latest/install.html) makes this easy:
 
 ```bash
 $ pip install virtualenvwrapper
@@ -59,7 +67,7 @@ Create the virtual environment (this will also install virtualenv):
 $ mkvirtualenv goldstone
 ```
 
-Customize your virtualenv postactive script to make it yours. This is a suggested virtualenv/postactivate:
+Customize your virtualenv postactivate script to make it yours. This is a suggested virtualenv/postactivate:
 
 ```bash
 #!/bin/bash
@@ -103,7 +111,7 @@ $ deactivate
 
 ### Install some packages
 
-Install these packages in your goldstone virtualenv:
+Install these packages in your Goldstone virtualenv:
 
 ```bash
 $ workon goldstone
@@ -153,11 +161,11 @@ $ service iptables restart
     $ git clone <your clone URL>
 ```
 
-3. Now, install pip prerequesites:
+Then pip-install the Python prerequisites:
 
 ```bash
     $ workon goldstone
-    $ cd goldstone              # If your postactive script doesn't have a cd
+    $ cd goldstone              # If your postactivate script doesn't have a cd
     $ pip install -r requirements.txt
     $ pip install -r test-requirements.txt
 ```
@@ -257,16 +265,44 @@ At the time of this documentation, the Gruntfile.js is configured with the follo
     grunt testDev: lint, followed by unit/integration test (no e2e) and watch that only triggers further unit/integration tests, no e2e tests.
 
 
+## Coding guidelines
+
+### Python code
+
+We rely on pep8 and pylint to help ensure the consistency and integrity of the codebase.
+
+Please follow the generally accepted practices, based on these style guidelines:
+
+* [PEP 8](https://www.python.org/dev/peps/pep-0008/) - Style Guide
+* [PEP 257](https://www.python.org/dev/peps/pep-0257/) - Docstring conventions
+* [Openstack Style Guidelines](http://docs.openstack.org/developer/hacking/) - Where they are possible and applicable.
+
+To test that your code conforms to this project's standards:
+
+```bash
+$ tox -e checkin
+$ fab test
+```
+
+### JavaScript code
+
+TBD
+
 ## Major Design Decisions
 
 * The client code supplied with Goldstone may be used in production, or it may be used as a reference design for your own custom client. Goldstone has been designed to be used through its API without using Django's authentication or view+template subsystems.
 * Goldstone is currently based on the 1.6 version of [Django](http://www.djangoproject.com).
 * Goldstone uses [PostgreSQL](http://www.postgresql.org) for its main database.
 * For database and model migrations, Goldstone uses South.
-* [Celery](http://www.celeryproject.org) is used for asyncronous tasks.
+* [Celery](http://www.celeryproject.org) is used for asynchronous tasks.
 * The PBR library (created by the OpenStack project) is used for sane and simple setup.py, versioning and setup.cfg values.
-* Goldstone has additional developer tasks augemented by the django_extensions library.
-* The supplied client uses [Backbone](http://backbonejs.org), [jQuery](http://jquery.com), and [Font Awesome](http://fontawesome.io).
+* Goldstone has additional developer tasks augmented by the django_extensions library.
+* The supplied client uses:
+    * [Twitter Bootstrap 3](http://getbootstrap.com)
+    * [Backbone](http://backbonejs.org)
+    * [jQuery](http://jquery.com)
+    * [D3](http://d3js.org), to provide nearly unlimited freedom to visually express data
+    * [Font Awesome](http://fontawesome.io)
 
 ## License
 
