@@ -240,7 +240,6 @@ class DataViewTests(SimpleTestCase):
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_services(self):
-        import pdb; pdb.set_trace()
         self._evaluate(self.client.get(
             "/nova/services",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))

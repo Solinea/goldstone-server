@@ -40,6 +40,18 @@ class JsonReadOnlySerializer(serializers.Serializer):
 
         return instance
 
+    @property
+    def data(self):
+        """Return a list instead of a dict.
+
+        DRF's serializers return dicts. To avoid a lot of code surgery, we want
+        this class's serialization to return a list. (Yes, we could collapse
+        this code, but this structure mimics the overridden functions.)
+
+        """
+
+        return self.to_representation(self.instance)
+
 
 class JsonReadOnlyViewSet(mixins.ListModelMixin, GenericViewSet):
     """A base ViewSet that renders a JSON response only for "list" actions;
