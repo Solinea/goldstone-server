@@ -36,16 +36,6 @@ class ApiPerfTests(SimpleTestCase):
         get_user_model().objects.all().delete()
         self.token = create_and_login()
 
-    def tearDown(self):
-
-        result = ApiPerfData.search().execute()
-
-        for hit in result.hits:
-            hit.delete()
-
-        # pylint: disable=W0212
-        self.conn.indices.refresh(daily_index(ApiPerfData.INDEX_PREFIX))
-
     def test_persist_and_retrieve(self):
 
         uuid = str(uuid1())
@@ -60,6 +50,10 @@ class ApiPerfTests(SimpleTestCase):
 
         created = data.save()
         self.assertTrue(created)
+
+        # force flush
+        # pylint: disable=W0212
+        self.conn.indices.refresh(daily_index(ApiPerfData.INDEX_PREFIX))
 
         persisted = ApiPerfData.get(id=str(uuid))
 
