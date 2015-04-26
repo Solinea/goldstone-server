@@ -112,7 +112,6 @@ class ApiPerfTests(SimpleTestCase):
         # force flush
         self.conn.indices.refresh(daily_index(ApiPerfData.INDEX_PREFIX))
 
-        search = ApiPerfData.search()
         response = search.execute()
         self.assertEqual(len(response.hits), 0)
 

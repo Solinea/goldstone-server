@@ -104,65 +104,6 @@ class TenantInit(Setup):
         self._evaluate("bob", "bahb", "bahhb")
 
 
-class PrimeData(TestCase):
-    """This should run before all SimpleTestCase methods."""
-
-    conn = es_conn()
-
-    # Clean up existing indices.
-    conn.indices.delete("_all")
-
-    # load index templates before any indices are created
-    for template_name, template_f in [
-        ('logstash',
-         gzip.open(os.path.join(os.path.dirname(__file__),
-                                "..", "test_data",
-                                "logstash_template.json.gz"))),
-        ('goldstone',
-         gzip.open(os.path.join(os.path.dirname(__file__),
-                                "..", "test_data",
-                                "goldstone_template.json.gz"))),
-        ('goldstone_agent',
-         gzip.open(os.path.join(os.path.dirname(__file__),
-                                "..", "test_data",
-                                "agent_template.json.gz"))),
-        ('goldstone_model',
-         gzip.open(os.path.join(os.path.dirname(__file__),
-                                "..", "test_data",
-                                "model_template.json.gz")))
-    ]:
-        template_body = json.load(template_f)
-        conn.indices.put_template(template_name, template_body)
-
-    # Index the test data to the appropriate indices.
-    # pylint: disable=W0212
-    for index, data_f in [
-        (daily_index('logstash-'),
-         gzip.open(os.path.join(os.path.dirname(__file__),
-                                "..", "test_data",
-                                "logstash_data.json.gz"))),
-        (daily_index('goldstone-'),
-         gzip.open(os.path.join(os.path.dirname(__file__),
-                                "..", "test_data",
-                                "goldstone_data.json.gz"))),
-        ('goldstone_agent',
-         gzip.open(os.path.join(os.path.dirname(__file__),
-                                "..", "test_data",
-                                "agent_data.json.gz"))),
-        ('goldstone_model',
-         gzip.open(os.path.join(os.path.dirname(__file__),
-                                "..", "test_data",
-                                "model_data.json.gz")))
-    ]:
-        data = json.load(data_f)
-
-        for dataset in data:
-            for event in dataset['hits']['hits']:
-                conn.index(index, event['_type'], event['_source'])
-
-        conn.indices.refresh([index])
-
-
 class ESConnectionTests(SimpleTestCase):
     """Test the ES connection.
     """
