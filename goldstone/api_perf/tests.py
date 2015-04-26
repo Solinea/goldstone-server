@@ -48,7 +48,7 @@ class ApiPerfTests(SimpleTestCase):
 
     def test_persist_and_retrieve(self):
 
-        uuid = uuid1()
+        uuid = str(uuid1())
         now = arrow.utcnow().datetime
         data = ApiPerfData(id=uuid,
                            response_status=1000,
@@ -61,7 +61,7 @@ class ApiPerfTests(SimpleTestCase):
         created = data.save()
         self.assertTrue(created)
 
-        persisted = ApiPerfData.get(id=uuid)
+        persisted = ApiPerfData.get(id=str(uuid))
 
         self.assertEqual(data.response_status, persisted.response_status)
         self.assertEqual(data.component, persisted.component)
