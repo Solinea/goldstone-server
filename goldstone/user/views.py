@@ -43,6 +43,6 @@ class UserSerializer(ModelSerializer):
 
 
 class UserView(djoser_views.UserView):
-    """Access Goldstone User resources."""
+    """Access information about the logged-in Goldstone user."""
 
     serializer_class = UserSerializer
