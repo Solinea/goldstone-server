@@ -15,11 +15,9 @@
 import arrow
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.test import TestCase, SimpleTestCase
+from django.test import SimpleTestCase
 from elasticsearch import Elasticsearch
-import gzip
 import os
-import json
 import sys
 
 # This is needed here for mock to work.

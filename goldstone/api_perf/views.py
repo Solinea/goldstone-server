@@ -30,10 +30,24 @@ class ApiPerfAggView(DateHistogramAggView):
         """Meta."""
         model = ApiPerfData
 
+    # Our API documentation extracts this docstring, hence the use of markup.
     def get(self, request):
         """Return aggregated API performance data.
 
         This overrides the Elasticsearch defaults to add nested aggregations.
+
+        \n\nQuery string parameters:\n
+
+        <b>start_time</b>: The desired start time, in UTC\n
+        <b>end_time</b>: The desired end time, in UTC\n
+        <b>interval</b>: The desired interval, as nnni. nnn is a number, i is
+                         one of: smhwd.  E.g., 3600s.\n
+        <b>@timestamp__range</b>: Another way to specify a time range. Value is
+                                  xxx:nnn. Xxx is one of: gte, gt, lte, or lt.
+                                  Nnn is an epoch number. E.g.,
+                                  gte:1430164651890.\n
+        <b>component</b>: The OpenStack service to query: nova, neutron,
+                          keystone, glance, or cinder.
 
         """
 
