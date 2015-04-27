@@ -44,25 +44,25 @@ class DataViewTests(SimpleTestCase):
 
     def test_get_endpoints(self):
         self._evaluate(self.client.get(
-            "/keystone/endpoints/",
+            "/keystone/endpoints",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_roles(self):
         self._evaluate(self.client.get(
-            "/keystone/roles/",
+            "/keystone/roles",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_services(self):
         self._evaluate(self.client.get(
-            "/keystone/services/",
+            "/keystone/services",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_tenants(self):
         self._evaluate(self.client.get(
-            "/keystone/tenants/",
+            "/keystone/tenants",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_users(self):
         self._evaluate(self.client.get(
-            "/keystone/users/",
+            "/keystone/users",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))

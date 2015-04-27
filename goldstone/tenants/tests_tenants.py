@@ -25,8 +25,8 @@ from goldstone.test_utils import Setup, create_and_login, login, \
 from .models import Tenant
 
 # URLs used by this module.
-TENANTS_URL = "/tenants/"
-TENANTS_ID_URL = TENANTS_URL + '%s/'
+TENANTS_URL = "/tenants"
+TENANTS_ID_URL = TENANTS_URL + '/%s'
 
 
 class Tenants(Setup):

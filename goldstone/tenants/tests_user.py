@@ -32,8 +32,8 @@ CONTENT_MISSING_OS_PASSWORD = '"password":["This field may not be blank."]'
 CONTENT_MISSING_OS_URL = '"auth_url":["This field may not be blank."]'
 
 # URLs used by this module.
-TENANTS_ID_USERS_URL = TENANTS_ID_URL + "users/"
-TENANTS_ID_USERS_ID_URL = TENANTS_ID_USERS_URL + "%s/"
+TENANTS_ID_USERS_URL = TENANTS_ID_URL + "/users"
+TENANTS_ID_USERS_ID_URL = TENANTS_ID_USERS_URL + "/%s"
 
 
 class TenantsIdUsers(Setup):

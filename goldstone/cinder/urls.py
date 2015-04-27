@@ -18,17 +18,23 @@ from .views import VolumesDataViewSet, \
     VolumeTypesDataViewSet, TransfersDataViewSet
 
 # Views handled by DjangoRestFramework ViewSets.
-router = DefaultRouter()
-router.register(r'^backups', BackupsDataViewSet, base_name='cinder-backups')
-router.register(r'^services', ServicesDataViewSet, base_name='cinder-services')
-router.register(r'^snapshots',
+router = DefaultRouter(trailing_slash=False)
+router.register(r'^backups[/]?$',
+                BackupsDataViewSet,
+                base_name='cinder-backups')
+router.register(r'^services[/]?$',
+                ServicesDataViewSet,
+                base_name='cinder-services')
+router.register(r'^snapshots[/]?$',
                 SnapshotsDataViewSet,
                 base_name='cinder-snapshots')
-router.register(r'^transfers',
+router.register(r'^transfers[/]?$',
                 TransfersDataViewSet,
                 base_name='cinder-transfers')
-router.register(r'^volumes', VolumesDataViewSet, base_name='cinder-volumes')
-router.register(r'^volume_types',
+router.register(r'^volumes[/]?$',
+                VolumesDataViewSet,
+                base_name='cinder-volumes')
+router.register(r'^volume_types[/]?$',
                 VolumeTypesDataViewSet,
                 base_name='cinder-volume-types')
 

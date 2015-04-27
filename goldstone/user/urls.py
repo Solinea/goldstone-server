@@ -15,4 +15,4 @@
 from django.conf.urls import patterns, url
 from .views import UserView
 
-urlpatterns = patterns('', url(r'^$', UserView.as_view()))
+urlpatterns = patterns('', url(r'', UserView.as_view()))

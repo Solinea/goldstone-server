@@ -94,12 +94,13 @@ class FilterTests(APITestCase):
     def test__update_queryset_no_raw(self):
         """Test proper handling of mapping without raw field."""
 
-        expectation = {'query': {'match': {'param1': 'value1'}}}
-        elasticfilter = ElasticFilter()
         view = ElasticListAPIView()
-        queryset = Search()
         view.Meta.model = MagicMock()
         view.Meta.model.field_has_raw.return_value = False
+
+        expectation = {'query': {'match': {'param1': 'value1'}}}
+        elasticfilter = ElasticFilter()
+        queryset = Search()
 
         # pylint: disable=W0212
         result = elasticfilter._update_queryset('param1',
@@ -112,12 +113,13 @@ class FilterTests(APITestCase):
     def test__update_queryset_with_raw(self):
         """Test proper handling of mapping with raw field."""
 
-        expectation = {'query': {'match': {'param1.raw': 'value1'}}}
-        elasticfilter = ElasticFilter()
         view = ElasticListAPIView()
-        queryset = Search()
         view.Meta.model = MagicMock()
         view.Meta.model.field_has_raw.return_value = True
+
+        expectation = {'query': {'match': {'param1.raw': 'value1'}}}
+        elasticfilter = ElasticFilter()
+        queryset = Search()
 
         # pylint: disable=W0212
         result = elasticfilter._update_queryset('param1',
@@ -149,9 +151,12 @@ class FilterTests(APITestCase):
         self.assertEqual(result, expectation)
 
     def test_filter_queryset(self):
-        """Test filtering of search objects"""
+        """Test filtering of search objects."""
 
         view = ElasticListAPIView()
+        view.Meta.model = MagicMock()
+        view.Meta.model.field_has_raw.return_value = False
+
         elasticfilter = ElasticFilter()
         request = MagicMock()
         params = QueryDict('', mutable=True)

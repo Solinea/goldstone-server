@@ -22,36 +22,40 @@ from .views import AgentsDataViewSet, \
     ServersDataViewSet, ServicesDataViewSet, SpawnsAggView
 
 # Views handled by DjangoRestFramework ViewSets.
-router = DefaultRouter()
-router.register(r'^agents', AgentsDataViewSet, base_name='nova-agents')
-router.register(r'^aggregates',
+router = DefaultRouter(trailing_slash=False)
+router.register(r'^agents[/]?$', AgentsDataViewSet, base_name='nova-agents')
+router.register(r'^aggregates[/]?$',
                 AggregatesDataViewSet,
                 base_name='nova-aggregates')
-router.register(r'^availability_zones',
+router.register(r'^availability_zones[/]?$',
                 AvailZonesDataViewSet,
                 base_name='nova-availability-zones')
-router.register(r'^cloudpipes',
+router.register(r'^cloudpipes[/]?$',
                 CloudpipesDataViewSet,
                 base_name='nova-cloudpipes')
-router.register(r'^flavors', FlavorsDataViewSet, base_name='nova-flavors')
-router.register(r'^floating_ip_pools',
+router.register(r'^flavors[/]?$', FlavorsDataViewSet, base_name='nova-flavors')
+router.register(r'^floating_ip_pools[/]?$',
                 FloatingIpPoolsDataViewSet,
                 base_name='nova-floating-ip-pools')
-router.register(r'^hosts', HostsDataViewSet, base_name='nova-hosts')
-router.register(r'^hypervisors',
+router.register(r'^hosts[/]?$', HostsDataViewSet, base_name='nova-hosts')
+router.register(r'^hypervisors[/]?$',
                 HypervisorsDataViewSet,
                 base_name='nova-hypervisors')
-router.register(r'^networks', NetworksDataViewSet, base_name='nova-networks')
-router.register(r'^security_groups',
+router.register(r'^networks[/]?$',
+                NetworksDataViewSet,
+                base_name='nova-networks')
+router.register(r'^security_groups[/]?$',
                 SecGroupsDataViewSet,
                 base_name='nova-security-groups')
-router.register(r'^servers', ServersDataViewSet, base_name='nova-servers')
-router.register(r'^services', ServicesDataViewSet, base_name='nova-services')
+router.register(r'^servers[/]?$', ServersDataViewSet, base_name='nova-servers')
+router.register(r'^services[/]?$',
+                ServicesDataViewSet,
+                base_name='nova-services')
 
 urlpatterns = router.urls
 
 # Other views.
 urlpatterns += patterns(
     '',
-    url(r'^hypervisor/spawns/$', SpawnsAggView.as_view()),
+    url(r'^hypervisor/spawns[/]?$', SpawnsAggView.as_view()),
     )

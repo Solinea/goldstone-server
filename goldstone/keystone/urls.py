@@ -17,15 +17,17 @@ from .views import EndpointsDataViewSet, RolesDataViewSet, \
     ServicesDataViewSet, TenantsDataViewSet, UsersDataViewSet
 
 # Views handled by DjangoRestFramework ViewSets.
-router = DefaultRouter()
-router.register(r'^endpoints',
+router = DefaultRouter(trailing_slash=False)
+router.register(r'^endpoints[/]?$',
                 EndpointsDataViewSet,
                 base_name='keystone-endpoints')
-router.register(r'^roles', RolesDataViewSet, base_name='keystone-roles')
-router.register(r'^services',
+router.register(r'^roles[/]?$', RolesDataViewSet, base_name='keystone-roles')
+router.register(r'^services[/]?$',
                 ServicesDataViewSet,
                 base_name='keystone-services')
-router.register(r'^tenants', TenantsDataViewSet, base_name='keystone-tenants')
-router.register(r'^users', UsersDataViewSet, base_name='keystone-users')
+router.register(r'^tenants[/]?$',
+                TenantsDataViewSet,
+                base_name='keystone-tenants')
+router.register(r'^users[/]?$', UsersDataViewSet, base_name='keystone-users')
 
 urlpatterns = router.urls

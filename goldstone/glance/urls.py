@@ -16,7 +16,7 @@ from rest_framework.routers import DefaultRouter
 from .views import ImagesDataViewSet
 
 # Views handled by DjangoRestFramework ViewSets.
-router = DefaultRouter()
-router.register(r'^images', ImagesDataViewSet, base_name='glance-images')
+router = DefaultRouter(trailing_slash=False)
+router.register(r'^images[/]?$', ImagesDataViewSet, base_name='glance-images')
 
 urlpatterns = router.urls

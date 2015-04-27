@@ -31,8 +31,8 @@ CONTENT_MISSING_OS_PASSWORD = '"password":["This field is required."]'
 CONTENT_MISSING_OS_URL = '"auth_url":["This field is required."]'
 
 # URLs used by this module.
-TENANTS_ID_CLOUD_URL = TENANTS_ID_URL + "cloud/"
-TENANTS_ID_CLOUD_ID_URL = TENANTS_ID_CLOUD_URL + "%s/"
+TENANTS_ID_CLOUD_URL = TENANTS_ID_URL + "/cloud"
+TENANTS_ID_CLOUD_ID_URL = TENANTS_ID_CLOUD_URL + "/%s"
 
 
 class TenantsIdCloud(Setup):
