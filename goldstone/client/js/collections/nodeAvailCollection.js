@@ -92,14 +92,14 @@ var NodeAvailCollection = Backbone.Collection.extend({
         // this is the url with the small interval to gather a more
         // accurate assessment of the time the node was last seen
         this.defaults.urlsToFetch[0] = '' +
-            '/logging/summarize?timestamp__range={"gte":' +
+            '/logging/summarize?@timestamp__range={"gte":' +
             (+new Date() - (lookbackSeconds * 1000)) +
             '}&interval=' + (lookbackSeconds / 60) + 'm';
 
         // this is the url with the 1d lookback to bucket ALL
         // the values into a single return value per alert level.
         this.defaults.urlsToFetch[1] = '' +
-            '/logging/summarize?timestamp__range={"gte":' +
+            '/logging/summarize?@timestamp__range={"gte":' +
             (+new Date() - (lookbackSeconds * 1000)) +
             '}&interval=1d';
 

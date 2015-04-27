@@ -1649,7 +1649,7 @@ var ApiPerfCollection = Backbone.Collection.extend({
             '&component=' + this.defaults.componentParam;
 
         // generates url string similar to:
-        // /api_perf/stats?timestamp__range={%22gte%22:1428556490}&interval=60s&component=glance
+        // /api_perf/stats?@timestamp__range={%22gte%22:1428556490}&interval=60s&component=glance
 
     }
 });
@@ -2457,14 +2457,14 @@ var NodeAvailCollection = Backbone.Collection.extend({
         // this is the url with the small interval to gather a more
         // accurate assessment of the time the node was last seen
         this.defaults.urlsToFetch[0] = '' +
-            '/logging/summarize?timestamp__range={"gte":' +
+            '/logging/summarize?@timestamp__range={"gte":' +
             (+new Date() - (lookbackSeconds * 1000)) +
             '}&interval=' + (lookbackSeconds / 60) + 'm';
 
         // this is the url with the 1d lookback to bucket ALL
         // the values into a single return value per alert level.
         this.defaults.urlsToFetch[1] = '' +
-            '/logging/summarize?timestamp__range={"gte":' +
+            '/logging/summarize?@timestamp__range={"gte":' +
             (+new Date() - (lookbackSeconds * 1000)) +
             '}&interval=1d';
 
@@ -2531,10 +2531,10 @@ var ReportsReportCollection = Backbone.Collection.extend({
 
         this.url = "/core/report_names?node=" +
             this.defaults.nodeName +
-            "&timestamp__range={'gte':" + (+new Date() - this.defaults.globalLookback * 1000 * 60) +
+            "&@timestamp__range={'gte':" + (+new Date() - this.defaults.globalLookback * 1000 * 60) +
             "}";
 
-        // /core/report_names?node=ctrl-01&timestamp__range={%27gte%27:1427189954471}
+        // /core/report_names?node=ctrl-01&@timestamp__range={%27gte%27:1427189954471}
 
         this.fetch();
     }
@@ -2589,9 +2589,9 @@ var ServiceStatusCollection = Backbone.Collection.extend({
 
         this.url = "/core/reports?name__prefix=os.service&node__prefix=" +
             this.defaults.nodeName + "&page_size=300" +
-            "&timestamp__range={'gte':" + twentyAgo +"}";
+            "&@timestamp__range={'gte':" + twentyAgo +"}";
 
-        // this.url similar to: /core/reports?name__prefix=os.service&node__prefix=rsrc-01&page_size=300&timestamp__gte=1423681500026
+        // this.url similar to: /core/reports?name__prefix=os.service&node__prefix=rsrc-01&page_size=300&@timestamp__gte=1423681500026
 
         this.fetch();
     }
@@ -2742,7 +2742,7 @@ var UtilizationCpuCollection = Backbone.Collection.extend({
 
         _.each(self.defaults.urlPrefixes, function(prefix) {
             self.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.cpu." + prefix + "&node=" +
-                self.defaults.nodeName + "&timestamp__range={'gte':" +
+                self.defaults.nodeName + "&@timestamp__range={'gte':" +
                 lookback + "}&page_size=1000");
         });
 
@@ -2836,11 +2836,11 @@ var UtilizationMemCollection = Backbone.Collection.extend({
         var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
 
         this.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.mem." + this.defaults.urlPrefixes[0] + "&node=" +
-            this.defaults.nodeName + "&timestamp__range={'gte':" +
+            this.defaults.nodeName + "&@timestamp__range={'gte':" +
             lookback + "}&page_size=1");
 
         this.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.mem." + this.defaults.urlPrefixes[1] + "&node=" +
-            this.defaults.nodeName + "&timestamp__range={'gte':" +
+            this.defaults.nodeName + "&@timestamp__range={'gte':" +
             lookback + "}&page_size=1000");
 
         this.fetch({
@@ -2934,7 +2934,7 @@ var UtilizationNetCollection = Backbone.Collection.extend({
 
         _.each(self.defaults.urlPrefixes, function(prefix) {
             self.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.net." + prefix + "&node=" +
-                self.defaults.nodeName + "&timestamp__range={'gte':" +
+                self.defaults.nodeName + "&@timestamp__range={'gte':" +
                 lookback + "}&page_size=1000");
         });
 
@@ -7287,7 +7287,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         var options = this.chartOptions.attributes;
 
         var url = '/core/metrics/summarize?name=' +
-            options.metric + '&timestamp__range={"gte":' +
+            options.metric + '&@timestamp__range={"gte":' +
             (+new Date() - (options.lookback * 60 * 1000)) +
             '}&interval=' + options.interval;
         if (options.resource !== 'all') {
@@ -7298,7 +7298,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         /*
             constructs a url similar to:
             /core/metrics/summarize?name=os.cpu.user
-            &timestamp__range={'gte':1429649259172}&interval=1m
+            &@timestamp__range={'gte':1429649259172}&interval=1m
         */
 
     },
@@ -8759,7 +8759,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Libvirt core/vm chart
         this.hypervisorCoreChart = new HypervisorCollection({
-            url: "/core/report_names?node=rsrc-02&timestamp__range={%27gte%27:1429203012258}",
+            url: "/core/report_names?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
             // url: "/api_perf/stats?start=111&end=112&interval=60s&component=nova",
             globalLookback: ns.globalLookback
         });
@@ -8775,7 +8775,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Libvirt mem/vm  chart
         this.hypervisorMemoryChart = new HypervisorCollection({
-            url: "/core/report_names?node=rsrc-02&timestamp__range={%27gte%27:1429203012258}",
+            url: "/core/report_names?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
             // url: "/api_perf/stats?start=111&end=112&interval=60s&component=nova",
             globalLookback: ns.globalLookback
         });
@@ -8789,7 +8789,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Libvirt top 10 CPU consumer VMs chart
         this.hypervisorVmCpuChart = new HypervisorVmCpuCollection({
-            url: "/core/report_names?node=rsrc-02&timestamp__range={%27gte%27:1429203012258}",
+            url: "/core/report_names?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
             // url: "/api_perf/stats?start=111&end=112&interval=60s&component=nova",
             globalLookback: ns.globalLookback
         });
