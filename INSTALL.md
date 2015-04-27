@@ -14,8 +14,8 @@ To view and use Goldstone, you'll need a recent version of [Firefox](https://www
 ```bash
 root# yum update ; reboot
 root# yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
-root# yum install -y python-devel python-setuptools libffi-devel wget
-root# wget https://bootstrap.pypa.io/get-pip.py
+root# yum install -y python-devel python-setuptools libffi-devel
+root# curl -X GET https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 root# python get-pip.py
 root# pip install paramiko==1.10
 root# pip install fabric==1.10.1    
