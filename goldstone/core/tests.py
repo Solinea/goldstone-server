@@ -80,9 +80,10 @@ def _load_rg_and_db(startnodes, startedges):
 
 
 class TaskTests(SimpleTestCase):
+    """Test task hooks."""
 
     def test_delete_indices(self):
-        """Tests that delete indices returns result of check_call,"""
+        """Tests that delete indices returns result of check_call."""
 
         tasks.check_call = mock.Mock(return_value='mocked')
         # pylint: disable=W0212
