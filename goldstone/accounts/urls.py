@@ -25,16 +25,16 @@ from .views import RegistrationView
 # need to override some of djoser's code in order to process user profiles.
 urlpatterns = patterns(
     '',
-    url(r'^register[/]?$', RegistrationView.as_view(), name='register'),
-    url(r'^login[/]?$', djoser_views.LoginView.as_view(), name='login'),
-    url(r'^logout[/]?$', djoser_views.LogoutView.as_view(), name='logout'),
-    url(r'^password[/]?$',
+    url(r'^register/$', RegistrationView.as_view(), name='register'),
+    url(r'^login/$', djoser_views.LoginView.as_view(), name='login'),
+    url(r'^logout/$', djoser_views.LogoutView.as_view(), name='logout'),
+    url(r'^password/$',
         djoser_views.SetPasswordView.as_view(),
         name='set_password'),
-    url(r'^password/reset[/]?$',
+    url(r'^password/reset/$',
         djoser_views.PasswordResetView.as_view(),
         name='password_reset'),
-    url(r'^password/reset/confirm[/]?$',
+    url(r'^password/reset/confirm/$',
         djoser_views.PasswordResetConfirmView.as_view(),
         name='password_reset_confirm'),
 )

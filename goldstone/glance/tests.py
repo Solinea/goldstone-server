@@ -46,5 +46,5 @@ class DataViewTests(SimpleTestCase):
         token = create_and_login()
 
         self._evaluate(
-            self.client.get("/glance/images",
+            self.client.get("/glance/images/",
                             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token))

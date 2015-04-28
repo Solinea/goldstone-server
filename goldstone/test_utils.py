@@ -17,8 +17,8 @@ from django.test import SimpleTestCase
 from rest_framework.status import HTTP_200_OK
 
 # Test URLs.
-LOGIN_URL = "/accounts/login"
-USER_URL = "/user"
+LOGIN_URL = "/accounts/login/"
+USER_URL = "/user/"
 
 # Http response content used by multiple tests.
 CONTENT_BAD_TOKEN = '{"detail":"Invalid token."}'

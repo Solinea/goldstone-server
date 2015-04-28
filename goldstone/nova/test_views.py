@@ -64,11 +64,11 @@ class BaseTest(APISimpleTestCase):
 
 
 class SpawnsViewTests(BaseTest):
-    """Test /nova/hypervisor/spawns and /nova/api_perf views."""
+    """Test /nova/hypervisor/spawns/ and /nova/api_perf/ views."""
 
     # The test URL bases.
-    URLS_START = ["/nova/hypervisor/spawns"]
-    URLS_END = ["/nova/hypervisor/spawns"]
+    URLS_START = ["/nova/hypervisor/spawns/"]
+    URLS_END = ["/nova/hypervisor/spawns/"]
 
     @skip('needs refreshed or mocked ES data')
     def test_good_request(self):
@@ -186,60 +186,60 @@ class DataViewTests(SimpleTestCase):
 
     def test_get_agents(self):
         self._evaluate(self.client.get(
-            "/nova/agents",
+            "/nova/agents/",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_aggregates(self):
         self._evaluate(self.client.get(
-            "/nova/aggregates",
+            "/nova/aggregates/",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_avail_zones(self):
         self._evaluate(self.client.get(
-            "/nova/availability_zones",
+            "/nova/availability_zones/",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_cloudpipes(self):
         self._evaluate(self.client.get(
-            "/nova/cloudpipes",
+            "/nova/cloudpipes/",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_flavors(self):
         self._evaluate(self.client.get(
-            "/nova/flavors",
+            "/nova/flavors/",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_floating_ip_pools(self):
         self._evaluate(self.client.get(
-            "/nova/floating_ip_pools",
+            "/nova/floating_ip_pools/",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_hosts(self):
         self._evaluate(self.client.get(
-            "/nova/hosts",
+            "/nova/hosts/",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_hypervisors(self):
         self._evaluate(self.client.get(
-            "/nova/hypervisors",
+            "/nova/hypervisors/",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_networks(self):
         self._evaluate(self.client.get(
-            "/nova/networks",
+            "/nova/networks/",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_sec_groups(self):
         self._evaluate(self.client.get(
-            "/nova/security_groups",
+            "/nova/security_groups/",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_servers(self):
         self._evaluate(self.client.get(
-            "/nova/servers",
+            "/nova/servers/",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
 
     def test_get_services(self):
         self._evaluate(self.client.get(
-            "/nova/services",
+            "/nova/services/",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % self.token))
