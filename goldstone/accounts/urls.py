@@ -18,7 +18,7 @@ This includes account authorization and administration.
 # limitations under the License.
 from django.conf.urls import patterns, url
 from djoser import views as djoser_views
-from .views import RegistrationView
+from .views import RegistrationView, new_password_enter
 
 # Hook up a subset of the djoser package. We don't include djoser's URLconf
 # because that would root them at /accounts/XXX, making the URLs longer; and we
@@ -34,6 +34,9 @@ urlpatterns = patterns(
     url(r'^password/reset/$',
         djoser_views.PasswordResetView.as_view(),
         name='password_reset'),
+    url(r'^password/reset/enter/(?P<uid>.+?)/(?P<token>.+?)/$',
+        new_password_enter,
+        name='new_password_enter'),
     url(r'^password/reset/confirm/$',
         djoser_views.PasswordResetConfirmView.as_view(),
         name='password_reset_confirm'),
