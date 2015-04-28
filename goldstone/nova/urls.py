@@ -53,5 +53,5 @@ urlpatterns = router.urls
 # Other views.
 urlpatterns += patterns(
     '',
-    url(r'^hypervisor/spawns', SpawnsAggView.as_view()),
+    url(r'^hypervisor/spawns/', SpawnsAggView.as_view()),
     )

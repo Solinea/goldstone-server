@@ -15,7 +15,8 @@
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserRegistrationWithAuthTokenSerializer
 from djoser.views import RegistrationView as DjoserRegistrationView
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 
 # Not a valid module-level symbol name, but this is the name djoser used, so
 # we'll minimize the deltas between there and here.
@@ -73,6 +74,7 @@ class RegistrationView(DjoserRegistrationView):
 
 
 @api_view(["POST"])
+@permission_classes((AllowAny, ))
 def new_password_enter(request, uid, token):
     """Redirect to the client's new-password-enter page.
 
@@ -81,8 +83,5 @@ def new_password_enter(request, uid, token):
 
     """
     from django.shortcuts import redirect
-
     return redirect("/client/#/password/reset?uid=%s&token=%s/" %
                     (uid, token))
-
-    
