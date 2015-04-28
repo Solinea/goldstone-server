@@ -79,9 +79,13 @@ def new_password_enter(request, uid, token):
     """Redirect to the client's new-password-enter page.
 
     The user has received the password-reset email, and clicked on the link
-    within it.
+    within it. The request comes here.  We then redirect it to the client so
+    that the server-side code remains "API centric."
+
+    The URL we redirect to is /client/password/reset?uid=yyyy&token=xxxx/.
 
     """
     from django.shortcuts import redirect
-    return redirect("/client/#/password/reset?uid=%s&token=%s/" %
+
+    return redirect("/client/password/reset?uid=%s&token=%s/" %
                     (uid, token))
