@@ -1,7 +1,6 @@
 """Accounts URLconf.
 
-This configures endpoints that route to the djoser package, for account
-authorization and administration.
+This includes account authorization and administration.
 
 """
 # Copyright 2015 Solinea, Inc.
@@ -22,9 +21,8 @@ from djoser import views as djoser_views
 from .views import RegistrationView
 
 # Hook up a subset of the djoser package. We don't include djoser's URLconf
-# because that would mean rooting it at /accounts/XXX, making the URLs longer;
-# and we need to override some of djoser's code in order to process user
-# profiles.
+# because that would root them at /accounts/XXX, making the URLs longer; and we
+# need to override some of djoser's code in order to process user profiles.
 urlpatterns = patterns(
     '',
     url(r'^register[/]?$', RegistrationView.as_view(), name='register'),
