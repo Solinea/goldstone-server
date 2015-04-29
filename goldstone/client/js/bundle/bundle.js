@@ -1649,7 +1649,7 @@ var ApiPerfCollection = Backbone.Collection.extend({
             '&component=' + this.defaults.componentParam;
 
         // generates url string similar to:
-        // /api_perf/stats/?timestamp__range={%22gte%22:1428556490}&interval=60s&component=glance
+        // /api_perf/stats/?@timestamp__range={%22gte%22:1428556490}&interval=60s&component=glance
 
     }
 });
