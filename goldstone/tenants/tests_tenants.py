@@ -193,8 +193,7 @@ class Tenants(Setup):
                                     EXPECTED_CONTENT,
                                     True)
 
-    @patch("djoser.utils.send_email")
-    def test_post(self, send_email, number_tenant_admins=1):
+    def test_post(self, number_tenant_admins=1):
         """Create a tenant.
 
         :param number_tenant_admin: The number of default_tenant_admins to use
@@ -240,46 +239,47 @@ class Tenants(Setup):
                                      default_tenant_admin=True)
                                      for x in range(number_tenant_admins)]
 
-        # Make the tenants, and check each POST's response.
-        for entry in EXPECTED_CONTENT["results"]:
-            response = self.client.post(
+        with patch("djoser.utils.send_email") as send_email:
+            # Make the tenants, and check each POST's response.
+            for entry in EXPECTED_CONTENT["results"]:
+                response = self.client.post(
+                    TENANTS_URL,
+                    json.dumps(entry),
+                    content_type="application/json",
+                    HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+                check_response_without_uuid(response, HTTP_201_CREATED, entry)
+
+            # Now get the list and see if it matches what we expect.
+            response = self.client.get(
                 TENANTS_URL,
-                json.dumps(entry),
-                content_type="application/json",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-            check_response_without_uuid(response, HTTP_201_CREATED, entry)
+            # Check the response.
+            check_response_without_uuid(response,
+                                        HTTP_200_OK,
+                                        EXPECTED_CONTENT,
+                                        True)
 
-        # Now get the list and see if it matches what we expect.
-        response = self.client.get(
-            TENANTS_URL,
-            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            # Did the ViewSet attempt to send three emails?
+            self.assertEqual(send_email.call_count, 3)
 
-        # Check the response.
-        check_response_without_uuid(response,
-                                    HTTP_200_OK,
-                                    EXPECTED_CONTENT,
-                                    True)
-
-        # Did the ViewSet attempt to send three emails?
-        self.assertEqual(send_email.call_count, 3)
-
-        # Did the e-mails seem to have the correct content?
-        for entry in [0, 1, 2]:
-            # tenant_admin email.
-            self.assertIn(send_email.call_args_list[entry][0][0],
-                          [x.email for x in default_tenant_admins])
-            # from
-            self.assertEqual(send_email.call_args_list[entry][0][1],
-                             "webmaster@localhost")
-            # site name
-            self.assertEqual(
-                send_email.call_args_list[entry][0][2]["site_name"],
-                settings.DJOSER["SITE_NAME"])
-            # The name of the newly created tenant.
-            self.assertEqual(
-                send_email.call_args_list[entry][0][2]["tenant_name"],
-                EXPECTED_CONTENT["results"][entry]["name"])
+            # Did the e-mails seem to have the correct content?
+            for entry in [0, 1, 2]:
+                # tenant_admin email.
+                self.assertIn(send_email.call_args_list[entry][0][0],
+                              [x.email for x in default_tenant_admins])
+                # from
+                self.assertEqual(send_email.call_args_list[entry][0][1],
+                                 "webmaster@localhost")
+                # site name
+                self.assertEqual(
+                    send_email.call_args_list[entry][0][2]["site_name"],
+                    settings.DJOSER["SITE_NAME"])
+                # The name of the newly created tenant.
+                self.assertEqual(
+                    send_email.call_args_list[entry][0][2]["tenant_name"],
+                    EXPECTED_CONTENT["results"][entry]["name"])
 
     def test_post_no_default_admin(self):
         """Create a tenant when there's no default_tenant_admin in the
