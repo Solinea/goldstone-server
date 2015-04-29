@@ -95,7 +95,7 @@ var LoginPageView = GoldstoneBaseView.extend({
         '<input name="password" type="password" class="form-control" placeholder="Password" required><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>' +
         '</form>' +
-        '<div id="forgotUsername"><a href="#/password">Forgot username or password?</a></div>' +
+        '<div id="forgotUsername"><a href="#password">Forgot username or password?</a></div>' +
         '</div>' +
         '</div>' +
         '</div>'

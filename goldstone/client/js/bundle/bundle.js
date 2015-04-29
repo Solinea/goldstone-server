@@ -933,7 +933,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(PasswordResetView);
     },
     redirect: function() {
-        location.href = "#/discover";
+        location.href = "#discover";
     },
     settings: function() {
         this.switchView(SettingsPageView);
@@ -3584,7 +3584,7 @@ var LogoutIcon = GoldstoneBaseView.extend({
     },
 
     redirectToLogin: function() {
-        location.href = "#/login";
+        location.href = "#login";
     },
 
     render: function() {
@@ -6693,7 +6693,7 @@ var LoginPageView = GoldstoneBaseView.extend({
         '<input name="password" type="password" class="form-control" placeholder="Password" required><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>' +
         '</form>' +
-        '<div id="forgotUsername"><a href="#/password">Forgot username or password?</a></div>' +
+        '<div id="forgotUsername"><a href="#password">Forgot username or password?</a></div>' +
         '</div>' +
         '</div>' +
         '</div>'
@@ -8233,7 +8233,7 @@ TODO: probably change this to d.timestamp
             .on("mouseover", ns.tooltip.show)
             .on("mouseout", ns.tooltip.hide)
             .on("click", function(d) {
-                window.location.href = '#/report/node/' + d.name;
+                window.location.href = '#report/node/' + d.name;
             });
 
         this.redraw();
@@ -9155,7 +9155,7 @@ var PasswordResetView = GoldstoneBaseView.extend({
         '<input name="email" type="email" class="form-control" placeholder="Enter email associated with your account" required autofocus><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Send reset email</button>' +
         '</form>' +
-        '<div id="cancelReset"><a href="#/login">Cancel and return to login</a></div>' +
+        '<div id="cancelReset"><a href="#login">Cancel and return to login</a></div>' +
         '</div>' +
         '</div>' +
         '</div>'
@@ -9723,7 +9723,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
             '<button class="btn btn-lg btn-danger btn-block modify">Modify tenant settings</button>');
 
         $('button.modify').on('click', function() {
-            window.location.href = "#/settings/tenants";
+            window.location.href = "#settings/tenants";
         });
     },
 
@@ -11120,7 +11120,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         if (redirectNodeName.indexOf('.') !== -1) {
             redirectNodeName = redirectNodeName.slice(0, redirectNodeName.indexOf('.'));
         }
-        window.location.href = '#/report/node/' + redirectNodeName;
+        window.location.href = '#report/node/' + redirectNodeName;
     },
 
     appendLeafNameToResourceHeader: function(text, location) {
@@ -11214,7 +11214,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                                 url = "/" + parentModule + url;
                                 localStorage.setItem('urlForResourceList', url);
                                 localStorage.setItem('origClickedLabel', origClickedLabel);
-                                window.location.href = '#/' +
+                                window.location.href = '#' +
                                     parentModule + '/discover';
                             }
                         }

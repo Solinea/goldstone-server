@@ -187,7 +187,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(PasswordResetView);
     },
     redirect: function() {
-        location.href = "#/discover";
+        location.href = "#discover";
     },
     settings: function() {
         this.switchView(SettingsPageView);

@@ -117,7 +117,7 @@ var LogoutIcon = GoldstoneBaseView.extend({
     },
 
     redirectToLogin: function() {
-        location.href = "#/login";
+        location.href = "#login";
     },
 
     render: function() {

@@ -33,7 +33,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
             '<button class="btn btn-lg btn-danger btn-block modify">Modify tenant settings</button>');
 
         $('button.modify').on('click', function() {
-            window.location.href = "#/settings/tenants";
+            window.location.href = "#settings/tenants";
         });
     },
 
