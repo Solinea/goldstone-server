@@ -253,7 +253,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Libvirt core/vm chart
         this.hypervisorCoreChart = new HypervisorCollection({
-            url: "/core/report_names/?node=rsrc-02&timestamp__range={%27gte%27:1429203012258}",
+            url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
             globalLookback: ns.globalLookback
         });
 
@@ -268,7 +268,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Libvirt mem/vm  chart
         this.hypervisorMemoryChart = new HypervisorCollection({
-            url: "/core/report_names/?node=rsrc-02&timestamp__range={%27gte%27:1429203012258}",
+            url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
             globalLookback: ns.globalLookback
         });
         this.hypervisorMemoryView = new HypervisorView({
@@ -281,7 +281,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Libvirt top 10 CPU consumer VMs chart
         this.hypervisorVmCpuChart = new HypervisorVmCpuCollection({
-            url: "/core/report_names/?node=rsrc-02&timestamp__range={%27gte%27:1429203012258}",
+            url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
             globalLookback: ns.globalLookback
         });
 

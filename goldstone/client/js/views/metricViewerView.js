@@ -119,7 +119,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         var options = this.chartOptions.attributes;
 
         var url = '/core/metrics/summarize/?name=' +
-            options.metric + '&timestamp__range={"gte":' +
+            options.metric + '&@timestamp__range={"gte":' +
             (+new Date() - (options.lookback * 60 * 1000)) +
             '}&interval=' + options.interval;
         if (options.resource !== 'all') {
@@ -130,7 +130,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         /*
             constructs a url similar to:
             /core/metrics/summarize/?name=os.cpu.user
-            &timestamp__range={'gte':1429649259172}&interval=1m
+            &@timestamp__range={'gte':1429649259172}&interval=1m
         */
 
     },
