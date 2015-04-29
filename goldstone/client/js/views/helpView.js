@@ -39,34 +39,17 @@ var HelpView = GoldstoneBaseView.extend({
 
         '<a name="getting_help"></a><h3>Getting Help</h3>' +
         'If you would like to contact Solinea regarding issues, feature requests, ' +
-        'or other goldstone related feedback, click the ' +
-        '<a href="http://www.solinea.com/goldstone/feedback" target="_blank">' +
-        '<i class="fa fa-bug" style="color:black"></i>' +
-        '</a> icon here or at the top right corner of the application panel. In the ' +
-        'event that you do not have internet access from the system running the ' +
-        'goldstone interface, you can use the link <b>http://www.solinea.com/' + 'goldstone/feedback</b> ' +
-        'from another system, or provide the following information via email to ' +
-        '<b>goldstone@solinea.com</b>:' +
-        '<ul>' +
-        '<li>Name</li>' +
-        '<li>Company</li>' +
-        '<li>Summary</li>' +
-        '<li>Detailed description of issue</li>' +
-        '<li>Attachments (if appropriate)</li>' +
-        '</ul>' +
-
-        'For general inquiries or to contact our consulting services team, either ' +
-        'click the ' +
-        '<a href="http://www.solinea.com/contact" target="_blank">' +
-        '<i class="fa fa-envelope-o" style="color:black"></i>' +
-        '</a> icon here or at the top right of the application window, or email ' +
-        '<b>info@solinea.com</b>.' +
+        'or other Goldstone related feedback, check out the ' +
+        '<a href="https://groups.google.com/forum/#!forum/goldstone-users" target="_blank">' +
+        'goldstone-users forum</a>, or ' +
+        '<a href="https://github.com/Solinea/goldstone-server/issues" target="_blank">' +
+        'file an issue on Github</a>.<p>For general inquiries or to contact our consulting ' + 
+        'services team, email <a href=mailto:info@solinea.com>info@solinea.com</a>.' +
 
         '<a name="license"></a><h3>License</h3>' +
-        'Goldstone license information can be found in the file <b>/opt/goldstone' + '/LICENSE.pdf</b> ' +
-        'or on the web at <b>http://www.solinea.com/goldstone/license.pdf</b>. ' + 'Disclosures for ' +
-        '3rd party software used by goldstone can be found in the file <b>/opt/' + 'goldstone/OSS_LICENSE_DISCLOSURE.pdf</b> ' +
-        'or on the web at <b>http://www.solinea.com/goldstone/' + 'OSS_LICENSE_DISCLOSURE.pdf</b>'
+        'Goldstone license information can be found in the file <b>/opt/goldstone/LICENSE</b> ' +
+        'or on the web at <a href=https://www.apache.org/licenses/LICENSE-2.0>' +
+        'https://www.apache.org/licenses/LICENSE-2.0</a>.' 
     )
 
 });
