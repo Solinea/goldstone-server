@@ -55,37 +55,19 @@ class RegistrationView(DjoserRegistrationView):
             raise NotImplementedError("Missing serializer.")
 
 
-class RegistrationView(DjoserRegistrationView):
-    """Register a new user account.
-
-    This subclasses Djoser's RegistrationView so we can attach our custom
-    serializer.
-
-    """
-
-    def get_serializer_class(self):
-        """Return the serializer class."""
-        from djoser import settings
-
-        if settings.get('LOGIN_AFTER_REGISTRATION'):
-            return RegistrationSerializer
-        else:
-            raise NotImplementedError("Missing serializer.")
-
-
 @api_view(["POST"])
 @permission_classes((AllowAny, ))
 def new_password_enter(request, uid, token):
     """Redirect to the client's new-password-enter page.
 
     The user has received the password-reset email, and clicked on the link
-    within it. The request comes here.  We then redirect it to the client so
-    that the server-side code remains "API centric."
-
-    The URL we redirect to is /client/password/reset?uid=yyyy&token=xxxx/.
+    within it. The request comes here, and we redirect it to the client so that
+    the server-side code remains "API centric."
 
     """
     from django.shortcuts import redirect
 
-    return redirect("/client/password/reset?uid=%s&token=%s/" %
-                    (uid, token))
+    url = "http://%s/#client/newpasswordenter/?uid=%s&token=%s" % \
+          (request.META["HTTP_HOST"], uid, token)
+
+    return redirect(url)
