@@ -47,12 +47,12 @@ var EventsReportView = GoldstoneBaseView.extend({
         // subtracts correct ms from current time
         var lookback = now - (1000 * 60 * this.defaults.globalLookback);
 
-        var urlRouteConstruction = '/logging/events/search?host=' +
+        var urlRouteConstruction = '/logging/events/search/?host=' +
             this.defaults.hostName +
             '&@timestamp__range={"gte":' + lookback + ',"lte":' + now + '}';
 
         // makes a route similar to:
-        // /logging/events/search?host=rsrc-01&@timestamp__range={"gte":1426019353333,"lte":1427245753333}
+        // /logging/events/search/?host=rsrc-01&@timestamp__range={"gte":1426019353333,"lte":1427245753333}
 
         // this will be added by the dataTables beforeSend section:
         // &page_size=10&page=1&log_message__regexp=.*blah.*

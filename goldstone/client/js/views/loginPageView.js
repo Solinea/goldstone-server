@@ -48,7 +48,8 @@ var LoginPageView = GoldstoneBaseView.extend({
         // via $.post to check the credentials. If successful, invoke "done"
         // if not, invoke "fail"
 
-        $.post('/accounts/login', input, function() {})
+        $.post('/accounts/login/', input, function() {
+        })
             .done(function(success) {
 
                 // store the auth token

@@ -62,10 +62,10 @@ var DiskResourceCollection = Backbone.Collection.extend({
         var ns = this.defaults;
 
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        this.url = '/core/metrics?name__prefix=nova.hypervisor.local_gb&@timestamp__range={"gte":' +
+        this.url = '/core/metrics/?name__prefix=nova.hypervisor.local_gb&@timestamp__range={"gte":' +
             moment(ns.reportParams.start).valueOf() + '}';
     }
 
     // creates a url similar to:
-    // /core/metrics?name__prefix=nova.hypervisor.local_gb&@timestamp__range={"gte":1429058361304}
+    // /core/metrics/?name__prefix=nova.hypervisor.local_gb&@timestamp__range={"gte":1429058361304}
 });

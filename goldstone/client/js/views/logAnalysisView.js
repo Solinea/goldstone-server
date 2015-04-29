@@ -37,7 +37,7 @@ openstack syslog severity levels:
         el: '.log-analysis-container',
         featureSet: 'logEvents',
         chartTitle: 'Log Analysis',
-        urlRoot: "/logging/summarize?",
+        urlRoot: "/logging/summarize/?",
 
     });
 */
@@ -483,7 +483,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        var uri = '/logging/search?';
+        var uri = '/logging/search/?';
 
         if (ns.specificHost) {
             uri += 'host=' + ns.specificHost + '&';
@@ -510,7 +510,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         /*
         makes a url such as:
-        /logging/search?@timestamp__range={%22gte%22:1426981050017,%22lte%22:1426984650017}&loglevel__terms=[%22EMERGENCY%22,%22ALERT%22,%22CRITICAL%22,%22ERROR%22,%22WARNING%22,%22NOTICE%22,%22INFO%22,%22DEBUG%22]
+        /logging/search/?@timestamp__range={%22gte%22:1426981050017,%22lte%22:1426984650017}&loglevel__terms=[%22EMERGENCY%22,%22ALERT%22,%22CRITICAL%22,%22ERROR%22,%22WARNING%22,%22NOTICE%22,%22INFO%22,%22DEBUG%22]
         with "&host=node-01" added in if this is a node report page
         */
     },

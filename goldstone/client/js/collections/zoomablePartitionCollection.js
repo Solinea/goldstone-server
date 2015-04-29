@@ -29,7 +29,7 @@ var ZoomablePartitionCollection = Backbone.Collection.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
-        this.url = "/core/nav_tree";
+        this.url = "/core/nav_tree/";
         this.fetch();
     }
 });

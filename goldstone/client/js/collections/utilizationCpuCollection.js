@@ -68,7 +68,7 @@ var UtilizationCpuCollection = Backbone.Collection.extend({
         var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
 
         _.each(self.defaults.urlPrefixes, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.cpu." + prefix + "&node=" +
+            self.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.cpu." + prefix + "&node=" +
                 self.defaults.nodeName + "&timestamp__range={'gte':" +
                 lookback + "}&page_size=1000");
         });

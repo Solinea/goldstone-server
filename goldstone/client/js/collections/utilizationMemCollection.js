@@ -67,11 +67,11 @@ var UtilizationMemCollection = Backbone.Collection.extend({
         // grabs minutes from global selector option value
         var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
 
-        this.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.mem." + this.defaults.urlPrefixes[0] + "&node=" +
+        this.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.mem." + this.defaults.urlPrefixes[0] + "&node=" +
             this.defaults.nodeName + "&timestamp__range={'gte':" +
             lookback + "}&page_size=1");
 
-        this.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.mem." + this.defaults.urlPrefixes[1] + "&node=" +
+        this.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.mem." + this.defaults.urlPrefixes[1] + "&node=" +
             this.defaults.nodeName + "&timestamp__range={'gte':" +
             lookback + "}&page_size=1000");
 

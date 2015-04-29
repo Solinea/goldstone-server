@@ -118,7 +118,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         // chartOptions is a backbone Model instantiated in initialize:
         var options = this.chartOptions.attributes;
 
-        var url = '/core/metrics/summarize?name=' +
+        var url = '/core/metrics/summarize/?name=' +
             options.metric + '&timestamp__range={"gte":' +
             (+new Date() - (options.lookback * 60 * 1000)) +
             '}&interval=' + options.interval;
@@ -129,7 +129,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         /*
             constructs a url similar to:
-            /core/metrics/summarize?name=os.cpu.user
+            /core/metrics/summarize/?name=os.cpu.user
             &timestamp__range={'gte':1429649259172}&interval=1m
         */
 

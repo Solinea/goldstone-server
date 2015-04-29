@@ -35,7 +35,7 @@ var MetricViewerCollection = Backbone.Collection.extend({
     },
 
     retrieveData: function() {
-        this.url = "/core/metric_names";
+        this.url = "/core/metric_names/";
         this.fetch();
     }
 });

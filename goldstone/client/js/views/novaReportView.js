@@ -53,7 +53,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
         */
 
         this.vmSpawnChart = new StackedBarChartCollection({
-            urlPrefix: '/nova/hypervisor/spawns'
+            urlPrefix: '/nova/hypervisor/spawns/'
         });
 
         this.vmSpawnChartView = new StackedBarChartView({
