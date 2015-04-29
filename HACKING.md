@@ -32,7 +32,7 @@ $ brew install python    # This puts a Python interpreter where mkvirtualenv exp
 
 ### Upgrade or install Pip
 
-If your system already has Pip, upgrade it to a recent version.
+If your system already has Pip, upgrade it to the latest version.
 
 If your system doesn't have pip installed, install it:
 
@@ -43,7 +43,7 @@ $ python get-pip.py
 
 ### Virtualenvwrapper, tox
 
-Create your virtual environment for Goldstone.  [Virtualenvwrapper](http://virtualenvwrapper.readthedocs.org/en/latest/install.html) makes this easy:
+Create your virtual environment for Goldstone.  [Virtualenvwrapper](http://virtualenvwrapper.readthedocs.org/) makes this easy:
 
 ```bash
 $ pip install virtualenvwrapper
@@ -53,7 +53,6 @@ $ pip install tox
 Add the following or similar to your .bash_profile:
 
 ```bash
-export ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future # for Mavericks
 export JAVA_HOME="$(/usr/libexec/java_home)"
 export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
 export WORKON_HOME=$HOME/.virtualenvs
@@ -64,14 +63,14 @@ source /usr/local/bin/virtualenvwrapper.sh
 Create the virtual environment (this will also install virtualenv):
 
 ```bash
-$ mkvirtualenv goldstone
+$ mkvirtualenv goldstone-server
 ```
 
 Customize your virtualenv postactivate script to make it yours. This is a suggested virtualenv/postactivate:
 
 ```bash
 #!/bin/bash
-cd ~/devel/goldstone
+cd ~/devel/goldstone-server
 export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
     
 
@@ -105,7 +104,7 @@ pkill -f postgres
 Activating and deactivating the environment can be done with the following commands:
 
 ```bash
-$ workon goldstone
+$ workon goldstone-server
 $ deactivate
 ```
 
@@ -114,7 +113,7 @@ $ deactivate
 Install these packages in your Goldstone virtualenv:
 
 ```bash
-$ workon goldstone
+$ workon goldstone-server
 $ brew install elasticsearch phantomjs redis postgresql
 ```
 
@@ -153,7 +152,7 @@ $ service iptables restart
 
 ### Get the code
 
-1. On GitHub, fork the Goldstone repository.
+1. On GitHub, fork the goldstone-server repository.
 2. Clone your fork to your local machine:
    
 ```bash
@@ -164,8 +163,8 @@ $ service iptables restart
 Then pip-install the Python prerequisites:
 
 ```bash
-    $ workon goldstone
-    $ cd goldstone              # If your postactivate script doesn't have a cd
+    $ workon goldstone-server
+    $ cd goldstone-server          # If your postactivate script doesn't have a cd
     $ pip install -r requirements.txt
     $ pip install -r test-requirements.txt
 ```
