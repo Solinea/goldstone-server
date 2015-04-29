@@ -8278,7 +8278,7 @@ TODO: probably change this to d.timestamp
 
                 // otherwise set it to the
                 // highest alert severity
-                nodeObject.level = nonzero_levels[nonzero_levels.length - 1][0];
+                nodeObject.level = nonzero_levels[0][0];
             }
 
         });
