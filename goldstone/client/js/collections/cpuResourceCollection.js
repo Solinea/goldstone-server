@@ -61,10 +61,10 @@ var CpuResourceCollection = Backbone.Collection.extend({
         var ns = this.defaults;
 
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        this.url = '/core/metrics?name__prefix=nova.hypervisor.vcpus&@timestamp__range={"gte":' +
+        this.url = '/core/metrics/?name__prefix=nova.hypervisor.vcpus&@timestamp__range={"gte":' +
             moment(ns.reportParams.start).valueOf() + '}';
     }
 
     // creates a url similar to:
-    // /core/metrics?name__prefix=nova.hypervisor.vcpus&@timestamp__range={"gte":1426887188000}
+    // /core/metrics/?name__prefix=nova.hypervisor.vcpus&@timestamp__range={"gte":1426887188000}
 });

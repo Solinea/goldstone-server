@@ -196,7 +196,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // spinner from the chart.
 
         $.get(dataUrl, function() {}).success(function(payload) {
-
+            console.log(payload);
             // a click listener shall be appended below which
             // will determine if the data associated with the
             // leaf contains "hypervisor_hostname" or "host_name"
@@ -333,7 +333,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         if (redirectNodeName.indexOf('.') !== -1) {
             redirectNodeName = redirectNodeName.slice(0, redirectNodeName.indexOf('.'));
         }
-        window.location.href = '#/report/node/' + redirectNodeName;
+        window.location.href = '#report/node/' + redirectNodeName;
     },
 
     appendLeafNameToResourceHeader: function(text, location) {
@@ -427,7 +427,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                                 url = "/" + parentModule + url;
                                 localStorage.setItem('urlForResourceList', url);
                                 localStorage.setItem('origClickedLabel', origClickedLabel);
-                                window.location.href = '#/' +
+                                window.location.href = '#' +
                                     parentModule + '/discover';
                             }
                         }

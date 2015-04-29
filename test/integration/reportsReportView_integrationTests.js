@@ -105,7 +105,7 @@ describe('reportsReportView.js spec', function() {
     describe('view functions behave as expected', function() {
         it('generates urls appropriately', function() {
             var test1 = this.testView.urlGen('gothamCity');
-            expect(test1).to.equal('/core/reports?name=gothamCity&page_size=1&node=moreCowbell');
+            expect(test1).to.equal('/core/reports/?name=gothamCity&page_size=1&node=moreCowbell');
         });
         it('appends report names to the dropdown appropriately', function() {
             this.populateReportsDropdownSpy = sinon.spy(this.testView, "populateReportsDropdown");

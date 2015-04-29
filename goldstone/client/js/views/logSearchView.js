@@ -94,7 +94,7 @@ var LogSearchView = GoldstoneBasePageView.extend({
             el: '.log-analysis-container',
             featureSet: 'logEvents',
             chartTitle: 'Log Analysis',
-            urlRoot: "/logging/summarize?",
+            urlRoot: "/logging/summarize/?",
             specificHost: ns.specificHost
         });
     },

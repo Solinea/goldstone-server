@@ -92,10 +92,10 @@ var EventTimelineCollection = Backbone.Collection.extend({
 
     urlUpdate: function(val) {
         // creates a url similar to:
-        // /logging/events?@timestamp__range={"gte":1426698303974}&page_size=1000"
+        // /logging/events/search/?@timestamp__range={"gte":1426698303974}&page_size=1000"
 
         var lookback = +new Date() - (val * 60 * 1000);
-        this.url = '/logging/events/search?@timestamp__range={"gte":' +
+        this.url = '/logging/events/search/?@timestamp__range={"gte":' +
             lookback + '}&page_size=1000';
 
     }

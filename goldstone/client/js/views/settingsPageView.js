@@ -33,7 +33,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
             '<button class="btn btn-lg btn-danger btn-block modify">Modify tenant settings</button>');
 
         $('button.modify').on('click', function() {
-            window.location.href = "#/settings/tenants";
+            window.location.href = "#settings/tenants";
         });
     },
 
@@ -70,7 +70,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
     getUserSettings: function() {
         var self = this;
 
-        $.get('/user')
+        $.get('/user/')
             .done(function(result) {
                 $(self.el).find('[name="username"]').val(result.username);
                 $(self.el).find('[name="first_name"]').val(result.first_name);
@@ -108,13 +108,13 @@ var SettingsPageView = GoldstoneBaseView.extend({
             // support based on the type="email"
 
             // 4th argument informs what will be appeneded to screen upon success
-            self.submitRequest('PUT', '/user', $(this).serialize(), 'Settings');
+            self.submitRequest('PUT', '/user/', $(this).serialize(), 'Settings');
         });
 
         // add listener to password form submission button
         $('.password-reset-form').on('submit', function(e) {
             e.preventDefault();
-            self.submitRequest('POST', '/accounts/password', $(this).serialize(), 'Password');
+            self.submitRequest('POST', '/accounts/password/', $(this).serialize(), 'Password');
 
             // clear password form after submission, success or not
             $('.password-reset-form').find('[name="current_password"]').val('');
