@@ -20,7 +20,17 @@ from rest_framework.response import Response
 
 
 class LogDataView(ElasticListAPIView):
-    """A view that handles requests for Logstash data."""
+    """Return logging data.
+
+    \n\nQuery string parameters:\n
+
+    <b>name__prefix</b>: The desired service name prefix. E.g.,
+                         nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
+    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
+                              gte, gt, lte, or lt.  Nnn is an epoch number.
+                              E.g., gte:1430164651890.\n\n
+
+    """
 
     serializer_class = LogDataSerializer
 
@@ -30,7 +40,17 @@ class LogDataView(ElasticListAPIView):
 
 
 class LogAggView(ElasticListAPIView):
-    """A view that handles requests for Logstash aggregations."""
+    """Return a Logstash aggregation.
+
+    \n\nQuery string parameters:\n
+
+    <b>name__prefix</b>: The desired service name prefix. E.g.,
+                         nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
+    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
+                              gte, gt, lte, or lt.  Nnn is an epoch number.
+                              E.g., gte:1430164651890.\n\n
+
+    """
 
     serializer_class = LogAggSerializer
     reserved_params = ['interval', 'per_host']
@@ -42,17 +62,30 @@ class LogAggView(ElasticListAPIView):
     def get(self, request, *args, **kwargs):
         """Return a response to a GET request."""
         import ast
+
         base_queryset = self.filter_queryset(self.get_queryset())
         interval = self.request.query_params.get('interval', '1d')
         per_host = ast.literal_eval(
             self.request.query_params.get('per_host', 'True'))
+
         data = LogData.ranged_log_agg(base_queryset, interval, per_host)
         serializer = self.serializer_class(data)
+
         return Response(serializer.data)
 
 
 class LogEventView(ElasticListAPIView):
-    """A view that handles requests for events from Logstash data."""
+    """Return events from Logstash data.
+
+    \n\nQuery string parameters:\n
+
+    <b>name__prefix</b>: The desired service name prefix. E.g.,
+                         nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
+    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
+                              gte, gt, lte, or lt.  Nnn is an epoch number.
+                              E.g., gte:1430164651890.\n\n
+
+    """
 
     serializer_class = LogDataSerializer
 
@@ -62,7 +95,17 @@ class LogEventView(ElasticListAPIView):
 
 
 class LogEventAggView(ElasticListAPIView):
-    """A view that handles requests for Logstash aggregations."""
+    """Return a Logstash aggregation.
+
+    \n\nQuery string parameters:\n
+
+    <b>name__prefix</b>: The desired service name prefix. E.g.,
+                         nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
+    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
+                              gte, gt, lte, or lt.  Nnn is an epoch number.
+                              E.g., gte:1430164651890.\n\n
+
+    """
 
     serializer_class = LogEventAggSerializer
     reserved_params = ['interval', 'per_host']

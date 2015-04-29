@@ -1,12 +1,4 @@
-"""Base Django settings for goldstone project.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/1.6/topics/settings/
-
-For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.6/ref/settings/
-
-"""
+"""Base Django settings for Goldstone."""
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,6 +69,7 @@ INSTALLED_APPS = (
     'polymorphic',
     'rest_framework',
     'rest_framework.authtoken',
+    'rest_framework_swagger',
     'south',
     'goldstone.accounts',
     'goldstone.api_perf',
@@ -276,6 +269,21 @@ REST_FRAMEWORK = {
     'PAGINATE_BY_PARAM': 'page_size',
     'MAX_PAGINATE_BY': 1000,
     'EXCEPTION_HANDLER': 'goldstone.core.utils.custom_exception_handler'
+}
+
+# Settings for Django REST Swagger.
+SWAGGER_SETTINGS = {
+    'api_version': "3.0",
+    "info": {"title": "Goldstone",
+             "description":
+             "Goldstone is a monitoring, management and analytics platform for"
+             " operating OpenStack clouds.",
+             "contact": "info@solinea.com",
+             "license":
+             "Creative Commons Attribution-ShareAlike 4.0 International",
+             "licenseUrl":
+             "License](http://creativecommons.org/licenses/by-sa/4.0",
+             },
 }
 
 # Goldstone config settings

@@ -18,24 +18,25 @@ from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
 from rest_framework.generics import RetrieveAPIView
 from goldstone.utils import TopologyMixin
 
-
 from .models import MetricData, ReportData
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
     MetricNamesAggSerializer, ReportNamesAggSerializer, NavTreeSerializer, \
     MetricAggSerializer
 
 
-class MetricDataListView(ElasticListAPIView):
-    """A view that handles requests for events from Logstash data."""
-
-    serializer_class = MetricDataSerializer
-
-    class Meta:                  # pylint: disable=C0111,C1001,W0232
-        model = MetricData
-
-
+# Our API documentation extracts this docstring, hence the use of markup.
 class ReportDataListView(ElasticListAPIView):
-    """A view that handles requests for events from Logstash data."""
+    """Return events from Logstash data.
+
+    \n\nQuery string parameters:\n
+
+    <b>name__prefix</b>: The desired service name prefix. E.g.,
+                         nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
+    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
+                              gte, gt, lte, or lt.  Nnn is an epoch number.
+                              E.g., gte:1430164651890.\n\n
+
+    """
 
     serializer_class = ReportDataSerializer
 
@@ -43,12 +44,20 @@ class ReportDataListView(ElasticListAPIView):
         model = ReportData
 
 
+# Our API documentation extracts this docstring, hence the use of markup.
 class ReportNamesAggView(SimpleAggView):
-    """A view that handles requests for Report name aggregations.
+    """Return report name aggregations.
 
-    Currently it support a top-level report name aggregation only.  The
+    This currently supports a top-level report name aggregation only.  The
     scope can be limited to a specific host, time range, etc. by using
     query params such has host=xyz or @timestamp__range={'gt': 0}.
+
+    \n\nQuery string parameters:\n
+
+    <b>host</b>: A host.\n
+    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
+                              gte, gt, lte, or lt.  Nnn is an epoch number.
+                              E.g., gte:1430164651890.\n\n
 
     """
 
@@ -66,12 +75,40 @@ class ReportNamesAggView(SimpleAggView):
         return queryset.query(~Q(Prefix(name='os.service')))
 
 
-class MetricNamesAggView(SimpleAggView):
-    """A view that handles requests for Report name aggregations.
+# Our API documentation extracts this docstring, hence the use of markup.
+class MetricDataListView(ElasticListAPIView):
+    """Return events from Logstash data.
 
-    Currently it support a top-level report name aggregation only.  The
+    \n\nQuery string parameters:\n
+
+    <b>name__prefix</b>: The desired service name prefix. E.g.,
+                         nova.hypervisor.vcpus, nova.hypervisor.mem, etc.\n
+    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
+                              gte, gt, lte, or lt.  Nnn is an epoch number.
+                              E.g., gte:1430164651890.\n\n
+
+    """
+
+    serializer_class = MetricDataSerializer
+
+    class Meta:                  # pylint: disable=C0111,C1001,W0232
+        model = MetricData
+
+
+# Our API documentation extracts this docstring, hence the use of markup.
+class MetricNamesAggView(SimpleAggView):
+    """Return report name aggregations.
+
+    This Currently supports a top-level report name aggregation only.  The
     scope can be limited to a specific host, time range, etc. by using
     query params such has host=xyz or @timestamp__range={'gt': 0}.
+
+    \n\nQuery string parameters:\n
+
+    <b>host</b>: A host.\n
+    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
+                              gte, gt, lte, or lt.  Nnn is an epoch number.
+                              E.g., gte:1430164651890.\n\n
 
     """
 
@@ -83,8 +120,18 @@ class MetricNamesAggView(SimpleAggView):
         model = MetricData
 
 
+# Our API documentation extracts this docstring, hence the use of markup.
 class MetricAggView(DateHistogramAggView):
-    """A view that handles requests for Metric aggregations."""
+    """Return metric aggregations.
+
+    \n\nQuery string parameters:\n
+
+    <b>host</b>: A host.\n
+    <b>@timestamp__range</b>: The time range, as xxx:nnn. Xxx is one of:
+                              gte, gt, lte, or lt.  Nnn is an epoch number.
+                              E.g., gte:1430164651890.\n\n
+
+    """
 
     serializer_class = MetricAggSerializer
     reserved_params = ['interval']
@@ -105,23 +152,24 @@ class MetricAggView(DateHistogramAggView):
         return Response(serializer.data)
 
 
+# Our API documentation extracts this docstring, hence the use of markup.
 class NavTreeView(RetrieveAPIView, TopologyMixin):
-    """Returns data for the old-style discovery tree rendering.
+    """Return data for the old-style discovery tree rendering.\n\n
 
     The data structure is a list of resource types.  If the list contains
     only one element, it will be used as the root node, otherwise a "cloud"
-    resource will be constructed as the root.
+    resource will be constructed as the root.\n\n
 
-    A resource has the following structure:
+    A resource has the following structure:\n
 
-    {
-        "rsrcType": "cloud|region|zone|service|volume|etc.",
-        "label": "string",
-        "info": {"key": "value" [, "key": "value", ...]}, (optional)
-        "lifeStage": "new|existing|absent", (optional)
-        "enabled": True|False, (optional)
-        "children": [rsrcType] (optional)
-     }
+    {"rsrcType": "cloud|region|zone|service|volume|etc.",\n
+     "label": "string",\n
+     "info": {"key": "value" [, "key": "value", ...]}, (optional)\n
+     "lifeStage": "new|existing|absent", (optional)\n
+     "enabled": True|False, (optional)\n
+     "children": [rsrcType] (optional)\n
+    }
+
      """
 
     serializer_class = NavTreeSerializer

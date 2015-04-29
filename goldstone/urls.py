@@ -22,7 +22,13 @@ from goldstone.views import RouterView
 
 admin.autodiscover()
 
+# API documentation.
 urlpatterns = patterns(
+    '',
+    url(r'^docs/', include("rest_framework_swagger.urls")))
+
+# API.
+urlpatterns += patterns(
     '',
     url(r'^accounts/', include("goldstone.accounts.urls")),
     url(r'^admin/', include(admin.site.urls)),
@@ -35,7 +41,7 @@ urlpatterns = patterns(
     url(r'^keystone/', include('goldstone.keystone.urls')),
     url(r'^logging/', include('goldstone.glogging.urls')),
     url(r'^nova/', include('goldstone.nova.urls')),
-    url(r'^user[/]?$', include("goldstone.user.urls")),
+    url(r'^user[/]?', include("goldstone.user.urls")),
     url(r'^$', RouterView.as_view()),
 )
 

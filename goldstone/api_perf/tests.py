@@ -15,8 +15,7 @@
 import arrow
 from django.test import SimpleTestCase
 from django.utils.unittest.case import skip
-from elasticsearch_dsl import Search, Q
-from uuid import uuid1
+from elasticsearch_dsl import Search
 
 from goldstone.api_perf.views import ApiPerfAggView
 from goldstone.models import daily_index, es_conn
