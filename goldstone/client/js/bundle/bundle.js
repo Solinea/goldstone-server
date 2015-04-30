@@ -2452,21 +2452,25 @@ var NodeAvailCollection = Backbone.Collection.extend({
         this.defaults.fetchInProgress = true;
         this.defaults.urlsToFetch = [];
 
-        var lookbackSeconds = (this.computeLookback() * 60);
+        var lookbackMinutes = (this.computeLookback());
+        var lookbackSeconds = (lookbackMinutes * 60);
+        var lookbackMilliseconds = (lookbackSeconds * 1000);
 
         // this is the url with the small interval to gather a more
-        // accurate assessment of the time the node was last seen
+        // accurate assessment of the time the node was last seen.
+        // creating approximately 24 buckets for a good mix of accuracy/speed.
         this.defaults.urlsToFetch[0] = '' +
             '/logging/summarize?@timestamp__range={"gte":' +
-            (+new Date() - (lookbackSeconds * 1000)) +
-            '}&interval=' + (lookbackSeconds / 60) + 'm';
+            (+new Date() - (lookbackMilliseconds)) +
+            '}&interval=' + Math.max(1, (lookbackMinutes / 24)) + 'm';
 
-        // this is the url with the 1d lookback to bucket ALL
+        // this is the url with the long lookback to bucket ALL
         // the values into a single return value per alert level.
+        // currently magnifying 1 day (or portion thereof) into 1 week.
         this.defaults.urlsToFetch[1] = '' +
             '/logging/summarize?@timestamp__range={"gte":' +
-            (+new Date() - (lookbackSeconds * 1000)) +
-            '}&interval=1d';
+            (+new Date() - (lookbackMilliseconds)) +
+            '}&interval=' + (Math.ceil(lookbackMinutes / 1440)) + 'w';
 
         // don't add {remove:false} to the initial fetch
         // as it will introduce an artifact that will
@@ -7851,7 +7855,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         ns.graph.append("g")
             .attr("class", "y axis invisible-axis")
-            .attr("transform", "translate(" + ns.mw + ",0)");
+            .attr("transform", "translate(" + (ns.mw + 10) + ",0)");
 
         // nudges visible y-axis to the right
         ns.graph.append("g")
@@ -7861,10 +7865,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
         ns.tooltip = d3.tip()
             .attr('class', 'd3-tip')
             .direction(function(e) {
-                // if (e.update_method === 'PING') {
-                //     return 's';
-                // }
-                if (this.getBBox().y < 130) {
+                if (this.getBBox().y < ns.height.swim) {
                     return 's';
                 } else {
                     return 'n';
@@ -7885,16 +7886,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 return [0, leftOffset];
             })
             .html(function(d) {
-                return "Host: " + d.name + "<br/>" +
-                    // "(" + d.id + ")" + "<br/>" +
-                    "Emergency: " + d.emergency_count + "<br>" +
-                    "Alert: " + d.alert_count + "<br>" +
-                    "Critical: " + d.critical_count + "<br>" +
-                    "Error: " + d.error_count + "<br>" +
-                    "Warning: " + d.warning_count + "<br>" +
-                    "Notice: " + d.notice_count + "<br>" +
-                    "Info: " + d.info_count + "<br>" +
-                    "Debug: " + d.debug_count + "<br>";
+                return self.formatTooltip(d);
             });
 
         ns.graph.call(ns.tooltip);
@@ -7925,6 +7917,34 @@ var NodeAvailView = GoldstoneBaseView.extend({
         d3.select(this.el).select(".swim.axis").selectAll("text")
             .style('font-size', '15px')
             .style('font-weight', 'bold');
+    },
+
+    formatTooltip: function(d) {
+        var ns = this.defaults;
+
+        // Time formatted as: Wed Apr 29 2015 20:50:49 GMT-0700 (PDT)
+        var tooltipText = '<div class="text-left">Host: ' + d.name + '<br>' +
+            'Time: ' + moment(d.created).toDate() + '<br>';
+
+        var levels = _.filter(_.keys(ns.filter), function(item) {
+            return item !== 'actualZero' && item !== 'none';
+        });
+
+        // var levels = ['emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug'];
+
+        // iterate through levels and if defined and non-zero, append
+        // to toolTip with count
+        _.each(levels, function(item) {
+            item += '_count';
+            if (d[item]) {
+                // changes 'alert_level' to 'Alert: xxx'
+                tooltipText += item.charAt(0).toUpperCase() + item.slice(1, item.indexOf("_")) + ": " + d[item] + '<br>';
+            }
+        });
+
+        tooltipText += '</div>';
+
+        return tooltipText;
     },
 
     sums: function(datum) {
@@ -8261,7 +8281,7 @@ TODO: probably change this to d.timestamp
 
                 // otherwise set it to the
                 // highest alert severity
-                nodeObject.level = nonzero_levels[nonzero_levels.length - 1][0];
+                nodeObject.level = nonzero_levels[0][0];
             }
 
         });
