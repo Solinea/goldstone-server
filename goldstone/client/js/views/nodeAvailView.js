@@ -313,8 +313,8 @@ var NodeAvailView = GoldstoneBaseView.extend({
         var ns = this.defaults;
 
         // Time formatted as: Wed Apr 29 2015 20:50:49 GMT-0700 (PDT)
-        var tooltipText = "Host: " + d.name + "<br>" +
-            "Time: " + moment(d.created).toDate() + "<br>";
+        var tooltipText = '<div class="text-right">Host: ' + d.name + '<br>' +
+            'Time: ' + moment(d.created).toDate() + '<br>';
 
         var levels = _.filter(_.keys(ns.filter), function(item) {
             return item !== 'actualZero' && item !== 'none';
@@ -328,9 +328,11 @@ var NodeAvailView = GoldstoneBaseView.extend({
             item += '_count';
             if (d[item]) {
                 // changes 'alert_level' to 'Alert: xxx'
-                tooltipText += item.charAt(0).toUpperCase() + item.slice(1, item.indexOf("_")) + ": " + d[item] + "<br>";
+                tooltipText += item.charAt(0).toUpperCase() + item.slice(1, item.indexOf("_")) + ": " + d[item] + '<br>';
             }
         });
+
+        tooltipText += '</div>';
 
         return tooltipText;
     },

@@ -1374,7 +1374,7 @@ describe('nodeAvailView.js spec', function() {
             };
             var test1 = this.testView.formatTooltip(testData);
             expect(test1).to.equal('' +
-                'Host: ctrl-01<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br>Error: 20<br>Warning: 171<br>Notice: 17<br>Info: 10891<br>'
+                '<div class="text-right">Host: ctrl-01<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br>Error: 20<br>Warning: 171<br>Notice: 17<br>Info: 10891<br></div>'
             );
             testData = {
                 alert_count: 0,
@@ -1396,7 +1396,7 @@ describe('nodeAvailView.js spec', function() {
             };
             var test2 = this.testView.formatTooltip(testData);
             expect(test2).to.equal('' +
-                'Host: ctrl-01<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br>'
+                '<div class="text-right">Host: ctrl-01<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br></div>'
             );
             testData = {
                 alert_count: 10,
@@ -1418,14 +1418,14 @@ describe('nodeAvailView.js spec', function() {
             };
             var test3 = this.testView.formatTooltip(testData);
             expect(test3).to.equal('' +
-                'Host: ctrl-01<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br>Emergency: 40<br>Alert: 10<br>Critical: 20<br>Error: 50<br>Warning: 80<br>Notice: 70<br>Info: 60<br>Debug: 30<br>'
+                '<div class="text-right">Host: ctrl-01<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br>Emergency: 40<br>Alert: 10<br>Critical: 20<br>Error: 50<br>Warning: 80<br>Notice: 70<br>Info: 60<br>Debug: 30<br></div>'
             );
             testData = {
                 created: 1430366537873,
             };
             var test4 = this.testView.formatTooltip(testData);
             expect(test4).to.equal('' +
-                'Host: undefined<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br>'
+                '<div class="text-right">Host: undefined<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br></div>'
             );
         });
         it('view update appends svg and border elements', function() {
