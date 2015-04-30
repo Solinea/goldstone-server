@@ -310,7 +310,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
         var ns = this.defaults;
 
         // Time formatted as: Wed Apr 29 2015 20:50:49 GMT-0700 (PDT)
-        var tooltipText = '<div class="text-right">Host: ' + d.name + '<br>' +
+        var tooltipText = '<div class="text-left">Host: ' + d.name + '<br>' +
             'Time: ' + moment(d.created).toDate() + '<br>';
 
         var levels = _.filter(_.keys(ns.filter), function(item) {
