@@ -7865,10 +7865,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
         ns.tooltip = d3.tip()
             .attr('class', 'd3-tip')
             .direction(function(e) {
-                // if (e.update_method === 'PING') {
-                //     return 's';
-                // }
-                if (this.getBBox().y < 130) {
+                if (this.getBBox().y < ns.height.swim) {
                     return 's';
                 } else {
                     return 'n';
