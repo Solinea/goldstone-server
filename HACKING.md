@@ -30,6 +30,83 @@ $ brew cask install java
 $ brew install python    # This puts a Python interpreter where mkvirtualenv expects it.
 ```    
 
+### Postfix
+
+If you're not working on or testing the password-reset sequence, you can skip
+to the next section.
+
+To test Goldstone's password-reset sequence, you'll need an
+[SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol) server
+running on your development machine.
+
+Since [Postfix](http://www.postfix.org) is nigh-universal, here's how to
+configure it to relay outgoing mail to a Gmail account, on OS X:
+
+```bash
+    $ sudo bash
+    root# cd /etc/postfix
+```
+
+Edit `main.cf` and make these changes and additions:
+```
+myhostname = localhost
+relayhost = [smtp.gmail.com]:587
+smtp_sasl_auth_enable = yes
+smtp_sasl_mechanism_filter = plain
+smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+smtp_sasl_security_options = noanonymous
+smtp_tls_CAfile = /etc/postfix/systemdefault.pem
+smtp_use_tls = yes
+```
+
+Create `sasl_passwd` and put this line in it, plugging in your e-mail username
+and password:
+```
+[smtp.gmail.com]:587 EMAIL_USERNAME:PASSWORD
+```
+
+(For example, your line might read, `[smtp.gmail.com]:587
+dirk_diggler@mycompany.com:12344321`.
+
+Then:
+
+```bash
+    root# postmap /etc/postfix/sasl_passwd
+```
+
+Now put a valid certificate into
+`/etc/postfix/systemdefault.pem`. Here's one way to do this:
+
+1. Launch the KeyChain Access application
+2. In the sidebar, select "System" and "Certificates"
+3. In the main window, select `com.apple.systemdefault`
+4. `File | Export Items...`
+5. Select "Privacy Enhanced Mail (.pem)" and save it to
+`/etc/postfix/systemdefault.pem`
+
+Now start postfix and test it:
+
+```bash
+    root# postfix start
+    root# echo "Test mail from postfix" | mail -s "Test Postfix" YOU@DOMAIN.TLD
+```
+
+If you receive the test email, Postfix is running correctly!
+
+If not, look in `/var/log/mail.log` to start diagnosing what's wrong.
+
+If you want Postfix to always start up when you boot your machine, edit
+`/System/Library/LaunchDaemons/org.postfix.master.plist`. After the `</dict>`,
+add this:
+
+```
+<key>RunAtLoad</key>
+<true/>
+```
+
+
+
+
 ### Upgrade or install Pip
 
 If your system already has Pip, upgrade it to the latest version.
