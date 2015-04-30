@@ -55,7 +55,7 @@ class RegistrationView(DjoserRegistrationView):
             raise NotImplementedError("Missing serializer.")
 
 
-@api_view(["POST"])
+@api_view(["GET"])
 @permission_classes((AllowAny, ))
 def new_password_enter(request, uid, token):
     """Redirect to the client's new-password-enter page.
