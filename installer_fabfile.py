@@ -81,6 +81,15 @@ def _is_supported_centos6():
     except Exception:  # pylint: disable=W0703
         return False
 
+def _is_supported_centos7():
+    """Is this a CentOS 7.0 or 7.1 server"""
+
+    try:
+        dist = platform.linux_distribution()
+        return dist[0] == 'CentOS Linux' and dist[1].startswith('7.')
+    except Exception:  # pylint: disable=W0703
+        return False
+
 
 def _is_development_mac():
     """Is this a mac?"""
@@ -111,15 +120,30 @@ def _verify_required_rpms(rpms):
     return missing
 
 
+def _install_epel_centos6():
+    """install the epel repo."""
+    if not _is_rpm_installed('epel-release'):
+        local('yum install -y  '
+              'http://dl.fedoraproject.org/pub/epel/6/'
+              'x86_64/epel-release-6-8.noarch.rpm')
+
+
+def _install_epel_centos7():
+    """install the epel repo."""
+    if not _is_rpm_installed('epel-release'):
+        local('yum install -y  epel-release')
+
+
 def _install_additional_repos():
     """Sets up yum repos used by goldstone installer."""
 
     print(green("\nInstalling epel, logstash, and elasticsearch repos."))
 
-    if not _is_rpm_installed('epel-release'):
-        local('yum install -y  '
-              'http://dl.fedoraproject.org/pub/epel/6/'
-              'x86_64/epel-release-6-8.noarch.rpm')
+    if _is_supported_centos6():
+        _install_epel_centos6()
+
+    if _is_supported_centos7():
+        _install_epel_centos7()
 
     local('rpm --import http://packages.elasticsearch.org/'
           'GPG-KEY-elasticsearch')
@@ -135,19 +159,37 @@ def _install_additional_repos():
         logstash_repo.close()
 
 
-def _centos6_setup_postgres(pg_passwd):
-    """Configure postgresql on a CentOS system."""
-    from os import rename
-    from time import sleep
-
-    print()
-    print(green("Configuring PostgreSQL..."))
-
+def _centos6_configure_postgres_service():
+    """configure postgres to start on boot and initialized the DB"""
+    print(green("\nConfiguring PostgreSQL (CentOS 6)..."))
     if not os.path.exists(CENTOS_PG_HBA):
         subprocess.call('service postgresql initdb'.split())
 
     subprocess.call('chkconfig postgresql on'.split())
     subprocess.call('service postgresql start'.split())
+
+
+def _centos7_configure_postgres_service():
+    """configure postgres to start on boot and initialized the DB"""
+    print(green("\nConfiguring PostgreSQL (CentOS 7)..."))
+    if not os.path.exists(CENTOS_PG_HBA):
+        subprocess.call('postgresql-setup initdb'.split())
+
+    subprocess.call('systemctl enable postgresql'.split())
+    subprocess.call('systemctl start postgresql start'.split())
+
+
+def _centos_setup_postgres(pg_passwd):
+    """Configure postgresql on a CentOS 6.x system."""
+    from os import rename
+    from time import sleep
+
+    if _is_supported_centos6():
+        _centos6_configure_postgres_service()
+
+    if _is_supported_centos7():
+        _centos7_configure_postgres_service()
+
     sleep(10)
     subprocess.call('su - postgres -c "createdb goldstone"', shell=True)
 
@@ -193,8 +235,8 @@ def _fix_setuptools():
         local('pip install --upgrade distribute')
         local('pip install --upgrade setuptools')
 
-
-def _centos6_preinstall(pg_passwd):
+@task
+def _centos_preinstall(pg_passwd):
     """Perform the pre-installation steps on CentOS."""
 
     if not _is_root_user():
@@ -206,7 +248,7 @@ def _centos6_preinstall(pg_passwd):
               "installed: %s" % str(missing)))
 
     _install_additional_repos()
-    _centos6_setup_postgres(pg_passwd)
+    _centos_setup_postgres(pg_passwd)
     _fix_setuptools()
 
 
@@ -674,7 +716,7 @@ def install(pg_passwd='goldstone', rpm_file=None,
         print(green("\nDetermining if goldstone-server RPM is already "
                     "installed."))
         if not _is_rpm_installed('goldstone-server'):
-            _centos6_preinstall(pg_passwd)
+            _centos_preinstall(pg_passwd)
 
         if _centos6_install(rpm_file):
             goldstone_init(
