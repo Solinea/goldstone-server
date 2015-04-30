@@ -7855,7 +7855,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
 
         ns.graph.append("g")
             .attr("class", "y axis invisible-axis")
-            .attr("transform", "translate(" + ns.mw + ",0)");
+            .attr("transform", "translate(" + (ns.mw + 10) + ",0)");
 
         // nudges visible y-axis to the right
         ns.graph.append("g")
