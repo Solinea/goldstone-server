@@ -229,8 +229,8 @@ def _centos6_install(rpm_file):
     print()
     print(green("Installing the Goldstone server RPM."))
     if rpm_file is None:
-        prompt(cyan("Enter path to the goldstone-server RPM: ",
-                    default="./goldstone-server.rpm"))
+        prompt(cyan("Enter path to the goldstone-server RPM: "),
+               default="./goldstone-server.rpm")
     cmd = 'yum localinstall -y ' + rpm_file
     with nested(hide('warnings', 'stdout', 'stderr'),
                 fab_settings(warn_only=True)):
@@ -366,8 +366,8 @@ def _cloud_init(gs_tenant, stack_tenant, stack_user, stack_password,
                 stack_auth_url, settings=None):
     """Create a single OpenStack cloud under the tenant.
 
-        :keyword gs_tenant: The name of the tenant to be created. If not specified,
-                     a default is used.
+    :keyword gs_tenant: The name of the tenant to be created. If not specified,
+                        a default is used.
     :type gs_tenant: str
     :keyword stack_tenant: The openstack tenant to associate with this tenant
     :type stack_tenant: str
@@ -398,17 +398,18 @@ def _cloud_init(gs_tenant, stack_tenant, stack_user, stack_password,
                                       username=stack_user)
         except ObjectDoesNotExist:
             if stack_tenant is None:
-                stack_tenant = prompt("Enter Openstack tenant name: ",
+                stack_tenant = prompt(cyan("Enter Openstack tenant name: "),
                                       default='admin')
             if stack_user is None:
-                stack_user = prompt("Enter Openstack user name: ",
+                stack_user = prompt(cyan("Enter Openstack user name: "),
                                     default='admin')
             if stack_password is None:
-                stack_password = prompt("Enter Openstack user password: ")
+                stack_password = prompt(
+                    cyan("Enter Openstack user password: "))
             if stack_auth_url is None:
-                stack_auth_url = prompt("Enter Openstack auth url base, "
-                                        "without the version (ex: "
-                                        "http://10.10.10.10:5000/): ")
+                stack_auth_url = prompt(
+                    cyan("Enter Openstack auth url base, without the version "
+                         "(ex: http://10.10.10.10:5000/): "))
             stack_auth_url = os.path.join(stack_auth_url,
                                           CLOUD_AUTH_URL_VERSION)
             Cloud.objects.create(tenant=gs_tenant,
