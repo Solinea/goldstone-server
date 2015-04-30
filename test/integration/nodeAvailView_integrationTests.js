@@ -1352,6 +1352,82 @@ describe('nodeAvailView.js spec', function() {
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.testContainer');
         });
+        it('populates tooltips properly', function() {
+            assert.isDefined(this.testView.formatTooltip, 'this.testView.formatTooltip has been defined');
+            var testData = {
+                alert_count: 0,
+                created: 1430366537873,
+                critical_count: 0,
+                debug_count: 0,
+                emergency_count: 0,
+                error_count: 20,
+                id: "ctrl-01",
+                info_count: 10891,
+                level: "error",
+                managed: true,
+                name: "ctrl-01",
+                notice_count: 17,
+                swimlane: "logs",
+                update_method: "LOGS",
+                updated: 1430366537873,
+                warning_count: 171
+            };
+            var test1 = this.testView.formatTooltip(testData);
+            expect(test1).to.equal('' +
+                'Host: ctrl-01<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br>Error: 20<br>Warning: 171<br>Notice: 17<br>Info: 10891<br>'
+            );
+            testData = {
+                alert_count: 0,
+                created: 1430366537873,
+                critical_count: 0,
+                debug_count: 0,
+                emergency_count: 0,
+                error_count: 0,
+                id: "ctrl-01",
+                info_count: 0,
+                level: "error",
+                managed: true,
+                name: "ctrl-01",
+                notice_count: 0,
+                swimlane: "logs",
+                update_method: "LOGS",
+                updated: 1430366537873,
+                warning_count: 0
+            };
+            var test2 = this.testView.formatTooltip(testData);
+            expect(test2).to.equal('' +
+                'Host: ctrl-01<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br>'
+            );
+            testData = {
+                alert_count: 10,
+                created: 1430366537873,
+                critical_count: 20,
+                debug_count: 30,
+                emergency_count: 40,
+                error_count: 50,
+                id: "ctrl-01",
+                info_count: 60,
+                level: "error",
+                managed: true,
+                name: "ctrl-01",
+                notice_count: 70,
+                swimlane: "logs",
+                update_method: "LOGS",
+                updated: 1430366537873,
+                warning_count: 80
+            };
+            var test3 = this.testView.formatTooltip(testData);
+            expect(test3).to.equal('' +
+                'Host: ctrl-01<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br>Emergency: 40<br>Alert: 10<br>Critical: 20<br>Error: 50<br>Warning: 80<br>Notice: 70<br>Info: 60<br>Debug: 30<br>'
+            );
+            testData = {
+                created: 1430366537873,
+            };
+            var test4 = this.testView.formatTooltip(testData);
+            expect(test4).to.equal('' +
+                'Host: undefined<br>Time: Wed Apr 29 2015 21:02:17 GMT-0700 (PDT)<br>'
+            );
+        });
         it('view update appends svg and border elements', function() {
             expect(this.testView.update).to.be.a('function');
             expect($('svg').length).to.equal(1);
