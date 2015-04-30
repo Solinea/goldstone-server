@@ -276,16 +276,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 return [0, leftOffset];
             })
             .html(function(d) {
-                return "Host: " + d.name + "<br/>" +
-                    // "(" + d.id + ")" + "<br/>" +
-                    "Emergency: " + d.emergency_count + "<br>" +
-                    "Alert: " + d.alert_count + "<br>" +
-                    "Critical: " + d.critical_count + "<br>" +
-                    "Error: " + d.error_count + "<br>" +
-                    "Warning: " + d.warning_count + "<br>" +
-                    "Notice: " + d.notice_count + "<br>" +
-                    "Info: " + d.info_count + "<br>" +
-                    "Debug: " + d.debug_count + "<br>";
+                return self.formatTooltip(d);
             });
 
         ns.graph.call(ns.tooltip);
@@ -316,6 +307,32 @@ var NodeAvailView = GoldstoneBaseView.extend({
         d3.select(this.el).select(".swim.axis").selectAll("text")
             .style('font-size', '15px')
             .style('font-weight', 'bold');
+    },
+
+    formatTooltip: function(d) {
+        var ns = this.defaults;
+
+        // Time formatted as: Wed Apr 29 2015 20:50:49 GMT-0700 (PDT)
+        var tooltipText = "Host: " + d.name + "<br>" +
+            "Time: " + moment(d.created).toDate() + "<br>";
+
+        var levels = _.filter(_.keys(ns.filter), function(item) {
+            return item !== 'actualZero' && item !== 'none';
+        });
+
+        // var levels = ['emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug'];
+
+        // iterate through levels and if defined and non-zero, append
+        // to toolTip with count
+        _.each(levels, function(item) {
+            item += '_count';
+            if (d[item]) {
+                // changes 'alert_level' to 'Alert: xxx'
+                tooltipText += item.charAt(0).toUpperCase() + item.slice(1, item.indexOf("_")) + ": " + d[item] + "<br>";
+            }
+        });
+
+        return tooltipText;
     },
 
     sums: function(datum) {
