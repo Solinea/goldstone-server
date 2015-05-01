@@ -61,6 +61,8 @@ INSTALL_DIR = '/opt/goldstone'
 # executing from.
 PROD_SETTINGS = "goldstone.settings.production"
 
+# used to collect configuration data, then presented at completion
+# of install.
 final_report = {
     'django_admin_user': None,
     'django_admin_pass': None,
