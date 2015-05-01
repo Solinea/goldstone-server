@@ -18,6 +18,7 @@ from contextlib import contextmanager, nested
 import os
 import platform
 import subprocess
+from time import sleep
 
 from fabric.api import task, local, settings as fab_settings
 from fabric.colors import green, cyan, red
@@ -137,7 +138,6 @@ def _install_additional_repos():
 def _centos6_setup_postgres(pg_passwd):
     """Configure postgresql on a CentOS system."""
     from os import rename
-    from time import sleep
 
     print()
     print(green("Configuring PostgreSQL..."))
@@ -236,9 +236,11 @@ def _centos6_install(rpm_file):
         rpm_file = prompt(cyan("Enter path to the goldstone-server RPM: "),
                           default="./goldstone-server.rpm")
     cmd = 'yum localinstall -y ' + rpm_file
-    local(cmd)
+    result = not local(cmd)
     if not _is_rpm_installed('goldstone-server'):
         abort(red("Failed to install the goldstone-server RPM."))
+
+    return result
 
 
 def _django_manage(command, target='', proj_settings=None, daemon=False):
