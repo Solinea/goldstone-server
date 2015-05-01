@@ -63,7 +63,7 @@ PROD_SETTINGS = "goldstone.settings.production"
 
 # used to collect configuration data, then presented at completion
 # of install.
-final_report = {
+final_report = {    # pylint: disable=C0103
     'django_admin_user': None,
     'django_admin_pass': None,
     'goldstone_admin_user': None,
@@ -263,8 +263,8 @@ def _django_manage(command, target='', proj_settings=None, daemon=False):
     daemon_opt = "&" if daemon else ''
 
     with nested(lcd(INSTALL_DIR), hide('stdout', 'stderr', 'warnings')):
-            local("./manage.py %s %s %s %s" %
-                  (command, target, settings_opt, daemon_opt))
+        local("./manage.py %s %s %s %s" %
+              (command, target, settings_opt, daemon_opt))
 
 
 @contextmanager
@@ -397,9 +397,8 @@ def cloud_init(gs_tenant, stack_tenant, stack_user, stack_password,
 
         try:
             # unique constraint on (tenant, tenant_name, and username)
-            cloud = Cloud.objects.get(tenant=gs_tenant,
-                                      tenant_name=stack_tenant,
-                                      username=stack_user)
+            Cloud.objects.get(tenant=gs_tenant, tenant_name=stack_tenant,
+                              username=stack_user)
         except ObjectDoesNotExist:
             if stack_tenant is None:
                 stack_tenant = prompt(cyan("Enter Openstack tenant name: "),
@@ -459,7 +458,7 @@ def django_admin_init(username='admin', password=None,
         from django.core.exceptions import ObjectDoesNotExist
 
         try:
-            user = get_user_model().objects.get(username=username)
+            get_user_model().objects.get(username=username)
         except ObjectDoesNotExist:
             fastprint(green("Creating Django admin account.\n"))
             if password is None:
@@ -561,7 +560,7 @@ def load(proj_settings=PROD_SETTINGS):
 
 
 @task
-def goldstone_init(django_admin_user='admin',
+def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
                    django_admin_password=None,
                    django_admin_email='root@localhost',
                    gs_tenant='default', gs_tenant_owner='None',
@@ -613,7 +612,7 @@ def goldstone_init(django_admin_user='admin',
 
 
 @task
-def install(pg_passwd='goldstone', rpm_file=None,
+def install(pg_passwd='goldstone', rpm_file=None,    # pylint: disable=R0913
             django_admin_user='admin',
             django_admin_password=None,
             django_admin_email='root@localhost',

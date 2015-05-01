@@ -19,9 +19,7 @@ import os.path
 import sys
 
 from contextlib import contextmanager
-from fabric.api import task, local, warn, prompt
-from fabric.colors import green, cyan
-from fabric.utils import fastprint
+from fabric.api import task, local, warn
 from fabric.operations import prompt
 
 # Add the current directory to the module search path.
