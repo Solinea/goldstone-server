@@ -310,63 +310,6 @@ def _reconcile_hosts(proj_settings=None):
         reconcile_hosts()
 
 
-def _tenant_init(tenant, tenant_owner, admin, password, settings=None):
-    """Create a tenant and default_tenant_admin, or use existing ones.
-
-    See the tenant_init() docstring for a description of the parameters.
-    """
-
-    print(green("\nInitializing the Goldstone tenant and OpenStack "
-                "connection."))
-
-    # Get the settings under which we should execute.
-    if not settings:
-        settings = PROD_SETTINGS
-
-    with _django_env(settings):
-        # It's important to do these imports here, after DJANGO_SETTINGS_MODULE
-        # has been changed!
-        from django.contrib.auth import get_user_model
-        from django.core.exceptions import ObjectDoesNotExist
-        from goldstone.tenants.models import Tenant
-
-        # Process the tenant.
-        try:
-            tenant = Tenant.objects.get(name=tenant)
-        except ObjectDoesNotExist:
-            # The tenant does not already exist. Create it.
-            tenant = Tenant.objects.create(name=tenant, owner=tenant_owner)
-        else:
-            # The tenant already exists. Print a message.
-            fastprint("\nTenant %s already exists.\n" % tenant)
-
-        # Process the tenant admin.
-        try:
-            user = get_user_model().objects.get(username=admin)
-        except ObjectDoesNotExist:
-            fastprint("Creating Goldstone tenant admin account.")
-            if password is None:
-                password = prompt(cyan("\nEnter Goldstone admin password: "))
-
-            user = get_user_model().objects.create_user(username=admin,
-                                                        password=password)
-            final_report['goldstone_admin_user'] = admin
-            final_report['goldstone_admin_pass'] = password
-        else:
-            # The tenant_admin already exists. Print a message.
-            fastprint("\nAdmin account %s already exists." % admin)
-            final_report['goldstone_admin_user'] = admin
-            final_report['goldstone_admin_pass'] = 'previously defined'
-
-        # Link the tenant_admin account to this tenant.
-        user.tenant = tenant
-        user.tenant_admin = True
-        user.default_tenant_admin = True
-        user.save()
-
-    return tenant, settings
-
-
 @task
 def cloud_init(gs_tenant, stack_tenant, stack_user, stack_password,
                stack_auth_url, settings=None):
@@ -533,12 +476,53 @@ def tenant_init(gs_tenant='default', gs_tenant_owner='None',
 
     """
 
-    # Create the tenant and tenant_admin.
-    tenant, settings = _tenant_init(gs_tenant,
-                                    gs_tenant_owner,
-                                    gs_tenant_admin,
-                                    gs_tenant_admin_password,
-                                    settings)
+    print(green(
+        "\nInitializing the Goldstone tenant and OpenStack connection."))
+
+    # Get the settings under which we should execute.
+    if not settings:
+        settings = PROD_SETTINGS
+
+    with _django_env(settings):
+        # It's important to do these imports here, after DJANGO_SETTINGS_MODULE
+        # has been changed!
+        from django.contrib.auth import get_user_model
+        from django.core.exceptions import ObjectDoesNotExist
+        from goldstone.tenants.models import Tenant
+
+        # Process the tenant.
+        try:
+            tenant = Tenant.objects.get(name=gs_tenant)
+        except ObjectDoesNotExist:
+            # The tenant does not already exist. Create it.
+            tenant = Tenant.objects.create(name=tenant, owner=gs_tenant_owner)
+        else:
+            # The tenant already exists. Print a message.
+            fastprint("\nTenant %s already exists.\n" % tenant)
+
+        # Process the tenant admin.
+        try:
+            user = get_user_model().objects.get(username=gs_tenant_admin)
+        except ObjectDoesNotExist:
+            fastprint("Creating Goldstone tenant admin account.")
+            if gs_tenant_admin_password is None:
+                password = prompt(cyan("\nEnter Goldstone admin password: "))
+
+            user = get_user_model().objects.create_user(
+                username=gs_tenant_admin, password=gs_tenant_admin_password)
+            final_report['goldstone_admin_user'] = gs_tenant_admin
+            final_report['goldstone_admin_pass'] = gs_tenant_admin_password
+        else:
+            # The tenant_admin already exists. Print a message.
+            fastprint("\nAdmin account %s already exists." % gs_tenant_admin)
+            final_report['goldstone_admin_user'] = gs_tenant_admin
+            final_report['goldstone_admin_pass'] = 'previously defined'
+
+        # Link the tenant_admin account to this tenant.
+        user.tenant = tenant
+        user.tenant_admin = True
+        user.default_tenant_admin = True
+        user.save()
 
     return tenant, settings
 
