@@ -103,9 +103,20 @@ If you receive the test email, Postfix is running correctly!
 
 If not, look in `/var/log/mail.log` to start diagnosing what's wrong.
 
-If you want Postfix to always start up when you boot your machine, edit
-`/System/Library/LaunchDaemons/org.postfix.master.plist`. After the `</dict>`,
-add this:
+#### Starting on a boot
+
+If you want Postfix to always start when you boot your machine, edit
+`/System/Library/LaunchDaemons/org.postfix.master.plist`. Insert this text after the `<dict>`:
+
+```
+<key>KeepAlive</key>
+<dict>
+   <key>SuccessfulExit</key>
+   <false/>
+</dict>
+```
+
+Insert this text before the `</dict>`:
 
 ```
 <key>RunAtLoad</key>
