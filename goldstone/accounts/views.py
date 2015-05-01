@@ -36,8 +36,12 @@ class RegistrationSerializer(UserRegistrationWithAuthTokenSerializer):
 
 
 class RegistrationView(DjoserRegistrationView):
-    """Subclass Djoser's corresponding RegistrationView so we can attach our
-    custom serializer."""
+    """Register a new user account.
+
+    This subclasses Djoser's RegistrationView so we can attach our custom
+    serializer.
+
+    """
 
     def get_serializer_class(self):
         """Return the serializer class."""

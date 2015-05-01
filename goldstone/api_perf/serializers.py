@@ -46,7 +46,8 @@ class ApiPerfAggSerializer(ReadOnlyElasticSerializer):
         return {self.DATEHIST_AGG_NAME: data}
 
     @staticmethod
-    def _process_range(range):
+    def _process_range(process_range):
         """Reformat the range buckets."""
+
         return [{key: value['doc_count']}
-                for key, value in range['buckets'].items()]
+                for key, value in process_range['buckets'].items()]

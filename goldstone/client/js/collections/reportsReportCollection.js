@@ -41,10 +41,10 @@ var ReportsReportCollection = Backbone.Collection.extend({
 
         this.url = "/core/report_names?node=" +
             this.defaults.nodeName +
-            "&timestamp__range={'gte':" + (+new Date() - this.defaults.globalLookback * 1000 * 60) +
+            "&@timestamp__range={'gte':" + (+new Date() - this.defaults.globalLookback * 1000 * 60) +
             "}";
 
-        // /core/report_names?node=ctrl-01&timestamp__range={%27gte%27:1427189954471}
+        // /core/report_names?node=ctrl-01&@timestamp__range={%27gte%27:1427189954471}
 
         this.fetch();
     }

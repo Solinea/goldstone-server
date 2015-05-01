@@ -12,34 +12,81 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import logging
 from goldstone.core.utils import JsonReadOnlyViewSet
 from .models import EndpointsData, RolesData, ServicesData, TenantsData, \
     UsersData
 
-logger = logging.getLogger(__name__)
 
-
+# Our API documentation extracts this docstring, hence the use of markup.
 class EndpointsDataViewSet(JsonReadOnlyViewSet):
+    """Return Endpoints data.
+
+    \n\nQuery string parameters:\n
+
+    <b>zone</b>: The desired zone.\n
+    <b>region</b>: The desired region.\n\n
+
+    """
+
     model = EndpointsData
     key = 'endpoints'
 
 
+# Our API documentation extracts this docstring, hence the use of markup.
 class RolesDataViewSet(JsonReadOnlyViewSet):
+    """Return Roles data.
+
+    \n\nQuery string parameters:\n
+
+    <b>zone</b>: The desired zone.\n
+    <b>region</b>: The desired region.\n\n
+
+    """
+
     model = RolesData
     key = 'roles'
 
 
+# Our API documentation extracts this docstring, hence the use of markup.
 class ServicesDataViewSet(JsonReadOnlyViewSet):
+    """Return Services data.
+
+    \n\nQuery string parameters:\n
+
+    <b>zone</b>: The desired zone.\n
+    <b>region</b>: The desired region.\n\n
+
+    """
+
     model = ServicesData
     key = 'services'
 
 
+# Our API documentation extracts this docstring, hence the use of markup.
 class TenantsDataViewSet(JsonReadOnlyViewSet):
+    """Return Tenants data.
+
+    \n\nQuery string parameters:\n
+
+    <b>zone</b>: The desired zone.\n
+    <b>region</b>: The desired region.\n\n
+
+    """
+
     model = TenantsData
     key = 'tenants'
 
 
+# Our API documentation extracts this docstring, hence the use of markup.
 class UsersDataViewSet(JsonReadOnlyViewSet):
+    """Return Users data.
+
+    \n\nQuery string parameters:\n
+
+    <b>zone</b>: The desired zone.\n
+    <b>region</b>: The desired region.\n\n
+
+    """
+
     model = UsersData
     key = 'users'

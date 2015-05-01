@@ -16,6 +16,16 @@ from goldstone.core.utils import JsonReadOnlyViewSet
 from .models import ImagesData
 
 
+# Our API documentation extracts this docstring, hence the use of markup.
 class ImagesDataViewSet(JsonReadOnlyViewSet):
+    """Return Images data.
+
+    \n\nQuery string parameters:\n
+
+    <b>zone</b>: The desired zone.\n
+    <b>region</b>: The desired region.\n\n
+
+    """
+
     model = ImagesData
     key = 'images'

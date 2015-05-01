@@ -1,3 +1,5 @@
+# Pip requirements file.
+#
 # Copyright 2015 Solinea, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,11 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# This file is here because many Platforms as a Service look for
-#        requirements.txt in the root directory of a project.
-# requirements/base.txt is linked to it.
-
 Django==1.6.11
 South==1.0.2
 arrow==0.4.4
@@ -25,8 +22,11 @@ django-extensions==1.5.1
 django-filter==0.9.2
 django-polymorphic
 django-rest-params==1.0.2
+django-rest-swagger==0.2.9
 djangorestframework==3.1.0
-djoser==0.2.1
+###The Djoser version in Pypi breaks swagger. Pull it from the master branch, until the fix is released.
+###djoser==0.2.1
+-e git+https://github.com/sunscrapers/djoser.git#egg=djoser
 drf-extensions==0.2.7
 elasticsearch-curator
 elasticsearch-dsl
