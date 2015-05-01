@@ -98,7 +98,7 @@ var LogoutIcon = GoldstoneBaseView.extend({
             // and redirect to /login
             // if failed, raise alert and don't redirect
 
-            $.post('/accounts/logout')
+            $.post('/accounts/logout/')
                 .done(function() {
                     goldstone.raiseSuccess('Logout Successful');
                     self.clearToken();
