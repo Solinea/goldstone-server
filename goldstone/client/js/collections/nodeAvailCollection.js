@@ -85,21 +85,25 @@ var NodeAvailCollection = Backbone.Collection.extend({
         this.defaults.fetchInProgress = true;
         this.defaults.urlsToFetch = [];
 
-        var lookbackSeconds = (this.computeLookback() * 60);
+        var lookbackMinutes = (this.computeLookback());
+        var lookbackSeconds = (lookbackMinutes * 60);
+        var lookbackMilliseconds = (lookbackSeconds * 1000);
 
         // this is the url with the small interval to gather a more
-        // accurate assessment of the time the node was last seen
+        // accurate assessment of the time the node was last seen.
+        // creating approximately 24 buckets for a good mix of accuracy/speed.
         this.defaults.urlsToFetch[0] = '' +
             '/logging/summarize/?@timestamp__range={"gte":' +
-            (+new Date() - (lookbackSeconds * 1000)) +
-            '}&interval=' + (lookbackSeconds / 60) + 'm';
+            (+new Date() - (lookbackMilliseconds)) +
+            '}&interval=' + Math.max(1, (lookbackMinutes / 24)) + 'm';
 
-        // this is the url with the 1d lookback to bucket ALL
+        // this is the url with the long lookback to bucket ALL
         // the values into a single return value per alert level.
+        // currently magnifying 1 day (or portion thereof) into 1 week.
         this.defaults.urlsToFetch[1] = '' +
             '/logging/summarize/?@timestamp__range={"gte":' +
-            (+new Date() - (lookbackSeconds * 1000)) +
-            '}&interval=1d';
+            (+new Date() - (lookbackMilliseconds)) +
+            '}&interval=' + (Math.ceil(lookbackMinutes / 1440)) + 'w';
 
         // don't add {remove:false} to the initial fetch
         // as it will introduce an artifact that will

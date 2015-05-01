@@ -237,7 +237,7 @@ TENANT_OWNER_MAX_LENGTH = 80
 DJOSER = {'DOMAIN': getfqdn(),
           'SITE_NAME': 'Goldstone',
           'PASSWORD_RESET_CONFIRM_URL':
-          '/accounts/password/reset/enter/{uid}/{token}/',
+          'accounts/password/reset/enter/{uid}/{token}/',
           'ACTIVATION_URL': '#/activate/{uid}/{token}/',
           'LOGIN_AFTER_REGISTRATION': True,
           }
