@@ -40,14 +40,16 @@ To test Goldstone's password-reset sequence, you'll need an
 running on your development machine.
 
 Since [Postfix](http://www.postfix.org) is nigh-universal, here's how to
-configure it to relay outgoing mail to a Gmail account, on OS X:
+configure it to relay outgoing mail to a Gmail account, on OS X.
+
+First, if you're in a virtual ("workon") environment, deactivate it. Then:
 
 ```bash
     $ sudo bash
     root# cd /etc/postfix
 ```
 
-Edit `main.cf` and make these changes and additions:
+Edit `main.cf`. If any of these variables are already in the file, change them to what's listed here.  Otherwise, add these lines to the end of the file:
 ```
 myhostname = localhost
 relayhost = [smtp.gmail.com]:587
@@ -59,7 +61,7 @@ smtp_tls_CAfile = /etc/postfix/systemdefault.pem
 smtp_use_tls = yes
 ```
 
-Create `sasl_passwd` and put this line in it, plugging in your e-mail username
+Create the file, `/etc/postfix/sasl_passwd`.  Add this line to it, plugging in your e-mail username
 and password:
 ```
 [smtp.gmail.com]:587 EMAIL_USERNAME:PASSWORD
@@ -75,14 +77,20 @@ Then:
 ```
 
 Now put a valid certificate into
-`/etc/postfix/systemdefault.pem`. Here's one way to do this:
+`/etc/postfix/systemdefault.pem`. Here's one way to do it:
 
 1. Launch the KeyChain Access application
 2. In the sidebar, select "System" and "Certificates"
 3. In the main window, select `com.apple.systemdefault`
 4. `File | Export Items...`
-5. Select "Privacy Enhanced Mail (.pem)" and save it to
-`/etc/postfix/systemdefault.pem`
+5. Select "Privacy Enhanced Mail (.pem)" and save it to your Desktop.
+
+Move the file you just saved to `/etc/postfix/systemdefault.pem`.
+
+Then, chown the file so that root owns it:
+```bash
+    root# chown root /etc/postfix/systemdefault.pem
+```
 
 Now start postfix and test it:
 
