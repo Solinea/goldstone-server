@@ -140,7 +140,7 @@ def _centos6_setup_postgres(pg_passwd):
     from os import rename
 
     print()
-    print(green("Configuring PostgreSQL..."))
+    print(green("Configuring PostgreSQL."))
 
     if not os.path.exists(CENTOS_PG_HBA):
         subprocess.call('service postgresql initdb'.split())
@@ -160,22 +160,23 @@ def _centos6_setup_postgres(pg_passwd):
     subprocess.call('su - postgres -c "' + remote_cmd + '"', shell=True)
 
     # grep returns 0/False if a match is found, 1/True if not.
-    if subprocess.call(
-            "grep -q goldstone /var/lib/pgsql/data/pg_hba.conf".split()):
+    cmd = "grep -q goldstone " + CENTOS_PG_HBA
+    if subprocess.call(cmd.split()):
 
         # edit the pg_hba.conf if not goldstone entry was found.
         rename(CENTOS_PG_HBA, CENTOS_PG_HBA_BACKUP)
-        pg_hba_fd = open(CENTOS_PG_HBA, 'w')
-        print("local\tall\tgoldstone\tpassword", file=pg_hba_fd)
-        print("host\tall\tgoldstone\t127.0.0.1/32\tpassword", file=pg_hba_fd)
-        print("host\tall\tgoldstone\t::1/128\tpassword", file=pg_hba_fd)
+        with nested(open(CENTOS_PG_HBA, 'w'), open(CENTOS_PG_HBA_BACKUP, 'r')) \
+                as (pg_hba_fd, infile):
 
-        # now tack on the original file
-        with open(CENTOS_PG_HBA_BACKUP) as infile:
+            print("local\tall\tgoldstone\tpassword", file=pg_hba_fd)
+            print("host\tall\tgoldstone\t127.0.0.1/32\tpassword",
+                  file=pg_hba_fd)
+            print("host\tall\tgoldstone\t::1/128\tpassword", file=pg_hba_fd)
+            # now tack on the original file
             pg_hba_fd.write(infile.read())
 
         # reload the config
-        subprocess.call('service postgresql restart'.split())
+        subprocess.call('service postgresql force-reload'.split())
         # ugly, but using pg_ctl reload doesn't wait, and pg_ctl restart
         # puts it out of sync with service control.
         sleep(10)
@@ -493,30 +494,29 @@ def tenant_init(gs_tenant='default', gs_tenant_owner='None',
         # Process the tenant.
         try:
             tenant = Tenant.objects.get(name=gs_tenant)
+            fastprint("\nTenant %s already exists.\n" % tenant)
         except ObjectDoesNotExist:
             # The tenant does not already exist. Create it.
-            tenant = Tenant.objects.create(name=tenant, owner=gs_tenant_owner)
-        else:
-            # The tenant already exists. Print a message.
-            fastprint("\nTenant %s already exists.\n" % tenant)
+            tenant = Tenant.objects.create(name=gs_tenant,
+                                           owner=gs_tenant_owner)
 
         # Process the tenant admin.
         try:
             user = get_user_model().objects.get(username=gs_tenant_admin)
+            # The tenant_admin already exists. Print a message.
+            fastprint("\nAdmin account %s already exists." % gs_tenant_admin)
+            final_report['goldstone_admin_user'] = gs_tenant_admin
+            final_report['goldstone_admin_pass'] = 'previously defined'
         except ObjectDoesNotExist:
             fastprint("Creating Goldstone tenant admin account.")
             if gs_tenant_admin_password is None:
-                password = prompt(cyan("\nEnter Goldstone admin password: "))
+                gs_tenant_admin_password = prompt(
+                    cyan("\nEnter Goldstone admin password: "))
 
             user = get_user_model().objects.create_user(
                 username=gs_tenant_admin, password=gs_tenant_admin_password)
             final_report['goldstone_admin_user'] = gs_tenant_admin
             final_report['goldstone_admin_pass'] = gs_tenant_admin_password
-        else:
-            # The tenant_admin already exists. Print a message.
-            fastprint("\nAdmin account %s already exists." % gs_tenant_admin)
-            final_report['goldstone_admin_user'] = gs_tenant_admin
-            final_report['goldstone_admin_pass'] = 'previously defined'
 
         # Link the tenant_admin account to this tenant.
         user.tenant = tenant
@@ -675,7 +675,7 @@ def install(pg_passwd='goldstone', rpm_file=None,    # pylint: disable=R0913
 
     else:
         print()
-        abort('This appears to be an unsupported platform. Exiting...')
+        abort('This appears to be an unsupported platform. Exiting.')
 
 
 @task
