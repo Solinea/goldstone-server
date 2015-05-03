@@ -624,7 +624,7 @@ TODO: probably change this to d.timestamp
             .on("mouseover", ns.tooltip.show)
             .on("mouseout", ns.tooltip.hide)
             .on("click", function(d) {
-                window.location.href = '#/report/node/' + d.name;
+                window.location.href = '#report/node/' + d.name;
             });
 
         this.redraw();

@@ -60,12 +60,12 @@ var ApiPerfCollection = Backbone.Collection.extend({
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
-        this.url = '/api_perf/stats?@timestamp__range={"gte":' + ns.reportParams.start +
+        this.url = '/api_perf/stats/?@timestamp__range={"gte":' + ns.reportParams.start +
             '}&interval=' + ns.reportParams.interval +
             '&component=' + this.defaults.componentParam;
 
         // generates url string similar to:
-        // /api_perf/stats?@timestamp__range={%22gte%22:1428556490}&interval=60s&component=glance
+        // /api_perf/stats/?@timestamp__range={%22gte%22:1428556490}&interval=60s&component=glance
 
     }
 });

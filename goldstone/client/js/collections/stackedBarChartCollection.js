@@ -68,6 +68,6 @@ var StackedBarChartCollection = Backbone.Collection.extend({
     }
 
     // creates a url similar to:
-    // /nova/hypervisor/spawns?@timestamp__range={"gte":1429027100000}&interval=1h
+    // /nova/hypervisor/spawns/?@timestamp__range={"gte":1429027100000}&interval=1h
 
 });

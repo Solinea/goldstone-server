@@ -50,7 +50,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
             // email fields seem to have native .trim() support
 
             // 4th argument informs what will be appeneded to screen upon success
-            self.submitRequest('PUT', '/tenants/' + tenandId, $(this).serialize(), 'Tenant settings');
+            self.submitRequest('PUT', '/tenants/' + tenandId + '/', $(this).serialize(), 'Tenant settings');
         });
     },
 
@@ -110,7 +110,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
     getTenantSettings: function() {
         var self = this;
 
-        $.get('/tenants')
+        $.get('/tenants/')
             .done(function(result) {
 
                 if (result.results) {

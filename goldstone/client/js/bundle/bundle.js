@@ -784,6 +784,8 @@ var GoldstoneRouter = Backbone.Router.extend({
     routes: {
         "api_perf/report": "apiPerfReport",
         "cinder/report": "cinderReport",
+        // http://localhost:8000/accounts/password/reset/enter/Mg/41d-48e3d728de5653ca9a6b/
+        "client/newpasswordenter/?*uidToken": "newPasswordView",
         "discover": "discover",
         "glance/report": "glanceReport",
         "help": "help",
@@ -921,6 +923,11 @@ var GoldstoneRouter = Backbone.Router.extend({
     neutronReport: function() {
         this.switchView(NeutronReportView);
     },
+    newPasswordView: function(uidToken) {
+        this.switchView(NewPasswordView, {
+            uidToken: uidToken
+        });
+    },
     nodeReport: function(nodeId) {
         this.switchView(NodeReportView, {
             node_uuid: nodeId
@@ -933,7 +940,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(PasswordResetView);
     },
     redirect: function() {
-        location.href = "#/discover";
+        location.href = "#discover";
     },
     settings: function() {
         this.switchView(SettingsPageView);
@@ -1644,12 +1651,12 @@ var ApiPerfCollection = Backbone.Collection.extend({
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
-        this.url = '/api_perf/stats?@timestamp__range={"gte":' + ns.reportParams.start +
+        this.url = '/api_perf/stats/?@timestamp__range={"gte":' + ns.reportParams.start +
             '}&interval=' + ns.reportParams.interval +
             '&component=' + this.defaults.componentParam;
 
         // generates url string similar to:
-        // /api_perf/stats?@timestamp__range={%22gte%22:1428556490}&interval=60s&component=glance
+        // /api_perf/stats/?@timestamp__range={%22gte%22:1428556490}&interval=60s&component=glance
 
     }
 });
@@ -1717,12 +1724,12 @@ var CpuResourceCollection = Backbone.Collection.extend({
         var ns = this.defaults;
 
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        this.url = '/core/metrics?name__prefix=nova.hypervisor.vcpus&@timestamp__range={"gte":' +
+        this.url = '/core/metrics/?name__prefix=nova.hypervisor.vcpus&@timestamp__range={"gte":' +
             moment(ns.reportParams.start).valueOf() + '}';
     }
 
     // creates a url similar to:
-    // /core/metrics?name__prefix=nova.hypervisor.vcpus&@timestamp__range={"gte":1426887188000}
+    // /core/metrics/?name__prefix=nova.hypervisor.vcpus&@timestamp__range={"gte":1426887188000}
 });
 ;
 /**
@@ -1789,12 +1796,12 @@ var DiskResourceCollection = Backbone.Collection.extend({
         var ns = this.defaults;
 
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        this.url = '/core/metrics?name__prefix=nova.hypervisor.local_gb&@timestamp__range={"gte":' +
+        this.url = '/core/metrics/?name__prefix=nova.hypervisor.local_gb&@timestamp__range={"gte":' +
             moment(ns.reportParams.start).valueOf() + '}';
     }
 
     // creates a url similar to:
-    // /core/metrics?name__prefix=nova.hypervisor.local_gb&@timestamp__range={"gte":1429058361304}
+    // /core/metrics/?name__prefix=nova.hypervisor.local_gb&@timestamp__range={"gte":1429058361304}
 });
 ;
 /**
@@ -1891,10 +1898,10 @@ var EventTimelineCollection = Backbone.Collection.extend({
 
     urlUpdate: function(val) {
         // creates a url similar to:
-        // /logging/events?@timestamp__range={"gte":1426698303974}&page_size=1000"
+        // /logging/events/search/?@timestamp__range={"gte":1426698303974}&page_size=1000"
 
         var lookback = +new Date() - (val * 60 * 1000);
-        this.url = '/logging/events/search?@timestamp__range={"gte":' +
+        this.url = '/logging/events/search/?@timestamp__range={"gte":' +
             lookback + '}&page_size=1000';
 
     }
@@ -2284,12 +2291,12 @@ var MemResourceCollection = Backbone.Collection.extend({
         var ns = this.defaults;
 
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        this.url = '/core/metrics?name__prefix=nova.hypervisor.mem&@timestamp__range={"gte":' +
+        this.url = '/core/metrics/?name__prefix=nova.hypervisor.mem&@timestamp__range={"gte":' +
             moment(ns.reportParams.start).valueOf() + '}';
     }
 
     // creates a url similar to:
-    // /core/metrics?name__prefix=nova.hypervisor.mem&@timestamp__range={"gte":1426887188000}
+    // /core/metrics/?name__prefix=nova.hypervisor.mem&@timestamp__range={"gte":1426887188000}
 
 });
 ;
@@ -2358,7 +2365,7 @@ var MetricViewerCollection = Backbone.Collection.extend({
     },
 
     retrieveData: function() {
-        this.url = "/core/metric_names";
+        this.url = "/core/metric_names/";
         this.fetch();
     }
 });
@@ -2381,9 +2388,7 @@ var MetricViewerCollection = Backbone.Collection.extend({
 
 /*
 Instantiated on discoverView as:
-var nodeAvailChart = new NodeAvailCollection({
-    url: "/logging/nodes?page_size=100"
-});
+    this.nodeAvailChart = new NodeAvailCollection({});
 */
 
 var NodeAvailModel = GoldstoneBaseModel.extend({});
@@ -2460,7 +2465,7 @@ var NodeAvailCollection = Backbone.Collection.extend({
         // accurate assessment of the time the node was last seen.
         // creating approximately 24 buckets for a good mix of accuracy/speed.
         this.defaults.urlsToFetch[0] = '' +
-            '/logging/summarize?@timestamp__range={"gte":' +
+            '/logging/summarize/?@timestamp__range={"gte":' +
             (+new Date() - (lookbackMilliseconds)) +
             '}&interval=' + Math.max(1, (lookbackMinutes / 24)) + 'm';
 
@@ -2468,7 +2473,7 @@ var NodeAvailCollection = Backbone.Collection.extend({
         // the values into a single return value per alert level.
         // currently magnifying 1 day (or portion thereof) into 1 week.
         this.defaults.urlsToFetch[1] = '' +
-            '/logging/summarize?@timestamp__range={"gte":' +
+            '/logging/summarize/?@timestamp__range={"gte":' +
             (+new Date() - (lookbackMilliseconds)) +
             '}&interval=' + (Math.ceil(lookbackMinutes / 1440)) + 'w';
 
@@ -2533,12 +2538,12 @@ var ReportsReportCollection = Backbone.Collection.extend({
     retrieveData: function() {
         var self = this;
 
-        this.url = "/core/report_names?node=" +
+        this.url = "/core/report_names/?node=" +
             this.defaults.nodeName +
             "&@timestamp__range={'gte':" + (+new Date() - this.defaults.globalLookback * 1000 * 60) +
             "}";
 
-        // /core/report_names?node=ctrl-01&@timestamp__range={%27gte%27:1427189954471}
+        // /core/report_names/?node=ctrl-01&@timestamp__range={%27gte%27:1427189954471}
 
         this.fetch();
     }
@@ -2591,11 +2596,11 @@ var ServiceStatusCollection = Backbone.Collection.extend({
     retrieveData: function() {
         var twentyAgo = (+new Date() - (1000 * 60 * 20));
 
-        this.url = "/core/reports?name__prefix=os.service&node__prefix=" +
+        this.url = "/core/reports/?name__prefix=os.service&node__prefix=" +
             this.defaults.nodeName + "&page_size=300" +
             "&@timestamp__range={'gte':" + twentyAgo +"}";
 
-        // this.url similar to: /core/reports?name__prefix=os.service&node__prefix=rsrc-01&page_size=300&@timestamp__gte=1423681500026
+        // this.url similar to: /core/reports/?name__prefix=os.service&node__prefix=rsrc-01&page_size=300&@timestamp__gte=1423681500026
 
         this.fetch();
     }
@@ -2671,7 +2676,7 @@ var StackedBarChartCollection = Backbone.Collection.extend({
     }
 
     // creates a url similar to:
-    // /nova/hypervisor/spawns?@timestamp__range={"gte":1429027100000}&interval=1h
+    // /nova/hypervisor/spawns/?@timestamp__range={"gte":1429027100000}&interval=1h
 
 });
 ;
@@ -2745,7 +2750,7 @@ var UtilizationCpuCollection = Backbone.Collection.extend({
         var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
 
         _.each(self.defaults.urlPrefixes, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.cpu." + prefix + "&node=" +
+            self.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.cpu." + prefix + "&node=" +
                 self.defaults.nodeName + "&@timestamp__range={'gte':" +
                 lookback + "}&page_size=1000");
         });
@@ -2839,11 +2844,11 @@ var UtilizationMemCollection = Backbone.Collection.extend({
         // grabs minutes from global selector option value
         var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
 
-        this.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.mem." + this.defaults.urlPrefixes[0] + "&node=" +
+        this.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.mem." + this.defaults.urlPrefixes[0] + "&node=" +
             this.defaults.nodeName + "&@timestamp__range={'gte':" +
             lookback + "}&page_size=1");
 
-        this.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.mem." + this.defaults.urlPrefixes[1] + "&node=" +
+        this.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.mem." + this.defaults.urlPrefixes[1] + "&node=" +
             this.defaults.nodeName + "&@timestamp__range={'gte':" +
             lookback + "}&page_size=1000");
 
@@ -2937,7 +2942,7 @@ var UtilizationNetCollection = Backbone.Collection.extend({
         var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
 
         _.each(self.defaults.urlPrefixes, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics?name__prefix=os.net." + prefix + "&node=" +
+            self.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.net." + prefix + "&node=" +
                 self.defaults.nodeName + "&@timestamp__range={'gte':" +
                 lookback + "}&page_size=1000");
         });
@@ -2994,7 +2999,7 @@ var ZoomablePartitionCollection = Backbone.Collection.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
-        this.url = "/core/nav_tree";
+        this.url = "/core/nav_tree/";
         this.fetch();
     }
 });
@@ -3571,7 +3576,7 @@ var LogoutIcon = GoldstoneBaseView.extend({
             // and redirect to /login
             // if failed, raise alert and don't redirect
 
-            $.post('/accounts/logout')
+            $.post('/accounts/logout/')
                 .done(function() {
                     goldstone.raiseSuccess('Logout Successful');
                     self.clearToken();
@@ -3590,7 +3595,7 @@ var LogoutIcon = GoldstoneBaseView.extend({
     },
 
     redirectToLogin: function() {
-        location.href = "#/login";
+        location.href = "#login";
     },
 
     render: function() {
@@ -4592,12 +4597,12 @@ var EventsReportView = GoldstoneBaseView.extend({
         // subtracts correct ms from current time
         var lookback = now - (1000 * 60 * this.defaults.globalLookback);
 
-        var urlRouteConstruction = '/logging/events/search?host=' +
+        var urlRouteConstruction = '/logging/events/search/?host=' +
             this.defaults.hostName +
             '&@timestamp__range={"gte":' + lookback + ',"lte":' + now + '}';
 
         // makes a route similar to:
-        // /logging/events/search?host=rsrc-01&@timestamp__range={"gte":1426019353333,"lte":1427245753333}
+        // /logging/events/search/?host=rsrc-01&@timestamp__range={"gte":1426019353333,"lte":1427245753333}
 
         // this will be added by the dataTables beforeSend section:
         // &page_size=10&page=1&log_message__regexp=.*blah.*
@@ -5713,7 +5718,7 @@ openstack syslog severity levels:
         el: '.log-analysis-container',
         featureSet: 'logEvents',
         chartTitle: 'Log Analysis',
-        urlRoot: "/logging/summarize?",
+        urlRoot: "/logging/summarize/?",
 
     });
 */
@@ -6159,7 +6164,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        var uri = '/logging/search?';
+        var uri = '/logging/search/?';
 
         if (ns.specificHost) {
             uri += 'host=' + ns.specificHost + '&';
@@ -6186,7 +6191,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
 
         /*
         makes a url such as:
-        /logging/search?@timestamp__range={%22gte%22:1426981050017,%22lte%22:1426984650017}&loglevel__terms=[%22EMERGENCY%22,%22ALERT%22,%22CRITICAL%22,%22ERROR%22,%22WARNING%22,%22NOTICE%22,%22INFO%22,%22DEBUG%22]
+        /logging/search/?@timestamp__range={%22gte%22:1426981050017,%22lte%22:1426984650017}&loglevel__terms=[%22EMERGENCY%22,%22ALERT%22,%22CRITICAL%22,%22ERROR%22,%22WARNING%22,%22NOTICE%22,%22INFO%22,%22DEBUG%22]
         with "&host=node-01" added in if this is a node report page
         */
     },
@@ -6537,7 +6542,7 @@ var LogSearchView = GoldstoneBasePageView.extend({
             el: '.log-analysis-container',
             featureSet: 'logEvents',
             chartTitle: 'Log Analysis',
-            urlRoot: "/logging/summarize?",
+            urlRoot: "/logging/summarize/?",
             specificHost: ns.specificHost
         });
     },
@@ -6635,7 +6640,8 @@ var LoginPageView = GoldstoneBaseView.extend({
         // via $.post to check the credentials. If successful, invoke "done"
         // if not, invoke "fail"
 
-        $.post('/accounts/login', input, function() {})
+        $.post('/accounts/login/', input, function() {
+        })
             .done(function(success) {
 
                 // store the auth token
@@ -6681,7 +6687,7 @@ var LoginPageView = GoldstoneBaseView.extend({
         '<input name="password" type="password" class="form-control" placeholder="Password" required><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>' +
         '</form>' +
-        '<div id="forgotUsername"><a href="#/password">Forgot username or password?</a></div>' +
+        '<div id="forgotUsername"><a href="#password">Forgot username or password?</a></div>' +
         '</div>' +
         '</div>' +
         '</div>'
@@ -7290,7 +7296,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
         // chartOptions is a backbone Model instantiated in initialize:
         var options = this.chartOptions.attributes;
 
-        var url = '/core/metrics/summarize?name=' +
+        var url = '/core/metrics/summarize/?name=' +
             options.metric + '&@timestamp__range={"gte":' +
             (+new Date() - (options.lookback * 60 * 1000)) +
             '}&interval=' + options.interval;
@@ -7301,7 +7307,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         /*
             constructs a url similar to:
-            /core/metrics/summarize?name=os.cpu.user
+            /core/metrics/summarize/?name=os.cpu.user
             &@timestamp__range={'gte':1429649259172}&interval=1m
         */
 
@@ -7606,6 +7612,118 @@ var NeutronReportView = GoldstoneBasePageView.extend({
     template: _.template('' +
         '<div id="neutron-report-r1" class="row">' +
         '<div id="neutron-report-r1-c1" class="col-md-6"></div>' +
+        '</div>'
+    )
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var NewPasswordView = GoldstoneBaseView.extend({
+
+    defaults: {},
+
+    initialize: function(options) {
+        this.options = options || {};
+        this.defaults = _.clone(this.defaults);
+        this.el = options.el;
+        this.render();
+        this.addHandlers();
+    },
+
+    addHandlers: function() {
+        var self = this;
+
+        $('.new-password-form').on('submit', function(e) {
+            e.preventDefault();
+
+            var $password = $('#password');
+            var $confirm_password = $('#confirm_password');
+
+            if ($password.val() !== $confirm_password.val()) {
+                goldstone.raiseWarning("Passwords don't match");
+            } else {
+
+                // options.uidToken is passed in when the view is
+                // instantiated via goldstoneRouter.js
+
+                self.submitRequest(self.options.uidToken + '&' + $(this).serialize());
+            }
+        });
+    },
+
+    clearFields: function() {
+        // clear input fields
+        $('#password').val('');
+        $('#confirm_password').val('');
+    },
+
+    submitRequest: function(input) {
+        var self = this;
+
+        // Upon clicking the submit button, the serialized user input is sent
+        // via $.post to check the credentials. If successful, invoke "done"
+        // if not, invoke "fail"
+
+        $.post('/accounts/password/reset/confirm/', input, function() {})
+            .done(function(success) {
+
+                // clear input fields
+                self.clearFields();
+
+                // and add a success message to the top of the screen
+                goldstone.raiseInfo('You have successfully changed your password.');
+
+                Backbone.history.navigate('#login', true);
+
+            })
+            .fail(function(fail) {
+                // and add a message to the top of the screen that logs what
+                // is returned from the call
+                if (fail.non_field_errors) {
+                    goldstone.raiseWarning(fail.non_field_errors);
+                } else {
+                    // clear input fields
+                    self.clearFields();
+                    goldstone.raiseWarning('Password reset failed');
+                }
+
+            });
+    },
+
+    render: function() {
+        this.$el.html(this.template());
+        return this;
+    },
+
+    template: _.template('' +
+        '<div class="container">' +
+        '<div class="row">' +
+        '<div class="col-md-4 col-md-offset-4">' +
+        '<form class="new-password-form">' +
+        '<h3>Enter new password</h3>' +
+        '<label for="new_password">New password</label>' +
+        '<input name="new_password" type="password" class="form-control" id="password" placeholder="Enter new password" required autofocus><br>' +
+        '<label>Password again for confirmation</label>' +
+        '<input type="password" class="form-control" id="confirm_password" placeholder="Confirm password" required><br>' +
+        '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Reset password</button>' +
+        '</form>' +
+        '</div>' +
+        '</div>' +
         '</div>'
     )
 
@@ -8237,7 +8355,7 @@ TODO: probably change this to d.timestamp
             .on("mouseover", ns.tooltip.show)
             .on("mouseout", ns.tooltip.hide)
             .on("click", function(d) {
-                window.location.href = '#/report/node/' + d.name;
+                window.location.href = '#report/node/' + d.name;
             });
 
         this.redraw();
@@ -8779,8 +8897,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Libvirt core/vm chart
         this.hypervisorCoreChart = new HypervisorCollection({
-            url: "/core/report_names?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
-            // url: "/api_perf/stats?start=111&end=112&interval=60s&component=nova",
+            url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
             globalLookback: ns.globalLookback
         });
 
@@ -8795,8 +8912,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Libvirt mem/vm  chart
         this.hypervisorMemoryChart = new HypervisorCollection({
-            url: "/core/report_names?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
-            // url: "/api_perf/stats?start=111&end=112&interval=60s&component=nova",
+            url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
             globalLookback: ns.globalLookback
         });
         this.hypervisorMemoryView = new HypervisorView({
@@ -8809,8 +8925,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Libvirt top 10 CPU consumer VMs chart
         this.hypervisorVmCpuChart = new HypervisorVmCpuCollection({
-            url: "/core/report_names?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
-            // url: "/api_perf/stats?start=111&end=112&interval=60s&component=nova",
+            url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
             globalLookback: ns.globalLookback
         });
 
@@ -8865,7 +8980,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
             featureSet: 'logEvents',
             chartTitle: 'Log Analysis',
             specificHost: this.node_uuid,
-            urlRoot: "/logging/summarize?",
+            urlRoot: "/logging/summarize/?",
         });
     },
 
@@ -9003,7 +9118,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
         */
 
         this.vmSpawnChart = new StackedBarChartCollection({
-            urlPrefix: '/nova/hypervisor/spawns'
+            urlPrefix: '/nova/hypervisor/spawns/'
         });
 
         this.vmSpawnChartView = new StackedBarChartView({
@@ -9130,7 +9245,7 @@ var PasswordResetView = GoldstoneBaseView.extend({
         // via $.post to check the credentials. If successful, invoke "done"
         // if not, invoke "fail"
 
-        $.post('/accounts/password/reset', input, function() {})
+        $.post('/accounts/password/reset/', input, function() {})
             .done(function(success) {
 
                 // and add a message to the top of the screen that logs what
@@ -9162,7 +9277,7 @@ var PasswordResetView = GoldstoneBaseView.extend({
         '<input name="email" type="email" class="form-control" placeholder="Enter email associated with your account" required autofocus><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Send reset email</button>' +
         '</form>' +
-        '<div id="cancelReset"><a href="#/login">Cancel and return to login</a></div>' +
+        '<div id="cancelReset"><a href="#login">Cancel and return to login</a></div>' +
         '</div>' +
         '</div>' +
         '</div>'
@@ -9214,7 +9329,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // request page_size=1 in order to only
         // retrieve the latest result
 
-        var urlRouteConstruction = '/core/reports?name=' +
+        var urlRouteConstruction = '/core/reports/?name=' +
             report + '&page_size=1&node=' +
             this.defaults.hostName;
         return urlRouteConstruction;
@@ -9730,7 +9845,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
             '<button class="btn btn-lg btn-danger btn-block modify">Modify tenant settings</button>');
 
         $('button.modify').on('click', function() {
-            window.location.href = "#/settings/tenants";
+            window.location.href = "#settings/tenants";
         });
     },
 
@@ -9767,7 +9882,7 @@ var SettingsPageView = GoldstoneBaseView.extend({
     getUserSettings: function() {
         var self = this;
 
-        $.get('/user')
+        $.get('/user/')
             .done(function(result) {
                 $(self.el).find('[name="username"]').val(result.username);
                 $(self.el).find('[name="first_name"]').val(result.first_name);
@@ -9805,13 +9920,13 @@ var SettingsPageView = GoldstoneBaseView.extend({
             // support based on the type="email"
 
             // 4th argument informs what will be appeneded to screen upon success
-            self.submitRequest('PUT', '/user', $(this).serialize(), 'Settings');
+            self.submitRequest('PUT', '/user/', $(this).serialize(), 'Settings');
         });
 
         // add listener to password form submission button
         $('.password-reset-form').on('submit', function(e) {
             e.preventDefault();
-            self.submitRequest('POST', '/accounts/password', $(this).serialize(), 'Password');
+            self.submitRequest('POST', '/accounts/password/', $(this).serialize(), 'Password');
 
             // clear password form after submission, success or not
             $('.password-reset-form').find('[name="current_password"]').val('');
@@ -10635,7 +10750,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
             // email fields seem to have native .trim() support
 
             // 4th argument informs what will be appeneded to screen upon success
-            self.submitRequest('PUT', '/tenants/' + tenandId, $(this).serialize(), 'Tenant settings');
+            self.submitRequest('PUT', '/tenants/' + tenandId + '/', $(this).serialize(), 'Tenant settings');
         });
     },
 
@@ -10695,7 +10810,7 @@ var TenantSettingsPageView = GoldstoneBaseView.extend({
     getTenantSettings: function() {
         var self = this;
 
-        $.get('/tenants')
+        $.get('/tenants/')
             .done(function(result) {
 
                 if (result.results) {
@@ -10990,7 +11105,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // spinner from the chart.
 
         $.get(dataUrl, function() {}).success(function(payload) {
-
+            console.log(payload);
             // a click listener shall be appended below which
             // will determine if the data associated with the
             // leaf contains "hypervisor_hostname" or "host_name"
@@ -11127,7 +11242,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         if (redirectNodeName.indexOf('.') !== -1) {
             redirectNodeName = redirectNodeName.slice(0, redirectNodeName.indexOf('.'));
         }
-        window.location.href = '#/report/node/' + redirectNodeName;
+        window.location.href = '#report/node/' + redirectNodeName;
     },
 
     appendLeafNameToResourceHeader: function(text, location) {
@@ -11221,7 +11336,7 @@ var TopologyTreeView = GoldstoneBaseView.extend({
                                 url = "/" + parentModule + url;
                                 localStorage.setItem('urlForResourceList', url);
                                 localStorage.setItem('origClickedLabel', origClickedLabel);
-                                window.location.href = '#/' +
+                                window.location.href = '#' +
                                     parentModule + '/discover';
                             }
                         }
@@ -11924,7 +12039,7 @@ var ZoomablePartitionView = TopologyTreeView.extend({
                 var origClickedLabel = d.label;
 
                 if (d.rsrcType.match(/-leaf$/) && ns.leafDataUrls !== undefined) {
-                    var url = ns.leafDataUrls[d.rsrcType];
+                    var url = ns.leafDataUrls[d.rsrcType] + '/';
                     if (url !== undefined) {
                         var hasParam = false;
                         if (d.hasOwnProperty('region')) {

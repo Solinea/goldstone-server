@@ -16,9 +16,7 @@
 
 /*
 Instantiated on discoverView as:
-var nodeAvailChart = new NodeAvailCollection({
-    url: "/logging/nodes?page_size=100"
-});
+    this.nodeAvailChart = new NodeAvailCollection({});
 */
 
 var NodeAvailModel = GoldstoneBaseModel.extend({});
@@ -95,7 +93,7 @@ var NodeAvailCollection = Backbone.Collection.extend({
         // accurate assessment of the time the node was last seen.
         // creating approximately 24 buckets for a good mix of accuracy/speed.
         this.defaults.urlsToFetch[0] = '' +
-            '/logging/summarize?@timestamp__range={"gte":' +
+            '/logging/summarize/?@timestamp__range={"gte":' +
             (+new Date() - (lookbackMilliseconds)) +
             '}&interval=' + Math.max(1, (lookbackMinutes / 24)) + 'm';
 
@@ -103,7 +101,7 @@ var NodeAvailCollection = Backbone.Collection.extend({
         // the values into a single return value per alert level.
         // currently magnifying 1 day (or portion thereof) into 1 week.
         this.defaults.urlsToFetch[1] = '' +
-            '/logging/summarize?@timestamp__range={"gte":' +
+            '/logging/summarize/?@timestamp__range={"gte":' +
             (+new Date() - (lookbackMilliseconds)) +
             '}&interval=' + (Math.ceil(lookbackMinutes / 1440)) + 'w';
 

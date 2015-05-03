@@ -17,8 +17,8 @@ from django.test import SimpleTestCase
 from rest_framework.status import HTTP_200_OK
 
 # Test URLs.
-LOGIN_URL = "/accounts/login"
-USER_URL = "/user"
+LOGIN_URL = "/accounts/login/"
+USER_URL = "/user/"
 
 # Http response content used by multiple tests.
 CONTENT_BAD_TOKEN = '{"detail":"Invalid token."}'
@@ -86,10 +86,10 @@ def login(username, password):
 
 
 def create_and_login(is_superuser=False, tenant=None):
-    """Create a user and log them in.
+    """Create a user and log her in.
 
     :keyword is_superuser: Set the is_superuser flag in the User record?
-                           (A.k.a. create a Django admin account?)
+                           (A.k.a., create a Django admin account?)
     :type is_superuser: bool
     :keyword tenant: If not None, make the user a tenant_admin of this tenant
     :type tenant: Tenant

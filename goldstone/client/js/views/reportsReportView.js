@@ -42,7 +42,7 @@ var ReportsReportView = GoldstoneBaseView.extend({
         // request page_size=1 in order to only
         // retrieve the latest result
 
-        var urlRouteConstruction = '/core/reports?name=' +
+        var urlRouteConstruction = '/core/reports/?name=' +
             report + '&page_size=1&node=' +
             this.defaults.hostName;
         return urlRouteConstruction;

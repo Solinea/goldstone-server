@@ -42,7 +42,7 @@ var PasswordResetView = GoldstoneBaseView.extend({
         // via $.post to check the credentials. If successful, invoke "done"
         // if not, invoke "fail"
 
-        $.post('/accounts/password/reset', input, function() {})
+        $.post('/accounts/password/reset/', input, function() {})
             .done(function(success) {
 
                 // and add a message to the top of the screen that logs what
@@ -74,7 +74,7 @@ var PasswordResetView = GoldstoneBaseView.extend({
         '<input name="email" type="email" class="form-control" placeholder="Enter email associated with your account" required autofocus><br>' +
         '<button name="submit" class="btn btn-lg btn-primary btn-block" type="submit">Send reset email</button>' +
         '</form>' +
-        '<div id="cancelReset"><a href="#/login">Cancel and return to login</a></div>' +
+        '<div id="cancelReset"><a href="#login">Cancel and return to login</a></div>' +
         '</div>' +
         '</div>' +
         '</div>'

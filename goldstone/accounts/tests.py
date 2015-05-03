@@ -27,10 +27,10 @@ CONTENT_MISSING_PASSWORD = '"password":["This field is required."]'
 CONTENT_UNIQUE_USERNAME = '{"username":["This field must be unique."]}'
 
 # URLs used by this module.
-REGISTRATION_URL = "/accounts/register"
-LOGOUT_URL = "/accounts/logout"
-PASSWORD_URL = "/accounts/password"
-PASSWORD_RESET_URL = PASSWORD_URL + "/reset"
+REGISTRATION_URL = "/accounts/register/"
+LOGOUT_URL = "/accounts/logout/"
+PASSWORD_URL = "/accounts/password/"
+PASSWORD_RESET_URL = PASSWORD_URL + "reset/"
 
 
 class Register(Setup):
@@ -520,12 +520,13 @@ class PasswordReset(Setup):
                          "webmaster@localhost")  # from
         self.assertEqual(send_email.call_args[0][2]["site_name"],
                          settings.DJOSER["SITE_NAME"])  # The site name
-        self.assertIn("accounts/password/reset/confirm/",
+        self.assertIn('accounts/password/reset/enter/',
                       send_email.call_args[0][2]["url"])  # The confirm url
 
         # A simple check that the confirmation URL is about the right length.
         self.assertGreater(len(send_email.call_args[0][2]["url"]),
-                           len("#/password/reset/confirm/") + 24)
+                           len(settings.DJOSER["PASSWORD_RESET_CONFIRM_URL"]) +
+                           11)
         self.assertEqual(send_email.call_args[0][2]["user"].username,
                          TEST_USER[0])  # username
 

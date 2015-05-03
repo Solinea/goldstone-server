@@ -237,7 +237,7 @@ var ZoomablePartitionView = TopologyTreeView.extend({
                 var origClickedLabel = d.label;
 
                 if (d.rsrcType.match(/-leaf$/) && ns.leafDataUrls !== undefined) {
-                    var url = ns.leafDataUrls[d.rsrcType];
+                    var url = ns.leafDataUrls[d.rsrcType] + '/';
                     if (url !== undefined) {
                         var hasParam = false;
                         if (d.hasOwnProperty('region')) {

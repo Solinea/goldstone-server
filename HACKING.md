@@ -30,9 +30,105 @@ $ brew cask install java
 $ brew install python    # This puts a Python interpreter where mkvirtualenv expects it.
 ```    
 
+### Postfix
+
+If you're not working on or testing the password-reset sequence, you can skip
+to the next section.
+
+To test Goldstone's password-reset sequence, you'll need an
+[SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol) server
+running on your development machine.
+
+Since [Postfix](http://www.postfix.org) is nigh-universal, here's how to
+configure it to relay outgoing mail to a Gmail account, on OS X.
+
+First, if you're in a virtual ("workon") environment, deactivate it. Then:
+
+```bash
+    $ sudo bash
+    root# cd /etc/postfix
+```
+
+Edit `main.cf`. If any of these variables are already in the file, change them to what's listed here.  Otherwise, add these lines to the end of the file:
+```
+myhostname = localhost
+relayhost = [smtp.gmail.com]:587
+smtp_sasl_auth_enable = yes
+smtp_sasl_mechanism_filter = plain
+smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+smtp_sasl_security_options = noanonymous
+smtp_tls_CAfile = /etc/postfix/systemdefault.pem
+smtp_use_tls = yes
+```
+
+Create the file, `/etc/postfix/sasl_passwd`.  Add this line to it, plugging in your e-mail username
+and password:
+```
+[smtp.gmail.com]:587 EMAIL_USERNAME:PASSWORD
+```
+
+(For example, your line might read, `[smtp.gmail.com]:587
+dirk_diggler@mycompany.com:12344321`.
+
+Then:
+
+```bash
+    root# postmap /etc/postfix/sasl_passwd
+```
+
+Now put a valid certificate into
+`/etc/postfix/systemdefault.pem`. Here's one way to do it:
+
+1. Launch the KeyChain Access application
+2. In the sidebar, select "System" and "Certificates"
+3. In the main window, select `com.apple.systemdefault`
+4. `File | Export Items...`
+5. Select "Privacy Enhanced Mail (.pem)" and save it to your Desktop.
+
+Move the file you just saved to `/etc/postfix/systemdefault.pem`.
+
+Then, chown the file so that root owns it:
+```bash
+    root# chown root /etc/postfix/systemdefault.pem
+```
+
+Now start postfix and test it:
+
+```bash
+    root# postfix start
+    root# echo "Test mail from postfix" | mail -s "Test Postfix" YOU@DOMAIN.TLD
+```
+
+If you receive the test email, Postfix is running correctly!
+
+If not, look in `/var/log/mail.log` to start diagnosing what's wrong.
+
+#### Starting on a boot
+
+If you want Postfix to always start when you boot your machine, edit
+`/System/Library/LaunchDaemons/org.postfix.master.plist`. Insert this text after the `<dict>`:
+
+```
+<key>KeepAlive</key>
+<dict>
+   <key>SuccessfulExit</key>
+   <false/>
+</dict>
+```
+
+Insert this text before the `</dict>`:
+
+```
+<key>RunAtLoad</key>
+<true/>
+```
+
+
+
+
 ### Upgrade or install Pip
 
-If your system already has Pip, upgrade it to a recent version.
+If your system already has Pip, upgrade it to the latest version.
 
 If your system doesn't have pip installed, install it:
 
@@ -43,7 +139,7 @@ $ python get-pip.py
 
 ### Virtualenvwrapper, tox
 
-Create your virtual environment for Goldstone.  [Virtualenvwrapper](http://virtualenvwrapper.readthedocs.org/en/latest/install.html) makes this easy:
+Create your virtual environment for Goldstone.  [Virtualenvwrapper](http://virtualenvwrapper.readthedocs.org/) makes this easy:
 
 ```bash
 $ pip install virtualenvwrapper
@@ -53,7 +149,6 @@ $ pip install tox
 Add the following or similar to your .bash_profile:
 
 ```bash
-export ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future # for Mavericks
 export JAVA_HOME="$(/usr/libexec/java_home)"
 export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python
 export WORKON_HOME=$HOME/.virtualenvs
@@ -64,14 +159,14 @@ source /usr/local/bin/virtualenvwrapper.sh
 Create the virtual environment (this will also install virtualenv):
 
 ```bash
-$ mkvirtualenv goldstone
+$ mkvirtualenv goldstone-server
 ```
 
 Customize your virtualenv postactivate script to make it yours. This is a suggested virtualenv/postactivate:
 
 ```bash
 #!/bin/bash
-cd ~/devel/goldstone
+cd ~/devel/goldstone-server
 export GOLDSTONE_SECRET="%ic+ao@5xani9s*%o355gv1%!)v1qh-43g24wt9l)gr@mx9#!7"
     
 
@@ -105,7 +200,7 @@ pkill -f postgres
 Activating and deactivating the environment can be done with the following commands:
 
 ```bash
-$ workon goldstone
+$ workon goldstone-server
 $ deactivate
 ```
 
@@ -114,7 +209,7 @@ $ deactivate
 Install these packages in your Goldstone virtualenv:
 
 ```bash
-$ workon goldstone
+$ workon goldstone-server
 $ brew install elasticsearch phantomjs redis postgresql
 ```
 
@@ -153,7 +248,7 @@ $ service iptables restart
 
 ### Get the code
 
-1. On GitHub, fork the Goldstone repository.
+1. On GitHub, fork the goldstone-server repository.
 2. Clone your fork to your local machine:
    
 ```bash
@@ -164,8 +259,8 @@ $ service iptables restart
 Then pip-install the Python prerequisites:
 
 ```bash
-    $ workon goldstone
-    $ cd goldstone              # If your postactivate script doesn't have a cd
+    $ workon goldstone-server
+    $ cd goldstone-server          # If your postactivate script doesn't have a cd
     $ pip install -r requirements.txt
     $ pip install -r test-requirements.txt
 ```

@@ -146,7 +146,7 @@ class LogAggViewTests(APITestCase):
             '@timestamp__range={"gte":"' + str(start) + '", "lte": "' + \
             str(end) + '"}'
         interval = "interval=1d"
-        url = '/logging/summarize?' + timestamp_range + '&' + interval
+        url = '/logging/summarize/?' + timestamp_range + '&' + interval
 
         response = self.client.get(
             url,
@@ -170,7 +170,7 @@ class LogEventViewTests(APITestCase):
         timestamp_range = \
             '@timestamp__range={"gte":"' + str(start) + '", "lte": "' + \
             str(end) + '"}'
-        url = '/logging/events/search?' + timestamp_range
+        url = '/logging/events/search/?' + timestamp_range
 
         response = self.client.get(
             url,

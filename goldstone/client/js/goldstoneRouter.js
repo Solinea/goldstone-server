@@ -38,6 +38,8 @@ var GoldstoneRouter = Backbone.Router.extend({
     routes: {
         "api_perf/report": "apiPerfReport",
         "cinder/report": "cinderReport",
+        // http://localhost:8000/accounts/password/reset/enter/Mg/41d-48e3d728de5653ca9a6b/
+        "client/newpasswordenter/?*uidToken": "newPasswordView",
         "discover": "discover",
         "glance/report": "glanceReport",
         "help": "help",
@@ -175,6 +177,11 @@ var GoldstoneRouter = Backbone.Router.extend({
     neutronReport: function() {
         this.switchView(NeutronReportView);
     },
+    newPasswordView: function(uidToken) {
+        this.switchView(NewPasswordView, {
+            uidToken: uidToken
+        });
+    },
     nodeReport: function(nodeId) {
         this.switchView(NodeReportView, {
             node_uuid: nodeId
@@ -187,7 +194,7 @@ var GoldstoneRouter = Backbone.Router.extend({
         this.switchView(PasswordResetView);
     },
     redirect: function() {
-        location.href = "#/discover";
+        location.href = "#discover";
     },
     settings: function() {
         this.switchView(SettingsPageView);

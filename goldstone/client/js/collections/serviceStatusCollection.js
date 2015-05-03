@@ -45,11 +45,11 @@ var ServiceStatusCollection = Backbone.Collection.extend({
     retrieveData: function() {
         var twentyAgo = (+new Date() - (1000 * 60 * 20));
 
-        this.url = "/core/reports?name__prefix=os.service&node__prefix=" +
+        this.url = "/core/reports/?name__prefix=os.service&node__prefix=" +
             this.defaults.nodeName + "&page_size=300" +
             "&@timestamp__range={'gte':" + twentyAgo +"}";
 
-        // this.url similar to: /core/reports?name__prefix=os.service&node__prefix=rsrc-01&page_size=300&@timestamp__gte=1423681500026
+        // this.url similar to: /core/reports/?name__prefix=os.service&node__prefix=rsrc-01&page_size=300&@timestamp__gte=1423681500026
 
         this.fetch();
     }

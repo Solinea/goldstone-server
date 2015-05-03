@@ -21,6 +21,8 @@ root# pip install paramiko==1.10
 root# pip install fabric==1.10.1    
 ```
 
+Additionally, Goldstone's password-reset sequence uses e-mail. Ensure you have a working [SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol) server (e.g., [Postfix](http://www.postfix.org)) installed.
+
 ## Run the Goldstone installer (as root)
 
 Run this command from the same directory as this file and the associated fabfile.py:
