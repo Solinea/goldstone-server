@@ -19,18 +19,18 @@
 
 module.exports = {
     clientWildcards: [
-        'goldstone/client/js/base.js',
-        'goldstone/client/js/goldstoneBaseModel.js',
-        'goldstone/client/js/goldstoneBaseView.js',
-        'goldstone/client/js/goldstoneBasePageView.js',
-        'goldstone/client/js/goldstoneBaseCollection.js',
-        'goldstone/client/js/goldstoneRouter.js',
-        'goldstone/client/js/utilizationCpuView.js',
-        'goldstone/client/js/models/*.js',
-        'goldstone/client/js/collections/*.js',
-        'goldstone/client/js/views/*.js'
+        'client/js/base.js',
+        'client/js/goldstoneBaseModel.js',
+        'client/js/goldstoneBaseView.js',
+        'client/js/goldstoneBasePageView.js',
+        'client/js/goldstoneBaseCollection.js',
+        'client/js/goldstoneRouter.js',
+        'client/js/utilizationCpuView.js',
+        'client/js/models/*.js',
+        'client/js/collections/*.js',
+        'client/js/views/*.js'
     ],
-    lib: ['goldstone/client/js/lib/jquery.js', 'goldstone/client/js/lib/bootstrap.js', 'goldstone/client/js/lib/jquery.dataTables.js', 'goldstone/client/js/lib/dataTables.bootstrap.js', 'goldstone/client/js/lib/jquery.datetimepicker.js', 'goldstone/client/js/lib/colorbrewer.js', 'goldstone/client/js/lib/d3.js', 'goldstone/client/js/lib/d3-tip.js', 'goldstone/client/js/lib/d3-legend.js', 'goldstone/client/js/lib/underscore.js', 'goldstone/client/js/lib/backbone.js', 'goldstone/client/js/lib/moment-with-locales.js', 'goldstone/client/js/lib/moment-timezone-with-data-2010-2020.js'],
+    lib: ['client/js/lib/jquery.js', 'client/js/lib/bootstrap.js', 'client/js/lib/jquery.dataTables.js', 'client/js/lib/dataTables.bootstrap.js', 'client/js/lib/jquery.datetimepicker.js', 'client/js/lib/colorbrewer.js', 'client/js/lib/d3.js', 'client/js/lib/d3-tip.js', 'client/js/lib/d3-legend.js', 'client/js/lib/underscore.js', 'client/js/lib/backbone.js', 'client/js/lib/moment-with-locales.js', 'client/js/lib/moment-timezone-with-data-2010-2020.js'],
     test: [
         'test/unit/*.js',
         'test/integration/*.js'

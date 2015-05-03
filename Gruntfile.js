@@ -108,7 +108,7 @@ module.exports = function(grunt) {
                 tasks: ['lint', 'c']
             },
             lib: {
-                files: 'goldstone/client/js/lib/*.js',
+                files: 'client/js/lib/*.js',
                 tasks: ['concat:lib', 'notify:concat_message']
             },
             gruntfile: {
@@ -143,13 +143,13 @@ module.exports = function(grunt) {
             lib: {
                 nonull: true,
                 src: clientIncludeOrder.lib,
-                dest: 'goldstone/client/js/bundle/libs.js',
+                dest: 'goldstone/static/bundle/libs.js',
                 stripBanners: true
             },
             clientjs: {
                 nonull: true,
                 src: clientIncludeOrder.clientWildcards,
-                dest: 'goldstone/client/js/bundle/bundle.js'
+                dest: 'goldstone/static/bundle/bundle.js'
             }
         },
 
