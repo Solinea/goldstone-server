@@ -25,7 +25,6 @@ from goldstone.utils import utc_now, get_glance_client, get_nova_client, \
     get_cinder_client
 
 from elasticsearch_dsl.query import Q, QueryString
-import networkx
 import sys
 
 # Aliases to make the Resource Graph definitions less verbose.
@@ -129,20 +128,17 @@ class PolyResource(PolymorphicModel):
         name_query = Q(QueryString(query=escaped_name, default_field="_all"))
         return LogEvent.search().query(name_query)
 
-    @staticmethod
-    def clouddata():
-        """Return information on this resource type's cloud instances.
+    @classmethod
+    def unique_id(cls):
+        """Return this class' unique id."""
 
-        N.B. We can't know when nested client methods are evaluated, so we
-        make the complete call here.
+        return str(cls)
 
-        :return: One or more infomration collections about cloud instances of
-                 this type
-        :rtype: Iterable or generator of dict
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
 
-        """
-
-        raise NotImplementedError("Override this method in a subclass")
+        return []
 
     @staticmethod
     def identity(thing):
@@ -167,81 +163,6 @@ class PolyResource(PolymorphicModel):
         return thing.get("id")
 
 
-class GraphNode(object):
-    """Resource graph nodes."""
-
-    # The Goldstone UUID of the table row represented by this node.
-    uuid = None
-
-    # This node's Resource Type.
-    resourcetype = None
-
-    # This node's attributes (e.g., from a get_xxxxx_client() call).
-    attributes = {}
-
-    def __init__(self, **kwargs):
-        """Initialize the object."""
-
-        self.uuid = kwargs.get("uuid")
-        self.resourcetype = kwargs.get("resourcetype")
-        self.attributes = kwargs.get("attributes", {})
-
-
-class Graph(object):
-    """The base class for Resource Type and Resource graphs.
-
-    This defines the navigational methods needed by the child classes. Some
-    of these may simply be convenience methods for calling networkx methods.
-
-    """
-
-    def __init__(self):
-        """Initialize the object.
-
-        A child class must call this before its initialization.
-
-        """
-
-        self.graph = networkx.MultiDiGraph()
-
-    def edges(self, edgetype):
-        """Return all of the edges that are of type <edgetype>.
-
-        :param edgetype: A type of edge
-        :type edgetype: For Resource Type graphs, R_EDGE. For Resource
-                        Instance graphs, ??????
-        :return: A list of edges, all of which will be of type <edgetype>.
-        :rtype: list of (from, to, attributes)
-
-        """
-
-        # N.B. We don't want to throw an exception if the attribute dict
-        # doesn't have a "type" key.
-        return [x for x in self.graph.edges(data=True)
-                if x[2].get(TYPE) == edgetype]
-
-
-#
-# These nodes are for the Resource Instance graph.
-#
-
-class Agent(PolyResource):
-
-    port = IntegerField(editable=True, blank=True, default=5514)
-
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        return None
-
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
-        """See the parent class' method's docstring."""
-
-        return None
-
-
 #
 # These classes represent entities within a Keystone service.
 #
@@ -261,6 +182,34 @@ class User(PolyResource):
 
         return None
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Keystone",
+                "name": "User",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: Credential,
+                 EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
+                {TO: Group,
+                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO,
+                                   MIN: 0,
+                                   MAX: sys.maxint}},
+                {TO: Project,
+                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: 1}},
+                {TO: QuotaSet,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: SUBSCRIBED_TO,
+                  MIN: 0,
+                  MAX: sys.maxint}},
+                ]
+
 
 class Domain(PolyResource):
     """An OpenStack domain."""
@@ -276,6 +225,27 @@ class Domain(PolyResource):
         """See the parent class' method's docstring."""
 
         return None
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Keystone",
+                "name": "Domain",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: Group,
+                 EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
+                {TO: Project,
+                 EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
+                {TO: User,
+                 EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
+                ]
 
 
 class Group(PolyResource):
@@ -293,6 +263,15 @@ class Group(PolyResource):
 
         return None
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Keystone",
+                "name": "Group",
+                }
+
 
 class Token(PolyResource):
     """An OpenStack token."""
@@ -308,6 +287,25 @@ class Token(PolyResource):
         """See the parent class' method's docstring."""
 
         return None
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Keystone",
+                "name": "Token",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: User,
+                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO,
+                                   MIN: 0,
+                                   MAX: sys.maxint}},
+                ]
 
 
 class Credential(PolyResource):
@@ -325,6 +323,23 @@ class Credential(PolyResource):
 
         return None
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Keystone",
+                "name": "Credential",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: Project,
+                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}},
+                ]
+
 
 class Role(PolyResource):
     """An OpenStack role."""
@@ -340,6 +355,33 @@ class Role(PolyResource):
         """See the parent class' method's docstring."""
 
         return None
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Keystone",
+                "name": "Role",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: Domain,
+                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}},
+                {TO: Group,
+                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO,
+                                   MIN: 0,
+                                   MAX: sys.maxint}},
+                {TO: Project,
+                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}},
+                {TO: User,
+                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO,
+                                   MIN: 0,
+                                   MAX: sys.maxint}},
+                ]
 
 
 class Region(PolyResource):
@@ -357,6 +399,25 @@ class Region(PolyResource):
 
         return None
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Keystone",
+                "name": "Region",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: AvailabilityZone,
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
+                {TO: Endpoint,
+                 EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
+                ]
+
 
 class Endpoint(PolyResource):
     """An OpenStack endpoint."""
@@ -372,6 +433,23 @@ class Endpoint(PolyResource):
         """See the parent class' method's docstring."""
 
         return None
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Keystone",
+                "name": "Endpoint",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: Service,
+                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}},
+                ]
 
 
 class Service(PolyResource):
@@ -389,6 +467,15 @@ class Service(PolyResource):
 
         return None
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Keystone",
+                "name": "Service",
+                }
+
 
 class Project(PolyResource):
     """An OpenStack project."""
@@ -404,6 +491,154 @@ class Project(PolyResource):
         """See the parent class' method's docstring."""
 
         return None
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Keystone",
+                "name": "Project",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: Image,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: MEMBER_OF,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: Keypair,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: OWNS,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: NovaLimits,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: OWNS,
+                  MIN: 1,
+                  MAX: 1,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: Server,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: OWNS,
+                  MIN: 1,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: MeteringLabel,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: OWNS,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: NeutronQuota,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: SUBSCRIBED_TO,
+                  MIN: 1,
+                  MAX: 1,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: Network,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: USES,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: Network,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: OWNS,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: Subnet,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: OWNS,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: LBMember,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: OWNS,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: HealthMonitor,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: OWNS,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: LBVIP,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: OWNS,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: Port,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: OWNS,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: SecurityRules,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: OWNS,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: QuotaSet,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: SUBSCRIBED_TO,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: QOSSpec,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: OWNS,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: Snapshot,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: OWNS,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: Volume,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: MEMBER_OF,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                {TO: Limits,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: OWNS,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                ]
 
 
 #
@@ -428,6 +663,39 @@ class AvailabilityZone(PolyResource):
 
         return thing.get("zoneName")
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Nova",
+                "name": "Availability Zone",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [
+            {TO: Aggregate,
+             EDGE_ATTRIBUTES:
+             {TYPE: OWNS,
+              MIN: 0,
+              MAX: sys.maxint,
+              MATCHING_FN:
+              lambda f, t:
+              f.get("zoneName") and
+              f.get("zoneName") == t.get("availability_zone")}},
+            {TO: Host,
+             EDGE_ATTRIBUTES:
+             {TYPE: OWNS,
+              MIN: 0,
+              MAX: sys.maxint,
+              MATCHING_FN:
+              lambda f, t:
+              f.get("zoneName") and f.get("zoneName") == t.get("zone")}},
+            ]
+
 
 class FlavorExtraSpec(PolyResource):
     """An OpenStack Flavor ExtraSpec."""
@@ -440,6 +708,15 @@ class FlavorExtraSpec(PolyResource):
         nova_client.client.authenticate()
 
         return [x.get_keys() for x in nova_client.flavors.list()]
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Nova",
+                "name": "Flavor ExtraSpec",
+                }
 
 
 class Aggregate(PolyResource):
@@ -454,6 +731,15 @@ class Aggregate(PolyResource):
 
         return [x.to_dict() for x in nova_client.aggregates.list()]
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Nova",
+                "name": "Aggregate",
+                }
+
 
 class Flavor(PolyResource):
     """An OpenStack Flavor."""
@@ -466,6 +752,38 @@ class Flavor(PolyResource):
         nova_client.client.authenticate()
 
         return [x.to_dict() for x in nova_client.flavors.list()]
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Nova",
+                "name": "Flavor",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [
+            {TO: FlavorExtraSpec,
+             EDGE_ATTRIBUTES:
+             {TYPE: OWNS,
+              MIN: 0,
+              MAX: sys.maxint,
+              MATCHING_FN:
+              lambda f, t:
+              f.get("id") and f.get("id") == t.get("id")}},
+            {TO: Server,
+             EDGE_ATTRIBUTES:
+             {TYPE: DEFINES,
+              MIN: 0,
+              MAX: sys.maxint,
+              MATCHING_FN:
+              lambda f, t:
+              f.get("id") and f.get("id") == t.get("flavor", {}).get("id")}},
+            ]
 
 
 class Keypair(PolyResource):
@@ -485,6 +803,30 @@ class Keypair(PolyResource):
         """See the parent class' method's docstring."""
 
         return thing.get("fingerprint")
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Nova",
+                "name": "Keypair",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: Server,
+                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
+                                   MIN: 0,
+                                   MAX: sys.maxint,
+                                   # Any keypair can be used on any server.
+                                   MATCHING_FN:
+                                   lambda f, t:
+                                   f.get("fingerprint") is not None and
+                                   t is not None}},
+                ]
 
 
 class Host(PolyResource):
@@ -548,6 +890,39 @@ class Host(PolyResource):
 
         return thing.get("host_name")
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Nova",
+                "name": "Host",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [
+            {TO: Aggregate,
+             EDGE_ATTRIBUTES:
+             {TYPE: MEMBER_OF,
+              MIN: 0,
+              MAX: sys.maxint,
+              MATCHING_FN:
+              lambda f, t: f.get("host_name") and
+              f.get("host_name") in t.get("hosts", [])}},
+            {TO: Hypervisor,
+             EDGE_ATTRIBUTES:
+             {TYPE: OWNS,
+              MIN: 0,
+              MAX: 1,
+              MATCHING_FN:
+              lambda f, t:
+              f.get("host_name") and
+              f.get("host_name") == t.get("hypervisor_hostname")}},
+            ]
+
 
 class Hypervisor(PolyResource):
     """An OpenStack Hypervisor."""
@@ -563,6 +938,31 @@ class Hypervisor(PolyResource):
         nova_client.client.authenticate()
 
         return [x.to_dict() for x in nova_client.hypervisors.list()]
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Nova",
+                "name": "Hypervisor",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: Server,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: OWNS,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t:
+                  f.get("id") and
+                  f.get("id") ==
+                  t.get("OS-EXT-SRV-ATTR:hypervisor_hostname")}},
+                ]
 
 
 class Cloudpipe(PolyResource):
@@ -583,6 +983,29 @@ class Cloudpipe(PolyResource):
 
         return thing.get("project_id")
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Nova",
+                "name": "Cloudpipe",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [
+            {TO: Server,
+             EDGE_ATTRIBUTES:
+             {TYPE: INSTANCE_OF,
+              MIN: 1,
+              MAX: 1,
+              MATCHING_FN:
+              lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+            ]
+
 
 class ServerGroup(PolyResource):
     """An OpenStack Server Group."""
@@ -595,6 +1018,15 @@ class ServerGroup(PolyResource):
         nova_client.client.authenticate()
 
         return [x.to_dict() for x in nova_client.server_groups.list()]
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Nova",
+                "name": "Server Group",
+                }
 
 
 class Server(PolyResource):
@@ -610,6 +1042,50 @@ class Server(PolyResource):
         return [x.to_dict()
                 for x in
                 nova_client.servers.list(search_opts={"all_tenants": 1})]
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Nova",
+                "name": "Server",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: Interface,
+                 EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                   MIN: 0,
+                                   MAX: sys.maxint,
+                                   MATCHING_FN:
+                                   lambda f, t:
+                                   f.get("addresses") and
+                                   t.get("mac_addr") and
+                                   t.get("mac_addr") in
+                                   [y["OS-EXT-IPS-MAC:mac_addr"]
+                                    for x in f.get("addresses").values()
+                                    for y in x]}},
+                {TO: ServerGroup,
+                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
+                                   MIN: 0,
+                                   MAX: sys.maxint,
+                                   MATCHING_FN: lambda f, t:
+                                   f.get("hostId") and
+                                   f.get("hostId") in t["members"]}},
+                {TO: Volume,
+                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
+                                   MIN: 0,
+                                   MAX: sys.maxint,
+                                   MATCHING_FN: lambda f, t:
+                                   f.get("links") and t.get("links") and
+                                   any(volentry.get("href") and
+                                       volentry["href"] in
+                                       [x["href"] for x in f["links"]]
+                                       for volentry in t["links"])}},
+                ]
 
 
 class Interface(PolyResource):
@@ -646,6 +1122,30 @@ class Interface(PolyResource):
 
         return thing.get("mac_addr")
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Nova",
+                "name": "Interface",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: Port,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: ATTACHED_TO,
+                  MIN: 0,
+                  MAX: 1,
+                  MATCHING_FN:
+                  lambda f, t:
+                  f.get("mac_addr") and
+                  f.get("mac_addr") == t["mac_address"]}},
+                ]
+
 
 class NovaLimits(PolyResource):
     """An OpenStack Limits within a Nova service."""
@@ -658,6 +1158,15 @@ class NovaLimits(PolyResource):
         nova_client.client.authenticate()
 
         return [x.to_dict() for x in nova_client.limits.list()]
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Nova",
+                "name": "Limits",
+                }
 
 
 #
@@ -673,6 +1182,27 @@ class Image(PolyResource):
 
         return list(get_glance_client()["client"].images.list())
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Glance",
+                "name": "Image",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: Server,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: DEFINES,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
+                ]
 
 #
 # These classes represent entities within a Cinder service.
@@ -688,6 +1218,15 @@ class QuotaSet(PolyResource):
 
         return list(get_glance_client()["client"].images.list())
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Cinder",
+                "name": "Quota Set",
+                }
+
 
 class QOSSpec(PolyResource):
     """An OpenStack Quality Of Service Specification."""
@@ -697,6 +1236,31 @@ class QOSSpec(PolyResource):
         """See the parent class' method's docstring."""
 
         return list(get_cinder_client()["client"].qos_specs.list())
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Cinder",
+                "name": "QoS Spec",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: VolumeType,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: APPLIES_TO,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t:
+                  f.get("id") and
+                  f.get("id") in
+                  t.get("extra_specs", {}).get("qos", '')}},
+                ]
 
 
 class Snapshot(PolyResource):
@@ -708,6 +1272,29 @@ class Snapshot(PolyResource):
 
         return list(get_cinder_client()["client"].volume_snapshots.list())
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Cinder",
+                "name": "Snapshot",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: Volume,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: APPLIES_TO,
+                  MIN: 1,
+                  MAX: 1,
+                  MATCHING_FN:
+                  lambda f, t:
+                  f.get("id") and f.get("id") == t.get("snapshot_id")}},
+                ]
+
 
 class VolumeType(PolyResource):
     """An OpenStack Volume Type."""
@@ -717,6 +1304,29 @@ class VolumeType(PolyResource):
         """See the parent class' method's docstring."""
 
         return list(get_cinder_client()["client"].volume_types.list())
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Cinder",
+                "name": "Volume Type",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: Volume,
+                 EDGE_ATTRIBUTES:
+                 {TYPE: APPLIES_TO,
+                  MIN: 0,
+                  MAX: sys.maxint,
+                  MATCHING_FN:
+                  lambda f, t:
+                  f.get("id") and f["id"] == t.get("volume_type")}},
+                ]
 
 
 class Volume(PolyResource):
@@ -728,6 +1338,15 @@ class Volume(PolyResource):
 
         return list(get_cinder_client()["client"].volumes.list())
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Cinder",
+                "name": "Volume",
+                }
+
 
 class Limits(PolyResource):
     """An OpenStack Limit."""
@@ -738,13 +1357,22 @@ class Limits(PolyResource):
 
         return list(get_glance_client()["client"].images.list())
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Cinder",
+                "name": "Limits",
+                }
+
 
 #
 # These classes represent entities within a Neutron service.
 #
 
-class MeteringLableRule(PolyResource):
-    """An OpenStack Metering Lable Rule."""
+class MeteringLabelRule(PolyResource):
+    """An OpenStack Metering Label Rule."""
 
     @staticmethod
     def clouddata():
@@ -757,6 +1385,15 @@ class MeteringLableRule(PolyResource):
         """See the parent class' method's docstring."""
 
         return None
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "Metering Label Rule",
+                }
 
 
 class MeteringLabel(PolyResource):
@@ -774,6 +1411,25 @@ class MeteringLabel(PolyResource):
 
         return None
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "Metering Label",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: MeteringLabel,
+                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO,
+                                   MIN: 1,
+                                   MAX: 1}},
+                ]
+
 
 class NeutronQuota(PolyResource):
     """An OpenStack Neutron Quota."""
@@ -789,6 +1445,15 @@ class NeutronQuota(PolyResource):
         """See the parent class' method's docstring."""
 
         return None
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "Quota",
+                }
 
 
 class RemoteGroup(PolyResource):
@@ -806,6 +1471,15 @@ class RemoteGroup(PolyResource):
 
         return None
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "Remote Group",
+                }
+
 
 class SecurityRules(PolyResource):
     """An OpenStack Security Rules."""
@@ -822,6 +1496,25 @@ class SecurityRules(PolyResource):
 
         return None
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "Security Rules",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: RemoteGroup,
+                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: 1}},
+                {TO: SecurityGroup,
+                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 1, MAX: 1}},
+                ]
+
 
 class SecurityGroup(PolyResource):
     """An OpenStack Security Group."""
@@ -837,6 +1530,15 @@ class SecurityGroup(PolyResource):
         """See the parent class' method's docstring."""
 
         return None
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "Security Group",
+                }
 
 
 class Port(PolyResource):
@@ -859,6 +1561,27 @@ class Port(PolyResource):
 
         return client.list_ports()["ports"]
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "Port",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: FixedIP,
+                 EDGE_ATTRIBUTES: {TYPE: CONSUMES, MIN: 0, MAX: sys.maxint}},
+                {TO: FloatingIP,
+                 EDGE_ATTRIBUTES: {TYPE: CONSUMES, MIN: 0, MAX: sys.maxint}},
+                {TO: SecurityGroup,
+                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}},
+                ]
+
 
 class LBVIP(PolyResource):
     """An OpenStack load balancer VIP address."""
@@ -874,6 +1597,27 @@ class LBVIP(PolyResource):
         """See the parent class' method's docstring."""
 
         return None
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "LB Virtual IP",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: LBPool,
+                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: 1}},
+                {TO: Port,
+                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
+                {TO: Subnet,
+                 EDGE_ATTRIBUTES: {TYPE: ALLOCATED_TO, MIN: 0, MAX: 1}},
+                ]
 
 
 class LBPool(PolyResource):
@@ -891,6 +1635,15 @@ class LBPool(PolyResource):
 
         return None
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "LB Pool",
+                }
+
 
 class HealthMonitor(PolyResource):
     """An OpenStack Health Monitor."""
@@ -906,6 +1659,25 @@ class HealthMonitor(PolyResource):
         """See the parent class' method's docstring."""
 
         return None
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "Health Monitor",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: LBPool,
+                 EDGE_ATTRIBUTES: {TYPE: APPLIES_TO,
+                                   MIN: 0,
+                                   MAX: sys.maxint}},
+                ]
 
 
 class FloatingIP(PolyResource):
@@ -923,6 +1695,15 @@ class FloatingIP(PolyResource):
 
         return None
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "Floating IP address",
+                }
+
 
 class FloatingIPPool(PolyResource):
     """An OpenStack Floating IP address pool."""
@@ -938,6 +1719,29 @@ class FloatingIPPool(PolyResource):
         """See the parent class' method's docstring."""
 
         return None
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "Floating IP Pool",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: FixedIP,
+                 EDGE_ATTRIBUTES: {TYPE: ROUTES_TO,
+                                   MIN: 0,
+                                   MAX: sys.maxint}},
+                {TO: FloatingIP,
+                 EDGE_ATTRIBUTES: {TYPE: OWNS,
+                                   MIN: 0,
+                                   MAX: sys.maxint}},
+                ]
 
 
 class FixedIP(PolyResource):
@@ -955,6 +1759,15 @@ class FixedIP(PolyResource):
 
         return None
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "Fixed IP address",
+                }
+
 
 class LBMember(PolyResource):
     """An OpenStack load balancer member."""
@@ -970,6 +1783,27 @@ class LBMember(PolyResource):
         """See the parent class' method's docstring."""
 
         return None
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "LB Member",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: LBPool,
+                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
+                                   MIN: 0,
+                                   MAX: sys.maxint}},
+                {TO: Subnet,
+                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
+                ]
 
 
 class Subnet(PolyResource):
@@ -987,6 +1821,25 @@ class Subnet(PolyResource):
 
         return None
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "Subnet",
+                }
+
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
+
+        return [{TO: FixedIP,
+                 EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
+                {TO: Network,
+                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 1, MAX: 1}},
+                ]
+
 
 class Network(PolyResource):
     """An OpenStack network."""
@@ -1002,6 +1855,15 @@ class Network(PolyResource):
         """See the parent class' method's docstring."""
 
         return None
+
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
+
+        return {"service_name": "Neutron",
+                "name": "Network",
+                }
 
 
 class Router(PolyResource):
@@ -1019,491 +1881,23 @@ class Router(PolyResource):
 
         return None
 
+    @classmethod
+    def display_attributes(cls):
+        """Return a dict of cloud information about this type, suitable for
+        client display."""
 
-class ResourceTypes(Graph):
-    """A graph of an OpenStack cloud's resource types."""
+        return {"service_name": "Neutron",
+                "name": "Router",
+                }
 
-    # These are the graph edges. (If an edge connects nodes not yet in the
-    # graph, the nodes are automatically added.)
-    #
-    # Each entry is from_type: control_list.
-    # Each control_list is [control_dict, control_dict, ... ].
-    # Each control_dict is:
-    #   TO: The destination type
-    #   EDGE_ATTTRIBUTES: This edge's attributes:
-    #       TYPE: The type of this edge
-    #       MIN: A resource graph node has a minimum number of this edge type
-    #       MAX: A resource graph node has a maximum number of this edge type
-    #       MATCHING_FN: Callable(from_attr_dict, to_attr_dict).  If there's a
-    #                    match between the from_node's and to_node's attribute
-    #                    dicts, we draw a Resource graph edge. Note: This
-    #                    must be prepared for absent keys, and not throw
-    #                    exceptions.
-    EDGES = {
-        # From Cinder nodes
-        QOSSpec: [{TO: VolumeType,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: APPLIES_TO,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t:
-                    f.get("id") and
-                    f.get("id") in
-                    t.get("extra_specs", {}).get("qos", '')}}],
-        VolumeType: [{TO: Volume,
-                      EDGE_ATTRIBUTES:
-                      {TYPE: APPLIES_TO,
-                       MIN: 0,
-                       MAX: sys.maxint,
-                       MATCHING_FN:
-                       lambda f, t:
-                       f.get("id") and f["id"] == t.get("volume_type")}}],
-        Snapshot: [{TO: Volume,
-                    EDGE_ATTRIBUTES:
-                    {TYPE: APPLIES_TO,
-                     MIN: 1,
-                     MAX: 1,
-                     MATCHING_FN:
-                     lambda f, t:
-                     f.get("id") and f.get("id") == t.get("snapshot_id")}},
-                   ],
+    @classmethod
+    def outgoing_edges(cls):      # pylint: disable=R0201
+        """Return the edges leaving this type."""
 
-        # From Glance nodes
-        Image: [{TO: Server,
-                 EDGE_ATTRIBUTES:
-                 {TYPE: DEFINES,
-                  MIN: 0,
-                  MAX: sys.maxint,
-                  MATCHING_FN:
-                  lambda f, t: f.get("id") and f.get("id") == t.get("id")}}],
-
-        # From Keystone nodes
-        Credential: [{TO: Project,
-                      EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}}],
-        Domain: [{TO: Group,
-                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
-                 {TO: Project,
-                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
-                 {TO: User,
-                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}}],
-        Endpoint: [{TO: Service,
-                    EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 1, MAX: 1}}],
-        Project: [{TO: Image,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: MEMBER_OF,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: Keypair,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: NovaLimits,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 1,
-                    MAX: 1,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: Server,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 1,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: MeteringLabel,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: NeutronQuota,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: SUBSCRIBED_TO,
-                    MIN: 1,
-                    MAX: 1,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: Network,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: USES,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: Network,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: Subnet,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: LBMember,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: HealthMonitor,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: LBVIP,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: Port,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: SecurityRules,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: QuotaSet,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: SUBSCRIBED_TO,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: QOSSpec,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: Snapshot,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: Volume,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: MEMBER_OF,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  {TO: Limits,
-                   EDGE_ATTRIBUTES:
-                   {TYPE: OWNS,
-                    MIN: 0,
-                    MAX: sys.maxint,
-                    MATCHING_FN:
-                    lambda f, t: f.get("id") and f.get("id") == t.get("id")}},
-                  ],
-        Region: [{TO: AvailabilityZone,
-                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 1, MAX: sys.maxint}},
-                 {TO: Endpoint,
-                  EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}}],
-        Role: [{TO: Domain,
-                EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}},
-               {TO: Group,
-                EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}},
-               {TO: Project,
-                EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: sys.maxint}},
-               {TO: User,
-                EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO,
-                                  MIN: 0,
-                                  MAX: sys.maxint}}],
-        Token: [{TO: User,
-                 EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO,
-                                   MIN: 0,
-                                   MAX: sys.maxint}}],
-        User: [{TO: Credential,
-                EDGE_ATTRIBUTES: {TYPE: CONTAINS, MIN: 0, MAX: sys.maxint}},
-               {TO: Group,
-                EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: sys.maxint}},
-               {TO: Project,
-                EDGE_ATTRIBUTES: {TYPE: ASSIGNED_TO, MIN: 0, MAX: 1}},
-               {TO: QuotaSet,
-                EDGE_ATTRIBUTES:
-                {TYPE: SUBSCRIBED_TO,
-                 MIN: 0,
-                 MAX: sys.maxint}}],
-
-        # From Neutron nodes
-        FloatingIPPool: [{TO: FixedIP,
-                          EDGE_ATTRIBUTES: {TYPE: ROUTES_TO,
-                                            MIN: 0,
-                                            MAX: sys.maxint}},
-                         {TO: FloatingIP,
-                          EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                            MIN: 0,
-                                            MAX: sys.maxint}}],
-        HealthMonitor: [{TO: LBPool,
-                         EDGE_ATTRIBUTES: {TYPE: APPLIES_TO,
-                                           MIN: 0,
-                                           MAX: sys.maxint}}],
-        LBMember: [{TO: LBPool,
-                    EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
-                                      MIN: 0,
-                                      MAX: sys.maxint}},
-                   {TO: Subnet,
-                    EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}}],
-        LBVIP: [{TO: LBPool,
-                 EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: 1}},
-                {TO: Port,
+        return [{TO: Network,
                  EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
-                {TO: Subnet,
-                 EDGE_ATTRIBUTES: {TYPE: ALLOCATED_TO, MIN: 0, MAX: 1}}],
-        MeteringLableRule: [{TO: MeteringLabel,
-                             EDGE_ATTRIBUTES: {TYPE: APPLIES_TO,
-                                               MIN: 1,
-                                               MAX: 1}}],
-        Port: [{TO: FixedIP,
-                EDGE_ATTRIBUTES: {TYPE: CONSUMES, MIN: 0, MAX: sys.maxint}},
-               {TO: FloatingIP,
-                EDGE_ATTRIBUTES: {TYPE: CONSUMES, MIN: 0, MAX: sys.maxint}},
-               {TO: SecurityGroup,
-                EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 0, MAX: sys.maxint}}],
-        Router: [{TO: Network,
-                  EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO, MIN: 0, MAX: 1}},
-                 {TO: Port,
-                  EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
-                                    MIN: 0,
-                                    MAX: sys.maxint}}],
-        SecurityRules: [{TO: RemoteGroup,
-                         EDGE_ATTRIBUTES: {TYPE: APPLIES_TO, MIN: 0, MAX: 1}},
-                        {TO: SecurityGroup,
-                         EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 1, MAX: 1}}],
-        Subnet: [{TO: FixedIP,
-                  EDGE_ATTRIBUTES: {TYPE: OWNS, MIN: 0, MAX: sys.maxint}},
-                 {TO: Network,
-                  EDGE_ATTRIBUTES: {TYPE: MEMBER_OF, MIN: 1, MAX: 1}}],
-
-        # From Nova nodes
-        AvailabilityZone: [
-            {TO: Aggregate,
-             EDGE_ATTRIBUTES:
-             {TYPE: OWNS,
-              MIN: 0,
-              MAX: sys.maxint,
-              MATCHING_FN:
-              lambda f, t:
-              f.get("zoneName") and
-              f.get("zoneName") == t.get("availability_zone")}},
-            {TO: Host,
-             EDGE_ATTRIBUTES:
-             {TYPE: OWNS,
-              MIN: 0,
-              MAX: sys.maxint,
-              MATCHING_FN:
-              lambda f, t:
-              f.get("zoneName") and f.get("zoneName") == t.get("zone")}}],
-        Cloudpipe: [
-            {TO: Server,
-             EDGE_ATTRIBUTES:
-             {TYPE: INSTANCE_OF,
-              MIN: 1,
-              MAX: 1,
-              MATCHING_FN:
-              lambda f, t: f.get("id") and f.get("id") == t.get("id")}}],
-        Flavor: [
-            {TO: FlavorExtraSpec,
-             EDGE_ATTRIBUTES:
-             {TYPE: OWNS,
-              MIN: 0,
-              MAX: sys.maxint,
-              MATCHING_FN:
-              lambda f, t:
-              f.get("id") and f.get("id") == t.get("id")}},
-            {TO: Server,
-             EDGE_ATTRIBUTES:
-             {TYPE: DEFINES,
-              MIN: 0,
-              MAX: sys.maxint,
-              MATCHING_FN:
-              lambda f, t:
-              f.get("id") and f.get("id") == t.get("flavor", {}).get("id")}}],
-        Host: [
-            {TO: Aggregate,
-             EDGE_ATTRIBUTES:
-             {TYPE: MEMBER_OF,
-              MIN: 0,
-              MAX: sys.maxint,
-              MATCHING_FN:
-              lambda f, t: f.get("host_name") and
-              f.get("host_name") in t.get("hosts", [])}},
-            {TO: Hypervisor,
-             EDGE_ATTRIBUTES:
-             {TYPE: OWNS,
-              MIN: 0,
-              MAX: 1,
-              MATCHING_FN:
-              lambda f, t:
-              f.get("host_name") and
-              f.get("host_name") == t.get("hypervisor_hostname")}}],
-        Hypervisor: [
-            {TO: Server,
-             EDGE_ATTRIBUTES:
-             {TYPE: OWNS,
-              MIN: 0,
-              MAX: sys.maxint,
-              MATCHING_FN:
-              lambda f, t:
-              f.get("id") and
-              f.get("id") == t.get("OS-EXT-SRV-ATTR:hypervisor_hostname")}},
-        ],
-        Interface: [
-            {TO: Port,
-             EDGE_ATTRIBUTES:
-             {TYPE: ATTACHED_TO,
-              MIN: 0,
-              MAX: 1,
-              MATCHING_FN:
-              lambda f, t:
-              f.get("mac_addr") and f.get("mac_addr") == t["mac_address"]}}],
-        Keypair: [{TO: Server,
-                   EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
-                                     MIN: 0,
-                                     MAX: sys.maxint,
-                                     # Any keypair can be used on any server.
-                                     MATCHING_FN:
-                                     lambda f, t:
-                                     f.get("fingerprint") is not None and
-                                     t is not None}}],
-        Server: [{TO: Interface,
-                  EDGE_ATTRIBUTES: {TYPE: OWNS,
-                                    MIN: 0,
-                                    MAX: sys.maxint,
-                                    MATCHING_FN:
-                                    lambda f, t:
-                                    f.get("addresses") and
-                                    t.get("mac_addr") and
-                                    t.get("mac_addr") in
-                                    [y["OS-EXT-IPS-MAC:mac_addr"]
-                                     for x in f.get("addresses").values()
-                                     for y in x]}},
-                 {TO: ServerGroup,
-                  EDGE_ATTRIBUTES: {TYPE: MEMBER_OF,
-                                    MIN: 0,
-                                    MAX: sys.maxint,
-                                    MATCHING_FN: lambda f, t:
-                                    f.get("hostId") and
-                                    f.get("hostId") in t["members"]}},
-                 {TO: Volume,
-                  EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
-                                    MIN: 0,
-                                    MAX: sys.maxint,
-                                    MATCHING_FN: lambda f, t:
-                                    f.get("links") and t.get("links") and
-                                    any(volentry.get("href") and
-                                        volentry["href"] in
-                                        [x["href"] for x in f["links"]]
-                                        for volentry in t["links"])}},
-                 ],
-        }
-
-    def __init__(self):
-        """Initialize the object.
-
-        :return: self.graph: A graph of the resource types within an OpenStack
-                 cloud.
-
-        """
-
-        super(ResourceTypes, self).__init__()
-
-        # For every control_dict for every "from" type...
-        for source, control_list in self.EDGES.iteritems():
-            for control_dict in control_list:
-                self.graph.add_edge(source,
-                                    control_dict[TO],
-                                    attr_dict=control_dict[EDGE_ATTRIBUTES])
-
-    @property
-    def edgetypes(self):       # pylint: disable=R0201
-        """Return a list of the graph's edge types."""
-
-        return settings.R_EDGE.keys()
-
-resource_types = ResourceTypes()          # pylint: disable=C0103
-
-
-class Resources(Graph):
-    """A graph of the resources used within an OpenStack cloud."""
-
-    def __init__(self):
-        """Initialize the object."""
-
-        super(Resources, self).__init__()
-
-    def nodes_of_type(self, nodetype):
-        """Return all the instances that are of type <nodetype>.
-
-        :param nodetype: The Resource Type that is desired
-        :type nodetype: A node in ResourceTypes
-        :return: All the nodes in the Resources graph that have a type equal to
-                 <nodetype>
-        :rtype: list of node
-
-        """
-
-        return [x for x in self.graph.nodes() if x.resourcetype == nodetype]
-
-    @staticmethod
-    def locate(nodelist, source_fn, source_value):
-        """Return a nodelist entry whose source_fn value matches source_value.
-
-        N.B. This returns the first node found that matches. It does not check
-        for nor return multiple matches.
-
-        :param nodelist: The nodes through which to search
-        :type nodelist: Iterable of GraphNode
-        :keyword source_fn: A function that takes one parameter, which is
-                            to a node's attributes
-        :type source_fn: Callable
-        :keyword source_value: A value to match against.
-        :type source_value: Anything. But probably a str
-        :return: A nodelist entry that matched
-        :rtype: GraphNode or None
-
-        """
-
-        for node in nodelist:
-            if source_fn(node.attributes) == source_value:
-                return node
-
-        return None
-
-    @property
-    def edgetypes(self):         # pylint: disable=R0201
-        """Return a list of the graph's edge types."""
-
-        return settings.RI_EDGE.keys()
-
-
-# Here's Goldstone's Resource Instance graph.
-resources = Resources()       # pylint: disable=C0103
+                {TO: Port,
+                 EDGE_ATTRIBUTES: {TYPE: ATTACHED_TO,
+                                   MIN: 0,
+                                   MAX: sys.maxint}},
+                ]

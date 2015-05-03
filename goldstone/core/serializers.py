@@ -91,10 +91,10 @@ class PolyResourceSerializer(serializers.ModelSerializer):
         exclude = ['polymorphic_ctype']
 
 
-class NavTreeSerializer(serializers.Serializer):
-    """The NavTree class serializer."""
+class PassthruSerializer(serializers.Serializer):
+    """A serializer for DRF views where no work is needed."""
 
-    def to_representation(self, obj):
+    def to_representation(self, instance):
         """Return an already-serialized object."""
 
-        return obj
+        return instance

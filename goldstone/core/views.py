@@ -15,12 +15,13 @@
 from rest_framework.response import Response
 from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
     DateHistogramAggView
-from rest_framework.generics import RetrieveAPIView
+from rest_framework.generics import RetrieveAPIView, ListAPIView
 from goldstone.utils import TopologyMixin
 
-from .models import MetricData, ReportData
+from .models import MetricData, ReportData, PolyResource
+from .resources import resources, resource_types
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
-    MetricNamesAggSerializer, ReportNamesAggSerializer, NavTreeSerializer, \
+    MetricNamesAggSerializer, ReportNamesAggSerializer, PassthruSerializer, \
     MetricAggSerializer
 
 
@@ -172,7 +173,7 @@ class NavTreeView(RetrieveAPIView, TopologyMixin):
 
      """
 
-    serializer_class = NavTreeSerializer
+    serializer_class = PassthruSerializer
 
     def get_object(self):
         return self.build_topology_tree()
@@ -287,3 +288,208 @@ class NavTreeView(RetrieveAPIView, TopologyMixin):
             return rl[0]
         else:
             return {"rsrcType": "error", "label": "No data found"}
+
+
+# Our API documentation extracts this docstring, hence the use of markup.
+class ResourceTypeList(ListAPIView):
+    """Return the Resource Type graph, as a collection of nodes and directed
+    edges."""
+
+    serializer_class = PassthruSerializer
+
+    def get(self, request, *args, **kwargs):
+        """The response payload is:
+
+        {"nodes": [<b>node</b>, <b>node</b>, ...],
+         "edges": [<b>edge</b>, <b>edge</b>, ...]}\n\n
+
+        <b>node</b> is {"display_attributes": {"service_name": str,
+                                               "name": str},
+                        "unique_id": str,
+                        "present": bool (True if >= 1 instance exists)
+                        }\n\n
+
+        <b>edge</b> is {"from": str, "to": str, "type": str}
+
+        """
+        from django.conf import settings
+
+        TYPE = settings.R_ATTRIBUTE.TYPE
+
+        # Get filtering query parameters, if specified
+        # TODO: Fold in user and project filtering.
+        user_filter = request.query_params.get("user")
+        project_filter = request.query_params.get("project")
+
+        # Gather the nodes.
+        nodes = [{"display_attributes": entry.display_attributes(),
+                  "unique_id": entry.unique_id(),
+                  "present": bool(resources.nodes_of_type(entry))}
+                 for entry in resource_types.graph]
+
+        # Gather the edges.
+        edges = [{"from": str(entry[0]),
+                  "to": str(entry[1]),
+                  "type": entry[2][TYPE]}
+                 for entry in resource_types.graph.edges_iter(data=True)]
+
+        return Response({"nodes": nodes, "edges": edges})
+
+
+# Our API documentation extracts this docstring, hence the use of markup.
+class ResourceTypeRetrieve(RetrieveAPIView):
+    """Return the resource graph instances of a specific resource type."""
+
+    serializer_class = PassthruSerializer
+
+    def get(self, request, unique_id, *args, **kwargs):
+        """<b>unique_id</b> is a resource type's unique id.\n\n
+
+        The response payload is a list of resource graph nodes:
+
+        {"nodes": [<b>node</b>, <b>node</b>, ...]}\n\n
+
+        <b>node</b> is {"uuid": str, "cloud_id": str, "name": str,
+                        "attributes": dict}
+
+        <b>uuid</b> is the UUID we gave this node within Goldstone.\n\n
+
+        <b>cloud_id</b> is the OpenStack id of this node. It may be empty.\n\n
+
+        <b>name</b> is the node's cloud name.\n\n
+
+        <b>attributes</b> is the node's information extracted from the
+        OpenStack cloud.
+
+        """
+        from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK
+
+        # Get filtering query parameters, if specified
+        # TODO: Fold in user and project filtering.
+        user_filter = request.query_params.get("user")
+        project_filter = request.query_params.get("project")
+
+        # Get the type that matches the supplied id.
+        target_type = resource_types.get_type(unique_id)
+
+        result = []
+
+        if target_type is not None:
+            # The desired resource type was found. Each instance's information
+            # comes from its resource graph node, and its PolyResource table
+            # row.
+            for node in resources.nodes_of_type(target_type):
+                row = PolyResource.objects.get(uuid=node.uuid)
+                result.append({"uuid": node.uuid,
+                               "cloud_id": row.cloud_id,
+                               "name": row.name,
+                               "attributes": node.attributes})
+
+        # The response's status depends on whether we found any instances.
+        return Response({"nodes": result},
+                        status=HTTP_200_OK if result else HTTP_404_NOT_FOUND)
+
+
+# Our API documentation extracts this docstring, hence the use of markup.
+class ResourcesList(ListAPIView):
+    """Return the Resource graph, as a collection of nodes and directed
+    edges."""
+
+    serializer_class = PassthruSerializer
+
+    def get(self, request, *args, **kwargs):
+        """The response payload is:
+
+        {"nodes": [<b>node</b>, <b>node</b>, ...],
+         "edges": [<b>edge</b>, <b>edge</b>, ...]}\n\n
+
+        <b>node</b> is {"resourcetype": {"unique_id": str, "name": str},
+                        "uuid": str,
+                        "cloud_id": str,
+                        "name": str,
+                        }\n\n
+
+        <b>edge</b> is {"from": str, "to": str, "type": str}
+
+        """
+        from django.conf import settings
+
+        TYPE = settings.R_ATTRIBUTE.TYPE
+
+        # Get filtering query parameters, if specified
+        # TODO: Define and fold in query filtering.
+        user_filter = request.query_params.get("user")
+        project_filter = request.query_params.get("project")
+
+        # Gather the nodes.
+        nodes = []
+
+        # For every node in the resource graph...
+        for node in resources.graph.nodes():
+            # Gather the information we need
+            rt_attributes = node.resourcetype.display_attributes()
+            rt_unique_id = node.resourcetype.unique_id()
+            rt_row = PolyResource.objects.get(uuid=node.uuid)
+
+            # Append this node to the nodes list.
+            nodes.append({"resourcetype":
+                          {"unique_id": rt_unique_id,
+                           "name": rt_attributes["name"]},
+                          "uuid": node.uuid,
+                          "cloud_id": rt_row.cloud_id,
+                          "name": rt_row.name
+                          })
+
+        # Gather the edges.
+        edges = [{"from": str(entry[0]),
+                  "to": str(entry[1]),
+                  "type": entry[2][TYPE]}
+                 for entry in resources.graph.edges_iter(data=True)]
+
+        return Response({"nodes": nodes, "edges": edges})
+
+
+# Our API documentation extracts this docstring, hence the use of markup.
+class ResourcesRetrieve(RetrieveAPIView):
+    """Return a specific resource graph node's detail."""
+
+    serializer_class = PassthruSerializer
+
+    def get(self, request, uuid, *args, **kwargs):
+        """<b>uuid</b> is a resource's UUID.\n\n
+
+        The response payload is:
+
+        {"cloud_id": str, "name": str, "attributes": dict}
+
+        <b>cloud_id</b> is the OpenStack id of this node. It may be empty.\n\n
+
+        <b>name</b> is the cloud name of this node.\n\n
+
+        <b>attributes</b> is the node's information extracted from the
+        OpenStack cloud.
+
+        """
+        from django.core.exceptions import ObjectDoesNotExist
+        from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK
+
+        # Get filtering query parameters, if specified
+        # TODO: Fold in user and project filtering.
+        user_filter = request.query_params.get("user")
+        project_filter = request.query_params.get("project")
+
+        # Get this resource's graph node and table row.
+        node = resources.get_uuid(uuid)
+
+        try:
+            row = PolyResource.objects.get(uuid=uuid)
+        except ObjectDoesNotExist:
+            row = None
+
+        if node and row:
+            return Response({"cloud_id": row.cloud_id,
+                             "name": row.name,
+                             "attributes": node.attributes})
+
+        else:
+            return Response({}, status=HTTP_404_NOT_FOUND)

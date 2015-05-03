@@ -23,9 +23,10 @@ import mock
 from mock import patch
 from rest_framework.test import APISimpleTestCase
 
-from .models import resources, Image, ServerGroup, NovaLimits, GraphNode, \
-    PolyResource, Host, resource_types, Aggregate, Hypervisor, Port, \
-    Cloudpipe, Network, Project, Server
+from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
+    Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server
+from .resources import resource_types, resources, GraphNode
+
 from . import tasks
 from .utils import custom_exception_handler, _add_edges, process_resource_type
 
@@ -200,7 +201,7 @@ class AddEdges(SimpleTestCase):
         be done.
 
         """
-        from goldstone.core.models import ResourceTypes
+        from goldstone.core.resources import ResourceTypes
 
         # Test data.
         NODES = [(Host, "deadbeef")]

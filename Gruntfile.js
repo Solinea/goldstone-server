@@ -3,7 +3,15 @@ If you are new to grunt, be sure to examine the list of grunt.
 registerTasks at the bottom of the page. Once defined, a
 registered tasks can be used within other task definitions.
 
-Many of the grunt tasks (watch/concat/test) rely on an external file that designates the order in which to load files. That is located in test/client-files.conf.js.
+************************************************
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Most of the grunt tasks (watch/concat/test) rely
+on an external file that designates the order in
+which to load files. That is located in
+client/client-files-config.js.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+************************************************
+
 
 When adding a Backbone View that will be extended into other
 views, it must be added to goldstone/client/js/ and explicitly
@@ -23,15 +31,16 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-sass');
     grunt.loadNpmTasks('grunt-express-server');
     grunt.loadNpmTasks('grunt-focus');
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-mocha');
     grunt.loadNpmTasks('grunt-notify');
 
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // list of files for concatenation order / watching / linting, etc
-    var clientIncludeOrder = require('./test/client-files.conf.js');
-    var testInclude = clientIncludeOrder.test;
+    var clientIncludeOrder = require('./client/client-files-config.js');
 
     // grunt setup
     grunt.initConfig({
@@ -40,7 +49,17 @@ module.exports = function(grunt) {
         notify: {
             concat_message: {
                 options: {
-                    message: "Concat is finished"
+                    message: "Client concat is finished"
+                }
+            },
+            concat_message_lib: {
+                options: {
+                    message: "Lib concat is finished"
+                }
+            },
+            scss: {
+                options: {
+                    message: "SASS/CSS compile complete"
                 }
             }
         },
@@ -50,7 +69,7 @@ module.exports = function(grunt) {
             gruntfile: 'Gruntfile.js',
             karmaConfig: 'karma.conf.js',
             client: clientIncludeOrder.clientWildcards,
-            test: [testInclude, 'test/e2e/*.js'],
+            test: [clientIncludeOrder.test, clientIncludeOrder.e2e],
             options: {
                 globals: {
                     eqeqeq: true
@@ -75,28 +94,23 @@ module.exports = function(grunt) {
             options: {},
             e2e: {
                 files: {
-                    'results/casper': ['test/e2e/e2eAuth.js', 'test/e2e/e2eTests.js', 'test/e2e/e2eLogout.js']
+                    'results/casper': clientIncludeOrder.e2e
                 }
-            },
-            skipLogout: {
-                files: {
-                    'results/casper': ['test/e2e/e2eAuth.js', 'test/e2e/e2eTests.js']
-                }
-            },
-            logoutOnly: {
-                files: {
-                    'results/casper': ['test/e2e/e2eLogout.js']
-                }
-            },
-            skipAuth: {
-                files: {
-                    'results/casper': ['test/e2e/e2eTests.js']
-                }
-            },
-            loginOnly: {
-                files: {
-                    'results/casper': ['test/e2e/e2eAuth.js']
-                }
+            }
+        },
+
+        sass: {
+            dev: {
+                options: {
+                    style: 'expanded',
+                    compass: false,
+                },
+                files: [{
+                    expand: true,
+                    src: clientIncludeOrder.scss,
+                    dest: clientIncludeOrder.css,
+                    ext: '.css'
+                }]
             }
         },
 
@@ -108,30 +122,37 @@ module.exports = function(grunt) {
                 tasks: ['lint', 'c']
             },
             lib: {
-                files: 'goldstone/client/js/lib/*.js',
-                tasks: ['concat:lib', 'notify:concat_message']
+                files: clientIncludeOrder.lib,
+                tasks: ['clib']
             },
             gruntfile: {
                 files: ['Gruntfile.js', 'karma.conf.js'],
                 tasks: ['jshint:gruntfile', 'jshint:karmaConfig', 'lint']
             },
             unitTests: {
-                files: ['test/unit/*.js'],
+                files: clientIncludeOrder.testUnit,
                 tasks: ['lint', 'karma']
             },
             integrationTests: {
-                files: ['test/integration/*.js'],
+                files: clientIncludeOrder.testIntegration,
                 tasks: ['lint', 'karma']
             },
             e2eTests: {
-                files: ['test/e2e/*.js'],
-                tasks: 'lint'
+                files: clientIncludeOrder.e2e,
+                tasks: ['e']
+            },
+            css: {
+                files: clientIncludeOrder.scss,
+                tasks: ['scss']
             }
         },
 
         focus: {
             dev: {
                 include: ['unitTests', 'integrationTests', 'client']
+            },
+            e2e: {
+                include: ['e2eTests']
             }
         },
 
@@ -143,13 +164,13 @@ module.exports = function(grunt) {
             lib: {
                 nonull: true,
                 src: clientIncludeOrder.lib,
-                dest: 'goldstone/client/js/bundle/libs.js',
+                dest: clientIncludeOrder.libBundle,
                 stripBanners: true
             },
             clientjs: {
                 nonull: true,
                 src: clientIncludeOrder.clientWildcards,
-                dest: 'goldstone/client/js/bundle/bundle.js'
+                dest: clientIncludeOrder.clientBundle
             }
         },
 
@@ -157,15 +178,14 @@ module.exports = function(grunt) {
 
     // Start watching and run tests when files change
     grunt.registerTask('default', ['lint', 'karma', 'watch']);
-    grunt.registerTask('lint', ['jshint']);
-    grunt.registerTask('test', ['karma', 'casperjs:e2e']);
-    grunt.registerTask('lintAndTest', ['lint', 'test']);
-    grunt.registerTask('testDev', ['lint', 'karma', 'focus:dev']);
-    grunt.registerTask('casper', ['casperjs:e2e']);
-    grunt.registerTask('e', ['casperjs:e2e']);
-    grunt.registerTask('eNoLogout', ['casperjs:skipLogout']);
-    grunt.registerTask('eLogin', ['casperjs:loginOnly']);
-    grunt.registerTask('eLogout', ['casperjs:logoutOnly']);
-    grunt.registerTask('eNoAuth', ['casperjs:skipAuth']);
     grunt.registerTask('c', ['concat:clientjs', 'notify:concat_message']);
+    grunt.registerTask('casper', ['casperjs:e2e']);
+    grunt.registerTask('clib', ['concat:lib', 'notify:concat_message_lib']);
+    grunt.registerTask('e', ['casperjs:e2e']);
+    grunt.registerTask('lint', ['jshint']);
+    grunt.registerTask('lintAndTest', ['lint', 'test']);
+    grunt.registerTask('scss', ['sass:dev', 'notify:scss']);
+    grunt.registerTask('test', ['karma', 'casperjs:e2e']);
+    grunt.registerTask('testDev', ['lint', 'karma', 'focus:dev']);
+    grunt.registerTask('testDevE', ['lint', 'focus:e2e']);
 };

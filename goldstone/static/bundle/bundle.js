@@ -559,6 +559,13 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
         clearInterval(ns.scheduleInterval);
     },
 
+    onClose: function() {
+        if (this.defaults.scheduleInterval) {
+            clearInterval(this.defaults.scheduleInterval);
+        }
+        this.off();
+    },
+
     scheduleInterval: function() {
         var self = this;
         var ns = this.defaults;
@@ -7099,7 +7106,7 @@ The nesting of this page is:
 |__ MetricViewerView + MetricViewerCollection
 |____ MetricView + MetricViewCollection
 
-At the moment /metric will default to 6 charts.
+At the moment /#metric will default to 6 charts.
 /metric/1 will show 1 chart
 /metric/2 will show 2 charts
 /metric/3 will show 3 charts
@@ -7110,17 +7117,33 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
 
     initialize: function(options) {
 
+        // hide global lookback selector
+        $("select#global-lookback-range").hide();
+
         // options.numCharts passed in by goldstoneRouter
-        // and reflects the number n (1-6) following "/metric/n"
+        // and reflects the number n (1-6) following "/#metric/n"
         this.numCharts = options.numCharts;
+
+        // model to hold collection/views of chart grids
+        this.metricViewGridContainer = new Backbone.Model({
+            grid: {
+                view: {},
+                collection: {}
+            }
+        });
+
+        // instantiate initialize in GoldstoneBasePageView
         MetricViewerPageView.__super__.initialize.apply(this, arguments);
     },
 
-    metricViewGridContainer: {
+    onClose: function() {
+        // clear out grid of collections/views
+        this.metricViewGridContainer.clear();
 
-        // will be populated during renderCharts()
-        view: {},
-        collection: {}
+        // return global lookback selector to page
+        $("select#global-lookback-range").show();
+
+        MetricViewerPageView.__super__.onClose.apply(this, arguments);
     },
 
     renderCharts: function() {
@@ -7140,12 +7163,14 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         //---------------------------------------------
         // instantiate as many metricViews as requested
 
+        // Backbone getter:
+        var grid = this.metricViewGridContainer.get('grid');
+
         for (var i = 0; i < num; i++) {
 
             // underscore method for producing unique integer
             var id = _.uniqueId();
 
-            var grid = this.metricViewGridContainer;
             grid.collection[id] = new MetricViewerCollection({});
 
             grid.view[id] = new MetricViewerView({
@@ -7158,6 +7183,20 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
             });
 
             $(locationHash[i]).append(grid.view[id].el);
+        }
+    },
+
+    triggerChange: function(change) {
+        // upon lookbackIntervalReached, trigger all views
+        // so they can be refreshed via metricViewerView
+        if (change === 'lookbackIntervalReached') {
+            var grid = this.metricViewGridContainer.get('grid').view;
+
+            // trigger each chart currently in the grid that the refresh
+            // interval has been reached
+            _.each(grid, function(view) {
+                view.trigger('globalLookbackReached');
+            });
         }
     },
 
@@ -7237,8 +7276,14 @@ var MetricViewerView = GoldstoneBaseView.extend({
             }
 
             // after the dropdown is populated,
-            // attache button listeners
+            // attach button listeners
             this.attachModalTriggers();
+        });
+
+        this.listenTo(this, 'globalLookbackReached', function() {
+            if (this.metricChart) {
+                this.appendChart();
+            }
         });
     },
 
@@ -7277,8 +7322,12 @@ var MetricViewerView = GoldstoneBaseView.extend({
             'resource': $(menu).find('.resource-dropdown-options').val(),
             'statistic': $(menu).find('.statistic-dropdown-options').val(),
             'standardDev': $(menu).find('.standard-dev:checked').length,
-            'lookback': $(menu).find('.lookback-dropdown-options').val(),
-            'interval': $(menu).find('.interval-dropdown-options').val(),
+            // if lookback is left blank, default to 1
+            'lookbackValue': $(menu).find('.modal-lookback-value').val() || 1,
+            'lookbackUnit': $(menu).find('.lookback-dropdown-options').val(),
+            // if lookback is left blank, default to 1
+            'intervalValue': $(menu).find('.modal-interval-value').val() || 1,
+            'intervalUnit': $(menu).find('.interval-dropdown-options').val(),
         });
     },
 
@@ -7298,8 +7347,10 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         var url = '/core/metrics/summarize/?name=' +
             options.metric + '&@timestamp__range={"gte":' +
-            (+new Date() - (options.lookback * 60 * 1000)) +
-            '}&interval=' + options.interval;
+            (+new Date() - (options.lookbackValue * options.lookbackUnit * 1000)) +
+            '}&interval=' +
+            options.intervalValue +
+            options.intervalUnit;
         if (options.resource !== 'all') {
             url += '&node=' + options.resource;
         }
@@ -7388,20 +7439,24 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         '<h5>Standard Deviation Bands? <input class="standard-dev" type="checkbox"></h5>' +
 
+        // ES can handle s/m/h/d in the "interval" param
         '<h5>Lookback</h5>' +
+        '<input class="modal-lookback-value" placeholder="default=1" required="required">' + ' ' +
         '<select class="lookback-dropdown-options">' +
-        '<option value="15" selected>lookback 15m</option>' +
-        '<option value="60">lookback 1h</option>' +
-        '<option value="360">lookback 6h</option>' +
-        '<option value="1440">lookback 1d</option>' +
+        '<option value="1">seconds</option>' +
+        '<option value="60">minutes</option>' +
+        '<option value="3600" selected>hours</option>' +
+        '<option value="86400">days</option>' +
         '</select>' +
 
         // ES can handle s/m/h/d in the "interval" param
         '<h5>Charting Interval</h5>' +
+        '<input class="modal-interval-value" placeholder="default=1" required="required">' + ' ' +
         '<select class="interval-dropdown-options">' +
-        '<option value="1m" selected>1m</option>' +
-        '<option value="1h">1h</option>' +
-        '<option value="1d">1d</option>' +
+        '<option value="s">seconds</option>' +
+        '<option value="m" selected>minutes</option>' +
+        '<option value="h">hours</option>' +
+        '<option value="d">days</option>' +
         '</select>' +
 
         '</div>' + // end modal-body

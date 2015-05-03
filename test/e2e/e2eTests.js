@@ -36,6 +36,8 @@ casper.options.viewportSize = {
     height: 779
 };
 
+// 15 second timeout limit on individual tests
+casper.options.waitTimeout = 15000;
 
 /*
 print delimiting text between tests
@@ -47,6 +49,8 @@ casper.test.setUp(function() {
 
 casper.test.tearDown(function() {
     casper.echo('end of test', "WARNING");
+    casper.echo(' ');
+    casper.echo(' ');
 });
 
 /*
@@ -55,7 +59,7 @@ begin tests
 
 casper.test.begin('Login Page loads and I can use reset password link', 5, function suite(test) {
 
-    casper.start('http://localhost:8000/#/login', function() {
+    casper.start('http://localhost:8000/#login', function() {
         test.assertTitle("goldstone", "title is goldstone");
     });
 
@@ -71,7 +75,7 @@ casper.test.begin('Login Page loads and I can use reset password link', 5, funct
         return casper.getCurrentUrl().indexOf("password") > -1;
     }, function onReceived() {
         this.echo('redirect to /password successful!', "GREEN_BAR");
-        test.assertExists('form.password-reset-form');
+        test.assertExists('form.password-reset-form', 'password reset form present');
         this.echo('page url after redirect: ' + this.evaluate(function() {
             return document.location.href;
         }), "GREEN_BAR");
@@ -101,7 +105,7 @@ casper.test.begin('Login Page loads and I can use reset password link', 5, funct
 
         // what does the form say after submission?
         this.echo('password form email value post-submit: ', "GREEN_BAR");
-        this.echo('email: ' + this.getFormValues('form').email, "GREEN_BAR");
+        this.echo('email: ' + this.getFormValues('form.password-reset-form').email, "GREEN_BAR");
     });
     casper.run(function() {
         test.done();
@@ -110,7 +114,7 @@ casper.test.begin('Login Page loads and I can use reset password link', 5, funct
 
 casper.test.begin('Back to login page to login', 5, function suite(test) {
 
-    casper.start('http://localhost:8000/#/login', function() {
+    casper.start('http://localhost:8000/#login', function() {
         test.assertTitle("goldstone", "title is goldstone");
         test.assertExists('form.login-form');
         this.echo('page url after redirect: ' + this.evaluate(function() {
@@ -173,7 +177,7 @@ casper.test.begin('Back to login page to login', 5, function suite(test) {
 
 casper.test.begin('/settings page updates user personal settings / password', 10, function suite(test) {
 
-    casper.start('http://localhost:8000/#/settings', function() {
+    casper.start('http://localhost:8000/#settings', function() {
         casper.wait(1000, function() {
             this.echo('one second pause');
         });
@@ -276,9 +280,9 @@ casper.test.begin('/settings page updates user personal settings / password', 10
     // end of settings page e2e tests
 });
 
-casper.test.begin('/settings/tenants page updates user personal settings / password', 2, function suite(test) {
+casper.test.begin('/settings/tenants page updates user personal settings / password', 5, function suite(test) {
 
-    casper.start('http://localhost:8000/#/settings/tenants', function() {
+    casper.start('http://localhost:8000/#settings/tenants', function() {
         this.echo("Update Tenant Settings", "GREEN_BAR");
         test.assertExists("form.tenant-settings-form");
         test.assertSelectorHasText("form.tenant-settings-form h3", "Update Tenant Settings");
@@ -286,17 +290,27 @@ casper.test.begin('/settings/tenants page updates user personal settings / passw
         // what does the Update Tenant Settings form say?
         this.echo('update tenant settings form values: ', "GREEN_BAR");
         this.echo('Tenant name: ' + this.getFormValues('form.tenant-settings-form').name, "INFO");
-        this.echo('first name: ' + this.getFormValues('form.tenant-settings-form').owner, "INFO");
-        this.echo('last name: ' + this.getFormValues('form.tenant-settings-form').owner_contact, "INFO");
+        this.echo('Owner name: ' + this.getFormValues('form.tenant-settings-form').owner, "INFO");
+        this.echo('Owner contact: ' + this.getFormValues('form.tenant-settings-form').owner_contact, "INFO");
+        test.assertExists('#formTenantId');
+        this.echo('Text in #formTenantId: ' + this.evaluate(function() {
+            return $('#formTenantId').text();
+        }));
+    });
 
+    casper.waitForSelector('#tenants-single-rsrc-table td.sorting_1', function() {
         // don't actually submit new settings
         this.click('#tenants-single-rsrc-table td.sorting_1');
 
         // what does the Update tenant Settings form say now?
         this.echo('update tenant settings form values: ', "GREEN_BAR");
         this.echo('Tenant name: ' + this.getFormValues('form.tenant-settings-form').name, "INFO");
-        this.echo('first name: ' + this.getFormValues('form.tenant-settings-form').owner, "INFO");
-        this.echo('last name: ' + this.getFormValues('form.tenant-settings-form').owner_contact, "INFO");
+        this.echo('Owner name: ' + this.getFormValues('form.tenant-settings-form').owner, "INFO");
+        this.echo('Owner contact: ' + this.getFormValues('form.tenant-settings-form').owner_contact, "INFO");
+        test.assertExists('#formTenantId');
+        this.echo('Text in #formTenantId: ' + this.evaluate(function() {
+            return $('#formTenantId').text();
+        }));
 
         // fill out new personal settings
         var randomDetails = ['Marvin', 'Martian', 'Bond', 'Calvin', 'Hobbes', 'Bill', 'Watterson'];
@@ -318,8 +332,12 @@ casper.test.begin('/settings/tenants page updates user personal settings / passw
         // what does the Update Personal Settings form say now?
         this.echo('tenant settings filled but not submitted with: ', "GREEN_BAR");
         this.echo('Tenant name: ' + this.getFormValues('form.tenant-settings-form').name, "INFO");
-        this.echo('first name: ' + this.getFormValues('form.tenant-settings-form').owner, "INFO");
-        this.echo('last name: ' + this.getFormValues('form.tenant-settings-form').owner_contact, "INFO");
+        this.echo('Owner name: ' + this.getFormValues('form.tenant-settings-form').owner, "INFO");
+        this.echo('Owner contact: ' + this.getFormValues('form.tenant-settings-form').owner_contact, "INFO");
+        test.assertExists('#formTenantId');
+        this.echo('Text in #formTenantId: ' + this.evaluate(function() {
+            return $('#formTenantId').text();
+        }));
     });
 
     casper.run(function() {
@@ -329,8 +347,8 @@ casper.test.begin('/settings/tenants page updates user personal settings / passw
     // end of settings page e2e tests
 });
 
-casper.test.begin('Node Report Page is loading properly', 64, function suite(test) {
-    casper.start('http://localhost:8000/#/report/node/ctrl-01', function() {
+casper.test.begin('Node Report Page is loading properly', 87, function suite(test) {
+    casper.start('http://localhost:8000/#report/node/ctrl-01', function() {
 
         this.echo('token in actual tests?: ' + this.evaluate(function() {
             var a = localStorage.getItem('userToken');
@@ -353,83 +371,72 @@ casper.test.begin('Node Report Page is loading properly', 64, function suite(tes
         test.assertSelectorHasText('div #service-status-title-bar', 'Service Status Report');
         test.assertExists('div#node-report-r2', 'Service Status Section should load');
 
-        casper.waitForSelector('.toRemove.alert-success', function() {
-            this.echo('service status graph loaded');
-        }, function onTimeout(){
-            this.echo('.toRemove.alert-success never showed up in node report');
-        }, 30000);
+    });
+
+    casper.waitForSelector('.toRemove.alert-success', function() {
+        this.echo('service status graph loaded');
 
         // service status nodes appear -or- 'no data returned'
         test.assertEval(function() {
             return $('div#node-report-r2.row .toRemove.alert-success').length > 0 || $('div#node-report-r2.row div.alert.alert-danger.popup-message').text() === 'No Data Returned';
         }, "Service Status Report renders statuses or 'No Data Returned'");
 
+    });
+
+    casper.waitForSelector('div#node-report-r3-c1 #cpu-usage svg', function() {
+        this.echo('cpu usage chart loaded');
+
         // Utilization graphs load
         test.assertSelectorHasText('div #utilization-title-bar', 'Utilization');
         test.assertExists('div#node-report-r3', 'Usage Charts should load');
 
         // CPU Usage Chart
-
         test.assertExists('div#node-report-r3-c1 #cpu-usage svg', 'CPU Usage Section svg chart should load');
+    });
+
+    casper.waitForSelector('div#node-report-r3-c1 #memory-usage svg', function() {
+        this.echo('memory usage chart loaded');
 
         // Memory Usage Chart
-        test.assertExists('div#node-report-r3-c1 #memory-usage svg', 'Network Usage Section svg chart should load');
+        test.assertExists('div#node-report-r3-c1 #memory-usage svg', 'Memory Usage Section svg chart should load');
+    });
+
+    casper.waitForSelector('div#node-report-r3-c1 #network-usage svg', function() {
+        this.echo('memory usage chart loaded');
 
         // Network Usage Chart
         test.assertExists('div#node-report-r3-c1 #network-usage svg', 'Network Usage Section svg chart should load');
+    });
 
-        // Hypervisor graphs load
+    casper.waitForSelector('div#node-report-r4-c1 #cores-usage svg g text', function() {
+        this.echo('cores usage chart loaded');
         test.assertSelectorHasText('div #hypervisor-title-bar', 'Hypervisor');
         test.assertExists('div#node-report-r4', 'Hypervisor Charts should load');
-        test.assertExists('div#node-report-r4-c1 #cores-usage svg', 'CPU Usage Section svg chart should load');
+        test.assertExists('div#node-report-r4-c1 #cores-usage svg', 'Cores Usage Section svg chart should load');
         test.assertSelectorHasText('div #node-report-r4-c1 #cores-usage', 'Cores');
         test.assertSelectorHasText('div #node-report-r4-c1 #cores-usage', 'Total Cores');
         test.assertSelectorHasText('div #node-report-r4-c1 #cores-usage', '0');
 
-        test.assertExists('div#node-report-r4-c1 #memory-usage svg', 'Network Usage Section svg chart should load');
-        test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage', 'Memory');
-        test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage', 'Total GB');
-        test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage', '0');
+    });
 
+    casper.waitForSelector('div#node-report-r4-c1 #memory-usage svg g text', function() {
+        this.echo('memory usage chart loaded');
+        test.assertExists('div#node-report-r4-c1 #memory-usage svg', 'Memory Usage Section svg chart should load');
+        test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage', 'Memory');
+        test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage svg g g text', 'Total GB');
+        test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage', '0');
+    });
+
+    casper.waitForSelector('div#node-report-r4-c1 #vm-cpu-usage svg g g text', function() {
+        this.echo('per vm cpu usage chart loaded');
         test.assertExists('div#node-report-r4-c1 #vm-cpu-usage svg', 'Per VM CPU Usage Section svg chart should load');
         test.assertSelectorHasText('div #node-report-r4-c1 #vm-cpu-usage', 'Per VM CPU Usage');
-        test.assertSelectorHasText('div #node-report-r4-c1 #vm-cpu-usage', 'percent utilization');
+        test.assertSelectorHasText('div #node-report-r4-c1 #vm-cpu-usage', 'utilization');
         test.assertSelectorHasText('div #node-report-r4-c1 #vm-cpu-usage', 'UserSystemWait');
         test.assertElementCount('#data-filterer .btn-group button', 3, 'per vm cpu usage chart has 3 buttons');
+    });
 
-        // tabs should open and close as expected
-        test.assertVisible('div#servicesReport', 'Services tab should start out visible');
-        test.assertNotVisible('div#reportsReport', 'Reports tab should start out hidden');
-        test.assertNotVisible('div#eventsReport', 'Events tab should start out hidden');
-
-        this.click('.servicesButton');
-        test.assertVisible('div#servicesReport', 'Services tab should  still be visible');
-        test.assertNotVisible('div#reportsReport', 'Reports tab should still be hidden');
-        test.assertNotVisible('div#eventsReport', 'Events tab should still be hidden');
-
-        this.click('.reportsButton');
-        test.assertNotVisible('div#servicesReport', 'Services tab should now be hidden');
-        test.assertVisible('div#reportsReport', 'Reports tab should now be visible');
-        test.assertNotVisible('div#eventsReport', 'Events tab should still be hidden');
-
-        this.click('.eventsButton');
-        test.assertNotVisible('div#servicesReport', 'Services tab should still be hidden');
-        test.assertNotVisible('div#reportsReport', 'Reports tab should now be hidden');
-        test.assertVisible('div#eventsReport', 'Events tab should now be showing');
-
-        test.assertSelectorHasText('.sorting', 'Event TypeMessage');
-        test.assertEval(function() {
-            return __utils__.findAll('.sorting').length === 2;
-        }, "Event report has 2 unsorted table headers");
-        test.assertEval(function() {
-            return __utils__.findAll('.sorting_desc').length === 1;
-        }, "Event report has 1 sorted table header");
-
-        this.click('.servicesButton');
-        test.assertVisible('div#servicesReport', 'Services tab should now be visible');
-        test.assertNotVisible('div#reportsReport', 'Reports tab should still be hidden');
-        test.assertNotVisible('div#eventsReport', 'Events tab should now be hidden');
-
+    casper.then(function() {
         // Service Status info button brings up popover
         test.assertNotVisible('#service-status-title-bar div.popover.fade.bottom.in', 'service status info popover should not be visible');
         this.click('#service-status-title-bar .pull-right.fa.fa-info-circle.panel-info');
@@ -462,15 +469,109 @@ casper.test.begin('Node Report Page is loading properly', 64, function suite(tes
         test.assertVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'service status info popover should now be visible');
         this.mouseEvent('mouseout', '#Hypervisor-title-bar .pull-right.fa.fa-info-circle.panel-info');
         test.assertNotVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'service status info popover should now be visible');
+    });
 
+    // from services to reports tab
+    casper.then(function() {
+        // tabs should open and close as expected
+        test.assertVisible('div#servicesReport', 'Services tab should start out visible');
+        test.assertNotVisible('div#reportsReport', 'Reports tab should start out hidden');
+        test.assertNotVisible('div#eventsReport', 'Events tab should start out hidden');
+        test.assertNotVisible('div#detailsReport', 'Details tab should start out hidden');
+        test.assertNotVisible('div#logsReport', 'Logs tab should start out hidden');
+
+        this.click('.reportsButton');
+        test.assertNotVisible('div#servicesReport', 'Services tab should not be visible');
+        test.assertVisible('div#reportsReport', 'Reports tab should now be visible');
+        test.assertNotVisible('div#eventsReport', 'Events tab should still be hidden');
+        test.assertNotVisible('div#detailsReport', 'Details tab should still be hidden');
+        test.assertNotVisible('div#logsReport', 'Logs tab should still be hidden');
+    });
+
+    casper.waitForSelector('#reportsReport li#report-result', function() {
+        this.echo('reports dropdown loaded');
+        this.click('#reportsReport li#report-result');
+    });
+
+    casper.waitForSelector('#reports-result-table tr td.sorting_1', function() {
+        this.echo('report results load');
+    });
+
+    // from reports to events tab
+    casper.then(function() {
+        // tabs should open and close as expected
+        test.assertNotVisible('div#servicesReport', 'Services tab should start out hidden');
+        test.assertVisible('div#reportsReport', 'Reports tab should start out visible');
+        test.assertNotVisible('div#eventsReport', 'Events tab should start out hidden');
+        test.assertNotVisible('div#detailsReport', 'Details tab should start out hidden');
+        test.assertNotVisible('div#logsReport', 'Logs tab should start out hidden');
+
+        this.click('.eventsButton');
+        test.assertNotVisible('div#servicesReport', 'Services tab should not be visible');
+        test.assertNotVisible('div#reportsReport', 'Reports tab should now be hidden');
+        test.assertVisible('div#eventsReport', 'Events tab should now be visible');
+        test.assertNotVisible('div#detailsReport', 'Details tab should still be hidden');
+        test.assertNotVisible('div#logsReport', 'Logs tab should still be hidden');
+    });
+
+    casper.waitWhileVisible('div#events-report-table_processing.dataTables_processing', function() {
         // events report
         test.assertEval(function() {
             return __utils__.findAll('td').length > 1 || $('td').text() === 'No data available in table';
         }, "Event report renders report results or 'No data available in table'");
+    });
 
+    // from events to details tab
+    casper.then(function() {
+        // tabs should open and close as expected
+        test.assertNotVisible('div#servicesReport', 'Services tab should start out visible');
+        test.assertNotVisible('div#reportsReport', 'Reports tab should start out hidden');
+        test.assertVisible('div#eventsReport', 'Events tab should start out hidden');
+        test.assertNotVisible('div#detailsReport', 'Details tab should start out hidden');
+        test.assertNotVisible('div#logsReport', 'Logs tab should start out hidden');
+
+        this.click('.detailsButton');
+        test.assertNotVisible('div#servicesReport', 'Services tab should not be visible');
+        test.assertNotVisible('div#reportsReport', 'Reports tab should not be visible');
+        test.assertNotVisible('div#eventsReport', 'Events tab should be hidden');
+        test.assertVisible('div#detailsReport', 'Details tab should not be hidden');
+        test.assertNotVisible('div#logsReport', 'Logs tab should still be hidden');
+    });
+
+    casper.then(function() {
+        test.assertEval(function() {
+            return $('#details-single-rsrc-table td.sorting_1').first().text() === '@timestamp' || $('table#details-single-rsrc-table.table').text() === 'No additional details available';
+        }, "Details tab renders details or 'No additional details available'");
+    });
+
+    // from events to details tab
+    casper.then(function() {
+        // tabs should open and close as expected
+        test.assertNotVisible('div#servicesReport', 'Services tab should start out visible');
+        test.assertNotVisible('div#reportsReport', 'Reports tab should start out hidden');
+        test.assertNotVisible('div#eventsReport', 'Events tab should not be hidden');
+        test.assertVisible('div#detailsReport', 'Details tab should start out hidden');
+        test.assertNotVisible('div#logsReport', 'Logs tab should be hidden');
+
+        this.click('.logsButton');
+        test.assertNotVisible('div#servicesReport', 'Services tab should not be visible');
+        test.assertNotVisible('div#reportsReport', 'Reports tab should not be visible');
+        test.assertNotVisible('div#eventsReport', 'Events tab should be hidden');
+        test.assertNotVisible('div#detailsReport', 'Details tab should be hidden');
+        test.assertVisible('div#logsReport', 'Logs tab should not be hidden');
+    });
+
+    casper.waitForSelector('div.log-analysis-container svg', function() {
+        this.echo('log analysis svg loaded');
+    });
+
+    casper.waitForSelector('#log-search-table tbody tr td', function() {
+        this.echo('logs tab search results loaded');
+    });
+
+    casper.then(function() {
         //footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
-
     });
 
     casper.run(function() {
@@ -478,8 +579,8 @@ casper.test.begin('Node Report Page is loading properly', 64, function suite(tes
     });
 });
 
-casper.test.begin('Homepage is loading properly', 61, function suite(test) {
-    casper.start('http://localhost:8000/#', function() {
+casper.test.begin('Homepage is loading properly', 59, function suite(test) {
+    casper.start('http://localhost:8000', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
 
@@ -487,7 +588,21 @@ casper.test.begin('Homepage is loading properly', 61, function suite(test) {
         test.assertExists('div.navbar', 'Navbar should load');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
+    });
 
+    casper.waitForSelector('#goldstone-event-panel div.panel-body svg', function() {
+        this.echo('event svg loaded');
+    });
+    casper.waitForSelector('#goldstone-node-panel div.panel-body svg g text', function() {
+        this.echo('node avail svg loaded');
+    });
+    casper.waitForSelector('div#goldstone-discover-r2-c1.col-md-6 div.chart svg g', function() {
+        this.echo('cloud topology svg loaded');
+    });
+
+    casper.then(function() {
+        // checks for a timestamp of any sort which means data is received
+        // or checks for 'No Data Returned' otherwise
         /*
         EVENT TIMELINE E2E TESTS
         */
@@ -496,14 +611,12 @@ casper.test.begin('Homepage is loading properly', 61, function suite(test) {
         test.assertExists('div#goldstone-discover-r1-c1', 'Event Timeline Section should load');
         test.assertExists('div#goldstone-discover-r1-c1 svg', 'Event Timeline Section svg chart should load');
         test.assertSelectorHasText('div #goldstone-discover-r1-c1', 'Event Timeline');
-
-        // checks for a timestamp of any sort which means data is received
-        // or checks for 'No Data Returned' otherwise
-
         test.assertEval(function() {
             return __utils__.findAll('div #goldstone-discover-r1-c1 g.tick').length > 0 || $('div #goldstone-discover-r1-c1').text().indexOf('No Data Returned') >= 0;
         }, "Event report renders axis or 'No Data Returned'");
+    });
 
+    casper.then(function() {
         /*
         NODE AVAILABILITY E2E TESTS
         */
@@ -516,7 +629,7 @@ casper.test.begin('Homepage is loading properly', 61, function suite(test) {
         // checks for an axis which means data is received
         // or checks for 'No Data Returned' otherwise
 
-        casper.echo("need either a time delimeter (:) or 'No Data Returned' - line 359 on e2eTests.js", "PARAMETER");
+        casper.echo("need either a time delimeter (:) or 'No Data Returned'", "PARAMETER");
 
         casper.echo("$('div #goldstone-discover-r1-c2').text() " + casper.evaluate(function() {
             return $('div #goldstone-discover-r1-c2').text();
@@ -525,7 +638,9 @@ casper.test.begin('Homepage is loading properly', 61, function suite(test) {
         test.assertEval(function() {
             return $('div #goldstone-discover-r1-c2').text().indexOf(':') >= 0 || $('div #goldstone-discover-r1-c2').text().indexOf('No Data Returned') >= 0;
         }, "Node Availability report renders either a time delimter (:) or 'No Data Returned'");
+    });
 
+    casper.then(function() {
         /*
         CLOUD TOPOLOGY E2E TESTS
         */
@@ -562,11 +677,9 @@ casper.test.begin('Homepage is loading properly', 61, function suite(test) {
         test.assertSelectorHasText('#goldstone-discover-r2-c1', 'instances');
         test.assertSelectorHasText('#goldstone-discover-r2-c1', 'volumes');
         test.assertSelectorHasText('#goldstone-discover-r2-c1', 'backups');
+    });
 
-        /*
-        discover page info button tests:
-        */
-
+    casper.then(function() {
         // Event Timeline info button brings up popover
         test.assertNotVisible('#goldstone-event-panel div.popover.fade.bottom.in', 'event timeline info popover should not be visible');
         this.click('#goldstone-event-info.pull-right.fa.fa-info-circle.panel-info');
@@ -610,12 +723,6 @@ casper.test.begin('Homepage is loading properly', 61, function suite(test) {
         test.assertVisible('#goldstone-discover-r2-c2 div.popover.fade.bottom.in', 'resource list info popover should now be visible');
         this.mouseEvent('mouseout', '#goldstone-discover-r2-c2 .pull-right.fa.fa-info-circle.panel-info');
         test.assertNotVisible('#goldstone-discover-r2-c2 div.popover.fade.bottom.in', 'resource list info popover should now be visible');
-
-        // No resource list is visible prior to clicking on node
-        test.assertNotVisible('#goldstone-discover-r1-c2 .dataTables_scrollHead');
-
-        //footer loads and is visible
-        test.assertVisible('div#footer', 'Footer showing');
     });
 
     casper.run(function() {
@@ -624,7 +731,8 @@ casper.test.begin('Homepage is loading properly', 61, function suite(test) {
 });
 
 casper.test.begin('API Perf Page is loading properly', 65, function suite(test) {
-    casper.start('http://localhost:8000/#/api_perf/report', function() {
+
+    casper.start('http://localhost:8000/#api_perf/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
 
@@ -632,6 +740,26 @@ casper.test.begin('API Perf Page is loading properly', 65, function suite(test) 
         test.assertExists('div.navbar', 'Navbar should load');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
+    });
+
+    // svg charts load
+    casper.waitForSelector('div#api-perf-report-r1-c1.col-md-6 svg g.chart g.legend', function() {
+        this.echo('nova api svg loads');
+    });
+    casper.waitForSelector('div#api-perf-report-r1-c2.col-md-6 svg g.chart g.legend', function() {
+        this.echo('neutron api svg loads');
+    });
+    casper.waitForSelector('div#api-perf-report-r2-c1.col-md-6 svg g.chart g.legend', function() {
+        this.echo('keystone api svg loads');
+    });
+    casper.waitForSelector('div#api-perf-report-r2-c2.col-md-6 svg g.chart g.legend', function() {
+        this.echo('glance api svg loads');
+    });
+    casper.waitForSelector('div#api-perf-report-r3-c1.col-md-6 svg g.chart g.legend', function() {
+        this.echo('cinder api svg loads');
+    });
+
+    casper.then(function() {
 
         // Nova API Perf graph loads
         test.assertExists('div#api-perf-report-r1-c1', 'Nova API Perf Section should load');
@@ -743,7 +871,7 @@ casper.test.begin('API Perf Page is loading properly', 65, function suite(test) 
 });
 
 casper.test.begin('Nova (compute) Page is loading properly', 53, function suite(test) {
-    casper.start('http://localhost:8000/#/nova/report', function() {
+    casper.start('http://localhost:8000/#nova/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
 
@@ -751,7 +879,26 @@ casper.test.begin('Nova (compute) Page is loading properly', 53, function suite(
         test.assertExists('div.navbar', 'Navbar should load');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
+    });
 
+    casper.waitForSelector('div#nova-report-r1-c1.col-md-6 svg g.chart g.legend', function() {
+        this.echo('nova api perf loads');
+    });
+    casper.waitForSelector('div#nova-report-r1-c2.col-md-6 svg g.chart g.legend', function() {
+        this.echo('vm spawns loads');
+
+    });
+    casper.waitForSelector('div#nova-report-r2-c1.col-md-6 svg g.chart g.legend', function() {
+        this.echo('cpu resources loads');
+    });
+    casper.waitForSelector('div#nova-report-r2-c2.col-md-6 svg g.chart g.legend', function() {
+        this.echo('memory resources loads');
+    });
+    casper.waitForSelector('div#nova-report-r3-c1.col-md-6 svg g.chart g.legend', function() {
+        this.echo('disk resources loads');
+    });
+
+    casper.then(function() {
         // Nova API Perf graph loads
         test.assertExists('div#nova-report-r1-c1', 'Nova API Perf Section should load');
         test.assertExists('div#nova-report-r1-c1 svg', 'Nova svg should load');
@@ -760,7 +907,6 @@ casper.test.begin('Nova (compute) Page is loading properly', 53, function suite(
         test.assertSelectorHasText('div#nova-report-r1-c1', 'Avg');
         test.assertSelectorHasText('div#nova-report-r1-c1', 'Min');
         test.assertSelectorDoesntHaveText('div#nova-report-r1-c1', 'No Data Returned');
-
 
         // Nova API info button brings up popover
         test.assertNotVisible('div#nova-report-r1-c1 div.popover.fade.bottom.in', 'nova api info popover should not be visible');
@@ -866,7 +1012,6 @@ casper.test.begin('Nova (compute) Page is loading properly', 53, function suite(
         this.mouseEvent('mouseout', 'div#nova-report-r3-c1 .pull-right.fa.fa-info-circle.panel-info');
         test.assertNotVisible('#nova-disk-chart-title div.popover.fade.bottom.in', 'service status info popover should now be visible');
 
-
         // footer loads and is visible
         test.assertVisible('div#footer', 'Footer showing');
     });
@@ -876,9 +1021,8 @@ casper.test.begin('Nova (compute) Page is loading properly', 53, function suite(
     });
 });
 
-
 casper.test.begin('Neutron (network) Page is loading properly', 17, function suite(test) {
-    casper.start('http://localhost:8000/#/neutron/report', function() {
+    casper.start('http://localhost:8000/#neutron/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
 
@@ -886,15 +1030,6 @@ casper.test.begin('Neutron (network) Page is loading properly', 17, function sui
         test.assertExists('div.navbar', 'Navbar should load');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
-
-        // Neutron API Perf graph loads
-        test.assertExists('div#neutron-report-r1-c1', 'Neutron API Perf Section should load');
-        test.assertExists('div#neutron-report-r1-c1 svg', 'Neutron svg should load');
-        test.assertSelectorHasText('div#neutron-report-r1-c1', 'Neutron API Performance');
-        test.assertSelectorHasText('div#neutron-report-r1-c1', 'Max');
-        test.assertSelectorHasText('div#neutron-report-r1-c1', 'Avg');
-        test.assertSelectorHasText('div#neutron-report-r1-c1', 'Min');
-        test.assertSelectorDoesntHaveText('div#neutron-report-r1-c1', 'No Data Returned');
 
         // Neutron API info button brings up popover
         test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
@@ -911,13 +1046,24 @@ casper.test.begin('Neutron (network) Page is loading properly', 17, function sui
         test.assertVisible('div#footer', 'Footer showing');
     });
 
+    casper.waitForSelector('div#neutron-report-r1-c1 svg g.chart g.legend', function() {
+        // Neutron API Perf graph loads
+        test.assertExists('div#neutron-report-r1-c1', 'Neutron API Perf Section should load');
+        test.assertExists('div#neutron-report-r1-c1 svg', 'Neutron svg should load');
+        test.assertSelectorHasText('div#neutron-report-r1-c1', 'Neutron API Performance');
+        test.assertSelectorHasText('div#neutron-report-r1-c1', 'Max');
+        test.assertSelectorHasText('div#neutron-report-r1-c1', 'Avg');
+        test.assertSelectorHasText('div#neutron-report-r1-c1', 'Min');
+        test.assertSelectorDoesntHaveText('div#neutron-report-r1-c1', 'No Data Returned');
+    });
+
     casper.run(function() {
         test.done();
     });
 });
 
 casper.test.begin('Block Storage (cinder) Page is loading properly', 17, function suite(test) {
-    casper.start('http://localhost:8000/#/cinder/report', function() {
+    casper.start('http://localhost:8000/#cinder/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
 
@@ -925,16 +1071,6 @@ casper.test.begin('Block Storage (cinder) Page is loading properly', 17, functio
         test.assertExists('div.navbar', 'Navbar should load');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
-
-        test.assertSelectorHasText('div#cinder-report-r1-c1', 'Max');
-        test.assertSelectorHasText('div#cinder-report-r1-c1', 'Avg');
-        test.assertSelectorHasText('div#cinder-report-r1-c1', 'Min');
-        test.assertSelectorDoesntHaveText('div#cinder-report-r1-c1', 'No Data Returned');
-
-        // Cinder API Perf graph loads
-        test.assertExists('div#cinder-report-r1-c1', 'Cinder API Perf Section should load');
-        test.assertExists('div#cinder-report-r1-c1 svg', 'Cinder svg should load');
-        test.assertSelectorHasText('div#cinder-report-r1-c1', 'Cinder API Performance');
 
         // Cinder API info button brings up popover
         test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
@@ -951,13 +1087,25 @@ casper.test.begin('Block Storage (cinder) Page is loading properly', 17, functio
         test.assertVisible('div#footer', 'Footer showing');
     });
 
+    casper.waitForSelector('div#cinder-report-r1-c1 svg g.chart g.legend', function() {
+        test.assertSelectorHasText('div#cinder-report-r1-c1', 'Max');
+        test.assertSelectorHasText('div#cinder-report-r1-c1', 'Avg');
+        test.assertSelectorHasText('div#cinder-report-r1-c1', 'Min');
+        test.assertSelectorDoesntHaveText('div#cinder-report-r1-c1', 'No Data Returned');
+
+        // Cinder API Perf graph loads
+        test.assertExists('div#cinder-report-r1-c1', 'Cinder API Perf Section should load');
+        test.assertExists('div#cinder-report-r1-c1 svg', 'Cinder svg should load');
+        test.assertSelectorHasText('div#cinder-report-r1-c1', 'Cinder API Performance');
+    });
+
     casper.run(function() {
         test.done();
     });
 });
 
 casper.test.begin('Image (glance) Page is loading properly', 17, function suite(test) {
-    casper.start('http://localhost:8000/#/glance/report', function() {
+    casper.start('http://localhost:8000/#glance/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
 
@@ -965,15 +1113,6 @@ casper.test.begin('Image (glance) Page is loading properly', 17, function suite(
         test.assertExists('div.navbar', 'Navbar should load');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
-
-        // Glance API Perf graph loads
-        test.assertExists('div#glance-report-r1-c1', 'Glance API Perf Section should load');
-        test.assertExists('div#glance-report-r1-c1 svg', 'Glance svg should load');
-        test.assertSelectorHasText('div#glance-report-r1-c1', 'Glance API Performance');
-        test.assertSelectorHasText('div#glance-report-r1-c1', 'Max');
-        test.assertSelectorHasText('div#glance-report-r1-c1', 'Avg');
-        test.assertSelectorHasText('div#glance-report-r1-c1', 'Min');
-        test.assertSelectorDoesntHaveText('div#glance-report-r1-c1', 'No Data Returned');
 
         // Glance API info button brings up popover
         test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
@@ -990,13 +1129,24 @@ casper.test.begin('Image (glance) Page is loading properly', 17, function suite(
         test.assertVisible('div#footer', 'Footer showing');
     });
 
+    casper.waitForSelector('div#glance-report-r1-c1 svg g.chart g.legend', function() {
+        // Glance API Perf graph loads
+        test.assertExists('div#glance-report-r1-c1', 'Glance API Perf Section should load');
+        test.assertExists('div#glance-report-r1-c1 svg', 'Glance svg should load');
+        test.assertSelectorHasText('div#glance-report-r1-c1', 'Glance API Performance');
+        test.assertSelectorHasText('div#glance-report-r1-c1', 'Max');
+        test.assertSelectorHasText('div#glance-report-r1-c1', 'Avg');
+        test.assertSelectorHasText('div#glance-report-r1-c1', 'Min');
+        test.assertSelectorDoesntHaveText('div#glance-report-r1-c1', 'No Data Returned');
+    });
+
     casper.run(function() {
         test.done();
     });
 });
 
 casper.test.begin('Identity (keystone) Page is loading properly', 17, function suite(test) {
-    casper.start('http://localhost:8000/#/keystone/report', function() {
+    casper.start('http://localhost:8000/#keystone/report', function() {
         //title
         test.assertTitle("goldstone", "Page title is 'goldstone'");
 
@@ -1004,15 +1154,6 @@ casper.test.begin('Identity (keystone) Page is loading properly', 17, function s
         test.assertExists('div.navbar', 'Navbar should load');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
-
-        // Keystone API Perf graph loads
-        test.assertExists('div#keystone-report-r1-c1', 'Keystone API Perf Section should load');
-        test.assertExists('div#keystone-report-r1-c1 svg', 'Keystone svg should load');
-        test.assertSelectorHasText('div#keystone-report-r1-c1', 'Keystone API Performance');
-        test.assertSelectorHasText('div#keystone-report-r1-c1', 'Max');
-        test.assertSelectorHasText('div#keystone-report-r1-c1', 'Avg');
-        test.assertSelectorHasText('div#keystone-report-r1-c1', 'Min');
-        test.assertSelectorDoesntHaveText('div#keystone-report-r1-c1', 'No Data Returned');
 
         // Keystone API info button brings up popover
         test.assertNotVisible('#api-perf-panel-header div.popover.fade.bottom.in', 'Disk Resources info popover should not be visible');
@@ -1029,13 +1170,25 @@ casper.test.begin('Identity (keystone) Page is loading properly', 17, function s
         test.assertVisible('div#footer', 'Footer showing');
     });
 
+    casper.waitForSelector('div#keystone-report-r1-c1 svg g.chart g.legend', function() {
+        // Keystone API Perf graph loads
+        test.assertExists('div#keystone-report-r1-c1', 'Keystone API Perf Section should load');
+        test.assertExists('div#keystone-report-r1-c1 svg', 'Keystone svg should load');
+        test.assertSelectorHasText('div#keystone-report-r1-c1', 'Keystone API Performance');
+        test.assertSelectorHasText('div#keystone-report-r1-c1', 'Max');
+        test.assertSelectorHasText('div#keystone-report-r1-c1', 'Avg');
+        test.assertSelectorHasText('div#keystone-report-r1-c1', 'Min');
+        test.assertSelectorDoesntHaveText('div#keystone-report-r1-c1', 'No Data Returned');
+    });
+
+
     casper.run(function() {
         test.done();
     });
 });
 
 casper.test.begin('Logging page is loading properly', 27, function suite(test) {
-    casper.start('http://localhost:8000/#/intelligence/search', function() {
+    casper.start('http://localhost:8000/#intelligence/search', function() {
         //title
         test.assertTitle('goldstone', 'Page title is "goldstone"');
 
@@ -1043,7 +1196,17 @@ casper.test.begin('Logging page is loading properly', 27, function suite(test) {
         test.assertExists('div.navbar', 'Navbar should load');
         test.assertSelectorHasText('div.navbar', 'Report');
         test.assertSelectorHasText('div.navbar', 'Logging');
+    });
 
+    casper.waitForSelector('div.log-analysis-container svg g.chart path.area', function() {
+        this.echo('log analysis svg loads');
+    });
+
+    casper.waitForSelector('#intel-search-data-table #log-search-table tbody tr td', function() {
+        this.echo('search results load');
+    });
+
+    casper.then(function() {
         // Log Analysis graph loads
         test.assertExists('div.log-analysis-container', 'Log Analysis Section should load');
         test.assertExists('div.log-analysis-container svg', 'Log Analysis Section svg chart should load');
@@ -1089,7 +1252,6 @@ casper.test.begin('Logging page is loading properly', 27, function suite(test) {
     });
 });
 
-
 // logout
 
 casper.options.exitOnError = true;
@@ -1097,7 +1259,7 @@ casper.options.exitOnError = true;
 casper.test.begin('Logging out removes the auth token and redirects to the login screen', 2, function suite(test) {
 
 
-    casper.start('http://localhost:8000/#/keystone/report', function() {
+    casper.start('http://localhost:8000/#keystone/report', function() {
         this.echo('loading keystone/report page from which to logout');
     });
 
@@ -1105,7 +1267,7 @@ casper.test.begin('Logging out removes the auth token and redirects to the login
         test.assertTitle("goldstone", "title is goldstone");
         this.echo('WARNING!!! LOOK BELOW!!!! Lack of logout button means', 'WARN_BAR');
         this.echo('the user was not logged in and this test is dubious', 'WARN_BAR');
-        test.assertExists('.fa-sign-out', "Logout button is present");
+        test.assertVisible('.fa-sign-out', "Logout button is present");
 
         // logout
         this.click('.logout-icon-container i');
@@ -1130,7 +1292,7 @@ casper.test.begin('Logging out removes the auth token and redirects to the login
 casper.test.begin('Now that user is logged out, checking that unauthorized api calls will redirect to the /login page', 2, function suite(test) {
 
 
-    casper.start('http://localhost:8000/#/keystone/report', function() {
+    casper.start('http://localhost:8000/#keystone/report', function() {
         this.echo('loading keystone/report in an unauthorized state');
     });
 
@@ -1138,7 +1300,7 @@ casper.test.begin('Now that user is logged out, checking that unauthorized api c
         test.assertTitle("goldstone", "title is goldstone");
         this.echo('WARNING!!! LOOK BELOW!!!! Lack of logout button is expected', 'WARN_BAR');
         this.echo('the user is not logged in and there should be no logout button', 'WARN_BAR');
-        // test.assertDoesntExist('.fa-sign-out', "Logout button is NOT present (expected)");
+        test.assertNotVisible('.fa-sign-out', "Logout button is NOT present (expected)");
 
         this.echo('redirect to login page is expected and imminent', 'GREEN_BAR');
     });

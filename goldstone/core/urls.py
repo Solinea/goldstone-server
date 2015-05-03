@@ -14,8 +14,9 @@
 # limitations under the License.
 from django.conf.urls import url, patterns
 
-from .views import MetricDataListView, ReportDataListView, MetricNamesAggView, \
-    ReportNamesAggView, MetricAggView, NavTreeView
+from .views import MetricDataListView, ReportDataListView, \
+    MetricNamesAggView, ReportNamesAggView, MetricAggView, NavTreeView, \
+    ResourceTypeList, ResourceTypeRetrieve, ResourcesList, ResourcesRetrieve
 
 urlpatterns = patterns(
     '',
@@ -24,5 +25,10 @@ urlpatterns = patterns(
     url(r'^metrics/$', MetricDataListView.as_view()),
     url(r'^metrics/summarize/', MetricAggView.as_view()),
     url(r'^metric_names/', MetricNamesAggView.as_view()),
-    url(r'^nav_tree/', NavTreeView.as_view())
+    url(r'^nav_tree/', NavTreeView.as_view()),
+    url(r'^resource_types/$', ResourceTypeList.as_view()),
+    url(r'^resource_types/(?P<unique_id>.+)/$',
+        ResourceTypeRetrieve.as_view()),
+    url(r'^resources/$', ResourcesList.as_view()),
+    url(r'^resources/(?P<uuid>.+)/$', ResourcesRetrieve.as_view()),
 )

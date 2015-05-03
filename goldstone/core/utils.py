@@ -22,7 +22,7 @@ from rest_framework import mixins
 from rest_framework.views import exception_handler
 from rest_framework.viewsets import GenericViewSet
 from goldstone.drfes.utils import es_custom_exception_handler
-from .models import resources, resource_types
+from .resources import resources, resource_types
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +45,8 @@ class JsonReadOnlySerializer(serializers.Serializer):
         """Return a list instead of a dict.
 
         DRF's serializers return dicts. To avoid a lot of code surgery, we want
-        this class's serialization to return a list. (Yes, we could collapse
-        this code, but this structure mimics the overridden functions.)
+        this class's serialization to return a list. (We could collapse this
+        code, but this structure mimics the overridden functions.)
 
         """
 
@@ -202,7 +202,7 @@ def process_resource_type(nodetype):
     :type nodetype: PolyResource subclass
 
     """
-    from goldstone.core.models import GraphNode
+    from goldstone.core.resources import GraphNode
 
     # Get the cloud instances that are of the "nodetype" type.
     actual = nodetype.clouddata()

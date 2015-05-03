@@ -45,16 +45,24 @@ BAD_UUID = '4' * 32
 
 
 class Setup(SimpleTestCase):
-
-    """A base class to ensure we do needed housekeeping before each test."""
+    """A base class to do necessary housekeeping before each test."""
 
     def setUp(self):
-        """Do explicit database reseting because SimpleTestCase doesn't always
-        reset the database to as much of an initial state as we expect."""
+        """Do explicit database reseting.
+
+        SimpleTestCase doesn't always reset the database to as much of an
+        initial state as we expect. And we want to reset the resource graph.
+
+        """
+        from goldstone.core.models import PolyResource
+        from goldstone.core.resources import resources
         from goldstone.tenants.models import Tenant
 
         get_user_model().objects.all().delete()
         Tenant.objects.all().delete()
+
+        PolyResource.objects.non_polymorphic().all().delete()
+        resources.graph.clear()
 
 
 def login(username, password):
