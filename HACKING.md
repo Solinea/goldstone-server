@@ -271,7 +271,7 @@ Then pip-install the Python prerequisites:
 Sync and initialize the database, and initialize Elasticsearch's templates. You'll have to answer some account questions.  After that, run Django's development server:
 
 ```bash
-$ fab goldstone_init
+$ fab -f installer_fabfile.py goldstone_init
 $ fab runserver
 ```
 

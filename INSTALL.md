@@ -31,7 +31,8 @@ Run this command from the same directory as this file and the associated fabfile
 root# fab -f installer_fabfile.py install
 ```
 
-It will prompt you for the license agreement, and check for supported operating systems. If all checks pass, it will then instruct you how to initialize the Goldstone database.
+It will prompt you for check for supported operating systems. If all checks 
+pass, it will then prompt you for additional configuration information.
 
 ## Review production.py
 
