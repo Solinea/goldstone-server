@@ -31,18 +31,21 @@ from goldstone.tenants.models import Tenant
 from goldstone.test_utils import Setup
 
 sys.path.append("..")      # For importing from fabfile.
-from fabfile import _tenant_init, DEFAULT_TENANT, DEFAULT_TENANT_OWNER, \
-    DEFAULT_ADMIN, DEFAULT_ADMIN_PASSWORD
+from installer_fabfile import tenant_init
 
 
 class TenantInit(Setup):
-    """Test the fabfile's _tenant_init function.
+    """Test the fabfile's tenant_init function.
 
     We call it with the settings file being used by the unittest testrunner.
 
     """
 
     settings = os.environ["DJANGO_SETTINGS_MODULE"].split('.')[2]
+    DEFAULT_TENANT = 'default'
+    DEFAULT_TENANT_OWNER = 'None'
+    DEFAULT_ADMIN = 'gsadmin'
+    DEFAULT_ADMIN_PASSWORD = 'goldstone'
 
     def _evaluate(self, tenant, tenant_owner, admin):
         """Evaluate the test results."""
@@ -63,42 +66,44 @@ class TenantInit(Setup):
     def test_happy(self):
         "Create tenant and tenant_admin."""
 
-        _tenant_init(settings=self.settings)
-        self._evaluate(DEFAULT_TENANT, DEFAULT_TENANT_OWNER, DEFAULT_ADMIN)
+        tenant_init(self.DEFAULT_TENANT, self.DEFAULT_TENANT_OWNER,
+                    self.DEFAULT_ADMIN, self.DEFAULT_ADMIN_PASSWORD,
+                    settings=self.settings)
+        self._evaluate(self.DEFAULT_TENANT, self.DEFAULT_TENANT_OWNER,
+                       self.DEFAULT_ADMIN)
 
     def test_tenant_exists(self):
         "Tenant already exists."""
 
-        Tenant.objects.create(name=DEFAULT_TENANT, owner=DEFAULT_TENANT_OWNER)
+        Tenant.objects.create(name=self.DEFAULT_TENANT,
+                              owner=self.DEFAULT_TENANT_OWNER)
         self.test_happy()
 
     def test_admin_exists(self):
         """Admin account already exists, but isn't a tenant_admin or
         default_tenant_admin."""
 
-        get_user_model().objects.create_user(username=DEFAULT_ADMIN,
-                                             password=DEFAULT_ADMIN_PASSWORD)
+        get_user_model().objects.create_user(
+            username=self.DEFAULT_ADMIN,
+            password=self.DEFAULT_ADMIN_PASSWORD)
         self.test_happy()
 
     def test_arguments(self):
         "Caller supplies arguments."""
 
-        _tenant_init(tenant="Traci",
-                     tenant_owner="Jordan",
-                     admin="john",
-                     password="Michelle",
-                     settings=self.settings)
+        tenant_init("Traci", "Jordan", "john", "Michelle",
+                    settings=self.settings)
 
         self._evaluate("Traci", "Jordan", "john")
 
     def test_arguments_exists(self):
         """Caller supplies arguments, tenant and admin already exist, use
-        positional parameter passing, and don't supply an admin password."""
+        positional parameter passing."""
 
         Tenant.objects.create(name="bob", owner="bahb")
         get_user_model().objects.create_user(username="bahhb", password='b')
 
-        _tenant_init("bob", "bahb", "bahhb", settings=self.settings)
+        tenant_init("bob", "bahb", "bahhb", "baab", settings=self.settings)
         self._evaluate("bob", "bahb", "bahhb")
 
 
