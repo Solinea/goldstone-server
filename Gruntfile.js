@@ -118,13 +118,16 @@ module.exports = function(grunt) {
             },
             e2eTests: {
                 files: clientIncludeOrder.e2e,
-                tasks: 'lint'
+                tasks: ['e']
             }
         },
 
         focus: {
             dev: {
                 include: ['unitTests', 'integrationTests', 'client']
+            },
+            e2e: {
+                include: ['e2eTests']
             }
         },
 
@@ -153,6 +156,7 @@ module.exports = function(grunt) {
     grunt.registerTask('lint', ['jshint']);
     grunt.registerTask('test', ['karma', 'casperjs:e2e']);
     grunt.registerTask('lintAndTest', ['lint', 'test']);
+    grunt.registerTask('testDevE', ['lint', 'focus:e2e']);
     grunt.registerTask('testDev', ['lint', 'karma', 'focus:dev']);
     grunt.registerTask('casper', ['casperjs:e2e']);
     grunt.registerTask('e', ['casperjs:e2e']);
