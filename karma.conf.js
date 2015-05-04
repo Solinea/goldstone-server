@@ -1,5 +1,4 @@
-var clientIncludes = require('./test/client-files.conf.js');
-var testFiles = clientIncludes.test;
+var clientIncludes = require('./client/client-files-config.js');
 
 module.exports = function(config) {
     config.set({
@@ -10,37 +9,7 @@ module.exports = function(config) {
         frameworks: ['mocha', 'chai', 'sinon'],
 
         //preload .js files
-        files: [
-            //from base.html
-            'client/js/lib/jquery.js',
-            'client/js/lib/bootstrap.js',
-            'client/js/lib/jquery.dataTables.js',
-            'client/js/lib/dataTables.bootstrap.js',
-            'client/js/lib/jquery.datetimepicker.js',
-            'client/js/lib/colorbrewer.js',
-            'client/js/lib/d3.js',
-            'client/js/lib/d3-tip.js',
-            'client/js/lib/d3-legend.js',
-            'client/js/lib/underscore.js',
-            'client/js/lib/backbone.js',
-            'client/js/lib/moment-with-locales.js',
-            'client/js/lib/moment-timezone-with-data-2010-2020.js',
-            'client/js/goldstoneBaseModel.js',
-            'client/js/models/goldstoneColors.js',
-            'client/js/models/infoButtonText.js',
-            'client/js/views/chartHeaderView.js',
-            'client/js/base.js',
-
-            // super-classes must be instantiated
-            // in the test config file.
-            'client/js/goldstoneBaseView.js',
-            'client/js/goldstoneBasePageView.js',
-            'client/js/goldstoneBaseCollection.js',
-
-            // superclass for other charts, must be declared here
-            'client/js/utilizationCpuView.js'
-
-        ].concat(clientIncludes.clientWildcards, testFiles),
+        files: clientIncludes.lib.concat(clientIncludes.clientWildcards).concat(clientIncludes.test),
 
         exclude: [
             'karma.conf.js'
@@ -75,7 +44,6 @@ module.exports = function(config) {
             'client/js/models/*.js': ['coverage'],
             'client/js/collections/*.js': ['coverage'],
             'client/js/views/*.js': ['coverage']
-
         },
 
         // coverage config

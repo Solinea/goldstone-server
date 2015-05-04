@@ -34,5 +34,10 @@ module.exports = {
     test: [
         'test/unit/*.js',
         'test/integration/*.js'
-    ]
+    ],
+    testUnit: 'test/unit/*.js',
+    testIntegration: 'test/integration/*.js',
+    e2e: ['test/e2e/*.js'],
+    clientBundle: 'goldstone/static/bundle/bundle.js',
+    libBundle: 'goldstone/static/bundle/libs.js'
 };
