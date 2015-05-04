@@ -152,4 +152,83 @@ describe('Testing the base.js file', function() {
             });
         });
     });
+
+    describe('Testing date functions', function() {
+        it('should properly compute date additions/subtractions', function() {
+            var d = new Date();
+            var dPlus = new Date(d.getTime());
+            dPlus.addSeconds(1);
+            expect(dPlus.getTime()).to.equal(d.getTime() + 1000);
+
+            d = new Date();
+            var dMinus = new Date(d.getTime());
+            dMinus.addSeconds(-1);
+            expect(dMinus.getTime()).to.equal(d.getTime() - 1000);
+
+            d = new Date();
+            dMinus = new Date(d.getTime());
+            dMinus.addSeconds(0);
+            expect(dMinus.getTime()).to.equal(d.getTime());
+
+            d = new Date();
+            dPlus = new Date(d.getTime());
+            dPlus.addMinutes(1);
+            expect(dPlus.getTime()).to.equal(d.getTime() + (60 * 1000));
+
+            d = new Date();
+            dPlus = new Date(d.getTime());
+            dPlus.addMinutes(-1);
+            expect(dPlus.getTime()).to.equal(d.getTime() - (60 * 1000));
+
+            d = new Date();
+            dPlus = new Date(d.getTime());
+            dPlus.addMinutes(0);
+            expect(dPlus.getTime()).to.equal(d.getTime());
+
+            d = new Date();
+            dPlus = new Date(d.getTime());
+            dPlus.addHours(1);
+            expect(dPlus.getTime()).to.equal(d.getTime() + (60 * 60 * 1000));
+
+            d = new Date();
+            dPlus = new Date(d.getTime());
+            dPlus.addHours(-1);
+            expect(dPlus.getTime()).to.equal(d.getTime() - (60 * 60 * 1000));
+
+            d = new Date();
+            dPlus = new Date(d.getTime());
+            dPlus.addHours(0);
+            expect(dPlus.getTime()).to.equal(d.getTime());
+
+            d = new Date();
+            dPlus = new Date(d.getTime());
+            dPlus.addDays(1);
+            expect(dPlus.getTime()).to.equal(d.getTime() + (24 * 60 * 60 * 1000));
+
+            d = new Date();
+            dPlus = new Date(d.getTime());
+            dPlus.addDays(-1);
+            expect(dPlus.getTime()).to.equal(d.getTime() - (24 * 60 * 60 * 1000));
+
+            d = new Date();
+            dPlus = new Date(d.getTime());
+            dPlus.addDays(0);
+            expect(dPlus.getTime()).to.equal(d.getTime());
+
+            d = new Date();
+            dPlus = new Date(d.getTime());
+            dPlus.addWeeks(1);
+            expect(dPlus.getTime()).to.equal(d.getTime() + (7 * 24 * 60 * 60 * 1000));
+
+            d = new Date();
+            dPlus = new Date(d.getTime());
+            dPlus.addWeeks(-1);
+            expect(dPlus.getTime()).to.equal(d.getTime() - (7 * 24 * 60 * 60 * 1000));
+
+            d = new Date();
+            dPlus = new Date(d.getTime());
+            dPlus.addWeeks(0);
+            expect(dPlus.getTime()).to.equal(d.getTime());
+        });
+    });
 });
