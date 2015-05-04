@@ -31,11 +31,11 @@ from goldstone.tenants.models import Tenant
 from goldstone.test_utils import Setup
 
 sys.path.append("..")      # For importing from fabfile.
-from installer_fabfile import _tenant_init
+from installer_fabfile import tenant_init
 
 
 class TenantInit(Setup):
-    """Test the fabfile's _tenant_init function.
+    """Test the fabfile's tenant_init function.
 
     We call it with the settings file being used by the unittest testrunner.
 
@@ -66,9 +66,9 @@ class TenantInit(Setup):
     def test_happy(self):
         "Create tenant and tenant_admin."""
 
-        _tenant_init(self.DEFAULT_TENANT, self.DEFAULT_TENANT_OWNER,
-                     self.DEFAULT_ADMIN, self.DEFAULT_ADMIN_PASSWORD,
-                     settings=self.settings)
+        tenant_init(self.DEFAULT_TENANT, self.DEFAULT_TENANT_OWNER,
+                    self.DEFAULT_ADMIN, self.DEFAULT_ADMIN_PASSWORD,
+                    settings=self.settings)
         self._evaluate(self.DEFAULT_TENANT, self.DEFAULT_TENANT_OWNER,
                        self.DEFAULT_ADMIN)
 
@@ -91,11 +91,8 @@ class TenantInit(Setup):
     def test_arguments(self):
         "Caller supplies arguments."""
 
-        _tenant_init(tenant="Traci",
-                     tenant_owner="Jordan",
-                     admin="john",
-                     password="Michelle",
-                     settings=self.settings)
+        tenant_init("Traci", "Jordan", "john", "Michelle",
+                    settings=self.settings)
 
         self._evaluate("Traci", "Jordan", "john")
 
@@ -106,7 +103,7 @@ class TenantInit(Setup):
         Tenant.objects.create(name="bob", owner="bahb")
         get_user_model().objects.create_user(username="bahhb", password='b')
 
-        _tenant_init("bob", "bahb", "bahhb", "baab", settings=self.settings)
+        tenant_init("bob", "bahb", "bahhb", "baab", settings=self.settings)
         self._evaluate("bob", "bahb", "bahhb")
 
 
