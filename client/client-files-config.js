@@ -39,5 +39,12 @@ module.exports = {
     testIntegration: 'test/integration/*.js',
     e2e: ['test/e2e/*.js'],
     clientBundle: 'goldstone/static/bundle/bundle.js',
-    libBundle: 'goldstone/static/bundle/libs.js'
+    libBundle: 'goldstone/static/bundle/libs.js',
+    coverageReportTargets: {
+        'client/js/*.js': ['coverage'],
+        'client/js/models/*.js': ['coverage'],
+        'client/js/collections/*.js': ['coverage'],
+        'client/js/views/*.js': ['coverage']
+    },
+    coverageReportOutput: 'test/results/coverage'
 };

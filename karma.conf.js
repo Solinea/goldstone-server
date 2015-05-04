@@ -38,18 +38,12 @@ module.exports = function(config) {
         // Source files you want to generate coverage reports for
         // This should not include tests or libraries
         // These files will be instrumented by Istanbul
-        preprocessors: {
-
-            'client/js/*.js': ['coverage'],
-            'client/js/models/*.js': ['coverage'],
-            'client/js/collections/*.js': ['coverage'],
-            'client/js/views/*.js': ['coverage']
-        },
+        preprocessors: clientIncludes.coverageReportTargets,
 
         // coverage config
         coverageReporter: {
             type: 'html',
-            dir: 'test/results/coverage'
+            dir: clientIncludes.coverageReportOutput
         },
 
         // If browser does not capture in given timeout [ms], kill it
