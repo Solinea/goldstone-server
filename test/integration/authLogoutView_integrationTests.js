@@ -56,7 +56,7 @@ describe('LogoutIcon.js spec', function() {
             expect(localStorage.getItem('userToken')).to.equal(null);
         });
         it('sets up request header params', function() {
-            localStorage.setItem('userTok   en', 'now1i2can3haz4tokens5');
+            localStorage.setItem('userToken', 'now1i2can3haz4tokens5');
             this.testView.setAJAXSendRequestHeaderParams();
         });
         it('redirects to login', function() {

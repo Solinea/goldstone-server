@@ -36,7 +36,8 @@ casper.options.viewportSize = {
     height: 779
 };
 
-casper.options.waitTimeout = 10000;
+// 15 second timeout limit on individual tests
+casper.options.waitTimeout = 15000;
 
 /*
 print delimiting text between tests
@@ -48,6 +49,8 @@ casper.test.setUp(function() {
 
 casper.test.tearDown(function() {
     casper.echo('end of test', "WARNING");
+    casper.echo(' ');
+    casper.echo(' ');
 });
 
 /*
@@ -56,7 +59,7 @@ begin tests
 
 casper.test.begin('Login Page loads and I can use reset password link', 5, function suite(test) {
 
-    casper.start('http://localhost:8000/#/login', function() {
+    casper.start('http://localhost:8000/#login', function() {
         test.assertTitle("goldstone", "title is goldstone");
     });
 
@@ -111,7 +114,7 @@ casper.test.begin('Login Page loads and I can use reset password link', 5, funct
 
 casper.test.begin('Back to login page to login', 5, function suite(test) {
 
-    casper.start('http://localhost:8000/#/login', function() {
+    casper.start('http://localhost:8000/#login', function() {
         test.assertTitle("goldstone", "title is goldstone");
         test.assertExists('form.login-form');
         this.echo('page url after redirect: ' + this.evaluate(function() {
@@ -174,7 +177,7 @@ casper.test.begin('Back to login page to login', 5, function suite(test) {
 
 casper.test.begin('/settings page updates user personal settings / password', 10, function suite(test) {
 
-    casper.start('http://localhost:8000/#/settings', function() {
+    casper.start('http://localhost:8000/#settings', function() {
         casper.wait(1000, function() {
             this.echo('one second pause');
         });
@@ -343,7 +346,7 @@ casper.test.begin('/settings/tenants page updates user personal settings / passw
 });
 
 casper.test.begin('Node Report Page is loading properly', 87, function suite(test) {
-    casper.start('http://localhost:8000/#/report/node/ctrl-01', function() {
+    casper.start('http://localhost:8000/#report/node/ctrl-01', function() {
 
         this.echo('token in actual tests?: ' + this.evaluate(function() {
             var a = localStorage.getItem('userToken');
@@ -403,7 +406,7 @@ casper.test.begin('Node Report Page is loading properly', 87, function suite(tes
         test.assertExists('div#node-report-r3-c1 #network-usage svg', 'Network Usage Section svg chart should load');
     });
 
-    casper.waitForSelector('div#node-report-r4-c1 #cores-usage svg', function() {
+    casper.waitForSelector('div#node-report-r4-c1 #cores-usage svg g text', function() {
         this.echo('cores usage chart loaded');
         test.assertSelectorHasText('div #hypervisor-title-bar', 'Hypervisor');
         test.assertExists('div#node-report-r4', 'Hypervisor Charts should load');
@@ -414,11 +417,11 @@ casper.test.begin('Node Report Page is loading properly', 87, function suite(tes
 
     });
 
-    casper.waitForSelector('div#node-report-r4-c1 #memory-usage svg', function() {
+    casper.waitForSelector('div#node-report-r4-c1 #memory-usage svg g text', function() {
         this.echo('memory usage chart loaded');
         test.assertExists('div#node-report-r4-c1 #memory-usage svg', 'Memory Usage Section svg chart should load');
         test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage', 'Memory');
-        test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage', 'Total GB');
+        test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage svg g g text', 'Total GB');
         test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage', '0');
     });
 
@@ -588,7 +591,7 @@ casper.test.begin('Homepage is loading properly', 59, function suite(test) {
     casper.waitForSelector('#goldstone-event-panel div.panel-body svg', function() {
         this.echo('event svg loaded');
     });
-    casper.waitForSelector('#goldstone-node-panel div.panel-body svg', function() {
+    casper.waitForSelector('#goldstone-node-panel div.panel-body svg g text', function() {
         this.echo('node avail svg loaded');
     });
     casper.waitForSelector('div#goldstone-discover-r2-c1.col-md-6 div.chart svg g', function() {
@@ -624,7 +627,7 @@ casper.test.begin('Homepage is loading properly', 59, function suite(test) {
         // checks for an axis which means data is received
         // or checks for 'No Data Returned' otherwise
 
-        casper.echo("need either a time delimeter (:) or 'No Data Returned' - line 359 on e2eTests.js", "PARAMETER");
+        casper.echo("need either a time delimeter (:) or 'No Data Returned'", "PARAMETER");
 
         casper.echo("$('div #goldstone-discover-r1-c2').text() " + casper.evaluate(function() {
             return $('div #goldstone-discover-r1-c2').text();
@@ -1254,7 +1257,7 @@ casper.options.exitOnError = true;
 casper.test.begin('Logging out removes the auth token and redirects to the login screen', 2, function suite(test) {
 
 
-    casper.start('http://localhost:8000/#/keystone/report', function() {
+    casper.start('http://localhost:8000/#keystone/report', function() {
         this.echo('loading keystone/report page from which to logout');
     });
 
@@ -1262,7 +1265,7 @@ casper.test.begin('Logging out removes the auth token and redirects to the login
         test.assertTitle("goldstone", "title is goldstone");
         this.echo('WARNING!!! LOOK BELOW!!!! Lack of logout button means', 'WARN_BAR');
         this.echo('the user was not logged in and this test is dubious', 'WARN_BAR');
-        test.assertExists('.fa-sign-out', "Logout button is present");
+        test.assertVisible('.fa-sign-out', "Logout button is present");
 
         // logout
         this.click('.logout-icon-container i');
@@ -1284,10 +1287,10 @@ casper.test.begin('Logging out removes the auth token and redirects to the login
     });
 });
 
-casper.test.begin('Now that user is logged out, checking that unauthorized api calls will redirect to the /login page', 1, function suite(test) {
+casper.test.begin('Now that user is logged out, checking that unauthorized api calls will redirect to the /login page', 2, function suite(test) {
 
 
-    casper.start('http://localhost:8000/#/keystone/report', function() {
+    casper.start('http://localhost:8000/#keystone/report', function() {
         this.echo('loading keystone/report in an unauthorized state');
     });
 
@@ -1295,7 +1298,7 @@ casper.test.begin('Now that user is logged out, checking that unauthorized api c
         test.assertTitle("goldstone", "title is goldstone");
         this.echo('WARNING!!! LOOK BELOW!!!! Lack of logout button is expected', 'WARN_BAR');
         this.echo('the user is not logged in and there should be no logout button', 'WARN_BAR');
-        // test.assertDoesntExist('.fa-sign-out', "Logout button is NOT present (expected)");
+        test.assertNotVisible('.fa-sign-out', "Logout button is NOT present (expected)");
 
         this.echo('redirect to login page is expected and imminent', 'GREEN_BAR');
     });
