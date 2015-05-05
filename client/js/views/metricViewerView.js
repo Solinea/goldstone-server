@@ -62,6 +62,12 @@ var MetricViewerView = GoldstoneBaseView.extend({
             // attache button listeners
             this.attachModalTriggers();
         });
+
+        this.listenTo(this, 'globalLookbackReached', function() {
+            if (this.metricChart) {
+                this.appendChart();
+            }
+        });
     },
 
     attachModalTriggers: function() {

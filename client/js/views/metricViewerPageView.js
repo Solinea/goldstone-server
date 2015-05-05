@@ -57,6 +57,8 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         this.metricViewGridContainer.clear();
         // return global lookback selector to page
         $("select#global-lookback-range").show();
+
+        MetricViewerPageView.__super__.onClose.apply(this, arguments);
     },
 
     renderCharts: function() {
@@ -98,8 +100,14 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
     },
 
     triggerChange: function(change) {
-        console.log('change triggered: ', change);
-        console.log(this.metricViewGridContainer);
+        // upon lookbackIntervalReached, trigger all views
+        // so they can be refreshed via metricViewerView
+        if (change === 'lookbackIntervalReached') {
+            var grid = this.metricViewGridContainer.get('grid').view;
+            _.each(grid, function(view) {
+                view.trigger('globalLookbackReached');
+            });
+        }
     },
 
     template: _.template('' +

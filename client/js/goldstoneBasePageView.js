@@ -51,6 +51,13 @@ var GoldstoneBasePageView = GoldstoneBaseView.extend({
         clearInterval(ns.scheduleInterval);
     },
 
+    onClose: function() {
+        if (this.defaults.scheduleInterval) {
+            clearInterval(this.defaults.scheduleInterval);
+        }
+        this.off();
+    },
+
     scheduleInterval: function() {
         var self = this;
         var ns = this.defaults;
