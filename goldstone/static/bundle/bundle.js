@@ -7099,7 +7099,7 @@ The nesting of this page is:
 |__ MetricViewerView + MetricViewerCollection
 |____ MetricView + MetricViewCollection
 
-At the moment /metric will default to 6 charts.
+At the moment /#metric will default to 6 charts.
 /metric/1 will show 1 chart
 /metric/2 will show 2 charts
 /metric/3 will show 3 charts
@@ -7110,17 +7110,30 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
 
     initialize: function(options) {
 
+        // hide global lookback selector
+        $("select#global-lookback-range").hide();
+
         // options.numCharts passed in by goldstoneRouter
-        // and reflects the number n (1-6) following "/metric/n"
+        // and reflects the number n (1-6) following "/#metric/n"
         this.numCharts = options.numCharts;
+
+        // model to hold collection/views of chart grids
+        this.metricViewGridContainer = new Backbone.Model({
+            grid: {
+                view: {},
+                collection: {}
+            }
+        });
+
+        // instantiate initialize in GoldstoneBasePageView
         MetricViewerPageView.__super__.initialize.apply(this, arguments);
     },
 
-    metricViewGridContainer: {
-
-        // will be populated during renderCharts()
-        view: {},
-        collection: {}
+    onClose: function() {
+        // clear out grid of collections/views
+        this.metricViewGridContainer.clear();
+        // return global lookback selector to page
+        $("select#global-lookback-range").show();
     },
 
     renderCharts: function() {
@@ -7145,7 +7158,7 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
             // underscore method for producing unique integer
             var id = _.uniqueId();
 
-            var grid = this.metricViewGridContainer;
+            var grid = this.metricViewGridContainer.get('grid');
             grid.collection[id] = new MetricViewerCollection({});
 
             grid.view[id] = new MetricViewerView({
@@ -7159,6 +7172,11 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
 
             $(locationHash[i]).append(grid.view[id].el);
         }
+    },
+
+    triggerChange: function(change) {
+        console.log('change triggered: ', change);
+        console.log(this.metricViewGridContainer);
     },
 
     template: _.template('' +
