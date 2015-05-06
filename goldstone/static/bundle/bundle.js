@@ -7316,8 +7316,10 @@ var MetricViewerView = GoldstoneBaseView.extend({
             'resource': $(menu).find('.resource-dropdown-options').val(),
             'statistic': $(menu).find('.statistic-dropdown-options').val(),
             'standardDev': $(menu).find('.standard-dev:checked').length,
-            'lookback': $(menu).find('.lookback-dropdown-options').val(),
-            'interval': $(menu).find('.interval-dropdown-options').val(),
+            'lookbackValue': $(menu).find('.modal-lookback-value').val(),
+            'lookbackUnit': $(menu).find('.lookback-dropdown-options').val(),
+            'intervalValue': $(menu).find('.modal-interval-value').val(),
+            'intervalUnit': $(menu).find('.interval-dropdown-options').val(),
         });
     },
 
@@ -7337,8 +7339,10 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         var url = '/core/metrics/summarize/?name=' +
             options.metric + '&@timestamp__range={"gte":' +
-            (+new Date() - (options.lookback * 60 * 1000)) +
-            '}&interval=' + options.interval;
+            (+new Date() - (options.lookbackValue * options.lookbackUnit * 1000)) +
+            '}&interval=' +
+            options.intervalValue +
+            options.intervalUnit;
         if (options.resource !== 'all') {
             url += '&node=' + options.resource;
         }
@@ -7427,20 +7431,24 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         '<h5>Standard Deviation Bands? <input class="standard-dev" type="checkbox"></h5>' +
 
+        // ES can handle s/m/h/d in the "interval" param
         '<h5>Lookback</h5>' +
+        '<input class="modal-lookback-value" placeholder="enter lookback" required="required">' +
         '<select class="lookback-dropdown-options">' +
-        '<option value="15" selected>lookback 15m</option>' +
-        '<option value="60">lookback 1h</option>' +
-        '<option value="360">lookback 6h</option>' +
-        '<option value="1440">lookback 1d</option>' +
+        '<option value="1" selected>seconds</option>' +
+        '<option value="60">minutes</option>' +
+        '<option value="3600">hours</option>' +
+        '<option value="86400">days</option>' +
         '</select>' +
 
         // ES can handle s/m/h/d in the "interval" param
         '<h5>Charting Interval</h5>' +
+        '<input class="modal-interval-value" placeholder="enter interval" required="required">' +
         '<select class="interval-dropdown-options">' +
-        '<option value="1m" selected>1m</option>' +
-        '<option value="1h">1h</option>' +
-        '<option value="1d">1d</option>' +
+        '<option value="s" selected>seconds</option>' +
+        '<option value="m">minutes</option>' +
+        '<option value="h">hours</option>' +
+        '<option value="d">days</option>' +
         '</select>' +
 
         '</div>' + // end modal-body
