@@ -154,7 +154,6 @@ rm -f %{_sourcedir}/goldstone-server*.rpm
 
 # set up the dir structures
 install -d -m 750 %{buildroot}/opt/goldstone/
-install -d -m 750 %{buildroot}/opt/goldstone/client/
 install -d -m 750 %{buildroot}/opt/goldstone/external/
 install -d -m 750 %{buildroot}/etc/init.d/
 install -d -m 750 %{buildroot}/etc/sysconfig/
@@ -216,6 +215,7 @@ rm -rf %{buildroot}
 /opt/goldstone/goldstone/
 %config /opt/goldstone/goldstone/settings/base.py
 %config(noreplace) /opt/goldstone/goldstone/settings/production.py
+/opt/goldstone/client/
 /opt/goldstone/external/
 /var/log/goldstone/
 /var/www/goldstone/static/
