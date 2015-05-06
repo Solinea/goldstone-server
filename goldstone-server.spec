@@ -174,7 +174,7 @@ cp -R %{_sourcedir}/external/logstash/conf.d/* %{buildroot}/etc/logstash/conf.d
 # fix up the settings folder contents
 rm -rf %{buildroot}/opt/goldstone/goldstone/settings
 install -d -m 750 %{buildroot}/opt/goldstone/goldstone/settings/
-install -m 640 %{_sourcedir}/goldstone/settings/base.py %{buildroot}/opt/goldstone/goldstone/settings/__init__.py
+install -m 640 %{_sourcedir}/goldstone/settings/__init__.py %{buildroot}/opt/goldstone/goldstone/settings/__init__.py
 install -m 640 %{_sourcedir}/goldstone/settings/base.py %{buildroot}/opt/goldstone/goldstone/settings/base.py
 install -m 640 %{_sourcedir}/goldstone/settings/production.py %{buildroot}/opt/goldstone/goldstone/settings/production.py
 
@@ -206,16 +206,17 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-, apache, apache)
+/opt/goldstone/INSTALL.md
+/opt/goldstone/LICENSE
+/opt/goldstone/README.md
+/opt/goldstone/goldstone/
+/opt/goldstone/manage.py
 /opt/goldstone/requirements.txt
 /opt/goldstone/setup.cfg
 /opt/goldstone/setup.py
-/opt/goldstone/manage.py
-/opt/goldstone/README.md
-/opt/goldstone/INSTALL.md
-/opt/goldstone/LICENSE
-/opt/goldstone/goldstone/
 %config /opt/goldstone/goldstone/settings/base.py
 %config(noreplace) /opt/goldstone/goldstone/settings/production.py
+/opt/goldstone/client/
 /opt/goldstone/external/
 /var/log/goldstone/
 /var/www/goldstone/static/
