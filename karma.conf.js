@@ -1,5 +1,4 @@
-var clientIncludes = require('./test/client-files.conf.js');
-var testFiles = clientIncludes.test;
+var clientIncludes = require('./client/client-files-config.js');
 
 module.exports = function(config) {
     config.set({
@@ -10,37 +9,7 @@ module.exports = function(config) {
         frameworks: ['mocha', 'chai', 'sinon'],
 
         //preload .js files
-        files: [
-            //from base.html
-            'goldstone/client/js/lib/jquery.js',
-            'goldstone/client/js/lib/bootstrap.js',
-            'goldstone/client/js/lib/jquery.dataTables.js',
-            'goldstone/client/js/lib/dataTables.bootstrap.js',
-            'goldstone/client/js/lib/jquery.datetimepicker.js',
-            'goldstone/client/js/lib/colorbrewer.js',
-            'goldstone/client/js/lib/d3.js',
-            'goldstone/client/js/lib/d3-tip.js',
-            'goldstone/client/js/lib/d3-legend.js',
-            'goldstone/client/js/lib/underscore.js',
-            'goldstone/client/js/lib/backbone.js',
-            'goldstone/client/js/lib/moment-with-locales.js',
-            'goldstone/client/js/lib/moment-timezone-with-data-2010-2020.js',
-            'goldstone/client/js/goldstoneBaseModel.js',
-            'goldstone/client/js/models/goldstoneColors.js',
-            'goldstone/client/js/models/infoButtonText.js',
-            'goldstone/client/js/views/chartHeaderView.js',
-            'goldstone/client/js/base.js',
-
-            // super-classes must be instantiated
-            // in the test config file.
-            'goldstone/client/js/goldstoneBaseView.js',
-            'goldstone/client/js/goldstoneBasePageView.js',
-            'goldstone/client/js/goldstoneBaseCollection.js',
-
-            // superclass for other charts, must be declared here
-            'goldstone/client/js/utilizationCpuView.js'
-
-        ].concat(clientIncludes.clientWildcards, testFiles),
+        files: clientIncludes.lib.concat(clientIncludes.clientWildcards).concat(clientIncludes.test),
 
         exclude: [
             'karma.conf.js'
@@ -69,19 +38,12 @@ module.exports = function(config) {
         // Source files you want to generate coverage reports for
         // This should not include tests or libraries
         // These files will be instrumented by Istanbul
-        preprocessors: {
-
-            'goldstone/client/js/*.js': ['coverage'],
-            'goldstone/client/js/models/*.js': ['coverage'],
-            'goldstone/client/js/collections/*.js': ['coverage'],
-            'goldstone/client/js/views/*.js': ['coverage']
-
-        },
+        preprocessors: clientIncludes.coverageReportTargets,
 
         // coverage config
         coverageReporter: {
             type: 'html',
-            dir: 'test/results/coverage'
+            dir: clientIncludes.coverageReportOutput
         },
 
         // If browser does not capture in given timeout [ms], kill it
