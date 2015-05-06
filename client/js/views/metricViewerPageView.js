@@ -55,6 +55,7 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
     onClose: function() {
         // clear out grid of collections/views
         this.metricViewGridContainer.clear();
+
         // return global lookback selector to page
         $("select#global-lookback-range").show();
 
@@ -78,12 +79,14 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         //---------------------------------------------
         // instantiate as many metricViews as requested
 
+        // Backbone getter:
+        var grid = this.metricViewGridContainer.get('grid');
+
         for (var i = 0; i < num; i++) {
 
             // underscore method for producing unique integer
             var id = _.uniqueId();
 
-            var grid = this.metricViewGridContainer.get('grid');
             grid.collection[id] = new MetricViewerCollection({});
 
             grid.view[id] = new MetricViewerView({
@@ -104,6 +107,9 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         // so they can be refreshed via metricViewerView
         if (change === 'lookbackIntervalReached') {
             var grid = this.metricViewGridContainer.get('grid').view;
+
+            // trigger each chart currently in the grid that the refresh
+            // interval has been reached
             _.each(grid, function(view) {
                 view.trigger('globalLookbackReached');
             });

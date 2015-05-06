@@ -59,7 +59,7 @@ var MetricViewerView = GoldstoneBaseView.extend({
             }
 
             // after the dropdown is populated,
-            // attache button listeners
+            // attach button listeners
             this.attachModalTriggers();
         });
 
@@ -105,9 +105,11 @@ var MetricViewerView = GoldstoneBaseView.extend({
             'resource': $(menu).find('.resource-dropdown-options').val(),
             'statistic': $(menu).find('.statistic-dropdown-options').val(),
             'standardDev': $(menu).find('.standard-dev:checked').length,
-            'lookbackValue': $(menu).find('.modal-lookback-value').val(),
+            // if lookback is left blank, default to 1
+            'lookbackValue': $(menu).find('.modal-lookback-value').val() || 1,
             'lookbackUnit': $(menu).find('.lookback-dropdown-options').val(),
-            'intervalValue': $(menu).find('.modal-interval-value').val(),
+            // if lookback is left blank, default to 1
+            'intervalValue': $(menu).find('.modal-interval-value').val() || 1,
             'intervalUnit': $(menu).find('.interval-dropdown-options').val(),
         });
     },
@@ -222,20 +224,20 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
         // ES can handle s/m/h/d in the "interval" param
         '<h5>Lookback</h5>' +
-        '<input class="modal-lookback-value" placeholder="enter lookback" required="required">' +
+        '<input class="modal-lookback-value" placeholder="default=1" required="required">' + ' ' +
         '<select class="lookback-dropdown-options">' +
-        '<option value="1" selected>seconds</option>' +
+        '<option value="1">seconds</option>' +
         '<option value="60">minutes</option>' +
-        '<option value="3600">hours</option>' +
+        '<option value="3600" selected>hours</option>' +
         '<option value="86400">days</option>' +
         '</select>' +
 
         // ES can handle s/m/h/d in the "interval" param
         '<h5>Charting Interval</h5>' +
-        '<input class="modal-interval-value" placeholder="enter interval" required="required">' +
+        '<input class="modal-interval-value" placeholder="default=1" required="required">' + ' ' +
         '<select class="interval-dropdown-options">' +
-        '<option value="s" selected>seconds</option>' +
-        '<option value="m">minutes</option>' +
+        '<option value="s">seconds</option>' +
+        '<option value="m" selected>minutes</option>' +
         '<option value="h">hours</option>' +
         '<option value="d">days</option>' +
         '</select>' +
