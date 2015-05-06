@@ -174,9 +174,9 @@ cp -R %{_sourcedir}/external/logstash/conf.d/* %{buildroot}/etc/logstash/conf.d
 # fix up the settings folder contents
 rm -rf %{buildroot}/opt/goldstone/goldstone/settings
 install -d -m 750 %{buildroot}/opt/goldstone/goldstone/settings/
-install -m 640 %{_sourcedir}/goldstone/settings/__init__.py %{buildroot}/opt/goldstone/goldstone/settings/__init__.py
 install -m 640 %{_sourcedir}/goldstone/settings/base.py %{buildroot}/opt/goldstone/goldstone/settings/base.py
 install -m 640 %{_sourcedir}/goldstone/settings/production.py %{buildroot}/opt/goldstone/goldstone/settings/production.py
+install -m 640 %{_sourcedir}/goldstone/settings/__init__.py %{buildroot}/opt/goldstone/goldstone/settings/__init__.py
 
 # handle the rest
 install -m 640 %{_sourcedir}/requirements.txt %{buildroot}/opt/goldstone/requirements.txt
