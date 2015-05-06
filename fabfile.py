@@ -191,6 +191,20 @@ def _django_settings_module(verbose):
 
 
 @task
+def goldstone_init(verbose=False):
+    """Initialize the development environment.
+
+    :keyword verbose: Display detail about each settings choice?
+    :type verbose: bool
+
+    """
+    from installer_fabfile import goldstone_init as installer_goldstone_init
+
+    installer_goldstone_init(settings=_django_settings_module(verbose),
+                             install_dir='.')
+
+
+@task
 def runserver(verbose=False):
 
     """Do runserver using a user-selected settings file.
