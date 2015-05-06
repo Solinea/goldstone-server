@@ -296,7 +296,9 @@ casper.test.begin('/settings/tenants page updates user personal settings / passw
         this.echo('Text in #formTenantId: ' + this.evaluate(function() {
             return $('#formTenantId').text();
         }));
+    });
 
+    casper.waitForSelector('#tenants-single-rsrc-table td.sorting_1', function() {
         // don't actually submit new settings
         this.click('#tenants-single-rsrc-table td.sorting_1');
 
