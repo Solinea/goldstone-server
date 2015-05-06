@@ -93,7 +93,7 @@ def _is_development_mac():
 
 
 def _is_rpm_installed(name):
-    """Return True if if an RPM is installed."""
+    """Return True if an RPM is installed."""
 
     cmd = 'yum list installed ' + name
     with nested(hide('warnings', 'stdout', 'stderr'),
