@@ -25,6 +25,7 @@ Epoch:          %{epoch}
 Group:          Applications/System
 License:        Solinea Software License Agreement (version 1)
 URL:            http://www.solinea.com/goldstone
+BuildArch:      noarch
 Prefix:         /opt
 
 Requires(pre): /usr/sbin/useradd, /usr/bin/getent, elasticsearch >= 1.4, gcc, gcc-c++, redis, logstash == 1.4.2, logstash-contrib == 1.4.2, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip
