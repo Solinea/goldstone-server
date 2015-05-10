@@ -74,6 +74,7 @@ project's website.
 # cleanup from previous builds
 rm -rf %{_rpmdir}/*
 rm -f %{_sourcedir}/goldstone-server-docker-[0-9]*.rpm
+find %{_sourcedir} -type f -name '*.py[co]' -exec rm -f {} \;
 
 %install
 # set up the dir structures
@@ -115,6 +116,9 @@ install -m 640 %{_sourcedir}/external/sysconfig/celerybeat %{buildroot}/etc/sysc
 install -m 640 %{_sourcedir}/external/sysconfig/celeryd-default %{buildroot}/etc/sysconfig/celeryd-default
 install -m 640 %{_sourcedir}/external/logstash/patterns/goldstone %{buildroot}/opt/logstash/patterns/goldstone
 
+%clean
+find %{_rpmdir} -type f -name '*.rpm' -exec cp {} %{_sourcedir} \;
+rm -rf %{buildroot}
 
 %files
 %defattr(-, apache, apache)
