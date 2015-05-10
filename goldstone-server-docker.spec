@@ -72,6 +72,7 @@ project's website.
 
 %prep
 # cleanup from previous builds
+rm -rf %{buildroot}/*
 rm -rf %{_rpmdir}/*
 rm -f %{_sourcedir}/goldstone-server-docker-[0-9]*.rpm
 find %{_sourcedir} -type f -name '*.py[co]' -exec rm -f {} \;
