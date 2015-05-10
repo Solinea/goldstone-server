@@ -75,6 +75,7 @@ project's website.
 rm -rf %{_rpmdir}/*
 rm -f %{_sourcedir}/goldstone-server-docker-[0-9]*.rpm
 
+%install
 # set up the dir structures
 install -d -m 750 %{buildroot}/opt/goldstone/
 install -d -m 750 %{buildroot}/opt/goldstone/external/
@@ -114,17 +115,6 @@ install -m 640 %{_sourcedir}/external/sysconfig/celerybeat %{buildroot}/etc/sysc
 install -m 640 %{_sourcedir}/external/sysconfig/celeryd-default %{buildroot}/etc/sysconfig/celeryd-default
 install -m 640 %{_sourcedir}/external/logstash/patterns/goldstone %{buildroot}/opt/logstash/patterns/goldstone
 
-echo -n "buildroot = "
-echo "%{buildroot}"
-ls -R %{buildroot}
-
-%build
-
-%install
-
-%clean
-# find %{_rpmdir} -type f -name '*.rpm' -exec cp {} %{_sourcedir} \;
-# rm -rf %{buildroot}
 
 %files
 %defattr(-, apache, apache)
