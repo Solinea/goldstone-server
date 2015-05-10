@@ -150,7 +150,7 @@ project's website.
 %prep
 # cleanup from previous builds
 rm -rf %{_rpmdir}/*
-rm -f %{_sourcedir}/goldstone-server*.rpm
+rm -f %{_sourcedir}/goldstone-server.*.rpm
 
 # set up the dir structures
 install -d -m 750 %{buildroot}/opt/goldstone/
