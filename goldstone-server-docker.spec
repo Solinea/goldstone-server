@@ -77,6 +77,8 @@ rm -rf %{_rpmdir}/*
 rm -f %{_sourcedir}/goldstone-server-docker-[0-9]*.rpm
 find %{_sourcedir} -type f -name '*.py[co]' -exec rm -f {} \;
 
+%build
+
 %install
 # set up the dir structures
 install -d -m 750 %{buildroot}/opt/goldstone/
