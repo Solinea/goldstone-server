@@ -21,7 +21,6 @@ Name:           goldstone-server
 Version:        %{version}
 Release:        %{release}%{?dist}
 Epoch:          %{epoch}
-Copyright:      2015 Solinea, Inc.
 Group:          Applications/System
 License:        Apache2.0
 URL:            https://github.com/Solinea/goldstone-server
