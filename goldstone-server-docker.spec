@@ -117,6 +117,8 @@ install -m 640 %{_sourcedir}/external/sysconfig/celerybeat %{buildroot}/etc/sysc
 install -m 640 %{_sourcedir}/external/sysconfig/celeryd-default %{buildroot}/etc/sysconfig/celeryd-default
 install -m 640 %{_sourcedir}/external/logstash/patterns/goldstone %{buildroot}/opt/logstash/patterns/goldstone
 
+find %{buildroot} -type f -name '*.py[oc]' -exec rm -f {} \;
+
 %clean
 find %{_rpmdir} -type f -name '*.rpm' -exec cp {} %{_sourcedir} \;
 rm -rf %{buildroot}
