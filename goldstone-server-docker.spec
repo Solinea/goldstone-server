@@ -56,6 +56,9 @@ chown -R apache:apache /opt/goldstone
 if [[ $# == 1 && $1 == 1 ]] ; then
     ln -s /opt/goldstone /usr/lib/python2.6/site-packages/goldstone
 
+%preun
+
+%postun
 
 %description
 For the most up-to-date information please visit the project website
@@ -114,13 +117,14 @@ install -m 640 %{_sourcedir}/external/logstash/patterns/goldstone %{buildroot}/o
 echo -n "buildroot = "
 echo "%{buildroot}"
 ls -R %{buildroot}
+
 %build
 
 %install
 
 %clean
-find %{_rpmdir} -type f -name '*.rpm' -exec cp {} %{_sourcedir} \;
-rm -rf %{buildroot}
+# find %{_rpmdir} -type f -name '*.rpm' -exec cp {} %{_sourcedir} \;
+# rm -rf %{buildroot}
 
 %files
 %defattr(-, apache, apache)
