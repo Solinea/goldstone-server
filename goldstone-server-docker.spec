@@ -17,7 +17,7 @@
 %define epoch   %{getenv:GOLDSTONE_RPM_EPOCH}
 
 Summary:        Solinea Goldstone server
-Name:           goldstone-server
+Name:           goldstone-server-docker
 Version:        %{version}
 Release:        %{release}%{?dist}
 Epoch:          %{epoch}
