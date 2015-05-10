@@ -36,8 +36,7 @@ def get_env_variable(var_name):
         error_msg = "Set the %s environment variable" % var_name
         raise ImproperlyConfigured(error_msg)
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+APPEND_SLASH = False
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
@@ -129,8 +128,13 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
+# Points to ./goldstone.
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+# ./goldstone/static and ./client.
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),
-                    os.path.join(BASE_DIR, 'client'),)
+                    os.path.join(os.path.dirname(BASE_DIR), 'client'),
+                    )
 
 # this is sort of a hack until we get our server strategy figured out.
 # STATICFILES_ROOT = '/usr/share/nginx/html/static'
@@ -235,8 +239,8 @@ TENANT_OWNER_MAX_LENGTH = 80
 DJOSER = {'DOMAIN': getfqdn(),
           'SITE_NAME': 'Goldstone',
           'PASSWORD_RESET_CONFIRM_URL':
-          'accounts/password/reset/confirm/{uid}/{token}',
-          'ACTIVATION_URL': '#/activate/{uid}/{token}',
+          'accounts/password/reset/enter/{uid}/{token}/',
+          'ACTIVATION_URL': '#/activate/{uid}/{token}/',
           'LOGIN_AFTER_REGISTRATION': True,
           }
 

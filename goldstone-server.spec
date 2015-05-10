@@ -166,13 +166,14 @@ install -d -m 750 %{buildroot}/etc/logstash/conf.d/
 # handle multiple and empty files
 touch %{buildroot}/var/log/goldstone/goldstone.log
 cp -R %{_sourcedir}/goldstone %{buildroot}/opt/goldstone
+cp -R %{_sourcedir}/client %{buildroot}/opt/goldstone
 cp -R %{_sourcedir}/external/rsyslog %{buildroot}/opt/goldstone/external
 cp -R %{_sourcedir}/external/logstash/conf.d/* %{buildroot}/etc/logstash/conf.d
 
 # fix up the settings folder contents
 rm -rf %{buildroot}/opt/goldstone/goldstone/settings
 install -d -m 750 %{buildroot}/opt/goldstone/goldstone/settings/
-install -m 640 %{_sourcedir}/goldstone/settings/base.py %{buildroot}/opt/goldstone/goldstone/settings/__init__.py
+install -m 640 %{_sourcedir}/goldstone/settings/__init__.py %{buildroot}/opt/goldstone/goldstone/settings/__init__.py
 install -m 640 %{_sourcedir}/goldstone/settings/base.py %{buildroot}/opt/goldstone/goldstone/settings/base.py
 install -m 640 %{_sourcedir}/goldstone/settings/production.py %{buildroot}/opt/goldstone/goldstone/settings/production.py
 
@@ -214,6 +215,7 @@ rm -rf %{buildroot}
 /opt/goldstone/goldstone/
 %config /opt/goldstone/goldstone/settings/base.py
 %config(noreplace) /opt/goldstone/goldstone/settings/production.py
+/opt/goldstone/client/
 /opt/goldstone/external/
 /var/log/goldstone/
 /var/www/goldstone/static/

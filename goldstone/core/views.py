@@ -138,8 +138,8 @@ class MetricAggView(DateHistogramAggView):
     STATS_AGG_NAME = 'stats'
     UNIT_AGG_NAME = 'units'
 
-    class Meta:
-        """Meta"""
+    class Meta:       # pylint: disable=C1001,W0232
+        """Meta."""
         model = MetricData
 
     def get(self, request):

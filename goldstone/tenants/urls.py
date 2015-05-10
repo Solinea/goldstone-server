@@ -17,7 +17,7 @@ from rest_framework_extensions.routers import ExtendedDefaultRouter
 from .views import TenantsViewSet, UserViewSet, CloudViewSet
 
 # Views handled by DjangoRestFramework ViewSets, with drf-extensions help.
-router = ExtendedDefaultRouter(trailing_slash=False)
+router = ExtendedDefaultRouter()
 
 tenants_routes = router.register(r'tenants',        # pylint: disable=C0103
                                  TenantsViewSet,

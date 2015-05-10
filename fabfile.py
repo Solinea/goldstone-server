@@ -19,9 +19,7 @@ import os.path
 import sys
 
 from contextlib import contextmanager
-from fabric.api import task, local, warn, prompt
-from fabric.colors import green, cyan
-from fabric.utils import fastprint
+from fabric.api import task, local, warn
 from fabric.operations import prompt
 
 # Add the current directory to the module search path.
@@ -190,6 +188,20 @@ def _django_settings_module(verbose):
     # convert it into a Python path.
     settings = _choose_runserver_settings(verbose).replace(".py", '')
     return SETTINGS_DIR + '.' + settings
+
+
+@task
+def goldstone_init(verbose=False):
+    """Initialize the development environment.
+
+    :keyword verbose: Display detail about each settings choice?
+    :type verbose: bool
+
+    """
+    from installer_fabfile import goldstone_init as installer_goldstone_init
+
+    installer_goldstone_init(settings=_django_settings_module(verbose),
+                             install_dir='.')
 
 
 @task

@@ -17,5 +17,5 @@ from .views import ApiPerfAggView
 
 urlpatterns = patterns(
     '',
-    url(r'^stats[/]?$', ApiPerfAggView.as_view()),
+    url(r'^stats/', ApiPerfAggView.as_view()),
 )

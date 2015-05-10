@@ -1,7 +1,6 @@
 """Accounts URLconf.
 
-This configures endpoints that route to the djoser package, for account
-authorization and administration.
+This includes account authorization and administration.
 
 """
 # Copyright 2015 Solinea, Inc.
@@ -19,24 +18,26 @@ authorization and administration.
 # limitations under the License.
 from django.conf.urls import patterns, url
 from djoser import views as djoser_views
-from .views import RegistrationView
+from .views import RegistrationView, new_password_enter
 
 # Hook up a subset of the djoser package. We don't include djoser's URLconf
-# because that would mean rooting it at /accounts/XXX, making the URLs longer;
-# and we need to override some of djoser's code in order to process user
-# profiles.
+# because that would root them at /accounts/XXX, making the URLs longer; and we
+# need to override some of djoser's code in order to process user profiles.
 urlpatterns = patterns(
     '',
-    url(r'^register[/]?$', RegistrationView.as_view(), name='register'),
-    url(r'^login[/]?$', djoser_views.LoginView.as_view(), name='login'),
-    url(r'^logout[/]?$', djoser_views.LogoutView.as_view(), name='logout'),
-    url(r'^password[/]?$',
+    url(r'^register/$', RegistrationView.as_view(), name='register'),
+    url(r'^login/$', djoser_views.LoginView.as_view(), name='login'),
+    url(r'^logout/$', djoser_views.LogoutView.as_view(), name='logout'),
+    url(r'^password/$',
         djoser_views.SetPasswordView.as_view(),
         name='set_password'),
-    url(r'^password/reset[/]?$',
+    url(r'^password/reset/$',
         djoser_views.PasswordResetView.as_view(),
         name='password_reset'),
-    url(r'^password/reset/confirm[/]?$',
+    url(r'^password/reset/enter/(?P<uid>.+?)/(?P<token>.+?)/$',
+        new_password_enter,
+        name='new_password_enter'),
+    url(r'^password/reset/confirm/$',
         djoser_views.PasswordResetConfirmView.as_view(),
         name='password_reset_confirm'),
 )

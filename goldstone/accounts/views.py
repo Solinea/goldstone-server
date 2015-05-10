@@ -15,9 +15,11 @@
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserRegistrationWithAuthTokenSerializer
 from djoser.views import RegistrationView as DjoserRegistrationView
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 
 # Not a valid module-level symbol name, but this is the name djoser used, so
-# we'll keep deltas between there and here to a minimum.
+# we'll minimize the deltas between there and here.
 User = get_user_model()     # pylint: disable=C0103
 
 
@@ -51,3 +53,21 @@ class RegistrationView(DjoserRegistrationView):
             return RegistrationSerializer
         else:
             raise NotImplementedError("Missing serializer.")
+
+
+@api_view(["GET"])
+@permission_classes((AllowAny, ))
+def new_password_enter(request, uid, token):
+    """Redirect to the client's new-password-enter page.
+
+    The user has received the password-reset email, and clicked on the link
+    within it. The request comes here, and we redirect it to the client so that
+    the server-side code remains "API centric."
+
+    """
+    from django.shortcuts import redirect
+
+    url = "http://%s/#client/newpasswordenter/?uid=%s&token=%s" % \
+          (request.META["HTTP_HOST"], uid, token)
+
+    return redirect(url)

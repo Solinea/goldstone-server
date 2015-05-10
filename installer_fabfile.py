@@ -18,6 +18,7 @@ from contextlib import contextmanager, nested
 import os
 import platform
 import subprocess
+from time import sleep
 
 from fabric.api import task, local, settings as fab_settings
 from fabric.colors import green, cyan, red
@@ -63,7 +64,7 @@ PROD_SETTINGS = "goldstone.settings.production"
 
 # used to collect configuration data, then presented at completion
 # of install.
-final_report = {
+final_report = {    # pylint: disable=C0103
     'django_admin_user': None,
     'django_admin_pass': None,
     'goldstone_admin_user': None,
@@ -72,7 +73,7 @@ final_report = {
 
 
 def _is_supported_centos6():
-    """Is this a CentOS 6.5 or 6.6 server"""
+    """Return True if this is a CentOS 6.5 or 6.6 server."""
 
     try:
         dist = platform.linux_distribution()
@@ -81,7 +82,7 @@ def _is_supported_centos6():
         return False
 
 def _is_supported_centos7():
-    """Is this a CentOS 7.0 or 7.1 server"""
+    """Return True if this a CentOS 7.0 or 7.1 server."""
 
     try:
         dist = platform.linux_distribution()
@@ -91,7 +92,8 @@ def _is_supported_centos7():
 
 
 def _is_development_mac():
-    """Is this a mac?"""
+    """Return True if this is a Mac."""
+
     try:
         dist = platform.mac_ver()
         return dist[2] == 'x86_64'
@@ -100,21 +102,25 @@ def _is_development_mac():
 
 
 def _is_rpm_installed(name):
-    """Check to see of an RPM is installed."""
+    """Return True if an RPM is installed."""
 
     cmd = 'yum list installed ' + name
     with nested(hide('warnings', 'stdout', 'stderr'),
                 fab_settings(warn_only=True)):
         result = local(cmd)
+
     return not result.failed
 
 
 def _verify_required_rpms(rpms):
     """Verify that a list of RPMs is installed on the system.
 
-    Returns the list of missing dependencies (empty list if all satisfied)."""
+    Returns the list of missing dependencies (empty list if all satisfied).
+
+    """
 
     print(green("\nChecking for prerequisite RPMs."))
+
     missing = [name for name in rpms if not _is_rpm_installed(name)]
     return missing
 
@@ -160,7 +166,8 @@ def _install_additional_repos():
 
 def _centos6_configure_postgres_service():
     """configure postgres to start on boot and initialized the DB"""
-    print(green("\nConfiguring PostgreSQL (CentOS 6)..."))
+    print(green("\nConfiguring PostgreSQL (CentOS 6)."))
+
     if not os.path.exists(CENTOS_PG_HBA):
         subprocess.call('service postgresql initdb'.split())
 
@@ -170,6 +177,7 @@ def _centos6_configure_postgres_service():
 
 def _centos7_configure_postgres_service():
     """configure postgres to start on boot and initialized the DB"""
+    
     print(green("\nConfiguring PostgreSQL (CentOS 7)..."))
     if not os.path.exists(CENTOS_PG_HBA):
         subprocess.call('postgresql-setup initdb'.split())
@@ -202,30 +210,30 @@ def _centos_setup_postgres(pg_passwd):
     subprocess.call('su - postgres -c "' + remote_cmd + '"', shell=True)
 
     # grep returns 0/False if a match is found, 1/True if not.
-    if subprocess.call(
-            "grep -q goldstone /var/lib/pgsql/data/pg_hba.conf".split()):
+    cmd = "grep -q goldstone " + CENTOS_PG_HBA
+    if subprocess.call(cmd.split()):
 
         # edit the pg_hba.conf if not goldstone entry was found.
         rename(CENTOS_PG_HBA, CENTOS_PG_HBA_BACKUP)
-        pg_hba_fd = open(CENTOS_PG_HBA, 'w')
-        print("local\tall\tgoldstone\tpassword", file=pg_hba_fd)
-        print("host\tall\tgoldstone\t127.0.0.1/32\tpassword", file=pg_hba_fd)
-        print("host\tall\tgoldstone\t::1/128\tpassword", file=pg_hba_fd)
+        with nested(open(CENTOS_PG_HBA, 'w'), open(CENTOS_PG_HBA_BACKUP, 'r')) \
+                as (pg_hba_fd, infile):
 
-        # now tack on the original file
-        with open(CENTOS_PG_HBA_BACKUP) as infile:
+            print("local\tall\tgoldstone\tpassword", file=pg_hba_fd)
+            print("host\tall\tgoldstone\t127.0.0.1/32\tpassword",
+                  file=pg_hba_fd)
+            print("host\tall\tgoldstone\t::1/128\tpassword", file=pg_hba_fd)
+            # now tack on the original file
             pg_hba_fd.write(infile.read())
 
         # reload the config
-        subprocess.call('service postgresql restart'.split())
+        subprocess.call('service postgresql force-reload'.split())
         # ugly, but using pg_ctl reload doesn't wait, and pg_ctl restart
         # puts it out of sync with service control.
         sleep(10)
 
 
 def _is_root_user():
-    """Is this running as root?"""
-
+    """Return True if the user is running as root."""
     import getpass
 
     return getpass.getuser() == "root"
@@ -233,7 +241,9 @@ def _is_root_user():
 
 def _fix_setuptools():
     """Workaround for https://bugs.launchpad.net/pbr/+bug/1369179"""
+
     print(green("\nUpdating distribute and setuptools modules."))
+
     with nested(hide('warnings', 'stdout', 'stderr'),
                 fab_settings(warn_only=True)):
         local('pip install --upgrade distribute')
@@ -262,7 +272,8 @@ def _development_mac_preinstall():
 
 
 def _validate_path(path):
-    """Check for existence of a filesystem path."""
+    """Return the path if it exists, otherwise raise an exception."""
+
     if not os.path.exists(path):
         raise ValueError("File does not exist.")
 
@@ -274,16 +285,25 @@ def _centos6_install(rpm_file):
 
     print()
     print(green("Installing the Goldstone server RPM."))
+
     if rpm_file is None:
         rpm_file = prompt(cyan("Enter path to the goldstone-server RPM: "),
                           default="./goldstone-server.rpm")
+
     cmd = 'yum localinstall -y ' + rpm_file
-    local(cmd)
+    result = not local(cmd)
+
     if not _is_rpm_installed('goldstone-server'):
         abort(red("Failed to install the goldstone-server RPM."))
 
+    return result
 
-def _django_manage(command, target='', proj_settings=None, daemon=False):
+
+def _django_manage(command,
+                   target='',
+                   proj_settings=None,
+                   install_dir=INSTALL_DIR,
+                   daemon=False):
     """Run manage.py <command>.
 
     :param command: The command to send to manage. E.g., test
@@ -292,8 +312,10 @@ def _django_manage(command, target='', proj_settings=None, daemon=False):
     :type target: str
     :keyword proj_settings: The project settings to use
     :type proj_settings: str
+    :keyword install_dir: The path to the Goldstone installation directory.
+    :type install_dir: str
     :keyword daemon: True if the command should be run in a background process
-    :param daemon: bool
+    :type daemon: bool
 
     """
 
@@ -304,16 +326,17 @@ def _django_manage(command, target='', proj_settings=None, daemon=False):
     # Run this command as a background process, if requested.
     daemon_opt = "&" if daemon else ''
 
-    with nested(lcd(INSTALL_DIR), hide('stdout', 'stderr', 'warnings')):
-            local("./manage.py %s %s %s %s" %
-                  (command, target, settings_opt, daemon_opt))
+    with nested(lcd(install_dir), hide('stdout', 'stderr', 'warnings')):
+        local("./manage.py %s %s %s %s" %
+              (command, target, settings_opt, daemon_opt))
 
 
 @contextmanager
-def _django_env(proj_settings=PROD_SETTINGS):
+def _django_env(proj_settings, install_dir):
     """Load a new context into DJANGO_SETTINGS_MODULE."""
     import sys
-    sys.path.append(INSTALL_DIR)
+
+    sys.path.append(install_dir)
     old_settings = os.environ.get('DJANGO_SETTINGS_MODULE')
     os.environ['DJANGO_SETTINGS_MODULE'] = proj_settings
 
@@ -321,95 +344,44 @@ def _django_env(proj_settings=PROD_SETTINGS):
     yield
 
     # Restore state.
-    sys.path.remove(INSTALL_DIR)
+    sys.path.remove(install_dir)
     if old_settings is None:
         del os.environ['DJANGO_SETTINGS_MODULE']
     else:
         os.environ['DJANGO_SETTINGS_MODULE'] = old_settings
 
 
-def _collect_static(proj_settings=None):
-    """collect static files if STATIC_ROOT is set in the settings file"""
+def _collect_static(proj_settings, install_dir):
+    """Collect static files if settings.STATIC_ROOT is defined."""
 
-    with _django_env(proj_settings):
+    with _django_env(proj_settings, install_dir):
         from django.conf import settings
 
         if settings.STATIC_ROOT is not None:
-            print(green("Collecting the static files under the web server."))
-            print()
+            print(green("Collecting the static files under the web server.\n"))
             _django_manage("collectstatic --noinput",
-                           proj_settings=proj_settings)
+                           proj_settings=proj_settings,
+                           install_dir=install_dir)
 
 
-def _reconcile_hosts(proj_settings=None):
+def _reconcile_hosts(proj_settings, install_dir):
     """Build the initial entries in the Hosts table from agg of loggers."""
 
-    with _django_env(proj_settings):
-        print(green("Collecting information about Openstack resources."))
+    with _django_env(proj_settings, install_dir):
         from goldstone.nova.tasks import reconcile_hosts
+
+        print(green("Collecting information about Openstack resources."))
         reconcile_hosts()
 
 
-def _tenant_init(tenant, tenant_owner, admin, password, settings=None):
-    """Create a tenant and default_tenant_admin, or use existing ones.
-
-    See the tenant_init() docstring for a description of the parameters.
-    """
-
-    print(green("\nInitializing the Goldstone tenant and OpenStack "
-                "connection."))
-
-    # Get the settings under which we should execute.
-    if not settings:
-        settings = PROD_SETTINGS
-
-    with _django_env(settings):
-        # It's important to do these imports here, after DJANGO_SETTINGS_MODULE
-        # has been changed!
-        from django.contrib.auth import get_user_model
-        from django.core.exceptions import ObjectDoesNotExist
-        from goldstone.tenants.models import Tenant
-
-        # Process the tenant.
-        try:
-            tenant = Tenant.objects.get(name=tenant)
-        except ObjectDoesNotExist:
-            # The tenant does not already exist. Create it.
-            tenant = Tenant.objects.create(name=tenant, owner=tenant_owner)
-        else:
-            # The tenant already exists. Print a message.
-            fastprint("\nTenant %s already exists.\n" % tenant)
-
-        # Process the tenant admin.
-        try:
-            user = get_user_model().objects.get(username=admin)
-        except ObjectDoesNotExist:
-            fastprint("Creating Goldstone tenant admin account.")
-            if password is None:
-                password = prompt(cyan("\nEnter Goldstone admin password: "))
-
-            user = get_user_model().objects.create_user(username=admin,
-                                                        password=password)
-            final_report['goldstone_admin_user'] = admin
-            final_report['goldstone_admin_pass'] = password
-        else:
-            # The tenant_admin already exists. Print a message.
-            fastprint("\nAdmin account %s already exists." % admin)
-            final_report['goldstone_admin_user'] = admin
-            final_report['goldstone_admin_pass'] = 'previously defined'
-
-        # Link the tenant_admin account to this tenant.
-        user.tenant = tenant
-        user.tenant_admin = True
-        user.default_tenant_admin = True
-        user.save()
-
-    return tenant, settings
-
-
 @task
-def cloud_init(gs_tenant, stack_tenant, stack_user, stack_password,
-               stack_auth_url, settings=None):
+def cloud_init(gs_tenant,
+               stack_tenant,
+               stack_user,
+               stack_password,
+               stack_auth_url,
+               settings=PROD_SETTINGS,
+               install_dir=INSTALL_DIR):
     """Create a single OpenStack cloud under the tenant.
 
     :keyword gs_tenant: The name of the tenant to be created. If not specified,
@@ -423,9 +395,11 @@ def cloud_init(gs_tenant, stack_tenant, stack_user, stack_password,
     :type stack_password: str
     :keyword stack_auth_url: The openstack auth url (without version)
     :type stack_auth_url: str
-    :keyword settings: If present, the path of the Django settings file to use.
-                       Otherwise, we will ask the user to select one.
+    :keyword settings: The path of the Django settings file to use.
     :type settings: str
+    :keyword install_dir: The path to the Goldstone installation directory.
+    :type install_dir: str
+
     """
 
     # The OpenStack identity authorization URL has a version number segment.
@@ -433,15 +407,14 @@ def cloud_init(gs_tenant, stack_tenant, stack_user, stack_password,
     # maybe that's not necessary.
     CLOUD_AUTH_URL_VERSION = "v3/"
 
-    with _django_env(settings):
+    with _django_env(settings, install_dir):
         from goldstone.tenants.models import Cloud
         from django.core.exceptions import ObjectDoesNotExist
 
         try:
             # unique constraint on (tenant, tenant_name, and username)
-            cloud = Cloud.objects.get(tenant=gs_tenant,
-                                      tenant_name=stack_tenant,
-                                      username=stack_user)
+            Cloud.objects.get(tenant=gs_tenant, tenant_name=stack_tenant,
+                              username=stack_user)
         except ObjectDoesNotExist:
             if stack_tenant is None:
                 stack_tenant = prompt(cyan("Enter Openstack tenant name: "),
@@ -481,8 +454,11 @@ def _final_report():
 
 
 @task
-def django_admin_init(username='admin', password=None,
-                      email='root@localhost', settings=None):
+def django_admin_init(username='admin',
+                      password=None,
+                      email='root@localhost',
+                      settings=PROD_SETTINGS,
+                      install_dir=INSTALL_DIR):
     """Create the Django admin user in a non-interactive way.
 
     :keyword username: the django admin user name
@@ -491,17 +467,19 @@ def django_admin_init(username='admin', password=None,
     :type password: str
     :keyword email: the django admin email
     :type email: str
-    :keyword settings: If present, the path of the Django settings file to use.
-                       Otherwise, we will ask the user to select one.
+    :keyword settings: The path of the Django settings file to use.
     :type settings: str
+    :keyword install_dir: The path to the Goldstone installation directory.
+    :type install_dir: str
+
     """
 
-    with _django_env(settings):
+    with _django_env(settings, install_dir):
         from django.contrib.auth import get_user_model
         from django.core.exceptions import ObjectDoesNotExist
 
         try:
-            user = get_user_model().objects.get(username=username)
+            get_user_model().objects.get(username=username)
         except ObjectDoesNotExist:
             fastprint(green("Creating Django admin account.\n"))
             if password is None:
@@ -521,28 +499,30 @@ def django_admin_init(username='admin', password=None,
 
 
 @task
-def syncmigrate(settings=None):
+def syncmigrate(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     """Do a /manage.py syncdb and migrate.
 
-    :keyword settings: If present, the path of the Django settings file to use.
-                       Otherwise, we will ask the user to select one.
+    :keyword settings: The path of the Django settings file to use.
     :type settings: str
+    :keyword install_dir: The path to the Goldstone installation directory.
+    :type install_dir: str
+
     """
 
-    print(green("\nPopulating the database."))
+    print(green("\nPopulating the database.\n"))
 
-    if not settings:
-        settings = PROD_SETTINGS
-
-    print()
-
-    _django_manage("syncdb --noinput --migrate", proj_settings=settings)
+    _django_manage("syncdb --noinput --migrate",
+                   proj_settings=settings,
+                   install_dir=install_dir)
 
 
 @task
-def tenant_init(gs_tenant='default', gs_tenant_owner='None',
+def tenant_init(gs_tenant='default',
+                gs_tenant_owner='None',
                 gs_tenant_admin='gsadmin',
-                gs_tenant_admin_password=None, settings=None):
+                gs_tenant_admin_password=None,
+                settings=PROD_SETTINGS,
+                install_dir=INSTALL_DIR):
     """Create a tenant and default_tenant_admin, or use existing ones; and
     create a cloud under the tenant.
 
@@ -568,49 +548,96 @@ def tenant_init(gs_tenant='default', gs_tenant_owner='None',
     :keyword gs_tenant_admin_password: The admin account's password, *if* we
                                        create it
     :type gs_tenant_admin_password: str
-    :keyword settings: If present, the path of the Django settings file to use.
-                       Otherwise, we will ask the user to select one.
+    :keyword settings: The path of the Django settings file to use.
     :type settings: str
+    :keyword install_dir: The path to the Goldstone installation directory.
+    :type install_dir: str
 
     """
 
-    # Create the tenant and tenant_admin.
-    tenant, settings = _tenant_init(gs_tenant,
-                                    gs_tenant_owner,
-                                    gs_tenant_admin,
-                                    gs_tenant_admin_password,
-                                    settings)
+    print(green(
+        "\nInitializing the Goldstone tenant and OpenStack connection."))
 
-    return tenant, settings
+    with _django_env(settings, install_dir):
+        # It's important to do these imports here, after DJANGO_SETTINGS_MODULE
+        # has been changed!
+        from django.contrib.auth import get_user_model
+        from django.core.exceptions import ObjectDoesNotExist
+        from goldstone.tenants.models import Tenant
+
+        # Process the tenant.
+        try:
+            tenant = Tenant.objects.get(name=gs_tenant)
+            fastprint("\nTenant %s already exists.\n" % tenant)
+        except ObjectDoesNotExist:
+            # The tenant does not already exist. Create it.
+            tenant = Tenant.objects.create(name=gs_tenant,
+                                           owner=gs_tenant_owner)
+
+        # Process the tenant admin.
+        try:
+            user = get_user_model().objects.get(username=gs_tenant_admin)
+            # The tenant_admin already exists. Print a message.
+            fastprint("\nAdmin account %s already exists.\n\n" %
+                      gs_tenant_admin)
+            final_report['goldstone_admin_user'] = gs_tenant_admin
+            final_report['goldstone_admin_pass'] = 'previously defined'
+        except ObjectDoesNotExist:
+            fastprint("Creating Goldstone tenant admin account.")
+            if gs_tenant_admin_password is None:
+                gs_tenant_admin_password = prompt(
+                    cyan("\nEnter Goldstone admin password: "))
+
+            user = get_user_model().objects.create_user(
+                username=gs_tenant_admin, password=gs_tenant_admin_password)
+            final_report['goldstone_admin_user'] = gs_tenant_admin
+            final_report['goldstone_admin_pass'] = gs_tenant_admin_password
+
+        # Link the tenant_admin account to this tenant.
+        user.tenant = tenant
+        user.tenant_admin = True
+        user.default_tenant_admin = True
+        user.save()
+
+    return tenant
 
 
 @task
-def load(proj_settings=PROD_SETTINGS):
+def load(proj_settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     """Initialize the system's Elasticsearch templates.
 
     This is the last installation step before executing a runserver command.
 
-    :keyword proj_settings: If present, the path of the Django settings file to
-                            use. Otherwise, we will ask the user to select one.
+    :keyword proj_settings: The path of the Django settings file to
+                            use.
     :type proj_settings: str
+    :keyword install_dir: Thie path to the Goldstone installation directory.
+    :type install_dir: str
+
     """
 
     print(green("\nInitializing Goldstone's Elasticsearch templates."))
-    with _django_env(proj_settings):
+
+    with _django_env(proj_settings, install_dir):
         from goldstone.initial_load import initialize_elasticsearch
 
         initialize_elasticsearch()
 
 
 @task
-def goldstone_init(django_admin_user='admin',
+def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
                    django_admin_password=None,
                    django_admin_email='root@localhost',
-                   gs_tenant='default', gs_tenant_owner='None',
+                   gs_tenant='default',
+                   gs_tenant_owner='None',
                    gs_tenant_admin='gsadmin',
-                   gs_tenant_admin_password=None, stack_tenant=None,
-                   stack_user=None, stack_password=None,
-                   stack_auth_url=None):
+                   gs_tenant_admin_password=None,
+                   stack_tenant=None,
+                   stack_user=None,
+                   stack_password=None,
+                   stack_auth_url=None,
+                   settings=PROD_SETTINGS,
+                   install_dir=INSTALL_DIR):
     """Configure goldstone after the RPM has been installed.
 
     :keyword django_admin_user: username for django admin
@@ -638,24 +665,44 @@ def goldstone_init(django_admin_user='admin',
     :keyword stack_auth_url: Openstack auth URL without the version suffix (
                              ex: http://10.10.10.10:5000/)
     :type stack_auth_url: str
+    :keyword settings: The settings file to import, relative to the current
+                       directory
+    :type settings: str
+    :keyword install_dir: The directory where Goldstone is installed.
+    :type install_dir: str
+
     """
-    settings = PROD_SETTINGS
-    syncmigrate(settings=settings)
+
+    syncmigrate(settings=settings, install_dir=install_dir)
+
     django_admin_init(username=django_admin_user,
                       password=django_admin_password,
-                      email=django_admin_email, settings=settings)
-    tenant, settings = tenant_init(gs_tenant, gs_tenant_owner, gs_tenant_admin,
-                                   gs_tenant_admin_password, settings=settings)
-    cloud_init(tenant, stack_tenant, stack_user, stack_password,
-               stack_auth_url, settings)
-    _collect_static(proj_settings=settings)
-    _reconcile_hosts(proj_settings=settings)
+                      email=django_admin_email,
+                      settings=settings,
+                      install_dir=install_dir)
+
+    tenant = tenant_init(gs_tenant,
+                         gs_tenant_owner,
+                         gs_tenant_admin,
+                         gs_tenant_admin_password,
+                         settings=settings,
+                         install_dir=install_dir)
+    cloud_init(tenant,
+               stack_tenant,
+               stack_user,
+               stack_password,
+               stack_auth_url,
+               settings)
+
+    _collect_static(settings, install_dir)
+    _reconcile_hosts(settings, install_dir)
     load(proj_settings=settings)
+
     _final_report()
 
 
 @task
-def install(pg_passwd='goldstone', rpm_file=None,
+def install(pg_passwd='goldstone', rpm_file=None,    # pylint: disable=R0913
             django_admin_user='admin',
             django_admin_password=None,
             django_admin_email='root@localhost',
@@ -703,6 +750,7 @@ def install(pg_passwd='goldstone', rpm_file=None,
     :keyword stack_auth_url: Openstack auth URL without the version suffix (
                              ex: http://10.10.10.10:5000/)
     :type stack_auth_url: str
+
     """
 
     if _is_supported_centos6():
@@ -732,7 +780,7 @@ def install(pg_passwd='goldstone', rpm_file=None,
 
     else:
         print()
-        abort('This appears to be an unsupported platform. Exiting...')
+        abort('This appears to be an unsupported platform. Exiting.')
 
 
 @task
