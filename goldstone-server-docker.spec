@@ -25,7 +25,8 @@ Epoch:          %{epoch}
 Group:          Applications/System
 License:        Solinea Software License Agreement (version 1)
 URL:            http://www.solinea.com/goldstone
-BuildArch:      noarch
+ExclusiveArch:  x86_64
+ExclusiveOS:    linux
 Prefix:         /opt
 
 Requires(pre): /usr/sbin/useradd, /usr/bin/getent, elasticsearch >= 1.4, gcc, gcc-c++, redis, logstash == 1.4.2, logstash-contrib == 1.4.2, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip
@@ -69,7 +70,7 @@ project's website.
 %prep
 # cleanup from previous builds
 rm -rf %{_rpmdir}/*
-rm -f %{_sourcedir}/goldstone-server-docker.*.rpm
+rm -f %{_sourcedir}/goldstone-server-docker-[0-9]*.rpm
 
 # set up the dir structures
 install -d -m 750 %{buildroot}/opt/goldstone/
