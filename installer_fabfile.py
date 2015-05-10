@@ -183,7 +183,7 @@ def _centos7_configure_postgres_service():
         subprocess.call('postgresql-setup initdb'.split())
 
     subprocess.call('systemctl enable postgresql'.split())
-    subprocess.call('systemctl start postgresql start'.split())
+    subprocess.call('systemctl start postgresql'.split())
 
 
 def _centos_setup_postgres(pg_passwd):
