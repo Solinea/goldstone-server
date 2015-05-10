@@ -500,7 +500,7 @@ def django_admin_init(username='admin',
 
 @task
 def syncmigrate(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
-    """Do a /manage.py syncdb and migrate.
+    """Do a manage.py syncdb and migrate.
 
     :keyword settings: The path of the Django settings file to use.
     :type settings: str
