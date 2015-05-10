@@ -178,7 +178,7 @@ def _centos6_configure_postgres_service():
 def _centos7_configure_postgres_service():
     """configure postgres to start on boot and initialized the DB"""
     
-    print(green("\nConfiguring PostgreSQL (CentOS 7)..."))
+    print(green("\nConfiguring PostgreSQL (CentOS 7)."))
     if not os.path.exists(CENTOS_PG_HBA):
         subprocess.call('postgresql-setup initdb'.split())
 
@@ -280,7 +280,7 @@ def _validate_path(path):
     return path
 
 
-def _centos6_install(rpm_file):
+def _install_rpm(rpm_file):
     """Install the downloaded RPM."""
 
     print()
@@ -293,8 +293,8 @@ def _centos6_install(rpm_file):
     cmd = 'yum localinstall -y ' + rpm_file
     result = not local(cmd)
 
-    if not _is_rpm_installed('goldstone-server'):
-        abort(red("Failed to install the goldstone-server RPM."))
+    # if not _is_rpm_installed('goldstone-server'):
+    #     abort(red("Failed to install the goldstone-server RPM."))
 
     return result
 
@@ -753,27 +753,12 @@ def install(pg_passwd='goldstone', rpm_file=None,    # pylint: disable=R0913
 
     """
 
-    if _is_supported_centos6():
+    if _is_supported_centos6() or _is_supported_centos7():
         # we should only preinstall if the rpm is not present.
         print(green("\nDetermining if goldstone-server RPM is already "
                     "installed."))
         if not _is_rpm_installed('goldstone-server'):
             _centos_preinstall(pg_passwd)
-
-        if _centos6_install(rpm_file):
-            goldstone_init(
-                django_admin_user=django_admin_user,
-                django_admin_password=django_admin_password,
-                django_admin_email=django_admin_email,
-                gs_tenant=gs_tenant, gs_tenant_owner=gs_tenant_owner,
-                gs_tenant_admin=gs_tenant_admin,
-                gs_tenant_admin_password=gs_tenant_admin_password,
-                stack_tenant=stack_tenant, stack_user=stack_user,
-                stack_password=stack_password,
-                stack_auth_url=stack_auth_url)
-        else:
-            abort(red("Goldstone RPM installation failed.  Check the path to "
-                      "the RPM file, and rerun."))
 
     elif _is_development_mac():
         _development_mac_preinstall()
@@ -782,6 +767,21 @@ def install(pg_passwd='goldstone', rpm_file=None,    # pylint: disable=R0913
         print()
         abort('This appears to be an unsupported platform. Exiting.')
 
+    if (_is_supported_centos6() or _is_supported_centos7()) and \
+            _install_rpm(rpm_file):
+        goldstone_init(
+            django_admin_user=django_admin_user,
+            django_admin_password=django_admin_password,
+            django_admin_email=django_admin_email,
+            gs_tenant=gs_tenant, gs_tenant_owner=gs_tenant_owner,
+            gs_tenant_admin=gs_tenant_admin,
+            gs_tenant_admin_password=gs_tenant_admin_password,
+            stack_tenant=stack_tenant, stack_user=stack_user,
+            stack_password=stack_password,
+            stack_auth_url=stack_auth_url)
+    else:
+        abort(red("Goldstone RPM installation failed.  Check the path to "
+                  "the RPM file, and rerun."))
 
 @task
 def uninstall(dropdb=True, dropuser=True):
