@@ -124,6 +124,9 @@ find %{buildroot} -type f -name '*.py[oc]' -exec rm -f {} \;
 %clean
 find %{_rpmdir} -type f -name '*.rpm' -exec cp {} %{_sourcedir} \;
 rm -rf %{buildroot}
+ 
+# disable the default behavior of compiling python bits
+%global __os_install_post %(echo '%{__os_install_post}' | sed -e 's!/usr/lib[^[:space:]]*/brp-python-bytecompile[[:space:]].*$!!g')
 
 %files
 %defattr(-, apache, apache)
