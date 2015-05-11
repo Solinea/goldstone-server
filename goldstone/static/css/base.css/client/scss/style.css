@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
  /* Sticky footer styles
 -------------------------------------------------- */
-
 html,
 body {
   height: 100%;
@@ -39,14 +37,13 @@ body {
   background-color: #f5f5f5;
 }
 
-
 /* Custom page CSS
 -------------------------------------------------- */
 /* Not required for template or sticky footer method. */
-
 #wrap > .container {
   padding: 60px 15px 0;
 }
+
 .container .credit {
   margin: 20px 0;
 }
@@ -57,16 +54,16 @@ body {
 }
 
 .navbar .fa {
-    color: #777;
+  color: #777;
 }
 
 #goldstone-text {
-    font-family: 'Homenaje', sans-serif;
-    font-size: x-large;
+  font-family: 'Homenaje', sans-serif;
+  font-size: x-large;
 }
 
 .panel-heading .fa {
-    color: #ffffff;
+  color: #ffffff;
 }
 
 code {
@@ -74,59 +71,63 @@ code {
 }
 
 .ajax-loader {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    margin-left: -32px; /* -1 * image width / 2 */
-    margin-top: -32px;  /* -1 * image height / 2 */
-    display: block;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -32px;
+  /* -1 * image width / 2 */
+  margin-top: -32px;
+  /* -1 * image height / 2 */
+  display: block;
 }
 
 .row {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
+
 .panel {
-    border: none;
-    border-radius: 4px;
-    box-shadow: none;
+  border: none;
+  border-radius: 4px;
+  box-shadow: none;
 }
 
 .panel-primary > .panel-heading {
-    background-color: #777777;
-    border-color: #777777;
-    color: #FFFFFF;
+  background-color: #777777;
+  border-color: #777777;
+  color: #FFFFFF;
 }
 
 .panel-body {
-    background-color: #FFFFFF;
+  background-color: #FFFFFF;
 }
 
 /* Datatable font sizes */
 .table-hover th {
-    font-size: 10px;
+  font-size: 10px;
 }
+
 .table-hover td {
-    font-size: 10px;
+  font-size: 10px;
 }
 
 .popover {
-    background: rgba(0,0,0,.4);!important
-    border-radius: 10px;
-    padding: 0;
-    max-width: 350px;
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-radius: 10px;
+  padding: 0;
+  max-width: 350px;
 }
 
 .popover.bottom .arrow:after {
-  border-bottom-color:rgba(0,0,0,.4);
+  border-bottom-color: rgba(0, 0, 0, 0.4);
 }
 
 .popover.left .arrow {
-    border-left-color: rgba(0,0,0,.4);
+  border-left-color: rgba(0, 0, 0, 0.4);
 }
 
 .popover-content ul {
-   list-style-type:none;
-   list-style-position:inside;
+  list-style-type: none;
+  list-style-position: inside;
 }
 
 .popover-content {
@@ -143,24 +144,24 @@ code {
 }
 
 #multi-rsrc-table_wrapper > .dataTables_scroll {
-    min-height: 500px;
+  min-height: 500px;
 }
 
 #multi-rsrc-panel > div.popover.fade.left.in {
-    max-width: 350px;
-    max-height: 500px;
-    background: rgba(0, 0, 0, 0.4);
-    color: #fff;
-    top: 50px !important;
-    left: -350px !important;
+  max-width: 350px;
+  max-height: 500px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  top: 50px !important;
+  left: -350px !important;
 }
 
 #multi-rsrc-panel > div.popover.fade.left.in > h3 {
-    background-color: rgba(0,0,0,.4);
-    border-bottom-color: rgba(0,0,0,.4);
+  background-color: rgba(0, 0, 0, 0.4);
+  border-bottom-color: rgba(0, 0, 0, 0.4);
 }
 
-.node:not(.data-leaf){
+.node:not(.data-leaf) {
   cursor: pointer;
   stroke: #3182bd;
   stroke-width: 1.5px;
@@ -187,17 +188,17 @@ code {
 }
 
 .instantaneous-data {
-    font-size: 36px;
-    stroke-width: 0;
-    fill: #3282ac;
-    alignment-baseline: middle;
+  font-size: 36px;
+  stroke-width: 0;
+  fill: #3282ac;
+  alignment-baseline: middle;
 }
 
 .instantaneous-label {
-    font-size: 24px;
-    stroke-width: 0;
-    fill: #3282ac;
-    alignment-baseline: middle;
+  font-size: 24px;
+  stroke-width: 0;
+  fill: #3282ac;
+  alignment-baseline: middle;
 }
 
 .axis path,
@@ -207,12 +208,13 @@ code {
   stroke: #000;
   shape-rendering: crispEdges;
 }
+
 .axis text {
-    font: 10px sans-serif;
+  font: 10px sans-serif;
 }
 
 .axis.label text {
-    font: 14px sans-serif;
+  font: 14px sans-serif;
 }
 
 .line {
@@ -231,7 +233,7 @@ code {
 }
 
 .d3-tip pre {
-  background: rgba(0, 0, 0, 0.0);
+  background: transparent;
   color: #fff;
   border: 0px;
 }
@@ -249,21 +251,22 @@ code {
 }
 
 svg.n, svg.s {
-    margin-left: 50px;
-    margin-right: 50px;
+  margin-left: 50px;
+  margin-right: 50px;
 }
 
 svg.e {
-margin-left: 50px;
+  margin-left: 50px;
 }
 
 .partialHiddenBar, .hiddenBar {
-    opacity: 0
+  opacity: 0;
 }
 
 .verticalGuideLine {
-    opacity: .8
+  opacity: 0.8;
 }
+
 /* Northward tooltips */
 .d3-tip.n:after {
   content: "\25BC";
@@ -299,46 +302,48 @@ margin-left: 50px;
 }
 
 .legend rect {
-  fill:white;
-  stroke:black;
-  opacity:0.0;
+  fill: white;
+  stroke: black;
+  opacity: 0.0;
 }
 
 .invisible-axis path {
-    fill: none;
-    stroke: none;
+  fill: none;
+  stroke: none;
 }
 
 #goldstone-nodeavail-chart circle {
-    opacity: 0.5;
-    stroke-width: 3;
+  opacity: 0.5;
+  stroke-width: 3;
 }
 
 /* Solinea color pallete for log levels. */
 .none {
-    fill: goldenrod;
+  fill: goldenrod;
 }
 
 .debug {
-    fill: #6a51a3;
+  fill: #6a51a3;
 }
 
 .audit {
-    fill: #2171b5;
+  fill: #2171b5;
 }
 
 .info {
-    fill: #238b45;
+  fill: #238b45;
 }
 
 .warning {
-    fill: #d94801;
+  fill: #d94801;
 }
 
 .error {
-    fill: #cb181d;
+  fill: #cb181d;
 }
 
 .unadmin {
-    fill: darkgray;
+  fill: darkgray;
 }
+
+/*# sourceMappingURL=style.css.map */

@@ -46,5 +46,7 @@ module.exports = {
         'client/js/collections/*.js': ['coverage'],
         'client/js/views/*.js': ['coverage']
     },
-    coverageReportOutput: 'test/results/coverage'
+    coverageReportOutput: 'test/results/coverage',
+    scss: 'client/scss/style.scss',
+    css: 'goldstone/static/css/base.css'
 };
