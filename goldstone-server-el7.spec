@@ -85,7 +85,6 @@ install -d -m 750 %{buildroot}/opt/goldstone/external/
 install -d -m 750 %{buildroot}/etc/init.d/
 install -d -m 750 %{buildroot}/etc/sysconfig/
 install -d -m 750 %{buildroot}/etc/selinux/
-install -d -m 750 %{buildroot}/etc/elasticsearch/
 install -d -m 750 %{buildroot}/etc/httpd/conf.d/
 install -d -m 750 %{buildroot}/var/log/goldstone/
 install -d -m 750 %{buildroot}/var/www/goldstone/static/
@@ -116,7 +115,6 @@ install -m 640 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
 install -m 640 %{_sourcedir}/external/httpd/zgoldstone.conf %{buildroot}/etc/httpd/conf.d/zgoldstone.conf
 install -m 750 %{_sourcedir}/external/init.d/celerybeat %{buildroot}/etc/init.d/celerybeat
 install -m 750 %{_sourcedir}/external/init.d/celeryd-default %{buildroot}/etc/init.d/celeryd-default
-install -m 640 %{_sourcedir}/external/elasticsearch/elasticsearch.yml %{buildroot}/etc/elasticsearch/elasticsearch.yml
 install -m 640 %{_sourcedir}/external/sysconfig/celerybeat %{buildroot}/etc/sysconfig/celerybeat
 install -m 640 %{_sourcedir}/external/sysconfig/celeryd-default %{buildroot}/etc/sysconfig/celeryd-default
 install -m 640 %{_sourcedir}/external/selinux/config %{buildroot}/etc/selinux/config
@@ -141,7 +139,6 @@ rm -rf %{buildroot}
 /opt/goldstone/INSTALL.md
 /opt/goldstone/LICENSE
 /opt/goldstone/goldstone/
-%config %attr(-, elasticsearch, elasticsearch) /etc/elasticsearch/elasticsearch.yml
 %config /opt/goldstone/goldstone/settings/base.py
 %config(noreplace) /opt/goldstone/goldstone/settings/production.py
 /opt/goldstone/external/
