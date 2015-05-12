@@ -31,6 +31,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-sass');
     grunt.loadNpmTasks('grunt-express-server');
     grunt.loadNpmTasks('grunt-focus');
     grunt.loadNpmTasks('grunt-karma');
@@ -54,6 +55,11 @@ module.exports = function(grunt) {
             concat_message_lib: {
                 options: {
                     message: "Lib concat is finished"
+                }
+            },
+            scss: {
+                options: {
+                    message: "SASS/CSS compile complete"
                 }
             }
         },
@@ -93,6 +99,21 @@ module.exports = function(grunt) {
             }
         },
 
+        sass: {
+            dev: {
+                options: {
+                    style: 'expanded',
+                    compass: false,
+                },
+                files: [{
+                    expand: true,
+                    src: clientIncludeOrder.scss,
+                    dest: clientIncludeOrder.css,
+                    ext: '.css'
+                }]
+            }
+        },
+
         // create a watch task for tracking
         // any changes to the following files
         watch: {
@@ -119,6 +140,10 @@ module.exports = function(grunt) {
             e2eTests: {
                 files: clientIncludeOrder.e2e,
                 tasks: ['e']
+            },
+            css: {
+                files: clientIncludeOrder.scss,
+                tasks: ['scss']
             }
         },
 
@@ -153,13 +178,14 @@ module.exports = function(grunt) {
 
     // Start watching and run tests when files change
     grunt.registerTask('default', ['lint', 'karma', 'watch']);
-    grunt.registerTask('lint', ['jshint']);
-    grunt.registerTask('test', ['karma', 'casperjs:e2e']);
-    grunt.registerTask('lintAndTest', ['lint', 'test']);
-    grunt.registerTask('testDevE', ['lint', 'focus:e2e']);
-    grunt.registerTask('testDev', ['lint', 'karma', 'focus:dev']);
-    grunt.registerTask('casper', ['casperjs:e2e']);
-    grunt.registerTask('e', ['casperjs:e2e']);
     grunt.registerTask('c', ['concat:clientjs', 'notify:concat_message']);
+    grunt.registerTask('casper', ['casperjs:e2e']);
     grunt.registerTask('clib', ['concat:lib', 'notify:concat_message_lib']);
+    grunt.registerTask('e', ['casperjs:e2e']);
+    grunt.registerTask('lint', ['jshint']);
+    grunt.registerTask('lintAndTest', ['lint', 'test']);
+    grunt.registerTask('scss', ['sass:dev', 'notify:scss']);
+    grunt.registerTask('test', ['karma', 'casperjs:e2e']);
+    grunt.registerTask('testDev', ['lint', 'karma', 'focus:dev']);
+    grunt.registerTask('testDevE', ['lint', 'focus:e2e']);
 };
