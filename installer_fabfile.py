@@ -55,6 +55,9 @@ CENTOS_PG_HBA_BACKUP = CENTOS_PGDATA + "/pg_hba.conf.bak"
 REQUIRED_RPMS = ['gcc', 'java-1.7.0-openjdk', 'postgresql-server',
                  'postgresql-devel', 'git']
 
+REQUIRED_PORTS = ['80/tcp', '9200/tcp', '5514/tcp', '5514/udp', '5515/tcp',
+                  '5515/udp', '5516/tcp', '5516/udp']
+
 # The Goldstone install dir
 INSTALL_DIR = '/opt/goldstone'
 
@@ -440,6 +443,56 @@ def cloud_init(gs_tenant,
             fastprint("\nCloud entry already exists.")
 
 
+def _configure_centos7_firewalld():
+
+    print(green("\nConfiguring firewalld to allow Goldstone traffic.\n"))
+    # make sure firewall is started
+    local('systemctl start firewalld.service')
+    default_zone = local('firewall-cmd --get-default-zone', capture=True)
+    for port in REQUIRED_PORTS:
+        local('firewall-cmd --zone ' + default_zone + ' --add-port=' + port)
+
+    local('systemctl restart firewalld.service')
+
+
+def _configure_centos7_services():
+    """Configure required services to start on boot, and start them now."""
+
+    with nested(hide('warnings', 'stderr', 'stdout'),
+                fab_settings(warn_only=True)):
+
+        # set selinux to permissive mode for this boot
+        local('setenforce permissive')
+        local('systemctl enable firewalld.service')
+
+        _configure_centos7_firewalld()
+        local('systemctl enable elasticsearch.service')
+        local('systemctl start elasticsearch.service')
+        local('systemctl enable redis.service')
+        local('systemctl start redis.service')
+        local('systemctl enable httpd.service')
+        local('systemctl start httpd.service')
+        local('service logstash enable')
+        local('service logstash start')
+        local('service celerybeat enable')
+        local('service celeryd-default enable')
+        local('service celerybeat start')
+        local('service celeryd-default start')
+
+    # need to wait for ES to start.
+    sleep(15)
+
+
+def _configure_services():
+    """Configure required services to start on boot, and start them now."""
+
+    if _is_supported_centos6():
+        # TODO currently handled by the RPM, but we should move that logic here
+        pass
+    elif _is_supported_centos7():
+        _configure_centos7_services()
+
+
 def _final_report():
     """Output the key configuration data for the installation."""
 
@@ -696,6 +749,7 @@ def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
 
     _collect_static(settings, install_dir)
     _reconcile_hosts(settings, install_dir)
+    _configure_services()
     load(proj_settings=settings)
 
     _final_report()

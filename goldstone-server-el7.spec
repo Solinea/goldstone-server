@@ -28,7 +28,7 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires(pre): /usr/sbin/useradd, /usr/bin/getent, elasticsearch >= 1.4, gcc, gcc-c++, redis, logstash == 1.4.2, logstash-contrib == 1.4.2, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent, elasticsearch >= 1.4, gcc, gcc-c++, redis, logstash == 1.4.2, logstash-contrib == 1.4.2, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip, firewalld
 Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre
@@ -84,6 +84,7 @@ install -d -m 750 %{buildroot}/opt/goldstone/
 install -d -m 750 %{buildroot}/opt/goldstone/external/
 install -d -m 750 %{buildroot}/etc/init.d/
 install -d -m 750 %{buildroot}/etc/sysconfig/
+install -d -m 750 %{buildroot}/etc/selinux/
 install -d -m 750 %{buildroot}/etc/httpd/conf.d/
 install -d -m 750 %{buildroot}/var/log/goldstone/
 install -d -m 750 %{buildroot}/var/www/goldstone/static/
@@ -99,7 +100,7 @@ cp -R %{_sourcedir}/external/logstash/conf.d/* %{buildroot}/etc/logstash/conf.d
 # fix up the settings folder contents
 rm -rf %{buildroot}/opt/goldstone/goldstone/settings
 install -d -m 750 %{buildroot}/opt/goldstone/goldstone/settings/
-install -m 640 %{_sourcedir}/goldstone/settings/base.py %{buildroot}/opt/goldstone/goldstone/settings/__init__.py
+install -m 640 %{_sourcedir}/goldstone/settings/__init__.py %{buildroot}/opt/goldstone/goldstone/settings/__init__.py
 install -m 640 %{_sourcedir}/goldstone/settings/base.py %{buildroot}/opt/goldstone/goldstone/settings/base.py
 install -m 640 %{_sourcedir}/goldstone/settings/production.py %{buildroot}/opt/goldstone/goldstone/settings/production.py
 
@@ -114,8 +115,10 @@ install -m 640 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
 install -m 640 %{_sourcedir}/external/httpd/zgoldstone.conf %{buildroot}/etc/httpd/conf.d/zgoldstone.conf
 install -m 750 %{_sourcedir}/external/init.d/celerybeat %{buildroot}/etc/init.d/celerybeat
 install -m 750 %{_sourcedir}/external/init.d/celeryd-default %{buildroot}/etc/init.d/celeryd-default
+install -m 750 %{_sourcedir}/external/elasticsearch/elasticsearch.yml %{buildroot}/etc/elasticsearch/elasticsearch.yml
 install -m 640 %{_sourcedir}/external/sysconfig/celerybeat %{buildroot}/etc/sysconfig/celerybeat
 install -m 640 %{_sourcedir}/external/sysconfig/celeryd-default %{buildroot}/etc/sysconfig/celeryd-default
+install -m 640 %{_sourcedir}/external/selinux/config %{buildroot}/etc/selinux/config
 install -m 640 %{_sourcedir}/external/logstash/patterns/goldstone %{buildroot}/opt/logstash/patterns/goldstone
 
 find %{buildroot} -type f -name '*.py[oc]' -exec rm -f {} \;
@@ -137,6 +140,7 @@ rm -rf %{buildroot}
 /opt/goldstone/INSTALL.md
 /opt/goldstone/LICENSE
 /opt/goldstone/goldstone/
+%config %attr(-, elasticsearch, elasticsearch) /etc/elasticsearch/elasticsearch.yml
 %config /opt/goldstone/goldstone/settings/base.py
 %config(noreplace) /opt/goldstone/goldstone/settings/production.py
 /opt/goldstone/external/
@@ -163,6 +167,7 @@ rm -rf %{buildroot}
 %config /etc/httpd/conf.d/zgoldstone.conf
 %attr(-, goldstone, goldstone) %config /etc/sysconfig/celerybeat
 %attr(-, goldstone, goldstone) %config /etc/sysconfig/celeryd-default
+%attr(-, root, root) %config /etc/selinux/config
 
 
 %changelog
