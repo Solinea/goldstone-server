@@ -10164,7 +10164,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             _.each(data, function(item) {
                 var logTime = +(_.keys(item)[0]);
                 var value = +(_.values(item)[0]);
-                console.log(item, logTime, value);
                 result.push({
                     "eventTime": logTime,
                     "Success": value,
@@ -11160,7 +11159,6 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // spinner from the chart.
 
         $.get(dataUrl, function() {}).success(function(payload) {
-            console.log(payload);
             // a click listener shall be appended below which
             // will determine if the data associated with the
             // leaf contains "hypervisor_hostname" or "host_name"

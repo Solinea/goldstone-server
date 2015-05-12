@@ -117,7 +117,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             _.each(data, function(item) {
                 var logTime = +(_.keys(item)[0]);
                 var value = +(_.values(item)[0]);
-                console.log(item, logTime, value);
                 result.push({
                     "eventTime": logTime,
                     "Success": value,
