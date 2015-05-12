@@ -102,8 +102,10 @@ module.exports = function(grunt) {
         sass: {
             dev: {
                 options: {
-                    style: 'expanded',
                     compass: false,
+                    lineNumbers: true,
+                    style: 'expanded',
+                    noCache: true
                 },
                 files: [{
                     expand: true,
@@ -142,7 +144,7 @@ module.exports = function(grunt) {
                 tasks: ['e']
             },
             css: {
-                files: clientIncludeOrder.scss,
+                files: clientIncludeOrder.scssWatch,
                 tasks: ['scss']
             }
         },

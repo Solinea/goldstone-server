@@ -1070,7 +1070,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
             ns.color = d3.scale.ordinal().domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
                 .range(ns.colorArray.distinct.openStackSeverity8);
         } else {
-            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct['2R']);
         }
 
         ns.area = d3.svg.area()
@@ -1312,9 +1312,6 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
 
                 console.log('define featureSet in utilizationCpuView.js');
 
-            })
-            .style("opacity", function() {
-                return ns.featureSet === "logEvents" ? 0.3 : 0.8;
             });
 
         component.append("text")
@@ -1439,17 +1436,65 @@ colorArray.distinct[3] (Range of 3 colorBlindFriendly colors)
 colorArray.distinct[5] (Range of 5 colorBlindFriendly colors)
 etc...
 
+OPENSTACK SEVERITY LEVELS
+=========================
+EMERGENCY: system is unusable
+ALERT: action must be taken immediately
+CRITICAL: critical conditions
+ERROR: error conditions
+WARNING: warning conditions
+NOTICE: normal but significant condition
+INFO: informational messages
+DEBUG: debug-level messages
 */
+
+var blue1 = '#1560B7';
+var lightBlue = '#88CCEE';
+var turquoise = '#5AC6DA';
+var orange1 = '#EB6F26';
+var green1 = '#6BA757';
+var green2 = '#117733';
+var yellow1 = '#DDCC77';
+var ochre = '#E5AD1E';
+var purple1 = '#5C4591';
+var purpleDark = '#332288';
+var redPurple = '#AA4499';
+var salmon = '#CC6677';
+var salmonDark = '#AA4466';
+var splitPea = '#999933';
+var maroon = '#882255';
+var brown = '#661100';
 
 var GoldstoneColors = GoldstoneBaseModel.extend({
     defaults: {
         colorSets: {
-            // distinct = colorBlindFriendly
             distinct: {
-                1: ['#4477AA'],
-                2: ['#4477AA', '#CC6677'],
-                3: ['#4477AA', '#DDCC77', '#CC6677'],
-                4: ['#4477AA', '#117733', '#DDCC77', '#CC6677'],
+                1: [blue1],
+                2: [orange1, blue1],
+                '2R': [blue1, orange1],
+                3: [green1, blue1, orange1],
+                '3R': [orange1, blue1, green1],
+                4: [blue1, green2, yellow1, ochre],
+                5: [green1, orange1, blue1, ochre, purple1],
+                6: [purple1, turquoise, green2, yellow1, salmon, redPurple],
+                7: [purple1, turquoise, green1, green2, yellow1, salmon, redPurple],
+                8: [purple1, turquoise, green1, green2, splitPea, yellow1, salmon, redPurple],
+                9: [purple1, turquoise, green1, green2, splitPea, yellow1, salmon, maroon, redPurple],
+                10: [purple1, turquoise, green1, green2, splitPea, yellow1, brown, salmon, maroon, redPurple],
+                11: [purple1, blue1, turquoise, green1, green2, splitPea, yellow1, brown, salmon, maroon, redPurple],
+                12: [purple1, blue1, turquoise, green1, green2, splitPea, yellow1, brown, salmon, salmonDark, maroon, redPurple],
+                0: [purple1, green1, turquoise, yellow1, salmonDark, green2, blue1, brown, splitPea, salmon, maroon, redPurple],
+                openStackSeverity8: [redPurple, purpleDark, splitPea, salmon, yellow1, lightBlue, green1, green2]
+            },
+            grey: {
+                0: ['#bdbdbd']
+            },
+            oldDistinct: {
+                // archives original 'color blind' palette
+                1: ['#1560B7'],
+                2: ['#1560B7', '#CC6677'],
+                3: ['#1560B7', '#DDCC77', '#CC6677'],
+                4: ['#1560B7', '#117733', '#DDCC77', '#CC6677'],
                 5: ['#332288', '#88CCEE', '#117733', '#DDCC77', '#CC6677'],
                 6: ['#332288', '#88CCEE', '#117733', '#DDCC77', '#CC6677', '#AA4499'],
                 7: ['#332288', '#88CCEE', '#44AA99', '#117733', '#DDCC77', '#CC6677', '#AA4499'],
@@ -1460,19 +1505,6 @@ var GoldstoneColors = GoldstoneBaseModel.extend({
                 12: ['#332288', '#6699CC', '#88CCEE', '#44AA99', '#117733', '#999933', '#DDCC77', '#661100', '#CC6677', '#AA4466', '#882255', '#AA4499'],
                 0: ['#332288', '#44AA99', '#88CCEE', '#DDCC77', '#AA4466', '#117733', '#6699CC', '#661100', '#999933', '#CC6677', '#882255', '#AA4499'],
                 openStackSeverity8: ['#AA4499', '#332288', '#999933', '#CC6677', '#DDCC77', '#88CCEE', '#44AA99', '#117733']
-
-                // EMERGENCY: system is unusable
-                // ALERT: action must be taken immediately
-                // CRITICAL: critical conditions
-                // ERROR: error conditions
-                // WARNING: warning conditions
-                // NOTICE: normal but significant condition
-                // INFO: informational messages
-                // DEBUG: debug-level messages
-
-            },
-            grey: {
-                0: ['#bdbdbd']
             }
         }
     }
@@ -3365,7 +3397,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
             .attr("id", "minMaxArea")
             .attr("d", area)
             .attr("fill", ns.colorArray.distinct[3][1])
-            .style("opacity", 0.3);
+            .style("opacity", 0.8);
 
         ns.chart.append('path')
             .attr('class', 'line')
@@ -6181,7 +6213,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
             ns.start +
             ',"lte":' +
             ns.end +
-            '}&loglevel__terms=[';
+            '}&syslog_severity__terms=[';
 
         levels = ns.filter || {};
         for (var k in levels) {
@@ -6942,8 +6974,7 @@ var MetricView = ApiPerfView.extend({
                 .attr("class", "area")
                 .attr("id", "minMaxArea")
                 .attr("d", area)
-                .attr("fill", ns.colorArray.distinct[3][1])
-                .style("opacity", 0.3);
+                .attr("fill", ns.colorArray.distinct[3][1]);
         }
 
         if (ns.statToChart === 'band' || ns.statToChart === 'min') {
@@ -8318,7 +8349,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 '<div class="col-lg-12">' +
                 '<div class="input-group">' +
                 '<span class="input-group-addon"' +
-                'style="opacity: 0.8; background-color:' + ns.loglevel([item]) + ';">' +
+                'style="background-color:' + ns.loglevel([item]) + ';">' +
                 '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
                 '</span>' +
                 '<span type="text" class="form-control">' + item + '</span>' +
@@ -8531,10 +8562,10 @@ TODO: probably change this to d.timestamp
             .style("opacity", function(d) {
 
                 if (d.swimlane === "unadmin") {
-                    return 0.8;
+                    return 1.0;
                 }
                 if (ns.filter[d.level]) {
-                    return 0.8;
+                    return 1.0;
                 } else {
                     return 0;
                 }
@@ -10115,14 +10146,14 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         // differentiate color sets for mem and cpu charts
         if (ns.featureSet === 'mem' || ns.featureSet === 'cpu') {
-            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct['3R']);
         }
         if (ns.featureSet === 'metric') {
             ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[1]);
         } else {
             // this includes "VM Spawns" and "Disk Resources" chars
             ns.color = d3.scale.ordinal()
-                .range(ns.colorArray.distinct[2]);
+                .range(ns.colorArray.distinct['2R']);
         }
 
     },
@@ -10164,7 +10195,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             _.each(data, function(item) {
                 var logTime = +(_.keys(item)[0]);
                 var value = +(_.values(item)[0]);
-                console.log(item, logTime, value);
                 result.push({
                     "eventTime": logTime,
                     "Success": value,
@@ -10566,14 +10596,14 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 if (!showOrHide[d.name]) {
                     return 0;
                 } else {
-                    return 0.9;
+                    return 1;
                 }
             })
             .attr("fill-opacity", function(d) {
                 if (!showOrHide[d.name]) {
                     return 0;
                 } else {
-                    return 0.7;
+                    return 1;
                 }
             })
             .attr("stroke-width", 2)
@@ -10731,7 +10761,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         var legend = ns.chart.append('g')
             .attr('class', 'legend')
             .attr('transform', 'translate(20,-35)')
-            .attr('opacity', 0.7)
+            .attr('opacity', 1.0)
             .call(d3.legend);
     },
 
@@ -11160,7 +11190,6 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // spinner from the chart.
 
         $.get(dataUrl, function() {}).success(function(payload) {
-            console.log(payload);
             // a click listener shall be appended below which
             // will determine if the data associated with the
             // leaf contains "hypervisor_hostname" or "host_name"
@@ -12017,6 +12046,7 @@ var ZoomablePartitionView = TopologyTreeView.extend({
             });
 
         g.append("svg:text")
+            .attr("class", "zoomable")
             .attr("transform", transform)
             .attr("x", 5)
             .attr("dy", ".35em")

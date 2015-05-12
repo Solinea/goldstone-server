@@ -28,7 +28,8 @@ from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
 from .resources import resource_types, resources, GraphNode
 
 from . import tasks
-from .utils import custom_exception_handler, _add_edges, process_resource_type
+from .utils import custom_exception_handler, _add_edges, \
+    process_resource_type, parse
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
@@ -58,7 +59,7 @@ def _load_rg_and_db(startnodes, startedges):
     # the cloud_id is stored in the .attributes attribute.
     for nodetype, cloud_id in startnodes:
         row = nodetype.objects.create(cloud_id=cloud_id,
-                                      name="name_%d" % nameindex)
+                                      cloud_name="name_%d" % nameindex)
         nameindex += 1
 
         resources.graph.add_node(GraphNode(uuid=row.uuid,
@@ -101,7 +102,7 @@ class PolyResourceModelTests(SimpleTestCase):
             'must': [{'query_string': {'query': 'polly'}}],
             'must_not': [{'term': {u'loglevel.raw': 'AUDIT'}}]}}
 
-        resource = PolyResource(name='polly')
+        resource = PolyResource(cloud_name='polly')
         result = resource.logs().to_dict()
         self.assertDictEqual(expectation, result['query'])
 
@@ -113,7 +114,7 @@ class PolyResourceModelTests(SimpleTestCase):
 
         expectation = {"query_string":
                        {"query": "\"polly\"", "default_field": "_all"}}
-        resource = PolyResource(name='polly')
+        resource = PolyResource(cloud_name='polly')
         result = resource.events().to_dict()
         self.assertTrue(expectation in result['query']['bool']['must'])
 
@@ -751,3 +752,106 @@ class ProcessResourceType(SimpleTestCase):
         self.assertEqual(resources.graph.number_of_nodes(), 5)
         self.assertEqual(PolyResource.objects.count(), 5)
         self.assertEqual(len(resources.nodes_of_type(Image)), 3)
+
+
+class ParseTests(SimpleTestCase):
+    """Test the query string parser."""
+
+    def test_one_variable(self):
+        """Various forms of single-variable query strings that can be submitted
+        to /core/resources/<uuid>/ or /core/resource_types/<unique_id>/."""
+
+        # Each entry is (query_string, expected_result). The query string
+        # format must be as that returned from calling urlparse.urlparse() --
+        # e.g., the string is still URL-encoded.
+        TESTS = [('', {}),
+                 ("cloud_id=deadbeef", {"cloud_id": "deadbeef"}),
+                 ("cloud_id=^deadbeef", {"cloud_id": "^deadbeef"}),
+                 ("cloud_id=deadbeef%20biscuit",
+                  {"cloud_id": 'deadbeef biscuit'}),
+                 ("cloud_id=deadbeef%20OR%20bob",
+                  {"cloud_id": "deadbeef|bob"}),
+                 ("cloud_id=tom%20dick%20harry",
+                  {"cloud_id": "tom dick harry"}),
+                 ("cloud_id=tom%20OR%20dick%20OR%20harry",
+                  {"cloud_id": "tom|dick|harry"}),
+                 ("cloud_id=^tom%20dick%20harry",
+                  {"cloud_id": "^tom dick harry"}),
+                 ("cloud_id=^tom%20dick%20OR%20harry",
+                  {"cloud_id": "^tom dick|^harry"}),
+                 ("cloud_id=^tom%20OR%20dick%20harry",
+                  {"cloud_id": '^tom|^dick harry'}),
+                 ("cloud_id=^tom%20OR%20dick%20harry%20%20hmm",
+                  {"cloud_id": '^tom|^dick harry  hmm'}),
+
+                 # Now, with a leading '?'.
+                 ("?cloud_id=deadbeef", {"cloud_id": "deadbeef"}),
+                 ("?cloud_id=^deadbeef", {"cloud_id": "^deadbeef"}),
+                 ("?cloud_id=deadbeef%20biscuit",
+                  {"cloud_id": 'deadbeef biscuit'}),
+                 ("?cloud_id=deadbeef%20OR%20bob",
+                  {"cloud_id": "deadbeef|bob"}),
+                 ("?cloud_id=tom%20dick%20harry",
+                  {"cloud_id": "tom dick harry"}),
+                 ("?cloud_id=tom%20OR%20dick%20OR%20harry",
+                  {"cloud_id": "tom|dick|harry"}),
+                 ("?cloud_id=^tom%20dick%20harry",
+                  {"cloud_id": "^tom dick harry"}),
+                 ("?cloud_id=^tom%20dick%20OR%20harry",
+                  {"cloud_id": "^tom dick|^harry"}),
+                 ("?cloud_id=^tom%20OR%20dick%20harry",
+                  {"cloud_id": '^tom|^dick harry'}),
+                 ("?cloud_id=^tom%20OR%20dick%20harry%20%20hmm",
+                  {"cloud_id": '^tom|^dick harry  hmm'}),
+                 ]
+
+        for test, expected in TESTS:
+            self.assertEqual(parse(test), expected)
+
+    def test_multiple_variables(self):
+        """Various forms of multi-variable query strings that can be submitted
+        to /core/resources/<uuid>/ or /core/resource_types/<unique_id>/."""
+
+        # Each entry is (query_string, expected_result). The query string
+        # format must be as that returned from calling urlparse.urlparse() --
+        # e.g., the string is still URL-encoded.
+        TESTS = [("cloud_id=deadbeef&john=bob",
+                  {"cloud_id": "deadbeef", "john": "bob"}),
+                 ("cloud_id=^deadbeef&cloud_name=fred",
+                  {"cloud_id": "^deadbeef", "cloud_name": "fred"}),
+                 ("cloud_id=^deadbeef&"
+                  "cloud_name=fred%20OR%20mary%20OR%20william",
+                  {"cloud_id": "^deadbeef",
+                   "cloud_name": "fred|mary|william"}),
+                 ("cloud_id=%22deadbeef%22%20OR%20beefDEAD&integration=nova",
+                  {"cloud_id": '"deadbeef"|beefDEAD', "integration": "nova"}),
+                 ("cloud_id=%22deadbeef%20biscuit%22&"
+                  "integration=^keystone%20OR%20glance&cloud_name=b%20OR%20c",
+                  {"cloud_id": '"deadbeef biscuit"',
+                   "integration": '^keystone|^glance',
+                   "cloud_name": "b|c"}),
+                 ("cloud_id=^%22deadbeef%22&integration=%22glance%20200%22",
+                  {"cloud_id": '^"deadbeef"', "integration": '"glance 200"'}),
+
+                 # Now, with a leading '?'.
+                 ("?cloud_id=deadbeef&john=bob",
+                  {"cloud_id": "deadbeef", "john": "bob"}),
+                 ("?cloud_id=^deadbeef&cloud_name=fred",
+                  {"cloud_id": "^deadbeef", "cloud_name": "fred"}),
+                 ("?cloud_id=^deadbeef&"
+                  "cloud_name=fred%20OR%20mary%20OR%20william",
+                  {"cloud_id": "^deadbeef",
+                   "cloud_name": "fred|mary|william"}),
+                 ("?cloud_id=%22deadbeef%22%20OR%20beefDEAD&integration=nova",
+                  {"cloud_id": '"deadbeef"|beefDEAD', "integration": "nova"}),
+                 ("?cloud_id=%22deadbeef%20biscuit%22&"
+                  "integration=^keystone%20OR%20glance&cloud_name=b%20OR%20c",
+                  {"cloud_id": '"deadbeef biscuit"',
+                   "integration": '^keystone|^glance',
+                   "cloud_name": "b|c"}),
+                 ("?cloud_id=^%22deadbeef%22&integration=%22glance%20200%22",
+                  {"cloud_id": '^"deadbeef"', "integration": '"glance 200"'}),
+                 ]
+
+        for test, expected in TESTS:
+            self.assertEqual(parse(test), expected)

@@ -96,7 +96,7 @@ class PolyResource(PolymorphicModel):
     # missing, or not unique.
     cloud_id = CharField(max_length=128, blank=True)
 
-    name = CharField(max_length=64)
+    cloud_name = CharField(max_length=64)
 
     created = CreationDateTimeField(editable=False,
                                     blank=True,
@@ -111,7 +111,7 @@ class PolyResource(PolymorphicModel):
 
         """
 
-        query = Q(QueryString(query=self.name))
+        query = Q(QueryString(query=self.cloud_name))
         return LogData.search().query(query)
 
     def events(self):
@@ -123,7 +123,7 @@ class PolyResource(PolymorphicModel):
         """
 
         # this protects our hostname from being tokenized
-        escaped_name = r'"' + self.name + r'"'
+        escaped_name = r'"' + self.cloud_name + r'"'
 
         name_query = Q(QueryString(query=escaped_name, default_field="_all"))
         return LogEvent.search().query(name_query)

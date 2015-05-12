@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from django.conf import settings
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK
@@ -25,6 +26,10 @@ from .resources import resources, resource_types
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
     MetricNamesAggSerializer, ReportNamesAggSerializer, PassthruSerializer, \
     MetricAggSerializer
+from .utils import parse, query_filter_map
+
+# Aliases to make the code less verbose
+TYPE = settings.R_ATTRIBUTE.TYPE
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
@@ -314,9 +319,6 @@ class ResourceTypeList(ListAPIView):
         <b>edge</b> is {"from": str, "to": str, "type": str}
 
         """
-        from django.conf import settings
-
-        TYPE = settings.R_ATTRIBUTE.TYPE
 
         # Gather the nodes.
         nodes = [{"display_attributes": entry.display_attributes(),
@@ -353,7 +355,7 @@ class ResourceTypeRetrieve(RetrieveAPIView):
 
         <b>cloud_id</b> is the OpenStack id of this node. It may be empty.\n\n
 
-        <b>name</b> is the node's cloud name.\n\n
+        <b>cloud_name</b> is the node's cloud name.\n\n
 
         <b>attributes</b> is the node's information extracted from the
         OpenStack cloud.
@@ -373,7 +375,7 @@ class ResourceTypeRetrieve(RetrieveAPIView):
                 row = PolyResource.objects.get(uuid=node.uuid)
                 result.append({"uuid": node.uuid,
                                "cloud_id": row.cloud_id,
-                               "name": row.name,
+                               "cloud_name": row.cloud_name,
                                "attributes": node.attributes})
 
         # The response's status depends on whether we found any instances.
@@ -397,45 +399,83 @@ class ResourcesList(ListAPIView):
         <b>node</b> is {"resourcetype": {"unique_id": str, "name": str},
                         "uuid": str,
                         "cloud_id": str,
-                        "name": str,
+                        "cloud_name": str,
                         }\n\n
 
-        <b>edge</b> is {"from": str, "to": str, "type": str}
+        <b>edge</b> is {"from": str, "to": str, "type": str}\n\n
+
+        Filtering may be requested through a query string. In "?key=value",
+        value may start with a "^" to filter against a key's beginning,
+        otherwise it's used anywhere within the key. " OR " is a logical
+        or. All names and ids are case-sensitive.\n\n
+
+        For example,
+        <b>?cloud_name=^Four%20score%20OR%20Five%20score&integration=nova%20OR%20keystone</b>
+        results in a cloud_name filter of <b>^Four score|^Five score</b> and
+        an integration filter of <b>nova|keystone</b>.\n\n
+
+        N.B. Edges are not included in the response if they are not from or to
+        a node in the response.
+
+        ---
+
+        parameters:
+            - name: cloud_name
+              description: A cloud name regex to filter against.
+              paramType: query
+            - name: cloud_id
+              description: A cloud id regex to filter against.
+              paramType: query
+            - name: integration_name
+              description: An integration name regex to filter against.
+              paramType: query
 
         """
-        from django.conf import settings
 
-        TYPE = settings.R_ATTRIBUTE.TYPE
+        # Get the filtering parameters, and gather their mapping information
+        # now.
+        parsed_query_string = parse(request.META["QUERY_STRING"])
+        filters = [(query_filter_map(k), v)
+                   for k, v in parsed_query_string.items()]
 
-        # Get filtering query parameters, if specified
-        # TODO: Define and fold in query filtering.
-        user_filter = request.query_params.get("user")
-        project_filter = request.query_params.get("project")
-
-        # Gather the nodes.
         nodes = []
+        node_uuids = []
 
         # For every node in the resource graph...
         for node in resources.graph.nodes():
-            # Gather the information we need
-            rt_attributes = node.resourcetype.display_attributes()
-            rt_unique_id = node.resourcetype.unique_id()
-            rt_row = PolyResource.objects.get(uuid=node.uuid)
+            # Get this node's matching table row.
+            row = PolyResource.objects.get(uuid=node.uuid)
 
-            # Append this node to the nodes list.
-            nodes.append({"resourcetype":
-                          {"unique_id": rt_unique_id,
-                           "name": rt_attributes["name"]},
-                          "uuid": node.uuid,
-                          "cloud_id": rt_row.cloud_id,
-                          "name": rt_row.name
-                          })
+            # Apply the user's filters to determine if this node should be
+            # included in the response.
+            proceed = True
+            for (filterfn, db_or_node), regex in filters:
+                if db_or_node == "db":
+                    # This filter is against infomration in the table row.
+                    proceed = proceed and filterfn(row, regex)
+                else:
+                    # This filter is against infomration in the graph node.
+                    proceed = proceed and filterfn(node, regex)
 
-        # Gather the edges.
-        edges = [{"from": str(entry[0]),
-                  "to": str(entry[1]),
-                  "type": entry[2][TYPE]}
-                 for entry in resources.graph.edges_iter(data=True)]
+            if proceed:
+                # Include this node!
+                nodes.append({"resourcetype":
+                              {"unique_id": node.resourcetype.unique_id(),
+                               "name":
+                               node.resourcetype.display_attributes()["name"]},
+                              "uuid": node.uuid,
+                              "cloud_id": row.cloud_id,
+                              "cloud_name": row.cloud_name
+                              })
+                node_uuids.append(node.uuid)
+
+        # Gather the edges that are to or from the gathered nodes.
+        edges = \
+            [{"from": str(entry[0]),
+              "to": str(entry[1]),
+              "type": entry[2][TYPE]}
+             for entry in resources.graph.edges_iter(data=True)
+             if entry[0].uuid in node_uuids or entry[1].uuid in node_uuids]
 
         return Response({"nodes": nodes, "edges": edges})
 
@@ -451,22 +491,17 @@ class ResourcesRetrieve(RetrieveAPIView):
 
         The response payload is:
 
-        {"cloud_id": str, "name": str, "attributes": dict}
+        {"cloud_id": str, "cloud_name": str, "attributes": dict}\n\n
 
         <b>cloud_id</b> is the OpenStack id of this node. It may be empty.\n\n
 
-        <b>name</b> is the cloud name of this node.\n\n
+        <b>cloud_name</b> is the cloud name of this node.\n\n
 
         <b>attributes</b> is the node's information extracted from the
         OpenStack cloud.
 
         """
         from django.core.exceptions import ObjectDoesNotExist
-
-        # Get filtering query parameters, if specified
-        # TODO: Fold in user and project filtering.
-        user_filter = request.query_params.get("user")
-        project_filter = request.query_params.get("project")
 
         # Get this resource's graph node and table row.
         node = resources.get_uuid(uuid)
@@ -478,7 +513,7 @@ class ResourcesRetrieve(RetrieveAPIView):
 
         if node and row:
             return Response({"cloud_id": row.cloud_id,
-                             "name": row.name,
+                             "cloud_name": row.cloud_name,
                              "attributes": node.attributes})
 
         else:

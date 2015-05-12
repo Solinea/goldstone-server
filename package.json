@@ -1,4 +1,5 @@
 {
+  "//": "when updating dependencies, re-run `npm shrinkwrap` to lock dev dependencies",
   "name": "Goldstone_test_environment",
   "version": "0.1.0",
   "description": "Installs grunt and test frameworks.",

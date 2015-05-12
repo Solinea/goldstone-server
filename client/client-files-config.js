@@ -30,7 +30,7 @@ module.exports = {
         'client/js/collections/*.js',
         'client/js/views/*.js'
     ],
-    lib: ['client/js/lib/jquery.js', 'client/js/lib/bootstrap.js', 'client/js/lib/jquery.dataTables.js', 'client/js/lib/dataTables.bootstrap.js', 'client/js/lib/jquery.datetimepicker.js', 'client/js/lib/colorbrewer.js', 'client/js/lib/d3.js', 'client/js/lib/d3-tip.js', 'client/js/lib/d3-legend.js', 'client/js/lib/underscore.js', 'client/js/lib/backbone.js', 'client/js/lib/moment-with-locales.js', 'client/js/lib/moment-timezone-with-data-2010-2020.js'],
+    lib: ['client/js/lib/jquery.js', 'client/js/lib/bootstrap.js', 'client/js/lib/jquery.dataTables.js', 'client/js/lib/dataTables.bootstrap.js', 'client/js/lib/colorbrewer.js', 'client/js/lib/d3.js', 'client/js/lib/d3-tip.js', 'client/js/lib/d3-legend.js', 'client/js/lib/underscore.js', 'client/js/lib/backbone.js', 'client/js/lib/moment-with-locales.js', 'client/js/lib/moment-timezone-with-data-2010-2020.js'],
     test: [
         'test/unit/*.js',
         'test/integration/*.js'
@@ -47,6 +47,7 @@ module.exports = {
         'client/js/views/*.js': ['coverage']
     },
     coverageReportOutput: 'test/results/coverage',
+    scssWatch: 'client/scss/*.scss',
     scss: 'client/scss/style.scss',
     css: 'goldstone/static/css/base.css'
 };

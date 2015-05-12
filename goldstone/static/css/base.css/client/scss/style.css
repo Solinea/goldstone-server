@@ -15,138 +15,90 @@
  */
  /* Sticky footer styles
 -------------------------------------------------- */
-html,
-body {
-  height: 100%;
-  /* The html and body elements cannot have any padding or margin. */
+/* line 1, ../../../../../../client/scss/bootstrap_dark_override.scss */
+#chart-panel-header {
+  background-color: #252525;
 }
 
-/* Wrapper for page content to push down footer */
-#wrap {
-  min-height: 100%;
-  height: auto;
-  /* Negative indent footer by its height */
-  margin: 0 auto -60px;
-  /* Pad bottom by footer height */
-  padding: 0 0 60px;
+/* line 5, ../../../../../../client/scss/bootstrap_dark_override.scss */
+#global-lookback-range, #global-refresh-range {
+  background-color: #bbb;
 }
 
-/* Set the fixed height of the footer here */
-#footer {
-  height: 60px;
-  background-color: #f5f5f5;
+/* line 9, ../../../../../../client/scss/bootstrap_dark_override.scss */
+.pagination {
+  background-color: #252525;
+}
+/* line 11, ../../../../../../client/scss/bootstrap_dark_override.scss */
+.pagination li > a {
+  color: #bbb;
+}
+/* line 14, ../../../../../../client/scss/bootstrap_dark_override.scss */
+.pagination .active > a {
+  background-color: #ccc;
+  border-color: #ccc;
+}
+/* line 15, ../../../../../../client/scss/bootstrap_dark_override.scss */
+.pagination .active > a:hover {
+  background-color: #252525;
+  border-color: #252525;
 }
 
-/* Custom page CSS
--------------------------------------------------- */
-/* Not required for template or sticky footer method. */
-#wrap > .container {
-  padding: 60px 15px 0;
+/* line 24, ../../../../../../client/scss/bootstrap_dark_override.scss */
+.well {
+  background-color: #191919;
+  border: #191919;
 }
 
-.container .credit {
-  margin: 20px 0;
+/* line 29, ../../../../../../client/scss/bootstrap_dark_override.scss */
+.navbar, #global-lookback-range, #global-refresh-range {
+  background-color: #191919;
+}
+/* line 31, ../../../../../../client/scss/bootstrap_dark_override.scss */
+.navbar #goldstone-text, .navbar .form-control, #global-lookback-range #goldstone-text, #global-lookback-range .form-control, #global-refresh-range #goldstone-text, #global-refresh-range .form-control {
+  color: #bbb;
+}
+/* line 34, ../../../../../../client/scss/bootstrap_dark_override.scss */
+.navbar .fa, #global-lookback-range .fa, #global-refresh-range .fa {
+  color: #bbb;
 }
 
-#footer > .container {
-  padding-left: 15px;
-  padding-right: 15px;
+/* line 39, ../../../../../../client/scss/bootstrap_dark_override.scss */
+#chart-panel-header {
+  background-color: #191919;
 }
 
-.navbar .fa {
-  color: #777;
+/* line 43, ../../../../../../client/scss/bootstrap_dark_override.scss */
+.panel-title {
+  color: #bbb;
 }
 
-#goldstone-text {
-  font-family: 'Homenaje', sans-serif;
-  font-size: x-large;
-}
-
+/* line 47, ../../../../../../client/scss/bootstrap_dark_override.scss */
 .panel-heading .fa {
-  color: #ffffff;
+  color: #bbb;
 }
 
-code {
-  font-size: 80%;
+/* line 51, ../../../../../../client/scss/bootstrap_dark_override.scss */
+.panel-body {
+  background-color: #191919;
 }
 
-.ajax-loader {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  margin-left: -32px;
-  /* -1 * image width / 2 */
-  margin-top: -32px;
-  /* -1 * image height / 2 */
-  display: block;
+/* line 55, ../../../../../../client/scss/bootstrap_dark_override.scss */
+.panel-primary > .panel-heading {
+  background-color: #191919;
+  border-color: #ccc;
+  color: #191919;
 }
 
-.row {
-  margin-bottom: 20px;
-}
-
+/* line 61, ../../../../../../client/scss/bootstrap_dark_override.scss */
 .panel {
   border: none;
   border-radius: 4px;
+  background-color: #191919;
   box-shadow: none;
 }
 
-.panel-primary > .panel-heading {
-  background-color: #777777;
-  border-color: #777777;
-  color: #FFFFFF;
-}
-
-.panel-body {
-  background-color: #FFFFFF;
-}
-
-/* Datatable font sizes */
-.table-hover th {
-  font-size: 10px;
-}
-
-.table-hover td {
-  font-size: 10px;
-}
-
-.popover {
-  background: rgba(0, 0, 0, 0.4) !important;
-  border-radius: 10px;
-  padding: 0;
-  max-width: 350px;
-}
-
-.popover.bottom .arrow:after {
-  border-bottom-color: rgba(0, 0, 0, 0.4);
-}
-
-.popover.left .arrow {
-  border-left-color: rgba(0, 0, 0, 0.4);
-}
-
-.popover-content ul {
-  list-style-type: none;
-  list-style-position: inside;
-}
-
-.popover-content {
-  line-height: 1;
-  padding: 10px;
-  color: #fff;
-  width: 100%;
-  font-size: 14px;
-}
-
-.infoButton {
-  width: 17em;
-  margin-left: 1em;
-}
-
-#multi-rsrc-table_wrapper > .dataTables_scroll {
-  min-height: 500px;
-}
-
+/* line 1, ../../../../../../client/scss/popover-and-tip.scss */
 #multi-rsrc-panel > div.popover.fade.left.in {
   max-width: 350px;
   max-height: 500px;
@@ -156,82 +108,68 @@ code {
   left: -350px !important;
 }
 
+/* line 10, ../../../../../../client/scss/popover-and-tip.scss */
 #multi-rsrc-panel > div.popover.fade.left.in > h3 {
   background-color: rgba(0, 0, 0, 0.4);
   border-bottom-color: rgba(0, 0, 0, 0.4);
 }
 
-.node:not(.data-leaf) {
-  cursor: pointer;
-  stroke: #3182bd;
-  stroke-width: 1.5px;
+/* line 15, ../../../../../../client/scss/popover-and-tip.scss */
+.popover {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-radius: 10px;
+  padding: 0;
+  max-width: 350px;
 }
 
-.data-leaf {
-  cursor: context-menu;
+/* line 22, ../../../../../../client/scss/popover-and-tip.scss */
+.popover.bottom .arrow:after {
+  border-bottom-color: rgba(0, 0, 0, 0.4);
 }
 
-.node text {
-  font-size: 12px;
-  stroke-width: 0;
+/* line 26, ../../../../../../client/scss/popover-and-tip.scss */
+.popover.left .arrow {
+  border-left-color: rgba(0, 0, 0, 0.4);
 }
 
-.icon text {
-  font-size: 12px;
-  stroke-width: 0;
+/* line 30, ../../../../../../client/scss/popover-and-tip.scss */
+.popover-content ul {
+  list-style-type: none;
+  list-style-position: inside;
 }
 
-.link {
-  fill: none;
-  stroke: #9ecae1;
-  stroke-width: 1.5px;
+/* line 35, ../../../../../../client/scss/popover-and-tip.scss */
+.popover-content {
+  line-height: 1;
+  padding: 10px;
+  color: #fff;
+  width: 100%;
+  font-size: 14px;
 }
 
-.instantaneous-data {
-  font-size: 36px;
-  stroke-width: 0;
-  fill: #3282ac;
-  alignment-baseline: middle;
-}
-
-.instantaneous-label {
-  font-size: 24px;
-  stroke-width: 0;
-  fill: #3282ac;
-  alignment-baseline: middle;
-}
-
-.axis path,
-.axis line {
-  fill: none;
-  stroke-width: 1.5px;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
-
-.axis text {
-  font: 10px sans-serif;
-}
-
-.axis.label text {
-  font: 14px sans-serif;
-}
-
+/* line 43, ../../../../../../client/scss/popover-and-tip.scss */
 .line {
   fill: none;
   stroke-width: 1.5px;
 }
 
+/* line 48, ../../../../../../client/scss/popover-and-tip.scss */
+.verticalGuideLine {
+  stroke: rgba(200, 200, 200, 0.8);
+}
+
+/* line 53, ../../../../../../client/scss/popover-and-tip.scss */
 .d3-tip {
   line-height: 1;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.4);
-  color: #fff;
+  background: rgba(200, 200, 200, 0.8);
+  color: #252525;
   border-radius: 10px;
   pointer-events: none;
   max-width: 500px;
 }
 
+/* line 63, ../../../../../../client/scss/popover-and-tip.scss */
 .d3-tip pre {
   background: transparent;
   color: #fff;
@@ -239,6 +177,7 @@ code {
 }
 
 /* Creates a small triangle extender for the tooltip */
+/* line 70, ../../../../../../client/scss/popover-and-tip.scss */
 .d3-tip:after {
   box-sizing: border-box;
   display: inline;
@@ -250,24 +189,24 @@ code {
   pointer-events: none;
 }
 
+/* line 81, ../../../../../../client/scss/popover-and-tip.scss */
 svg.n, svg.s {
   margin-left: 50px;
   margin-right: 50px;
 }
 
+/* line 86, ../../../../../../client/scss/popover-and-tip.scss */
 svg.e {
   margin-left: 50px;
 }
 
+/* line 90, ../../../../../../client/scss/popover-and-tip.scss */
 .partialHiddenBar, .hiddenBar {
   opacity: 0;
 }
 
-.verticalGuideLine {
-  opacity: 0.8;
-}
-
 /* Northward tooltips */
+/* line 95, ../../../../../../client/scss/popover-and-tip.scss */
 .d3-tip.n:after {
   content: "\25BC";
   margin: -1px 0 0 0;
@@ -277,6 +216,7 @@ svg.e {
 }
 
 /* Eastward tooltips */
+/* line 104, ../../../../../../client/scss/popover-and-tip.scss */
 .d3-tip.e:after {
   content: "\25C0";
   margin: -4px 0 0 0;
@@ -285,6 +225,7 @@ svg.e {
 }
 
 /* Southward tooltips */
+/* line 112, ../../../../../../client/scss/popover-and-tip.scss */
 .d3-tip.s:after {
   content: "\25B2";
   margin: 0 0 1px 0;
@@ -294,6 +235,7 @@ svg.e {
 }
 
 /* Westward tooltips */
+/* line 121, ../../../../../../client/scss/popover-and-tip.scss */
 .d3-tip.w:after {
   content: "\25B6";
   margin: -4px 0 0 -1px;
@@ -301,49 +243,208 @@ svg.e {
   left: 100%;
 }
 
+/* line 2, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table td, #log-search-table td, #events-report-table td, #multi-rsrc-table td, #single-rsrc-table td, #reports-result-table td {
+  font-size: 12px;
+  color: #eee;
+}
+/* line 5, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table td th, #log-search-table td th, #events-report-table td th, #multi-rsrc-table td th, #single-rsrc-table td th, #reports-result-table td th {
+  font-size: 10px;
+}
+/* line 10, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table tr:hover td, #log-search-table tr:hover td, #events-report-table tr:hover td, #multi-rsrc-table tr:hover td, #single-rsrc-table tr:hover td, #reports-result-table tr:hover td {
+  background-color: #252525;
+}
+
+/* line 16, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table tr:nth-child(even), #log-search-table tr:nth-child(even), #events-report-table tr:nth-child(even), #multi-rsrc-table tr:nth-child(even), #single-rsrc-table tr:nth-child(even), #reports-result-table tr:nth-child(even) {
+  background-color: #252525;
+}
+
+/* line 21, ../../../../../../client/scss/data-tables.scss */
+.dataTables_info {
+  color: #eee;
+}
+
+/* line 26, ../../../../../../client/scss/data-tables.scss */
+#tenants-single-rsrc-table_length > label, #log-search-table_length > label, #events-report-table_length > label, #multi-rsrc-table_length > label {
+  color: #eee;
+}
+
+/* line 34, ../../../../../../client/scss/style.scss */
+html,
+body {
+  background-color: #252525;
+  height: 100%;
+  color: #bbb;
+  /* The html and body elements cannot have any padding or margin. */
+}
+
+/* Wrapper for page content to push down footer */
+/* line 43, ../../../../../../client/scss/style.scss */
+#wrap {
+  min-height: 100%;
+  height: auto;
+  /* Negative indent footer by its height */
+  margin: 0 auto -60px;
+  /* Pad bottom by footer height */
+  padding: 0 0 60px;
+}
+
+/* Set the fixed height of the footer here */
+/* line 53, ../../../../../../client/scss/style.scss */
+#footer {
+  height: 60px;
+  background-color: #ccc;
+}
+
+/* Custom page CSS
+-------------------------------------------------- */
+/* Not required for template or sticky footer method. */
+/* line 62, ../../../../../../client/scss/style.scss */
+#wrap > .container {
+  padding: 60px 15px 0;
+}
+
+/* line 66, ../../../../../../client/scss/style.scss */
+.container .credit {
+  margin: 20px 0;
+}
+
+/* line 70, ../../../../../../client/scss/style.scss */
+#footer > .container {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* line 75, ../../../../../../client/scss/style.scss */
+#global-lookback-range, #global-refresh-range {
+  margin-top: 5px;
+}
+
+/* line 79, ../../../../../../client/scss/style.scss */
+#goldstone-text {
+  font-family: 'Homenaje', sans-serif;
+  font-size: x-large;
+}
+
+/* line 84, ../../../../../../client/scss/style.scss */
+code {
+  font-size: 80%;
+}
+
+/* line 88, ../../../../../../client/scss/style.scss */
+.ajax-loader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -32px;
+  /* -1 * image width / 2 */
+  margin-top: -32px;
+  /* -1 * image height / 2 */
+  display: block;
+}
+
+/* line 97, ../../../../../../client/scss/style.scss */
+.row {
+  margin-bottom: 20px;
+}
+
+/* Datatable font sizes */
+/* line 102, ../../../../../../client/scss/style.scss */
+.table-hover th {
+  font-size: 10px;
+}
+
+/* line 105, ../../../../../../client/scss/style.scss */
+.table-hover td {
+  font-size: 10px;
+}
+
+/* line 109, ../../../../../../client/scss/style.scss */
+.infoButton {
+  width: 17em;
+  margin-left: 1em;
+}
+
+/* line 114, ../../../../../../client/scss/style.scss */
+#multi-rsrc-table_wrapper > .dataTables_scroll {
+  min-height: 500px;
+}
+
+/* line 118, ../../../../../../client/scss/style.scss */
+.node:not(.data-leaf) {
+  cursor: pointer;
+  stroke: #3182bd;
+  stroke-width: 1.5px;
+}
+
+/* line 124, ../../../../../../client/scss/style.scss */
+.data-leaf {
+  cursor: context-menu;
+}
+
+/* line 128, ../../../../../../client/scss/style.scss */
+.node text {
+  font-size: 12px;
+  stroke-width: 0;
+}
+
+/* line 133, ../../../../../../client/scss/style.scss */
+.icon text {
+  font-size: 12px;
+  stroke-width: 0;
+}
+
+/* line 138, ../../../../../../client/scss/style.scss */
+.link {
+  fill: none;
+  stroke: #9ecae1;
+  stroke-width: 1.5px;
+}
+
+/* line 145, ../../../../../../client/scss/style.scss */
+.axis path, .axis line {
+  fill: none;
+  stroke-width: 1.5px;
+  stroke: #bbb;
+  shape-rendering: crispEdges;
+}
+
+/* line 153, ../../../../../../client/scss/style.scss */
+.axis text, .legend-items {
+  fill: #bbb;
+  font: 10px sans-serif;
+}
+
+/* line 158, ../../../../../../client/scss/style.scss */
+text:not(.zoomable), .axis.label {
+  font: 14px sans-serif;
+  fill: #bbb;
+}
+
+/* line 164, ../../../../../../client/scss/style.scss */
+#goldstone-node-panel text, #goldstone-event-panel text, g.x.axis text, g.y.axis text {
+  font-size: 10px;
+}
+
+/* line 169, ../../../../../../client/scss/style.scss */
 .legend rect {
-  fill: white;
-  stroke: black;
   opacity: 0.0;
 }
 
+/* nodeAvail viz css */
+/* line 175, ../../../../../../client/scss/style.scss */
 .invisible-axis path {
   fill: none;
   stroke: none;
 }
 
-#goldstone-nodeavail-chart circle {
-  opacity: 0.5;
-  stroke-width: 3;
-}
-
-/* Solinea color pallete for log levels. */
-.none {
-  fill: goldenrod;
-}
-
-.debug {
-  fill: #6a51a3;
-}
-
-.audit {
-  fill: #2171b5;
-}
-
-.info {
-  fill: #238b45;
-}
-
-.warning {
-  fill: #d94801;
-}
-
-.error {
-  fill: #cb181d;
-}
-
-.unadmin {
-  fill: darkgray;
+/* line 180, ../../../../../../client/scss/style.scss */
+.swim.axis.invisible-axis .tick line {
+  fill: none;
+  stroke: none;
 }
 
 /*# sourceMappingURL=style.css.map */

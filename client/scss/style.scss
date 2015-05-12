@@ -17,9 +17,25 @@
  /* Sticky footer styles
 -------------------------------------------------- */
 
+$theme: dark;
+$dark_background: rgb(37, 37, 37);
+$dark_chart_background: rgb(25, 25, 25);
+$dark_footer: #ccc;
+$dark_panel_header: #bbb;
+$dark_panel_text: #bbb;
+$dark_tip: rgba(200,200,200, 0.8);
+$dark_chart_text: #bbb;
+$dark_datatable_text: #eee;
+
+@import "bootstrap_dark_override";
+@import "popover-and-tip";
+@import "data-tables";
+
 html,
 body {
+  background-color: if($theme==dark, $dark_background, null);
   height: 100%;
+  color: if($theme==dark, $dark_chart_text, null);
   /* The html and body elements cannot have any padding or margin. */
 }
 
@@ -36,9 +52,8 @@ body {
 /* Set the fixed height of the footer here */
 #footer {
   height: 60px;
-  background-color: #f5f5f5;
+  background-color: if($theme==dark, $dark_footer, #f5f5f5);
 }
-
 
 /* Custom page CSS
 -------------------------------------------------- */
@@ -47,6 +62,7 @@ body {
 #wrap > .container {
   padding: 60px 15px 0;
 }
+
 .container .credit {
   margin: 20px 0;
 }
@@ -56,17 +72,13 @@ body {
   padding-right: 15px;
 }
 
-.navbar .fa {
-    color: #777;
+#global-lookback-range, #global-refresh-range {
+  margin-top: 5px;
 }
 
 #goldstone-text {
-    font-family: 'Homenaje', sans-serif;
-    font-size: x-large;
-}
-
-.panel-heading .fa {
-    color: #ffffff;
+  font-family: 'Homenaje', sans-serif;
+  font-size: x-large;
 }
 
 code {
@@ -85,21 +97,6 @@ code {
 .row {
     margin-bottom: 20px;
 }
-.panel {
-    border: none;
-    border-radius: 4px;
-    box-shadow: none;
-}
-
-.panel-primary > .panel-heading {
-    background-color: #777777;
-    border-color: #777777;
-    color: #FFFFFF;
-}
-
-.panel-body {
-    background-color: #FFFFFF;
-}
 
 /* Datatable font sizes */
 .table-hover th {
@@ -109,34 +106,6 @@ code {
     font-size: 10px;
 }
 
-.popover {
-    background: rgba(0,0,0,.4) !important;
-    border-radius: 10px;
-    padding: 0;
-    max-width: 350px;
-}
-
-.popover.bottom .arrow:after {
-  border-bottom-color:rgba(0,0,0,.4);
-}
-
-.popover.left .arrow {
-    border-left-color: rgba(0,0,0,.4);
-}
-
-.popover-content ul {
-   list-style-type:none;
-   list-style-position:inside;
-}
-
-.popover-content {
-  line-height: 1;
-  padding: 10px;
-  color: #fff;
-  width: 100%;
-  font-size: 14px;
-}
-
 .infoButton {
   width: 17em;
   margin-left: 1em;
@@ -144,20 +113,6 @@ code {
 
 #multi-rsrc-table_wrapper > .dataTables_scroll {
     min-height: 500px;
-}
-
-#multi-rsrc-panel > div.popover.fade.left.in {
-    max-width: 350px;
-    max-height: 500px;
-    background: rgba(0, 0, 0, 0.4);
-    color: #fff;
-    top: 50px !important;
-    left: -350px !important;
-}
-
-#multi-rsrc-panel > div.popover.fade.left.in > h3 {
-    background-color: rgba(0,0,0,.4);
-    border-bottom-color: rgba(0,0,0,.4);
 }
 
 .node:not(.data-leaf){
@@ -186,159 +141,43 @@ code {
   stroke-width: 1.5px;
 }
 
-.instantaneous-data {
-    font-size: 36px;
-    stroke-width: 0;
-    fill: #3282ac;
-    alignment-baseline: middle;
+.axis {
+  path, line {
+    fill: none;
+    stroke-width: 1.5px;
+    stroke: if($theme==dark, $dark_chart_text, #000);
+    shape-rendering: crispEdges;
+  }
 }
 
-.instantaneous-label {
-    font-size: 24px;
-    stroke-width: 0;
-    fill: #3282ac;
-    alignment-baseline: middle;
-}
-
-.axis path,
-.axis line {
-  fill: none;
-  stroke-width: 1.5px;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
-.axis text {
+.axis text, .legend-items {
+    fill: if($theme==dark, $dark_chart_text, null);
     font: 10px sans-serif;
 }
 
-.axis.label text {
+text:not(.zoomable), .axis.label {
     font: 14px sans-serif;
+    fill: if($theme==dark, $dark_chart_text, null);
 }
 
-.line {
-  fill: none;
-  stroke-width: 1.5px;
-}
-
-.d3-tip {
-  line-height: 1;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.4);
-  color: #fff;
-  border-radius: 10px;
-  pointer-events: none;
-  max-width: 500px;
-}
-
-.d3-tip pre {
-  background: rgba(0, 0, 0, 0.0);
-  color: #fff;
-  border: 0px;
-}
-
-/* Creates a small triangle extender for the tooltip */
-.d3-tip:after {
-  box-sizing: border-box;
-  display: inline;
-  font-size: 10px;
-  width: 100%;
-  line-height: 1;
-  color: rgba(0, 0, 0, 0.8);
-  position: absolute;
-  pointer-events: none;
-}
-
-svg.n, svg.s {
-    margin-left: 50px;
-    margin-right: 50px;
-}
-
-svg.e {
-margin-left: 50px;
-}
-
-.partialHiddenBar, .hiddenBar {
-    opacity: 0
-}
-
-.verticalGuideLine {
-    opacity: .8
-}
-/* Northward tooltips */
-.d3-tip.n:after {
-  content: "\25BC";
-  margin: -1px 0 0 0;
-  top: 100%;
-  left: 0;
-  text-align: center;
-}
-
-/* Eastward tooltips */
-.d3-tip.e:after {
-  content: "\25C0";
-  margin: -4px 0 0 0;
-  top: 50%;
-  left: -8px;
-}
-
-/* Southward tooltips */
-.d3-tip.s:after {
-  content: "\25B2";
-  margin: 0 0 1px 0;
-  top: -8px;
-  left: 0;
-  text-align: center;
-}
-
-/* Westward tooltips */
-.d3-tip.w:after {
-  content: "\25B6";
-  margin: -4px 0 0 -1px;
-  top: 50%;
-  left: 100%;
+#goldstone-node-panel, #goldstone-event-panel, g.x.axis, g.y.axis {
+  text{
+    font-size: 10px;
+  }
 }
 
 .legend rect {
-  fill:white;
-  stroke:black;
-  opacity:0.0;
+  opacity: 0.0;
 }
+
+/* nodeAvail viz css */
 
 .invisible-axis path {
     fill: none;
     stroke: none;
 }
 
-#goldstone-nodeavail-chart circle {
-    opacity: 0.5;
-    stroke-width: 3;
-}
-
-/* Solinea color pallete for log levels. */
-.none {
-    fill: goldenrod;
-}
-
-.debug {
-    fill: #6a51a3;
-}
-
-.audit {
-    fill: #2171b5;
-}
-
-.info {
-    fill: #238b45;
-}
-
-.warning {
-    fill: #d94801;
-}
-
-.error {
-    fill: #cb181d;
-}
-
-.unadmin {
-    fill: darkgray;
+.swim.axis.invisible-axis .tick line {
+  fill: none;
+  stroke: none;
 }

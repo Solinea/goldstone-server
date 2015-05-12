@@ -1,0 +1,30 @@
+#tenants-single-rsrc-table, #log-search-table, #events-report-table, #multi-rsrc-table, #single-rsrc-table, #reports-result-table {
+  td {
+    font-size: 12px;
+    color: if($theme==dark, $dark_datatable_text, null);
+    th{
+    font-size: 10px;
+    }
+  }
+
+  tr:hover td {
+    background-color: if($theme==dark, $dark_background, null);
+  }
+}
+
+#tenants-single-rsrc-table, #log-search-table, #events-report-table, #multi-rsrc-table, #single-rsrc-table, #reports-result-table {
+  tr:nth-child(even) {
+    background-color: if($theme==dark, $dark_background, null);
+  }
+}
+
+.dataTables_info {
+  color: if($theme==dark, $dark_datatable_text, null);
+}
+
+#tenants-single-rsrc-table_length, #log-search-table_length, #events-report-table_length, #multi-rsrc-table_length {
+  > label{
+    color: if($theme==dark, $dark_datatable_text, null);
+
+  }
+}
