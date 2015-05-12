@@ -26,9 +26,7 @@ django-polymorphic
 django-rest-params==1.0.2
 django-rest-swagger==0.2.9
 djangorestframework==3.1.0
-###The Djoser version in Pypi breaks swagger. Pull it from the master branch, until the fix is released.
-###djoser==0.2.1
--e git+https://github.com/sunscrapers/djoser.git#egg=djoser
+djoser==0.3.0
 drf-extensions==0.2.7
 elasticsearch-curator
 elasticsearch-dsl
