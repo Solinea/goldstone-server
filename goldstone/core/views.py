@@ -12,10 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.response import Response
+from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK
+
 from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
     DateHistogramAggView
-from rest_framework.generics import RetrieveAPIView, ListAPIView
 from goldstone.utils import TopologyMixin
 
 from .models import MetricData, ReportData, PolyResource
@@ -316,11 +318,6 @@ class ResourceTypeList(ListAPIView):
 
         TYPE = settings.R_ATTRIBUTE.TYPE
 
-        # Get filtering query parameters, if specified
-        # TODO: Fold in user and project filtering.
-        user_filter = request.query_params.get("user")
-        project_filter = request.query_params.get("project")
-
         # Gather the nodes.
         nodes = [{"display_attributes": entry.display_attributes(),
                   "unique_id": entry.unique_id(),
@@ -362,12 +359,6 @@ class ResourceTypeRetrieve(RetrieveAPIView):
         OpenStack cloud.
 
         """
-        from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK
-
-        # Get filtering query parameters, if specified
-        # TODO: Fold in user and project filtering.
-        user_filter = request.query_params.get("user")
-        project_filter = request.query_params.get("project")
 
         # Get the type that matches the supplied id.
         target_type = resource_types.get_type(unique_id)
@@ -471,7 +462,6 @@ class ResourcesRetrieve(RetrieveAPIView):
 
         """
         from django.core.exceptions import ObjectDoesNotExist
-        from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK
 
         # Get filtering query parameters, if specified
         # TODO: Fold in user and project filtering.
