@@ -1,0 +1,26 @@
+#chart-panel-header {
+  background-color: if($theme==dark, $dark_background, null);
+}
+
+#global-lookback-range, #global-refresh-range {
+  background-color: if($theme==dark, $dark_panel_header, null);
+}
+
+.pagination {
+  background-color: if($theme==dark, $dark_background, null);
+  li > a {
+    color: if($theme==dark, $dark_panel_text, null);
+  }
+  .active > a {
+    &:hover {
+      background-color: $dark_background;
+      border-color: $dark_background;
+    };
+    background-color: if($theme==dark, $dark_footer, null);
+    border-color: if($theme==dark, $dark_footer, null);
+  }
+}
+
+.well {
+  background-color: if($theme==dark, $dark_chart_background, null);
+}

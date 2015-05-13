@@ -111,7 +111,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
             ns.color = d3.scale.ordinal().domain(["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"])
                 .range(ns.colorArray.distinct.openStackSeverity8);
         } else {
-            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[2]);
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct['2R']);
         }
 
         ns.area = d3.svg.area()

@@ -17,9 +17,23 @@
  /* Sticky footer styles
 -------------------------------------------------- */
 
+$theme: dark;
+$dark_background: rgb(37, 37, 37);
+$dark_chart_background: rgb(25, 25, 25);
+$dark_footer: #ccc;
+$dark_panel_header: #bbb;
+$dark_panel_text: #bbb;
+$dark_tip: rgba(200,200,200, 0.8);
+/*$dark_chart_text: rgb(224, 215, 90);*/
+$dark_chart_text: #bbb;
+
+@import "bootstrap_dark_override";
+
 html,
 body {
+  background-color: if($theme==dark, $dark_background, null);
   height: 100%;
+  color: if($theme==dark, $dark_chart_text, null);
   /* The html and body elements cannot have any padding or margin. */
 }
 
@@ -36,7 +50,7 @@ body {
 /* Set the fixed height of the footer here */
 #footer {
   height: 60px;
-  background-color: #f5f5f5;
+  background-color: if($theme==dark, $dark_footer, #f5f5f5);
 }
 
 
@@ -56,17 +70,18 @@ body {
   padding-right: 15px;
 }
 
-.navbar .fa {
-    color: #777;
+.navbar {background-color: if($theme==dark, $dark_chart_background, null);
+  #goldstone-text {
+    color: if($theme==dark, $dark_chart_text, null);
+  }
+  .fa {
+    color: if($theme==dark, $dark_chart_text, #777);
+  }
 }
 
 #goldstone-text {
-    font-family: 'Homenaje', sans-serif;
+       font-family: 'Homenaje', sans-serif;
     font-size: x-large;
-}
-
-.panel-heading .fa {
-    color: #ffffff;
 }
 
 code {
@@ -88,17 +103,30 @@ code {
 .panel {
     border: none;
     border-radius: 4px;
+    background-color: if($theme==dark, $dark_chart_background, #fff);
     box-shadow: none;
 }
 
+#chart-panel-header {
+  background-color: if($theme==dark, $dark_chart_background, null);
+}
+
+.panel-title {
+  color: if($theme==dark, $dark_panel_text, null);
+}
+
 .panel-primary > .panel-heading {
-    background-color: #777777;
-    border-color: #777777;
-    color: #FFFFFF;
+    background-color: if($theme==dark, $dark_chart_background, #777777);
+    border-color: if($theme==dark, $dark_footer, #777777);
+    color: if($theme==dark, $dark_chart_background, #FFF);
+}
+
+.panel-heading .fa {
+    color: if($theme==dark, $dark_chart_text, null);
 }
 
 .panel-body {
-    background-color: #FFFFFF;
+    background-color: if($theme==dark, $dark_chart_background, #FFFFFF);
 }
 
 /* Datatable font sizes */
@@ -200,19 +228,29 @@ code {
     alignment-baseline: middle;
 }
 
-.axis path,
-.axis line {
-  fill: none;
-  stroke-width: 1.5px;
-  stroke: #000;
-  shape-rendering: crispEdges;
+.axis {
+  path, line {
+    fill: none;
+    stroke-width: 1.5px;
+    stroke: if($theme==dark, $dark_chart_text, #000);
+    shape-rendering: crispEdges;
+  }
 }
-.axis text {
+
+.axis text, .legend-items {
+    fill: if($theme==dark, $dark_chart_text, null);
     font: 10px sans-serif;
 }
 
-.axis.label text {
+text:not(.zoomable), .axis.label {
     font: 14px sans-serif;
+    fill: if($theme==dark, $dark_chart_text, null);
+}
+
+#goldstone-node-panel, #goldstone-event-panel, g.x.axis, g.y.axis {
+  text{
+    font-size: 10px;
+  }
 }
 
 .line {
@@ -220,11 +258,16 @@ code {
   stroke-width: 1.5px;
 }
 
+.verticalGuideLine {
+    opacity: if($theme==dark, null, 0.8);
+    stroke: if($theme==dark, $dark_tip, null);
+}
+
 .d3-tip {
   line-height: 1;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.4);
-  color: #fff;
+  background: if($theme==dark, $dark_tip, rgba(0, 0, 0, 0.4));
+  color: if($theme==dark, $dark_background, #fff);
   border-radius: 10px;
   pointer-events: none;
   max-width: 500px;
@@ -261,9 +304,6 @@ margin-left: 50px;
     opacity: 0
 }
 
-.verticalGuideLine {
-    opacity: .8
-}
 /* Northward tooltips */
 .d3-tip.n:after {
   content: "\25BC";
@@ -341,4 +381,41 @@ margin-left: 50px;
 
 .unadmin {
     fill: darkgray;
+}
+
+/* hostavail.css */
+
+.swim.axis.invisible-axis .tick line {
+  fill: none;
+  stroke: none;
+}
+
+/* was intelligence.css */
+/* Datatable font sizes */
+
+#tenants-single-rsrc-table, #log-search-table, #events-report-table {
+  tr:hover td{
+    background-color: $dark_background;
+  }
+}
+
+#log-search-table tr:nth-child(even) {
+  background-color: $dark_background;
+}
+
+#log-search-table th {
+  font-size: 10px;
+  color: $dark_chart_text;
+}
+
+#log-search-table td {
+  font-size: 10px;
+}
+
+#log-search-table_info {
+  color: #eee;
+}
+
+#log-search-table_length > label {
+  color: #eee;
 }
