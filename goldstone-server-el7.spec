@@ -52,8 +52,8 @@ pip install -r requirements.txt
 chown -R apache:apache /opt/goldstone
 
 
-if [[ $# == 1 && $1 == 1 ]] ; then
-    ln -s /opt/goldstone /usr/lib/python2.6/site-packages/goldstone
+# if [[ $# == 1 && $1 == 1 ]] ; then
+#     ln -s /opt/goldstone /usr/lib/python2.6/site-packages/goldstone
 
 %preun
 
@@ -84,6 +84,7 @@ install -d -m 750 %{buildroot}/opt/goldstone/
 install -d -m 750 %{buildroot}/opt/goldstone/external/
 install -d -m 750 %{buildroot}/etc/init.d/
 install -d -m 750 %{buildroot}/etc/sysconfig/
+install -d -m 750 %{buildroot}/usr/lib/systemd/system/
 install -d -m 750 %{buildroot}/etc/selinux/
 install -d -m 750 %{buildroot}/etc/httpd/conf.d/
 install -d -m 750 %{buildroot}/var/log/goldstone/
@@ -112,13 +113,12 @@ install -m 750 %{_sourcedir}/manage.py %{buildroot}/opt/goldstone/manage.py
 install -m 640 %{_sourcedir}/README.md %{buildroot}/opt/goldstone/README.md
 install -m 640 %{_sourcedir}/INSTALL.md %{buildroot}/opt/goldstone/INSTALL.md
 install -m 640 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
-install -m 640 %{_sourcedir}/external/httpd/zgoldstone.conf %{buildroot}/etc/httpd/conf.d/zgoldstone.conf
-install -m 750 %{_sourcedir}/external/init.d/celerybeat %{buildroot}/etc/init.d/celerybeat
-install -m 750 %{_sourcedir}/external/init.d/celeryd-default %{buildroot}/etc/init.d/celeryd-default
-install -m 640 %{_sourcedir}/external/sysconfig/celerybeat %{buildroot}/etc/sysconfig/celerybeat
-install -m 640 %{_sourcedir}/external/sysconfig/celeryd-default %{buildroot}/etc/sysconfig/celeryd-default
+install -m 640 %{_sourcedir}/external/httpd/zgoldstone-el7.conf %{buildroot}/etc/httpd/conf.d/zgoldstone.conf
 install -m 640 %{_sourcedir}/external/selinux/config %{buildroot}/etc/selinux/config
 install -m 640 %{_sourcedir}/external/logstash/patterns/goldstone %{buildroot}/opt/logstash/patterns/goldstone
+install -m 640 %{_sourcedir}/external/sysconfig/celery-el7 %{buildroot}/etc/sysconfig/celery
+install -m 640 %{_sourcedir}/external/systemd/system/celery-el7.service %{buildroot}/usr/lib/systemd/system/celery.service
+install -m 640 %{_sourcedir}/external/systemd/system/celerybeat-el7.service %{buildroot}/usr/lib/systemd/system/celerybeat.service
 
 find %{buildroot} -type f -name '*.py[oc]' -exec rm -f {} \;
 
@@ -144,8 +144,6 @@ rm -rf %{buildroot}
 /opt/goldstone/external/
 /var/log/goldstone/
 /var/www/goldstone/static/
-%attr(-, root, goldstone) /etc/init.d/celerybeat
-%attr(-, root, goldstone) /etc/init.d/celeryd-default
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/02-input-tcp5514
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/03-input-resubs
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/16-metrics-and-reports
@@ -163,9 +161,10 @@ rm -rf %{buildroot}
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/99-filter-last-stop
 %attr(-, goldstone, logstash) /opt/logstash/patterns/goldstone
 %config /etc/httpd/conf.d/zgoldstone.conf
-%attr(-, goldstone, goldstone) %config /etc/sysconfig/celerybeat
-%attr(-, goldstone, goldstone) %config /etc/sysconfig/celeryd-default
 %attr(-, root, root) %config /etc/selinux/config
+%config /etc/sysconfig/celery
+%config /usr/lib/systemd/system/celery.service
+%config /usr/lib/systemd/system/celerybeat.service
 
 
 %changelog
