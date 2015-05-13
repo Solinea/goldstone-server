@@ -475,10 +475,11 @@ def _configure_centos7_services():
         local('systemctl start httpd.service')
         local('service logstash enable')
         local('service logstash start')
-        local('service celerybeat enable')
-        local('service celeryd-default enable')
-        local('service celerybeat start')
-        local('service celeryd-default start')
+        local('systemctl enable celery.service')
+        local('systemctl start celery.service')
+        local('systemctl enable celerybeat.service')
+        local('systemctl start celerybeat.service')
+
 
     # need to wait for ES to start.
     sleep(15)
