@@ -452,6 +452,7 @@ def _configure_centos7_firewalld():
     for port in REQUIRED_PORTS:
         local('firewall-cmd --zone ' + default_zone + ' --add-port=' + port)
 
+    local('firewall-cmd --runtime-to-permanent')
     local('systemctl restart firewalld.service')
 
 
