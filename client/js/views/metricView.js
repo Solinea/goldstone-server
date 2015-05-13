@@ -238,8 +238,7 @@ var MetricView = ApiPerfView.extend({
                 .attr("class", "area")
                 .attr("id", "minMaxArea")
                 .attr("d", area)
-                .attr("fill", ns.colorArray.distinct[3][1])
-                .style("opacity", 0.3);
+                .attr("fill", ns.colorArray.distinct[3][1]);
         }
 
         if (ns.statToChart === 'band' || ns.statToChart === 'min') {

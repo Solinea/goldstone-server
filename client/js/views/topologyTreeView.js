@@ -196,7 +196,6 @@ var TopologyTreeView = GoldstoneBaseView.extend({
         // spinner from the chart.
 
         $.get(dataUrl, function() {}).success(function(payload) {
-            console.log(payload);
             // a click listener shall be appended below which
             // will determine if the data associated with the
             // leaf contains "hypervisor_hostname" or "host_name"
