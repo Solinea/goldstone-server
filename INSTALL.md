@@ -5,7 +5,7 @@ Before installing Goldstone, your server must meet the following prerequisites:
 * 4GB RAM
 * x64 CPU (or 4 core VM on x64 host)
 * 100 GB free disk space
-* CentOS / RHEL 6.5 or 6.6
+* CentOS / RHEL 7.x
 
 To view and use Goldstone, you'll need a recent version of [Firefox](https://www.mozilla.org/en-US/firefox/products/), [Safari](https://www.apple.com/safari/), or [Chrome](https://www.google.com/intl/en-US/chrome/browser).
 
@@ -14,11 +14,10 @@ To view and use Goldstone, you'll need a recent version of [Firefox](https://www
 ```bash
 root# yum update ; reboot
 root# yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
-root# yum install -y python-devel python-setuptools libffi-devel
+root# yum install -y python-devel python-setuptools libffi-devel firewalld
 root# curl -X GET https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 root# python get-pip.py
-root# pip install paramiko==1.10
-root# pip install fabric==1.10.1    
+root# pip install fabric   
 ```
 
 Additionally, Goldstone's password-reset sequence uses e-mail. Ensure you have a working [SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol) server (e.g., [Postfix](http://www.postfix.org)) installed.
@@ -31,7 +30,7 @@ Run this command from the same directory as this file and the associated fabfile
 root# fab -f installer_fabfile.py install
 ```
 
-It will prompt you for check for supported operating systems. If all checks 
+It will check for supported operating systems and prerequisties. If all checks 
 pass, it will then prompt you for additional configuration information.
 
 ## Review production.py
@@ -131,6 +130,14 @@ Restart the OpenStack services and syslog or reboot the node. Repeat this on all
 
 Now that everything has been configured, point your browser at the Goldstone server IP address or name and begin using Goldstone.
 
+## Uninstallation
+
+To uninstall Goldstone:
+```bash
+root# fab -f installer_fabfile.py uninstall
+```
+
+This will remove the Goldstone server software.  It will also stop and disable, but not remove supporting software including elasticsearch, logstash, redis, postgresql, and httpd.
 
 ## License
 

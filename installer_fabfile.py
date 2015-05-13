@@ -870,7 +870,7 @@ def uninstall(dropdb=True, dropuser=True):
                 # only makes sense if you've also dropped the database
                 local('su - postgres -c \'dropuser goldstone\'')
 
-        local('systemctl stop postgresql.service')
-        local('systemctl disable postgresql.service')
+            local('systemctl stop postgresql.service')
+            local('systemctl disable postgresql.service')
 
 
