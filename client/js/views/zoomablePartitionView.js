@@ -160,6 +160,7 @@ var ZoomablePartitionView = TopologyTreeView.extend({
             });
 
         g.append("svg:text")
+            .attr("class", "zoomable")
             .attr("transform", transform)
             .attr("x", 5)
             .attr("dy", ".35em")

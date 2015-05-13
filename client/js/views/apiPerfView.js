@@ -194,7 +194,7 @@ var ApiPerfView = GoldstoneBaseView.extend({
             .attr("id", "minMaxArea")
             .attr("d", area)
             .attr("fill", ns.colorArray.distinct[3][1])
-            .style("opacity", 0.3);
+            .style("opacity", 0.8);
 
         ns.chart.append('path')
             .attr('class', 'line')

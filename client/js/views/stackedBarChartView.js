@@ -68,14 +68,14 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         // differentiate color sets for mem and cpu charts
         if (ns.featureSet === 'mem' || ns.featureSet === 'cpu') {
-            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct['3R']);
         }
         if (ns.featureSet === 'metric') {
             ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[1]);
         } else {
             // this includes "VM Spawns" and "Disk Resources" chars
             ns.color = d3.scale.ordinal()
-                .range(ns.colorArray.distinct[2]);
+                .range(ns.colorArray.distinct['2R']);
         }
 
     },
@@ -117,7 +117,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             _.each(data, function(item) {
                 var logTime = +(_.keys(item)[0]);
                 var value = +(_.values(item)[0]);
-                console.log(item, logTime, value);
                 result.push({
                     "eventTime": logTime,
                     "Success": value,
@@ -519,14 +518,14 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 if (!showOrHide[d.name]) {
                     return 0;
                 } else {
-                    return 0.9;
+                    return 1;
                 }
             })
             .attr("fill-opacity", function(d) {
                 if (!showOrHide[d.name]) {
                     return 0;
                 } else {
-                    return 0.7;
+                    return 1;
                 }
             })
             .attr("stroke-width", 2)
@@ -684,7 +683,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         var legend = ns.chart.append('g')
             .attr('class', 'legend')
             .attr('transform', 'translate(20,-35)')
-            .attr('opacity', 0.7)
+            .attr('opacity', 1.0)
             .call(d3.legend);
     },
 

@@ -532,7 +532,7 @@ var NodeAvailView = GoldstoneBaseView.extend({
                 '<div class="col-lg-12">' +
                 '<div class="input-group">' +
                 '<span class="input-group-addon"' +
-                'style="opacity: 0.8; background-color:' + ns.loglevel([item]) + ';">' +
+                'style="background-color:' + ns.loglevel([item]) + ';">' +
                 '<input id="' + item + '" type="checkbox" ' + checkMark + '>' +
                 '</span>' +
                 '<span type="text" class="form-control">' + item + '</span>' +
@@ -745,10 +745,10 @@ TODO: probably change this to d.timestamp
             .style("opacity", function(d) {
 
                 if (d.swimlane === "unadmin") {
-                    return 0.8;
+                    return 1.0;
                 }
                 if (ns.filter[d.level]) {
-                    return 0.8;
+                    return 1.0;
                 } else {
                     return 0;
                 }
