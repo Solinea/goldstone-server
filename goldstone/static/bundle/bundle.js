@@ -5038,10 +5038,10 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="30">refresh 30s</option>' +
+            return '<option value="30" selected>refresh 30s</option>' +
                 '<option value="60">refresh 1m</option>' +
                 '<option value="300">refresh 5m</option>' +
-                '<option value="-1" selected>refresh off</option>';
+                '<option value="-1">refresh off</option>';
         }
     },
 
@@ -6213,7 +6213,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
             ns.start +
             ',"lte":' +
             ns.end +
-            '}&loglevel__terms=[';
+            '}&syslog_severity__terms=[';
 
         levels = ns.filter || {};
         for (var k in levels) {

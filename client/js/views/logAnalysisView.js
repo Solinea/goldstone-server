@@ -493,7 +493,7 @@ var LogAnalysisView = UtilizationCpuView.extend({
             ns.start +
             ',"lte":' +
             ns.end +
-            '}&loglevel__terms=[';
+            '}&syslog_severity__terms=[';
 
         levels = ns.filter || {};
         for (var k in levels) {
