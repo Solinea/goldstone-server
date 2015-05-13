@@ -68,14 +68,14 @@ var StackedBarChartView = GoldstoneBaseView.extend({
 
         // differentiate color sets for mem and cpu charts
         if (ns.featureSet === 'mem' || ns.featureSet === 'cpu') {
-            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[3]);
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct['3R']);
         }
         if (ns.featureSet === 'metric') {
             ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[1]);
         } else {
             // this includes "VM Spawns" and "Disk Resources" chars
             ns.color = d3.scale.ordinal()
-                .range(ns.colorArray.distinct[2]);
+                .range(ns.colorArray.distinct['2R']);
         }
 
     },
