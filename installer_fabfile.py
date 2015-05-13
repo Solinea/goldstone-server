@@ -84,6 +84,7 @@ def _is_supported_centos6():
     except Exception:  # pylint: disable=W0703
         return False
 
+
 def _is_supported_centos7():
     """Return True if this a CentOS 7.0 or 7.1 server."""
 
@@ -167,7 +168,7 @@ def _install_additional_repos():
         logstash_repo.close()
 
 
-def _centos6_configure_postgres_service():
+def _centos6_configure_postgres():
     """configure postgres to start on boot and initialized the DB"""
     print(green("\nConfiguring PostgreSQL (CentOS 6)."))
 
@@ -178,9 +179,9 @@ def _centos6_configure_postgres_service():
     subprocess.call('service postgresql start'.split())
 
 
-def _centos7_configure_postgres_service():
+def _centos7_configure_postgres():
     """configure postgres to start on boot and initialized the DB"""
-    
+
     print(green("\nConfiguring PostgreSQL (CentOS 7)."))
     if not os.path.exists(CENTOS_PG_HBA):
         subprocess.call('postgresql-setup initdb'.split())
@@ -192,13 +193,12 @@ def _centos7_configure_postgres_service():
 def _centos_setup_postgres(pg_passwd):
     """Configure postgresql on a CentOS 6.x system."""
     from os import rename
-    from time import sleep
 
     if _is_supported_centos6():
-        _centos6_configure_postgres_service()
+        _centos6_configure_postgres()
 
     if _is_supported_centos7():
-        _centos7_configure_postgres_service()
+        _centos7_configure_postgres()
 
     # ugly, but using pg_ctl reload doesn't wait, and pg_ctl restart
     # puts it out of sync with service control.
@@ -251,6 +251,7 @@ def _fix_setuptools():
                 fab_settings(warn_only=True)):
         local('pip install --upgrade distribute')
         local('pip install --upgrade setuptools')
+
 
 @task
 def _centos_preinstall(pg_passwd):
@@ -444,6 +445,7 @@ def cloud_init(gs_tenant,
 
 
 def _configure_centos7_firewalld():
+    """Enable, start and configure ports for firewall."""
 
     print(green("\nConfiguring firewalld to allow Goldstone traffic.\n"))
     # make sure firewall is started
@@ -480,7 +482,6 @@ def _configure_centos7_services():
         local('systemctl enable celerybeat.service')
         local('systemctl restart celerybeat.service')
 
-
     # need to wait for ES to start.
     sleep(15)
 
@@ -488,10 +489,7 @@ def _configure_centos7_services():
 def _configure_services():
     """Configure required services to start on boot, and start them now."""
 
-    if _is_supported_centos6():
-        # TODO currently handled by the RPM, but we should move that logic here
-        pass
-    elif _is_supported_centos7():
+    if _is_supported_centos7():
         _configure_centos7_services()
 
 
@@ -839,6 +837,7 @@ def install(pg_passwd='goldstone', rpm_file=None,    # pylint: disable=R0913
         abort(red("Goldstone RPM installation failed.  Check the path to "
                   "the RPM file, and rerun."))
 
+
 @task
 def uninstall(dropdb=True, dropuser=True):
     """Removes the goldstone-server RPM, database, and user."""
@@ -872,5 +871,3 @@ def uninstall(dropdb=True, dropuser=True):
 
             local('systemctl stop postgresql.service')
             local('systemctl disable postgresql.service')
-
-
