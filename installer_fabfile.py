@@ -468,17 +468,17 @@ def _configure_centos7_services():
 
         _configure_centos7_firewalld()
         local('systemctl enable elasticsearch.service')
-        local('systemctl start elasticsearch.service')
+        local('systemctl restart elasticsearch.service')
         local('systemctl enable redis.service')
-        local('systemctl start redis.service')
+        local('systemctl restart redis.service')
         local('systemctl enable httpd.service')
-        local('systemctl start httpd.service')
+        local('systemctl restart httpd.service')
         local('service logstash enable')
-        local('service logstash start')
+        local('service logstash restart')
         local('systemctl enable celery.service')
-        local('systemctl start celery.service')
+        local('systemctl restart celery.service')
         local('systemctl enable celerybeat.service')
-        local('systemctl start celerybeat.service')
+        local('systemctl restart celerybeat.service')
 
 
     # need to wait for ES to start.
@@ -843,6 +843,19 @@ def install(pg_passwd='goldstone', rpm_file=None,    # pylint: disable=R0913
 def uninstall(dropdb=True, dropuser=True):
     """Removes the goldstone-server RPM, database, and user."""
 
+    if _is_supported_centos7():
+        local('systemctl stop elasticsearch.service')
+        local('systemctl disable elasticsearch.service')
+        local('systemctl stop redis.service')
+        local('systemctl disable redis.service')
+        local('systemctl stop httpd.service')
+        local('systemctl disable httpd.service')
+        local('service logstash stop')
+        local('systemctl stop celery.service')
+        local('systemctl disable celery.service')
+        local('systemctl stop celerybeat.service')
+        local('systemctl disable celerybeat.service')
+
     local('yum remove -y goldstone-server')
     if dropdb:
         with nested(hide('warnings', 'stderr', 'stdout'),
@@ -851,3 +864,5 @@ def uninstall(dropdb=True, dropuser=True):
             if dropuser:
                 # only makes sense if you've also dropped the database
                 local('su - postgres -c \'dropuser goldstone\'')
+
+
