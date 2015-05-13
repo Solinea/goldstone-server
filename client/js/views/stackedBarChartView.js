@@ -518,14 +518,14 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 if (!showOrHide[d.name]) {
                     return 0;
                 } else {
-                    return 0.9;
+                    return 1;
                 }
             })
             .attr("fill-opacity", function(d) {
                 if (!showOrHide[d.name]) {
                     return 0;
                 } else {
-                    return 0.7;
+                    return 1;
                 }
             })
             .attr("stroke-width", 2)
@@ -683,7 +683,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         var legend = ns.chart.append('g')
             .attr('class', 'legend')
             .attr('transform', 'translate(20,-35)')
-            .attr('opacity', 0.7)
+            .attr('opacity', 1.0)
             .call(d3.legend);
     },
 
