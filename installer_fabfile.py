@@ -844,19 +844,24 @@ def uninstall(dropdb=True, dropuser=True):
     """Removes the goldstone-server RPM, database, and user."""
 
     if _is_supported_centos7():
-        local('systemctl stop elasticsearch.service')
-        local('systemctl disable elasticsearch.service')
-        local('systemctl stop redis.service')
-        local('systemctl disable redis.service')
-        local('systemctl stop httpd.service')
-        local('systemctl disable httpd.service')
-        local('service logstash stop')
-        local('systemctl stop celery.service')
-        local('systemctl disable celery.service')
-        local('systemctl stop celerybeat.service')
-        local('systemctl disable celerybeat.service')
+        with nested(hide('warnings', 'stderr', 'stdout'),
+                    fab_settings(warn_only=True)):
+            local('systemctl stop elasticsearch.service')
+            local('systemctl disable elasticsearch.service')
+            local('systemctl stop redis.service')
+            local('systemctl disable redis.service')
+            local('systemctl stop httpd.service')
+            local('systemctl disable httpd.service')
+            local('service logstash stop')
+            local('systemctl stop celery.service')
+            local('systemctl disable celery.service')
+            local('systemctl stop celerybeat.service')
+            local('systemctl disable celerybeat.service')
 
-    local('yum remove -y goldstone-server')
+    with nested(hide('warnings', 'stderr', 'stdout'),
+                fab_settings(warn_only=True)):
+        local('yum remove -y goldstone-server')
+
     if dropdb:
         with nested(hide('warnings', 'stderr', 'stdout'),
                     fab_settings(warn_only=True)):
@@ -864,5 +869,8 @@ def uninstall(dropdb=True, dropuser=True):
             if dropuser:
                 # only makes sense if you've also dropped the database
                 local('su - postgres -c \'dropuser goldstone\'')
+
+        local('systemctl stop postgresql.service')
+        local('systemctl disable postgresql.service')
 
 
