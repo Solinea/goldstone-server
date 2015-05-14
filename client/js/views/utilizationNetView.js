@@ -44,20 +44,35 @@ var UtilizationNetView = UtilizationCpuView.extend({
     },
 
     collectionPrep: function() {
-        var ns = this.defaults;
-        var self = this;
-
-        allthelogs = this.collection.toJSON();
-
+        var allthelogs = this.collection.toJSON();
         var data = allthelogs;
 
-        _.each(data, function(item) {
-            item['@timestamp'] = moment(item['@timestamp']).valueOf();
+        console.log('data in net ', data);
+        // allthelogs will have as many objects as api calls were made
+        // iterate through each object to tag the data with the
+        // api call that was made to produce it
+        _.each(data, function(collection) {
+
+            // within each collection, tag the data points
+            _.each(collection.per_interval, function(dataPoint) {
+
+                _.each(dataPoint, function(item, i) {
+                    item['@timestamp'] = i;
+                    item.name = collection.metricSource;
+                    item.value = item.stats.max;
+                });
+
+            });
         });
 
 
-        var dataUniqTimes = _.uniq(_.map(data, function(item) {
-            return item['@timestamp'];
+        var condensedData = _.flatten(_.map(data, function(item) {
+            return item.per_interval;
+        }));
+
+
+        var dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
+            return item[_.keys(item)[0]]['@timestamp'];
         }));
 
 
@@ -65,34 +80,30 @@ var UtilizationNetView = UtilizationCpuView.extend({
 
         _.each(dataUniqTimes, function(item) {
             newData[item] = {
-                rx: null,
-                tx: null
+                wait: null,
+                sys: null,
+                user: null
             };
         });
 
 
-        _.each(data, function(item) {
+        _.each(condensedData, function(item) {
 
-            var metric;
-
-            var serviceName = item.name.slice(0, item.name.lastIndexOf('.'));
-
-            if (serviceName.indexOf('rx') >= 0) {
-                metric = 'rx';
-            } else {
-                if (serviceName.indexOf('tx') >= 0) {
-                    metric = 'tx';
-                } else {}
-            }
-
-            newData[item['@timestamp']][metric] += item.value;
+            var key = _.keys(item)[0];
+            var metric = item[key].name.substr((item[key].name.lastIndexOf('.net') + 5), 2);
+            console.log(key, metric);
+            newData[key][metric] = item[key].value;
 
         });
+
 
 
         finalData = [];
 
         _.each(newData, function(item, i) {
+
+            item.rx = item.rx || 0;
+            item.tx = item.tx || 0;
 
             finalData.push({
                 rx: item.rx,
@@ -102,6 +113,7 @@ var UtilizationNetView = UtilizationCpuView.extend({
         });
 
 
+        console.log('final data net ', finalData);
         return finalData;
 
     }

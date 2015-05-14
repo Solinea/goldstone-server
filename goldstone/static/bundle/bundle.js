@@ -1093,16 +1093,46 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
     },
 
     collectionPrep: function() {
-        allthelogs = this.collection.toJSON();
+        var allthelogs = this.collection.toJSON();
 
         var data = allthelogs;
 
-        _.each(data, function(item) {
-            item['@timestamp'] = moment(item['@timestamp']).valueOf();
+        /*
+        make it like this:
+
+        @timestamp: "2015-05-14T05:55:50.342Z"
+        host: "10.10.20.10:56787"
+        metric_type: "gauge"
+        name: "os.cpu.wait"
+        node: "ctrl-01"
+        unit: "percent"
+        value: 0.26161110700781587
+*/
+        // allthelogs will have as many objects as api calls were made
+        // iterate through each object to tag the data with the
+        // api call that was made to produce it
+        _.each(data, function(collection) {
+
+            // within each collection, tag the data points
+            _.each(collection.per_interval, function(dataPoint) {
+
+                _.each(dataPoint, function(item, i) {
+                    item['@timestamp'] = i;
+                    item.name = collection.metricSource;
+                    item.value = item.stats.max;
+                });
+
+            });
         });
 
-        var dataUniqTimes = _.uniq(_.map(data, function(item) {
-            return item['@timestamp'];
+
+        var condensedData = _.flatten(_.map(data, function(item) {
+            return item.per_interval;
+        }));
+
+
+        var dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
+            return item[_.keys(item)[0]]['@timestamp'];
         }));
 
 
@@ -1117,11 +1147,11 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         });
 
 
-        _.each(data, function(item) {
+        _.each(condensedData, function(item) {
 
-            var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
-
-            newData[item['@timestamp']][metric] = item.value;
+            var key = _.keys(item)[0];
+            var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
+            newData[key][metric] = item[key].value;
 
         });
 
@@ -1129,6 +1159,11 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         finalData = [];
 
         _.each(newData, function(item, i) {
+
+            item.wait = item.wait || 0;
+            item.sys = item.sys || 0;
+            item.user = item.user || 0;
+
             finalData.push({
                 wait: item.wait,
                 sys: item.sys,
@@ -1240,7 +1275,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         }));
 
         if (ns.featureSet === 'memUsage') {
-            ns.y.domain([0, ns.memTotal.value / ns.divisor]);
+            ns.y.domain([0, ns.memTotal / ns.divisor]);
         }
 
         if (ns.featureSet === 'netUsage') {
@@ -1368,7 +1403,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
 
                 if (ns.featureSet === 'memUsage') {
                     if (d.name === 'total') {
-                        return 'Total: ' + ((Math.round(ns.memTotal.value / ns.divisor * 100)) / 100) + 'GB';
+                        return 'Total: ' + ((Math.round(ns.memTotal / ns.divisor * 100)) / 100) + 'GB';
                     }
                     if (d.name === 'free') {
                         return '';
@@ -2753,8 +2788,8 @@ var UtilizationCpuCollection = Backbone.Collection.extend({
         } else {
             this.defaults.urlCollectionCount--;
         }
-
-        return data.results;
+        data.metricSource = this.defaults.urlPrefixes[(this.defaults.urlPrefixes.length - 1) - this.defaults.urlCollectionCount];
+        return data;
     },
 
     model: GoldstoneBaseModel,
@@ -2768,7 +2803,7 @@ var UtilizationCpuCollection = Backbone.Collection.extend({
         this.defaults = _.clone(this.defaults);
         this.defaults.fetchInProgress = false;
         this.defaults.nodeName = options.nodeName;
-        this.defaults.urlPrefixes = ['sys', 'user', 'wait'];
+        this.defaults.urlPrefixes = ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'];
         this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
         this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
         this.defaults.globalLookback = options.globalLookback;
@@ -2789,9 +2824,11 @@ var UtilizationCpuCollection = Backbone.Collection.extend({
         var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
 
         _.each(self.defaults.urlPrefixes, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.cpu." + prefix + "&node=" +
+            self.defaults.urlsToFetch.push("/core/metrics/summarize/?name=" + prefix + "&node=" +
                 self.defaults.nodeName + "&@timestamp__range={'gte':" +
-                lookback + "}&page_size=1000");
+                lookback + "}&interval=" +
+                (Math.max(1, (self.defaults.globalLookback / 24)) +
+                    "m"));
         });
 
         this.fetch({
@@ -2838,7 +2875,7 @@ var UtilizationMemCollection = Backbone.Collection.extend({
 
     parse: function(data) {
 
-        if (data.next && data.next !== null && data.next.indexOf('os.mem.total') === -1) {
+        if (data.next && data.next !== null) {
             var dp = data.next;
             nextUrl = dp.slice(dp.indexOf('/core'));
             this.fetch({
@@ -2848,8 +2885,8 @@ var UtilizationMemCollection = Backbone.Collection.extend({
         } else {
             this.defaults.urlCollectionCount--;
         }
-
-        return data.results;
+        data.metricSource = this.defaults.urlPrefixes[(this.defaults.urlPrefixes.length - 1) - this.defaults.urlCollectionCount];
+        return data;
     },
 
     model: GoldstoneBaseModel,
@@ -2863,7 +2900,7 @@ var UtilizationMemCollection = Backbone.Collection.extend({
         this.defaults = _.clone(this.defaults);
         this.defaults.fetchInProgress = false;
         this.defaults.nodeName = options.nodeName;
-        this.defaults.urlPrefixes = ['total', 'free'];
+        this.defaults.urlPrefixes = ['os.mem.total', 'os.mem.free'];
         this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
         this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
         this.defaults.globalLookback = options.globalLookback;
@@ -2883,13 +2920,13 @@ var UtilizationMemCollection = Backbone.Collection.extend({
         // grabs minutes from global selector option value
         var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
 
-        this.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.mem." + this.defaults.urlPrefixes[0] + "&node=" +
-            this.defaults.nodeName + "&@timestamp__range={'gte':" +
-            lookback + "}&page_size=1");
-
-        this.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.mem." + this.defaults.urlPrefixes[1] + "&node=" +
-            this.defaults.nodeName + "&@timestamp__range={'gte':" +
-            lookback + "}&page_size=1000");
+        _.each(self.defaults.urlPrefixes, function(prefix) {
+            self.defaults.urlsToFetch.push("/core/metrics/summarize/?name=" + prefix + "&node=" +
+                self.defaults.nodeName + "&@timestamp__range={'gte':" +
+                lookback + "}&interval=" +
+                (Math.max(1, (self.defaults.globalLookback / 24)) +
+                    "m"));
+        });
 
         this.fetch({
 
@@ -2945,8 +2982,8 @@ var UtilizationNetCollection = Backbone.Collection.extend({
         } else {
             this.defaults.urlCollectionCount--;
         }
-
-        return data.results;
+        data.metricSource = this.defaults.urlPrefixes[(this.defaults.urlPrefixes.length - 1) - this.defaults.urlCollectionCount];
+        return data;
     },
 
     model: GoldstoneBaseModel,
@@ -2960,7 +2997,7 @@ var UtilizationNetCollection = Backbone.Collection.extend({
         this.defaults = _.clone(this.defaults);
         this.defaults.fetchInProgress = false;
         this.defaults.nodeName = options.nodeName;
-        this.defaults.urlPrefixes = ['tx', 'rx'];
+        this.defaults.urlPrefixes = ['os.net.tx.eth0', 'os.net.rx.eth0'];
         this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
         this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
         this.defaults.globalLookback = options.globalLookback;
@@ -2981,9 +3018,11 @@ var UtilizationNetCollection = Backbone.Collection.extend({
         var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
 
         _.each(self.defaults.urlPrefixes, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.net." + prefix + "&node=" +
+            self.defaults.urlsToFetch.push("/core/metrics/summarize/?name=" + prefix + "&node=" +
                 self.defaults.nodeName + "&@timestamp__range={'gte':" +
-                lookback + "}&page_size=1000");
+                lookback + "}&interval=" +
+                (Math.max(1, (self.defaults.globalLookback / 24)) +
+                    "m"));
         });
 
 
@@ -11713,60 +11752,75 @@ var UtilizationMemView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        allthelogs = this.collection.toJSON();
+        var allthelogs = this.collection.toJSON();
 
         var data = allthelogs;
 
-        _.each(data, function(item) {
-            item['@timestamp'] = moment(item['@timestamp']).valueOf();
+        _.each(data, function(collection) {
+
+            // within each collection, tag the data points
+            _.each(collection.per_interval, function(dataPoint) {
+
+                _.each(dataPoint, function(item, i) {
+                    item['@timestamp'] = i;
+                    item.name = collection.metricSource;
+                    item.value = item.stats.max;
+                });
+
+            });
         });
 
-        for (var i = data.length - 1; i >= 0; i--) {
-            if (data[i].name === 'os.mem.total') {
-                ns.memTotal = data[i];
-                var splicedOut = data.splice(i, 1);
-                break;
-            }
-        }
+
+        var condensedData = _.flatten(_.map(data, function(item) {
+            return item.per_interval;
+        }));
 
 
-        var dataUniqTimes = _.map(data, function(item) {
-            return item['@timestamp'];
-        });
+        var dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
+            return item[_.keys(item)[0]]['@timestamp'];
+        }));
 
 
         var newData = {};
 
         _.each(dataUniqTimes, function(item) {
             newData[item] = {
-                free: null
+                wait: null,
+                sys: null,
+                user: null
             };
         });
 
 
-        _.each(data, function(item) {
+        _.each(condensedData, function(item) {
 
-            var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
-
-            newData[item['@timestamp']][metric] = item.value;
+            var key = _.keys(item)[0];
+            var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
+            newData[key][metric] = item[key].value;
 
         });
 
-
         finalData = [];
+
+        // make sure to set ns.memTotal
+        var key = _.keys(allthelogs[0].per_interval[1])[0];
+
+        ns.memTotal = allthelogs[0].per_interval[1][key].stats.max; // double check
 
         _.each(newData, function(item, i) {
 
+            item.total = item.total || 0;
+            item.free = item.free || 0;
+
             finalData.push({
-                used: (ns.memTotal.value - item.free) / self.defaults.divisor,
-                free: item.free / self.defaults.divisor,
+                used: (item.total - item.free) / ns.divisor,
+                free: item.free / ns.divisor,
                 // total renders a thin line at the top of the area stack
                 // the actual value comes from ns.memTotal.value
                 total: 0.1,
                 date: i
             });
         });
-
 
         return finalData;
 
@@ -11820,20 +11874,35 @@ var UtilizationNetView = UtilizationCpuView.extend({
     },
 
     collectionPrep: function() {
-        var ns = this.defaults;
-        var self = this;
-
-        allthelogs = this.collection.toJSON();
-
+        var allthelogs = this.collection.toJSON();
         var data = allthelogs;
 
-        _.each(data, function(item) {
-            item['@timestamp'] = moment(item['@timestamp']).valueOf();
+        console.log('data in net ', data);
+        // allthelogs will have as many objects as api calls were made
+        // iterate through each object to tag the data with the
+        // api call that was made to produce it
+        _.each(data, function(collection) {
+
+            // within each collection, tag the data points
+            _.each(collection.per_interval, function(dataPoint) {
+
+                _.each(dataPoint, function(item, i) {
+                    item['@timestamp'] = i;
+                    item.name = collection.metricSource;
+                    item.value = item.stats.max;
+                });
+
+            });
         });
 
 
-        var dataUniqTimes = _.uniq(_.map(data, function(item) {
-            return item['@timestamp'];
+        var condensedData = _.flatten(_.map(data, function(item) {
+            return item.per_interval;
+        }));
+
+
+        var dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
+            return item[_.keys(item)[0]]['@timestamp'];
         }));
 
 
@@ -11841,34 +11910,30 @@ var UtilizationNetView = UtilizationCpuView.extend({
 
         _.each(dataUniqTimes, function(item) {
             newData[item] = {
-                rx: null,
-                tx: null
+                wait: null,
+                sys: null,
+                user: null
             };
         });
 
 
-        _.each(data, function(item) {
+        _.each(condensedData, function(item) {
 
-            var metric;
-
-            var serviceName = item.name.slice(0, item.name.lastIndexOf('.'));
-
-            if (serviceName.indexOf('rx') >= 0) {
-                metric = 'rx';
-            } else {
-                if (serviceName.indexOf('tx') >= 0) {
-                    metric = 'tx';
-                } else {}
-            }
-
-            newData[item['@timestamp']][metric] += item.value;
+            var key = _.keys(item)[0];
+            var metric = item[key].name.substr((item[key].name.lastIndexOf('.net') + 5), 2);
+            console.log(key, metric);
+            newData[key][metric] = item[key].value;
 
         });
+
 
 
         finalData = [];
 
         _.each(newData, function(item, i) {
+
+            item.rx = item.rx || 0;
+            item.tx = item.tx || 0;
 
             finalData.push({
                 rx: item.rx,
@@ -11878,6 +11943,7 @@ var UtilizationNetView = UtilizationCpuView.extend({
         });
 
 
+        console.log('final data net ', finalData);
         return finalData;
 
     }

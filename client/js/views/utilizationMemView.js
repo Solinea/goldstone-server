@@ -38,60 +38,75 @@ var UtilizationMemView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        allthelogs = this.collection.toJSON();
+        var allthelogs = this.collection.toJSON();
 
         var data = allthelogs;
 
-        _.each(data, function(item) {
-            item['@timestamp'] = moment(item['@timestamp']).valueOf();
+        _.each(data, function(collection) {
+
+            // within each collection, tag the data points
+            _.each(collection.per_interval, function(dataPoint) {
+
+                _.each(dataPoint, function(item, i) {
+                    item['@timestamp'] = i;
+                    item.name = collection.metricSource;
+                    item.value = item.stats.max;
+                });
+
+            });
         });
 
-        for (var i = data.length - 1; i >= 0; i--) {
-            if (data[i].name === 'os.mem.total') {
-                ns.memTotal = data[i];
-                var splicedOut = data.splice(i, 1);
-                break;
-            }
-        }
+
+        var condensedData = _.flatten(_.map(data, function(item) {
+            return item.per_interval;
+        }));
 
 
-        var dataUniqTimes = _.map(data, function(item) {
-            return item['@timestamp'];
-        });
+        var dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
+            return item[_.keys(item)[0]]['@timestamp'];
+        }));
 
 
         var newData = {};
 
         _.each(dataUniqTimes, function(item) {
             newData[item] = {
-                free: null
+                wait: null,
+                sys: null,
+                user: null
             };
         });
 
 
-        _.each(data, function(item) {
+        _.each(condensedData, function(item) {
 
-            var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
-
-            newData[item['@timestamp']][metric] = item.value;
+            var key = _.keys(item)[0];
+            var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
+            newData[key][metric] = item[key].value;
 
         });
 
-
         finalData = [];
+
+        // make sure to set ns.memTotal
+        var key = _.keys(allthelogs[0].per_interval[1])[0];
+
+        ns.memTotal = allthelogs[0].per_interval[1][key].stats.max; // double check
 
         _.each(newData, function(item, i) {
 
+            item.total = item.total || 0;
+            item.free = item.free || 0;
+
             finalData.push({
-                used: (ns.memTotal.value - item.free) / self.defaults.divisor,
-                free: item.free / self.defaults.divisor,
+                used: (item.total - item.free) / ns.divisor,
+                free: item.free / ns.divisor,
                 // total renders a thin line at the top of the area stack
                 // the actual value comes from ns.memTotal.value
                 total: 0.1,
                 date: i
             });
         });
-
 
         return finalData;
 

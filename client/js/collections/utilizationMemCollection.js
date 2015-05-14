@@ -22,7 +22,7 @@ var UtilizationMemCollection = Backbone.Collection.extend({
 
     parse: function(data) {
 
-        if (data.next && data.next !== null && data.next.indexOf('os.mem.total') === -1) {
+        if (data.next && data.next !== null) {
             var dp = data.next;
             nextUrl = dp.slice(dp.indexOf('/core'));
             this.fetch({
@@ -32,8 +32,8 @@ var UtilizationMemCollection = Backbone.Collection.extend({
         } else {
             this.defaults.urlCollectionCount--;
         }
-
-        return data.results;
+        data.metricSource = this.defaults.urlPrefixes[(this.defaults.urlPrefixes.length - 1) - this.defaults.urlCollectionCount];
+        return data;
     },
 
     model: GoldstoneBaseModel,
@@ -47,7 +47,7 @@ var UtilizationMemCollection = Backbone.Collection.extend({
         this.defaults = _.clone(this.defaults);
         this.defaults.fetchInProgress = false;
         this.defaults.nodeName = options.nodeName;
-        this.defaults.urlPrefixes = ['total', 'free'];
+        this.defaults.urlPrefixes = ['os.mem.total', 'os.mem.free'];
         this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
         this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
         this.defaults.globalLookback = options.globalLookback;
@@ -67,13 +67,13 @@ var UtilizationMemCollection = Backbone.Collection.extend({
         // grabs minutes from global selector option value
         var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
 
-        this.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.mem." + this.defaults.urlPrefixes[0] + "&node=" +
-            this.defaults.nodeName + "&@timestamp__range={'gte':" +
-            lookback + "}&page_size=1");
-
-        this.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.mem." + this.defaults.urlPrefixes[1] + "&node=" +
-            this.defaults.nodeName + "&@timestamp__range={'gte':" +
-            lookback + "}&page_size=1000");
+        _.each(self.defaults.urlPrefixes, function(prefix) {
+            self.defaults.urlsToFetch.push("/core/metrics/summarize/?name=" + prefix + "&node=" +
+                self.defaults.nodeName + "&@timestamp__range={'gte':" +
+                lookback + "}&interval=" +
+                (Math.max(1, (self.defaults.globalLookback / 24)) +
+                    "m"));
+        });
 
         this.fetch({
 

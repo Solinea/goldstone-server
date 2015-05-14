@@ -32,8 +32,8 @@ var UtilizationNetCollection = Backbone.Collection.extend({
         } else {
             this.defaults.urlCollectionCount--;
         }
-
-        return data.results;
+        data.metricSource = this.defaults.urlPrefixes[(this.defaults.urlPrefixes.length - 1) - this.defaults.urlCollectionCount];
+        return data;
     },
 
     model: GoldstoneBaseModel,
@@ -47,7 +47,7 @@ var UtilizationNetCollection = Backbone.Collection.extend({
         this.defaults = _.clone(this.defaults);
         this.defaults.fetchInProgress = false;
         this.defaults.nodeName = options.nodeName;
-        this.defaults.urlPrefixes = ['tx', 'rx'];
+        this.defaults.urlPrefixes = ['os.net.tx.eth0', 'os.net.rx.eth0'];
         this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
         this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
         this.defaults.globalLookback = options.globalLookback;
@@ -68,9 +68,11 @@ var UtilizationNetCollection = Backbone.Collection.extend({
         var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
 
         _.each(self.defaults.urlPrefixes, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.net." + prefix + "&node=" +
+            self.defaults.urlsToFetch.push("/core/metrics/summarize/?name=" + prefix + "&node=" +
                 self.defaults.nodeName + "&@timestamp__range={'gte':" +
-                lookback + "}&page_size=1000");
+                lookback + "}&interval=" +
+                (Math.max(1, (self.defaults.globalLookback / 24)) +
+                    "m"));
         });
 
 
