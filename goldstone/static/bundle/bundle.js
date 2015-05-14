@@ -10642,7 +10642,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 if (!showOrHide[d.name]) {
                     return 0;
                 } else {
-                    return 1;
+                    return 0.8;
                 }
             })
             .attr("stroke-width", 2)
