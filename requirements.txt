@@ -15,6 +15,7 @@
 # limitations under the License.
 
 six==1.9.0  # https://github.com/pypa/pip/issues/2473
+requests==2.7.0 # cinderclient chokes without requests >= 2.5.2
 Django==1.6.11
 South==1.0.2
 arrow==0.4.4
