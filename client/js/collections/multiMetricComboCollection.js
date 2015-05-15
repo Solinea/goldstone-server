@@ -16,7 +16,7 @@
 
 // define collection and link to model
 
-var StackedAreaCollection = Backbone.Collection.extend({
+var MultiMetricComboCollection = Backbone.Collection.extend({
 
     defaults: {},
 

@@ -209,7 +209,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         //---------------------------
         // instantiate CPU Usage chart
-        this.cpuUsageChart = new StackedAreaCollection({
+        this.cpuUsageChart = new MultiMetricComboCollection({
             globalLookback: ns.globalLookback,
             metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
             nodeName: hostName
@@ -224,7 +224,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         //---------------------------
         // instantiate Memory Usage chart
-        this.memoryUsageChart = new StackedAreaCollection({
+        this.memoryUsageChart = new MultiMetricComboCollection({
             globalLookback: ns.globalLookback,
             metricNames: ['os.mem.total', 'os.mem.free'],
             nodeName: hostName
@@ -240,7 +240,7 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Network Usage chart
 
-        this.networkUsageChart = new StackedAreaCollection({
+        this.networkUsageChart = new MultiMetricComboCollection({
             globalLookback: ns.globalLookback,
             metricNames: ['os.net.tx.eth0', 'os.net.rx.eth0'],
             nodeName: hostName

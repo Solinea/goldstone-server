@@ -26,6 +26,7 @@ JSON payload format:
 }
 */
 
+
 // define collection and link to model
 
 var CpuResourceCollection = Backbone.Collection.extend({

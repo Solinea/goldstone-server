@@ -32,7 +32,7 @@ describe('stackedAreaCollection.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        this.testCollection = new StackedAreaCollection({
+        this.testCollection = new MultiMetricComboCollection({
             globalLookback: 30,
             metricNames: ['os.mem.toad', 'os.mem.lippy', 'os.mem.zippy'],
             nodeName: 'marvin'

@@ -26,6 +26,7 @@ JSON payload format:
 }
 */
 
+
 // define collection and link to model
 
 var MemResourceCollection = Backbone.Collection.extend({
@@ -67,5 +68,4 @@ var MemResourceCollection = Backbone.Collection.extend({
 
     // creates a url similar to:
     // /core/metrics/?name__prefix=nova.hypervisor.mem&@timestamp__range={"gte":1426887188000}
-
 });
