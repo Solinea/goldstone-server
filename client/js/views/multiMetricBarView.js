@@ -37,7 +37,7 @@ this.vmSpawnChartView = new StackedBarChartView({
 
 // view is linked to collection when instantiated in api_perf_report.html
 
-var StackedBarChartView = GoldstoneBaseView.extend({
+var MultiMetricBarView = GoldstoneBaseView.extend({
 
     defaults: {
         margin: {
@@ -53,7 +53,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         // this will invoke the processOptions method of the parent view,
         // and also add an additional param of featureSet which is used
         // to create a polymorphic interface for a variety of charts
-        StackedBarChartView.__super__.processOptions.apply(this, arguments);
+        MultiMetricBarView.__super__.processOptions.apply(this, arguments);
 
         this.defaults.featureSet = this.options.featureSet || null;
     },

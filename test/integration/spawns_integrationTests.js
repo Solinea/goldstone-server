@@ -73,7 +73,7 @@ describe('apiPerfView.js spec', function() {
 
         blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";
 
-        this.testView = new StackedBarChartView({
+        this.testView = new SpawnsView({
             chartTitle: "Tester API Performance",
             collection: this.testCollection,
             height: 300,

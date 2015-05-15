@@ -52,11 +52,11 @@ var NovaReportView = GoldstoneBasePageView.extend({
         VM Spawns Chart
         */
 
-        this.vmSpawnChart = new StackedBarChartCollection({
+        this.vmSpawnChart = new SpawnsCollection({
             urlPrefix: '/nova/hypervisor/spawns/'
         });
 
-        this.vmSpawnChartView = new StackedBarChartView({
+        this.vmSpawnChartView = new SpawnsView({
             chartTitle: "VM Spawns",
             collection: this.vmSpawnChart,
             height: 300,
@@ -74,7 +74,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
             metricNames: ['nova.hypervisor.vcpus', 'nova.hypervisor.vcpus_used']
         });
 
-        this.cpuResourcesChartView = new StackedBarChartView({
+        this.cpuResourcesChartView = new MultiMetricBarView({
             chartTitle: "CPU Resources",
             collection: this.cpuResourcesChart,
             featureSet: 'cpu',
@@ -93,7 +93,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
             metricNames: ['nova.hypervisor.memory_mb', 'nova.hypervisor.memory_mb_used']
         });
 
-        this.memResourcesChartView = new StackedBarChartView({
+        this.memResourcesChartView = new MultiMetricBarView({
             chartTitle: "Memory Resources",
             collection: this.memResourcesChart,
             featureSet: 'mem',
@@ -112,7 +112,7 @@ var NovaReportView = GoldstoneBasePageView.extend({
             metricNames: ['nova.hypervisor.local_gb', 'nova.hypervisor.local_gb_used']
         });
 
-        this.diskResourcesChartView = new StackedBarChartView({
+        this.diskResourcesChartView = new MultiMetricBarView({
             chartTitle: "Disk Resources",
             collection: this.diskResourcesChart,
             featureSet: 'disk',

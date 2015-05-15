@@ -28,7 +28,7 @@ JSON payload format:
 
 // define collection and link to model
 
-var StackedBarChartCollection = Backbone.Collection.extend({
+var SpawnsCollection = Backbone.Collection.extend({
 
     defaults: {},
 
