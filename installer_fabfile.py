@@ -190,7 +190,7 @@ def install_repos():
 
 @task
 def setup_postgres(pg_passwd='goldstone'):
-    """Configure postgresql on a CentOS 6.x system."""
+    """Configure postgresql on a CentOS 7.x system."""
     from os import rename
 
     print(green("\nConfiguring PostgreSQL."))
