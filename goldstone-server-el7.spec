@@ -28,7 +28,7 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires(pre): /usr/sbin/useradd, /usr/bin/getent, elasticsearch >= 1.4, gcc, gcc-c++, redis, logstash == 1.4.2, logstash-contrib == 1.4.2, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip, firewalld
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent, elasticsearch >= 1.4, gcc, gcc-c++, redis, logstash == 1.4.2, logstash-contrib == 1.4.2, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip, firewalld, python-virtualenv
 Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre
@@ -75,6 +75,8 @@ rm -rf %{buildroot}/*
 rm -rf %{_rpmdir}/*
 rm -f %{_sourcedir}/goldstone-server-[0-9]*.rpm
 find %{_sourcedir} -type f -name '*.py[co]' -exec rm -f {} \;
+virtualenv %{buildroot}/usr/lib/goldstone
+%{buildroot}/usr/lib/goldstone/bin/pip install fabric
 
 %build
 
@@ -120,7 +122,7 @@ install -m 640 %{_sourcedir}/external/sysconfig/celery-el7 %{buildroot}/etc/sysc
 install -m 640 %{_sourcedir}/external/systemd/system/celery-el7.service %{buildroot}/usr/lib/systemd/system/celery.service
 install -m 640 %{_sourcedir}/external/systemd/system/celerybeat-el7.service %{buildroot}/usr/lib/systemd/system/celerybeat.service
 
-find %{buildroot} -type f -name '*.py[oc]' -exec rm -f {} \;
+find %{buildroot}/opt/goldstone -type f -name '*.py[oc]' -exec rm -f {} \;
 
 %clean
 find %{_rpmdir} -type f -name '*.rpm' -exec cp {} %{_sourcedir} \;
@@ -131,6 +133,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-, apache, apache)
+/usr/lib/goldstone/
 /opt/goldstone/requirements.txt
 /opt/goldstone/setup.cfg
 /opt/goldstone/setup.py

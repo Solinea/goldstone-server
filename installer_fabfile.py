@@ -242,18 +242,6 @@ def _is_root_user():
     return getpass.getuser() == "root"
 
 
-def _fix_python():
-    """Workaround for https://bugs.launchpad.net/pbr/+bug/1369179"""
-
-    print(green("\nUpdating some python modules."))
-
-    with fab_settings(warn_only=True):
-        local('yum -y remove python-requests')
-        local('pip install --upgrade --force-reinstall setuptools')
-        local('pip install --upgrade --force-reinstall six')
-        local('pip install --upgrade --force-reinstall requests')
-
-
 @task
 def _centos_preinstall(pg_passwd):
     """Perform the pre-installation steps on CentOS."""
@@ -297,9 +285,6 @@ def _install_rpm(rpm_file):
 
     cmd = 'yum localinstall -y ' + rpm_file
     result = not local(cmd)
-
-    # if not _is_rpm_installed('goldstone-server'):
-    #     abort(red("Failed to install the goldstone-server RPM."))
 
     return result
 
@@ -659,7 +644,7 @@ def tenant_init(gs_tenant='default',
 
 
 @task
-def load(proj_settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
+def load_es_templates(proj_settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     """Initialize the system's Elasticsearch templates.
 
     This is the last installation step before executing a runserver command.
@@ -729,8 +714,6 @@ def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
 
     """
 
-    _fix_python()
-
     syncmigrate(settings=settings, install_dir=install_dir)
 
     django_admin_init(username=django_admin_user,
@@ -755,7 +738,7 @@ def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
     _collect_static(settings, install_dir)
     _reconcile_hosts(settings, install_dir)
     _configure_services()
-    load(proj_settings=settings)
+    load_es_templates(proj_settings=settings)
 
     _final_report()
 
