@@ -22,7 +22,7 @@ instantiated on nodeReportView and novaReportView
 instantiation example:
 
 this.cpuUsageChart = new MultiMetricComboCollection({
-    globalLookback: ns.globalLookback,
+    globalLookback: ns.globalLookback, (optional)
     metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
     nodeName: hostName (optional)
 });

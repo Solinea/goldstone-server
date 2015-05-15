@@ -70,7 +70,9 @@ var NovaReportView = GoldstoneBasePageView.extend({
         CPU Resources Chart
         */
 
-        this.cpuResourcesChart = new CpuResourceCollection({});
+        this.cpuResourcesChart = new MultiMetricComboCollection({
+            metricNames: ['nova.hypervisor.vcpus', 'nova.hypervisor.vcpus_used']
+        });
 
         this.cpuResourcesChartView = new StackedBarChartView({
             chartTitle: "CPU Resources",
@@ -87,7 +89,9 @@ var NovaReportView = GoldstoneBasePageView.extend({
         Mem Resources Chart
         */
 
-        this.memResourcesChart = new MemResourceCollection({});
+        this.memResourcesChart = new MultiMetricComboCollection({
+            metricNames: ['nova.hypervisor.memory_mb', 'nova.hypervisor.memory_mb_used']
+        });
 
         this.memResourcesChartView = new StackedBarChartView({
             chartTitle: "Memory Resources",
@@ -104,7 +108,9 @@ var NovaReportView = GoldstoneBasePageView.extend({
         Disk Resources Chart
         */
 
-        this.diskResourcesChart = new DiskResourceCollection({});
+        this.diskResourcesChart = new MultiMetricComboCollection({
+            metricNames: ['nova.hypervisor.local_gb', 'nova.hypervisor.local_gb_used']
+        });
 
         this.diskResourcesChartView = new StackedBarChartView({
             chartTitle: "Disk Resources",
