@@ -238,6 +238,7 @@ def setup_postgres(pg_passwd='goldstone'):
         # puts it out of sync with service control.
         sleep(10)
 
+
 @task
 def install_extra_rpms():
     """Install the downloaded RPM."""
