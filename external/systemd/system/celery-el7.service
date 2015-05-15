@@ -1,0 +1,27 @@
+[Unit]
+Description=Celery workers
+After=network.target redis.target
+
+[Service]
+Type=forking
+User=apache
+Group=apache
+EnvironmentFile=-/etc/sysconfig/celery
+WorkingDirectory=/opt/goldstone/
+# run ExecStartPre as priviledged user and set up /var/run
+PermissionsStartOnly=true
+ExecStartPre=-/usr/bin/mkdir ${CELERYD_STATE_DIR}
+ExecStartPre=/usr/bin/chown -R apache:apache ${CELERYD_STATE_DIR}
+ExecStart=/opt/goldstone/bin/celery multi start $CELERYD_NODES \
+    -A $CELERY_APP --pidfile=${CELERYD_PID_FILE} \
+    --logfile=${CELERYD_LOG_FILE} --loglevel="${CELERYD_LOG_LEVEL}" \
+    $CELERYD_OPTS
+ExecStop=/opt/goldstone/bin/celery multi stopwait $CELERYD_NODES \
+    --pidfile=${CELERYD_PID_FILE}
+ExecReload=/opt/goldstone/bin/celery multi restart $CELERYD_NODES \
+    -A ${CELERY_APP} --pidfile=${CELERYD_PID_FILE} \
+    --logfile=${CELERYD_LOG_FILE} --loglevel="${CELERYD_LOG_LEVEL}" \
+    $CELERYD_OPTS
+
+[Install]
+WantedBy=multi-user.target

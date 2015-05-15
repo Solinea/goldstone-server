@@ -13,10 +13,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 Django==1.6.11
 South==1.0.2
 arrow==0.4.4
-celery[redis]==3.1.17
+celery[redis]==3.1.18
 django-admin-bootstrapped==2.3.3
 django-extensions==1.5.1
 django-filter==0.9.2
@@ -24,9 +25,7 @@ django-polymorphic
 django-rest-params==1.0.2
 django-rest-swagger==0.2.9
 djangorestframework==3.1.0
-###The Djoser version in Pypi breaks swagger. Pull it from the master branch, until the fix is released.
-###djoser==0.2.1
--e git+https://github.com/sunscrapers/djoser.git#egg=djoser
+djoser==0.3.0
 drf-extensions==0.2.7
 elasticsearch-curator
 elasticsearch-dsl
@@ -34,12 +33,12 @@ elasticsearch
 fabric==1.10.1
 lockfile==0.9.1
 networkx==1.9.1
-pbr==0.10.8
+pbr==0.11.0
 psycopg2==2.5.4
-python-cinderclient==1.1.1
-python-glanceclient==0.17.0
-python-keystoneclient==1.2.0  # v1.3.0 conflicts with cinderclient 1.1.1
-python-neutronclient==2.3.11
-python-novaclient==2.23.0
+python-cinderclient==1.2.1
+python-glanceclient==0.17.1
+python-keystoneclient==1.3.1
+python-neutronclient==2.5.0
+python-novaclient==2.25.0
 urllib3==1.8
 wsgiref==0.1.2

@@ -21,8 +21,7 @@ https://docs.djangoproject.com/en/1.6/howto/deployment/wsgi/
 # limitations under the License.
 import os
 
-os.environ.setdefault(
-    "DJANGO_SETTINGS_MODULE", "goldstone.settings.production")
+os.environ["DJANGO_SETTINGS_MODULE"] = "goldstone.settings.production"
 
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()        # pylint: disable=C0103
