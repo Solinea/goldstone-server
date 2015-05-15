@@ -15,16 +15,15 @@
  */
 
 /*
-View is currently directly implemented as Nova VM Spawns Viz
-and extended into Nova CPU/Memory/Disk Resource Charts
+View is currently implemented for Nova CPU/Memory/Disk Resource Charts
 
 instantiated similar to:
 
-this.vmSpawnChart = new StackedBarChartCollection({
+this.vmSpawnChart = new MultiMetricComboCollection({
     urlPrefix: '/nova/hypervisor/spawns'
 });
 
-this.vmSpawnChartView = new StackedBarChartView({
+this.vmSpawnChartView = new MultiMetricBarView({
     chartTitle: "VM Spawns",
     collection: this.vmSpawnChart,
     height: 300,
@@ -35,10 +34,7 @@ this.vmSpawnChartView = new StackedBarChartView({
 });
 */
 
-// view is linked to collection when instantiated in api_perf_report.html
-
 var MultiMetricBarView = GoldstoneBaseView.extend({
-
     defaults: {
         margin: {
             top: 45,

@@ -4635,9 +4635,10 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             return result;
         } else {
             return '<option value="15">lookback 15m</option>' +
-                '<option value="60" selected>lookback 1h</option>' +
+                '<option value="60">lookback 1h</option>' +
                 '<option value="360">lookback 6h</option>' +
-                '<option value="1440">lookback 1d</option>';
+                '<option value="1440">lookback 1d</option>' +
+                '<option value="5760" selected>lookback 3d</option>';
         }
     },
 
@@ -4653,10 +4654,10 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="30" selected>refresh 30s</option>' +
+            return '<option value="30">refresh 30s</option>' +
                 '<option value="60">refresh 1m</option>' +
                 '<option value="300">refresh 5m</option>' +
-                '<option value="-1">refresh off</option>';
+                '<option value="-1" selected>refresh off</option>';
         }
     },
 
@@ -7200,16 +7201,15 @@ var MetricViewerView = GoldstoneBaseView.extend({
  */
 
 /*
-View is currently directly implemented as Nova VM Spawns Viz
-and extended into Nova CPU/Memory/Disk Resource Charts
+View is currently implemented for Nova CPU/Memory/Disk Resource Charts
 
 instantiated similar to:
 
-this.vmSpawnChart = new StackedBarChartCollection({
+this.vmSpawnChart = new MultiMetricComboCollection({
     urlPrefix: '/nova/hypervisor/spawns'
 });
 
-this.vmSpawnChartView = new StackedBarChartView({
+this.vmSpawnChartView = new MultiMetricBarView({
     chartTitle: "VM Spawns",
     collection: this.vmSpawnChart,
     height: 300,
@@ -7220,10 +7220,7 @@ this.vmSpawnChartView = new StackedBarChartView({
 });
 */
 
-// view is linked to collection when instantiated in api_perf_report.html
-
 var MultiMetricBarView = GoldstoneBaseView.extend({
-
     defaults: {
         margin: {
             top: 45,
@@ -10525,18 +10522,8 @@ var SpawnsView = GoldstoneBaseView.extend({
             .orient("left")
             .tickFormat(d3.format("01d"));
 
-        // differentiate color sets for mem and cpu charts
-        if (ns.featureSet === 'mem' || ns.featureSet === 'cpu') {
-            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct['3R']);
-        }
-        if (ns.featureSet === 'metric') {
-            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[1]);
-        } else {
-            // this includes "VM Spawns" and "Disk Resources" chars
-            ns.color = d3.scale.ordinal()
-                .range(ns.colorArray.distinct['2R']);
-        }
-
+        ns.color = d3.scale.ordinal()
+            .range(ns.colorArray.distinct['2R']);
     },
 
     dataPrep: function(data) {
@@ -10559,151 +10546,8 @@ var SpawnsView = GoldstoneBaseView.extend({
         var uniqTimestamps;
         var result = [];
 
-        if (ns.featureSet === 'metric') {
-            data = data[0].per_interval;
-            /*
-            {
-                @timestamp: "2015-04-20T19:09:08.153Z"
-                host: "10.10.20.21:55199"
-                metric_type: "gauge"
-                name: "os.cpu.idle"
-                node: "rsrc-02"
-                unit: "percent"
-                value: 97.18570476410143
-            }
-            */
-
-            _.each(data, function(item) {
-                var logTime = +(_.keys(item)[0]);
-                var value = +(_.values(item)[0]);
-                result.push({
-                    "eventTime": logTime,
-                    "Success": value,
-                });
-            });
-
-        } else if (ns.featureSet === 'cpu') {
-
-            // CPU Resources chart data prep
-            /*
-            {
-                "name": "nova.hypervisor.vcpus",
-                "region": "RegionOne",
-                "value": 16,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "count"
-            },
-            {
-                "name": "nova.hypervisor.vcpus_used",
-                "region": "RegionOne",
-                "value": 7,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "count"
-            },
-            */
-
-            uniqTimestamps = _.uniq(_.map(data, function(item) {
-                return item['@timestamp'];
-            }));
-            _.each(uniqTimestamps, function(item, i) {
-                result.push({
-                    eventTime: moment(item).valueOf(),
-                    Used: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.vcpus_used'
-                    })[0].value,
-                    Physical: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.vcpus'
-                    })[0].value
-                });
-
-            });
-
-        } else if (ns.featureSet === 'disk') {
-
-            /*
-            {
-                "name": "nova.hypervisor.local_gb_used",
-                "region": "RegionOne",
-                "value": 83,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "GB"
-            },
-            {
-                "name": "nova.hypervisor.local_gb",
-                "region": "RegionOne",
-                "value": 98,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "GB"
-            },
-        */
-            uniqTimestamps = _.uniq(_.map(data, function(item) {
-                return item['@timestamp'];
-            }));
-            _.each(uniqTimestamps, function(item, i) {
-                result.push({
-                    eventTime: moment(item).valueOf(),
-                    Used: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.local_gb_used'
-                    })[0].value,
-                    Total: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.local_gb'
-                    })[0].value
-                });
-
-            });
-
-        } else if (ns.featureSet === 'mem') {
-
-            /*
-            {
-                "name": "nova.hypervisor.memory_mb_used",
-                "region": "RegionOne",
-                "value": 10752,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "MB"
-            },
-            {
-                "name": "nova.hypervisor.memory_mb",
-                "region": "RegionOne",
-                "value": 31872,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "MB"
-            },
-            */
-
-            uniqTimestamps = _.uniq(_.map(data, function(item) {
-                return item['@timestamp'];
-            }));
-            _.each(uniqTimestamps, function(item, i) {
-                result.push({
-                    eventTime: moment(item).valueOf(),
-                    Used: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.memory_mb_used'
-                    })[0].value,
-                    Physical: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.memory_mb'
-                    })[0].value
-                });
-
-            });
-
-
-        } else {
-
-            // Spawns Resources chart data prep
-            /*
+        // Spawns Resources chart data prep
+        /*
             {"1429032900000":
                 {"count":1,
                 "success":
@@ -10714,24 +10558,24 @@ var SpawnsView = GoldstoneBaseView.extend({
             }
             */
 
-            _.each(data, function(item) {
-                var logTime = _.keys(item)[0];
-                var success = _.pluck(item[logTime].success, 'true');
-                success = success[0] || 0;
-                var failure = _.pluck(item[logTime].success, 'false');
-                failure = failure[0] || 0;
-                result.push({
-                    "eventTime": logTime,
-                    "Success": success,
-                    "Failure": failure
-                });
+        _.each(data, function(item) {
+            var logTime = _.keys(item)[0];
+            var success = _.pluck(item[logTime].success, 'true');
+            success = success[0] || 0;
+            var failure = _.pluck(item[logTime].success, 'false');
+            failure = failure[0] || 0;
+            result.push({
+                "eventTime": logTime,
+                "Success": success,
+                "Failure": failure
             });
-        }
+        });
+
         return result;
     },
 
     computeHiddenBarText: function(d) {
-        var  ns = this.defaults;
+        var ns = this.defaults;
         /*
         filter function strips keys that are irrelevant to the d3.tip:
 
@@ -10752,16 +10596,9 @@ var SpawnsView = GoldstoneBaseView.extend({
         // matches time formatting of api perf charts
         result += moment(+d.eventTime).format() + '<br>';
 
-        if (ns.featureSet === 'metric') {
-            valuesToReport.forEach(function(item) {
-                result += 'Value: ' + d[item] + '<br>';
-            });
-
-        } else {
-            valuesToReport.forEach(function(item) {
-                result += item + ': ' + d[item] + '<br>';
-            });
-        }
+        valuesToReport.forEach(function(item) {
+            result += item + ': ' + d[item] + '<br>';
+        });
 
         return result;
     },
@@ -11059,69 +10896,15 @@ var SpawnsView = GoldstoneBaseView.extend({
         // variable as it will be called by
         // the pathGenerator function that immediately follows
         var lineFunction;
-        if (ns.featureSet === 'cpu') {
-
-            // generate solid line for Virtual data points
-            // uncomment if supplying virtual stat again
-            // lineFunction = lineFunctionGenerator('Virtual');
-            // solidPathGenerator('Virtual');
-
-            // generate dashed line for Physical data points
-            lineFunction = lineFunctionGenerator('Physical');
-            dashedPathGenerator('Physical');
-
-        } else if (ns.featureSet === 'disk') {
-
-            // generate solid line for Total data points
-            lineFunction = lineFunctionGenerator('Total');
-            solidPathGenerator('Total');
-        } else if (ns.featureSet === 'mem') {
-
-            // generate solid line for Virtual data points
-            // uncomment if supplying virtual stat again
-            // lineFunction = lineFunctionGenerator('Virtual');
-            // solidPathGenerator('Virtual');
-
-            // generate dashed line for Physical data points
-            lineFunction = lineFunctionGenerator('Physical');
-            dashedPathGenerator('Physical');
-        }
-
 
         // appends chart legends
         var legendSpecs = {
-            metric: [
-                // uncomment if supplying virtual stat again
-                // ['Virtual', 2],
-                ['Value', 0],
-            ],
-            mem: [
-                // uncomment if supplying virtual stat again
-                // ['Virtual', 2],
-                ['Physical', 1],
-                ['Used', 0]
-            ],
-            cpu: [
-                // uncomment if supplying virtual stat again
-                // ['Virtual', 2],
-                ['Physical', 1],
-                ['Used', 0]
-            ],
-            disk: [
-                ['Total', 1],
-                ['Used', 0]
-            ],
             spawn: [
                 ['Fail', 1],
                 ['Success', 0]
             ]
         };
-
-        if (ns.featureSet !== null) {
-            this.appendLegend(legendSpecs[ns.featureSet]);
-        } else {
-            this.appendLegend(legendSpecs.spawn);
-        }
+        this.appendLegend(legendSpecs.spawn);
     },
 
     appendLegend: function(legendSpecs) {
