@@ -399,9 +399,4 @@ TBD
     * [D3](http://d3js.org), to provide nearly unlimited freedom to visually express data
     * [Font Awesome](http://fontawesome.io)
 
-## License
-
-This work is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/).
-
-* [Read the license's summary](http://creativecommons.org/licenses/by-sa/4.0/)
-* [Read the license's full legal text](http://creativecommons.org/licenses/by-sa/4.0/legalcode)
+[end of file]
