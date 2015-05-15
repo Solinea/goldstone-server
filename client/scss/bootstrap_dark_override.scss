@@ -64,3 +64,11 @@
     background-color: if($theme==dark, $dark_chart_background, #fff);
     box-shadow: none;
 }
+
+.modal-content {
+  color: if($theme==dark, $dark_text_on_light, null);
+}
+
+.dropdown {
+  color: if($theme==dark, $dark_text_on_light, null);
+}

@@ -15,20 +15,16 @@
  */
 
 /*
-
-Instantiated on metricViewerPageView as:
-
-this.metricViewerChart = new MetricViewerCollection1({});
-
 instance variable added to options hash in order to
 create a custom binding between each metricViewerChart
 and the associated modal menus
 
+Instantiated on metricViewerPageView as:
+
 this.metricViewerChartView = new MetricViewerView({
-        collection: this.metricViewerChart1,
         width: $('#goldstone-metric-r1-c1').width(),
         height: $('#goldstone-metric-r1-c1').width(),
-        instance: 1
+        instance: xxx
 });
 
 */
@@ -42,26 +38,54 @@ var MetricViewerView = GoldstoneBaseView.extend({
         this.processListeners();
         this.render();
         this.chartOptions = new Backbone.Model({});
+        this.getMetricNames();
+        this.getResourceNames();
+    },
+
+    getResourceNames: function() {
+        var ns = this.defaults;
+        var self = this;
+
+        // 'host_name' will be extracted from the returned array of host objects
+        $.get("/nova/hosts/", function() {})
+            .done(function(data) {
+                if (data === undefined || data.length === 0) {
+                    $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text(' No resources returned');
+                } else {
+                    ns.resourceNames = data[0];
+                    self.populateResources();
+                }
+            })
+            .fail(function() {
+                $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text(' Resource name fetch failed');
+            });
+    },
+
+    getMetricNames: function() {
+        var ns = this.defaults;
+        var self = this;
+
+        $.get("/core/metric_names/", function() {})
+            .done(function(data) {
+                data = data.per_name;
+                if (data === undefined || data.length === 0) {
+                    $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' No metric reports available');
+                } else {
+                    ns.metricNames = data;
+                    self.populateMetrics();
+                }
+            })
+            .fail(function() {
+                $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' Metric report list fetch failed');
+            })
+            .always(function() {
+                self.attachModalTriggers();
+            });
     },
 
     processListeners: function() {
         var ns = this.defaults;
         var self = this;
-
-        // triggered whenever this.collection finishes fetching
-        this.listenTo(this.collection, 'sync', function() {
-
-            if (self.collection.toJSON() === undefined || self.collection.toJSON().length === 0) {
-                $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text('No metric reports available');
-                return;
-            } else {
-                self.populateMetrics();
-            }
-
-            // after the dropdown is populated,
-            // attach button listeners
-            this.attachModalTriggers();
-        });
 
         this.listenTo(this, 'globalLookbackReached', function() {
             if (this.metricChart) {
@@ -116,11 +140,37 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
     populateMetrics: function() {
         var self = this;
+        var ns = this.defaults;
 
+        // clear the 'loading' text next to the dropdown
         $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text('');
 
-        _.each(self.collection.toJSON(), function(item) {
+        // append the options within the dropdown
+        _.each(ns.metricNames, function(item) {
             $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-options').append('<option>' + _.keys(item)[0] + "</option>");
+        });
+    },
+
+    populateResources: function() {
+        var self = this;
+        var ns = this.defaults;
+
+        // clear the 'loading' text next to the dropdown
+        $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text('');
+
+        // host names will be similar to: ctrl-01.c2.oak.solinea.com
+        // so slice from the beginning up to the first '.'
+        var resourceNames = _.uniq(_.map(ns.resourceNames, function(item) {
+            return (item.host_name).slice(0, item.host_name.indexOf('.'));
+        }));
+
+        // add 'all' to the beginning of the array of resources which will
+        // be appended as the first drop-down option
+        resourceNames.unshift('all');
+
+        // append the options within the dropdown
+        _.each(resourceNames, function(item) {
+            $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-options').append('<option>' + item + "</option>");
         });
     },
 
@@ -203,14 +253,12 @@ var MetricViewerView = GoldstoneBaseView.extend({
         // loading text will be removed when options are populated
         '<span class="metric-dropdown-text"> Loading...</span>' +
 
-        // hard coded for now - to become dynamic
+        // loading text will be removed when options are populated
         '<h5>Resource</h5>' +
         '<select class="resource-dropdown-options">' +
-        '<option value="all" selected>all</option>' +
-        '<option value="ctrl-01">ctrl-01</option>' +
-        '<option value="rsrc-01">rsrc-01</option>' +
-        '<option value="rsrc-02">rsrc-02</option>' +
+        // options will be populated by populateMetrics()
         '</select>' +
+        '<span class="resource-dropdown-text"> Loading...</span>' +
 
         '<h5>Statistic</h5>' +
         '<select class="statistic-dropdown-options">' +
