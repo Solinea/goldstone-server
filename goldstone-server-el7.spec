@@ -52,6 +52,24 @@ pip install -r requirements.txt
 # like the best approach.
 chown -R apache:apache /opt/goldstone
 
+echo "*****************************************************************************"
+echo ""
+echo "  To complete installation, follow these steps as root:"
+echo ""
+echo "      cd /opt/goldstone"
+echo "      . bin/activate"
+echo "      fab install"
+echo ""
+echo "  You will be prompted for:"
+echo "      - the Django admin (admin) password"
+echo "      - the Goldstone admin (gsadmin) password"
+echo "      - the OpenStack admin tenant (from your adminrc)"
+echo "      - the OpenStack admin user (from your adminrc)"
+echo "      - the OpenStack admin password (from your adminrc)"
+echo "      - the OpenStack auth URL (from your adminrc)"
+echo ""
+echo "*****************************************************************************"
+
 %preun
 
 %postun

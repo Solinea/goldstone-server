@@ -282,7 +282,8 @@ def cloud_init(gs_tenant,
     # The OpenStack identity authorization URL has a version number segment.
     # This is the authorization version we use. It should end with a slash, but
     # maybe that's not necessary.
-    CLOUD_AUTH_URL_VERSION = "v3/"
+    import re
+    CLOUD_AUTH_URL_VERSION = "/v3/"
 
     with _django_env(settings, install_dir):
         from goldstone.tenants.models import Cloud
@@ -303,11 +304,16 @@ def cloud_init(gs_tenant,
                 stack_password = prompt(
                     cyan("Enter Openstack user password: "))
             if stack_auth_url is None:
-                stack_auth_url = prompt(
-                    cyan("Enter Openstack auth url base, without the version "
-                         "(ex: http://10.10.10.10:5000/): "))
-            stack_auth_url = os.path.join(stack_auth_url,
-                                          CLOUD_AUTH_URL_VERSION)
+                while stack_auth_url is None or \
+                        (not stack_auth_url.endswith(CLOUD_AUTH_URL_VERSION)):
+                    stack_auth_url = prompt(
+                        cyan("Enter OpenStack auth URL base "
+                             "(ex: http://10.10.10.10:5000/v2.0): "))
+                    if not stack_auth_url.endswith(CLOUD_AUTH_URL_VERSION):
+                        stack_auth_url = re.sub('/v2.0[/]?$|/v3[/]?$',
+                                                CLOUD_AUTH_URL_VERSION,
+                                                stack_auth_url)
+
             Cloud.objects.create(tenant=gs_tenant,
                                  tenant_name=stack_tenant,
                                  username=stack_user,
