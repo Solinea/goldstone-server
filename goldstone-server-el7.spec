@@ -23,18 +23,14 @@ Release:        %{release}%{?dist}
 Epoch:          %{epoch}
 Group:          Applications/System
 License:        Apache2.0
-URL:            https://github.com/Solinea/goldstone-server
+URL:            https://github.com/solinea/goldstone-server
 ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires(pre): /usr/sbin/useradd, /usr/bin/getent
 Requires: epel-release, gcc, gcc-c++, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip, firewalld, python-virtualenv, java-1.7.0-openjdk, postgresql-server, postgresql-devel, git
-Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre
-/usr/bin/getent group goldstone || /usr/sbin/groupadd -r goldstone
-/usr/bin/getent passwd goldstone || /usr/sbin/useradd -r -g goldstone -d /opt/goldstone -s /sbin/nologin goldstone
 
 %post
 # $1 if present will be the target number of installs of this package
@@ -51,10 +47,10 @@ export DJANGO_SETTINGS_MODULE=goldstone.settings.production
 cd /opt/goldstone
 pip install -r requirements.txt
 
-# Get all the ownerships back in shape.  No guarantee that we can su to goldstone,
+# Get all the ownerships back in shape.  No guarantee that we can su to apache,
 # and running python during install may set some ownerships to root. This seems
 # like the best approach.
-chown -R goldstone:goldstone /opt/goldstone
+chown -R apache:apache /opt/goldstone
 
 %preun
 
@@ -114,6 +110,7 @@ install -m 640 %{_sourcedir}/requirements.txt %{buildroot}/opt/goldstone/require
 install -m 640 %{_sourcedir}/setup.cfg %{buildroot}/opt/goldstone/setup.cfg
 install -m 750 %{_sourcedir}/setup.py %{buildroot}/opt/goldstone/setup.py
 install -m 750 %{_sourcedir}/manage.py %{buildroot}/opt/goldstone/manage.py
+install -m 640 %{_sourcedir}/installer_fabfile.py %{buildroot}/opt/goldstone/fabfile.py
 install -m 640 %{_sourcedir}/README.md %{buildroot}/opt/goldstone/README.md
 install -m 640 %{_sourcedir}/INSTALL.md %{buildroot}/opt/goldstone/INSTALL.md
 install -m 640 %{_sourcedir}/LICENSE %{buildroot}/opt/goldstone/LICENSE
@@ -134,11 +131,12 @@ rm -rf %{buildroot}
 %global __os_install_post %(echo '%{__os_install_post}' | sed -e 's!/usr/lib[^[:space:]]*/brp-python-bytecompile[[:space:]].*$!!g')
 
 %files
-%defattr(-, goldstone, goldstone)
+%defattr(-, apache, apache)
 /opt/goldstone/requirements.txt
 /opt/goldstone/setup.cfg
 /opt/goldstone/setup.py
 /opt/goldstone/manage.py
+/opt/goldstone/fabfile.py
 /opt/goldstone/README.md
 /opt/goldstone/INSTALL.md
 /opt/goldstone/LICENSE
@@ -148,23 +146,23 @@ rm -rf %{buildroot}
 /opt/goldstone/external/
 /var/log/goldstone/
 /var/www/goldstone/static/
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/02-input-tcp5514
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/03-input-resubs
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/16-metrics-and-reports
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/17-filter-nova-api-stats
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/18-filter-nova-spawns
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/19-filter-nova-claims
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/20-basic-syslog
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/34-filter-opestack-syslog
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/38-filter-goldstone-nodeinfo
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/66-output-es-goldstone-metrics
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/67-output-es-goldstone-reports
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/68-output-es-logstash
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/69-output-es-goldstone
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/70-output-resubs
-%attr(-, goldstone, logstash) /etc/logstash/conf.d/99-filter-last-stop
-%attr(-, goldstone, logstash) /opt/logstash/patterns/goldstone
-%attr(-, apache, goldstone) %config /etc/httpd/conf.d/zgoldstone.conf
+%attr(-, apache, logstash) /etc/logstash/conf.d/02-input-tcp5514
+%attr(-, apache, logstash) /etc/logstash/conf.d/03-input-resubs
+%attr(-, apache, logstash) /etc/logstash/conf.d/16-metrics-and-reports
+%attr(-, apache, logstash) /etc/logstash/conf.d/17-filter-nova-api-stats
+%attr(-, apache, logstash) /etc/logstash/conf.d/18-filter-nova-spawns
+%attr(-, apache, logstash) /etc/logstash/conf.d/19-filter-nova-claims
+%attr(-, apache, logstash) /etc/logstash/conf.d/20-basic-syslog
+%attr(-, apache, logstash) /etc/logstash/conf.d/34-filter-opestack-syslog
+%attr(-, apache, logstash) /etc/logstash/conf.d/38-filter-goldstone-nodeinfo
+%attr(-, apache, logstash) /etc/logstash/conf.d/66-output-es-goldstone-metrics
+%attr(-, apache, logstash) /etc/logstash/conf.d/67-output-es-goldstone-reports
+%attr(-, apache, logstash) /etc/logstash/conf.d/68-output-es-logstash
+%attr(-, apache, logstash) /etc/logstash/conf.d/69-output-es-goldstone
+%attr(-, apache, logstash) /etc/logstash/conf.d/70-output-resubs
+%attr(-, apache, logstash) /etc/logstash/conf.d/99-filter-last-stop
+%attr(-, apache, logstash) /opt/logstash/patterns/goldstone
+%config /etc/httpd/conf.d/zgoldstone.conf
 %attr(-, root, root) %config /etc/selinux/config
 %config /etc/sysconfig/celery
 %config /usr/lib/systemd/system/celery.service
