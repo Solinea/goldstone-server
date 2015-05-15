@@ -42,7 +42,6 @@ var NodeReportView = GoldstoneBasePageView.extend({
             this.cpuUsageView.trigger('lookbackSelectorChanged');
             this.memoryUsageView.trigger('lookbackSelectorChanged');
             this.networkUsageView.trigger('lookbackSelectorChanged');
-            this.hypervisorCoreView.trigger('lookbackSelectorChanged');
         }
 
         if (this.visiblePanel.Reports) {
@@ -178,12 +177,14 @@ var NodeReportView = GoldstoneBasePageView.extend({
             infoText: 'utilization',
             columns: 12
         });
-        new ChartHeaderView({
-            el: '#hypervisor-title-bar',
-            chartTitle: 'Hypervisor',
-            infoText: 'hypervisor',
-            columns: 12
-        });
+
+        // PENDING
+        // new ChartHeaderView({
+        //     el: '#hypervisor-title-bar',
+        //     chartTitle: 'Hypervisor',
+        //     infoText: 'hypervisor',
+        //     columns: 12
+        // });
 
         // construct api calls from url component
         // between the last '/' and the following '.'
@@ -252,44 +253,47 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         //---------------------------
         // instantiate Libvirt core/vm chart
-        this.hypervisorCoreChart = new HypervisorCollection({
-            url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
-            globalLookback: ns.globalLookback
-        });
+        // PENDING
+        // this.hypervisorCoreChart = new HypervisorCollection({
+        //     url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
+        //     globalLookback: ns.globalLookback
+        // });
 
-        this.hypervisorCoreView = new HypervisorView({
-            collection: this.hypervisorCoreChart,
-            el: '#node-report-r4 #node-report-panel #cores-usage',
-            width: $('#node-report-r4 #node-report-panel #cores-usage').width(),
-            axisLabel: "Cores"
-        });
+        // this.hypervisorCoreView = new HypervisorView({
+        //     collection: this.hypervisorCoreChart,
+        //     el: '#node-report-r4 #node-report-panel #cores-usage',
+        //     width: $('#node-report-r4 #node-report-panel #cores-usage').width(),
+        //     axisLabel: "Cores"
+        // });
 
 
         //---------------------------
         // instantiate Libvirt mem/vm  chart
-        this.hypervisorMemoryChart = new HypervisorCollection({
-            url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
-            globalLookback: ns.globalLookback
-        });
-        this.hypervisorMemoryView = new HypervisorView({
-            collection: this.hypervisorMemoryChart,
-            el: '#node-report-r4 #node-report-panel #memory-usage',
-            width: $('#node-report-r4 #node-report-panel #memory-usage').width(),
-            axisLabel: "GB"
-        });
+        // PENDING
+        // this.hypervisorMemoryChart = new HypervisorCollection({
+        //     url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
+        //     globalLookback: ns.globalLookback
+        // });
+        // this.hypervisorMemoryView = new HypervisorView({
+        //     collection: this.hypervisorMemoryChart,
+        //     el: '#node-report-r4 #node-report-panel #memory-usage',
+        //     width: $('#node-report-r4 #node-report-panel #memory-usage').width(),
+        //     axisLabel: "GB"
+        // });
 
         //---------------------------
         // instantiate Libvirt top 10 CPU consumer VMs chart
-        this.hypervisorVmCpuChart = new HypervisorVmCpuCollection({
-            url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
-            globalLookback: ns.globalLookback
-        });
+        // PENDING
+        // this.hypervisorVmCpuChart = new HypervisorVmCpuCollection({
+        //     url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
+        //     globalLookback: ns.globalLookback
+        // });
 
-        this.hypervisorVmCpuView = new HypervisorVmCpuView({
-            collection: this.hypervisorVmCpuChart,
-            el: '#node-report-r4 #node-report-panel #vm-cpu-usage',
-            width: $('#node-report-r4 #node-report-panel #vm-cpu-usage').width()
-        });
+        // this.hypervisorVmCpuView = new HypervisorVmCpuView({
+        //     collection: this.hypervisorVmCpuChart,
+        //     el: '#node-report-r4 #node-report-panel #vm-cpu-usage',
+        //     width: $('#node-report-r4 #node-report-panel #vm-cpu-usage').width()
+        // });
 
         //---------------------------
         // instantiate Reports tab
@@ -390,21 +394,23 @@ var NodeReportView = GoldstoneBasePageView.extend({
         '<div id="node-report-r4" class="row">' +
         '<div id="node-report-r4-c1" class="col-md-12">' +
 
+        // PENDING
         // placeholder for title bar and info popover
-        '<div id="hypervisor-title-bar"></div>' +
-        '<div id="node-report-panel" class="panel panel-primary">' +
-        '<div class="well col-md-12">' +
-        '<div class="col-md-3 text-center" id="cores-usage">' +
-        'Cores' +
-        '</div>' +
-        '<div class="col-md-3 text-center" id="memory-usage">' +
-        'Memory' +
-        '</div>' +
-        '<div class="col-md-6" id="vm-cpu-usage">' +
-        'Per VM CPU Usage' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
+        // '<div id="hypervisor-title-bar"></div>' +
+        // '<div id="node-report-panel" class="panel panel-primary">' +
+        // '<div class="well col-md-12">' +
+        // '<div class="col-md-3 text-center" id="cores-usage">' +
+        // 'Cores' +
+        // '</div>' +
+        // '<div class="col-md-3 text-center" id="memory-usage">' +
+        // 'Memory' +
+        // '</div>' +
+        // '<div class="col-md-6" id="vm-cpu-usage">' +
+        // 'Per VM CPU Usage' +
+        // '</div>' +
+        // '</div>' +
+        // '</div>' +
+
         '</div>' +
         '</div>' +
         '</div>' +
