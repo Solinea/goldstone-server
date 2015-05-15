@@ -28,7 +28,8 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires(pre): /usr/sbin/useradd, /usr/bin/getent, gcc, gcc-c++, epel-release, redis, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip, firewalld, python-virtualenv, java-1.7.0-openjdk, postgresql-server, postgresql-devel, git
+PreReq: epel-release
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent, gcc, gcc-c++, redis, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip, firewalld, python-virtualenv, java-1.7.0-openjdk, postgresql-server, postgresql-devel, git
 Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre
