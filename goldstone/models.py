@@ -132,8 +132,7 @@ class TopologyData(object):
 
         try:
             self.search.sort(self._sort_arg(sort_key, sort_order))
-            # only interested in one record
-            self.search = self.search[0:1]
+            self.search = self.search[0:count]
             logger.debug("[get] search = %s", self.search.to_dict())
             # pylint: disable=W0212
             logger.debug("[get] index = %s", self.search._index)

@@ -32,7 +32,6 @@ DATABASES = {
     }
 }
 
-# SECRET_KEY = 'dev-v=jazz^xno*0(aou-6ir*q-c+v&r#ue5b4wxt-xy#rebph8q)'
 SECRET_KEY = None
 LOCAL_PATH = None
 
@@ -86,6 +85,7 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'filename': '/var/log/goldstone/goldstone.log',
+            'formatter': 'default'
         },
     },
     'loggers': {

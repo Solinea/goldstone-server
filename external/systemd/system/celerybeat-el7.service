@@ -1,0 +1,24 @@
+[Unit]
+Description=Celery beat scheduler
+After=network.target redis.target
+
+[Service]
+Type=simple
+User=apache
+Group=apache
+EnvironmentFile=-/etc/sysconfig/celery
+WorkingDirectory=/opt/goldstone/
+# run ExecStartPre as priviledged user and set up /var/run
+PermissionsStartOnly=true
+ExecStartPre=-/usr/bin/mkdir ${CELERYBEAT_STATE_DIR}
+ExecStartPre=/usr/bin/chown -R apache:apache ${CELERYBEAT_STATE_DIR}
+ExecStart=/opt/goldstone/bin/celery beat -A ${CELERY_APP} \
+    --workdir=/opt/goldstone \
+    --pidfile=${CELERYBEAT_PID_FILE} \
+    --logfile=${CELERYBEAT_LOG_FILE} \
+    --loglevel=${CELERYBEAT_LOG_LEVEL} \
+    --schedule=${CELERYBEAT_SCHEDULE}
+ExecStop=/bin/systemctl kill celerybeat.service
+
+[Install]
+WantedBy=multi-user.target

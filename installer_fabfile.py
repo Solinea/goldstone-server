@@ -24,7 +24,7 @@ from fabric.api import task, local, settings as fab_settings
 from fabric.colors import green, cyan, red
 from fabric.utils import abort, fastprint
 from fabric.operations import prompt
-from fabric.context_managers import lcd, hide
+from fabric.context_managers import lcd
 
 
 ES_REPO_FILENAME = "/etc/yum.repos.d/elasticsearch-1.4.repo"
@@ -52,8 +52,8 @@ CENTOS_PGDATA = '/var/lib/pgsql/data'
 CENTOS_PG_HBA = CENTOS_PGDATA + "/pg_hba.conf"
 CENTOS_PG_HBA_BACKUP = CENTOS_PGDATA + "/pg_hba.conf.bak"
 
-REQUIRED_RPMS = ['gcc', 'java-1.7.0-openjdk', 'postgresql-server',
-                 'postgresql-devel', 'git']
+REQUIRED_PORTS = ['80/tcp', '9200/tcp', '5514/tcp', '5514/udp', '5515/tcp',
+                  '5515/udp', '5516/tcp', '5516/udp']
 
 # The Goldstone install dir
 INSTALL_DIR = '/opt/goldstone'
@@ -68,123 +68,19 @@ final_report = {    # pylint: disable=C0103
     'django_admin_user': None,
     'django_admin_pass': None,
     'goldstone_admin_user': None,
-    'goldstone_admin_pass': None
+    'goldstone_admin_pass': None,
+    'port': 80
 }
 
 
-def _is_supported_centos6():
-    """Return True if this is a CentOS 6.5 or 6.6 server."""
+def _is_supported_centos7():
+    """Return True if this is a CentOS 7.0 or 7.1 server."""
 
     try:
         dist = platform.linux_distribution()
-        return dist[0] == 'CentOS' and dist[1] in ['6.5', '6.6']
+        return dist[0] == 'CentOS Linux' and dist[1].startswith('7.')
     except Exception:  # pylint: disable=W0703
         return False
-
-
-def _is_development_mac():
-    """Return True if this is a Mac."""
-
-    try:
-        dist = platform.mac_ver()
-        return dist[2] == 'x86_64'
-    except Exception:  # pylint: disable=W0703
-        return False
-
-
-def _is_rpm_installed(name):
-    """Return True if an RPM is installed."""
-
-    cmd = 'yum list installed ' + name
-    with nested(hide('warnings', 'stdout', 'stderr'),
-                fab_settings(warn_only=True)):
-        result = local(cmd)
-
-    return not result.failed
-
-
-def _verify_required_rpms(rpms):
-    """Verify that a list of RPMs is installed on the system.
-
-    Returns the list of missing dependencies (empty list if all satisfied).
-
-    """
-
-    print(green("\nChecking for prerequisite RPMs."))
-
-    missing = [name for name in rpms if not _is_rpm_installed(name)]
-    return missing
-
-
-def _install_additional_repos():
-    """Sets up yum repos used by goldstone installer."""
-
-    print(green("\nInstalling epel, logstash, and elasticsearch repos."))
-
-    if not _is_rpm_installed('epel-release'):
-        local('yum install -y  '
-              'http://dl.fedoraproject.org/pub/epel/6/'
-              'x86_64/epel-release-6-8.noarch.rpm')
-
-    local('rpm --import http://packages.elasticsearch.org/'
-          'GPG-KEY-elasticsearch')
-
-    if not os.path.isfile(ES_REPO_FILENAME):
-        es_repo = open(ES_REPO_FILENAME, 'w')
-        print(ES_REPO_TEXT, file=es_repo)
-        es_repo.close()
-
-    if not os.path.isfile(LOGSTASH_REPO_FILENAME):
-        logstash_repo = open(LOGSTASH_REPO_FILENAME, 'w')
-        print(LOGSTASH_REPO_TEXT, file=logstash_repo)
-        logstash_repo.close()
-
-
-def _centos6_setup_postgres(pg_passwd):
-    """Configure postgresql on a CentOS system."""
-    from os import rename
-
-    print()
-    print(green("Configuring PostgreSQL."))
-
-    if not os.path.exists(CENTOS_PG_HBA):
-        subprocess.call('service postgresql initdb'.split())
-
-    subprocess.call('chkconfig postgresql on'.split())
-    subprocess.call('service postgresql start'.split())
-    # ugly, but using pg_ctl reload doesn't wait, and pg_ctl restart
-    # puts it out of sync with service control.
-    sleep(10)
-    subprocess.call('su - postgres -c "createdb goldstone"', shell=True)
-
-    print(green("\nCreating the PostgreSQL goldstone user."))
-
-    remote_cmd = "createuser goldstone -s -d -P<<EOF\n" + \
-                 pg_passwd + "\n" + \
-                 pg_passwd + "\nEOF\n"
-    subprocess.call('su - postgres -c "' + remote_cmd + '"', shell=True)
-
-    # grep returns 0/False if a match is found, 1/True if not.
-    cmd = "grep -q goldstone " + CENTOS_PG_HBA
-    if subprocess.call(cmd.split()):
-
-        # edit the pg_hba.conf if not goldstone entry was found.
-        rename(CENTOS_PG_HBA, CENTOS_PG_HBA_BACKUP)
-        with nested(open(CENTOS_PG_HBA, 'w'), open(CENTOS_PG_HBA_BACKUP, 'r')) \
-                as (pg_hba_fd, infile):
-
-            print("local\tall\tgoldstone\tpassword", file=pg_hba_fd)
-            print("host\tall\tgoldstone\t127.0.0.1/32\tpassword",
-                  file=pg_hba_fd)
-            print("host\tall\tgoldstone\t::1/128\tpassword", file=pg_hba_fd)
-            # now tack on the original file
-            pg_hba_fd.write(infile.read())
-
-        # reload the config
-        subprocess.call('service postgresql force-reload'.split())
-        # ugly, but using pg_ctl reload doesn't wait, and pg_ctl restart
-        # puts it out of sync with service control.
-        sleep(10)
 
 
 def _is_root_user():
@@ -192,66 +88,6 @@ def _is_root_user():
     import getpass
 
     return getpass.getuser() == "root"
-
-
-def _fix_setuptools():
-    """Workaround for https://bugs.launchpad.net/pbr/+bug/1369179"""
-
-    print(green("\nUpdating distribute and setuptools modules."))
-
-    with nested(hide('warnings', 'stdout', 'stderr'),
-                fab_settings(warn_only=True)):
-        local('pip install --upgrade distribute')
-        local('pip install --upgrade setuptools')
-
-
-def _centos6_preinstall(pg_passwd):
-    """Perform the pre-installation steps on CentOS."""
-
-    if not _is_root_user():
-        abort(red('\nThis task must be run as root. Exiting...'))
-
-    missing = _verify_required_rpms(REQUIRED_RPMS)
-    if missing:
-        abort(red("\nPlease rerun this task after the following RPMs are "
-              "installed: %s" % str(missing)))
-
-    _install_additional_repos()
-    _centos6_setup_postgres(pg_passwd)
-    _fix_setuptools()
-
-
-def _development_mac_preinstall():
-    """Verify/set up Goldstone dev environment on MacOS."""
-    pass
-
-
-def _validate_path(path):
-    """Return the path if it exists, otherwise raise an exception."""
-
-    if not os.path.exists(path):
-        raise ValueError("File does not exist.")
-
-    return path
-
-
-def _centos6_install(rpm_file):
-    """Install the downloaded RPM."""
-
-    print()
-    print(green("Installing the Goldstone server RPM."))
-
-    if rpm_file is None:
-        rpm_file = prompt(cyan("Enter path to the goldstone-server RPM: "),
-                          default="./goldstone-server.rpm")
-
-    cmd = 'yum localinstall -y ' + rpm_file
-    result = not local(cmd)
-
-    if not _is_rpm_installed('goldstone-server'):
-        abort(red("Failed to install the goldstone-server RPM."))
-
-    return result
 
 
 def _django_manage(command,
@@ -281,7 +117,7 @@ def _django_manage(command,
     # Run this command as a background process, if requested.
     daemon_opt = "&" if daemon else ''
 
-    with nested(lcd(install_dir), hide('stdout', 'stderr', 'warnings')):
+    with lcd(install_dir):
         local("./manage.py %s %s %s %s" %
               (command, target, settings_opt, daemon_opt))
 
@@ -330,6 +166,92 @@ def _reconcile_hosts(proj_settings, install_dir):
 
 
 @task
+def install_repos():
+    """Sets up yum repos used by goldstone installer."""
+
+    print(green("\nInstalling logstash and elasticsearch repos."))
+
+    if not _is_root_user():
+        abort(red('\nThis task must be run as root. Exiting...'))
+
+    local('rpm --import http://packages.elasticsearch.org/'
+          'GPG-KEY-elasticsearch')
+
+    if not os.path.isfile(ES_REPO_FILENAME):
+        es_repo = open(ES_REPO_FILENAME, 'w')
+        print(ES_REPO_TEXT, file=es_repo)
+        es_repo.close()
+
+    if not os.path.isfile(LOGSTASH_REPO_FILENAME):
+        logstash_repo = open(LOGSTASH_REPO_FILENAME, 'w')
+        print(LOGSTASH_REPO_TEXT, file=logstash_repo)
+        logstash_repo.close()
+
+
+@task
+def setup_postgres(pg_passwd='goldstone'):
+    """Configure postgresql on a CentOS 7.x system."""
+    from os import rename
+
+    print(green("\nConfiguring PostgreSQL."))
+
+    if not _is_root_user():
+        abort(red('\nThis task must be run as root. Exiting...'))
+
+    if not os.path.exists(CENTOS_PG_HBA):
+        subprocess.call('postgresql-setup initdb'.split())
+
+    subprocess.call('systemctl enable postgresql'.split())
+    subprocess.call('systemctl start postgresql'.split())
+
+    # ugly, but using pg_ctl reload doesn't wait, and pg_ctl restart
+    # puts it out of sync with service control.
+    sleep(10)
+    subprocess.call('su - postgres -c "createdb goldstone"', shell=True)
+
+    print(green("\nCreating the PostgreSQL goldstone user."))
+
+    remote_cmd = "createuser goldstone -s -d -P<<EOF\n" + \
+                 pg_passwd + "\n" + \
+                 pg_passwd + "\nEOF\n"
+    subprocess.call('su - postgres -c "' + remote_cmd + '"', shell=True)
+
+    # grep returns 0/False if a match is found, 1/True if not.
+    cmd = "grep -q goldstone " + CENTOS_PG_HBA
+    if subprocess.call(cmd.split()):
+
+        # edit the pg_hba.conf if not goldstone entry was found.
+        rename(CENTOS_PG_HBA, CENTOS_PG_HBA_BACKUP)
+        with nested(open(CENTOS_PG_HBA, 'w'), open(CENTOS_PG_HBA_BACKUP, 'r')) \
+                as (pg_hba_fd, infile):
+
+            print("local\tall\tgoldstone\tpassword", file=pg_hba_fd)
+            print("host\tall\tgoldstone\t127.0.0.1/32\tpassword",
+                  file=pg_hba_fd)
+            print("host\tall\tgoldstone\t::1/128\tpassword", file=pg_hba_fd)
+            # now tack on the original file
+            pg_hba_fd.write(infile.read())
+
+        # reload the config
+        subprocess.call('service postgresql force-reload'.split())
+        # ugly, but using pg_ctl reload doesn't wait, and pg_ctl restart
+        # puts it out of sync with service control.
+        sleep(10)
+
+
+@task
+def install_extra_rpms():
+    """Install the downloaded RPM."""
+
+    if not _is_root_user():
+        abort(red('\nThis task must be run as root. Exiting...'))
+
+    print()
+    print(green("Installing redis, logstash, and ES."))
+    local('yum -y install redis elasticsearch logstash logstash-contrib')
+
+
+@task
 def cloud_init(gs_tenant,
                stack_tenant,
                stack_user,
@@ -360,7 +282,8 @@ def cloud_init(gs_tenant,
     # The OpenStack identity authorization URL has a version number segment.
     # This is the authorization version we use. It should end with a slash, but
     # maybe that's not necessary.
-    CLOUD_AUTH_URL_VERSION = "v3/"
+    import re
+    CLOUD_AUTH_URL_VERSION = "/v3/"
 
     with _django_env(settings, install_dir):
         from goldstone.tenants.models import Cloud
@@ -381,11 +304,16 @@ def cloud_init(gs_tenant,
                 stack_password = prompt(
                     cyan("Enter Openstack user password: "))
             if stack_auth_url is None:
-                stack_auth_url = prompt(
-                    cyan("Enter Openstack auth url base, without the version "
-                         "(ex: http://10.10.10.10:5000/): "))
-            stack_auth_url = os.path.join(stack_auth_url,
-                                          CLOUD_AUTH_URL_VERSION)
+                while stack_auth_url is None or \
+                        not stack_auth_url.endswith(CLOUD_AUTH_URL_VERSION):
+                    stack_auth_url = prompt(
+                        cyan("Enter OpenStack auth URL base "
+                             "(ex: http://10.10.10.10:5000/v2.0): "))
+                    if not stack_auth_url.endswith(CLOUD_AUTH_URL_VERSION):
+                        stack_auth_url = re.sub('/v2.0[/]?$|/v3[/]?$',
+                                                CLOUD_AUTH_URL_VERSION,
+                                                stack_auth_url)
+
             Cloud.objects.create(tenant=gs_tenant,
                                  tenant_name=stack_tenant,
                                  username=stack_user,
@@ -395,8 +323,57 @@ def cloud_init(gs_tenant,
             fastprint("\nCloud entry already exists.")
 
 
+def _configure_centos7_firewalld():
+    """Enable, start and configure ports for firewall."""
+
+    print(green("\nConfiguring firewalld to allow Goldstone traffic.\n"))
+    # make sure firewall is started
+    local('systemctl start firewalld.service')
+    default_zone = local('firewall-cmd --get-default-zone', capture=True)
+    for port in REQUIRED_PORTS:
+        local('firewall-cmd --zone ' + default_zone + ' --add-port=' + port)
+
+    local('firewall-cmd --runtime-to-permanent')
+    local('systemctl restart firewalld.service')
+
+
+def _configure_centos7_services():
+    """Configure required services to start on boot, and start them now."""
+
+    with fab_settings(warn_only=True):
+
+        # set selinux to permissive mode for this boot
+        local('setenforce permissive')
+        local('systemctl enable firewalld.service')
+
+        _configure_centos7_firewalld()
+        local('systemctl enable elasticsearch.service')
+        local('systemctl restart elasticsearch.service')
+        local('systemctl enable redis.service')
+        local('systemctl restart redis.service')
+        local('systemctl enable httpd.service')
+        local('systemctl restart httpd.service')
+        local('chkconfig logstash on')
+        local('service logstash restart')
+        local('systemctl enable celery.service')
+        local('systemctl restart celery.service')
+        local('systemctl enable celerybeat.service')
+        local('systemctl restart celerybeat.service')
+
+    # need to wait for ES to start.
+    sleep(15)
+
+
+def _configure_services():
+    """Configure required services to start on boot, and start them now."""
+
+    if _is_supported_centos7():
+        _configure_centos7_services()
+
+
 def _final_report():
     """Output the key configuration data for the installation."""
+    import socket
 
     print(green("\nConfiguration details:\n"
                 "\tDjango admin: " + final_report['django_admin_user'] +
@@ -405,7 +382,9 @@ def _final_report():
                 "\n\tGoldstone admin: " +
                 final_report['goldstone_admin_user'] +
                 "\n\tGoldstone admin password: " +
-                final_report['goldstone_admin_pass']))
+                final_report['goldstone_admin_pass'] +
+                "\n\tURL: http://" + socket.gethostname() + ":" +
+                str(final_report['port'])))
 
 
 @task
@@ -455,7 +434,7 @@ def django_admin_init(username='admin',
 
 @task
 def syncmigrate(settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
-    """Do a /manage.py syncdb and migrate.
+    """Do a manage.py syncdb and migrate.
 
     :keyword settings: The path of the Django settings file to use.
     :type settings: str
@@ -558,7 +537,7 @@ def tenant_init(gs_tenant='default',
 
 
 @task
-def load(proj_settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
+def load_es_templates(proj_settings=PROD_SETTINGS, install_dir=INSTALL_DIR):
     """Initialize the system's Elasticsearch templates.
 
     This is the last installation step before executing a runserver command.
@@ -651,13 +630,14 @@ def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
 
     _collect_static(settings, install_dir)
     _reconcile_hosts(settings, install_dir)
-    load(proj_settings=settings)
+    _configure_services()
+    load_es_templates(proj_settings=settings)
 
     _final_report()
 
 
 @task
-def install(pg_passwd='goldstone', rpm_file=None,    # pylint: disable=R0913
+def install(pg_passwd='goldstone',  # pylint: disable=R0913
             django_admin_user='admin',
             django_admin_password=None,
             django_admin_email='root@localhost',
@@ -675,11 +655,14 @@ def install(pg_passwd='goldstone', rpm_file=None,    # pylint: disable=R0913
 
     Example:
 
-    root> fab -f installer_fabfile.py install:rpm_file=goldstone-server.rpm,\
+    root> fab -f installer_fabfile.py install:\
     stack_password=xyz,stack_auth_url=http://10.10.10.10:5000/,\
     stack_tenant=admin,stack_user=admin,django_admin_password=goldstone,\
     gs_tenant_admin_password=goldstone
 
+    :keyword pg_passwd: postgres password for goldstone user.  Must match
+                        goldstone settings file.
+    :type django_admin_user: str
     :keyword django_admin_user: username for django admin
     :type django_admin_user: str
     :keyword django_admin_password: password for django admin user
@@ -708,31 +691,20 @@ def install(pg_passwd='goldstone', rpm_file=None,    # pylint: disable=R0913
 
     """
 
-    if _is_supported_centos6():
-        # we should only preinstall if the rpm is not present.
-        print(green("\nDetermining if goldstone-server RPM is already "
-                    "installed."))
-        if not _is_rpm_installed('goldstone-server'):
-            _centos6_preinstall(pg_passwd)
-
-        if _centos6_install(rpm_file):
-            goldstone_init(
-                django_admin_user=django_admin_user,
-                django_admin_password=django_admin_password,
-                django_admin_email=django_admin_email,
-                gs_tenant=gs_tenant, gs_tenant_owner=gs_tenant_owner,
-                gs_tenant_admin=gs_tenant_admin,
-                gs_tenant_admin_password=gs_tenant_admin_password,
-                stack_tenant=stack_tenant, stack_user=stack_user,
-                stack_password=stack_password,
-                stack_auth_url=stack_auth_url)
-        else:
-            abort(red("Goldstone RPM installation failed.  Check the path to "
-                      "the RPM file, and rerun."))
-
-    elif _is_development_mac():
-        _development_mac_preinstall()
-
+    if _is_supported_centos7():
+        install_repos()
+        setup_postgres(pg_passwd)
+        install_extra_rpms()
+        goldstone_init(
+            django_admin_user=django_admin_user,
+            django_admin_password=django_admin_password,
+            django_admin_email=django_admin_email,
+            gs_tenant=gs_tenant, gs_tenant_owner=gs_tenant_owner,
+            gs_tenant_admin=gs_tenant_admin,
+            gs_tenant_admin_password=gs_tenant_admin_password,
+            stack_tenant=stack_tenant, stack_user=stack_user,
+            stack_password=stack_password,
+            stack_auth_url=stack_auth_url)
     else:
         print()
         abort('This appears to be an unsupported platform. Exiting.')
@@ -742,11 +714,30 @@ def install(pg_passwd='goldstone', rpm_file=None,    # pylint: disable=R0913
 def uninstall(dropdb=True, dropuser=True):
     """Removes the goldstone-server RPM, database, and user."""
 
-    local('yum remove -y goldstone-server')
+    if _is_supported_centos7():
+        with fab_settings(warn_only=True):
+            local('systemctl stop elasticsearch.service')
+            local('systemctl disable elasticsearch.service')
+            local('systemctl stop redis.service')
+            local('systemctl disable redis.service')
+            local('systemctl stop httpd.service')
+            local('systemctl disable httpd.service')
+            local('service logstash stop')
+            local('chkconfig logstash off')
+            local('systemctl stop celery.service')
+            local('systemctl disable celery.service')
+            local('systemctl stop celerybeat.service')
+            local('systemctl disable celerybeat.service')
+
+    with fab_settings(warn_only=True):
+        local('yum remove -y goldstone-server')
+
     if dropdb:
-        with nested(hide('warnings', 'stderr', 'stdout'),
-                    fab_settings(warn_only=True)):
+        with fab_settings(warn_only=True):
             local('su - postgres -c \'dropdb goldstone\'')
             if dropuser:
                 # only makes sense if you've also dropped the database
                 local('su - postgres -c \'dropuser goldstone\'')
+
+            local('systemctl stop postgresql.service')
+            local('systemctl disable postgresql.service')

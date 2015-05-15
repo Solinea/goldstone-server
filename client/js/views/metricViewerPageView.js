@@ -19,7 +19,7 @@
 The nesting of this page is:
 
 | MetricViewerPageView
-|__ MetricViewerView + MetricViewerCollection
+|__ MetricViewerView
 |____ MetricView + MetricViewCollection
 
 At the moment /#metric will default to 6 charts.
@@ -40,11 +40,10 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         // and reflects the number n (1-6) following "/#metric/n"
         this.numCharts = options.numCharts;
 
-        // model to hold collection/views of chart grids
+        // model to hold views of chart grids
         this.metricViewGridContainer = new Backbone.Model({
             grid: {
                 view: {},
-                collection: {}
             }
         });
 
@@ -87,10 +86,7 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
             // underscore method for producing unique integer
             var id = _.uniqueId();
 
-            grid.collection[id] = new MetricViewerCollection({});
-
             grid.view[id] = new MetricViewerView({
-                collection: grid.collection[id],
                 width: $(locationHash[i]).width(),
                 height: 360,
                 // passing the instance allows for unique
