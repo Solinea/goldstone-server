@@ -74,7 +74,7 @@ final_report = {    # pylint: disable=C0103
 
 
 def _is_supported_centos7():
-    """Return True if this a CentOS 7.0 or 7.1 server."""
+    """Return True if this is a CentOS 7.0 or 7.1 server."""
 
     try:
         dist = platform.linux_distribution()
@@ -305,7 +305,7 @@ def cloud_init(gs_tenant,
                     cyan("Enter Openstack user password: "))
             if stack_auth_url is None:
                 while stack_auth_url is None or \
-                        (not stack_auth_url.endswith(CLOUD_AUTH_URL_VERSION)):
+                        not stack_auth_url.endswith(CLOUD_AUTH_URL_VERSION):
                     stack_auth_url = prompt(
                         cyan("Enter OpenStack auth URL base "
                              "(ex: http://10.10.10.10:5000/v2.0): "))
