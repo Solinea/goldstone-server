@@ -42,6 +42,10 @@ var UtilizationMemView = UtilizationCpuView.extend({
 
         var data = allthelogs;
 
+        if(data === undefined || data.length === 0) {
+            return [];
+        }
+
         _.each(data, function(collection) {
 
             // within each collection, tag the data points

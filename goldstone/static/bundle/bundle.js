@@ -2696,6 +2696,109 @@ var ServiceStatusCollection = Backbone.Collection.extend({
  * limitations under the License.
  */
 
+// define collection and link to model
+
+var StackedAreaCollection = Backbone.Collection.extend({
+
+    defaults: {},
+
+    parse: function(data) {
+
+        if (data.next && data.next !== null) {
+            var dp = data.next;
+            nextUrl = dp.slice(dp.indexOf('/core'));
+            this.fetch({
+                url: nextUrl,
+                remove: false,
+            });
+        } else {
+            this.defaults.urlCollectionCount--;
+        }
+
+        // before returning the collection, tag it with the metricName
+        // that produced the data
+        var def = this.defaults;
+        data.metricSource = def.metricNames[(def.metricNames.length - 1) - def.urlCollectionCount];
+
+        return data;
+    },
+
+    model: GoldstoneBaseModel,
+
+    // will impose an order based on 'timestamp' for
+    // the models as they are put into the collection
+    comparator: '@timestamp',
+
+    initialize: function(options) {
+        this.options = options || {};
+        this.defaults = _.clone(this.defaults);
+        this.defaults.fetchInProgress = false;
+        this.defaults.nodeName = this.options.nodeName;
+        this.defaults.metricNames = this.options.metricNames;
+        // this.defaults.metricNames = ['os.net.tx.eth0', 'os.net.rx.eth0'];
+        this.defaults.urlCollectionCountOrig = this.defaults.metricNames.length;
+        this.defaults.urlCollectionCount = this.defaults.metricNames.length;
+        this.defaults.globalLookback = options.globalLookback;
+        this.fetchMultipleUrls();
+    },
+
+    fetchMultipleUrls: function() {
+        var self = this;
+
+        if (this.defaults.fetchInProgress) {
+            return null;
+        }
+
+        this.defaults.fetchInProgress = true;
+        this.defaults.urlsToFetch = [];
+
+        // grabs minutes from global selector option value
+        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
+
+        _.each(self.defaults.metricNames, function(prefix) {
+            self.defaults.urlsToFetch.push("/core/metrics/summarize/?name=" + prefix + "&node=" +
+                self.defaults.nodeName + "&@timestamp__range={'gte':" +
+                lookback + "}&interval=" +
+                (Math.max(1, (self.defaults.globalLookback / 24)) +
+                    "m"));
+        });
+
+        this.fetch({
+
+            // fetch the first time without remove:false
+            // to clear out the collection
+            url: this.defaults.urlsToFetch[0],
+            success: function() {
+
+                // upon success: further fetches are carried out with
+                // remove: false to build the collection
+                _.each(self.defaults.urlsToFetch.slice(1), function(item) {
+                    self.fetch({
+                        url: item,
+                        remove: false
+                    });
+                });
+            }
+        });
+    }
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /*
 This collection is currently direclty implemented in the
 Nova VM Spawns viz
@@ -2752,298 +2855,6 @@ var StackedBarChartCollection = Backbone.Collection.extend({
     // creates a url similar to:
     // /nova/hypervisor/spawns/?@timestamp__range={"gte":1429027100000}&interval=1h
 
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-// define collection and link to model
-
-var UtilizationCpuCollection = Backbone.Collection.extend({
-
-    defaults: {},
-
-    parse: function(data) {
-
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/core'));
-            this.fetch({
-                url: nextUrl,
-                remove: false,
-            });
-        } else {
-            this.defaults.urlCollectionCount--;
-        }
-        data.metricSource = this.defaults.urlPrefixes[(this.defaults.urlPrefixes.length - 1) - this.defaults.urlCollectionCount];
-        return data;
-    },
-
-    model: GoldstoneBaseModel,
-
-    // will impose an order based on 'timestamp' for
-    // the models as they are put into the collection
-    comparator: '@timestamp',
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.fetchInProgress = false;
-        this.defaults.nodeName = options.nodeName;
-        this.defaults.urlPrefixes = ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'];
-        this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
-        this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
-        this.defaults.globalLookback = options.globalLookback;
-        this.fetchMultipleUrls();
-    },
-
-    fetchMultipleUrls: function() {
-        var self = this;
-
-        if (this.defaults.fetchInProgress) {
-            return null;
-        }
-
-        this.defaults.fetchInProgress = true;
-        this.defaults.urlsToFetch = [];
-
-        // grabs minutes from global selector option value
-        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
-
-        _.each(self.defaults.urlPrefixes, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics/summarize/?name=" + prefix + "&node=" +
-                self.defaults.nodeName + "&@timestamp__range={'gte':" +
-                lookback + "}&interval=" +
-                (Math.max(1, (self.defaults.globalLookback / 24)) +
-                    "m"));
-        });
-
-        this.fetch({
-
-            // fetch the first time without remove:false
-            // to clear out the collection
-            url: this.defaults.urlsToFetch[0],
-            success: function() {
-
-                // upon success: further fetches are carried out with
-                // remove: false to build the collection
-                _.each(self.defaults.urlsToFetch.slice(1), function(item) {
-                    self.fetch({
-                        url: item,
-                        remove: false
-                    });
-                });
-            }
-        });
-    }
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-// define collection and link to model
-
-var UtilizationMemCollection = Backbone.Collection.extend({
-
-    defaults: {},
-
-    parse: function(data) {
-
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/core'));
-            this.fetch({
-                url: nextUrl,
-                remove: false,
-            });
-        } else {
-            this.defaults.urlCollectionCount--;
-        }
-        data.metricSource = this.defaults.urlPrefixes[(this.defaults.urlPrefixes.length - 1) - this.defaults.urlCollectionCount];
-        return data;
-    },
-
-    model: GoldstoneBaseModel,
-
-    // will impose an order based on 'timestamp' for
-    // the models as they are put into the collection
-    comparator: '@timestamp',
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.fetchInProgress = false;
-        this.defaults.nodeName = options.nodeName;
-        this.defaults.urlPrefixes = ['os.mem.total', 'os.mem.free'];
-        this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
-        this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
-        this.defaults.globalLookback = options.globalLookback;
-        this.fetchMultipleUrls();
-    },
-
-    fetchMultipleUrls: function() {
-        var self = this;
-
-        if (this.defaults.fetchInProgress) {
-            return null;
-        }
-
-        this.defaults.fetchInProgress = true;
-        this.defaults.urlsToFetch = [];
-
-        // grabs minutes from global selector option value
-        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
-
-        _.each(self.defaults.urlPrefixes, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics/summarize/?name=" + prefix + "&node=" +
-                self.defaults.nodeName + "&@timestamp__range={'gte':" +
-                lookback + "}&interval=" +
-                (Math.max(1, (self.defaults.globalLookback / 24)) +
-                    "m"));
-        });
-
-        this.fetch({
-
-            // fetch the first time without remove:false
-            // to clear out the collection
-            url: this.defaults.urlsToFetch[0],
-            success: function() {
-
-                // upon success: further fetches are carried out with
-                // remove: false to build the collection
-                _.each(self.defaults.urlsToFetch.slice(1), function(item) {
-                    self.fetch({
-                        url: item,
-                        remove: false
-                    });
-                });
-            }
-        });
-    }
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-// define collection and link to model
-
-var UtilizationNetCollection = Backbone.Collection.extend({
-
-    defaults: {},
-
-    parse: function(data) {
-
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/core'));
-            this.fetch({
-                url: nextUrl,
-                remove: false,
-            });
-        } else {
-            this.defaults.urlCollectionCount--;
-        }
-        data.metricSource = this.defaults.urlPrefixes[(this.defaults.urlPrefixes.length - 1) - this.defaults.urlCollectionCount];
-        return data;
-    },
-
-    model: GoldstoneBaseModel,
-
-    // will impose an order based on 'timestamp' for
-    // the models as they are put into the collection
-    comparator: '@timestamp',
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.fetchInProgress = false;
-        this.defaults.nodeName = options.nodeName;
-        this.defaults.urlPrefixes = ['os.net.tx.eth0', 'os.net.rx.eth0'];
-        this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
-        this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
-        this.defaults.globalLookback = options.globalLookback;
-        this.fetchMultipleUrls();
-    },
-
-    fetchMultipleUrls: function() {
-        var self = this;
-
-        if (this.defaults.fetchInProgress) {
-            return null;
-        }
-
-        this.defaults.fetchInProgress = true;
-        this.defaults.urlsToFetch = [];
-
-        // grabs minutes from global selector option value
-        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
-
-        _.each(self.defaults.urlPrefixes, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics/summarize/?name=" + prefix + "&node=" +
-                self.defaults.nodeName + "&@timestamp__range={'gte':" +
-                lookback + "}&interval=" +
-                (Math.max(1, (self.defaults.globalLookback / 24)) +
-                    "m"));
-        });
-
-
-        this.fetch({
-
-            // fetch the first time without remove:false
-            // to clear out the collection
-            url: this.defaults.urlsToFetch[0],
-            success: function() {
-
-                // upon success: further fetches are carried out with
-                // remove: false to build the collection
-                _.each(self.defaults.urlsToFetch.slice(1), function(item) {
-                    self.fetch({
-                        url: item,
-                        remove: false
-                    });
-                });
-            }
-        });
-    }
 });
 ;
 /**
@@ -8978,9 +8789,10 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         //---------------------------
         // instantiate CPU Usage chart
-        this.cpuUsageChart = new UtilizationCpuCollection({
-            nodeName: hostName,
-            globalLookback: ns.globalLookback
+        this.cpuUsageChart = new StackedAreaCollection({
+            globalLookback: ns.globalLookback,
+            metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
+            nodeName: hostName
         });
 
         this.cpuUsageView = new UtilizationCpuView({
@@ -8992,9 +8804,10 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         //---------------------------
         // instantiate Memory Usage chart
-        this.memoryUsageChart = new UtilizationMemCollection({
-            nodeName: hostName,
-            globalLookback: ns.globalLookback
+        this.memoryUsageChart = new StackedAreaCollection({
+            globalLookback: ns.globalLookback,
+            metricNames: ['os.mem.total', 'os.mem.free'],
+            nodeName: hostName
         });
 
         this.memoryUsageView = new UtilizationMemView({
@@ -9007,9 +8820,10 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Network Usage chart
 
-        this.networkUsageChart = new UtilizationNetCollection({
-            nodeName: hostName,
-            globalLookback: ns.globalLookback
+        this.networkUsageChart = new StackedAreaCollection({
+            globalLookback: ns.globalLookback,
+            metricNames: ['os.net.tx.eth0', 'os.net.rx.eth0'],
+            nodeName: hostName
         });
 
         this.networkUsageView = new UtilizationNetView({
@@ -11756,6 +11570,10 @@ var UtilizationMemView = UtilizationCpuView.extend({
 
         var data = allthelogs;
 
+        if(data === undefined || data.length === 0) {
+            return [];
+        }
+
         _.each(data, function(collection) {
 
             // within each collection, tag the data points
@@ -11877,7 +11695,6 @@ var UtilizationNetView = UtilizationCpuView.extend({
         var allthelogs = this.collection.toJSON();
         var data = allthelogs;
 
-        console.log('data in net ', data);
         // allthelogs will have as many objects as api calls were made
         // iterate through each object to tag the data with the
         // api call that was made to produce it
@@ -11921,7 +11738,6 @@ var UtilizationNetView = UtilizationCpuView.extend({
 
             var key = _.keys(item)[0];
             var metric = item[key].name.substr((item[key].name.lastIndexOf('.net') + 5), 2);
-            console.log(key, metric);
             newData[key][metric] = item[key].value;
 
         });
@@ -11942,8 +11758,6 @@ var UtilizationNetView = UtilizationCpuView.extend({
             });
         });
 
-
-        console.log('final data net ', finalData);
         return finalData;
 
     }

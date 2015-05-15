@@ -16,7 +16,7 @@
 
 // define collection and link to model
 
-var UtilizationNetCollection = Backbone.Collection.extend({
+var StackedAreaCollection = Backbone.Collection.extend({
 
     defaults: {},
 
@@ -32,7 +32,12 @@ var UtilizationNetCollection = Backbone.Collection.extend({
         } else {
             this.defaults.urlCollectionCount--;
         }
-        data.metricSource = this.defaults.urlPrefixes[(this.defaults.urlPrefixes.length - 1) - this.defaults.urlCollectionCount];
+
+        // before returning the collection, tag it with the metricName
+        // that produced the data
+        var def = this.defaults;
+        data.metricSource = def.metricNames[(def.metricNames.length - 1) - def.urlCollectionCount];
+
         return data;
     },
 
@@ -46,10 +51,11 @@ var UtilizationNetCollection = Backbone.Collection.extend({
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
         this.defaults.fetchInProgress = false;
-        this.defaults.nodeName = options.nodeName;
-        this.defaults.urlPrefixes = ['os.net.tx.eth0', 'os.net.rx.eth0'];
-        this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
-        this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
+        this.defaults.nodeName = this.options.nodeName;
+        this.defaults.metricNames = this.options.metricNames;
+        // this.defaults.metricNames = ['os.net.tx.eth0', 'os.net.rx.eth0'];
+        this.defaults.urlCollectionCountOrig = this.defaults.metricNames.length;
+        this.defaults.urlCollectionCount = this.defaults.metricNames.length;
         this.defaults.globalLookback = options.globalLookback;
         this.fetchMultipleUrls();
     },
@@ -67,14 +73,13 @@ var UtilizationNetCollection = Backbone.Collection.extend({
         // grabs minutes from global selector option value
         var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
 
-        _.each(self.defaults.urlPrefixes, function(prefix) {
+        _.each(self.defaults.metricNames, function(prefix) {
             self.defaults.urlsToFetch.push("/core/metrics/summarize/?name=" + prefix + "&node=" +
                 self.defaults.nodeName + "&@timestamp__range={'gte':" +
                 lookback + "}&interval=" +
                 (Math.max(1, (self.defaults.globalLookback / 24)) +
                     "m"));
         });
-
 
         this.fetch({
 

@@ -47,7 +47,6 @@ var UtilizationNetView = UtilizationCpuView.extend({
         var allthelogs = this.collection.toJSON();
         var data = allthelogs;
 
-        console.log('data in net ', data);
         // allthelogs will have as many objects as api calls were made
         // iterate through each object to tag the data with the
         // api call that was made to produce it
@@ -91,7 +90,6 @@ var UtilizationNetView = UtilizationCpuView.extend({
 
             var key = _.keys(item)[0];
             var metric = item[key].name.substr((item[key].name.lastIndexOf('.net') + 5), 2);
-            console.log(key, metric);
             newData[key][metric] = item[key].value;
 
         });
@@ -112,8 +110,6 @@ var UtilizationNetView = UtilizationCpuView.extend({
             });
         });
 
-
-        console.log('final data net ', finalData);
         return finalData;
 
     }

@@ -209,9 +209,10 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         //---------------------------
         // instantiate CPU Usage chart
-        this.cpuUsageChart = new UtilizationCpuCollection({
-            nodeName: hostName,
-            globalLookback: ns.globalLookback
+        this.cpuUsageChart = new StackedAreaCollection({
+            globalLookback: ns.globalLookback,
+            metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
+            nodeName: hostName
         });
 
         this.cpuUsageView = new UtilizationCpuView({
@@ -223,9 +224,10 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         //---------------------------
         // instantiate Memory Usage chart
-        this.memoryUsageChart = new UtilizationMemCollection({
-            nodeName: hostName,
-            globalLookback: ns.globalLookback
+        this.memoryUsageChart = new StackedAreaCollection({
+            globalLookback: ns.globalLookback,
+            metricNames: ['os.mem.total', 'os.mem.free'],
+            nodeName: hostName
         });
 
         this.memoryUsageView = new UtilizationMemView({
@@ -238,9 +240,10 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Network Usage chart
 
-        this.networkUsageChart = new UtilizationNetCollection({
-            nodeName: hostName,
-            globalLookback: ns.globalLookback
+        this.networkUsageChart = new StackedAreaCollection({
+            globalLookback: ns.globalLookback,
+            metricNames: ['os.net.tx.eth0', 'os.net.rx.eth0'],
+            nodeName: hostName
         });
 
         this.networkUsageView = new UtilizationNetView({
