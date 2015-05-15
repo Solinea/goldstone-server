@@ -2463,6 +2463,16 @@ var MetricViewerCollection = Backbone.Collection.extend({
 
 // define collection and link to model
 
+/*
+instantiate with:
+
+this.cpuUsageChart = new MultiMetricComboCollection({
+    globalLookback: ns.globalLookback,
+    metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
+    nodeName: hostName
+});
+*/
+
 var MultiMetricComboCollection = Backbone.Collection.extend({
 
     defaults: {},
@@ -2521,11 +2531,19 @@ var MultiMetricComboCollection = Backbone.Collection.extend({
         var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
 
         _.each(self.defaults.metricNames, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics/summarize/?name=" + prefix + "&node=" +
-                self.defaults.nodeName + "&@timestamp__range={'gte':" +
+
+            var urlString = "/core/metrics/summarize/?name=" + prefix;
+
+            if (self.defaults.nodeName) {
+                urlString += "&node=" + self.defaults.nodeName;
+            }
+
+            urlString += "&@timestamp__range={'gte':" +
                 lookback + "}&interval=" +
                 (Math.max(1, (self.defaults.globalLookback / 24)) +
-                    "m"));
+                "m");
+
+            self.defaults.urlsToFetch.push(urlString);
         });
 
         this.fetch({
@@ -4871,9 +4889,10 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             return result;
         } else {
             return '<option value="15">lookback 15m</option>' +
-                '<option value="60" selected>lookback 1h</option>' +
+                '<option value="60">lookback 1h</option>' +
                 '<option value="360">lookback 6h</option>' +
-                '<option value="1440">lookback 1d</option>';
+                '<option value="1440">lookback 1d</option>' +
+                '<option value="5760" selected>lookback 3d</option>';
         }
     },
 
@@ -4889,10 +4908,10 @@ var GlobalLookbackRefreshButtonsView = Backbone.View.extend({
             });
             return result;
         } else {
-            return '<option value="30" selected>refresh 30s</option>' +
+            return '<option value="30">refresh 30s</option>' +
                 '<option value="60">refresh 1m</option>' +
                 '<option value="300">refresh 5m</option>' +
-                '<option value="-1">refresh off</option>';
+                '<option value="-1" selected>refresh off</option>';
         }
     },
 

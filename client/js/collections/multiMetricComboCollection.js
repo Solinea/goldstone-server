@@ -16,6 +16,16 @@
 
 // define collection and link to model
 
+/*
+instantiate with:
+
+this.cpuUsageChart = new MultiMetricComboCollection({
+    globalLookback: ns.globalLookback,
+    metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
+    nodeName: hostName
+});
+*/
+
 var MultiMetricComboCollection = Backbone.Collection.extend({
 
     defaults: {},
@@ -74,11 +84,19 @@ var MultiMetricComboCollection = Backbone.Collection.extend({
         var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
 
         _.each(self.defaults.metricNames, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics/summarize/?name=" + prefix + "&node=" +
-                self.defaults.nodeName + "&@timestamp__range={'gte':" +
+
+            var urlString = "/core/metrics/summarize/?name=" + prefix;
+
+            if (self.defaults.nodeName) {
+                urlString += "&node=" + self.defaults.nodeName;
+            }
+
+            urlString += "&@timestamp__range={'gte':" +
                 lookback + "}&interval=" +
                 (Math.max(1, (self.defaults.globalLookback / 24)) +
-                    "m"));
+                "m");
+
+            self.defaults.urlsToFetch.push(urlString);
         });
 
         this.fetch({
