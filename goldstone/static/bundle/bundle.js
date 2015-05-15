@@ -2384,48 +2384,6 @@ var MetricViewCollection = GoldstoneBaseCollection.extend({
  */
 
 /*
-fetches list of metrics availble for metric report viz.
-*/
-
-var MetricViewerCollection = Backbone.Collection.extend({
-
-    defaults: {},
-
-    parse: function(data) {
-        return data.per_name;
-    },
-
-    model: GoldstoneBaseModel,
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.retrieveData();
-    },
-
-    retrieveData: function() {
-        this.url = "/core/metric_names/";
-        this.fetch();
-    }
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
 Instantiated on discoverView as:
     this.nodeAvailChart = new NodeAvailCollection({});
 */
@@ -7134,7 +7092,7 @@ var MetricView = ApiPerfView.extend({
 The nesting of this page is:
 
 | MetricViewerPageView
-|__ MetricViewerView + MetricViewerCollection
+|__ MetricViewerView
 |____ MetricView + MetricViewCollection
 
 At the moment /#metric will default to 6 charts.
@@ -7155,11 +7113,10 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
         // and reflects the number n (1-6) following "/#metric/n"
         this.numCharts = options.numCharts;
 
-        // model to hold collection/views of chart grids
+        // model to hold views of chart grids
         this.metricViewGridContainer = new Backbone.Model({
             grid: {
                 view: {},
-                collection: {}
             }
         });
 
@@ -7202,10 +7159,7 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
             // underscore method for producing unique integer
             var id = _.uniqueId();
 
-            grid.collection[id] = new MetricViewerCollection({});
-
             grid.view[id] = new MetricViewerView({
-                collection: grid.collection[id],
                 width: $(locationHash[i]).width(),
                 height: 360,
                 // passing the instance allows for unique
@@ -7263,20 +7217,16 @@ var MetricViewerPageView = GoldstoneBasePageView.extend({
  */
 
 /*
-
-Instantiated on metricViewerPageView as:
-
-this.metricViewerChart = new MetricViewerCollection1({});
-
 instance variable added to options hash in order to
 create a custom binding between each metricViewerChart
 and the associated modal menus
 
+Instantiated on metricViewerPageView as:
+
 this.metricViewerChartView = new MetricViewerView({
-        collection: this.metricViewerChart1,
         width: $('#goldstone-metric-r1-c1').width(),
         height: $('#goldstone-metric-r1-c1').width(),
-        instance: 1
+        instance: xxx
 });
 
 */
@@ -7290,26 +7240,54 @@ var MetricViewerView = GoldstoneBaseView.extend({
         this.processListeners();
         this.render();
         this.chartOptions = new Backbone.Model({});
+        this.getMetricNames();
+        this.getResourceNames();
+    },
+
+    getResourceNames: function() {
+        var ns = this.defaults;
+        var self = this;
+
+        // 'host_name' will be extracted from the returned array of host objects
+        $.get("/nova/hosts/", function() {})
+            .done(function(data) {
+                if (data === undefined || data.length === 0) {
+                    $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text(' No resources returned');
+                } else {
+                    ns.resourceNames = data[0];
+                    self.populateResources();
+                }
+            })
+            .fail(function() {
+                $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text(' Resource name fetch failed');
+            });
+    },
+
+    getMetricNames: function() {
+        var ns = this.defaults;
+        var self = this;
+
+        $.get("/core/metric_names/", function() {})
+            .done(function(data) {
+                data = data.per_name;
+                if (data === undefined || data.length === 0) {
+                    $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' No metric reports available');
+                } else {
+                    ns.metricNames = data;
+                    self.populateMetrics();
+                }
+            })
+            .fail(function() {
+                $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text(' Metric report list fetch failed');
+            })
+            .always(function() {
+                self.attachModalTriggers();
+            });
     },
 
     processListeners: function() {
         var ns = this.defaults;
         var self = this;
-
-        // triggered whenever this.collection finishes fetching
-        this.listenTo(this.collection, 'sync', function() {
-
-            if (self.collection.toJSON() === undefined || self.collection.toJSON().length === 0) {
-                $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text('No metric reports available');
-                return;
-            } else {
-                self.populateMetrics();
-            }
-
-            // after the dropdown is populated,
-            // attach button listeners
-            this.attachModalTriggers();
-        });
 
         this.listenTo(this, 'globalLookbackReached', function() {
             if (this.metricChart) {
@@ -7364,11 +7342,37 @@ var MetricViewerView = GoldstoneBaseView.extend({
 
     populateMetrics: function() {
         var self = this;
+        var ns = this.defaults;
 
+        // clear the 'loading' text next to the dropdown
         $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-text').text('');
 
-        _.each(self.collection.toJSON(), function(item) {
+        // append the options within the dropdown
+        _.each(ns.metricNames, function(item) {
             $('#gear-modal-content' + self.options.instance).find('.metric-dropdown-options').append('<option>' + _.keys(item)[0] + "</option>");
+        });
+    },
+
+    populateResources: function() {
+        var self = this;
+        var ns = this.defaults;
+
+        // clear the 'loading' text next to the dropdown
+        $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-text').text('');
+
+        // host names will be similar to: ctrl-01.c2.oak.solinea.com
+        // so slice from the beginning up to the first '.'
+        var resourceNames = _.uniq(_.map(ns.resourceNames, function(item) {
+            return (item.host_name).slice(0, item.host_name.indexOf('.'));
+        }));
+
+        // add 'all' to the beginning of the array of resources which will
+        // be appended as the first drop-down option
+        resourceNames.unshift('all');
+
+        // append the options within the dropdown
+        _.each(resourceNames, function(item) {
+            $('#gear-modal-content' + self.options.instance).find('.resource-dropdown-options').append('<option>' + item + "</option>");
         });
     },
 
@@ -7451,14 +7455,12 @@ var MetricViewerView = GoldstoneBaseView.extend({
         // loading text will be removed when options are populated
         '<span class="metric-dropdown-text"> Loading...</span>' +
 
-        // hard coded for now - to become dynamic
+        // loading text will be removed when options are populated
         '<h5>Resource</h5>' +
         '<select class="resource-dropdown-options">' +
-        '<option value="all" selected>all</option>' +
-        '<option value="ctrl-01">ctrl-01</option>' +
-        '<option value="rsrc-01">rsrc-01</option>' +
-        '<option value="rsrc-02">rsrc-02</option>' +
+        // options will be populated by populateMetrics()
         '</select>' +
+        '<span class="resource-dropdown-text"> Loading...</span>' +
 
         '<h5>Statistic</h5>' +
         '<select class="statistic-dropdown-options">' +
@@ -8772,7 +8774,6 @@ var NodeReportView = GoldstoneBasePageView.extend({
             this.cpuUsageView.trigger('lookbackSelectorChanged');
             this.memoryUsageView.trigger('lookbackSelectorChanged');
             this.networkUsageView.trigger('lookbackSelectorChanged');
-            this.hypervisorCoreView.trigger('lookbackSelectorChanged');
         }
 
         if (this.visiblePanel.Reports) {
@@ -8908,12 +8909,14 @@ var NodeReportView = GoldstoneBasePageView.extend({
             infoText: 'utilization',
             columns: 12
         });
-        new ChartHeaderView({
-            el: '#hypervisor-title-bar',
-            chartTitle: 'Hypervisor',
-            infoText: 'hypervisor',
-            columns: 12
-        });
+
+        // PENDING
+        // new ChartHeaderView({
+        //     el: '#hypervisor-title-bar',
+        //     chartTitle: 'Hypervisor',
+        //     infoText: 'hypervisor',
+        //     columns: 12
+        // });
 
         // construct api calls from url component
         // between the last '/' and the following '.'
@@ -8982,44 +8985,47 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         //---------------------------
         // instantiate Libvirt core/vm chart
-        this.hypervisorCoreChart = new HypervisorCollection({
-            url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
-            globalLookback: ns.globalLookback
-        });
+        // PENDING
+        // this.hypervisorCoreChart = new HypervisorCollection({
+        //     url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
+        //     globalLookback: ns.globalLookback
+        // });
 
-        this.hypervisorCoreView = new HypervisorView({
-            collection: this.hypervisorCoreChart,
-            el: '#node-report-r4 #node-report-panel #cores-usage',
-            width: $('#node-report-r4 #node-report-panel #cores-usage').width(),
-            axisLabel: "Cores"
-        });
+        // this.hypervisorCoreView = new HypervisorView({
+        //     collection: this.hypervisorCoreChart,
+        //     el: '#node-report-r4 #node-report-panel #cores-usage',
+        //     width: $('#node-report-r4 #node-report-panel #cores-usage').width(),
+        //     axisLabel: "Cores"
+        // });
 
 
         //---------------------------
         // instantiate Libvirt mem/vm  chart
-        this.hypervisorMemoryChart = new HypervisorCollection({
-            url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
-            globalLookback: ns.globalLookback
-        });
-        this.hypervisorMemoryView = new HypervisorView({
-            collection: this.hypervisorMemoryChart,
-            el: '#node-report-r4 #node-report-panel #memory-usage',
-            width: $('#node-report-r4 #node-report-panel #memory-usage').width(),
-            axisLabel: "GB"
-        });
+        // PENDING
+        // this.hypervisorMemoryChart = new HypervisorCollection({
+        //     url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
+        //     globalLookback: ns.globalLookback
+        // });
+        // this.hypervisorMemoryView = new HypervisorView({
+        //     collection: this.hypervisorMemoryChart,
+        //     el: '#node-report-r4 #node-report-panel #memory-usage',
+        //     width: $('#node-report-r4 #node-report-panel #memory-usage').width(),
+        //     axisLabel: "GB"
+        // });
 
         //---------------------------
         // instantiate Libvirt top 10 CPU consumer VMs chart
-        this.hypervisorVmCpuChart = new HypervisorVmCpuCollection({
-            url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
-            globalLookback: ns.globalLookback
-        });
+        // PENDING
+        // this.hypervisorVmCpuChart = new HypervisorVmCpuCollection({
+        //     url: "/core/report_names/?node=rsrc-02&@timestamp__range={%27gte%27:1429203012258}",
+        //     globalLookback: ns.globalLookback
+        // });
 
-        this.hypervisorVmCpuView = new HypervisorVmCpuView({
-            collection: this.hypervisorVmCpuChart,
-            el: '#node-report-r4 #node-report-panel #vm-cpu-usage',
-            width: $('#node-report-r4 #node-report-panel #vm-cpu-usage').width()
-        });
+        // this.hypervisorVmCpuView = new HypervisorVmCpuView({
+        //     collection: this.hypervisorVmCpuChart,
+        //     el: '#node-report-r4 #node-report-panel #vm-cpu-usage',
+        //     width: $('#node-report-r4 #node-report-panel #vm-cpu-usage').width()
+        // });
 
         //---------------------------
         // instantiate Reports tab
@@ -9120,21 +9126,23 @@ var NodeReportView = GoldstoneBasePageView.extend({
         '<div id="node-report-r4" class="row">' +
         '<div id="node-report-r4-c1" class="col-md-12">' +
 
+        // PENDING
         // placeholder for title bar and info popover
-        '<div id="hypervisor-title-bar"></div>' +
-        '<div id="node-report-panel" class="panel panel-primary">' +
-        '<div class="well col-md-12">' +
-        '<div class="col-md-3 text-center" id="cores-usage">' +
-        'Cores' +
-        '</div>' +
-        '<div class="col-md-3 text-center" id="memory-usage">' +
-        'Memory' +
-        '</div>' +
-        '<div class="col-md-6" id="vm-cpu-usage">' +
-        'Per VM CPU Usage' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
+        // '<div id="hypervisor-title-bar"></div>' +
+        // '<div id="node-report-panel" class="panel panel-primary">' +
+        // '<div class="well col-md-12">' +
+        // '<div class="col-md-3 text-center" id="cores-usage">' +
+        // 'Cores' +
+        // '</div>' +
+        // '<div class="col-md-3 text-center" id="memory-usage">' +
+        // 'Memory' +
+        // '</div>' +
+        // '<div class="col-md-6" id="vm-cpu-usage">' +
+        // 'Per VM CPU Usage' +
+        // '</div>' +
+        // '</div>' +
+        // '</div>' +
+
         '</div>' +
         '</div>' +
         '</div>' +

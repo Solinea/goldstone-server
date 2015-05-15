@@ -126,7 +126,7 @@ describe('NodeReportView.js spec', function() {
             assert.isDefined(this.testView, 'this.testView has been defined');
             expect(this.testView).to.be.an('object');
             expect(this.testView.el).to.equal('.test-container');
-            expect($(this.testView.el).text()).to.equal('power-of-greyskullServicesReportsEventsDetailsLogs Service Status Report UtilizationCPU UsageMemory UsageNetwork Usage HypervisorCoresMemoryPer VM CPU UsageUserSystemWait Reports Available Reports list loading or not available Report DataSelecting a report from the dropdown above will populate this area with the report results.  Events Report102550100 records per pageSearch:Processing...CreatedEvent TypeMessage  Resource DetailsNo additional details available Log Analysis×CloseLog Severity FiltersUncheck log-type to hide from displayExitLog Events Search Results102550100 records per pageSearch:Processing...TimestampSyslog SeverityComponentHostMessage');
+            expect($(this.testView.el).text()).to.equal('power-of-greyskullServicesReportsEventsDetailsLogs Service Status Report UtilizationCPU UsageMemory UsageNetwork Usage Reports Available Reports list loading or not available Report DataSelecting a report from the dropdown above will populate this area with the report results.  Events Report102550100 records per pageSearch:Processing...CreatedEvent TypeMessage  Resource DetailsNo additional details available Log Analysis×CloseLog Severity FiltersUncheck log-type to hide from displayExitLog Events Search Results102550100 records per pageSearch:Processing...TimestampSyslog SeverityComponentHostMessage');
         });
         it('should exist', function() {
             this.testView.render();
