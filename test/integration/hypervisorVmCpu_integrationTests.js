@@ -32,8 +32,6 @@ describe('HypervisorVmCpu spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        this.protoFetchSpy = sinon.spy(UtilizationMemCollection.prototype, "fetch");
-
         this.testCollection = new HypervisorVmCpuCollection({
             url: '/something/fancy'
         });
@@ -109,7 +107,6 @@ describe('HypervisorVmCpu spec', function() {
     afterEach(function() {
         $('body').html('');
         this.server.restore();
-        this.protoFetchSpy.restore();
     });
     describe('collection is constructed', function() {
         it('should exist', function() {

@@ -32,8 +32,6 @@ describe('UtilizationMem.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        this.protoFetchSpy = sinon.spy(UtilizationMemCollection.prototype, "fetch");
-
         this.testCollection = new HypervisorCollection({
             url: '/something/fancy'
         });
@@ -77,7 +75,6 @@ describe('UtilizationMem.js spec', function() {
     afterEach(function() {
         $('body').html('');
         this.server.restore();
-        this.protoFetchSpy.restore();
     });
     describe('collection is constructed', function() {
         it('should exist', function() {
