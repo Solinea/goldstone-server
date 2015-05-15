@@ -28,7 +28,7 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires(pre): /usr/sbin/useradd, /usr/bin/getent, gcc, gcc-c++, redis, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip, firewalld, python-virtualenv
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent, gcc, gcc-c++, redis, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip, firewalld, python-virtualenv, java-1.7.0-openjdk, postgresql-server, postgresql-devel, git
 Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre
@@ -50,10 +50,10 @@ export DJANGO_SETTINGS_MODULE=goldstone.settings.production
 cd /opt/goldstone
 pip install -r requirements.txt
 
-# Get all the ownerships back in shape.  No guarantee that we can su to apache,
+# Get all the ownerships back in shape.  No guarantee that we can su to goldstone,
 # and running python during install may set some ownerships to root. This seems
 # like the best approach.
-chown -R apache:apache /opt/goldstone
+chown -R goldstone:goldstone /opt/goldstone
 
 %preun
 
@@ -133,7 +133,7 @@ rm -rf %{buildroot}
 %global __os_install_post %(echo '%{__os_install_post}' | sed -e 's!/usr/lib[^[:space:]]*/brp-python-bytecompile[[:space:]].*$!!g')
 
 %files
-%defattr(-, apache, apache)
+%defattr(-, goldstone, goldstone)
 /opt/goldstone/requirements.txt
 /opt/goldstone/setup.cfg
 /opt/goldstone/setup.py
@@ -163,7 +163,7 @@ rm -rf %{buildroot}
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/70-output-resubs
 %attr(-, goldstone, logstash) /etc/logstash/conf.d/99-filter-last-stop
 %attr(-, goldstone, logstash) /opt/logstash/patterns/goldstone
-%config /etc/httpd/conf.d/zgoldstone.conf
+%attr(-, apache, goldstone) %config /etc/httpd/conf.d/zgoldstone.conf
 %attr(-, root, root) %config /etc/selinux/config
 %config /etc/sysconfig/celery
 %config /usr/lib/systemd/system/celery.service
