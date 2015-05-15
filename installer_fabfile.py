@@ -24,7 +24,7 @@ from fabric.api import task, local, settings as fab_settings
 from fabric.colors import green, cyan, red
 from fabric.utils import abort, fastprint
 from fabric.operations import prompt
-from fabric.context_managers import lcd, hide
+from fabric.context_managers import lcd
 
 
 ES_REPO_FILENAME = "/etc/yum.repos.d/elasticsearch-1.4.repo"
@@ -71,7 +71,8 @@ final_report = {    # pylint: disable=C0103
     'django_admin_user': None,
     'django_admin_pass': None,
     'goldstone_admin_user': None,
-    'goldstone_admin_pass': None
+    'goldstone_admin_pass': None,
+    'port': 80
 }
 
 
@@ -109,8 +110,7 @@ def _is_rpm_installed(name):
     """Return True if an RPM is installed."""
 
     cmd = 'yum list installed ' + name
-    with nested(hide('warnings', 'stdout', 'stderr'),
-                fab_settings(warn_only=True)):
+    with fab_settings(warn_only=True):
         result = local(cmd)
 
     return not result.failed
@@ -242,15 +242,16 @@ def _is_root_user():
     return getpass.getuser() == "root"
 
 
-def _fix_setuptools():
+def _fix_python():
     """Workaround for https://bugs.launchpad.net/pbr/+bug/1369179"""
 
-    print(green("\nUpdating distribute and setuptools modules."))
+    print(green("\nUpdating some python modules."))
 
-    with nested(hide('warnings', 'stdout', 'stderr'),
-                fab_settings(warn_only=True)):
-        local('pip install --upgrade distribute')
-        local('pip install --upgrade setuptools')
+    with fab_settings(warn_only=True):
+        local('yum -y remove python-requests')
+        local('pip install --upgrade --force-reinstall setuptools')
+        local('pip install --upgrade --force-reinstall six')
+        local('pip install --upgrade --force-reinstall requests')
 
 
 @task
@@ -267,7 +268,6 @@ def _centos_preinstall(pg_passwd):
 
     _install_additional_repos()
     _centos_setup_postgres(pg_passwd)
-    _fix_setuptools()
 
 
 def _development_mac_preinstall():
@@ -284,6 +284,7 @@ def _validate_path(path):
     return path
 
 
+@task
 def _install_rpm(rpm_file):
     """Install the downloaded RPM."""
 
@@ -330,7 +331,7 @@ def _django_manage(command,
     # Run this command as a background process, if requested.
     daemon_opt = "&" if daemon else ''
 
-    with nested(lcd(install_dir), hide('stdout', 'stderr', 'warnings')):
+    with lcd(install_dir):
         local("./manage.py %s %s %s %s" %
               (command, target, settings_opt, daemon_opt))
 
@@ -461,8 +462,7 @@ def _configure_centos7_firewalld():
 def _configure_centos7_services():
     """Configure required services to start on boot, and start them now."""
 
-    with nested(hide('warnings', 'stderr', 'stdout'),
-                fab_settings(warn_only=True)):
+    with fab_settings(warn_only=True):
 
         # set selinux to permissive mode for this boot
         local('setenforce permissive')
@@ -495,6 +495,7 @@ def _configure_services():
 
 def _final_report():
     """Output the key configuration data for the installation."""
+    import socket
 
     print(green("\nConfiguration details:\n"
                 "\tDjango admin: " + final_report['django_admin_user'] +
@@ -503,7 +504,9 @@ def _final_report():
                 "\n\tGoldstone admin: " +
                 final_report['goldstone_admin_user'] +
                 "\n\tGoldstone admin password: " +
-                final_report['goldstone_admin_pass']))
+                final_report['goldstone_admin_pass'] +
+                "\n\tURL: http://" + socket.gethostname() + ":" +
+                final_report['port']))
 
 
 @task
@@ -726,6 +729,8 @@ def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
 
     """
 
+    _fix_python()
+
     syncmigrate(settings=settings, install_dir=install_dir)
 
     django_admin_init(username=django_admin_user,
@@ -843,8 +848,7 @@ def uninstall(dropdb=True, dropuser=True):
     """Removes the goldstone-server RPM, database, and user."""
 
     if _is_supported_centos7():
-        with nested(hide('warnings', 'stderr', 'stdout'),
-                    fab_settings(warn_only=True)):
+        with fab_settings(warn_only=True):
             local('systemctl stop elasticsearch.service')
             local('systemctl disable elasticsearch.service')
             local('systemctl stop redis.service')
@@ -857,13 +861,11 @@ def uninstall(dropdb=True, dropuser=True):
             local('systemctl stop celerybeat.service')
             local('systemctl disable celerybeat.service')
 
-    with nested(hide('warnings', 'stderr', 'stdout'),
-                fab_settings(warn_only=True)):
+    with fab_settings(warn_only=True):
         local('yum remove -y goldstone-server')
 
     if dropdb:
-        with nested(hide('warnings', 'stderr', 'stdout'),
-                    fab_settings(warn_only=True)):
+        with fab_settings(warn_only=True):
             local('su - postgres -c \'dropdb goldstone\'')
             if dropuser:
                 # only makes sense if you've also dropped the database

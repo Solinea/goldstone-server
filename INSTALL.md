@@ -7,6 +7,8 @@ Before installing Goldstone, your server must meet the following prerequisites:
 * 100 GB free disk space
 * CentOS / RHEL 7.x
 
+* The Goldstone installer installs, modifies, and removes packages and libraries.  It is highly recommended that it only be installed on dedicated systems! *  A [CentOS 7.1 x86 cloud image](http://cloud.centos.org/centos/7/images/) is an ideal starting point for a virtual machine based Goldstone installation.
+
 To view and use Goldstone, you'll need a recent version of [Firefox](https://www.mozilla.org/en-US/firefox/products/), [Safari](https://www.apple.com/safari/), or [Chrome](https://www.google.com/intl/en-US/chrome/browser).
 
 ## Install Prerequisites (as root)
