@@ -12,13 +12,13 @@ WorkingDirectory=/opt/goldstone/
 PermissionsStartOnly=true
 ExecStartPre=-/usr/bin/mkdir ${CELERYD_STATE_DIR}
 ExecStartPre=/usr/bin/chown -R apache:apache ${CELERYD_STATE_DIR}
-ExecStart=/bin/celery multi start $CELERYD_NODES \
+ExecStart=/opt/goldstone/bin/celery multi start $CELERYD_NODES \
     -A $CELERY_APP --pidfile=${CELERYD_PID_FILE} \
     --logfile=${CELERYD_LOG_FILE} --loglevel="${CELERYD_LOG_LEVEL}" \
     $CELERYD_OPTS
-ExecStop=/bin/celery multi stopwait $CELERYD_NODES \
+ExecStop=/opt/goldstone/bin/celery multi stopwait $CELERYD_NODES \
     --pidfile=${CELERYD_PID_FILE}
-ExecReload=/bin/celery multi restart $CELERYD_NODES \
+ExecReload=/opt/goldstone/bin/celery multi restart $CELERYD_NODES \
     -A ${CELERY_APP} --pidfile=${CELERYD_PID_FILE} \
     --logfile=${CELERYD_LOG_FILE} --loglevel="${CELERYD_LOG_LEVEL}" \
     $CELERYD_OPTS
