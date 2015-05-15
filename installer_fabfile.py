@@ -377,7 +377,7 @@ def _final_report():
                 "\n\tGoldstone admin password: " +
                 final_report['goldstone_admin_pass'] +
                 "\n\tURL: http://" + socket.gethostname() + ":" +
-                final_report['port']))
+                str(final_report['port'])))
 
 
 @task
