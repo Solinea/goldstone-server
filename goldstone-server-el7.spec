@@ -42,6 +42,10 @@ Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 #     0 --> removal of last installed version
 #    >1 --> upgrade
 
+if [[ $# == 1 && $1 == 1 ]] ; then
+    virtualenv /opt/goldstone
+fi
+. /opt/goldstone/bin/activate
 export DJANGO_SETTINGS_MODULE=goldstone.settings.production
 cd /opt/goldstone
 pip install -r requirements.txt
@@ -51,17 +55,16 @@ pip install -r requirements.txt
 # like the best approach.
 chown -R apache:apache /opt/goldstone
 
-
-# if [[ $# == 1 && $1 == 1 ]] ; then
-#     ln -s /opt/goldstone /usr/lib/python2.6/site-packages/goldstone
-
 %preun
 
 %postun
+if [[ $# == 1 && $1 == 0 ]] ; then 
+    rm -rf /opt/goldstone
+fi
 
 %description
 For the most up-to-date information please visit the project website
-at http://www.solinea.com/goldstone.
+at https://github.com/solinea/goldstone-server.
 
 To stay informed about new releases and other user related topics,
 please register with the Solinea mailing list. It's a low volume
@@ -75,8 +78,6 @@ rm -rf %{buildroot}/*
 rm -rf %{_rpmdir}/*
 rm -f %{_sourcedir}/goldstone-server-[0-9]*.rpm
 find %{_sourcedir} -type f -name '*.py[co]' -exec rm -f {} \;
-virtualenv %{buildroot}/usr/lib/goldstone
-%{buildroot}/usr/lib/goldstone/bin/pip install fabric
 
 %build
 
@@ -133,7 +134,6 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-, apache, apache)
-/usr/lib/goldstone/
 /opt/goldstone/requirements.txt
 /opt/goldstone/setup.cfg
 /opt/goldstone/setup.py
