@@ -131,10 +131,8 @@ STATICFILES_FINDERS = (
 # Points to ./goldstone.
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-# ./goldstone/static and ./client.
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),
-                    os.path.join(os.path.dirname(BASE_DIR), 'client'),
-                    )
+# ./goldstone/static.
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
 # this is sort of a hack until we get our server strategy figured out.
 # STATICFILES_ROOT = '/usr/share/nginx/html/static'

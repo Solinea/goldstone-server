@@ -5,34 +5,25 @@ Before installing Goldstone, your server must meet the following prerequisites:
 * 4GB RAM
 * x64 CPU (or 4 core VM on x64 host)
 * 100 GB free disk space
-* CentOS / RHEL 6.5 or 6.6
+* CentOS / RHEL 7.x
+
+* The Goldstone installer installs, and modifies packages and libraries.  It is highly recommended that it only be installed on dedicated systems. *  A [CentOS 7.1 x86 cloud image](http://cloud.centos.org/centos/7/images/) is an ideal starting point for a virtual machine based Goldstone installation.
 
 To view and use Goldstone, you'll need a recent version of [Firefox](https://www.mozilla.org/en-US/firefox/products/), [Safari](https://www.apple.com/safari/), or [Chrome](https://www.google.com/intl/en-US/chrome/browser).
 
-## Install Prerequisites (as root)
+## Install RPM and run the configuration script (as root)
 
 ```bash
 root# yum update ; reboot
-root# yum install -y gcc gcc-c++ java-1.7.0-openjdk postgresql-server postgresql-devel git
-root# yum install -y python-devel python-setuptools libffi-devel
-root# curl -X GET https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-root# python get-pip.py
-root# pip install paramiko==1.10
-root# pip install fabric==1.10.1    
+root# yum localinstall -y goldstone-server-{version}.rpm
+root# cd /opt/goldstone
+root# . bin/activate
+root# fab install
 ```
+
+It will check for supported operating systems and prerequisties. If all checks pass, it will then prompt you for additional configuration information.
 
 Additionally, Goldstone's password-reset sequence uses e-mail. Ensure you have a working [SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol) server (e.g., [Postfix](http://www.postfix.org)) installed.
-
-## Run the Goldstone installer (as root)
-
-Run this command from the same directory as this file and the associated fabfile.py:
-
-```bash
-root# fab -f installer_fabfile.py install
-```
-
-It will prompt you for check for supported operating systems. If all checks 
-pass, it will then prompt you for additional configuration information.
 
 ## Review production.py
 
@@ -45,11 +36,16 @@ Compare `/opt/goldstone/goldstone/settings/production.py` to
 `/opt/goldstone/goldstone/settings/production.py.rpmnew`, and migrate any changes from the `.rpmnew` file into the `.py` file. If you did not previously edit `production.py`, you can simply do this:
 
 ```bash
-$ mv /opt/goldstone/goldstone/settings/production.py.rpmnew /opt/goldstone/goldstone/settings.production.py.
+root# mv /opt/goldstone/goldstone/settings/production.py.rpmnew /opt/goldstone/goldstone/settings.production.py.
 ```
 
-After you've migrated your custom edits into `production.py`, restart the server.
+After you've migrated your custom edits into `production.py`, reboot the server or restart the services.
 
+```bash
+root# systemctl restart httpd
+root# systemctl restart celery
+root# systemctl restart celerybeat
+```
 
 ## Test password reset
 
@@ -131,6 +127,14 @@ Restart the OpenStack services and syslog or reboot the node. Repeat this on all
 
 Now that everything has been configured, point your browser at the Goldstone server IP address or name and begin using Goldstone.
 
+## Uninstallation
+
+To uninstall Goldstone:
+```bash
+root# fab -f installer_fabfile.py uninstall
+```
+
+This will remove the Goldstone server software.  It will also stop and disable, but not remove supporting software including elasticsearch, logstash, redis, postgresql, and httpd.
 
 ## License
 
