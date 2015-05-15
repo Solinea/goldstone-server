@@ -221,10 +221,9 @@ def process_resource_type(nodetype):
             resources.graph.remove_node(entry)
             nodetype.objects.get(uuid=entry.uuid).delete()
 
-    # Now, for every node of this type in the OpenStack cloud service, add it
-    # to the Resource graph if it's not present, or update its information if
-    # it is. Since we may have just deleted some nodes, refresh the existing
-    # node list.
+    # Now, for every node of this type in the cloud, add it to the Resource
+    # graph if it's not present, or update its information if it is. Since we
+    # may have just deleted some nodes, refresh the existing node list.
 
     # N.B. We could reuse resource_nodes as-is, but this is a little cleaner.
     resource_nodes = resources.nodes_of_type(nodetype)
@@ -241,8 +240,8 @@ def process_resource_type(nodetype):
                                     source_value)
 
             if node:
-                # This resource node corresponds to this cloud service. Update
-                # its information in the graph and database.
+                # This resource node corresponds to this service. Update its
+                # information in the graph and database.
                 node.attributes = entry
                 db_node = nodetype.objects.get(uuid=node.uuid)
                 db_node.attributes = entry
@@ -348,7 +347,7 @@ def query_filter_map(key):
                             "db"),
                "integration_name":
                (lambda n, f:
-                bool(re.search(f, n.display_attributes()["service_name"])),
+                bool(re.search(f, n.display_attributes()["integration_name"])),
                 "db"),
                }
 

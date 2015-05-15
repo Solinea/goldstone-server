@@ -310,7 +310,7 @@ class ResourceTypeList(ListAPIView):
         {"nodes": [<b>node</b>, <b>node</b>, ...],
          "edges": [<b>edge</b>, <b>edge</b>, ...]}\n\n
 
-        <b>node</b> is {"display_attributes": {"service_name": str,
+        <b>node</b> is {"display_attributes": {"integration_name": str,
                                                "name": str},
                         "unique_id": str,
                         "present": bool (True if >= 1 instance exists)

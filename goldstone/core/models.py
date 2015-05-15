@@ -92,7 +92,7 @@ class PolyResource(PolymorphicModel):
     # This object's Goldstone UUID.
     uuid = UUIDField(version=1, auto=True, primary_key=True)
 
-    # This object's OpenStack UUID. Depending upon the service, it may be
+    # This object's OpenStack UUID. Due to OpenStack's vagaries, this may be
     # missing, or not unique.
     cloud_id = CharField(max_length=128, blank=True)
 
@@ -164,7 +164,7 @@ class PolyResource(PolymorphicModel):
 
 
 #
-# These classes represent entities within a Keystone service.
+# These classes represent entities within a Keystone integration.
 #
 
 class User(PolyResource):
@@ -187,7 +187,7 @@ class User(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Keystone",
+        return {"integration_name": "Keystone",
                 "name": "User",
                 }
 
@@ -231,7 +231,7 @@ class Domain(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Keystone",
+        return {"integration_name": "Keystone",
                 "name": "Domain",
                 }
 
@@ -268,7 +268,7 @@ class Group(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Keystone",
+        return {"integration_name": "Keystone",
                 "name": "Group",
                 }
 
@@ -293,7 +293,7 @@ class Token(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Keystone",
+        return {"integration_name": "Keystone",
                 "name": "Token",
                 }
 
@@ -328,7 +328,7 @@ class Credential(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Keystone",
+        return {"integration_name": "Keystone",
                 "name": "Credential",
                 }
 
@@ -361,7 +361,7 @@ class Role(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Keystone",
+        return {"integration_name": "Keystone",
                 "name": "Role",
                 }
 
@@ -404,7 +404,7 @@ class Region(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Keystone",
+        return {"integration_name": "Keystone",
                 "name": "Region",
                 }
 
@@ -439,7 +439,7 @@ class Endpoint(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Keystone",
+        return {"integration_name": "Keystone",
                 "name": "Endpoint",
                 }
 
@@ -472,9 +472,7 @@ class Service(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Keystone",
-                "name": "Service",
-                }
+        return {"integration_name": "Keystone", "name": "Service"}
 
 
 class Project(PolyResource):
@@ -497,9 +495,7 @@ class Project(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Keystone",
-                "name": "Project",
-                }
+        return {"integration_name": "Keystone", "name": "Project"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -642,7 +638,7 @@ class Project(PolyResource):
 
 
 #
-# These classes represent entities within a Nova service.
+# These classes represent entities within a Nova integration.
 #
 
 class AvailabilityZone(PolyResource):
@@ -668,7 +664,7 @@ class AvailabilityZone(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Nova",
+        return {"integration_name": "Nova",
                 "name": "Availability Zone",
                 }
 
@@ -714,7 +710,7 @@ class FlavorExtraSpec(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Nova",
+        return {"integration_name": "Nova",
                 "name": "Flavor ExtraSpec",
                 }
 
@@ -736,7 +732,7 @@ class Aggregate(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Nova",
+        return {"integration_name": "Nova",
                 "name": "Aggregate",
                 }
 
@@ -758,7 +754,7 @@ class Flavor(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Nova",
+        return {"integration_name": "Nova",
                 "name": "Flavor",
                 }
 
@@ -809,7 +805,7 @@ class Keypair(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Nova",
+        return {"integration_name": "Nova",
                 "name": "Keypair",
                 }
 
@@ -895,7 +891,7 @@ class Host(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Nova",
+        return {"integration_name": "Nova",
                 "name": "Host",
                 }
 
@@ -944,7 +940,7 @@ class Hypervisor(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Nova",
+        return {"integration_name": "Nova",
                 "name": "Hypervisor",
                 }
 
@@ -988,7 +984,7 @@ class Cloudpipe(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Nova",
+        return {"integration_name": "Nova",
                 "name": "Cloudpipe",
                 }
 
@@ -1024,7 +1020,7 @@ class ServerGroup(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Nova",
+        return {"integration_name": "Nova",
                 "name": "Server Group",
                 }
 
@@ -1048,7 +1044,7 @@ class Server(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Nova",
+        return {"integration_name": "Nova",
                 "name": "Server",
                 }
 
@@ -1127,7 +1123,7 @@ class Interface(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Nova",
+        return {"integration_name": "Nova",
                 "name": "Interface",
                 }
 
@@ -1148,7 +1144,7 @@ class Interface(PolyResource):
 
 
 class NovaLimits(PolyResource):
-    """An OpenStack Limits within a Nova service."""
+    """An OpenStack Limits within a Nova integration."""
 
     @staticmethod
     def clouddata():
@@ -1164,13 +1160,13 @@ class NovaLimits(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Nova",
+        return {"integration_name": "Nova",
                 "name": "Limits",
                 }
 
 
 #
-# These classes represent entities within a Glance service.
+# These classes represent entities within a Glance integration.
 #
 
 class Image(PolyResource):
@@ -1187,7 +1183,7 @@ class Image(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Glance",
+        return {"integration_name": "Glance",
                 "name": "Image",
                 }
 
@@ -1205,7 +1201,7 @@ class Image(PolyResource):
                 ]
 
 #
-# These classes represent entities within a Cinder service.
+# These classes represent entities within a Cinder integration.
 #
 
 
@@ -1223,7 +1219,7 @@ class QuotaSet(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Cinder",
+        return {"integration_name": "Cinder",
                 "name": "Quota Set",
                 }
 
@@ -1242,7 +1238,7 @@ class QOSSpec(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Cinder",
+        return {"integration_name": "Cinder",
                 "name": "QoS Spec",
                 }
 
@@ -1277,7 +1273,7 @@ class Snapshot(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Cinder",
+        return {"integration_name": "Cinder",
                 "name": "Snapshot",
                 }
 
@@ -1310,7 +1306,7 @@ class VolumeType(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Cinder",
+        return {"integration_name": "Cinder",
                 "name": "Volume Type",
                 }
 
@@ -1343,7 +1339,7 @@ class Volume(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Cinder",
+        return {"integration_name": "Cinder",
                 "name": "Volume",
                 }
 
@@ -1362,13 +1358,13 @@ class Limits(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Cinder",
+        return {"integration_name": "Cinder",
                 "name": "Limits",
                 }
 
 
 #
-# These classes represent entities within a Neutron service.
+# These classes represent entities within a Neutron integration.
 #
 
 class MeteringLabelRule(PolyResource):
@@ -1391,7 +1387,7 @@ class MeteringLabelRule(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "Metering Label Rule",
                 }
 
@@ -1416,7 +1412,7 @@ class MeteringLabel(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "Metering Label",
                 }
 
@@ -1451,7 +1447,7 @@ class NeutronQuota(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "Quota",
                 }
 
@@ -1476,7 +1472,7 @@ class RemoteGroup(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "Remote Group",
                 }
 
@@ -1501,7 +1497,7 @@ class SecurityRules(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "Security Rules",
                 }
 
@@ -1536,7 +1532,7 @@ class SecurityGroup(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "Security Group",
                 }
 
@@ -1566,7 +1562,7 @@ class Port(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "Port",
                 }
 
@@ -1603,7 +1599,7 @@ class LBVIP(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "LB Virtual IP",
                 }
 
@@ -1640,7 +1636,7 @@ class LBPool(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "LB Pool",
                 }
 
@@ -1665,7 +1661,7 @@ class HealthMonitor(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "Health Monitor",
                 }
 
@@ -1700,7 +1696,7 @@ class FloatingIP(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "Floating IP address",
                 }
 
@@ -1725,7 +1721,7 @@ class FloatingIPPool(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "Floating IP Pool",
                 }
 
@@ -1764,7 +1760,7 @@ class FixedIP(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "Fixed IP address",
                 }
 
@@ -1789,7 +1785,7 @@ class LBMember(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "LB Member",
                 }
 
@@ -1826,7 +1822,7 @@ class Subnet(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "Subnet",
                 }
 
@@ -1861,7 +1857,7 @@ class Network(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "Network",
                 }
 
@@ -1886,7 +1882,7 @@ class Router(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"service_name": "Neutron",
+        return {"integration_name": "Neutron",
                 "name": "Router",
                 }
 
