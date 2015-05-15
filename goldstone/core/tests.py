@@ -766,7 +766,7 @@ class ParseTests(SimpleTestCase):
         # e.g., the string is still URL-encoded.
         TESTS = [('', {}),
                  ("cloud_id=deadbeef", {"cloud_id": "deadbeef"}),
-                 ("cloud_id=^deadbeef", {"cloud_id": "^deadbeef"}),
+                 ("cloud_id=%5edeadbeef", {"cloud_id": "^deadbeef"}),
                  ("cloud_id=deadbeef%20biscuit",
                   {"cloud_id": 'deadbeef biscuit'}),
                  ("cloud_id=deadbeef%20OR%20bob",
@@ -775,18 +775,18 @@ class ParseTests(SimpleTestCase):
                   {"cloud_id": "tom dick harry"}),
                  ("cloud_id=tom%20OR%20dick%20OR%20harry",
                   {"cloud_id": "tom|dick|harry"}),
-                 ("cloud_id=^tom%20dick%20harry",
+                 ("cloud_id=%5etom%20dick%20harry",
                   {"cloud_id": "^tom dick harry"}),
-                 ("cloud_id=^tom%20dick%20OR%20harry",
+                 ("cloud_id=%5etom%20dick%20OR%20harry",
                   {"cloud_id": "^tom dick|^harry"}),
-                 ("cloud_id=^tom%20OR%20dick%20harry",
+                 ("cloud_id=%5etom%20OR%20dick%20harry",
                   {"cloud_id": '^tom|^dick harry'}),
-                 ("cloud_id=^tom%20OR%20dick%20harry%20%20hmm",
+                 ("cloud_id=%5etom%20OR%20dick%20harry%20%20hmm",
                   {"cloud_id": '^tom|^dick harry  hmm'}),
 
                  # Now, with a leading '?'.
                  ("?cloud_id=deadbeef", {"cloud_id": "deadbeef"}),
-                 ("?cloud_id=^deadbeef", {"cloud_id": "^deadbeef"}),
+                 ("?cloud_id=%5edeadbeef", {"cloud_id": "^deadbeef"}),
                  ("?cloud_id=deadbeef%20biscuit",
                   {"cloud_id": 'deadbeef biscuit'}),
                  ("?cloud_id=deadbeef%20OR%20bob",
@@ -795,13 +795,13 @@ class ParseTests(SimpleTestCase):
                   {"cloud_id": "tom dick harry"}),
                  ("?cloud_id=tom%20OR%20dick%20OR%20harry",
                   {"cloud_id": "tom|dick|harry"}),
-                 ("?cloud_id=^tom%20dick%20harry",
+                 ("?cloud_id=%5etom%20dick%20harry",
                   {"cloud_id": "^tom dick harry"}),
-                 ("?cloud_id=^tom%20dick%20OR%20harry",
+                 ("?cloud_id=%5etom%20dick%20OR%20harry",
                   {"cloud_id": "^tom dick|^harry"}),
-                 ("?cloud_id=^tom%20OR%20dick%20harry",
+                 ("?cloud_id=%5etom%20OR%20dick%20harry",
                   {"cloud_id": '^tom|^dick harry'}),
-                 ("?cloud_id=^tom%20OR%20dick%20harry%20%20hmm",
+                 ("?cloud_id=%5etom%20OR%20dick%20harry%20%20hmm",
                   {"cloud_id": '^tom|^dick harry  hmm'}),
                  ]
 
@@ -817,40 +817,42 @@ class ParseTests(SimpleTestCase):
         # e.g., the string is still URL-encoded.
         TESTS = [("cloud_id=deadbeef&john=bob",
                   {"cloud_id": "deadbeef", "john": "bob"}),
-                 ("cloud_id=^deadbeef&cloud_name=fred",
+                 ("cloud_id=%5edeadbeef&cloud_name=fred",
                   {"cloud_id": "^deadbeef", "cloud_name": "fred"}),
-                 ("cloud_id=^deadbeef&"
+                 ("cloud_id=%5edeadbeef&"
                   "cloud_name=fred%20OR%20mary%20OR%20william",
                   {"cloud_id": "^deadbeef",
                    "cloud_name": "fred|mary|william"}),
-                 ("cloud_id=%22deadbeef%22%20OR%20beefDEAD&integration=nova",
-                  {"cloud_id": '"deadbeef"|beefDEAD', "integration": "nova"}),
-                 ("cloud_id=%22deadbeef%20biscuit%22&"
-                  "integration=^keystone%20OR%20glance&cloud_name=b%20OR%20c",
-                  {"cloud_id": '"deadbeef biscuit"',
+                 ("cloud_id=deadbeef%20OR%20beefDEAD&integration=nova",
+                  {"cloud_id": 'deadbeef|beefDEAD', "integration": "nova"}),
+                 ("cloud_id=deadbeef%20biscuit&"
+                  "integration=%5ekeystone%20OR%20glance&"
+                  "cloud_name=b%20OR%20c",
+                  {"cloud_id": 'deadbeef biscuit',
                    "integration": '^keystone|^glance',
                    "cloud_name": "b|c"}),
-                 ("cloud_id=^%22deadbeef%22&integration=%22glance%20200%22",
-                  {"cloud_id": '^"deadbeef"', "integration": '"glance 200"'}),
+                 ("cloud_id=%5edeadbeef&integration=glance%20200",
+                  {"cloud_id": '^deadbeef', "integration": 'glance 200'}),
 
                  # Now, with a leading '?'.
                  ("?cloud_id=deadbeef&john=bob",
                   {"cloud_id": "deadbeef", "john": "bob"}),
-                 ("?cloud_id=^deadbeef&cloud_name=fred",
+                 ("?cloud_id=%5edeadbeef&cloud_name=fred",
                   {"cloud_id": "^deadbeef", "cloud_name": "fred"}),
-                 ("?cloud_id=^deadbeef&"
+                 ("?cloud_id=%5edeadbeef&"
                   "cloud_name=fred%20OR%20mary%20OR%20william",
                   {"cloud_id": "^deadbeef",
                    "cloud_name": "fred|mary|william"}),
-                 ("?cloud_id=%22deadbeef%22%20OR%20beefDEAD&integration=nova",
-                  {"cloud_id": '"deadbeef"|beefDEAD', "integration": "nova"}),
-                 ("?cloud_id=%22deadbeef%20biscuit%22&"
-                  "integration=^keystone%20OR%20glance&cloud_name=b%20OR%20c",
-                  {"cloud_id": '"deadbeef biscuit"',
+                 ("?cloud_id=deadbeef%20OR%20beefDEAD&integration=nova",
+                  {"cloud_id": 'deadbeef|beefDEAD', "integration": "nova"}),
+                 ("?cloud_id=deadbeef%20biscuit&"
+                  "integration=%5ekeystone%20OR%20glance&"
+                  "cloud_name=b%20OR%20c",
+                  {"cloud_id": 'deadbeef biscuit',
                    "integration": '^keystone|^glance',
                    "cloud_name": "b|c"}),
-                 ("?cloud_id=^%22deadbeef%22&integration=%22glance%20200%22",
-                  {"cloud_id": '^"deadbeef"', "integration": '"glance 200"'}),
+                 ("?cloud_id=%5edeadbeef&integration=glance%20200",
+                  {"cloud_id": '^deadbeef', "integration": 'glance 200'}),
                  ]
 
         for test, expected in TESTS:

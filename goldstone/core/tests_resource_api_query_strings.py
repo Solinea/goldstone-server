@@ -82,7 +82,7 @@ class CoreResources(Setup):
         # Test two filters.
         with patch("goldstone.core.views.resources", mock_r_graph):
             response = self.client.get(
-                RES_URL_FILTER % "integration_name=^nova&cloud_id=fred",
+                RES_URL_FILTER % "integration_name=%5enova&cloud_id=fred",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
@@ -157,7 +157,7 @@ class CoreResources(Setup):
         # query_string: (the expected node results, the expected number of
         # edges).
         QUERIES = {
-            "?cloud_name=^h":
+            "?cloud_name=%5eh":
             [[{u'cloud_id': u'12345',
                u'cloud_name': u'host 1',
                u'resourcetype':
