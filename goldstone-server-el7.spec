@@ -28,7 +28,7 @@ ExclusiveArch:  x86_64
 ExclusiveOS:    linux
 Prefix:         /opt
 
-Requires(pre): /usr/sbin/useradd, /usr/bin/getent, elasticsearch >= 1.4, gcc, gcc-c++, redis, logstash == 1.4.2, logstash-contrib == 1.4.2, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip, firewalld, python-virtualenv
+Requires(pre): /usr/sbin/useradd, /usr/bin/getent, gcc, gcc-c++, redis, python-devel, libffi-devel, openssl-devel, httpd, mod_wsgi, unzip, zip, firewalld, python-virtualenv
 Requires(postun): /usr/sbin/userdel, /usr/sbin/groupdel
 
 %pre
