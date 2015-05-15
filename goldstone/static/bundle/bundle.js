@@ -2464,12 +2464,14 @@ var MetricViewerCollection = Backbone.Collection.extend({
 // define collection and link to model
 
 /*
-instantiate with:
+instantiated on nodeReportView and novaReportView
+
+instantiation example:
 
 this.cpuUsageChart = new MultiMetricComboCollection({
     globalLookback: ns.globalLookback,
     metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
-    nodeName: hostName
+    nodeName: hostName (optional)
 });
 */
 
@@ -2513,8 +2515,10 @@ var MultiMetricComboCollection = Backbone.Collection.extend({
         // this.defaults.metricNames = ['os.net.tx.eth0', 'os.net.rx.eth0'];
         this.defaults.urlCollectionCountOrig = this.defaults.metricNames.length;
         this.defaults.urlCollectionCount = this.defaults.metricNames.length;
-        this.defaults.globalLookback = options.globalLookback;
+        this.defaults.globalLookback = options.globalLookback || $('#global-lookback-range').val();
         this.fetchMultipleUrls();
+
+        console.log('this.defaults.globalLookback?: ',  this.defaults.globalLookback);
     },
 
     fetchMultipleUrls: function() {
