@@ -33,6 +33,7 @@ var MultiMetricComboCollection = Backbone.Collection.extend({
     defaults: {},
 
     parse: function(data) {
+        var ns = this.defaults;
 
         if (data.next && data.next !== null) {
             var dp = data.next;
@@ -42,13 +43,12 @@ var MultiMetricComboCollection = Backbone.Collection.extend({
                 remove: false,
             });
         } else {
-            this.defaults.urlCollectionCount--;
+            ns.urlCollectionCount--;
         }
 
         // before returning the collection, tag it with the metricName
         // that produced the data
-        var def = this.defaults;
-        data.metricSource = def.metricNames[(def.metricNames.length - 1) - def.urlCollectionCount];
+        data.metricSource = ns.metricNames[(ns.metricNames.length - 1) - ns.urlCollectionCount];
 
         return data;
     },
@@ -62,42 +62,45 @@ var MultiMetricComboCollection = Backbone.Collection.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
+        this.defaults.reportParams = {};
         this.defaults.fetchInProgress = false;
         this.defaults.nodeName = this.options.nodeName;
         this.defaults.metricNames = this.options.metricNames;
         this.defaults.urlCollectionCountOrig = this.defaults.metricNames.length;
         this.defaults.urlCollectionCount = this.defaults.metricNames.length;
-        // this.defaults.globalLookback = options.globalLookback || $('#global-lookback-range').val();
         this.fetchMultipleUrls();
 
     },
 
     fetchMultipleUrls: function() {
         var self = this;
+        var ns = this.defaults;
 
-        if (this.defaults.fetchInProgress) {
+        if (ns.fetchInProgress) {
             return null;
         }
 
-        this.defaults.globalLookback = $('#global-lookback-range').val();
-        this.defaults.fetchInProgress = true;
-        this.defaults.urlsToFetch = [];
+        ns.fetchInProgress = true;
+        ns.urlsToFetch = [];
 
         // grabs minutes from global selector option value
-        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
+        ns.globalLookback = $('#global-lookback-range').val();
+
+        ns.reportParams.end = +new Date();
+        ns.reportParams.start = (+new Date() - (ns.globalLookback * 1000 * 60));
+        ns.reportParams.interval = '' + Math.max(1, (ns.globalLookback / 24)) + 'm';
 
         _.each(self.defaults.metricNames, function(prefix) {
 
-            var urlString = "/core/metrics/summarize/?name=" + prefix;
+            var urlString = '/core/metrics/summarize/?name=' + prefix;
 
             if (self.defaults.nodeName) {
-                urlString += "&node=" + self.defaults.nodeName;
+                urlString += '&node=' + self.defaults.nodeName;
             }
 
-            urlString += "&@timestamp__range={'gte':" +
-                lookback + "}&interval=" +
-                (Math.max(1, (self.defaults.globalLookback / 24)) +
-                "m");
+            urlString += '&@timestamp__range={"gte":' +
+                ns.reportParams.start + ',"lte":' + ns.reportParams.end +
+                '}&interval=' + ns.reportParams.interval;
 
             self.defaults.urlsToFetch.push(urlString);
         });
@@ -106,7 +109,7 @@ var MultiMetricComboCollection = Backbone.Collection.extend({
 
             // fetch the first time without remove:false
             // to clear out the collection
-            url: this.defaults.urlsToFetch[0],
+            url: ns.urlsToFetch[0],
             success: function() {
 
                 // upon success: further fetches are carried out with

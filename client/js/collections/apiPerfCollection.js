@@ -61,6 +61,7 @@ var ApiPerfCollection = Backbone.Collection.extend({
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
         this.url = '/api_perf/stats/?@timestamp__range={"gte":' + ns.reportParams.start +
+            ',"lte":' + ns.reportParams.end +
             '}&interval=' + ns.reportParams.interval +
             '&component=' + this.defaults.componentParam;
 

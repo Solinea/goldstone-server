@@ -54,21 +54,26 @@ var SpawnsCollection = Backbone.Collection.extend({
     },
 
     urlGenerator: function() {
+        var ns = this.defaults;
 
         // a listener in the parent page container triggers an event picked up
         // by GoldstoneBaseView which adjusts ns.globalLookback to match
         // the number of minutes specified by the selector
 
-        var ns = this.defaults;
-
+        // grabs minutes from global selector option value
         ns.globalLookback = $('#global-lookback-range').val();
 
-        // ns.reportParams.end = +new Date();
+        ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        ns.reportParams.interval = '' + Math.max(1, (ns.globalLookback / 24)) + "m";
+        ns.reportParams.interval = '' + Math.max(1, (ns.globalLookback / 24)) + 'm';
+
         this.url = ns.urlPrefix + '?@timestamp__range={"gte":' +
-            ns.reportParams.start + '}&interval=' + ns.reportParams.interval;
+            ns.reportParams.start +
+            ',"lte":' + ns.reportParams.end +
+            '}&interval=' + ns.reportParams.interval;
+
     }
+
 
     // creates a url similar to:
     // /nova/hypervisor/spawns/?@timestamp__range={"gte":1429027100000}&interval=1h
