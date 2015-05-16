@@ -77,8 +77,8 @@ class DiscoverTree(TopologyMixin):
             return {"rsrcType": "error", "label": "No data found"}
 
 
-def reconcile_glance_hosts():
-    """Update the Resource graph Glance nodes and edges from the current
+def update_glance_nodes():
+    """Update the Resource graph's Glance nodes and edges from the current
     OpenStack cloud state.
 
     Glance nodes are:
