@@ -16,9 +16,10 @@ from django.conf import settings
 from django.test import SimpleTestCase
 from functools import partial
 
-from .models import Image, ServerGroup, NovaLimits, Host, resource_types, \
-    Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server, \
-    AvailabilityZone, Flavor, FlavorExtraSpec, Interface, Keypair
+from .models import Image, ServerGroup, NovaLimits, Host, Aggregate, \
+    Hypervisor, Port, Cloudpipe, Network, Project, Server, AvailabilityZone, \
+    Flavor, FlavorExtraSpec, Interface, Keypair
+from .resources import resource_types
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
