@@ -26,6 +26,7 @@ this.vmSpawnChart = new MultiMetricComboCollection({
 this.vmSpawnChartView = new MultiMetricBarView({
     chartTitle: "VM Spawns",
     collection: this.vmSpawnChart,
+    featureSet: 'mem',
     height: 300,
     infoCustom: 'novaSpawns',
     el: '#nova-report-r1-c2',
@@ -54,6 +55,28 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         this.defaults.featureSet = this.options.featureSet || null;
     },
 
+    processListeners: function() {
+        var ns = this.defaults;
+        var self = this;
+
+        this.listenTo(this.collection, 'sync', function() {
+            if (self.collection.defaults.urlCollectionCount === 0) {
+                self.update();
+                // the collection count will have to be set back to the original count when re-triggering a fetch.
+                self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
+                self.collection.defaults.fetchInProgress = false;
+            }
+        });
+
+        this.listenTo(this.collection, 'error', this.dataErrorMessage);
+
+        this.on('lookbackSelectorChanged', function() {
+            this.collection.defaults.globalLookback = $('#global-lookback-range').val();
+            this.collection.fetchMultipleUrls();
+            $(this.el).find('#spinner').show();
+        });
+    },
+
     specialInit: function() {
         var ns = this.defaults;
 
@@ -76,199 +99,271 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
     },
 
-    dataPrep: function(data) {
+    collectionPrep: function(data) {
+        var condensedData;
+        var dataUniqTimes;
+        var newData;
+
+        console.log('MultiMetricBarView collectionPrep data enters as: ', data);
 
         /*
-        this is where the fetched JSON payload is transformed into a
-        dataset than can be consumed by the D3 charts
-        each chart may have its own perculiarities
-
-        IMPORTANT:
-        the order of items that are 'push'ed into the
-        result array matters. After 'eventTime', the items
-        will be stacked on the graph from the bottom of
-        the graph upward. Or another way of saying it is
-        the first item listed will be first one to be rendered
-        from the x-axis of the graph going upward.
+        enters as:
+        0: Object
+        metricSource: "nova.hypervisor.vcpus"
+        per_interval: Array[6]
+            1431374400000: Object
+                @timestamp: "1431374400000"
+                count: 4
+                name: "nova.hypervisor.vcpus"
+                stats: Object
+                value: 16
         */
-
         var ns = this.defaults;
         var uniqTimestamps;
-        var result = [];
+        var finalData = [];
 
-        if (ns.featureSet === 'metric') {
-            data = data[0].per_interval;
-            /*
-            {
-                @timestamp: "2015-04-20T19:09:08.153Z"
-                host: "10.10.20.21:55199"
-                metric_type: "gauge"
-                name: "os.cpu.idle"
-                node: "rsrc-02"
-                unit: "percent"
-                value: 97.18570476410143
-            }
-            */
+        if (ns.featureSet === 'cpu') {
 
-            _.each(data, function(item) {
-                var logTime = +(_.keys(item)[0]);
-                var value = +(_.values(item)[0]);
-                result.push({
-                    "eventTime": logTime,
-                    "Success": value,
+            _.each(data, function(collection) {
+
+                // within each collection, tag the data points
+                _.each(collection.per_interval, function(dataPoint) {
+
+                    _.each(dataPoint, function(item, i) {
+                        item['@timestamp'] = i;
+                        item.name = collection.metricSource;
+                        item.value = item.stats.max;
+                    });
+
                 });
             });
 
-        } else if (ns.featureSet === 'cpu') {
-
-            // CPU Resources chart data prep
-            /*
-            {
-                "name": "nova.hypervisor.vcpus",
-                "region": "RegionOne",
-                "value": 16,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "count"
-            },
-            {
-                "name": "nova.hypervisor.vcpus_used",
-                "region": "RegionOne",
-                "value": 7,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "count"
-            },
-            */
-
-            uniqTimestamps = _.uniq(_.map(data, function(item) {
-                return item['@timestamp'];
+            condensedData = _.flatten(_.map(data, function(item) {
+                return item.per_interval;
             }));
-            _.each(uniqTimestamps, function(item, i) {
-                result.push({
-                    eventTime: moment(item).valueOf(),
-                    Used: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.vcpus_used'
-                    })[0].value,
-                    Physical: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.vcpus'
-                    })[0].value
-                });
+
+            dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
+                return item[_.keys(item)[0]]['@timestamp'];
+            }));
+
+            newData = {};
+
+            _.each(dataUniqTimes, function(item) {
+                newData[item] = {
+                    Physical: null,
+                    Used: null,
+                    eventTime: null,
+                    total: null
+                };
+            });
+
+            _.each(condensedData, function(item) {
+
+                var key = _.keys(item)[0];
+                var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
+                newData[key][metric] = item[key].value;
 
             });
+
+
+            finalData = [];
+
+            _.each(newData, function(item, i) {
+
+                item.vcpus_used = item.vcpus_used || 0;
+                item.vcpus = item.vcpus || 0;
+
+                finalData.push({
+                    eventTime: i,
+                    Used: item.vcpus_used,
+                    Physical: item.vcpus,
+                });
+            });
+
+            // OLD CODE:
+            // CPU Resources chart data prep
+            // uniqTimestamps = _.uniq(_.map(data, function(item) {
+            //     return item['@timestamp'];
+            // }));
+            // _.each(uniqTimestamps, function(item, i) {
+            //     finalData.push({
+            //         eventTime: moment(item).valueOf(),
+            //         Used: _.where(data, {
+            //             '@timestamp': item,
+            //             'name': 'nova.hypervisor.vcpus_used'
+            //         })[0].value,
+            //         Physical: _.where(data, {
+            //             '@timestamp': item,
+            //             'name': 'nova.hypervisor.vcpus'
+            //         })[0].value
+            //     });
+
+            // });
+            // END OLD CODE
 
         } else if (ns.featureSet === 'disk') {
 
-            /*
-            {
-                "name": "nova.hypervisor.local_gb_used",
-                "region": "RegionOne",
-                "value": 83,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "GB"
-            },
-            {
-                "name": "nova.hypervisor.local_gb",
-                "region": "RegionOne",
-                "value": 98,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "GB"
-            },
-        */
-            uniqTimestamps = _.uniq(_.map(data, function(item) {
-                return item['@timestamp'];
-            }));
-            _.each(uniqTimestamps, function(item, i) {
-                result.push({
-                    eventTime: moment(item).valueOf(),
-                    Used: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.local_gb_used'
-                    })[0].value,
-                    Total: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.local_gb'
-                    })[0].value
+            _.each(data, function(collection) {
+
+                // within each collection, tag the data points
+                _.each(collection.per_interval, function(dataPoint) {
+
+                    _.each(dataPoint, function(item, i) {
+                        item['@timestamp'] = i;
+                        item.name = collection.metricSource;
+                        item.value = item.stats.max;
+                    });
+
                 });
+            });
+
+            condensedData = _.flatten(_.map(data, function(item) {
+                return item.per_interval;
+            }));
+
+            dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
+                return item[_.keys(item)[0]]['@timestamp'];
+            }));
+
+            newData = {};
+
+            _.each(dataUniqTimes, function(item) {
+                newData[item] = {
+                    Total: null,
+                    Used: null,
+                    eventTime: null,
+                    total: null
+                };
+            });
+
+            _.each(condensedData, function(item) {
+
+                var key = _.keys(item)[0];
+                var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
+                newData[key][metric] = item[key].value;
 
             });
+
+
+            finalData = [];
+
+            _.each(newData, function(item, i) {
+
+                item.local_gb = item.local_gb || 0;
+                item.local_gb_used = item.local_gb_used || 0;
+
+                finalData.push({
+                    eventTime: i,
+                    Used: item.local_gb_used,
+                    Total: item.local_gb,
+                });
+            });
+
+            // OLD CODE:
+            // uniqTimestamps = _.uniq(_.map(data, function(item) {
+            //     return item['@timestamp'];
+            // }));
+            // _.each(uniqTimestamps, function(item, i) {
+            //     finalData.push({
+            //         eventTime: moment(item).valueOf(),
+            //         Used: _.where(data, {
+            //             '@timestamp': item,
+            //             'name': 'nova.hypervisor.local_gb_used'
+            //         })[0].value,
+            //         Total: _.where(data, {
+            //             '@timestamp': item,
+            //             'name': 'nova.hypervisor.local_gb'
+            //         })[0].value
+            //     });
+
+            // });
+            // END OLD CODE
 
         } else if (ns.featureSet === 'mem') {
 
-            /*
-            {
-                "name": "nova.hypervisor.memory_mb_used",
-                "region": "RegionOne",
-                "value": 10752,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "MB"
-            },
-            {
-                "name": "nova.hypervisor.memory_mb",
-                "region": "RegionOne",
-                "value": 31872,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "MB"
-            },
-            */
+            _.each(data, function(collection) {
 
-            uniqTimestamps = _.uniq(_.map(data, function(item) {
-                return item['@timestamp'];
+                // within each collection, tag the data points
+                _.each(collection.per_interval, function(dataPoint) {
+
+                    _.each(dataPoint, function(item, i) {
+                        item['@timestamp'] = i;
+                        item.name = collection.metricSource;
+                        item.value = item.stats.max;
+                    });
+
+                });
+            });
+
+            condensedData = _.flatten(_.map(data, function(item) {
+                return item.per_interval;
             }));
-            _.each(uniqTimestamps, function(item, i) {
-                result.push({
-                    eventTime: moment(item).valueOf(),
-                    Used: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.memory_mb_used'
-                    })[0].value,
-                    Physical: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.memory_mb'
-                    })[0].value
-                });
+
+            dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
+                return item[_.keys(item)[0]]['@timestamp'];
+            }));
+
+            newData = {};
+
+            _.each(dataUniqTimes, function(item) {
+                newData[item] = {
+                    Physical: null,
+                    Used: null,
+                    eventTime: null,
+                    total: null
+                };
+            });
+
+            _.each(condensedData, function(item) {
+
+                var key = _.keys(item)[0];
+                var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
+                newData[key][metric] = item[key].value;
 
             });
 
 
-        } else {
+            finalData = [];
 
-            // Spawns Resources chart data prep
-            /*
-            {"1429032900000":
-                {"count":1,
-                "success":
-                    [
-                        {"true":1}
-                    ]
-                }
-            }
-            */
+            _.each(newData, function(item, i) {
 
-            _.each(data, function(item) {
-                var logTime = _.keys(item)[0];
-                var success = _.pluck(item[logTime].success, 'true');
-                success = success[0] || 0;
-                var failure = _.pluck(item[logTime].success, 'false');
-                failure = failure[0] || 0;
-                result.push({
-                    "eventTime": logTime,
-                    "Success": success,
-                    "Failure": failure
+                item.memory_mb = item.memory_mb || 0;
+                item.memory_mb_used = item.memory_mb_used || 0;
+
+                finalData.push({
+                    eventTime: i,
+                    Used: item.memory_mb_used,
+                    Physical: item.memory_mb,
                 });
             });
+
+            // OLD CODE:
+            // uniqTimestamps = _.uniq(_.map(data, function(item) {
+            //     return item['@timestamp'];
+            // }));
+            // _.each(uniqTimestamps, function(item, i) {
+            //     finalData.push({
+            //         eventTime: moment(item).valueOf(),
+            //         Used: _.where(data, {
+            //             '@timestamp': item,
+            //             'name': 'nova.hypervisor.memory_mb_used'
+            //         })[0].value,
+            //         Physical: _.where(data, {
+            //             '@timestamp': item,
+            //             'name': 'nova.hypervisor.memory_mb'
+            //         })[0].value
+            //     });
+
+            // });
+            // END OLD CODE
+
         }
-        return result;
+
+        return finalData;
     },
 
     computeHiddenBarText: function(d) {
-        var  ns = this.defaults;
+        var ns = this.defaults;
         /*
         filter function strips keys that are irrelevant to the d3.tip:
 
@@ -312,14 +407,14 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         // [{"1424586240000": [6, 16, 256]}...]
         var data = this.collection.toJSON();
 
-        // data morphed through dataPrep into:
+        // data morphed through collectionPrep into:
         // {
         //     "eventTime": "1424586240000",
         //     "Used": 6,
         //     "Physical": 16,
         //     "Virtual": 256
         // });
-        data = this.dataPrep(data);
+        data = this.collectionPrep(data);
 
         this.hideSpinner();
 
