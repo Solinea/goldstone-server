@@ -398,5 +398,3 @@ TBD
     * [jQuery](http://jquery.com)
     * [D3](http://d3js.org), to provide nearly unlimited freedom to visually express data
     * [Font Awesome](http://fontawesome.io)
-
-[end of file]

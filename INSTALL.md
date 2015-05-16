@@ -135,5 +135,3 @@ root# fab -f installer_fabfile.py uninstall
 ```
 
 This will remove the Goldstone server software.  It will also stop and disable, but not remove supporting software including elasticsearch, logstash, redis, postgresql, and httpd.
-
-[end of file]
