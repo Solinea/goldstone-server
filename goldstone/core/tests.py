@@ -23,11 +23,13 @@ import mock
 from mock import patch
 from rest_framework.test import APISimpleTestCase
 
-from .models import resources, Image, ServerGroup, NovaLimits, GraphNode, \
-    PolyResource, Host, resource_types, Aggregate, Hypervisor, Port, \
-    Cloudpipe, Network, Project, Server
+from .models import Image, ServerGroup, NovaLimits, PolyResource, Host, \
+    Aggregate, Hypervisor, Port, Cloudpipe, Network, Project, Server
+from .resources import resource_types, resources, GraphNode
+
 from . import tasks
-from .utils import custom_exception_handler, _add_edges, process_resource_type
+from .utils import custom_exception_handler, _add_edges, \
+    process_resource_type, parse
 
 # Using the latest version of django-polymorphic, a
 # PolyResource.objects.all().delete() throws an IntegrityError exception. So
@@ -54,25 +56,25 @@ def _load_rg_and_db(startnodes, startedges):
     nameindex = 0
 
     # Create the resource nodes. Each will have a unique name. Note that
-    # the cloud_id is stored in the .attributes attribute.
-    for nodetype, cloud_id in startnodes:
-        row = nodetype.objects.create(cloud_id=cloud_id,
-                                      name="name_%d" % nameindex)
+    # the native_id is stored in the .attributes attribute.
+    for nodetype, native_id in startnodes:
+        row = nodetype.objects.create(native_id=native_id,
+                                      native_name="name_%d" % nameindex)
         nameindex += 1
 
         resources.graph.add_node(GraphNode(uuid=row.uuid,
                                            resourcetype=nodetype,
-                                           attributes={"id": cloud_id}))
+                                           attributes={"id": native_id}))
 
     # Create the resource graph edges.
     for source, dest in startedges:
         # Find the from and to nodes.
         nodes = resources.nodes_of_type(source[0])
-        row = source[0].objects.get(cloud_id=source[1])
+        row = source[0].objects.get(native_id=source[1])
         fromnode = [x for x in nodes if x.uuid == row.uuid][0]
 
         nodes = resources.nodes_of_type(dest[0])
-        row = dest[0].objects.get(cloud_id=dest[1])
+        row = dest[0].objects.get(native_id=dest[1])
         tonode = [x for x in nodes if x.uuid == row.uuid][0]
 
         # Add the edge
@@ -100,7 +102,7 @@ class PolyResourceModelTests(SimpleTestCase):
             'must': [{'query_string': {'query': 'polly'}}],
             'must_not': [{'term': {u'loglevel.raw': 'AUDIT'}}]}}
 
-        resource = PolyResource(name='polly')
+        resource = PolyResource(native_name='polly')
         result = resource.logs().to_dict()
         self.assertDictEqual(expectation, result['query'])
 
@@ -112,7 +114,7 @@ class PolyResourceModelTests(SimpleTestCase):
 
         expectation = {"query_string":
                        {"query": "\"polly\"", "default_field": "_all"}}
-        resource = PolyResource(name='polly')
+        resource = PolyResource(native_name='polly')
         result = resource.events().to_dict()
         self.assertTrue(expectation in result['query']['bool']['must'])
 
@@ -200,7 +202,7 @@ class AddEdges(SimpleTestCase):
         be done.
 
         """
-        from goldstone.core.models import ResourceTypes
+        from goldstone.core.resources import ResourceTypes
 
         # Test data.
         NODES = [(Host, "deadbeef")]
@@ -228,8 +230,8 @@ class AddEdges(SimpleTestCase):
 
         """
 
-        # The initial resource graph nodes, as (Type, cloud_id) tuples.  The
-        # cloud_id's must be unique within a node type. The Host type can form
+        # The initial resource graph nodes, as (Type, native_id) tuples.  The
+        # native_id's must be unique within a node type. The Host type can form
         # outoing links to Aggregate and Hypervisor nodes.
         NODES = [(Host, "deadbeef"),
                  (Aggregate, "0"),
@@ -260,8 +262,8 @@ class AddEdges(SimpleTestCase):
 
         """
 
-        # The initial resource graph nodes, as (Type, cloud_id) tuples.  The
-        # cloud_id's must be unique within a node type. The Host type can form
+        # The initial resource graph nodes, as (Type, native_id) tuples.  The
+        # native_id's must be unique within a node type. The Host type can form
         # outoing links to Aggregate and Hypervisor nodes.
         NODES = [(Host, "deadbeef"),
                  (Aggregate, "0"),
@@ -285,8 +287,8 @@ class AddEdges(SimpleTestCase):
 
         """
 
-        # The initial resource graph nodes, as (Type, cloud_id) tuples.  The
-        # cloud_id's must be unique within a node type. The Host type can form
+        # The initial resource graph nodes, as (Type, native_id) tuples.  The
+        # native_id's must be unique within a node type. The Host type can form
         # outoing links to Aggregate and Hypervisor nodes.
         NODES = [(Host, "deadbeef"),
                  (Image, "deadbeef"),
@@ -309,8 +311,8 @@ class AddEdges(SimpleTestCase):
 
         """
 
-        # The initial resource graph nodes, as (Type, cloud_id) tuples.  The
-        # cloud_id's must be unique within a node type. The Host type can form
+        # The initial resource graph nodes, as (Type, native_id) tuples.  The
+        # native_id's must be unique within a node type. The Host type can form
         # outoing links to Aggregate and Hypervisor nodes.
         NODES = [(Host, "deadbeef"),
                  (Image, "cad"),
@@ -413,11 +415,11 @@ class ProcessResourceType(SimpleTestCase):
 
         """
 
-        # The initial resource graph nodes, as (Type, cloud_id) tuples.
+        # The initial resource graph nodes, as (Type, native_id) tuples.
         NODES = [(Image, "a"), (Image, "ab"), (Image, "abc")]
 
         # The initial resource graph edges. Each entry is ((from_type,
-        # cloud_id), (to_type, cloud_id)).
+        # native_id), (to_type, native_id)).
         EDGES = [((Image, "a"), (Image, "ab")), ((Image, "abc"), (Image, "a"))]
 
         # Create the PolyResource database rows, and the corresponding
@@ -448,8 +450,8 @@ class ProcessResourceType(SimpleTestCase):
 
         """
 
-        # The initial resource graph nodes, as (Type, cloud_id) tuples.  The
-        # cloud_id's must be unique within a node type.
+        # The initial resource graph nodes, as (Type, native_id) tuples.  The
+        # native_id's must be unique within a node type.
         NODES = [(Image, "a"),
                  (Image, "ab"),
                  (Image, "abc"),
@@ -460,7 +462,7 @@ class ProcessResourceType(SimpleTestCase):
                  (NovaLimits, "0")]
 
         # The initial resource graph edges. Each entry is ((from_type,
-        # cloud_id), (to_type, cloud_id)).  The cloud_id's must be unique
+        # native_id), (to_type, native_id)).  The native_id's must be unique
         # within a node type.
         EDGES = [((Image, "a"), (Image, "ab")),
                  ((Image, "0001"), (Image, "0002")),
@@ -496,14 +498,14 @@ class ProcessResourceType(SimpleTestCase):
     @patch('goldstone.core.models.get_glance_client')
     def test_empty_rg_cloud_multi_noid(self, ggc):
         """Nothing in the resource graph; something in the cloud, and some of
-        the glance services don't have a cloud_id.
+        the glance services don't have a native_id.
 
         Only the ones with an id should be added to the resource graph.
 
         """
 
         # Set up get_glance_client to return some glance services and other
-        # services. Some of the glance services won't have a cloud_id.
+        # services. Some of the glance services won't have a native_id.
         cloud = self.EmptyClientObject()
 
         bad_image_0 = {"checksum": "aw1234234234234234",
@@ -548,8 +550,8 @@ class ProcessResourceType(SimpleTestCase):
 
         """
 
-        # The initial resource graph nodes, as (Type, cloud_id) tuples.  The
-        # cloud_id's must be unique within a node type.
+        # The initial resource graph nodes, as (Type, native_id) tuples.  The
+        # native_id's must be unique within a node type.
         NODES = [(Image, "a"),
                  (Image, "ab"),
                  (ServerGroup, "0"),
@@ -557,7 +559,7 @@ class ProcessResourceType(SimpleTestCase):
                  (NovaLimits, "0")]
 
         # The initial resource graph edges. Each entry is ((from_type,
-        # cloud_id), (to_type, cloud_id)).  The cloud_id's must be unique
+        # native_id), (to_type, native_id)).  The native_id's must be unique
         # within a node type.
         EDGES = [((Image, "a"), (Image, "ab")),
                  ((Image, "a"), (ServerGroup, "0")),
@@ -619,8 +621,8 @@ class ProcessResourceType(SimpleTestCase):
 
         """
 
-        # The initial resource graph nodes, as (Type, cloud_id) tuples.  The
-        # cloud_id's must be unique within a node type.
+        # The initial resource graph nodes, as (Type, native_id) tuples.  The
+        # native_id's must be unique within a node type.
         NODES = [(Image, "a"),
                  (Image, "ab"),
                  (Image, "abc"),
@@ -630,7 +632,7 @@ class ProcessResourceType(SimpleTestCase):
                  (NovaLimits, "0")]
 
         # The initial resource graph edges. Each entry is ((from_type,
-        # cloud_id), (to_type, cloud_id)).  The cloud_id's must be unique
+        # native_id), (to_type, native_id)).  The native_id's must be unique
         # within a node type. N.B. Some of these edges would not exist in a
         # running system, because they're not defined in ResourceTypes.
         EDGES = [((Image, "a"), (Image, "ab")),
@@ -693,20 +695,20 @@ class ProcessResourceType(SimpleTestCase):
         self.assertEqual(resources.graph.number_of_edges(), 3)
 
     @patch('goldstone.core.models.get_glance_client')
-    def test_duplicate_cloud_ids(self, ggc):
+    def test_duplicate_native_ids(self, ggc):
         """Something in the resource graph, and some glance services in the
         cloud; and some of the cloud's glance services have duplicate
-        cloud_ids."""
+        native_ids."""
 
-        # The initial resource graph nodes, as (Type, cloud_id) tuples.  The
-        # cloud_id's must be unique within a node type.
+        # The initial resource graph nodes, as (Type, native_id) tuples.  The
+        # native_id's must be unique within a node type.
         NODES = [(Image, "a"),
                  (Image, "ab"),
                  (ServerGroup, "0"),
                  (NovaLimits, "0")]
 
         # The initial resource graph edges. Each entry is ((from_type,
-        # cloud_id), (to_type, cloud_id)).  The cloud_id's must be unique
+        # native_id), (to_type, native_id)).  The native_id's must be unique
         # within a node type.
         EDGES = [((Image, "a"), (Image, "ab")),
                  ((Image, "a"), (ServerGroup, "0")),
@@ -750,3 +752,108 @@ class ProcessResourceType(SimpleTestCase):
         self.assertEqual(resources.graph.number_of_nodes(), 5)
         self.assertEqual(PolyResource.objects.count(), 5)
         self.assertEqual(len(resources.nodes_of_type(Image)), 3)
+
+
+class ParseTests(SimpleTestCase):
+    """Test the query string parser."""
+
+    def test_one_variable(self):
+        """Various forms of single-variable query strings that can be submitted
+        to /core/resources/<uuid>/ or /core/resource_types/<unique_id>/."""
+
+        # Each entry is (query_string, expected_result). The query string
+        # format must be as that returned from calling urlparse.urlparse() --
+        # e.g., the string is still URL-encoded.
+        TESTS = [('', {}),
+                 ("native_id=deadbeef", {"native_id": "deadbeef"}),
+                 ("native_id=%5edeadbeef", {"native_id": "^deadbeef"}),
+                 ("native_id=deadbeef%20biscuit",
+                  {"native_id": 'deadbeef biscuit'}),
+                 ("native_id=deadbeef%20OR%20bob",
+                  {"native_id": "deadbeef|bob"}),
+                 ("native_id=tom%20dick%20harry",
+                  {"native_id": "tom dick harry"}),
+                 ("native_id=tom%20OR%20dick%20OR%20harry",
+                  {"native_id": "tom|dick|harry"}),
+                 ("native_id=%5etom%20dick%20harry",
+                  {"native_id": "^tom dick harry"}),
+                 ("native_id=%5etom%20dick%20OR%20harry",
+                  {"native_id": "^tom dick|^harry"}),
+                 ("native_id=%5etom%20OR%20dick%20harry",
+                  {"native_id": '^tom|^dick harry'}),
+                 ("native_id=%5etom%20OR%20dick%20harry%20%20hmm",
+                  {"native_id": '^tom|^dick harry  hmm'}),
+
+                 # Now, with a leading '?'.
+                 ("?native_id=deadbeef", {"native_id": "deadbeef"}),
+                 ("?native_id=%5edeadbeef", {"native_id": "^deadbeef"}),
+                 ("?native_id=deadbeef%20biscuit",
+                  {"native_id": 'deadbeef biscuit'}),
+                 ("?native_id=deadbeef%20OR%20bob",
+                  {"native_id": "deadbeef|bob"}),
+                 ("?native_id=tom%20dick%20harry",
+                  {"native_id": "tom dick harry"}),
+                 ("?native_id=tom%20OR%20dick%20OR%20harry",
+                  {"native_id": "tom|dick|harry"}),
+                 ("?native_id=%5etom%20dick%20harry",
+                  {"native_id": "^tom dick harry"}),
+                 ("?native_id=%5etom%20dick%20OR%20harry",
+                  {"native_id": "^tom dick|^harry"}),
+                 ("?native_id=%5etom%20OR%20dick%20harry",
+                  {"native_id": '^tom|^dick harry'}),
+                 ("?native_id=%5etom%20OR%20dick%20harry%20%20hmm",
+                  {"native_id": '^tom|^dick harry  hmm'}),
+                 ]
+
+        for test, expected in TESTS:
+            self.assertEqual(parse(test), expected)
+
+    def test_multiple_variables(self):
+        """Various forms of multi-variable query strings that can be submitted
+        to /core/resources/<uuid>/ or /core/resource_types/<unique_id>/."""
+
+        # Each entry is (query_string, expected_result). The query string
+        # format must be as that returned from calling urlparse.urlparse() --
+        # e.g., the string is still URL-encoded.
+        TESTS = [("native_id=deadbeef&john=bob",
+                  {"native_id": "deadbeef", "john": "bob"}),
+                 ("native_id=%5edeadbeef&native_name=fred",
+                  {"native_id": "^deadbeef", "native_name": "fred"}),
+                 ("native_id=%5edeadbeef&"
+                  "native_name=fred%20OR%20mary%20OR%20william",
+                  {"native_id": "^deadbeef",
+                   "native_name": "fred|mary|william"}),
+                 ("native_id=deadbeef%20OR%20beefDEAD&integration=nova",
+                  {"native_id": 'deadbeef|beefDEAD', "integration": "nova"}),
+                 ("native_id=deadbeef%20biscuit&"
+                  "integration=%5ekeystone%20OR%20glance&"
+                  "native_name=b%20OR%20c",
+                  {"native_id": 'deadbeef biscuit',
+                   "integration": '^keystone|^glance',
+                   "native_name": "b|c"}),
+                 ("native_id=%5edeadbeef&integration=glance%20200",
+                  {"native_id": '^deadbeef', "integration": 'glance 200'}),
+
+                 # Now, with a leading '?'.
+                 ("?native_id=deadbeef&john=bob",
+                  {"native_id": "deadbeef", "john": "bob"}),
+                 ("?native_id=%5edeadbeef&native_name=fred",
+                  {"native_id": "^deadbeef", "native_name": "fred"}),
+                 ("?native_id=%5edeadbeef&"
+                  "native_name=fred%20OR%20mary%20OR%20william",
+                  {"native_id": "^deadbeef",
+                   "native_name": "fred|mary|william"}),
+                 ("?native_id=deadbeef%20OR%20beefDEAD&integration=nova",
+                  {"native_id": 'deadbeef|beefDEAD', "integration": "nova"}),
+                 ("?native_id=deadbeef%20biscuit&"
+                  "integration=%5ekeystone%20OR%20glance&"
+                  "native_name=b%20OR%20c",
+                  {"native_id": 'deadbeef biscuit',
+                   "integration": '^keystone|^glance',
+                   "native_name": "b|c"}),
+                 ("?native_id=%5edeadbeef&integration=glance%20200",
+                  {"native_id": '^deadbeef', "integration": 'glance 200'}),
+                 ]
+
+        for test, expected in TESTS:
+            self.assertEqual(parse(test), expected)

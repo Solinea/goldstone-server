@@ -12,16 +12,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from django.conf import settings
+from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.response import Response
+from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_200_OK
+
 from goldstone.drfes.views import ElasticListAPIView, SimpleAggView, \
     DateHistogramAggView
-from rest_framework.generics import RetrieveAPIView
 from goldstone.utils import TopologyMixin
 
-from .models import MetricData, ReportData
+from .models import MetricData, ReportData, PolyResource
+from .resources import resources, resource_types
 from .serializers import MetricDataSerializer, ReportDataSerializer, \
-    MetricNamesAggSerializer, ReportNamesAggSerializer, NavTreeSerializer, \
+    MetricNamesAggSerializer, ReportNamesAggSerializer, PassthruSerializer, \
     MetricAggSerializer
+from .utils import parse, query_filter_map
+
+# Aliases to make the code less verbose
+TYPE = settings.R_ATTRIBUTE.TYPE
 
 
 # Our API documentation extracts this docstring, hence the use of markup.
@@ -172,7 +180,7 @@ class NavTreeView(RetrieveAPIView, TopologyMixin):
 
      """
 
-    serializer_class = NavTreeSerializer
+    serializer_class = PassthruSerializer
 
     def get_object(self):
         return self.build_topology_tree()
@@ -287,3 +295,226 @@ class NavTreeView(RetrieveAPIView, TopologyMixin):
             return rl[0]
         else:
             return {"rsrcType": "error", "label": "No data found"}
+
+
+# Our API documentation extracts this docstring, hence the use of markup.
+class ResourceTypeList(ListAPIView):
+    """Return the Resource Type graph, as a collection of nodes and directed
+    edges."""
+
+    serializer_class = PassthruSerializer
+
+    def get(self, request, *args, **kwargs):
+        """The response payload is:
+
+        {"nodes": [<b>node</b>, <b>node</b>, ...],
+         "edges": [<b>edge</b>, <b>edge</b>, ...]}\n\n
+
+        <b>node</b> is {"display_attributes": {"integration_name": str,
+                                               "name": str},
+                        "unique_id": str,
+                        "present": bool (True if >= 1 instance exists)
+                        }\n\n
+
+        <b>edge</b> is {"from": str, "to": str, "type": str}
+
+        """
+
+        # Gather the nodes.
+        nodes = [{"display_attributes": entry.display_attributes(),
+                  "unique_id": entry.unique_id(),
+                  "present": bool(resources.nodes_of_type(entry))}
+                 for entry in resource_types.graph]
+
+        # Gather the edges.
+        edges = [{"from": str(entry[0]),
+                  "to": str(entry[1]),
+                  "type": entry[2][TYPE]}
+                 for entry in resource_types.graph.edges_iter(data=True)]
+
+        return Response({"nodes": nodes, "edges": edges})
+
+
+# Our API documentation extracts this docstring, hence the use of markup.
+class ResourceTypeRetrieve(RetrieveAPIView):
+    """Return the resource graph instances of a specific resource type."""
+
+    serializer_class = PassthruSerializer
+
+    def get(self, request, unique_id, *args, **kwargs):
+        """<b>unique_id</b> is a resource type's unique id.\n\n
+
+        The response payload is a list of resource graph nodes:
+
+        {"nodes": [<b>node</b>, <b>node</b>, ...]}\n\n
+
+        <b>node</b> is {"uuid": str, "native_id": str, "name": str,
+                        "attributes": dict}
+
+        <b>uuid</b> is the UUID we gave this node within Goldstone.\n\n
+
+        <b>native_id</b> is the OpenStack id of this node. It may be empty.\n\n
+
+        <b>native_name</b> is the node's cloud name.\n\n
+
+        <b>attributes</b> is the node's information extracted from the
+        OpenStack cloud.
+
+        """
+
+        # Get the type that matches the supplied id.
+        target_type = resource_types.get_type(unique_id)
+
+        result = []
+
+        if target_type is not None:
+            # The desired resource type was found. Each instance's information
+            # comes from its resource graph node, and its PolyResource table
+            # row.
+            for node in resources.nodes_of_type(target_type):
+                row = PolyResource.objects.get(uuid=node.uuid)
+                result.append({"uuid": node.uuid,
+                               "native_id": row.native_id,
+                               "native_name": row.native_name,
+                               "attributes": node.attributes})
+
+        # The response's status depends on whether we found any instances.
+        return Response({"nodes": result},
+                        status=HTTP_200_OK if result else HTTP_404_NOT_FOUND)
+
+
+# Our API documentation extracts this docstring, hence the use of markup.
+class ResourcesList(ListAPIView):
+    """Return the Resource graph, as a collection of nodes and directed
+    edges."""
+
+    serializer_class = PassthruSerializer
+
+    def get(self, request, *args, **kwargs):
+        """The response payload is:
+
+        {"nodes": [<b>node</b>, <b>node</b>, ...],
+         "edges": [<b>edge</b>, <b>edge</b>, ...]}\n\n
+
+        <b>node</b> is {"resourcetype": {"unique_id": str, "name": str},
+                        "uuid": str,
+                        "native_id": str,
+                        "native_name": str,
+                        }\n\n
+
+        <b>edge</b> is {"from": str, "to": str, "type": str}\n\n
+
+        Filtering may be requested through a query string. In "?key=value",
+        value may start with a "^" to filter against a key's beginning,
+        otherwise it's used anywhere within the key. " OR " is a logical
+        or. All names and ids are case-sensitive.\n\n
+
+        For example,
+        <b>?native_name=^Four%20score%20OR%20Five%20score&integration=nova%20OR%20keystone</b>
+        results in a native_name filter of <b>^Four score|^Five score</b> and
+        an integration filter of <b>nova|keystone</b>.\n\n
+
+        N.B. Edges are not included in the response if they are not from or to
+        a node in the response.
+
+        ---
+
+        parameters:
+            - name: native_name
+              description: A cloud name regex to filter against.
+              paramType: query
+            - name: native_id
+              description: A cloud id regex to filter against.
+              paramType: query
+            - name: integration_name
+              description: An integration name regex to filter against.
+              paramType: query
+
+        """
+
+        # Get the filtering parameters, and gather their mapping information
+        # now.
+        parsed_query_string = parse(request.META["QUERY_STRING"])
+        filters = [(query_filter_map(k), v)
+                   for k, v in parsed_query_string.items()]
+
+        nodes = []
+        node_uuids = []
+
+        # For every node in the resource graph...
+        for node in resources.graph.nodes():
+            # Get this node's matching table row.
+            row = PolyResource.objects.get(uuid=node.uuid)
+
+            # Apply the user's filters to determine if this node should be
+            # included in the response.
+            proceed = True
+            for (filterfn, db_or_node), regex in filters:
+                if db_or_node == "db":
+                    # This filter is against infomration in the table row.
+                    proceed = proceed and filterfn(row, regex)
+                else:
+                    # This filter is against infomration in the graph node.
+                    proceed = proceed and filterfn(node, regex)
+
+            if proceed:
+                # Include this node!
+                nodes.append({"resourcetype":
+                              {"unique_id": node.resourcetype.unique_id(),
+                               "name":
+                               node.resourcetype.display_attributes()["name"]},
+                              "uuid": node.uuid,
+                              "native_id": row.native_id,
+                              "native_name": row.native_name
+                              })
+                node_uuids.append(node.uuid)
+
+        # Gather the edges that are to or from the gathered nodes.
+        edges = \
+            [{"from": str(entry[0]),
+              "to": str(entry[1]),
+              "type": entry[2][TYPE]}
+             for entry in resources.graph.edges_iter(data=True)
+             if entry[0].uuid in node_uuids or entry[1].uuid in node_uuids]
+
+        return Response({"nodes": nodes, "edges": edges})
+
+
+# Our API documentation extracts this docstring, hence the use of markup.
+class ResourcesRetrieve(RetrieveAPIView):
+    """Return a specific resource graph node's detail."""
+
+    serializer_class = PassthruSerializer
+
+    def get(self, request, uuid, *args, **kwargs):
+        """<b>uuid</b> is a resource's UUID.\n\n
+
+        The response payload is:
+
+        {"native_id": str, "native_name": str, "attributes": dict}\n\n
+
+        <b>native_id</b> is the OpenStack id of this node. It may be empty.\n\n
+
+        <b>native_name</b> is the cloud name of this node.\n\n
+
+        <b>attributes</b> is the node's information extracted from the
+        OpenStack cloud.
+
+        """
+        from django.core.exceptions import ObjectDoesNotExist
+
+        # Get this resource's graph node and table row.
+        node = resources.get_uuid(uuid)
+
+        try:
+            row = PolyResource.objects.get(uuid=uuid)
+        except ObjectDoesNotExist:
+            row = None
+
+        if node and row:
+            return Response({"native_id": row.native_id,
+                             "native_name": row.native_name,
+                             "attributes": node.attributes})
+
+        else:
+            return Response({}, status=HTTP_404_NOT_FOUND)
