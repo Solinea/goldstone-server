@@ -1093,16 +1093,46 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
     },
 
     collectionPrep: function() {
-        allthelogs = this.collection.toJSON();
+        var allthelogs = this.collection.toJSON();
 
         var data = allthelogs;
 
-        _.each(data, function(item) {
-            item['@timestamp'] = moment(item['@timestamp']).valueOf();
+        /*
+        make it like this:
+
+        @timestamp: "2015-05-14T05:55:50.342Z"
+        host: "10.10.20.10:56787"
+        metric_type: "gauge"
+        name: "os.cpu.wait"
+        node: "ctrl-01"
+        unit: "percent"
+        value: 0.26161110700781587
+*/
+        // allthelogs will have as many objects as api calls were made
+        // iterate through each object to tag the data with the
+        // api call that was made to produce it
+        _.each(data, function(collection) {
+
+            // within each collection, tag the data points
+            _.each(collection.per_interval, function(dataPoint) {
+
+                _.each(dataPoint, function(item, i) {
+                    item['@timestamp'] = i;
+                    item.name = collection.metricSource;
+                    item.value = item.stats.max;
+                });
+
+            });
         });
 
-        var dataUniqTimes = _.uniq(_.map(data, function(item) {
-            return item['@timestamp'];
+
+        var condensedData = _.flatten(_.map(data, function(item) {
+            return item.per_interval;
+        }));
+
+
+        var dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
+            return item[_.keys(item)[0]]['@timestamp'];
         }));
 
 
@@ -1117,11 +1147,11 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         });
 
 
-        _.each(data, function(item) {
+        _.each(condensedData, function(item) {
 
-            var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
-
-            newData[item['@timestamp']][metric] = item.value;
+            var key = _.keys(item)[0];
+            var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
+            newData[key][metric] = item[key].value;
 
         });
 
@@ -1129,6 +1159,11 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         finalData = [];
 
         _.each(newData, function(item, i) {
+
+            item.wait = item.wait || 0;
+            item.sys = item.sys || 0;
+            item.user = item.user || 0;
+
             finalData.push({
                 wait: item.wait,
                 sys: item.sys,
@@ -1240,7 +1275,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         }));
 
         if (ns.featureSet === 'memUsage') {
-            ns.y.domain([0, ns.memTotal.value / ns.divisor]);
+            ns.y.domain([0, ns.memTotal / ns.divisor]);
         }
 
         if (ns.featureSet === 'netUsage') {
@@ -1368,7 +1403,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
 
                 if (ns.featureSet === 'memUsage') {
                     if (d.name === 'total') {
-                        return 'Total: ' + ((Math.round(ns.memTotal.value / ns.divisor * 100)) / 100) + 'GB';
+                        return 'Total: ' + ((Math.round(ns.memTotal / ns.divisor * 100)) / 100) + 'GB';
                     }
                     if (d.name === 'free') {
                         return '';
@@ -1691,6 +1726,7 @@ var ApiPerfCollection = Backbone.Collection.extend({
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
         ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
         this.url = '/api_perf/stats/?@timestamp__range={"gte":' + ns.reportParams.start +
+            ',"lte":' + ns.reportParams.end +
             '}&interval=' + ns.reportParams.interval +
             '&component=' + this.defaults.componentParam;
 
@@ -1698,149 +1734,6 @@ var ApiPerfCollection = Backbone.Collection.extend({
         // /api_perf/stats/?@timestamp__range={%22gte%22:1428556490}&interval=60s&component=glance
 
     }
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
-This collection is currently direclty implemented in the
-Nova CPU Resources viz
-JSON payload format:
-{
-    timestamp: [used, total_phys, total_virt],
-    timestamp: [used, total_phys, total_virt],
-    timestamp: [used, total_phys, total_virt],
-    ...
-}
-*/
-
-// define collection and link to model
-
-var CpuResourceCollection = Backbone.Collection.extend({
-
-    defaults: {},
-
-    parse: function(data) {
-        if (data && data.results) {
-            return data.results;
-        } else {
-            return [];
-        }
-    },
-
-    model: GoldstoneBaseModel,
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.urlPrefix = this.options.urlPrefix;
-        this.defaults.reportParams = {};
-        this.defaults.globalLookback = $('#global-lookback-range').val();
-        this.urlGenerator();
-        this.fetch();
-    },
-
-    urlGenerator: function() {
-
-        // a listener in the parent page container triggers an event picked up
-        // by GoldstoneBaseView which adjusts ns.globalLookback to match
-        // the number of minutes specified by the selector
-
-        var ns = this.defaults;
-
-        ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        this.url = '/core/metrics/?name__prefix=nova.hypervisor.vcpus&@timestamp__range={"gte":' +
-            moment(ns.reportParams.start).valueOf() + '}';
-    }
-
-    // creates a url similar to:
-    // /core/metrics/?name__prefix=nova.hypervisor.vcpus&@timestamp__range={"gte":1426887188000}
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
-This collection is currently direclty implemented in the
-Nova Disk Resources viz
-JSON payload format:
-{
-    timestamp: [used, total_mem],
-    timestamp: [used, total_mem],
-    timestamp: [used, total_mem],
-    ...
-}
-*/
-
-
-// define collection and link to model
-
-var DiskResourceCollection = Backbone.Collection.extend({
-
-    defaults: {},
-
-    parse: function(data) {
-        if (data && data.results) {
-            return data.results;
-        } else {
-            return [];
-        }
-    },
-
-    model: GoldstoneBaseModel,
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.urlPrefix = this.options.urlPrefix;
-        this.defaults.reportParams = {};
-        this.defaults.globalLookback = $('#global-lookback-range').val();
-        this.urlGenerator();
-        this.fetch();
-    },
-
-    urlGenerator: function() {
-
-        // a listener in the parent page container triggers an event picked up
-        // by GoldstoneBaseView which adjusts ns.globalLookback to match
-        // the number of minutes specified by the selector
-
-        var ns = this.defaults;
-
-        ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        this.url = '/core/metrics/?name__prefix=nova.hypervisor.local_gb&@timestamp__range={"gte":' +
-            moment(ns.reportParams.start).valueOf() + '}';
-    }
-
-    // creates a url similar to:
-    // /core/metrics/?name__prefix=nova.hypervisor.local_gb&@timestamp__range={"gte":1429058361304}
 });
 ;
 /**
@@ -2283,60 +2176,16 @@ var LogAnalysisCollection = Backbone.Collection.extend({
  * limitations under the License.
  */
 
-/*
-This collection is currently direclty implemented in the
-Nova Memory Resources viz
-JSON payload format:
-{
-    timestamp: [used, total_phys, total_virt],
-    timestamp: [used, total_phys, total_virt],
-    timestamp: [used, total_phys, total_virt],
-    ...
-}
-*/
-
 // define collection and link to model
 
-var MemResourceCollection = Backbone.Collection.extend({
+var model = GoldstoneBaseModel.extend({});
 
-    defaults: {},
-
-    parse: function(data) {
-        if (data && data.results) {
-            return data.results;
-        } else {
-            return [];
-        }
-    },
-
-    model: GoldstoneBaseModel,
-
+var MetricViewCollection = GoldstoneBaseCollection.extend({
     initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.urlPrefix = this.options.urlPrefix;
-        this.defaults.reportParams = {};
-        this.defaults.globalLookback = $('#global-lookback-range').val();
-        this.urlGenerator();
-        this.fetch();
-    },
-
-    urlGenerator: function() {
-
-        // a listener in the parent page container triggers an event picked up
-        // by GoldstoneBaseView which adjusts ns.globalLookback to match
-        // the number of minutes specified by the selector
-
-        var ns = this.defaults;
-
-        ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        this.url = '/core/metrics/?name__prefix=nova.hypervisor.mem&@timestamp__range={"gte":' +
-            moment(ns.reportParams.start).valueOf() + '}';
+        MetricViewCollection.__super__.initialize.apply(this, arguments);
+        this.defaults.statistic = options.statistic;
+        this.defaults.standardDev = options.standardDev;
     }
-
-    // creates a url similar to:
-    // /core/metrics/?name__prefix=nova.hypervisor.mem&@timestamp__range={"gte":1426887188000}
-
 });
 ;
 /**
@@ -2357,13 +2206,112 @@ var MemResourceCollection = Backbone.Collection.extend({
 
 // define collection and link to model
 
-var model = GoldstoneBaseModel.extend({});
+/*
+instantiated on nodeReportView and novaReportView
 
-var MetricViewCollection = GoldstoneBaseCollection.extend({
+instantiation example:
+
+this.cpuUsageChart = new MultiMetricComboCollection({
+    metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
+    globalLookback: ns.globalLookback, (optional)
+    nodeName: hostName (optional)
+});
+*/
+
+var MultiMetricComboCollection = Backbone.Collection.extend({
+
+    defaults: {},
+
+    parse: function(data) {
+        var ns = this.defaults;
+
+        if (data.next && data.next !== null) {
+            var dp = data.next;
+            nextUrl = dp.slice(dp.indexOf('/core'));
+            this.fetch({
+                url: nextUrl,
+                remove: false,
+            });
+        } else {
+            ns.urlCollectionCount--;
+        }
+
+        // before returning the collection, tag it with the metricName
+        // that produced the data
+        data.metricSource = ns.metricNames[(ns.metricNames.length - 1) - ns.urlCollectionCount];
+
+        return data;
+    },
+
+    model: GoldstoneBaseModel,
+
+    // will impose an order based on 'timestamp' for
+    // the models as they are put into the collection
+    comparator: '@timestamp',
+
     initialize: function(options) {
-        MetricViewCollection.__super__.initialize.apply(this, arguments);
-        this.defaults.statistic = options.statistic;
-        this.defaults.standardDev = options.standardDev;
+        this.options = options || {};
+        this.defaults = _.clone(this.defaults);
+        this.defaults.reportParams = {};
+        this.defaults.fetchInProgress = false;
+        this.defaults.nodeName = this.options.nodeName;
+        this.defaults.metricNames = this.options.metricNames;
+        this.defaults.urlCollectionCountOrig = this.defaults.metricNames.length;
+        this.defaults.urlCollectionCount = this.defaults.metricNames.length;
+        this.fetchMultipleUrls();
+
+    },
+
+    fetchMultipleUrls: function() {
+        var self = this;
+        var ns = this.defaults;
+
+        if (ns.fetchInProgress) {
+            return null;
+        }
+
+        ns.fetchInProgress = true;
+        ns.urlsToFetch = [];
+
+        // grabs minutes from global selector option value
+        ns.globalLookback = $('#global-lookback-range').val();
+
+        ns.reportParams.end = +new Date();
+        ns.reportParams.start = (+new Date() - (ns.globalLookback * 1000 * 60));
+        ns.reportParams.interval = '' + Math.max(1, (ns.globalLookback / 24)) + 'm';
+
+        _.each(self.defaults.metricNames, function(prefix) {
+
+            var urlString = '/core/metrics/summarize/?name=' + prefix;
+
+            if (self.defaults.nodeName) {
+                urlString += '&node=' + self.defaults.nodeName;
+            }
+
+            urlString += '&@timestamp__range={"gte":' +
+                ns.reportParams.start + ',"lte":' + ns.reportParams.end +
+                '}&interval=' + ns.reportParams.interval;
+
+            self.defaults.urlsToFetch.push(urlString);
+        });
+
+        this.fetch({
+
+            // fetch the first time without remove:false
+            // to clear out the collection
+            url: ns.urlsToFetch[0],
+            success: function() {
+
+                // upon success: further fetches are carried out with
+                // remove: false to build the collection
+                _.each(self.defaults.urlsToFetch.slice(1), function(item) {
+                    self.fetch({
+                        url: item,
+                        remove: false
+                    });
+                });
+            }
+        });
     }
 });
 ;
@@ -2623,17 +2571,18 @@ var ServiceStatusCollection = Backbone.Collection.extend({
 This collection is currently direclty implemented in the
 Nova VM Spawns viz
 JSON payload format:
-{
-    timestamp:[successes, fails],
-    timestamp:[successes, fails],
-    timestamp:[successes, fails],
+
+per_interval: [{
+    timestamp:[count: 1, success: [{true: 1}]],
+    timestamp:[count: 3, success: [{true: 2}, {false: 1}]],
+    timestamp:[count: 0, success: []],
     ...
-}
+}]
 */
 
 // define collection and link to model
 
-var StackedBarChartCollection = Backbone.Collection.extend({
+var SpawnsCollection = Backbone.Collection.extend({
 
     defaults: {},
 
@@ -2652,317 +2601,36 @@ var StackedBarChartCollection = Backbone.Collection.extend({
         this.defaults = _.clone(this.defaults);
         this.defaults.urlPrefix = this.options.urlPrefix;
         this.defaults.reportParams = {};
-        this.defaults.globalLookback = $('#global-lookback-range').val();
+        // this.defaults.globalLookback = $('#global-lookback-range').val();
         this.urlGenerator();
         this.fetch();
     },
 
     urlGenerator: function() {
+        var ns = this.defaults;
 
         // a listener in the parent page container triggers an event picked up
         // by GoldstoneBaseView which adjusts ns.globalLookback to match
         // the number of minutes specified by the selector
 
-        var ns = this.defaults;
+        // grabs minutes from global selector option value
+        ns.globalLookback = $('#global-lookback-range').val();
 
         ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
+        ns.reportParams.interval = '' + Math.max(1, (ns.globalLookback / 24)) + 'm';
+
         this.url = ns.urlPrefix + '?@timestamp__range={"gte":' +
-            ns.reportParams.start + '}&interval=' + ns.reportParams.interval;
+            ns.reportParams.start +
+            ',"lte":' + ns.reportParams.end +
+            '}&interval=' + ns.reportParams.interval;
+
     }
+
 
     // creates a url similar to:
     // /nova/hypervisor/spawns/?@timestamp__range={"gte":1429027100000}&interval=1h
 
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-// define collection and link to model
-
-var UtilizationCpuCollection = Backbone.Collection.extend({
-
-    defaults: {},
-
-    parse: function(data) {
-
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/core'));
-            this.fetch({
-                url: nextUrl,
-                remove: false,
-            });
-        } else {
-            this.defaults.urlCollectionCount--;
-        }
-
-        return data.results;
-    },
-
-    model: GoldstoneBaseModel,
-
-    // will impose an order based on 'timestamp' for
-    // the models as they are put into the collection
-    comparator: '@timestamp',
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.fetchInProgress = false;
-        this.defaults.nodeName = options.nodeName;
-        this.defaults.urlPrefixes = ['sys', 'user', 'wait'];
-        this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
-        this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
-        this.defaults.globalLookback = options.globalLookback;
-        this.fetchMultipleUrls();
-    },
-
-    fetchMultipleUrls: function() {
-        var self = this;
-
-        if (this.defaults.fetchInProgress) {
-            return null;
-        }
-
-        this.defaults.fetchInProgress = true;
-        this.defaults.urlsToFetch = [];
-
-        // grabs minutes from global selector option value
-        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
-
-        _.each(self.defaults.urlPrefixes, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.cpu." + prefix + "&node=" +
-                self.defaults.nodeName + "&@timestamp__range={'gte':" +
-                lookback + "}&page_size=1000");
-        });
-
-        this.fetch({
-
-            // fetch the first time without remove:false
-            // to clear out the collection
-            url: this.defaults.urlsToFetch[0],
-            success: function() {
-
-                // upon success: further fetches are carried out with
-                // remove: false to build the collection
-                _.each(self.defaults.urlsToFetch.slice(1), function(item) {
-                    self.fetch({
-                        url: item,
-                        remove: false
-                    });
-                });
-            }
-        });
-    }
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-// define collection and link to model
-
-var UtilizationMemCollection = Backbone.Collection.extend({
-
-    defaults: {},
-
-    parse: function(data) {
-
-        if (data.next && data.next !== null && data.next.indexOf('os.mem.total') === -1) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/core'));
-            this.fetch({
-                url: nextUrl,
-                remove: false,
-            });
-        } else {
-            this.defaults.urlCollectionCount--;
-        }
-
-        return data.results;
-    },
-
-    model: GoldstoneBaseModel,
-
-    // will impose an order based on 'timestamp' for
-    // the models as they are put into the collection
-    comparator: '@timestamp',
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.fetchInProgress = false;
-        this.defaults.nodeName = options.nodeName;
-        this.defaults.urlPrefixes = ['total', 'free'];
-        this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
-        this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
-        this.defaults.globalLookback = options.globalLookback;
-        this.fetchMultipleUrls();
-    },
-
-    fetchMultipleUrls: function() {
-        var self = this;
-
-        if (this.defaults.fetchInProgress) {
-            return null;
-        }
-
-        this.defaults.fetchInProgress = true;
-        this.defaults.urlsToFetch = [];
-
-        // grabs minutes from global selector option value
-        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
-
-        this.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.mem." + this.defaults.urlPrefixes[0] + "&node=" +
-            this.defaults.nodeName + "&@timestamp__range={'gte':" +
-            lookback + "}&page_size=1");
-
-        this.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.mem." + this.defaults.urlPrefixes[1] + "&node=" +
-            this.defaults.nodeName + "&@timestamp__range={'gte':" +
-            lookback + "}&page_size=1000");
-
-        this.fetch({
-
-            // fetch the first time without remove:false
-            // to clear out the collection
-            url: this.defaults.urlsToFetch[0],
-            success: function() {
-
-                // upon success: further fetches are carried out with
-                // remove: false to build the collection
-                _.each(self.defaults.urlsToFetch.slice(1), function(item) {
-                    self.fetch({
-                        url: item,
-                        remove: false
-                    });
-                });
-            }
-        });
-    }
-});
-;
-/**
- * Copyright 2015 Solinea, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-// define collection and link to model
-
-var UtilizationNetCollection = Backbone.Collection.extend({
-
-    defaults: {},
-
-    parse: function(data) {
-
-        if (data.next && data.next !== null) {
-            var dp = data.next;
-            nextUrl = dp.slice(dp.indexOf('/core'));
-            this.fetch({
-                url: nextUrl,
-                remove: false,
-            });
-        } else {
-            this.defaults.urlCollectionCount--;
-        }
-
-        return data.results;
-    },
-
-    model: GoldstoneBaseModel,
-
-    // will impose an order based on 'timestamp' for
-    // the models as they are put into the collection
-    comparator: '@timestamp',
-
-    initialize: function(options) {
-        this.options = options || {};
-        this.defaults = _.clone(this.defaults);
-        this.defaults.fetchInProgress = false;
-        this.defaults.nodeName = options.nodeName;
-        this.defaults.urlPrefixes = ['tx', 'rx'];
-        this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
-        this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
-        this.defaults.globalLookback = options.globalLookback;
-        this.fetchMultipleUrls();
-    },
-
-    fetchMultipleUrls: function() {
-        var self = this;
-
-        if (this.defaults.fetchInProgress) {
-            return null;
-        }
-
-        this.defaults.fetchInProgress = true;
-        this.defaults.urlsToFetch = [];
-
-        // grabs minutes from global selector option value
-        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
-
-        _.each(self.defaults.urlPrefixes, function(prefix) {
-            self.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.net." + prefix + "&node=" +
-                self.defaults.nodeName + "&@timestamp__range={'gte':" +
-                lookback + "}&page_size=1000");
-        });
-
-
-        this.fetch({
-
-            // fetch the first time without remove:false
-            // to clear out the collection
-            url: this.defaults.urlsToFetch[0],
-            success: function() {
-
-                // upon success: further fetches are carried out with
-                // remove: false to build the collection
-                _.each(self.defaults.urlsToFetch.slice(1), function(item) {
-                    self.fetch({
-                        url: item,
-                        remove: false
-                    });
-                });
-            }
-        });
-    }
 });
 ;
 /**
@@ -7543,6 +7211,741 @@ var MetricViewerView = GoldstoneBaseView.extend({
  */
 
 /*
+View is currently implemented for Nova CPU/Memory/Disk Resource Charts
+
+instantiated similar to:
+
+this.vmSpawnChart = new MultiMetricComboCollection({
+    urlPrefix: '/nova/hypervisor/spawns'
+});
+
+this.vmSpawnChartView = new MultiMetricBarView({
+    chartTitle: "VM Spawns",
+    collection: this.vmSpawnChart,
+    featureSet: 'mem',
+    height: 300,
+    infoCustom: 'novaSpawns',
+    el: '#nova-report-r1-c2',
+    width: $('#nova-report-r1-c2').width(),
+    yAxisLabel: 'Spawn Events'
+});
+*/
+
+var MultiMetricBarView = GoldstoneBaseView.extend({
+    defaults: {
+        margin: {
+            top: 45,
+            right: 40,
+            bottom: 60,
+            left: 70
+        }
+    },
+
+    processOptions: function() {
+
+        // this will invoke the processOptions method of the parent view,
+        // and also add an additional param of featureSet which is used
+        // to create a polymorphic interface for a variety of charts
+        MultiMetricBarView.__super__.processOptions.apply(this, arguments);
+
+        this.defaults.featureSet = this.options.featureSet || null;
+    },
+
+    processListeners: function() {
+        var ns = this.defaults;
+        var self = this;
+
+        this.listenTo(this.collection, 'sync', function() {
+            if (self.collection.defaults.urlCollectionCount === 0) {
+                self.update();
+                // the collection count will have to be set back to the original count when re-triggering a fetch.
+                self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
+                self.collection.defaults.fetchInProgress = false;
+            }
+        });
+
+        this.listenTo(this.collection, 'error', this.dataErrorMessage);
+
+        this.on('lookbackSelectorChanged', function() {
+            this.collection.defaults.globalLookback = $('#global-lookback-range').val();
+            this.collection.fetchMultipleUrls();
+            $(this.el).find('#spinner').show();
+        });
+    },
+
+    dataErrorMessage: function(message, errorMessage) {
+
+        UtilizationCpuView.__super__.dataErrorMessage.apply(this, arguments);
+
+        var self = this;
+
+        // the collection count will have to be set back to the original count when re-triggering a fetch.
+        self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
+        self.collection.defaults.fetchInProgress = false;
+    },
+
+    specialInit: function() {
+        var ns = this.defaults;
+
+        ns.yAxis = d3.svg.axis()
+            .scale(ns.y)
+            .orient("left")
+            .tickFormat(d3.format("01d"));
+
+        // differentiate color sets for mem and cpu charts
+        if (ns.featureSet === 'mem' || ns.featureSet === 'cpu') {
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct['3R']);
+        }
+        if (ns.featureSet === 'metric') {
+            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[1]);
+        } else {
+            // this includes "VM Spawns" and "Disk Resources" chars
+            ns.color = d3.scale.ordinal()
+                .range(ns.colorArray.distinct['2R']);
+        }
+
+    },
+
+    collectionPrep: function(data) {
+        var condensedData;
+        var dataUniqTimes;
+        var newData;
+
+        var ns = this.defaults;
+        var uniqTimestamps;
+        var finalData = [];
+
+        if (ns.featureSet === 'cpu') {
+
+            _.each(data, function(collection) {
+
+                // within each collection, tag the data points
+                _.each(collection.per_interval, function(dataPoint) {
+
+                    _.each(dataPoint, function(item, i) {
+                        item['@timestamp'] = i;
+                        item.name = collection.metricSource;
+                        item.value = item.stats.max;
+                    });
+
+                });
+            });
+
+            condensedData = _.flatten(_.map(data, function(item) {
+                return item.per_interval;
+            }));
+
+            dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
+                return item[_.keys(item)[0]]['@timestamp'];
+            }));
+
+            newData = {};
+
+            _.each(dataUniqTimes, function(item) {
+                newData[item] = {
+                    Physical: null,
+                    Used: null,
+                    eventTime: null,
+                    total: null
+                };
+            });
+
+            _.each(condensedData, function(item) {
+
+                var key = _.keys(item)[0];
+                var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
+                newData[key][metric] = item[key].value;
+
+            });
+
+
+            finalData = [];
+
+            _.each(newData, function(item, i) {
+
+                item.vcpus_used = item.vcpus_used || 0;
+                item.vcpus = item.vcpus || 0;
+
+                finalData.push({
+                    eventTime: i,
+                    Used: item.vcpus_used,
+                    Physical: item.vcpus,
+                });
+            });
+
+        } else if (ns.featureSet === 'disk') {
+
+            _.each(data, function(collection) {
+
+                // within each collection, tag the data points
+                _.each(collection.per_interval, function(dataPoint) {
+
+                    _.each(dataPoint, function(item, i) {
+                        item['@timestamp'] = i;
+                        item.name = collection.metricSource;
+                        item.value = item.stats.max;
+                    });
+
+                });
+            });
+
+            condensedData = _.flatten(_.map(data, function(item) {
+                return item.per_interval;
+            }));
+
+            dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
+                return item[_.keys(item)[0]]['@timestamp'];
+            }));
+
+            newData = {};
+
+            _.each(dataUniqTimes, function(item) {
+                newData[item] = {
+                    Total: null,
+                    Used: null,
+                    eventTime: null,
+                    total: null
+                };
+            });
+
+            _.each(condensedData, function(item) {
+
+                var key = _.keys(item)[0];
+                var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
+                newData[key][metric] = item[key].value;
+
+            });
+
+
+            finalData = [];
+
+            _.each(newData, function(item, i) {
+
+                item.local_gb = item.local_gb || 0;
+                item.local_gb_used = item.local_gb_used || 0;
+
+                finalData.push({
+                    eventTime: i,
+                    Used: item.local_gb_used,
+                    Total: item.local_gb,
+                });
+            });
+
+        } else if (ns.featureSet === 'mem') {
+
+            _.each(data, function(collection) {
+
+                // within each collection, tag the data points
+                _.each(collection.per_interval, function(dataPoint) {
+
+                    _.each(dataPoint, function(item, i) {
+                        item['@timestamp'] = i;
+                        item.name = collection.metricSource;
+                        item.value = item.stats.max;
+                    });
+
+                });
+            });
+
+            condensedData = _.flatten(_.map(data, function(item) {
+                return item.per_interval;
+            }));
+
+            dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
+                return item[_.keys(item)[0]]['@timestamp'];
+            }));
+
+            newData = {};
+
+            _.each(dataUniqTimes, function(item) {
+                newData[item] = {
+                    Physical: null,
+                    Used: null,
+                    eventTime: null,
+                    total: null
+                };
+            });
+
+            _.each(condensedData, function(item) {
+
+                var key = _.keys(item)[0];
+                var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
+                newData[key][metric] = item[key].value;
+
+            });
+
+
+            finalData = [];
+
+            _.each(newData, function(item, i) {
+
+                item.memory_mb = item.memory_mb || 0;
+                item.memory_mb_used = item.memory_mb_used || 0;
+
+                finalData.push({
+                    eventTime: i,
+                    Used: item.memory_mb_used,
+                    Physical: item.memory_mb,
+                });
+            });
+
+        }
+
+        return finalData;
+    },
+
+    computeHiddenBarText: function(d) {
+        var ns = this.defaults;
+
+        /*
+        filter function strips keys that are irrelevant to the d3.tip:
+
+        converts from: {Physical: 31872, Used: 4096, Virtual: 47808,
+        eventTime: "1424556000000", stackedBarPrep: [],
+        total: 47808}
+
+        to: ["Virtual", "Physical", "Used"]
+        */
+
+        // reverses result to match the order in the chart legend
+        var valuesToReport = _.filter((_.keys(d)), function(item) {
+            return item !== "eventTime" && item !== "stackedBarPrep" && item !== "total";
+        }).reverse();
+
+        var result = "";
+
+        // matches time formatting of api perf charts
+        result += moment(+d.eventTime).format() + '<br>';
+
+        if (ns.featureSet === 'metric') {
+            valuesToReport.forEach(function(item) {
+                result += 'Value: ' + d[item] + '<br>';
+            });
+
+        } else {
+            valuesToReport.forEach(function(item) {
+                result += item + ': ' + d[item] + '<br>';
+            });
+        }
+
+        return result;
+    },
+
+    update: function() {
+
+        var ns = this.defaults;
+        var self = this;
+
+        // data originally returned from collection as:
+        // [{"1424586240000": [6, 16, 256]}...]
+        var data = this.collection.toJSON();
+
+        // data morphed through collectionPrep into:
+        // {
+        //     "eventTime": "1424586240000",
+        //     "Used": 6,
+        //     "Physical": 16,
+        //     "Virtual": 256
+        // });
+        data = this.collectionPrep(data);
+
+        this.hideSpinner();
+
+        // clear elements from previous render
+        $(this.el).find('svg').find('rect').remove();
+        $(this.el).find('svg').find('line').remove();
+        $(this.el).find('svg').find('.axis').remove();
+        $(this.el).find('svg').find('.legend').remove();
+        $(this.el).find('svg').find('path').remove();
+        $(this.el).find('svg').find('circle').remove();
+        $(this.el + '.d3-tip').detach();
+
+        // if empty set, append info popup and stop
+        if (this.checkReturnedDataSet(data) === false) {
+            return;
+        }
+
+        // maps keys such as "Used / Physical / Virtual" to a color
+        // but skips mapping "eventTime" to a color
+        ns.color.domain(d3.keys(data[0]).filter(function(key) {
+            return key !== "eventTime";
+        }));
+
+        /*
+        forEach morphs data into:
+        {
+            "eventTime": "1424586240000",
+            "Used": 6,
+            "Physical": 16,
+            "Virtual": 256,
+            stackedBarPrep: [
+                {
+                    name: "Used",
+                    y0: 0,
+                    y1: 6
+                },
+                {
+                    name: "Physical",
+                    y0: 6,
+                    y1: 22,
+                },
+                {
+                    name: "Virtual",
+                    y0: 22,
+                    y1: 278,
+                },
+            ],
+            total: 278
+        });
+        */
+
+        data.forEach(function(d) {
+            var y0 = 0;
+
+            // calculates heights of each stacked bar by adding
+            // to the heights of the previous bars
+            d.stackedBarPrep = ns.color.domain().map(function(name) {
+                return {
+                    name: name,
+                    y0: y0,
+                    y1: y0 += +d[name]
+                };
+            });
+
+            // this is the height of the last element, and used to
+            // calculate the domain of the y-axis
+            d.total = d.stackedBarPrep[d.stackedBarPrep.length - 1].y1;
+
+            // or for the charts with paths, use the top line as the
+            // total, which will inform that domain of the y-axis
+            // d.Virtual and d.Total are the top lines on their
+            // respective charts
+            if (d.Virtual) {
+                d.total = d.Virtual;
+            }
+            if (d.Total) {
+                d.total = d.Total;
+            }
+        });
+
+        // the forEach operation creates chaos in the order of the set
+        // must _.sortBy to return it to an array sorted by eventTime
+        data = _.sortBy(data, function(item) {
+            return item.eventTime;
+        });
+
+        ns.x.domain(d3.extent(data, function(d) {
+            return d.eventTime;
+        }));
+
+        // IMPORTANT: see data.forEach above to make sure total is properly
+        // calculated if additional data paramas are introduced to this viz
+        ns.y.domain([0, d3.max(data, function(d) {
+            return d.total;
+        })]);
+
+        // add x axis
+        ns.chart.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + ns.mh + ")")
+            .call(ns.xAxis);
+
+        // add y axis
+        ns.chart.append("g")
+            .attr("class", "y axis")
+            .call(ns.yAxis)
+            .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end");
+
+        // add primary svg g layer
+        ns.event = ns.chart.selectAll(".event")
+            .data(data)
+            .enter()
+            .append("g")
+            .attr("class", "g")
+            .attr("transform", function(d) {
+                return "translate(" + ns.x(d.eventTime) + ",0)";
+            });
+
+        // add svg g layer for solid lines
+        ns.solidLineCanvas = ns.chart.selectAll(".event")
+            .data(data)
+            .enter()
+            .append("g")
+            .attr("class", "g")
+            .attr("class", "solid-line-canvas");
+
+        // add svg g layer for dashed lines
+        ns.dashedLineCanvas = ns.chart.selectAll(".event")
+            .data(data)
+            .enter()
+            .append("g")
+            .attr("class", "g")
+            .attr("class", "dashed-line-canvas");
+
+        // add svg g layer for hidden rects
+        ns.hiddenBarsCanvas = ns.chart.selectAll(".hidden")
+            .data(data)
+            .enter()
+            .append("g")
+            .attr("class", "g");
+
+        // initialize d3.tip
+        var tip = d3.tip()
+            .attr('class', 'd3-tip')
+            .attr('id', this.el.slice(1))
+            .html(function(d) {
+                return self.computeHiddenBarText(d);
+            });
+
+        // Invoke the tip in the context of your visualization
+        ns.chart.call(tip);
+
+        // used below to determing whether to render as
+        // a "rect" or "line" by affecting fill and stroke opacity below
+        var showOrHide = {
+            "Failure": true,
+            "Success": true,
+            "Virtual": false,
+            "Physical": false,
+            "Total": false,
+            "Used": true
+        };
+
+        // append rectangles
+        ns.event.selectAll("rect")
+            .data(function(d) {
+                return d.stackedBarPrep;
+            })
+            .enter().append("rect")
+            .attr("width", function(d) {
+                var segmentWidth = (ns.mw / data.length);
+
+                // spacing corrected for proportional
+                // gaps between rects
+                return segmentWidth - segmentWidth * 0.07;
+            })
+            .attr("y", function(d) {
+                return ns.y(d.y1);
+            })
+            .attr("height", function(d) {
+                return ns.y(d.y0) - ns.y(d.y1);
+            })
+            .attr("rx", 0.8)
+            .attr("stroke", function(d) {
+                return ns.color(d.name);
+            })
+            .attr("stroke-opacity", function(d) {
+                if (!showOrHide[d.name]) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            })
+            .attr("fill-opacity", function(d) {
+                if (!showOrHide[d.name]) {
+                    return 0;
+                } else {
+                    return 0.8;
+                }
+            })
+            .attr("stroke-width", 2)
+            .style("fill", function(d) {
+                return ns.color(d.name);
+            });
+
+        // append hidden bars
+        ns.hiddenBarsCanvas.selectAll("rect")
+            .data(data)
+            .enter().append("rect")
+            .attr("width", function(d) {
+                var hiddenBarWidth = (ns.mw / data.length);
+                return hiddenBarWidth - hiddenBarWidth * 0.07;
+            })
+            .attr("opacity", "0")
+            .attr("x", function(d) {
+                return ns.x(d.eventTime);
+            })
+            .attr("y", 0)
+            .attr("height", function(d) {
+                return ns.mh;
+            }).on('mouseenter', function(d) {
+
+                // coax the pointer to line up with the bar center
+                var nudge = (ns.mw / data.length) * 0.5;
+                var targ = d3.select(self.el).select('rect');
+                tip.offset([20, -nudge]).show(d, targ);
+            }).on('mouseleave', function() {
+                tip.hide();
+            });
+
+        // abstracts the line generator to accept a data param
+        // variable. will be used in the path generator
+        var lineFunctionGenerator = function(param) {
+            return d3.svg.line()
+                .interpolate("linear")
+                .x(function(d) {
+                    return ns.x(d.eventTime);
+                })
+                .y(function(d) {
+                    return ns.y(d[param]);
+                });
+        };
+
+        // abstracts the path generator to accept a data param
+        // and creates a solid line with the appropriate color
+        var solidPathGenerator = function(param) {
+            return ns.solidLineCanvas.append("path")
+                .attr("d", lineFunction(data))
+                .attr("stroke", function() {
+                    return ns.color(param);
+                })
+                .attr("stroke-width", 2)
+                .attr("fill", "none");
+        };
+
+        // abstracts the path generator to accept a data param
+        // and creates a dashed line with the appropriate color
+        var dashedPathGenerator = function(param) {
+            return ns.dashedLineCanvas.append("path")
+                .attr("d", lineFunction(data))
+                .attr("stroke", function() {
+                    return ns.color(param);
+                })
+                .attr("stroke-width", 2)
+                .attr("fill", "none")
+                .attr("stroke-dasharray", "5, 2");
+        };
+
+        // lineFunction must be a named local
+        // variable as it will be called by
+        // the pathGenerator function that immediately follows
+        var lineFunction;
+        if (ns.featureSet === 'cpu') {
+
+            // generate solid line for Virtual data points
+            // uncomment if supplying virtual stat again
+            // lineFunction = lineFunctionGenerator('Virtual');
+            // solidPathGenerator('Virtual');
+
+            // generate dashed line for Physical data points
+            lineFunction = lineFunctionGenerator('Physical');
+            dashedPathGenerator('Physical');
+
+        } else if (ns.featureSet === 'disk') {
+
+            // generate solid line for Total data points
+            lineFunction = lineFunctionGenerator('Total');
+            solidPathGenerator('Total');
+        } else if (ns.featureSet === 'mem') {
+
+            // generate solid line for Virtual data points
+            // uncomment if supplying virtual stat again
+            // lineFunction = lineFunctionGenerator('Virtual');
+            // solidPathGenerator('Virtual');
+
+            // generate dashed line for Physical data points
+            lineFunction = lineFunctionGenerator('Physical');
+            dashedPathGenerator('Physical');
+        }
+
+
+        // appends chart legends
+        var legendSpecs = {
+            metric: [
+                // uncomment if supplying virtual stat again
+                // ['Virtual', 2],
+                ['Value', 0],
+            ],
+            mem: [
+                // uncomment if supplying virtual stat again
+                // ['Virtual', 2],
+                ['Physical', 1],
+                ['Used', 0]
+            ],
+            cpu: [
+                // uncomment if supplying virtual stat again
+                // ['Virtual', 2],
+                ['Physical', 1],
+                ['Used', 0]
+            ],
+            disk: [
+                ['Total', 1],
+                ['Used', 0]
+            ],
+            spawn: [
+                ['Fail', 1],
+                ['Success', 0]
+            ]
+        };
+
+        if (ns.featureSet !== null) {
+            this.appendLegend(legendSpecs[ns.featureSet]);
+        } else {
+            this.appendLegend(legendSpecs.spawn);
+        }
+    },
+
+    appendLegend: function(legendSpecs) {
+
+        // abstracts the appending of chart legends based on the
+        // passed in array params [['Title', colorSetIndex],['Title', colorSetIndex'],...]
+
+        var ns = this.defaults;
+
+        _.each(legendSpecs, function(item) {
+            ns.chart.append('path')
+                .attr('class', 'line')
+                .attr('id', item[0])
+                .attr('data-legend', item[0])
+                .attr('data-legend-color', ns.color.range()[item[1]]);
+        });
+
+        var legend = ns.chart.append('g')
+            .attr('class', 'legend')
+            .attr('transform', 'translate(20,-35)')
+            .attr('opacity', 1.0)
+            .call(d3.legend);
+    },
+
+    template: _.template(
+        '<div class="alert alert-danger popup-message" hidden="true"></div>'),
+
+    render: function() {
+
+        new ChartHeaderView({
+            el: this.el,
+            columns: 12,
+            chartTitle: this.defaults.chartTitle,
+            infoText: this.defaults.infoCustom
+        });
+
+        $(this.el).find('.mainContainer').append(this.template());
+        return this;
+    }
+
+});
+;
+/**
+ * Copyright 2015 Solinea, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
 instantiated via topologyTreeView.js in the "render" method if
 there is a multiRscsViewEl defined.
 
@@ -8942,9 +9345,10 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         //---------------------------
         // instantiate CPU Usage chart
-        this.cpuUsageChart = new UtilizationCpuCollection({
-            nodeName: hostName,
-            globalLookback: ns.globalLookback
+        this.cpuUsageChart = new MultiMetricComboCollection({
+            globalLookback: ns.globalLookback,
+            metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
+            nodeName: hostName
         });
 
         this.cpuUsageView = new UtilizationCpuView({
@@ -8956,9 +9360,10 @@ var NodeReportView = GoldstoneBasePageView.extend({
 
         //---------------------------
         // instantiate Memory Usage chart
-        this.memoryUsageChart = new UtilizationMemCollection({
-            nodeName: hostName,
-            globalLookback: ns.globalLookback
+        this.memoryUsageChart = new MultiMetricComboCollection({
+            globalLookback: ns.globalLookback,
+            metricNames: ['os.mem.total', 'os.mem.free'],
+            nodeName: hostName
         });
 
         this.memoryUsageView = new UtilizationMemView({
@@ -8971,9 +9376,10 @@ var NodeReportView = GoldstoneBasePageView.extend({
         //---------------------------
         // instantiate Network Usage chart
 
-        this.networkUsageChart = new UtilizationNetCollection({
-            nodeName: hostName,
-            globalLookback: ns.globalLookback
+        this.networkUsageChart = new MultiMetricComboCollection({
+            globalLookback: ns.globalLookback,
+            metricNames: ['os.net.tx.eth0', 'os.net.rx.eth0'],
+            nodeName: hostName
         });
 
         this.networkUsageView = new UtilizationNetView({
@@ -9211,11 +9617,11 @@ var NovaReportView = GoldstoneBasePageView.extend({
         VM Spawns Chart
         */
 
-        this.vmSpawnChart = new StackedBarChartCollection({
+        this.vmSpawnChart = new SpawnsCollection({
             urlPrefix: '/nova/hypervisor/spawns/'
         });
 
-        this.vmSpawnChartView = new StackedBarChartView({
+        this.vmSpawnChartView = new SpawnsView({
             chartTitle: "VM Spawns",
             collection: this.vmSpawnChart,
             height: 300,
@@ -9229,9 +9635,11 @@ var NovaReportView = GoldstoneBasePageView.extend({
         CPU Resources Chart
         */
 
-        this.cpuResourcesChart = new CpuResourceCollection({});
+        this.cpuResourcesChart = new MultiMetricComboCollection({
+            metricNames: ['nova.hypervisor.vcpus', 'nova.hypervisor.vcpus_used']
+        });
 
-        this.cpuResourcesChartView = new StackedBarChartView({
+        this.cpuResourcesChartView = new MultiMetricBarView({
             chartTitle: "CPU Resources",
             collection: this.cpuResourcesChart,
             featureSet: 'cpu',
@@ -9246,9 +9654,11 @@ var NovaReportView = GoldstoneBasePageView.extend({
         Mem Resources Chart
         */
 
-        this.memResourcesChart = new MemResourceCollection({});
+        this.memResourcesChart = new MultiMetricComboCollection({
+            metricNames: ['nova.hypervisor.memory_mb', 'nova.hypervisor.memory_mb_used']
+        });
 
-        this.memResourcesChartView = new StackedBarChartView({
+        this.memResourcesChartView = new MultiMetricBarView({
             chartTitle: "Memory Resources",
             collection: this.memResourcesChart,
             featureSet: 'mem',
@@ -9263,9 +9673,11 @@ var NovaReportView = GoldstoneBasePageView.extend({
         Disk Resources Chart
         */
 
-        this.diskResourcesChart = new DiskResourceCollection({});
+        this.diskResourcesChart = new MultiMetricComboCollection({
+            metricNames: ['nova.hypervisor.local_gb', 'nova.hypervisor.local_gb_used']
+        });
 
-        this.diskResourcesChartView = new StackedBarChartView({
+        this.diskResourcesChartView = new MultiMetricBarView({
             chartTitle: "Disk Resources",
             collection: this.diskResourcesChart,
             featureSet: 'disk',
@@ -10104,13 +10516,13 @@ var SettingsPageView = GoldstoneBaseView.extend({
 View is currently directly implemented as Nova VM Spawns Viz
 and extended into Nova CPU/Memory/Disk Resource Charts
 
-instantiated similar to:
+instantiated on nodeReportPage similar to:
 
-this.vmSpawnChart = new StackedBarChartCollection({
-    urlPrefix: '/nova/hypervisor/spawns'
+this.vmSpawnChart = new SpawnsCollection({
+    urlPrefix: '/nova/hypervisor/spawns/'
 });
 
-this.vmSpawnChartView = new StackedBarChartView({
+this.vmSpawnChartView = new SpawnsView({
     chartTitle: "VM Spawns",
     collection: this.vmSpawnChart,
     height: 300,
@@ -10121,9 +10533,7 @@ this.vmSpawnChartView = new StackedBarChartView({
 });
 */
 
-// view is linked to collection when instantiated in api_perf_report.html
-
-var StackedBarChartView = GoldstoneBaseView.extend({
+var SpawnsView = GoldstoneBaseView.extend({
 
     defaults: {
         margin: {
@@ -10139,7 +10549,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         // this will invoke the processOptions method of the parent view,
         // and also add an additional param of featureSet which is used
         // to create a polymorphic interface for a variety of charts
-        StackedBarChartView.__super__.processOptions.apply(this, arguments);
+        SpawnsView.__super__.processOptions.apply(this, arguments);
 
         this.defaults.featureSet = this.options.featureSet || null;
     },
@@ -10152,18 +10562,8 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             .orient("left")
             .tickFormat(d3.format("01d"));
 
-        // differentiate color sets for mem and cpu charts
-        if (ns.featureSet === 'mem' || ns.featureSet === 'cpu') {
-            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct['3R']);
-        }
-        if (ns.featureSet === 'metric') {
-            ns.color = d3.scale.ordinal().range(ns.colorArray.distinct[1]);
-        } else {
-            // this includes "VM Spawns" and "Disk Resources" chars
-            ns.color = d3.scale.ordinal()
-                .range(ns.colorArray.distinct['2R']);
-        }
-
+        ns.color = d3.scale.ordinal()
+            .range(ns.colorArray.distinct['2R']);
     },
 
     dataPrep: function(data) {
@@ -10186,151 +10586,8 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         var uniqTimestamps;
         var result = [];
 
-        if (ns.featureSet === 'metric') {
-            data = data[0].per_interval;
-            /*
-            {
-                @timestamp: "2015-04-20T19:09:08.153Z"
-                host: "10.10.20.21:55199"
-                metric_type: "gauge"
-                name: "os.cpu.idle"
-                node: "rsrc-02"
-                unit: "percent"
-                value: 97.18570476410143
-            }
-            */
-
-            _.each(data, function(item) {
-                var logTime = +(_.keys(item)[0]);
-                var value = +(_.values(item)[0]);
-                result.push({
-                    "eventTime": logTime,
-                    "Success": value,
-                });
-            });
-
-        } else if (ns.featureSet === 'cpu') {
-
-            // CPU Resources chart data prep
-            /*
-            {
-                "name": "nova.hypervisor.vcpus",
-                "region": "RegionOne",
-                "value": 16,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "count"
-            },
-            {
-                "name": "nova.hypervisor.vcpus_used",
-                "region": "RegionOne",
-                "value": 7,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "count"
-            },
-            */
-
-            uniqTimestamps = _.uniq(_.map(data, function(item) {
-                return item['@timestamp'];
-            }));
-            _.each(uniqTimestamps, function(item, i) {
-                result.push({
-                    eventTime: moment(item).valueOf(),
-                    Used: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.vcpus_used'
-                    })[0].value,
-                    Physical: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.vcpus'
-                    })[0].value
-                });
-
-            });
-
-        } else if (ns.featureSet === 'disk') {
-
-            /*
-            {
-                "name": "nova.hypervisor.local_gb_used",
-                "region": "RegionOne",
-                "value": 83,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "GB"
-            },
-            {
-                "name": "nova.hypervisor.local_gb",
-                "region": "RegionOne",
-                "value": 98,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "GB"
-            },
-        */
-            uniqTimestamps = _.uniq(_.map(data, function(item) {
-                return item['@timestamp'];
-            }));
-            _.each(uniqTimestamps, function(item, i) {
-                result.push({
-                    eventTime: moment(item).valueOf(),
-                    Used: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.local_gb_used'
-                    })[0].value,
-                    Total: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.local_gb'
-                    })[0].value
-                });
-
-            });
-
-        } else if (ns.featureSet === 'mem') {
-
-            /*
-            {
-                "name": "nova.hypervisor.memory_mb_used",
-                "region": "RegionOne",
-                "value": 10752,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "MB"
-            },
-            {
-                "name": "nova.hypervisor.memory_mb",
-                "region": "RegionOne",
-                "value": 31872,
-                "metric_type": "gauge",
-                "@timestamp": "2015-04-07T17:21:48.285186+00:00",
-                "unit": "MB"
-            },
-            */
-
-            uniqTimestamps = _.uniq(_.map(data, function(item) {
-                return item['@timestamp'];
-            }));
-            _.each(uniqTimestamps, function(item, i) {
-                result.push({
-                    eventTime: moment(item).valueOf(),
-                    Used: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.memory_mb_used'
-                    })[0].value,
-                    Physical: _.where(data, {
-                        '@timestamp': item,
-                        'name': 'nova.hypervisor.memory_mb'
-                    })[0].value
-                });
-
-            });
-
-
-        } else {
-
-            // Spawns Resources chart data prep
-            /*
+        // Spawns Resources chart data prep
+        /*
             {"1429032900000":
                 {"count":1,
                 "success":
@@ -10341,24 +10598,24 @@ var StackedBarChartView = GoldstoneBaseView.extend({
             }
             */
 
-            _.each(data, function(item) {
-                var logTime = _.keys(item)[0];
-                var success = _.pluck(item[logTime].success, 'true');
-                success = success[0] || 0;
-                var failure = _.pluck(item[logTime].success, 'false');
-                failure = failure[0] || 0;
-                result.push({
-                    "eventTime": logTime,
-                    "Success": success,
-                    "Failure": failure
-                });
+        _.each(data, function(item) {
+            var logTime = _.keys(item)[0];
+            var success = _.pluck(item[logTime].success, 'true');
+            success = success[0] || 0;
+            var failure = _.pluck(item[logTime].success, 'false');
+            failure = failure[0] || 0;
+            result.push({
+                "eventTime": logTime,
+                "Success": success,
+                "Failure": failure
             });
-        }
+        });
+
         return result;
     },
 
     computeHiddenBarText: function(d) {
-        var  ns = this.defaults;
+        var ns = this.defaults;
         /*
         filter function strips keys that are irrelevant to the d3.tip:
 
@@ -10379,16 +10636,9 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         // matches time formatting of api perf charts
         result += moment(+d.eventTime).format() + '<br>';
 
-        if (ns.featureSet === 'metric') {
-            valuesToReport.forEach(function(item) {
-                result += 'Value: ' + d[item] + '<br>';
-            });
-
-        } else {
-            valuesToReport.forEach(function(item) {
-                result += item + ': ' + d[item] + '<br>';
-            });
-        }
+        valuesToReport.forEach(function(item) {
+            result += item + ': ' + d[item] + '<br>';
+        });
 
         return result;
     },
@@ -10398,8 +10648,6 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         var ns = this.defaults;
         var self = this;
 
-        // data originally returned from collection as:
-        // [{"1424586240000": [6, 16, 256]}...]
         var data = this.collection.toJSON();
 
         // data morphed through dataPrep into:
@@ -10611,7 +10859,7 @@ var StackedBarChartView = GoldstoneBaseView.extend({
                 if (!showOrHide[d.name]) {
                     return 0;
                 } else {
-                    return 1;
+                    return 0.8;
                 }
             })
             .attr("stroke-width", 2)
@@ -10686,69 +10934,15 @@ var StackedBarChartView = GoldstoneBaseView.extend({
         // variable as it will be called by
         // the pathGenerator function that immediately follows
         var lineFunction;
-        if (ns.featureSet === 'cpu') {
-
-            // generate solid line for Virtual data points
-            // uncomment if supplying virtual stat again
-            // lineFunction = lineFunctionGenerator('Virtual');
-            // solidPathGenerator('Virtual');
-
-            // generate dashed line for Physical data points
-            lineFunction = lineFunctionGenerator('Physical');
-            dashedPathGenerator('Physical');
-
-        } else if (ns.featureSet === 'disk') {
-
-            // generate solid line for Total data points
-            lineFunction = lineFunctionGenerator('Total');
-            solidPathGenerator('Total');
-        } else if (ns.featureSet === 'mem') {
-
-            // generate solid line for Virtual data points
-            // uncomment if supplying virtual stat again
-            // lineFunction = lineFunctionGenerator('Virtual');
-            // solidPathGenerator('Virtual');
-
-            // generate dashed line for Physical data points
-            lineFunction = lineFunctionGenerator('Physical');
-            dashedPathGenerator('Physical');
-        }
-
 
         // appends chart legends
         var legendSpecs = {
-            metric: [
-                // uncomment if supplying virtual stat again
-                // ['Virtual', 2],
-                ['Value', 0],
-            ],
-            mem: [
-                // uncomment if supplying virtual stat again
-                // ['Virtual', 2],
-                ['Physical', 1],
-                ['Used', 0]
-            ],
-            cpu: [
-                // uncomment if supplying virtual stat again
-                // ['Virtual', 2],
-                ['Physical', 1],
-                ['Used', 0]
-            ],
-            disk: [
-                ['Total', 1],
-                ['Used', 0]
-            ],
             spawn: [
                 ['Fail', 1],
                 ['Success', 0]
             ]
         };
-
-        if (ns.featureSet !== null) {
-            this.appendLegend(legendSpecs[ns.featureSet]);
-        } else {
-            this.appendLegend(legendSpecs.spawn);
-        }
+        this.appendLegend(legendSpecs.spawn);
     },
 
     appendLegend: function(legendSpecs) {
@@ -11721,60 +11915,79 @@ var UtilizationMemView = UtilizationCpuView.extend({
         var ns = this.defaults;
         var self = this;
 
-        allthelogs = this.collection.toJSON();
+        var allthelogs = this.collection.toJSON();
 
         var data = allthelogs;
 
-        _.each(data, function(item) {
-            item['@timestamp'] = moment(item['@timestamp']).valueOf();
-        });
-
-        for (var i = data.length - 1; i >= 0; i--) {
-            if (data[i].name === 'os.mem.total') {
-                ns.memTotal = data[i];
-                var splicedOut = data.splice(i, 1);
-                break;
-            }
+        if(data === undefined || data.length === 0) {
+            return [];
         }
 
+        _.each(data, function(collection) {
 
-        var dataUniqTimes = _.map(data, function(item) {
-            return item['@timestamp'];
+            // within each collection, tag the data points
+            _.each(collection.per_interval, function(dataPoint) {
+
+                _.each(dataPoint, function(item, i) {
+                    item['@timestamp'] = i;
+                    item.name = collection.metricSource;
+                    item.value = item.stats.max;
+                });
+
+            });
         });
+
+
+        var condensedData = _.flatten(_.map(data, function(item) {
+            return item.per_interval;
+        }));
+
+
+        var dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
+            return item[_.keys(item)[0]]['@timestamp'];
+        }));
 
 
         var newData = {};
 
         _.each(dataUniqTimes, function(item) {
             newData[item] = {
-                free: null
+                wait: null,
+                sys: null,
+                user: null
             };
         });
 
 
-        _.each(data, function(item) {
+        _.each(condensedData, function(item) {
 
-            var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
-
-            newData[item['@timestamp']][metric] = item.value;
+            var key = _.keys(item)[0];
+            var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
+            newData[key][metric] = item[key].value;
 
         });
 
-
         finalData = [];
+
+        // make sure to set ns.memTotal
+        var key = _.keys(allthelogs[0].per_interval[1])[0];
+
+        ns.memTotal = allthelogs[0].per_interval[1][key].stats.max; // double check
 
         _.each(newData, function(item, i) {
 
+            item.total = item.total || 0;
+            item.free = item.free || 0;
+
             finalData.push({
-                used: (ns.memTotal.value - item.free) / self.defaults.divisor,
-                free: item.free / self.defaults.divisor,
+                used: (item.total - item.free) / ns.divisor,
+                free: item.free / ns.divisor,
                 // total renders a thin line at the top of the area stack
                 // the actual value comes from ns.memTotal.value
                 total: 0.1,
                 date: i
             });
         });
-
 
         return finalData;
 
@@ -11828,20 +12041,34 @@ var UtilizationNetView = UtilizationCpuView.extend({
     },
 
     collectionPrep: function() {
-        var ns = this.defaults;
-        var self = this;
-
-        allthelogs = this.collection.toJSON();
-
+        var allthelogs = this.collection.toJSON();
         var data = allthelogs;
 
-        _.each(data, function(item) {
-            item['@timestamp'] = moment(item['@timestamp']).valueOf();
+        // allthelogs will have as many objects as api calls were made
+        // iterate through each object to tag the data with the
+        // api call that was made to produce it
+        _.each(data, function(collection) {
+
+            // within each collection, tag the data points
+            _.each(collection.per_interval, function(dataPoint) {
+
+                _.each(dataPoint, function(item, i) {
+                    item['@timestamp'] = i;
+                    item.name = collection.metricSource;
+                    item.value = item.stats.max;
+                });
+
+            });
         });
 
 
-        var dataUniqTimes = _.uniq(_.map(data, function(item) {
-            return item['@timestamp'];
+        var condensedData = _.flatten(_.map(data, function(item) {
+            return item.per_interval;
+        }));
+
+
+        var dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
+            return item[_.keys(item)[0]]['@timestamp'];
         }));
 
 
@@ -11849,34 +12076,29 @@ var UtilizationNetView = UtilizationCpuView.extend({
 
         _.each(dataUniqTimes, function(item) {
             newData[item] = {
-                rx: null,
-                tx: null
+                wait: null,
+                sys: null,
+                user: null
             };
         });
 
 
-        _.each(data, function(item) {
+        _.each(condensedData, function(item) {
 
-            var metric;
-
-            var serviceName = item.name.slice(0, item.name.lastIndexOf('.'));
-
-            if (serviceName.indexOf('rx') >= 0) {
-                metric = 'rx';
-            } else {
-                if (serviceName.indexOf('tx') >= 0) {
-                    metric = 'tx';
-                } else {}
-            }
-
-            newData[item['@timestamp']][metric] += item.value;
+            var key = _.keys(item)[0];
+            var metric = item[key].name.substr((item[key].name.lastIndexOf('.net') + 5), 2);
+            newData[key][metric] = item[key].value;
 
         });
+
 
 
         finalData = [];
 
         _.each(newData, function(item, i) {
+
+            item.rx = item.rx || 0;
+            item.tx = item.tx || 0;
 
             finalData.push({
                 rx: item.rx,
@@ -11884,7 +12106,6 @@ var UtilizationNetView = UtilizationCpuView.extend({
                 date: i
             });
         });
-
 
         return finalData;
 

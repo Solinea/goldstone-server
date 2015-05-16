@@ -134,16 +134,46 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
     },
 
     collectionPrep: function() {
-        allthelogs = this.collection.toJSON();
+        var allthelogs = this.collection.toJSON();
 
         var data = allthelogs;
 
-        _.each(data, function(item) {
-            item['@timestamp'] = moment(item['@timestamp']).valueOf();
+        /*
+        make it like this:
+
+        @timestamp: "2015-05-14T05:55:50.342Z"
+        host: "10.10.20.10:56787"
+        metric_type: "gauge"
+        name: "os.cpu.wait"
+        node: "ctrl-01"
+        unit: "percent"
+        value: 0.26161110700781587
+*/
+        // allthelogs will have as many objects as api calls were made
+        // iterate through each object to tag the data with the
+        // api call that was made to produce it
+        _.each(data, function(collection) {
+
+            // within each collection, tag the data points
+            _.each(collection.per_interval, function(dataPoint) {
+
+                _.each(dataPoint, function(item, i) {
+                    item['@timestamp'] = i;
+                    item.name = collection.metricSource;
+                    item.value = item.stats.max;
+                });
+
+            });
         });
 
-        var dataUniqTimes = _.uniq(_.map(data, function(item) {
-            return item['@timestamp'];
+
+        var condensedData = _.flatten(_.map(data, function(item) {
+            return item.per_interval;
+        }));
+
+
+        var dataUniqTimes = _.uniq(_.map(condensedData, function(item) {
+            return item[_.keys(item)[0]]['@timestamp'];
         }));
 
 
@@ -158,11 +188,11 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         });
 
 
-        _.each(data, function(item) {
+        _.each(condensedData, function(item) {
 
-            var metric = item.name.slice(item.name.lastIndexOf('.') + 1);
-
-            newData[item['@timestamp']][metric] = item.value;
+            var key = _.keys(item)[0];
+            var metric = item[key].name.slice(item[key].name.lastIndexOf('.') + 1);
+            newData[key][metric] = item[key].value;
 
         });
 
@@ -170,6 +200,11 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         finalData = [];
 
         _.each(newData, function(item, i) {
+
+            item.wait = item.wait || 0;
+            item.sys = item.sys || 0;
+            item.user = item.user || 0;
+
             finalData.push({
                 wait: item.wait,
                 sys: item.sys,
@@ -281,7 +316,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
         }));
 
         if (ns.featureSet === 'memUsage') {
-            ns.y.domain([0, ns.memTotal.value / ns.divisor]);
+            ns.y.domain([0, ns.memTotal / ns.divisor]);
         }
 
         if (ns.featureSet === 'netUsage') {
@@ -409,7 +444,7 @@ var UtilizationCpuView = GoldstoneBaseView.extend({
 
                 if (ns.featureSet === 'memUsage') {
                     if (d.name === 'total') {
-                        return 'Total: ' + ((Math.round(ns.memTotal.value / ns.divisor * 100)) / 100) + 'GB';
+                        return 'Total: ' + ((Math.round(ns.memTotal / ns.divisor * 100)) / 100) + 'GB';
                     }
                     if (d.name === 'free') {
                         return '';
