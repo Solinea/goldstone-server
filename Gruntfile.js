@@ -121,7 +121,7 @@ module.exports = function(grunt) {
         watch: {
             client: {
                 files: clientIncludeOrder.clientWildcards,
-                tasks: ['lint', 'c']
+                tasks: ['c', 'lint']
             },
             lib: {
                 files: clientIncludeOrder.lib,

@@ -16,13 +16,26 @@
 
 // define collection and link to model
 
-var UtilizationMemCollection = Backbone.Collection.extend({
+/*
+instantiated on nodeReportView and novaReportView
+
+instantiation example:
+
+this.cpuUsageChart = new MultiMetricComboCollection({
+    metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
+    globalLookback: ns.globalLookback, (optional)
+    nodeName: hostName (optional)
+});
+*/
+
+var MultiMetricComboCollection = Backbone.Collection.extend({
 
     defaults: {},
 
     parse: function(data) {
+        var ns = this.defaults;
 
-        if (data.next && data.next !== null && data.next.indexOf('os.mem.total') === -1) {
+        if (data.next && data.next !== null) {
             var dp = data.next;
             nextUrl = dp.slice(dp.indexOf('/core'));
             this.fetch({
@@ -30,10 +43,14 @@ var UtilizationMemCollection = Backbone.Collection.extend({
                 remove: false,
             });
         } else {
-            this.defaults.urlCollectionCount--;
+            ns.urlCollectionCount--;
         }
 
-        return data.results;
+        // before returning the collection, tag it with the metricName
+        // that produced the data
+        data.metricSource = ns.metricNames[(ns.metricNames.length - 1) - ns.urlCollectionCount];
+
+        return data;
     },
 
     model: GoldstoneBaseModel,
@@ -45,41 +62,54 @@ var UtilizationMemCollection = Backbone.Collection.extend({
     initialize: function(options) {
         this.options = options || {};
         this.defaults = _.clone(this.defaults);
+        this.defaults.reportParams = {};
         this.defaults.fetchInProgress = false;
-        this.defaults.nodeName = options.nodeName;
-        this.defaults.urlPrefixes = ['total', 'free'];
-        this.defaults.urlCollectionCountOrig = this.defaults.urlPrefixes.length;
-        this.defaults.urlCollectionCount = this.defaults.urlPrefixes.length;
-        this.defaults.globalLookback = options.globalLookback;
+        this.defaults.nodeName = this.options.nodeName;
+        this.defaults.metricNames = this.options.metricNames;
+        this.defaults.urlCollectionCountOrig = this.defaults.metricNames.length;
+        this.defaults.urlCollectionCount = this.defaults.metricNames.length;
         this.fetchMultipleUrls();
+
     },
 
     fetchMultipleUrls: function() {
         var self = this;
+        var ns = this.defaults;
 
-        if (this.defaults.fetchInProgress) {
+        if (ns.fetchInProgress) {
             return null;
         }
 
-        this.defaults.fetchInProgress = true;
-        this.defaults.urlsToFetch = [];
+        ns.fetchInProgress = true;
+        ns.urlsToFetch = [];
 
         // grabs minutes from global selector option value
-        var lookback = +new Date() - (1000 * 60 * this.defaults.globalLookback);
+        ns.globalLookback = $('#global-lookback-range').val();
 
-        this.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.mem." + this.defaults.urlPrefixes[0] + "&node=" +
-            this.defaults.nodeName + "&@timestamp__range={'gte':" +
-            lookback + "}&page_size=1");
+        ns.reportParams.end = +new Date();
+        ns.reportParams.start = (+new Date() - (ns.globalLookback * 1000 * 60));
+        ns.reportParams.interval = '' + Math.max(1, (ns.globalLookback / 24)) + 'm';
 
-        this.defaults.urlsToFetch.push("/core/metrics/?name__prefix=os.mem." + this.defaults.urlPrefixes[1] + "&node=" +
-            this.defaults.nodeName + "&@timestamp__range={'gte':" +
-            lookback + "}&page_size=1000");
+        _.each(self.defaults.metricNames, function(prefix) {
+
+            var urlString = '/core/metrics/summarize/?name=' + prefix;
+
+            if (self.defaults.nodeName) {
+                urlString += '&node=' + self.defaults.nodeName;
+            }
+
+            urlString += '&@timestamp__range={"gte":' +
+                ns.reportParams.start + ',"lte":' + ns.reportParams.end +
+                '}&interval=' + ns.reportParams.interval;
+
+            self.defaults.urlsToFetch.push(urlString);
+        });
 
         this.fetch({
 
             // fetch the first time without remove:false
             // to clear out the collection
-            url: this.defaults.urlsToFetch[0],
+            url: ns.urlsToFetch[0],
             success: function() {
 
                 // upon success: further fetches are carried out with

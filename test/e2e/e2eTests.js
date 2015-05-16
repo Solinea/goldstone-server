@@ -37,7 +37,7 @@ casper.options.viewportSize = {
 };
 
 // 15 second timeout limit on individual tests
-casper.options.waitTimeout = 15000;
+casper.options.waitTimeout = 30000;
 
 /*
 print delimiting text between tests
@@ -347,7 +347,7 @@ casper.test.begin('/settings/tenants page updates user personal settings / passw
     // end of settings page e2e tests
 });
 
-casper.test.begin('Node Report Page is loading properly', 87, function suite(test) {
+casper.test.begin('Node Report Page is loading properly', 67, function suite(test) {
     casper.start('http://localhost:8000/#report/node/ctrl-01', function() {
 
         this.echo('token in actual tests?: ' + this.evaluate(function() {
@@ -408,33 +408,34 @@ casper.test.begin('Node Report Page is loading properly', 87, function suite(tes
         test.assertExists('div#node-report-r3-c1 #network-usage svg', 'Network Usage Section svg chart should load');
     });
 
-    casper.waitForSelector('div#node-report-r4-c1 #cores-usage svg g text', function() {
-        this.echo('cores usage chart loaded');
-        test.assertSelectorHasText('div #hypervisor-title-bar', 'Hypervisor');
-        test.assertExists('div#node-report-r4', 'Hypervisor Charts should load');
-        test.assertExists('div#node-report-r4-c1 #cores-usage svg', 'Cores Usage Section svg chart should load');
-        test.assertSelectorHasText('div #node-report-r4-c1 #cores-usage', 'Cores');
-        test.assertSelectorHasText('div #node-report-r4-c1 #cores-usage', 'Total Cores');
-        test.assertSelectorHasText('div #node-report-r4-c1 #cores-usage', '0');
+    // TESTS REMOVED PENDING RETURN OF THESE CHARTS:
+    // casper.waitForSelector('div#node-report-r4-c1 #cores-usage svg g text', function() {
+    //     this.echo('cores usage chart loaded');
+    //     test.assertSelectorHasText('div #hypervisor-title-bar', 'Hypervisor');
+    //     test.assertExists('div#node-report-r4', 'Hypervisor Charts should load');
+    //     test.assertExists('div#node-report-r4-c1 #cores-usage svg', 'Cores Usage Section svg chart should load');
+    //     test.assertSelectorHasText('div #node-report-r4-c1 #cores-usage', 'Cores');
+    //     test.assertSelectorHasText('div #node-report-r4-c1 #cores-usage', 'Total Cores');
+    //     test.assertSelectorHasText('div #node-report-r4-c1 #cores-usage', '0');
 
-    });
+    // });
 
-    casper.waitForSelector('div#node-report-r4-c1 #memory-usage svg g text', function() {
-        this.echo('memory usage chart loaded');
-        test.assertExists('div#node-report-r4-c1 #memory-usage svg', 'Memory Usage Section svg chart should load');
-        test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage', 'Memory');
-        test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage svg g g text', 'Total GB');
-        test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage', '0');
-    });
+    // casper.waitForSelector('div#node-report-r4-c1 #memory-usage svg g text', function() {
+    //     this.echo('memory usage chart loaded');
+    //     test.assertExists('div#node-report-r4-c1 #memory-usage svg', 'Memory Usage Section svg chart should load');
+    //     test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage', 'Memory');
+    //     test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage svg g g text', 'Total GB');
+    //     test.assertSelectorHasText('div #node-report-r4-c1 #memory-usage', '0');
+    // });
 
-    casper.waitForSelector('div#node-report-r4-c1 #vm-cpu-usage svg g g text', function() {
-        this.echo('per vm cpu usage chart loaded');
-        test.assertExists('div#node-report-r4-c1 #vm-cpu-usage svg', 'Per VM CPU Usage Section svg chart should load');
-        test.assertSelectorHasText('div #node-report-r4-c1 #vm-cpu-usage', 'Per VM CPU Usage');
-        test.assertSelectorHasText('div #node-report-r4-c1 #vm-cpu-usage', 'utilization');
-        test.assertSelectorHasText('div #node-report-r4-c1 #vm-cpu-usage', 'UserSystemWait');
-        test.assertElementCount('#data-filterer .btn-group button', 3, 'per vm cpu usage chart has 3 buttons');
-    });
+    // casper.waitForSelector('div#node-report-r4-c1 #vm-cpu-usage svg g g text', function() {
+    //     this.echo('per vm cpu usage chart loaded');
+    //     test.assertExists('div#node-report-r4-c1 #vm-cpu-usage svg', 'Per VM CPU Usage Section svg chart should load');
+    //     test.assertSelectorHasText('div #node-report-r4-c1 #vm-cpu-usage', 'Per VM CPU Usage');
+    //     test.assertSelectorHasText('div #node-report-r4-c1 #vm-cpu-usage', 'utilization');
+    //     test.assertSelectorHasText('div #node-report-r4-c1 #vm-cpu-usage', 'UserSystemWait');
+    //     test.assertElementCount('#data-filterer .btn-group button', 3, 'per vm cpu usage chart has 3 buttons');
+    // });
 
     casper.then(function() {
         // Service Status info button brings up popover
@@ -457,18 +458,20 @@ casper.test.begin('Node Report Page is loading properly', 87, function suite(tes
         this.click('#utilization-title-bar .pull-right.fa.fa-info-circle.panel-info');
         test.assertVisible('#utilization-title-bar div.popover.fade.bottom.in', 'service status info popover should now be visible');
         this.mouseEvent('mouseout', '#utilization-title-bar .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#utilization-title-bar div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        test.assertNotVisible('#utilization-title-bar div.popover.fade.bottom.in', 'service status info popover should now be visible'
+            );
 
+        // PENDING RETURN OF HYPERVISOR CHARTS:
         // Hypervisor info button brings up popover
-        test.assertNotVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'hypervisor info popover should not be visible');
-        this.click('#Hypervisor-title-bar .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'hypervisor info popover should now be visible');
-        this.click('#Hypervisor-title-bar .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'hypervisor info popover should not be visible');
-        this.click('#Hypervisor-title-bar .pull-right.fa.fa-info-circle.panel-info');
-        test.assertVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'service status info popover should now be visible');
-        this.mouseEvent('mouseout', '#Hypervisor-title-bar .pull-right.fa.fa-info-circle.panel-info');
-        test.assertNotVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        // test.assertNotVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'hypervisor info popover should not be visible');
+        // this.click('#Hypervisor-title-bar .pull-right.fa.fa-info-circle.panel-info');
+        // test.assertVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'hypervisor info popover should now be visible');
+        // this.click('#Hypervisor-title-bar .pull-right.fa.fa-info-circle.panel-info');
+        // test.assertNotVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'hypervisor info popover should not be visible');
+        // this.click('#Hypervisor-title-bar .pull-right.fa.fa-info-circle.panel-info');
+        // test.assertVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'service status info popover should now be visible');
+        // this.mouseEvent('mouseout', '#Hypervisor-title-bar .pull-right.fa.fa-info-circle.panel-info');
+        // test.assertNotVisible('#Hypervisor-title-bar div.popover.fade.bottom.in', 'service status info popover should now be visible');
     });
 
     // from services to reports tab
