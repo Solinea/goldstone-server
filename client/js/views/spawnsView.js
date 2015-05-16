@@ -18,10 +18,10 @@
 View is currently directly implemented as Nova VM Spawns Viz
 and extended into Nova CPU/Memory/Disk Resource Charts
 
-instantiated similar to:
+instantiated on nodeReportPage similar to:
 
 this.vmSpawnChart = new SpawnsCollection({
-    urlPrefix: '/nova/hypervisor/spawns'
+    urlPrefix: '/nova/hypervisor/spawns/'
 });
 
 this.vmSpawnChartView = new SpawnsView({
@@ -34,8 +34,6 @@ this.vmSpawnChartView = new SpawnsView({
     yAxisLabel: 'Spawn Events'
 });
 */
-
-// view is linked to collection when instantiated in api_perf_report.html
 
 var SpawnsView = GoldstoneBaseView.extend({
 
@@ -152,8 +150,6 @@ var SpawnsView = GoldstoneBaseView.extend({
         var ns = this.defaults;
         var self = this;
 
-        // data originally returned from collection as:
-        // [{"1424586240000": [6, 16, 256]}...]
         var data = this.collection.toJSON();
 
         // data morphed through dataPrep into:

@@ -2211,8 +2211,8 @@ instantiated on nodeReportView and novaReportView
 instantiation example:
 
 this.cpuUsageChart = new MultiMetricComboCollection({
-    globalLookback: ns.globalLookback, (optional)
     metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
+    globalLookback: ns.globalLookback, (optional)
     nodeName: hostName (optional)
 });
 */
@@ -2254,13 +2254,11 @@ var MultiMetricComboCollection = Backbone.Collection.extend({
         this.defaults.fetchInProgress = false;
         this.defaults.nodeName = this.options.nodeName;
         this.defaults.metricNames = this.options.metricNames;
-        // this.defaults.metricNames = ['os.net.tx.eth0', 'os.net.rx.eth0'];
         this.defaults.urlCollectionCountOrig = this.defaults.metricNames.length;
         this.defaults.urlCollectionCount = this.defaults.metricNames.length;
-        this.defaults.globalLookback = options.globalLookback || $('#global-lookback-range').val();
+        // this.defaults.globalLookback = options.globalLookback || $('#global-lookback-range').val();
         this.fetchMultipleUrls();
 
-        console.log('this.defaults.globalLookback?: ',  this.defaults.globalLookback);
     },
 
     fetchMultipleUrls: function() {
@@ -2270,6 +2268,7 @@ var MultiMetricComboCollection = Backbone.Collection.extend({
             return null;
         }
 
+        this.defaults.globalLookback = $('#global-lookback-range').val();
         this.defaults.fetchInProgress = true;
         this.defaults.urlsToFetch = [];
 
@@ -2568,12 +2567,13 @@ var ServiceStatusCollection = Backbone.Collection.extend({
 This collection is currently direclty implemented in the
 Nova VM Spawns viz
 JSON payload format:
-{
-    timestamp:[successes, fails],
-    timestamp:[successes, fails],
-    timestamp:[successes, fails],
+
+per_interval: [{
+    timestamp:[count: 1, success: [{true: 1}]],
+    timestamp:[count: 3, success: [{true: 2}, {false: 1}]],
+    timestamp:[count: 0, success: []],
     ...
-}
+}]
 */
 
 // define collection and link to model
@@ -2597,7 +2597,7 @@ var SpawnsCollection = Backbone.Collection.extend({
         this.defaults = _.clone(this.defaults);
         this.defaults.urlPrefix = this.options.urlPrefix;
         this.defaults.reportParams = {};
-        this.defaults.globalLookback = $('#global-lookback-range').val();
+        // this.defaults.globalLookback = $('#global-lookback-range').val();
         this.urlGenerator();
         this.fetch();
     },
@@ -2610,9 +2610,11 @@ var SpawnsCollection = Backbone.Collection.extend({
 
         var ns = this.defaults;
 
-        ns.reportParams.end = +new Date();
+        ns.globalLookback = $('#global-lookback-range').val();
+
+        // ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
+        ns.reportParams.interval = '' + Math.max(1, (ns.globalLookback / 24)) + "m";
         this.url = ns.urlPrefix + '?@timestamp__range={"gte":' +
             ns.reportParams.start + '}&interval=' + ns.reportParams.interval;
     }
@@ -7262,6 +7264,17 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         });
     },
 
+    dataErrorMessage: function(message, errorMessage) {
+
+        UtilizationCpuView.__super__.dataErrorMessage.apply(this, arguments);
+
+        var self = this;
+
+        // the collection count will have to be set back to the original count when re-triggering a fetch.
+        self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
+        self.collection.defaults.fetchInProgress = false;
+    },
+
     specialInit: function() {
         var ns = this.defaults;
 
@@ -7289,20 +7302,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var dataUniqTimes;
         var newData;
 
-        console.log('MultiMetricBarView collectionPrep data enters as: ', data);
-
-        /*
-        enters as:
-        0: Object
-        metricSource: "nova.hypervisor.vcpus"
-        per_interval: Array[6]
-            1431374400000: Object
-                @timestamp: "1431374400000"
-                count: 4
-                name: "nova.hypervisor.vcpus"
-                stats: Object
-                value: 16
-        */
         var ns = this.defaults;
         var uniqTimestamps;
         var finalData = [];
@@ -7365,27 +7364,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 });
             });
 
-            // OLD CODE:
-            // CPU Resources chart data prep
-            // uniqTimestamps = _.uniq(_.map(data, function(item) {
-            //     return item['@timestamp'];
-            // }));
-            // _.each(uniqTimestamps, function(item, i) {
-            //     finalData.push({
-            //         eventTime: moment(item).valueOf(),
-            //         Used: _.where(data, {
-            //             '@timestamp': item,
-            //             'name': 'nova.hypervisor.vcpus_used'
-            //         })[0].value,
-            //         Physical: _.where(data, {
-            //             '@timestamp': item,
-            //             'name': 'nova.hypervisor.vcpus'
-            //         })[0].value
-            //     });
-
-            // });
-            // END OLD CODE
-
         } else if (ns.featureSet === 'disk') {
 
             _.each(data, function(collection) {
@@ -7443,26 +7421,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                     Total: item.local_gb,
                 });
             });
-
-            // OLD CODE:
-            // uniqTimestamps = _.uniq(_.map(data, function(item) {
-            //     return item['@timestamp'];
-            // }));
-            // _.each(uniqTimestamps, function(item, i) {
-            //     finalData.push({
-            //         eventTime: moment(item).valueOf(),
-            //         Used: _.where(data, {
-            //             '@timestamp': item,
-            //             'name': 'nova.hypervisor.local_gb_used'
-            //         })[0].value,
-            //         Total: _.where(data, {
-            //             '@timestamp': item,
-            //             'name': 'nova.hypervisor.local_gb'
-            //         })[0].value
-            //     });
-
-            // });
-            // END OLD CODE
 
         } else if (ns.featureSet === 'mem') {
 
@@ -7522,26 +7480,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 });
             });
 
-            // OLD CODE:
-            // uniqTimestamps = _.uniq(_.map(data, function(item) {
-            //     return item['@timestamp'];
-            // }));
-            // _.each(uniqTimestamps, function(item, i) {
-            //     finalData.push({
-            //         eventTime: moment(item).valueOf(),
-            //         Used: _.where(data, {
-            //             '@timestamp': item,
-            //             'name': 'nova.hypervisor.memory_mb_used'
-            //         })[0].value,
-            //         Physical: _.where(data, {
-            //             '@timestamp': item,
-            //             'name': 'nova.hypervisor.memory_mb'
-            //         })[0].value
-            //     });
-
-            // });
-            // END OLD CODE
-
         }
 
         return finalData;
@@ -7549,6 +7487,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
     computeHiddenBarText: function(d) {
         var ns = this.defaults;
+
         /*
         filter function strips keys that are irrelevant to the d3.tip:
 
@@ -10568,10 +10507,10 @@ var SettingsPageView = GoldstoneBaseView.extend({
 View is currently directly implemented as Nova VM Spawns Viz
 and extended into Nova CPU/Memory/Disk Resource Charts
 
-instantiated similar to:
+instantiated on nodeReportPage similar to:
 
 this.vmSpawnChart = new SpawnsCollection({
-    urlPrefix: '/nova/hypervisor/spawns'
+    urlPrefix: '/nova/hypervisor/spawns/'
 });
 
 this.vmSpawnChartView = new SpawnsView({
@@ -10584,8 +10523,6 @@ this.vmSpawnChartView = new SpawnsView({
     yAxisLabel: 'Spawn Events'
 });
 */
-
-// view is linked to collection when instantiated in api_perf_report.html
 
 var SpawnsView = GoldstoneBaseView.extend({
 
@@ -10702,8 +10639,6 @@ var SpawnsView = GoldstoneBaseView.extend({
         var ns = this.defaults;
         var self = this;
 
-        // data originally returned from collection as:
-        // [{"1424586240000": [6, 16, 256]}...]
         var data = this.collection.toJSON();
 
         // data morphed through dataPrep into:

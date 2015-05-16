@@ -18,12 +18,13 @@
 This collection is currently direclty implemented in the
 Nova VM Spawns viz
 JSON payload format:
-{
-    timestamp:[successes, fails],
-    timestamp:[successes, fails],
-    timestamp:[successes, fails],
+
+per_interval: [{
+    timestamp:[count: 1, success: [{true: 1}]],
+    timestamp:[count: 3, success: [{true: 2}, {false: 1}]],
+    timestamp:[count: 0, success: []],
     ...
-}
+}]
 */
 
 // define collection and link to model
@@ -47,7 +48,7 @@ var SpawnsCollection = Backbone.Collection.extend({
         this.defaults = _.clone(this.defaults);
         this.defaults.urlPrefix = this.options.urlPrefix;
         this.defaults.reportParams = {};
-        this.defaults.globalLookback = $('#global-lookback-range').val();
+        // this.defaults.globalLookback = $('#global-lookback-range').val();
         this.urlGenerator();
         this.fetch();
     },
@@ -60,9 +61,11 @@ var SpawnsCollection = Backbone.Collection.extend({
 
         var ns = this.defaults;
 
-        ns.reportParams.end = +new Date();
+        ns.globalLookback = $('#global-lookback-range').val();
+
+        // ns.reportParams.end = +new Date();
         ns.reportParams.start = (+new Date()) - (ns.globalLookback * 1000 * 60);
-        ns.reportParams.interval = '' + Math.round(1 * ns.globalLookback) + "s";
+        ns.reportParams.interval = '' + Math.max(1, (ns.globalLookback / 24)) + "m";
         this.url = ns.urlPrefix + '?@timestamp__range={"gte":' +
             ns.reportParams.start + '}&interval=' + ns.reportParams.interval;
     }

@@ -67,8 +67,8 @@ describe('apiPerfView.js spec', function() {
         expect($('svg').length).to.equal(0);
         expect($('#spinner').length).to.equal(0);
 
-        this.testCollection = new StackedBarChartCollection({
-            urlPrefix: 'nova'
+        this.testCollection = new SpawnsCollection({
+            urlPrefix: '/nova/hypervisor/spawns/'
         });
 
         blueSpinnerGif = "goldstone/static/images/ajax-loader-solinea-blue.gif";

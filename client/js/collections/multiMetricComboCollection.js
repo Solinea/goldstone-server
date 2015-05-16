@@ -22,8 +22,8 @@ instantiated on nodeReportView and novaReportView
 instantiation example:
 
 this.cpuUsageChart = new MultiMetricComboCollection({
-    globalLookback: ns.globalLookback, (optional)
     metricNames: ['os.cpu.sys', 'os.cpu.user', 'os.cpu.wait'],
+    globalLookback: ns.globalLookback, (optional)
     nodeName: hostName (optional)
 });
 */
@@ -65,13 +65,11 @@ var MultiMetricComboCollection = Backbone.Collection.extend({
         this.defaults.fetchInProgress = false;
         this.defaults.nodeName = this.options.nodeName;
         this.defaults.metricNames = this.options.metricNames;
-        // this.defaults.metricNames = ['os.net.tx.eth0', 'os.net.rx.eth0'];
         this.defaults.urlCollectionCountOrig = this.defaults.metricNames.length;
         this.defaults.urlCollectionCount = this.defaults.metricNames.length;
-        this.defaults.globalLookback = options.globalLookback || $('#global-lookback-range').val();
+        // this.defaults.globalLookback = options.globalLookback || $('#global-lookback-range').val();
         this.fetchMultipleUrls();
 
-        console.log('this.defaults.globalLookback?: ',  this.defaults.globalLookback);
     },
 
     fetchMultipleUrls: function() {
@@ -81,6 +79,7 @@ var MultiMetricComboCollection = Backbone.Collection.extend({
             return null;
         }
 
+        this.defaults.globalLookback = $('#global-lookback-range').val();
         this.defaults.fetchInProgress = true;
         this.defaults.urlsToFetch = [];
 

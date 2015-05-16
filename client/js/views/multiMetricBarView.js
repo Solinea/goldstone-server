@@ -77,6 +77,17 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         });
     },
 
+    dataErrorMessage: function(message, errorMessage) {
+
+        UtilizationCpuView.__super__.dataErrorMessage.apply(this, arguments);
+
+        var self = this;
+
+        // the collection count will have to be set back to the original count when re-triggering a fetch.
+        self.collection.defaults.urlCollectionCount = self.collection.defaults.urlCollectionCountOrig;
+        self.collection.defaults.fetchInProgress = false;
+    },
+
     specialInit: function() {
         var ns = this.defaults;
 
@@ -104,20 +115,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
         var dataUniqTimes;
         var newData;
 
-        console.log('MultiMetricBarView collectionPrep data enters as: ', data);
-
-        /*
-        enters as:
-        0: Object
-        metricSource: "nova.hypervisor.vcpus"
-        per_interval: Array[6]
-            1431374400000: Object
-                @timestamp: "1431374400000"
-                count: 4
-                name: "nova.hypervisor.vcpus"
-                stats: Object
-                value: 16
-        */
         var ns = this.defaults;
         var uniqTimestamps;
         var finalData = [];
@@ -180,27 +177,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 });
             });
 
-            // OLD CODE:
-            // CPU Resources chart data prep
-            // uniqTimestamps = _.uniq(_.map(data, function(item) {
-            //     return item['@timestamp'];
-            // }));
-            // _.each(uniqTimestamps, function(item, i) {
-            //     finalData.push({
-            //         eventTime: moment(item).valueOf(),
-            //         Used: _.where(data, {
-            //             '@timestamp': item,
-            //             'name': 'nova.hypervisor.vcpus_used'
-            //         })[0].value,
-            //         Physical: _.where(data, {
-            //             '@timestamp': item,
-            //             'name': 'nova.hypervisor.vcpus'
-            //         })[0].value
-            //     });
-
-            // });
-            // END OLD CODE
-
         } else if (ns.featureSet === 'disk') {
 
             _.each(data, function(collection) {
@@ -258,26 +234,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                     Total: item.local_gb,
                 });
             });
-
-            // OLD CODE:
-            // uniqTimestamps = _.uniq(_.map(data, function(item) {
-            //     return item['@timestamp'];
-            // }));
-            // _.each(uniqTimestamps, function(item, i) {
-            //     finalData.push({
-            //         eventTime: moment(item).valueOf(),
-            //         Used: _.where(data, {
-            //             '@timestamp': item,
-            //             'name': 'nova.hypervisor.local_gb_used'
-            //         })[0].value,
-            //         Total: _.where(data, {
-            //             '@timestamp': item,
-            //             'name': 'nova.hypervisor.local_gb'
-            //         })[0].value
-            //     });
-
-            // });
-            // END OLD CODE
 
         } else if (ns.featureSet === 'mem') {
 
@@ -337,26 +293,6 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
                 });
             });
 
-            // OLD CODE:
-            // uniqTimestamps = _.uniq(_.map(data, function(item) {
-            //     return item['@timestamp'];
-            // }));
-            // _.each(uniqTimestamps, function(item, i) {
-            //     finalData.push({
-            //         eventTime: moment(item).valueOf(),
-            //         Used: _.where(data, {
-            //             '@timestamp': item,
-            //             'name': 'nova.hypervisor.memory_mb_used'
-            //         })[0].value,
-            //         Physical: _.where(data, {
-            //             '@timestamp': item,
-            //             'name': 'nova.hypervisor.memory_mb'
-            //         })[0].value
-            //     });
-
-            // });
-            // END OLD CODE
-
         }
 
         return finalData;
@@ -364,6 +300,7 @@ var MultiMetricBarView = GoldstoneBaseView.extend({
 
     computeHiddenBarText: function(d) {
         var ns = this.defaults;
+
         /*
         filter function strips keys that are irrelevant to the d3.tip:
 
