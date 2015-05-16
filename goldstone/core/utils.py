@@ -202,7 +202,7 @@ def process_resource_type(nodetype):
     :type nodetype: PolyResource subclass
 
     """
-    from goldstone.core.models import GraphNode
+    from goldstone.core.models import GraphNode, Host
 
     # Get the cloud instances that are of the "nodetype" type.
     actual = nodetype.clouddata()
@@ -250,8 +250,17 @@ def process_resource_type(nodetype):
             else:
                 # This is a new node. Add it to the Resource graph and database
                 # table.
-                db_node = nodetype.objects.create(cloud_id=entry.get("id"),
-                                                  name=entry.get("name", ''))
+                cloud_id = entry.get("id")
+                name = entry.get("name", '')
+
+                if nodetype == Host:
+                    db_node = nodetype.objects.create(cloud_id=cloud_id,
+                                                      name=name,
+                                                      fqdn=name+".com")
+                else:
+                    db_node = nodetype.objects.create(cloud_id=cloud_id,
+                                                      name=name)
+
                 resources.graph.add_node(GraphNode(uuid=db_node.uuid,
                                                    resourcetype=nodetype,
                                                    attributes=entry))

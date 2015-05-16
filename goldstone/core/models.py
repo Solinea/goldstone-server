@@ -95,7 +95,7 @@ class PolyResource(PolymorphicModel):
 
     # This object's OpenStack UUID. Depending upon the service, it may be
     # missing, or not unique.
-    cloud_id = CharField(max_length=128, blank=True)
+    cloud_id = CharField(max_length=128, blank=True, null=True)
 
     name = CharField(max_length=64)
 
