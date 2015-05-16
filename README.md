@@ -37,7 +37,7 @@ If you need general help or have questions, please submit a message to the **gol
 
 If you have a specific feature request or bug report, please submit it as an issue on this project's Issues page.
 
-If you're working on the codebase and have a coding question, or a question about Goldstone internals, post your question to the **goldstone-dev** Google Group.
+If you're working on the codebase and have a coding question, or a question about Goldstone internals, post your question to the **goldstone-dev** Google Group, or join the **#goldstone** IRC channel on freeenode.
 
 All pull requests should be submitted to the master branch. They should include unit tests where feasible, and additional or updated documentation if appropriate.
 
