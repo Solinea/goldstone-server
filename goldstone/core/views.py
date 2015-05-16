@@ -348,14 +348,14 @@ class ResourceTypeRetrieve(RetrieveAPIView):
 
         {"nodes": [<b>node</b>, <b>node</b>, ...]}\n\n
 
-        <b>node</b> is {"uuid": str, "cloud_id": str, "name": str,
+        <b>node</b> is {"uuid": str, "native_id": str, "name": str,
                         "attributes": dict}
 
         <b>uuid</b> is the UUID we gave this node within Goldstone.\n\n
 
-        <b>cloud_id</b> is the OpenStack id of this node. It may be empty.\n\n
+        <b>native_id</b> is the OpenStack id of this node. It may be empty.\n\n
 
-        <b>cloud_name</b> is the node's cloud name.\n\n
+        <b>native_name</b> is the node's cloud name.\n\n
 
         <b>attributes</b> is the node's information extracted from the
         OpenStack cloud.
@@ -374,8 +374,8 @@ class ResourceTypeRetrieve(RetrieveAPIView):
             for node in resources.nodes_of_type(target_type):
                 row = PolyResource.objects.get(uuid=node.uuid)
                 result.append({"uuid": node.uuid,
-                               "cloud_id": row.cloud_id,
-                               "cloud_name": row.cloud_name,
+                               "native_id": row.native_id,
+                               "native_name": row.native_name,
                                "attributes": node.attributes})
 
         # The response's status depends on whether we found any instances.
@@ -398,8 +398,8 @@ class ResourcesList(ListAPIView):
 
         <b>node</b> is {"resourcetype": {"unique_id": str, "name": str},
                         "uuid": str,
-                        "cloud_id": str,
-                        "cloud_name": str,
+                        "native_id": str,
+                        "native_name": str,
                         }\n\n
 
         <b>edge</b> is {"from": str, "to": str, "type": str}\n\n
@@ -410,8 +410,8 @@ class ResourcesList(ListAPIView):
         or. All names and ids are case-sensitive.\n\n
 
         For example,
-        <b>?cloud_name=^Four%20score%20OR%20Five%20score&integration=nova%20OR%20keystone</b>
-        results in a cloud_name filter of <b>^Four score|^Five score</b> and
+        <b>?native_name=^Four%20score%20OR%20Five%20score&integration=nova%20OR%20keystone</b>
+        results in a native_name filter of <b>^Four score|^Five score</b> and
         an integration filter of <b>nova|keystone</b>.\n\n
 
         N.B. Edges are not included in the response if they are not from or to
@@ -420,10 +420,10 @@ class ResourcesList(ListAPIView):
         ---
 
         parameters:
-            - name: cloud_name
+            - name: native_name
               description: A cloud name regex to filter against.
               paramType: query
-            - name: cloud_id
+            - name: native_id
               description: A cloud id regex to filter against.
               paramType: query
             - name: integration_name
@@ -464,8 +464,8 @@ class ResourcesList(ListAPIView):
                                "name":
                                node.resourcetype.display_attributes()["name"]},
                               "uuid": node.uuid,
-                              "cloud_id": row.cloud_id,
-                              "cloud_name": row.cloud_name
+                              "native_id": row.native_id,
+                              "native_name": row.native_name
                               })
                 node_uuids.append(node.uuid)
 
@@ -491,11 +491,11 @@ class ResourcesRetrieve(RetrieveAPIView):
 
         The response payload is:
 
-        {"cloud_id": str, "cloud_name": str, "attributes": dict}\n\n
+        {"native_id": str, "native_name": str, "attributes": dict}\n\n
 
-        <b>cloud_id</b> is the OpenStack id of this node. It may be empty.\n\n
+        <b>native_id</b> is the OpenStack id of this node. It may be empty.\n\n
 
-        <b>cloud_name</b> is the cloud name of this node.\n\n
+        <b>native_name</b> is the cloud name of this node.\n\n
 
         <b>attributes</b> is the node's information extracted from the
         OpenStack cloud.
@@ -512,8 +512,8 @@ class ResourcesRetrieve(RetrieveAPIView):
             row = None
 
         if node and row:
-            return Response({"cloud_id": row.cloud_id,
-                             "cloud_name": row.cloud_name,
+            return Response({"native_id": row.native_id,
+                             "native_name": row.native_name,
                              "attributes": node.attributes})
 
         else:

@@ -250,8 +250,8 @@ def process_resource_type(nodetype):
                 # This is a new node. Add it to the Resource graph and database
                 # table.
                 db_node = \
-                    nodetype.objects.create(cloud_id=entry.get("id"),
-                                            cloud_name=entry.get("name", ''))
+                    nodetype.objects.create(native_id=entry.get("id"),
+                                            native_name=entry.get("name", ''))
                 resources.graph.add_node(GraphNode(uuid=db_node.uuid,
                                                    resourcetype=nodetype,
                                                    attributes=entry))
@@ -341,10 +341,10 @@ def query_filter_map(key):
     import re
 
     # Each entry defines a function return value.
-    MAPPING = {"cloud_name": (lambda n, f: bool(re.search(f, n.cloud_name)),
-                              "db"),
-               "cloud_id": (lambda n, f: bool(re.search(f, n.cloud_id)),
-                            "db"),
+    MAPPING = {"native_name": (lambda n, f: bool(re.search(f, n.native_name)),
+                               "db"),
+               "native_id": (lambda n, f: bool(re.search(f, n.native_id)),
+                             "db"),
                "integration_name":
                (lambda n, f:
                 bool(re.search(f, n.display_attributes()["integration_name"])),

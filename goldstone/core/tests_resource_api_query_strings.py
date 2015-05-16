@@ -72,7 +72,7 @@ class CoreResources(Setup):
         # Test one filter.
         with patch("goldstone.core.views.resources", mock_r_graph):
             response = self.client.get(
-                RES_URL_FILTER % "cloud_id=fred",
+                RES_URL_FILTER % "native_id=fred",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
@@ -82,7 +82,7 @@ class CoreResources(Setup):
         # Test two filters.
         with patch("goldstone.core.views.resources", mock_r_graph):
             response = self.client.get(
-                RES_URL_FILTER % "integration_name=%5enova&cloud_id=fred",
+                RES_URL_FILTER % "integration_name=%5enova&native_id=fred",
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         self.assertContains(response,
@@ -95,7 +95,7 @@ class CoreResources(Setup):
         # pylint: disable=R0914
 
         # The resource graph nodes in this test. Each entry is (resource_type,
-        # cloud_id, cloud_name, attributes).
+        # native_id, native_name, attributes).
         NODES = [(Host, "1234", "host 0", {"quality": "poor"}),
                  (Host, "12345", "host 1", {"quality": "good"}),
                  (Host, "123456", "host 2", {"quality": "poor"}),
@@ -157,44 +157,44 @@ class CoreResources(Setup):
         # query_string: (the expected node results, the expected number of
         # edges).
         QUERIES = {
-            "?cloud_name=%5eh":
-            [[{u'cloud_id': u'12345',
-               u'cloud_name': u'host 1',
+            "?native_name=%5eh":
+            [[{u'native_id': u'12345',
+               u'native_name': u'host 1',
                u'resourcetype':
                {u'name': u'Host',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Host'>"},
                },
-              {u'cloud_id': u'1234',
-               u'cloud_name': u'host 0',
+              {u'native_id': u'1234',
+               u'native_name': u'host 0',
                u'resourcetype':
                {u'name': u'Host',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Host'>"},
                },
-              {u'cloud_id': u'f23456',
-               u'cloud_name': u'hypervisor 0',
+              {u'native_id': u'f23456',
+               u'native_name': u'hypervisor 0',
                u'resourcetype':
                {u'name': u'Hypervisor',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Hypervisor'>"},
                },
-              {u'cloud_id': u'f2345',
-               u'cloud_name': u'hypervisor 0',
+              {u'native_id': u'f2345',
+               u'native_name': u'hypervisor 0',
                u'resourcetype':
                {u'name': u'Hypervisor',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Hypervisor'>"},
                },
-              {u'cloud_id': u'123456',
-               u'cloud_name': u'host 2',
+              {u'native_id': u'123456',
+               u'native_name': u'host 2',
                u'resourcetype':
                {u'name': u'Host',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Host'>"},
                },
-              {u'cloud_id': u'f234',
-               u'cloud_name': u'hypervisor 0',
+              {u'native_id': u'f234',
+               u'native_name': u'hypervisor 0',
                u'resourcetype':
                {u'name': u'Hypervisor',
                 u'unique_id':
@@ -202,23 +202,23 @@ class CoreResources(Setup):
                },
               ],
              5],
-            "?cloud_name=imi":
-            [[{u'cloud_id': u'l123456',
-               u'cloud_name': u'limits 2',
+            "?native_name=imi":
+            [[{u'native_id': u'l123456',
+               u'native_name': u'limits 2',
                u'resourcetype':
                {u'name': u'Limits',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Limits'>"},
                },
-              {u'cloud_id': u'l12345',
-               u'cloud_name': u'limits 1',
+              {u'native_id': u'l12345',
+               u'native_name': u'limits 1',
                u'resourcetype':
                {u'name': u'Limits',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Limits'>"},
                },
-              {u'cloud_id': u'l1234',
-               u'cloud_name': u'limits 0',
+              {u'native_id': u'l1234',
+               u'native_name': u'limits 0',
                u'resourcetype':
                {u'name': u'Limits',
                 u'unique_id':
@@ -226,38 +226,38 @@ class CoreResources(Setup):
                },
               ],
              6],
-            "?cloud_id=derosa": [[], 0],
+            "?native_id=derosa": [[], 0],
             "?integration_name=Neutron%20OR%20Keystone":
-            [[{u'cloud_id': u'p2',
-               u'cloud_name': u'project 2',
+            [[{u'native_id': u'p2',
+               u'native_name': u'project 2',
                u'resourcetype':
                {u'name': u'Project',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Project'>"},
                },
-              {u'cloud_id': u'p1',
-               u'cloud_name': u'project 1',
+              {u'native_id': u'p1',
+               u'native_name': u'project 1',
                u'resourcetype':
                {u'name': u'Project',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Project'>"},
                },
-              {u'cloud_id': u'p0',
-               u'cloud_name': u'project 0',
+              {u'native_id': u'p0',
+               u'native_name': u'project 0',
                u'resourcetype':
                {u'name': u'Project',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Project'>"},
                },
-              {u'cloud_id': u'n12345',
-               u'cloud_name': u'network 1',
+              {u'native_id': u'n12345',
+               u'native_name': u'network 1',
                u'resourcetype':
                {u'name': u'Network',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Network'>"},
                },
-              {u'cloud_id': u'n1234',
-               u'cloud_name': u'network 0',
+              {u'native_id': u'n1234',
+               u'native_name': u'network 0',
                u'resourcetype':
                {u'name': u'Network',
                 u'unique_id':
@@ -265,30 +265,30 @@ class CoreResources(Setup):
                },
               ],
              10],
-            "?integration_name=Nova&cloud_id=45":
-            [[{u'cloud_id': u'12345',
-               u'cloud_name': u'host 1',
+            "?integration_name=Nova&native_id=45":
+            [[{u'native_id': u'12345',
+               u'native_name': u'host 1',
                u'resourcetype':
                {u'name': u'Host',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Host'>"},
                },
-              {u'cloud_id': u'f23456',
-               u'cloud_name': u'hypervisor 0',
+              {u'native_id': u'f23456',
+               u'native_name': u'hypervisor 0',
                u'resourcetype':
                {u'name': u'Hypervisor',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Hypervisor'>"},
                },
-              {u'cloud_id': u'f2345',
-               u'cloud_name': u'hypervisor 0',
+              {u'native_id': u'f2345',
+               u'native_name': u'hypervisor 0',
                u'resourcetype':
                {u'name': u'Hypervisor',
                 u'unique_id':
                 u"<class 'goldstone.core.models.Hypervisor'>"},
                },
-              {u'cloud_id': u'123456',
-               u'cloud_name': u'host 2',
+              {u'native_id': u'123456',
+               u'native_name': u'host 2',
                u'resourcetype':
                {u'name': u'Host',
                 u'unique_id':
@@ -296,9 +296,9 @@ class CoreResources(Setup):
                },
               ],
              4],
-            "?integration_name=Neutron&cloud_name=1":
-            [[{u'cloud_id': u'n12345',
-               u'cloud_name': u'network 1',
+            "?integration_name=Neutron&native_name=1":
+            [[{u'native_id': u'n12345',
+               u'native_name': u'network 1',
                u'resourcetype':
                {u'name': u'Network',
                 u'unique_id':
@@ -309,14 +309,14 @@ class CoreResources(Setup):
         }
 
         # Create the nodes for the test.
-        for nodetype, cloud_id, cloud_name, attributes in NODES:
+        for nodetype, native_id, native_name, attributes in NODES:
             if nodetype == Host:
-                db_node = nodetype.objects.create(cloud_id=cloud_id,
-                                                  cloud_name=cloud_name,
-                                                  fqdn=cloud_name+".com")
+                db_node = nodetype.objects.create(native_id=native_id,
+                                                  native_name=native_name,
+                                                  fqdn=native_name+".com")
             else:
-                db_node = nodetype.objects.create(cloud_id=cloud_id,
-                                                  cloud_name=cloud_name)
+                db_node = nodetype.objects.create(native_id=native_id,
+                                                  native_name=native_name)
 
             resources.graph.add_node(GraphNode(uuid=db_node.uuid,
                                                resourcetype=nodetype,
@@ -325,8 +325,9 @@ class CoreResources(Setup):
         # Create the edges for the test.
         for source_id, destination_id, attr_dict in EDGES:
             # Locate the source and destination nodes in the resource graph.
-            source_row = PolyResource.objects.get(cloud_id=source_id)
-            destination_row = PolyResource.objects.get(cloud_id=destination_id)
+            source_row = PolyResource.objects.get(native_id=source_id)
+            destination_row = \
+                PolyResource.objects.get(native_id=destination_id)
 
             source_node = [x for x in resources.graph.nodes()
                            if x.uuid == source_row.uuid][0]

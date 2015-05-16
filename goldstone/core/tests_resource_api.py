@@ -87,7 +87,7 @@ class CoreResourceTypes(Setup):
         of which are not present in the resource graph."""
 
         # The resource graph nodes in this test. Each entry is (resource_type,
-        # cloud_id, cloud_name, attributes). We don't create edges for these
+        # native_id, native_name, attributes). We don't create edges for these
         # nodes, because the code paths being tested don't need the edges in
         # the resource graph.
         NODES = [(Host, "1234", "host 0", {"quality": "poor"}),
@@ -329,14 +329,14 @@ class CoreResourceTypes(Setup):
                     ]
 
         # Create the nodes for the test.
-        for nodetype, cloud_id, cloud_name, attributes in NODES:
+        for nodetype, native_id, native_name, attributes in NODES:
             if nodetype == Host:
-                db_node = nodetype.objects.create(cloud_id=cloud_id,
-                                                  cloud_name=cloud_name,
-                                                  fqdn=cloud_name+".com")
+                db_node = nodetype.objects.create(native_id=native_id,
+                                                  native_name=native_name,
+                                                  fqdn=native_name+".com")
             else:
-                db_node = nodetype.objects.create(cloud_id=cloud_id,
-                                                  cloud_name=cloud_name)
+                db_node = nodetype.objects.create(native_id=native_id,
+                                                  native_name=native_name)
 
             resources.graph.add_node(GraphNode(uuid=db_node.uuid,
                                                resourcetype=nodetype,
@@ -387,7 +387,7 @@ class CoreResourceTypesDetail(Setup):
         """The desired resource type isn't in the graph."""
 
         # The resource graph nodes in this test. Each entry is (resource_type,
-        # cloud_id, cloud_name, attributes). We don't create edges for these
+        # native_id, native_name, attributes). We don't create edges for these
         # nodes, because the code paths being tested don't need the edges in
         # the resource graph.
         NODES = [(Host, "1234", "host 0", {"quality": "poor"}),
@@ -396,14 +396,14 @@ class CoreResourceTypesDetail(Setup):
                  ]
 
         # Create the nodes for the test.
-        for nodetype, cloud_id, cloud_name, attributes in NODES:
+        for nodetype, native_id, native_name, attributes in NODES:
             if nodetype == Host:
-                db_node = nodetype.objects.create(cloud_id=cloud_id,
-                                                  cloud_name=cloud_name,
-                                                  fqdn=cloud_name+".com")
+                db_node = nodetype.objects.create(native_id=native_id,
+                                                  native_name=native_name,
+                                                  fqdn=native_name+".com")
             else:
-                db_node = nodetype.objects.create(cloud_id=cloud_id,
-                                                  cloud_name=cloud_name)
+                db_node = nodetype.objects.create(native_id=native_id,
+                                                  native_name=native_name)
 
             resources.graph.add_node(GraphNode(uuid=db_node.uuid,
                                                resourcetype=nodetype,
@@ -424,7 +424,7 @@ class CoreResourceTypesDetail(Setup):
         """The desired resource type is in the graph."""
 
         # The resource graph nodes in this test. Each entry is (resource_type,
-        # cloud_id, cloud_name, attributes). We don't create edges for these
+        # native_id, native_name, attributes). We don't create edges for these
         # nodes, because the code paths being tested don't need the edges in
         # the resource graph.
         NODES = [(Host, "1234", "host 0", {"quality": "poor"}),
@@ -461,25 +461,25 @@ class CoreResourceTypesDetail(Setup):
 
         # Expected test results, without the uuids.
         EXPECTED = [{u'attributes': {u'quality': u'good'},
-                     u'cloud_id': u'p2',
-                     u'cloud_name': u'project 2'},
+                     u'native_id': u'p2',
+                     u'native_name': u'project 2'},
                     {u'attributes': {u'quality': u'poor'},
-                     u'cloud_id': u'p0',
-                     u'cloud_name': u'project 0'},
+                     u'native_id': u'p0',
+                     u'native_name': u'project 0'},
                     {u'attributes': {u'quality': u'poor'},
-                     u'cloud_id': u'p1',
-                     u'cloud_name': u'project 1'},
+                     u'native_id': u'p1',
+                     u'native_name': u'project 1'},
                     ]
 
         # Create the nodes for the test.
-        for nodetype, cloud_id, cloud_name, attributes in NODES:
+        for nodetype, native_id, native_name, attributes in NODES:
             if nodetype == Host:
-                db_node = nodetype.objects.create(cloud_id=cloud_id,
-                                                  cloud_name=cloud_name,
-                                                  fqdn=cloud_name+".com")
+                db_node = nodetype.objects.create(native_id=native_id,
+                                                  native_name=native_name,
+                                                  fqdn=native_name+".com")
             else:
-                db_node = nodetype.objects.create(cloud_id=cloud_id,
-                                                  cloud_name=cloud_name)
+                db_node = nodetype.objects.create(native_id=native_id,
+                                                  native_name=native_name)
 
             resources.graph.add_node(GraphNode(uuid=db_node.uuid,
                                                resourcetype=nodetype,
@@ -535,7 +535,7 @@ class CoreResources(Setup):
         # pylint: disable=R0914
 
         # The resource graph nodes in this test. Each entry is (resource_type,
-        # cloud_id, cloud_name, attributes).
+        # native_id, native_name, attributes).
         NODES = [(Host, "1234", "host 0", {"quality": "poor"}),
                  (Host, "12345", "host 1", {"quality": "good"}),
                  (Host, "123456", "host 2", {"quality": "poor"}),
@@ -594,150 +594,150 @@ class CoreResources(Setup):
         ]
 
         # Expected node results, sans UUIDs.
-        EXPECTED_NODES = [{u'cloud_id': u'p2',
-                           u'cloud_name': u'project 2',
+        EXPECTED_NODES = [{u'native_id': u'p2',
+                           u'native_name': u'project 2',
                            u'resourcetype':
                            {u'name': u'Project',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Project'>"},
                            },
-                          {u'cloud_id': u'beef2',
-                           u'cloud_name': u'server 2',
+                          {u'native_id': u'beef2',
+                           u'native_name': u'server 2',
                            u'resourcetype':
                            {u'name': u'Server',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Server'>"},
                            },
-                          {u'cloud_id': u'beef1',
-                           u'cloud_name': u'server 1',
+                          {u'native_id': u'beef1',
+                           u'native_name': u'server 1',
                            u'resourcetype':
                            {u'name': u'Server',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Server'>"},
                            },
-                          {u'cloud_id': u'a2',
-                           u'cloud_name': u'availabilityzone 1',
+                          {u'native_id': u'a2',
+                           u'native_name': u'availabilityzone 1',
                            u'resourcetype':
                            {u'name': u'Availability Zone',
                             u'unique_id':
                             u"<class 'goldstone.core.models.AvailabilityZone'>"
                             },
                            },
-                          {u'cloud_id': u'12345',
-                           u'cloud_name': u'host 1',
+                          {u'native_id': u'12345',
+                           u'native_name': u'host 1',
                            u'resourcetype':
                            {u'name': u'Host',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Host'>"},
                            },
-                          {u'cloud_id': u'p1',
-                           u'cloud_name': u'project 1',
+                          {u'native_id': u'p1',
+                           u'native_name': u'project 1',
                            u'resourcetype':
                            {u'name': u'Project',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Project'>"},
                            },
-                          {u'cloud_id': u'1234',
-                           u'cloud_name': u'host 0',
+                          {u'native_id': u'1234',
+                           u'native_name': u'host 0',
                            u'resourcetype':
                            {u'name': u'Host',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Host'>"},
                            },
-                          {u'cloud_id': u'l123456',
-                           u'cloud_name': u'limits 2',
+                          {u'native_id': u'l123456',
+                           u'native_name': u'limits 2',
                            u'resourcetype':
                            {u'name': u'Limits',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Limits'>"},
                            },
-                          {u'cloud_id': u'dead1',
-                           u'cloud_name': u'aggregate 0',
+                          {u'native_id': u'dead1',
+                           u'native_name': u'aggregate 0',
                            u'resourcetype':
                            {u'name': u'Aggregate',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Aggregate'>"},
                            },
-                          {u'cloud_id': u'dead2',
-                           u'cloud_name': u'aggregate 1',
+                          {u'native_id': u'dead2',
+                           u'native_name': u'aggregate 1',
                            u'resourcetype':
                            {u'name': u'Aggregate',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Aggregate'>"},
                            },
-                          {u'cloud_id': u'f23456',
-                           u'cloud_name': u'hypervisor 0',
+                          {u'native_id': u'f23456',
+                           u'native_name': u'hypervisor 0',
                            u'resourcetype':
                            {u'name': u'Hypervisor',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Hypervisor'>"},
                            },
-                          {u'cloud_id': u'p0',
-                           u'cloud_name': u'project 0',
+                          {u'native_id': u'p0',
+                           u'native_name': u'project 0',
                            u'resourcetype':
                            {u'name': u'Project',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Project'>"},
                            },
-                          {u'cloud_id': u'f2345',
-                           u'cloud_name': u'hypervisor 0',
+                          {u'native_id': u'f2345',
+                           u'native_name': u'hypervisor 0',
                            u'resourcetype':
                            {u'name': u'Hypervisor',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Hypervisor'>"},
                            },
-                          {u'cloud_id': u'n12345',
-                           u'cloud_name': u'network 1',
+                          {u'native_id': u'n12345',
+                           u'native_name': u'network 1',
                            u'resourcetype':
                            {u'name': u'Network',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Network'>"},
                            },
-                          {u'cloud_id': u'a1',
-                           u'cloud_name': u'availabilityzone 0',
+                          {u'native_id': u'a1',
+                           u'native_name': u'availabilityzone 0',
                            u'resourcetype':
                            {u'name': u'Availability Zone',
                             u'unique_id':
                             u"<class 'goldstone.core.models.AvailabilityZone'>"
                             },
                            },
-                          {u'cloud_id': u'n1234',
-                           u'cloud_name': u'network 0',
+                          {u'native_id': u'n1234',
+                           u'native_name': u'network 0',
                            u'resourcetype':
                            {u'name': u'Network',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Network'>"},
                            },
-                          {u'cloud_id': u'123456',
-                           u'cloud_name': u'host 2',
+                          {u'native_id': u'123456',
+                           u'native_name': u'host 2',
                            u'resourcetype':
                            {u'name': u'Host',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Host'>"},
                            },
-                          {u'cloud_id': u'l12345',
-                           u'cloud_name': u'limits 1',
+                          {u'native_id': u'l12345',
+                           u'native_name': u'limits 1',
                            u'resourcetype':
                            {u'name': u'Limits',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Limits'>"},
                            },
-                          {u'cloud_id': u'l1234',
-                           u'cloud_name': u'limits 0',
+                          {u'native_id': u'l1234',
+                           u'native_name': u'limits 0',
                            u'resourcetype':
                            {u'name': u'Limits',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Limits'>"},
                            },
-                          {u'cloud_id': u'f234',
-                           u'cloud_name': u'hypervisor 0',
+                          {u'native_id': u'f234',
+                           u'native_name': u'hypervisor 0',
                            u'resourcetype':
                            {u'name': u'Hypervisor',
                             u'unique_id':
                             u"<class 'goldstone.core.models.Hypervisor'>"},
                            },
-                          {u'cloud_id': u'a3',
-                           u'cloud_name': u'availabiltiyzone 2',
+                          {u'native_id': u'a3',
+                           u'native_name': u'availabiltiyzone 2',
                            u'resourcetype':
                            {u'name': u'Availability Zone',
                             u'unique_id':
@@ -747,14 +747,14 @@ class CoreResources(Setup):
                           ]
 
         # Create the nodes for the test.
-        for nodetype, cloud_id, cloud_name, attributes in NODES:
+        for nodetype, native_id, native_name, attributes in NODES:
             if nodetype == Host:
-                db_node = nodetype.objects.create(cloud_id=cloud_id,
-                                                  cloud_name=cloud_name,
-                                                  fqdn=cloud_name+".com")
+                db_node = nodetype.objects.create(native_id=native_id,
+                                                  native_name=native_name,
+                                                  fqdn=native_name+".com")
             else:
-                db_node = nodetype.objects.create(cloud_id=cloud_id,
-                                                  cloud_name=cloud_name)
+                db_node = nodetype.objects.create(native_id=native_id,
+                                                  native_name=native_name)
 
             resources.graph.add_node(GraphNode(uuid=db_node.uuid,
                                                resourcetype=nodetype,
@@ -763,8 +763,9 @@ class CoreResources(Setup):
         # Create the edges for the test.
         for source_id, destination_id, attr_dict in EDGES:
             # Locate the source and destination nodes in the resource graph.
-            source_row = PolyResource.objects.get(cloud_id=source_id)
-            destination_row = PolyResource.objects.get(cloud_id=destination_id)
+            source_row = PolyResource.objects.get(native_id=source_id)
+            destination_row = \
+                PolyResource.objects.get(native_id=destination_id)
 
             source_node = [x for x in resources.graph.nodes()
                            if x.uuid == source_row.uuid][0]
@@ -832,7 +833,7 @@ class CoreResourcesDetail(Setup):
         """The desired resource isn't in the graph."""
 
         # The resource graph nodes in this test. Each entry is (resource_type,
-        # cloud_id, cloud_name, attributes). We don't create edges for these
+        # native_id, native_name, attributes). We don't create edges for these
         # nodes, because the code paths being tested don't need the edges in
         # the resource graph.
         NODES = [(Host, "1234", "host 0", {"quality": "poor"}),
@@ -841,14 +842,14 @@ class CoreResourcesDetail(Setup):
                  ]
 
         # Create the nodes for the test.
-        for nodetype, cloud_id, cloud_name, attributes in NODES:
+        for nodetype, native_id, native_name, attributes in NODES:
             if nodetype == Host:
-                db_node = nodetype.objects.create(cloud_id=cloud_id,
-                                                  cloud_name=cloud_name,
-                                                  fqdn=cloud_name+".com")
+                db_node = nodetype.objects.create(native_id=native_id,
+                                                  native_name=native_name,
+                                                  fqdn=native_name+".com")
             else:
-                db_node = nodetype.objects.create(cloud_id=cloud_id,
-                                                  cloud_name=cloud_name)
+                db_node = nodetype.objects.create(native_id=native_id,
+                                                  native_name=native_name)
 
             resources.graph.add_node(GraphNode(uuid=db_node.uuid,
                                                resourcetype=nodetype,
@@ -869,7 +870,7 @@ class CoreResourcesDetail(Setup):
         """The desired resource is in the graph."""
 
         # The resource graph nodes in this test. Each entry is (resource_type,
-        # cloud_id, cloud_name, attributes). We don't create edges for these
+        # native_id, native_name, attributes). We don't create edges for these
         # nodes, because the code paths being tested don't need the edges in
         # the resource graph.
         NODES = [(Host, "1234", "host 0", {"quality": "poor"}),
@@ -905,14 +906,14 @@ class CoreResourcesDetail(Setup):
                  ]
 
         # Create the nodes for the test.
-        for nodetype, cloud_id, cloud_name, attributes in NODES:
+        for nodetype, native_id, native_name, attributes in NODES:
             if nodetype == Host:
-                db_node = nodetype.objects.create(cloud_id=cloud_id,
-                                                  cloud_name=cloud_name,
-                                                  fqdn=cloud_name+".com")
+                db_node = nodetype.objects.create(native_id=native_id,
+                                                  native_name=native_name,
+                                                  fqdn=native_name+".com")
             else:
-                db_node = nodetype.objects.create(cloud_id=cloud_id,
-                                                  cloud_name=cloud_name)
+                db_node = nodetype.objects.create(native_id=native_id,
+                                                  native_name=native_name)
 
             resources.graph.add_node(GraphNode(uuid=db_node.uuid,
                                                resourcetype=nodetype,
@@ -938,8 +939,8 @@ class CoreResourcesDetail(Setup):
 
         row = PolyResource.objects.get(uuid=uuid)     # Should always succeed.
 
-        expected = {"cloud_id": row.cloud_id,
-                    "cloud_name": row.cloud_name,
+        expected = {"native_id": row.native_id,
+                    "native_name": row.native_name,
                     "attributes": node.attributes}
 
         # Now we can do the test.

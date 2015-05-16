@@ -92,11 +92,11 @@ class PolyResource(PolymorphicModel):
     # This object's Goldstone UUID.
     uuid = UUIDField(version=1, auto=True, primary_key=True)
 
-    # This object's OpenStack UUID. Due to OpenStack's vagaries, this may be
+    # This object's OpenStack id. Due to OpenStack's vagaries, this may be
     # missing, or not unique.
-    cloud_id = CharField(max_length=128, blank=True)
+    native_id = CharField(max_length=128, blank=True)
 
-    cloud_name = CharField(max_length=64)
+    native_name = CharField(max_length=64)
 
     created = CreationDateTimeField(editable=False,
                                     blank=True,
@@ -111,7 +111,7 @@ class PolyResource(PolymorphicModel):
 
         """
 
-        query = Q(QueryString(query=self.cloud_name))
+        query = Q(QueryString(query=self.native_name))
         return LogData.search().query(query)
 
     def events(self):
@@ -123,7 +123,7 @@ class PolyResource(PolymorphicModel):
         """
 
         # this protects our hostname from being tokenized
-        escaped_name = r'"' + self.cloud_name + r'"'
+        escaped_name = r'"' + self.native_name + r'"'
 
         name_query = Q(QueryString(query=escaped_name, default_field="_all"))
         return LogEvent.search().query(name_query)
