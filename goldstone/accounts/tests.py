@@ -206,7 +206,7 @@ class Login(Setup):
 
         """
 
-        # Create user 1 and user 2. User 2 is just user 1 the the username and
+        # Create user 1 and user 2. User 2 is just user 1 with the username and
         # password swapped.
         create_and_login()
         get_user_model().objects.create_user(TEST_USER[2],

@@ -22,7 +22,7 @@ from rest_framework import mixins
 from rest_framework.views import exception_handler
 from rest_framework.viewsets import GenericViewSet
 from goldstone.drfes.utils import es_custom_exception_handler
-from .models import resources, resource_types
+from .resources import resources, resource_types
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +45,8 @@ class JsonReadOnlySerializer(serializers.Serializer):
         """Return a list instead of a dict.
 
         DRF's serializers return dicts. To avoid a lot of code surgery, we want
-        this class's serialization to return a list. (Yes, we could collapse
-        this code, but this structure mimics the overridden functions.)
+        this class's serialization to return a list. (We could collapse this
+        code, but this structure mimics the overridden functions.)
 
         """
 
@@ -202,7 +202,7 @@ def process_resource_type(nodetype):
     :type nodetype: PolyResource subclass
 
     """
-    from goldstone.core.models import GraphNode
+    from goldstone.core.resources import GraphNode
 
     # Get the cloud instances that are of the "nodetype" type.
     actual = nodetype.clouddata()
@@ -221,10 +221,9 @@ def process_resource_type(nodetype):
             resources.graph.remove_node(entry)
             nodetype.objects.get(uuid=entry.uuid).delete()
 
-    # Now, for every node of this type in the OpenStack cloud service, add it
-    # to the Resource graph if it's not present, or update its information if
-    # it is. Since we may have just deleted some nodes, refresh the existing
-    # node list.
+    # Now, for every node of this type in the cloud, add it to the Resource
+    # graph if it's not present, or update its information if it is. Since we
+    # may have just deleted some nodes, refresh the existing node list.
 
     # N.B. We could reuse resource_nodes as-is, but this is a little cleaner.
     resource_nodes = resources.nodes_of_type(nodetype)
@@ -241,8 +240,8 @@ def process_resource_type(nodetype):
                                     source_value)
 
             if node:
-                # This resource node corresponds to this cloud service. Update
-                # its information in the graph and database.
+                # This resource node corresponds to this service. Update its
+                # information in the graph and database.
                 node.attributes = entry
                 db_node = nodetype.objects.get(uuid=node.uuid)
                 db_node.attributes = entry
@@ -250,8 +249,9 @@ def process_resource_type(nodetype):
             else:
                 # This is a new node. Add it to the Resource graph and database
                 # table.
-                db_node = nodetype.objects.create(cloud_id=entry.get("id"),
-                                                  name=entry.get("name", ''))
+                db_node = \
+                    nodetype.objects.create(cloud_id=entry.get("id"),
+                                            cloud_name=entry.get("name", ''))
                 resources.graph.add_node(GraphNode(uuid=db_node.uuid,
                                                    resourcetype=nodetype,
                                                    attributes=entry))
@@ -265,3 +265,90 @@ def process_resource_type(nodetype):
         resources.graph.remove_edges_from(resources.graph.edges(node))
 
         _add_edges(node)
+
+
+########################
+# Query string parsing #
+########################
+
+def parse(query_string):
+    """Return a parsed query string.
+
+    :param query_string: A query string, as from request.META["QUERY_STRING"].
+                         Special characters are ^ (match starting at the data's
+                         beginning) and " OR " (logical OR).
+    :type query_string: str
+    :return: The regexs to use on the query string's variables.
+    :rtype: dict of str: str. A key will be a query string's variable. A value
+            will be a regex to use on the data referenced by the key.
+
+    """
+    from urlparse import parse_qsl
+
+    # Dissect the query string into separate variable-value entries. Django
+    # includes the leading '?' character, so we strip it off if present.
+    filters_only = \
+        query_string[1:] if query_string[:1] == '?' else query_string
+    dissect = parse_qsl(filters_only)
+
+    result = {}
+
+    # For each variable - value entry...
+    for variable, value in dissect:
+        # Sense this value's special characters
+        caret = '^' if value[0] == '^' else ''
+        if caret:
+            value = value[1:]       # We'll remember we had a ^, so toss it.
+        terms = value.split(" OR ")
+
+        # Build this variable's regex here.
+        regex = ''
+
+        # For every term that was separated by an OR...
+        for i, term in enumerate(terms):
+            regex += "%s%s" % (caret, term)
+
+            # Append a or if there's another term to build.
+            if i < len(terms) - 1:
+                regex += '|'
+
+        # Here's this variable's matching regex.
+        result[variable] = regex
+
+    return result
+
+
+def query_filter_map(key):
+    """Return information about how to filter the content of a response.
+
+    This is used to control the filtering of nodes in the response from a
+    /core/resources/xxxx/ API endpoint.
+
+    It will grow in sophistication as is necessary.
+
+    TODO: Should this be made part of a DRF serializer?
+
+    :param key: The key the user wants to filter on.
+    :type key: str
+    :return: Information that tells the caller how to filter on the key
+    :rtype: (callable, str). The callable is a two-parameter function that is
+            called with (node_data, filter_value). It returns True if the node
+            should be included in the response content. The str is "db" or
+            "node", and indicates whether node_data is a node's table row or
+            its resource graph node.
+
+    """
+    import re
+
+    # Each entry defines a function return value.
+    MAPPING = {"cloud_name": (lambda n, f: bool(re.search(f, n.cloud_name)),
+                              "db"),
+               "cloud_id": (lambda n, f: bool(re.search(f, n.cloud_id)),
+                            "db"),
+               "integration_name":
+               (lambda n, f:
+                bool(re.search(f, n.display_attributes()["integration_name"])),
+                "db"),
+               }
+
+    return MAPPING.get(key)
