@@ -282,9 +282,9 @@ SWAGGER_SETTINGS = {
              " operating OpenStack clouds.",
              "contact": "info@solinea.com",
              "license":
-             "Creative Commons Attribution-ShareAlike 4.0 International",
+             "Apache License, Version 2.0",
              "licenseUrl":
-             "License](http://creativecommons.org/licenses/by-sa/4.0",
+             "http://www.apache.org/licenses/LICENSE-2.0",
              },
 }
 

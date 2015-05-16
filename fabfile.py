@@ -272,3 +272,19 @@ def clean(verbose=False):
             os.remove(filepath)
 
     os.path.walk('.', process_files, None)
+
+
+@task
+def changelog(token):
+    """Genereate a new CHANGELOG.md file.
+
+    This overwrites the existing CHANGELOG.md.
+
+    :param token: A Github personal access token, generated using
+                  https://github.com/settings/tokens
+    :type token: str
+
+    """
+    from subprocess import call
+
+    call(["github_changelog_generator", "-t", "%s" % token])

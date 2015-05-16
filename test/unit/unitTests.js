@@ -50,9 +50,6 @@ describe('Testing The Backbone Objects', function() {
             expect(HypervisorVmCpuCollection).to.be.a('function');
             expect(NodeAvailCollection).to.be.a('function');
             expect(ServiceStatusCollection).to.be.a('function');
-            expect(UtilizationCpuCollection).to.be.a('function');
-            expect(UtilizationMemCollection).to.be.a('function');
-            expect(UtilizationNetCollection).to.be.a('function');
         });
     });
     describe('the View objects', function() {
