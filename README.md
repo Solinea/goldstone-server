@@ -29,7 +29,7 @@ The client provided by this project is only one possible client. Anyone can crea
 The Goldstone API is interactively documented via [swagger-ui](https://github.com/swagger-api/swagger-ui). To access the API documentation:
 
 1. Install the Goldstone development environment.
-2. Using your favorite browser, open the file `localhost:8000/docs`
+2. Using your favorite browser, open the file `http://localhost:8000/docs/`
 
 ## Support and discussion
 
@@ -40,5 +40,3 @@ If you have a specific feature request or bug report, please submit it as an iss
 If you're working on the codebase and have a coding question, or a question about Goldstone internals, post your question to the **goldstone-dev** Google Group.
 
 All pull requests should be submitted to the master branch. They should include unit tests where feasible, and additional or updated documentation if appropriate.
-
-[end of file]
