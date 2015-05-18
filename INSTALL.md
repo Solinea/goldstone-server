@@ -13,6 +13,8 @@ To view and use Goldstone, you'll need a recent version of [Firefox](https://www
 
 ## Install RPM and run the configuration script (as root)
 
+Download the [lastest release](https://github.com/Solinea/goldstone-server/releases) and execute with the following steps:
+
 ```bash
 root# yum update ; reboot
 root# yum localinstall -y goldstone-server-{version}.rpm
