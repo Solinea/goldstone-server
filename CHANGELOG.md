@@ -2,11 +2,29 @@
 
 ## [Unreleased](https://github.com/Solinea/goldstone-server/tree/HEAD)
 
-[Full Changelog](https://github.com/Solinea/goldstone-server/compare/0.4.9...HEAD)
+[Full Changelog](https://github.com/Solinea/goldstone-server/compare/0.5.0...HEAD)
 
 **Merged pull requests:**
 
+- added freenode channel \#goldstone [\#30](https://github.com/Solinea/goldstone-server/pull/30) ([jxstanford](https://github.com/jxstanford))
+
+## [0.5.0](https://github.com/Solinea/goldstone-server/tree/0.5.0) (2015-05-17)
+
+[Full Changelog](https://github.com/Solinea/goldstone-server/compare/0.4.9...0.5.0)
+
+**Merged pull requests:**
+
+- issue\_31: Fix API docs URL in README.md. [\#32](https://github.com/Solinea/goldstone-server/pull/32) ([stugots](https://github.com/stugots))
+
+- Create freenode channel [\#29](https://github.com/Solinea/goldstone-server/pull/29) ([jxstanford](https://github.com/jxstanford))
+
+- GOLD-776 convert all raw metric calls in client to summarized metric calls [\#27](https://github.com/Solinea/goldstone-server/pull/27) ([lexjacobs](https://github.com/lexjacobs))
+
+- Gold 805: Create a CHANGELOG.md file, and set up for automatic generation [\#26](https://github.com/Solinea/goldstone-server/pull/26) ([stugots](https://github.com/stugots))
+
 - GOLD-803: Remove references to Creative Commons licensing. [\#25](https://github.com/Solinea/goldstone-server/pull/25) ([stugots](https://github.com/stugots))
+
+- Gold 786: Add API endpoints for the resource type and resource graphs [\#24](https://github.com/Solinea/goldstone-server/pull/24) ([stugots](https://github.com/stugots))
 
 - Remove dummy viz' from nodeReport page; populate metric/resource lists via $.get; css mods [\#23](https://github.com/Solinea/goldstone-server/pull/23) ([lexjacobs](https://github.com/lexjacobs))
 
