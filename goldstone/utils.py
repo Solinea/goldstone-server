@@ -44,15 +44,7 @@ class GoldstoneAuthError(GoldstoneBaseException):
     pass
 
 
-class NoDailyIndex(GoldstoneBaseException):
-    pass
-
-
 class NoResourceFound(GoldstoneBaseException):
-    pass
-
-
-class UnexpectedSearchResponse(GoldstoneBaseException):
     pass
 
 
