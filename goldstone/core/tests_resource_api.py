@@ -197,11 +197,6 @@ class CoreResourceTypes(Setup):
                      u'present': False,
                      u'unique_id':
                      u"<class 'goldstone.core.models.VolumeType'>"},
-                    {u'display_attributes': {u'name': u'Flavor ExtraSpec',
-                                             u'integration_name': u'Nova'},
-                     u'present': False,
-                     u'unique_id':
-                     u"<class 'goldstone.core.models.FlavorExtraSpec'>"},
                     {u'display_attributes': {u'name': u'Network',
                                              u'integration_name': u'Neutron'},
                      u'present': True,

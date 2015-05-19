@@ -693,28 +693,6 @@ class AvailabilityZone(PolyResource):
             ]
 
 
-class FlavorExtraSpec(PolyResource):
-    """An OpenStack Flavor ExtraSpec."""
-
-    @staticmethod
-    def clouddata():
-        """See the parent class' method's docstring."""
-
-        nova_client = get_nova_client()["client"]
-        nova_client.client.authenticate()
-
-        return [x.get_keys() for x in nova_client.flavors.list()]
-
-    @classmethod
-    def display_attributes(cls):
-        """Return a dict of cloud information about this type, suitable for
-        client display."""
-
-        return {"integration_name": "Nova",
-                "name": "Flavor ExtraSpec",
-                }
-
-
 class Aggregate(PolyResource):
     """An OpenStack Aggregate."""
 
@@ -763,14 +741,6 @@ class Flavor(PolyResource):
         """Return the edges leaving this type."""
 
         return [
-            {TO: FlavorExtraSpec,
-             EDGE_ATTRIBUTES:
-             {TYPE: OWNS,
-              MIN: 0,
-              MAX: sys.maxint,
-              MATCHING_FN:
-              lambda f, t:
-              f.get("id") and f.get("id") == t.get("id")}},
             {TO: Server,
              EDGE_ATTRIBUTES:
              {TYPE: DEFINES,

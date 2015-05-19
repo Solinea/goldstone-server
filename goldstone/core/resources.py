@@ -15,7 +15,7 @@
 from django.conf import settings
 import networkx
 from .models import User, Domain, Group, Token, Credential, Role, Region, \
-    Endpoint, Service, Project, AvailabilityZone, FlavorExtraSpec, Aggregate, \
+    Endpoint, Service, Project, AvailabilityZone, Aggregate, \
     Flavor, Keypair, Host, Hypervisor, Cloudpipe, ServerGroup, Server, \
     Interface, NovaLimits, Image, QuotaSet, QOSSpec, Snapshot, VolumeType, \
     Volume, Limits, MeteringLabelRule, MeteringLabel, NeutronQuota, \
@@ -26,7 +26,7 @@ from .models import User, Domain, Group, Token, Credential, Role, Region, \
 # These are the types of resources in an OpenStack cloud.
 RESOURCE_TYPES = [User, Domain, Group, Token, Credential, Role, Region,
                   Endpoint, Service, Project, AvailabilityZone,
-                  FlavorExtraSpec, Aggregate, Flavor, Keypair, Host,
+                  Aggregate, Flavor, Keypair, Host,
                   Hypervisor, Cloudpipe, ServerGroup, Server, Interface,
                   NovaLimits, Image, QuotaSet, QOSSpec, Snapshot, VolumeType,
                   Volume, Limits, MeteringLabelRule, MeteringLabel,

@@ -18,7 +18,7 @@ from functools import partial
 
 from .models import Image, ServerGroup, NovaLimits, Host, Aggregate, \
     Hypervisor, Port, Cloudpipe, Network, Project, Server, AvailabilityZone, \
-    Flavor, FlavorExtraSpec, Interface, Keypair
+    Flavor, Interface, Keypair
 from .resources import resource_types
 
 # Using the latest version of django-polymorphic, a
@@ -282,42 +282,6 @@ class ResourceTypesTests(SimpleTestCase):
         """Test the Cloudpipe entry."""
 
         pass
-
-    @staticmethod
-    def test_flavor_flavorextraspec():
-        """Test the Flavor - FlavorExtraSpec entry."""
-
-        # Test data.
-        FLAVOR = {u'OS-FLV-DISABLED:disabled': False,
-                  u'OS-FLV-EXT-DATA:ephemeral': 0,
-                  u'disk': 80,
-                  u'id': u'4',
-                  u'links': [{u'href':
-                              u'http://10.11.12.13:8774/v2/7077765ed0df43b1b'
-                              u'23d43c9c290daf9/flavors/4',
-                              u'rel': u'self'},
-                             {u'href': u'http://10.11.12.13:8774/7077765ed0'
-                              u'df43b1b23d43c9c290daf9/flavors/4',
-                              u'rel': u'bookmark'}],
-                  u'name': u'm1.large',
-                  u'os-flavor-access:is_public': True,
-                  u'ram': 8192,
-                  u'rxtx_factor': 1.0,
-                  u'swap': u'',
-                  u'vcpus': 4}
-
-        FLAVOR_EXTRA_SPEC = {u'id': u'4',
-                             u'we are': u'making this up',
-                             }
-
-        do_test(Flavor,
-                FLAVOR,
-                "4",
-                partial(dictassign, FLAVOR, "id"),
-                FlavorExtraSpec,
-                FLAVOR_EXTRA_SPEC,
-                '4',
-                partial(dictassign, FLAVOR_EXTRA_SPEC, "id"))
 
     @staticmethod
     def test_flavor_server():
