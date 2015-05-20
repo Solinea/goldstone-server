@@ -1,12 +1,16 @@
 # Change Log
 
-## [Unreleased](https://github.com/Solinea/goldstone-server/tree/HEAD)
+## [0.5.1](https://github.com/Solinea/goldstone-server/tree/0.5.1) (2015-05-20)
 
-[Full Changelog](https://github.com/Solinea/goldstone-server/compare/0.5.0...HEAD)
+[Full Changelog](https://github.com/Solinea/goldstone-server/compare/0.5.0...0.5.1)
+
+**Closed issues:**
+
+- API docs instructions in README.md are wrong [\#31](https://github.com/Solinea/goldstone-server/issues/31)
 
 **Merged pull requests:**
 
-- added freenode channel \#goldstone [\#30](https://github.com/Solinea/goldstone-server/pull/30) ([jxstanford](https://github.com/jxstanford))
+- issue \#33: uninstaller cwd fix and removal of reconcile\_hosts from goldstone\_init [\#34](https://github.com/Solinea/goldstone-server/pull/34) ([jxstanford](https://github.com/jxstanford))
 
 ## [0.5.0](https://github.com/Solinea/goldstone-server/tree/0.5.0) (2015-05-17)
 
@@ -15,6 +19,8 @@
 **Merged pull requests:**
 
 - issue\_31: Fix API docs URL in README.md. [\#32](https://github.com/Solinea/goldstone-server/pull/32) ([stugots](https://github.com/stugots))
+
+- added freenode channel \#goldstone [\#30](https://github.com/Solinea/goldstone-server/pull/30) ([jxstanford](https://github.com/jxstanford))
 
 - Create freenode channel [\#29](https://github.com/Solinea/goldstone-server/pull/29) ([jxstanford](https://github.com/jxstanford))
 
