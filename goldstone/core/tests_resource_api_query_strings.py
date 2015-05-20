@@ -69,25 +69,18 @@ class CoreResources(Setup):
         mock_r_graph = Resources()
         mock_r_graph.graph.clear()
 
-        # Test one filter.
+        # Test one filter, and two filters.
         with patch("goldstone.core.views.resources", mock_r_graph):
-            response = self.client.get(
-                RES_URL_FILTER % "native_id=fred",
-                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+            for filters in ["native_id=fred",
+                            "integration_name=%5enova&native_id=fred"]:
+                response = self.client.get(
+                    RES_URL_FILTER % filters,
+                    HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
-        self.assertContains(response,
-                            '{"nodes":[],"edges":[]}',
-                            status_code=HTTP_200_OK)
-
-        # Test two filters.
-        with patch("goldstone.core.views.resources", mock_r_graph):
-            response = self.client.get(
-                RES_URL_FILTER % "integration_name=%5enova&native_id=fred",
-                HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
-
-        self.assertContains(response,
-                            '{"nodes":[],"edges":[]}',
-                            status_code=HTTP_200_OK)
+                # pylint: disable=E1101
+                self.assertEqual(response.status_code, HTTP_200_OK)
+                self.assertEqual(json.loads(response.content),
+                                 {"nodes": [], "edges": []})
 
     def test_mix(self):
         """The resource graph is populated with a mixture of nodes."""
