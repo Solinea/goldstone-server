@@ -182,7 +182,8 @@ def reconcile_hosts():
 
     hosts = get_nova_host_list()
     incoming = frozenset([host.host_name for host in hosts])
-    incoming = frozenset([parse_host_name(name) for name in incoming])
+    incoming = frozenset([parse_host_name(host_name)
+                          for host_name in incoming])
     incoming_names = frozenset([item[0] for item in incoming])
     existing_names = frozenset([host.name for host in Host.objects.all()])
 
@@ -191,14 +192,14 @@ def reconcile_hosts():
     missing = existing_names.difference(incoming_names)
 
     # delete missing hosts from our model
-    for name in missing:
-        Host.objects.filter(name=name).delete()
+    for host_name in missing:
+        Host.objects.filter(native_name=host_name).delete()
 
     # create new hosts in our model
-    for name in new:
+    for host_name in new:
         Host.objects.create(
-            name=name,
-            fqdn=[item[1] for item in incoming if item[0] == name][0])
+            native_name=host_name,
+            fqdn=[item[1] for item in incoming if item[0] == host_name][0])
 
 
 def get_nova_host_list():

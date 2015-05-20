@@ -155,16 +155,6 @@ def _collect_static(proj_settings, install_dir):
                            install_dir=install_dir)
 
 
-def _reconcile_hosts(proj_settings, install_dir):
-    """Build the initial entries in the Hosts table from agg of loggers."""
-
-    with _django_env(proj_settings, install_dir):
-        from goldstone.nova.tasks import reconcile_hosts
-
-        print(green("Collecting information about Openstack resources."))
-        reconcile_hosts()
-
-
 @task
 def install_repos():
     """Sets up yum repos used by goldstone installer."""
@@ -629,7 +619,6 @@ def goldstone_init(django_admin_user='admin',    # pylint: disable=R0913
                settings)
 
     _collect_static(settings, install_dir)
-    _reconcile_hosts(settings, install_dir)
     _configure_services()
     load_es_templates(proj_settings=settings)
 
@@ -729,9 +718,6 @@ def uninstall(dropdb=True, dropuser=True):
             local('systemctl stop celerybeat.service')
             local('systemctl disable celerybeat.service')
 
-    with fab_settings(warn_only=True):
-        local('yum remove -y goldstone-server')
-
     if dropdb:
         with fab_settings(warn_only=True):
             local('su - postgres -c \'dropdb goldstone\'')
@@ -741,3 +727,6 @@ def uninstall(dropdb=True, dropuser=True):
 
             local('systemctl stop postgresql.service')
             local('systemctl disable postgresql.service')
+
+    with fab_settings(warn_only=True):
+        local('yum remove -y goldstone-server')
