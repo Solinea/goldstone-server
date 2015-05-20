@@ -78,9 +78,10 @@ class CoreResourceTypes(Setup):
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         # Test the result.
-        self.assertContains(response,
-                            '{"nodes":[],"edges":[]}',
-                            status_code=HTTP_200_OK)
+        # pylint: disable=E1101
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(json.loads(response.content),
+                         {"nodes": [], "edges": []})
 
     def test_mix(self):
         """The resource type graph is populated with a mixture of types, some
@@ -520,9 +521,10 @@ class CoreResources(Setup):
                 HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
         # Test the result.
-        self.assertContains(response,
-                            '{"nodes":[],"edges":[]}',
-                            status_code=HTTP_200_OK)
+        # pylint: disable=E1101
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(json.loads(response.content),
+                         {"nodes": [], "edges": []})
 
     def test_mix(self):
         """The resource graph is populated with a mixture of nodes."""
