@@ -40,15 +40,17 @@ class ApiPerfData(DailyIndexDocType):
     INDEX_PREFIX = 'goldstone-'
     SORT = '-@timestamp'
 
-    class Meta:
+    class Meta:       # pylint: disable=C1001,W0232
         doc_type = 'api_stats'
 
     @classmethod
     def stats_agg(cls):
+
         return A('extended_stats', field='response_time')
 
     @classmethod
     def range_agg(cls):
+
         return A('range', field='response_status', keyed=True,
                  ranges=[
                      {"from": 200, "to": 299},

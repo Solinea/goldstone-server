@@ -147,8 +147,11 @@ class ResourceTypes(Graph):
 
         """
 
-        result = [x for x in RESOURCE_TYPES if x.unique_id() == unique_id]
-        return result[0] if result else None
+        for entry in RESOURCE_TYPES:
+            if entry.unique_class_id() == unique_id:
+                return entry
+
+        return None
 
     @property
     def edgetypes(self):       # pylint: disable=R0201

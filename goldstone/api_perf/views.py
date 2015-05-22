@@ -26,7 +26,7 @@ class ApiPerfAggView(DateHistogramAggView):
     RANGE_AGG_NAME = 'response_status'
     STATS_AGG_NAME = 'stats'
 
-    class Meta:
+    class Meta:      # pylint: disable=C1001,W0232
         """Meta."""
         model = ApiPerfData
 

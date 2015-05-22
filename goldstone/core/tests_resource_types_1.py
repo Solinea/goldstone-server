@@ -16,6 +16,7 @@ from django.conf import settings
 from django.test import SimpleTestCase
 from functools import partial
 
+from goldstone.tenants.models import Tenant, Cloud
 from .models import Image, ServerGroup, NovaLimits, Host, Aggregate, \
     Hypervisor, Port, Cloudpipe, Network, Project, Server, AvailabilityZone, \
     Flavor, Interface, Keypair
@@ -95,6 +96,20 @@ def do_test(type_from, data_from, identity_from, match_from_key_fn,
 class ResourceTypesTests(SimpleTestCase):
     """Test each entry in ResourceTypes.EDGES, in particular the matching_fn
     functions."""
+
+    def setUp(self):
+        """Run before each test."""
+
+        Tenant.objects.all().delete()
+
+        tenant = Tenant.objects.create(name="Bebe",
+                                       owner="Rebozo",
+                                       owner_contact="Siberia")
+        Cloud.objects.create(tenant_name="test1",
+                             username="test1 user",
+                             password="password",
+                             auth_url="http://1.1.1.1:5000/",
+                             tenant=tenant)
 
     @staticmethod
     def test_image():
@@ -229,14 +244,15 @@ class ResourceTypesTests(SimpleTestCase):
                      u'name': u'test-aggregate1',
                      u'updated_at': None}
 
-        do_test(AvailabilityZone,
-                AVAILABILITY_ZONE,
-                "internal",
-                partial(dictassign, AVAILABILITY_ZONE, "zoneName"),
-                Aggregate,
-                AGGREGATE,
-                1,
-                partial(dictassign, AGGREGATE, "availability_zone"))
+        do_test(
+            AvailabilityZone,
+            AVAILABILITY_ZONE,
+            '8ccf0ae91ac1058336d10c4248950d4d1de44c0f3c7eec323b28b3e81a9dcb45',
+            partial(dictassign, AVAILABILITY_ZONE, "zoneName"),
+            Aggregate,
+            AGGREGATE,
+            'f801b45072a317f1170ca415d41d94c58fb58637f44fca4e23b1fe3dbbfa5ef1',
+            partial(dictassign, AGGREGATE, "availability_zone"))
 
     @staticmethod
     def test_availability_zone_host():
@@ -268,14 +284,15 @@ class ResourceTypesTests(SimpleTestCase):
 
         HOST = {u'host_name': u'ctrl-01', u'zone': u'internal'}
 
-        do_test(AvailabilityZone,
-                AVAILABILITY_ZONE,
-                "internal",
-                partial(dictassign, AVAILABILITY_ZONE, "zoneName"),
-                Host,
-                HOST,
-                'ctrl-01',
-                partial(dictassign, HOST, "zone"))
+        do_test(
+            AvailabilityZone,
+            AVAILABILITY_ZONE,
+            '8ccf0ae91ac1058336d10c4248950d4d1de44c0f3c7eec323b28b3e81a9dcb45',
+            partial(dictassign, AVAILABILITY_ZONE, "zoneName"),
+            Host,
+            HOST,
+            'bd07a59dc135330d0a3e91ddacdacf51d3c2f174605614de5373388ac390876f',
+            partial(dictassign, HOST, "zone"))
 
     @staticmethod
     def test_cloudpipe():
@@ -373,14 +390,15 @@ class ResourceTypesTests(SimpleTestCase):
 
             SERVER["flavor"]["id"] = value
 
-        do_test(Flavor,
-                FLAVOR,
-                "4",
-                partial(dictassign, FLAVOR, "id"),
-                Server,
-                SERVER,
-                'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-                serverassign)
+        do_test(
+            Flavor,
+            FLAVOR,
+            'f844d77ef57dd2d494a60761a17edaecfc52bf7451534c67f72c03e62f364554',
+            partial(dictassign, FLAVOR, "id"),
+            Server,
+            SERVER,
+            'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+            serverassign)
 
     @staticmethod
     def test_host_aggregate():
@@ -404,14 +422,15 @@ class ResourceTypesTests(SimpleTestCase):
 
             AGGREGATE["hosts"] = ["bob", "marley", value]
 
-        do_test(Host,
-                HOST,
-                'ctrl-01',
-                partial(dictassign, HOST, "host_name"),
-                Aggregate,
-                AGGREGATE,
-                1,
-                aggregateassign)
+        do_test(
+            Host,
+            HOST,
+            'bd07a59dc135330d0a3e91ddacdacf51d3c2f174605614de5373388ac390876f',
+            partial(dictassign, HOST, "host_name"),
+            Aggregate,
+            AGGREGATE,
+            'f801b45072a317f1170ca415d41d94c58fb58637f44fca4e23b1fe3dbbfa5ef1',
+            aggregateassign)
 
     @staticmethod
     def test_host_hypervisor():
@@ -448,14 +467,15 @@ class ResourceTypesTests(SimpleTestCase):
                       u'vcpus': 8,
                       u'vcpus_used': 4}
 
-        do_test(Host,
-                HOST,
-                "ctrl-01",
-                partial(dictassign, HOST, "host_name"),
-                Hypervisor,
-                HYPERVISOR,
-                1,
-                partial(dictassign, HYPERVISOR, "hypervisor_hostname"))
+        do_test(
+            Host,
+            HOST,
+            'bd07a59dc135330d0a3e91ddacdacf51d3c2f174605614de5373388ac390876f',
+            partial(dictassign, HOST, "host_name"),
+            Hypervisor,
+            HYPERVISOR,
+            '64614e70f9ecfe2b37ad1abc1d597e670a5fcb9ae341419b44063725fc164733',
+            partial(dictassign, HYPERVISOR, "hypervisor_hostname"))
 
     @staticmethod
     def test_hypervisor_server():
@@ -552,16 +572,17 @@ class ResourceTypesTests(SimpleTestCase):
                   u'updated': u'2015-03-04T01:27:22Z',
                   u'user_id': u'2bb2f66f20cb47e9be48a91941e3353b'}
 
-        do_test(Hypervisor,
-                HYPERVISOR,
-                1,
-                partial(dictassign, HYPERVISOR, "id"),
-                Server,
-                SERVER,
-                'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
-                partial(dictassign,
-                        SERVER,
-                        "OS-EXT-SRV-ATTR:hypervisor_hostname"))
+        do_test(
+            Hypervisor,
+            HYPERVISOR,
+            '64614e70f9ecfe2b37ad1abc1d597e670a5fcb9ae341419b44063725fc164733',
+            partial(dictassign, HYPERVISOR, "id"),
+            Server,
+            SERVER,
+            'ee662ff5-3de6-46cb-8b85-4eb4317beb7c',
+            partial(dictassign,
+                    SERVER,
+                    "OS-EXT-SRV-ATTR:hypervisor_hostname"))
 
     @staticmethod
     def test_interface_port():

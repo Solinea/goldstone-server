@@ -22,7 +22,7 @@ from goldstone.glogging.models import LogData, LogEvent
 
 # Get_glance_client is defined here for easy unit test mocking.
 from goldstone.utils import utc_now, get_glance_client, get_nova_client, \
-    get_cinder_client
+    get_cinder_client, get_cloud
 
 from elasticsearch_dsl.query import Q, QueryString
 import sys
@@ -51,6 +51,24 @@ SUBSCRIBED_TO = settings.R_EDGE.SUBSCRIBED_TO
 USES = settings.R_EDGE.USES
 
 
+def _hash(*args):
+    """Return a unique hash of the arguments.
+
+    :param args: Values for generating the unique hash. We convert each one to
+                 a string before adding it to the hash
+    :type args: tuple
+    :rtype: str
+
+    """
+    from hashlib import sha256
+
+    result = sha256()
+    for arg in args:
+        result.update(str(arg))
+
+    return result.hexdigest()
+
+
 #
 # Goldstone Agent Metrics and Reports
 #
@@ -60,7 +78,7 @@ class MetricData(DailyIndexDocType):
 
     INDEX_PREFIX = 'goldstone_metrics-'
 
-    class Meta:
+    class Meta:     # pylint: disable=C1001,W0232
         doc_type = 'core_metric'
 
     @classmethod
@@ -78,7 +96,7 @@ class ReportData(DailyIndexDocType):
 
     INDEX_PREFIX = 'goldstone_reports-'
 
-    class Meta:
+    class Meta:       # pylint: disable=C1001,W0232
         doc_type = 'core_report'
 
 
@@ -92,9 +110,10 @@ class PolyResource(PolymorphicModel):
     # This object's Goldstone UUID.
     uuid = UUIDField(version=1, auto=True, primary_key=True)
 
-    # This object's OpenStack id. Due to OpenStack's vagaries, this may be
-    # missing, or not unique.
-    native_id = CharField(max_length=128, blank=True, null=True)
+    # This object's unique id within its OpenStack cloud. This may be an
+    # OpenStack-generated string, or a value we generate from the object's
+    # attributes.
+    native_id = CharField(max_length=128)
 
     native_name = CharField(max_length=64)
 
@@ -129,7 +148,7 @@ class PolyResource(PolymorphicModel):
         return LogEvent.search().query(name_query)
 
     @classmethod
-    def unique_id(cls):
+    def unique_class_id(cls):
         """Return this class' unique id."""
 
         return str(cls)
@@ -140,27 +159,27 @@ class PolyResource(PolymorphicModel):
 
         return []
 
-    @staticmethod
-    def identity(thing):
+    @classmethod
+    def identity(cls, thing):
         """Return thing's uniquely identifying value.
 
         In order to match a cloud instance with a Resource Graph node, we need
         to examine the values that uniquely identify them, for a given
-        PolyResource subclass.
+        PolyResource subclass. When an cloud instance has a unique identifying
+        value defined by OpenStack, we will use it. Otherwise, we will generate
+        a unique hash from other values.
 
         :param thing: A representation of a cloud instance, or a resource graph
                       node.
         :type thing: Depending upon the PolyResource subclass, this is a dict
                      or a user-defined object. Usually, it'll be the type of
                      the entries in the value retured by clouddata().
-        :return: The value of whatever uniquely identifies an instance of this
-                 type.
-        :rtype: Depends on the PolyResource subclass, anything, but probably
-                str
+        :return: The value of whatever uniquely identifies this type's instance
+        :rtype: str
 
         """
 
-        return thing.get("id")
+        return thing.get("id", '')
 
 
 #
@@ -176,8 +195,8 @@ class User(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -220,8 +239,8 @@ class Domain(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -257,8 +276,8 @@ class Group(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -282,8 +301,8 @@ class Token(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -317,8 +336,8 @@ class Credential(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -350,8 +369,8 @@ class Role(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -393,8 +412,8 @@ class Region(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -428,8 +447,8 @@ class Endpoint(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -461,8 +480,8 @@ class Service(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -484,8 +503,8 @@ class Project(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -653,11 +672,11 @@ class AvailabilityZone(PolyResource):
 
         return [x.to_dict() for x in nova_client.availability_zones.list()]
 
-    @staticmethod
-    def identity(thing):
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
-        return thing.get("zoneName")
+        return _hash(get_cloud().tenant_name, thing.get("zoneName", ''))
 
     @classmethod
     def display_attributes(cls):
@@ -706,13 +725,17 @@ class Aggregate(PolyResource):
         return [x.to_dict() for x in nova_client.aggregates.list()]
 
     @classmethod
+    def identity(cls, thing):
+        """See the parent class' method's docstring."""
+
+        return _hash(cls.unique_class_id(), thing.get("id", ''))
+
+    @classmethod
     def display_attributes(cls):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"integration_name": "Nova",
-                "name": "Aggregate",
-                }
+        return {"integration_name": "Nova", "name": "Aggregate"}
 
 
 class Flavor(PolyResource):
@@ -728,13 +751,17 @@ class Flavor(PolyResource):
         return [x.to_dict() for x in nova_client.flavors.list()]
 
     @classmethod
+    def identity(cls, thing):
+        """See the parent class' method's docstring."""
+
+        return _hash(cls.unique_class_id(), thing.get("id", ''))
+
+    @classmethod
     def display_attributes(cls):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"integration_name": "Nova",
-                "name": "Flavor",
-                }
+        return {"integration_name": "Nova", "name": "Flavor"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -764,8 +791,8 @@ class Keypair(PolyResource):
 
         return [x.to_dict()["keypair"] for x in nova_client.keypairs.list()]
 
-    @staticmethod
-    def identity(thing):
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return thing.get("fingerprint")
@@ -850,11 +877,11 @@ class Host(PolyResource):
 
         return result
 
-    @staticmethod
-    def identity(thing):
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
-        return thing.get("host_name")
+        return _hash(get_cloud().tenant_name, thing.get("host_name", ''))
 
     @classmethod
     def display_attributes(cls):
@@ -906,13 +933,17 @@ class Hypervisor(PolyResource):
         return [x.to_dict() for x in nova_client.hypervisors.list()]
 
     @classmethod
+    def identity(cls, thing):
+        """See the parent class' method's docstring."""
+
+        return _hash(cls.unique_class_id(), thing.get("id", ''))
+
+    @classmethod
     def display_attributes(cls):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"integration_name": "Nova",
-                "name": "Hypervisor",
-                }
+        return {"integration_name": "Nova", "name": "Hypervisor"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -943,8 +974,8 @@ class Cloudpipe(PolyResource):
 
         return [x.to_dict() for x in nova_client.cloudpipe.list()]
 
-    @staticmethod
-    def identity(thing):
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return thing.get("project_id")
@@ -954,9 +985,7 @@ class Cloudpipe(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"integration_name": "Nova",
-                "name": "Cloudpipe",
-                }
+        return {"integration_name": "Nova", "name": "Cloudpipe"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -1066,9 +1095,10 @@ class Interface(PolyResource):
 
         # Each server has an interface list. Since we're interested in the
         # Interfaces themselves, we flatten the list, and de-dup it.
-        raw = [x.to_dict() for x in y.interface_list()
+        raw = [x.to_dict()
                for y in
-               nova_client.servers.list(search_opts={"all_tenants": 1})]
+               nova_client.servers.list(search_opts={"all_tenants": 1})
+               for x in y.interface_list()]
 
         mac_addresses = set()
         result = []
@@ -1082,8 +1112,8 @@ class Interface(PolyResource):
 
         return result
 
-    @staticmethod
-    def identity(thing):
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return thing.get("mac_addr")
@@ -1093,9 +1123,7 @@ class Interface(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"integration_name": "Nova",
-                "name": "Interface",
-                }
+        return {"integration_name": "Nova", "name": "Interface"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -1120,6 +1148,7 @@ class NovaLimits(PolyResource):
     def clouddata():
         """See the parent class' method's docstring."""
 
+        # TODO: This needs to be rewritten.
         nova_client = get_nova_client()["client"]
         nova_client.client.authenticate()
 
@@ -1130,9 +1159,7 @@ class NovaLimits(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"integration_name": "Nova",
-                "name": "Limits",
-                }
+        return {"integration_name": "Nova", "name": "Limits"}
 
 
 #
@@ -1153,9 +1180,7 @@ class Image(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"integration_name": "Glance",
-                "name": "Image",
-                }
+        return {"integration_name": "Glance", "name": "Image"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -1185,13 +1210,17 @@ class QuotaSet(PolyResource):
         return list(get_glance_client()["client"].images.list())
 
     @classmethod
+    def identity(cls, thing):
+        """See the parent class' method's docstring."""
+
+        return _hash(cls.unique_class_id(), thing.get("id", ''))
+
+    @classmethod
     def display_attributes(cls):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"integration_name": "Cinder",
-                "name": "Quota Set",
-                }
+        return {"integration_name": "Cinder", "name": "Quota Set"}
 
 
 class QOSSpec(PolyResource):
@@ -1276,9 +1305,7 @@ class VolumeType(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"integration_name": "Cinder",
-                "name": "Volume Type",
-                }
+        return {"integration_name": "Cinder", "name": "Volume Type"}
 
     @classmethod
     def outgoing_edges(cls):      # pylint: disable=R0201
@@ -1309,9 +1336,7 @@ class Volume(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"integration_name": "Cinder",
-                "name": "Volume",
-                }
+        return {"integration_name": "Cinder", "name": "Volume"}
 
 
 class Limits(PolyResource):
@@ -1328,9 +1353,7 @@ class Limits(PolyResource):
         """Return a dict of cloud information about this type, suitable for
         client display."""
 
-        return {"integration_name": "Cinder",
-                "name": "Limits",
-                }
+        return {"integration_name": "Cinder", "name": "Limits"}
 
 
 #
@@ -1346,8 +1369,8 @@ class MeteringLabelRule(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -1371,8 +1394,8 @@ class MeteringLabel(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -1406,8 +1429,8 @@ class NeutronQuota(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -1431,8 +1454,8 @@ class RemoteGroup(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -1456,8 +1479,8 @@ class SecurityRules(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -1491,8 +1514,8 @@ class SecurityGroup(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -1513,7 +1536,6 @@ class Port(PolyResource):
     @staticmethod
     def clouddata():
         """See the parent class' method's docstring."""
-        from goldstone.utils import get_cloud
         from goldstone.neutron.utils import get_neutron_client
         # from neutronclient.v2_0 import client as neclient
 
@@ -1558,8 +1580,8 @@ class LBVIP(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -1595,8 +1617,8 @@ class LBPool(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -1620,8 +1642,8 @@ class HealthMonitor(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -1655,8 +1677,8 @@ class FloatingIP(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -1680,8 +1702,8 @@ class FloatingIPPool(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -1719,8 +1741,8 @@ class FixedIP(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -1744,8 +1766,8 @@ class LBMember(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -1781,8 +1803,8 @@ class Subnet(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -1816,8 +1838,8 @@ class Network(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None
@@ -1841,8 +1863,8 @@ class Router(PolyResource):
 
         return None
 
-    @staticmethod
-    def identity(thing):                     # pylint: disable=W0613
+    @classmethod
+    def identity(cls, thing):
         """See the parent class' method's docstring."""
 
         return None

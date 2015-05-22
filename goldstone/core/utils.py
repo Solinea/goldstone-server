@@ -229,16 +229,16 @@ def process_resource_type(nodetype):
     # N.B. We could reuse resource_nodes as-is, but this is a little cleaner.
     resource_nodes = resources.nodes_of_type(nodetype)
 
-    # For every current node of the desired nodetype, having an identifying
-    # attribute that's present...
+    # For every current node of the desired nodetype for which we're able to
+    # generate a unique cloud id...
     for entry in actual:
-        source_value = nodetype.identity(entry)
+        native_id = nodetype.identity(entry)
 
-        if source_value:
+        if native_id:
             # Try to find its corresponding Resource graph node.
             node = resources.locate(resource_nodes,
                                     nodetype.identity,
-                                    source_value)
+                                    native_id)
 
             if node:
                 # This resource node corresponds to this service. Update its
@@ -250,14 +250,14 @@ def process_resource_type(nodetype):
             else:
                 # This is a new node. Add it to the Resource graph and database
                 # table.
-                native_id = entry.get("id")
-                native_name = entry.get("name", '')
 
                 if nodetype == Host:
+                    native_name = entry.get("host_name", '')
                     db_node = nodetype.objects.create(native_id=native_id,
                                                       native_name=native_name,
                                                       fqdn=native_name+".com")
                 else:
+                    native_name = entry.get("name", '')
                     db_node = nodetype.objects.create(native_id=native_id,
                                                       native_name=native_name)
 
