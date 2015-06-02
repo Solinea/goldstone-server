@@ -12,19 +12,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
+
 from django.contrib.auth import get_user_model
 from djoser import views as djoser_views
 from goldstone.tenants.models import Tenant
 from rest_framework.serializers import ModelSerializer
-from rest_framework.relations import RelatedField
+
+logger = logging.getLogger(__name__)
 
 
 class UserSerializer(ModelSerializer):
     """Expose a subset of the available User fields, treats some as read-only,
-    and provides read/write access to a Tenant row for tenant_admins."""
+    and provides read/write access to a Tenant row for tenant_admins.
+
+    This presently handles at most one Goldstone tenant per user, and at most
+    one OpenStack cloud per tenant.
+
+    """
 
     def to_internal_value(self, data):
-        from django.core.exceptions import ObjectDoesNotExist
 
         result = super(UserSerializer, self).to_internal_value(data)
         import pdb; pdb.set_trace()
@@ -33,20 +40,38 @@ class UserSerializer(ModelSerializer):
     def to_representation(self, value):
         """Include detailed tenant information if the user is a tenant_admin,
         otherwise nothing."""
+        from django.core.exceptions import ObjectDoesNotExist
 
         result = super(UserSerializer, self).to_representation(value)
 
-        if result["tenant_admin"]:
-            # Remember the tenant row, delete the pk field.
-            row = Tenant.objects.get(pk=tenant_pk)
-            del result["tenant"]
+        if result["tenant_admin"] and result["tenant"]:
+            # Get the tenant row.
+            try:
+                row = Tenant.objects.get(pk=result["tenant"])
+            except ObjectDoesNotExist:
+                # Odd condition of a tenant_admin without a valid tenant row.
+                # Return the User data now, without the tenant.
+                logger.warning("Tenant_admin with a tenant: %s", result)
+                del result["tenant"]
+                return result
 
             # Add the tenant's fields.
-            result["
-        else:
-            del result["tenant"]
+            result["tenant_name"] = row.name
 
-        import pdb; pdb.set_trace()
+            # Get the Cloud under this tenant, being careful to throw an
+            # exception if it's not present.  The aliasing here is a bit ugly.
+            row = row.cloud_set.all()[:1]
+            if row:
+                row = row[0]
+                result["os_name"] = row.tenant_name
+                result["os_username"] = row.username
+                result["os_password"] = row.password
+                result["os_auth_url"] = row.auth_url
+
+        # Whether the tenant pk field exists with a value, or contains None,
+        # delete it.
+        del result["tenant"]
+
         return result
 
     class Meta:                        # pylint: disable=C0111,W0232,C1001

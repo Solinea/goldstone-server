@@ -52,6 +52,7 @@ class Cloud(models.Model):
     password = models.CharField(max_length=settings.OS_PASSWORD_MAX_LENGTH)
     auth_url = models.CharField(max_length=settings.OS_AUTH_URL_MAX_LENGTH)
 
+    # A Goldstone tenant may have multiple clouds.
     tenant = models.ForeignKey(Tenant)
 
     # This allows URLs to identify a row using a UUID value.
