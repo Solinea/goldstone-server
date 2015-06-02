@@ -248,12 +248,89 @@ class GetPut(Setup):
     def test_get_restricted_fields(self):
         """Try getting fields that are restricted to tenant_admins."""
 
-        self.fail()
+        EXPECTED_CONTENT = {"username": TEST_USER[0],
+                            "first_name": '',
+                            "last_name": '',
+                            "email": TEST_USER[1],
+                            "tenant_admin": False,
+                            "default_tenant_admin": False}
+
+        cloud_fields = {"tenant_name": "cloud name 0",
+                        "username": "abracadabra",
+                        "password": "boomlackalackalacka",
+                        "auth_url": "http://10.11.12.13:5000/v3/"}
+
+        # Make a tenant, and one Cloud under it.
+        tenant = Tenant.objects.create(name='hellothere',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        cloud_fields["tenant"] = tenant
+        Cloud.objects.create(**cloud_fields)
+
+        # Create a normal user.
+        token = create_and_login()
+
+        response = self.client.get(
+            USER_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        # None of the Tenant or Cloud fields should be in the response.
+        check_response_without_uuid(response,
+                                    HTTP_200_OK,
+                                    EXPECTED_CONTENT,
+                                    extra_keys=["last_login", "date_joined"])
 
     def test_post_restricted_fields(self):
-        """Try posting to fields that are restricted to tenant_admins."""
+        """Try changing fields that are restricted to tenant_admins."""
 
-        self.fail()
+        expected_content = {"username": TEST_USER[0],
+                            "first_name": '',
+                            "last_name": '',
+                            "email": TEST_USER[1],
+                            "tenant_admin": False,
+                            "default_tenant_admin": False}
+
+        cloud_fields = {"tenant_name": "cloud name 0",
+                        "username": "abracadabra",
+                        "password": "boomlackalackalacka",
+                        "auth_url": "http://10.11.12.13:5000/v3/"}
+
+        # Make a tenant, and one Cloud under it.
+        tenant = Tenant.objects.create(name='hellothere',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        cloud_fields["tenant"] = tenant
+        Cloud.objects.create(**cloud_fields)
+
+        # Create a normal user.
+        token = create_and_login()
+
+        # Try to change some attributes. Note, the username is required by
+        # djoser UserView/PUT.
+        response = self.client.put(
+            USER_URL,
+            json.dumps({"username": TEST_USER[0],
+                        "os_username": "B minus",
+                        "os_password": "12344321",
+                        "tenant_name": "$20k"}),   # tenant_name won't change.
+            content_type="application/json",
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        # pylint: disable=E1101
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        # Now get the account attributes and see if they've changed.
+        response = self.client.get(
+            USER_URL,
+            HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        # None of the Tenant or Cloud fields should be in the response.
+        check_response_without_uuid(response,
+                                    HTTP_200_OK,
+                                    expected_content,
+                                    extra_keys=["last_login", "date_joined"])
 
 
 class GetPutTenantAdmin(Setup):
@@ -385,8 +462,8 @@ class GetPutTenantAdmin(Setup):
         # Create a tenant_admin of the tenant.
         token = create_and_login(tenant=tenant)
 
-        # Change some attributes from the default. Note, the username is
-        # required by djoser UserView/PUT.
+        # Try changing some bogus attributes. Note, the username is required by
+        # djoser UserView/PUT.
         response = self.client.put(
             USER_URL,
             json.dumps({"username": TEST_USER[0],
@@ -416,25 +493,39 @@ class GetPutTenantAdmin(Setup):
                                     extra_keys=["last_login", "date_joined"])
 
     def test_change_some_fields(self):
-        """Get Cloud data and change some of the fields."""
+        """Get Cloud data and change some fields."""
 
-        EXPECTED_CONTENT = {"username": TEST_USER[0],
-                            "first_name": "Dirk",
-                            "last_name": "Diggler",
+        expected_content = {"username": TEST_USER[0],
+                            "first_name": '',
+                            "last_name": '',
                             "email": TEST_USER[1],
-                            "tenant_admin": False,
+                            "tenant_admin": True,
                             "default_tenant_admin": False}
 
-        # Create a user and get their authorization token.
-        token = create_and_login()
+        cloud_fields = {"tenant_name": "cloud name 0",
+                        "username": "abracadabra",
+                        "password": "boomlackalackalacka",
+                        "auth_url": "http://10.11.12.13:5000/v3/"}
 
-        # Change some attributes from the default. Note, the username is
-        # required by djoser UserView/PUT.
+        # Make a tenant, and one Cloud under it.
+        tenant = Tenant.objects.create(name='hellothere',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        cloud_fields["tenant"] = tenant
+        Cloud.objects.create(**cloud_fields)
+
+        # Create a tenant_admin of the tenant.
+        token = create_and_login(tenant=tenant)
+
+        # Change some attributes. Note, the username is required by djoser
+        # UserView/PUT.
         response = self.client.put(
             USER_URL,
             json.dumps({"username": TEST_USER[0],
-                        "first_name": "Dirk",
-                        "last_name": "Diggler"}),
+                        "os_username": "B minus",
+                        "os_password": "12344321",
+                        "tenant_name": "$20k"}),   # tenant_name won't change.
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
@@ -446,7 +537,14 @@ class GetPutTenantAdmin(Setup):
             USER_URL,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # Concoct the results we expect, which includes the cloud credentials.
+        expected_content["tenant_name"] = tenant.name
+        expected_content["os_name"] = cloud_fields["tenant_name"]
+        expected_content["os_username"] = "B minus"
+        expected_content["os_password"] = "12344321"
+        expected_content["os_auth_url"] = cloud_fields["auth_url"]
+
         check_response_without_uuid(response,
                                     HTTP_200_OK,
-                                    EXPECTED_CONTENT,
+                                    expected_content,
                                     extra_keys=["last_login", "date_joined"])
