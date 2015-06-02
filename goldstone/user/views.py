@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 
 
 class UserSerializer(ModelSerializer):
-    """Expose a subset of the available User fields, treats some as read-only,
-    and provides read/write access to a Tenant row for tenant_admins.
+    """Expose a subset of the available User fields, treat some as read-only,
+    and provides read/write access to a Cloud row for tenant_admins.
 
     This presently handles at most one Goldstone tenant per user, and at most
     one OpenStack cloud per tenant.

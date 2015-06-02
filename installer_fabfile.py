@@ -306,8 +306,7 @@ def cloud_init(gs_tenant,
 
                 if re.search(AUTH_URL_VERSION_LIKELY, stack_auth_url[-9:]):
                     # The user shouldn't have included the version segment, but
-                    # did so anyway. Remove it before appending the correct
-                    # version.
+                    # did anyway. Remove it.
                     version_index = re.search(AUTH_URL_VERSION_LIKELY,
                                               stack_auth_url)
                     stack_auth_url = stack_auth_url[:version_index.start()]
