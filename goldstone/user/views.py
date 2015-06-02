@@ -26,15 +26,19 @@ logger = logging.getLogger(__name__)
 
 class UserSerializer(ModelSerializer):
     """Expose a subset of the available User fields, treat some as read-only,
-    and provides read/write access to a Cloud row for tenant_admins.
+    and allow tenant_adminds to read/write their Cloud row.
 
     This presently handles at most one Goldstone tenant per user, and at most
     one OpenStack cloud per tenant.
 
     """
 
-    # Extra fields that are not in the User model. These correspond to Cloud
-    # table fields.
+    # Extra fields that are not in the User model, which correspond to Tenant
+    # and Cloud table fields. These being here result in their display in the
+    # swagger-ui documentation.
+    tenant_name = CharField(required=False,
+                            read_only=True,
+                            max_length=settings.TENANT_NAME_MAX_LENGTH)
     os_name = CharField(required=False,
                         max_length=settings.OS_NAME_MAX_LENGTH)
     os_username = CharField(required=False,
@@ -119,8 +123,8 @@ class UserSerializer(ModelSerializer):
     class Meta:                        # pylint: disable=C0111,W0232,C1001
         model = get_user_model()
 
-        # We use exclude, so that the code will correctly handle per-user
-        # settings as they are defined in the User model.
+        # We use exclude so that the code will correctly handle new per-user
+        # settings added to the User model.
         exclude = ("id",
                    "user_permissions",
                    "groups",
@@ -130,9 +134,6 @@ class UserSerializer(ModelSerializer):
                    "password",
                    )
 
-        # Tenant is a read-only field. This results in the Tenant row pk being
-        # supplied to the UserSerializer on a read, and not being exposed to
-        # the swagger-ui documenation as a writeable field.
         read_only_fields = ("tenant_admin",
                             "default_tenant_admin",
                             "uuid",
