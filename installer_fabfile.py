@@ -268,12 +268,14 @@ def cloud_init(gs_tenant,
     :type install_dir: str
 
     """
-
-    # The OpenStack identity authorization URL has a version number segment.
-    # This is the authorization version we use. It should end with a slash, but
-    # maybe that's not necessary.
     import re
-    CLOUD_AUTH_URL_VERSION = "/v3/"
+
+    # The OpenStack identity authorization URL has a version number segment. We
+    # use this version. It should not start with a slash.
+    AUTH_URL_VERSION = "v3/"
+
+    # This is used to detect a version segment in an authorization URL.
+    AUTH_URL_VERSION_LIKELY = r'\/[vV]\d'
 
     with _django_env(settings, install_dir):
         from goldstone.tenants.models import Cloud
@@ -281,9 +283,12 @@ def cloud_init(gs_tenant,
 
         try:
             # unique constraint on (tenant, tenant_name, and username)
-            Cloud.objects.get(tenant=gs_tenant, tenant_name=stack_tenant,
+            Cloud.objects.get(tenant=gs_tenant,
+                              tenant_name=stack_tenant,
                               username=stack_user)
         except ObjectDoesNotExist:
+            # Since the row doesn't exist, we have to create it. Ask for user
+            # for each of the necessary attributes if they're not defined.
             if stack_tenant is None:
                 stack_tenant = prompt(cyan("Enter Openstack tenant name: "),
                                       default='admin')
@@ -293,16 +298,22 @@ def cloud_init(gs_tenant,
             if stack_password is None:
                 stack_password = prompt(
                     cyan("Enter Openstack user password: "))
+
             if stack_auth_url is None:
-                while stack_auth_url is None or \
-                        not stack_auth_url.endswith(CLOUD_AUTH_URL_VERSION):
-                    stack_auth_url = prompt(
-                        cyan("Enter OpenStack auth URL base "
-                             "(ex: http://10.10.10.10:5000/v2.0): "))
-                    if not stack_auth_url.endswith(CLOUD_AUTH_URL_VERSION):
-                        stack_auth_url = re.sub('/v2.0[/]?$|/v3[/]?$',
-                                                CLOUD_AUTH_URL_VERSION,
-                                                stack_auth_url)
+                stack_auth_url = \
+                    prompt(cyan("Enter OpenStack auth URL base "
+                                "(ex: http://10.10.10.10:5000/): "))
+
+                if re.search(AUTH_URL_VERSION_LIKELY, stack_auth_url[-9:]):
+                    # The user shouldn't have included the version segment, but
+                    # did so anyway. Remove it before appending the correct
+                    # version.
+                    version_index = re.search(AUTH_URL_VERSION_LIKELY,
+                                              stack_auth_url)
+                    stack_auth_url = stack_auth_url[:version_index.start()]
+
+                # Append our version number to the base URL.
+                stack_auth_url = os.path.join(stack_auth_url, AUTH_URL_VERSION)
 
             Cloud.objects.create(tenant=gs_tenant,
                                  tenant_name=stack_tenant,
@@ -447,8 +458,7 @@ def tenant_init(gs_tenant='default',
                 gs_tenant_admin_password=None,
                 settings=PROD_SETTINGS,
                 install_dir=INSTALL_DIR):
-    """Create a tenant and default_tenant_admin, or use existing ones; and
-    create a cloud under the tenant.
+    """Create a tenant and default_tenant_admin, or use existing ones.
 
     If the tenant doesn't exist, we create it.  If the admin doesn't exist, we
     create it as the default_tenant_admin, and the tenant's tenant_admin.
