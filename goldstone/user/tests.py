@@ -16,7 +16,7 @@ from django.contrib.auth import get_user_model
 import json
 from rest_framework.status import HTTP_200_OK, HTTP_401_UNAUTHORIZED, \
     HTTP_400_BAD_REQUEST
-from goldstone.tenants.models import Tenant
+from goldstone.tenants.models import Tenant, Cloud
 from goldstone.test_utils import create_and_login, Setup, USER_URL, \
     AUTHORIZATION_PAYLOAD, CONTENT_NO_CREDENTIALS, CONTENT_BAD_TOKEN, \
     CONTENT_MISSING_USERNAME, TEST_USER, check_response_without_uuid, \
@@ -117,7 +117,7 @@ class GetPut(Setup):
     def test_get(self):                   # pylint: disable=R0201
         """Get data from the default created account."""
 
-        expected_content = {"username": TEST_USER[0],
+        EXPECTED_CONTENT = {"username": TEST_USER[0],
                             "first_name": '',
                             "last_name": '',
                             "email": TEST_USER[1],
@@ -133,13 +133,13 @@ class GetPut(Setup):
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
-                                    expected_content,
+                                    EXPECTED_CONTENT,
                                     extra_keys=["last_login", "date_joined"])
 
     def test_change_one_field(self):
         """Change one field in the account."""
 
-        expected_content = {"username": TEST_USER[0],
+        EXPECTED_CONTENT = {"username": TEST_USER[0],
                             "first_name": "Dirk",
                             "last_name": '',
                             "email": TEST_USER[1],
@@ -168,13 +168,13 @@ class GetPut(Setup):
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
-                                    expected_content,
+                                    EXPECTED_CONTENT,
                                     extra_keys=["last_login", "date_joined"])
 
     def test_change_some_fields(self):
         """Get data from an account, after we've modified some fields."""
 
-        expected_content = {"username": TEST_USER[0],
+        EXPECTED_CONTENT = {"username": TEST_USER[0],
                             "first_name": "Dirk",
                             "last_name": "Diggler",
                             "email": TEST_USER[1],
@@ -204,14 +204,14 @@ class GetPut(Setup):
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
-                                    expected_content,
+                                    EXPECTED_CONTENT,
                                     extra_keys=["last_login", "date_joined"])
 
     def test_change_all_fields(self):
         """Get data from an account, after we've modified all the
         user-modifiable fields."""
 
-        expected_content = {"username": "Heywood",
+        EXPECTED_CONTENT = {"username": "Heywood",
                             "first_name": "Dirk",
                             "last_name": "Diggler",
                             "email": "john@siberia.com",
@@ -242,7 +242,7 @@ class GetPut(Setup):
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
-                                    expected_content,
+                                    EXPECTED_CONTENT,
                                     extra_keys=["last_login", "date_joined"])
 
     def test_get_restricted_fields(self):
@@ -261,8 +261,8 @@ class GetPutTenantAdmin(Setup):
 
     def test_no_tenant(self):
         """Get or change Cloud data when there's no Goldstone tenant."""
- 
-        expected_content = {"username": TEST_USER[0],
+
+        EXPECTED_CONTENT = {"username": TEST_USER[0],
                             "first_name": '',
                             "last_name": '',
                             "email": TEST_USER[1],
@@ -277,7 +277,7 @@ class GetPutTenantAdmin(Setup):
         # Create a tenant_admin of the tenant.  Then nullify the Tenant field.
         token = create_and_login(tenant=tenant)
         user = get_user_model().objects.all()[0]
-        user.tenant  = None
+        user.tenant = None
         user.save()
 
         response = self.client.get(
@@ -286,13 +286,13 @@ class GetPutTenantAdmin(Setup):
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
-                                    expected_content,
+                                    EXPECTED_CONTENT,
                                     extra_keys=["last_login", "date_joined"])
 
     def test_no_cloud(self):
         """Get or change Cloud data when there's no Cloud."""
 
-        expected_content = {"username": TEST_USER[0],
+        EXPECTED_CONTENT = {"username": TEST_USER[0],
                             "first_name": '',
                             "last_name": '',
                             "email": TEST_USER[1],
@@ -314,7 +314,7 @@ class GetPutTenantAdmin(Setup):
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
-                                    expected_content,
+                                    EXPECTED_CONTENT,
                                     extra_keys=["last_login", "date_joined"])
 
     def test_get_data(self):
@@ -324,15 +324,35 @@ class GetPutTenantAdmin(Setup):
                             "first_name": '',
                             "last_name": '',
                             "email": TEST_USER[1],
-                            "tenant_admin": False,
+                            "tenant_admin": True,
                             "default_tenant_admin": False}
 
-        # Create a user and get their authorization token.
-        token = create_and_login()
+        cloud_fields = {"tenant_name": "cloud name 0",
+                        "username": "abracadabra",
+                        "password": "boomlackalackalacka",
+                        "auth_url": "http://10.11.12.13:5000/v3/"}
+
+        # Make a tenant, and one Cloud under it.
+        tenant = Tenant.objects.create(name='hellothere',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        cloud_fields["tenant"] = tenant
+        Cloud.objects.create(**cloud_fields)
+
+        # Create a tenant_admin of the tenant.
+        token = create_and_login(tenant=tenant)
 
         response = self.client.get(
             USER_URL,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
+
+        # Concoct the results we expect, which includes the cloud credentials.
+        expected_content["tenant_name"] = tenant.name
+        expected_content["os_name"] = cloud_fields["tenant_name"]
+        expected_content["os_username"] = cloud_fields["username"]
+        expected_content["os_password"] = cloud_fields["password"]
+        expected_content["os_auth_url"] = cloud_fields["auth_url"]
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
@@ -340,24 +360,38 @@ class GetPutTenantAdmin(Setup):
                                     extra_keys=["last_login", "date_joined"])
 
     def test_change_bogus_field(self):
-        """Try changing a field that doesn't exist."""
+        """Try changing fields that don't exist."""
 
         expected_content = {"username": TEST_USER[0],
-                            "first_name": "Dirk",
+                            "first_name": '',
                             "last_name": '',
                             "email": TEST_USER[1],
-                            "tenant_admin": False,
+                            "tenant_admin": True,
                             "default_tenant_admin": False}
 
-        # Create a user and get their authorization token.
-        token = create_and_login()
+        cloud_fields = {"tenant_name": "cloud name 0",
+                        "username": "abracadabra",
+                        "password": "boomlackalackalacka",
+                        "auth_url": "http://10.11.12.13:5000/v3/"}
+
+        # Make a tenant, and one Cloud under it.
+        tenant = Tenant.objects.create(name='hellothere',
+                                       owner='John',
+                                       owner_contact='206.867.5309')
+
+        cloud_fields["tenant"] = tenant
+        Cloud.objects.create(**cloud_fields)
+
+        # Create a tenant_admin of the tenant.
+        token = create_and_login(tenant=tenant)
 
         # Change some attributes from the default. Note, the username is
         # required by djoser UserView/PUT.
         response = self.client.put(
             USER_URL,
             json.dumps({"username": TEST_USER[0],
-                        "first_name": "Dirk"}),
+                        "os_bloodtype": "B minus",
+                        "tenant_taxes": "$20k"}),
             content_type="application/json",
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
@@ -369,6 +403,13 @@ class GetPutTenantAdmin(Setup):
             USER_URL,
             HTTP_AUTHORIZATION=AUTHORIZATION_PAYLOAD % token)
 
+        # Concoct the results we expect, which includes the cloud credentials.
+        expected_content["tenant_name"] = tenant.name
+        expected_content["os_name"] = cloud_fields["tenant_name"]
+        expected_content["os_username"] = cloud_fields["username"]
+        expected_content["os_password"] = cloud_fields["password"]
+        expected_content["os_auth_url"] = cloud_fields["auth_url"]
+
         check_response_without_uuid(response,
                                     HTTP_200_OK,
                                     expected_content,
@@ -377,7 +418,7 @@ class GetPutTenantAdmin(Setup):
     def test_change_some_fields(self):
         """Get Cloud data and change some of the fields."""
 
-        expected_content = {"username": TEST_USER[0],
+        EXPECTED_CONTENT = {"username": TEST_USER[0],
                             "first_name": "Dirk",
                             "last_name": "Diggler",
                             "email": TEST_USER[1],
@@ -407,5 +448,5 @@ class GetPutTenantAdmin(Setup):
 
         check_response_without_uuid(response,
                                     HTTP_200_OK,
-                                    expected_content,
+                                    EXPECTED_CONTENT,
                                     extra_keys=["last_login", "date_joined"])
