@@ -274,7 +274,7 @@ def cloud_init(gs_tenant,
     # use this version. It should not start with a slash.
     AUTH_URL_VERSION = "v3/"
 
-    # This is used to detect a version segment in an authorization URL.
+    # This is used to detect a version segment at an authorization URL's end.
     AUTH_URL_VERSION_LIKELY = r'\/[vV]\d'
 
     with _django_env(settings, install_dir):
@@ -301,8 +301,8 @@ def cloud_init(gs_tenant,
 
             if stack_auth_url is None:
                 stack_auth_url = \
-                    prompt(cyan("Enter OpenStack auth URL base "
-                                "(ex: http://10.10.10.10:5000/): "))
+                    prompt(cyan("Enter OpenStack auth URL "
+                                "(eg: http://10.10.10.10:5000/): "))
 
                 if re.search(AUTH_URL_VERSION_LIKELY, stack_auth_url[-9:]):
                     # The user shouldn't have included the version segment, but
