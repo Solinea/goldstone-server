@@ -199,14 +199,19 @@ def goldstone_init(verbose=False):
 
     """
     from installer_fabfile import goldstone_init as installer_goldstone_init
+    from installer_fabfile import syncmigrate, django_admin_init
 
-    installer_goldstone_init(settings=_django_settings_module(verbose),
-                             install_dir='.')
+    # Get the desired settings from the user.
+    settings = _django_settings_module(verbose)
+
+    # Do the initialization with the user's settings, on the current directory.
+    syncmigrate(settings=settings, install_dir='.')
+    django_admin_init(settings=settings, install_dir='.')
+    installer_goldstone_init(settings=settings, install_dir='.')
 
 
 @task
 def runserver(verbose=False):
-
     """Do runserver using a user-selected settings file.
 
     :keyword verbose: Display detail about each settings choice?
