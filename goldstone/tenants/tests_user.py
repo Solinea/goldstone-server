@@ -165,6 +165,7 @@ class TenantsIdUsers(Setup):
                             "last_name": '',
                             "email": "a@b.com",
                             "default_tenant_admin": False,
+                            "tenant_name": "tennet",
                             "tenant_admin": True},
                            {"username": "b",
                             "first_name": '',
@@ -181,7 +182,7 @@ class TenantsIdUsers(Setup):
                            ]
 
         # Make a tenant
-        tenant = Tenant.objects.create(name='tenant',
+        tenant = Tenant.objects.create(name='tennet',
                                        owner='John',
                                        owner_contact='206.867.5309')
 
@@ -460,6 +461,7 @@ class TenantsIdUsersId(Setup):
                              "last_name": "",
                              "email": "fred@fred.com",
                              "tenant_admin": True,
+                             "tenant_name": "tennent",
                              "default_tenant_admin": False},
                             {"username": "Traci",
                              "first_name": "",
@@ -470,7 +472,7 @@ class TenantsIdUsersId(Setup):
                             ]
 
         # Make a tenant.
-        tenant = Tenant.objects.create(name='tenant',
+        tenant = Tenant.objects.create(name='tennent',
                                        owner='John',
                                        owner_contact='206.867.5309')
 
