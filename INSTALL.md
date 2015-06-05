@@ -11,21 +11,57 @@ Before installing Goldstone, your server must meet the following prerequisites:
 
 To view and use Goldstone, you'll need a recent version of [Firefox](https://www.mozilla.org/en-US/firefox/products/), [Safari](https://www.apple.com/safari/), or [Chrome](https://www.google.com/intl/en-US/chrome/browser).
 
-## Install RPM and run the configuration script (as root)
+## Install RPMs (as root)
 
-Download the [lastest release](https://github.com/Solinea/goldstone-server/releases) and execute with the following steps:
+Download the [latest release](https://github.com/Solinea/goldstone-server/releases) and execute these commands:
 
 ```bash
 root# yum update ; reboot
 root# yum localinstall -y goldstone-server-{version}.rpm
-root# cd /opt/goldstone
-root# . bin/activate
-root# fab install
 ```
 
-It will check for supported operating systems and prerequisties. If all checks pass, it will then prompt you for additional configuration information.
+## Install and configure Goldstone (as root)
 
-Additionally, Goldstone's password-reset sequence uses e-mail. Ensure you have a working [SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol) server (e.g., [Postfix](http://www.postfix.org)) installed.
+You have two ways to install Goldstone.
+
+### 1. Complete (requires terminal interaction)
+
+The installation script will check the Goldstone prerequisites. If all checks pass, it will then prompt you for additional configuration information. Execute these commands:
+
+```bash
+root# cd /opt/goldstone
+root# . bin/activate
+root# fab full_install
+```
+
+### 2. Partial (requires no terminal interaction)
+
+This installation requires no terminal interaction. But, you will have to perform additional installation steps (described below) after it completes.
+
+The installation script will check the Goldstone prerequisites. If all checks pass, it will then do a partial installation of Goldstone. Execute these commands, replacing "PASSWORD" with the password you want the Django administrative account to have:
+
+```bash
+root# cd /opt/goldstone
+root# . bin/activate
+root# fab install:django_admin_password=PASSWORD
+```
+
+#### Completing the installation
+
+Point your browser at the Goldstone server IP address or name, and log in with the account name "admin" and the Django administrative password.  Then perform these steps to complete the installation:
+
+1. Click TBD
+2. You will see a form for a new Goldstone tenant administrator account. Fill in the form, and click TBD
+1. Click TBD
+2. You will now see a form for a new Goldstone tenant. Fill in the form, and click TBD
+3. Click TBD
+3. You will see a form for a new OpenStack cloud, to be created under your Goldstone tenant. Fill in the form, and click TBD
+4. You may now stay logged in as the site administrator and explore Goldstone. Or, you may logout and log back in using the Goldstone tenant administrator account you just created.
+
+
+## Check your password-reset sequence
+
+Goldstone's password-reset sequence uses e-mail. Ensure you have a working [SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol) server (e.g., [Postfix](http://www.postfix.org)) installed.
 
 ## Review production.py
 
