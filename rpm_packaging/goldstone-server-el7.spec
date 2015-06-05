@@ -74,7 +74,7 @@ echo "  2. A partial installation."
 echo ""
 echo "      cd /opt/goldstone"
 echo "      . bin/activate"
-echo "      fab install"
+echo "      fab install:django_admin_password=ADMIN_PASSWORD"
 echo ""
 echo "*****************************************************************************"
 
