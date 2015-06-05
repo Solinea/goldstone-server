@@ -233,7 +233,7 @@ class SpawnsAggView(DateHistogramAggView):
     reserved_params = ['interval']
     SUCCESS_AGG_NAME = 'success'
 
-    class Meta:
+    class Meta:                 # pylint: disable=C1001,W0232
         """Meta."""
         model = SpawnsData
 
