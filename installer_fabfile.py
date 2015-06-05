@@ -614,6 +614,8 @@ def goldstone_init(gs_tenant='default',       # pylint: disable=R0913
     _configure_services()
     load_es_templates(proj_settings=settings)
 
+    _final_report()
+
 
 @task
 def full_install(pg_passwd='goldstone',       # pylint: disable=R0913
@@ -693,8 +695,6 @@ def full_install(pg_passwd='goldstone',       # pylint: disable=R0913
                        stack_user=stack_user,
                        stack_password=stack_password,
                        stack_auth_url=stack_auth_url)
-
-        _final_report()
 
     else:
         print()
