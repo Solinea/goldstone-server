@@ -66,10 +66,10 @@ PROD_SETTINGS = "goldstone.settings.production"
 # used to collect configuration data, then presented at completion
 # of install.
 final_report = {    # pylint: disable=C0103
-    'django_admin_user': None,
-    'django_admin_pass': None,
-    'goldstone_admin_user': None,
-    'goldstone_admin_pass': None,
+    'django_admin_user': "None",
+    'django_admin_pass': "None",
+    'goldstone_admin_user': "None",
+    'goldstone_admin_pass': "None",
     'port': 80
 }
 

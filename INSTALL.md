@@ -36,6 +36,8 @@ root# fab full_install
 
 ### 2. Partial (requires no terminal interaction)
 
+**N.B.: This section is a work in progress. It is not yet complete.**
+
 This installation requires no terminal interaction. But, you will have to perform additional installation steps (described below) after it completes.
 
 The installation script will check the Goldstone prerequisites. If all checks pass, it will then do a partial installation of Goldstone. Execute these commands, replacing "PASSWORD" with the password you want the Django administrative account to have:
